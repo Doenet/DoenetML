@@ -18,18 +18,24 @@ npm run benchmark -w @doenet/memory-benchmark
 node src/measure.mjs --counts 1,8
 node src/measure.mjs --sizes 25,100,500
 node src/measure.mjs --doenetml path/to/doc.doenetml
+
+# Run a subset of scenarios (regex over scenario names)
+node src/measure.mjs --only 'workers' --sizes ""
 ```
 
 Playwright's Chromium must be installed once: `npx playwright install chromium`.
 
 ## Scenarios
 
-| Scenario   | What it models                                                                                                |
-| ---------- | ------------------------------------------------------------------------------------------------------------- |
-| `blank`    | Browser baseline, no DoenetML                                                                                   |
-| `direct-N` | N viewers sharing one realm (`renderDoenetViewerToContainer` on one page)                                       |
-| `iframe-N` | N viewers in one iframe each, the way `@doenet/doenetml-iframe` and PreTeXt embed documents                     |
-| `repeat-S` | One viewer with a generated `<repeatForSequence>` document of S iterations (≈5S components) — document scaling |
+| Scenario           | What it models                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `blank`            | Browser baseline, no DoenetML                                                                                   |
+| `direct-N`         | N viewers sharing one realm (`renderDoenetViewerToContainer` on one page)                                       |
+| `iframe-N`         | N viewers in one iframe each, the way `@doenet/doenetml-iframe` and PreTeXt embed documents                     |
+| `iframe-xorigin-N` | Like `iframe-N`, but the standalone bundle (and its co-located worker) is served from a second, CORS-enabled origin — the cross-origin CDN situation PreTeXt and doenet.org are actually in |
+| `workers-parse-N`  | N raw core workers, script evaluated only, no document — isolates the per-worker script parse/eval floor       |
+| `workers-init-N`   | `workers-parse-N` + WASM compile/instantiate + the document-independent core handshake on an empty document — the per-instance share a shared/multiplexed worker (#1441 stream E) would eliminate |
+| `repeat-S`         | One viewer with a generated `<repeatForSequence>` document of S iterations (≈5S components) — document scaling |
 
 Each scenario runs in a fresh browser instance. The harness waits for every
 core to report ready (`initializedCallback`), lets workers/MathJax settle,

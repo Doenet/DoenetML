@@ -32,11 +32,20 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { execSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { chromium } from "playwright";
 
 const HERE = import.meta.dirname;
+const require = createRequire(import.meta.url);
 const STANDALONE_DIST = path.resolve(HERE, "../../standalone/dist");
 const PAGES = path.resolve(HERE, "../pages");
+// The core worker bundle, served same-origin for the workers-* scenarios so
+// they can boot raw workers without going through a viewer.
+const WORKER_DIST = path.dirname(
+    require.resolve("@doenet/doenetml-worker/index.js"),
+);
+// Comlink (the worker's RPC layer), served to the workers-* page.
+const COMLINK_ESM = require.resolve("comlink/dist/esm/comlink.mjs");
 
 const DEFAULT_DOENETML = `
 <p>What is <m>1+1</m>? <answer name="ans"><mathInput/>2</answer></p>
@@ -75,6 +84,7 @@ function parseArgs() {
         counts: [1, 4],
         sizes: [25, 250],
         doenetML: DEFAULT_DOENETML,
+        only: null,
     };
     for (let i = 0; i < args.length; i++) {
         if (args[i] === "--counts") {
@@ -83,6 +93,9 @@ function parseArgs() {
             opts.sizes = args[++i].split(",").filter(Boolean).map(Number);
         } else if (args[i] === "--doenetml") {
             opts.doenetML = fs.readFileSync(args[++i], "utf8");
+        } else if (args[i] === "--only") {
+            // Regex over scenario names; non-matching scenarios are skipped.
+            opts.only = new RegExp(args[++i]);
         } else {
             console.error(`Unknown argument: ${args[i]}`);
             process.exit(1);
@@ -100,9 +113,10 @@ function parseArgs() {
  * an iframe whose realm origin is the *main* server — modelling how PreTeXt and
  * doenet.org load `@doenet/standalone` cross-origin from a CDN.
  */
-function startServer(docs, { cors = false } = {}) {
+function startServer(docs, { cors = false, json = {} } = {}) {
     const MIME = {
         ".js": "text/javascript",
+        ".mjs": "text/javascript",
         ".css": "text/css",
         ".html": "text/html",
         ".map": "application/json",
@@ -112,6 +126,14 @@ function startServer(docs, { cors = false } = {}) {
     const server = http.createServer((req, res) => {
         const url = new URL(req.url, "http://localhost");
         const corsHeaders = cors ? { "access-control-allow-origin": "*" } : {};
+        if (url.pathname in json) {
+            res.writeHead(200, {
+                "content-type": "application/json",
+                ...corsHeaders,
+            });
+            res.end(JSON.stringify(json[url.pathname]));
+            return;
+        }
         if (url.pathname === "/doenetml-source") {
             // Scenario pages fetch their document source from here; ?doc=
             // selects among the default and generated repeat documents.
@@ -128,10 +150,20 @@ function startServer(docs, { cors = false } = {}) {
             res.end(docs[doc]);
             return;
         }
-        const root = url.pathname.startsWith("/standalone/")
-            ? STANDALONE_DIST
-            : PAGES;
-        const rel = url.pathname.replace(/^\/(standalone\/)?/, "");
+        let root, rel;
+        if (url.pathname.startsWith("/standalone/")) {
+            root = STANDALONE_DIST;
+            rel = url.pathname.slice("/standalone/".length);
+        } else if (url.pathname.startsWith("/worker/")) {
+            root = WORKER_DIST;
+            rel = url.pathname.slice("/worker/".length);
+        } else if (url.pathname === "/comlink.mjs") {
+            root = path.dirname(COMLINK_ESM);
+            rel = path.basename(COMLINK_ESM);
+        } else {
+            root = PAGES;
+            rel = url.pathname.replace(/^\//, "");
+        }
         const filePath = path.join(root, rel);
         if (
             !filePath.startsWith(root) ||
@@ -303,7 +335,14 @@ for (const size of opts.sizes) {
     docs[`repeat-${size}`] = makeRepeatDoc(size);
 }
 
-const { server, port } = await startServer(docs);
+// Normalized DAST of the empty document, for the workers-* scenarios' minimal
+// (document-independent) core handshake.
+const parser = await import("@doenet/parser");
+const emptyDast = parser.normalizeDocumentDast(parser.lezerToDast(""), true);
+
+const { server, port } = await startServer(docs, {
+    json: { "/empty-dast.json": emptyDast },
+});
 const base = `http://127.0.0.1:${port}`;
 // Second, CORS-enabled server on a different port = a different origin. It
 // stands in for the jsdelivr CDN: the `iframe-xorigin-*` scenarios load
@@ -335,13 +374,30 @@ const scenarios = [
             expectInitialized: n,
         },
     ]),
+    // Per-worker fixed floor: N raw core workers, no viewers/documents.
+    // `parse` = worker script evaluated only; `init` = + WASM compile and the
+    // document-independent JS-core handshake on an empty document (no
+    // generateDast). The marginal cost per `init` worker is the per-instance
+    // share a multiplexed/shared worker (#1441 stream E) would eliminate.
+    ...opts.counts.flatMap((n) => [
+        {
+            name: `workers-parse-${n}`,
+            url: `${base}/workers.html?n=${n}&stage=parse`,
+            expectInitialized: n,
+        },
+        {
+            name: `workers-init-${n}`,
+            url: `${base}/workers.html?n=${n}&stage=init`,
+            expectInitialized: n,
+        },
+    ]),
     // Document-scaling: one viewer, generated large document.
     ...opts.sizes.map((size) => ({
         name: `repeat-${size}`,
         url: `${base}/direct.html?n=1&doc=repeat-${size}`,
         expectInitialized: 1,
     })),
-];
+].filter((s) => !opts.only || opts.only.test(s.name));
 
 const results = [];
 for (let i = 0; i < scenarios.length; i++) {
@@ -372,7 +428,13 @@ for (const r of results) {
 }
 const [lo, hi] = opts.counts;
 if (hi > lo) {
-    for (const kind of ["direct", "iframe", "iframe-xorigin"]) {
+    for (const kind of [
+        "direct",
+        "iframe",
+        "iframe-xorigin",
+        "workers-parse",
+        "workers-init",
+    ]) {
         const a = byName[`${kind}-${lo}`];
         const b = byName[`${kind}-${hi}`];
         if (a?.totalPssMB != null && b?.totalPssMB != null) {

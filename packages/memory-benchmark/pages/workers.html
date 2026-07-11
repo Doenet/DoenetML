@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>idle core workers</title>
+    </head>
+    <body>
+        <script type="module">
+            // Measure the per-worker fixed floor: boot N core workers with NO
+            // document, isolating the cost a shared/multiplexed worker (#1441
+            // stream E) would collapse to one copy per page.
+            //
+            //   ?stage=parse  create the worker and prove the ~15 MB script
+            //                 finished evaluating (one cheap Comlink call that
+            //                 does not touch WASM).
+            //   ?stage=init   additionally run the document-independent core
+            //                 handshake exactly as DocViewer does (setCoreType/
+            //                 setSource/setFlags/initializeJavascriptCore) on an
+            //                 EMPTY document -- WASM compile + instantiate + JS
+            //                 core init, stopping before generateDast.
+            import * as Comlink from "/comlink.mjs";
+            const params = new URLSearchParams(location.search);
+            const n = parseInt(params.get("n") ?? "1", 10);
+            const stage = params.get("stage") ?? "init";
+            window.__done = false;
+            window.__initializedCount = 0;
+            // Retain every worker + Comlink proxy for the page lifetime so
+            // nothing is GC'd before the measurement.
+            const keep = [];
+            window.__keep = keep;
+            (async () => {
+                const emptyDast = await fetch("/empty-dast.json").then((r) =>
+                    r.json(),
+                );
+                // DocViewer's default flags with state save/load and event
+                // reporting off, so the handshake needs no host callbacks.
+                const flags = {
+                    showCorrectness: true,
+                    readOnly: false,
+                    solutionDisplayMode: "button",
+                    showFeedback: true,
+                    showHints: true,
+                    allowLoadState: false,
+                    allowSaveState: false,
+                    saveRendererState: false,
+                    allowLocalState: false,
+                    allowSaveEvents: false,
+                    messageParent: false,
+                    autoSubmit: false,
+                };
+                for (let i = 0; i < n; i++) {
+                    const worker = new Worker("/worker/index.js", {
+                        type: "classic",
+                    });
+                    const remote = Comlink.wrap(worker);
+                    // Resolves only after the worker script has evaluated.
+                    await remote.setCoreType("javascript");
+                    if (stage !== "parse") {
+                        await remote.setSource({ source: "", dast: emptyDast });
+                        await remote.setFlags({ flags });
+                        await remote.initializeJavascriptCore({
+                            activityId: "bench-activity",
+                            docId: "bench-doc",
+                            requestedVariantIndex: 1,
+                            attemptNumber: 1,
+                        });
+                    }
+                    keep.push({ worker, remote });
+                    window.__initializedCount++;
+                }
+                window.__done = true;
+            })();
+        </script>
+    </body>
+</html>
