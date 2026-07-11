@@ -1,11 +1,8 @@
 import { defineConfig } from "cypress";
 import vitePreprocessor from "cypress-vite";
 import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { version as iframeVersion } from "./package.json";
-
-const HERE = path.dirname(fileURLToPath(import.meta.url));
+import { serveDoenetmlWorkerPlugin } from "./serve-doenetml-worker-plugin";
 
 export default defineConfig({
     // Match @doenet/test-cypress's policy: retry twice in CI (runMode), no
@@ -39,52 +36,13 @@ export default defineConfig({
                     dedupe: ["react", "react-dom"],
                 },
                 plugins: [
-                    {
-                        // The standalone bundle no longer embeds the core
-                        // worker — it loads it from a URL. Because these
-                        // specs load the bundle from a Blob URL (below),
-                        // "next to the bundle" does not exist, and the bundle
-                        // falls back to `<origin>/doenetml-worker/index.js`.
-                        // Serve the built worker there.
-                        name: "serve-doenetml-worker",
-                        configureServer(server: any) {
-                            const workerDist = path.resolve(
-                                HERE,
-                                "../doenetml-worker/dist",
-                            );
-                            const MIME: Record<string, string> = {
-                                ".js": "text/javascript",
-                                ".mjs": "text/javascript",
-                                ".map": "application/json",
-                                ".wasm": "application/wasm",
-                            };
-                            server.middlewares.use(
-                                "/doenetml-worker",
-                                (req: any, res: any, next: any) => {
-                                    const rel = (req.url ?? "")
-                                        .replace(/[?#].*$/, "")
-                                        .replace(/^\/+/, "");
-                                    const file = path.join(
-                                        workerDist,
-                                        rel || "index.js",
-                                    );
-                                    if (
-                                        !file.startsWith(workerDist) ||
-                                        !fs.existsSync(file) ||
-                                        fs.statSync(file).isDirectory()
-                                    ) {
-                                        return next();
-                                    }
-                                    res.setHeader(
-                                        "content-type",
-                                        MIME[path.extname(file)] ??
-                                            "application/octet-stream",
-                                    );
-                                    fs.createReadStream(file).pipe(res);
-                                },
-                            );
-                        },
-                    },
+                    // The standalone bundle no longer embeds the core worker —
+                    // it loads it from a URL. Because these specs load the
+                    // bundle from a Blob URL (below), "next to the bundle" does
+                    // not exist and the bundle falls back to
+                    // `<origin>/doenetml-worker/index.js`. Serve the built
+                    // worker there.
+                    serveDoenetmlWorkerPlugin(),
                     {
                         // The @doenet/standalone bundle (~32 MB JS, plus a
                         // multi-MB CSS file) is imported as `?raw` and wrapped
