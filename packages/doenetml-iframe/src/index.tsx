@@ -307,21 +307,11 @@ export function DoenetViewer({
 
     // Serializable snapshot of the live-updatable inputs (doenetML + all
     // non-function props), used for change detection against what the iframe
-    // last received.
-    //
-    // Change detection uses `JSON.stringify`, which assumes supported props
-    // are JSON-safe (scalars, plain arrays/objects). `undefined` values are
-    // dropped, `Date`/`Map`/`Set` are normalized to strings/empty objects,
-    // and key reordering produces spurious diffs. If a new prop with an
-    // exotic value type is added later, prefer a structural comparator over
-    // expanding what this serializer handles.
-    const propsForUpdate: Record<string, any> = { doenetML };
-    for (const [key, val] of Object.entries(doenetViewerProps)) {
-        if (typeof val !== "function") {
-            propsForUpdate[key] = val;
-        }
-    }
-    const propsSnapshotStr = JSON.stringify(propsForUpdate);
+    // last received. See `serializePropsSnapshot` for the JSON-safety caveats.
+    const propsSnapshotStr = serializePropsSnapshot(
+        { doenetML },
+        doenetViewerProps,
+    );
 
     // Legacy bundles (< 0.7.18) can't re-render in place, so fall back to
     // the historical behavior: bake current props into the srcdoc and reload
@@ -377,15 +367,10 @@ export function DoenetViewer({
     React.useLayoutEffect(() => {
         viewerIframeRef.current = null;
         destroySharedCoresForViewer(id);
-        const baselineProps: Record<string, any> = {
-            doenetML: doenetMLRef.current,
-        };
-        for (const [key, val] of Object.entries(doenetViewerPropsRef.current)) {
-            if (typeof val !== "function") {
-                baselineProps[key] = val;
-            }
-        }
-        lastSentPropsSnapshotRef.current = JSON.stringify(baselineProps);
+        lastSentPropsSnapshotRef.current = serializePropsSnapshot(
+            { doenetML: doenetMLRef.current },
+            doenetViewerPropsRef.current,
+        );
         // Function props re-register when the new iframe emits iframeReady
         // (the listener calls renderViewerWithFunctionProps with the latest
         // identities and re-populates this ref), so just clear it here.
@@ -572,7 +557,7 @@ export function DoenetViewer({
     // Push function-prop identity changes into the iframe, matching the
     // in-process `<DoenetViewer>` (where parents routinely pass a fresh
     // closure each render). Same strategy and caveats as the editor's
-    // function-prop effect above — see that comment block for the full
+    // function-prop effect below — see that comment block for the full
     // rationale (full-set resend, dispatchers on the iframe side, Comlink
     // port lifetime).
     //
@@ -706,6 +691,32 @@ type EditorIframeRemote = Comlink.Remote<{
     closeDiagnosticsPanel: () => void;
     updateRenderedView: () => void;
 }>;
+
+// Serialize the live-updatable props into the JSON string used both for
+// change detection (against what the iframe last received) and as the
+// payload pushed through `updateViewerProps`/`updateEditorProps`. The `seed`
+// entries (the viewer's source `doenetML`, or the editor's `width`) come
+// first, then every non-function entry of `props`; function props travel
+// separately as Comlink proxies.
+//
+// Change detection uses `JSON.stringify`, which assumes supported props are
+// JSON-safe (scalars, plain arrays/objects). `undefined` values are dropped,
+// `Date`/`Map`/`Set` are normalized to strings/empty objects, and key
+// reordering produces spurious diffs. If a new prop with an exotic value type
+// is added later, prefer a structural comparator over expanding what this
+// serializer handles.
+function serializePropsSnapshot(
+    seed: Record<string, any>,
+    props: Record<string, any>,
+): string {
+    const snapshot: Record<string, any> = { ...seed };
+    for (const [key, val] of Object.entries(props)) {
+        if (typeof val !== "function") {
+            snapshot[key] = val;
+        }
+    }
+    return JSON.stringify(snapshot);
+}
 
 // ComLink RPC calls return Promises, but the wrapper APIs built on them are
 // `void` (matching the in-process components so consumers can use one type
@@ -982,23 +993,14 @@ export const DoenetEditor = React.forwardRef<
 
     // Build the serializable prop snapshot used both for change detection
     // (vs. last sent) and as the baseline of "what the iframe currently
-    // believes." Drop function-typed entries (sent separately via
-    // updateEditorFunctionProps) and drop `doenetML` (initial-only — see
-    // initialIframePropsRef above).
-    //
-    // Change detection uses `JSON.stringify`, which assumes supported props
-    // are JSON-safe (scalars, plain arrays/objects). `undefined` values are
-    // dropped, `Date`/`Map`/`Set` are normalized to strings/empty objects,
-    // and key reordering produces spurious diffs. If a new prop with an
-    // exotic value type is added later, prefer a structural comparator over
-    // expanding what this serializer handles.
-    const propsForUpdate: Record<string, any> = { width };
-    for (const [key, val] of Object.entries(doenetEditorProps)) {
-        if (typeof val !== "function") {
-            propsForUpdate[key] = val;
-        }
-    }
-    const propsSnapshotStr = JSON.stringify(propsForUpdate);
+    // believes." Function-typed entries are sent separately (via
+    // updateEditorFunctionProps) and `doenetML` is excluded entirely
+    // (initial-only — see initialIframePropsRef above). See
+    // `serializePropsSnapshot` for the JSON-safety caveats.
+    const propsSnapshotStr = serializePropsSnapshot(
+        { width },
+        doenetEditorProps,
+    );
 
     // When `srcDoc` changes (autodetect-version fallback path), React updates
     // the iframe attribute and the browser reloads the iframe document. The
@@ -1013,17 +1015,10 @@ export const DoenetEditor = React.forwardRef<
     // is stable, so this effect is a no-op after the first commit.
     React.useLayoutEffect(() => {
         editorIframeRef.current = null;
-        const baselineProps: Record<string, any> = {
-            width: initialIframePropsRef.current!.width,
-        };
-        for (const [key, val] of Object.entries(
+        lastSentPropsSnapshotRef.current = serializePropsSnapshot(
+            { width: initialIframePropsRef.current!.width },
             initialIframePropsRef.current!.doenetEditorProps,
-        )) {
-            if (typeof val !== "function") {
-                baselineProps[key] = val;
-            }
-        }
-        lastSentPropsSnapshotRef.current = JSON.stringify(baselineProps);
+        );
         // Function props re-register when the new iframe emits iframeReady
         // (the listener calls renderEditorWithFunctionProps with the latest
         // identities and re-populates this ref), so just clear it here.
