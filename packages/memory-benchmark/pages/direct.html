@@ -10,9 +10,13 @@
         <script>
             // N viewers sharing one realm, via the standalone global API.
             // ?doc= selects the document served by /doenetml-source.
+            // ?shared=1 opts into the shared core-worker host (#1466): all
+            // viewers' cores multiplex onto shared workers instead of one
+            // dedicated worker each.
             const params = new URLSearchParams(location.search);
             const n = parseInt(params.get("n") ?? "1", 10);
             const doc = params.get("doc") ?? "default";
+            const shared = params.get("shared") === "1";
             window.__done = false;
             window.__initializedCount = 0;
             (async () => {
@@ -22,6 +26,12 @@
                 const waitForApi = setInterval(() => {
                     if (!window.renderDoenetViewerToContainer) return;
                     clearInterval(waitForApi);
+                    if (shared) {
+                        // The bundle has loaded (it defines the render API),
+                        // so window.doenetGlobalConfig exists; set the opt-in
+                        // before any viewer creates its core worker.
+                        window.doenetGlobalConfig.useSharedCoreWorker = true;
+                    }
                     for (let i = 0; i < n; i++) {
                         const div = document.createElement("div");
                         div.id = "viewer" + i;

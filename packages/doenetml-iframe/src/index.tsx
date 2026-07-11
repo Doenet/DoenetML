@@ -23,6 +23,11 @@ import {
     createHtmlForDoenetEditor,
     setIframeBodyBackground,
 } from "./utils";
+import {
+    handleCreateSharedCore,
+    handleDestroySharedCore,
+    destroySharedCoresForViewer,
+} from "./shared-core-pool";
 
 export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
@@ -98,6 +103,17 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
      * overwriting any doenetmlVersion or urls provided
      */
     autodetectVersion?: boolean;
+    /**
+     * Opt-in (#1466): multiplex this viewer's core onto a shared core worker
+     * owned by this (parent) page, instead of the iframe booting its own
+     * ~100 MB dedicated worker. Viewers on the same page with the same
+     * standalone version share workers (up to a pool cap per worker), which
+     * is the dominant memory saving on pages embedding many documents.
+     * Trade-off: a worker-level hang or crash affects every document on that
+     * worker (per-core teardown stays individual; suspect workers are
+     * quarantined so retries boot fresh ones). Default off.
+     */
+    useSharedCoreWorker?: boolean;
 };
 
 export type DoenetEditorIframeProps = DoenetEditorProps & {
@@ -148,6 +164,7 @@ export function DoenetViewer({
     cssUrl: specifiedCssUrl,
     doenetmlVersion: specifiedDoenetmlVersion,
     autodetectVersion = true,
+    useSharedCoreWorker = false,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
@@ -188,6 +205,24 @@ export function DoenetViewer({
         cssUrl = `https://cdn.jsdelivr.net/npm/@doenet/standalone@${selectedDoenetmlVersion}/style.css`;
     }
 
+    // Latest standaloneUrl for the (deps-empty) message listener below — it
+    // can change after mount via the autodetect-version fallback, and the
+    // shared-core pool keys its workers by the URL the iframe actually loads.
+    const standaloneUrlRef = React.useRef(standaloneUrl);
+    standaloneUrlRef.current = standaloneUrl;
+
+    // Shared-core cleanup (#1466): an unmounted iframe realm never runs its
+    // own core teardown, so release any cores this viewer created on the
+    // parent-owned pool.
+    React.useEffect(() => {
+        if (!useSharedCoreWorker) {
+            return;
+        }
+        return () => {
+            destroySharedCoresForViewer(id);
+        };
+    }, []);
+
     React.useEffect(() => {
         const listener = (event: MessageEvent<IframeMessage>) => {
             if (event.origin !== window.location.origin) {
@@ -219,6 +254,26 @@ export function DoenetViewer({
             }
 
             const data = event.data.data;
+
+            // Shared core-worker protocol (#1466): the iframe's viewer mints
+            // a MessageChannel, keeps one port, and sends the other here to
+            // be forwarded to a parent-owned shared host worker.
+            if (data.type === "createSharedCore" && event.ports[0]) {
+                handleCreateSharedCore({
+                    viewerId: id,
+                    coreId: String(data.coreId),
+                    standaloneUrl: standaloneUrlRef.current,
+                    port: event.ports[0],
+                });
+                return;
+            }
+            if (data.type === "destroySharedCore") {
+                handleDestroySharedCore({
+                    coreId: String(data.coreId),
+                    suspectWedge: Boolean(data.suspectWedge),
+                });
+                return;
+            }
 
             // If receive a scrollTo event from the iframe,
             // that means that a scroll-only link (i.e. with target of the form "#anchor")
@@ -335,6 +390,7 @@ export function DoenetViewer({
                     doenetViewerProps,
                     standaloneUrl,
                     cssUrl,
+                    useSharedCoreWorker,
                 )}
                 style={{
                     width: "100%",

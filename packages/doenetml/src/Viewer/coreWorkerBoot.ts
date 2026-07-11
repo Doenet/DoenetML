@@ -93,15 +93,23 @@ export function withTimeout<T>(
 /**
  * Tear down a core worker. When `graceful`, first give the Comlink
  * `terminate()` a bounded chance to run its cleanup (it frees the Rust core
- * and the JS core); regardless, always follow with a native
- * `worker.terminate()` so a wedged worker — whose Comlink terminate would
- * itself hang on the stuck queue — is still guaranteed to die.
+ * and the JS core); regardless, always follow with the handle's `kill`
+ * switch — so a wedged core, whose Comlink terminate would itself hang on
+ * the stuck queue, is still guaranteed to be released. (`kill` natively
+ * terminates a dedicated worker; on a shared host worker it closes the
+ * core's port and destroys just that core — see `CoreWorkerHandle`.)
  */
 export async function disposeCoreWorker(
     remote: Remote<CoreWorker> | null,
-    nativeWorker: Worker | null,
+    kill: ((suspectWedge?: boolean) => void) | null,
     { graceful }: { graceful: boolean },
 ) {
+    // A non-graceful teardown means the caller already believes the core is
+    // wedged (watchdogged handshake timeout); a graceful terminate that times
+    // out is the same signal discovered late. Either way, pass the suspicion
+    // to `kill` so a shared host (#1466) can quarantine the worker and route
+    // retries to a fresh one.
+    let suspectWedge = !graceful;
     if (graceful && remote) {
         try {
             await withTimeout(
@@ -110,11 +118,12 @@ export async function disposeCoreWorker(
                 "core worker graceful terminate",
             );
         } catch {
-            // fall through to the guaranteed native kill below
+            // fall through to the guaranteed kill below
+            suspectWedge = true;
         }
     }
     try {
-        nativeWorker?.terminate();
+        kill?.(suspectWedge);
     } catch {
         // best-effort; nothing more we can do
     }
