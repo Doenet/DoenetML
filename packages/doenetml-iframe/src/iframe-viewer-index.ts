@@ -3,6 +3,10 @@
 declare const viewerId: string;
 declare const doenetViewerProps: Record<string, any>;
 declare const doenetViewerPropsSpecified: string[];
+// Baked into the srcdoc when the parent component opts into the shared
+// core-worker host (#1466). Guarded with `typeof` at the use site so this
+// script also works in srcdocs generated without the const.
+declare const doenetSharedCoreWorker: boolean | undefined;
 declare const ComlinkViewer: { expose: Function; windowEndpoint: Function };
 interface Window {
     renderDoenetViewerToContainer: (
@@ -10,6 +14,7 @@ interface Window {
         doenetMLSource?: string,
         config?: object,
     ) => void;
+    doenetGlobalConfig: Record<string, any>;
 }
 
 // Wait for the @doenet/standalone bundle to finish evaluating and
@@ -91,8 +96,49 @@ function renderViewerWithFunctionProps(...args: (string | Function)[]) {
 // rationale — nothing inside is expected to throw, but an unhandled
 // rejection inside the iframe is hard to diagnose, so log locally and
 // try to surface an error to the parent.
+/**
+ * Route this realm's core creation to the PARENT page's shared worker pool
+ * (#1466): install `doenetGlobalConfig.createExternalCoreWorkerPort` so the
+ * viewer obtains each core over a locally-minted `MessageChannel` whose far
+ * port the parent forwards to a shared host worker's `createCore`. Messages
+ * the viewer sends on its port buffer until the core is exposed, so core
+ * creation stays synchronous here. `destroy` notifies the parent to release
+ * the core (forwarding wedge suspicion for host quarantine).
+ *
+ * Must run after the standalone bundle has evaluated — the bundle replaces
+ * `window.doenetGlobalConfig` — and before anything renders a viewer.
+ */
+function installSharedCorePortProvider() {
+    let coreCounter = 0;
+    window.doenetGlobalConfig.createExternalCoreWorkerPort = () => {
+        const coreId = `${viewerId}-core-${++coreCounter}`;
+        const channel = new MessageChannel();
+        window.parent.postMessage(
+            { origin: viewerId, data: { type: "createSharedCore", coreId } },
+            window.parent.origin,
+            [channel.port2],
+        );
+        return {
+            port: channel.port1,
+            destroy: (suspectWedge?: boolean) => {
+                messageParentFromViewer({
+                    type: "destroySharedCore",
+                    coreId,
+                    suspectWedge: Boolean(suspectWedge),
+                });
+            },
+        };
+    };
+}
+
 (async () => {
     if (await waitForStandaloneBundle(60_000)) {
+        if (
+            typeof doenetSharedCoreWorker !== "undefined" &&
+            doenetSharedCoreWorker
+        ) {
+            installSharedCorePortProvider();
+        }
         messageParentFromViewer({ iframeReady: true });
     } else {
         messageParentFromViewer({

@@ -84,6 +84,7 @@ export function createHtmlForDoenetViewer(
     doenetViewerProps: DoenetViewerProps,
     standaloneUrl: string,
     cssUrl: string,
+    useSharedCoreWorker = false,
 ) {
     // Since function props disappear when stringifying
     // and we'll have access to them only via proxying with ComLink,
@@ -102,6 +103,7 @@ export function createHtmlForDoenetViewer(
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
             const doenetViewerPropsSpecified = ${JSON.stringify(doenetViewerPropsSpecified)};
+            const doenetSharedCoreWorker = ${JSON.stringify(!!useSharedCoreWorker)};
             import * as ComlinkViewer from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
 
             // This source code has been compiled by vite and should be directly included.

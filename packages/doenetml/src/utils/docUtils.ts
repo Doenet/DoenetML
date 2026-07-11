@@ -161,6 +161,46 @@ function createSharedWorkerCore(): CoreWorkerHandle {
  * multiplexed onto shared host workers instead of one worker per document.
  */
 export function createCoreWorker(): CoreWorkerHandle {
+    // A host-provided core factory takes precedence (#1466): the embedding
+    // page (e.g. @doenet/doenetml-iframe's parent component) owns the shared
+    // worker pool and hands this realm a per-core MessagePort, so cores from
+    // MANY same-origin iframes multiplex onto the same workers — something
+    // this realm cannot arrange on its own.
+    const externalPortProvider =
+        doenetGlobalConfig.createExternalCoreWorkerPort;
+    if (externalPortProvider) {
+        try {
+            const external = externalPortProvider();
+            if (external) {
+                const remote = Comlink.wrap(
+                    external.port,
+                ) as Comlink.Remote<CoreWorker>;
+                let killed = false;
+                const kill = (suspectWedge?: boolean) => {
+                    if (killed) {
+                        return;
+                    }
+                    killed = true;
+                    try {
+                        external.port.close();
+                    } catch {
+                        // best-effort
+                    }
+                    try {
+                        external.destroy(suspectWedge);
+                    } catch {
+                        // best-effort
+                    }
+                };
+                return { remote, kill };
+            }
+        } catch (e) {
+            console.warn(
+                "External core worker port unavailable, falling back:",
+                e,
+            );
+        }
+    }
     if (doenetGlobalConfig.useSharedCoreWorker) {
         try {
             return createSharedWorkerCore();

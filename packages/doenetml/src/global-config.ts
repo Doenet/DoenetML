@@ -25,6 +25,22 @@ export const doenetGlobalConfig: {
      */
     sharedCoreWorkerMaxCores?: number;
     /**
+     * Host-provided core factory (#1466): when set, `createCoreWorker`
+     * obtains each core over a `MessagePort` minted by this function instead
+     * of creating (or sharing) a worker in this realm. Used by
+     * `@doenet/doenetml-iframe` to multiplex the cores of many same-origin
+     * iframes onto worker(s) owned by the PARENT page — an iframe realm
+     * cannot share workers with its siblings on its own. The returned `port`
+     * must speak the per-core `CoreWorker` Comlink protocol (the far end is
+     * typically handed to a host worker's `createCore`); `destroy` releases
+     * the core, forwarding wedge suspicion (see `CoreWorkerHandle.kill`).
+     * Returning `null` falls back to this realm's own workers.
+     */
+    createExternalCoreWorkerPort?: () => {
+        port: MessagePort;
+        destroy: (suspectWedge?: boolean) => void;
+    } | null;
+    /**
      * Maximum number of times `DocViewer` will retry the core-worker
      * *handshake* before giving up and surfacing an error. Each handshake
      * that fails to complete within `coreHandshakeWatchdogMs` is abandoned

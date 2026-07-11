@@ -381,6 +381,15 @@ const scenarios = [
             url: `${base}/direct.html?n=${n}&shared=1`,
             expectInitialized: n,
         },
+        {
+            // The full deployment model (#1466 milestone 3): cross-origin CDN
+            // bundle AND the parent-owned shared host worker, so the iframes'
+            // cores multiplex onto one worker (as doenetml-iframe's
+            // useSharedCoreWorker arranges).
+            name: `iframe-shared-${n}`,
+            url: `${base}/iframes.html?n=${n}&cdn=${encodeURIComponent(cdnBase)}&shared=1`,
+            expectInitialized: n,
+        },
     ]),
     // Per-worker fixed floor: N raw core workers, no viewers/documents.
     // `parse` = worker script evaluated only; `init` = + WASM compile and the
@@ -441,6 +450,7 @@ if (hi > lo) {
         "iframe",
         "iframe-xorigin",
         "shared",
+        "iframe-shared",
         "workers-parse",
         "workers-init",
     ]) {

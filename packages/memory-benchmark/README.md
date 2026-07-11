@@ -34,6 +34,7 @@ Playwright's Chromium must be installed once: `npx playwright install chromium`.
 | `iframe-N`         | N viewers in one iframe each, the way `@doenet/doenetml-iframe` and PreTeXt embed documents                     |
 | `iframe-xorigin-N` | Like `iframe-N`, but the standalone bundle (and its co-located worker) is served from a second, CORS-enabled origin — the cross-origin CDN situation PreTeXt and doenet.org are actually in |
 | `shared-N`         | Like `direct-N`, but with the shared core-worker host (#1466) opted in (`doenetGlobalConfig.useSharedCoreWorker`) — cores multiplex onto shared workers instead of one dedicated worker per viewer |
+| `iframe-shared-N`  | The full #1466 deployment model: cross-origin CDN bundle AND a parent-owned shared host worker the iframes' cores multiplex onto (as `doenetml-iframe`'s `useSharedCoreWorker` arranges) |
 | `workers-parse-N`  | N raw core workers, script evaluated only, no document — isolates the per-worker script parse/eval floor       |
 | `workers-init-N`   | `workers-parse-N` + WASM compile/instantiate + the document-independent core handshake on an empty document — the per-instance share a shared/multiplexed worker (#1441 stream E) would eliminate |
 | `repeat-S`         | One viewer with a generated `<repeatForSequence>` document of S iterations (≈5S components) — document scaling |
