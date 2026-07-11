@@ -20,12 +20,18 @@ export type CoreWorkerHandle = {
      *
      * Dedicated-worker mode: natively terminates the worker. Shared-worker
      * mode (#1466): closes this core's port and asks the host to destroy the
-     * core — sibling cores are unaffected, but note this cannot recover from
-     * a wedge that blocks the whole worker thread (only killing the shared
-     * worker would, which would take the siblings with it; the escalation
-     * ladder is follow-up work on #1466).
+     * core — sibling cores are unaffected.
+     *
+     * `suspectWedge` marks teardowns where the core stopped responding (a
+     * watchdogged handshake timeout, or a graceful terminate that timed out)
+     * rather than an ordinary unmount. In shared mode this quarantines the
+     * core's host worker: no new cores are assigned to it (a retry therefore
+     * lands on a fresh worker), and it is natively terminated once its last
+     * core is gone. Existing sibling cores keep running — the suspicion may
+     * be a false positive (e.g. CPU contention), and a sibling that is truly
+     * affected will trip its own watchdog.
      */
-    kill: () => void;
+    kill: (suspectWedge?: boolean) => void;
 };
 
 /** Default pool cap for shared core workers (see `sharedCoreWorkerMaxCores`). */
@@ -38,11 +44,42 @@ const DEFAULT_SHARED_CORE_WORKER_MAX_CORES = 12;
  * once created — assignment-style pages mount/unmount documents repeatedly,
  * and re-paying the ~100 MB boot on each remount would defeat the purpose.
  */
-const sharedHosts: {
+type SharedHost = {
     worker: Worker;
     remote: Comlink.Remote<CoreWorker>;
     liveCores: number;
-}[] = [];
+    /**
+     * A quarantined host receives no new cores (retries land on a fresh
+     * worker) and is natively terminated once its last core is gone. Set when
+     * a core on this host stops responding (`kill(suspectWedge)`) or the
+     * worker itself fires an `error` event.
+     */
+    quarantined: boolean;
+};
+
+const sharedHosts: SharedHost[] = [];
+
+/**
+ * Quarantine a shared host: stop assigning new cores to it, and once no live
+ * cores remain, natively terminate it and drop it from the pool. Live sibling
+ * cores are left running — the suspicion may be a false positive (CPU
+ * contention), and a truly affected sibling will trip its own watchdog, whose
+ * `kill(suspectWedge)` lands back here until the host empties out.
+ */
+function quarantineSharedHost(host: SharedHost) {
+    host.quarantined = true;
+    if (host.liveCores <= 0) {
+        try {
+            host.worker.terminate();
+        } catch {
+            // best-effort; nothing more we can do
+        }
+        const index = sharedHosts.indexOf(host);
+        if (index !== -1) {
+            sharedHosts.splice(index, 1);
+        }
+    }
+}
 
 /**
  * Create a core on a shared host worker (#1466): the host worker's default
@@ -53,17 +90,26 @@ function createSharedWorkerCore(): CoreWorkerHandle {
     const maxCores =
         doenetGlobalConfig.sharedCoreWorkerMaxCores ??
         DEFAULT_SHARED_CORE_WORKER_MAX_CORES;
-    let host = sharedHosts.find((h) => h.liveCores < maxCores);
+    let host = sharedHosts.find(
+        (h) => !h.quarantined && h.liveCores < maxCores,
+    );
     if (!host) {
         const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
             type: "classic",
         });
-        host = {
+        const newHost: SharedHost = {
             worker,
             remote: Comlink.wrap(worker) as Comlink.Remote<CoreWorker>,
             liveCores: 0,
+            quarantined: false,
         };
-        sharedHosts.push(host);
+        // A worker-level error (e.g. the script failed to load) poisons every
+        // core on it; make sure no future cores land there.
+        worker.addEventListener("error", () => {
+            quarantineSharedHost(newHost);
+        });
+        sharedHosts.push(newHost);
+        host = newHost;
     }
     const channel = new MessageChannel();
     // Not awaited: messages the caller sends on port1 in the meantime are
@@ -81,7 +127,7 @@ function createSharedWorkerCore(): CoreWorkerHandle {
     const remote = Comlink.wrap(channel.port1) as Comlink.Remote<CoreWorker>;
     host.liveCores++;
     let killed = false;
-    const kill = () => {
+    const kill = (suspectWedge?: boolean) => {
         if (killed) {
             return;
         }
@@ -92,6 +138,14 @@ function createSharedWorkerCore(): CoreWorkerHandle {
         // core does not block it — cores share the thread, so this only fails
         // on a thread-blocking wedge), release the core's memory.
         coreIdPromise.then((id) => host.remote.destroyCore(id)).catch(() => {});
+        if (suspectWedge || host.quarantined) {
+            // Unresponsive core (or already-suspect host): stop assigning new
+            // cores here, and terminate the worker once it holds none. A
+            // subsequent retry by the caller then boots on a fresh worker —
+            // this is what lets DocViewer's handshake watchdog + retry ladder
+            // recover in shared mode even from a thread-blocking wedge.
+            quarantineSharedHost(host);
+        }
     };
     return { remote, kill };
 }

@@ -101,9 +101,15 @@ export function withTimeout<T>(
  */
 export async function disposeCoreWorker(
     remote: Remote<CoreWorker> | null,
-    kill: (() => void) | null,
+    kill: ((suspectWedge?: boolean) => void) | null,
     { graceful }: { graceful: boolean },
 ) {
+    // A non-graceful teardown means the caller already believes the core is
+    // wedged (watchdogged handshake timeout); a graceful terminate that times
+    // out is the same signal discovered late. Either way, pass the suspicion
+    // to `kill` so a shared host (#1466) can quarantine the worker and route
+    // retries to a fresh one.
+    let suspectWedge = !graceful;
     if (graceful && remote) {
         try {
             await withTimeout(
@@ -113,10 +119,11 @@ export async function disposeCoreWorker(
             );
         } catch {
             // fall through to the guaranteed kill below
+            suspectWedge = true;
         }
     }
     try {
-        kill?.();
+        kill?.(suspectWedge);
     } catch {
         // best-effort; nothing more we can do
     }

@@ -226,7 +226,9 @@ export function DocViewer({
     // terminates a dedicated worker; on a shared host worker (#1466) it
     // destroys just this core. Set and cleared in lockstep with `coreWorker`
     // (always via `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
-    const coreWorkerKill = useRef<(() => void) | null>(null);
+    const coreWorkerKill = useRef<((suspectWedge?: boolean) => void) | null>(
+        null,
+    );
 
     // Spin up a fresh core worker and store its Comlink remote and kill
     // switch in lockstep. Returns the remote for the caller to drive.
