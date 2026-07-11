@@ -43,6 +43,9 @@ export default defineConfig(({ mode }) => {
                             externalDeps: EXTERNAL_DEPS,
                         }),
                     },
+                    // Ship the README in the published package (`dist/` is
+                    // the publish root) so npm displays it.
+                    { src: "README.md", dest: "./" },
                 ],
             }),
             prefigureDynamicImportIgnorePlugin(),

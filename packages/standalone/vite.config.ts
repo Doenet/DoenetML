@@ -45,6 +45,9 @@ export default defineConfig({
                     ),
                     dest: "doenetml-worker/",
                 },
+                // Ship the README in the published package (`dist/` is the
+                // publish root) so npm displays it.
+                { src: "README.md", dest: "./" },
             ],
         }),
         suppressLogPlugin(),
