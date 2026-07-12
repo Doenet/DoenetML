@@ -108,12 +108,12 @@ export class StalenessPropagator {
                         }
                     }
 
-                    await this.core.dependencies.setUpStateVariableDependencies(
-                        {
-                            component,
-                            stateVariable,
-                            allStateVariablesAffected,
-                        },
+                    // Route through the idempotent wrapper so a re-entrant
+                    // demand for one of these just-created entries cannot
+                    // set up the group's dependencies twice.
+                    await this.core.dependencies.ensureStateVariableDependenciesSetUp(
+                        component.componentIdx,
+                        stateVariable,
                     );
 
                     let newStateVariablesToResolve = [];

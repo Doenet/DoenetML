@@ -145,6 +145,12 @@ export class DependencyHandler {
     /** Shared frozen record for a fully-consumed `valuesChanged` entry. */
     emptyValuesChangedRecord: Record<string, any>;
 
+    /**
+     * Number of state-variable groups whose dependencies have been built
+     * (on demand). Diagnostic counter for the lazy-materialization work.
+     */
+    numDependencySetups: number;
+
     constructor({
         _components,
         componentInfoObjects,
@@ -182,6 +188,8 @@ export class DependencyHandler {
             neededToResolve: {},
             resolveBlockedBy: {},
         };
+
+        this.numDependencySetups = 0;
 
         this.attributeRefResolutionDependenciesByReferenced = {};
 
@@ -345,60 +353,93 @@ export class DependencyHandler {
         return interned;
     }
 
-    async setUpComponentDependencies(component: ComponentInstance) {
+    /**
+     * Create the per-component entries in the two dependency maps.
+     *
+     * The maps are indexed unconditionally by component elsewhere
+     * (e.g. `markUpstreamDependentsStale`, `resetCircularCheckPassed`),
+     * so every component needs its slots at construction even though the
+     * per-state-variable dependencies are now built on demand by
+     * `ensureStateVariableDependenciesSetUp`.
+     */
+    createComponentDependencySlots(component: ComponentInstance) {
         // if component already has downstream dependencies
         // delete them, and the corresponding upstream dependencies
         if (this.downstreamDependencies[component.componentIdx]) {
             this.deleteAllDownstreamDependencies({ component });
         }
 
-        // console.log(`set up component dependencies of ${component.componentIdx}`)
         this.downstreamDependencies[component.componentIdx] = {};
         if (!this.upstreamDependencies[component.componentIdx]) {
             this.upstreamDependencies[component.componentIdx] = {};
         }
+    }
 
-        let stateVariablesToProccess: string[] = [];
-        let additionalStateVariablesThatWillBeProcessed: string[] = [];
-        for (let stateVariable in component.state) {
-            if (!(
-                component.state[stateVariable].isArrayEntry ||
-                component.state[stateVariable].isAlias ||
-                additionalStateVariablesThatWillBeProcessed.includes(
-                    stateVariable,
-                )
-            )) {
-                // TODO: if do indeed keep aliases deleted from state, then don't need second check, above
-                stateVariablesToProccess.push(stateVariable);
-                if (
-                    component.state[stateVariable]
-                        .additionalStateVariablesDefined
-                ) {
-                    additionalStateVariablesThatWillBeProcessed.push(
-                        ...component.state[stateVariable]
-                            .additionalStateVariablesDefined,
-                    );
-                }
+    /**
+     * Build the dependencies of `stateVariable` (and the rest of its
+     * `additionalStateVariablesDefined` group) if they have not been built
+     * yet. Dependencies are created on demand at the first resolution
+     * attempt (`resolveItem`/`resolveIfReady`) rather than at component
+     * construction, so state variables that are never demanded never pay
+     * for their dependency structures.
+     *
+     * The marker for "already set up" is the existence of the variable's
+     * slot in `downstreamDependencies` — slots are deleted only by
+     * whole-component teardown.
+     */
+    async ensureStateVariableDependenciesSetUp(
+        componentIdx: ComponentIdx,
+        stateVariable: string,
+    ) {
+        const component = this._components[componentIdx];
+        if (!component) {
+            return;
+        }
+        const stateVarObj = component.state[stateVariable];
+        if (!stateVarObj) {
+            // array entries that don't exist yet are created through
+            // `createFromArrayEntry`, which sets up dependencies itself
+            return;
+        }
+
+        const downDepsForComponent =
+            this.downstreamDependencies[component.componentIdx];
+        if (
+            !downDepsForComponent ||
+            downDepsForComponent[stateVariable] !== undefined
+        ) {
+            return;
+        }
+
+        // Every member of an `additionalStateVariablesDefined` group lists
+        // its siblings (see `returnNormalizedStateVariableDefinitions`),
+        // so the full group is recoverable from whichever member is
+        // demanded first.
+        const allStateVariablesAffected = [stateVariable];
+        if (stateVarObj.additionalStateVariablesDefined) {
+            allStateVariablesAffected.push(
+                ...stateVarObj.additionalStateVariablesDefined,
+            );
+        }
+
+        // Pre-create empty slots for the whole group before the async
+        // setup: variables whose `returnDependencies` yields no
+        // dependencies still need the slot to record they were set up, and
+        // `returnDependencies` can await other state variables, re-entering
+        // resolution for this same group.
+        for (const varName of allStateVariablesAffected) {
+            if (!downDepsForComponent[varName]) {
+                downDepsForComponent[varName] = {};
             }
         }
 
-        for (let stateVariable of stateVariablesToProccess) {
-            let allStateVariablesAffected = [stateVariable];
-            if (
-                component.state[stateVariable].additionalStateVariablesDefined
-            ) {
-                allStateVariablesAffected.push(
-                    ...component.state[stateVariable]
-                        .additionalStateVariablesDefined,
-                );
-            }
+        this.numDependencySetups++;
 
-            await this.setUpStateVariableDependencies({
-                component,
-                stateVariable,
-                allStateVariablesAffected,
-            });
-        }
+        await this.setUpStateVariableDependencies({
+            component,
+            stateVariable,
+            allStateVariablesAffected,
+        });
     }
 
     async setUpStateVariableDependencies({
@@ -2488,17 +2529,6 @@ export class DependencyHandler {
 
         let componentIdx = component.componentIdx;
 
-        if (!stateVariables) {
-            await this.resolveIfReady({
-                componentIdx,
-                type: "componentIdentity",
-                expandComposites: false,
-                // recurseUpstream: true
-            });
-
-            stateVariables = Object.keys(component.state);
-        }
-
         for (let varName of stateVariables) {
             // TODO: remove this commented out code if it turns out we don't need `determineDependenciesImmediately`
 
@@ -2558,6 +2588,18 @@ export class DependencyHandler {
     }: any) {
         // console.log(`resolve if ready ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
 
+        if (type === "stateVariable") {
+            // Dependencies are set up lazily, so an empty blocker ledger
+            // alone doesn't mean the variable is resolvable: its
+            // dependencies (whose creation records the blockers) must have
+            // been built first. This gate is what makes
+            // `processNewlyResolved` (reached only through here) safe.
+            await this.ensureStateVariableDependenciesSetUp(
+                componentIdx,
+                stateVariable,
+            );
+        }
+
         let haveNeededToResolve = this.checkIfHaveNeededToResolve({
             componentIdx,
             type,
@@ -2614,6 +2656,17 @@ export class DependencyHandler {
         // as resolving a determineDependency will call updateDependencies
         // and updateDependencies calls the getters on
         // the state variables determining dependencies
+
+        if (type === "stateVariable") {
+            // Set up this variable's dependencies now (if not yet built) so
+            // the peek below sees the real blockers — including the
+            // `__determine_dependencies` blocker consumed by the pre-pass —
+            // instead of discovering them through the retry loop.
+            await this.ensureStateVariableDependenciesSetUp(
+                componentIdx,
+                stateVariable,
+            );
+        }
 
         let neededForItem = this.peekNeededToResolve({
             componentIdx,
