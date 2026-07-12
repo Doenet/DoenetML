@@ -32,10 +32,15 @@ import {
     registerWindowedViewer,
     setViewerVisibility,
     notifyViewerState,
+    requestBootSlot,
+    cancelBootRequest,
+    releaseBootSlot,
     DEFAULT_MAX_LIVE_VIEWERS,
     DEFAULT_VISIBLE_MARGIN,
     DEFAULT_FLUSH_TIMEOUT_MS,
     DEFAULT_PARK_DELAY_MS,
+    DEFAULT_MAX_CONCURRENT_BOOTS,
+    BOOT_SLOT_WATCHDOG_MS,
     type MountPolicy,
 } from "./viewer-lifecycle-manager";
 
@@ -133,16 +138,20 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
     useSharedCoreWorker?: boolean;
     /**
      * Opt-in windowed mounting (#1441, stream B): keep at most
-     * `maxLiveViewers` viewers live on the page. Off-screen viewers beyond
-     * the budget are *parked* — their state is flushed (`SPLICE.flushState`)
-     * and their iframe is replaced by a fixed-height placeholder — and
-     * restored when scrolled back near the viewport. Parking requires a
-     * persistence path: it only activates for viewers with
-     * `flags.allowSaveState` (the wrapper snapshots the flushed
-     * `reportScoreAndState` and seeds `initialState` on restore) or
+     * `maxLiveViewers` viewers live on the page. Windowed viewers start as
+     * fixed-height placeholders and only create their iframe when they come
+     * near the viewport AND a boot slot is free (`maxConcurrentBoots` caps
+     * simultaneous realm boots page-wide — an off-screen viewer never boots
+     * at all). Off-screen viewers beyond the budget are *parked* — their
+     * state is flushed (`SPLICE.flushState`) and their iframe is replaced
+     * by the placeholder again — and restored when scrolled back near the
+     * viewport. Parking requires a persistence path: it only activates for
+     * viewers with `flags.allowSaveState` (the wrapper snapshots the
+     * flushed `reportScoreAndState` and seeds `initialState` on restore) or
      * `flags.allowLocalState` (IndexedDB restores on reboot); otherwise the
-     * viewer always stays live. The policy is read at mount; changing it
-     * afterwards is not supported. Default off (no prop = today's behavior).
+     * viewer boots on visibility but then always stays live. The policy is
+     * read at mount; changing it afterwards is not supported. Default off
+     * (no prop = today's behavior).
      */
     mountPolicy?: MountPolicy;
 };
@@ -278,12 +287,15 @@ export function DoenetViewer({
 
     // ---- Windowed mounting (mountPolicy) state ----
     // The policy is read at mount and treated as immutable afterwards.
+    // Windowed viewers START parked: the iframe is only created once the
+    // viewer is near the viewport AND a boot slot is free (#1439) — an
+    // off-screen viewer never boots at all.
     const windowed = mountPolicy?.mode === "windowed";
-    const [parked, setParked] = React.useState(false);
+    const [parked, setParked] = React.useState(windowed);
     // Bumped on unpark so the srcDoc memo rebuilds (baking the restored
     // state) even though none of its other inputs changed.
     const [parkGeneration, setParkGeneration] = React.useState(0);
-    const parkedRef = React.useRef(false);
+    const parkedRef = React.useRef(windowed);
     const parkingRef = React.useRef(false);
     const visibleRef = React.useRef(false);
     const containerRef = React.useRef<HTMLDivElement>(null);
@@ -311,6 +323,65 @@ export function DoenetViewer({
         pinnedVariantIndexRef.current =
             doenetViewerProps.requestedVariantIndex ??
             Math.floor(Math.random() * 1000000) + 1;
+    }
+    // Watchdog freeing a held boot slot if the realm never reports
+    // initialized (the boot itself continues; only the slot is reclaimed).
+    const bootWatchdogRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+        null,
+    );
+    /** Cancel the boot-slot watchdog timer if one is pending. */
+    function clearBootWatchdog() {
+        if (bootWatchdogRef.current !== null) {
+            clearTimeout(bootWatchdogRef.current);
+            bootWatchdogRef.current = null;
+        }
+    }
+    /**
+     * Give up this viewer's boot slot and stop the watchdog guarding it —
+     * used whenever the boot concludes (initialized, errored, or parked).
+     */
+    function relinquishBootSlot() {
+        clearBootWatchdog();
+        releaseBootSlot(id);
+    }
+    // Stable composed initializedCallback: releases this viewer's boot slot,
+    // then forwards to the host's latest callback. Registered with the
+    // iframe instead of the host's own callback when windowed (the iframe
+    // side sees one stable identity; the host's identity is still what the
+    // function-prop change detection compares).
+    const composedInitializedCallbackRef = React.useRef<
+        ((arg: unknown) => void) | null
+    >(null);
+    if (composedInitializedCallbackRef.current === null) {
+        composedInitializedCallbackRef.current = (arg: unknown) => {
+            relinquishBootSlot();
+            (doenetViewerPropsRef.current as any).initializedCallback?.(arg);
+        };
+    }
+    /** Proxy the composed callback for windowed viewers, the raw one otherwise. */
+    function functionPropToProxy(key: string, prop: Function): Function {
+        if (windowed && key === "initializedCallback") {
+            return composedInitializedCallbackRef.current!;
+        }
+        return prop;
+    }
+    /**
+     * Append the composed `initializedCallback` proxy to a Comlink
+     * function-prop argument list when windowed and the host supplied no
+     * `initializedCallback` of its own, so the boot-slot release still
+     * reaches the iframe. `hostFunctions` is the set of function props the
+     * host actually passed (keyed by name).
+     */
+    function appendComposedInitializedCallback(
+        proxiedFunctions: (string | Function)[],
+        hostFunctions: Record<string, Function>,
+    ) {
+        if (windowed && !("initializedCallback" in hostFunctions)) {
+            proxiedFunctions.push("initializedCallback");
+            proxiedFunctions.push(
+                Comlink.proxy(composedInitializedCallbackRef.current!),
+            );
+        }
     }
 
     const [height, setHeight] = React.useState("500px");
@@ -591,6 +662,10 @@ export function DoenetViewer({
             }
 
             if (data.error) {
+                // A failed boot must not hold its boot slot.
+                if (windowed) {
+                    relinquishBootSlot();
+                }
                 //@ts-ignore
                 return setInErrorState(data.error);
             } else if (data.iframeReady) {
@@ -616,9 +691,18 @@ export function DoenetViewer({
                         if (typeof prop === "function") {
                             registeredFunctions[key] = prop;
                             proxiedFunctions.push(key);
-                            proxiedFunctions.push(Comlink.proxy(prop));
+                            proxiedFunctions.push(
+                                Comlink.proxy(functionPropToProxy(key, prop)),
+                            );
                         }
                     }
+                    // Windowed viewers always register the composed
+                    // initializedCallback (it releases the boot slot), even
+                    // when the host passed none.
+                    appendComposedInitializedCallback(
+                        proxiedFunctions,
+                        registeredFunctions,
+                    );
                     viewerIframe
                         .renderViewerWithFunctionProps(...proxiedFunctions)
                         .catch(
@@ -643,9 +727,11 @@ export function DoenetViewer({
                 }
             }
         };
-        if (ref.current) {
-            window.addEventListener("message", listener);
-        }
+        // Attach unconditionally: a windowed viewer renders NO iframe at
+        // first commit (it starts as a parked placeholder), but this
+        // listener must already be in place when the lazily-created iframe
+        // signals iframeReady later.
+        window.addEventListener("message", listener);
 
         return () => {
             window.removeEventListener("message", listener);
@@ -733,8 +819,9 @@ export function DoenetViewer({
         const proxiedFunctions: (string | Function)[] = [];
         for (const [key, val] of Object.entries(current)) {
             proxiedFunctions.push(key);
-            proxiedFunctions.push(Comlink.proxy(val));
+            proxiedFunctions.push(Comlink.proxy(functionPropToProxy(key, val)));
         }
+        appendComposedInitializedCallback(proxiedFunctions, current);
         const action = (remote: ViewerIframeRemote) => {
             remote
                 .updateViewerFunctionProps(...proxiedFunctions)
@@ -869,22 +956,43 @@ export function DoenetViewer({
         // realm's iframeReady.
         viewerIframeRef.current = null;
         destroySharedCoresForViewer(id);
+        // A parked viewer no longer boots; free its slot for the queue.
+        relinquishBootSlot();
         parkedRef.current = true;
         setParked(true);
         notifyViewerState(id, "parked");
     }
 
-    /** Restore a parked viewer (on scrolling back into view). */
+    /**
+     * Restore a parked viewer (on scrolling back into view) once a boot
+     * slot is free (#1439): at most `maxConcurrentBoots` windowed viewers
+     * evaluate the multi-MB bundle at once, visible-first. The request is
+     * deduplicated by the manager and withdrawn if the viewer scrolls away
+     * before a slot frees up.
+     */
     function unpark() {
         if (!parkedRef.current) {
             return;
         }
-        parkedRef.current = false;
-        setParked(false);
-        // Rebuild the srcdoc so the restored realm boots seeded with the
-        // parked snapshot (see the srcDoc memo).
-        setParkGeneration((generation) => generation + 1);
-        notifyViewerState(id, "live");
+        requestBootSlot(id, () => {
+            // Granted — possibly synchronously, possibly much later. Only
+            // boot if this viewer still wants to be live.
+            if (!parkedRef.current || !visibleRef.current) {
+                releaseBootSlot(id);
+                return;
+            }
+            parkedRef.current = false;
+            setParked(false);
+            // Rebuild the srcdoc so the restored realm boots seeded with the
+            // parked snapshot (see the srcDoc memo).
+            setParkGeneration((generation) => generation + 1);
+            notifyViewerState(id, "live");
+            clearBootWatchdog();
+            bootWatchdogRef.current = setTimeout(() => {
+                bootWatchdogRef.current = null;
+                releaseBootSlot(id);
+            }, BOOT_SLOT_WATCHDOG_MS);
+        });
     }
 
     // Observe visibility of the wrapper div (which stays mounted across
@@ -900,6 +1008,11 @@ export function DoenetViewer({
                     setViewerVisibility(id, entry.isIntersecting);
                     if (entry.isIntersecting && parkedRef.current) {
                         unpark();
+                    } else if (!entry.isIntersecting) {
+                        // No longer worth booting; withdraw a queued boot
+                        // request (a granted/booting viewer is left alone —
+                        // the park policy handles it).
+                        cancelBootRequest(id);
                     }
                 }
             },
@@ -928,12 +1041,20 @@ export function DoenetViewer({
             id,
             maxLiveViewers:
                 mountPolicy?.maxLiveViewers ?? DEFAULT_MAX_LIVE_VIEWERS,
+            maxConcurrentBoots:
+                mountPolicy?.maxConcurrentBoots ?? DEFAULT_MAX_CONCURRENT_BOOTS,
             parkDelayMs: mountPolicy?.parkDelayMs ?? DEFAULT_PARK_DELAY_MS,
             canPark,
             requestPark: beginPark,
         });
+        // Windowed viewers start parked (no iframe until visible + a boot
+        // slot); tell the manager so the budget starts correct.
+        if (parkedRef.current) {
+            notifyViewerState(id, "parked");
+        }
         return () => {
             parkFlushCleanupRef.current?.();
+            clearBootWatchdog();
             unregister();
         };
     }, [windowed]);

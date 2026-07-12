@@ -9,8 +9,13 @@
  * a placeholder), so idle memory tracks what the user can see rather than
  * how many documents the page embeds.
  *
- * This module is pure policy: *when* to park. The mechanics of parking
- * (flushing state, swapping the iframe for a placeholder, restoring) live in
+ * It also gates *when* a lazily-mounted viewer may boot its iframe realm: a
+ * page-wide boot-slot semaphore (`maxConcurrentBoots`) caps how many viewers
+ * evaluate the multi-MB standalone bundle at once, serving visible viewers
+ * first (see `requestBootSlot`).
+ *
+ * This module is pure policy: *when* to park and *when* to boot. The
+ * mechanics (flushing state, creating/swapping the iframe, restoring) live in
  * the `DoenetViewer` wrapper, which registers callbacks here. Module-level
  * state is intentional — the budget is shared by every windowed viewer on
  * the page (same pattern as `shared-core-pool.ts`).
@@ -49,12 +54,27 @@ export type MountPolicy = {
      * parked. Default 2000.
      */
     parkDelayMs?: number;
+    /**
+     * Page-wide cap on how many windowed viewers may be *booting* their
+     * iframe realm at once (each boot parses the multi-MB standalone bundle
+     * and starts a core worker — the initialization stampede #1439
+     * targets). Additional viewers wait for a slot, visible-first. As with
+     * `maxLiveViewers`, the smallest value across viewers wins. Default 2.
+     */
+    maxConcurrentBoots?: number;
 };
 
 export const DEFAULT_MAX_LIVE_VIEWERS = 3;
 export const DEFAULT_VISIBLE_MARGIN = "1000px";
 export const DEFAULT_FLUSH_TIMEOUT_MS = 5000;
 export const DEFAULT_PARK_DELAY_MS = 2000;
+export const DEFAULT_MAX_CONCURRENT_BOOTS = 2;
+/**
+ * A boot that never reports initialized (wedged worker, huge document on a
+ * slow machine) must not starve the queue forever; its slot is reclaimed
+ * after this long. The boot itself continues — only the slot is freed.
+ */
+export const BOOT_SLOT_WATCHDOG_MS = 90_000;
 
 export type ViewerLifecycleState = "live" | "parking" | "parked";
 
@@ -79,6 +99,14 @@ let warnedMixedBudgets = false;
 let evaluateTimerId: ReturnType<typeof setTimeout> | null = null;
 let evaluateTimerAt = Infinity;
 
+// ---- Boot-slot semaphore (#1439) ----
+// Caps how many windowed viewers boot their iframe realm simultaneously.
+let effectiveMaxBoots: number | null = null;
+const bootSlotHolders = new Set<string>();
+type BootRequest = { id: string; requestOrder: number; grant: () => void };
+let bootRequestCounter = 0;
+const bootQueue: BootRequest[] = [];
+
 /**
  * Register a windowed viewer. Returns an unregister function for the
  * component's unmount cleanup.
@@ -86,16 +114,22 @@ let evaluateTimerAt = Infinity;
 export function registerWindowedViewer({
     id,
     maxLiveViewers,
+    maxConcurrentBoots,
     parkDelayMs,
     canPark,
     requestPark,
 }: {
     id: string;
     maxLiveViewers: number;
+    maxConcurrentBoots: number;
     parkDelayMs: number;
     canPark: () => boolean;
     requestPark: () => void;
 }): () => void {
+    effectiveMaxBoots =
+        effectiveMaxBoots === null
+            ? maxConcurrentBoots
+            : Math.min(effectiveMaxBoots, maxConcurrentBoots);
     if (
         effectiveMaxLive !== null &&
         effectiveMaxLive !== maxLiveViewers &&
@@ -125,8 +159,66 @@ export function registerWindowedViewer({
 
     return () => {
         records.delete(id);
+        cancelBootRequest(id);
+        releaseBootSlot(id);
         scheduleEvaluate(0);
     };
+}
+
+/**
+ * Request a boot slot; `grant` is called (synchronously when a slot is
+ * free) once this viewer may create its iframe. Visible viewers are served
+ * before off-screen ones, then request order. A duplicate request for an id
+ * already queued or already holding a slot is ignored.
+ */
+export function requestBootSlot(id: string, grant: () => void) {
+    if (bootSlotHolders.has(id) || bootQueue.some((r) => r.id === id)) {
+        return;
+    }
+    bootQueue.push({ id, requestOrder: ++bootRequestCounter, grant });
+    pumpBootQueue();
+}
+
+/** Withdraw a queued boot request (e.g. the viewer scrolled away again). */
+export function cancelBootRequest(id: string) {
+    const idx = bootQueue.findIndex((r) => r.id === id);
+    if (idx !== -1) {
+        bootQueue.splice(idx, 1);
+    }
+}
+
+/**
+ * Release a held boot slot (the boot finished, failed, was watchdogged, or
+ * the viewer parked/unmounted). Idempotent.
+ */
+export function releaseBootSlot(id: string) {
+    if (bootSlotHolders.delete(id)) {
+        pumpBootQueue();
+    }
+}
+
+function pumpBootQueue() {
+    const max = effectiveMaxBoots ?? Infinity;
+    while (bootQueue.length > 0 && bootSlotHolders.size < max) {
+        // Visible-first, then request order.
+        let best = 0;
+        for (let i = 1; i < bootQueue.length; i++) {
+            const bestVisible = Boolean(
+                records.get(bootQueue[best].id)?.visible,
+            );
+            const thisVisible = Boolean(records.get(bootQueue[i].id)?.visible);
+            if (
+                (thisVisible && !bestVisible) ||
+                (thisVisible === bestVisible &&
+                    bootQueue[i].requestOrder < bootQueue[best].requestOrder)
+            ) {
+                best = i;
+            }
+        }
+        const [request] = bootQueue.splice(best, 1);
+        bootSlotHolders.add(request.id);
+        request.grant();
+    }
 }
 
 /**
@@ -176,7 +268,14 @@ export function getViewerLifecycleStats() {
             parked++;
         }
     }
-    return { registered: records.size, live, parking, parked };
+    return {
+        registered: records.size,
+        live,
+        parking,
+        parked,
+        booting: bootSlotHolders.size,
+        bootQueue: bootQueue.length,
+    };
 }
 
 /** Test-only: forget every registration and reset module state. */
@@ -190,6 +289,10 @@ export function __resetViewerLifecycleManagerForTests() {
         evaluateTimerId = null;
     }
     evaluateTimerAt = Infinity;
+    effectiveMaxBoots = null;
+    bootSlotHolders.clear();
+    bootQueue.length = 0;
+    bootRequestCounter = 0;
 }
 
 /**
