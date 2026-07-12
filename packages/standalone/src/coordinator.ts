@@ -85,7 +85,10 @@ const DEFAULTS = {
     sharedCoreWorkers: false,
 };
 
-type ActivityState = "detached" | "booting" | "live" | "parking" | "parked";
+// "parked" is also the initial state: a discovered iframe is detached to
+// about:blank and awaits its first boot slot exactly as a re-parked one does
+// (so coming into view unparks it through the same path).
+type ActivityState = "booting" | "live" | "parking" | "parked";
 
 type ActivityRecord = {
     iframe: HTMLIFrameElement;
@@ -314,7 +317,7 @@ export function initializeDoenetCoordinator(
         const now = Date.now();
         let active = 0;
         for (const record of records.values()) {
-            if (record.state !== "parked" && record.state !== "detached") {
+            if (record.state !== "parked") {
                 active++;
             }
         }
