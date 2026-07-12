@@ -83,9 +83,12 @@ export default class BaseComponent {
         } else {
             // Adapter / reference-shadow definitions: the factory already
             // produced per-instance prototype wrappers over the class
-            // definitions (with own copies of the nested mutable fields and
-            // the adapter/shadow overrides applied), so they can be used
-            // directly as the state variable objects.
+            // definitions and recorded (but did not yet apply) their
+            // adapter/shadow modifications as own `isShadow` / `svShadow*`
+            // markers. The nested mutable-field copies and the shadow
+            // overrides are applied when each variable materializes
+            // (`ensureStateVariableMaterialized`), so the wrappers can be
+            // used directly as the state variable objects here.
             for (let stateVariable in stateVariableDefinitions) {
                 this.state[stateVariable] =
                     stateVariableDefinitions[stateVariable];
