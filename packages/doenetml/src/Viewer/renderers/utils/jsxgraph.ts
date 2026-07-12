@@ -2,6 +2,7 @@ import me from "math-expressions";
 import { cesc } from "@doenet/utils";
 import type { RefObject } from "react";
 import { JXGBoard, JXGElement } from "../jsxgraph-distrib/types";
+import { computeLabelMaskCssStyle } from "./labelMaskStyle";
 
 export type AxisJXG = JXGElement & {
     defaultTicks: {
@@ -605,13 +606,22 @@ export function buildLineFamilyLabelAttributes({
     labelHasLatex,
     applyStyleToLabel,
     lineColor,
+    layer,
+    maskLabel = true,
 }: {
     labelForGraph: string;
     labelPosition: string;
     labelHasLatex: boolean;
     applyStyleToLabel: boolean;
     lineColor: string;
+    layer: number;
+    maskLabel?: boolean;
 }): Record<string, any> {
+    const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+        layer,
+        masked: maskLabel,
+    });
+
     if (labelForGraph !== "") {
         const { position, offset, anchorx, anchory } =
             getLineFamilyLabelPlacementSpec(labelPosition);
@@ -623,6 +633,9 @@ export function buildLineFamilyLabelAttributes({
             anchory,
             highlight: false,
             strokeColor: applyStyleToLabel ? lineColor : "var(--canvasText)",
+            cssStyle,
+            highlightCssStyle,
+            highlightStrokeOpacity: 1,
         };
 
         if (labelHasLatex) {
@@ -634,6 +647,9 @@ export function buildLineFamilyLabelAttributes({
 
     const labelAttributes: Record<string, any> = {
         highlight: false,
+        cssStyle,
+        highlightCssStyle,
+        highlightStrokeOpacity: 1,
     };
 
     if (labelHasLatex) {
@@ -939,6 +955,38 @@ export function syncLabelStrokeColor(
     label.visProp.strokecolor = applyStyleToLabel
         ? lineColor
         : "var(--canvasText)";
+}
+
+/**
+ * Sync a label's opaque mask background (see `computeLabelMaskCssStyle`),
+ * recomputing the CSS from the current `layer` (which affects z-index).
+ * Since these object-attached labels are created with `highlight: false`,
+ * JSXGraph never automatically applies `highlightcssstyle`; instead,
+ * `attachLabelHoverHighlight` directly toggles `label.visProp.cssstyle`
+ * between the returned `cssStyle` and `highlightCssStyle` when the object
+ * is hovered/dragged. Pass `highlighted: true` (e.g. from the object's own
+ * `.highlighted` flag) when syncing mid-render so an active hover/drag
+ * highlight isn't clobbered back to the non-highlighted style.
+ */
+export function syncLabelMaskCssStyle(
+    label: { visProp: Record<string, any> },
+    layer: number,
+    options: {
+        backgroundColor?: string;
+        highlighted?: boolean;
+        maskLabel?: boolean;
+    } = {},
+): { cssStyle: string; highlightCssStyle: string } {
+    const { backgroundColor, highlighted, maskLabel = true } = options;
+    const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+        layer,
+        backgroundColor,
+        masked: maskLabel,
+    });
+    label.visProp.cssstyle = highlighted ? highlightCssStyle : cssStyle;
+    label.visProp.highlightcssstyle = highlightCssStyle;
+    label.visProp.highlightstrokeopacity = 1;
+    return { cssStyle, highlightCssStyle };
 }
 
 /**

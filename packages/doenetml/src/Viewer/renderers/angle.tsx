@@ -4,13 +4,21 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import { JXGAngle, JXGPoint } from "./jsxgraph-distrib/types";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { GraphicalSVs } from "./utils/graphicalSVs";
-import { syncLayer, syncWithLabelToggle } from "./utils/jsxgraph";
+import {
+    syncLabelMaskCssStyle,
+    syncLayer,
+    syncWithLabelToggle,
+} from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
 import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
 
@@ -93,6 +101,11 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
         jsxAngleAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxAngleAttributes.label.useMathJax = true;
@@ -137,11 +150,23 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             jsxPointAttributes,
         );
 
-        return board.create(
+        const newAngleJXG = board.create(
             "angle",
             [point1JXG.current, point2JXG.current, point3JXG.current],
             jsxAngleAttributes,
         );
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newAngleJXG,
+            getLabelJXG: () => angleJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
+
+        return newAngleJXG;
     }
 
     if (SVs.hidden) {
@@ -240,6 +265,10 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
             if (angleJXG.current.hasLabel && angleJXG.current.label) {
                 angleJXG.current.label.needsUpdate = true;
+                syncLabelMaskCssStyle(angleJXG.current.label, SVs.layer, {
+                    highlighted: angleJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
                 angleJXG.current.label.update();
             }
             board.updateRenderer();
@@ -254,9 +283,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
         : undefined;
     return (
         <span style={style} id={id}>
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {mathJaxify}
-            </MathJax>
+            <DynamicMath latex={mathJaxify} />
         </span>
     );
 });

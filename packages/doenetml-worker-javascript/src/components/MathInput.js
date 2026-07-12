@@ -23,6 +23,11 @@ import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
 } from "../utils/input";
+import {
+    moveGraphicalObjectWithAnchorAction,
+    returnAnchorAttributes,
+    returnAnchorStateVariableDefinition,
+} from "../utils/graphical";
 
 export default class MathInput extends Input {
     constructor(args) {
@@ -31,6 +36,7 @@ export default class MathInput extends Input {
         Object.assign(this.actions, {
             updateRawValue: this.updateRawValue.bind(this),
             updateValue: this.updateValue.bind(this),
+            moveInput: this.moveInput.bind(this),
         });
 
         defineSubmitAnswerExternalAction(this);
@@ -185,6 +191,17 @@ export default class MathInput extends Input {
             description: "Whether to display a preview of the parsed math.",
         };
 
+        attributes.draggable = {
+            description: "Whether the input can be dragged on a graph.",
+            createComponentOfType: "boolean",
+            createStateVariable: "draggable",
+            defaultValue: true,
+            public: true,
+            forRenderer: true,
+        };
+
+        Object.assign(attributes, returnAnchorAttributes());
+
         return attributes;
     }
 
@@ -234,6 +251,11 @@ export default class MathInput extends Input {
                 displayDigitsDefault: 10,
                 displaySmallAsZeroDefault: 0,
             }),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnAnchorStateVariableDefinition(),
         );
 
         stateVariableDefinitions.effectiveFunctionNames = {
@@ -1233,6 +1255,29 @@ export default class MathInput extends Input {
                 });
             }
         }
+    }
+
+    async moveInput({
+        x,
+        y,
+        z,
+        transient,
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        return await moveGraphicalObjectWithAnchorAction({
+            x,
+            y,
+            z,
+            transient,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+            componentIdx: this.componentIdx,
+            componentType: this.componentType,
+            coreFunctions: this.coreFunctions,
+        });
     }
 
     static adapters = [

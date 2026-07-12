@@ -14,6 +14,7 @@ export * from "./components/sequence";
 export * from "./components/size";
 export * from "./math/array";
 export * from "./math/math";
+export * from "./math/mathjax-loader";
 export * from "./math/mathexpressions";
 export * from "./math/rounding";
 export * from "./math/subset-of-reals-operations";

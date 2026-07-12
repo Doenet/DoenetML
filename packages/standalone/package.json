@@ -30,6 +30,22 @@
     },
     "wireit": {
         "build": {
+            "command": "vite -c vite.config-coordinator.ts build",
+            "files": [
+                "src/coordinator.ts",
+                "../doenetml-iframe/src/shared-core-pool.ts",
+                "vite.config-coordinator.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/coordinator.js",
+                "dist/coordinator.js.map"
+            ],
+            "dependencies": [
+                "build:main"
+            ]
+        },
+        "build:main": {
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
@@ -39,7 +55,9 @@
             ],
             "output": [
                 "dist/**/*.js",
+                "!dist/coordinator.js",
                 "dist/**/*.map",
+                "!dist/coordinator.js.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.json",
                 "dist/**/*.css",

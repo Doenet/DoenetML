@@ -75,6 +75,15 @@ export default class GraphicalComponent extends BaseComponent {
             description:
                 "Whether to apply this component's selected style to its label.",
         };
+        attributes.maskLabel = {
+            createComponentOfType: "boolean",
+            createStateVariable: "maskLabel",
+            defaultValue: true,
+            public: true,
+            forRenderer: true,
+            description:
+                "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object. Set to false to restore a transparent label background.",
+        };
         attributes.layer = {
             createComponentOfType: "integer",
             createStateVariable: "layer",

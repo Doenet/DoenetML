@@ -22,6 +22,13 @@ import {
 import { dependencyTypeClasses } from "./registry";
 
 /**
+ * Shared result for `peekNeededToResolve` / `peekResolveBlockedBy` when no
+ * entry exists. Frozen: peek callers only read, and a write to this object
+ * would corrupt every other caller.
+ */
+const EMPTY_BLOCKERS: Record<string, any> = Object.freeze({});
+
+/**
  * The 9 trigger tables that `DependencyHandler` exposes for cross-component
  * change propagation. Each is an index over component identifiers or names
  * pointing at the dependent dependency records; the records themselves are
@@ -83,6 +90,61 @@ export class DependencyHandler {
     };
     attributeRefResolutionDependenciesByReferenced: Record<ComponentIdx, any>;
 
+    /**
+     * Interned (deduplicated, frozen) lists of downstream variable names.
+     * Most dependencies map the same few variable-name lists (e.g.
+     * `["value"]`), so sharing one frozen array per distinct list saves a
+     * separate array per (dependency, downstream component). Frozen so an
+     * accidental in-place mutation throws instead of corrupting the other
+     * dependencies sharing the list.
+     */
+    _internedVariableNameLists: Map<string, readonly string[]>;
+
+    /**
+     * Interned lists for the per-dependency parallel arrays
+     * (`downstreamComponentIndices`, `downstreamComponentTypes`, and the
+     * outer array of `mappedDownstreamVariableNamesByComponent`). Most
+     * dependencies have exactly one downstream component, and all the
+     * dependencies of one component point at the same few targets, so these
+     * mostly-length-1 arrays repeat heavily across dependencies.
+     * `Dependency.initialize` interns them once the downstream set is built;
+     * the base-class mutators (`addDownstreamComponent` /
+     * `removeDownstreamComponent` / `swapDownstreamComponents`) thaw (copy)
+     * before mutating.
+     */
+    _internedComponentIndexLists: Map<string, readonly number[]>;
+    _internedComponentTypeLists: Map<string, readonly string[]>;
+    _internedNameListArrays: Map<string, readonly (readonly string[])[]>;
+    /**
+     * Identity ids for the interned inner structures — name lists (from
+     * `internVariableNameList`) and `valuesChanged` records (from
+     * `internInitialValuesChangedRecord` and `emptyValuesChangedRecord`).
+     * Used to key the interned outer arrays that contain them
+     * (`internNameListArray` / `internValuesChangedArray`) and, for a name
+     * list, its interned initial change record.
+     */
+    _internedListIds: WeakMap<object, number>;
+    _nextInternedListId: number;
+
+    /**
+     * Interned initial `valuesChanged` records (every variable name mapped
+     * to the shared initial change record), keyed by the interned-list id of
+     * the variable-name list they cover. A new dependency's change state is
+     * fully determined by its (interned) variable-name list, so all such
+     * dependencies can share one frozen record until first written.
+     */
+    _internedValuesChangedRecords: Map<number, Record<string, any>>;
+    /**
+     * Interned `valuesChanged` outer arrays, keyed by the joined ids of
+     * their (interned) per-component records. Covers both the initial state
+     * and the fully-consumed state (`emptyValuesChangedRecord` entries), so
+     * dependencies whose changes were consumed converge back to shared
+     * structures instead of retaining a mutable array + empty record each.
+     */
+    _internedValuesChangedArrays: Map<string, Record<string, any>[]>;
+    /** Shared frozen record for a fully-consumed `valuesChanged` entry. */
+    emptyValuesChangedRecord: Record<string, any>;
+
     constructor({
         _components,
         componentInfoObjects,
@@ -122,6 +184,165 @@ export class DependencyHandler {
         };
 
         this.attributeRefResolutionDependenciesByReferenced = {};
+
+        this._internedVariableNameLists = new Map();
+        this._internedComponentIndexLists = new Map();
+        this._internedComponentTypeLists = new Map();
+        this._internedNameListArrays = new Map();
+        this._internedListIds = new WeakMap();
+        this._nextInternedListId = 1;
+        this._internedValuesChangedRecords = new Map();
+        this._internedValuesChangedArrays = new Map();
+        this.emptyValuesChangedRecord = Object.freeze({});
+        this._internedListIds.set(
+            this.emptyValuesChangedRecord,
+            this._nextInternedListId,
+        );
+        this._nextInternedListId++;
+    }
+
+    internComponentIndexList(indices: number[]): number[] {
+        const key = indices.join(",");
+        let interned = this._internedComponentIndexLists.get(key);
+        if (!interned) {
+            interned = Object.freeze(indices);
+            this._internedComponentIndexLists.set(key, interned);
+        }
+        return interned as number[];
+    }
+
+    internComponentTypeList(types: string[]): string[] {
+        // component types are identifiers, so "\n" cannot appear in one
+        const key = types.join("\n");
+        let interned = this._internedComponentTypeLists.get(key);
+        if (!interned) {
+            interned = Object.freeze(types);
+            this._internedComponentTypeLists.set(key, interned);
+        }
+        return interned as string[];
+    }
+
+    /**
+     * Intern an array whose elements are already-interned name lists
+     * (from `internVariableNameList`), keyed by the identity of those
+     * elements. Elements that are not interned lists (no assigned id) make
+     * the array non-internable; it is returned unchanged.
+     */
+    internNameListArray(outer: string[][]): string[][] {
+        const ids: number[] = [];
+        for (const inner of outer) {
+            const id =
+                typeof inner === "object" && inner !== null
+                    ? this._internedListIds.get(inner)
+                    : undefined;
+            if (id === undefined) {
+                return outer;
+            }
+            ids.push(id);
+        }
+        const key = ids.join(",");
+        let interned = this._internedNameListArrays.get(key);
+        if (!interned) {
+            interned = Object.freeze(outer);
+            this._internedNameListArrays.set(key, interned);
+        }
+        return interned as string[][];
+    }
+
+    internVariableNameList(names: string[]): string[] {
+        // Newline is a safe list separator: state variable names are
+        // identifiers or numeric-ending array entries, and author-supplied
+        // reference names are restricted to the parser grammar's `nameChar`
+        // (letters/digits/`-`/`.`/combining marks — never whitespace), so no
+        // name can contain a "\n" that would collide two distinct lists.
+        const key = names.join("\n");
+        let interned = this._internedVariableNameLists.get(key);
+        if (!interned) {
+            interned = Object.freeze(names);
+            this._internedVariableNameLists.set(key, interned);
+            this._internedListIds.set(interned, this._nextInternedListId);
+            this._nextInternedListId++;
+        }
+        return interned as string[];
+    }
+
+    /**
+     * Like `internVariableNameList`, but never freezes the caller's array:
+     * on a cache miss the interned entry is a frozen copy. For dependency
+     * fields that alias arrays owned elsewhere (state-variable definitions,
+     * constructor arguments), which must stay mutable for their owners.
+     */
+    internVariableNameListByCopy(names: readonly string[]): string[] {
+        const key = names.join("\n");
+        const interned = this._internedVariableNameLists.get(key);
+        if (interned) {
+            return interned as string[];
+        }
+        return this.internVariableNameList([...names]);
+    }
+
+    /**
+     * Return the shared frozen initial `valuesChanged` record (every
+     * variable mapped to the shared initial change record) for the given
+     * interned variable-name list. Falls back to a fresh mutable record if
+     * `names` was not interned. Writers must thaw/replace before mutating;
+     * see `Dependency.thawValuesChangedRecord` and
+     * `Dependency.consumeChangeRecord`.
+     */
+    internInitialValuesChangedRecord(
+        names: readonly string[],
+        initialChangeRecord: Record<string, any>,
+    ): Record<string, any> {
+        const listId = this._internedListIds.get(names as string[]);
+        if (listId === undefined) {
+            const record: Record<string, any> = {};
+            for (const name of names) {
+                record[name] = initialChangeRecord;
+            }
+            return record;
+        }
+        let record = this._internedValuesChangedRecords.get(listId);
+        if (!record) {
+            record = {};
+            for (const name of names) {
+                record[name] = initialChangeRecord;
+            }
+            Object.freeze(record);
+            this._internedValuesChangedRecords.set(listId, record);
+            this._internedListIds.set(record, this._nextInternedListId);
+            this._nextInternedListId++;
+        }
+        return record;
+    }
+
+    /**
+     * Intern a `valuesChanged` outer array whose entries are all interned
+     * records (from `internInitialValuesChangedRecord` or
+     * `emptyValuesChangedRecord`), keyed by the identity of those entries.
+     * Any non-interned (hence mutable) entry makes the array non-internable;
+     * it is returned unchanged.
+     */
+    internValuesChangedArray(
+        outer: Record<string, any>[],
+    ): Record<string, any>[] {
+        const ids: number[] = [];
+        for (const record of outer) {
+            const id =
+                typeof record === "object" && record !== null
+                    ? this._internedListIds.get(record)
+                    : undefined;
+            if (id === undefined) {
+                return outer;
+            }
+            ids.push(id);
+        }
+        const key = ids.join(",");
+        let interned = this._internedValuesChangedArrays.get(key);
+        if (!interned) {
+            interned = Object.freeze(outer) as Record<string, any>[];
+            this._internedValuesChangedArrays.set(key, interned);
+        }
+        return interned;
     }
 
     async setUpComponentDependencies(component: ComponentInstance) {
@@ -710,6 +931,20 @@ export class DependencyHandler {
         }
     }
 
+    /**
+     * Drop the circular-check memo records. They are pure caches ("this
+     * state variable already passed the check"), so clearing costs only
+     * re-verification when a later dependency change re-triggers a check.
+     * Called once initial document construction finishes: at that point the
+     * memos cover every state variable created during the load (one record
+     * entry per state variable), but they regrow only for the typically few
+     * components involved in subsequent updates.
+     */
+    clearCircularCheckMemos() {
+        this.circularCheckPassed = {};
+        this.circularResolveBlockedCheckPassed = {};
+    }
+
     resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
         let stateVariableIdentifier = componentIdx + ":" + varName;
         if (this.circularCheckPassed[stateVariableIdentifier]) {
@@ -1139,48 +1374,28 @@ export class DependencyHandler {
                 if (upDep.valuesChanged) {
                     let ind =
                         upDep.downstreamComponentIndices.indexOf(componentIdx);
+                    // the interned (frozen, shared) structures must be
+                    // replaced with mutable copies before recording
+                    upDep.thawValuesChangedRecord(ind);
                     let upValuesChanged = upDep.valuesChanged[ind][varName];
 
-                    // Note (dated July 20, 2023):
-                    // The code in the next two sections references a variable upValuesChangedSub
-                    // that is not defined, so it will throw an error if evaluated.
-                    // This code is years old at this point and all tests have been passing.
-                    // Either there is a rare edge case that will call this code and we need to fix it,
-                    // or this code is no longer used.
-                    // TODO: determine if this code is need.  Fix it if it is needed or else delete it.
-
                     if (!upValuesChanged) {
-                        // check if have an alias that maps to varName
-                        if (component.stateVarAliases) {
-                            for (let alias in component.stateVarAliases) {
-                                if (
-                                    component.stateVarAliases[alias] ===
-                                        varName &&
-                                    // @ts-expect-error see "Note (dated July 20, 2023)" above:
-                                    // `upValuesChangedSub` is undefined; keeping the
-                                    // reference verbatim so behavior matches the JS source.
-                                    alias in upValuesChangedSub
-                                ) {
-                                    upValuesChanged =
-                                        // @ts-expect-error same as above
-                                        upValuesChangedSub[alias];
-                                }
-                            }
-                        }
-                    }
-
-                    // if still don't have record of change, create new change object
-                    // (Should only be needed when have array entry variables,
-                    // where original change was recorded in array)
-                    if (!upValuesChanged) {
-                        if (!component.state[varName].isArrayEntry) {
-                            throw Error(
-                                `Something is wrong, as a variable ${varName} of ${component.componentIdx} actually changed, but wasn't marked with a potential change`,
-                            );
-                        }
-                        upValuesChanged =
-                            // @ts-expect-error same as above
-                            upValuesChangedSub[varName] = { changed: {} };
+                        // The change record was consumed (deleted) by a
+                        // previous getValue, or the original change was
+                        // recorded in the array state variable rather than
+                        // this array entry. Recreate it.
+                        // (This replaced dead code that referenced an
+                        // undefined `upValuesChangedSub` and threw for
+                        // non-array-entry variables; change records are now
+                        // deleted on consumption, so absence is normal.)
+                        upValuesChanged = upDep.valuesChanged[ind][varName] =
+                            {};
+                    } else if (Object.isFrozen(upValuesChanged)) {
+                        // the shared initial change record — replace it
+                        // before recording metadata on it
+                        upValuesChanged = upDep.valuesChanged[ind][varName] = {
+                            changed: upValuesChanged.changed,
+                        };
                     }
 
                     if (
@@ -1333,6 +1548,49 @@ export class DependencyHandler {
             foundChange: true,
             finishedPropagation: parentResult.finishedPropagation,
         };
+    }
+
+    /**
+     * Non-creating variant of `getNeededToResolve`: returns the nested entry
+     * if it exists, else `EMPTY_BLOCKERS`, without materializing intermediate
+     * levels. `getNeededToResolve` creates the whole nested chain on every
+     * lookup, and read-only callers used to leave tens of thousands of empty
+     * `{cIdx: {type: {stateVariable: {}}}}` chains behind — the bulk of
+     * `resolveBlockers`' retained memory.
+     */
+    peekNeededToResolve({
+        componentIdx,
+        type,
+        stateVariable,
+        dependency,
+    }: any) {
+        let neededToResolve =
+            this.resolveBlockers.neededToResolve[componentIdx]?.[type];
+        if (neededToResolve && stateVariable) {
+            neededToResolve = neededToResolve[stateVariable];
+            if (neededToResolve && dependency) {
+                neededToResolve = neededToResolve[dependency];
+            }
+        }
+        return neededToResolve ?? EMPTY_BLOCKERS;
+    }
+
+    /** Non-creating variant of `getResolveBlockedBy`; see `peekNeededToResolve`. */
+    peekResolveBlockedBy({
+        componentIdx,
+        type,
+        stateVariable,
+        dependency,
+    }: any) {
+        let resolveBlockedBy =
+            this.resolveBlockers.resolveBlockedBy[componentIdx]?.[type];
+        if (resolveBlockedBy && stateVariable) {
+            resolveBlockedBy = resolveBlockedBy[stateVariable];
+            if (resolveBlockedBy && dependency) {
+                resolveBlockedBy = resolveBlockedBy[dependency];
+            }
+        }
+        return resolveBlockedBy ?? EMPTY_BLOCKERS;
     }
 
     getNeededToResolve({ componentIdx, type, stateVariable, dependency }: any) {
@@ -1868,15 +2126,15 @@ export class DependencyHandler {
 
         let neededToResolveBlocked = neededForBlocked[blockerType];
         if (!neededToResolveBlocked) {
-            neededToResolveBlocked = neededForBlocked[blockerType] = [];
-        }
-
-        // if blockers is already recorded, then nothing to do
-        if (neededToResolveBlocked.includes(blockerCode)) {
+            // exact capacity: three quarters of blocker lists only ever hold
+            // one code, while a push-grown array reserves ≥16 element slots
+            neededForBlocked[blockerType] = [blockerCode];
+        } else if (neededToResolveBlocked.includes(blockerCode)) {
+            // blocker is already recorded, so nothing to do
             return;
+        } else {
+            neededToResolveBlocked.push(blockerCode);
         }
-
-        neededToResolveBlocked.push(blockerCode);
 
         if (typeBlocked === "stateVariable") {
             let component = this._components[componentIdxBlocked];
@@ -1931,9 +2189,9 @@ export class DependencyHandler {
 
         let blockedByBlocker = resolvedBlockedByBlocker[typeBlocked];
         if (!blockedByBlocker) {
-            blockedByBlocker = resolvedBlockedByBlocker[typeBlocked] = [];
-        }
-        if (!blockedByBlocker.includes(codeBlocked)) {
+            // exact capacity, as for `neededToResolveBlocked` above
+            resolvedBlockedByBlocker[typeBlocked] = [codeBlocked];
+        } else if (!blockedByBlocker.includes(codeBlocked)) {
             blockedByBlocker.push(codeBlocked);
         }
 
@@ -2052,7 +2310,7 @@ export class DependencyHandler {
 
                 if (dep) {
                     // check if there are any other determineDependencies blocking state variable
-                    let neededForItem = this.getNeededToResolve({
+                    let neededForItem = this.peekNeededToResolve({
                         componentIdx: componentIdxNewlyResolved,
                         type: "stateVariable",
                         stateVariable: stateVariableNewlyResolved,
@@ -2180,7 +2438,7 @@ export class DependencyHandler {
             }
         }
 
-        let resolveBlockedByNewlyResolved = this.getResolveBlockedBy({
+        let resolveBlockedByNewlyResolved = this.peekResolveBlockedBy({
             componentIdx: componentIdxNewlyResolved,
             type: typeNewlyResolved,
             stateVariable: stateVariableNewlyResolved,
@@ -2357,7 +2615,7 @@ export class DependencyHandler {
         // and updateDependencies calls the getters on
         // the state variables determining dependencies
 
-        let neededForItem = this.getNeededToResolve({
+        let neededForItem = this.peekNeededToResolve({
             componentIdx,
             type,
             stateVariable,
@@ -2417,7 +2675,7 @@ export class DependencyHandler {
                 break;
             }
             if (nFailures > 0) {
-                neededForItem = this.getNeededToResolve({
+                neededForItem = this.peekNeededToResolve({
                     componentIdx,
                     type,
                     stateVariable,
@@ -2469,7 +2727,7 @@ export class DependencyHandler {
             // it means we are forcing.
             // Try one more time while passing force to resolveItem
 
-            neededForItem = this.getNeededToResolve({
+            neededForItem = this.peekNeededToResolve({
                 componentIdx,
                 type,
                 stateVariable,
@@ -2529,7 +2787,7 @@ export class DependencyHandler {
         if (!finalResult.success) {
             // after removing all blockers, we still can't resolve
 
-            let stillNeededForItem = this.getNeededToResolve({
+            let stillNeededForItem = this.peekNeededToResolve({
                 componentIdx,
                 type,
                 stateVariable,
@@ -2609,7 +2867,7 @@ export class DependencyHandler {
         if (!this.circularResolveBlockedCheckPassed[identifier]) {
             this.circularResolveBlockedCheckPassed[identifier] = true;
 
-            let neededForItem = this.getNeededToResolve({
+            let neededForItem = this.peekNeededToResolve({
                 componentIdx,
                 type,
                 stateVariable,
@@ -2749,7 +3007,7 @@ export class DependencyHandler {
         if (this.circularResolveBlockedCheckPassed[identifier]) {
             delete this.circularResolveBlockedCheckPassed[identifier];
 
-            let resolveBlockedBy = this.getResolveBlockedBy({
+            let resolveBlockedBy = this.peekResolveBlockedBy({
                 componentIdx,
                 type,
                 stateVariable,

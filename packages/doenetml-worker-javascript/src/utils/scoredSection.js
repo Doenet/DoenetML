@@ -71,13 +71,13 @@ export function returnScoredSectionAttributes() {
             description:
                 "Whether to color-code the answers it contains based on correctness.",
         },
-        forceIndividualAnswerColoring: {
+        colorAnswersSeparately: {
             createComponentOfType: "boolean",
-            createStateVariable: "forceIndividualAnswerColoring",
+            createStateVariable: "colorAnswersSeparately",
             defaultValue: false,
             groupName: "scoring",
             description:
-                "Whether to force per-answer color-correctness even when section-wide check work is enabled.",
+                "When section-wide check work is enabled, color each answer based on its own correctness rather than the section's overall credit.",
         },
         submitLabel: {
             createComponentOfType: "text",
@@ -607,9 +607,9 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "sectionWideCheckWork",
             },
-            forceIndividualAnswerColoring: {
+            colorAnswersSeparately: {
                 dependencyType: "stateVariable",
-                variableName: "forceIndividualAnswerColoring",
+                variableName: "colorAnswersSeparately",
             },
             ancestorDeterminingSubmit: {
                 dependencyType: "ancestor",
@@ -634,7 +634,7 @@ export function returnScoredSectionStateVariableDefinition() {
             } else if (dependencyValues.sectionWideCheckWork) {
                 createSubmitAllButton = true;
                 suppressAnswerSubmitButtons = true;
-                if (!dependencyValues.forceIndividualAnswerColoring) {
+                if (!dependencyValues.colorAnswersSeparately) {
                     descendantColorCorrectnessBasedOnIdx = componentIdx;
                 }
             }

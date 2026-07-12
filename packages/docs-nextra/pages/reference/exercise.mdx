@@ -192,11 +192,11 @@ for all `<answer>{:dn}` components within the `<exercise>{:dn}` under a single "
 
 ---
 
-### Attribute Example: forceIndividualAnswerColoring
+### Attribute Example: colorAnswersSeparately
 
 
 ```doenet-example
-<exercise sectionWideCheckWork forceIndividualAnswerColoring><title>Multiple questions</title>
+<exercise sectionWideCheckWork colorAnswersSeparately><title>Multiple questions</title>
   <p><answer><label>Enter <m>x</m></label>x</answer></p>
   <p><answer><label>Enter <m>y</m></label>y</answer></p>
   <p><answer><label>Enter <m>z</m></label>z</answer></p>
@@ -206,7 +206,7 @@ for all `<answer>{:dn}` components within the `<exercise>{:dn}` under a single "
 Typically, the `sectionWideCheckWork` attribute causes all answer box border colors
 to correspond to the overall correctness of the entire exercise
 (i.e., the colors don't reveal additional information about which answer is correct).
-If `forceIndividualAnswerColoring` is also specified, then each answer box border
+If `colorAnswersSeparately` is also specified, then each answer box border
 will instead be colored according to its own answer's correctness.
 
 

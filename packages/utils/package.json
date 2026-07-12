@@ -22,6 +22,9 @@
         },
         "./style": {
             "import": "./dist/style.js"
+        },
+        "./mathjax": {
+            "import": "./dist/mathjax.js"
         }
     },
     "scripts": {
@@ -35,6 +38,7 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
+                "src/**/*.tsx",
                 "src/**/*.js",
                 "vite.config.ts",
                 "tsconfig.json"

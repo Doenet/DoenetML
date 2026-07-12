@@ -4,7 +4,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
@@ -13,12 +13,17 @@ import {
     buildLineFamilyLabelAttributes,
     removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineFamilyVisibility,
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { JXGLine } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
@@ -112,6 +117,8 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
             labelHasLatex: SVs.labelHasLatex,
             applyStyleToLabel: SVs.applyStyleToLabel,
             lineColor,
+            layer: SVs.layer,
+            maskLabel: SVs.maskLabel,
         });
 
         let through = [
@@ -201,6 +208,16 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
         });
 
         lineJXG.current = newLineJXG;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newLineJXG,
+            getLabelJXG: () => lineJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         if (SVs.labelForGraph !== "" && newLineJXG.hasLabel) {
             cancelInitialLabelPlacement.current =
@@ -304,6 +321,10 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
                 const label = lineJXG.current.label;
                 label.needsUpdate = true;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: lineJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
 
                 applyLineFamilyLabelPlacement({
                     board,
@@ -331,9 +352,7 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
         : undefined;
     return (
         <span style={style} id={id}>
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {mathJaxify}
-            </MathJax>
+            <DynamicMath latex={mathJaxify} />
         </span>
     );
 });

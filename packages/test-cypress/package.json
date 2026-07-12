@@ -46,7 +46,8 @@
                 "../doenetml-prototype:build",
                 "../doenetml:build",
                 "../prefigure:build",
-                "../ui-components:build"
+                "../ui-components:build",
+                "../standalone:build"
             ]
         }
     },

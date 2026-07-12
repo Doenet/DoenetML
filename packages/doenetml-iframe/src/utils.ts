@@ -84,6 +84,8 @@ export function createHtmlForDoenetViewer(
     doenetViewerProps: DoenetViewerProps,
     standaloneUrl: string,
     cssUrl: string,
+    useSharedCoreWorker = false,
+    windowed = false,
 ) {
     // Since function props disappear when stringifying
     // and we'll have access to them only via proxying with ComLink,
@@ -91,6 +93,12 @@ export function createHtmlForDoenetViewer(
     // Since for some callbacks, we have different behavior whether or not it was specified,
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
+    // The wrapper may supply its own composed `initializedCallback` (the
+    // windowed-mounting boot-slot release) even when the host didn't specify
+    // one; list it so the in-iframe entry adopts the proxy when sent.
+    if (!doenetViewerPropsSpecified.includes("initializedCallback")) {
+        doenetViewerPropsSpecified.push("initializedCallback");
+    }
 
     // XXX: rather than serving Comlink from the cdn, below, serve it directly
     // TODO: rather than load the Doenet logo from doenet.org, serve it directly
@@ -102,6 +110,8 @@ export function createHtmlForDoenetViewer(
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
             const doenetViewerPropsSpecified = ${JSON.stringify(doenetViewerPropsSpecified)};
+            const doenetSharedCoreWorker = ${JSON.stringify(!!useSharedCoreWorker)};
+            const doenetWindowedViewer = ${JSON.stringify(!!windowed)};
             import * as ComlinkViewer from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
 
             // This source code has been compiled by vite and should be directly included.

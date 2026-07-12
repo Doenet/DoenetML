@@ -220,33 +220,36 @@ export function DocViewer({
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
-    // Native handle for the same worker `coreWorker` wraps, kept so a wedged
-    // worker can be force-terminated even when its Comlink `terminate()` would
-    // itself hang on the stuck queue (Doenet/DoenetApps#2957). Set and
-    // cleared in lockstep with `coreWorker` (always via
-    // `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
-    const nativeCoreWorker = useRef<Worker | null>(null);
+    // Kill switch for the same core `coreWorker` wraps, kept so a wedged
+    // core can be force-released even when its Comlink `terminate()` would
+    // itself hang on the stuck queue (Doenet/DoenetApps#2957). Natively
+    // terminates a dedicated worker; on a shared host worker (#1466) it
+    // destroys just this core. Set and cleared in lockstep with `coreWorker`
+    // (always via `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
+    const coreWorkerKill = useRef<((suspectWedge?: boolean) => void) | null>(
+        null,
+    );
 
-    // Spin up a fresh core worker and store its Comlink remote and native
-    // handle in lockstep. Returns the remote for the caller to drive.
+    // Spin up a fresh core worker and store its Comlink remote and kill
+    // switch in lockstep. Returns the remote for the caller to drive.
     function attachNewCoreWorker(): Remote<CoreWorker> {
-        const { remote, worker } = createCoreWorker();
+        const { remote, kill } = createCoreWorker();
         coreWorker.current = remote;
-        nativeCoreWorker.current = worker;
+        coreWorkerKill.current = kill;
         return remote;
     }
 
-    // Tear down whatever worker the refs currently point at and clear them
+    // Tear down whatever core the refs currently point at and clear them
     // (keeping the two refs in lockstep). Refs are cleared up front so a
-    // worker that's being terminated is never reachable mid-teardown; the
+    // core that's being terminated is never reachable mid-teardown; the
     // returned promise settles once `disposeCoreWorker` has finished, for
     // callers that need to await the teardown before swapping in a replacement.
     function teardownCurrentCoreWorker({ graceful }: { graceful: boolean }) {
         const remote = coreWorker.current;
-        const native = nativeCoreWorker.current;
+        const kill = coreWorkerKill.current;
         coreWorker.current = null;
-        nativeCoreWorker.current = null;
-        return disposeCoreWorker(remote, native, { graceful });
+        coreWorkerKill.current = null;
+        return disposeCoreWorker(remote, kill, { graceful });
     }
 
     function clearDeferredCoreActions() {
@@ -368,6 +371,43 @@ export function DocViewer({
                     } else {
                         window.postMessage(message);
                     }
+                }
+            } else if (e.data.subject === "SPLICE.flushState") {
+                // Flush-state-on-demand (Doenet/DoenetML#1440): settle in-flight
+                // updates and push any pending state through the normal
+                // `SPLICE.reportScoreAndState` pipeline, then send this
+                // stateless acknowledgement. A persistence host (e.g. Runestone)
+                // saves the resulting `reportScoreAndState` exactly as it does a
+                // routine autosave — it need not know a flush occurred. This
+                // response is the completion signal a lifecycle coordinator
+                // (e.g. a PreTeXt page unmounting an off-screen viewer) waits
+                // for: once it arrives, tearing the viewer down loses nothing.
+                //
+                // `hadState: false` means the viewer held no state beyond what
+                // it was initialized with (e.g. its core was never created), so
+                // unmounting is equally safe.
+                const message: Record<string, unknown> = {
+                    subject: "SPLICE.flushState.response",
+                    activity_id: activityId,
+                    doc_id: docId,
+                    message_id: e.data.message_id,
+                    success: true,
+                    hadState: false,
+                };
+                if (coreCreated.current && coreWorker.current) {
+                    try {
+                        message.hadState =
+                            await coreWorker.current.flushState();
+                    } catch (err) {
+                        console.warn("DocViewer: flushState failed", err);
+                        message.success = false;
+                    }
+                }
+
+                if (flags.messageParent && window.parent) {
+                    window.parent.postMessage(message);
+                } else {
+                    window.postMessage(message);
                 }
             }
         };

@@ -32,6 +32,7 @@ import {
     ShadowSourceDependency,
     UnlinkedCopySourceDependency,
     PrimaryShadowDependency,
+    ShadowInfoDependency,
 } from "./shadowDependencies";
 import {
     AdapterSourceStateVariableDependency,
@@ -96,6 +97,7 @@ export const dependencyTypeClasses: ReadonlyArray<DependencyClass> = [
     ShadowSourceDependency,
     UnlinkedCopySourceDependency,
     PrimaryShadowDependency,
+    ShadowInfoDependency,
     AdapterSourceStateVariableDependency,
     AdapterSourceDependency,
     CountAmongSiblingsDependency,

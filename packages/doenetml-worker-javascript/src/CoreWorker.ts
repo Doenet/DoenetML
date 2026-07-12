@@ -219,6 +219,13 @@ export class PublicDoenetMLCore {
         sendEvent: SendEvent,
         requestSolutionView: RequestSolutionView,
     ) {
+        if (this.initialized && !this.coreBaseArgs?.serializedDocument) {
+            return {
+                success: false as const,
+                errMsg: "Cannot create the core a second time from the same worker; the serialized document was released after the first core was created.",
+            };
+        }
+
         let coreArgs = {
             ...this.coreBaseArgs!,
             ...args,
@@ -239,6 +246,11 @@ export class PublicDoenetMLCore {
 
         if (this.initialized) {
             this.core = new Core(coreArgs);
+            // The core now owns the only needed reference to the serialized
+            // document (and releases it once consumed in `generateDast`);
+            // drop this alias so the worker does not retain a full
+            // serialized copy of the document for the life of the session.
+            this.coreBaseArgs!.serializedDocument = undefined;
             try {
                 const result = await this.core.generateDast();
                 return { success: true as const, ...result };
@@ -463,5 +475,16 @@ export class PublicDoenetMLCore {
      */
     async saveImmediately() {
         await this.core?.saveImmediately();
+    }
+
+    /**
+     * Flush-state-on-demand (Doenet/DoenetML#1440): after letting in-flight
+     * updates settle, push any pending state through the normal
+     * `reportScoreAndState` pipeline so a persistence host saves it, letting a
+     * host unmount this document losslessly. Returns whether the viewer held
+     * any state (`false` when the core/document has not been created yet).
+     */
+    async flushState(): Promise<boolean> {
+        return (await this.core?.flushState()) ?? false;
     }
 }

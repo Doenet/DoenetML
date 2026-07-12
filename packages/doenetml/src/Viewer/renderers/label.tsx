@@ -4,7 +4,7 @@ import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
@@ -20,6 +20,7 @@ import {
     detachAnchoredGraphElement,
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import { computeLabelMaskCssStyle } from "./utils/labelMaskStyle";
 
 interface LabelSVs {
     hidden: boolean;
@@ -31,6 +32,7 @@ interface LabelSVs {
     positionFromAnchor: any;
     value: string;
     hasLatex: boolean;
+    maskLabel: boolean;
     forTargetRendererId?: string;
     forTargetIsGroup?: boolean;
     selectedStyle: ResolvedStyleDefinition;
@@ -83,10 +85,11 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 ? SVs.selectedStyle.backgroundColorDarkMode
                 : SVs.selectedStyle.backgroundColor;
 
-        let cssStyle = ``;
-        if (backgroundColor) {
-            cssStyle += `background-color: ${backgroundColor}`;
-        }
+        let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+            layer: SVs.layer,
+            backgroundColor,
+            masked: SVs.maskLabel,
+        });
 
         //things to be passed to JSXGraph as attributes
         let jsxLabelAttributes: Record<string, any> = {
@@ -94,11 +97,14 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             fixed: fixed.current,
             layer: 10 * SVs.layer + TEXT_LAYER_OFFSET,
             cssStyle,
-            highlightCssStyle: cssStyle,
+            highlightCssStyle,
             strokeColor: textColor,
             strokeOpacity: 1,
             highlightStrokeColor: textColor,
-            highlightStrokeOpacity: 0.5,
+            // Text elements default to a highlightStrokeOpacity < 1, which
+            // combines with the background alpha and makes the highlighted
+            // mask look transparent (jsxgraph issue #777). Force it to 1.
+            highlightStrokeOpacity: 1,
             highlight: !fixLocation.current,
             useMathJax: SVs.hasLatex,
             parse: false,
@@ -252,12 +258,11 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 darkMode === "dark"
                     ? SVs.selectedStyle.backgroundColorDarkMode
                     : SVs.selectedStyle.backgroundColor;
-            let cssStyle = ``;
-            if (backgroundColor) {
-                cssStyle += `background-color: ${backgroundColor}`;
-            } else {
-                cssStyle += `background-color: transparent`;
-            }
+            let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                backgroundColor,
+                masked: SVs.maskLabel,
+            });
 
             if (labelJXG.current.visProp.strokecolor !== textColor) {
                 labelJXG.current.visProp.strokecolor = textColor!;
@@ -265,7 +270,8 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             }
             if (labelJXG.current.visProp.cssstyle !== cssStyle) {
                 labelJXG.current.visProp.cssstyle = cssStyle;
-                labelJXG.current.visProp.highlightcssstyle = cssStyle;
+                labelJXG.current.visProp.highlightcssstyle = highlightCssStyle;
+                labelJXG.current.visProp.highlightstrokeopacity = 1;
             }
 
             labelJXG.current.visProp.highlight = !fixLocation.current;
@@ -310,11 +316,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
     let label: React.ReactNode = SVs.value;
 
     if (SVs.hasLatex) {
-        label = (
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {label}
-            </MathJax>
-        );
+        label = <DynamicMath latex={SVs.value} />;
     }
     if (SVs.forTargetRendererId) {
         if (SVs.forTargetIsGroup) {

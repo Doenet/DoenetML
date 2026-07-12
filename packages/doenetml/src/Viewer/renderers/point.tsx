@@ -4,7 +4,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BoardContext, POINT_LAYER_OFFSET } from "./graph";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import { textRendererStyle } from "@doenet/utils";
 import { characterizeOffGraphPoint } from "./utils/offGraphIndicators";
 import {
@@ -24,10 +24,15 @@ import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveMarkerColor } from "./utils/styleColors";
 import {
     removeJXGEventHandlers,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import {
     DragCoordinationState,
     attachLineFamilyDragHandlers,
@@ -164,6 +169,11 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 anchorx,
                 anchory,
                 highlight: false,
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
+                highlightStrokeOpacity: 1,
             };
 
             if (SVs.labelHasLatex) {
@@ -178,6 +188,11 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         } else {
             jsxPointAttributes.label = {
                 highlight: false,
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
+                highlightStrokeOpacity: 1,
             };
             if (SVs.labelHasLatex) {
                 jsxPointAttributes.label.useMathJax = true;
@@ -225,6 +240,16 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             coords,
             jsxPointAttributes,
         );
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newShadowPointJXG,
+            getLabelJXG: () => pointJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         attachLineFamilyDragHandlers({
             jxg: newShadowPointJXG,
@@ -343,6 +368,19 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     shadowPointJXG.current.visProp.highlightstrokeopacity =
                         pointJXG.current.visProp.strokeopacity;
                 }
+                // Raise the label's mask style while dragging, since the
+                // pointer may not stay over the shadow point (which drives
+                // "over"/"out") during a drag. See attachLabelHoverHighlight.
+                if (pointJXG.current?.label) {
+                    const label = pointJXG.current.label;
+                    label.visProp.cssstyle = computeLabelMaskCssStyle({
+                        layer: SVs.layer,
+                        masked: SVs.maskLabel,
+                    }).highlightCssStyle;
+                    label.needsUpdate = true;
+                    label.update();
+                    board.updateRenderer();
+                }
             },
             onUpExtra: () => {
                 if (
@@ -351,6 +389,25 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 ) {
                     shadowPointJXG.current.visProp.highlightfillopacity = 0;
                     shadowPointJXG.current.visProp.highlightstrokeopacity = 0;
+                }
+                if (pointJXG.current?.label) {
+                    const label = pointJXG.current.label;
+                    const { cssStyle, highlightCssStyle } =
+                        computeLabelMaskCssStyle({
+                            layer: SVs.layer,
+                            masked: SVs.maskLabel,
+                        });
+                    // If the pointer is still over the shadow point when the
+                    // drag ends, keep the highlighted mask: the "out" handler
+                    // won't re-fire (the pointer never left), so reverting to
+                    // the base style here would leave the label un-highlighted
+                    // while still hovered.
+                    label.visProp.cssstyle = shadowPointJXG.current?.highlighted
+                        ? highlightCssStyle
+                        : cssStyle;
+                    label.needsUpdate = true;
+                    label.update();
+                    board.updateRenderer();
                 }
             },
             onHitExtra: () => {
@@ -556,6 +613,14 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 const label = pointJXG.current.label;
                 label.needsUpdate = true;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, markerColor);
+                // Keep the point's label mask (and its live `highlightcssstyle`,
+                // which `attachLabelHoverHighlight` reads on hover) in sync with
+                // the current layer. Use the shadow point's highlight state,
+                // since that is what drives the point's hover/drag highlighting.
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    highlighted: shadowPointJXG.current.highlighted,
+                    maskLabel: SVs.maskLabel,
+                });
 
                 let labelPosition = adjustPointLabelPosition(
                     SVs.labelPosition,
@@ -599,9 +664,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         : undefined;
     return (
         <span style={style} id={id}>
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {mathJaxify}
-            </MathJax>
+            <DynamicMath latex={mathJaxify} />
         </span>
     );
 });
