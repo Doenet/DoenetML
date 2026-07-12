@@ -16,11 +16,25 @@ import type {
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { ResizeWatcher } from "./resize-watcher";
+import {
+    detectCoordinatedMode,
+    installCoordinatorSharedCorePortProvider,
+    postToCoordinator,
+} from "./coordinated-mode";
 
 // Re-export React and friends in case a user really wants to use them
 export { React, ReactDOM, DoenetViewer, DoenetEditor };
 
 export const version: string = STANDALONE_VERSION;
+
+// Parent-page coordinator support (see coordinated-mode.ts): when this
+// page's URL carries the coordinator's fragment token, viewers rendered
+// here report their lifecycle to the parent and (with the `sc` variant)
+// obtain their cores from the coordinator's shared worker pool.
+const coordinatedMode = detectCoordinatedMode();
+if (coordinatedMode?.sharedCores) {
+    installCoordinatorSharedCorePortProvider();
+}
 
 // Cache React roots per container so repeat calls to
 // renderDoenet{Viewer,Editor}ToContainer re-render in place instead of
@@ -111,6 +125,24 @@ export function renderDoenetViewerToContainer(
         delete config.flags;
     }
 
+    // Under a parent-page coordinator, default the flags its park/restore
+    // machinery depends on: `messageParent` routes SPLICE messages to the
+    // coordinator's window, `allowSaveState` emits the state reports it
+    // warehouses, and `allowLoadState` makes a restored viewer request that
+    // state back at boot. Explicit attributes/config still win.
+    if (coordinatedMode) {
+        const coordinatedFlagDefaults: Record<string, boolean> = {
+            messageParent: true,
+            allowSaveState: true,
+            allowLoadState: true,
+        };
+        for (const [key, value] of Object.entries(coordinatedFlagDefaults)) {
+            if (!(key in flags)) {
+                flags[key] = value;
+            }
+        }
+    }
+
     // Compose the resize-readiness signal with any caller-supplied
     // `initializedCallback` so we don't clobber it via the `{...config}` spread.
     const {
@@ -142,6 +174,10 @@ export function renderDoenetViewerToContainer(
                 // iframe. See issue #1434.
                 if (sendResizeEvents) {
                     resizeWatcher.markReady();
+                }
+                // The coordinator's boot-slot release signal.
+                if (coordinatedMode) {
+                    postToCoordinator({ type: "bootComplete" });
                 }
                 configInitializedCallback?.(arg);
             }}

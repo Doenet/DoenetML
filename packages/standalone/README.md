@@ -125,6 +125,16 @@ button: it flushes any pending edits to the viewer so the next
 no-op when nothing has changed, and warns when there is no viewer
 (`showViewer={false}`).
 
+## Coordinating many activities on one page
+
+Pages embedding many activities as same-origin iframes (the PreTeXt model)
+can add `coordinator.js` — published alongside this bundle — to lazy-load,
+cap, park, and restore activities so memory tracks what the reader can see
+instead of how many activities the page embeds, optionally serving all
+activities from a shared core-worker pool. One script tag on the host page;
+the activity pages need no changes. See
+[COORDINATION.md](https://github.com/Doenet/DoenetML/blob/main/packages/standalone/COORDINATION.md).
+
 ## Host message protocol (SPLICE)
 
 The viewer exchanges JSON messages with its host via `postMessage`.
