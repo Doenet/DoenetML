@@ -23,6 +23,36 @@ export const STANDALONE_CSS_BLOB_URL = URL.createObjectURL(
 // whole timeout, so keep it tight.
 export const IFRAME_READY_TIMEOUT = 15_000;
 
+// ---- Windowed-mounting (mountPolicy) spec helpers ----
+
+// One shared policy for the windowed specs: a budget of one live viewer with
+// a short park debounce, so parking is observable quickly.
+export const WINDOWED_MOUNT_POLICY = {
+    mode: "windowed" as const,
+    maxLiveViewers: 1,
+    parkDelayMs: 300,
+    visibleMargin: "100px",
+    flushTimeoutMs: 15_000,
+};
+
+// Booting a viewer renders real content; parking additionally waits for the
+// realm to boot far enough to acknowledge the flush. Both need real time.
+export const CONTENT_TIMEOUT = 40_000;
+export const PARK_TIMEOUT = 40_000;
+
+/** The iframe of the viewer inside the `[data-test=<which>]` container. */
+export function viewerIframe(which: string) {
+    return cy.get(`[data-test=${which}] iframe`);
+}
+
+/** Assert the viewer parked: placeholder present, iframe detached. */
+export function assertParked(which: string) {
+    cy.get(`[data-test=${which}] [data-doenet-parked-viewer]`, {
+        timeout: PARK_TIMEOUT,
+    }).should("exist");
+    cy.get(`[data-test=${which}] iframe`).should("not.exist");
+}
+
 // A symbol we stash on the iframe's `contentDocument` to detect whether the
 // iframe was reloaded (a full reload replaces `contentDocument`, so any
 // property we added to the previous one is gone).
