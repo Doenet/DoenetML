@@ -98,30 +98,37 @@ function getClassStateVariableDefinitions(core: Core, componentClass: any) {
 }
 
 /**
- * Shallow-clone a cached state-variable definition so the adapter /
- * reference-shadow code can freely assign and delete fields on it.
- * The nested fields those paths mutate in place (rather than reassign)
- * are cloned one level deeper.
+ * Wrap a cached state-variable definition in a per-instance prototype
+ * wrapper so the adapter / reference-shadow code can freely override
+ * fields on it: writes create own properties that shadow the shared
+ * definition, exactly like the wrappers `BaseComponent`'s constructor
+ * makes over class-shared definitions. (Removals must be written as
+ * `field = undefined` rather than `delete` — a delete of an inherited
+ * field is a no-op.)
+ *
+ * The nested fields the shadow paths mutate in place (rather than
+ * reassign) get their own per-instance copies, mirroring what the
+ * constructor does for class-shared definitions.
  */
-function cloneStateVariableDefinition(def: Record<string, any>) {
-    const clone = Object.assign({}, def);
-    if (clone.shadowingInstructions) {
-        clone.shadowingInstructions = Object.assign(
+function wrapStateVariableDefinition(def: Record<string, any>) {
+    const wrapper = Object.create(def);
+    if (def.shadowingInstructions) {
+        wrapper.shadowingInstructions = Object.assign(
             {},
-            clone.shadowingInstructions,
+            def.shadowingInstructions,
         );
     }
-    if (clone.additionalStateVariablesDefined) {
-        clone.additionalStateVariablesDefined = [
-            ...clone.additionalStateVariablesDefined,
+    if (def.additionalStateVariablesDefined) {
+        wrapper.additionalStateVariablesDefined = [
+            ...def.additionalStateVariablesDefined,
         ];
     }
-    if (clone.stateVariablesDeterminingDependencies) {
-        clone.stateVariablesDeterminingDependencies = [
-            ...clone.stateVariablesDeterminingDependencies,
+    if (def.stateVariablesDeterminingDependencies) {
+        wrapper.stateVariablesDeterminingDependencies = [
+            ...def.stateVariablesDeterminingDependencies,
         ];
     }
-    return clone;
+    return wrapper;
 }
 
 /**
@@ -210,10 +217,11 @@ export async function createStateVariableDefinitions({
     }
 
     // The adapter / reference-shadow paths mutate the definition objects,
-    // so give them per-instance clones of the class definitions.
+    // so give them per-instance prototype wrappers over the class
+    // definitions (own-property writes shadow the shared definition).
     let stateVariableDefinitions: Record<string, any> = {};
     for (const varName in classDefinitions.normalized) {
-        stateVariableDefinitions[varName] = cloneStateVariableDefinition(
+        stateVariableDefinitions[varName] = wrapStateVariableDefinition(
             classDefinitions.normalized[varName],
         );
     }
@@ -1093,12 +1101,16 @@ function modifyStateDefsToBeShadows({
                 }
             }
         }
-        delete stateDef.additionalStateVariablesDefined;
+        // assign `undefined` rather than `delete`: these definitions are
+        // prototype wrappers, so the field must be shadowed with an own
+        // property (a delete of an inherited field is a no-op); all
+        // consumers of both fields test truthiness, never presence
+        stateDef.additionalStateVariablesDefined = undefined;
         if (!foundReadyToExpandWhenResolved) {
             // if didn't find a readyToExpandWhenResolved,
-            // then won't use original dependencies so can delete any
+            // then won't use original dependencies so can remove any
             // stateVariablesDeterminingDependencies
-            delete stateDef.stateVariablesDeterminingDependencies;
+            stateDef.stateVariablesDeterminingDependencies = undefined;
         }
 
         let copyComponentType =

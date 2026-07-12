@@ -72,11 +72,6 @@ export default class BaseComponent {
             // are the same object. The runtime deletes
             // (`delete stateVarObj.value` etc.) only ever target runtime
             // fields, which live on the wrapper.
-            // (Prototype wrappers are only used over the class-shared
-            // definitions — a few per class — because using the per-instance
-            // adapter/shadow clones below as prototypes made every clone the
-            // root of its own V8 shape tree, costing more in hidden-class
-            // metadata than the shared property backing saved.)
             for (let stateVariable in stateVariableDefinitions) {
                 let def = Object.create(
                     stateVariableDefinitions[stateVariable],
@@ -104,8 +99,9 @@ export default class BaseComponent {
             }
         } else {
             // Adapter / reference-shadow definitions: the factory already
-            // produced per-instance clones (one distinct object per state
-            // variable, nested mutable fields included), so they can be used
+            // produced per-instance prototype wrappers over the class
+            // definitions (with own copies of the nested mutable fields and
+            // the adapter/shadow overrides applied), so they can be used
             // directly as the state variable objects.
             for (let stateVariable in stateVariableDefinitions) {
                 this.state[stateVariable] =
