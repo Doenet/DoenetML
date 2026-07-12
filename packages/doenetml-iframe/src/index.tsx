@@ -41,6 +41,7 @@ import {
     DEFAULT_PARK_DELAY_MS,
     DEFAULT_MAX_CONCURRENT_BOOTS,
     BOOT_SLOT_WATCHDOG_MS,
+    shouldWarnWindowedWithoutPersistence,
     type MountPolicy,
 } from "./viewer-lifecycle-manager";
 
@@ -48,6 +49,10 @@ export type { MountPolicy };
 // Page-wide windowed-mounting diagnostics (how many viewers are live vs
 // parked) — useful for host dashboards, tests, and benchmarks.
 export { getViewerLifecycleStats } from "./viewer-lifecycle-manager";
+import {
+    versionSupportsLiveUpdates,
+    versionSupportsParking,
+} from "./version-gates";
 
 export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
@@ -148,12 +153,27 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
      * viewport. Parking requires a persistence path: it only activates for
      * viewers with `flags.allowSaveState` (the wrapper snapshots the
      * flushed `reportScoreAndState` and seeds `initialState` on restore) or
-     * `flags.allowLocalState` (IndexedDB restores on reboot); otherwise the
-     * viewer boots on visibility but then always stays live. The policy is
-     * read at mount; changing it afterwards is not supported. Default off
-     * (no prop = today's behavior).
+     * `flags.allowLocalState` (IndexedDB restores on reboot), and only when
+     * the selected bundle is new enough to acknowledge the flush (v0.7.21+,
+     * or a host-specified `standaloneUrl`); otherwise the viewer boots on
+     * visibility but then always stays live. The policy is read at mount;
+     * changing it afterwards is not supported. Default off (no prop =
+     * today's behavior).
      */
     mountPolicy?: MountPolicy;
+    /**
+     * Windowed-mounting hint: treat this viewer as visible regardless of
+     * viewport intersection — boot it eagerly (still subject to the
+     * page-wide `maxConcurrentBoots` slot queue) and never park it while
+     * set. For hosts that know an off-screen or `display:none` viewer is
+     * about to be shown, e.g. a paginator prefetching the pages adjacent to
+     * the current one. Dynamic, unlike `mountPolicy`; no effect without a
+     * windowed `mountPolicy`. The hint counts as visibility for boot
+     * ordering and the least-recently-visible eviction order, so keep it on
+     * a few viewers at a time (a page-wide `keepLive` would defeat the
+     * budget).
+     */
+    keepLive?: boolean;
 };
 
 export type DoenetEditorIframeProps = DoenetEditorProps & {
@@ -195,40 +215,6 @@ type ViewerIframeRemote = Comlink.Remote<{
     updateViewerFunctionProps: (...args: (string | Function)[]) => void;
 }>;
 
-// In-place prop updates require a standalone bundle whose
-// `renderDoenetViewerToContainer` re-renders against a cached React root
-// (v0.7.18+, PR #1131). Calling it repeatedly against an older bundle mounts
-// competing React roots on the same container.
-const LIVE_UPDATE_MIN_VERSION = [0, 7, 18];
-
-/**
- * Whether the standalone bundle selected by `version` supports live
- * (in-place) prop updates. Missing version parts are npm ranges that
- * jsdelivr resolves to the newest matching release (e.g. "0.7" serves the
- * latest 0.7.x, which is ≥ 0.7.18), so they compare as the range's upper
- * bound. Unparseable versions are assumed modern.
- */
-function versionSupportsLiveUpdates(version: string): boolean {
-    const match = version
-        .replace(/^v/, "")
-        .match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/);
-    if (!match) {
-        return true;
-    }
-    const parts = [match[1], match[2], match[3]].map((p) =>
-        p === undefined ? Infinity : parseInt(p, 10),
-    );
-    for (let i = 0; i < 3; i++) {
-        if (parts[i] > LIVE_UPDATE_MIN_VERSION[i]) {
-            return true;
-        }
-        if (parts[i] < LIVE_UPDATE_MIN_VERSION[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-
 /**
  * Render Doenet viewer constrained to an iframe. A URL pointing to a version of DoenetML
  * standalone must be provided (along with a URL to the corresponding CSS file).
@@ -257,6 +243,7 @@ export function DoenetViewer({
     autodetectVersion = true,
     useSharedCoreWorker = false,
     mountPolicy,
+    keepLive = false,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
@@ -297,15 +284,26 @@ export function DoenetViewer({
     const [parkGeneration, setParkGeneration] = React.useState(0);
     const parkedRef = React.useRef(windowed);
     const parkingRef = React.useRef(false);
-    const visibleRef = React.useRef(false);
+    // Raw viewport intersection, as last reported by the observer. Combined
+    // with the host's `keepLive` hint into `effectivelyVisible()`, which is
+    // what park abort and the unpark grant read; the manager learns the
+    // combined value via `setViewerVisibility` (see
+    // `updateEffectiveVisibility`). `keepLiveRef` is written by the
+    // `[keepLive]` effect (not during render, which a discarded concurrent
+    // render could pollute).
+    const intersectingRef = React.useRef(false);
+    const keepLiveRef = React.useRef(false);
     const containerRef = React.useRef<HTMLDivElement>(null);
     const parkFlushCounterRef = React.useRef(0);
     const parkFlushIdRef = React.useRef<string | null>(null);
     const parkFlushCleanupRef = React.useRef<(() => void) | null>(null);
-    // Latest SPLICE.reportScoreAndState from OUR iframe (matched by
-    // event.source) — the state snapshot a park uses to seed `initialState`
-    // on restore.
-    const lastCapturedReportRef = React.useRef<any>(null);
+    // Latest state-bearing report from OUR iframe — the snapshot a park uses
+    // to seed `initialState` on restore. Normalized to `{ state }`: fed by
+    // the `SPLICE.reportScoreAndState` message (matched by event.source) or,
+    // when the host consumes reports via `reportScoreAndStateCallback`, by
+    // the iframe entry's window-channel report routing (which the wrapper
+    // then forwards to the host's callback — see the message listener).
+    const lastCapturedReportRef = React.useRef<{ state: unknown } | null>(null);
     // State baked into the next unpark's srcdoc. `undefined` = no snapshot:
     // restore falls back to the host's own `initialState`/IndexedDB/getState.
     const parkedSnapshotRef = React.useRef<Record<string, any> | undefined>(
@@ -440,6 +438,16 @@ export function DoenetViewer({
         usingCustomStandaloneUrl ||
         versionSupportsLiveUpdates(selectedDoenetmlVersion);
 
+    // Whether the selected bundle can acknowledge `SPLICE.flushState` —
+    // required for parking (see `versionSupportsParking`). Kept in a ref for
+    // the mount-time `canPark` closure; the selected version can change
+    // after mount (autodetect fallback, edited doenetML).
+    const parkingSupported =
+        usingCustomStandaloneUrl ||
+        versionSupportsParking(selectedDoenetmlVersion);
+    const parkingSupportedRef = React.useRef(parkingSupported);
+    parkingSupportedRef.current = parkingSupported;
+
     // Latest standaloneUrl for the (deps-empty) message listener below — it
     // can change after mount via the autodetect-version fallback, and the
     // shared-core pool keys its workers by the URL the iframe actually loads.
@@ -494,6 +502,7 @@ export function DoenetViewer({
             standaloneUrl,
             cssUrl,
             useSharedCoreWorker,
+            windowed,
         );
     }, [
         id,
@@ -597,12 +606,18 @@ export function DoenetViewer({
             // iframe (the park-snapshot source; reports reach this window
             // because the in-iframe viewer posts to window.parent), and
             // complete an in-flight park when its flush acknowledgement
-            // arrives. Reports are delivered before the acknowledgement
-            // (same-realm postMessage ordering), so the snapshot is current
-            // when the park completes.
+            // arrives. Reports are delivered before the acknowledgement:
+            // both ride this same window channel (a host that consumes
+            // reports via `reportScoreAndStateCallback` gets them via the
+            // iframe entry's window-channel routing below — a Comlink proxy
+            // would ride a separate MessagePort with no cross-channel
+            // ordering guarantee), so the snapshot is current when the park
+            // completes.
             if (windowed) {
                 if (event.data.subject === "SPLICE.reportScoreAndState") {
-                    lastCapturedReportRef.current = event.data;
+                    lastCapturedReportRef.current = {
+                        state: (event.data as any).state,
+                    };
                     return;
                 }
                 if (
@@ -619,6 +634,33 @@ export function DoenetViewer({
             }
 
             const data = event.data.data;
+
+            // A state report routed over the window channel by the iframe
+            // entry (windowed viewers whose host passed
+            // `reportScoreAndStateCallback` — the callback's presence makes
+            // the inner viewer call it INSTEAD of posting the SPLICE
+            // message). Capture the snapshot, then forward to the host's
+            // latest callback identity; if the host has since removed its
+            // callback, fall back to the message contract it now expects.
+            if (windowed && data.type === "reportScoreAndState") {
+                const report = (data.report ?? {}) as Record<string, any>;
+                lastCapturedReportRef.current = { state: report.state };
+                const hostCallback = (doenetViewerPropsRef.current as any)
+                    .reportScoreAndStateCallback;
+                if (typeof hostCallback === "function") {
+                    hostCallback(report);
+                } else {
+                    window.postMessage({
+                        subject: "SPLICE.reportScoreAndState",
+                        state: report.state,
+                        score: report.score,
+                        activity_id: report.activityId,
+                        doc_id: report.docId,
+                        message_id: Math.random().toString(36).slice(2),
+                    });
+                }
+                return;
+            }
 
             // Shared core-worker protocol (#1466): the iframe's viewer mints
             // a MessageChannel, keeps one port, and sends the other here to
@@ -854,13 +896,19 @@ export function DoenetViewer({
 
     /**
      * Whether this viewer may be parked *right now*. Requires a persistence
-     * path (else parking loses work) AND a live iframe realm to flush: an
+     * path (else parking loses work), a bundle new enough to acknowledge
+     * the park flush (else the flush times out and up to a throttle
+     * interval of work is lost), AND a live iframe realm to flush: an
      * errored or already-torn-down viewer has no `contentWindow`, so parking
      * it is a no-op — and leaving it eligible would spin the manager, which
      * re-asks (via `scheduleEvaluate(0)`) after every failed `beginPark`.
      */
     function canPark() {
-        return hasPersistencePath() && Boolean(ref.current?.contentWindow);
+        return (
+            hasPersistencePath() &&
+            parkingSupportedRef.current &&
+            Boolean(ref.current?.contentWindow)
+        );
     }
 
     /**
@@ -917,11 +965,24 @@ export function DoenetViewer({
         parkFlushCleanupRef.current?.();
         parkFlushIdRef.current = null;
         parkingRef.current = false;
-        if (visibleRef.current) {
+        if (effectivelyVisible()) {
             notifyViewerState(id, "live");
             return false;
         }
         return true;
+    }
+
+    /**
+     * Seed the unpark snapshot from the latest captured report, if any.
+     * Never downgrades: with no captured report, any previous snapshot is
+     * kept (it is still the latest truth), and with none at all the unpark
+     * falls back to the host's initialState/IndexedDB/getState.
+     */
+    function seedSnapshotFromCapturedReport() {
+        if (lastCapturedReportRef.current?.state) {
+            parkedSnapshotRef.current = lastCapturedReportRef.current
+                .state as Record<string, any>;
+        }
     }
 
     /** The park flush acknowledged — finish parking (or abort if visible). */
@@ -931,22 +992,22 @@ export function DoenetViewer({
         }
         if (ack.hadState) {
             everHadStateRef.current = true;
-            if (lastCapturedReportRef.current?.state) {
-                parkedSnapshotRef.current = lastCapturedReportRef.current.state;
-            }
         }
-        // else: keep any previous snapshot. `hadState: false` with a prior
-        // snapshot means the core never booted this generation, so the prior
-        // snapshot is still the latest truth; with no snapshot at all the
-        // unpark falls back to the host's initialState/IndexedDB/getState.
+        seedSnapshotFromCapturedReport();
         finishPark();
     }
 
-    /** No acknowledgement within flushTimeoutMs — park anyway (see above). */
+    /**
+     * No acknowledgement within flushTimeoutMs — park anyway (see above),
+     * but best-effort: a wedged realm cannot flush its pending changes, yet
+     * the latest report already captured is still the newest state in hand —
+     * restoring from it beats discarding it.
+     */
     function onParkFlushTimeout() {
         if (!endParkFlush()) {
             return;
         }
+        seedSnapshotFromCapturedReport();
         finishPark();
     }
 
@@ -977,7 +1038,7 @@ export function DoenetViewer({
         requestBootSlot(id, () => {
             // Granted — possibly synchronously, possibly much later. Only
             // boot if this viewer still wants to be live.
-            if (!parkedRef.current || !visibleRef.current) {
+            if (!parkedRef.current || !effectivelyVisible()) {
                 releaseBootSlot(id);
                 return;
             }
@@ -995,6 +1056,33 @@ export function DoenetViewer({
         });
     }
 
+    /**
+     * Effective visibility: viewport intersection OR the host's `keepLive`
+     * hint. A keepLive viewer behaves exactly like a visible one — it boots,
+     * aborts in-flight parks, and is never parked while the hint is set.
+     */
+    function effectivelyVisible() {
+        return intersectingRef.current || keepLiveRef.current;
+    }
+
+    /**
+     * Act on the current effective visibility: propagate it to the manager
+     * (whose never-park-visible rule and visible-first boot queue key off
+     * it), unpark when a parked viewer becomes effectively visible, and
+     * withdraw a queued boot request when it stops being — no longer worth
+     * booting (a granted/booting viewer is left alone; the park policy
+     * handles it).
+     */
+    function updateEffectiveVisibility() {
+        const effective = effectivelyVisible();
+        setViewerVisibility(id, effective);
+        if (effective) {
+            unpark();
+        } else {
+            cancelBootRequest(id);
+        }
+    }
+
     // Observe visibility of the wrapper div (which stays mounted across
     // park/unpark). Entering the margin unparks; the manager decides parking.
     React.useEffect(() => {
@@ -1004,16 +1092,8 @@ export function DoenetViewer({
         const observer = new IntersectionObserver(
             (entries) => {
                 for (const entry of entries) {
-                    visibleRef.current = entry.isIntersecting;
-                    setViewerVisibility(id, entry.isIntersecting);
-                    if (entry.isIntersecting && parkedRef.current) {
-                        unpark();
-                    } else if (!entry.isIntersecting) {
-                        // No longer worth booting; withdraw a queued boot
-                        // request (a granted/booting viewer is left alone —
-                        // the park policy handles it).
-                        cancelBootRequest(id);
-                    }
+                    intersectingRef.current = entry.isIntersecting;
+                    updateEffectiveVisibility();
                 }
             },
             {
@@ -1032,9 +1112,9 @@ export function DoenetViewer({
         if (!windowed) {
             return;
         }
-        if (!hasPersistencePath()) {
+        if (!hasPersistencePath() && shouldWarnWindowedWithoutPersistence()) {
             console.warn(
-                "DoenetViewer mountPolicy: windowed mounting is enabled but neither flags.allowSaveState nor flags.allowLocalState is set, so parking would lose student work. This viewer will always stay live.",
+                "DoenetViewer mountPolicy: windowed mounting is enabled but neither flags.allowSaveState nor flags.allowLocalState is set, so parking would lose student work. Such viewers will always stay live. (Warned once per page.)",
             );
         }
         const unregister = registerWindowedViewer({
@@ -1058,6 +1138,22 @@ export function DoenetViewer({
             unregister();
         };
     }, [windowed]);
+
+    // React to `keepLive` changes (a paginating host marking hidden pages
+    // adjacent to the current one; `display:none` never intersects, so the
+    // observer alone would leave them parked forever). The ref is written
+    // here — at commit — rather than during render, so a discarded
+    // concurrent render can't leak an uncommitted value to the observer.
+    // Placed after the registration effect so the first run — including an
+    // initial `keepLive` on mount — finds the viewer registered with the
+    // manager.
+    React.useEffect(() => {
+        if (!windowed) {
+            return;
+        }
+        keepLiveRef.current = keepLive;
+        updateEffectiveVisibility();
+    }, [windowed, keepLive]);
 
     if (inErrorState) {
         if (foundAutoVersion) {

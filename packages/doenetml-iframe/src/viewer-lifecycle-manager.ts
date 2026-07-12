@@ -95,6 +95,21 @@ const records = new Map<string, ViewerRecord>();
 let visibleOrderCounter = 0;
 let effectiveMaxLive: number | null = null;
 let warnedMixedBudgets = false;
+let warnedWindowedWithoutPersistence = false;
+
+/**
+ * Once-per-page latch for the windowed-without-persistence warning: hosts
+ * that window by default mount many viewers with the same flags, and N
+ * copies of the warning is noise. Flips the latch on first call. Owned here
+ * so the test reset clears it alongside the rest of the module state.
+ */
+export function shouldWarnWindowedWithoutPersistence(): boolean {
+    if (warnedWindowedWithoutPersistence) {
+        return false;
+    }
+    warnedWindowedWithoutPersistence = true;
+    return true;
+}
 
 let evaluateTimerId: ReturnType<typeof setTimeout> | null = null;
 let evaluateTimerAt = Infinity;
@@ -284,6 +299,7 @@ export function __resetViewerLifecycleManagerForTests() {
     visibleOrderCounter = 0;
     effectiveMaxLive = null;
     warnedMixedBudgets = false;
+    warnedWindowedWithoutPersistence = false;
     if (evaluateTimerId !== null) {
         clearTimeout(evaluateTimerId);
         evaluateTimerId = null;

@@ -10,14 +10,20 @@ import {
     assertParked,
 } from "./helpers";
 
-// Windowed mounting (#1441, stream B) end-to-end: with
-// `mountPolicy={{mode:"windowed", maxLiveViewers:1}}`, the off-screen viewer
-// parks (its state is flushed and its iframe is replaced by a fixed-height
-// placeholder) and is restored — typed work intact — when scrolled back.
+// Windowed mounting for callback hosts: a host that passes
+// `reportScoreAndStateCallback` suppresses the `SPLICE.reportScoreAndState`
+// message (the inner viewer calls the callback INSTEAD of posting), which is
+// what the park snapshot used to be captured from. The wrapper substitutes a
+// composed callback that captures the report before forwarding — so parking
+// stays lossless for hosts like the assignment viewer that consume reports
+// via the callback prop.
 
 const DOC_A = `<p>Viewer A: <textInput name="ti" /></p>
 <p>A typed: $ti.value</p>`;
 const DOC_B = `<p>Viewer B content</p>`;
+
+/** Reports viewer A's host callback received, exposed for assertions. */
+const hostReports: any[] = [];
 
 function Harness() {
     return (
@@ -29,6 +35,9 @@ function Harness() {
                     docId="doc-A"
                     flags={{ allowSaveState: true }}
                     mountPolicy={MOUNT_POLICY}
+                    reportScoreAndStateCallback={(data: unknown) => {
+                        hostReports.push(data);
+                    }}
                     standaloneUrl={STANDALONE_BLOB_URL}
                     cssUrl={STANDALONE_CSS_BLOB_URL}
                     addVirtualKeyboard={false}
@@ -51,81 +60,77 @@ function Harness() {
     );
 }
 
-describe("DoenetViewer (iframe wrapper) — windowed mounting parks off-screen viewers", () => {
+describe("DoenetViewer (iframe wrapper) — windowed mounting with a report callback host", () => {
     beforeEach(() => {
         __resetViewerLifecycleManagerForTests();
+        hostReports.length = 0;
     });
 
-    it("parks beyond the budget, restores typed work on scroll-back, and answers host flushes while parked", () => {
+    it("captures the park snapshot from the composed callback and still forwards reports to the host", () => {
         cy.viewport(900, 600);
         cy.mount(<Harness />);
 
-        // Viewer A (visible) boots; viewer B (far below the viewport) is
-        // over the budget of 1 and parks once its realm can acknowledge the
-        // flush. The placeholder holds its layout slot.
         viewerIframe("viewer-a")
             .its("0.contentDocument.body", { timeout: CONTENT_TIMEOUT })
             .should("contain.text", "A typed:");
         assertParked("viewer-b");
 
-        // Type into A and commit with Enter (cannot .blur() across the
-        // iframe boundary).
+        // Type into A and commit with Enter.
         viewerIframe("viewer-a")
             .its("0.contentDocument.body")
             .find("input:not([type=checkbox])")
             .then(cy.wrap)
-            .type("survives the park{enter}");
+            .type("callback snapshot{enter}");
         viewerIframe("viewer-a")
             .its("0.contentDocument.body")
-            .should("contain.text", "A typed: survives the park");
+            .should("contain.text", "A typed: callback snapshot");
 
-        // Scroll to B: it unparks and boots; A leaves the margin and parks,
-        // flushing the typed state into the wrapper's snapshot.
+        // A decoy report posted on the host window (e.g. an assignment-level
+        // report from the host's own reducer) must NOT pollute A's snapshot:
+        // the wrapper only captures from its own iframe / composed callback.
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    subject: "SPLICE.reportScoreAndState",
+                    activity_id: "act-A",
+                    doc_id: "doc-A",
+                    state: { decoy: "not a real doc state" },
+                    score: 0,
+                },
+                "*",
+            );
+        });
+
+        // Scroll to B: A leaves the margin and parks. The park flush pushes
+        // the pending save through the composed callback — the host receives
+        // it (forwarding) and the wrapper snapshots it (capture).
         cy.get("[data-test=viewer-b]").scrollIntoView();
         viewerIframe("viewer-b")
             .its("0.contentDocument.body", { timeout: CONTENT_TIMEOUT })
             .should("contain.text", "Viewer B content");
         assertParked("viewer-a");
 
-        // A host flush broadcast while A is parked: the wrapper answers for
-        // it (success, hadState) so pre-navigation flush round-trips don't
-        // hang on parked viewers.
-        cy.window().then((win) => {
-            const responses: any[] = [];
-            win.addEventListener("message", (e: MessageEvent) => {
-                if (
-                    e.data?.subject === "SPLICE.flushState.response" &&
-                    e.data?.message_id === "host-flush-while-parked"
-                ) {
-                    responses.push(e.data);
-                }
-            });
-            win.postMessage(
-                {
-                    subject: "SPLICE.flushState",
-                    message_id: "host-flush-while-parked",
-                },
-                "*",
+        cy.wrap(null).should(() => {
+            const withState = hostReports.filter(
+                (r) => r && typeof r === "object" && "state" in r,
             );
-            cy.wrap(null, { timeout: 10_000 }).should(() => {
-                const fromA = responses.find((r) => r.activity_id === "act-A");
-                expect(fromA, "parked viewer A answered").to.exist;
-                expect(fromA.success, "success").to.eq(true);
-                expect(fromA.hadState, "hadState").to.eq(true);
-            });
+            expect(
+                withState.length,
+                "host callback received the flushed report",
+            ).to.be.greaterThan(0);
         });
 
-        // Scroll back to A: it unparks seeded with the flushed state — the
-        // typed work survives the park/unpark round trip with no user
-        // interaction; B parks again (budget 1).
+        // Scroll back: A restores from the captured snapshot — the typed
+        // work survives even though no SPLICE.reportScoreAndState message
+        // ever reached the host window (and the decoy was ignored).
         cy.get("[data-test=viewer-a]").scrollIntoView();
         viewerIframe("viewer-a")
             .its("0.contentDocument.body", { timeout: CONTENT_TIMEOUT })
-            .should("contain.text", "A typed: survives the park");
+            .should("contain.text", "A typed: callback snapshot");
         viewerIframe("viewer-a")
             .its("0.contentDocument.body")
             .find("input:not([type=checkbox])")
-            .should("have.value", "survives the park");
+            .should("have.value", "callback snapshot");
         assertParked("viewer-b");
     });
 });

@@ -140,7 +140,38 @@ either `flags.allowSaveState` (the wrapper snapshots the flushed
 `reportScoreAndState` and seeds `initialState` on restore) or
 `flags.allowLocalState` (IndexedDB restores on reboot). Windowed viewers
 with neither flag still mount lazily but, once booted, always stay live
-(a console warning points this out).
+(a console warning — once per page — points this out). Hosts that consume
+reports through the `reportScoreAndStateCallback` prop are fully supported:
+the wrapper captures the flushed report for its park snapshot before
+forwarding it to the callback.
+
+Parking also requires a standalone bundle new enough to acknowledge the
+flush (v0.7.21+). A viewer pinned to an older `doenetmlVersion` mounts
+lazily and obeys the boot cap, but is never parked. A host-specified
+`standaloneUrl` is assumed modern (hosts shipping a custom URL control both
+sides — note a `-dev.N` prerelease *version string* compares as its base
+release, so dev-channel hosts should pin `standaloneUrl` rather than
+`doenetmlVersion`).
+
+#### `keepLive`: prefetching hosts
+
+A windowed viewer inside a hidden (`display:none`) or far-off-screen
+container never intersects the viewport, so it would stay parked forever.
+A host that knows the viewer is about to be shown — e.g. a paginator
+prefetching the pages adjacent to the current one — sets the dynamic
+`keepLive` prop to treat it as visible: it boots eagerly (still subject to
+`maxConcurrentBoots`, visible-first) and is never parked while the hint is
+set. Clear the hint and the viewer becomes an ordinary windowed citizen
+again (parked when off-screen and over budget).
+
+```tsx
+<DoenetViewer
+    doenetML={doenetML}
+    flags={{ allowSaveState: true }}
+    mountPolicy={{ mode: "windowed", maxLiveViewers: 3 }}
+    keepLive={Math.abs(itemIndex - currentIndex) <= 1}
+/>
+```
 
 Notes:
 

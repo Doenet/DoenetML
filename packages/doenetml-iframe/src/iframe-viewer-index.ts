@@ -7,6 +7,9 @@ declare const doenetViewerPropsSpecified: string[];
 // core-worker host (#1466). Guarded with `typeof` at the use site so this
 // script also works in srcdocs generated without the const.
 declare const doenetSharedCoreWorker: boolean | undefined;
+// Baked into the srcdoc for windowed (mountPolicy) viewers. Guarded with
+// `typeof` at the use site like doenetSharedCoreWorker.
+declare const doenetWindowedViewer: boolean | undefined;
 declare const ComlinkViewer: {
     expose: Function;
     windowEndpoint: Function;
@@ -56,8 +59,28 @@ const functionPropDispatchers: Record<string, Function> = {};
 function getFunctionPropDispatcher(key: string): Function {
     let dispatcher = functionPropDispatchers[key];
     if (!dispatcher) {
-        dispatcher = (...callArgs: any[]) =>
-            currentFunctionProps[key]?.(...callArgs);
+        if (
+            key === "reportScoreAndStateCallback" &&
+            typeof doenetWindowedViewer !== "undefined" &&
+            doenetWindowedViewer
+        ) {
+            // Windowed viewers: deliver state reports over the same
+            // window.postMessage channel the `SPLICE.flushState`
+            // acknowledgement uses, instead of calling the host's Comlink
+            // proxy. The parent wrapper snapshots the report at park time
+            // and must see it BEFORE the flush acknowledgement; the window
+            // channel is FIFO, while a Comlink proxy rides its own
+            // MessagePort with no cross-channel ordering guarantee. The
+            // wrapper forwards the report to the host's callback.
+            dispatcher = (report: any) =>
+                messageParentFromViewer({
+                    type: "reportScoreAndState",
+                    report,
+                });
+        } else {
+            dispatcher = (...callArgs: any[]) =>
+                currentFunctionProps[key]?.(...callArgs);
+        }
         functionPropDispatchers[key] = dispatcher;
     }
     return dispatcher;
