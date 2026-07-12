@@ -280,8 +280,11 @@ export function initializeDoenetCoordinator(
             return;
         }
         if (record.visible) {
-            // Scrolled back mid-flush; nothing was torn down.
+            // Scrolled back mid-flush; nothing was torn down. It rejoins the
+            // live budget (from which it was excluded while parking), so
+            // re-check whether some other off-screen viewer should now shed.
             record.state = "live";
+            scheduleEvaluate(0);
             return;
         }
         // Detach the realm. The iframe element (and the page layout) stays;
@@ -315,9 +318,13 @@ export function initializeDoenetCoordinator(
 
     function evaluateBudget() {
         const now = Date.now();
+        // Count only what still occupies the live budget: booting and live
+        // realms. A "parking" realm is already committed to being shed, so
+        // counting it would let a second evaluateBudget firing during its
+        // flush window shed an *additional* viewer the budget never needed.
         let active = 0;
         for (const record of records.values()) {
-            if (record.state !== "parked") {
+            if (record.state === "booting" || record.state === "live") {
                 active++;
             }
         }
@@ -359,8 +366,9 @@ export function initializeDoenetCoordinator(
             return;
         }
 
-        // Shared core-worker pool protocol (same shapes as
-        // @doenet/doenetml-iframe's useSharedCoreWorker).
+        // Messages from coordinated children: the boot-complete lifecycle
+        // signal plus the shared core-worker pool protocol (whose shapes
+        // match @doenet/doenetml-iframe's useSharedCoreWorker).
         if (data.origin === "doenetCoordinatedChild" && data.data) {
             const record = recordForEvent(event);
             if (!record) {
