@@ -2,7 +2,10 @@ import { deepClone } from "@doenet/utils";
 import type { ComponentIdx } from "@doenet/utils";
 import type { ComponentInstance } from "../../types/componentInstance";
 import type { DependencyHandler } from "./DependencyHandler";
-import { arrayEntryNamesFromPropIndex } from "../StateVariableInitializer";
+import {
+    arrayEntryNamesFromPropIndex,
+    ensureStateVariableMaterialized,
+} from "../StateVariableInitializer";
 
 /**
  * Base class shared by every concrete dependency type. Concrete subclasses
@@ -403,15 +406,33 @@ export class Dependency {
             });
 
             if ((this.constructor as typeof Dependency).convertToArraySize) {
-                mappedVarNames = mappedVarNames.map(function (vName: string) {
+                // `arraySizeStateVariable` exists only once the array has
+                // materialized, so build arrays before converting names
+                // (which is why this is a loop rather than a sync map)
+                const convertedVarNames: string[] = [];
+                for (const vName of mappedVarNames) {
                     let stateVarObj = downComponent.state[vName];
                     if (stateVarObj) {
-                        if (stateVarObj.arraySizeStateVariable) {
-                            return stateVarObj.arraySizeStateVariable;
-                        } else {
-                            return `__${vName}_is_not_an_array`;
+                        if (stateVarObj.isArray) {
+                            await ensureStateVariableMaterialized({
+                                core: this.dependencyHandler.core,
+                                component: downComponent,
+                                stateVariable: vName,
+                            });
                         }
+                        if (stateVarObj.arraySizeStateVariable) {
+                            convertedVarNames.push(
+                                stateVarObj.arraySizeStateVariable,
+                            );
+                        } else {
+                            convertedVarNames.push(
+                                `__${vName}_is_not_an_array`,
+                            );
+                        }
+                        continue;
                     }
+
+                    let converted = `__${vName}_is_not_an_array`;
 
                     // check if vName begins when an arrayEntry
                     if (downComponent.arrayEntryPrefixes) {
@@ -440,15 +461,22 @@ export class Dependency {
                                     });
 
                                 if (arrayKeys.length > 0) {
-                                    return downComponent.state[
-                                        arrayVariableName
-                                    ].arraySizeStateVariable;
+                                    await ensureStateVariableMaterialized({
+                                        core: this.dependencyHandler.core,
+                                        component: downComponent,
+                                        stateVariable: arrayVariableName,
+                                    });
+                                    converted =
+                                        downComponent.state[arrayVariableName]
+                                            .arraySizeStateVariable;
+                                    break;
                                 }
                             }
                         }
                     }
-                    return `__${vName}_is_not_an_array`;
-                });
+                    convertedVarNames.push(converted);
+                }
+                mappedVarNames = convertedVarNames;
             }
 
             if (this.propIndex !== undefined) {

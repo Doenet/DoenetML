@@ -2,6 +2,7 @@ import type Core from "../Core";
 import type { ComponentInstance } from "../types/componentInstance";
 import { returnActiveChildrenIndicesToRender } from "./ChildMatcher";
 import {
+    ensureStateVariableMaterialized,
     initializeStateVariable,
     installStaleValueGetter,
 } from "./StateVariableInitializer";
@@ -63,6 +64,14 @@ export class StalenessPropagator {
             ) {
                 let arrayVariableName =
                     component.arrayEntryPrefixes[arrayEntryPrefix];
+                // entry initialization copies materialized-only fields off
+                // the array object (definition, freshnessInfo, entry-name
+                // bookkeeping), so build the array first
+                await ensureStateVariableMaterialized({
+                    core: this.core,
+                    component,
+                    stateVariable: arrayVariableName,
+                });
                 let arrayStateVarObj = component.state[arrayVariableName];
                 let arrayKeys = arrayStateVarObj.getArrayKeysFromVarName({
                     arrayEntryPrefix,
