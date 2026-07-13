@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getOrInjectPattern } from "./fillPatterns";
+import { getOrInjectPattern, getPatternFillAttributes } from "./fillPatterns";
 
 /**
  * Minimal in-memory stand-in for the SVG `<defs>` element and its owner
@@ -53,7 +53,7 @@ function makeFakeDefs() {
     return { defsEl };
 }
 
-describe("fillPatterns", () => {
+describe("getOrInjectPattern", () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
@@ -64,26 +64,26 @@ describe("fillPatterns", () => {
             .mockImplementation(() => undefined);
 
         expect(
-            getOrInjectPattern(
-                null,
-                "board1",
-                "zigzag",
-                "#abc",
-                0.3,
-                "white",
-                1,
-            ),
+            getOrInjectPattern({
+                defsEl: null,
+                boardId: "board1",
+                fillStyle: "zigzag",
+                fillColor: "#abc",
+                fillOpacity: 0.3,
+                canvasColor: "white",
+                fillPatternOpacity: 1,
+            }),
         ).toBe("#abc");
         expect(
-            getOrInjectPattern(
-                null,
-                "board2",
-                "zigzag",
-                "#def",
-                0.3,
-                "white",
-                1,
-            ),
+            getOrInjectPattern({
+                defsEl: null,
+                boardId: "board2",
+                fillStyle: "zigzag",
+                fillColor: "#def",
+                fillOpacity: 0.3,
+                canvasColor: "white",
+                fillPatternOpacity: 1,
+            }),
         ).toBe("#def");
 
         expect(warnSpy).toHaveBeenCalledTimes(1);
@@ -96,32 +96,32 @@ describe("fillPatterns", () => {
             .mockImplementation(() => undefined);
 
         expect(
-            getOrInjectPattern(
-                null,
-                "board1",
-                "solid",
-                "#abc",
-                0.3,
-                "white",
-                1,
-            ),
+            getOrInjectPattern({
+                defsEl: null,
+                boardId: "board1",
+                fillStyle: "solid",
+                fillColor: "#abc",
+                fillOpacity: 0.3,
+                canvasColor: "white",
+                fillPatternOpacity: 1,
+            }),
         ).toBe("#abc");
 
         expect(warnSpy).not.toHaveBeenCalled();
     });
 
-    it("injects a background layer (canvas color at fillOpacity) plus a foreground pattern (fillColor at fillPatternOpacity)", () => {
+    it("injects a background layer (canvas color at fillOpacity) plus a stroked foreground pattern (fillColor at fillPatternOpacity)", () => {
         const { defsEl } = makeFakeDefs();
 
-        const url = getOrInjectPattern(
+        const url = getOrInjectPattern({
             defsEl,
-            "board1",
-            "horizontal",
-            "#abc",
-            0.3,
-            "white",
-            0.8,
-        );
+            boardId: "board1",
+            fillStyle: "horizontal",
+            fillColor: "#abc",
+            fillOpacity: 0.3,
+            canvasColor: "white",
+            fillPatternOpacity: 0.8,
+        });
 
         expect(url).toMatch(/^url\(#doenet-fill-pattern-/);
 
@@ -141,27 +141,52 @@ describe("fillPatterns", () => {
         expect(foreground.attributes["stroke-opacity"]).toBe("0.8");
     });
 
+    it("bakes fillPatternOpacity into fill-opacity for filled foreground patterns (diamonds)", () => {
+        const { defsEl } = makeFakeDefs();
+
+        getOrInjectPattern({
+            defsEl,
+            boardId: "board1",
+            fillStyle: "diamonds",
+            fillColor: "#abc",
+            fillOpacity: 0.3,
+            canvasColor: "white",
+            fillPatternOpacity: 0.8,
+        });
+
+        const [pattern] = (defsEl as any).children;
+        const [background, foreground] = pattern.children;
+        expect(background.tag).toBe("rect");
+        expect(background.attributes["fill-opacity"]).toBe("0.3");
+
+        // Filled patterns paint the mark with `fill` (not `stroke`).
+        expect(foreground.tag).toBe("path");
+        expect(foreground.attributes.fill).toBe("#abc");
+        expect(foreground.attributes["fill-opacity"]).toBe("0.8");
+        expect(foreground.attributes.stroke).toBe("none");
+    });
+
     it("reuses an already-injected pattern instead of injecting it twice", () => {
         const { defsEl } = makeFakeDefs();
 
-        const first = getOrInjectPattern(
+        const first = getOrInjectPattern({
             defsEl,
-            "board1",
-            "horizontal",
-            "#abc",
-            0.3,
-            "white",
-            1,
-        );
-        const second = getOrInjectPattern(
+            boardId: "board1",
+            fillStyle: "horizontal",
+            fillColor: "#abc",
+            fillOpacity: 0.3,
+            canvasColor: "white",
+            fillPatternOpacity: 1,
+        });
+        const second = getOrInjectPattern({
             defsEl,
-            "board1",
-            "horizontal",
-            "#abc",
-            0.3,
-            "white",
-            1,
-        );
+            boardId: "board1",
+            fillStyle: "horizontal",
+            fillColor: "#abc",
+            fillOpacity: 0.3,
+            canvasColor: "white",
+            fillPatternOpacity: 1,
+        });
 
         expect(first).toBe(second);
         expect((defsEl as any).children).toHaveLength(1);
@@ -170,26 +195,71 @@ describe("fillPatterns", () => {
     it("gives patterns that differ only in background opacity distinct ids", () => {
         const { defsEl } = makeFakeDefs();
 
-        const faint = getOrInjectPattern(
+        const faint = getOrInjectPattern({
             defsEl,
-            "board1",
-            "horizontal",
-            "#abc",
-            0.2,
-            "white",
-            1,
-        );
-        const strong = getOrInjectPattern(
+            boardId: "board1",
+            fillStyle: "horizontal",
+            fillColor: "#abc",
+            fillOpacity: 0.2,
+            canvasColor: "white",
+            fillPatternOpacity: 1,
+        });
+        const strong = getOrInjectPattern({
             defsEl,
-            "board1",
-            "horizontal",
-            "#abc",
-            0.8,
-            "white",
-            1,
-        );
+            boardId: "board1",
+            fillStyle: "horizontal",
+            fillColor: "#abc",
+            fillOpacity: 0.8,
+            canvasColor: "white",
+            fillPatternOpacity: 1,
+        });
 
         expect(faint).not.toBe(strong);
         expect((defsEl as any).children).toHaveLength(2);
+    });
+});
+
+describe("getPatternFillAttributes", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it("returns fillOpacity 1 (and highlight 0.5) for a pattern fill, since both opacities are baked into the tile", () => {
+        const { defsEl } = makeFakeDefs();
+
+        const attrs = getPatternFillAttributes({
+            defsEl,
+            boardId: "board1",
+            fillStyle: "horizontal",
+            fillColor: "#abc",
+            fillOpacity: 0.3,
+            canvasColor: "white",
+            fillPatternOpacity: 0.8,
+        });
+
+        expect(attrs.fillColor).toMatch(/^url\(#doenet-fill-pattern-/);
+        expect(attrs.highlightFillColor).toBe(attrs.fillColor);
+        expect(attrs.fillOpacity).toBe(1);
+        expect(attrs.highlightFillOpacity).toBe(0.5);
+    });
+
+    it("passes a solid fill through unchanged (plain color, authored opacities)", () => {
+        const { defsEl } = makeFakeDefs();
+
+        const attrs = getPatternFillAttributes({
+            defsEl,
+            boardId: "board1",
+            fillStyle: "solid",
+            fillColor: "#abc",
+            fillOpacity: 0.3,
+            canvasColor: "white",
+            fillPatternOpacity: 0.8,
+            highlightFillOpacity: 0.15,
+        });
+
+        expect(attrs.fillColor).toBe("#abc");
+        expect(attrs.highlightFillColor).toBe("#abc");
+        expect(attrs.fillOpacity).toBe(0.3);
+        expect(attrs.highlightFillOpacity).toBe(0.15);
     });
 });

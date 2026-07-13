@@ -101,20 +101,34 @@ function encodeOpacityToken(value: number): string {
 }
 
 /**
- * Returns a stable pattern element ID for a given board + fill style + colors +
- * opacities. Every input that affects the rendered pattern contents is folded
- * into the ID so patterns with different backgrounds or opacities never alias.
- * The encoded color tokens let arbitrary CSS names or functional notation be
- * embedded safely.
+ * Inputs (other than the target `<defs>`) that determine a fill pattern's
+ * rendered contents, and therefore its cache ID. Bundled into one options
+ * object so callers name each field: colors are all strings and opacities are
+ * all numbers, so positional arguments would be easy to transpose silently.
  */
-function buildPatternId(
-    boardId: string,
-    fillStyle: string,
-    fillColor: string,
-    canvasColor: string,
-    fillOpacity: number,
-    fillPatternOpacity: number,
-): string {
+type PatternFillInputs = {
+    boardId: string;
+    fillStyle: string;
+    fillColor: string;
+    fillOpacity: number;
+    canvasColor: string;
+    fillPatternOpacity: number;
+};
+
+/**
+ * Returns a stable pattern element ID for the given fill inputs. Every input
+ * that affects the rendered pattern contents is folded into the ID so patterns
+ * with different backgrounds or opacities never alias. The encoded color tokens
+ * let arbitrary CSS names or functional notation be embedded safely.
+ */
+function buildPatternId({
+    boardId,
+    fillStyle,
+    fillColor,
+    canvasColor,
+    fillOpacity,
+    fillPatternOpacity,
+}: PatternFillInputs): string {
     return [
         "doenet-fill-pattern",
         boardId,
@@ -140,15 +154,15 @@ function buildPatternId(
  * If `fillStyle` is `"solid"` or unrecognised, returns `fillColor` unchanged
  * so callers can always use the return value as the JSXGraph `fillColor`.
  */
-export function getOrInjectPattern(
-    defsEl: SVGDefsElement | null,
-    boardId: string,
-    fillStyle: string,
-    fillColor: string,
-    fillOpacity: number,
-    canvasColor: string,
-    fillPatternOpacity: number,
-): string {
+export function getOrInjectPattern({
+    defsEl,
+    boardId,
+    fillStyle,
+    fillColor,
+    fillOpacity,
+    canvasColor,
+    fillPatternOpacity,
+}: PatternFillInputs & { defsEl: SVGDefsElement | null }): string {
     const def = FILL_PATTERN_DEFS[fillStyle];
     if (!def) {
         if (fillStyle !== "solid") {
@@ -162,14 +176,14 @@ export function getOrInjectPattern(
         return fillColor;
     }
 
-    const id = buildPatternId(
+    const id = buildPatternId({
         boardId,
         fillStyle,
         fillColor,
-        canvasColor,
         fillOpacity,
+        canvasColor,
         fillPatternOpacity,
-    );
+    });
 
     // Avoid injecting the same pattern twice (e.g. after state updates).
     if (defsEl.ownerDocument?.getElementById(id)) {
@@ -250,7 +264,7 @@ export function getPatternFillAttributes({
     highlightFillColor: string;
     highlightFillOpacity: number;
 } {
-    const resolvedFillColor = getOrInjectPattern(
+    const resolvedFillColor = getOrInjectPattern({
         defsEl,
         boardId,
         fillStyle,
@@ -258,7 +272,7 @@ export function getPatternFillAttributes({
         fillOpacity,
         canvasColor,
         fillPatternOpacity,
-    );
+    });
     const usesPatternFill = resolvedFillColor !== fillColor;
 
     return {
