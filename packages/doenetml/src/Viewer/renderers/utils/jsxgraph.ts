@@ -907,8 +907,8 @@ export function syncLabelStrokeColor(
  * Since these object-attached labels are created with `highlight: false`,
  * JSXGraph never automatically applies `highlightcssstyle`; instead,
  * `attachLabelHoverHighlight` directly toggles `label.visProp.cssstyle`
- * between the returned `cssStyle` and `highlightCssStyle` on the object's /
- * label's over/out events.
+ * between the returned `cssStyle` and `highlightCssStyle` on the object's
+ * over/out events.
  *
  * This preserves an active hover highlight across a re-render: the hover
  * handler records its desired state on `label.visProp.labelMaskHovered`, and

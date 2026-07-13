@@ -9,7 +9,6 @@ export interface LabelLikeJXG {
     visProp: Record<string, any>;
     needsUpdate: boolean;
     update: () => void;
-    on?: (event: string, fn: () => void) => void;
 }
 
 /**
@@ -30,11 +29,12 @@ export interface LabelLikeJXG {
  * or not masking is enabled (until it overlaps something, where the opaque
  * background keeps it legible). The label gains a visible border (and a
  * raised z-index so it rises above other overlapping labels/objects) only
- * while the pointer is over a *draggable* object or its label — a hover cue
- * that the object can be grabbed. That hover styling is applied by
- * `attachLabelHoverHighlight` below, which toggles the label between
- * `cssStyle` and `highlightCssStyle` on the object's / label's over/out
- * events.
+ * while the pointer is over the *draggable* object it labels — a hover cue
+ * that the object can be grabbed. For an object-attached label that styling
+ * is applied by `attachLabelHoverHighlight` below, which toggles the label
+ * between `cssStyle` and `highlightCssStyle` on the object's over/out events.
+ * A standalone `<label>`, which the user drags directly, instead gets
+ * `highlightCssStyle` from JSXGraph's own native hover highlight.
  *
  * NOTE: jsxgraph's own `highlightStrokeOpacity` for text elements defaults
  * to a non-1 value, which combines with any alpha in the background color
