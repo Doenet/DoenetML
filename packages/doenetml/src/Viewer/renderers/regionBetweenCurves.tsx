@@ -288,7 +288,6 @@ export default React.memo(function RegionBetweenCurves(
 
             if (regionJXG.current.hasLabel && regionJXG.current.label) {
                 syncLabelMaskCssStyle(regionJXG.current.label, SVs.layer, {
-                    highlighted: regionJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
             }

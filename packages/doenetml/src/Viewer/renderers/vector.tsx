@@ -500,7 +500,6 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                     lineColor,
                 );
                 syncLabelMaskCssStyle(vectorJXG.current.label, SVs.layer, {
-                    highlighted: vectorJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
 

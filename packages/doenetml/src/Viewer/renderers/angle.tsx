@@ -266,7 +266,6 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             if (angleJXG.current.hasLabel && angleJXG.current.label) {
                 angleJXG.current.label.needsUpdate = true;
                 syncLabelMaskCssStyle(angleJXG.current.label, SVs.layer, {
-                    highlighted: angleJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
                 angleJXG.current.label.update();

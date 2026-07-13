@@ -24,9 +24,17 @@ export interface LabelLikeJXG {
  * `selectedStyle.backgroundColor`), that color is used instead so an
  * explicit author choice is respected.
  *
- * On highlight (hovering the label, or hovering/dragging the object the
- * label belongs to), the border darkens and the z-index is raised so the
- * label rises above other overlapping labels/objects.
+ * The base style intentionally has NO border: with a `var(--canvas)`
+ * background that already matches the graph, a label looks identical whether
+ * or not masking is enabled (until it overlaps something, where the opaque
+ * background keeps it legible). The label gains a visible border (and a
+ * raised z-index so it rises above other overlapping labels/objects) only
+ * while the pointer is over the *draggable* object it labels — a hover cue
+ * that the object can be grabbed. For an object-attached label that styling
+ * is applied by `attachLabelHoverHighlight` below, which toggles the label
+ * between `cssStyle` and `highlightCssStyle` on the object's over/out events.
+ * A standalone `<label>`, which the user drags directly, instead gets
+ * `highlightCssStyle` from JSXGraph's own native hover highlight.
  *
  * NOTE: jsxgraph's own `highlightStrokeOpacity` for text elements defaults
  * to a non-1 value, which combines with any alpha in the background color
@@ -38,8 +46,8 @@ export interface LabelLikeJXG {
  * `dragToTopOfLayer` support for labels (commit `2a498682884c`,
  * https://github.com/jsxgraph/jsxgraph/issues/778), we should switch to
  * `dragToTopOfLayer: true` on labels instead of manually wiring
- * over/out/drag-start/drag-end listeners to raise/lower z-index, as is done
- * with `attachLabelHoverHighlight` below. As of jsxgraph 1.12.2 (the latest
+ * over/out listeners to raise/lower z-index, as is done with
+ * `attachLabelHoverHighlight` below. As of jsxgraph 1.12.2 (the latest
  * published release at the time this was written), that fix has not yet
  * shipped.
  *
@@ -47,8 +55,8 @@ export interface LabelLikeJXG {
  * component), the mask is disabled and this restores the pre-mask behavior:
  * a transparent background (or the explicit style-definition
  * `backgroundColor`, if one is set), no border, no z-index bump, and a
- * highlight style identical to the base style so hovering/dragging leaves
- * the label unchanged.
+ * highlight style identical to the base style so hovering leaves the label
+ * unchanged.
  */
 export function computeLabelMaskCssStyle({
     layer,
@@ -68,9 +76,9 @@ export function computeLabelMaskCssStyle({
     // Labels are HTML elements overlaid on the JSXGraph board. The base
     // z-index lifts a label just above sibling labels/objects on the same
     // Doenet layer without escaping the board's own stacking context, while
-    // the highlight z-index lifts a hovered/dragged label clearly above the
-    // others. `+ layer` preserves the relative ordering of Doenet layers in
-    // both states. Two non-highlighted labels on the same layer intentionally
+    // the highlight z-index lifts a hovered label clearly above the others.
+    // `+ layer` preserves the relative ordering of Doenet layers in both
+    // states. Two non-highlighted labels on the same layer intentionally
     // share a z-index, so their DOM order breaks the tie. The base offset (9)
     // and highlight offset (100) are chosen to leave headroom between the two
     // bands for the small per-layer increments.
@@ -81,28 +89,46 @@ export function computeLabelMaskCssStyle({
     // treat any falsy value as "no explicit color".
     const background = backgroundColor || "var(--canvas)";
 
-    const cssStyle = `background-color: ${background}; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 3px; z-index: ${baseZIndex};`;
+    // JSXGraph's `updateTextStyle` applies a label's css string *additively*:
+    // it sets each declared property on the DOM node but never removes a
+    // property the previous style declared. So the base style must explicitly
+    // reset `border`/`border-radius` — omitting them would leave the hover
+    // border stuck on the element after the pointer leaves.
+    const cssStyle = `background-color: ${background}; border: none; border-radius: 0; z-index: ${baseZIndex};`;
     const highlightCssStyle = `background-color: ${background}; border: 1px solid rgba(128, 128, 128, 0.8); border-radius: 3px; z-index: ${highlightZIndex};`;
 
     return { cssStyle, highlightCssStyle };
 }
 
 /**
- * Wires up "over"/"out" handlers on `hoverTargetJXG` (e.g. a point, line, or
- * other graphical object) so that hovering the object itself — not just its
- * label — switches the associated label's CSS style to the highlighted
- * (opaque, higher z-index) mask style. This is an interim stand-in for
- * jsxgraph's `dragToTopOfLayer`, which does not yet support labels in any
- * published release (see the note in `computeLabelMaskCssStyle` above).
+ * Wires up `over`/`out` handlers so that a label gains its bordered "mask"
+ * highlight while the pointer is over the associated *draggable* object and
+ * loses it when the pointer leaves. This is an interim stand-in for jsxgraph's
+ * `dragToTopOfLayer`, which does not yet support labels in any published
+ * release (see the note in `computeLabelMaskCssStyle` above).
  *
- * `getLabelJXG` is called lazily on each hover event so callers can pass a
+ * The highlight is gated on `hoverTargetJXG.isDraggable`: renderers whose
+ * objects can be dragged set it from the component's `fixed`/`fixLocation`
+ * state, while object types that are never draggable (curves, regions, angles)
+ * keep JSXGraph's own `false` default. Either way the border acts as a "you can
+ * grab this" cue and never appears on a fixed or otherwise non-draggable object.
+ *
+ * Only the *object's* own `over`/`out` drive the border — hovering the label
+ * itself does nothing. An object-attached label can only be moved by dragging
+ * the object (not the label), so lighting the border on label hover would
+ * wrongly imply the label is draggable. (A standalone `<label>`, which the
+ * user does drag directly, gets its own hover border via JSXGraph's native
+ * highlight instead of this helper.) The base css explicitly resets the border
+ * (see `computeLabelMaskCssStyle`), so an `out` reliably clears it.
+ *
+ * `getLabelJXG` is called lazily on each event so callers can pass a
  * ref-based getter for a label that may not exist yet at wiring time.
  *
- * The `"over"`/`"out"` handlers are intentionally not tracked for later
- * removal (unlike the handlers in `removeJXGEventHandlers`): they are wired
- * only inside a renderer's create-JXG path, so they live and die with the
- * freshly created `hoverTargetJXG`. If a label is re-created, a new object
- * (and new handlers) replaces the old one rather than accumulating on it.
+ * The handlers are intentionally not tracked for later removal (unlike the
+ * handlers in `removeJXGEventHandlers`): they are wired only inside a
+ * renderer's create-JXG path, so they live and die with the freshly created
+ * `hoverTargetJXG`. If a label is re-created, a new object (and new handlers)
+ * replaces the old one rather than accumulating on it.
  */
 export function attachLabelHoverHighlight({
     hoverTargetJXG,
@@ -111,36 +137,44 @@ export function attachLabelHoverHighlight({
     highlightCssStyle,
     board,
 }: {
-    hoverTargetJXG: { on: (event: string, fn: () => void) => void };
+    hoverTargetJXG: {
+        on: (event: string, fn: () => void) => void;
+        isDraggable?: boolean;
+    };
     getLabelJXG: () => LabelLikeJXG | null | undefined;
     cssStyle: string;
     highlightCssStyle: string;
     board: { updateRenderer: () => void } | null;
 }) {
-    function applyLabelCssStyle(labelJXG: LabelLikeJXG, style: string) {
+    function applyHover(hovered: boolean) {
+        const labelJXG = getLabelJXG();
+        if (!labelJXG) {
+            return;
+        }
+        // Only draggable objects get the hover border. `isDraggable` is `false`
+        // when the component is fixed / has a fixed location; treat any other
+        // value (true, or an unset default) as draggable.
+        const draggable = hoverTargetJXG.isDraggable !== false;
+        const show = hovered && draggable;
+        // Record the desired state so a mid-hover re-render
+        // (`syncLabelMaskCssStyle`) preserves it instead of clobbering the
+        // border back to the base style.
+        labelJXG.visProp.labelMaskHovered = show;
+        // Prefer the label's live `highlightcssstyle`, which the update path
+        // keeps in sync with the current layer/z-index, so a runtime layer
+        // change is reflected on hover. Fall back to the captured value.
+        const style = show
+            ? (labelJXG.visProp.highlightcssstyle ?? highlightCssStyle)
+            : cssStyle;
+        if (labelJXG.visProp.cssstyle === style) {
+            return;
+        }
         labelJXG.visProp.cssstyle = style;
         labelJXG.needsUpdate = true;
         labelJXG.update();
         board?.updateRenderer();
     }
 
-    hoverTargetJXG.on("over", () => {
-        const labelJXG = getLabelJXG();
-        if (labelJXG) {
-            // Prefer the label's live `highlightcssstyle`, which the renderer's
-            // update path (`syncLabelMaskCssStyle`) keeps in sync with the
-            // current layer/z-index, so a runtime layer change is reflected on
-            // hover. Fall back to the value captured when the handler was wired.
-            applyLabelCssStyle(
-                labelJXG,
-                labelJXG.visProp.highlightcssstyle ?? highlightCssStyle,
-            );
-        }
-    });
-    hoverTargetJXG.on("out", () => {
-        const labelJXG = getLabelJXG();
-        if (labelJXG) {
-            applyLabelCssStyle(labelJXG, cssStyle);
-        }
-    });
+    hoverTargetJXG.on("over", () => applyHover(true));
+    hoverTargetJXG.on("out", () => applyHover(false));
 }

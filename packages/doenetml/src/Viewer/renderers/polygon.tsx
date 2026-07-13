@@ -633,7 +633,6 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 const label = polygonJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
-                    highlighted: polygonJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
                 label.needsUpdate = true;

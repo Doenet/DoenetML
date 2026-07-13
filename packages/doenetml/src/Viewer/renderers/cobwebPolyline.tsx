@@ -465,7 +465,6 @@ export default React.memo(function CobwebPolyline(
             }
             if (polylineJXG.current.hasLabel && polylineJXG.current.label) {
                 syncLabelMaskCssStyle(polylineJXG.current.label, SVs.layer, {
-                    highlighted: polylineJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
             }
@@ -477,7 +476,6 @@ export default React.memo(function CobwebPolyline(
                 });
                 if (lastPoint.label) {
                     syncLabelMaskCssStyle(lastPoint.label, SVs.layer, {
-                        highlighted: lastPoint.highlighted,
                         maskLabel: SVs.maskLabel,
                     });
                     lastPoint.label.needsUpdate = true;

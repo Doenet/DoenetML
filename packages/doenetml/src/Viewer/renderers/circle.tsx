@@ -790,7 +790,6 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 const label = circleJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
-                    highlighted: circleJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
                 label.needsUpdate = true;
@@ -867,7 +866,6 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                         markerColor,
                     );
                     syncLabelMaskCssStyle(label, SVs.layer, {
-                        highlighted: indicatorJXG.current.highlighted,
                         maskLabel: SVs.maskLabel,
                     });
 

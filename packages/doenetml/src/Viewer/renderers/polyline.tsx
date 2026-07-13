@@ -550,7 +550,6 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                 const label = polylineJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
-                    highlighted: polylineJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
                 label.needsUpdate = true;

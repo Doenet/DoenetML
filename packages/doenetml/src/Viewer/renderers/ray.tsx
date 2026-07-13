@@ -323,7 +323,6 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
                 const label = rayJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
-                    highlighted: rayJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
 

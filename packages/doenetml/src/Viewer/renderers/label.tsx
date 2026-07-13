@@ -105,6 +105,11 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             // combines with the background alpha and makes the highlighted
             // mask look transparent (jsxgraph issue #777). Force it to 1.
             highlightStrokeOpacity: 1,
+            // JSXGraph's native hover highlight applies the bordered mask
+            // style on hover, gated on `highlight` — enabled only when the
+            // label is draggable. Native highlight clears reliably on
+            // pointer-out (via the board's dehighlightAll), unlike a custom
+            // over/out on this HTML-overlay text element.
             highlight: !fixLocation.current,
             useMathJax: SVs.hasLatex,
             parse: false,

@@ -491,7 +491,6 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
                 label.needsUpdate = true;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
-                    highlighted: lineSegmentJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
 

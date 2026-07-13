@@ -909,7 +909,6 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 label.visPropCalc.visible = SVs.labelForGraph !== "";
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 syncLabelMaskCssStyle(label, SVs.layer, {
-                    highlighted: curveJXG.current.highlighted,
                     maskLabel: SVs.maskLabel,
                 });
                 label.update();
