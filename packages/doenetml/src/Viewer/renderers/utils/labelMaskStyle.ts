@@ -107,9 +107,11 @@ export function computeLabelMaskCssStyle({
  * `dragToTopOfLayer`, which does not yet support labels in any published
  * release (see the note in `computeLabelMaskCssStyle` above).
  *
- * The highlight is gated on `hoverTargetJXG.isDraggable` (which every renderer
- * keeps in sync with the component's `fixed`/`fixLocation` state), so the
- * border acts as a "you can grab this" cue and never appears on fixed objects.
+ * The highlight is gated on `hoverTargetJXG.isDraggable`: renderers whose
+ * objects can be dragged set it from the component's `fixed`/`fixLocation`
+ * state, while object types that are never draggable (curves, regions, angles)
+ * keep JSXGraph's own `false` default. Either way the border acts as a "you can
+ * grab this" cue and never appears on a fixed or otherwise non-draggable object.
  *
  * Only the *object's* own `over`/`out` drive the border — hovering the label
  * itself does nothing. An object-attached label can only be moved by dragging
