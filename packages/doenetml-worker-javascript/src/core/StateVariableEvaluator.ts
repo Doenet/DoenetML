@@ -1,6 +1,7 @@
 import type Core from "../Core";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
+import { ensureStateVariableMaterialized } from "./StateVariableInitializer";
 /**
  * Resolves a state variable's value: walks the dependency graph to gather
  * fresh inputs, invokes the variable's `definition` function (or
@@ -62,6 +63,14 @@ export class StateVariableEvaluator {
                 `Can't get value of ${stateVariable} of ${component.componentIdx} as it doesn't exist.`,
             );
         }
+
+        // first read of a placeholder builds the full runtime object
+        // (including its definition group) before anything below touches it
+        await ensureStateVariableMaterialized({
+            core: this.core,
+            component,
+            stateVariable,
+        });
 
         if (component.reprocessAfterEvaluate) {
             // This is a kludge

@@ -4,6 +4,7 @@ import type { ComponentIdx } from "@doenet/utils";
 import me from "math-expressions";
 import { processNewDefiningChildren } from "./ComponentLifecycle";
 import { expandAllComposites } from "./CompositeExpander";
+import { ensureStateVariableMaterialized } from "./StateVariableInitializer";
 import {
     preprocessMathInverseDefinition,
     removeFunctionsMathExpressionClass,
@@ -266,6 +267,17 @@ export class EssentialValueWriter {
 
             for (let vName in newComponentStateVariables) {
                 let compStateObj = comp.state[vName];
+                if (compStateObj) {
+                    // the writes below read materialized-only fields
+                    // (`essentialVarName` overrides from shadow plans,
+                    // array machinery like `setArrayValue` /
+                    // `arraySizeStateVariable`)
+                    await ensureStateVariableMaterialized({
+                        core: this.core,
+                        component: comp,
+                        stateVariable: vName,
+                    });
+                }
                 if (compStateObj === undefined) {
                     let match = vName.match(/^__def_primitive_(\d+)$/);
 
@@ -485,6 +497,14 @@ export class EssentialValueWriter {
         let componentWorkspace = workspace[instruction.componentIdx];
 
         let stateVarObj = component.state[stateVariable];
+
+        // materialize before reading the definition group and the inverse
+        // definition: pending shadow modifications can change both
+        await ensureStateVariableMaterialized({
+            core: this.core,
+            component,
+            stateVariable,
+        });
 
         let additionalStateVariablesDefined =
             stateVarObj.additionalStateVariablesDefined;

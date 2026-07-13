@@ -72,70 +72,29 @@ export default class BaseComponent {
             // are the same object. The runtime deletes
             // (`delete stateVarObj.value` etc.) only ever target runtime
             // fields, which live on the wrapper.
-            // (Prototype wrappers are only used over the class-shared
-            // definitions — a few per class — because using the per-instance
-            // adapter/shadow clones below as prototypes made every clone the
-            // root of its own V8 shape tree, costing more in hidden-class
-            // metadata than the shared property backing saved.)
+            // Per-instance copies of nested mutable fields and workspaces
+            // are made when a state variable materializes
+            // (`ensureStateVariableMaterialized`), not here.
             for (let stateVariable in stateVariableDefinitions) {
-                let def = Object.create(
+                this.state[stateVariable] = Object.create(
                     stateVariableDefinitions[stateVariable],
                 );
-                // Nested fields that get mutated in place at runtime need
-                // their own per-instance copies; a prototype read would hand
-                // back the shared object.
-                if (def.shadowingInstructions) {
-                    def.shadowingInstructions = Object.assign(
-                        {},
-                        def.shadowingInstructions,
-                    );
-                }
-                if (def.additionalStateVariablesDefined) {
-                    def.additionalStateVariablesDefined = [
-                        ...def.additionalStateVariablesDefined,
-                    ];
-                }
-                if (def.stateVariablesDeterminingDependencies) {
-                    def.stateVariablesDeterminingDependencies = [
-                        ...def.stateVariablesDeterminingDependencies,
-                    ];
-                }
-                this.state[stateVariable] = def;
             }
         } else {
             // Adapter / reference-shadow definitions: the factory already
-            // produced per-instance clones (one distinct object per state
-            // variable, nested mutable fields included), so they can be used
-            // directly as the state variable objects.
+            // produced per-instance prototype wrappers over the class
+            // definitions and recorded (but did not yet apply) their
+            // adapter/shadow modifications as own `isShadow` / `svShadow*`
+            // markers. The nested mutable-field copies and the shadow
+            // overrides are applied when each variable materializes
+            // (`ensureStateVariableMaterialized`), so the wrappers can be
+            // used directly as the state variable objects here.
             for (let stateVariable in stateVariableDefinitions) {
                 this.state[stateVariable] =
                     stateVariableDefinitions[stateVariable];
             }
         }
 
-        // Definitions mutate their workspace across evaluations, so each
-        // instance needs a fresh one in place of the workspace on the (shared)
-        // definition. State variables defined together via
-        // additionalStateVariablesDefined share a single workspace.
-        let workspaceAssigned = new Set();
-        for (let stateVariable in this.state) {
-            let def = this.state[stateVariable];
-            if (!def.createWorkspace || workspaceAssigned.has(stateVariable)) {
-                continue;
-            }
-            let workspace = {};
-            def.workspace = workspace;
-            workspaceAssigned.add(stateVariable);
-            if (def.additionalStateVariablesDefined) {
-                for (let otherVar of def.additionalStateVariablesDefined) {
-                    let otherDef = this.state[otherVar];
-                    if (otherDef?.createWorkspace) {
-                        otherDef.workspace = workspace;
-                        workspaceAssigned.add(otherVar);
-                    }
-                }
-            }
-        }
         this.stateValues = new Proxy(this.state, createStateProxyHandler());
 
         this.essentialState = {};

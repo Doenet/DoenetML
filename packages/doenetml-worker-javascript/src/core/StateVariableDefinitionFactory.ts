@@ -98,30 +98,20 @@ function getClassStateVariableDefinitions(core: Core, componentClass: any) {
 }
 
 /**
- * Shallow-clone a cached state-variable definition so the adapter /
- * reference-shadow code can freely assign and delete fields on it.
- * The nested fields those paths mutate in place (rather than reassign)
- * are cloned one level deeper.
+ * Wrap a cached state-variable definition in a per-instance prototype
+ * wrapper so the adapter / reference-shadow code can freely override
+ * fields on it: writes create own properties that shadow the shared
+ * definition, exactly like the wrappers `BaseComponent`'s constructor
+ * makes over class-shared definitions. (Removals must be written as
+ * `field = undefined` rather than `delete` — a delete of an inherited
+ * field is a no-op.)
+ *
+ * Per-instance copies of the nested fields that get mutated in place are
+ * made at materialization time (`materializeNestedDefinitionFields` in
+ * `StateVariableInitializer`), not here.
  */
-function cloneStateVariableDefinition(def: Record<string, any>) {
-    const clone = Object.assign({}, def);
-    if (clone.shadowingInstructions) {
-        clone.shadowingInstructions = Object.assign(
-            {},
-            clone.shadowingInstructions,
-        );
-    }
-    if (clone.additionalStateVariablesDefined) {
-        clone.additionalStateVariablesDefined = [
-            ...clone.additionalStateVariablesDefined,
-        ];
-    }
-    if (clone.stateVariablesDeterminingDependencies) {
-        clone.stateVariablesDeterminingDependencies = [
-            ...clone.stateVariablesDeterminingDependencies,
-        ];
-    }
-    return clone;
+function wrapStateVariableDefinition(def: Record<string, any>) {
+    return Object.create(def);
 }
 
 /**
@@ -210,10 +200,11 @@ export async function createStateVariableDefinitions({
     }
 
     // The adapter / reference-shadow paths mutate the definition objects,
-    // so give them per-instance clones of the class definitions.
+    // so give them per-instance prototype wrappers over the class
+    // definitions (own-property writes shadow the shared definition).
     let stateVariableDefinitions: Record<string, any> = {};
     for (const varName in classDefinitions.normalized) {
-        stateVariableDefinitions[varName] = cloneStateVariableDefinition(
+        stateVariableDefinitions[varName] = wrapStateVariableDefinition(
             classDefinitions.normalized[varName],
         );
     }
@@ -1079,6 +1070,9 @@ function modifyStateDefsToBeShadows({
             }
         }
 
+        // `isShadow` is written eagerly: the shadow scans over a target
+        // component's state (including scans by later chained copies) read
+        // it before this variable is ever materialized.
         stateDef.isShadow = true;
 
         if (stateDef.additionalStateVariablesDefined) {
@@ -1093,58 +1087,95 @@ function modifyStateDefsToBeShadows({
                 }
             }
         }
-        delete stateDef.additionalStateVariablesDefined;
-        if (!foundReadyToExpandWhenResolved) {
-            // if didn't find a readyToExpandWhenResolved,
-            // then won't use original dependencies so can delete any
+
+        // The rest of the modification (shared shadow function refs,
+        // severing the definition group, the shadow parameters) is recorded
+        // as a compact plan and applied by
+        // `applyPendingShadowModification` when the variable materializes.
+        stateDef.svShadowParams = {
+            targetComponentIdx: targetComponent.componentIdx,
+            overrideVarName: differentStateVariablesInTarget[varInd],
+            keepOriginalDependencies: Boolean(foundReadyToExpandWhenResolved),
+        };
+    }
+    for (let varName in deleteStateVariablesFromDefinition) {
+        stateVariableDefinitions[varName].svShadowDeleteVars =
+            deleteStateVariablesFromDefinition[varName];
+    }
+}
+
+/**
+ * Apply the shadow modification planned by `modifyStateDefsToBeShadows`
+ * to one state-variable object, at materialization time. Executes the
+ * same per-variable mutations the plan deferred; no-op for variables
+ * without pending markers.
+ */
+export function applyPendingShadowModification(stateVarObj: any) {
+    const params = stateVarObj.svShadowParams;
+    if (params) {
+        delete stateVarObj.svShadowParams;
+
+        const varName = stateVarObj.svVarName;
+
+        // assign `undefined` rather than `delete`: these state-variable
+        // objects are prototype wrappers, so the field must be shadowed
+        // with an own property (a delete of an inherited field is a
+        // no-op); all consumers of both fields test truthiness, never
+        // presence
+        const originalReturnDependencies = stateVarObj.returnDependencies;
+        stateVarObj.additionalStateVariablesDefined = undefined;
+        if (!params.keepOriginalDependencies) {
+            // won't use original dependencies so can remove any
             // stateVariablesDeterminingDependencies
-            delete stateDef.stateVariablesDeterminingDependencies;
+            stateVarObj.stateVariablesDeterminingDependencies = undefined;
         }
 
         let copyComponentType =
-            stateDef.public &&
-            stateDef.shadowingInstructions.hasVariableComponentType;
+            stateVarObj.public &&
+            stateVarObj.shadowingInstructions.hasVariableComponentType;
 
         // Parameters for the shared shadow definition functions (see the
         // module-level `shadow*` functions above), stored on the
-        // per-instance definition instead of captured in per-variable
-        // closures.
-        stateDef.shadowOfComponentIdx = targetComponent.componentIdx;
-        stateDef.shadowVarName = varName;
-        stateDef.shadowCopyComponentType = copyComponentType;
+        // per-instance state-variable object instead of captured in
+        // per-variable closures.
+        stateVarObj.shadowOfComponentIdx = params.targetComponentIdx;
+        stateVarObj.shadowVarName = varName;
+        stateVarObj.shadowCopyComponentType = copyComponentType;
 
-        if (stateDef.isArray) {
-            stateDef.shadowOverrideVarName =
-                differentStateVariablesInTarget[varInd];
+        if (stateVarObj.isArray) {
+            stateVarObj.shadowOverrideVarName = params.overrideVarName;
 
-            stateDef.returnArrayDependenciesByKey =
+            stateVarObj.returnArrayDependenciesByKey =
                 shadowReturnArrayDependenciesByKey;
-            stateDef.arrayDefinitionByKey = shadowArrayDefinitionByKey;
-            stateDef.inverseArrayDefinitionByKey =
+            stateVarObj.arrayDefinitionByKey = shadowArrayDefinitionByKey;
+            stateVarObj.inverseArrayDefinitionByKey =
                 shadowInverseArrayDefinitionByKey;
         } else {
-            if (foundReadyToExpandWhenResolved) {
+            if (params.keepOriginalDependencies) {
                 // even though won't use original dependencies
                 // if found a readyToExpandWhenResolved
                 // keep original dependencies so that readyToExpandWhenResolved
                 // won't be resolved until all its dependent variables are resolved
-                stateDef.shadowOriginalReturnDependencies =
-                    stateDef.returnDependencies.bind(stateDef);
+                stateVarObj.shadowOriginalReturnDependencies =
+                    originalReturnDependencies.bind(stateVarObj);
             }
 
-            stateDef.shadowVarNameInTarget =
-                differentStateVariablesInTarget[varInd] || varName;
+            stateVarObj.shadowVarNameInTarget =
+                params.overrideVarName || varName;
 
-            stateDef.returnDependencies = shadowReturnDependencies;
-            stateDef.definition = shadowDefinition;
-            stateDef.excludeDependencyValuesInInverseDefinition = true;
-            stateDef.inverseDefinition = shadowInverseDefinition;
+            stateVarObj.returnDependencies = shadowReturnDependencies;
+            stateVarObj.definition = shadowDefinition;
+            stateVarObj.excludeDependencyValuesInInverseDefinition = true;
+            stateVarObj.inverseDefinition = shadowInverseDefinition;
         }
     }
-    for (let varName in deleteStateVariablesFromDefinition) {
+
+    const deleteVars = stateVarObj.svShadowDeleteVars;
+    if (deleteVars) {
+        delete stateVarObj.svShadowDeleteVars;
         modifyStateDefToDeleteVariableReferences({
-            varNamesToDelete: deleteStateVariablesFromDefinition[varName],
-            stateDef: stateVariableDefinitions[varName],
+            varNamesToDelete: deleteVars,
+            stateDef: stateVarObj,
         });
     }
 }

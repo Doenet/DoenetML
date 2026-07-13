@@ -14,7 +14,10 @@ import {
     expandCompositeComponent,
     recursivelyReplaceCompositesWithReplacements,
 } from "../CompositeExpander";
-import { arrayEntryNamesFromPropIndex } from "../StateVariableInitializer";
+import {
+    arrayEntryNamesFromPropIndex,
+    ensureStateVariableMaterialized,
+} from "../StateVariableInitializer";
 import {
     ancestorsIncludingComposites,
     gatherDescendants,
@@ -150,6 +153,12 @@ export class DependencyHandler {
      * (on demand). Diagnostic counter for the lazy-materialization work.
      */
     numDependencySetups: number;
+    /**
+     * Number of state variables materialized from placeholders (grouped
+     * with `numDependencySetups` for the lazy-materialization work; lives
+     * here so it survives per-core, not per-module).
+     */
+    numMaterializedStateVariables: number;
 
     constructor({
         _components,
@@ -190,6 +199,7 @@ export class DependencyHandler {
         };
 
         this.numDependencySetups = 0;
+        this.numMaterializedStateVariables = 0;
 
         this.attributeRefResolutionDependenciesByReferenced = {};
 
@@ -410,6 +420,15 @@ export class DependencyHandler {
         ) {
             return;
         }
+
+        // materialize before reading the definition group below: pending
+        // shadow modifications can sever `additionalStateVariablesDefined`,
+        // and `returnDependencies` must be the effective (post-shadow) one
+        await ensureStateVariableMaterialized({
+            core: this.core,
+            component,
+            stateVariable,
+        });
 
         // Every member of an `additionalStateVariablesDefined` group lists
         // its siblings (see `returnNormalizedStateVariableDefinitions`),

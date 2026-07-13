@@ -1,6 +1,7 @@
 import type Core from "../Core";
 import { deepClone, flattenDeep } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
+import { applyPendingShadowModification } from "./StateVariableDefinitionFactory";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
@@ -1053,12 +1054,19 @@ export function normalizeArrayStateVariableDefaults(def: any, varName: string) {
     if (!def.returnEntryDimensions) {
         def.returnEntryDimensions = defaultReturnEntryDimensions;
     }
-    if (
-        def.shadowingInstructions &&
-        !def.shadowingInstructions.returnWrappingComponents
-    ) {
-        def.shadowingInstructions.returnWrappingComponents =
-            defaultReturnWrappingComponents;
+    if (def.shadowingInstructions) {
+        if (!def.shadowingInstructions.returnWrappingComponents) {
+            def.shadowingInstructions.returnWrappingComponents =
+                defaultReturnWrappingComponents;
+        }
+        // Precompute the whole-array wrapping components at class level:
+        // consumers (e.g. `allPotentialRendererTypes`, dependency setup on
+        // a producer, shadow serialization) read `wrappingComponents` off
+        // state-variable objects that may never materialize. The
+        // `returnWrappingComponents` implementations are pure functions of
+        // the entry prefix, so the result is class-invariant.
+        def.wrappingComponents =
+            def.shadowingInstructions.returnWrappingComponents();
     }
 }
 
@@ -1173,12 +1181,188 @@ export async function initializeComponentStateVariables({
             // TODO: do we want to delete alias from state?
             delete component.state[stateVariable];
         } else {
-            await initializeStateVariable({
+            initializeStateVariablePlaceholder({
                 core,
                 component,
                 stateVariable,
             });
         }
+    }
+}
+
+/**
+ * Give a state variable the minimal runtime shape it needs before it is
+ * ever used: the back-pointers the shared runtime functions read, the
+ * stale `value` getter (whose evaluation path materializes the variable),
+ * and — for arrays — the component's entry-prefix registration, which
+ * `checkIfArrayEntry` consults before any materialization.
+ *
+ * Everything else (nested per-instance field copies, workspaces, array
+ * machinery, the `__array_size_*` companion variable, pending shadow
+ * modifications) is deferred to `ensureStateVariableMaterialized`, so
+ * variables that are never demanded never pay for it.
+ */
+function initializeStateVariablePlaceholder({
+    core,
+    component,
+    stateVariable,
+}: {
+    core: Core;
+    component: ComponentInstance;
+    stateVariable: string;
+}) {
+    const stateVarObj = component.state[stateVariable];
+    stateVarObj.svComponent = component;
+    stateVarObj.svVarName = stateVariable;
+    stateVarObj.isResolved = false;
+    installStaleValueGetter(stateVarObj);
+
+    if (stateVarObj.isArray) {
+        // register entry prefixes up front: array-entry names must be
+        // recognizable (and creatable) before the array itself materializes
+        if (!component.arrayEntryPrefixes) {
+            component.arrayEntryPrefixes = {};
+        }
+        const entryPrefixes = stateVarObj.entryPrefixes ?? [stateVariable];
+        for (const prefix of entryPrefixes) {
+            component.arrayEntryPrefixes[prefix] = stateVariable;
+        }
+    }
+
+    if (stateVarObj.triggerActionOnChange) {
+        let componentTriggers =
+            core.stateVariableChangeTriggers[component.componentIdx];
+        if (!componentTriggers) {
+            componentTriggers = core.stateVariableChangeTriggers[
+                component.componentIdx
+            ] = {};
+        }
+        componentTriggers[stateVariable] = {
+            action: stateVarObj.triggerActionOnChange,
+        };
+    }
+}
+
+/**
+ * Build the full runtime state-variable object for `stateVariable` (and
+ * the rest of its definition group) if it is still a placeholder.
+ * Called on first demand: from the evaluator, from dependency setup, and
+ * from the inverse-definition/essential writers.
+ *
+ * Materializes in place — state-variable object identity never changes.
+ */
+export async function ensureStateVariableMaterialized({
+    core,
+    component,
+    stateVariable,
+}: {
+    core: Core;
+    component: ComponentInstance;
+    stateVariable: string;
+}) {
+    const stateVarObj = component.state[stateVariable];
+    if (
+        !stateVarObj ||
+        stateVarObj.svMaterialized ||
+        stateVarObj.isArrayEntry
+    ) {
+        // absent names error downstream exactly as before; array entries
+        // are fully built by `createFromArrayEntry`
+        return;
+    }
+
+    // Copy nested definition fields that get mutated in place, then apply
+    // any shadow modifications planned at construction. Order matters: the
+    // shadow application can sever the `additionalStateVariablesDefined`
+    // group (writing an own `undefined` over the copy), and the group
+    // below must be the effective, post-shadow one.
+    materializeNestedDefinitionFields(stateVarObj);
+    applyPendingShadowModification(stateVarObj);
+
+    const allStateVariablesAffected = [stateVariable];
+    if (stateVarObj.additionalStateVariablesDefined) {
+        allStateVariablesAffected.push(
+            ...stateVarObj.additionalStateVariablesDefined,
+        );
+    }
+
+    // mark the whole group before any await so a re-entrant demand during
+    // array initialization cannot materialize the group twice
+    for (const varName of allStateVariablesAffected) {
+        const obj = component.state[varName];
+        if (obj) {
+            obj.svMaterialized = true;
+        }
+    }
+    core.dependencies.numMaterializedStateVariables +=
+        allStateVariablesAffected.length;
+
+    // definitions with createWorkspace share one workspace per group
+    let workspace: Record<string, any> | undefined;
+
+    for (const varName of allStateVariablesAffected) {
+        const obj = component.state[varName];
+        if (!obj) {
+            continue;
+        }
+        if (varName !== stateVariable) {
+            materializeNestedDefinitionFields(obj);
+            applyPendingShadowModification(obj);
+        }
+        if (obj.createWorkspace) {
+            if (!workspace) {
+                workspace = {};
+            }
+            obj.workspace = workspace;
+        }
+        await initializeStateVariable({
+            core,
+            component,
+            stateVariable: varName,
+        });
+    }
+}
+
+/**
+ * Nested definition fields that get mutated in place at runtime need
+ * per-instance copies; a prototype read would hand back the shared
+ * (class-level) object. Skips fields that already have own values —
+ * including own `undefined` written by the shadow machinery.
+ */
+function materializeNestedDefinitionFields(stateVarObj: any) {
+    if (
+        stateVarObj.shadowingInstructions &&
+        !Object.prototype.hasOwnProperty.call(
+            stateVarObj,
+            "shadowingInstructions",
+        )
+    ) {
+        stateVarObj.shadowingInstructions = Object.assign(
+            {},
+            stateVarObj.shadowingInstructions,
+        );
+    }
+    if (
+        stateVarObj.additionalStateVariablesDefined &&
+        !Object.prototype.hasOwnProperty.call(
+            stateVarObj,
+            "additionalStateVariablesDefined",
+        )
+    ) {
+        stateVarObj.additionalStateVariablesDefined = [
+            ...stateVarObj.additionalStateVariablesDefined,
+        ];
+    }
+    if (
+        stateVarObj.stateVariablesDeterminingDependencies &&
+        !Object.prototype.hasOwnProperty.call(
+            stateVarObj,
+            "stateVariablesDeterminingDependencies",
+        )
+    ) {
+        stateVarObj.stateVariablesDeterminingDependencies = [
+            ...stateVarObj.stateVariablesDeterminingDependencies,
+        ];
     }
 }
 
@@ -1206,6 +1390,9 @@ export async function initializeStateVariable({
     stateVarObj.svComponent = component;
     stateVarObj.svVarName = stateVariable;
     stateVarObj.isResolved = false;
+    // this function fully builds the runtime object, so anything it
+    // touches (array-size variables, array entries) is materialized
+    stateVarObj.svMaterialized = true;
     installStaleValueGetter(stateVarObj);
 
     if (arrayEntryPrefix !== undefined) {
@@ -1235,9 +1422,15 @@ export async function initializeStateVariable({
                 component.componentIdx
             ] = {};
         }
-        componentTriggers[stateVariable] = {
-            action: stateVarObj.triggerActionOnChange,
-        };
+        if (!componentTriggers[stateVariable]) {
+            // don't replace an existing record: the placeholder pass
+            // registers the trigger at construction, and the poller stores
+            // `previousValue` on the record — replacing it at
+            // materialization would swallow a value transition
+            componentTriggers[stateVariable] = {
+                action: stateVarObj.triggerActionOnChange,
+            };
+        }
     }
 }
 
@@ -1640,13 +1833,11 @@ async function initializeArrayStateVariable({
         // before calculating wrapping components.
         // We should rework wrapping components (and other array features)
         // to make array indexing (maybe even including slices) be the basis.
-
-        if (!stateVarObj.shadowingInstructions.returnWrappingComponents) {
-            stateVarObj.shadowingInstructions.returnWrappingComponents =
-                defaultReturnWrappingComponents;
-        }
-        stateVarObj.wrappingComponents =
-            stateVarObj.shadowingInstructions.returnWrappingComponents();
+        //
+        // The default returnWrappingComponents and the whole-array
+        // `wrappingComponents` are installed at class level by
+        // `normalizeArrayStateVariableDefaults`, so nothing is (re)computed
+        // per instance here.
     }
 
     stateVarObj.usedDefaultByArrayKey = {};

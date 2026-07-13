@@ -112,4 +112,26 @@ describe("Lazy state variable tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
         ).eq(8);
     });
+
+    it("array entry of a never-rendered shadow list materializes on demand", async () => {
+        // `ml2` shadows `ml` and is never rendered, so its array object stays
+        // a placeholder with its shadow modification only planned. Demanding a
+        // single entry (`$ml2[2]`) must apply that plan (the array-shadow
+        // definition) and build just that entry — exercising the lazy shadow
+        // path for arrays, which the scalar cases above do not reach.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+      <mathList name="ml">a b c</mathList>
+      <mathList extend="$ml" name="ml2" />
+    </setup>
+    <p name="p">second: $ml2[2]</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("second: b");
+    });
 });
