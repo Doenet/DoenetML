@@ -217,6 +217,34 @@ describe("getOrInjectPattern", () => {
         expect(faint).not.toBe(strong);
         expect((defsEl as any).children).toHaveLength(2);
     });
+
+    it("gives patterns that differ only in canvas color distinct ids", () => {
+        const { defsEl } = makeFakeDefs();
+
+        // Same board/style/fillColor, but different canvas backgrounds (as in
+        // light vs. dark mode) must not alias onto one cached tile.
+        const light = getOrInjectPattern({
+            defsEl,
+            boardId: "board1",
+            fillStyle: "horizontal",
+            fillColor: "#abc",
+            fillOpacity: 0.3,
+            canvasColor: "white",
+            fillPatternOpacity: 1,
+        });
+        const dark = getOrInjectPattern({
+            defsEl,
+            boardId: "board1",
+            fillStyle: "horizontal",
+            fillColor: "#abc",
+            fillOpacity: 0.3,
+            canvasColor: "#121212",
+            fillPatternOpacity: 1,
+        });
+
+        expect(light).not.toBe(dark);
+        expect((defsEl as any).children).toHaveLength(2);
+    });
 });
 
 describe("getPatternFillAttributes", () => {
