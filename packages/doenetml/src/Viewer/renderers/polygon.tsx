@@ -14,6 +14,7 @@ import {
     resolveLineColor,
     resolveFillColor,
     resolveHandleColor,
+    resolveCanvasColor,
 } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
@@ -119,6 +120,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                       fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
                       fillColor: resolvedFillColor,
                       fillOpacity: SVs.selectedStyle.fillOpacity,
+                      canvasColor: resolveCanvasColor(darkMode),
                       fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
                       highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
                   })
@@ -614,6 +616,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                           fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
                           fillColor: resolvedFillColor,
                           fillOpacity: SVs.selectedStyle.fillOpacity,
+                          canvasColor: resolveCanvasColor(darkMode),
                           fillPatternOpacity:
                               SVs.selectedStyle.fillPatternOpacity,
                           highlightFillOpacity:

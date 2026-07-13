@@ -20,7 +20,11 @@ import {
     computeLabelMaskCssStyle,
 } from "./utils/labelMaskStyle";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
-import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
+import {
+    resolveLineColor,
+    resolveFillColor,
+    resolveCanvasColor,
+} from "./utils/styleColors";
 
 interface AngleSVs extends GraphicalSVs {
     numericalPoints: [number, number][];
@@ -82,6 +86,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
             fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
             fillOpacity: SVs.selectedStyle.fillOpacity,
+            canvasColor: resolveCanvasColor(darkMode),
             fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
         });
 
@@ -227,6 +232,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
                 fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
                 fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
                 fillOpacity: SVs.selectedStyle.fillOpacity,
+                canvasColor: resolveCanvasColor(darkMode),
                 fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
             });
             const angleFillColor = fillAttributes.fillColor;

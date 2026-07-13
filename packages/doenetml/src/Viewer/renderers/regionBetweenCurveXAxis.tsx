@@ -9,6 +9,7 @@ import { DocContext } from "../DocViewer";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { JXGCurve, JXGElement, JXGPoint } from "./jsxgraph-distrib/types";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
+import { resolveCanvasColor } from "./utils/styleColors";
 import {
     attachLabelHoverHighlight,
     computeLabelMaskCssStyle,
@@ -72,6 +73,7 @@ export default React.memo(function RegionBetweenCurveXAxis(
                     ? SVs.selectedStyle.fillColorDarkMode
                     : SVs.selectedStyle.fillColor,
             fillOpacity: SVs.selectedStyle.fillOpacity,
+            canvasColor: resolveCanvasColor(darkMode),
             fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
         });
         // Note: actual content of label is being ignored
@@ -190,6 +192,7 @@ export default React.memo(function RegionBetweenCurveXAxis(
                         ? SVs.selectedStyle.fillColorDarkMode
                         : SVs.selectedStyle.fillColor,
                 fillOpacity: SVs.selectedStyle.fillOpacity,
+                canvasColor: resolveCanvasColor(darkMode),
                 fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
             });
 

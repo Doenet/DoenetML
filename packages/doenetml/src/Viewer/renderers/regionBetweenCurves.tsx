@@ -9,6 +9,7 @@ import { GraphicalSVs } from "./utils/graphicalSVs";
 import { JXGCurve } from "./jsxgraph-distrib/types";
 import { styleToDash } from "./utils/styleToDash";
 import { getPatternFillAttributes } from "./utils/fillPatterns";
+import { resolveCanvasColor } from "./utils/styleColors";
 import {
     attachLabelHoverHighlight,
     computeLabelMaskCssStyle,
@@ -78,6 +79,7 @@ export default React.memo(function RegionBetweenCurves(
                     ? SVs.selectedStyle.fillColorDarkMode
                     : SVs.selectedStyle.fillColor,
             fillOpacity: SVs.selectedStyle.fillOpacity,
+            canvasColor: resolveCanvasColor(darkMode),
             fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
         });
 
@@ -269,6 +271,7 @@ export default React.memo(function RegionBetweenCurves(
                         ? SVs.selectedStyle.fillColorDarkMode
                         : SVs.selectedStyle.fillColor,
                 fillOpacity: SVs.selectedStyle.fillOpacity,
+                canvasColor: resolveCanvasColor(darkMode),
                 fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
             });
 
