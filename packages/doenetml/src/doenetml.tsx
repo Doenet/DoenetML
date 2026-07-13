@@ -93,7 +93,7 @@ export function DoenetViewer({
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
-    doenetMediaUrl,
+    doenetImagesUrl,
     darkMode = "system",
     showAnswerResponseButton = false,
     answerResponseCounts = {},
@@ -143,7 +143,7 @@ export function DoenetViewer({
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
+    doenetImagesUrl?: string;
     /**
      * Theme for the rendered content. `"light"` / `"dark"` pin a theme;
      * `"system"` (the default) follows the user's OS/browser
@@ -304,7 +304,7 @@ export function DoenetViewer({
             forceShowSolution={forceShowSolution}
             forceUnsuppressCheckWork={forceUnsuppressCheckWork}
             doenetViewerUrl={doenetViewerUrl}
-            doenetMediaUrl={doenetMediaUrl}
+            doenetImagesUrl={doenetImagesUrl}
             darkMode={resolvedTheme}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
@@ -354,7 +354,7 @@ type DoenetEditorProps = {
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
+    doenetImagesUrl?: string;
     /**
      * Theme for the rendered content. `"light"` / `"dark"` pin a theme;
      * `"system"` (the default) follows the user's OS/browser
@@ -424,7 +424,7 @@ export const DoenetEditor = React.forwardRef<
         addVirtualKeyboard = true,
         externalVirtualKeyboardProvided = false,
         doenetViewerUrl,
-        doenetMediaUrl,
+        doenetImagesUrl,
         darkMode = "system",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -502,7 +502,7 @@ export const DoenetEditor = React.forwardRef<
             activityId={activityId}
             prefixForIds={prefixForIds}
             doenetViewerUrl={doenetViewerUrl}
-            doenetMediaUrl={doenetMediaUrl}
+            doenetImagesUrl={doenetImagesUrl}
             darkMode={resolvedTheme}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}

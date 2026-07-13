@@ -79,7 +79,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
     // @ts-ignore
     Image.ignoreActionsWithoutCore = () => true;
 
-    const { doenetMediaUrl } = useContext(DocContext) || {};
+    const { doenetImagesUrl } = useContext(DocContext) || {};
 
     let imageJXG = useRef<JXGImage | null>(null);
     let anchorPointJXG = useRef<JXGPoint | null>(null);
@@ -119,9 +119,9 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             getUrlForImage({
                 source: SVs.source,
                 imageId: SVs.imageId,
-                doenetMediaUrl,
+                doenetImagesUrl,
             }),
-        [SVs.source, SVs.imageId, doenetMediaUrl],
+        [SVs.source, SVs.imageId, doenetImagesUrl],
     );
 
     const ref = useRef<HTMLDivElement | null>(null);
@@ -756,8 +756,8 @@ function renderImageAttribution({
  * Resolve the URL to use for an image.
  *
  * When the image references a Doenet-hosted media item (`source="doenet:<id>"`),
- * `imageId` holds the `<id>` and the URL is built from `doenetMediaUrl` and that
- * id (avoiding a doubled slash when `doenetMediaUrl` already ends with `/`).
+ * `imageId` holds the `<id>` and the URL is built from `doenetImagesUrl` and that
+ * id (avoiding a doubled slash when `doenetImagesUrl` already ends with `/`).
  *
  * A `doenet:` source that did not yield an `imageId` is an unsupported media
  * reference (e.g. a legacy `doenet:cid=<hash>` form); rather than passing the
@@ -768,15 +768,15 @@ function renderImageAttribution({
 function getUrlForImage({
     source,
     imageId,
-    doenetMediaUrl = "https://doenet.org/api/media",
+    doenetImagesUrl = "https://doenet.org/api/media",
 }: {
     source: string;
     imageId: string | null;
-    doenetMediaUrl?: string;
+    doenetImagesUrl?: string;
 }) {
     if (imageId) {
-        const separator = doenetMediaUrl.endsWith("/") ? "" : "/";
-        return doenetMediaUrl + separator + imageId;
+        const separator = doenetImagesUrl.endsWith("/") ? "" : "/";
+        return doenetImagesUrl + separator + imageId;
     } else if (/^\s*doenet:/i.test(source)) {
         return "";
     } else {

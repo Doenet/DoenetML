@@ -48,7 +48,7 @@ export { renderersLoadComponent } from "./renderersLoadComponent";
 
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
+    doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -77,7 +77,7 @@ export function DocViewer({
     setIsInErrorState,
     prefixForIds = "",
     doenetViewerUrl,
-    doenetMediaUrl,
+    doenetImagesUrl,
     darkMode,
     showAnswerResponseButton = false,
     answerResponseCounts = {},
@@ -115,7 +115,7 @@ export function DocViewer({
     setIsInErrorState?: Function;
     prefixForIds?: string;
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
+    doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -264,7 +264,7 @@ export function DocViewer({
 
     const contextForRenderers = {
         doenetViewerUrl,
-        doenetMediaUrl,
+        doenetImagesUrl,
         darkMode,
         showAnswerResponseButton,
         answerResponseCounts,
