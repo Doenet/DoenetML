@@ -46,3 +46,18 @@ export function resolveMarkerColor(
 export function resolveHandleColor(darkMode: DarkMode): string {
     return darkMode === "dark" ? "#b0b0b0" : "#404040";
 }
+
+/**
+ * The graph canvas background color. Mirrors the `--canvas` CSS variable
+ * (white in light mode, `#121212` in dark mode). Used as the background layer
+ * behind fill patterns so a patterned shape reads as a translucent solid fill
+ * with the pattern drawn on top.
+ *
+ * Returns a resolved value rather than `var(--canvas)` for the same reason as
+ * `resolveHandleColor`: patterns are injected into the board SVG whose theme is
+ * driven by an inner wrapper's `data-theme`, so we resolve against `darkMode`
+ * directly instead of relying on CSS-variable inheritance.
+ */
+export function resolveCanvasColor(darkMode: DarkMode): string {
+    return darkMode === "dark" ? "#121212" : "white";
+}

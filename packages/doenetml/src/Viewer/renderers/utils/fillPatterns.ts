@@ -95,22 +95,47 @@ const FILL_PATTERN_DEFS: Record<string, PatternDef> = {
     },
 };
 
+/** Turns an opacity number into an id-safe token (e.g. `0.3` → `0_3`). */
+function encodeOpacityToken(value: number): string {
+    return String(value).replace(/[^0-9]/g, "_");
+}
+
 /**
- * Returns a stable pattern element ID for a given board + fill style + color.
- * The encoded color token is included so different fill colors get different
- * patterns, even when the authored color is a CSS name or functional notation.
+ * Returns a stable pattern element ID for a given board + fill style + colors +
+ * opacities. Every input that affects the rendered pattern contents is folded
+ * into the ID so patterns with different backgrounds or opacities never alias.
+ * The encoded color tokens let arbitrary CSS names or functional notation be
+ * embedded safely.
  */
 function buildPatternId(
     boardId: string,
     fillStyle: string,
     fillColor: string,
+    canvasColor: string,
+    fillOpacity: number,
+    fillPatternOpacity: number,
 ): string {
-    return `doenet-fill-pattern-${boardId}-${fillStyle}-${encodeFillPatternColorToken(fillColor)}`;
+    return [
+        "doenet-fill-pattern",
+        boardId,
+        fillStyle,
+        encodeFillPatternColorToken(fillColor),
+        encodeFillPatternColorToken(canvasColor),
+        encodeOpacityToken(fillOpacity),
+        encodeOpacityToken(fillPatternOpacity),
+    ].join("-");
 }
 
 /**
- * Ensures an SVG `<pattern>` element for the given style + color exists in
- * `defsEl`, then returns the `url(#…)` CSS reference string.
+ * Ensures an SVG `<pattern>` element for the given style + colors + opacities
+ * exists in `defsEl`, then returns the `url(#…)` CSS reference string.
+ *
+ * Each pattern tile has two layers: a background `<rect>` of `canvasColor` at
+ * `fillOpacity` (so a patterned shape reads like a translucent solid fill) and
+ * a foreground pattern (lines/dots/diamonds) of `fillColor` at
+ * `fillPatternOpacity`. Both opacities are baked into the pattern so the
+ * referencing element can keep `fillOpacity` at 1 (and drop to 0.5 on
+ * highlight, halving both layers together).
  *
  * If `fillStyle` is `"solid"` or unrecognised, returns `fillColor` unchanged
  * so callers can always use the return value as the JSXGraph `fillColor`.
@@ -120,6 +145,9 @@ export function getOrInjectPattern(
     boardId: string,
     fillStyle: string,
     fillColor: string,
+    fillOpacity: number,
+    canvasColor: string,
+    fillPatternOpacity: number,
 ): string {
     const def = FILL_PATTERN_DEFS[fillStyle];
     if (!def) {
@@ -134,7 +162,14 @@ export function getOrInjectPattern(
         return fillColor;
     }
 
-    const id = buildPatternId(boardId, fillStyle, fillColor);
+    const id = buildPatternId(
+        boardId,
+        fillStyle,
+        fillColor,
+        canvasColor,
+        fillOpacity,
+        fillPatternOpacity,
+    );
 
     // Avoid injecting the same pattern twice (e.g. after state updates).
     if (defsEl.ownerDocument?.getElementById(id)) {
@@ -152,14 +187,25 @@ export function getOrInjectPattern(
     // endpoints meet without a sub-pixel anti-aliasing seam.
     pattern.setAttribute("overflow", "visible");
 
+    // Background layer: the canvas color at `fillOpacity`. Drawn first so the
+    // pattern's foreground marks paint over it.
+    const background = ownerDocument.createElementNS(svgNS, "rect");
+    background.setAttribute("width", String(def.width));
+    background.setAttribute("height", String(def.height));
+    background.setAttribute("fill", canvasColor);
+    background.setAttribute("fill-opacity", String(fillOpacity));
+    pattern.appendChild(background);
+
     const path = ownerDocument.createElementNS(svgNS, "path");
     path.setAttribute("d", def.path);
     if (def.useFill) {
         path.setAttribute("fill", fillColor);
+        path.setAttribute("fill-opacity", String(fillPatternOpacity));
         path.setAttribute("stroke", "none");
     } else {
         path.setAttribute("stroke", fillColor);
         path.setAttribute("stroke-width", String(def.strokeWidth ?? 1.5));
+        path.setAttribute("stroke-opacity", String(fillPatternOpacity));
         path.setAttribute("fill", "none");
         if (def.strokeLinecap) {
             path.setAttribute("stroke-linecap", def.strokeLinecap);
@@ -174,8 +220,11 @@ export function getOrInjectPattern(
 
 /**
  * Resolves fill props for patterned SVG fills. When a non-solid pattern is
- * active, `fillPatternOpacity` is used (defaulting to 1) so the authored
- * `fillOpacity` (which is low by default for solid fills) does not apply.
+ * active, the pattern bakes in both the background opacity (`fillOpacity`) and
+ * the foreground opacity (`fillPatternOpacity`), so the element's own
+ * `fillOpacity` is 1 (dropping to 0.5 on highlight to dim both layers). For a
+ * `solid` (or unsupported) fill, the plain color and `fillOpacity` are returned
+ * unchanged.
  */
 export function getPatternFillAttributes({
     defsEl,
@@ -183,6 +232,7 @@ export function getPatternFillAttributes({
     fillStyle,
     fillColor,
     fillOpacity,
+    canvasColor,
     fillPatternOpacity = 1,
     highlightFillOpacity = fillOpacity * 0.5,
 }: {
@@ -191,6 +241,7 @@ export function getPatternFillAttributes({
     fillStyle: string;
     fillColor: string;
     fillOpacity: number;
+    canvasColor: string;
     fillPatternOpacity?: number;
     highlightFillOpacity?: number;
 }): {
@@ -204,15 +255,16 @@ export function getPatternFillAttributes({
         boardId,
         fillStyle,
         fillColor,
+        fillOpacity,
+        canvasColor,
+        fillPatternOpacity,
     );
     const usesPatternFill = resolvedFillColor !== fillColor;
 
     return {
         fillColor: resolvedFillColor,
-        fillOpacity: usesPatternFill ? fillPatternOpacity : fillOpacity,
+        fillOpacity: usesPatternFill ? 1 : fillOpacity,
         highlightFillColor: resolvedFillColor,
-        highlightFillOpacity: usesPatternFill
-            ? fillPatternOpacity * 0.5
-            : highlightFillOpacity,
+        highlightFillOpacity: usesPatternFill ? 0.5 : highlightFillOpacity,
     };
 }
