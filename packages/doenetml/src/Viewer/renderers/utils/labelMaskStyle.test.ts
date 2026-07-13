@@ -46,26 +46,31 @@ describe("computeLabelMaskCssStyle", () => {
         expect(highlightCssStyle).not.toContain("transparent");
     });
 
-    it("raises the z-index and darkens the border on highlight", () => {
+    it("has no visible border in the base style; only the hover style is bordered", () => {
         const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
             layer: 0,
         });
-        // Highlighted label sits above non-highlighted siblings.
-        expect(zIndexOf(highlightCssStyle)).toBeGreaterThan(zIndexOf(cssStyle));
-        // Border alpha increases from 0.3 (base) to 0.8 (highlight).
-        expect(cssStyle).toContain("rgba(128, 128, 128, 0.3)");
+        // Un-hovered labels show no border, so they look identical whether or
+        // not masking is enabled (until they overlap something). The base
+        // style explicitly resets `border`, since JSXGraph applies css
+        // additively and would otherwise leave a prior hover border stuck.
+        expect(cssStyle).toContain("border: none");
+        expect(cssStyle).not.toContain("solid");
+        // The hover style gains a visible border as a "draggable" cue...
         expect(highlightCssStyle).toContain("rgba(128, 128, 128, 0.8)");
+        // ...and sits above non-hovered siblings.
+        expect(zIndexOf(highlightCssStyle)).toBeGreaterThan(zIndexOf(cssStyle));
     });
 
-    it("orders z-index by layer within each of the base and highlight bands", () => {
+    it("orders z-index by layer within each of the base and hover bands", () => {
         const low = computeLabelMaskCssStyle({ layer: 0 });
         const high = computeLabelMaskCssStyle({ layer: 5 });
         expect(zIndexOf(high.cssStyle)).toBeGreaterThan(zIndexOf(low.cssStyle));
         expect(zIndexOf(high.highlightCssStyle)).toBeGreaterThan(
             zIndexOf(low.highlightCssStyle),
         );
-        // A highlighted label always outranks a non-highlighted one, even a
-        // non-highlighted label on a higher layer.
+        // A hovered label always outranks a non-hovered one, even a
+        // non-hovered label on a higher layer.
         expect(zIndexOf(low.highlightCssStyle)).toBeGreaterThan(
             zIndexOf(high.cssStyle),
         );
@@ -80,8 +85,8 @@ describe("computeLabelMaskCssStyle", () => {
             expect(cssStyle).toContain("background-color: transparent");
             expect(cssStyle).not.toContain("border");
             expect(cssStyle).not.toContain("z-index");
-            // Base and highlight are identical, so hovering/dragging the
-            // labeled object leaves the label unchanged.
+            // Base and hover are identical, so hovering the labeled object
+            // leaves the label unchanged.
             expect(highlightCssStyle).toBe(cssStyle);
         });
 
@@ -99,24 +104,31 @@ describe("computeLabelMaskCssStyle", () => {
 });
 
 describe("attachLabelHoverHighlight", () => {
-    function makeHarness() {
-        const handlers: Record<string, () => void> = {};
+    function makeHarness({
+        isDraggable = true,
+    }: { isDraggable?: boolean } = {}) {
+        const objectHandlers: Record<string, () => void> = {};
+        const labelHandlers: Record<string, () => void> = {};
         const label = {
             visProp: {} as Record<string, any>,
             needsUpdate: false,
             update: vi.fn(),
+            on: (event: string, fn: () => void) => {
+                labelHandlers[event] = fn;
+            },
         };
         const hoverTargetJXG = {
+            isDraggable,
             on: (event: string, fn: () => void) => {
-                handlers[event] = fn;
+                objectHandlers[event] = fn;
             },
         };
         const board = { updateRenderer: vi.fn() };
-        return { handlers, label, hoverTargetJXG, board };
+        return { objectHandlers, labelHandlers, label, hoverTargetJXG, board };
     }
 
-    it("applies the highlight style on over and the base style on out", () => {
-        const { handlers, label, hoverTargetJXG, board } = makeHarness();
+    it("shows the highlight on over and restores the base on out", () => {
+        const { objectHandlers, label, hoverTargetJXG, board } = makeHarness();
         const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
             layer: 0,
         });
@@ -129,16 +141,60 @@ describe("attachLabelHoverHighlight", () => {
             board,
         });
 
-        handlers.over();
+        objectHandlers.over();
         expect(label.visProp.cssstyle).toBe(highlightCssStyle);
+        expect(label.visProp.labelMaskHovered).toBe(true);
         expect(board.updateRenderer).toHaveBeenCalled();
 
-        handlers.out();
+        objectHandlers.out();
         expect(label.visProp.cssstyle).toBe(cssStyle);
+        expect(label.visProp.labelMaskHovered).toBe(false);
+    });
+
+    it("does not show a border when the object is not draggable", () => {
+        const { objectHandlers, label, hoverTargetJXG, board } = makeHarness({
+            isDraggable: false,
+        });
+        const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+            layer: 0,
+        });
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG,
+            getLabelJXG: () => label,
+            cssStyle,
+            highlightCssStyle,
+            board,
+        });
+
+        objectHandlers.over();
+        expect(label.visProp.cssstyle).not.toBe(highlightCssStyle);
+        expect(label.visProp.labelMaskHovered).toBe(false);
+    });
+
+    it("does not light the border when only the label (not the object) is hovered", () => {
+        const { objectHandlers, labelHandlers, label, hoverTargetJXG, board } =
+            makeHarness();
+        const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+            layer: 0,
+        });
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG,
+            getLabelJXG: () => label,
+            cssStyle,
+            highlightCssStyle,
+            board,
+        });
+
+        // The helper wires only the object's over/out; hovering the label
+        // itself is never observed and must not show the border.
+        expect(labelHandlers.over).toBeUndefined();
+        expect(label.visProp.cssstyle).not.toBe(highlightCssStyle);
     });
 
     it("prefers the label's live highlightcssstyle so layer changes are reflected on hover", () => {
-        const { handlers, label, hoverTargetJXG, board } = makeHarness();
+        const { objectHandlers, label, hoverTargetJXG, board } = makeHarness();
         const stale = computeLabelMaskCssStyle({ layer: 0 });
         const fresh = computeLabelMaskCssStyle({ layer: 7 });
 
@@ -154,13 +210,13 @@ describe("attachLabelHoverHighlight", () => {
         // label's highlight style after a runtime layer change.
         label.visProp.highlightcssstyle = fresh.highlightCssStyle;
 
-        handlers.over();
+        objectHandlers.over();
         expect(label.visProp.cssstyle).toBe(fresh.highlightCssStyle);
         expect(label.visProp.cssstyle).not.toBe(stale.highlightCssStyle);
     });
 
     it("does nothing when the label does not yet exist", () => {
-        const { handlers, hoverTargetJXG, board } = makeHarness();
+        const { objectHandlers, hoverTargetJXG, board } = makeHarness();
         const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
             layer: 0,
         });
@@ -173,7 +229,7 @@ describe("attachLabelHoverHighlight", () => {
             board,
         });
 
-        expect(() => handlers.over()).not.toThrow();
+        expect(() => objectHandlers.over()).not.toThrow();
         expect(board.updateRenderer).not.toHaveBeenCalled();
     });
 });

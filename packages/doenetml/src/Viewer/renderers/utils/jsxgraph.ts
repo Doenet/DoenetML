@@ -907,27 +907,30 @@ export function syncLabelStrokeColor(
  * Since these object-attached labels are created with `highlight: false`,
  * JSXGraph never automatically applies `highlightcssstyle`; instead,
  * `attachLabelHoverHighlight` directly toggles `label.visProp.cssstyle`
- * between the returned `cssStyle` and `highlightCssStyle` when the object
- * is hovered/dragged. Pass `highlighted: true` (e.g. from the object's own
- * `.highlighted` flag) when syncing mid-render so an active hover/drag
- * highlight isn't clobbered back to the non-highlighted style.
+ * between the returned `cssStyle` and `highlightCssStyle` on the object's /
+ * label's over/out events.
+ *
+ * This preserves an active hover highlight across a re-render: the hover
+ * handler records its desired state on `label.visProp.labelMaskHovered`, and
+ * we re-apply the freshly recomputed highlight style when it is set rather
+ * than clobbering the border back to the base style.
  */
 export function syncLabelMaskCssStyle(
     label: { visProp: Record<string, any> },
     layer: number,
     options: {
         backgroundColor?: string;
-        highlighted?: boolean;
         maskLabel?: boolean;
     } = {},
 ): { cssStyle: string; highlightCssStyle: string } {
-    const { backgroundColor, highlighted, maskLabel = true } = options;
+    const { backgroundColor, maskLabel = true } = options;
     const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
         layer,
         backgroundColor,
         masked: maskLabel,
     });
-    label.visProp.cssstyle = highlighted ? highlightCssStyle : cssStyle;
+    const hovered = label.visProp.labelMaskHovered === true;
+    label.visProp.cssstyle = hovered ? highlightCssStyle : cssStyle;
     label.visProp.highlightcssstyle = highlightCssStyle;
     label.visProp.highlightstrokeopacity = 1;
     return { cssStyle, highlightCssStyle };
