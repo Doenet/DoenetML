@@ -762,7 +762,9 @@ export async function createChildrenThenComponent({
 
     await initializeComponentStateVariables({ core, component: newComponent });
 
-    await core.dependencies.setUpComponentDependencies(newComponent);
+    // Per-state-variable dependencies are built on demand at first
+    // resolution attempt; only the per-component map slots are created here.
+    core.dependencies.createComponentDependencySlots(newComponent);
 
     const variablesChanged =
         await core.dependencies.checkForDependenciesOnNewComponent(
@@ -781,8 +783,13 @@ export async function createChildrenThenComponent({
         componentIdx,
     });
 
-    await core.dependencies.resolveStateVariablesIfReady({
-        component: newComponent,
+    // Other components' dependencies may be blocked on this component's
+    // identity, so that resolution stays eager. The former per-state-variable
+    // resolve pass is gone: state variables now resolve on first demand.
+    await core.dependencies.resolveIfReady({
+        componentIdx,
+        type: "componentIdentity",
+        expandComposites: false,
     });
 
     core.recordStateVariablesMustEvaluate(componentIdx);

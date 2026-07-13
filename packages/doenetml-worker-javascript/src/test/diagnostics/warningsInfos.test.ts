@@ -240,23 +240,25 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(0);
         expect(diagnosticsByType.infos.length).eq(5);
 
+        // Infos surface in evaluation order, which under on-demand
+        // dependency setup follows document order.
         expect(diagnosticsByType.infos[0].message).contain(
-            "Invalid value `new1` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[0].type).eq("info");
-        expect(diagnosticsByType.infos[0].position.start.line).eq(5);
-        expect(diagnosticsByType.infos[0].position.start.column).eq(3);
-        expect(diagnosticsByType.infos[0].position.end.line).eq(5);
-        expect(diagnosticsByType.infos[0].position.end.column).eq(46);
-
-        expect(diagnosticsByType.infos[1].message).contain(
             "Invalid value `bad` for attribute `type`",
         );
+        expect(diagnosticsByType.infos[0].type).eq("info");
+        expect(diagnosticsByType.infos[0].position.start.line).eq(2);
+        expect(diagnosticsByType.infos[0].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(2);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(26);
+
+        expect(diagnosticsByType.infos[1].message).contain(
+            "Invalid value `new1` for attribute `format`",
+        );
         expect(diagnosticsByType.infos[1].type).eq("info");
-        expect(diagnosticsByType.infos[1].position.start.line).eq(2);
+        expect(diagnosticsByType.infos[1].position.start.line).eq(5);
         expect(diagnosticsByType.infos[1].position.start.column).eq(3);
-        expect(diagnosticsByType.infos[1].position.end.line).eq(2);
-        expect(diagnosticsByType.infos[1].position.end.column).eq(26);
+        expect(diagnosticsByType.infos[1].position.end.line).eq(5);
+        expect(diagnosticsByType.infos[1].position.end.column).eq(46);
 
         expect(diagnosticsByType.infos[2].message).contain(
             "Invalid value `new2` for attribute `format`",
