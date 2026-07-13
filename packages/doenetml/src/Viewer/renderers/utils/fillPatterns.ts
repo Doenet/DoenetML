@@ -115,6 +115,11 @@ type PatternFillInputs = {
     fillPatternOpacity: number;
 };
 
+/** {@link PatternFillInputs} plus the `<defs>` element to inject the pattern into. */
+type PatternInjectionInputs = PatternFillInputs & {
+    defsEl: SVGDefsElement | null;
+};
+
 /**
  * Returns a stable pattern element ID for the given fill inputs. Every input
  * that affects the rendered pattern contents is folded into the ID so patterns
@@ -162,7 +167,7 @@ export function getOrInjectPattern({
     fillOpacity,
     canvasColor,
     fillPatternOpacity,
-}: PatternFillInputs & { defsEl: SVGDefsElement | null }): string {
+}: PatternInjectionInputs): string {
     const def = FILL_PATTERN_DEFS[fillStyle];
     if (!def) {
         if (fillStyle !== "solid") {
@@ -249,13 +254,7 @@ export function getPatternFillAttributes({
     canvasColor,
     fillPatternOpacity = 1,
     highlightFillOpacity = fillOpacity * 0.5,
-}: {
-    defsEl: SVGDefsElement | null;
-    boardId: string;
-    fillStyle: string;
-    fillColor: string;
-    fillOpacity: number;
-    canvasColor: string;
+}: Omit<PatternInjectionInputs, "fillPatternOpacity"> & {
     fillPatternOpacity?: number;
     highlightFillOpacity?: number;
 }): {
