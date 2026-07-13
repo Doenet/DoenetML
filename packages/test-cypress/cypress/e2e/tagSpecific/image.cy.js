@@ -708,7 +708,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             .and("eq", "https://doenet.org/api/media/abcDEF123");
     });
 
-    it("doenet: source resolves against a custom doenetMediaUrl", () => {
+    it("doenet: source resolves against a custom doenetImagesUrl", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -717,7 +717,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
     <shortDescription>A Doenet-hosted image</shortDescription>
   </image>
   `,
-                    doenetMediaUrl: "https://example.com/media",
+                    doenetImagesUrl: "https://example.com/media",
                 },
                 "*",
             );
@@ -728,7 +728,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             .and("eq", "https://example.com/media/abcDEF123");
     });
 
-    it("trailing slash on doenetMediaUrl is not doubled", () => {
+    it("trailing slash on doenetImagesUrl is not doubled", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -737,7 +737,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
     <shortDescription>A Doenet-hosted image</shortDescription>
   </image>
   `,
-                    doenetMediaUrl: "https://example.com/media/",
+                    doenetImagesUrl: "https://example.com/media/",
                 },
                 "*",
             );
@@ -757,7 +757,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
     <shortDescription>The Doenet logo</shortDescription>
   </image>
   `,
-                    doenetMediaUrl: "https://example.com/media",
+                    doenetImagesUrl: "https://example.com/media",
                 },
                 "*",
             );
