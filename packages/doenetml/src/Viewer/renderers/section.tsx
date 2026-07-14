@@ -41,6 +41,7 @@ interface SectionSVs {
     justSubmitted: boolean;
     firstChildListItemAlignment?: string;
     firstVisibleChildAdjustedForListItem?: any;
+    useListItemGridLayout?: boolean;
 }
 
 export default React.memo(function Section(props: UseDoenetRendererProps) {
@@ -78,8 +79,16 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
 
     const hasAdjustedFirstChildForListItem =
         SVs.firstVisibleChildAdjustedForListItem;
+    // Use the hanging-number grid for any non-empty untitled/unboxed list item
+    // (string-first or component-first) so the number's horizontal position is
+    // content-independent. `hasAdjustedFirstChildForListItem` remains the
+    // narrower, component-only signal used for first-child margin suppression.
+    const useListItemGridLayout = SVs.useListItemGridLayout;
+    // Baseline is the correct default for a text/inline first line (and for a
+    // string first child, where `firstChildListItemAlignment` is "none"); only
+    // an explicit "flex-start" first child (e.g. a block choiceInput) opts out.
     const shouldBaselineAlignFirstChild =
-        SVs.firstChildListItemAlignment === "baseline";
+        SVs.firstChildListItemAlignment !== "flex-start";
 
     // Helper function to generate CSS for section number ::before pseudo-element
     // Used for list-item sections to display hanging section numbers
@@ -210,22 +219,15 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
 
         // For non-boxed sections without heading
         if (!SVs.collapsible && !SVs.boxed && !hasTitle) {
-            cssRules.push(`
-                #${escapedId}::before {
-                    content: "${SVs.sectionNumber}.";
-                    display: inline-block;
-                    width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                    margin-left: calc(-1 * ${LIST_ITEM_INDENT});
-                    margin-right: ${LIST_ITEM_SPACING};
-                    text-align: right;
-                    vertical-align: baseline;
-                }
-            `);
-
-            if (hasAdjustedFirstChildForListItem) {
+            if (useListItemGridLayout) {
+                // Hanging-number grid: a fixed-width number column keeps the
+                // number's horizontal position (the decimal) independent of the
+                // content's width, wrapping, and whether the first child is a
+                // string or a component, so sibling numbers always line up.
                 cssRules.push(`
                     #${escapedId} {
-                        display: flex;
+                        display: grid;
+                        grid-template-columns: ${LIST_ITEM_INDENT} minmax(0, 1fr);
                         align-items: ${
                             shouldBaselineAlignFirstChild
                                 ? "baseline"
@@ -233,13 +235,41 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                         };
                     }
 
-                    #${escapedContentWrapperId} {
-                        flex: 1 1 auto;
-                        min-width: 0;
+                    #${escapedId}::before {
+                        content: "${SVs.sectionNumber}.";
+                        grid-column: 1;
+                        text-align: right;
+                        padding-right: ${LIST_ITEM_SPACING};
                     }
 
-                    #${escapedContentWrapperId} > :first-child {
-                        margin-block-start: 0;
+                    #${escapedContentWrapperId} {
+                        grid-column: 2;
+                        min-width: 0;
+                    }
+                `);
+
+                // Only suppress the top margin of a *component* first child: a
+                // string first child has no margin to suppress, and a block that
+                // merely follows leading text keeps its normal margins.
+                if (hasAdjustedFirstChildForListItem) {
+                    cssRules.push(`
+                        #${escapedContentWrapperId} > :first-child {
+                            margin-block-start: 0;
+                        }
+                    `);
+                }
+            } else {
+                // Empty untitled list item (number only, no content): hang the
+                // number into the container's left indent.
+                cssRules.push(`
+                    #${escapedId}::before {
+                        content: "${SVs.sectionNumber}.";
+                        display: inline-block;
+                        width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
+                        margin-left: calc(-1 * ${LIST_ITEM_INDENT});
+                        margin-right: ${LIST_ITEM_SPACING};
+                        text-align: right;
+                        vertical-align: baseline;
                     }
                 `);
             }
@@ -291,6 +321,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         SVs.boxed,
         hasTitle,
         hasAdjustedFirstChildForListItem,
+        useListItemGridLayout,
         shouldBaselineAlignFirstChild,
         id,
     ]);
@@ -447,7 +478,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         !SVs.collapsible &&
         !SVs.boxed &&
         !heading &&
-        hasAdjustedFirstChildForListItem;
+        useListItemGridLayout;
 
     if (needsContentWrapper) {
         let startInd = 0;
@@ -599,11 +630,17 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
 
     // Render non-boxed list-item sections with hanging section numbers
     if (SVs.isListItem && !SVs.collapsible && !SVs.boxed) {
-        const containerStyle: React.CSSProperties = {
-            margin: "12px 0",
-            position: "relative",
-            marginLeft: LIST_ITEM_INDENT,
-        };
+        // With the hanging-number grid the number lives in the grid's fixed
+        // first column, so the container must NOT also add a left indent
+        // (that would double the gutter). Titled/empty list items still use the
+        // legacy hanging indent via a container margin.
+        const containerStyle: React.CSSProperties = useListItemGridLayout
+            ? { margin: "12px 0" }
+            : {
+                  margin: "12px 0",
+                  position: "relative",
+                  marginLeft: LIST_ITEM_INDENT,
+              };
 
         return renderContainer(content, containerStyle);
     }
