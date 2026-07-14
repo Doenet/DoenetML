@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Prefigure API Test</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      textarea {
+        width: 100%;
+        height: 150px;
+        font-family: monospace;
+      }
+      #output {
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        padding: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background: #007bff;
+        color: white;
+        border: none;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+    </style>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/diagcess@1.4.0/dist/diagcess.js"
+      defer
+    ></script>
+  </head>
+  <body>
+    <h2>Prefigure API Test</h2>
+    <p>Edit the XML below and click Build.</p>
+
+    <textarea id="xmlInput">
+        <diagram dimensions="(300,300)" margins="5">
+        <definition> f(x)=0.1*(x^4-10*x^2)</definition>
+        <derivative name="fp" function="f"/>
+        <derivative name="fpp" function="fp"/>
+        <coordinates bbox="[-4,-4,4,4]">
+
+            <grid-axes xlabel="x" ylabel="y"/>
+            <group at="graph-derivatives">
+            <group at="f">
+                <graph function="f" />
+                <label anchor="(3.3,1)" alignment="center" clear-background="yes">
+                <m>f</m>
+                </label>
+            </group>
+
+            <group at="fp">
+                <graph function="fp" stroke="red" cliptobbox="yes" />
+                <label anchor="(2.5,1)" alignment="center" clear-background="yes">
+            <m>f'</m>
+                </label>
+            </group>
+
+            <group at="fpp">
+                <graph function="fpp" stroke="lawngreen" />
+                <label anchor="(1.6,1)" alignment="center" clear-background="yes">
+            <m>f''</m>
+                </label>
+            </group>
+            </group>
+        </coordinates>
+
+        <annotations>
+            <annotation ref="figure" text="The graph of a function and its first two derivatives">
+            <annotation ref="axes" text="The coordinate axes" />
+            <annotation ref="grid" text="The coordinate grid" />
+            <annotation ref="graph-derivatives"
+                text="The graph of f, its derivative f prime, and its second derivative f double prime">
+                <annotation ref="f" text="The graph of f" sonify="yes"/>
+                <annotation ref="fp" text="The graph of the derivative of f"
+                            sonify="yes" />
+                <annotation ref="fpp" text="The graph of the second derivative of f"
+                            sonify="yes"/>
+            </annotation>
+            </annotation>
+        </annotations>
+
+        </diagram>
+
+    </textarea>
+    <br /><br />
+    <button onclick="callApi()">Build Diagram</button>
+
+    <div id="output">
+      <h3>Output:</h3>
+      <div></div>
+
+      <div class="ChemAccess-element">
+        <div class="svg" id="svgContainer"></div>
+        <div class="cml" id="cmlContainer"></div>
+      </div>
+    </div>
+
+    <script>
+      async function callApi() {
+        const xml = document.getElementById("xmlInput").value;
+        const svgContainer = document.getElementById("svgContainer");
+        const cmlContainer = document.getElementById("cmlContainer");
+
+        svgContainer.innerHTML = "Building...";
+
+        try {
+          const response = await fetch("https://prefigure.doenet.org/build", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/xml",
+            },
+            body: xml,
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          console.log("API Response:", data);
+
+          // Assuming the API returns JSON like: { "filename.xml": "...", "filename.svg": "..." }
+          // We want to find the SVG content.
+          // Depending on your exact filenames, we just look for a key ending in .svg
+          // const svgKey = Object.keys(data).find((key) => key.endsWith(".svg"));
+          const svg = data.svg;
+
+          if (svg) {
+            svgContainer.innerHTML = svg;
+          } else {
+            svgContainer.textContent =
+              "Error: No SVG found in response: " + JSON.stringify(data);
+          }
+          const cml = data.annotationsXml;
+
+          if (cml) {
+            cmlContainer.innerHTML = cml;
+          } else {
+            cmlContainer.textContent =
+              "Error: No CML found in response: " + JSON.stringify(data);
+          }
+
+          diagcess.Base.init();
+        } catch (error) {
+          console.error(error);
+          svgContainer.innerHTML = `<span style="color:red">Error: ${error.message}</span><br><br>Check the Console (F12) for CORS details if this failed immediately.`;
+        }
+      }
+    </script>
+  </body>
+</html>
