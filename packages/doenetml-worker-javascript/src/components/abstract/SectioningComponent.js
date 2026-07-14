@@ -668,6 +668,36 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        // Whether the renderer should lay out this list item with the
+        // hanging-number grid (a fixed number column + a content column). This
+        // is what keeps the section number's horizontal position independent of
+        // the content's width/wrapping and of whether the first child is a
+        // string or a component. Unlike `firstVisibleChildAdjustedForListItem`
+        // (which stays component-only because it drives first-child top-margin
+        // suppression), this applies to any non-empty untitled/unboxed list
+        // item, including string-first ones.
+        stateVariableDefinitions.useListItemGridLayout = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                nonBoxedListItemWithoutTitle: {
+                    dependencyType: "stateVariable",
+                    variableName: "nonBoxedListItemWithoutTitle",
+                },
+                firstVisibleChild: {
+                    dependencyType: "stateVariable",
+                    variableName: "firstVisibleChild",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const useListItemGridLayout = Boolean(
+                    dependencyValues.nonBoxedListItemWithoutTitle &&
+                    dependencyValues.firstVisibleChild != null,
+                );
+
+                return { setValue: { useListItemGridLayout } };
+            },
+        };
+
         stateVariableDefinitions.firstChildListItemAlignment = {
             stateVariablesDeterminingDependencies: ["firstVisibleChild"],
             forRenderer: true,
