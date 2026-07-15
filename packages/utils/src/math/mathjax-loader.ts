@@ -68,8 +68,10 @@ declare global {
 export interface LoadMathJaxOptions {
     /**
      * MathJax configuration object. Staged as `window.MathJax` before our own
-     * script loads. Ignored when a host MathJax engine or script is detected,
-     * so a host's configuration is never overwritten.
+     * script loads. Left unset while a host MathJax engine or script is in play,
+     * so a host's configuration is never overwritten — unless that host engine
+     * never becomes usable and the timeout fallback takes over (see
+     * {@link loadMathJax}), in which case this config is staged instead.
      */
     config?: object;
     /**
@@ -78,10 +80,11 @@ export interface LoadMathJaxOptions {
      */
     src?: string;
     /**
-     * When `true`, always reuse a host-provided MathJax: wait for `window.MathJax`
-     * to become a live engine instead of ever injecting our own copy. Use this
+     * When `true`, prefer a host-provided MathJax: wait for `window.MathJax` to
+     * become a live engine rather than injecting our own copy up front. Use this
      * when the host loads MathJax but does so after Doenet mounts (so no script
-     * is detectable yet).
+     * is detectable yet). If the host engine never becomes usable within
+     * `timeoutMs`, we fall back to loading our own copy.
      */
     useExistingMathJax?: boolean;
     /**
