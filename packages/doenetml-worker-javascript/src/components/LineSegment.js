@@ -952,20 +952,15 @@ export default class LineSegment extends GraphicalComponent {
                 // Emit diagnostics for ignored attributes.
                 let sendDiagnostics = [];
                 if (g.numEndpointsSpecified === 1 && g.numMidpoints === 1) {
-                    if (
-                        g.slopeAttr !== null ||
-                        g.lengthAttr !== null ||
-                        !gUsedDefault.midpointOffset
-                    ) {
+                    // Case A uses midpointOffset (it sets where the midpoint sits
+                    // along the segment), so only slope and length are ignored.
+                    if (g.slopeAttr !== null || g.lengthAttr !== null) {
                         const ignored = [];
                         if (g.slopeAttr !== null) {
                             ignored.push("slope");
                         }
                         if (g.lengthAttr !== null) {
                             ignored.push("length");
-                        }
-                        if (!gUsedDefault.midpointOffset) {
-                            ignored.push("midpointOffset");
                         }
 
                         sendDiagnostics.push({
@@ -987,24 +982,42 @@ export default class LineSegment extends GraphicalComponent {
                 let unconstrainedEndpoints = {};
 
                 if (g.numEndpointsSpecified === 1 && g.numMidpoints === 1) {
-                    // Case A: 1 endpoint + 1 midpoint → midpoint is ep2.
-                    // slope, length, and midpointOffset are all ignored here.
+                    // Case A: 1 endpoint (ep1) + midpoint M. M sits at parameter
+                    // tT = (1 + midpointOffset)/2 along [ep1, ep2], so
+                    // ep2 = ep1 + (M - ep1)/tT. slope and length are ignored (the
+                    // segment is fixed by ep1, M, and midpointOffset). This is
+                    // dimension-agnostic. midpointOffset = -1 (tT = 0) places M on
+                    // ep1, leaving ep2 undefined. Build ep2 as an expression so
+                    // symbolic ep1/midpoint values are preserved.
+                    const tT = (1 + g.midpointOffset) / 2;
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
                         let varEnding = "1_" + (Number(dim) + 1);
+                        let ep1Coord =
+                            dependencyValuesByKey[arrayKey].ep1Coord
+                                ?.stateValues["pointX" + varEnding];
                         if (pointInd === "0") {
                             unconstrainedEndpoints[arrayKey] =
-                                dependencyValuesByKey[
-                                    arrayKey
-                                ].ep1Coord.stateValues["pointX" + varEnding];
-                        } else {
-                            // ep2 = midpoint
-                            let midpointVal =
-                                dependencyValuesByKey[arrayKey].midpointCoord
-                                    ?.stateValues["x" + (Number(dim) + 1)];
-                            unconstrainedEndpoints[arrayKey] =
-                                midpointVal ?? me.fromAst(0);
+                                ep1Coord ?? me.fromAst("\uff3f");
+                            continue;
                         }
+                        let midpointVal =
+                            dependencyValuesByKey[arrayKey].midpointCoord
+                                ?.stateValues["x" + (Number(dim) + 1)];
+                        if (tT === 0 || !ep1Coord || !midpointVal) {
+                            unconstrainedEndpoints[arrayKey] =
+                                me.fromAst("\uff3f");
+                            continue;
+                        }
+                        // ep2 = ep1*(1 - 1/tT) + M*(1/tT)
+                        let invT = 1 / tT;
+                        unconstrainedEndpoints[arrayKey] = me
+                            .fromAst([
+                                "+",
+                                ["*", 1 - invT, ep1Coord.tree],
+                                ["*", invT, midpointVal.tree],
+                            ])
+                            .simplify();
                     }
                 } else {
                     // Cases B, C, D all need slope and signedLength.
@@ -1204,9 +1217,32 @@ export default class LineSegment extends GraphicalComponent {
                 const numMidpoints = g.numMidpoints;
 
                 if (numEndpointsSpecified === 1 && numMidpoints === 1) {
-                    // Case A: ep1 → endpoints attr independently, ep2 → midpoint attr independently.
+                    // Case A: segment defined by ep1 (endpoints attr) and midpoint
+                    // M (midpoint attr), with M at parameter tT = (1 + midpointOffset)/2
+                    // along [ep1, ep2]: M = ep1 + tT*(ep2 - ep1). There is no stored
+                    // slope/length, so the endpoints move like a plain two-endpoint
+                    // segment (dragging one keeps the other fixed) while M tracks the
+                    // parameter-tT point. Invert desired endpoints back to ep1 and M.
+                    const tT = (1 + g.midpointOffset) / 2;
+                    if (tT === 0) {
+                        // midpointOffset = -1: M coincides with ep1, ep2 undefined.
+                        return { success: false };
+                    }
+                    let currentEndpoints = await stateValues.endpoints;
+                    let [ep1Num, ep2Num] = getNumericEndpointPair(
+                        desiredUnconstrainedEndpoints,
+                        currentEndpoints,
+                        numDim,
+                    );
+                    if (
+                        !ep1Num.every(Number.isFinite) ||
+                        !ep2Num.every(Number.isFinite)
+                    ) {
+                        return { success: false };
+                    }
+                    // ep1 attr ← desired ep1 coords (preserve symbolic values).
                     for (let arrayKey of desiredKeys) {
-                        let [pointInd, dim] = arrayKey.split(",").map(Number);
+                        let [pointInd] = arrayKey.split(",").map(Number);
                         if (pointInd === 0) {
                             instructions.push({
                                 setDependency:
@@ -1215,17 +1251,17 @@ export default class LineSegment extends GraphicalComponent {
                                     desiredUnconstrainedEndpoints[arrayKey],
                                 variableIndex: 0,
                             });
-                        } else {
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[arrayKey]
-                                        .midpointCoord,
-                                desiredValue:
-                                    desiredUnconstrainedEndpoints[arrayKey],
-                                variableIndex: 0,
-                            });
                         }
                     }
+                    // M attr ← ep1 + tT*(ep2 - ep1), the parameter-tT point.
+                    const M_new = ep1Num.map(
+                        (value, dim) => value + tT * (ep2Num[dim] - value),
+                    );
+                    addMidpointInstructions({
+                        instructions,
+                        dependencyNamesByKey,
+                        midpointCoords: M_new,
+                    });
                     return { success: true, instructions };
                 }
 

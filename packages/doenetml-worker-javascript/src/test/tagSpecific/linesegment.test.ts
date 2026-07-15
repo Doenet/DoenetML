@@ -3230,9 +3230,10 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
     });
 
     // -----------------------------------------------------------------------
-    // Case A: 1 endpoint + 1 midpoint → midpoint IS ep2
+    // Case A: 1 endpoint + 1 midpoint → the midpoint point is the segment's
+    // midpoint (with default midpointOffset=0), so ep2 = 2*midpoint - ep1.
     // -----------------------------------------------------------------------
-    it("one endpoint and midpoint — midpoint is ep2", async () => {
+    it("one endpoint and midpoint — midpoint is the segment's midpoint", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="dp1">(1,2)</point>
@@ -3247,7 +3248,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         const dp1Idx = await resolvePathToNodeIdx("dp1");
         const TIdx = await resolvePathToNodeIdx("T");
 
-        // ep1=(1,2), ep2=(4,6) (midpoint is ep2)
+        // ep1=(1,2), midpoint=(4,6) → ep2 = 2*(4,6) - (1,2) = (7,10)
         let sv = await core.returnAllStateVariables(false, true);
         expect(
             sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
@@ -3257,12 +3258,21 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         ).closeTo(2, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
-        ).closeTo(4, 1e-10);
+        ).closeTo(7, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
-        ).closeTo(6, 1e-10);
+        ).closeTo(10, 1e-10);
+        // center is the midpoint point
+        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+            6,
+            1e-10,
+        );
 
-        // Drag ep2 via action — T updates, dp1 stays
+        // Drag ep2 via action — ep1 stays fixed, midpoint tracks the new midpoint
         await moveLineSegment({
             componentIdx: lIdx,
             point2coords: [7, 1],
@@ -3273,18 +3283,22 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
         ).closeTo(1, 1e-10);
         expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
             sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
         ).closeTo(7, 1e-10);
+        // midpoint = ((1,2)+(7,1))/2 = (4, 1.5)
         expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
-            7,
+            4,
             1e-10,
         );
         expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
-            1,
+            1.5,
             1e-10,
         );
 
-        // Drag ep1 via action — ep2/T stays, dp1 updates
+        // Drag ep1 via action — ep2 stays fixed, dp1 and midpoint update
         await moveLineSegment({
             componentIdx: lIdx,
             point1coords: [-1, 0],
@@ -3294,6 +3308,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         expect(
             sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
         ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
         expect(sv[dp1Idx].stateValues.xs[0].evaluate_to_constant()).closeTo(
             -1,
             1e-10,
@@ -3302,9 +3319,18 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             0,
             1e-10,
         );
+        // midpoint = ((-1,0)+(7,1))/2 = (3, 0.5)
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            0.5,
+            1e-10,
+        );
     });
 
-    it("one endpoint and midpoint keeps length Euclidean", async () => {
+    it("one endpoint and midpoint keeps length Euclidean (length attr ignored)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <mathInput name="L" prefill="5" />
@@ -3319,21 +3345,23 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         const lIdx = await resolvePathToNodeIdx("l");
         const LIdx = await resolvePathToNodeIdx("L");
 
+        // ep1=(1,2), ep2=2*(4,6)-(1,2)=(7,10); Euclidean length = |(6,8)| = 10.
+        // The length attr (5) is ignored.
         let sv = await core.returnAllStateVariables(false, true);
         expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
-            5,
+            10,
             1e-10,
         );
 
         await updateMathInputValue({
             componentIdx: LIdx,
-            latex: "10",
+            latex: "100",
             core,
         });
 
         sv = await core.returnAllStateVariables(false, true);
         expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
-            5,
+            10,
             1e-10,
         );
         expect(
@@ -3341,7 +3369,72 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         ).closeTo(1, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
-        ).closeTo(4, 1e-10);
+        ).closeTo(7, 1e-10);
+    });
+
+    it("one endpoint and midpoint respects midpointOffset (Case A)", async () => {
+        // With ep1=(1,2) and midpoint M=(2,3):
+        //   midpointOffset=0 (default): M is the midpoint → ep2 = 2M - ep1 = (3,4)
+        //   midpointOffset=1: M is the second endpoint → ep2 = M = (2,3)
+        //   midpointOffset=-1: M coincides with ep1 → ep2 undefined
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="mid" endpoints="(1,2)" midpoint="(2,3)" />
+  <lineSegment name="asEp2" endpoints="(1,2)" midpoint="(2,3)" midpointOffset="1" />
+  <lineSegment name="undef" endpoints="(1,2)" midpoint="(2,3)" midpointOffset="-1" />
+</graph>
+`,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+
+        // Default midpointOffset=0: endpoints (1,2) and (3,4), midpoint (2,3)
+        const midIdx = await resolvePathToNodeIdx("mid");
+        expect(
+            sv[midIdx].stateValues.endpoints[0].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            sv[midIdx].stateValues.endpoints[1].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([3, 4]);
+        expect(
+            sv[midIdx].stateValues.center.map((v) => v.evaluate_to_constant()),
+        ).eqls([2, 3]);
+
+        // midpointOffset=1: midpoint acts as the second endpoint (old behavior)
+        const asEp2Idx = await resolvePathToNodeIdx("asEp2");
+        expect(
+            sv[asEp2Idx].stateValues.endpoints[0].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            sv[asEp2Idx].stateValues.endpoints[1].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, 3]);
+
+        // midpointOffset=-1: midpoint pins ep1, so ep2 is undefined (NaN)
+        const undefIdx = await resolvePathToNodeIdx("undef");
+        expect(
+            sv[undefIdx].stateValues.endpoints[0].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            Number.isNaN(
+                sv[undefIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+            ),
+        ).eq(true);
+        expect(
+            Number.isNaN(
+                sv[undefIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+            ),
+        ).eq(true);
     });
 
     // -----------------------------------------------------------------------
@@ -4291,7 +4384,8 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
     });
 
     it("Case A (1 endpoint + 1 midpoint) works in 3D", async () => {
-        // midpoint IS ep2 regardless of dimension
+        // The midpoint parameterization is dimension-agnostic:
+        // ep2 = 2*midpoint - ep1 in every coordinate (default midpointOffset=0).
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="P">(1,2,3)</point>
@@ -4307,7 +4401,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
 
         expect(sv[lIdx].stateValues.numDimensions).eq(3);
         expect(sv[lIdx].stateValues.basedOnSlopeOrMidpoint).eq(true);
-        // ep1 = P, ep2 = T
+        // ep1 = P = (1,2,3), ep2 = 2*(4,5,6) - (1,2,3) = (7,8,9)
         expect(
             sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
         ).closeTo(1, 1e-10);
@@ -4319,13 +4413,18 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         ).closeTo(3, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
-        ).closeTo(4, 1e-10);
+        ).closeTo(7, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
-        ).closeTo(5, 1e-10);
+        ).closeTo(8, 1e-10);
         expect(
             sv[lIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
-        ).closeTo(6, 1e-10);
+        ).closeTo(9, 1e-10);
+        // center = midpoint = (4,5,6)
+        expect(sv[lIdx].stateValues.center[2].evaluate_to_constant()).closeTo(
+            6,
+            1e-10,
+        );
     });
 });
 
@@ -4372,13 +4471,14 @@ describe("LineSegment info diagnostics @group5", async () => {
     });
 
     // -----------------------------------------------------------------------
-    // slope/length/midpointOffset ignored when endpoint + midpoint given (Case A)
+    // slope/length ignored when endpoint + midpoint given (Case A). Note that
+    // midpointOffset is NOT ignored — it sets where the midpoint sits.
     // -----------------------------------------------------------------------
-    it("slope and midpointOffset ignored when one endpoint and midpoint given — emits info diagnostic", async () => {
+    it("slope and length ignored when one endpoint and midpoint given — emits info diagnostic", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <graph>
-  <lineSegment name="l" endpoints="(1,2)" midpoint="(4,5)" slope="2" midpointOffset="-1" />
+  <lineSegment name="l" endpoints="(1,2)" midpoint="(4,5)" slope="2" length="3" midpointOffset="0.5" />
 </graph>
 `,
         });
@@ -4388,8 +4488,10 @@ describe("LineSegment info diagnostics @group5", async () => {
         expect(d.errors.length).eq(0);
         expect(d.infos.length).eq(1);
         expect(d.infos[0].message).contain("slope");
-        expect(d.infos[0].message).contain("midpointOffset");
+        expect(d.infos[0].message).contain("length");
         expect(d.infos[0].message).contain("endpoint and a midpoint");
+        // midpointOffset is used in Case A, so it must not be reported as ignored
+        expect(d.infos[0].message).not.contain("midpointOffset");
     });
 
     // -----------------------------------------------------------------------
