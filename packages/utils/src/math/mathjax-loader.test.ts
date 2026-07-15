@@ -71,11 +71,19 @@ function installFakeDom() {
     return { fakeWindow, fakeDocument };
 }
 
-/** A stand-in for a fully loaded MathJax engine. */
+/**
+ * A stand-in for a fully loaded MathJax engine. `startup` is a *function* with
+ * a `.promise` attached — the real shape MathJax 4 exposes (MathJax 3 used a
+ * plain object). Using the function shape here keeps the suite honest: a mock
+ * with an object `startup` hid the bug where `isMathJaxEngine` rejected every
+ * MathJax 4 host engine.
+ */
 function makeEngine() {
+    const startup: any = () => {};
+    startup.promise = Promise.resolve();
     return {
         version: "4.1.3",
-        startup: { promise: Promise.resolve() },
+        startup,
         typesetPromise: () => Promise.resolve(),
         typesetClear: () => {},
     };
@@ -93,6 +101,21 @@ describe("isMathJaxEngine", () => {
         expect(isMathJaxEngine({ tex: { tags: "ams" } })).toBe(false);
         // A config may carry a `startup` option, but no `startup.promise`.
         expect(isMathJaxEngine({ startup: { typeset: false } })).toBe(false);
+    });
+
+    it("recognizes both MathJax 4 (function startup) and MathJax 3 (object startup)", () => {
+        // MathJax 4: `startup` is a callable function with `.promise` attached.
+        const v4Startup: any = () => {};
+        v4Startup.promise = Promise.resolve();
+        expect(isMathJaxEngine({ startup: v4Startup })).toBe(true);
+
+        // MathJax 3: `startup` is a plain object with `.promise`.
+        expect(
+            isMathJaxEngine({ startup: { promise: Promise.resolve() } }),
+        ).toBe(true);
+
+        // A bare function with no thenable `.promise` is still not an engine.
+        expect(isMathJaxEngine({ startup: () => {} })).toBe(false);
     });
 });
 
@@ -208,27 +231,96 @@ describe("loadMathJax", () => {
         await expect(promise).rejects.toThrow(/failed to load MathJax/);
     });
 
-    it("rejects after the timeout when a promised host MathJax never appears", async () => {
+    it("falls back to loading its own copy after the timeout when a promised host MathJax never appears", async () => {
         vi.useFakeTimers();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         try {
+            const win = (globalThis as any).window;
             const promise = loadMathJax({
                 useExistingMathJax: true,
                 timeoutMs: 1000,
+                config: { tex: { tags: "ams" } },
             });
-            // Attach the rejection handler before advancing so the rejection is
-            // never observed as unhandled.
-            const assertion = expect(promise).rejects.toThrow(/timed out/);
+            // Waiting on the host — nothing injected yet.
+            expect(appendedScripts).toHaveLength(0);
 
-            // Drive the poll loop past the deadline; MathJax never shows up.
+            // Drive the poll loop past the deadline; the host never provides one.
             await vi.advanceTimersByTimeAsync(1100);
 
-            await assertion;
-            expect(appendedScripts).toHaveLength(0); // never injected our own
+            // Instead of failing, the loader injects — and takes over with — its
+            // own copy, staging the config even though we had been waiting.
+            expect(appendedScripts).toHaveLength(1);
+            expect(appendedScripts[0]._attrs["data-doenet-mathjax"]).toBe(
+                "true",
+            );
+            expect(win.MathJax).toEqual({ tex: { tags: "ams" } });
             expect(warnSpy).toHaveBeenCalled();
+
+            // Our own script loads and installs the engine.
+            const engine = makeEngine();
+            win.MathJax = engine;
+            appendedScripts[0]._fire("load");
+            await expect(promise).resolves.toBe(engine);
         } finally {
             warnSpy.mockRestore();
             vi.useRealTimers();
         }
+    });
+
+    it("force-clobbers a host global it could not recognize as an engine", async () => {
+        vi.useFakeTimers();
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        try {
+            const win = (globalThis as any).window;
+            // A host script is present, and window.MathJax holds a value the
+            // loader never recognizes as a live engine (the failure mode a
+            // mis-detected MathJax 4 engine produced).
+            domScripts.push(
+                makeScript(
+                    "https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js",
+                ),
+            );
+            win.MathJax = { unrecognized: true };
+
+            const promise = loadMathJax({
+                config: { tex: { tags: "ams" } },
+                timeoutMs: 1000,
+            });
+            expect(appendedScripts).toHaveLength(0); // waiting on the host script
+
+            await vi.advanceTimersByTimeAsync(1100);
+
+            // Fallback overwrites the stale global and loads our own.
+            expect(appendedScripts).toHaveLength(1);
+            expect(win.MathJax).toEqual({ tex: { tags: "ams" } });
+
+            const engine = makeEngine();
+            win.MathJax = engine;
+            appendedScripts[0]._fire("load");
+            await expect(promise).resolves.toBe(engine);
+        } finally {
+            warnSpy.mockRestore();
+            vi.useRealTimers();
+        }
+    });
+
+    it("clears the memo when an attempt rejects, so a later call retries instead of reusing the failure", async () => {
+        const win = (globalThis as any).window;
+
+        const first = loadMathJax({ config: { tex: {} } });
+        expect(appendedScripts).toHaveLength(1);
+        // Our own injected script fails to load (e.g. offline CDN).
+        appendedScripts[0]._fire("error");
+        await expect(first).rejects.toThrow(/failed to load MathJax/);
+
+        // The rejected promise must not be memoized: a fresh call retries.
+        const second = loadMathJax({ config: { tex: {} } });
+        expect(second).not.toBe(first);
+        expect(appendedScripts).toHaveLength(2);
+
+        const engine = makeEngine();
+        win.MathJax = engine;
+        appendedScripts[1]._fire("load");
+        await expect(second).resolves.toBe(engine);
     });
 });
