@@ -198,9 +198,10 @@ function waitForExistingMathJax(timeoutMs: number): Promise<MathJaxEngine> {
  *
  * Normally (`force` off) it stages `window.MathJax = config` only when nothing
  * else has already claimed that global, so a host configuration is never
- * clobbered. When `force` is on, it overwrites `window.MathJax` unconditionally:
- * this is the takeover fallback used after a host-provided MathJax was detected
- * but never became usable. Overwriting the stale global with our config (as
+ * clobbered. When `force` is on, a provided `config` is staged even if the
+ * global is already claimed, overwriting whatever stale value is there: this is
+ * the takeover fallback used after a host-provided MathJax was detected but
+ * never became usable. Overwriting the stale global with our config (as
  * Doenet ≤0.7.20 always did) is what lets our own engine initialize cleanly,
  * rather than colliding with a half-loaded or unrecognized host engine.
  */
