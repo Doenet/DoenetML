@@ -2344,34 +2344,45 @@ export default class LineSegment extends GraphicalComponent {
                 desiredStateVariableValues,
                 globalDependencyValues,
             }) {
-                // Translate both endpoints by delta = desired_midpoint - current_midpoint.
+                // Translate both endpoints along each requested dimension by
+                // delta = desired_midpoint - current_midpoint.
+                //
+                // Only emit changes for the dimensions actually present in the
+                // desired midpoint. When a referenced point drives the midpoint,
+                // its coordinates can arrive in separate inverse calls (one per
+                // dimension). Recomputing an unspecified dimension from the
+                // still-stale current midpoint would translate it by zero and
+                // overwrite the change made by the sibling call, so touch only
+                // the supplied dimensions and leave the rest untouched.
                 let ep1 = globalDependencyValues.endpoints[0];
                 let ep2 = globalDependencyValues.endpoints[1];
-                let numDim = globalDependencyValues.numDimensions;
 
-                let newEp1 = [];
-                let newEp2 = [];
-                for (let d = 0; d < numDim; d++) {
+                let desiredEndpoints = {};
+                for (let dimString in desiredStateVariableValues.midpoint) {
+                    let d = Number(dimString);
                     let currentMidpoint = me.fromAst([
                         "/",
                         ["+", ep1[d].tree, ep2[d].tree],
                         2,
                     ]);
-                    let desiredMidpoint =
-                        String(d) in desiredStateVariableValues.midpoint
-                            ? convertValueToMathExpression(
-                                  desiredStateVariableValues.midpoint[
-                                      String(d)
-                                  ],
-                              )
-                            : currentMidpoint;
+                    let desiredMidpoint = convertValueToMathExpression(
+                        desiredStateVariableValues.midpoint[dimString],
+                    );
                     let delta = me.fromAst([
                         "+",
                         desiredMidpoint.tree,
                         ["-", currentMidpoint.tree],
                     ]);
-                    newEp1.push(me.fromAst(["+", ep1[d].tree, delta.tree]));
-                    newEp2.push(me.fromAst(["+", ep2[d].tree, delta.tree]));
+                    desiredEndpoints["0," + d] = me.fromAst([
+                        "+",
+                        ep1[d].tree,
+                        delta.tree,
+                    ]);
+                    desiredEndpoints["1," + d] = me.fromAst([
+                        "+",
+                        ep2[d].tree,
+                        delta.tree,
+                    ]);
                 }
 
                 return {
@@ -2379,7 +2390,7 @@ export default class LineSegment extends GraphicalComponent {
                     instructions: [
                         {
                             setDependency: "endpoints",
-                            desiredValue: [newEp1, newEp2],
+                            desiredValue: desiredEndpoints,
                         },
                     ],
                 };

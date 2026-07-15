@@ -3948,6 +3948,58 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         );
     });
 
+    it("dragging a point referenced from the midpoint property translates the segment in every direction", async () => {
+        // Regression: a point bound to $l.midpoint receives its coordinates
+        // through separate math components, so the midpoint state-variable
+        // inverse is invoked once per dimension. It must translate only the
+        // supplied dimension; recomputing the other from the stale current
+        // midpoint used to revert it, freezing vertical drags (Case A).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2)" midpoint="(2,3)" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        async function checkSegment(ep1: number[], ep2: number[]) {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            const mid = sv[lIdx].stateValues.midpoint;
+            expect(mid[0].evaluate_to_constant()).closeTo(
+                (ep1[0] + ep2[0]) / 2,
+                1e-10,
+            );
+            expect(mid[1].evaluate_to_constant()).closeTo(
+                (ep1[1] + ep2[1]) / 2,
+                1e-10,
+            );
+        }
+
+        // endpoints (1,2),(3,4); midpoint (2,3)
+        await checkSegment([1, 2], [3, 4]);
+
+        // Drag the midpoint horizontally: (2,3) -> (5,3)
+        await movePoint({ componentIdx: mpIdx, x: 5, y: 3, core });
+        await checkSegment([4, 2], [6, 4]);
+
+        // Drag vertically: (5,3) -> (5,7) (used to be frozen)
+        await movePoint({ componentIdx: mpIdx, x: 5, y: 7, core });
+        await checkSegment([4, 6], [6, 8]);
+
+        // Drag diagonally: (5,7) -> (0,0)
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        await checkSegment([-1, -1], [1, 1]);
+    });
+
     it("midpoint state variable stays symbolic and supports inverse updates", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
