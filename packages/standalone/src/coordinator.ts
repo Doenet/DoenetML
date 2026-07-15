@@ -152,7 +152,7 @@ export function initializeDoenetCoordinator(
             return;
         }
         bootQueue.push(record);
-        pumpBootQueue();
+        grantBootSlots();
     }
 
     function cancelBootRequest(record: ActivityRecord) {
@@ -168,11 +168,11 @@ export function initializeDoenetCoordinator(
             record.bootWatchdogId = null;
         }
         if (bootSlotHolders.delete(record)) {
-            pumpBootQueue();
+            grantBootSlots();
         }
     }
 
-    function pumpBootQueue() {
+    function grantBootSlots() {
         while (
             bootQueue.length > 0 &&
             bootSlotHolders.size < opts.maxConcurrentBoots
