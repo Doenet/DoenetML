@@ -11,7 +11,7 @@
         "/dist"
     ],
     "scripts": {
-        "test": "echo \"No tests\"",
+        "test": "vitest",
         "dev": "npm run build:pre && next",
         "build": "npm run build:pre && next build",
         "start": "next start",
