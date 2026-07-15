@@ -97,16 +97,30 @@ function getDirectionComponent(dim, dirX, dirY) {
     return 0;
 }
 
+// Resolve the configured slope: the slope attribute's value when present,
+// otherwise the essential slope maintained for the parameterization.
+function getConfiguredSlope(globalDependencyValues) {
+    return globalDependencyValues.slopeAttr !== null
+        ? globalDependencyValues.slopeAttr.stateValues.value
+        : globalDependencyValues.essentialSlope;
+}
+
+// Resolve the configured signed length: the length attribute's value when
+// present, otherwise the essential signed length maintained for the
+// parameterization.
+function getConfiguredSignedLength(globalDependencyValues) {
+    return globalDependencyValues.lengthAttr !== null
+        ? globalDependencyValues.lengthAttr.stateValues.value
+        : globalDependencyValues.essentialSignedLength;
+}
+
 function addSlopeAndLengthInstructions({
     instructions,
     globalDependencyValues,
     endpoint1,
     endpoint2,
 }) {
-    const fallbackSlope =
-        globalDependencyValues.slopeAttr !== null
-            ? globalDependencyValues.slopeAttr.stateValues.value
-            : globalDependencyValues.essentialSlope;
+    const fallbackSlope = getConfiguredSlope(globalDependencyValues);
 
     const { slope, signedLength } = getSlopeAndSignedLength(
         endpoint1,
@@ -472,8 +486,10 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
-        // True when slope/length/midpoint attrs are active (plus midpointOffset when
-        // paired with midpoint) and fewer than 2 explicit endpoints are given.
+        // True when any of the slope/length/midpoint attrs are active and fewer
+        // than 2 explicit endpoints are given. midpointOffset only refines the
+        // position when a midpoint is present; on its own it does not activate
+        // this parameterization.
         // Mirrors Line.js's basedOnSlope pattern.
         // When false, all old unconstrainedEndpoints code paths run unchanged.
         // Note: slope is a 2D concept, so Cases B/C/D apply it only in the x-y
@@ -992,14 +1008,8 @@ export default class LineSegment extends GraphicalComponent {
                     }
                 } else {
                     // Cases B, C, D all need slope and signedLength.
-                    const slope =
-                        g.slopeAttr !== null
-                            ? g.slopeAttr.stateValues.value
-                            : g.essentialSlope;
-                    const signedLength =
-                        g.lengthAttr !== null
-                            ? g.lengthAttr.stateValues.value
-                            : g.essentialSignedLength;
+                    const slope = getConfiguredSlope(g);
+                    const signedLength = getConfiguredSignedLength(g);
 
                     // Compute direction unit vector from slope.
                     const direction = directionFromSlope(slope);
@@ -1271,14 +1281,8 @@ export default class LineSegment extends GraphicalComponent {
                         // Only ep1 desired (referenced point dragged): translate segment.
                         // Compute T from desired ep1 + current slope/length direction.
                         // Slope/length stay unchanged; whole segment translates.
-                        const slope =
-                            g.slopeAttr !== null
-                                ? g.slopeAttr.stateValues.value
-                                : g.essentialSlope;
-                        const L =
-                            g.lengthAttr !== null
-                                ? g.lengthAttr.stateValues.value
-                                : g.essentialSignedLength;
+                        const slope = getConfiguredSlope(g);
+                        const L = getConfiguredSignedLength(g);
                         const direction = directionFromSlope(slope);
                         if (direction === null) {
                             return { success: false };
