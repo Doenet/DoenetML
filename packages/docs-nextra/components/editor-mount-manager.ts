@@ -115,7 +115,7 @@ export function requestMountSlot(id: string, grant: () => void) {
         return;
     }
     bootQueue.push({ id, requestOrder: ++bootRequestCounter, grant });
-    pumpBootQueue();
+    grantBootSlots();
 }
 
 /** Withdraw a queued boot request (e.g. the editor scrolled away again). */
@@ -132,11 +132,17 @@ export function cancelMountRequest(id: string) {
  */
 export function releaseMountSlot(id: string) {
     if (bootSlotHolders.delete(id)) {
-        pumpBootQueue();
+        grantBootSlots();
     }
 }
 
-function pumpBootQueue() {
+/**
+ * Hand free boot slots to waiting editors, up to the concurrency cap, choosing
+ * visible editors first and then by request order. Called whenever a slot may
+ * have opened up (a boot finished/was released) or a new waiter joined the
+ * queue.
+ */
+function grantBootSlots() {
     const max = effectiveMaxBoots ?? Infinity;
     while (bootQueue.length > 0 && bootSlotHolders.size < max) {
         // Visible-first, then request order.

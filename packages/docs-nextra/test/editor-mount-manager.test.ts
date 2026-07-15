@@ -220,7 +220,7 @@ describe("live-count budget + eviction", () => {
 });
 
 describe("registration lifecycle", () => {
-    test("unregister releases a held boot slot and pumps the queue", () => {
+    test("unregister releases a held boot slot and grants it to the next waiter", () => {
         const a = makeEditor("a", { maxConcurrentBoots: 1 });
         makeEditor("b", { maxConcurrentBoots: 1 });
         const gA = vi.fn();
