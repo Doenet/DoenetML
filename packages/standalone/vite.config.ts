@@ -55,6 +55,9 @@ export default defineConfig({
         // bundle (see plugin doc). Do it explicitly instead.
         forceEsbuildMinifyPlugin(),
     ],
+    server: {
+        host: "0.0.0.0",
+    },
     build: {
         // Minification is handled by forceEsbuildMinifyPlugin above; the
         // built-in pass is a no-op here, so leave it off to avoid confusion.
