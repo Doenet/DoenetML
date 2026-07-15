@@ -401,9 +401,9 @@ describe("LineSegment tag tests @group1", async () => {
         });
     });
 
-    it("pointOffset without through preserves legacy one-endpoint behavior", async () => {
+    it("midpointOffset without midpoint preserves legacy one-endpoint behavior", async () => {
         const { core, resolvePathToNodeIdx } = await setupScene({
-            lineProperties: `endpoints="$dp1" pointOffset="1"`,
+            lineProperties: `endpoints="$dp1" midpointOffset="1"`,
             additionalComponents: `<point name="dp1">(1,2)</point>`,
         });
 
@@ -529,7 +529,7 @@ describe("LineSegment tag tests @group1", async () => {
             doenetML: `
   <text name="t">a</text>
   <graph>
-    <line name="l1" through="A" />
+    <line name="l1" midpoint="A" />
   </graph>
   `,
         });
@@ -2734,7 +2734,7 @@ function lengthFromEndpoints(ep1: number[], ep2: number[]): number {
     return Math.hypot(dx, dy);
 }
 
-describe("LineSegment slope/length/through/pointOffset attribute tests @group5", async () => {
+describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @group5", async () => {
     // -----------------------------------------------------------------------
     // Case D: no endpoints, slope only
     // -----------------------------------------------------------------------
@@ -3230,15 +3230,15 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     });
 
     // -----------------------------------------------------------------------
-    // Case A: 1 endpoint + 1 through point → through IS ep2
+    // Case A: 1 endpoint + 1 midpoint → midpoint IS ep2
     // -----------------------------------------------------------------------
-    it("one endpoint and through point — through is ep2", async () => {
+    it("one endpoint and midpoint — midpoint is ep2", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="dp1">(1,2)</point>
 <point name="T">(4,6)</point>
 <graph name="g">
-  <lineSegment name="l" endpoints="$dp1" through="$T" />
+  <lineSegment name="l" endpoints="$dp1" midpoint="$T" />
 </graph>
 `,
         });
@@ -3247,7 +3247,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         const dp1Idx = await resolvePathToNodeIdx("dp1");
         const TIdx = await resolvePathToNodeIdx("T");
 
-        // ep1=(1,2), ep2=(4,6) (through is ep2)
+        // ep1=(1,2), ep2=(4,6) (midpoint is ep2)
         let sv = await core.returnAllStateVariables(false, true);
         expect(
             sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
@@ -3304,14 +3304,14 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         );
     });
 
-    it("one endpoint and through point keeps length Euclidean", async () => {
+    it("one endpoint and midpoint keeps length Euclidean", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <mathInput name="L" prefill="5" />
 <point name="dp1">(1,2)</point>
 <point name="T">(4,6)</point>
 <graph name="g">
-  <lineSegment name="l" endpoints="$dp1" through="$T" length="$L" />
+  <lineSegment name="l" endpoints="$dp1" midpoint="$T" length="$L" />
 </graph>
 `,
         });
@@ -3345,14 +3345,14 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     });
 
     // -----------------------------------------------------------------------
-    // Case C: 0 endpoints + 1 through, slope, length, pointOffset=0 (midpoint)
+    // Case C: 0 endpoints + 1 midpoint, slope, length, midpointOffset=0 (midpoint)
     // -----------------------------------------------------------------------
-    it("through point with slope/length — segment centered on through point", async () => {
+    it("midpoint with slope/length — segment centered on midpoint", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="T">(2,3)</point>
 <graph name="g">
-  <lineSegment name="l" through="$T" slope="0" length="4" />
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
 </graph>
 `,
         });
@@ -3406,12 +3406,12 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         );
     });
 
-    it("through point alone uses default slope/length and updates them when dragging ep2", async () => {
+    it("midpoint alone uses default slope/length and updates them when dragging ep2", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="T">(2,3)</point>
 <graph name="g">
-  <lineSegment name="l" through="$T" />
+  <lineSegment name="l" midpoint="$T" />
 </graph>
 <number name="m">$l.slope</number>
 <math name="L">$l.length</math>
@@ -3477,13 +3477,13 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     });
 
     // -----------------------------------------------------------------------
-    // Case C: pointOffset = -1 (through point is ep1)
+    // Case C: midpointOffset = -1 (midpoint is ep1)
     // -----------------------------------------------------------------------
-    it("through point with pointOffset=-1 — through point is ep1", async () => {
+    it("midpoint with midpointOffset=-1 — midpoint is ep1", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
-  <lineSegment name="l" through="(1,2)" slope="0" length="3" pointOffset="-1" />
+  <lineSegment name="l" midpoint="(1,2)" slope="0" length="3" midpointOffset="-1" />
 </graph>
 `,
         });
@@ -3507,13 +3507,13 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     });
 
     // -----------------------------------------------------------------------
-    // Case C: pointOffset = 1 (through point is ep2)
+    // Case C: midpointOffset = 1 (midpoint is ep2)
     // -----------------------------------------------------------------------
-    it("through point with pointOffset=1 — through point is ep2", async () => {
+    it("midpoint with midpointOffset=1 — midpoint is ep2", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
-  <lineSegment name="l" through="(4,2)" slope="0" length="3" pointOffset="1" />
+  <lineSegment name="l" midpoint="(4,2)" slope="0" length="3" midpointOffset="1" />
 </graph>
 `,
         });
@@ -3536,12 +3536,12 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).closeTo(2, 1e-10);
     });
 
-    it("through point clamps pointOffset to [-1,1]", async () => {
+    it("midpoint clamps midpointOffset to [-1,1]", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
-  <lineSegment name="l1" through="(1,2)" slope="0" length="3" pointOffset="-2" />
-  <lineSegment name="l2" through="(4,2)" slope="0" length="3" pointOffset="2" />
+  <lineSegment name="l1" midpoint="(1,2)" slope="0" length="3" midpointOffset="-2" />
+  <lineSegment name="l2" midpoint="(4,2)" slope="0" length="3" midpointOffset="2" />
 </graph>
 `,
         });
@@ -3581,12 +3581,12 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     // -----------------------------------------------------------------------
     // Case C: dragging referenced endpoint translates whole segment
     // -----------------------------------------------------------------------
-    it("through point — drag referenced endpoint translates whole segment", async () => {
+    it("midpoint — drag referenced endpoint translates whole segment", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="T">(2,0)</point>
 <graph name="g">
-  <lineSegment name="l" through="$T" slope="0" length="4" />
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
   <point extend="$l.endpoint1" name="p1" />
 </graph>
 `,
@@ -3627,14 +3627,14 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         );
     });
 
-    it("through point — drag referenced endpoint2 updates through point", async () => {
+    it("midpoint — drag referenced endpoint2 updates midpoint", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <number name="m">0</number>
 <number name="L">4</number>
 <point name="T">(0,0)</point>
 <graph name="g">
-  <lineSegment name="l" through="$T" slope="$m" length="$L" />
+  <lineSegment name="l" midpoint="$T" slope="$m" length="$L" />
   <point extend="$l.endpoint2" name="p2" />
 </graph>
 `,
@@ -3678,14 +3678,14 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     });
 
     // -----------------------------------------------------------------------
-    // Case C: through point — drag through point directly moves whole segment
+    // Case C: midpoint — drag midpoint directly moves whole segment
     // -----------------------------------------------------------------------
-    it("through point — drag through point moves whole segment", async () => {
+    it("midpoint — drag midpoint moves whole segment", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="T">(2,0)</point>
 <graph name="g">
-  <lineSegment name="l" through="$T" slope="0" length="4" />
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
 </graph>
 `,
         });
@@ -3715,12 +3715,12 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     // -----------------------------------------------------------------------
     // Case C: slope attr updates when dragging endpoint via action (full 360°)
     // -----------------------------------------------------------------------
-    it("through point — full 360° rotation by dragging ep2", async () => {
+    it("midpoint — full 360° rotation by dragging ep2", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <number name="m">0</number>
 <graph name="g">
-  <lineSegment name="l" through="(0,0)" slope="$m" length="4" />
+  <lineSegment name="l" midpoint="(0,0)" slope="$m" length="4" />
 </graph>
 `,
         });
@@ -4052,7 +4052,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
     });
 
     // -----------------------------------------------------------------------
-    // slope inverse works with basedOnSlopeOrThrough (Case D)
+    // slope inverse works with basedOnSlopeOrMidpoint (Case D)
     // -----------------------------------------------------------------------
     it("slope inverse via mathInput — works when slope attr present", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -4134,7 +4134,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
 <point name="T">(2,3,4)</point>
 <graph name="g">
   <lineSegment name="caseB" endpoints="$P" slope="1" length="2" />
-  <lineSegment name="caseC" through="$T" slope="1" length="2" />
+  <lineSegment name="caseC" midpoint="$T" slope="1" length="2" />
 </graph>
 `,
         });
@@ -4145,7 +4145,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         const planarDelta = Math.sqrt(2);
 
         expect(sv[caseBIdx].stateValues.numDimensions).eq(3);
-        expect(sv[caseBIdx].stateValues.basedOnSlopeOrThrough).eq(true);
+        expect(sv[caseBIdx].stateValues.basedOnSlopeOrMidpoint).eq(true);
         expect(sv[caseBIdx].stateValues.slope).eqls(NaN);
         expect(
             sv[caseBIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
@@ -4158,7 +4158,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).closeTo(3, 1e-10);
 
         expect(sv[caseCIdx].stateValues.numDimensions).eq(3);
-        expect(sv[caseCIdx].stateValues.basedOnSlopeOrThrough).eq(true);
+        expect(sv[caseCIdx].stateValues.basedOnSlopeOrMidpoint).eq(true);
         expect(sv[caseCIdx].stateValues.slope).eqls(NaN);
         expect(
             sv[caseCIdx].stateValues.endpoints[0][2].evaluate_to_constant(),
@@ -4168,12 +4168,12 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).closeTo(4, 1e-10);
     });
 
-    it("moving the through point in 3D updates the segment in every dimension", async () => {
+    it("moving the midpoint in 3D updates the segment in every dimension", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="T">(2,3,4)</point>
 <graph name="g">
-  <lineSegment name="l" through="$T" slope="0" length="4" />
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
 </graph>
 `,
         });
@@ -4217,7 +4217,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
             doenetML: `
 <point name="T">(2,3,4)</point>
 <graph name="g">
-  <lineSegment name="l" through="$T" slope="0" length="4" />
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
 </graph>
 `,
         });
@@ -4290,14 +4290,14 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         ).eqls([-4, -4, 6]);
     });
 
-    it("Case A (1 endpoint + 1 through) works in 3D", async () => {
-        // through IS ep2 regardless of dimension
+    it("Case A (1 endpoint + 1 midpoint) works in 3D", async () => {
+        // midpoint IS ep2 regardless of dimension
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <point name="P">(1,2,3)</point>
 <point name="T">(4,5,6)</point>
 <graph name="g">
-  <lineSegment name="l" endpoints="$P" through="$T" />
+  <lineSegment name="l" endpoints="$P" midpoint="$T" />
 </graph>
 `,
         });
@@ -4306,7 +4306,7 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
         const sv = await core.returnAllStateVariables(false, true);
 
         expect(sv[lIdx].stateValues.numDimensions).eq(3);
-        expect(sv[lIdx].stateValues.basedOnSlopeOrThrough).eq(true);
+        expect(sv[lIdx].stateValues.basedOnSlopeOrMidpoint).eq(true);
         // ep1 = P, ep2 = T
         expect(
             sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
@@ -4331,13 +4331,13 @@ describe("LineSegment slope/length/through/pointOffset attribute tests @group5",
 
 describe("LineSegment info diagnostics @group5", async () => {
     // -----------------------------------------------------------------------
-    // pointOffset without through → info diagnostic
+    // midpointOffset without midpoint → info diagnostic
     // -----------------------------------------------------------------------
-    it("pointOffset without through emits info diagnostic", async () => {
+    it("midpointOffset without midpoint emits info diagnostic", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <graph>
-  <lineSegment name="l" pointOffset="1" />
+  <lineSegment name="l" midpointOffset="1" />
 </graph>
 `,
         });
@@ -4346,12 +4346,12 @@ describe("LineSegment info diagnostics @group5", async () => {
         const d = getDiagnosticsByType(core);
         expect(d.errors.length).eq(0);
         expect(d.infos.length).eq(1);
-        expect(d.infos[0].message).contain("pointOffset");
-        expect(d.infos[0].message).contain("without a through point");
+        expect(d.infos[0].message).contain("midpointOffset");
+        expect(d.infos[0].message).contain("without a midpoint");
     });
 
     // -----------------------------------------------------------------------
-    // slope/length/through/pointOffset ignored when two endpoints given
+    // slope/length/midpoint/midpointOffset ignored when two endpoints given
     // -----------------------------------------------------------------------
     it("slope and length ignored when two endpoints specified — emits info diagnostic", async () => {
         const { core } = await createTestCore({
@@ -4372,13 +4372,13 @@ describe("LineSegment info diagnostics @group5", async () => {
     });
 
     // -----------------------------------------------------------------------
-    // slope/length/pointOffset ignored when endpoint + through given (Case A)
+    // slope/length/midpointOffset ignored when endpoint + midpoint given (Case A)
     // -----------------------------------------------------------------------
-    it("slope and pointOffset ignored when one endpoint and through given — emits info diagnostic", async () => {
+    it("slope and midpointOffset ignored when one endpoint and midpoint given — emits info diagnostic", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <graph>
-  <lineSegment name="l" endpoints="(1,2)" through="(4,5)" slope="2" pointOffset="-1" />
+  <lineSegment name="l" endpoints="(1,2)" midpoint="(4,5)" slope="2" midpointOffset="-1" />
 </graph>
 `,
         });
@@ -4388,18 +4388,18 @@ describe("LineSegment info diagnostics @group5", async () => {
         expect(d.errors.length).eq(0);
         expect(d.infos.length).eq(1);
         expect(d.infos[0].message).contain("slope");
-        expect(d.infos[0].message).contain("pointOffset");
-        expect(d.infos[0].message).contain("endpoint and a through point");
+        expect(d.infos[0].message).contain("midpointOffset");
+        expect(d.infos[0].message).contain("endpoint and a midpoint");
     });
 
     // -----------------------------------------------------------------------
-    // No diagnostic when slope/through used correctly
+    // No diagnostic when slope/midpoint used correctly
     // -----------------------------------------------------------------------
-    it("no info diagnostic when slope and through used without endpoints", async () => {
+    it("no info diagnostic when slope and midpoint used without endpoints", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <graph>
-  <lineSegment name="l" through="(2,0)" slope="0" length="4" />
+  <lineSegment name="l" midpoint="(2,0)" slope="0" length="4" />
 </graph>
 `,
         });

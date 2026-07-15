@@ -13,7 +13,7 @@ import { returnStickyGroupDefinitions } from "../utils/constraints";
 /**
  * Given a list of attribute names that are being ignored, builds a
  * human-readable phrase like "slope is" or "slope and length are" or
- * "slope, length, and pointOffset are".
+ * "slope, length, and midpointOffset are".
  */
 function buildIgnoredPhrase(ignored) {
     if (ignored.length === 1) {
@@ -141,20 +141,20 @@ function addSlopeAndLengthInstructions({
     }
 }
 
-function addThroughPointInstructions({
+function addMidpointInstructions({
     instructions,
     dependencyNamesByKey,
-    throughPoint,
+    midpointCoords,
 }) {
-    for (let dim = 0; dim < throughPoint.length; dim++) {
-        const throughDependencyName =
-            dependencyNamesByKey["0," + dim]?.throughCoord ??
-            dependencyNamesByKey["1," + dim]?.throughCoord;
+    for (let dim = 0; dim < midpointCoords.length; dim++) {
+        const midpointDependencyName =
+            dependencyNamesByKey["0," + dim]?.midpointCoord ??
+            dependencyNamesByKey["1," + dim]?.midpointCoord;
 
-        if (throughDependencyName !== undefined) {
+        if (midpointDependencyName !== undefined) {
             instructions.push({
-                setDependency: throughDependencyName,
-                desiredValue: me.fromAst(throughPoint[dim]),
+                setDependency: midpointDependencyName,
+                desiredValue: me.fromAst(midpointCoords[dim]),
                 variableIndex: 0,
             });
         }
@@ -207,10 +207,10 @@ export default class LineSegment extends GraphicalComponent {
             description: "The two endpoints of the line segment.",
         };
 
-        attributes.through = {
+        attributes.midpoint = {
             createComponentOfType: "point",
             description:
-                "A reference point the line segment passes through. Used with slope/length/pointOffset to position the segment.",
+                "A reference point on the line segment, located at its midpoint by default. Used with slope/length/midpointOffset to position the segment.",
         };
 
         attributes.slope = {
@@ -221,16 +221,16 @@ export default class LineSegment extends GraphicalComponent {
         attributes.length = {
             createComponentOfType: "number",
             description:
-                "The signed defining length used with the slope/through parameterization. Negative values flip the relative position of the endpoints.",
+                "The signed defining length used with the slope/midpoint parameterization. Negative values flip the relative position of the endpoints.",
         };
 
-        attributes.pointOffset = {
+        attributes.midpointOffset = {
             createComponentOfType: "number",
-            createStateVariable: "pointOffset",
+            createStateVariable: "midpointOffset",
             defaultValue: 0,
             clamp: [-1, 1],
             description:
-                "Where the through point sits along the segment (requires through to be set): -1=first endpoint, 0=midpoint, 1=second endpoint. Clamped to [-1, 1].",
+                "Where the point given by the midpoint attribute sits along the segment (requires midpoint to be set): -1=first endpoint, 0=midpoint, 1=second endpoint. Clamped to [-1, 1].",
         };
 
         attributes.addControls = {
@@ -402,9 +402,9 @@ export default class LineSegment extends GraphicalComponent {
                     attributeName: "endpoints",
                     variableNames: ["numDimensions"],
                 },
-                throughAttr: {
+                midpointAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "through",
+                    attributeName: "midpoint",
                     variableNames: ["numDimensions"],
                 },
             }),
@@ -412,15 +412,15 @@ export default class LineSegment extends GraphicalComponent {
                 const endpointsDimensions =
                     dependencyValues.endpointsAttr?.stateValues.numDimensions ??
                     0;
-                const throughDimensions =
-                    dependencyValues.throughAttr?.stateValues.numDimensions ??
+                const midpointDimensions =
+                    dependencyValues.midpointAttr?.stateValues.numDimensions ??
                     0;
 
                 return {
                     setValue: {
                         numDimensions: Math.max(
                             endpointsDimensions,
-                            throughDimensions,
+                            midpointDimensions,
                             2,
                         ),
                     },
@@ -454,32 +454,32 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
-        // How many through points are prescribed (0 or 1).
-        stateVariableDefinitions.numThroughPoints = {
+        // How many midpoints are prescribed (0 or 1).
+        stateVariableDefinitions.numMidpoints = {
             returnDependencies: () => ({
-                throughAttr: {
+                midpointAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "through",
+                    attributeName: "midpoint",
                 },
             }),
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        numThroughPoints:
-                            dependencyValues.throughAttr !== null ? 1 : 0,
+                        numMidpoints:
+                            dependencyValues.midpointAttr !== null ? 1 : 0,
                     },
                 };
             },
         };
 
-        // True when slope/length/through attrs are active (plus pointOffset when
-        // paired with through) and fewer than 2 explicit endpoints are given.
+        // True when slope/length/midpoint attrs are active (plus midpointOffset when
+        // paired with midpoint) and fewer than 2 explicit endpoints are given.
         // Mirrors Line.js's basedOnSlope pattern.
         // When false, all old unconstrainedEndpoints code paths run unchanged.
         // Note: slope is a 2D concept, so Cases B/C/D apply it only in the x-y
-        // plane and preserve higher coordinates. Case A (1 endpoint + 1 through)
+        // plane and preserve higher coordinates. Case A (1 endpoint + 1 midpoint)
         // is fully dimension-agnostic.
-        stateVariableDefinitions.basedOnSlopeOrThrough = {
+        stateVariableDefinitions.basedOnSlopeOrMidpoint = {
             stateVariablesDeterminingDependencies: [],
             returnDependencies: () => ({
                 slopeAttr: {
@@ -490,34 +490,34 @@ export default class LineSegment extends GraphicalComponent {
                     dependencyType: "attributeComponent",
                     attributeName: "length",
                 },
-                throughAttr: {
+                midpointAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "through",
+                    attributeName: "midpoint",
                 },
                 numEndpointsSpecified: {
                     dependencyType: "stateVariable",
                     variableName: "numEndpointsSpecified",
                 },
-                pointOffset: {
+                midpointOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "pointOffset",
+                    variableName: "midpointOffset",
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
                 const anyPositioningAttr =
                     dependencyValues.slopeAttr !== null ||
                     dependencyValues.lengthAttr !== null ||
-                    dependencyValues.throughAttr !== null;
-                const basedOnSlopeOrThrough =
+                    dependencyValues.midpointAttr !== null;
+                const basedOnSlopeOrMidpoint =
                     anyPositioningAttr &&
                     dependencyValues.numEndpointsSpecified < 2;
 
                 const result = {
                     setValue: {
-                        basedOnSlopeOrThrough,
+                        basedOnSlopeOrMidpoint,
                     },
                 };
-                if (anyPositioningAttr && !basedOnSlopeOrThrough) {
+                if (anyPositioningAttr && !basedOnSlopeOrMidpoint) {
                     const ignored = [];
                     if (dependencyValues.slopeAttr !== null) {
                         ignored.push("slope");
@@ -525,11 +525,11 @@ export default class LineSegment extends GraphicalComponent {
                     if (dependencyValues.lengthAttr !== null) {
                         ignored.push("length");
                     }
-                    if (dependencyValues.throughAttr !== null) {
-                        ignored.push("through");
+                    if (dependencyValues.midpointAttr !== null) {
+                        ignored.push("midpoint");
                     }
-                    if (!usedDefault.pointOffset) {
-                        ignored.push("pointOffset");
+                    if (!usedDefault.midpointOffset) {
+                        ignored.push("midpointOffset");
                     }
 
                     result.sendDiagnostics = [
@@ -538,12 +538,15 @@ export default class LineSegment extends GraphicalComponent {
                             message: `${buildIgnoredPhrase(ignored)} ignored when two endpoints are specified`,
                         },
                     ];
-                } else if (!basedOnSlopeOrThrough && !usedDefault.pointOffset) {
+                } else if (
+                    !basedOnSlopeOrMidpoint &&
+                    !usedDefault.midpointOffset
+                ) {
                     result.sendDiagnostics = [
                         {
                             type: "info",
                             message:
-                                "pointOffset has no effect without a through point",
+                                "midpointOffset has no effect without a midpoint",
                         },
                     ];
                 }
@@ -551,7 +554,7 @@ export default class LineSegment extends GraphicalComponent {
                 return result;
             },
         };
-        // Essential slope — used when basedOnSlopeOrThrough but no slope attr.
+        // Essential slope — used when basedOnSlopeOrMidpoint but no slope attr.
         stateVariableDefinitions.essentialSlope = {
             defaultValue: 0,
             hasEssential: true,
@@ -572,7 +575,7 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
-        // Essential signed length — used when basedOnSlopeOrThrough but no length attr.
+        // Essential signed length — used when basedOnSlopeOrMidpoint but no length attr.
         stateVariableDefinitions.essentialSignedLength = {
             defaultValue: 1,
             hasEssential: true,
@@ -593,7 +596,7 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
-        // Essential ep1 (first endpoint) — used in Case D when basedOnSlopeOrThrough is true
+        // Essential ep1 (first endpoint) — used in Case D when basedOnSlopeOrMidpoint is true
         // but no endpoints attr is specified. Stored separately from unconstrainedEndpoints
         // essential state to avoid a self-referential dependency.
         // Modeled after Line.js's essentialPoints array.
@@ -747,14 +750,14 @@ export default class LineSegment extends GraphicalComponent {
                 return [2, dependencyValues.numDimensions];
             },
             stateVariablesDeterminingDependencies: [
-                "basedOnSlopeOrThrough",
+                "basedOnSlopeOrMidpoint",
                 "numEndpointsSpecified",
-                "numThroughPoints",
+                "numMidpoints",
             ],
             returnArrayDependenciesByKey({ stateValues, arrayKeys }) {
-                // When not using the new slope/through parameterization,
+                // When not using the new slope/midpoint parameterization,
                 // use the original dependency structure (both endpoints from attr or essential).
-                if (!stateValues.basedOnSlopeOrThrough) {
+                if (!stateValues.basedOnSlopeOrMidpoint) {
                     let dependenciesByKey = {};
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
@@ -773,17 +776,17 @@ export default class LineSegment extends GraphicalComponent {
 
                 // New parameterization — global dependencies shared across all keys.
                 let globalDependencies = {
-                    basedOnSlopeOrThrough: {
+                    basedOnSlopeOrMidpoint: {
                         dependencyType: "stateVariable",
-                        variableName: "basedOnSlopeOrThrough",
+                        variableName: "basedOnSlopeOrMidpoint",
                     },
                     numEndpointsSpecified: {
                         dependencyType: "stateVariable",
                         variableName: "numEndpointsSpecified",
                     },
-                    numThroughPoints: {
+                    numMidpoints: {
                         dependencyType: "stateVariable",
-                        variableName: "numThroughPoints",
+                        variableName: "numMidpoints",
                     },
                     numDimensions: {
                         dependencyType: "stateVariable",
@@ -799,9 +802,9 @@ export default class LineSegment extends GraphicalComponent {
                         attributeName: "length",
                         variableNames: ["value"],
                     },
-                    pointOffset: {
+                    midpointOffset: {
                         dependencyType: "stateVariable",
-                        variableName: "pointOffset",
+                        variableName: "midpointOffset",
                     },
                     essentialSlope: {
                         dependencyType: "stateVariable",
@@ -833,14 +836,14 @@ export default class LineSegment extends GraphicalComponent {
                             },
                         };
                     }
-                    // For case A, also need through point coords.
-                    if (stateValues.numThroughPoints === 1) {
+                    // For case A, also need midpoint coords.
+                    if (stateValues.numMidpoints === 1) {
                         for (let arrayKey of arrayKeys) {
                             let [pointInd, dim] = arrayKey.split(",");
                             let varEnding = "1_" + (Number(dim) + 1);
-                            dependenciesByKey[arrayKey].throughCoord = {
+                            dependenciesByKey[arrayKey].midpointCoord = {
                                 dependencyType: "attributeComponent",
-                                attributeName: "through",
+                                attributeName: "midpoint",
                                 variableNames: ["x" + (Number(dim) + 1)],
                             };
                         }
@@ -850,14 +853,14 @@ export default class LineSegment extends GraphicalComponent {
 
                 // Case C or D: 0 explicit endpoints.
                 let dependenciesByKey = {};
-                if (stateValues.numThroughPoints === 1) {
-                    // Case C: need through point coords per key.
+                if (stateValues.numMidpoints === 1) {
+                    // Case C: need midpoint coords per key.
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
                         dependenciesByKey[arrayKey] = {
-                            throughCoord: {
+                            midpointCoord: {
                                 dependencyType: "attributeComponent",
-                                attributeName: "through",
+                                attributeName: "midpoint",
                                 variableNames: ["x" + (Number(dim) + 1)],
                             },
                         };
@@ -884,8 +887,8 @@ export default class LineSegment extends GraphicalComponent {
                 dependencyValuesByKey,
                 arrayKeys,
             }) {
-                // basedOnSlopeOrThrough is false: each endpoint is independent, from attr or essential.
-                if (!globalDependencyValues?.basedOnSlopeOrThrough) {
+                // basedOnSlopeOrMidpoint is false: each endpoint is independent, from attr or essential.
+                if (!globalDependencyValues?.basedOnSlopeOrMidpoint) {
                     let unconstrainedEndpoints = {};
                     let essentialUnconstrainedEndpoints = {};
 
@@ -926,17 +929,17 @@ export default class LineSegment extends GraphicalComponent {
                     return result;
                 }
 
-                // New parameterization — compute ep1/ep2 from slope/length/through.
+                // New parameterization — compute ep1/ep2 from slope/length/midpoint.
                 const g = globalDependencyValues;
                 const gUsedDefault = globalUsedDefault;
 
                 // Emit diagnostics for ignored attributes.
                 let sendDiagnostics = [];
-                if (g.numEndpointsSpecified === 1 && g.numThroughPoints === 1) {
+                if (g.numEndpointsSpecified === 1 && g.numMidpoints === 1) {
                     if (
                         g.slopeAttr !== null ||
                         g.lengthAttr !== null ||
-                        !gUsedDefault.pointOffset
+                        !gUsedDefault.midpointOffset
                     ) {
                         const ignored = [];
                         if (g.slopeAttr !== null) {
@@ -945,31 +948,31 @@ export default class LineSegment extends GraphicalComponent {
                         if (g.lengthAttr !== null) {
                             ignored.push("length");
                         }
-                        if (!gUsedDefault.pointOffset) {
-                            ignored.push("pointOffset");
+                        if (!gUsedDefault.midpointOffset) {
+                            ignored.push("midpointOffset");
                         }
 
                         sendDiagnostics.push({
                             type: "info",
-                            message: `${buildIgnoredPhrase(ignored)} ignored when an endpoint and a through point are both specified`,
+                            message: `${buildIgnoredPhrase(ignored)} ignored when an endpoint and a midpoint are both specified`,
                         });
                     }
                 } else if (
-                    g.numThroughPoints === 0 &&
-                    !gUsedDefault.pointOffset
+                    g.numMidpoints === 0 &&
+                    !gUsedDefault.midpointOffset
                 ) {
                     sendDiagnostics.push({
                         type: "info",
                         message:
-                            "pointOffset has no effect without a through point",
+                            "midpointOffset has no effect without a midpoint",
                     });
                 }
 
                 let unconstrainedEndpoints = {};
 
-                if (g.numEndpointsSpecified === 1 && g.numThroughPoints === 1) {
-                    // Case A: 1 endpoint + 1 through → through is ep2.
-                    // slope, length, and pointOffset are all ignored here.
+                if (g.numEndpointsSpecified === 1 && g.numMidpoints === 1) {
+                    // Case A: 1 endpoint + 1 midpoint → midpoint is ep2.
+                    // slope, length, and midpointOffset are all ignored here.
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
                         let varEnding = "1_" + (Number(dim) + 1);
@@ -979,12 +982,12 @@ export default class LineSegment extends GraphicalComponent {
                                     arrayKey
                                 ].ep1Coord.stateValues["pointX" + varEnding];
                         } else {
-                            // ep2 = through point
-                            let throughVal =
-                                dependencyValuesByKey[arrayKey].throughCoord
+                            // ep2 = midpoint
+                            let midpointVal =
+                                dependencyValuesByKey[arrayKey].midpointCoord
                                     ?.stateValues["x" + (Number(dim) + 1)];
                             unconstrainedEndpoints[arrayKey] =
-                                throughVal ?? me.fromAst(0);
+                                midpointVal ?? me.fromAst(0);
                         }
                     }
                 } else {
@@ -1014,10 +1017,7 @@ export default class LineSegment extends GraphicalComponent {
                     }
                     const [dirX, dirY] = direction;
 
-                    if (
-                        g.numEndpointsSpecified === 1 &&
-                        g.numThroughPoints === 0
-                    ) {
+                    if (g.numEndpointsSpecified === 1 && g.numMidpoints === 0) {
                         // Case B: 1 endpoint, ep2 = ep1 + L × dir.
                         // Build ep2 as an expression so symbolic endpoints are preserved.
                         for (let arrayKey of arrayKeys) {
@@ -1042,16 +1042,16 @@ export default class LineSegment extends GraphicalComponent {
                                     .simplify();
                             }
                         }
-                    } else if (g.numThroughPoints === 1) {
-                        // Case C: 0 endpoints + 1 through.
-                        // Build endpoints as expressions so symbolic through points are preserved.
-                        const po = g.pointOffset;
+                    } else if (g.numMidpoints === 1) {
+                        // Case C: 0 endpoints + 1 midpoint.
+                        // Build endpoints as expressions so symbolic midpoints are preserved.
+                        const po = g.midpointOffset;
                         for (let arrayKey of arrayKeys) {
                             let [pointInd, dim] = arrayKey.split(",");
-                            let throughCoordVal =
-                                dependencyValuesByKey[arrayKey].throughCoord
+                            let midpointCoordVal =
+                                dependencyValuesByKey[arrayKey].midpointCoord
                                     ?.stateValues["x" + (Number(dim) + 1)];
-                            if (!throughCoordVal) {
+                            if (!midpointCoordVal) {
                                 unconstrainedEndpoints[arrayKey] =
                                     me.fromAst("\uff3f");
                                 continue;
@@ -1062,19 +1062,23 @@ export default class LineSegment extends GraphicalComponent {
                                 unconstrainedEndpoints[arrayKey] = me
                                     .fromAst([
                                         "+",
-                                        throughCoordVal.tree,
+                                        midpointCoordVal.tree,
                                         -coeff,
                                     ])
                                     .simplify();
                             } else {
                                 let coeff = ((1 - po) / 2) * signedLength * dir;
                                 unconstrainedEndpoints[arrayKey] = me
-                                    .fromAst(["+", throughCoordVal.tree, coeff])
+                                    .fromAst([
+                                        "+",
+                                        midpointCoordVal.tree,
+                                        coeff,
+                                    ])
                                     .simplify();
                             }
                         }
                     } else {
-                        // Case D: 0 endpoints + 0 through, slope/length active.
+                        // Case D: 0 endpoints + 0 midpoint, slope/length active.
                         // ep1 from essentialEp1 global dep; ep2 derived.
                         // Build ep2 as an expression so symbolic ep1 values are preserved.
                         let ep1 = g.essentialEp1 ?? [
@@ -1118,9 +1122,9 @@ export default class LineSegment extends GraphicalComponent {
                 workspace,
                 arraySize,
             }) {
-                // Old behavior (basedOnSlopeOrThrough === false):
+                // Old behavior (basedOnSlopeOrMidpoint === false):
                 // update each desired endpoint from attr or essential independently.
-                if (!globalDependencyValues?.basedOnSlopeOrThrough) {
+                if (!globalDependencyValues?.basedOnSlopeOrMidpoint) {
                     let instructions = [];
                     for (let arrayKey in desiredStateVariableValues.unconstrainedEndpoints) {
                         let [pointInd, dim] = arrayKey.split(",");
@@ -1187,10 +1191,10 @@ export default class LineSegment extends GraphicalComponent {
                 let instructions = [];
 
                 const numEndpointsSpecified = g.numEndpointsSpecified;
-                const numThroughPoints = g.numThroughPoints;
+                const numMidpoints = g.numMidpoints;
 
-                if (numEndpointsSpecified === 1 && numThroughPoints === 1) {
-                    // Case A: ep1 → endpoints attr independently, ep2 → through attr independently.
+                if (numEndpointsSpecified === 1 && numMidpoints === 1) {
+                    // Case A: ep1 → endpoints attr independently, ep2 → midpoint attr independently.
                     for (let arrayKey of desiredKeys) {
                         let [pointInd, dim] = arrayKey.split(",").map(Number);
                         if (pointInd === 0) {
@@ -1204,7 +1208,8 @@ export default class LineSegment extends GraphicalComponent {
                         } else {
                             instructions.push({
                                 setDependency:
-                                    dependencyNamesByKey[arrayKey].throughCoord,
+                                    dependencyNamesByKey[arrayKey]
+                                        .midpointCoord,
                                 desiredValue:
                                     desiredUnconstrainedEndpoints[arrayKey],
                                 variableIndex: 0,
@@ -1214,7 +1219,7 @@ export default class LineSegment extends GraphicalComponent {
                     return { success: true, instructions };
                 }
 
-                if (numEndpointsSpecified === 1 && numThroughPoints === 0) {
+                if (numEndpointsSpecified === 1 && numMidpoints === 0) {
                     // Case B: ep1 from endpoints attr; ep2 = ep1 + L × dir(slope).
                     // ep1 desired → update ep1 attr directly (slope/length unchanged → ep2 translates)
                     // ep2 desired → compute new slope/length
@@ -1254,11 +1259,11 @@ export default class LineSegment extends GraphicalComponent {
                             });
                         }
                     }
-                } else if (numThroughPoints === 1) {
-                    // Case C: through point T is the position handle.
+                } else if (numMidpoints === 1) {
+                    // Case C: midpoint T is the position handle.
                     // ep1 = T - (1+po)/2 * L * dir
                     // ep2 = T + (1-po)/2 * L * dir
-                    const po = g.pointOffset;
+                    const po = g.midpointOffset;
                     const tT = (1 + po) / 2;
 
                     let T_new;
@@ -1323,13 +1328,13 @@ export default class LineSegment extends GraphicalComponent {
                         });
                     }
 
-                    addThroughPointInstructions({
+                    addMidpointInstructions({
                         instructions,
                         dependencyNamesByKey,
-                        throughPoint: T_new,
+                        midpointCoords: T_new,
                     });
                 } else {
-                    // Case D: 0 endpoints + 0 through; ep1 in essentialEp1, ep2 derived.
+                    // Case D: 0 endpoints + 0 midpoint; ep1 in essentialEp1, ep2 derived.
                     // ep1 desired → update essentialEp1 directly (slope/length unchanged → ep2 translates)
                     // ep2 desired → compute new slope/length (ep1 essentialEp1 unchanged)
                     // both desired (from action) → update essentialEp1 + slope/length
@@ -2452,14 +2457,14 @@ export default class LineSegment extends GraphicalComponent {
             );
         }
 
-        // When basedOnSlopeOrThrough, ep2 is derived from ep1 + slope/length.
+        // When basedOnSlopeOrMidpoint, ep2 is derived from ep1 + slope/length.
         // A single-endpoint drag on the graph should keep the OTHER endpoint fixed
         // (same intent as Vector's tail+displacement action).
         // We achieve this by passing BOTH desired endpoint positions to performUpdate,
         // so the inverse can compute new slope/length to match.
         // This does NOT affect drags via referenced points (which go through the inverse
         // definition directly and only receive the desired position of the moved endpoint).
-        if (await this.stateValues.basedOnSlopeOrThrough) {
+        if (await this.stateValues.basedOnSlopeOrMidpoint) {
             if (point1coords !== undefined && point2coords === undefined) {
                 // ep1 dragged: keep ep2 fixed
                 point2coords = numericalEndpoints[1];
