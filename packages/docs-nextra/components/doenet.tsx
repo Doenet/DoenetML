@@ -1,6 +1,15 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import "@doenet/virtual-keyboard/style.css";
+import type { MountPolicy } from "@doenet/doenetml-iframe";
+import {
+    VIEWER_MAX_CONCURRENT_BOOTS,
+    VIEWER_MAX_LIVE,
+    VIEWER_PARK_DELAY_MS,
+    VIEWER_VISIBLE_MARGIN,
+    WINDOWING_ENABLED,
+} from "./windowing-config";
+import { WindowedEditor } from "./windowed-editor";
 
 /**
  * The iframe components generate a random per-instance id that is baked into the
@@ -37,12 +46,38 @@ const versionProps =
         : { doenetmlVersion: "dev" };
 
 /**
+ * Windowed mounting for viewer examples (#1441 stream B, docs host): reuse the
+ * built-in `mountPolicy` from `@doenet/doenetml-iframe`, so a page keeps at most
+ * `VIEWER_MAX_LIVE` viewers live and parks off-screen ones. `allowSaveState`
+ * makes parking lossless (the wrapper snapshots the flushed report in memory and
+ * reseeds it on restore); it is otherwise inert here — no docs host consumes
+ * `SPLICE.reportScoreAndState` and nothing hits the network.
+ */
+const viewerMountPolicy: MountPolicy = {
+    mode: "windowed",
+    maxLiveViewers: VIEWER_MAX_LIVE,
+    maxConcurrentBoots: VIEWER_MAX_CONCURRENT_BOOTS,
+    visibleMargin: VIEWER_VISIBLE_MARGIN,
+    parkDelayMs: VIEWER_PARK_DELAY_MS,
+};
+
+const windowedViewerProps = WINDOWING_ENABLED
+    ? { flags: { allowSaveState: true }, mountPolicy: viewerMountPolicy }
+    : {};
+
+/**
  * Render DoenetML in an iframe so that its styling/state is completely isolated from the page.
  */
 export function DoenetViewer({
     source,
 }: React.PropsWithChildren<{ source: string }>) {
-    return <DoenetViewerOrig doenetML={source} {...versionProps} />;
+    return (
+        <DoenetViewerOrig
+            doenetML={source}
+            {...windowedViewerProps}
+            {...versionProps}
+        />
+    );
 }
 
 export function DoenetEditor({
@@ -56,15 +91,16 @@ export function DoenetEditor({
     viewerLocation?: "left" | "right" | "top" | "bottom";
     height?: string;
 }>) {
+    // Editors have no built-in `mountPolicy`, so the docs-layer `WindowedEditor`
+    // adds lazy mounting + a live-count budget for them (#1441 stream B).
     return (
-        <div className="doenet-editor-container">
-            <DoenetEditorOrig
-                doenetML={source}
-                showFormatter={showFormatter}
-                viewerLocation={viewerLocation}
-                height={height}
-                {...versionProps}
-            />
-        </div>
+        <WindowedEditor
+            source={source}
+            showFormatter={showFormatter}
+            viewerLocation={viewerLocation}
+            height={height}
+            versionProps={versionProps}
+            DoenetEditorOrig={DoenetEditorOrig}
+        />
     );
 }
