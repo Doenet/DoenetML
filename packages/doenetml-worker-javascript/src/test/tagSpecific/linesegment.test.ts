@@ -2745,7 +2745,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
   <lineSegment name="l" slope="2" />
 </graph>
 <number name="slope">$l.slope</number>
-<math name="center">$l.center</math>
+<math name="midpoint">$l.midpoint</math>
 <math name="len">$l.length</math>
 `,
         });
@@ -3262,12 +3262,12 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         expect(
             sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
         ).closeTo(10, 1e-10);
-        // center is the midpoint point
-        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+        // midpoint property equals the input midpoint point here (midpointOffset=0)
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
             4,
             1e-10,
         );
-        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
             6,
             1e-10,
         );
@@ -3402,7 +3402,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             ),
         ).eqls([3, 4]);
         expect(
-            sv[midIdx].stateValues.center.map((v) => v.evaluate_to_constant()),
+            sv[midIdx].stateValues.midpoint.map((v) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([2, 3]);
 
         // midpointOffset=1: midpoint acts as the second endpoint (old behavior)
@@ -3867,16 +3869,48 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
     });
 
     // -----------------------------------------------------------------------
-    // center state variable
+    // midpoint state variable
     // -----------------------------------------------------------------------
-    it("center state variable and inverse", async () => {
+    it("midpoint property is the actual midpoint, differing from the midpoint attribute when midpointOffset is nonzero", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <point name="P">(0,0)</point>
+  <lineSegment name="l" midpoint="$P" slope="0" length="4" midpointOffset="0.5" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const sv = await core.returnAllStateVariables(false, true);
+
+        // po=0.5, L=4, horizontal: the input point P=(0,0) sits 3/4 of the way
+        // along the segment, giving endpoints (-3,0) and (1,0).
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([-3, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 0]);
+        // The midpoint property is the actual midpoint (-1,0), not the input
+        // point (0,0) given by the midpoint attribute.
+        expect(
+            sv[lIdx].stateValues.midpoint.map((v) => v.evaluate_to_constant()),
+        ).eqls([-1, 0]);
+    });
+
+    it("midpoint state variable and inverse", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
   <lineSegment name="l" endpoints="(1,2) (5,4)" />
 </graph>
-<math name="cx">$l.center.x</math>
-<math name="cy">$l.center.y</math>
+<math name="cx">$l.midpoint.x</math>
+<math name="cy">$l.midpoint.y</math>
 `,
         });
 
@@ -3884,7 +3918,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         const cxIdx = await resolvePathToNodeIdx("cx");
         const cyIdx = await resolvePathToNodeIdx("cy");
 
-        // center of (1,2)-(5,4) = (3,3)
+        // midpoint of (1,2)-(5,4) = (3,3)
         let sv = await core.returnAllStateVariables(false, true);
         expect(sv[cxIdx].stateValues.value.evaluate_to_constant()).closeTo(
             3,
@@ -3895,7 +3929,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             1e-10,
         );
 
-        // The center state variable is derived from endpoints — just verify
+        // The midpoint state variable is derived from endpoints — just verify
         // it updates when the segment moves
         await moveLineSegment({
             componentIdx: lIdx,
@@ -3914,15 +3948,15 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         );
     });
 
-    it("center state variable stays symbolic and supports inverse updates", async () => {
+    it("midpoint state variable stays symbolic and supports inverse updates", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <mathInput name="a" prefill="q" />
 <graph name="g">
   <lineSegment name="l" endpoints="($a,0) (2,0)" />
 </graph>
-<math name="cx">$l.center.x</math>
-<mathInput name="mi">$l.center.x</mathInput>
+<math name="cx">$l.midpoint.x</math>
+<mathInput name="mi">$l.midpoint.x</mathInput>
 `,
         });
 
@@ -3936,14 +3970,14 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         await updateMathInputValue({ latex: "5", componentIdx: miIdx, core });
 
         sv = await core.returnAllStateVariables(false, true);
-        expect(sv[lIdx].stateValues.center[0].simplify().tree).eq(5);
-        expect(sv[lIdx].stateValues.center[1].simplify().tree).eq(0);
+        expect(sv[lIdx].stateValues.midpoint[0].simplify().tree).eq(5);
+        expect(sv[lIdx].stateValues.midpoint[1].simplify().tree).eq(0);
     });
 
     // -----------------------------------------------------------------------
     // slope inverse
     // -----------------------------------------------------------------------
-    it("slope, center, and length state variables return correct initial values", async () => {
+    it("slope, midpoint, and length state variables return correct initial values", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
@@ -3956,27 +3990,27 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         const lIdx = await resolvePathToNodeIdx("l");
         const sIdx = await resolvePathToNodeIdx("s");
 
-        // slope=0, center=(2,0), length=4 — verify initial state
+        // slope=0, midpoint=(2,0), length=4 — verify initial state
         let sv = await core.returnAllStateVariables(false, true);
         expect(sv[sIdx].stateValues.value).closeTo(0, 1e-10);
         expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
             4,
             1e-10,
         );
-        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
             2,
             1e-10,
         );
-        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
             0,
             1e-10,
         );
     });
 
     // -----------------------------------------------------------------------
-    // slope inverse via mathInput — keeps center and length, rotates direction
+    // slope inverse via mathInput — keeps midpoint and length, rotates direction
     // -----------------------------------------------------------------------
-    it("slope inverse via mathInput — rotates segment around center", async () => {
+    it("slope inverse via mathInput — rotates segment around midpoint", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
@@ -3989,14 +4023,14 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         const lIdx = await resolvePathToNodeIdx("l");
         const miIdx = await resolvePathToNodeIdx("mi");
 
-        // Initial: center=(2,0), length=4, slope=0
+        // Initial: midpoint=(2,0), length=4, slope=0
         let sv = await core.returnAllStateVariables(false, true);
         expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
-        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
             2,
             1e-10,
         );
-        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
             0,
             1e-10,
         );
@@ -4005,18 +4039,18 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             1e-10,
         );
 
-        // Set slope to 1 via mathInput — should rotate around center (2,0), keep length 4
+        // Set slope to 1 via mathInput — should rotate around midpoint (2,0), keep length 4
         await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
         sv = await core.returnAllStateVariables(false, true);
 
         const expectedSlope = 1;
         expect(sv[lIdx].stateValues.slope).closeTo(expectedSlope, 1e-10);
         // Center should stay at (2,0)
-        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
             2,
             1e-10,
         );
-        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
             0,
             1e-10,
         );
@@ -4025,7 +4059,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             4,
             1e-10,
         );
-        // Verify endpoints are symmetric around center
+        // Verify endpoints are symmetric around midpoint
         const theta = Math.atan(1);
         const [dx, dy] = [Math.cos(theta), Math.sin(theta)];
         expect(
@@ -4043,9 +4077,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
     });
 
     // -----------------------------------------------------------------------
-    // length inverse via mathInput — keeps center and direction, changes length
+    // length inverse via mathInput — keeps midpoint and direction, changes length
     // -----------------------------------------------------------------------
-    it("length inverse via mathInput — scales segment around center", async () => {
+    it("length inverse via mathInput — scales segment around midpoint", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
@@ -4058,14 +4092,14 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         const lIdx = await resolvePathToNodeIdx("l");
         const miIdx = await resolvePathToNodeIdx("mi");
 
-        // Initial: center=(2,0), length=4, slope=0
+        // Initial: midpoint=(2,0), length=4, slope=0
         let sv = await core.returnAllStateVariables(false, true);
         expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
             4,
             1e-10,
         );
 
-        // Set length to 6 — center stays at (2,0), direction unchanged, ep1=(-1,0), ep2=(5,0)
+        // Set length to 6 — midpoint stays at (2,0), direction unchanged, ep1=(-1,0), ep2=(5,0)
         await updateMathInputValue({ latex: "6", componentIdx: miIdx, core });
         sv = await core.returnAllStateVariables(false, true);
 
@@ -4073,11 +4107,11 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             6,
             1e-10,
         );
-        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
             2,
             1e-10,
         );
-        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
             0,
             1e-10,
         );
@@ -4090,37 +4124,37 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
     });
 
     // -----------------------------------------------------------------------
-    // center inverse via mathInput — translates segment
+    // midpoint inverse via mathInput — translates segment
     // -----------------------------------------------------------------------
-    it("center inverse via mathInput — translates segment", async () => {
+    it("midpoint inverse via mathInput — translates segment", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
   <lineSegment name="l" endpoints="(0,0) (4,0)" />
 </graph>
-<mathInput name="mi">$l.center.x</mathInput>
+<mathInput name="mi">$l.midpoint.x</mathInput>
 `,
         });
 
         const lIdx = await resolvePathToNodeIdx("l");
         const miIdx = await resolvePathToNodeIdx("mi");
 
-        // Initial: center=(2,0), ep1=(0,0), ep2=(4,0)
+        // Initial: midpoint=(2,0), ep1=(0,0), ep2=(4,0)
         let sv = await core.returnAllStateVariables(false, true);
-        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
             2,
             1e-10,
         );
 
-        // Set center x to 5 → translate by 3: ep1=(3,0), ep2=(7,0)
+        // Set midpoint x to 5 → translate by 3: ep1=(3,0), ep2=(7,0)
         await updateMathInputValue({ latex: "5", componentIdx: miIdx, core });
         sv = await core.returnAllStateVariables(false, true);
 
-        expect(sv[lIdx].stateValues.center[0].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
             5,
             1e-10,
         );
-        expect(sv[lIdx].stateValues.center[1].evaluate_to_constant()).closeTo(
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
             0,
             1e-10,
         );
@@ -4174,7 +4208,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
         sv = await core.returnAllStateVariables(false, true);
 
-        // Slope should update to 1; center and length preserved
+        // Slope should update to 1; midpoint and length preserved
         expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
         expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
             4,
@@ -4182,8 +4216,8 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         );
         const theta = Math.atan(1);
         const [dx, dy] = [Math.cos(theta), Math.sin(theta)];
-        const cx = sv[lIdx].stateValues.center[0].evaluate_to_constant();
-        const cy = sv[lIdx].stateValues.center[1].evaluate_to_constant();
+        const cx = sv[lIdx].stateValues.midpoint[0].evaluate_to_constant();
+        const cy = sv[lIdx].stateValues.midpoint[1].evaluate_to_constant();
         expect(
             sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
         ).closeTo(cx - 2 * dx, 1e-10);
@@ -4420,8 +4454,8 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         expect(
             sv[lIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
         ).closeTo(9, 1e-10);
-        // center = midpoint = (4,5,6)
-        expect(sv[lIdx].stateValues.center[2].evaluate_to_constant()).closeTo(
+        // midpoint property = (4,5,6)
+        expect(sv[lIdx].stateValues.midpoint[2].evaluate_to_constant()).closeTo(
             6,
             1e-10,
         );

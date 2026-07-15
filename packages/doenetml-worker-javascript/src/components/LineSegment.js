@@ -224,7 +224,7 @@ export default class LineSegment extends GraphicalComponent {
         attributes.midpoint = {
             createComponentOfType: "point",
             description:
-                "A reference point on the line segment, located at its midpoint by default. Used with slope/length/midpointOffset to position the segment.",
+                "A reference point on the line segment, located at its midpoint by default. Used with slope/length/midpointOffset to position the segment. When midpointOffset is nonzero, this point is offset from the segment's actual midpoint (given by the midpoint property).",
         };
 
         attributes.slope = {
@@ -2170,7 +2170,7 @@ export default class LineSegment extends GraphicalComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                // Keep center and length fixed; rotate direction to desired slope.
+                // Keep midpoint and length fixed; rotate direction to desired slope.
                 // Pick the orientation closest to the current direction.
                 if (dependencyValues.numDimensions !== 2) {
                     return { success: false };
@@ -2247,8 +2247,9 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
-        stateVariableDefinitions.center = {
-            description: "The midpoint of the line segment.",
+        stateVariableDefinitions.midpoint = {
+            description:
+                "The midpoint of the line segment, i.e. the average of its endpoints. When the midpoint attribute is set together with a nonzero midpointOffset, this actual midpoint differs from the point given by the midpoint attribute.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -2256,7 +2257,7 @@ export default class LineSegment extends GraphicalComponent {
                 addAttributeComponentsShadowingStateVariables:
                     returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
-                    if (prefix === "centerX") {
+                    if (prefix === "midpointX") {
                         return [];
                     } else {
                         return [
@@ -2274,7 +2275,7 @@ export default class LineSegment extends GraphicalComponent {
             isArray: true,
             numDimensions: 1,
             indexAliases: [["x", "y", "z"]],
-            entryPrefixes: ["centerX"],
+            entryPrefixes: ["midpointX"],
             returnEntryDimensions: () => 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
@@ -2291,8 +2292,8 @@ export default class LineSegment extends GraphicalComponent {
                 return [String(ind)];
             },
             arrayVarNameFromPropIndex(propIndex, varName) {
-                if (varName === "center") {
-                    return "centerX" + propIndex[0];
+                if (varName === "midpoint") {
+                    return "midpointX" + propIndex[0];
                 }
                 return null;
             },
@@ -2320,7 +2321,7 @@ export default class LineSegment extends GraphicalComponent {
                 };
             },
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
-                let center = {};
+                let midpoint = {};
                 let ep1 = globalDependencyValues.endpoints[0];
                 let ep2 = globalDependencyValues.endpoints[1];
                 for (let arrayKey of arrayKeys) {
@@ -2328,22 +2329,22 @@ export default class LineSegment extends GraphicalComponent {
                     let v1 = ep1[dim].evaluate_to_constant();
                     let v2 = ep2[dim].evaluate_to_constant();
                     if (Number.isFinite(v1) && Number.isFinite(v2)) {
-                        center[arrayKey] = me.fromAst((v1 + v2) / 2);
+                        midpoint[arrayKey] = me.fromAst((v1 + v2) / 2);
                     } else {
-                        center[arrayKey] = me.fromAst([
+                        midpoint[arrayKey] = me.fromAst([
                             "/",
                             ["+", ep1[dim].tree, ep2[dim].tree],
                             2,
                         ]);
                     }
                 }
-                return { setValue: { center } };
+                return { setValue: { midpoint } };
             },
             inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
                 globalDependencyValues,
             }) {
-                // Translate both endpoints by delta = desired_center - current_center.
+                // Translate both endpoints by delta = desired_midpoint - current_midpoint.
                 let ep1 = globalDependencyValues.endpoints[0];
                 let ep2 = globalDependencyValues.endpoints[1];
                 let numDim = globalDependencyValues.numDimensions;
@@ -2351,21 +2352,23 @@ export default class LineSegment extends GraphicalComponent {
                 let newEp1 = [];
                 let newEp2 = [];
                 for (let d = 0; d < numDim; d++) {
-                    let currentCenter = me.fromAst([
+                    let currentMidpoint = me.fromAst([
                         "/",
                         ["+", ep1[d].tree, ep2[d].tree],
                         2,
                     ]);
-                    let desiredCenter =
-                        String(d) in desiredStateVariableValues.center
+                    let desiredMidpoint =
+                        String(d) in desiredStateVariableValues.midpoint
                             ? convertValueToMathExpression(
-                                  desiredStateVariableValues.center[String(d)],
+                                  desiredStateVariableValues.midpoint[
+                                      String(d)
+                                  ],
                               )
-                            : currentCenter;
+                            : currentMidpoint;
                     let delta = me.fromAst([
                         "+",
-                        desiredCenter.tree,
-                        ["-", currentCenter.tree],
+                        desiredMidpoint.tree,
+                        ["-", currentMidpoint.tree],
                     ]);
                     newEp1.push(me.fromAst(["+", ep1[d].tree, delta.tree]));
                     newEp2.push(me.fromAst(["+", ep2[d].tree, delta.tree]));
