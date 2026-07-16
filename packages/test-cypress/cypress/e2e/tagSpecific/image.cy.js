@@ -819,4 +819,113 @@ describe("Image Tag Tests", function () {
             .eq(0)
             .should("have.text", "q");
     });
+
+    it("doenet: source resolves against the default media URL", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" description="A Doenet-hosted image" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/image1"))
+            .should("have.attr", "src")
+            .and("eq", "https://media.doenet.org/images/abcDEF123");
+    });
+
+    it("doenet: source resolves against a custom doenetImagesUrl", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" description="A Doenet-hosted image" />
+  `,
+                    doenetImagesUrl: "https://example.com/media",
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/image1"))
+            .should("have.attr", "src")
+            .and("eq", "https://example.com/media/abcDEF123");
+    });
+
+    it("trailing slash on doenetImagesUrl is not doubled", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" description="A Doenet-hosted image" />
+  `,
+                    doenetImagesUrl: "https://example.com/media/",
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/image1"))
+            .should("have.attr", "src")
+            .and("eq", "https://example.com/media/abcDEF123");
+    });
+
+    it("doenet: source resolves against a custom doenetImagesUrl inside a graph", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <graph name="g">
+    <image name="image1" source="doenet:abcDEF123" anchor="(1,1)" description="A Doenet-hosted image" />
+  </graph>
+  `,
+                    doenetImagesUrl: "https://example.com/media",
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        // JSXGraph's SVG renderer sets the image URL via the xlink:href
+        // attribute of an svg <image> element inside the board container.
+        cy.get(cesc("#\\/g") + " image")
+            .should("have.attr", "xlink:href")
+            .and("eq", "https://example.com/media/abcDEF123");
+    });
+
+    it("an unsupported doenet: source renders the placeholder, not a broken image", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:foo-bar" description="An unsupported source" />
+  `,
+                    doenetImagesUrl: "https://example.com/media",
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        // The placeholder is a <div> carrying the component id, so no <img>
+        // is rendered and the raw doenet: URI never reaches an <img src>.
+        cy.get(cesc("#\\/image1")).should("exist");
+        cy.get("img" + cesc("#\\/image1")).should("not.exist");
+    });
 });

@@ -66,6 +66,7 @@ export function ActivityViewer({
     addBottomPadding = true,
     scrollableContainer = window,
     darkMode,
+    doenetImagesUrl,
     showAnswerTitles,
 }: {
     doenetML: string;
@@ -100,6 +101,7 @@ export function ActivityViewer({
     addBottomPadding?: boolean;
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: string;
+    doenetImagesUrl?: string;
     showAnswerTitles?: boolean;
 }) {
     const [errMsg, setErrMsg] = useState("");
@@ -1576,6 +1578,7 @@ export function ActivityViewer({
                     errorsActivitySpecific={errorsActivitySpecific.current}
                     scrollableContainer={scrollableContainer}
                     darkMode={darkMode}
+                    doenetImagesUrl={doenetImagesUrl}
                     showAnswerTitles={showAnswerTitles}
                 />
             );

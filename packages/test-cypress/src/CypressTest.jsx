@@ -32,10 +32,12 @@ export function CypressTest() {
         );
     }
 
-    const [{ doenetMLstring, attemptNumber }, setBaseState] = useState({
-        doenetMLstring: null,
-        attemptNumber: testSettings.attemptNumber,
-    });
+    const [{ doenetMLstring, attemptNumber, doenetImagesUrl }, setBaseState] =
+        useState({
+            doenetMLstring: null,
+            attemptNumber: testSettings.attemptNumber,
+            doenetImagesUrl: undefined,
+        });
 
     const [updateNumber, setUpdateNumber] = useState(testSettings.updateNumber);
     const [controlsVisible, setControlsVisible] = useState(
@@ -81,7 +83,8 @@ export function CypressTest() {
     //For Cypress Test Use
     window.onmessage = (e) => {
         let newDoenetMLstring = null,
-            newAttemptNumber = attemptNumber;
+            newAttemptNumber = attemptNumber,
+            newDoenetImagesUrl;
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
@@ -95,12 +98,16 @@ export function CypressTest() {
             testSettings.attemptNumber = newAttemptNumber;
             localStorage.setItem("test settings", JSON.stringify(testSettings));
         }
+        if (e.data.doenetImagesUrl !== undefined) {
+            newDoenetImagesUrl = e.data.doenetImagesUrl;
+        }
 
         // don't do anything if receive a message from another source (like the youtube player)
         if (newDoenetMLstring || newAttemptNumber !== attemptNumber) {
             setBaseState({
                 doenetMLstring: newDoenetMLstring,
                 attemptNumber: newAttemptNumber,
+                doenetImagesUrl: newDoenetImagesUrl,
             });
         }
     };
@@ -451,6 +458,7 @@ export function CypressTest() {
                     editURL: "/publiceditor",
                 }}
                 darkMode={darkMode}
+                doenetImagesUrl={doenetImagesUrl}
             />
         );
     }
