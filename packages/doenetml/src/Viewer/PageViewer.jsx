@@ -63,7 +63,7 @@ export function PageViewer({
     apiURLs = {},
     location = {},
     navigate,
-    linkSettings = { viewURL: "/portfolioviewer", editURL: "/publiceditor" },
+    linkSettings = { viewURL: "/activityViewer", editURL: "/documentEditor" },
     errorsActivitySpecific = {},
     scrollableContainer,
     darkMode,

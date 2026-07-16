@@ -181,7 +181,71 @@ describe("ref Tag Tests", function () {
         cy.get(cesc("#\\/_ref1"))
             .should("have.text", "a Doenet doc")
             .invoke("attr", "href")
-            .then((href) => expect(href).eq("/portfolioviewer/abcdefg"));
+            .then((href) => expect(href).eq("/activityViewer/abcdefg"));
+    });
+
+    it("ref to activityId uses the default view route", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <p>A link to <ref uri="doenet:activityId=AbC123">a Doenet doc</ref>.</p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should("have.text", "A link to a Doenet doc.");
+
+        cy.get(cesc("#\\/_ref1"))
+            .should("have.text", "a Doenet doc")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("/activityViewer/AbC123"));
+    });
+
+    it("ref to activityId with edit=true uses the default edit route", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <p>A link to <ref uri="doenet:activityId=AbC123&edit=true">a Doenet doc</ref>.</p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should("have.text", "A link to a Doenet doc.");
+
+        cy.get(cesc("#\\/_ref1"))
+            .should("have.text", "a Doenet doc")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("/documentEditor/AbC123"));
+    });
+
+    it("host-supplied linkSettings overrides the default route", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <p>A link to <ref uri="doenet:activityId=AbC123">a Doenet doc</ref>.</p>
+  `,
+                    linkSettings: {
+                        viewURL: "/custom-view",
+                        editURL: "/custom-edit",
+                    },
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should("have.text", "A link to a Doenet doc.");
+
+        cy.get(cesc("#\\/_ref1"))
+            .should("have.text", "a Doenet doc")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("/custom-view/AbC123"));
     });
 
     it("url with no link text", () => {
