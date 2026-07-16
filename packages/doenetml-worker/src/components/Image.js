@@ -459,6 +459,34 @@ export default class Image extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.imageId = {
+            forRenderer: true,
+
+            returnDependencies: () => ({
+                source: {
+                    dependencyType: "stateVariable",
+                    variableName: "source",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                // A `doenet:<id>` source references an image in Doenet's media
+                // library; expose the `<id>` so the renderer can build its URL.
+                // The whole source must be exactly `doenet:<id>` (an
+                // alphanumeric id) — any other source, including the
+                // `doenet:cid=<hash>` forms handled by the `cid` state
+                // variable, has no imageId.
+                if (!dependencyValues.source) {
+                    return { setValue: { imageId: null } };
+                }
+
+                let result = dependencyValues.source
+                    .trim()
+                    .match(/^doenet:([a-zA-Z0-9]+)$/i);
+
+                return { setValue: { imageId: result ? result[1] : null } };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 

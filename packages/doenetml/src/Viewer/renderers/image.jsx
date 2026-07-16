@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext, useRef } from "react";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
 import { retrieveMediaForCid } from "@doenet/utils";
 import useDoenetRenderer from "../useDoenetRenderer";
+import { PageContext } from "../PageViewer";
 import { sizeToCSS } from "./utils/css";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import me from "math-expressions";
@@ -19,6 +20,8 @@ export default React.memo(function Image(props) {
     let anchorPointJXG = useRef(null);
 
     const board = useContext(BoardContext);
+
+    const { doenetImagesUrl } = useContext(PageContext) || {};
 
     let pointerAtDown = useRef(null);
     let pointAtDown = useRef(null);
@@ -44,7 +47,16 @@ export default React.memo(function Image(props) {
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
 
-    const urlOrSource = (SVs.cid ? url : SVs.source) || "";
+    // cid sources resolve asynchronously to a blob URL (`url` state);
+    // everything else resolves synchronously from the source/imageId.
+    const urlOrSource =
+        (SVs.cid
+            ? url
+            : getUrlForImage({
+                  source: SVs.source || "",
+                  imageId: SVs.imageId,
+                  doenetImagesUrl,
+              })) || "";
 
     let onChangeVisibility = (isVisible) => {
         callAction({
@@ -423,7 +435,10 @@ export default React.memo(function Image(props) {
         lastPositionFromCore.current = anchorCoords;
 
         if (imageJXG.current === null) {
-            if (SVs.cid && !url) {
+            // Don't create the JSXGraph image until we have a non-empty URL,
+            // e.g., while a cid is still resolving to a blob URL, or for an
+            // unsupported doenet: source that has no URL at all.
+            if (!urlOrSource) {
                 return null;
             }
             createImageJXG();
@@ -598,3 +613,31 @@ export default React.memo(function Image(props) {
         </VisibilitySensor>
     );
 });
+
+/**
+ * Resolve the URL to use for an image.
+ *
+ * When the image references a Doenet-hosted media item (`source="doenet:<id>"`),
+ * `imageId` holds the `<id>` and the URL is built from `doenetImagesUrl` and that
+ * id (avoiding a doubled slash when `doenetImagesUrl` already ends with `/`).
+ *
+ * A `doenet:` source that did not yield an `imageId` and is not handled
+ * elsewhere (the `doenet:cid=` form is resolved separately into a blob URL)
+ * is an unsupported media reference; return "" so the placeholder UI is used
+ * rather than handing the `doenet:` URI to an <img> or JSXGraph. Any other
+ * source is an ordinary URL/path and is returned unchanged.
+ */
+function getUrlForImage({
+    source,
+    imageId,
+    doenetImagesUrl = "https://media.doenet.org/images",
+}) {
+    if (imageId) {
+        const separator = doenetImagesUrl.endsWith("/") ? "" : "/";
+        return doenetImagesUrl + separator + imageId;
+    } else if (/^\s*doenet:/i.test(source)) {
+        return "";
+    } else {
+        return source;
+    }
+}

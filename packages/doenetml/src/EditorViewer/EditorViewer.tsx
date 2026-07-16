@@ -34,6 +34,7 @@ export function EditorViewer({
     linkSettings,
     addBottomPadding = false,
     darkMode,
+    doenetImagesUrl,
     showAnswerTitles,
     width = "100%",
     height = "500px",
@@ -59,6 +60,7 @@ export function EditorViewer({
     linkSettings?: { viewURL: string; editURL: string };
     addBottomPadding?: boolean;
     darkMode?: string;
+    doenetImagesUrl?: string;
     showAnswerTitles?: boolean;
     width?: string;
     height?: string;
@@ -505,6 +507,7 @@ export function EditorViewer({
                             scrollableContainer.current ?? undefined
                         }
                         darkMode={darkMode}
+                        doenetImagesUrl={doenetImagesUrl}
                         showAnswerTitles={showAnswerTitles}
                     />
                 </Box>

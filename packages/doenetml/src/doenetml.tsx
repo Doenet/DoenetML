@@ -127,6 +127,7 @@ export function DoenetViewer({
     linkSettings,
     scrollableContainer,
     darkMode,
+    doenetImagesUrl,
     showAnswerTitles = false,
     includeVariantSelector = false,
 }: {
@@ -164,6 +165,7 @@ export function DoenetViewer({
     linkSettings?: { viewURL: string; editURL: string };
     scrollableContainer?: HTMLDivElement | Window;
     darkMode?: string;
+    doenetImagesUrl?: string;
     showAnswerTitles?: boolean;
     includeVariantSelector?: boolean;
 }) {
@@ -291,6 +293,7 @@ export function DoenetViewer({
             addBottomPadding={addBottomPadding}
             scrollableContainer={scrollableContainer}
             darkMode={darkMode}
+            doenetImagesUrl={doenetImagesUrl}
             showAnswerTitles={showAnswerTitles}
         />
     );
@@ -331,6 +334,7 @@ export function DoenetEditor({
     idsIncludeActivityId = true,
     linkSettings,
     darkMode,
+    doenetImagesUrl,
     showAnswerTitles = false,
     width,
     height,
@@ -358,6 +362,7 @@ export function DoenetEditor({
     idsIncludeActivityId?: boolean;
     linkSettings?: { viewURL: string; editURL: string };
     darkMode?: string;
+    doenetImagesUrl?: string;
     showAnswerTitles?: boolean;
     width?: string;
     height?: string;
@@ -391,6 +396,7 @@ export function DoenetEditor({
             linkSettings={linkSettings}
             addBottomPadding={addBottomPadding}
             darkMode={darkMode}
+            doenetImagesUrl={doenetImagesUrl}
             showAnswerTitles={showAnswerTitles}
             width={width}
             height={height}

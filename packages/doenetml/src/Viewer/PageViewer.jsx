@@ -67,6 +67,7 @@ export function PageViewer({
     errorsActivitySpecific = {},
     scrollableContainer,
     darkMode,
+    doenetImagesUrl,
     showAnswerTitles,
 }) {
     const updateRendererSVsWithRecoil = useRecoilCallback(
@@ -204,6 +205,7 @@ export function PageViewer({
         linkSettings,
         scrollableContainer,
         darkMode,
+        doenetImagesUrl,
         showAnswerTitles,
     };
 
