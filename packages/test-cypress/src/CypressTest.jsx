@@ -32,12 +32,15 @@ export function CypressTest() {
         );
     }
 
-    const [{ doenetMLstring, attemptNumber, doenetImagesUrl }, setBaseState] =
-        useState({
-            doenetMLstring: null,
-            attemptNumber: testSettings.attemptNumber,
-            doenetImagesUrl: undefined,
-        });
+    const [
+        { doenetMLstring, attemptNumber, doenetImagesUrl, linkSettings },
+        setBaseState,
+    ] = useState({
+        doenetMLstring: null,
+        attemptNumber: testSettings.attemptNumber,
+        doenetImagesUrl: undefined,
+        linkSettings: undefined,
+    });
 
     const [updateNumber, setUpdateNumber] = useState(testSettings.updateNumber);
     const [controlsVisible, setControlsVisible] = useState(
@@ -84,7 +87,8 @@ export function CypressTest() {
     window.onmessage = (e) => {
         let newDoenetMLstring = null,
             newAttemptNumber = attemptNumber,
-            newDoenetImagesUrl;
+            newDoenetImagesUrl,
+            newLinkSettings;
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
@@ -101,6 +105,9 @@ export function CypressTest() {
         if (e.data.doenetImagesUrl !== undefined) {
             newDoenetImagesUrl = e.data.doenetImagesUrl;
         }
+        if (e.data.linkSettings !== undefined) {
+            newLinkSettings = e.data.linkSettings;
+        }
 
         // don't do anything if receive a message from another source (like the youtube player)
         if (newDoenetMLstring || newAttemptNumber !== attemptNumber) {
@@ -108,6 +115,7 @@ export function CypressTest() {
                 doenetMLstring: newDoenetMLstring,
                 attemptNumber: newAttemptNumber,
                 doenetImagesUrl: newDoenetImagesUrl,
+                linkSettings: newLinkSettings,
             });
         }
     };
@@ -453,10 +461,7 @@ export function CypressTest() {
                 paginate={paginate}
                 location={location}
                 navigate={navigate}
-                linkSettings={{
-                    viewURL: "/portfolioviewer",
-                    editURL: "/publiceditor",
-                }}
+                linkSettings={linkSettings}
                 darkMode={darkMode}
                 doenetImagesUrl={doenetImagesUrl}
             />
