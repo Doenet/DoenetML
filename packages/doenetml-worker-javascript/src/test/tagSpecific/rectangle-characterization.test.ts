@@ -10,25 +10,25 @@ vi.mock("hyperformula");
 /**
  * BACKWARD-COMPATIBILITY CHARACTERIZATION SUITE FOR <rectangle>.
  *
- * This suite pins the CURRENT observable behavior of the rectangle across all
- * of its definition modes (corner+size, center+size, 1 vertex ± center/size,
- * 2 vertices). It is the safety net for the planned refactor that makes
- * width/height/center the primary essentials (center-primary) in the
- * width/height/center family, so that a self-referential attribute such as
- * `height="$R.width"` no longer creates a cyclic/over-constrained inverse.
+ * This suite pins the observable behavior of the rectangle across all of its
+ * definition modes (corner+size, center+size, 1 vertex ± center/size,
+ * 2 vertices), so that changes to the inverse of `vertices` — which has to
+ * reconcile several ways of specifying the same geometry — cannot silently
+ * alter one mode while fixing another.
  *
- * Three invariants must be preserved by that refactor (verified below in every
- * mode):
+ * Three invariants are verified below in every mode:
  *   (I1) Changing width or height PRESERVES THE CENTER (symmetric expansion),
  *        regardless of how the rectangle was defined.
  *   (I2) Dragging the whole rectangle is a clean translation
  *        (center shifts by the drag vector; width/height unchanged).
  *   (I3) Dragging one corner keeps the DIAGONALLY OPPOSITE corner fixed.
  *
- * The separate "KNOWN BUG" block at the bottom documents the current *broken*
- * behavior for the self-referential case. Those assertions are EXPECTED TO
- * CHANGE when the refactor lands — a failure there is the signal the fix works,
- * at which point update them to the corrected values.
+ * The expected values here were read off actual behavior. If one of them starts
+ * failing, that is a signal to investigate the change in behavior, not to
+ * rewrite the expectation to match.
+ *
+ * The blocks at the bottom cover rectangles whose size attribute is a
+ * self-reference (`height="$R.width"`), which constrains them to stay square.
  */
 
 type Snap = { v: number[][]; w: number; h: number; c: number[] };
@@ -638,14 +638,21 @@ describe("rectangle backward-compatibility characterization @group3", async () =
  *
  * Writing a size drives that size attribute's inverse; when the attribute is a
  * self-reference, that comes back around as a request on the *other* dimension,
- * whose inverse re-derives the vertices from the pre-update center. The inverse
- * of `vertices` avoids letting that pin the rectangle by (1) not requesting a
- * size that did not change, so a pure translation triggers no write-back at all,
- * and (2) requesting the sizes before the anchor/center, so the position
- * requested here wins over the stale one the write-back derives.
+ * whose inverse re-derives the vertices from the pre-update center. Left alone,
+ * that write-back pins the rectangle. Three things keep it from doing so: the
+ * inverse of `vertices` (1) does not request a size that did not change, so a
+ * pure translation triggers no write-back at all, and (2) requests the position
+ * for every dimension it touches, after the sizes, so the drag's position lands
+ * last and wins over the stale one; and (3) `movePolygon`, which sets sizes
+ * directly when a corner is dragged, likewise requests the vertices last.
  *
  * Both orientations are covered: they are mirror images of each other, and each
  * one exercises the pinning on a different axis.
+ *
+ * Corner drags are covered on both diagonals. The two are not equivalent: a
+ * corner on the main diagonal (V0/V2) reaches the inverse of `vertices` without
+ * any anchor request of its own, while `movePolygon` writes a size directly for
+ * V0/V1/V3 but not for V2 — so each corner exercises a different path.
  */
 describe("rectangle self-reference height=$R.width @group3", async () => {
     it("translates freely (the center is not pinned)", async () => {
@@ -688,6 +695,98 @@ describe("rectangle self-reference height=$R.width @group3", async () => {
             w: 6,
             h: 6,
             c: [1, 3],
+        });
+    });
+
+    it("dragging corner V2 outward grows the square, holding V0", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: `<graph><rectangle name="R" width="4" height="$R.width" draggable verticesDraggable /></graph>`,
+        });
+        const idx = await r("R");
+        // drag corner V2 (starts at (4,4)) to (6,6), along the main diagonal
+        await dragBy(core, idx, { 2: [6, 6] });
+        await expectRect(core, r, {
+            v: [
+                [0, 0],
+                [6, 0],
+                [6, 6],
+                [0, 6],
+            ],
+            w: 6,
+            h: 6,
+            c: [3, 3],
+        });
+    });
+
+    it("dragging corner V0 inward shrinks the square, holding V2", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: `<graph><rectangle name="R" width="4" height="$R.width" draggable verticesDraggable /></graph>`,
+        });
+        const idx = await r("R");
+        // drag corner V0 (starts at (0,0)) to (2,2), along the main diagonal
+        await dragBy(core, idx, { 0: [2, 2] });
+        await expectRect(core, r, {
+            v: [
+                [2, 2],
+                [4, 2],
+                [4, 4],
+                [2, 4],
+            ],
+            w: 2,
+            h: 2,
+            c: [3, 3],
+        });
+    });
+});
+
+describe("rectangle self-reference with a specified vertex @group3", async () => {
+    // `vertices="(2,3)" width="4" height="$R.width"` anchors the square on a
+    // specified vertex rather than an essential one, which is a separate branch
+    // of the inverse of `vertices` with the same self-reference exposure.
+    const ml = `<graph><rectangle name="R" vertices="(2,3)" width="4" height="$R.width" draggable verticesDraggable /></graph>`;
+
+    it("translates freely (the anchor vertex is not pinned)", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: ml,
+        });
+        const idx = await r("R");
+        // request translation by (5,3): [2,3]..[6,7] -> [7,6]..[11,10]
+        await dragBy(core, idx, {
+            0: [7, 6],
+            1: [11, 6],
+            2: [11, 10],
+            3: [7, 10],
+        });
+        await expectRect(core, r, {
+            v: [
+                [7, 6],
+                [11, 6],
+                [11, 10],
+                [7, 10],
+            ],
+            w: 4,
+            h: 4,
+            c: [9, 8],
+        });
+    });
+
+    it("dragging corner V2 outward grows the square, holding V0", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: ml,
+        });
+        const idx = await r("R");
+        // drag corner V2 (starts at (6,7)) to (8,9), along the main diagonal
+        await dragBy(core, idx, { 2: [8, 9] });
+        await expectRect(core, r, {
+            v: [
+                [2, 3],
+                [8, 3],
+                [8, 9],
+                [2, 9],
+            ],
+            w: 6,
+            h: 6,
+            c: [5, 6],
         });
     });
 });
@@ -734,6 +833,26 @@ describe("rectangle self-reference width=$R.height @group3", async () => {
             w: 6,
             h: 6,
             c: [3, 1],
+        });
+    });
+
+    it("dragging corner V2 outward grows the square, holding V0", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: `<graph><rectangle name="R" height="4" width="$R.height" draggable verticesDraggable /></graph>`,
+        });
+        const idx = await r("R");
+        // drag corner V2 (starts at (4,4)) to (6,6), along the main diagonal
+        await dragBy(core, idx, { 2: [6, 6] });
+        await expectRect(core, r, {
+            v: [
+                [0, 0],
+                [6, 0],
+                [6, 6],
+                [0, 6],
+            ],
+            w: 6,
+            h: 6,
+            c: [3, 3],
         });
     });
 });
