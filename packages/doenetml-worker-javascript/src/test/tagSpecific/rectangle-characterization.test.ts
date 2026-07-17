@@ -651,8 +651,15 @@ describe("rectangle backward-compatibility characterization @group3", async () =
  * is what keeps the position correct when it does. The non-integer translation
  * test below pins that, since real pointer drags never land on integers.
  *
- * Both orientations are covered: they are mirror images of each other, and each
- * one exercises the pinning on a different axis.
+ * Both orientations are covered, but they are NOT symmetric before the fix, and
+ * only `height="$R.width"` is actually broken there. The pre-fix inverse
+ * interleaved its requests per dimension — x anchor, width, y anchor, height —
+ * so `width="$R.height"`, whose write-back re-derives y, happened to be followed
+ * by the y anchor and came out right, while `height="$R.width"`, whose
+ * write-back re-derives x, landed last and pinned x. That accident is why the
+ * bug is orientation-specific. The `width="$R.height"` block below therefore
+ * mostly guards the orientation that already worked against the reordering,
+ * rather than reproducing the bug.
  *
  * Corner drags are covered on both diagonals. The two are not equivalent: a
  * corner on the main diagonal (V0/V2) reaches the inverse of `vertices` without
