@@ -928,4 +928,190 @@ describe("Image Tag Tests", function () {
         cy.get(cesc("#\\/image1")).should("exist");
         cy.get("img" + cesc("#\\/image1")).should("not.exist");
     });
+
+    it("attribution attributes render a Creative Commons credit with no error", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:6J2fuCmNnXjpn1yJRHr416" imageName="A giant anteater" authorName="Duane Nykamp" licenseCodes="CC-BY" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        // The image itself still resolves through the doenet: source path.
+        cy.get(cesc("#\\/image1"))
+            .should("have.attr", "src")
+            .and("eq", "https://media.doenet.org/images/6J2fuCmNnXjpn1yJRHr416");
+
+        // The credit is a single self-describing sentence beneath the image.
+        cy.get(cesc("#\\/image1-attribution")).should(
+            "contain.text",
+            "by Duane Nykamp is licensed under a Creative Commons Attribution 4.0 license.",
+        );
+
+        // The license name links to the canonical (versioned) license URL.
+        cy.get(cesc("#\\/image1-attribution") + " a")
+            .should("have.attr", "href")
+            .and("eq", "https://creativecommons.org/licenses/by/4.0/");
+
+        // The tag must parse cleanly: no "Invalid attribute" (or any) error.
+        cy.window().then(async (win) => {
+            let errorWarnings = await win.returnErrorWarnings1();
+            expect(errorWarnings.errors.length).eq(0);
+            expect(errorWarnings.warnings.length).eq(0);
+        });
+    });
+
+    it("dual licensing joins two licenses with 'or'", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" imageName="Some art" authorName="An Artist" licenseCodes="CC-BY CC-BY-SA" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/image1-attribution")).should(
+            "contain.text",
+            "is licensed under a Creative Commons Attribution 4.0 license or a Creative Commons Attribution-ShareAlike 4.0 license.",
+        );
+    });
+
+    it("CC0 renders public-domain phrasing", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" imageName="Freely usable" authorName="A Donor" licenseCodes="CC0" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/image1-attribution")).should(
+            "contain.text",
+            "is in the public domain (CC0 1.0 Public Domain Dedication).",
+        );
+    });
+
+    it("license codes are matched case-insensitively", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" imageName="Mixed case" authorName="Someone" licenseCodes="cc-by" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/image1-attribution")).should(
+            "contain.text",
+            "is licensed under a Creative Commons Attribution 4.0 license.",
+        );
+    });
+
+    it("an unknown attribute on image still errors", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" notarealattribute="oops" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        // The new attribution attributes must not blanket-allow unknown
+        // attributes: a genuinely unknown attribute still produces an error.
+        cy.window().then(async (win) => {
+            let errorWarnings = await win.returnErrorWarnings1();
+            expect(errorWarnings.errors.length).eq(1);
+            expect(errorWarnings.errors[0].message).contain(
+                `Invalid attribute "notarealattribute" for a component of type <image>`,
+            );
+        });
+    });
+
+    it("licenseName/licenseUrl fall back to generic phrasing when no codes given", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" imageName="A local drawing" authorName="Jo" licenseName="My Custom License" licenseUrl="https://example.com/license" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        // With no `licenseCodes`, the credit falls back to the author-supplied
+        // `licenseName`/`licenseUrl`, rendered with generic phrasing (just the
+        // name, no CC/"the" wording).
+        cy.get(cesc("#\\/image1-attribution")).should(
+            "contain.text",
+            "by Jo is licensed under My Custom License.",
+        );
+
+        // The generic license name links to the author-supplied `licenseUrl`.
+        cy.get(cesc("#\\/image1-attribution") + " a")
+            .should("have.attr", "href")
+            .and("eq", "https://example.com/license");
+    });
+
+    it("a dangerous attribution URL is not turned into a link", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" imageName="Sketchy" originalUrl="javascript:alert(1)" authorName="Someone" licenseCodes="CC-BY" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        // The image name would normally link to `originalUrl`, but a
+        // `javascript:` URL is unsafe (`isSafeHref` rejects it) so the subject
+        // must render as plain text, and no anchor may carry the scheme.
+        cy.get(cesc("#\\/image1-attribution")).should("contain.text", "Sketchy");
+        cy.get(cesc("#\\/image1-attribution") + " a").each(($a) => {
+            expect($a.attr("href") || "").not.to.match(/javascript:/i);
+        });
+
+        // The (safe) CC license link is still rendered.
+        cy.get(cesc("#\\/image1-attribution") + " a")
+            .should("have.attr", "href")
+            .and("eq", "https://creativecommons.org/licenses/by/4.0/");
+    });
 });

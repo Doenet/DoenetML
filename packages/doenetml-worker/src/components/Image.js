@@ -7,6 +7,9 @@ import {
     widthFractions,
     percentWidthsBySize,
     returnSelectedStyleStateVariableDefinition,
+    getMediaLicenseInfo,
+    creativeCommonsVersions,
+    defaultCreativeCommonsVersion,
 } from "@doenet/utils";
 import me from "math-expressions";
 import {
@@ -76,6 +79,82 @@ export default class Image extends BlockComponent {
             createComponentOfType: "text",
             createStateVariable: "source",
             defaultValue: "",
+            public: true,
+            forRenderer: true,
+        };
+        attributes.authorName = {
+            description: "Name of the author of the image.",
+            createComponentOfType: "text",
+            createStateVariable: "authorName",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.authorUrl = {
+            description:
+                "URL to link the author's name to in the attribution (e.g. the author's profile page).",
+            createComponentOfType: "text",
+            createStateVariable: "authorUrl",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.imageName = {
+            description:
+                "Name of the image, used in place of the generic word “Image” in the attribution.",
+            createComponentOfType: "text",
+            createStateVariable: "imageName",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.originalUrl = {
+            description:
+                "Original URL where the image can be found, used to link the image name in the attribution.",
+            createComponentOfType: "text",
+            createStateVariable: "originalUrl",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        attributes.licenseName = {
+            description: "Name of the license for the image.",
+            createComponentOfType: "text",
+            createStateVariable: "licenseNamePreliminary",
+            defaultValue: null,
+        };
+        attributes.licenseUrl = {
+            description: "URL for the license of the image.",
+            createComponentOfType: "text",
+            createStateVariable: "licenseUrlPreliminary",
+            defaultValue: null,
+        };
+        // Unlike DoenetML 0.7, this 0.6 core validates a `textList` attribute's
+        // value as a whole (it lowercases and checks `validValues` against the
+        // entire array, not each item). So `licenseCodes` deliberately omits
+        // `toLowerCase`/`validValues` here — doing otherwise would crash on the
+        // array. Codes are matched case-insensitively and unknown codes are
+        // skipped downstream via `getMediaLicenseInfo` (in the `licenseNames`
+        // and `licenseUrls` definitions below and in the renderer).
+        attributes.licenseCodes = {
+            description:
+                "License code(s) for the image. Specify two codes to indicate the image is dual licensed.",
+            createComponentOfType: "textList",
+            createStateVariable: "licenseCodes",
+            defaultValue: null,
+            public: true,
+            forRenderer: true,
+        };
+        // `licenseVersion` is a scalar text attribute, so this core's
+        // `validValues`/`toLowerCase` handling works as intended here.
+        attributes.licenseVersion = {
+            description:
+                "Version of the Creative Commons license(s) given in `licenseCodes` (ignored by non-Creative-Commons licenses).",
+            createComponentOfType: "text",
+            createStateVariable: "licenseVersion",
+            defaultValue: defaultCreativeCommonsVersion,
+            toLowerCase: true,
+            validValues: creativeCommonsVersions,
             public: true,
             forRenderer: true,
         };
@@ -425,6 +504,117 @@ export default class Image extends BlockComponent {
                         ],
                     };
                 }
+            },
+        };
+
+        stateVariableDefinitions.licenseNames = {
+            description:
+                "The license name(s) for the image. Derived from `licenseCodes` when given; otherwise from the `licenseName` attribute.",
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "textList",
+            },
+            returnDependencies: () => ({
+                licenseCodes: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseCodes",
+                },
+                licenseNamePreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseNamePreliminary",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { licenseCodes, licenseNamePreliminary } =
+                    dependencyValues;
+
+                // Codes take precedence over the preliminary `licenseName`.
+                if (licenseCodes && licenseCodes.length > 0) {
+                    const licenseNames = [];
+                    for (const code of licenseCodes) {
+                        const info = getMediaLicenseInfo(code);
+                        // Unknown codes are skipped here (matched
+                        // case-insensitively); `getMediaLicenseInfo` returns
+                        // undefined for anything not in `mediaLicenses`.
+                        if (info) {
+                            licenseNames.push(info.name);
+                        }
+                    }
+                    return { setValue: { licenseNames } };
+                }
+
+                if (licenseNamePreliminary !== null) {
+                    return {
+                        setValue: { licenseNames: [licenseNamePreliminary] },
+                    };
+                }
+
+                return { setValue: { licenseNames: [] } };
+            },
+        };
+
+        stateVariableDefinitions.licenseUrls = {
+            description:
+                "The license URL(s) for the image. Derived from `licenseCodes` (and `licenseVersion`) when given; otherwise from the `licenseUrl` attribute.",
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "textList",
+            },
+            returnDependencies: () => ({
+                licenseCodes: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseCodes",
+                },
+                licenseVersion: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseVersion",
+                },
+                licenseNamePreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseNamePreliminary",
+                },
+                licenseUrlPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "licenseUrlPreliminary",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const {
+                    licenseCodes,
+                    licenseVersion,
+                    licenseNamePreliminary,
+                    licenseUrlPreliminary,
+                } = dependencyValues;
+
+                // Codes take precedence over the preliminary `licenseUrl`.
+                // The order mirrors `licenseNames`: both skip the same unknown
+                // codes, so the two lists stay index-aligned for the renderer.
+                if (licenseCodes && licenseCodes.length > 0) {
+                    const licenseUrls = [];
+                    for (const code of licenseCodes) {
+                        const info = getMediaLicenseInfo(code);
+                        if (info) {
+                            licenseUrls.push(info.url(licenseVersion));
+                        }
+                    }
+                    return { setValue: { licenseUrls } };
+                }
+
+                // The fallback URL is gated on the preliminary `licenseName`:
+                // `licenseNames` only contains an entry when a name is given, so
+                // the URL list must follow suit to stay index-aligned. When a
+                // name is present but no URL, emit an empty string (no link).
+                if (licenseNamePreliminary !== null) {
+                    return {
+                        setValue: {
+                            licenseUrls: [licenseUrlPreliminary ?? ""],
+                        },
+                    };
+                }
+
+                return { setValue: { licenseUrls: [] } };
             },
         };
 

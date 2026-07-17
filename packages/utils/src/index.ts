@@ -9,6 +9,7 @@ export * from "./copy/parseStringify";
 export * from "./components/domain";
 export * from "./components/enumeration";
 export * from "./components/function";
+export * from "./components/mediaLicense";
 export * from "./components/naming";
 export * from "./components/sequence";
 export * from "./components/size";
