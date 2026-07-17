@@ -1056,4 +1056,62 @@ describe("Image Tag Tests", function () {
             );
         });
     });
+
+    it("licenseName/licenseUrl fall back to generic phrasing when no codes given", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" imageName="A local drawing" authorName="Jo" licenseName="My Custom License" licenseUrl="https://example.com/license" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        // With no `licenseCodes`, the credit falls back to the author-supplied
+        // `licenseName`/`licenseUrl`, rendered with generic phrasing (just the
+        // name, no CC/"the" wording).
+        cy.get(cesc("#\\/image1-attribution")).should(
+            "contain.text",
+            "by Jo is licensed under My Custom License.",
+        );
+
+        // The generic license name links to the author-supplied `licenseUrl`.
+        cy.get(cesc("#\\/image1-attribution") + " a")
+            .should("have.attr", "href")
+            .and("eq", "https://example.com/license");
+    });
+
+    it("a dangerous attribution URL is not turned into a link", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text>a</text>
+  <image name="image1" source="doenet:abcDEF123" imageName="Sketchy" originalUrl="javascript:alert(1)" authorName="Someone" licenseCodes="CC-BY" />
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        // The image name would normally link to `originalUrl`, but a
+        // `javascript:` URL is unsafe (`isSafeHref` rejects it) so the subject
+        // must render as plain text, and no anchor may carry the scheme.
+        cy.get(cesc("#\\/image1-attribution")).should("contain.text", "Sketchy");
+        cy.get(cesc("#\\/image1-attribution") + " a").each(($a) => {
+            expect($a.attr("href") || "").not.to.match(/javascript:/i);
+        });
+
+        // The (safe) CC license link is still rendered.
+        cy.get(cesc("#\\/image1-attribution") + " a")
+            .should("have.attr", "href")
+            .and("eq", "https://creativecommons.org/licenses/by/4.0/");
+    });
 });
