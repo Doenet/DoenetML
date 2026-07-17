@@ -640,11 +640,16 @@ describe("rectangle backward-compatibility characterization @group3", async () =
  * self-reference, that comes back around as a request on the *other* dimension,
  * whose inverse re-derives the vertices from the pre-update center. Left alone,
  * that write-back pins the rectangle. Three things keep it from doing so: the
- * inverse of `vertices` (1) does not request a size that did not change, so a
- * pure translation triggers no write-back at all, and (2) requests the position
+ * inverse of `vertices` (1) does not request a size that did not change, so an
+ * exact translation triggers no write-back at all, and (2) requests the position
  * for every dimension it touches, after the sizes, so the drag's position lands
  * last and wins over the stale one; and (3) `movePolygon`, which sets sizes
  * directly when a corner is dragged, likewise requests the vertices last.
+ *
+ * Rule (1) compares sizes exactly, so a translation by a non-representable delta
+ * can still perturb the computed size and drive the write-back anyway; rule (2)
+ * is what keeps the position correct when it does. The non-integer translation
+ * test below pins that, since real pointer drags never land on integers.
  *
  * Both orientations are covered: they are mirror images of each other, and each
  * one exercises the pinning on a different axis.
@@ -653,6 +658,12 @@ describe("rectangle backward-compatibility characterization @group3", async () =
  * corner on the main diagonal (V0/V2) reaches the inverse of `vertices` without
  * any anchor request of its own, while `movePolygon` writes a size directly for
  * V0/V1/V3 but not for V2 — so each corner exercises a different path.
+ *
+ * A self-referential rectangle is over-constrained whenever the pointer lands off
+ * the square's diagonal: "stay square", "follow the pointer" and "hold the
+ * opposite corner" cannot all three hold. The drags in the tests immediately
+ * below are all square-compatible, so all three do hold. The over-constrained
+ * block at the end pins what gives when they cannot — see its comment.
  */
 describe("rectangle self-reference height=$R.width @group3", async () => {
     it("translates freely (the center is not pinned)", async () => {
@@ -676,12 +687,39 @@ describe("rectangle self-reference height=$R.width @group3", async () => {
         });
     });
 
+    it("translates freely by a non-integer delta", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: `<graph><rectangle name="R" width="4" height="$R.width" draggable /></graph>`,
+        });
+        const idx = await r("R");
+        // A real pointer drag never lands on integers. 4.1-0.1 is not exactly 4
+        // in floating point, so the size comparison sees a "change" and drives
+        // the write-back anyway; the position must still land where dragged.
+        await dragBy(core, idx, {
+            0: [0.1, 0.1],
+            1: [4.1, 0.1],
+            2: [4.1, 4.1],
+            3: [0.1, 4.1],
+        });
+        const V = await readVertices(core, idx);
+        expect(V[0][0]).closeTo(0.1, 1e-12);
+        expect(V[0][1]).closeTo(0.1, 1e-12);
+        expect(V[2][0]).closeTo(4.1, 1e-12);
+        expect(V[2][1]).closeTo(4.1, 1e-12);
+        // still square, to within the rounding of the drag itself
+        const sv = await core.returnAllStateVariables(false, true);
+        const R = sv[idx];
+        expect(R.stateValues.width).closeTo(4, 1e-12);
+        expect(R.stateValues.height).closeTo(4, 1e-12);
+    });
+
     it("dragging a corner resizes it as a square, holding the opposite corner", async () => {
         const { core, resolvePathToNodeIdx: r } = await createTestCore({
             doenetML: `<graph><rectangle name="R" width="4" height="$R.width" draggable verticesDraggable /></graph>`,
         });
         const idx = await r("R");
-        // drag corner V3 (starts at (0,4)) to (-2,6)
+        // drag corner V3 (starts at (0,4)) to (-2,6) — on the square's diagonal
+        // from the opposite corner V1, so this drag is not over-constrained
         await dragBy(core, idx, { 3: [-2, 6] });
         // V3 lands exactly where dragged, the opposite corner V1 stays at (4,0),
         // and height still tracks width, so it remains square (6x6).
@@ -736,6 +774,95 @@ describe("rectangle self-reference height=$R.width @group3", async () => {
             h: 2,
             c: [3, 3],
         });
+    });
+});
+
+/**
+ * Over-constrained corner drags on a self-referential (square) rectangle.
+ *
+ * When the pointer lands off the square's diagonal, "stay square", "follow the
+ * pointer" and "hold the opposite corner" cannot all hold. What gives is decided
+ * by the anchor: the inverse of `vertices` requests the anchor last, so the
+ * anchor always wins, and the anchor is the rectangle's v0 (min-x, min-y) corner.
+ *
+ *   - Dragging V0/V1/V3 moves the anchor itself, so the pointer is followed
+ *     exactly and the OPPOSITE CORNER SLIDES.
+ *   - Dragging V2 leaves the anchor at the opposite corner, so the OPPOSITE
+ *     CORNER HOLDS and the pointer is not reached.
+ *
+ * The rectangle stays square either way. This asymmetry is a consequence of
+ * which corner anchors the rectangle, not an independent choice: the anchor
+ * request is exactly what stops the self-reference write-back from re-centering
+ * the rectangle, so it cannot be dropped to make V2 follow the pointer.
+ *
+ * These values are pinned to make any future change to that trade-off visible.
+ */
+describe("rectangle self-reference, over-constrained corner drags @group3", async () => {
+    const ml = `<graph><rectangle name="R" width="4" height="$R.width" draggable verticesDraggable /></graph>`;
+
+    it("V3 dragged off the diagonal: pointer wins, opposite corner slides", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: ml,
+        });
+        const idx = await r("R");
+        // V3 starts (0,4), opposite corner V1 is (4,0). Dragging V3 to (-2,7)
+        // asks for a 6-wide, 7-tall rectangle — impossible while square.
+        await dragBy(core, idx, { 3: [-2, 7] });
+        await expectRect(core, r, {
+            v: [
+                [-2, 0],
+                [5, 0],
+                [5, 7],
+                [-2, 7],
+            ],
+            w: 7,
+            h: 7,
+            c: [1.5, 3.5],
+        });
+        // V3 landed exactly on the pointer; V1 slid from (4,0) to (5,0).
+    });
+
+    it("V2 dragged off the diagonal: opposite corner wins, pointer slides", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: ml,
+        });
+        const idx = await r("R");
+        // V2 starts (4,4), opposite corner V0 is (0,0) and is the anchor.
+        // Dragging V2 to (6,7) asks for 6-wide, 7-tall — impossible while square.
+        await dragBy(core, idx, { 2: [6, 7] });
+        await expectRect(core, r, {
+            v: [
+                [0, 0],
+                [7, 0],
+                [7, 7],
+                [0, 7],
+            ],
+            w: 7,
+            h: 7,
+            c: [3.5, 3.5],
+        });
+        // V0 held exactly; V2 landed at (7,7) rather than on the pointer (6,7).
+    });
+
+    it("V1 dragged off the diagonal: pointer wins, opposite corner slides", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: ml,
+        });
+        const idx = await r("R");
+        // V1 starts (4,0), opposite corner V3 is (0,4).
+        await dragBy(core, idx, { 1: [7, -2] });
+        await expectRect(core, r, {
+            v: [
+                [-1, -2],
+                [7, -2],
+                [7, 6],
+                [-1, 6],
+            ],
+            w: 8,
+            h: 8,
+            c: [3, 2],
+        });
+        // V1 landed exactly on the pointer; V3 slid from (0,4) to (-1,6).
     });
 });
 

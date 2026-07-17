@@ -1202,6 +1202,47 @@ export default class Rectangle extends Polygon {
 
                 let instructions = [];
 
+                // Reconciling sizes with a position, when a size may be a
+                // self-reference.
+                //
+                // A size attribute may refer back to the rectangle's other
+                // dimension, as in `<rectangle name="R" width="4"
+                // height="$R.width" />`. Writing a size drives that attribute's
+                // inverse, which for such a self-reference comes back around into
+                // the *other* public size's inverse — and that re-derives both
+                // vertices from the rectangle's PRE-UPDATE center, fighting
+                // whatever this update is doing to its position. Two rules keep
+                // that write-back from pinning the rectangle:
+                //
+                //   1. Do not request a size that did not change
+                //      (`pushSizeIfChanged`). An exact translation leaves both
+                //      sizes alone, so it drives no write-back at all. The
+                //      comparison is exact, so rounding in the dragged
+                //      coordinates can still let a nominally-unchanged size
+                //      through; rule 2 is what keeps the result correct when it
+                //      does.
+                //   2. Request the position — the anchor vertex or the center —
+                //      for every dimension this update touches, AFTER the sizes.
+                //      Landing last, it wins over the stale position the
+                //      write-back derives. It must not be gated on the anchor
+                //      itself having moved: dragging the far corner alone changes
+                //      a size without moving the anchor, and an unrequested
+                //      anchor is one the write-back is free to re-center.
+                //
+                // Rule 2 also settles which constraint gives when a corner drag
+                // over-constrains a self-referential rectangle — i.e. the pointer
+                // is off the square's diagonal, so "follow the pointer" and "hold
+                // the opposite corner" cannot both hold. The anchor request lands
+                // last and wins, and which corner the anchor is decides the
+                // outcome: dragging V0/V1/V3 moves the anchor itself, so the
+                // pointer is followed exactly and the opposite corner slides;
+                // dragging V2 leaves the anchor at the opposite corner, so that
+                // corner holds and the pointer is not reached. Either way the
+                // rectangle stays square. This is a consequence of the anchoring,
+                // not a free choice.
+                //
+                // Each caller below is ordered and gated accordingly.
+
                 // The center that `workspace` implies along dimension `dim`.
                 const centerComponent = (dim) =>
                     workspace.v2[dim]
@@ -1210,27 +1251,7 @@ export default class Rectangle extends Polygon {
                         .simplify();
 
                 // Request `specifiedWidth`/`specifiedHeight` along dimension
-                // `dim`, but only if the size actually changed.
-                //
-                // A size attribute may be a self-reference such as
-                // height="$R.width". Writing a size drives that attribute's
-                // inverse, which for a self-reference comes back around into the
-                // *other* public size's inverse — and that re-derives both
-                // vertices from the rectangle's pre-update center, fighting
-                // whatever this update is doing to its position. Two rules keep
-                // that write-back from pinning the rectangle:
-                //
-                //   1. Request a size only if it changed (this function). A pure
-                //      translation changes neither size, so it triggers no
-                //      write-back at all and the position moves freely.
-                //   2. Request the position — the anchor vertex or the center —
-                //      for every dimension this update touches, after the sizes.
-                //      Landing last, it wins over the stale position the
-                //      write-back derives. It must not be gated on the anchor
-                //      itself having moved: dragging the far corner alone changes
-                //      a size without moving the anchor, and an unrequested
-                //      anchor is one the write-back is free to re-center. Each
-                //      caller below is ordered and gated accordingly.
+                // `dim`, but only if the size actually changed (rule 1 above).
                 const sizeVarNames = ["specifiedWidth", "specifiedHeight"];
                 const pushSizeIfChanged = async (dim, arrayKey) => {
                     let sizeVarName = sizeVarNames[dim];
@@ -1656,13 +1677,6 @@ export default class Rectangle extends Polygon {
             vertexComponents[ind + ",0"] = me.fromAst(pointCoords[ind][0]);
             vertexComponents[ind + ",1"] = me.fromAst(pointCoords[ind][1]);
         }
-        let verticesInstruction = {
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "vertices",
-            value: vertexComponents,
-            sourceDetails,
-        };
 
         if (numVerticesMoved === 1) {
             // When dragging a rectangle corner, add additional instructions
@@ -1746,7 +1760,13 @@ export default class Rectangle extends Polygon {
         // the vertices from the rectangle's pre-update center. Requesting the
         // dragged vertices afterwards puts the drag's own position last, so it
         // wins over that stale one.
-        updateInstructions.push(verticesInstruction);
+        updateInstructions.push({
+            updateType: "updateValue",
+            componentIdx: this.componentIdx,
+            stateVariable: "vertices",
+            value: vertexComponents,
+            sourceDetails,
+        });
 
         // Note: we set skipRendererUpdate to true
         // so that we can make further adjustments before the renderers are updated
