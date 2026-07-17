@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
-import { retrieveMediaForCid } from "@doenet/utils";
+import { retrieveMediaForCid, getMediaLicenseDisplay } from "@doenet/utils";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { PageContext } from "../PageViewer";
 import { sizeToCSS } from "./utils/css";
@@ -590,6 +590,40 @@ export default React.memo(function Image(props) {
         imageStyle.border = "var(--mainBorder)";
     }
 
+    const media = urlOrSource ? (
+        <img id={id} src={urlOrSource} style={imageStyle} alt={SVs.description} />
+    ) : (
+        <div id={id} style={imageStyle}>
+            {SVs.description}
+        </div>
+    );
+
+    // The author/license attribution is shown as a caption beneath the image.
+    // (DoenetML 0.7 shows it inside the image's description info popover/details
+    // UI, which this 0.6 line does not have, so a caption is the closest fit.)
+    const attribution = renderImageAttribution({
+        idPrefix: id,
+        imageName: SVs.imageName,
+        authorName: SVs.authorName,
+        authorUrl: SVs.authorUrl,
+        originalUrl: SVs.originalUrl,
+        licenseCodes: SVs.licenseCodes,
+        licenseVersion: SVs.licenseVersion,
+        licenseNames: SVs.licenseNames,
+        licenseUrls: SVs.licenseUrls,
+    });
+
+    // When there is an attribution, stack it below the image in a column so it
+    // reads as a caption; the column's alignment follows `horizontalAlign`.
+    // Without an attribution, the image is rendered directly so existing markup
+    // is unchanged.
+    const alignItems =
+        SVs.horizontalAlign === "left"
+            ? "flex-start"
+            : SVs.horizontalAlign === "right"
+              ? "flex-end"
+              : "center";
+
     return (
         <VisibilitySensor
             partialVisibility={true}
@@ -597,22 +631,200 @@ export default React.memo(function Image(props) {
         >
             <div style={outerStyle}>
                 <a name={id} />
-                {urlOrSource ? (
-                    <img
-                        id={id}
-                        src={urlOrSource}
-                        style={imageStyle}
-                        alt={SVs.description}
-                    />
-                ) : (
-                    <div id={id} style={imageStyle}>
-                        {SVs.description}
+                {attribution ? (
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems,
+                        }}
+                    >
+                        {media}
+                        {attribution}
                     </div>
+                ) : (
+                    media
                 )}
             </div>
         </VisibilitySensor>
     );
 });
+
+/**
+ * Whether `url` is safe to place in an `href`. Authors supply the attribution
+ * URLs (`originalUrl`, `authorUrl`, and the fallback `licenseUrl`), so guard
+ * against script-bearing schemes (`javascript:`, `data:`, `vbscript:`, …) that
+ * could run on click. Whitespace and ASCII control characters are stripped
+ * first so obfuscated schemes (e.g. `java\tscript:`) cannot slip through. A URL
+ * with no scheme (relative or protocol-relative) is treated as safe.
+ */
+function isSafeHref(url) {
+    const stripped = url.replace(/[\u0000-\u001f\u007f\s]/g, "").toLowerCase();
+    const schemeMatch = stripped.match(/^([a-z][a-z0-9+.-]*):/);
+    if (!schemeMatch) {
+        return true;
+    }
+    const scheme = schemeMatch[1];
+    return scheme === "http" || scheme === "https" || scheme === "mailto";
+}
+
+/**
+ * Render `text` as an external link when `url` is given and safe, otherwise as
+ * a plain `<span>`. Shared by the attribution's subject, author, and license
+ * nodes so the link-or-span branching lives in one place. `key` is for use in
+ * lists.
+ */
+function maybeLink(text, url, key) {
+    return url && isSafeHref(url) ? (
+        <a key={key} href={url} target="_blank" rel="noopener noreferrer">
+            {text}
+        </a>
+    ) : (
+        <span key={key}>{text}</span>
+    );
+}
+
+/**
+ * Render the author/license attribution shown beneath the image, or `null` when
+ * there is nothing to attribute.
+ *
+ * The text follows Creative Commons' recommended practice of a single
+ * self-describing credit sentence. Following the TASL convention (Title,
+ * Author, Source, License), the subject is the quoted `imageName` when supplied,
+ * otherwise the generic word "Image"; it links to the source (`originalUrl`),
+ * and the author name links to `authorUrl`. The license clause is phrased by
+ * kind so each reads naturally:
+ *   - Creative Commons: "is licensed under a <name> <version> license"
+ *   - other licenses (MIT, Apache, GFDL, …): "is licensed under the <name>"
+ *   - public domain (CC0, PDM): "is in the public domain (<name>)"
+ * Dual licensing (two codes) joins the licenses with "or" since the reuser may
+ * choose either. License info is resolved from `licenseCodes` + `licenseVersion`
+ * via `@doenet/utils`; when no codes are given, the `licenseNames`/`licenseUrls`
+ * fallback is shown with generic phrasing.
+ */
+function renderImageAttribution({
+    idPrefix,
+    imageName,
+    authorName,
+    authorUrl,
+    originalUrl,
+    licenseCodes,
+    licenseVersion,
+    licenseNames,
+    licenseUrls,
+}) {
+    // Resolve each license into kind/label/url. Codes take precedence and carry
+    // full phrasing info; otherwise fall back to the preliminary name/url pair
+    // (rendered with generic phrasing since its kind is unknown).
+    let licenses;
+    if (licenseCodes && licenseCodes.length > 0) {
+        licenses = [];
+        for (const code of licenseCodes) {
+            const display = getMediaLicenseDisplay(code, licenseVersion);
+            // Unknown codes are already dropped by the worker; guard anyway.
+            if (display) {
+                licenses.push({
+                    kind: display.kind,
+                    label: display.label,
+                    url: display.url,
+                });
+            }
+        }
+    } else {
+        const names = licenseNames ?? [];
+        const urls = licenseUrls ?? [];
+        licenses = names.map((name, i) => ({
+            kind: "generic",
+            label: name,
+            url: urls[i] ?? null,
+        }));
+    }
+
+    const hasAuthor = Boolean(authorName);
+    const hasLicense = licenses.length > 0;
+
+    if (!hasAuthor && !hasLicense) {
+        return null;
+    }
+
+    // The subject of the sentence is the work itself: a quoted `imageName` when
+    // supplied (TASL "Title"), otherwise the generic word "Image". It carries
+    // the source link (`originalUrl`) since the title is where the work is
+    // found.
+    const subjectText = imageName ? `“${imageName}”` : "Image";
+    const subjectNode = maybeLink(subjectText, originalUrl);
+
+    const subjectAndAuthor = hasAuthor ? (
+        <>
+            {subjectNode} by {maybeLink(authorName, authorUrl)}
+        </>
+    ) : (
+        subjectNode
+    );
+
+    // Join an array of nodes with " or " (the dual-license connector).
+    function joinWithOr(nodes) {
+        return nodes.map((node, i) =>
+            i === 0 ? (
+                <React.Fragment key={i}>{node}</React.Fragment>
+            ) : (
+                <React.Fragment key={i}> or {node}</React.Fragment>
+            ),
+        );
+    }
+
+    let sentence;
+    if (!hasLicense) {
+        // Author only.
+        sentence = <>{subjectAndAuthor}.</>;
+    } else if (licenses.every((l) => l.kind === "public-domain")) {
+        // Public-domain works are dedicated/marked, not "licensed under".
+        const links = joinWithOr(
+            licenses.map((l, i) => maybeLink(l.label, l.url, i)),
+        );
+        sentence = (
+            <>
+                {subjectAndAuthor} is in the public domain ({links}).
+            </>
+        );
+    } else {
+        // Licensed works. Each license becomes a clause phrased by kind, joined
+        // with "or" for dual licensing. (A public-domain entry mixed into a
+        // license list — not a realistic combination — falls through to the
+        // "the <name>" form.)
+        const clauses = licenses.map((l, i) => {
+            const link = maybeLink(l.label, l.url, i);
+            if (l.kind === "creative-commons") {
+                return <>a {link} license</>;
+            } else if (l.kind === "generic") {
+                return <>{link}</>;
+            } else {
+                return <>the {link}</>;
+            }
+        });
+        sentence = (
+            <>
+                {subjectAndAuthor} is licensed under {joinWithOr(clauses)}.
+            </>
+        );
+    }
+
+    return (
+        <p
+            id={`${idPrefix}-attribution`}
+            className="image-attribution"
+            style={{
+                margin: "0.35em 0 0",
+                maxWidth: "100%",
+                fontSize: "0.85em",
+                fontStyle: "italic",
+                opacity: 0.85,
+            }}
+        >
+            {sentence}
+        </p>
+    );
+}
 
 /**
  * Resolve the URL to use for an image.
