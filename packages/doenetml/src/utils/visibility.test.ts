@@ -24,13 +24,15 @@ function makeEntry({
 describe("isEntryOnPage", () => {
     it("is true for an intersecting entry", () => {
         expect(
-            makeEntry({
-                isIntersecting: true,
-                width: 600,
-                height: 400,
-                clientRectCount: 1,
-            }),
-        ).toSatisfy(isEntryOnPage);
+            isEntryOnPage(
+                makeEntry({
+                    isIntersecting: true,
+                    width: 600,
+                    height: 400,
+                    clientRectCount: 1,
+                }),
+            ),
+        ).toBe(true);
     });
 
     it("is false for a non-intersecting entry with area", () => {
@@ -46,19 +48,35 @@ describe("isEntryOnPage", () => {
         ).toBe(false);
     });
 
-    it("is true for a zero-area target that still generates layout boxes", () => {
+    it("is true for a zero-height target that still generates layout boxes", () => {
         // Branded Chrome 149 can report a zero-height target inside an iframe
         // as non-intersecting even with a huge rootMargin. While hidden,
         // DocViewer renders nothing, so the observed wrapper is zero-height —
         // trusting the report would deadlock the viewer as permanently hidden.
         expect(
-            makeEntry({
-                isIntersecting: false,
-                width: 600,
-                height: 0,
-                clientRectCount: 1,
-            }),
-        ).toSatisfy(isEntryOnPage);
+            isEntryOnPage(
+                makeEntry({
+                    isIntersecting: false,
+                    width: 600,
+                    height: 0,
+                    clientRectCount: 1,
+                }),
+            ),
+        ).toBe(true);
+    });
+
+    it("is true for a zero-width target that still generates layout boxes", () => {
+        // Either dimension collapsing to zero yields the same zero-area report.
+        expect(
+            isEntryOnPage(
+                makeEntry({
+                    isIntersecting: false,
+                    width: 0,
+                    height: 400,
+                    clientRectCount: 1,
+                }),
+            ),
+        ).toBe(true);
     });
 
     it("is false for a display:none target (zero area, no layout boxes)", () => {

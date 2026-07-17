@@ -63,7 +63,8 @@ export function isEntryOnPage(entry: IntersectionObserverEntry): boolean {
 
 /**
  * Returns true if the element referenced by `ref` is anywhere on the page
- * (more precisely, within 1000000px of the browser's viewport).
+ * (more precisely, within 1000000px of the browser's viewport), or if it is
+ * laid out but has zero area — see `isEntryOnPage` for why.
  *
  * Used to approximately detect if the element is not hidden.
  */
