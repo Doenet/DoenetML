@@ -1005,8 +1005,18 @@ describe("rectangle self-reference anchored on a center @group3", async () => {
 });
 
 describe("rectangle self-reference width=$R.height @group3", async () => {
-    // The mirror image of the height="$R.width" cases above. Here the write-back
-    // lands on `height`, so it is the y-coordinates that would be pinned.
+    // The opposite orientation to the height="$R.width" cases above: the
+    // write-back lands on `height` here, so it re-derives the y-coordinates.
+    //
+    // Not a mirror image of the other orientation before the fix — see the
+    // block comment above. Verified against main: the two tests below that are
+    // marked as guards already passed pre-fix, because the pre-fix inverse
+    // happened to request the y anchor after the height. They pin the ordering
+    // rule rather than reproduce the bug. Only the main-diagonal V2 drag failed
+    // pre-fix, since `movePolygon` writes no size for V2 and the pre-fix
+    // `vertices` inverse requested no anchor for it either.
+
+    // Guard: passes pre-fix.
     it("translates freely (the center is not pinned)", async () => {
         const { core, resolvePathToNodeIdx: r } = await createTestCore({
             doenetML: `<graph><rectangle name="R" height="4" width="$R.height" draggable /></graph>`,
@@ -1027,6 +1037,7 @@ describe("rectangle self-reference width=$R.height @group3", async () => {
         });
     });
 
+    // Guard: passes pre-fix.
     it("dragging a corner resizes it as a square, holding the opposite corner", async () => {
         const { core, resolvePathToNodeIdx: r } = await createTestCore({
             doenetML: `<graph><rectangle name="R" height="4" width="$R.height" draggable verticesDraggable /></graph>`,
@@ -1049,6 +1060,7 @@ describe("rectangle self-reference width=$R.height @group3", async () => {
         });
     });
 
+    // Fails pre-fix: the one case that is actually broken in this orientation.
     it("dragging corner V2 outward grows the square, holding V0", async () => {
         const { core, resolvePathToNodeIdx: r } = await createTestCore({
             doenetML: `<graph><rectangle name="R" height="4" width="$R.height" draggable verticesDraggable /></graph>`,
