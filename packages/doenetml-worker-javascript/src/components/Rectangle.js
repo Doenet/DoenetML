@@ -1233,13 +1233,16 @@ export default class Rectangle extends Polygon {
                 // over-constrains a self-referential rectangle — i.e. the pointer
                 // is off the square's diagonal, so "follow the pointer" and "hold
                 // the opposite corner" cannot both hold. The anchor request lands
-                // last and wins, and which corner the anchor is decides the
-                // outcome: dragging V0/V1/V3 moves the anchor itself, so the
-                // pointer is followed exactly and the opposite corner slides;
-                // dragging V2 leaves the anchor at the opposite corner, so that
-                // corner holds and the pointer is not reached. Either way the
-                // rectangle stays square. This is a consequence of the anchoring,
-                // not a free choice.
+                // last and wins, so the outcome falls out of what anchors the
+                // rectangle, and is a consequence of the anchoring rather than a
+                // free choice. When the anchor is a vertex (the essential- and
+                // specified-vertex branches, anchored on v0): dragging V0/V1/V3
+                // moves the anchor itself, so the pointer is followed exactly and
+                // the opposite corner slides; dragging V2 leaves the anchor at the
+                // opposite corner, so that corner holds and the pointer is not
+                // reached. When the anchor is the center, it is the center that
+                // holds, and both the pointer and the opposite corner give. The
+                // rectangle stays square in every case.
                 //
                 // Each caller below is ordered and gated accordingly.
 

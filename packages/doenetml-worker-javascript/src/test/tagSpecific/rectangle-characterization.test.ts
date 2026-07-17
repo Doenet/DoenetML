@@ -671,7 +671,7 @@ describe("rectangle self-reference height=$R.width @group3", async () => {
             doenetML: `<graph><rectangle name="R" width="4" height="$R.width" draggable /></graph>`,
         });
         const idx = await r("R");
-        // request translation by (5,3): [0,0]..[0,4] -> [5,3]..[5,7]
+        // request translation by (5,3): [0,0]..[4,4] -> [5,3]..[9,7]
         await dragBy(core, idx, { 0: [5, 3], 1: [9, 3], 2: [9, 7], 3: [5, 7] });
         // the whole translation is honored; the rectangle stays 4x4
         await expectRect(core, r, {
@@ -783,7 +783,10 @@ describe("rectangle self-reference height=$R.width @group3", async () => {
  * When the pointer lands off the square's diagonal, "stay square", "follow the
  * pointer" and "hold the opposite corner" cannot all hold. What gives is decided
  * by the anchor: the inverse of `vertices` requests the anchor last, so the
- * anchor always wins, and the anchor is the rectangle's v0 (min-x, min-y) corner.
+ * anchor always wins.
+ *
+ * These cases are anchored on an essential vertex, so the anchor is the
+ * rectangle's v0 (min-x, min-y) corner:
  *
  *   - Dragging V0/V1/V3 moves the anchor itself, so the pointer is followed
  *     exactly and the OPPOSITE CORNER SLIDES.
@@ -793,7 +796,9 @@ describe("rectangle self-reference height=$R.width @group3", async () => {
  * The rectangle stays square either way. This asymmetry is a consequence of
  * which corner anchors the rectangle, not an independent choice: the anchor
  * request is exactly what stops the self-reference write-back from re-centering
- * the rectangle, so it cannot be dropped to make V2 follow the pointer.
+ * the rectangle, so it cannot be dropped to make V2 follow the pointer. A
+ * center-anchored rectangle resolves the same conflict about its center
+ * instead — see the center block below.
  *
  * These values are pinned to make any future change to that trade-off visible.
  */
@@ -914,6 +919,80 @@ describe("rectangle self-reference with a specified vertex @group3", async () =>
             w: 6,
             h: 6,
             c: [5, 6],
+        });
+    });
+});
+
+describe("rectangle self-reference anchored on a center @group3", async () => {
+    // `center="(1,2)" width="4" height="$R.width"` anchors the square on a
+    // center rather than on a vertex, which is the third branch of the inverse
+    // of `vertices` that reconciles sizes with a position.
+    //
+    // The anchor here is the center, not v0, so the over-constrained tie-break
+    // differs from the vertex-anchored blocks above: the center is what holds,
+    // and both the pointer and the opposite corner give.
+    const ml = `<graph><rectangle name="R" center="(1,2)" width="4" height="$R.width" draggable verticesDraggable /></graph>`;
+
+    it("translates freely (the center is not pinned)", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: ml,
+        });
+        const idx = await r("R");
+        // request translation by (5,3): [-1,0]..[3,4] -> [4,3]..[8,7]
+        await dragBy(core, idx, { 0: [4, 3], 1: [8, 3], 2: [8, 7], 3: [4, 7] });
+        await expectRect(core, r, {
+            v: [
+                [4, 3],
+                [8, 3],
+                [8, 7],
+                [4, 7],
+            ],
+            w: 4,
+            h: 4,
+            c: [6, 5],
+        });
+    });
+
+    it("dragging corner V2 outward grows the square, holding V0", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: ml,
+        });
+        const idx = await r("R");
+        // drag corner V2 (starts at (3,4)) to (5,6), along the main diagonal
+        await dragBy(core, idx, { 2: [5, 6] });
+        await expectRect(core, r, {
+            v: [
+                [-1, 0],
+                [5, 0],
+                [5, 6],
+                [-1, 6],
+            ],
+            w: 6,
+            h: 6,
+            c: [2, 3],
+        });
+    });
+
+    it("V2 dragged off the diagonal: the center wins, both corners slide", async () => {
+        const { core, resolvePathToNodeIdx: r } = await createTestCore({
+            doenetML: ml,
+        });
+        const idx = await r("R");
+        // V2 starts (3,4); dragging it to (5,7) asks for 6-wide, 7-tall —
+        // impossible while square. The center request lands last and wins, so
+        // the square is centered on the midpoint of the drag and grows about it:
+        // neither the pointer nor the opposite corner V0 is held.
+        await dragBy(core, idx, { 2: [5, 7] });
+        await expectRect(core, r, {
+            v: [
+                [-1.5, 0],
+                [5.5, 0],
+                [5.5, 7],
+                [-1.5, 7],
+            ],
+            w: 7,
+            h: 7,
+            c: [2, 3.5],
         });
     });
 });
