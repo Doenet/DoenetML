@@ -34,6 +34,8 @@ jobs:
     dev-release:
         name: Dev Release
         runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.compute-version.outputs.version }}
         if: >-
             (github.event_name == 'workflow_run' &&
             github.event.workflow_run.conclusion == 'success' &&
@@ -71,10 +73,14 @@ jobs:
               run: node .github/scripts/verify-ci.mjs
 
             - name: Update versions
+              id: compute-version
               run: |
                   CURRENT_VERSION=$(node -p "require('./packages/doenetml/package.json').version")
                   VERSION="${CURRENT_VERSION}-dev.${{ github.run_number }}"
                   npm run version -- ${VERSION} --no-git-tag-version
+                  # Exposed as a job output so the notify-site-dev job can pin the
+                  # Doenet site to the exact version published here.
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
             - name: Build workspaces
               run: |
@@ -206,6 +212,8 @@ jobs:
         name: Production Release
         runs-on: ubuntu-latest
         environment: production
+        outputs:
+            version: ${{ steps.release-tag.outputs.version }}
         if: >-
             github.event_name == 'release' ||
             (github.event_name == 'workflow_dispatch' && inputs.channel == 'production')
@@ -298,3 +306,48 @@ jobs:
               run: npm run publish -w @doenet/vscode-extension
               env:
                   VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+    # After a dev publish, pin the Doenet site's tracked dev DoenetML version to
+    # the exact version just published, so users get the new bundle immediately
+    # from an immutable jsDelivr URL instead of waiting out a browser cache.
+    #
+    # This runs as a separate job so a failure here does NOT republish to npm:
+    # GitHub notifies on the failed job and "Re-run failed jobs" retries only
+    # this step. The site endpoint is idempotent, so retries are safe.
+    #
+    # Requires the repository-level secret DOENET_VERSION_UPDATE_SECRET (must be
+    # repo-level, not only in the `production` environment, so both this dev job
+    # and the production job below can read it — same requirement as VSCE_PAT).
+    notify-site-dev:
+        name: Pin dev version on Doenet sites
+        needs: dev-release
+        runs-on: ubuntu-latest
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Pin tracked dev version
+              env:
+                  SECRET: ${{ secrets.DOENET_VERSION_UPDATE_SECRET }}
+                  TAG: dev
+                  VERSION: ${{ needs.dev-release.outputs.version }}
+              run: bash .github/scripts/notify-site-version.sh
+
+    # After a production publish, pin the site's tracked `latest` DoenetML version
+    # to the released version. Same rationale and retry behavior as the dev job.
+    notify-site-prod:
+        name: Pin latest version on Doenet sites
+        needs: production-release
+        runs-on: ubuntu-latest
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Pin tracked latest version
+              env:
+                  SECRET: ${{ secrets.DOENET_VERSION_UPDATE_SECRET }}
+                  TAG: latest
+                  VERSION: ${{ needs.production-release.outputs.version }}
+              run: bash .github/scripts/notify-site-version.sh
