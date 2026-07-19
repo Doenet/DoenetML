@@ -308,8 +308,8 @@ export default class LineSegment extends GraphicalComponent {
             },
         };
 
-        // How many midpoints are prescribed (0 or 1).
-        stateVariableDefinitions.numMidpoints = {
+        // Whether a midpoint is prescribed.
+        stateVariableDefinitions.midpointSpecified = {
             returnDependencies: () => ({
                 midpointAttr: {
                     dependencyType: "attributeComponent",
@@ -319,8 +319,8 @@ export default class LineSegment extends GraphicalComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        numMidpoints:
-                            dependencyValues.midpointAttr !== null ? 1 : 0,
+                        midpointSpecified:
+                            dependencyValues.midpointAttr !== null,
                     },
                 };
             },
@@ -608,7 +608,7 @@ export default class LineSegment extends GraphicalComponent {
             stateVariablesDeterminingDependencies: [
                 "basedOnSlopeOrMidpoint",
                 "numEndpointsSpecified",
-                "numMidpoints",
+                "midpointSpecified",
             ],
             returnArrayDependenciesByKey({ stateValues, arrayKeys }) {
                 // When not using the new slope/midpoint parameterization,
@@ -640,9 +640,9 @@ export default class LineSegment extends GraphicalComponent {
                         dependencyType: "stateVariable",
                         variableName: "numEndpointsSpecified",
                     },
-                    numMidpoints: {
+                    midpointSpecified: {
                         dependencyType: "stateVariable",
-                        variableName: "numMidpoints",
+                        variableName: "midpointSpecified",
                     },
                     numDimensions: {
                         dependencyType: "stateVariable",
@@ -693,7 +693,7 @@ export default class LineSegment extends GraphicalComponent {
                         };
                     }
                     // For case A, also need midpoint coords.
-                    if (stateValues.numMidpoints === 1) {
+                    if (stateValues.midpointSpecified) {
                         for (let arrayKey of arrayKeys) {
                             let [pointInd, dim] = arrayKey.split(",");
                             let varEnding = "1_" + (Number(dim) + 1);
@@ -709,7 +709,7 @@ export default class LineSegment extends GraphicalComponent {
 
                 // Case C or D: 0 explicit endpoints.
                 let dependenciesByKey = {};
-                if (stateValues.numMidpoints === 1) {
+                if (stateValues.midpointSpecified) {
                     // Case C: need midpoint coords per key.
                     for (let arrayKey of arrayKeys) {
                         let [pointInd, dim] = arrayKey.split(",");
@@ -791,7 +791,7 @@ export default class LineSegment extends GraphicalComponent {
 
                 // Emit diagnostics for ignored attributes.
                 let sendDiagnostics = [];
-                if (g.numEndpointsSpecified === 1 && g.numMidpoints === 1) {
+                if (g.numEndpointsSpecified === 1 && g.midpointSpecified) {
                     // Case A uses midpointOffset (it sets where the midpoint sits
                     // along the segment), so only slope and length are ignored.
                     if (g.slopeAttr !== null || g.lengthAttr !== null) {
@@ -809,7 +809,7 @@ export default class LineSegment extends GraphicalComponent {
                         });
                     }
                 } else if (
-                    g.numMidpoints === 0 &&
+                    !g.midpointSpecified &&
                     !gUsedDefault.midpointOffset
                 ) {
                     sendDiagnostics.push({
@@ -821,7 +821,7 @@ export default class LineSegment extends GraphicalComponent {
 
                 let unconstrainedEndpoints = {};
 
-                if (g.numEndpointsSpecified === 1 && g.numMidpoints === 1) {
+                if (g.numEndpointsSpecified === 1 && g.midpointSpecified) {
                     // Case A: 1 endpoint (ep1) + midpoint M. M sits at parameter
                     // tT = (1 + midpointOffset)/2 along [ep1, ep2], so
                     // ep2 = ep1 + (M - ep1)/tT. slope and length are ignored (the
@@ -880,7 +880,7 @@ export default class LineSegment extends GraphicalComponent {
                     }
                     const [dirX, dirY] = direction;
 
-                    if (g.numEndpointsSpecified === 1 && g.numMidpoints === 0) {
+                    if (g.numEndpointsSpecified === 1 && !g.midpointSpecified) {
                         // Case B: 1 endpoint, ep2 = ep1 + L × dir.
                         // Build ep2 as an expression so symbolic endpoints are preserved.
                         for (let arrayKey of arrayKeys) {
@@ -905,7 +905,7 @@ export default class LineSegment extends GraphicalComponent {
                                     .simplify();
                             }
                         }
-                    } else if (g.numMidpoints === 1) {
+                    } else if (g.midpointSpecified) {
                         // Case C: 0 endpoints + 1 midpoint.
                         // Build endpoints as expressions so symbolic midpoints are preserved.
                         const po = g.midpointOffset;
@@ -1054,9 +1054,9 @@ export default class LineSegment extends GraphicalComponent {
                 let instructions = [];
 
                 const numEndpointsSpecified = g.numEndpointsSpecified;
-                const numMidpoints = g.numMidpoints;
+                const midpointSpecified = g.midpointSpecified;
 
-                if (numEndpointsSpecified === 1 && numMidpoints === 1) {
+                if (numEndpointsSpecified === 1 && midpointSpecified) {
                     // Case A: segment defined by ep1 (endpoints attr) and midpoint
                     // M (midpoint attr), with M at parameter tT = (1 + midpointOffset)/2
                     // along [ep1, ep2]: M = ep1 + tT*(ep2 - ep1). There is no stored
@@ -1105,7 +1105,7 @@ export default class LineSegment extends GraphicalComponent {
                     return { success: true, instructions };
                 }
 
-                if (numEndpointsSpecified === 1 && numMidpoints === 0) {
+                if (numEndpointsSpecified === 1 && !midpointSpecified) {
                     // Case B: ep1 from endpoints attr; ep2 = ep1 + L × dir(slope).
                     // ep1 desired → update ep1 attr directly (slope/length unchanged → ep2 translates)
                     // ep2 desired → compute new slope/length
@@ -1145,7 +1145,7 @@ export default class LineSegment extends GraphicalComponent {
                             });
                         }
                     }
-                } else if (numMidpoints === 1) {
+                } else if (midpointSpecified) {
                     // Case C: midpoint T is the position handle.
                     // ep1 = T - (1+po)/2 * L * dir
                     // ep2 = T + (1-po)/2 * L * dir
