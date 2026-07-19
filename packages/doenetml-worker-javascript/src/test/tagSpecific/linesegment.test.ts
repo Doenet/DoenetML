@@ -10,6 +10,7 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
+import type { Expression } from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -97,12 +98,12 @@ async function runPointBasedTests({
         core,
     });
 
-    let point1Indices = componentIndices.map((v) => v[1]);
+    let point1Indices = componentIndices.map((v: number[]) => v[1]);
     if (definingPointNames.length > 0) {
         point1Indices.push(definingPointIndices[0]);
     }
 
-    let point2Indices = componentIndices.map((v) => v[2]);
+    let point2Indices = componentIndices.map((v: number[]) => v[2]);
     if (definingPointNames.length > 1) {
         point2Indices.push(definingPointIndices[1]);
     }
@@ -206,9 +207,11 @@ async function checkAllLineValues({
 
     const stateVariables = await core.returnAllStateVariables(false, true);
     for (let [ind, pointIdx] of definingPointIndices.entries()) {
-        expect(stateVariables[pointIdx].stateValues.xs.map((v) => v.tree)).eqls(
-            points[ind],
-        );
+        expect(
+            stateVariables[pointIdx].stateValues.xs.map(
+                (v: Expression) => v.tree,
+            ),
+        ).eqls(points[ind]);
     }
 }
 
@@ -497,12 +500,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls(["q", 2]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([-2, 3]);
 
         // change point to be numeric
@@ -515,12 +518,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([5, 2]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([-2, 3]);
     });
 
@@ -569,12 +572,12 @@ describe("LineSegment tag tests @group1", async () => {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls([x, y]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls([y, x]);
             expect(
                 stateVariables[await resolvePathToNodeIdx("x1")].stateValues
@@ -675,32 +678,32 @@ describe("LineSegment tag tests @group1", async () => {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l1")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls([x2, y2]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l1")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls([x1, y1]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l2")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls([x3, y3]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l2")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls([x2, y2]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l3")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls([x1, y1]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l3")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls([x3, y3]);
         }
 
@@ -1748,12 +1751,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([1, 2]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([3, 4]);
         expect(
             stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
@@ -1776,12 +1779,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([-4, 4]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([4, -4]);
 
         let xorig = -5;
@@ -1916,12 +1919,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([1, 2]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([3, 4]);
         expect(
             stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
@@ -1944,12 +1947,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([-4, 4]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([4, -4]);
         expect(
             stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
@@ -2169,7 +2172,7 @@ describe("LineSegment tag tests @group1", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("Ps[1]")
-                    ].stateValues.xs.map((v) => v.tree),
+                    ].stateValues.xs.map((v: Expression) => v.tree),
                 ).eqls([t1x, t1y]);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("x")].stateValues
@@ -2183,7 +2186,7 @@ describe("LineSegment tag tests @group1", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("Ps[1]")
-                    ].stateValues.xs.map((v) => v.tree),
+                    ].stateValues.xs.map((v: Expression) => v.tree),
                 ).eqls([t2x, t2y]);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("x")].stateValues
@@ -2502,12 +2505,12 @@ describe("LineSegment tag tests @group1", async () => {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("p")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls(point1);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("p")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls(point2);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
@@ -2844,7 +2847,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         let sv = await core.returnAllStateVariables(false, true);
         let ep2Init = ep2FromEp1SlopeLength([0, 0], 2, 1);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, 0]);
@@ -3078,12 +3081,12 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Initial: ep1=(0,0), slope=0, length=3 → ep2=(3,0)
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, 0]);
         expect(
-            sv[lIdx].stateValues.endpoints[1].map((v) =>
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([3, 0]);
@@ -3128,12 +3131,12 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         expect(sv[mIdx].stateValues.value).eqls(Infinity);
         expect(sv[LIdx].stateValues.value).closeTo(-3, 1e-10);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, 0]);
         expect(
-            sv[lIdx].stateValues.endpoints[1].map((v) =>
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, -3]);
@@ -3184,7 +3187,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
 
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, 0]);
@@ -3195,7 +3198,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
         ).closeTo(initEp2[1], 1e-10);
         expect(
-            sv[p1Idx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[p1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([0, 0]);
 
         // Move p1 (referenced endpoint) — whole segment should translate
@@ -3330,7 +3335,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Initial: ep1=(1,2), ep2=(1+3cos45, 2+3sin45); p1 mirrors ep1
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls(initEp1);
@@ -3341,7 +3346,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
         ).closeTo(initEp2[1], 1e-10);
         expect(
-            sv[p1Idx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[p1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls(initEp1);
 
         // Move p1 (referenced endpoint) — whole segment translates
@@ -3542,17 +3549,17 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Default midpointOffset=0: endpoints (1,2) and (3,4), midpoint (2,3)
         const midIdx = await resolvePathToNodeIdx("mid");
         expect(
-            sv[midIdx].stateValues.endpoints[0].map((v) =>
+            sv[midIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([1, 2]);
         expect(
-            sv[midIdx].stateValues.endpoints[1].map((v) =>
+            sv[midIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([3, 4]);
         expect(
-            sv[midIdx].stateValues.midpoint.map((v) =>
+            sv[midIdx].stateValues.midpoint.map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([2, 3]);
@@ -3560,12 +3567,12 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // midpointOffset=1: midpoint acts as the second endpoint (old behavior)
         const asEp2Idx = await resolvePathToNodeIdx("asEp2");
         expect(
-            sv[asEp2Idx].stateValues.endpoints[0].map((v) =>
+            sv[asEp2Idx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([1, 2]);
         expect(
-            sv[asEp2Idx].stateValues.endpoints[1].map((v) =>
+            sv[asEp2Idx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([2, 3]);
@@ -3573,7 +3580,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // midpointOffset=-1: midpoint pins ep1, so ep2 is undefined (NaN)
         const undefIdx = await resolvePathToNodeIdx("undef");
         expect(
-            sv[undefIdx].stateValues.endpoints[0].map((v) =>
+            sv[undefIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([1, 2]);
@@ -3612,7 +3619,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Initial: ep1=(-3,1), ep2 undefined.
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lsIdx].stateValues.endpoints[0].map((v) =>
+            sv[lsIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([-3, 1]);
@@ -3627,7 +3634,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             ),
         ).eq(true);
         expect(
-            sv[p1Idx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[p1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([-3, 1]);
 
         // Drag the referenced first endpoint to (2,-4).
@@ -3636,7 +3645,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         sv = await core.returnAllStateVariables(false, true);
         // ep1 moved; ep2 remains undefined.
         expect(
-            sv[lsIdx].stateValues.endpoints[0].map((v) =>
+            sv[lsIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([2, -4]);
@@ -3651,7 +3660,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             ),
         ).eq(true);
         expect(
-            sv[p1Idx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[p1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([2, -4]);
 
         // The specified midpoint was left untouched at (5,3): flipping
@@ -3666,12 +3677,12 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         sv = await core.returnAllStateVariables(false, true);
         // ep1 unchanged at (2,-4); ep2 now defined
         expect(
-            sv[lsIdx].stateValues.endpoints[0].map((v) =>
+            sv[lsIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([2, -4]);
         expect(
-            sv[lsIdx].stateValues.endpoints[1].map((v) =>
+            sv[lsIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([8, 10]);
@@ -3994,20 +4005,24 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Initial: T=(0,0), slope=0, length=4 → ep1=(-2,0), ep2=(2,0)
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([-2, 0]);
         expect(
-            sv[lIdx].stateValues.endpoints[1].map((v) =>
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([2, 0]);
         expect(
-            sv[p2Idx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[p2Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([2, 0]);
         expect(
-            sv[tIdx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[tIdx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([0, 0]);
         expect(sv[mIdx].stateValues.value).closeTo(0, 1e-10);
         expect(sv[lNumberIdx].stateValues.value).closeTo(4, 1e-10);
@@ -4062,17 +4077,19 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Initial: T=(2,0), slope=0, length=4 → ep1=(0,0), ep2=(4,0)
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, 0]);
         expect(
-            sv[lIdx].stateValues.endpoints[1].map((v) =>
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([4, 0]);
         expect(
-            sv[TIdx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[TIdx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([2, 0]);
 
         await movePoint({ componentIdx: TIdx, x: 5, y: 3, core });
@@ -4189,19 +4206,21 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // po=0.5, L=4, horizontal: the input point P=(0,0) sits 3/4 of the way
         // along the segment, giving endpoints (-3,0) and (1,0).
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([-3, 0]);
         expect(
-            sv[lIdx].stateValues.endpoints[1].map((v) =>
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([1, 0]);
         // The midpoint property is the actual midpoint (-1,0), not the input
         // point (0,0) given by the midpoint attribute.
         expect(
-            sv[lIdx].stateValues.midpoint.map((v) => v.evaluate_to_constant()),
+            sv[lIdx].stateValues.midpoint.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([-1, 0]);
     });
 
@@ -4677,16 +4696,18 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Initial: T=(2,3,4), slope=0, length=4 → ep1=(0,3,4), ep2=(4,3,4)
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, 3, 4]);
         expect(
-            sv[lIdx].stateValues.endpoints[1].map((v) =>
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([4, 3, 4]);
-        expect(sv[tIdx].stateValues.xs.map((v) => v.tree)).eqls([2, 3, 4]);
+        expect(sv[tIdx].stateValues.xs.map((v: Expression) => v.tree)).eqls([
+            2, 3, 4,
+        ]);
 
         await movePoint({
             componentIdx: tIdx,
@@ -4716,7 +4737,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         expect(
             sv[lIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
         ).closeTo(6, 1e-10);
-        expect(sv[tIdx].stateValues.xs.map((v) => v.tree)).eqls([3, 5, 6]);
+        expect(sv[tIdx].stateValues.xs.map((v: Expression) => v.tree)).eqls([
+            3, 5, 6,
+        ]);
     });
 
     it("moveLineSegment action in 3D updates every coordinate", async () => {
@@ -4735,17 +4758,19 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Initial: T=(2,3,4), slope=0, length=4 → ep1=(0,3,4), ep2=(4,3,4)
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, 3, 4]);
         expect(
-            sv[lIdx].stateValues.endpoints[1].map((v) =>
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([4, 3, 4]);
         expect(
-            sv[tIdx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[tIdx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([2, 3, 4]);
 
         await moveLineSegment({
@@ -4757,17 +4782,19 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
 
         sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[lIdx].stateValues.endpoints[0].map((v) =>
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([0, 1, 7]);
         expect(
-            sv[lIdx].stateValues.endpoints[1].map((v) =>
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
                 v.evaluate_to_constant(),
             ),
         ).eqls([4, 1, 7]);
         expect(
-            sv[tIdx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+            sv[tIdx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
         ).eqls([2, 1, 7]);
     });
 
@@ -4785,23 +4812,23 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Initial: P snaps to grid at (4,6,10), Q=(-4,-1,1); endpoints follow
         let sv = await core.returnAllStateVariables(false, true);
         expect(
-            sv[await resolvePathToNodeIdx("P")].stateValues.xs.map((v) =>
-                v.evaluate_to_constant(),
+            sv[await resolvePathToNodeIdx("P")].stateValues.xs.map(
+                (v: Expression) => v.evaluate_to_constant(),
             ),
         ).eqls([4, 6, 10]);
         expect(
-            sv[await resolvePathToNodeIdx("Q")].stateValues.xs.map((v) =>
-                v.evaluate_to_constant(),
+            sv[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
+                (v: Expression) => v.evaluate_to_constant(),
             ),
         ).eqls([-4, -1, 1]);
         expect(
             sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[0].map(
-                (v) => v.evaluate_to_constant(),
+                (v: Expression) => v.evaluate_to_constant(),
             ),
         ).eqls([4, 6, 10]);
         expect(
             sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[1].map(
-                (v) => v.evaluate_to_constant(),
+                (v: Expression) => v.evaluate_to_constant(),
             ),
         ).eqls([-4, -1, 1]);
 
@@ -4815,23 +4842,23 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         sv = await core.returnAllStateVariables(false, true);
 
         expect(
-            sv[await resolvePathToNodeIdx("P")].stateValues.xs.map((v) =>
-                v.evaluate_to_constant(),
+            sv[await resolvePathToNodeIdx("P")].stateValues.xs.map(
+                (v: Expression) => v.evaluate_to_constant(),
             ),
         ).eqls([4, 3, 15]);
         expect(
-            sv[await resolvePathToNodeIdx("Q")].stateValues.xs.map((v) =>
-                v.evaluate_to_constant(),
+            sv[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
+                (v: Expression) => v.evaluate_to_constant(),
             ),
         ).eqls([-4, -4, 6]);
         expect(
             sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[0].map(
-                (v) => v.evaluate_to_constant(),
+                (v: Expression) => v.evaluate_to_constant(),
             ),
         ).eqls([4, 3, 15]);
         expect(
             sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[1].map(
-                (v) => v.evaluate_to_constant(),
+                (v: Expression) => v.evaluate_to_constant(),
             ),
         ).eqls([-4, -4, 6]);
     });
