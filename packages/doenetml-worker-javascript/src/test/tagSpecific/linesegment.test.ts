@@ -3224,6 +3224,73 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         ).closeTo(initEp2[1] + delta[1], 1e-10);
     });
 
+    it("slope only — drag referenced endpoint2 updates slope and length", async () => {
+        // Case D: ep1 is the essential anchor and ep2 = ep1 + L*dir(slope).
+        // Dragging a point that references endpoint2 must keep ep1 fixed and
+        // fold the new position into the slope/length parameterization.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" slope="1" length="2" />
+  <point extend="$l.endpoint2" name="p2" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+
+        // Initial ep1=(0,0), ep2 = 2*(cos45,sin45); p2 mirrors ep2
+        const initEp2 = ep2FromEp1SlopeLength([0, 0], 1, 2);
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(initEp2[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(initEp2[1], 1e-10);
+        expect(sv[p2Idx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            initEp2[0],
+            1e-10,
+        );
+        expect(sv[p2Idx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            initEp2[1],
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+
+        // Drag p2 (referenced ep2) to (3,0) — ep1 stays, slope→0, length→3
+        await movePoint({ componentIdx: p2Idx, x: 3, y: 0, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+    });
+
     // -----------------------------------------------------------------------
     // Case B: 1 endpoint + slope
     // -----------------------------------------------------------------------
@@ -3370,6 +3437,68 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         ).closeTo(initEp2[1] + delta[1], 1e-10);
     });
 
+    it("one endpoint and slope — drag referenced endpoint2 updates slope and length", async () => {
+        // Case B: ep1 (endpoints attr) is the anchor and ep2 = ep1 + L*dir(slope).
+        // Dragging a point that references endpoint2 keeps ep1 fixed and folds
+        // the new position into the slope/length parameterization.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2)" slope="1" length="3" />
+  <point extend="$l.endpoint2" name="p2" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+
+        // Initial: ep1=(1,2), ep2=(1+3cos45, 2+3sin45); p2 mirrors ep2
+        const initEp2 = ep2FromEp1SlopeLength([1, 2], 1, 3);
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(initEp2[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(initEp2[1], 1e-10);
+        expect(sv[p2Idx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            initEp2[0],
+            1e-10,
+        );
+        expect(sv[p2Idx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            initEp2[1],
+            1e-10,
+        );
+
+        // Drag p2 (referenced ep2) to (4,2) — ep1 stays at (1,2), slope→0, length→3
+        await movePoint({ componentIdx: p2Idx, x: 4, y: 2, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+    });
+
     // -----------------------------------------------------------------------
     // Case A: 1 endpoint + 1 midpoint → the midpoint point is the segment's
     // midpoint (with default midpointOffset=0), so ep2 = 2*midpoint - ep1.
@@ -3481,6 +3610,77 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         );
     });
 
+    it("one endpoint and midpoint — drag referenced endpoint2 updates the midpoint", async () => {
+        // Case A: ep1 (endpoints attr) is the anchor and the midpoint attr point
+        // tracks the segment midpoint. Dragging a point that references endpoint2
+        // keeps ep1 fixed and moves the midpoint to the new (ep1+ep2)/2.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="dp1">(1,2)</point>
+<point name="T">(4,6)</point>
+<graph name="g">
+  <lineSegment name="l" endpoints="$dp1" midpoint="$T" />
+  <point extend="$l.endpoint2" name="p2" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const dp1Idx = await resolvePathToNodeIdx("dp1");
+        const TIdx = await resolvePathToNodeIdx("T");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+
+        // ep1=(1,2), midpoint=(4,6) → ep2 = 2*(4,6)-(1,2) = (7,10); p2 mirrors ep2
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([7, 10]);
+        expect(
+            sv[p2Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([7, 10]);
+
+        // Drag p2 (referenced ep2) to (7,1) — ep1 stays, midpoint tracks to (4,1.5)
+        await movePoint({ componentIdx: p2Idx, x: 7, y: 1, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        // midpoint attr point tracks to ((1,2)+(7,1))/2 = (4, 1.5)
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            1.5,
+            1e-10,
+        );
+        // dp1 (referenced ep1) unchanged
+        expect(
+            sv[dp1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+    });
+
     it("one endpoint and midpoint keeps length Euclidean (length attr ignored)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -3564,7 +3764,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
             ),
         ).eqls([2, 3]);
 
-        // midpointOffset=1: midpoint acts as the second endpoint (old behavior)
+        // midpointOffset=1: midpoint acts as the second endpoint
         const asEp2Idx = await resolvePathToNodeIdx("asEp2");
         expect(
             sv[asEp2Idx].stateValues.endpoints[0].map((v: Expression) =>
@@ -4319,6 +4519,222 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         // Drag diagonally: (5,7) -> (0,0)
         await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
         await checkSegment([-1, -1], [1, 1]);
+    });
+
+    it("two endpoints — dragging a referenced midpoint translates the segment", async () => {
+        // The public midpoint property is the average of the endpoints; dragging
+        // a point bound to it translates the whole segment so the midpoint lands
+        // on the drag target, preserving the endpoint separation. (Original
+        // two-endpoint case, basedOnSlopeOrMidpoint = false.)
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2) (5,4)" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        let ep1 = [1, 2];
+        let ep2 = [5, 4];
+
+        async function checkSegment() {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            const mid = sv[lIdx].stateValues.midpoint;
+            expect(mid[0].evaluate_to_constant()).closeTo(
+                (ep1[0] + ep2[0]) / 2,
+                1e-10,
+            );
+            expect(mid[1].evaluate_to_constant()).closeTo(
+                (ep1[1] + ep2[1]) / 2,
+                1e-10,
+            );
+        }
+
+        function dragMidTo(mx: number, my: number) {
+            const d = [mx - (ep1[0] + ep2[0]) / 2, my - (ep1[1] + ep2[1]) / 2];
+            ep1 = [ep1[0] + d[0], ep1[1] + d[1]];
+            ep2 = [ep2[0] + d[0], ep2[1] + d[1]];
+        }
+
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        dragMidTo(0, 0);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 6, y: -2, core });
+        dragMidTo(6, -2);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: -4, y: 5, core });
+        dragMidTo(-4, 5);
+        await checkSegment();
+    });
+
+    it("one endpoint and slope (Case B) — dragging a referenced midpoint translates the segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2)" slope="1" length="3" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        let ep1 = [1, 2];
+        let ep2 = ep2FromEp1SlopeLength([1, 2], 1, 3);
+
+        async function checkSegment() {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            // Translation preserves slope and length.
+            expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+            expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+                3,
+                1e-10,
+            );
+        }
+
+        function dragMidTo(mx: number, my: number) {
+            const d = [mx - (ep1[0] + ep2[0]) / 2, my - (ep1[1] + ep2[1]) / 2];
+            ep1 = [ep1[0] + d[0], ep1[1] + d[1]];
+            ep2 = [ep2[0] + d[0], ep2[1] + d[1]];
+        }
+
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        dragMidTo(0, 0);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 6, y: -2, core });
+        dragMidTo(6, -2);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: -4, y: 5, core });
+        dragMidTo(-4, 5);
+        await checkSegment();
+    });
+
+    it("midpoint with slope/length (Case C) — dragging a referenced midpoint translates the segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,3)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        let ep1 = [0, 3];
+        let ep2 = [4, 3];
+
+        async function checkSegment() {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            // Translation preserves slope and length.
+            expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+            expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+                4,
+                1e-10,
+            );
+        }
+
+        function dragMidTo(mx: number, my: number) {
+            const d = [mx - (ep1[0] + ep2[0]) / 2, my - (ep1[1] + ep2[1]) / 2];
+            ep1 = [ep1[0] + d[0], ep1[1] + d[1]];
+            ep2 = [ep2[0] + d[0], ep2[1] + d[1]];
+        }
+
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        dragMidTo(0, 0);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 6, y: -2, core });
+        dragMidTo(6, -2);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: -4, y: 5, core });
+        dragMidTo(-4, 5);
+        await checkSegment();
+    });
+
+    it("slope only (Case D) — dragging a referenced midpoint translates the segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" slope="1" length="2" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        let ep1 = [0, 0];
+        let ep2 = ep2FromEp1SlopeLength([0, 0], 1, 2);
+
+        async function checkSegment() {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            // Translation preserves slope and length.
+            expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+            expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+                2,
+                1e-10,
+            );
+        }
+
+        function dragMidTo(mx: number, my: number) {
+            const d = [mx - (ep1[0] + ep2[0]) / 2, my - (ep1[1] + ep2[1]) / 2];
+            ep1 = [ep1[0] + d[0], ep1[1] + d[1]];
+            ep2 = [ep2[0] + d[0], ep2[1] + d[1]];
+        }
+
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        dragMidTo(0, 0);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 6, y: -2, core });
+        dragMidTo(6, -2);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: -4, y: 5, core });
+        dragMidTo(-4, 5);
+        await checkSegment();
     });
 
     it("midpoint state variable stays symbolic and supports inverse updates", async () => {
