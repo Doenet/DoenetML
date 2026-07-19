@@ -1202,104 +1202,127 @@ export default class Rectangle extends Polygon {
 
                 let instructions = [];
 
+                // Reconciling sizes with a position, when a size may be a
+                // self-reference.
+                //
+                // A size attribute may refer back to the rectangle's other
+                // dimension, as in `<rectangle name="R" width="4"
+                // height="$R.width" />`. Writing a size drives that attribute's
+                // inverse, which for such a self-reference comes back around into
+                // the *other* public size's inverse — and that re-derives both
+                // vertices from the rectangle's PRE-UPDATE center, fighting
+                // whatever this update is doing to its position. Two rules keep
+                // that write-back from pinning the rectangle:
+                //
+                //   1. Do not request a size that did not change
+                //      (`pushSizeIfChanged`). An exact translation leaves both
+                //      sizes alone, so it drives no write-back at all. The
+                //      comparison is exact, so rounding in the dragged
+                //      coordinates can still let a nominally-unchanged size
+                //      through; rule 2 is what keeps the result correct when it
+                //      does.
+                //   2. Request the position — the anchor vertex or the center —
+                //      for every dimension this update touches, AFTER the sizes.
+                //      Landing last, it wins over the stale position the
+                //      write-back derives. It must not be gated on the anchor
+                //      itself having moved: dragging the far corner alone changes
+                //      a size without moving the anchor, and an unrequested
+                //      anchor is one the write-back is free to re-center.
+                //
+                // Rule 2 also settles which constraint gives when a corner drag
+                // over-constrains a self-referential rectangle — i.e. the pointer
+                // is off the square's diagonal, so "follow the pointer" and "hold
+                // the opposite corner" cannot both hold. The anchor request lands
+                // last and wins, so the outcome falls out of what anchors the
+                // rectangle, and is a consequence of the anchoring rather than a
+                // free choice. When the anchor is a vertex (the essential- and
+                // specified-vertex branches, anchored on v0): dragging V0/V1/V3
+                // moves the anchor itself, so the pointer is followed exactly and
+                // the opposite corner slides; dragging V2 leaves the anchor at the
+                // opposite corner, so that corner holds and the pointer is not
+                // reached. When the anchor is the center, it is the center that
+                // holds, and both the pointer and the opposite corner give. The
+                // rectangle stays square in every case.
+                //
+                // Each caller below is ordered and gated accordingly.
+
+                // The center that `workspace` implies along dimension `dim`.
+                const centerComponent = (dim) =>
+                    workspace.v2[dim]
+                        .add(workspace.v0[dim])
+                        .divide(2)
+                        .simplify();
+
+                // Request `specifiedWidth`/`specifiedHeight` along dimension
+                // `dim`, but only if the size actually changed (rule 1 above).
+                const sizeVarNames = ["specifiedWidth", "specifiedHeight"];
+                const pushSizeIfChanged = async (dim, arrayKey) => {
+                    let sizeVarName = sizeVarNames[dim];
+                    let size = workspace.v2[dim]
+                        .subtract(workspace.v0[dim])
+                        .evaluate_to_constant();
+
+                    if (size !== (await stateValues[sizeVarName])) {
+                        instructions.push({
+                            setDependency:
+                                dependencyNamesByKey[arrayKey][sizeVarName],
+                            desiredValue: size,
+                        });
+                    }
+                };
+
                 if (globalDependencyValues.numVerticesSpecified === 0) {
                     if (globalDependencyValues.haveSpecifiedCenter) {
                         // width, height, center
 
                         if (keyX !== undefined) {
-                            let width = workspace.v2[0]
-                                .subtract(workspace.v0[0])
-                                .evaluate_to_constant();
-                            let center = workspace.v2[0]
-                                .add(workspace.v0[0])
-                                .divide(2)
-                                .simplify();
-
-                            instructions.push(
-                                {
-                                    setDependency:
-                                        dependencyNamesByKey[keyX]
-                                            .specifiedWidth,
-                                    desiredValue: width,
-                                },
-                                {
-                                    setDependency:
-                                        dependencyNamesByKey[keyX]
-                                            .specifiedCenter,
-                                    desiredValue: center,
-                                },
-                            );
+                            await pushSizeIfChanged(0, keyX);
+                        }
+                        if (keyY !== undefined) {
+                            await pushSizeIfChanged(1, keyY);
                         }
 
+                        // Rule 2: the center lands after the sizes.
+                        if (keyX !== undefined) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[keyX].specifiedCenter,
+                                desiredValue: centerComponent(0),
+                            });
+                        }
                         if (keyY !== undefined) {
-                            let height = workspace.v2[1]
-                                .subtract(workspace.v0[1])
-                                .evaluate_to_constant();
-                            let center = workspace.v2[1]
-                                .add(workspace.v0[1])
-                                .divide(2)
-                                .simplify();
-
-                            instructions.push(
-                                {
-                                    setDependency:
-                                        dependencyNamesByKey[keyY]
-                                            .specifiedHeight,
-                                    desiredValue: height,
-                                },
-                                {
-                                    setDependency:
-                                        dependencyNamesByKey[keyY]
-                                            .specifiedCenter,
-                                    desiredValue: center,
-                                },
-                            );
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[keyY].specifiedCenter,
+                                desiredValue: centerComponent(1),
+                            });
                         }
                     } else {
                         // width, height, essential vertex
 
-                        if (keyV0X !== undefined) {
-                            let vert = workspace.v0[0].simplify();
-
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[keyV0X]
-                                        .essentialVertex,
-                                desiredValue: vert,
-                            });
-                        }
                         if (keyV2X !== undefined) {
-                            let width = workspace.v2[0]
-                                .subtract(workspace.v0[0])
-                                .evaluate_to_constant();
-
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[keyV2X].specifiedWidth,
-                                desiredValue: width,
-                            });
-                        }
-
-                        if (keyV0Y !== undefined) {
-                            let vert = workspace.v0[1].simplify();
-
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[keyV0Y]
-                                        .essentialVertex,
-                                desiredValue: vert,
-                            });
+                            await pushSizeIfChanged(0, keyV2X);
                         }
                         if (keyV2Y !== undefined) {
-                            let height = workspace.v2[1]
-                                .subtract(workspace.v0[1])
-                                .evaluate_to_constant();
+                            await pushSizeIfChanged(1, keyV2Y);
+                        }
 
+                        // Rule 2: the anchor lands after the sizes. Every array
+                        // key in this branch carries the `essentialVertex`
+                        // dependency for its dimension, so the anchor can be
+                        // pinned off whichever key touched the dimension.
+                        if (keyX !== undefined) {
                             instructions.push({
                                 setDependency:
-                                    dependencyNamesByKey[keyV2Y]
-                                        .specifiedHeight,
-                                desiredValue: height,
+                                    dependencyNamesByKey[keyX].essentialVertex,
+                                desiredValue: workspace.v0[0].simplify(),
+                            });
+                        }
+                        if (keyY !== undefined) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[keyY].essentialVertex,
+                                desiredValue: workspace.v0[1].simplify(),
                             });
                         }
                     }
@@ -1318,16 +1341,11 @@ export default class Rectangle extends Polygon {
                             });
                         }
                         if (keyV2X !== undefined) {
-                            let center = workspace.v2[0]
-                                .add(workspace.v0[0])
-                                .divide(2)
-                                .simplify();
-
                             instructions.push({
                                 setDependency:
                                     dependencyNamesByKey[keyV2X]
                                         .specifiedCenter,
-                                desiredValue: center,
+                                desiredValue: centerComponent(0),
                             });
                         }
 
@@ -1342,63 +1360,45 @@ export default class Rectangle extends Polygon {
                             });
                         }
                         if (keyV2Y !== undefined) {
-                            let center = workspace.v2[1]
-                                .add(workspace.v0[1])
-                                .divide(2)
-                                .simplify();
-
                             instructions.push({
                                 setDependency:
                                     dependencyNamesByKey[keyV2Y]
                                         .specifiedCenter,
-                                desiredValue: center,
+                                desiredValue: centerComponent(1),
                             });
                         }
                     } else {
                         // 1 vertex, width, height
+                        //
+                        // A size attribute here can be a self-reference just as in
+                        // the `numVerticesSpecified === 0` cases above, so the same
+                        // two rules apply.
 
-                        if (keyV0X !== undefined) {
-                            let vert = workspace.v0[0].simplify();
-
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[keyV0X].verticesAttr,
-                                desiredValue: vert,
-                                variableIndex: 0,
-                            });
-                        }
                         if (keyV2X !== undefined) {
-                            let width = workspace.v2[0]
-                                .subtract(workspace.v0[0])
-                                .evaluate_to_constant();
-
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[keyV2X].specifiedWidth,
-                                desiredValue: width,
-                            });
-                        }
-
-                        if (keyV0Y !== undefined) {
-                            let vert = workspace.v0[1].simplify();
-
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[keyV0Y].verticesAttr,
-                                desiredValue: vert,
-                                variableIndex: 0,
-                            });
+                            await pushSizeIfChanged(0, keyV2X);
                         }
                         if (keyV2Y !== undefined) {
-                            let height = workspace.v2[1]
-                                .subtract(workspace.v0[1])
-                                .evaluate_to_constant();
+                            await pushSizeIfChanged(1, keyV2Y);
+                        }
 
+                        // Rule 2: the anchor lands after the sizes. Every array
+                        // key in this branch carries the `verticesAttr`
+                        // dependency for its dimension, so the anchor can be
+                        // pinned off whichever key touched the dimension.
+                        if (keyX !== undefined) {
                             instructions.push({
                                 setDependency:
-                                    dependencyNamesByKey[keyV2Y]
-                                        .specifiedHeight,
-                                desiredValue: height,
+                                    dependencyNamesByKey[keyX].verticesAttr,
+                                desiredValue: workspace.v0[0].simplify(),
+                                variableIndex: 0,
+                            });
+                        }
+                        if (keyY !== undefined) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[keyY].verticesAttr,
+                                desiredValue: workspace.v0[1].simplify(),
+                                variableIndex: 0,
                             });
                         }
                     }
@@ -1680,13 +1680,6 @@ export default class Rectangle extends Polygon {
             vertexComponents[ind + ",0"] = me.fromAst(pointCoords[ind][0]);
             vertexComponents[ind + ",1"] = me.fromAst(pointCoords[ind][1]);
         }
-        updateInstructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "vertices",
-            value: vertexComponents,
-            sourceDetails,
-        });
 
         if (numVerticesMoved === 1) {
             // When dragging a rectangle corner, add additional instructions
@@ -1763,6 +1756,20 @@ export default class Rectangle extends Polygon {
                 }
             }
         }
+
+        // The vertices go last, for the same reason the inverse of `vertices`
+        // requests the sizes before the position: a size set just above may be a
+        // self-reference such as height="$R.width", whose write-back re-derives
+        // the vertices from the rectangle's pre-update center. Requesting the
+        // dragged vertices afterwards puts the drag's own position last, so it
+        // wins over that stale one.
+        updateInstructions.push({
+            updateType: "updateValue",
+            componentIdx: this.componentIdx,
+            stateVariable: "vertices",
+            value: vertexComponents,
+            sourceDetails,
+        });
 
         // Note: we set skipRendererUpdate to true
         // so that we can make further adjustments before the renderers are updated

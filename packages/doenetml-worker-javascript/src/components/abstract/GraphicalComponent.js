@@ -78,11 +78,11 @@ export default class GraphicalComponent extends BaseComponent {
         attributes.maskLabel = {
             createComponentOfType: "boolean",
             createStateVariable: "maskLabel",
-            defaultValue: true,
+            defaultValue: false,
             public: true,
             forRenderer: true,
             description:
-                "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object. Set to false to restore a transparent label background.",
+                "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
         };
         attributes.layer = {
             createComponentOfType: "integer",

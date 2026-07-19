@@ -493,7 +493,7 @@ The `markerFilled` attribute determines whether the marker is drawn solid (`true
     name="B" 
     applyStyleToLabel 
     styleNumber="2" 
-    maskLabel="false"
+    maskLabel="true"
     labelIsName coords="(3,3)"
   />
 </graph>
@@ -514,7 +514,7 @@ The `markerFilled` attribute determines whether the marker is drawn solid (`true
 
 The uses of the following standard graphical attributes are illustrated: `hide`, `layer`, `styleNumber`, `applyStyleToLabel`, `maskLabel` and `labelIsName`.
 
-By default, a point's label is drawn with an opaque background so it stays legible over an axis or grid line; `maskLabel="false"` (shown on point `B`) restores a transparent label background. See the [`<label>{:dn}`](label) reference for a side-by-side comparison.
+By default, a point's label is drawn with a transparent background; setting `maskLabel="true"` (shown on point `B`) gives the label an opaque background so it stays legible over an axis or grid line. See the [`<label>{:dn}`](label) reference for a side-by-side comparison.
 
 
 

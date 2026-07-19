@@ -1,5 +1,457 @@
 # @doenet/doenetml
 
+## 0.7.21
+
+### Patch Changes
+
+- c470948: Support `addChildren`/`deleteChildren` on more parent components.
+
+    The `addChildren` (and `deleteChildren`) actions, previously available only on `<graph>`, now also work on `<stickyGroup>` and all sectioning components — `<section>`, `<subsection>`, `<subsubsection>`, `<paragraphs>`, `<part>`, `<task>`, `<aside>`, `<objectives>`, `<problem>`, `<exercise>`, `<question>`, `<activity>`, `<example>`, `<definition>`, `<note>`, `<theorem>`, `<proof>`, `<problems>`, and `<exercises>`. For example, a `<callAction actionName="addChildren">` can now add a `<point>` to a `<stickyGroup>` inside a `<graph>`, or add a `<graph>` to a `<section>` or `<problem>`.
+
+    The underlying mechanism (a `<_dynamicChildren>` internal child appended during normalization, plus shared worker actions that delegate to it) has been generalized so additional parent components can opt in with minimal changes.
+
+    The `<callAction>` schema now accepts arbitrary children, since the children of a `<callAction actionName="addChildren">` are the (serialized) components to be added and can be any component type.
+
+    Closes #1361.
+
+- b2ad13e: Align list-item section numbers consistently.
+
+    Section numbers for list-rendered sections (for example `<problem>`s inside `<problems>`, including through a `<cascade>`) now line up at the decimal regardless of how the content wraps, the container width, or whether an item starts with text or with an element. Previously a number could drift horizontally as its content wrapped, as the viewport narrowed, or when the item's first child was a plain string.
+
+- 728cadf: Editor: Fix autocomplete when typing a tag immediately before another tag.
+
+    When typing an element name directly in front of an existing tag (e.g.
+    `<nu|<text>` or `<text><nu|</text>`), error recovery parsed the half-typed tag as a complete element, so the editor suggested a bogus close-tag completion (`/nu>`) and the completion menu would not open. The cursor is now recognized as still typing the open tag name, so element-name completions are offered and the menu opens — whether reached by typing or by invoking completion explicitly (Ctrl+Space) at that position, and including when `<` is typed just before another tag. In unclosed containers, the normal parent close-tag option is preserved and inserts a complete close tag even when completion is invoked before typing `<`.
+
+    Element/tag-name suggestions now match the typed text as a substring and rank prefix matches first, so you don't have to remember how a tag name begins — typing `<num` offers `number` and `numberList` first, then `isNumber` and other tags containing `num`. The suggestions are also consistent however the menu is reached (typing, Ctrl+Space, or deleting back to a shorter prefix), where previously the visible set depended on what was cached when the menu first opened.
+
+    Invoking completion in the body of an unclosed element (e.g. `<text><math>|</text>`) now offers that element's child components alongside its closing tag, and accepting the closing tag inserts it at the cursor instead of overwriting the end of the opening tag.
+
+    Closes #1328.
+
+- 27bd3db: Update the bundled MathJax from 4.1.0 to 4.1.3.
+
+    Doenet now loads MathJax `4.1.3` (from 4.1.0) for the copy it injects when a
+    page provides none, and the VS Code preview's Content-Security-Policy allowlist
+    is bumped to match. The `4.1.x` line is bug-fix only: 4.1.3 notably fixes
+    infinite-loop crashes in the semantic-enrichment/speech code, a Safari rendering
+    bug for math in `overflow: auto` containers, and assorted TeX edge cases; 4.1.1
+    and 4.1.2 improved dark-mode contrast and accessibility. This also aligns the
+    version Doenet injects with what host pages that ship a floating `mathjax@4`
+    tag (e.g. PreTeXt books) now load, so typesetting is consistent whether Doenet
+    loads MathJax itself or reuses a host-provided engine.
+
+    Note: MathJax 4.1.2 corrected the LaTeX size macros (`\large`, `\tiny`, etc.) to
+    use standard LaTeX sizes.
+
+- 16f0ba8: Clicking the math in a button's label now activates the button. Previously, when a button's label contained math (e.g. a `<callAction>` with a `<label>` holding an `<m>`), MathJax intercepted clicks on the math and the button did nothing.
+- 40e3ff5: Answer: fix the check-work button getting stuck on "Checking..." for a choice answer with inline math inside a repeat in a `<cascade>`.
+
+    A `<choice>` computes its `text` from its inline children's `hiddenIgnoreParent` so that it ignores the visibility it inherits from ancestors (a choice's text feeds an answer's credit-achieved dependencies, and inside a `<cascade>` ancestor visibility changes after a submission). However, `hiddenIgnoreParent` still climbed up to ancestor sections through its source composite's `hidden` — so a choice with an `<m>` placed inside a `<repeat>`/`<repeatForSequence>` within a `<cascade>` still depended on the cascade's credit-based visibility. Submitting such an answer changed its own credit-achieved dependencies, which immediately reset `justSubmitted` to `false`, leaving the "Check Work" button spinning indefinitely. `hiddenIgnoreParent` now recurses through the source composite's and adapter source's `hiddenIgnoreParent` instead of `hidden`, so it no longer depends on ancestor-section visibility.
+
+- 0bbad39: Fix circular dependency when referencing `choice.selected` inside the same `<choice>`.
+
+    `$c1.selected` (or a `<conditionalContent>` whose condition references `$c1.selected`) inside `<choice name="c1">` previously threw a "Circular dependency detected" error. The root cause was that `choiceInput.indicesMatchedByBoundValue` always declared a dependency on `choiceChildren.text` even when `bindValueTo` is absent — a dependency that is never used in that case. This created a resolver-blocker cycle:
+
+    `allSelectedIndices` → `indicesMatchedByBoundValue` → `c1.text` → composite expansion of `$c1.selected` → `c1.selected` → `childIndicesSelected` → `selectedIndices` → `allSelectedIndices`
+
+    The fix makes `indicesMatchedByBoundValue` only declare the `choiceChildren.text` dependency when `bindValueTo` is actually set, breaking the cycle.
+
+    Closes #1399.
+
+- 45e18eb: Choice inputs no longer hide embedded text inputs, redirect nested interactive input clicks to the outer choice, or show the outer choice focus ring while those embedded controls are focused.
+
+    Closes #1398.
+
+- 52d3488: Editor: Add `initialOpenTab` attribute to `<codeEditor>` to control which diagnostics/responses tab opens initially.
+
+    The new attribute accepts: `none` (panel closed), `first` (first available tab, default), `errors`, `warnings`, `info`, `accessibility`, `responses`, or `help`.
+
+- 27bd3db: Viewer: coexist with a MathJax that the host page already provides.
+
+    `DoenetViewer` / `DoenetEditor` previously wrapped content in
+    `better-react-mathjax`'s `MathJaxContext`, which unconditionally assigned
+    `window.MathJax = config` and appended its own MathJax `<script>` — with no
+    check for a MathJax the host page had already loaded. When a Doenet activity was
+    embedded in a page that loads its own MathJax (e.g. PreTeXt books), this clobbered
+    the host's live engine with a plain config object and/or raced a second engine,
+    causing intermittent, load-order-dependent failures to render.
+
+    Doenet now loads MathJax through a coexisting loader: if a live MathJax engine
+    is already present it is reused and `window.MathJax` is never overwritten; if a
+    MathJax `<script>` is already on the page (including a deferred one) Doenet waits
+    for it instead of injecting a second copy; only when no MathJax is present does
+    Doenet load its own. This also removes the duplicate engine (and its extra
+    worker) that was previously loaded per embedded activity.
+
+    Two new controls are exposed on `DoenetViewer` / `DoenetEditor` (and, for the
+    standalone build, as `data-doenet-mathjax-url` / `data-doenet-use-existing-mathjax`
+    attributes and `renderDoenet*ToContainer` config keys):
+
+    - `mathjaxUrl` — the MathJax script URL to load when the page provides none.
+    - `useExistingMathjax` — force reuse of a host-provided MathJax even when it is
+      not yet detectable (e.g. the host loads it after Doenet mounts).
+
+    Reusing a host engine means the host's MathJax version governs typesetting;
+    MathJax 3.x–4.x are supported for reuse.
+
+    Closes #1433.
+
+- d9de421: feat: add `collapsible` and `startOpen` attributes to all sectioning components.
+
+    Previously, `collapsible` was hardcoded to `false` in the base sectioning component and only `<aside>` and `<proof>` exposed it as a user-settable attribute (defaulting to `true`). All other sectioning components (`<section>`, `<example>`, `<theorem>`, etc.) could not be made collapsible by the author.
+
+    `collapsible` is now declared on the base `SectioningComponent` with a default of `false`, so every sectioning component inherits the attribute. The shared `startOpen` attribute is now available on every sectioning component and controls the initial state only when `collapsible` is enabled: it defaults to `true` in the base class, while `<aside>` and `<proof>` continue to default to `collapsible="true"` plus `startOpen="false"` — no behavior change for existing documents.
+
+    Closes #1393.
+
+- 9728e26: New `colorInputsSeparately` attribute on `<answer>`: when set, each input is
+  colored based on the awards that reference it rather than all inputs sharing the
+  same overall credit color. Works with `<fractionInput>` (coloring numerator and
+  denominator boxes independently) and with multiple `<mathInput>`s connected via
+  `forAnswer`. Requires `numAwardsCredited` ≥ 2 for meaningful results.
+
+    Also renames `forceIndividualAnswerColoring` → `colorAnswersSeparately` on
+    sectioning components (section, exercise, problem, etc.) for naming consistency.
+    The old name is deprecated and rewritten at parse time with a warning.
+
+    Closes #1389.
+
+- affed83: Editor: Fix context-sensitive help when the cursor sits on a tag boundary.
+
+    When the cursor is immediately before a tag (e.g. `|<text/>`, including after whitespace or indentation), the help panel now reports the surrounding context — the parent element, or the document top level — instead of claiming the cursor is inside the element and suggesting its children. The same now holds when the cursor sits between a closed child and its parent's close tag (e.g. `<p><math>x</math>|</p>` or `<p><math/>|</p>`), where the panel reports the parent (`p`) rather than the just-closed child (`math`). When the cursor is inside a self-closing tag's `/>` (e.g. `<text/|>`), the panel now shows element-level help rather than the element's children.
+
+    Closes #1327.
+
+- ab57ea2: Dark mode: make it actually work and meet WCAG AA.
+
+    - The viewer/editor now own the theme: the `darkMode` prop accepts
+      `"light" | "dark" | "system"` (system tracks `prefers-color-scheme` live) and
+      the resolved theme is written to a `data-theme` attribute on the viewer/editor
+      root and the viewer paints its own `--canvas` background, so standalone
+      embeds do not rely on the host page for the dark canvas/text/JSXGraph-axis
+      CSS variables to take effect. Stray `.dark` selectors, description surfaces,
+      hint/solution/feedback reveal buttons, and portaled popovers were unified
+      onto `[data-theme]`. The `darkMode` prop now defaults to `"system"`
+      (previously `"light"`), so an embedded `DoenetViewer`/`DoenetEditor` follows
+      the user's OS/browser theme preference unless the host pins a theme.
+    - Style definitions now derive a dark-mode color (and color word) from an
+      author's light-mode color instead of mirroring it. Graphic/marker/line colors
+      are lightened until they clear WCAG AA against the dark canvas where possible
+      at their rendered opacity. A
+      `textColor`/`backgroundColor` is adapted by inverting each color's lightness
+      independently (so e.g. white-on-black becomes black-on-white). Because each
+      color is derived from itself alone, the result is independent of the order in
+      which the colors were authored and of whether they were split across
+      parent/child style blocks, and it preserves the author's figure/ground
+      relationship without "fixing" an intentionally low-contrast pairing. When an
+      otherwise-accessible light-mode text color (or text/background pair) happens
+      to invert to an inaccessible dark-mode value, an accessibility diagnostic is
+      emitted (with a suggested `textColorDarkMode`/`backgroundColorDarkMode` value,
+      targeting the attribute the diagnostic is anchored to, that restores
+      sufficient contrast).
+      Author-supplied contributors to the rendered contrast (including backgrounds,
+      opacity, and `*ColorDarkMode` values) that fail AA likewise emit a diagnostic,
+      mirroring the existing light-mode check.
+    - The six built-in style presets had their dark-mode colors recomputed to meet
+      WCAG AA.
+    - Fixed renderer pieces that went invisible (or low-contrast) on the dark
+      canvas: math notation lines (fraction bars / square-root vincula in
+      `<mathInput>`), the `<mathInput>` insertion caret (#397), the JSXGraph
+      keyboard-focus outline (#396), editable `<curve>` through/control-point
+      handles, draggable polygon/polyline vertex highlights, the
+      `<summaryStatistics>` table border, the `<orbitalDiagram>` and
+      `<subsetOfRealsInput>` number-line graphics, the on-canvas (unchecked)
+      graph-control toggle buttons, and the inline `<choiceInput>` dropdown (control
+      and the portaled menu, which is given an elevated dark surface) — all now
+      track the theme via `--canvasText` / `--canvas` (or doc-level dark mode for
+      the portaled menu).
+    - The editor's diagnostic hover tooltip (including the accessibility-contrast
+      warnings) used CodeMirror's light default surface, so its text rendered
+      white-on-white in dark mode; it now uses an elevated dark surface with
+      recolored, AA-legible heading/code accents.
+    - The PreFigure renderer (`<graph renderer="prefigure">`) is now dark-mode
+      aware: the generated diagram XML depends on the document theme, so line,
+      marker, and fill colors use their derived dark-mode values, and the axes/ticks
+      (which PreFigure draws black by default, invisible on the dark canvas) get a
+      light stroke matching the JSXGraph axes. Tick labels are MathJax
+      `currentColor` and already follow `--canvasText`.
+    - Added dark-mode accessibility (cypress-axe) coverage across renderer
+      categories, plus computed-style regression tests for the caret, focus outline,
+      and fraction bar.
+
+    Closes #966 (complete dark mode), #396, #397. Contributes dark-mode contrast
+    coverage toward #1324.
+
+- 6412d89: Editor dark mode: theme the CodeMirror code area, syntax highlighting, autocomplete icons, diagnostics/responses/help panels, viewer controls bar, and resizable handles for WCAG AA contrast in dark mode.
+
+    Adds cypress-axe color-contrast coverage for representative editor authoring surfaces in dark mode.
+
+    Closes #1366.
+
+- dcf1019: Dark mode: keep viewer, editor, and iframe error states and graph UI legible.
+
+    Error banners, renderer-load failures, and editor footer menus now use theme-aware colors, graph drag handles now follow live dark-mode changes, and smart labels use dark-mode-aware colors on JSXGraph canvases. This also adds dark-mode accessibility coverage for disabled check-work buttons.
+
+- e0254ea: fix: convert remaining hardcoded light-mode colors in renderers to dark-mode-aware CSS variables
+
+    Fixes all remaining DoenetML renderer elements that displayed poorly or fell below WCAG AA contrast in dark mode after PR #1381. Replaces hardcoded colors with new theme variables (`--errorText`, `--indicatorHoverBlue`, `--buttonHoverBlue`, `--doenetTagColor`) and dark-mode values for the existing `--lightBlue/Green/Red/Orange` hover variables.
+
+- fa58c22: Dark mode: theme the virtual keyboard.
+
+    With `darkMode="dark"` the virtual keyboard now renders in dark mode in the viewer, editor, and iframe wrappers: the tray, key faces, special keys, focus-ring offset, and tab indicator all switch to dark-surface colors. The tray receives `data-theme` directly on its `#virtual-keyboard-tray` element so the theme is applied even though the tray portals to `document.body` outside the viewer's `data-theme` wrapper. When multiple documents share the singleton tray, it follows the active document's resolved theme, routes key events only to the focused owner, and keeps the last active document's theme while focus moves into the tray or temporarily leaves all registered owners. All dark-mode keyboard colors meet WCAG AA contrast.
+
+    Closes #1367.
+
+- 9a7b623: Viewer: reliably render math when embedded in a page that provides its own MathJax 4.
+
+    When a Doenet activity is embedded inline in a page that loads its own MathJax 4
+    (e.g. a PreTeXt book), the viewer reuses the host engine instead of loading its
+    own. The check that recognizes a live engine required `MathJax.startup` to be a
+    plain object, but MathJax 4 exposes `startup` as a function, so the host engine
+    was never recognized: the viewer waited until it timed out and every piece of
+    math rendered blank (with a couple of spots showing raw LaTeX). A live engine is
+    now detected whether `startup` is a function (MathJax 4) or an object
+    (MathJax 3).
+
+    As a safety net, if a host-provided MathJax is present but never becomes usable
+    within the timeout, the viewer now falls back to loading — and taking over with —
+    its own MathJax instead of leaving math blank, and a failed load no longer
+    prevents later attempts from retrying.
+
+- f4391f8: Disabled `<textInput>` controls inside `<graph>` now use the same muted disabled styling as other text inputs instead of appearing enabled.
+
+    Closes #1289.
+
+- 172d797: Viewer: stop flashing raw LaTeX while inline math updates (e.g. dragging a point).
+
+    Inline math that references a changing value — like `$P` for a dragged point, or
+    a `<number>`/`<line>` bound to it — is rendered with `better-react-mathjax`'s
+    `<MathJax dynamic>`, which writes the new raw LaTeX into the DOM and typesets it
+    asynchronously. When updates outpaced MathJax (e.g. a point referenced many
+    times, dragged), the raw LaTeX (`\left( 3, 4 \right)`) stayed visible during the
+    drag, and its update effect could drop the final typeset, leaving one copy stuck
+    showing raw LaTeX until the next unrelated re-render.
+
+    These value-display renderers (`<m>`/`<me>`/`<men>`, point, number, line, vector,
+    angle, label, answer, and response/label helpers) now render through a new
+    double-buffered `DynamicMath` component: it typesets the new LaTeX on an
+    off-screen buffer and swaps the result in only once it is ready, keeping the
+    previously rendered math on screen meanwhile. Rapid updates are coalesced to the
+    latest value (so nothing is left un-typeset) and throttled. The math therefore
+    stays rendered throughout a drag — momentarily stale during a fast drag, but
+    never showing raw LaTeX and never blanking.
+
+    Math inside inputs and some labels (e.g. `<mathInput>` previews) still uses the
+    previous path and is unaffected by this change.
+
+- 9e78216: Editor: Ctrl/Cmd+S now refreshes pending source edits when focus is anywhere in the editor-viewer, including the rendered document, without triggering the viewer's Reset behavior when no code changes are pending. When the button is showing Reset, its tooltip now omits the Ctrl/Cmd+S hint.
+
+    The shortcut follows the platform convention used by the code editor — Cmd+S on macOS, Ctrl+S elsewhere — and ignores AltGr/Alt combinations so AltGr+S still inserts a character.
+
+- e8837f7: `@doenet/standalone`: load the core worker from a co-located file instead of embedding it, cutting per-embed memory.
+
+    The standalone bundle previously embedded the entire ~15 MB core worker as an inline string, so every embedded viewer realm on a page held its own copy. It now ships the worker as a separate `doenetml-worker/` directory alongside `doenet-standalone.js` and loads it from there — using a tiny same-origin `importScripts` bootstrap when the bundle is served cross-origin (e.g. from a CDN, the way PreTeXt and doenet.org load it), so the realm no longer holds the ~15 MB copy. Measured ~70 MB less per embedded instance (a 20-instance textbook page saves well over 1 GB).
+
+    The worker files must be served alongside the bundle. This is automatic when loading from npm/CDN (e.g. jsdelivr serves the whole package) or from a normal `dist/` deploy; a host that serves only `doenet-standalone.js` in isolation must now also serve the `doenetml-worker/` directory next to it. A host that loads the bundle from a blob/data URL (where "next to the bundle" does not exist) gets a fallback to `<origin>/doenetml-worker/index.js` and must serve the worker there. A new `@doenet/doenetml/doenetml-external-worker.js` entry point drives this; the existing `@doenet/doenetml/doenetml-inline-worker.js` entry remains available for fully self-contained embeds.
+
+- 2bd7f0a: Give patterned fills a translucent background instead of a fully transparent one.
+
+    A closed shape with a non-solid `fillStyle` (horizontal, vertical, diagonal, backdiagonal, dots, diamonds) now renders as two layers: a background the color of the graph canvas at `fillOpacity`, and the pattern itself in `fillColor` at `fillPatternOpacity`. Previously the area behind the pattern was fully transparent. A `solid` fill is unchanged — `fillColor` at `fillOpacity`.
+
+- d383c46: Add a `SPLICE.flushState` message so hosts can unmount in-progress viewers losslessly.
+
+    Hosts that unmount off-screen viewers to reclaim memory could already remount with prior work via `initialState`, but state was only reported at (throttled) save events, so work since the last report was silently lost. A host can now post `{ subject: "SPLICE.flushState", message_id }` (to the viewer's window, or to its own window for `@doenet/doenetml-iframe`, which forwards it). The viewer settles in-flight updates and pushes any pending state out through the **normal `SPLICE.reportScoreAndState` message** — so a host that already persists those reports saves the just-flushed state with no extra code, and need not know a flush occurred. It then replies with a stateless acknowledgement `{ subject: "SPLICE.flushState.response", message_id, activity_id, doc_id, success, hadState }`. Once the acknowledgement arrives every saved report is current, so tearing the viewer down loses nothing — remounting later with the last saved state (as `initialState`) restores the document. `hadState: false` means the viewer held no state beyond what it was initialized with (e.g. its core was never created), so unmounting is equally safe.
+
+    This split suits a host topology where the party managing lifecycle (which sends `flushState` and waits for the acknowledgement) is not the party persisting state (which just saves `reportScoreAndState`). Hosts should apply a retry/timeout around the round-trip (the viewer's listener registers on mount, and flushing is idempotent). Enables bounded-window / park-and-restore embedding (Doenet/assignment-viewer#36, #37). Closes #1440.
+
+- 3803d38: `<fractionInput>` now colors its numerator and denominator input box borders by submitted correctness inside an `<answer>`, matching the correctness feedback already shown by `<mathInput>` and `<textInput>`.
+
+    When correctness coloring is enabled, the fraction as a whole also exposes its validation state in accessible text without implying that the numerator and denominator are graded separately.
+
+    Closes #1388.
+
+- b2bdb5a: Fix the `<fractionInput>` fraction bar (vinculum) not rendering on high-DPI displays.
+
+    The bar was drawn as a `border-bottom` on an empty, zero-height table cell inside a `border-collapse: collapse` table. On high-DPI (e.g. Retina) screens the browser snaps that collapsed hairline to the device-pixel grid and rounds it away to nothing, so the vinculum disappeared in Chrome, Safari, and Brave on those displays. It is now painted as a solid 2px-high block (`background-color: currentColor`), which rasterizes reliably at any `devicePixelRatio`.
+
+- c0db375: Add a `<fractionInput>` component.
+
+    `<fractionInput>` renders a numerator input box above a denominator input box, separated by a fraction bar; each box accepts a math value like a `<mathInput>`. It exposes `numerator`, `denominator`, and `value` (the numerator divided by the denominator) properties, supports `prefillNumerator`/`prefillDenominator` attributes, links two-way to a math child or `bindValueTo` target, and works as the input inside an `<answer>` (with check-work integration).
+
+    This also clarifies the `value`/`immediateValue` help-text descriptions for the math inputs (`mathInput`, `matrixInput`, `fractionInput`): `value` is described simply as the input's value, and `immediateValue` as the value reflecting the user's in-progress edits.
+
+    Closes #1342.
+
+- 32a7054: Graphing: add `lineStyle` and `lineWidth` attributes to `<function>`.
+
+    When a function is graphed, it now accepts the same per-component line style overrides as the equivalent wrapped `<curve>`. The generated schema also recognizes these attributes in editor diagnostics.
+
+    Closes #1356.
+
+- 35ae4b0: Graph: revise closed-shape `fillStyle` patterns and add `fillPatternOpacity`.
+
+    Closed shapes in graphs (`polygon`, `circle`, `angle`, `regionBetweenCurves`, and `regionBetweenCurveXAxis`) now support patterned fills via `fillStyle` and separate pattern opacity via `fillPatternOpacity`.
+
+    Available `fillStyle` values are:
+
+    - `solid` (default — existing behavior unchanged)
+    - `horizontal` — horizontal line pattern
+    - `vertical` — vertical line pattern
+    - `diagonal` — diagonal lines (/)
+    - `backDiagonal` — back-diagonal lines (\\)
+    - `dots` — dots pattern
+    - `diamonds` — filled diamonds pattern
+
+    The `dots` and `diamonds` patterns are drawn from the BANA (Braille Authority of North America) Texture Palette for Tiger Embossers, intended for tactile graphics. Pattern fills now use `fillPatternOpacity` (default `1`) instead of the solid-fill `fillOpacity` default (`0.3`).
+
+    The previous `crosshatch` and `diagonalCrosshatch` values are replaced by `dots` and `diamonds`, respectively.
+
+    The JSXGraph interactive renderer supports all patterns. The PreFigure renderer uses the native `fill-pattern` attribute (available from prefig 0.6.7). Filled circles and polygons also include the pattern wording in their text style descriptions (such as `styleDescription` and `fillStyleDescription`).
+
+    Closes #1386.
+
+- 103095a: Graph: rename the `xscale` and `yscale` properties to `xScale` and `yScale`.
+
+    The casing now matches the other graph limit properties (`xMin`, `xMax`, `yMin`, `yMax`). Because DoenetML resolves property references case-insensitively, existing documents that use `xscale`/`yscale` (e.g. `$g.xscale`) continue to work unchanged—the canonical name reported by the schema and autocomplete is now `xScale`/`yScale`. (The unrelated `xscale`/`yscale` attributes of `<function>`, which set interpolation scales, are unaffected.)
+
+- 2aba692: Graph: make `xScale` and `yScale` settable.
+
+    The `xScale` and `yScale` properties of a `<graph>` were previously read-only derived values (`xMax − xMin` and `yMax − yMin`). They now have inverse definitions, so binding to or otherwise setting them adjusts the axis limits: the midpoint of the corresponding limits is held fixed while both ends move symmetrically so that the difference matches the requested scale (e.g. setting `xScale` updates `xMin` and `xMax` around their shared midpoint). Non-finite and non-positive values are rejected (a non-positive scale would make the minimum ≥ the maximum), and the underlying `xMin`/`xMax` (and `yMin`/`yMax`) inverse logic—including the `fixAxes` refusal—is reused.
+
+- 0a58d4d: Image: resolve `source="doenet:<id>"` against a configurable media URL.
+
+    When an `<image>` specifies `source="doenet:abcdefg"`, the image now loads from `doenetImagesUrl + "/" + imageId` (the middle slash is omitted when `doenetImagesUrl` already ends with `/`). The `doenetImagesUrl` is a new optional prop on `<DoenetViewer>` and `<DoenetEditor>` (defaulting to `https://doenet.org/api/media`), mirroring the existing `doenetViewerUrl` prop.
+
+    Only a source that is exactly `doenet:<id>` (an alphanumeric id) is treated as a media reference; any other `doenet:` source (such as a legacy `doenet:cid=<hash>` form) renders the image placeholder rather than requesting an unknown URL.
+
+- 6764722: Image: add open-license attribution to `<image>`.
+
+    `<image>` gains a set of new attributes for crediting open-licensed images. A new `licenseCodes` attribute accepts a fixed set of open-license codes (the Creative Commons licenses, `CC0`, `PDM`, plus `GFDL`, `FAL`, `OGL`, `MIT`, and `APACHE-2.0`); codes are matched case-insensitively and offered in editor autocomplete in their canonical case, and specifying two codes marks the image as dual-licensed. A new `licenseVersion` attribute selects the Creative Commons URL version (default `4.0`; ignored by other licenses). From the codes the worker derives public `licenseNames` and `licenseUrls`. New `licenseName`/`licenseUrl` attributes provide a fallback used only when no `licenseCodes` are given.
+
+    New optional attributes `imageName`, `authorName`, `authorUrl`, and `originalUrl` supply the rest of the attribution. The viewer renders a Creative Commons "TASL"-style credit sentence (e.g. `"Squirrel" by Jane Doe is licensed under a Creative Commons Attribution 4.0 license.`) at the bottom of the image's `<description>` — and shows the same description disclosure UI even when no `<description>` is authored. The license clause is phrased by kind: Creative Commons reads "a <name> <version> license", other licenses read "the <name>", and public-domain dedications read "is in the public domain (<name>)"; dual licenses are joined with "or".
+
+    The recognized license list is exported from `@doenet/doenetml` and `@doenet/doenetml-iframe` (`mediaLicenses`, `getMediaLicenseInfo`, `getMediaLicenseDisplay`, `creativeCommonsVersions`, `defaultCreativeCommonsVersion`, and the `MediaLicenseInfo` / `MediaLicenseKind` / `MediaLicenseDisplay` / `CreativeCommonsVersion` types) so embedding apps can build their own license pickers from the same source of truth.
+
+- 9df6f1e: Apply each option's style text color in an inline `<choiceInput>`, matching the behavior of a block `<choiceInput>`.
+
+    Inline choice inputs render their options through a select dropdown, which previously suppressed the text color from the options' style definitions. The displayed value and the unselected (and focused) menu options now render with their style text colors; the currently selected, dark-highlighted menu option keeps white text for contrast.
+
+    Closes #1352.
+
+- 2b856c8: Set `maskLabel="true"` on a graphical component (or a stand-alone `<label>`) to give its label an opaque background so it stays legible when it overlaps an axis, grid line, or another object. Labels keep their transparent background by default. When masking is enabled, hovering a draggable object outlines its label as a cue that the object can be dragged.
+- 4cfd4a5: Fix light-mode WCAG AA contrast for built-in style presets 1, 3, and 6.
+
+    Preset line/marker colors for styles 1 (blue), 3 (orange), and 6 (gray) sat
+    below the WCAG AA graphic threshold (3:1) in light mode when composited at
+    their 0.7 opacity over the white canvas. The colors are darkened (hue and
+    saturation preserved) to just clear 3:1:
+
+    - Style 1: `#648FFF` → `#1f5dff` (2.11 → 3.08)
+    - Style 3: `#F19143` → `#a6510c` (1.82 → 3.11)
+    - Style 6: `gray` → `#636363` (2.43 → 3.12)
+
+    Dark-mode variants (`*ColorDarkMode`) are unchanged — those were already
+    fixed in the dark-mode PR. `fillColor` for each preset is updated to match
+    the new line/marker color for visual consistency.
+
+    The updated light-mode blue (`#1f5dff`) and orange (`#a6510c`) are also
+    registered with the style-color-word resolver so editor/LSP help continues
+    to describe presets 1 and 3 as blue and orange rather than purple/brown.
+
+    The preset palette accessibility test (`presetPaletteAccessibility.test.ts`)
+    is extended to assert WCAG AA compliance in light mode too (mirroring the
+    existing dark-mode guard), closing the test gap identified in #1364.
+
+    Closes #1364.
+
+- 9b48416: Editor: support enumerated `validValues` on list-valued attributes (e.g. `createComponentOfType: "textList"`).
+
+    When an attribute declares `validValues`, it is now interpreted per-item on a list-valued attribute: every item of the list must be one of the listed values. This flows through schema generation (the attribute is marked as a list of keywords), so editor autocomplete suggests the allowed values, the context-sensitive help panel labels them "Allowed values (one per item)", and the reference docs render the value table with a list type. The schema-violation check validates each whitespace-separated item rather than the whole value, and at runtime invalid items are dropped with a diagnostic. `<sideBySide>`/`<sbsGroup>` `valign`/`valigns` are migrated as the first worked example.
+
+- 4998214: `<mathInput>` can now be placed inside a `<graph>`. Like `<textInput>`, it renders
+  at an `anchor` point on the board and honors `positionFromAnchor` for placement
+  relative to that anchor. Click inside the field to edit it; grab its label (or the
+  grip shown when it has no label) to drag it to a new position. Set
+  `draggable="false"` to pin it in place.
+- cf8503e: Fix self-referential references in recognized rendering contexts (for example `<label>$a</label>` inside component `a`) so they render a meaningful value instead of a circular dependency error.
+
+    When a component references itself without an explicit prop inside a recognized rendering context, DoenetML now falls back to the component's public `value` state variable rather than showing an error. For `<point>`, that means using its public coordinates value. This applies in contexts such as `<label>`, `<text>`, `<math>`, `<m>`, `<md>`, `<boolean>`, `<number>`, and the corresponding list variants. The existing circular-dependency error is preserved outside those contexts.
+
+    Closes #1333.
+
+- 895b636: PreFigure renderer: use native `fill-pattern` attribute for patterned `fillStyle` values.
+
+    The `@doenet/prefigure` package now vendors `prefig-0.6.7-py3-none-any.whl`, which added native `fill-pattern` support. The PreFigure renderer now uses the `fill-pattern` attribute for patterned `fillStyle` values (`horizontal`, `vertical`, `diagonal`, `backDiagonal`, `dots`, `diamonds`) instead of falling back to a solid fill with a warning. Pattern opacity is controlled by `fillPatternOpacity` (mapped to `fill-opacity` on the patterned element).
+
+- a760eaf: Viewer: prevent stale queued theme updates from overriding the current theme after reinitializing with Ctrl+S.
+
+    This fixes prefigure graphs and other theme-sensitive rendering after switching between light and dark mode without a full page reload.
+
+- 044f318: Problems: preserve list numbering through an intervening `<cascade>`.
+
+    When `<problem>` elements sit inside a `<cascade>` inside `<problems>`, the cascade is now treated as a transparent structural container for `asList` propagation. The problems receive the expected list numbering (`1.`, `2.`, `3.`), and the cascade itself no longer incorrectly renders as list item `1`.
+
+    Closes #1390.
+
+- 1f18803: Viewer: fix boxed and collapsible section heading colors in dark mode.
+
+    Boxed and collapsible section titles now use accessible dark-mode defaults instead of reusing the light-mode gray/green heading backgrounds. Authored concrete light-mode heading colors now derive accessible dark-mode heading colors automatically, while authored CSS-variable colors fall back to the accessible dark-mode defaults unless authors override them explicitly with `completedColorDarkMode`, `inProgressColorDarkMode`, and `notStartedColorDarkMode`. Accessibility diagnostics now also flag authored section heading colors that fall below WCAG AA contrast in either theme, including translucent colors after compositing.
+
+- f920b2f: Answer: stop a partial-credit `<feedback>` from briefly flashing on screen when a section-wide check-work button submits multiple answers at once.
+
+    `submitAllAnswers` submits each enclosed answer with `skipRendererUpdate: true` so the renderer only updates once, on the final `numSubmissions` bump. However, `performUpdate` forced a renderer fan-out whenever the update carried a `recordItemSubmission` instruction (every answer submission does), ignoring `skipRendererUpdate`. That pushed the renderer mid-loop while the section's aggregated `creditAchieved` was at an intermediate partial value, so feedback gated on a partial-credit condition flashed and then disappeared. The renderer fan-out now honors `skipRendererUpdate`; normal single submissions still render via their trailing `triggerChainedActions` flush.
+
+- 49327a0: Section-wide check work: add a `maxNumAttempts` attribute and rename `documentWideCheckWork` to `sectionWideCheckWork`.
+
+    Any container that supports `sectionWideCheckWork` (`<section>`, `<problem>`, `<exercise>`, `<example>`, `<p>`, `<li>`, `<div>`, `<span>`, lists, and the document) now also accepts `maxNumAttempts`. Just like a per-`<answer>` `maxNumAttempts`, each submission counts as one attempt: pressing the section-wide "Check Work" button submits and uses up an attempt, and pressing the button again does nothing until one of the inputs changes (returning the button to "Check Work"). The number of attempts remaining is shown next to the button, and once the attempts are exhausted every `<answer>` inside the container becomes disabled and the button is disabled.
+
+    The document's `documentWideCheckWork` attribute is renamed to `sectionWideCheckWork` so the document shares the same abstraction as other containers. `documentWideCheckWork` continues to work as a deprecated alias (with a deprecation warning).
+
+    Within a `sectionWideCheckWork` container, the attempt count is controlled solely by that container. A `maxNumAttempts` set on an enclosed `<answer>` — or on a nested `sectionWideCheckWork` container — is ignored, and DoenetML emits a warning suggesting that `maxNumAttempts` be set on the (outer) container instead.
+
+    Closes #1308.
+
+- 433fdcf: Opt-in shared core-worker host: multiplex document cores onto shared workers.
+
+    Setting `doenetGlobalConfig.useSharedCoreWorker = true` makes viewers on a page share core workers (up to `sharedCoreWorkerMaxCores` cores per worker, default 12) instead of booting one ~100 MB dedicated worker per document. Each document's core runs independently on its own message channel with the same API as before; tearing down one document releases only its core. Measured on the memory benchmark: 8 viewers drop from ~1455 MB to ~584 MB total (marginal cost per additional viewer ~136 MB → ~12 MB).
+
+    For iframe embedding, `@doenet/doenetml-iframe`'s `DoenetViewer` gains a `useSharedCoreWorker` prop: the parent page owns the shared worker pool and forwards each iframe's core over a `MessagePort`, so the cores of many same-origin iframes — which cannot share workers on their own — multiplex onto parent-owned workers (pools are keyed per standalone version). This works with the default CDN-served bundle (the worker is loaded via a same-origin `importScripts` bootstrap when cross-origin).
+
+    Default off. Trade-off when opted in: a worker-level hang or crash affects every document on that worker (per-core teardown is still individual); the recovery escalation ladder is tracked in #1466.
+
+- 614b4c3: Adopt the shared input helpers across the non-math inputs.
+
+    `textInput`, `codeEditor`, `booleanInput`, and `choiceInput` now reuse the shared input helpers introduced alongside `fractionInput` instead of duplicating the logic: `booleanInput`/`choiceInput`/`textInput` use the shared `submitAnswer` external action, and `textInput`/`codeEditor` use the shared `valueChanged`/`immediateValueChanged` state-variable definitions. Their `value`/`immediateValue` help-text descriptions are also reworded to match the math inputs — `value` is described simply as the input's value, and `immediateValue` as the value reflecting the user's in-progress edits.
+
+- d383c46: Include the README in the published `@doenet/doenetml` and `@doenet/standalone` packages.
+
+    These packages publish their `dist/` directory, and the README was not copied into it, so npm displayed no documentation at all. The build now ships the README (as `@doenet/doenetml-iframe` already did) — including the new host message protocol (SPLICE) documentation.
+
+- 3b2c343: Stop the standalone viewer from collapsing its host iframe during boot.
+
+    When embedded with `data-doenet-send-resize-events="true"`, the viewer used to start reporting its height to the parent page the moment the React element mounted — before the core had rendered anything. Hosts that honor these messages (e.g. PreTeXt) would shrink the iframe to a sliver while the activity was still loading, and leave it collapsed if the render never completed.
+
+    The viewer now waits for the document's first render before reporting heights, and never reports collapse-level heights. Host iframes keep their placeholder size until real content appears, then resize to its true height.
+
+- f6ff9ac: Spreadsheet: upgrade `handsontable` to v18.0.0, `@handsontable/react-wrapper` to v18.0.0 (replaces `@handsontable/react`), and `hyperformula` to v3.3.0, while adding dark-mode theming for spreadsheet rendering.
+
+    No changes to `<spreadsheet>` markup or formula syntax — existing content continues to work as-is. Floating-point formula results may differ very slightly (HyperFormula now rounds at 10 significant digits, matching Excel/Google Sheets behavior). The spreadsheet visual appearance is preserved via the Classic theme, and dark mode now uses the matching Classic dark theme. For accessibility, spreadsheets now use native HTML table semantics instead of Handsontable's newer ARIA grid/treegrid tags, so screen readers will navigate them as tables.
+
+    Closes #1391.
+
+- f4a711f: Editor: Fix stale VS Code tag/snippet autocomplete ranges.
+
+    When typing a closing tag in the editor (for example `</te|` inside `<text>`),
+    the close-tag completion now stays in sync with the full partially typed prefix
+    and accepting it replaces that whole prefix. This avoids VS Code/native-LSP
+    flows that could previously duplicate the `/` or leave the already-typed suffix
+    behind when completing a close tag.
+
+    The same refresh logic now also keeps `<`-triggered snippet completions in sync
+    with the typed prefix, including the prefigure `annotations-skeleton` snippet,
+    so accepting those items no longer leaves stale typed characters behind either.
+
 ## 0.7.20
 
 ## 0.7.19

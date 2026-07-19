@@ -72,10 +72,10 @@ export default class Label extends InlineComponent {
 
         attributes.maskLabel = {
             description:
-                "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object. Set to false to restore a transparent label background.",
+                "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
             createComponentOfType: "boolean",
             createStateVariable: "maskLabel",
-            defaultValue: true,
+            defaultValue: false,
             public: true,
             forRenderer: true,
         };

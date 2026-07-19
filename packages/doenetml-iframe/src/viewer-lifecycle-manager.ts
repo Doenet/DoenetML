@@ -191,7 +191,7 @@ export function requestBootSlot(id: string, grant: () => void) {
         return;
     }
     bootQueue.push({ id, requestOrder: ++bootRequestCounter, grant });
-    pumpBootQueue();
+    grantBootSlots();
 }
 
 /** Withdraw a queued boot request (e.g. the viewer scrolled away again). */
@@ -208,11 +208,11 @@ export function cancelBootRequest(id: string) {
  */
 export function releaseBootSlot(id: string) {
     if (bootSlotHolders.delete(id)) {
-        pumpBootQueue();
+        grantBootSlots();
     }
 }
 
-function pumpBootQueue() {
+function grantBootSlots() {
     const max = effectiveMaxBoots ?? Infinity;
     while (bootQueue.length > 0 && bootSlotHolders.size < max) {
         // Visible-first, then request order.
