@@ -221,6 +221,83 @@ illustrated: `hide`, `fixLocation`, `layer`, `styleNumber`, `applyStyleToLabel` 
 
 
 
+---
+
+### Attribute Example: slope and length
+
+
+```doenet-editor-horiz
+<graph size="small" xmin="-1" xmax="5" ymin="-1" ymax="5">
+  <shortDescription>graph of a line segment defined by a slope and a length</shortDescription>
+  <lineSegment name="segment1" slope="1" length="4"/>
+</graph>
+
+<p><c>slope</c> = $segment1.slope</p>
+<p><c>length</c> = $segment1.length</p>
+```
+
+
+
+When no `endpoints` are specified, the `slope` and `length` attributes define the 
+segment: the first endpoint is placed at the origin and the second is placed a distance 
+`length` away in the direction determined by `slope`. A negative `length` points the 
+segment in the opposite direction.
+
+
+
+---
+
+### Attribute Example: midpoint
+
+
+```doenet-editor-horiz
+<graph size="small" xmin="-1" xmax="5" ymin="-1" ymax="5">
+  <shortDescription>graph of a line segment defined by one endpoint and its midpoint</shortDescription>
+  <lineSegment name="segment1" endpoints="(1,2)" midpoint="(2,3)"/>
+  <point styleNumber="2">$segment1.midpoint</point>
+</graph>
+
+<p><c>endpoints</c> = $segment1.endpoints</p>
+<p><c>midpoint</c> = $segment1.midpoint</p>
+```
+
+
+
+The `midpoint` attribute specifies a point that lies on the segment, which is its 
+midpoint by default. Combined with a single `endpoints` value, the second endpoint is 
+placed so that the given point is the midpoint of the segment: here the endpoint 
+$(1,2)$ and midpoint $(2,3)$ produce a second endpoint at $(3,4)$. The `midpoint` can 
+also be paired with `slope` and `length` (with no `endpoints`) to center a segment of a 
+given direction and length on a point.
+
+
+
+---
+
+### Attribute Example: midpointOffset
+
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-3" ymax="3">
+  <shortDescription>graph showing how midpointOffset slides the reference point along a line segment</shortDescription>
+  <point name="P" styleNumber="2">(0,0)</point>
+  <lineSegment name="segment1" midpoint="$P" slope="0" length="4" midpointOffset="$offset"/>
+</graph>
+
+<p>Set <c>midpointOffset</c> (clamped to the range <m>[-1,1]</m>): <mathInput name="offset" prefill="0"/></p>
+<p><c>endpoints</c> = $segment1.endpoints</p>
+```
+
+
+
+The `midpointOffset` attribute controls where the `midpoint` point sits along the 
+segment: `0` (the default) is the midpoint, `-1` is the first endpoint, and `1` is the 
+second endpoint. With the point $P=(0,0)$ held fixed and a horizontal segment of length 
+$4$, an offset of $0$ gives endpoints $(-2,0)$ and $(2,0)$; an offset of $-1$ gives 
+$(0,0)$ and $(4,0)$; and an offset of $1$ gives $(-4,0)$ and $(0,0)$.
+
+
+
 ## Property Examples
 
 ### Property Example: numDimensions
@@ -277,4 +354,54 @@ The `length` property returns the length of the `<lineSegment>{:dn}`.
 
 
 The `slope` property returns the slope of the `<lineSegment>{:dn}`.
+
+
+
+---
+
+### Property Example: midpoint
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>graph of a line segment with its midpoint marked</shortDescription>
+  <lineSegment name="segment1" endpoints="(0,0) (6,6)"/>
+  <point styleNumber="2">$segment1.midpoint</point>
+</graph>
+
+<p><c>midpoint</c> = $segment1.midpoint</p>
+```
+
+
+
+The `midpoint` property returns the actual midpoint of the `<lineSegment>{:dn}`, 
+i.e. the average of its endpoints.
+
+
+
+---
+
+### Property Example: midpoint versus the midpoint attribute
+
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="3" ymin="-3" ymax="3">
+  <shortDescription>graph showing that the midpoint attribute point and the actual midpoint property differ when midpointOffset is nonzero</shortDescription>
+  <point name="P" styleNumber="2">(0,0)</point>
+  <lineSegment name="segment1" midpoint="$P" slope="0" length="4" midpointOffset="0.5"/>
+  <point styleNumber="4">$segment1.midpoint</point>
+</graph>
+
+<p>The <c>midpoint</c> attribute point: <m>P</m> = $P</p>
+<p>The <c>midpoint</c> property (actual midpoint) = $segment1.midpoint</p>
+```
+
+
+
+The `midpoint` attribute and the `midpoint` property are the same point by default, 
+but they differ when `midpointOffset` is nonzero. Here `midpointOffset` is `0.5`, so the 
+attribute point `P` $=(0,0)$ sits three-quarters of the way along the segment while the 
+`midpoint` property reports the segment's actual midpoint, $(-1,0)$. Both marked points 
+are draggable: drag either to reposition the segment and watch them stay distinct. They 
+coincide only when `midpointOffset` returns to `0`.
 

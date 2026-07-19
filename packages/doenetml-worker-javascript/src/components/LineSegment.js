@@ -9,6 +9,17 @@ import {
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
+import {
+    addMidpointInstructions,
+    addSlopeAndLengthInstructions,
+    buildIgnoredPhrase,
+    directionFromSlope,
+    getConfiguredSignedLength,
+    getConfiguredSlope,
+    getDirectionComponent,
+    getNumericEndpointPair,
+    mergePointCoords,
+} from "../utils/lineSegment";
 
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
@@ -48,6 +59,32 @@ export default class LineSegment extends GraphicalComponent {
         attributes.endpoints = {
             createComponentOfType: "pointList",
             description: "The two endpoints of the line segment.",
+        };
+
+        attributes.midpoint = {
+            createComponentOfType: "point",
+            description:
+                "A reference point on the line segment, located at its midpoint by default. Used with slope/length/midpointOffset to position the segment. When midpointOffset is nonzero, this point is offset from the segment's actual midpoint (given by the midpoint property).",
+        };
+
+        attributes.slope = {
+            createComponentOfType: "number",
+            description: "The slope of the line segment in the x-y plane.",
+        };
+
+        attributes.length = {
+            createComponentOfType: "number",
+            description:
+                "The signed defining length used with the slope/midpoint parameterization. Negative values flip the relative position of the endpoints.",
+        };
+
+        attributes.midpointOffset = {
+            createComponentOfType: "number",
+            createStateVariable: "midpointOffset",
+            defaultValue: 0,
+            clamp: [-1, 1],
+            description:
+                "Where the point given by the midpoint attribute sits along the segment (requires midpoint to be set): -1=first endpoint, 0=midpoint, 1=second endpoint. Clamped to [-1, 1].",
         };
 
         attributes.addControls = {
@@ -219,23 +256,260 @@ export default class LineSegment extends GraphicalComponent {
                     attributeName: "endpoints",
                     variableNames: ["numDimensions"],
                 },
+                midpointAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "midpoint",
+                    variableNames: ["numDimensions"],
+                },
             }),
             definition: function ({ dependencyValues }) {
-                // console.log('definition of numDimensions')
-                // console.log(dependencyValues)
+                const endpointsDimensions =
+                    dependencyValues.endpointsAttr?.stateValues.numDimensions ??
+                    0;
+                const midpointDimensions =
+                    dependencyValues.midpointAttr?.stateValues.numDimensions ??
+                    0;
 
-                if (dependencyValues.endpointsAttr !== null) {
-                    let numDimensions =
-                        dependencyValues.endpointsAttr.stateValues
-                            .numDimensions;
-                    return {
-                        setValue: { numDimensions: Math.max(numDimensions, 2) },
-                        checkForActualChange: { numDimensions: true },
-                    };
-                } else {
-                    // line segment through zero points
-                    return { setValue: { numDimensions: 2 } };
+                return {
+                    setValue: {
+                        numDimensions: Math.max(
+                            endpointsDimensions,
+                            midpointDimensions,
+                            2,
+                        ),
+                    },
+                    checkForActualChange: { numDimensions: true },
+                };
+            },
+        };
+
+        // How many endpoints are explicitly prescribed in the endpoints attribute.
+        stateVariableDefinitions.numEndpointsSpecified = {
+            returnDependencies: () => ({
+                endpointsAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "endpoints",
+                    variableNames: ["numPoints"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.endpointsAttr === null) {
+                    return { setValue: { numEndpointsSpecified: 0 } };
                 }
+                return {
+                    setValue: {
+                        numEndpointsSpecified: Math.min(
+                            dependencyValues.endpointsAttr.stateValues
+                                .numPoints,
+                            2,
+                        ),
+                    },
+                };
+            },
+        };
+
+        // Whether a midpoint is prescribed.
+        stateVariableDefinitions.midpointSpecified = {
+            returnDependencies: () => ({
+                midpointAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "midpoint",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        midpointSpecified:
+                            dependencyValues.midpointAttr !== null,
+                    },
+                };
+            },
+        };
+
+        // True when any of the slope/length/midpoint attrs are active and fewer
+        // than 2 explicit endpoints are given. midpointOffset only refines the
+        // position when a midpoint is present; on its own it does not activate
+        // this parameterization.
+        // Mirrors Line.js's basedOnSlope pattern.
+        // When false, all old unconstrainedEndpoints code paths run unchanged.
+        // Note: slope is a 2D concept, so Cases B/C/D apply it only in the x-y
+        // plane and preserve higher coordinates. Case A (1 endpoint + 1 midpoint)
+        // is fully dimension-agnostic.
+        stateVariableDefinitions.basedOnSlopeOrMidpoint = {
+            stateVariablesDeterminingDependencies: [],
+            returnDependencies: () => ({
+                slopeAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "slope",
+                },
+                lengthAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "length",
+                },
+                midpointSpecified: {
+                    dependencyType: "stateVariable",
+                    variableName: "midpointSpecified",
+                },
+                numEndpointsSpecified: {
+                    dependencyType: "stateVariable",
+                    variableName: "numEndpointsSpecified",
+                },
+                midpointOffset: {
+                    dependencyType: "stateVariable",
+                    variableName: "midpointOffset",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                const anyPositioningAttr =
+                    dependencyValues.slopeAttr !== null ||
+                    dependencyValues.lengthAttr !== null ||
+                    dependencyValues.midpointSpecified;
+                const basedOnSlopeOrMidpoint =
+                    anyPositioningAttr &&
+                    dependencyValues.numEndpointsSpecified < 2;
+
+                const result = {
+                    setValue: {
+                        basedOnSlopeOrMidpoint,
+                    },
+                };
+                if (anyPositioningAttr && !basedOnSlopeOrMidpoint) {
+                    const ignored = [];
+                    if (dependencyValues.slopeAttr !== null) {
+                        ignored.push("slope");
+                    }
+                    if (dependencyValues.lengthAttr !== null) {
+                        ignored.push("length");
+                    }
+                    if (dependencyValues.midpointSpecified) {
+                        ignored.push("midpoint");
+                    }
+                    if (!usedDefault.midpointOffset) {
+                        ignored.push("midpointOffset");
+                    }
+
+                    result.sendDiagnostics = [
+                        {
+                            type: "info",
+                            message: `${buildIgnoredPhrase(ignored)} ignored when two endpoints are specified`,
+                        },
+                    ];
+                } else if (
+                    !basedOnSlopeOrMidpoint &&
+                    !usedDefault.midpointOffset
+                ) {
+                    result.sendDiagnostics = [
+                        {
+                            type: "info",
+                            message:
+                                "midpointOffset has no effect without a midpoint",
+                        },
+                    ];
+                }
+
+                return result;
+            },
+        };
+        // Essential slope — used when basedOnSlopeOrMidpoint but no slope attr.
+        stateVariableDefinitions.essentialSlope = {
+            defaultValue: 0,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { essentialSlope: true },
+            }),
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "essentialSlope",
+                            value: desiredStateVariableValues.essentialSlope,
+                        },
+                    ],
+                };
+            },
+        };
+
+        // Essential signed length — used when basedOnSlopeOrMidpoint but no length attr.
+        stateVariableDefinitions.essentialSignedLength = {
+            defaultValue: 1,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { essentialSignedLength: true },
+            }),
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "essentialSignedLength",
+                            value: desiredStateVariableValues.essentialSignedLength,
+                        },
+                    ],
+                };
+            },
+        };
+
+        // Essential ep1 (first endpoint) — used in Case D when basedOnSlopeOrMidpoint is true
+        // but no endpoints attr is specified. Stored separately from unconstrainedEndpoints
+        // essential state to avoid a self-referential dependency.
+        // Modeled after Line.js's essentialPoints array.
+        stateVariableDefinitions.essentialEp1 = {
+            isArray: true,
+            numDimensions: 1,
+            isLocation: true,
+            hasEssential: true,
+            set: convertValueToMathExpression,
+            defaultValueByArrayKey: () => me.fromAst(0),
+            entryPrefixes: ["essentialEp1X"],
+            getArrayKeysFromVarName({
+                arrayEntryPrefix,
+                varEnding,
+                arraySize,
+            }) {
+                let ind = Number(varEnding) - 1;
+                if (!Number.isInteger(ind) || ind < 0) {
+                    return [];
+                }
+                if (arraySize) {
+                    return ind < arraySize[0] ? [String(ind)] : [];
+                }
+                return [String(ind)];
+            },
+            returnArraySizeDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numDimensions];
+            },
+            returnArrayDependenciesByKey: () => ({}),
+            arrayDefinitionByKey({ arrayKeys }) {
+                let essentialEp1 = {};
+                for (let arrayKey of arrayKeys) {
+                    essentialEp1[arrayKey] = true;
+                }
+                return { useEssentialOrDefaultValue: { essentialEp1 } };
+            },
+            inverseArrayDefinitionByKey({ desiredStateVariableValues }) {
+                let instructions = [];
+                for (let arrayKey in desiredStateVariableValues.essentialEp1) {
+                    instructions.push({
+                        setEssentialValue: "essentialEp1",
+                        value: {
+                            [arrayKey]: convertValueToMathExpression(
+                                desiredStateVariableValues.essentialEp1[
+                                    arrayKey
+                                ],
+                            ),
+                        },
+                    });
+                }
+                return { success: true, instructions };
             },
         };
 
@@ -331,114 +605,677 @@ export default class LineSegment extends GraphicalComponent {
             returnArraySize({ dependencyValues }) {
                 return [2, dependencyValues.numDimensions];
             },
-            returnArrayDependenciesByKey({ arrayKeys }) {
-                let dependenciesByKey = {};
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
-
-                    dependenciesByKey[arrayKey] = {
-                        endpointsAttr: {
-                            dependencyType: "attributeComponent",
-                            attributeName: "endpoints",
-                            variableNames: ["pointX" + varEnding],
-                        },
-                    };
+            stateVariablesDeterminingDependencies: [
+                "basedOnSlopeOrMidpoint",
+                "numEndpointsSpecified",
+                "midpointSpecified",
+            ],
+            returnArrayDependenciesByKey({ stateValues, arrayKeys }) {
+                // When not using the new slope/midpoint parameterization,
+                // use the original dependency structure (both endpoints from attr or essential).
+                if (!stateValues.basedOnSlopeOrMidpoint) {
+                    let dependenciesByKey = {};
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding =
+                            Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                        dependenciesByKey[arrayKey] = {
+                            endpointsAttr: {
+                                dependencyType: "attributeComponent",
+                                attributeName: "endpoints",
+                                variableNames: ["pointX" + varEnding],
+                            },
+                        };
+                    }
+                    return { dependenciesByKey };
                 }
-                return { dependenciesByKey };
+
+                // New parameterization — global dependencies shared across all keys.
+                let globalDependencies = {
+                    basedOnSlopeOrMidpoint: {
+                        dependencyType: "stateVariable",
+                        variableName: "basedOnSlopeOrMidpoint",
+                    },
+                    numEndpointsSpecified: {
+                        dependencyType: "stateVariable",
+                        variableName: "numEndpointsSpecified",
+                    },
+                    midpointSpecified: {
+                        dependencyType: "stateVariable",
+                        variableName: "midpointSpecified",
+                    },
+                    numDimensions: {
+                        dependencyType: "stateVariable",
+                        variableName: "numDimensions",
+                    },
+                    slopeAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "slope",
+                        variableNames: ["value"],
+                    },
+                    lengthAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "length",
+                        variableNames: ["value"],
+                    },
+                    midpointOffset: {
+                        dependencyType: "stateVariable",
+                        variableName: "midpointOffset",
+                    },
+                    essentialSlope: {
+                        dependencyType: "stateVariable",
+                        variableName: "essentialSlope",
+                    },
+                    essentialSignedLength: {
+                        dependencyType: "stateVariable",
+                        variableName: "essentialSignedLength",
+                    },
+                };
+
+                // Case A or B: 1 explicit endpoint — need ep1 from endpoints attr.
+                if (stateValues.numEndpointsSpecified === 1) {
+                    globalDependencies.ep1FromAttr = {
+                        dependencyType: "attributeComponent",
+                        attributeName: "endpoints",
+                        variableNames: [],
+                    };
+                    // We'll fetch individual coords per key below.
+                    let dependenciesByKey = {};
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding = "1_" + (Number(dim) + 1);
+                        dependenciesByKey[arrayKey] = {
+                            ep1Coord: {
+                                dependencyType: "attributeComponent",
+                                attributeName: "endpoints",
+                                variableNames: ["pointX" + varEnding],
+                            },
+                        };
+                    }
+                    // For case A, also need midpoint coords.
+                    if (stateValues.midpointSpecified) {
+                        for (let arrayKey of arrayKeys) {
+                            let dim = Number(arrayKey.split(",")[1]);
+                            dependenciesByKey[arrayKey].midpointCoord = {
+                                dependencyType: "attributeComponent",
+                                attributeName: "midpoint",
+                                variableNames: ["x" + (dim + 1)],
+                            };
+                        }
+                    }
+                    return { globalDependencies, dependenciesByKey };
+                }
+
+                // Case C or D: 0 explicit endpoints.
+                let dependenciesByKey = {};
+                if (stateValues.midpointSpecified) {
+                    // Case C: need midpoint coords per key.
+                    for (let arrayKey of arrayKeys) {
+                        let dim = Number(arrayKey.split(",")[1]);
+                        dependenciesByKey[arrayKey] = {
+                            midpointCoord: {
+                                dependencyType: "attributeComponent",
+                                attributeName: "midpoint",
+                                variableNames: ["x" + (dim + 1)],
+                            },
+                        };
+                    }
+                } else {
+                    // Case D: ep1 from essentialEp1 (separate state variable to avoid
+                    // self-referential dependency on unconstrainedEndpoints entries).
+                    // ep2 is derived from ep1 + slope/length.
+                    globalDependencies.essentialEp1 = {
+                        dependencyType: "stateVariable",
+                        variableName: "essentialEp1",
+                    };
+                    for (let arrayKey of arrayKeys) {
+                        dependenciesByKey[arrayKey] = {};
+                    }
+                    return { globalDependencies, dependenciesByKey };
+                }
+                return { globalDependencies, dependenciesByKey };
             },
-            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                // console.log("array definition of lineSegment endpoints");
-                // console.log(dependencyValuesByKey);
-                // console.log(arrayKeys);
+
+            arrayDefinitionByKey({
+                globalDependencyValues,
+                globalUsedDefault,
+                dependencyValuesByKey,
+                arrayKeys,
+            }) {
+                // basedOnSlopeOrMidpoint is false: each endpoint is independent, from attr or essential.
+                if (!globalDependencyValues?.basedOnSlopeOrMidpoint) {
+                    let unconstrainedEndpoints = {};
+                    let essentialUnconstrainedEndpoints = {};
+
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding =
+                            Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+
+                        if (
+                            dependencyValuesByKey[arrayKey].endpointsAttr !==
+                                null &&
+                            dependencyValuesByKey[arrayKey].endpointsAttr
+                                .stateValues["pointX" + varEnding]
+                        ) {
+                            unconstrainedEndpoints[arrayKey] =
+                                dependencyValuesByKey[
+                                    arrayKey
+                                ].endpointsAttr.stateValues[
+                                    "pointX" + varEnding
+                                ];
+                        } else {
+                            essentialUnconstrainedEndpoints[arrayKey] = true;
+                        }
+                    }
+
+                    let result = {};
+                    if (Object.keys(unconstrainedEndpoints).length > 0) {
+                        result.setValue = { unconstrainedEndpoints };
+                    }
+                    if (
+                        Object.keys(essentialUnconstrainedEndpoints).length > 0
+                    ) {
+                        result.useEssentialOrDefaultValue = {
+                            unconstrainedEndpoints:
+                                essentialUnconstrainedEndpoints,
+                        };
+                    }
+                    return result;
+                }
+
+                // New parameterization — compute ep1/ep2 from slope/length/midpoint.
+                const g = globalDependencyValues;
+                const gUsedDefault = globalUsedDefault;
+
+                // Emit diagnostics for ignored attributes.
+                let sendDiagnostics = [];
+                if (g.numEndpointsSpecified === 1 && g.midpointSpecified) {
+                    // Case A uses midpointOffset (it sets where the midpoint sits
+                    // along the segment), so only slope and length are ignored.
+                    if (g.slopeAttr !== null || g.lengthAttr !== null) {
+                        const ignored = [];
+                        if (g.slopeAttr !== null) {
+                            ignored.push("slope");
+                        }
+                        if (g.lengthAttr !== null) {
+                            ignored.push("length");
+                        }
+
+                        sendDiagnostics.push({
+                            type: "info",
+                            message: `${buildIgnoredPhrase(ignored)} ignored when an endpoint and a midpoint are both specified`,
+                        });
+                    }
+                } else if (
+                    !g.midpointSpecified &&
+                    !gUsedDefault.midpointOffset
+                ) {
+                    sendDiagnostics.push({
+                        type: "info",
+                        message:
+                            "midpointOffset has no effect without a midpoint",
+                    });
+                }
 
                 let unconstrainedEndpoints = {};
-                let essentialUnconstrainedEndpoints = {};
 
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
-
-                    if (
-                        dependencyValuesByKey[arrayKey].endpointsAttr !==
-                            null &&
-                        dependencyValuesByKey[arrayKey].endpointsAttr
-                            .stateValues["pointX" + varEnding]
-                    ) {
-                        unconstrainedEndpoints[arrayKey] =
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].endpointsAttr.stateValues["pointX" + varEnding];
-                    } else {
-                        essentialUnconstrainedEndpoints[arrayKey] = true;
+                if (g.numEndpointsSpecified === 1 && g.midpointSpecified) {
+                    // Case A: 1 endpoint (ep1) + midpoint M. M sits at parameter
+                    // tT = (1 + midpointOffset)/2 along [ep1, ep2], so
+                    // ep2 = ep1 + (M - ep1)/tT. slope and length are ignored (the
+                    // segment is fixed by ep1, M, and midpointOffset). This is
+                    // dimension-agnostic. midpointOffset = -1 (tT = 0) places M on
+                    // ep1, leaving ep2 undefined. Build ep2 as an expression so
+                    // symbolic ep1/midpoint values are preserved.
+                    const tT = (1 + g.midpointOffset) / 2;
+                    for (let arrayKey of arrayKeys) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding = "1_" + (Number(dim) + 1);
+                        let ep1Coord =
+                            dependencyValuesByKey[arrayKey].ep1Coord
+                                ?.stateValues["pointX" + varEnding];
+                        if (pointInd === "0") {
+                            unconstrainedEndpoints[arrayKey] =
+                                ep1Coord ?? me.fromAst("\uff3f");
+                            continue;
+                        }
+                        let midpointVal =
+                            dependencyValuesByKey[arrayKey].midpointCoord
+                                ?.stateValues["x" + (Number(dim) + 1)];
+                        if (tT === 0 || !ep1Coord || !midpointVal) {
+                            unconstrainedEndpoints[arrayKey] =
+                                me.fromAst("\uff3f");
+                            continue;
+                        }
+                        // ep2 = ep1*(1 - 1/tT) + M*(1/tT)
+                        let invT = 1 / tT;
+                        unconstrainedEndpoints[arrayKey] = me
+                            .fromAst([
+                                "+",
+                                ["*", 1 - invT, ep1Coord.tree],
+                                ["*", invT, midpointVal.tree],
+                            ])
+                            .simplify();
                     }
+                } else {
+                    // Cases B, C, D all need slope and signedLength.
+                    const slope = getConfiguredSlope(g);
+                    const signedLength = getConfiguredSignedLength(g);
+
+                    // Compute direction unit vector from slope.
+                    const direction = directionFromSlope(slope);
+                    if (direction === null) {
+                        // NaN/non-finite slope → undefined segment for these cases.
+                        for (let arrayKey of arrayKeys) {
+                            unconstrainedEndpoints[arrayKey] =
+                                me.fromAst("\uff3f");
+                        }
+                        let result = { setValue: { unconstrainedEndpoints } };
+                        if (sendDiagnostics.length > 0) {
+                            result.sendDiagnostics = sendDiagnostics;
+                        }
+                        return result;
+                    }
+                    const [dirX, dirY] = direction;
+
+                    if (g.numEndpointsSpecified === 1 && !g.midpointSpecified) {
+                        // Case B: 1 endpoint, ep2 = ep1 + L × dir.
+                        // Build ep2 as an expression so symbolic endpoints are preserved.
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let varEnding = "1_" + (Number(dim) + 1);
+                            let ep1Coord =
+                                dependencyValuesByKey[arrayKey].ep1Coord
+                                    .stateValues["pointX" + varEnding];
+                            if (!ep1Coord) {
+                                unconstrainedEndpoints[arrayKey] =
+                                    me.fromAst("\uff3f");
+                                continue;
+                            }
+                            if (pointInd === "0") {
+                                unconstrainedEndpoints[arrayKey] = ep1Coord;
+                            } else {
+                                let delta =
+                                    signedLength *
+                                    getDirectionComponent(dim, dirX, dirY);
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst(["+", ep1Coord.tree, delta])
+                                    .simplify();
+                            }
+                        }
+                    } else if (g.midpointSpecified) {
+                        // Case C: 0 endpoints + 1 midpoint.
+                        // Build endpoints as expressions so symbolic midpoints are preserved.
+                        const po = g.midpointOffset;
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let midpointCoordVal =
+                                dependencyValuesByKey[arrayKey].midpointCoord
+                                    ?.stateValues["x" + (Number(dim) + 1)];
+                            if (!midpointCoordVal) {
+                                unconstrainedEndpoints[arrayKey] =
+                                    me.fromAst("\uff3f");
+                                continue;
+                            }
+                            let dir = getDirectionComponent(dim, dirX, dirY);
+                            if (pointInd === "0") {
+                                let coeff = ((1 + po) / 2) * signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst([
+                                        "+",
+                                        midpointCoordVal.tree,
+                                        -coeff,
+                                    ])
+                                    .simplify();
+                            } else {
+                                let coeff = ((1 - po) / 2) * signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst([
+                                        "+",
+                                        midpointCoordVal.tree,
+                                        coeff,
+                                    ])
+                                    .simplify();
+                            }
+                        }
+                    } else {
+                        // Case D: 0 endpoints + 0 midpoint, slope/length active.
+                        // ep1 from essentialEp1 global dep; ep2 derived.
+                        // Build ep2 as an expression so symbolic ep1 values are preserved.
+                        let ep1 = g.essentialEp1 ?? [
+                            me.fromAst(0),
+                            me.fromAst(0),
+                        ];
+                        for (let arrayKey of arrayKeys) {
+                            let [pointInd, dim] = arrayKey.split(",");
+                            let ep1Coord = ep1[Number(dim)] ?? me.fromAst(0);
+                            if (pointInd === "0") {
+                                unconstrainedEndpoints[arrayKey] = ep1Coord;
+                            } else {
+                                let dir = getDirectionComponent(
+                                    dim,
+                                    dirX,
+                                    dirY,
+                                );
+                                let delta = signedLength * dir;
+                                unconstrainedEndpoints[arrayKey] = me
+                                    .fromAst(["+", ep1Coord.tree, delta])
+                                    .simplify();
+                            }
+                        }
+                    } // end else { // Cases B, C, D
                 }
 
-                let result = {};
-
-                if (Object.keys(unconstrainedEndpoints).length > 0) {
-                    result.setValue = { unconstrainedEndpoints };
+                let result = { setValue: { unconstrainedEndpoints } };
+                if (sendDiagnostics.length > 0) {
+                    result.sendDiagnostics = sendDiagnostics;
                 }
-                if (Object.keys(essentialUnconstrainedEndpoints).length > 0) {
-                    result.useEssentialOrDefaultValue = {
-                        unconstrainedEndpoints: essentialUnconstrainedEndpoints,
-                    };
-                }
-
                 return result;
             },
+
             async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
+                globalDependencyValues,
                 dependencyValuesByKey,
                 dependencyNamesByKey,
                 initialChange,
                 stateValues,
+                workspace,
+                arraySize,
             }) {
-                // console.log(`inverse array definition of unconstrainedEndpoints of lineSegment`);
-                // console.log(desiredStateVariableValues)
-                // console.log(JSON.parse(JSON.stringify(stateValues)))
-                // console.log(dependencyValuesByKey);
+                // Old behavior (basedOnSlopeOrMidpoint === false):
+                // update each desired endpoint from attr or essential independently.
+                if (!globalDependencyValues?.basedOnSlopeOrMidpoint) {
+                    let instructions = [];
+                    for (let arrayKey in desiredStateVariableValues.unconstrainedEndpoints) {
+                        let [pointInd, dim] = arrayKey.split(",");
+                        let varEnding =
+                            Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                        if (
+                            dependencyValuesByKey[arrayKey].endpointsAttr !==
+                                null &&
+                            dependencyValuesByKey[arrayKey].endpointsAttr
+                                .stateValues["pointX" + varEnding]
+                        ) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey]
+                                        .endpointsAttr,
+                                desiredValue:
+                                    desiredStateVariableValues
+                                        .unconstrainedEndpoints[arrayKey],
+                                childIndex: 0,
+                                variableIndex: 0,
+                            });
+                        } else {
+                            instructions.push({
+                                setEssentialValue: "unconstrainedEndpoints",
+                                value: {
+                                    [arrayKey]:
+                                        desiredStateVariableValues
+                                            .unconstrainedEndpoints[arrayKey],
+                                },
+                            });
+                        }
+                    }
+                    return { success: true, instructions };
+                }
+
+                // New parameterization inverse.
+                // Architectural principle: the inverse follows the dependency graph only.
+                // "Keep the other endpoint fixed" when dragging a graph handle is handled
+                // by moveLineSegment, which passes both desired endpoint positions.
+                // (Same design as Vector tail+displacement vs tail+head.)
+                //
+                // - ep1 keys desired only → update position handle; slope/length unchanged
+                //   → whole segment translates (e.g., when referenced endpoint is dragged)
+                // - ep2 keys desired only → compute new slope/length from (current_ep1, desired_ep2)
+                // - both desired (from action) → update ep1 handle AND slope/length
+
+                const g = globalDependencyValues;
+                const numDim = g.numDimensions ?? 2;
+                workspace ??= {};
+                Object.assign(
+                    workspace,
+                    desiredStateVariableValues.unconstrainedEndpoints,
+                );
+                const desiredUnconstrainedEndpoints = workspace;
+
+                const desiredKeys = Object.keys(desiredUnconstrainedEndpoints);
+                const onlyEp1Desired = desiredKeys.every((k) =>
+                    k.startsWith("0,"),
+                );
+                const onlyEp2Desired = desiredKeys.every((k) =>
+                    k.startsWith("1,"),
+                );
 
                 let instructions = [];
 
-                for (let arrayKey in desiredStateVariableValues.unconstrainedEndpoints) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let varEnding =
-                        Number(pointInd) + 1 + "_" + (Number(dim) + 1);
+                const numEndpointsSpecified = g.numEndpointsSpecified;
+                const midpointSpecified = g.midpointSpecified;
 
+                if (numEndpointsSpecified === 1 && midpointSpecified) {
+                    // Case A: segment defined by ep1 (endpoints attr) and midpoint
+                    // M (midpoint attr), with M at parameter tT = (1 + midpointOffset)/2
+                    // along [ep1, ep2]: M = ep1 + tT*(ep2 - ep1). There is no stored
+                    // slope/length, so the endpoints move like a plain two-endpoint
+                    // segment (dragging one keeps the other fixed) while M tracks the
+                    // parameter-tT point. Invert desired endpoints back to ep1 and M.
+                    const tT = (1 + g.midpointOffset) / 2;
+                    if (tT === 0) {
+                        // midpointOffset = -1: the specified midpoint sits at
+                        // parameter 0, i.e. on ep1, and ep2 is undefined.
+                        // Dragging ep2 or the whole segment has no inverse, but
+                        // dragging ep1 alone does: just move ep1. The specified
+                        // midpoint is left untouched — the midpoint still
+                        // resolves to ep1 wherever ep1 goes, so there is no need
+                        // to move it.
+                        if (!onlyEp1Desired) {
+                            return { success: false };
+                        }
+                        for (let arrayKey of desiredKeys) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey].ep1Coord,
+                                desiredValue:
+                                    desiredUnconstrainedEndpoints[arrayKey],
+                                variableIndex: 0,
+                            });
+                        }
+                        return { success: true, instructions };
+                    }
+                    let currentEndpoints = await stateValues.endpoints;
+                    let [ep1Num, ep2Num] = getNumericEndpointPair(
+                        desiredUnconstrainedEndpoints,
+                        currentEndpoints,
+                        numDim,
+                    );
                     if (
-                        dependencyValuesByKey[arrayKey].endpointsAttr !==
-                            null &&
-                        dependencyValuesByKey[arrayKey].endpointsAttr
-                            .stateValues["pointX" + varEnding]
+                        !ep1Num.every(Number.isFinite) ||
+                        !ep2Num.every(Number.isFinite)
                     ) {
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].endpointsAttr,
-                            desiredValue:
-                                desiredStateVariableValues
-                                    .unconstrainedEndpoints[arrayKey],
-                            childIndex: 0,
-                            variableIndex: 0,
-                        });
+                        return { success: false };
+                    }
+                    // ep1 attr ← desired ep1 coords (preserve symbolic values).
+                    for (let arrayKey of desiredKeys) {
+                        let [pointInd] = arrayKey.split(",").map(Number);
+                        if (pointInd === 0) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey].ep1Coord,
+                                desiredValue:
+                                    desiredUnconstrainedEndpoints[arrayKey],
+                                variableIndex: 0,
+                            });
+                        }
+                    }
+                    // M attr ← ep1 + tT*(ep2 - ep1), the parameter-tT point.
+                    const M_new = ep1Num.map(
+                        (value, dim) => value + tT * (ep2Num[dim] - value),
+                    );
+                    addMidpointInstructions({
+                        instructions,
+                        dependencyNamesByKey,
+                        midpointCoords: M_new,
+                    });
+                    return { success: true, instructions };
+                }
+
+                if (numEndpointsSpecified === 1 && !midpointSpecified) {
+                    // Case B: ep1 from endpoints attr; ep2 = ep1 + L × dir(slope).
+                    // ep1 desired → update ep1 attr directly (slope/length unchanged → ep2 translates)
+                    // ep2 desired → compute new slope/length
+                    // both desired (from action) → update ep1 attr + slope/length
+
+                    if (!onlyEp2Desired) {
+                        // ep1 keys: pass through directly to ep1Coord dependency.
+                        for (let arrayKey of desiredKeys) {
+                            let [pointInd] = arrayKey.split(",").map(Number);
+                            if (pointInd === 0) {
+                                instructions.push({
+                                    setDependency:
+                                        dependencyNamesByKey[arrayKey].ep1Coord,
+                                    desiredValue:
+                                        desiredUnconstrainedEndpoints[arrayKey],
+                                    variableIndex: 0,
+                                });
+                            }
+                        }
+                    }
+                    if (!onlyEp1Desired) {
+                        // Need numeric ep1 and ep2 to compute new slope/length.
+                        let currentEndpoints = await stateValues.endpoints;
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredUnconstrainedEndpoints,
+                            currentEndpoints,
+                        );
+                        if (
+                            ep1Num.every(Number.isFinite) &&
+                            ep2Num.every(Number.isFinite)
+                        ) {
+                            addSlopeAndLengthInstructions({
+                                instructions,
+                                globalDependencyValues: g,
+                                endpoint1: ep1Num,
+                                endpoint2: ep2Num,
+                            });
+                        }
+                    }
+                } else if (midpointSpecified) {
+                    // Case C: midpoint T is the position handle.
+                    // ep1 = T - (1+po)/2 * L * dir
+                    // ep2 = T + (1-po)/2 * L * dir
+                    const po = g.midpointOffset;
+                    const tT = (1 + po) / 2;
+
+                    let T_new;
+                    if (onlyEp1Desired) {
+                        // Only ep1 desired (referenced point dragged): translate segment.
+                        // Compute T from desired ep1 + current slope/length direction.
+                        // Slope/length stay unchanged; whole segment translates.
+                        const slope = getConfiguredSlope(g);
+                        const L = getConfiguredSignedLength(g);
+                        const direction = directionFromSlope(slope);
+                        if (direction === null) {
+                            return { success: false };
+                        }
+                        const [dirX2, dirY2] = direction;
+                        let currentEndpoints = await stateValues.endpoints;
+                        const [ep1Desired] = getNumericEndpointPair(
+                            desiredUnconstrainedEndpoints,
+                            currentEndpoints,
+                            numDim,
+                            [0],
+                        );
+                        T_new = ep1Desired.map(
+                            (value, dim) =>
+                                value +
+                                tT *
+                                    L *
+                                    getDirectionComponent(dim, dirX2, dirY2),
+                        );
+                        if (!T_new.every(Number.isFinite)) {
+                            return { success: false };
+                        }
                     } else {
-                        instructions.push({
-                            setEssentialValue: "unconstrainedEndpoints",
-                            value: {
-                                [arrayKey]:
-                                    desiredStateVariableValues
-                                        .unconstrainedEndpoints[arrayKey],
-                            },
+                        // ep2 desired (alone or with ep1): use t-parameterization.
+                        // T_new = ep1_new + tT * (ep2_new - ep1_new)
+                        let currentEndpoints = await stateValues.endpoints;
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredUnconstrainedEndpoints,
+                            currentEndpoints,
+                            numDim,
+                        );
+                        if (
+                            !ep1Num.every(Number.isFinite) ||
+                            !ep2Num.every(Number.isFinite)
+                        ) {
+                            return { success: false };
+                        }
+                        T_new = ep1Num.map(
+                            (value, dim) => value + tT * (ep2Num[dim] - value),
+                        );
+                        // Also update slope/length since ep2 changed.
+                        addSlopeAndLengthInstructions({
+                            instructions,
+                            globalDependencyValues: g,
+                            endpoint1: ep1Num,
+                            endpoint2: ep2Num,
                         });
+                    }
+
+                    addMidpointInstructions({
+                        instructions,
+                        dependencyNamesByKey,
+                        midpointCoords: T_new,
+                    });
+                } else {
+                    // Case D: 0 endpoints + 0 midpoint; ep1 in essentialEp1, ep2 derived.
+                    // ep1 desired → update essentialEp1 directly (slope/length unchanged → ep2 translates)
+                    // ep2 desired → compute new slope/length (ep1 essentialEp1 unchanged)
+                    // both desired (from action) → update essentialEp1 + slope/length
+
+                    if (!onlyEp2Desired) {
+                        // ep1 keys: pass through directly to essentialEp1.
+                        for (let arrayKey of desiredKeys) {
+                            let [pointInd, dim] = arrayKey
+                                .split(",")
+                                .map(Number);
+                            if (pointInd === 0) {
+                                instructions.push({
+                                    setDependency: "essentialEp1",
+                                    desiredValue: {
+                                        [String(dim)]:
+                                            desiredUnconstrainedEndpoints[
+                                                arrayKey
+                                            ],
+                                    },
+                                });
+                            }
+                        }
+                    }
+                    if (!onlyEp1Desired) {
+                        let currentEndpoints = await stateValues.endpoints;
+                        let [ep1Num, ep2Num] = getNumericEndpointPair(
+                            desiredUnconstrainedEndpoints,
+                            currentEndpoints,
+                        );
+                        if (
+                            ep1Num.every(Number.isFinite) &&
+                            ep2Num.every(Number.isFinite)
+                        ) {
+                            addSlopeAndLengthInstructions({
+                                instructions,
+                                globalDependencyValues: g,
+                                endpoint1: ep1Num,
+                                endpoint2: ep2Num,
+                            });
+                        }
                     }
                 }
 
-                return {
-                    success: true,
-                    instructions,
-                };
+                return { success: true, instructions };
             },
         };
 
@@ -817,7 +1654,8 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.length = {
-            description: "The length of the line segment.",
+            description:
+                "The Euclidean length of the line segment (always non-negative).",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1152,7 +1990,8 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.slope = {
-            description: "The slope of the line segment (2D only).",
+            description:
+                "The slope of the line segment in the x-y plane; returns NaN when the segment is not 2D.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1161,9 +2000,9 @@ export default class LineSegment extends GraphicalComponent {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                numericalEndpoints: {
+                endpoints: {
                     dependencyType: "stateVariable",
-                    variableName: "numericalEndpoints",
+                    variableName: "endpoints",
                 },
                 numDimensions: {
                     dependencyType: "stateVariable",
@@ -1175,10 +2014,243 @@ export default class LineSegment extends GraphicalComponent {
                     return { setValue: { slope: NaN } };
                 }
 
-                let ps = dependencyValues.numericalEndpoints;
-                let slope = (ps[1][1] - ps[0][1]) / (ps[1][0] - ps[0][0]);
+                let ep = dependencyValues.endpoints;
+                let A1 = ep[0][0].evaluate_to_constant();
+                let A2 = ep[0][1].evaluate_to_constant();
+                let B1 = ep[1][0].evaluate_to_constant();
+                let B2 = ep[1][1].evaluate_to_constant();
+                let slope = (B2 - A2) / (B1 - A1);
 
                 return { setValue: { slope } };
+            },
+            inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                // Keep midpoint and length fixed; rotate direction to desired slope.
+                // Pick the orientation closest to the current direction.
+                if (dependencyValues.numDimensions !== 2) {
+                    return { success: false };
+                }
+                let ep = dependencyValues.endpoints;
+                let A1 = ep[0][0].evaluate_to_constant();
+                let A2 = ep[0][1].evaluate_to_constant();
+                let B1 = ep[1][0].evaluate_to_constant();
+                let B2 = ep[1][1].evaluate_to_constant();
+                if (
+                    !Number.isFinite(A1) ||
+                    !Number.isFinite(A2) ||
+                    !Number.isFinite(B1) ||
+                    !Number.isFinite(B2)
+                ) {
+                    return { success: false };
+                }
+                let cx = (A1 + B1) / 2;
+                let cy = (A2 + B2) / 2;
+                let L = Math.sqrt((B1 - A1) ** 2 + (B2 - A2) ** 2);
+                if (L === 0) {
+                    return { success: false };
+                }
+
+                let m = desiredStateVariableValues.slope;
+                // Normalize to a number in case a math expression was passed.
+                if (m instanceof me.class) {
+                    m = m.evaluate_to_constant();
+                }
+                if (Number.isNaN(m)) {
+                    return { success: false };
+                }
+
+                // Compute candidate unit direction from desired slope.
+                const direction = directionFromSlope(m);
+                if (direction === null) {
+                    return { success: false };
+                }
+                let [dirX, dirY] = direction;
+
+                // Flip if needed to stay closest to current direction.
+                let currentDirX = (B1 - A1) / L;
+                let currentDirY = (B2 - A2) / L;
+                // For finite slopes, flip direction to stay closest to current.
+                // For vertical slopes (±Infinity), the direction [0, ±1] is exact
+                // and flipping would incorrectly invert the sign (Inf ↔ -Inf).
+                if (
+                    Number.isFinite(m) &&
+                    currentDirX * dirX + currentDirY * dirY < 0
+                ) {
+                    dirX = -dirX;
+                    dirY = -dirY;
+                }
+
+                let half = L / 2;
+                let newEp1 = [
+                    me.fromAst(cx - half * dirX),
+                    me.fromAst(cy - half * dirY),
+                ];
+                let newEp2 = [
+                    me.fromAst(cx + half * dirX),
+                    me.fromAst(cy + half * dirY),
+                ];
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "endpoints",
+                            desiredValue: [newEp1, newEp2],
+                        },
+                    ],
+                };
+            },
+        };
+
+        stateVariableDefinitions.midpoint = {
+            description:
+                "The midpoint of the line segment, i.e. the average of its endpoints. When the midpoint attribute is set together with a nonzero midpointOffset, this actual midpoint differs from the point given by the midpoint attribute.",
+            public: true,
+            isLocation: true,
+            shadowingInstructions: {
+                createComponentOfType: "math",
+                addAttributeComponentsShadowingStateVariables:
+                    returnNumberDisplayAttributeComponentShadowing(),
+                returnWrappingComponents(prefix) {
+                    if (prefix === "midpointX") {
+                        return [];
+                    } else {
+                        return [
+                            [
+                                "point",
+                                {
+                                    componentType: "mathList",
+                                    isAttributeNamed: "xs",
+                                },
+                            ],
+                        ];
+                    }
+                },
+            },
+            isArray: true,
+            numDimensions: 1,
+            indexAliases: [["x", "y", "z"]],
+            entryPrefixes: ["midpointX"],
+            returnEntryDimensions: () => 0,
+            getArrayKeysFromVarName({
+                arrayEntryPrefix,
+                varEnding,
+                arraySize,
+            }) {
+                let ind = Number(varEnding) - 1;
+                if (!Number.isInteger(ind) || ind < 0) {
+                    return [];
+                }
+                if (arraySize) {
+                    return ind < arraySize[0] ? [String(ind)] : [];
+                }
+                return [String(ind)];
+            },
+            arrayVarNameFromPropIndex(propIndex, varName) {
+                if (varName === "midpoint") {
+                    return "midpointX" + propIndex[0];
+                }
+                return null;
+            },
+            returnArraySizeDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numDimensions];
+            },
+            returnArrayDependenciesByKey() {
+                return {
+                    globalDependencies: {
+                        endpoints: {
+                            dependencyType: "stateVariable",
+                            variableName: "endpoints",
+                        },
+                        numDimensions: {
+                            dependencyType: "stateVariable",
+                            variableName: "numDimensions",
+                        },
+                    },
+                };
+            },
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                let midpoint = {};
+                let ep1 = globalDependencyValues.endpoints[0];
+                let ep2 = globalDependencyValues.endpoints[1];
+                for (let arrayKey of arrayKeys) {
+                    let dim = Number(arrayKey);
+                    let v1 = ep1[dim].evaluate_to_constant();
+                    let v2 = ep2[dim].evaluate_to_constant();
+                    if (Number.isFinite(v1) && Number.isFinite(v2)) {
+                        midpoint[arrayKey] = me.fromAst((v1 + v2) / 2);
+                    } else {
+                        midpoint[arrayKey] = me.fromAst([
+                            "/",
+                            ["+", ep1[dim].tree, ep2[dim].tree],
+                            2,
+                        ]);
+                    }
+                }
+                return { setValue: { midpoint } };
+            },
+            inverseArrayDefinitionByKey({
+                desiredStateVariableValues,
+                globalDependencyValues,
+            }) {
+                // Translate both endpoints along each requested dimension by
+                // delta = desired_midpoint - current_midpoint.
+                //
+                // Only emit changes for the dimensions actually present in the
+                // desired midpoint. When a referenced point drives the midpoint,
+                // its coordinates can arrive in separate inverse calls (one per
+                // dimension). Recomputing an unspecified dimension from the
+                // still-stale current midpoint would translate it by zero and
+                // overwrite the change made by the sibling call, so touch only
+                // the supplied dimensions and leave the rest untouched.
+                let ep1 = globalDependencyValues.endpoints[0];
+                let ep2 = globalDependencyValues.endpoints[1];
+
+                let desiredEndpoints = {};
+                for (let dimString in desiredStateVariableValues.midpoint) {
+                    let d = Number(dimString);
+                    let currentMidpoint = me.fromAst([
+                        "/",
+                        ["+", ep1[d].tree, ep2[d].tree],
+                        2,
+                    ]);
+                    let desiredMidpoint = convertValueToMathExpression(
+                        desiredStateVariableValues.midpoint[dimString],
+                    );
+                    let delta = me.fromAst([
+                        "+",
+                        desiredMidpoint.tree,
+                        ["-", currentMidpoint.tree],
+                    ]);
+                    desiredEndpoints["0," + d] = me.fromAst([
+                        "+",
+                        ep1[d].tree,
+                        delta.tree,
+                    ]);
+                    desiredEndpoints["1," + d] = me.fromAst([
+                        "+",
+                        ep2[d].tree,
+                        delta.tree,
+                    ]);
+                }
+
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "endpoints",
+                            desiredValue: desiredEndpoints,
+                        },
+                    ],
+                };
             },
         };
 
@@ -1196,8 +2268,10 @@ export default class LineSegment extends GraphicalComponent {
     ];
 
     async moveLineSegmentSinglePoint({
+        coords,
         x,
         y,
+        z,
         pointRole,
         transient,
         skippable,
@@ -1206,16 +2280,28 @@ export default class LineSegment extends GraphicalComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        let pointCoords = coords ?? [x, y];
+        if (coords === undefined && z !== undefined) {
+            pointCoords.push(z);
+        }
+
+        if (
+            pointCoords.length < 2 ||
+            !Number.isFinite(pointCoords[0]) ||
+            !Number.isFinite(pointCoords[1]) ||
+            pointCoords
+                .slice(2)
+                .some((coord) => coord !== undefined && !Number.isFinite(coord))
+        ) {
             console.warn(
-                `Invalid endpoint coordinates for line segment move: x=${x}, y=${y}`,
+                `Invalid endpoint coordinates for line segment move: ${pointCoords.join(", ")}`,
             );
             return;
         }
 
         if (pointRole === "endpoint1") {
             return await this.moveLineSegment({
-                point1coords: [x, y],
+                point1coords: pointCoords,
                 transient,
                 skippable,
                 actionId,
@@ -1225,7 +2311,7 @@ export default class LineSegment extends GraphicalComponent {
             });
         } else if (pointRole === "endpoint2") {
             return await this.moveLineSegment({
-                point2coords: [x, y],
+                point2coords: pointCoords,
                 transient,
                 skippable,
                 actionId,
@@ -1264,15 +2350,55 @@ export default class LineSegment extends GraphicalComponent {
             }
         }
 
+        const numDimensions = await this.stateValues.numDimensions;
+        let numericalEndpoints = await this.stateValues.numericalEndpoints;
+
+        if (point1coords !== undefined) {
+            point1coords = mergePointCoords(
+                point1coords,
+                numericalEndpoints[0],
+                numDimensions,
+            );
+        }
+        if (point2coords !== undefined) {
+            point2coords = mergePointCoords(
+                point2coords,
+                numericalEndpoints[1],
+                numDimensions,
+            );
+        }
+
+        // When basedOnSlopeOrMidpoint, ep2 is derived from ep1 + slope/length.
+        // A single-endpoint drag on the graph should keep the OTHER endpoint fixed
+        // (same intent as Vector's tail+displacement action).
+        // We achieve this by passing BOTH desired endpoint positions to performUpdate,
+        // so the inverse can compute new slope/length to match.
+        // This does NOT affect drags via referenced points (which go through the inverse
+        // definition directly and only receive the desired position of the moved endpoint).
+        if (await this.stateValues.basedOnSlopeOrMidpoint) {
+            if (point1coords !== undefined && point2coords === undefined) {
+                // ep1 dragged: keep ep2 fixed
+                point2coords = numericalEndpoints[1];
+            } else if (
+                point2coords !== undefined &&
+                point1coords === undefined
+            ) {
+                // ep2 dragged: keep ep1 fixed
+                point1coords = numericalEndpoints[0];
+            }
+        }
+
         let newComponents = {};
 
         if (point1coords !== undefined) {
-            newComponents["0,0"] = me.fromAst(point1coords[0]);
-            newComponents["0,1"] = me.fromAst(point1coords[1]);
+            for (let dim = 0; dim < numDimensions; dim++) {
+                newComponents[`0,${dim}`] = me.fromAst(point1coords[dim]);
+            }
         }
         if (point2coords !== undefined) {
-            newComponents["1,0"] = me.fromAst(point2coords[0]);
-            newComponents["1,1"] = me.fromAst(point2coords[1]);
+            for (let dim = 0; dim < numDimensions; dim++) {
+                newComponents[`1,${dim}`] = me.fromAst(point2coords[dim]);
+            }
         }
 
         // Note: we set skipRendererUpdate to true
@@ -1369,15 +2495,13 @@ export default class LineSegment extends GraphicalComponent {
                         );
                     }
                 }
-
                 let newPointComponents = {};
                 for (let ind in newNumericalPoints) {
-                    newPointComponents[ind + ",0"] = me.fromAst(
-                        newNumericalPoints[ind][0],
-                    );
-                    newPointComponents[ind + ",1"] = me.fromAst(
-                        newNumericalPoints[ind][1],
-                    );
+                    for (let dim = 0; dim < numDimensions; dim++) {
+                        newPointComponents[`${ind},${dim}`] = me.fromAst(
+                            newNumericalPoints[ind][dim],
+                        );
+                    }
                 }
 
                 let newInstructions = [
