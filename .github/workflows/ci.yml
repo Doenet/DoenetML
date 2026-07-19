@@ -277,15 +277,22 @@ jobs:
         steps:
             - uses: actions/checkout@v6
 
+            - name: Install devcontainer CLI
+              run: npm install -g @devcontainers/cli@0
+
             - name: Build and test in devcontainer
-              uses: devcontainers/ci@v0.3
-              with:
-                  runCmd: |
+              run: |
+                  set -eu
+                  # Retry only the image build (see the script for why); the
+                  # tests below run once, so a real failure is never masked.
+                  bash .github/scripts/devcontainer-up-with-retry.sh --workspace-folder .
+                  devcontainer exec --workspace-folder . /bin/bash -c '
                       set -eu
                       bash .devcontainer/npm-install-with-rollup-check.sh npm ci
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
+                  '
 
     test-doenetml-to-pretext-full-devcontainer:
         name: DoenetML to PreTeXt Tests
@@ -300,16 +307,23 @@ jobs:
               with:
                   name: build-artifacts
 
+            - name: Install devcontainer CLI
+              run: npm install -g @devcontainers/cli@0
+
             - name: Build and test in devcontainer
-              uses: devcontainers/ci@v0.3
-              with:
-                  runCmd: |
+              run: |
+                  set -eu
+                  # Retry only the image build (see the script for why); the
+                  # tests below run once, so a real failure is never masked.
+                  bash .github/scripts/devcontainer-up-with-retry.sh --workspace-folder .
+                  devcontainer exec --workspace-folder . /bin/bash -c '
                       set -eu
                       bash .devcontainer/npm-install-with-rollup-check.sh npm ci
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
                       npm run build -w packages/doenetml-to-pretext-python
                       npm run test -w packages/doenetml-to-pretext-python
+                  '
 
     lint:
         name: Lint Rust Code
