@@ -150,10 +150,12 @@ export function addMidpointInstructions({
     dependencyNamesByKey,
     midpointCoords,
 }) {
+    // The midpoint dependency is per dimension, not per endpoint: for a given
+    // dim both endpoints' keys point at the same midpoint coordinate, so a
+    // single lookup suffices.
     for (let dim = 0; dim < midpointCoords.length; dim++) {
         const midpointDependencyName =
-            dependencyNamesByKey["0," + dim]?.midpointCoord ??
-            dependencyNamesByKey["1," + dim]?.midpointCoord;
+            dependencyNamesByKey["0," + dim]?.midpointCoord;
 
         if (midpointDependencyName !== undefined) {
             instructions.push({

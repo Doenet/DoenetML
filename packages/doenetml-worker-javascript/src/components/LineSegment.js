@@ -695,12 +695,11 @@ export default class LineSegment extends GraphicalComponent {
                     // For case A, also need midpoint coords.
                     if (stateValues.midpointSpecified) {
                         for (let arrayKey of arrayKeys) {
-                            let [pointInd, dim] = arrayKey.split(",");
-                            let varEnding = "1_" + (Number(dim) + 1);
+                            let dim = Number(arrayKey.split(",")[1]);
                             dependenciesByKey[arrayKey].midpointCoord = {
                                 dependencyType: "attributeComponent",
                                 attributeName: "midpoint",
-                                variableNames: ["x" + (Number(dim) + 1)],
+                                variableNames: ["x" + (dim + 1)],
                             };
                         }
                     }
@@ -712,12 +711,12 @@ export default class LineSegment extends GraphicalComponent {
                 if (stateValues.midpointSpecified) {
                     // Case C: need midpoint coords per key.
                     for (let arrayKey of arrayKeys) {
-                        let [pointInd, dim] = arrayKey.split(",");
+                        let dim = Number(arrayKey.split(",")[1]);
                         dependenciesByKey[arrayKey] = {
                             midpointCoord: {
                                 dependencyType: "attributeComponent",
                                 attributeName: "midpoint",
-                                variableNames: ["x" + (Number(dim) + 1)],
+                                variableNames: ["x" + (dim + 1)],
                             },
                         };
                     }
