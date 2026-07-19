@@ -78,4 +78,18 @@ describe("fetchUrl", () => {
         ).rejects.toThrow(/fetch failed/);
         expect(fetchMock).toHaveBeenCalledTimes(3);
     });
+
+    it("throws the HTTP status error after exhausting retries on a transient status", async () => {
+        const fetchMock = vi
+            .spyOn(globalThis, "fetch")
+            .mockResolvedValue(new Response(null, { status: 503 }));
+
+        await expect(
+            fetchUrl("https://example.test/file", {
+                ...NO_WAIT,
+                maxAttempts: 3,
+            }),
+        ).rejects.toThrow(/HTTP 503/);
+        expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
 });
