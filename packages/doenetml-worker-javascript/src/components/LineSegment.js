@@ -346,9 +346,9 @@ export default class LineSegment extends GraphicalComponent {
                     dependencyType: "attributeComponent",
                     attributeName: "length",
                 },
-                midpointAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "midpoint",
+                midpointSpecified: {
+                    dependencyType: "stateVariable",
+                    variableName: "midpointSpecified",
                 },
                 numEndpointsSpecified: {
                     dependencyType: "stateVariable",
@@ -363,7 +363,7 @@ export default class LineSegment extends GraphicalComponent {
                 const anyPositioningAttr =
                     dependencyValues.slopeAttr !== null ||
                     dependencyValues.lengthAttr !== null ||
-                    dependencyValues.midpointAttr !== null;
+                    dependencyValues.midpointSpecified;
                 const basedOnSlopeOrMidpoint =
                     anyPositioningAttr &&
                     dependencyValues.numEndpointsSpecified < 2;
@@ -381,7 +381,7 @@ export default class LineSegment extends GraphicalComponent {
                     if (dependencyValues.lengthAttr !== null) {
                         ignored.push("length");
                     }
-                    if (dependencyValues.midpointAttr !== null) {
+                    if (dependencyValues.midpointSpecified) {
                         ignored.push("midpoint");
                     }
                     if (!usedDefault.midpointOffset) {
