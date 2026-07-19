@@ -4560,7 +4560,7 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         ).eqls([-1, 0]);
     });
 
-    it("midpoint state variable and inverse", async () => {
+    it("midpoint state variable is derived from endpoints and updates when the segment moves", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="g">
@@ -5163,9 +5163,6 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         ).closeTo(cy + 2 * dy, 1e-10);
     });
 
-    // -----------------------------------------------------------------------
-    // Backward compatibility: no new attrs → same default (1,0)-(0,0)
-    // -----------------------------------------------------------------------
     // Changing the referenced slope/length via a mathInput, for every case.
     // (The original two-endpoint case and Case D slope are covered above.)
     it("one endpoint and midpoint (Case A) — changing referenced slope rotates around the midpoint", async () => {
@@ -5208,6 +5205,9 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         await expectLengthChangeScalesAroundMidpoint(`slope="0" length="4"`);
     });
 
+    // -----------------------------------------------------------------------
+    // Backward compatibility: no new attrs → same default (1,0)-(0,0)
+    // -----------------------------------------------------------------------
     it("no new attrs — preserves old default (1,0)-(0,0)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -5518,6 +5518,7 @@ describe("LineSegment info diagnostics @group5", async () => {
         const { getDiagnosticsByType } = await import("../utils/diagnostics");
         const d = getDiagnosticsByType(core);
         expect(d.errors.length).eq(0);
+        expect(d.warnings.length).eq(0);
         expect(d.infos.length).eq(1);
         expect(d.infos[0].message).contain("midpointOffset");
         expect(d.infos[0].message).contain("without a midpoint");
@@ -5538,6 +5539,7 @@ describe("LineSegment info diagnostics @group5", async () => {
         const { getDiagnosticsByType } = await import("../utils/diagnostics");
         const d = getDiagnosticsByType(core);
         expect(d.errors.length).eq(0);
+        expect(d.warnings.length).eq(0);
         expect(d.infos.length).eq(1);
         expect(d.infos[0].message).contain("slope");
         expect(d.infos[0].message).contain("length");
@@ -5560,6 +5562,7 @@ describe("LineSegment info diagnostics @group5", async () => {
         const { getDiagnosticsByType } = await import("../utils/diagnostics");
         const d = getDiagnosticsByType(core);
         expect(d.errors.length).eq(0);
+        expect(d.warnings.length).eq(0);
         expect(d.infos.length).eq(1);
         expect(d.infos[0].message).contain("slope");
         expect(d.infos[0].message).contain("length");
@@ -5583,6 +5586,7 @@ describe("LineSegment info diagnostics @group5", async () => {
         const { getDiagnosticsByType } = await import("../utils/diagnostics");
         const d = getDiagnosticsByType(core);
         expect(d.errors.length).eq(0);
+        expect(d.warnings.length).eq(0);
         expect(d.infos.length).eq(0);
     });
 });
