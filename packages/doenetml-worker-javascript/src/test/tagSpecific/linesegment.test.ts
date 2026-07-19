@@ -3439,6 +3439,78 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
         ).eq(true);
     });
 
+    it("one endpoint and midpoint, midpointOffset=-1 — referenced ep1 is still draggable", async () => {
+        // Regression: with midpointOffset=-1 (Case A, tT=0) the specified
+        // midpoint sits on ep1 and ep2 is undefined. The inverse used to bail
+        // with success:false for every drag, freezing the (perfectly defined)
+        // first endpoint. Dragging ep1 alone has a well-defined inverse: just
+        // move ep1, leaving ep2 undefined and the specified midpoint untouched.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="ls" endpoints="(-3,1)" midpoint="(5,3)" midpointOffset="$off" />
+  <point extend="$ls.endpoint1" name="p1" />
+</graph>
+<mathInput name="off" prefill="-1" />
+`,
+        });
+
+        const lsIdx = await resolvePathToNodeIdx("ls");
+        const p1Idx = await resolvePathToNodeIdx("p1");
+        const offIdx = await resolvePathToNodeIdx("off");
+
+        // Initial: ep1=(-3,1), ep2 undefined.
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lsIdx].stateValues.endpoints[0].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([-3, 1]);
+        expect(
+            Number.isNaN(
+                sv[lsIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+            ),
+        ).eq(true);
+        expect(
+            sv[p1Idx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+        ).eqls([-3, 1]);
+
+        // Drag the referenced first endpoint to (2,-4).
+        await movePoint({ componentIdx: p1Idx, x: 2, y: -4, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 moved; ep2 remains undefined.
+        expect(
+            sv[lsIdx].stateValues.endpoints[0].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, -4]);
+        expect(
+            Number.isNaN(
+                sv[lsIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+            ),
+        ).eq(true);
+        expect(
+            sv[p1Idx].stateValues.xs.map((v) => v.evaluate_to_constant()),
+        ).eqls([2, -4]);
+
+        // The specified midpoint was left untouched at (5,3): flipping
+        // midpointOffset to 0 makes M the true midpoint, so
+        // ep2 = 2M - ep1 = 2*(5,3) - (2,-4) = (8,10).
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: offIdx,
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lsIdx].stateValues.endpoints[1].map((v) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([8, 10]);
+    });
+
     // -----------------------------------------------------------------------
     // Case C: 0 endpoints + 1 midpoint, slope, length, midpointOffset=0 (midpoint)
     // -----------------------------------------------------------------------

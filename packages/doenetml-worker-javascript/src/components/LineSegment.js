@@ -1065,8 +1065,26 @@ export default class LineSegment extends GraphicalComponent {
                     // parameter-tT point. Invert desired endpoints back to ep1 and M.
                     const tT = (1 + g.midpointOffset) / 2;
                     if (tT === 0) {
-                        // midpointOffset = -1: M coincides with ep1, ep2 undefined.
-                        return { success: false };
+                        // midpointOffset = -1: the specified midpoint sits at
+                        // parameter 0, i.e. on ep1, and ep2 is undefined.
+                        // Dragging ep2 or the whole segment has no inverse, but
+                        // dragging ep1 alone does: just move ep1. The specified
+                        // midpoint is left untouched — the midpoint still
+                        // resolves to ep1 wherever ep1 goes, so there is no need
+                        // to move it.
+                        if (!onlyEp1Desired) {
+                            return { success: false };
+                        }
+                        for (let arrayKey of desiredKeys) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey].ep1Coord,
+                                desiredValue:
+                                    desiredUnconstrainedEndpoints[arrayKey],
+                                variableIndex: 0,
+                            });
+                        }
+                        return { success: true, instructions };
                     }
                     let currentEndpoints = await stateValues.endpoints;
                     let [ep1Num, ep2Num] = getNumericEndpointPair(
