@@ -1711,9 +1711,13 @@ describe("Conditional content tag tests @group2", async () => {
         // indices). Before the fix, the recreation threw "Found a duplicate
         // componentIdx"; now it recreates cleanly and the reference again
         // resolves to 3.
+        //
+        // Deliberately do not evaluate state variables between the two
+        // toggles: a full evaluation while the first case is active masks
+        // the collision (it fails later with a different error), so an
+        // intermediate check here would stop this test from reproducing the
+        // documented "Found a duplicate componentIdx" crash.
         await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
-        expect(await wrapText()).eq("h e l l o");
-
         await updateBooleanInputValue({
             boolean: false,
             componentIdx: b,
