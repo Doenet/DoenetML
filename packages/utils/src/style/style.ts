@@ -16,6 +16,7 @@ import {
 } from "./styleDefinitionHelpers";
 import { contrastAccessibilityDiagnosticsForStyleDefinitions } from "./styleContrastAccessibility";
 import {
+    cycleStyleNumberForPalette,
     DEFAULT_PALETTE_NAME,
     STYLE_PALETTES,
     type StylePalette,
@@ -812,7 +813,8 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
 
 /**
  * State-variable definitions that construct merged `styleDefinitions` from:
- * - ancestor defaults,
+ * - a local stylePalette selection (which resets the base for the subtree),
+ * - otherwise ancestor defaults,
  * - local styleDefinition children,
  * - setup descendants.
  */
@@ -834,6 +836,93 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
         },
     };
 
+    stateVariableDefinitions.localStylePaletteName = {
+        stateVariablesDeterminingDependencies: ["setupChildren"],
+        returnDependencies({ stateValues }: { stateValues: any }) {
+            let dependencies: Record<string, any> = {
+                stylePaletteSetupChildren: {
+                    dependencyType: "child",
+                    childGroups: ["stylePalettes", "setups"],
+                    variableNames: ["palette"],
+                    variablesOptional: true,
+                    proceedIfAllChildrenNotMatched: true,
+                },
+            };
+
+            for (let setupChild of stateValues.setupChildren) {
+                dependencies[`stylePalettesOf${setupChild.componentIdx}`] = {
+                    dependencyType: "child",
+                    parentIdx: setupChild.componentIdx,
+                    childGroups: ["stylePalettes"],
+                    variableNames: ["palette"],
+                };
+            }
+
+            return dependencies;
+        },
+        definition({ dependencyValues }: { dependencyValues: any }) {
+            const stylePaletteChildren = [] as any[];
+            for (let child of dependencyValues.stylePaletteSetupChildren) {
+                if (child.componentType === "setup") {
+                    stylePaletteChildren.push(
+                        ...dependencyValues[
+                            `stylePalettesOf${child.componentIdx}`
+                        ],
+                    );
+                } else {
+                    stylePaletteChildren.push(child);
+                }
+            }
+
+            if (stylePaletteChildren.length === 0) {
+                return { setValue: { localStylePaletteName: null } };
+            }
+
+            const diagnostics = [];
+            if (stylePaletteChildren.length > 1) {
+                for (const child of stylePaletteChildren.slice(0, -1)) {
+                    diagnostics.push({
+                        type: "warning",
+                        message:
+                            "A section can select only one <stylePalette>; using the last one.",
+                        position: child.position,
+                    });
+                }
+            }
+
+            const localStylePaletteName =
+                stylePaletteChildren[stylePaletteChildren.length - 1]
+                    .stateValues.palette;
+
+            return {
+                setValue: { localStylePaletteName },
+                sendDiagnostics: diagnostics,
+            };
+        },
+    };
+
+    stateVariableDefinitions.activeStylePaletteName = {
+        returnDependencies: () => ({
+            localStylePaletteName: {
+                dependencyType: "stateVariable",
+                variableName: "localStylePaletteName",
+            },
+            ancestorWithStyle: {
+                dependencyType: "ancestor",
+                variableNames: ["activeStylePaletteName"],
+            },
+        }),
+        definition({ dependencyValues }: { dependencyValues: any }) {
+            const activeStylePaletteName =
+                dependencyValues.localStylePaletteName ??
+                dependencyValues.ancestorWithStyle?.stateValues
+                    .activeStylePaletteName ??
+                null;
+
+            return { setValue: { activeStylePaletteName } };
+        },
+    };
+
     stateVariableDefinitions.styleDefinitions = {
         mustEvaluate: true,
         stateVariablesDeterminingDependencies: ["setupChildren"],
@@ -842,6 +931,14 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 ancestorWithStyle: {
                     dependencyType: "ancestor",
                     variableNames: ["styleDefinitions"],
+                },
+                localStylePaletteName: {
+                    dependencyType: "stateVariable",
+                    variableName: "localStylePaletteName",
+                },
+                activeStylePaletteName: {
+                    dependencyType: "stateVariable",
+                    variableName: "activeStylePaletteName",
                 },
                 styleDefinitionSetupChildren: {
                     dependencyType: "child",
@@ -868,7 +965,17 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 
             let startingStateVariableDefinitions: StyleDefinitions | undefined;
 
-            if (dependencyValues.ancestorWithStyle) {
+            // A local <stylePalette> resets the base for this subtree: the
+            // palette replaces the ancestor's merged map, so ancestor
+            // <styleDefinition> overrides (tuned against a different
+            // palette's colors) are deliberately discarded. Local and
+            // descendant <styleDefinition>s apply on top of the palette.
+            if (dependencyValues.localStylePaletteName != null) {
+                startingStateVariableDefinitions =
+                    returnPaletteStyleDefinitions(
+                        dependencyValues.localStylePaletteName,
+                    );
+            } else if (dependencyValues.ancestorWithStyle) {
                 startingStateVariableDefinitions =
                     dependencyValues.ancestorWithStyle.stateValues
                         .styleDefinitions;
@@ -906,8 +1013,25 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 let styleDef = styleDefinitions[styleNumber];
 
                 if (!styleDef) {
+                    // With a palette active, an out-of-range style number
+                    // seeds from its cycled on-palette entry; otherwise keep
+                    // the historical default-style seed.
+                    let seed: StyleDefinition | undefined;
+                    if (dependencyValues.activeStylePaletteName != null) {
+                        const cycledNumber = cycleStyleNumberForPalette(
+                            styleNumber,
+                            dependencyValues.activeStylePaletteName,
+                        );
+                        const cycledDef = styleDefinitions[cycledNumber];
+                        if (cycledDef) {
+                            seed = normalizeStyleDefinitionValues(
+                                Object.assign({}, cycledDef),
+                            );
+                        }
+                    }
+
                     styleDef = styleDefinitions[styleNumber] =
-                        cloneDefaultStyleWithMissingColorWords();
+                        seed ?? cloneDefaultStyleWithMissingColorWords();
                 }
 
                 const theNewDef = normalizeStyleDefinitionValues(
@@ -986,7 +1110,10 @@ export function returnSelectedStyleStateVariableDefinition(
                     },
                     ancestorWithStyle: {
                         dependencyType: "ancestor",
-                        variableNames: ["styleDefinitions"],
+                        variableNames: [
+                            "styleDefinitions",
+                            "activeStylePaletteName",
+                        ],
                     },
                 };
 
@@ -1014,6 +1141,24 @@ export function returnSelectedStyleStateVariableDefinition(
 
                 let selectedStyle =
                     styleDefinitions[dependencyValues.styleNumber];
+
+                if (selectedStyle === undefined) {
+                    // With a palette active, out-of-range style numbers cycle
+                    // through the palette instead of falling back to the
+                    // generic default style.
+                    const activeStylePaletteName =
+                        dependencyValues.ancestorWithStyle?.stateValues
+                            .activeStylePaletteName;
+                    if (activeStylePaletteName != null) {
+                        selectedStyle =
+                            styleDefinitions[
+                                cycleStyleNumberForPalette(
+                                    dependencyValues.styleNumber,
+                                    activeStylePaletteName,
+                                )
+                            ];
+                    }
+                }
 
                 if (selectedStyle === undefined) {
                     selectedStyle = cloneDefaultStyleWithMissingColorWords();

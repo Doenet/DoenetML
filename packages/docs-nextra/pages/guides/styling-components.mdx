@@ -239,6 +239,31 @@ Both points use style 1 with no `styleNumber{:dn}` attribute, but the first is p
 
 ---
 
+## Switch the whole set: style palettes
+
+Redefining styles one at a time is precise but laborious when you want a whole different look. A **style palette** is a named, coordinated set of style definitions — the six predefined styles are themselves the palette named `default` — and [`<stylePalette>{:dn}`](../reference/stylePalette) swaps the entire set at once:
+
+```doenet-editor-horiz
+<stylePalette palette="sunset" />
+<graph size="small" xmin="-1" xmax="3" ymin="0" ymax="9">
+  <shortDescription>Eight points, one in each style of the sunset palette</shortDescription>
+  <point coords="(1,8)" styleNumber="1" />
+  <point coords="(1,7)" styleNumber="2" />
+  <point coords="(1,6)" styleNumber="3" />
+  <point coords="(1,5)" styleNumber="4" />
+  <point coords="(1,4)" styleNumber="5" />
+  <point coords="(1,3)" styleNumber="6" />
+  <point coords="(1,2)" styleNumber="7" />
+  <point coords="(1,1)" styleNumber="8" />
+</graph>
+```
+
+Every built-in palette meets WCAG contrast requirements in both light and dark mode, and palettes vary marker shapes and line styles alongside colors, so the distinctions your style numbers encode never rest on color alone.
+
+Like `<styleDefinition>{:dn}`, a `<stylePalette>{:dn}` scopes to its containing section: place it in a `<section>{:dn}` and only that section (and its subsections) use the palette. Selecting a palette **resets** the styles for that scope — customizations made by `<styleDefinition>{:dn}`s in ancestor sections don't carry in (they were tuned for different colors) — but `<styleDefinition>{:dn}`s in the same section or below still apply on top of the palette. See the [`<stylePalette>{:dn}` reference](../reference/stylePalette) for the full rules, including how style numbers beyond the palette's size wrap around.
+
+---
+
 ## Summary
 
 - Every component starts in **style 1**. Switch to another predefined style with `styleNumber{:dn}` (1–6); the editor's context help describes each one.
@@ -247,5 +272,6 @@ Both points use style 1 with no `styleNumber{:dn}` attribute, but the first is p
 - Override **non-color** settings per component with attributes like `lineWidth{:dn}`, `lineStyle{:dn}`, `markerStyle{:dn}`, `markerSize{:dn}`, `markerFilled{:dn}`, and `fillOpacity{:dn}` — for appearance, not to carry meaning.
 - When a difference *carries meaning* (an excluded endpoint, an unstable equilibrium), use a **semantic component** like `<endpoint>{:dn}` rather than styling a plain one.
 - Change **colors** — and redefine any style number — with [`<styleDefinition>{:dn}`](../reference/styleDefinition), at the document level or scoped to a section.
+- Swap the **entire set of styles** for a named, accessibility-checked alternative with [`<stylePalette>{:dn}`](../reference/stylePalette), at the document level or scoped to a section.
 
 For the reasoning behind all of this — why style numbers exist and what that means for accessibility — read [Styling, meaning, and accessibility](../concepts/styling).

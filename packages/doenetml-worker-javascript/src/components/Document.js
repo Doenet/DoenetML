@@ -90,6 +90,10 @@ export default class Document extends BaseComponent {
                 componentTypes: ["styleDefinition"],
             },
             {
+                group: "stylePalettes",
+                componentTypes: ["stylePalette"],
+            },
+            {
                 group: "feedbackDefinitions",
                 componentTypes: ["feedbackDefinition"],
             },

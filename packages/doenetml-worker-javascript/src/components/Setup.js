@@ -62,6 +62,10 @@ export default class Setup extends CompositeComponent {
                 componentTypes: ["styleDefinition"],
             },
             {
+                group: "stylePalettes",
+                componentTypes: ["stylePalette"],
+            },
+            {
                 group: "feedbackDefinitions",
                 componentTypes: ["feedbackDefinition"],
             },

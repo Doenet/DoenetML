@@ -1,0 +1,74 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<stylePalette>{:dn}`
+
+
+<ComponentDisplay name='stylePalette'/>
+
+`<stylePalette>{:dn}` selects one of Doenet's built-in **style palettes** — named, coordinated sets of style definitions — as the base styles for the containing document or section. The six standard styles are themselves a palette (named `default`); selecting a different palette swaps all of them at once for a different coordinated set.
+
+Every palette is checked to meet WCAG contrast requirements in both light and dark mode, so switching palettes never costs you accessibility.
+
+<AttrPropDisplay name='stylePalette'/>
+
+## Examples
+
+### Example: Selecting a palette for a document
+
+```doenet-editor-horiz
+<stylePalette palette="ocean" />
+
+<graph size="small" xmin="-1" xmax="3" ymin="0" ymax="9">
+  <shortDescription>Eight points, one in each style of the ocean palette</shortDescription>
+  <point coords="(1,8)" styleNumber="1" />
+  <point coords="(1,7)" styleNumber="2" />
+  <point coords="(1,6)" styleNumber="3" />
+  <point coords="(1,5)" styleNumber="4" />
+  <point coords="(1,4)" styleNumber="5" />
+  <point coords="(1,3)" styleNumber="6" />
+  <point coords="(1,2)" styleNumber="7" />
+  <point coords="(1,1)" styleNumber="8" />
+</graph>
+```
+
+Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:dn}` block) makes every style number draw from the named palette. The `ocean` palette defines eight styles, each with its own color, marker shape, and line style.
+
+---
+
+### Example: Scoping a palette to a section
+
+```doenet-editor-horiz
+<section>
+  <title>Ocean section</title>
+  <stylePalette palette="ocean" />
+  <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+    <shortDescription>A point using the ocean palette's style 1</shortDescription>
+    <point coords="(1,1)" />
+  </graph>
+</section>
+<section>
+  <title>Default section</title>
+  <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
+    <shortDescription>A point using the default blue style 1</shortDescription>
+    <point coords="(1,1)" />
+  </graph>
+</section>
+```
+
+A `<stylePalette>{:dn}` placed inside a `<section>{:dn}` applies only to that section and its subsections, exactly like a scoped [`<styleDefinition>{:dn}`](styleDefinition). A subsection can select a different palette of its own.
+
+## Behavior details
+
+- **A palette selection is a reset.** Choosing a palette replaces the base styles for that section's subtree; `<styleDefinition>{:dn}` customizations made in *ancestor* sections do not carry into the subtree (they were tuned against a different palette's colors). To keep such a customization, restate it below the `<stylePalette>{:dn}`.
+- **`<styleDefinition>{:dn}` still works on top.** A `<styleDefinition>{:dn}` in the same section (or a descendant section) overrides individual settings of the selected palette, exactly as it does over the default styles.
+- **Style numbers beyond the palette wrap around.** With an eight-style palette, `styleNumber="10"{:dn}` draws as style 2. Every style number therefore stays on-palette and keeps the palette's contrast guarantees.
+- **One palette per section.** If several `<stylePalette>{:dn}` components appear in the same section, the last one wins and the others are flagged with a warning.
+
+## Where to go next
+
+- **[Styling Components guide](../guides/styling-components)** — style numbers, style attributes, and style definitions.
+- **[Styling, meaning, and accessibility](../concepts/styling)** — why styles are indirected through numbers and palettes.
+- **[`<styleDefinition>{:dn}` reference](styleDefinition)** — overriding individual settings of a style number.

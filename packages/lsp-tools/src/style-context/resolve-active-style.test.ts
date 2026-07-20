@@ -718,3 +718,99 @@ describe("resolveActiveStyleBreakdown", () => {
         ]);
     });
 });
+
+describe("resolveActiveStyle — style palettes", () => {
+    it("seeds from the palette selected by an ancestor <stylePalette>", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<stylePalette palette="ocean"/><point/>`,
+        );
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        expect(resolved.style.markerColor).toBe("#1c3fae");
+        expect(resolved.style.markerStyle).toBe("circle");
+    });
+
+    it("finds a <stylePalette> inside <setup>", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<setup><stylePalette palette="ocean"/></setup><point/>`,
+        );
+        const point = findElement(sourceObj, "point");
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#1c3fae",
+        );
+    });
+
+    it("a palette selection discards styleDefinition blocks above it", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<styleDefinition styleNumber="1" markerColor="green"/>
+<section><stylePalette palette="ocean"/><point/></section>`,
+        );
+        const point = findElement(sourceObj, "point");
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#1c3fae",
+        );
+    });
+
+    it("styleDefinition blocks at or below the palette apply on top of it", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<section><stylePalette palette="ocean"/>
+<styleDefinition styleNumber="1" markerColor="green"/><point/></section>`,
+        );
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        expect(resolved.style.markerColor).toBe("green");
+        expect(resolved.style.lineColor).toBe("#1c3fae");
+    });
+
+    it("the deepest palette selection wins", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<stylePalette palette="ocean"/>
+<section><stylePalette palette="sunset"/><point/></section>`,
+        );
+        const point = findElement(sourceObj, "point");
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#c22047",
+        );
+    });
+
+    it("style numbers beyond the palette size cycle onto the palette", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<stylePalette palette="ocean"/><point styleNumber="10"/>`,
+        );
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        // ocean has 8 styles; 10 cycles to 2.
+        expect(resolved.styleNumber).toBe(10);
+        expect(resolved.style.markerColor).toBe("#00695f");
+        expect(resolved.style.markerStyle).toBe("square");
+    });
+
+    it("an authored block for an out-of-range number merges over the cycled seed", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<stylePalette palette="ocean"/>
+<styleDefinition styleNumber="10" lineColor="black"/><point styleNumber="10"/>`,
+        );
+        const point = findElement(sourceObj, "point");
+        const resolved = resolveActiveStyle(sourceObj, point);
+        expect(resolved.style.lineColor).toBe("black");
+        expect(resolved.style.markerColor).toBe("#00695f");
+    });
+
+    it("an unknown palette name falls back to the default palette", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<stylePalette palette="noSuchPalette"/><point/>`,
+        );
+        const point = findElement(sourceObj, "point");
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#1f5dff",
+        );
+    });
+
+    it("without a palette, out-of-range numbers keep the historical default fallback", () => {
+        const sourceObj = new DoenetSourceObject(`<point styleNumber="10"/>`);
+        const point = findElement(sourceObj, "point");
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#1f5dff",
+        );
+    });
+});

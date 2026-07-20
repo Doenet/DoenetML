@@ -1,4 +1,6 @@
 import { defaultPalette } from "./default";
+import { oceanPalette } from "./ocean";
+import { sunsetPalette } from "./sunset";
 import type { StylePalette } from "./types";
 
 /**
@@ -47,6 +49,8 @@ export const STYLE_PALETTES: Record<string, StylePalette> = Object.assign(
     Object.create(null),
     {
         [defaultPalette.name]: deepFreezePalette(defaultPalette),
+        [oceanPalette.name]: deepFreezePalette(oceanPalette),
+        [sunsetPalette.name]: deepFreezePalette(sunsetPalette),
     },
 );
 Object.freeze(STYLE_PALETTES);
@@ -64,5 +68,35 @@ export const STYLE_PALETTE_NAMES: readonly string[] = Object.freeze(
     Object.keys(STYLE_PALETTES),
 );
 
+/**
+ * Maps a style number onto a palette's range by cycling: with a palette of
+ * size N, style number n > N resolves to `((n − 1) mod N) + 1`, so every
+ * style number stays on-palette (and inherits the palette's accessibility
+ * guarantees). Numbers within range — and anything unexpected (unknown
+ * palette, non-integer, n < 1) — are returned unchanged.
+ *
+ * Cycling applies only when a palette is explicitly selected via
+ * `<stylePalette>`; documents without one keep the historical
+ * fall-back-to-default behavior for out-of-range style numbers.
+ */
+export function cycleStyleNumberForPalette(
+    styleNumber: number,
+    paletteName: string,
+): number {
+    const palette = STYLE_PALETTES[paletteName];
+    if (!palette || !Number.isInteger(styleNumber) || styleNumber < 1) {
+        return styleNumber;
+    }
+
+    const size = Object.keys(palette.styles).length;
+    if (size < 1 || styleNumber <= size) {
+        return styleNumber;
+    }
+
+    return ((styleNumber - 1) % size) + 1;
+}
+
 export { defaultPalette } from "./default";
+export { oceanPalette } from "./ocean";
+export { sunsetPalette } from "./sunset";
 export type { StylePalette } from "./types";
