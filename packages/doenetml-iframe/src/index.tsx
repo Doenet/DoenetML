@@ -71,6 +71,8 @@ export type {
     MediaLicenseKind,
     MediaLicenseDisplay,
     CreativeCommonsVersion,
+    ReaderStyleOverrides,
+    ReaderStyleValueOverrides,
 } from "@doenet/utils";
 import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 export type { DiagnosticsTabId, DoenetEditorHandle };

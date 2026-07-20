@@ -9,6 +9,7 @@ import {
     deepClone,
     findAllNewlines,
     type ComponentIdx,
+    type ReaderStyleOverrides,
 } from "@doenet/utils";
 import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
@@ -59,6 +60,7 @@ export interface CoreOptions {
     requestedVariantIndex?: number;
     initializeCounters?: Record<string, number>;
     theme?: "dark" | "light";
+    styleOverrides?: ReaderStyleOverrides | null;
     prerender?: boolean;
     stateVariableChanges?: string;
     coreId: string;
@@ -130,6 +132,7 @@ export default class Core {
     cid: string | null;
     flags: Record<string, any>;
     theme?: "dark" | "light";
+    styleOverrides?: ReaderStyleOverrides | null;
     initializeCounters: Record<string, number>;
 
     // ─── Resolver callbacks (from CoreWorker) ─────────────────────────────
@@ -227,6 +230,7 @@ export default class Core {
         requestedVariantIndex,
         initializeCounters = {},
         theme,
+        styleOverrides,
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
         coreId,
@@ -279,6 +283,7 @@ export default class Core {
         this.numerics = new (Numerics as any)();
         this.flags = flags;
         this.theme = theme;
+        this.styleOverrides = styleOverrides;
 
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
 
@@ -410,6 +415,10 @@ export default class Core {
             serializedComponents[0].state = {};
         }
         serializedComponents[0].state.theme = this.theme;
+        if (this.styleOverrides != null) {
+            serializedComponents[0].state.readerStyleOverrides =
+                this.styleOverrides;
+        }
 
         serializedComponents[0].doenetAttributes.cid = this.cid;
 

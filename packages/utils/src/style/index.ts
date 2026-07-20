@@ -13,3 +13,4 @@ export * from "./styleContrastAccessibility";
 export * from "./style";
 export * from "./styleDefinitionHelpers";
 export * from "./palettes";
+export * from "./readerOverrides";

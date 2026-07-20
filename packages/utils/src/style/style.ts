@@ -21,6 +21,7 @@ import {
     STYLE_PALETTES,
     type StylePalette,
 } from "./palettes";
+import type { ReaderStyleOverrides } from "./readerOverrides";
 import {
     deriveAccessibleDarkModeColor,
     deriveAccessibleDarkModeBackground,
@@ -1020,6 +1021,66 @@ function childrenExpandingSetups(
 }
 
 /**
+ * Applies reader (end-user) style overrides on top of a merged
+ * style-definition map, in place. This is the final layer of the merge: it
+ * runs after authored `<styleDefinition>`s and after the contrast
+ * diagnostics, so reader values win over everything authored, never emit
+ * author-facing diagnostics, and cannot suppress diagnostics about authored
+ * values.
+ *
+ * Per override block: unknown and `*Word` keys are dropped (words are always
+ * re-derived so style descriptions stay truthful), missing dark-mode colors
+ * are derived from the reader's light colors, and values are stored without
+ * source positions (a second guard keeping diagnostics quiet on them).
+ * Overrides apply only to style numbers already present in the map.
+ */
+export function applyReaderStyleOverrides(
+    styleDefinitions: StyleDefinitions,
+    overrides: ReaderStyleOverrides | null | undefined,
+): void {
+    const styles = overrides?.styles;
+    if (!styles || typeof styles !== "object") {
+        return;
+    }
+
+    for (const [styleNumber, valueOverrides] of Object.entries(styles)) {
+        const target = styleDefinitions[styleNumber];
+        if (!target || !valueOverrides || typeof valueOverrides !== "object") {
+            continue;
+        }
+
+        const block: StyleDefinition = {};
+        for (const [key, value] of Object.entries(valueOverrides)) {
+            if (
+                !(key in styleAttributes) ||
+                key.includes("Word") ||
+                value == null
+            ) {
+                continue;
+            }
+            const type = typeof value;
+            if (type !== "string" && type !== "number" && type !== "boolean") {
+                continue;
+            }
+            setStyleValue(
+                block,
+                key as StyleDefinitionKey,
+                type === "string" ? (value as string).toLowerCase() : value,
+            );
+        }
+
+        if (Object.keys(block).length === 0) {
+            continue;
+        }
+
+        addMissingChildStyleColorFields(block);
+        deriveMissingStyleWords(block);
+
+        Object.assign(target, block);
+    }
+}
+
+/**
  * State-variable definitions that construct merged `styleDefinitions` from:
  * - a local stylePalette selection (which resets the base for the subtree),
  * - otherwise ancestor defaults,
@@ -1041,6 +1102,67 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             return {
                 setValue: { setupChildren: dependencyValues.setupChildren },
             };
+        },
+    };
+
+    // Reader (end-user) style overrides, set on the document by the viewer
+    // via the `setStyleOverrides` action (mirroring how `theme` is set) and
+    // mirrored into every section through the document-ancestor dependency.
+    // UI-only: never saved, never authored in DoenetML.
+    stateVariableDefinitions.readerStyleOverrides = {
+        hasEssential: true,
+        defaultValue: null,
+        returnDependencies: () => ({
+            documentAncestor: {
+                dependencyType: "ancestor",
+                componentType: "document",
+                variableNames: ["readerStyleOverrides"],
+            },
+        }),
+        definition({ dependencyValues }: { dependencyValues: any }) {
+            if (dependencyValues.documentAncestor) {
+                return {
+                    setValue: {
+                        readerStyleOverrides:
+                            dependencyValues.documentAncestor.stateValues
+                                .readerStyleOverrides,
+                    },
+                };
+            } else {
+                return {
+                    useEssentialOrDefaultValue: { readerStyleOverrides: true },
+                };
+            }
+        },
+        inverseDefinition({
+            desiredStateVariableValues,
+            dependencyValues,
+        }: {
+            desiredStateVariableValues: any;
+            dependencyValues: any;
+        }) {
+            if (dependencyValues.documentAncestor) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "documentAncestor",
+                            desiredValue:
+                                desiredStateVariableValues.readerStyleOverrides,
+                        },
+                    ],
+                };
+            } else {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "readerStyleOverrides",
+                            value: desiredStateVariableValues.readerStyleOverrides,
+                        },
+                    ],
+                };
+            }
         },
     };
 
@@ -1140,6 +1262,10 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 activeStylePaletteName: {
                     dependencyType: "stateVariable",
                     variableName: "activeStylePaletteName",
+                },
+                readerStyleOverrides: {
+                    dependencyType: "stateVariable",
+                    variableName: "readerStyleOverrides",
                 },
                 styleDefinitionSetupChildren: {
                     dependencyType: "child",
@@ -1256,6 +1382,14 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 contrastAccessibilityDiagnosticsForStyleDefinitions(
                     styleDefinitions,
                 );
+
+            // Reader overrides are the final layer, applied AFTER the
+            // diagnostics run so reader values never produce author-facing
+            // diagnostics and cannot mask diagnostics about authored values.
+            applyReaderStyleOverrides(
+                styleDefinitions,
+                dependencyValues.readerStyleOverrides,
+            );
 
             return {
                 setValue: { styleDefinitions },

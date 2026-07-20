@@ -1,4 +1,5 @@
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import type { ReaderStyleOverrides } from "@doenet/utils";
 import fs from "node:fs";
 import path from "path";
 
@@ -41,6 +42,7 @@ export async function createTestCore({
     requestedVariantIndex = 1,
     flags: specifiedFlags = {},
     theme,
+    styleOverrides,
     initializeCounters = {},
     requestSolutionView = async () => ({ allowView: true }),
     externalDoenetMLs = {},
@@ -50,6 +52,7 @@ export async function createTestCore({
     requestedVariantIndex?: number;
     flags?: DoenetMLFlagsSubset;
     theme?: "dark" | "light";
+    styleOverrides?: ReaderStyleOverrides | null;
     initializeCounters?: Record<string, number>;
     requestSolutionView?: (componentIdx: number) => Promise<{
         allowView: boolean;
@@ -176,6 +179,7 @@ export async function createTestCore({
             cid: "",
             initializeCounters,
             theme,
+            styleOverrides,
             stateVariableChanges: initialState,
         },
         () => null,

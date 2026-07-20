@@ -14,7 +14,7 @@ import {
     data_format_version,
     cidFromText,
 } from "@doenet/utils";
-import type { DiagnosticRecord } from "@doenet/utils";
+import type { DiagnosticRecord, ReaderStyleOverrides } from "@doenet/utils";
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
@@ -79,6 +79,7 @@ export function DocViewer({
     doenetViewerUrl,
     doenetImagesUrl,
     darkMode,
+    styleOverrides,
     showAnswerResponseButton = false,
     answerResponseCounts = {},
     initializeCounters: prescribedInitializeCounters = {},
@@ -117,6 +118,7 @@ export function DocViewer({
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
+    styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
@@ -518,6 +520,32 @@ export function DocViewer({
             args: { theme: darkMode, doNotIgnore: true },
         });
     }, [darkMode]);
+
+    // Push reader style overrides into the core when the host changes them
+    // after initialization (the initial value rides in with
+    // `generateJavascriptDast`). Serialized comparison so a host passing a
+    // fresh-but-equal object each render doesn't trigger spurious updates.
+    const lastSentStyleOverrides = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        const serialized = JSON.stringify(styleOverrides ?? null);
+        if (lastSentStyleOverrides.current === undefined) {
+            // First run: the initial value was already delivered at core
+            // initialization; just record it.
+            lastSentStyleOverrides.current = serialized;
+            return;
+        }
+        if (serialized === lastSentStyleOverrides.current) {
+            return;
+        }
+        lastSentStyleOverrides.current = serialized;
+        callAction({
+            action: { actionName: "setStyleOverrides" },
+            args: {
+                styleOverrides: styleOverrides ?? null,
+                doNotIgnore: true,
+            },
+        });
+    }, [styleOverrides]);
 
     async function reinitializeCoreAndTerminateAnimations() {
         if (coreWorker.current !== null) {
@@ -1318,6 +1346,7 @@ export function DocViewer({
                     userId,
                     cid: cid.current,
                     theme: darkMode,
+                    styleOverrides,
                     requestedVariant: initialCoreData.current?.requestedVariant,
                     stateVariableChanges: initialCoreData.current?.coreState
                         ? JSON.stringify(

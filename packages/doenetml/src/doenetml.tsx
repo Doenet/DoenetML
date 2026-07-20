@@ -10,6 +10,7 @@ import React, {
 import { DocViewer } from "./Viewer/DocViewer";
 import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
+import type { ReaderStyleOverrides } from "@doenet/utils";
 import type { DiagnosticsSummary } from "./EditorViewer/diagnostics";
 import type {
     DiagnosticRecord,
@@ -95,6 +96,7 @@ export function DoenetViewer({
     doenetViewerUrl,
     doenetImagesUrl,
     darkMode = "system",
+    styleOverrides,
     showAnswerResponseButton = false,
     answerResponseCounts = {},
     includeVariantSelector = false,
@@ -150,6 +152,13 @@ export function DoenetViewer({
      * `prefers-color-scheme` and updates live when it changes.
      */
     darkMode?: ThemeSetting;
+    /**
+     * Reader (end-user) style overrides: per-styleNumber remappings of style
+     * settings (colors, widths, marker/line styles) chosen by the reader —
+     * e.g. colors they can better distinguish. Overrides win over everything
+     * authored in the document and update live when the prop changes.
+     */
+    styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
@@ -306,6 +315,7 @@ export function DoenetViewer({
             doenetViewerUrl={doenetViewerUrl}
             doenetImagesUrl={doenetImagesUrl}
             darkMode={resolvedTheme}
+            styleOverrides={styleOverrides}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
@@ -361,6 +371,13 @@ type DoenetEditorProps = {
      * `prefers-color-scheme` and updates live when it changes.
      */
     darkMode?: ThemeSetting;
+    /**
+     * Reader (end-user) style overrides: per-styleNumber remappings of style
+     * settings (colors, widths, marker/line styles) chosen by the reader —
+     * e.g. colors they can better distinguish. Overrides win over everything
+     * authored in the document and update live when the prop changes.
+     */
+    styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
@@ -426,6 +443,7 @@ export const DoenetEditor = React.forwardRef<
         doenetViewerUrl,
         doenetImagesUrl,
         darkMode = "system",
+        styleOverrides,
         showAnswerResponseButton = false,
         answerResponseCounts = {},
         width,
@@ -504,6 +522,7 @@ export const DoenetEditor = React.forwardRef<
             doenetViewerUrl={doenetViewerUrl}
             doenetImagesUrl={doenetImagesUrl}
             darkMode={resolvedTheme}
+            styleOverrides={styleOverrides}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             width={width}

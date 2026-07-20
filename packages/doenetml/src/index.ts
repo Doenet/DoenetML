@@ -18,6 +18,8 @@ export type {
     DiagnosticRecord,
     ErrorRecord,
     WarningRecord,
+    ReaderStyleOverrides,
+    ReaderStyleValueOverrides,
     MediaLicenseInfo,
     MediaLicenseKind,
     MediaLicenseDisplay,
