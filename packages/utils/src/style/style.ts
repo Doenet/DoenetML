@@ -16,6 +16,11 @@ import {
 } from "./styleDefinitionHelpers";
 import { contrastAccessibilityDiagnosticsForStyleDefinitions } from "./styleContrastAccessibility";
 import {
+    DEFAULT_PALETTE_NAME,
+    STYLE_PALETTES,
+    type StylePalette,
+} from "./palettes";
+import {
     deriveAccessibleDarkModeColor,
     deriveAccessibleDarkModeBackground,
     invertLightness,
@@ -489,17 +494,6 @@ function addMissingColorWordsToStyleDefinition(
     return styleDef;
 }
 
-/** Applies missing color-word enrichment to an entire style-definition map. */
-function addMissingColorWordsToStyleDefinitions(
-    styleDefinitions: StyleDefinitions,
-): StyleDefinitions {
-    for (const styleDef of Object.values(styleDefinitions)) {
-        addMissingColorWordsToStyleDefinition(styleDef);
-    }
-
-    return styleDefinitions;
-}
-
 /**
  * Clones the baseline default style and enriches it with any missing color words.
  */
@@ -757,10 +751,46 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
 }
 
 /**
- * Returns built-in style presets used when no ancestor style definitions exist.
+ * Expands a palette's compact raw style definitions into the full wrapped
+ * form: values are normalized to `{ style, position? }`, missing
+ * `*ColorDarkMode` values are derived from their light-mode colors, and
+ * missing `*Word` descriptors are derived from the resulting values. Authored
+ * values (including the default palette's hand-authored dark colors and
+ * words) are left untouched, so every derivation step is a no-op for the
+ * `"default"` palette and its expansion is identical to the historical
+ * six-preset output.
  *
- * Preset color-word fields are injected in a second pass from the corresponding
- * color values.
+ * Returns a fresh map on every call; the input palette data is not mutated.
+ */
+export function expandStylePalette(palette: StylePalette): StyleDefinitions {
+    const styleDefinitions = normalizeStyleDefinitionsValues(palette.styles);
+
+    for (const styleDef of Object.values(styleDefinitions)) {
+        addMissingChildStyleColorFields(styleDef);
+        deriveMissingStyleWords(styleDef);
+    }
+
+    return styleDefinitions;
+}
+
+/**
+ * Returns the expanded style definitions of the named built-in palette,
+ * falling back to the `"default"` palette when the name is not registered
+ * (callers surface their own unknown-name warning).
+ *
+ * Returns a fresh map on every call, so callers may mutate the result.
+ */
+export function returnPaletteStyleDefinitions(
+    paletteName: string,
+): StyleDefinitions {
+    const palette =
+        STYLE_PALETTES[paletteName] ?? STYLE_PALETTES[DEFAULT_PALETTE_NAME];
+    return expandStylePalette(palette);
+}
+
+/**
+ * Returns built-in style presets used when no ancestor style definitions exist
+ * — the expansion of the `"default"` palette (see `palettes/default.ts`).
  *
  * Exported so the LSP-side static styleDefinition resolver (issue #1198) can
  * seed its inheritance walk with the same 6 numbered presets the runtime uses
@@ -770,127 +800,13 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
  *
  * IMPORTANT: this function is lazily cached on the LSP side (see
  * `resolve-active-style.ts`'s `_builtInPresetsCache`), so its output must
- * stay pure w.r.t. mutable module state. Today it spreads
- * `DEFAULT_STYLE_VALUES` directly; do not switch it to read from the
- * mutable `defaultStyle` variable without first dropping that cache or the
- * LSP will silently desync from runtime mutations.
+ * stay pure w.r.t. mutable module state. Palette expansion reads only the
+ * immutable palette registry; do not switch it to read from the mutable
+ * `defaultStyle` variable without first dropping that cache or the LSP will
+ * silently desync from runtime mutations.
  */
 export function returnDefaultStyleDefinitions(): StyleDefinitions {
-    return addMissingColorWordsToStyleDefinitions(
-        normalizeStyleDefinitionsValues({
-            1: { ...DEFAULT_STYLE_VALUES },
-            2: {
-                lineColor: "#D4042D",
-                lineColorDarkMode: "#F1466A",
-                lineOpacity: 0.7,
-                lineWidth: 2,
-                lineWidthWord: "",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "#D4042D",
-                markerColorDarkMode: "#F1466A",
-                markerOpacity: 0.7,
-                markerStyle: "square",
-                markerStyleWord: "square",
-                markerSize: 5,
-                fillColor: "#D4042D",
-                fillColorDarkMode: "#F1466A",
-                fillOpacity: 0.3,
-                textColor: "#D4042D",
-                textColorDarkMode: "#FF7A7A",
-                highContrastColor: "#D4042D",
-                highContrastColorDarkMode: "#FF7A7A",
-            },
-            3: {
-                lineColor: "#a6510c",
-                lineColorDarkMode: "#F19143",
-                lineOpacity: 0.7,
-                lineWidth: 3,
-                lineWidthWord: "",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "#a6510c",
-                markerColorDarkMode: "#F19143",
-                markerOpacity: 0.7,
-                markerStyle: "triangle",
-                markerStyleWord: "triangle",
-                markerSize: 5,
-                fillColor: "#a6510c",
-                fillColorDarkMode: "#F19143",
-                fillOpacity: 0.3,
-                textColor: "#BE5A0E",
-                textColorDarkMode: "#FFA94D",
-                highContrastColor: "#BE5A0E",
-                highContrastColorDarkMode: "#FFA94D",
-            },
-            4: {
-                lineColor: "#644CD6",
-                lineColorDarkMode: "#9F8FE8",
-                lineOpacity: 0.7,
-                lineWidth: 2,
-                lineWidthWord: "",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "#644CD6",
-                markerColorDarkMode: "#9F8FE8",
-                markerOpacity: 0.7,
-                markerStyle: "diamond",
-                markerStyleWord: "diamond",
-                markerSize: 5,
-                fillColor: "#644CD6",
-                fillColorDarkMode: "#9F8FE8",
-                fillOpacity: 0.3,
-                textColor: "#644CD6",
-                textColorDarkMode: "#B0A4EE",
-                highContrastColor: "#644CD6",
-                highContrastColorDarkMode: "#B0A4EE",
-            },
-            5: {
-                lineColor: "black",
-                lineColorDarkMode: "white",
-                lineOpacity: 1,
-                lineWidth: 1,
-                lineWidthWord: "thin",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "black",
-                markerColorDarkMode: "white",
-                markerOpacity: 1,
-                markerStyle: "circle",
-                markerStyleWord: "point",
-                markerSize: 5,
-                fillColor: "black",
-                fillColorDarkMode: "white",
-                fillOpacity: 0.7,
-                textColor: "black",
-                textColorDarkMode: "white",
-                highContrastColor: "black",
-                highContrastColorDarkMode: "white",
-            },
-            6: {
-                lineColor: "#636363",
-                lineColorDarkMode: "#CCCCCC",
-                lineOpacity: 0.7,
-                lineWidth: 1,
-                lineWidthWord: "thin",
-                lineStyle: "dotted",
-                lineStyleWord: "dotted",
-                markerColor: "#636363",
-                markerColorDarkMode: "#CCCCCC",
-                markerOpacity: 0.7,
-                markerStyle: "circle",
-                markerStyleWord: "point",
-                markerSize: 5,
-                fillColor: "#636363",
-                fillColorDarkMode: "#CCCCCC",
-                fillOpacity: 0.3,
-                textColor: "#757575",
-                textColorDarkMode: "#B0B0B0",
-                highContrastColor: "#757575",
-                highContrastColorDarkMode: "#B0B0B0",
-            },
-        }),
-    );
+    return returnPaletteStyleDefinitions(DEFAULT_PALETTE_NAME);
 }
 
 /**

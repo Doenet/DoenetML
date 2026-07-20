@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-    returnDefaultStyleDefinitions,
+    STYLE_PALETTE_NAMES,
+    returnPaletteStyleDefinitions,
     getStyleValueString,
     getStyleValueNumber,
     compositedContrastRatio,
@@ -27,21 +28,27 @@ const MODE_CONFIG = {
 } as const;
 
 /**
- * Guards that every built-in preset is accessible in both LIGHT and DARK mode,
- * so the palette can never silently regress below WCAG AA.
+ * Guards that every style of every registered palette is accessible in both
+ * LIGHT and DARK mode, so no palette can silently regress below WCAG AA.
+ * Expanded (derived) dark-mode colors are checked the same as authored ones,
+ * so palette authors are pushed to supply explicit dark values whenever the
+ * derivation isn't good enough.
  *
- * Light-mode failures (styles 1, 3, 6) were fixed alongside adding these
- * assertions (see Doenet/DoenetML#1364). Dark-mode values were fixed in the
- * earlier dark-mode accessibility PR.
+ * Light-mode failures in the default palette (styles 1, 3, 6) were fixed
+ * alongside adding these assertions (see Doenet/DoenetML#1364). Dark-mode
+ * values were fixed in the earlier dark-mode accessibility PR.
  */
-function describePresetPaletteAccessibility(mode: "light" | "dark") {
+function describePaletteAccessibility(
+    paletteName: string,
+    mode: "light" | "dark",
+) {
     const { canvas, graphicColorKeys, textColorKeys } = MODE_CONFIG[mode];
 
-    describe(`preset palette ${mode}-mode accessibility`, () => {
-        const presets = returnDefaultStyleDefinitions();
+    describe(`palette "${paletteName}" ${mode}-mode accessibility`, () => {
+        const styles = returnPaletteStyleDefinitions(paletteName);
 
-        for (const styleNumber of Object.keys(presets)) {
-            const styleDef = presets[styleNumber];
+        for (const styleNumber of Object.keys(styles)) {
+            const styleDef = styles[styleNumber];
 
             it(`style ${styleNumber} line/marker meet the graphic threshold in ${mode} mode`, () => {
                 const lineOpacity =
@@ -61,7 +68,7 @@ function describePresetPaletteAccessibility(mode: "light" | "dark") {
                     })!;
                     expect(
                         contrastRatio,
-                        `style ${styleNumber} ${colorKey}`,
+                        `palette ${paletteName} style ${styleNumber} ${colorKey}`,
                     ).toBeGreaterThanOrEqual(GRAPHIC_CONTRAST_THRESHOLD);
                 }
             });
@@ -75,7 +82,7 @@ function describePresetPaletteAccessibility(mode: "light" | "dark") {
                     })!;
                     expect(
                         contrastRatio,
-                        `style ${styleNumber} ${colorKey}`,
+                        `palette ${paletteName} style ${styleNumber} ${colorKey}`,
                     ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
                 }
             });
@@ -83,5 +90,7 @@ function describePresetPaletteAccessibility(mode: "light" | "dark") {
     });
 }
 
-describePresetPaletteAccessibility("light");
-describePresetPaletteAccessibility("dark");
+for (const paletteName of STYLE_PALETTE_NAMES) {
+    describePaletteAccessibility(paletteName, "light");
+    describePaletteAccessibility(paletteName, "dark");
+}
