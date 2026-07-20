@@ -369,6 +369,24 @@ export function determineComponentsToDelete({
             }
         }
 
+        // recurse on components created for reference-path indices,
+        // e.g. the copy resolving `$oldIndex` in `$p[$oldIndex]`. These live
+        // in the component's `refResolution` rather than in its children or
+        // attributes, so they would otherwise leak when the component is
+        // deleted (and their reserved component indices could then collide
+        // with those of a recreated replacement).
+        if (component.refResolution?.originalPath) {
+            for (let pathPart of component.refResolution.originalPath) {
+                for (let indexPiece of pathPart.index) {
+                    for (let valueComp of indexPiece.value) {
+                        if (typeof valueComp === "object") {
+                            componentsToRecurse.push(valueComp);
+                        }
+                    }
+                }
+            }
+        }
+
         // if delete an adapter, also delete component it is adapting
         if (component.adaptedFrom !== undefined) {
             componentsToRecurse.push(component.adaptedFrom);

@@ -1673,4 +1673,45 @@ describe("Conditional content tag tests @group2", async () => {
         expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.end.column).eq(45);
     });
+
+    it("can recreate a case containing a dynamic index reference", async () => {
+        // Regression test: a case whose content contains a dynamic index
+        // reference (`$p[$i]`) creates a hidden copy to resolve the index.
+        // That copy lives in the component's `refResolution` rather than in
+        // its children/attributes, so deleting the case's replacement used to
+        // leak it. When the case was later reselected and its replacement
+        // recreated (reusing the same reserved component indices), the leaked
+        // copy's index collided: "Found a duplicate componentIdx".
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <number name="i">1</number>
+        <pointList name="p">(3,4) (5,6)</pointList>
+        <booleanInput name="b" />
+        <conditionalContent>
+            <case condition="$b"><math>hello</math></case>
+            <case condition="not $b"><math>$p[$i].x</math></case>
+        </conditionalContent>
+  `,
+        });
+
+        const b = await resolvePathToNodeIdx("b");
+
+        // b=false selects the second case, creating the `$p[$i]` index copy.
+        // Toggle to the first case (deletes the second case's replacement),
+        // then back (recreates it). The recreation used to throw.
+        await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: b,
+            core,
+        });
+
+        // Reaching a full evaluation without throwing confirms the fix.
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("p[1]")
+            ].stateValues.xs.map((v: any) => v.tree),
+        ).eqls([3, 4]);
+    });
 });
