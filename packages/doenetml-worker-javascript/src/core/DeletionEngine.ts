@@ -324,9 +324,11 @@ export async function deleteComponents({
 /**
  * Recursively populate `componentsToDelete` with the transitive
  * deletion set rooted at `components`: each component's
- * `allChildren`, attribute components/references, the source of any
- * adapter, and (when `deleteUpstreamDependencies`) shadows, the
- * adapter the component itself produced, and any replacements.
+ * `allChildren`, attribute components/references, any copies created
+ * to resolve reference-path indices (`refResolution.originalPath`),
+ * the source of any adapter, and (when `deleteUpstreamDependencies`)
+ * shadows, the adapter the component itself produced, and any
+ * replacements.
  */
 export function determineComponentsToDelete({
     core,
