@@ -1687,31 +1687,38 @@ describe("Conditional content tag tests @group2", async () => {
         <number name="i">1</number>
         <pointList name="p">(3,4) (5,6)</pointList>
         <booleanInput name="b" />
-        <conditionalContent>
+        <p name="wrap"><conditionalContent>
             <case condition="$b"><math>hello</math></case>
             <case condition="not $b"><math>$p[$i].x</math></case>
-        </conditionalContent>
+        </conditionalContent></p>
   `,
         });
 
         const b = await resolvePathToNodeIdx("b");
+        const wrap = await resolvePathToNodeIdx("wrap");
+
+        const wrapText = async () =>
+            (await core.returnAllStateVariables(false, true))[wrap].stateValues
+                .text;
 
         // b=false selects the second case, creating the `$p[$i]` index copy.
-        // Toggle to the first case (deletes the second case's replacement),
-        // then back (recreates it). The recreation used to throw.
+        // The reference resolves to `$p[1].x`, i.e. 3.
+        expect(await wrapText()).eq("3");
+
+        // Toggle to the first case (deletes the second case's replacement,
+        // which must also delete the leaked `$p[$i]` index copy), then back
+        // (recreates the replacement, reusing the same reserved component
+        // indices). Before the fix, the recreation threw "Found a duplicate
+        // componentIdx"; now it recreates cleanly and the reference again
+        // resolves to 3.
         await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
+        expect(await wrapText()).eq("h e l l o");
+
         await updateBooleanInputValue({
             boolean: false,
             componentIdx: b,
             core,
         });
-
-        // Reaching a full evaluation without throwing confirms the fix.
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[
-                await resolvePathToNodeIdx("p[1]")
-            ].stateValues.xs.map((v: any) => v.tree),
-        ).eqls([3, 4]);
+        expect(await wrapText()).eq("3");
     });
 });
