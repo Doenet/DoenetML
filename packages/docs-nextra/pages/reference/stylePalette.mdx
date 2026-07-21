@@ -12,6 +12,15 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 Every palette is checked to meet WCAG contrast requirements in both light and dark mode, so switching palettes never costs you accessibility.
 
+## Built-in palettes
+
+- **`default`** — the six standard Doenet styles: blue, red, brown, purple, black, and gray.
+- **`okabeito`** — a colorblind-friendly palette of eight styles based on the [Okabe–Ito palette](https://jfly.uni-koeln.de/color/), whose hues were chosen to stay distinguishable under the common forms of color vision deficiency. Light mode darkens the colors as far as Doenet's contrast requirements demand; dark mode shows the canonical Okabe–Ito colors. Choose this palette when color distinctions must work for the widest range of vision.
+- **`ocean`** — eight cool styles: blues, teals, and greens.
+- **`sunset`** — eight warm styles: reds, oranges, golds, and plums.
+
+Every palette varies marker shapes and line styles alongside colors, so style distinctions never rest on color alone — `ocean` and `sunset` in particular lean on those shape distinctions under red-green color vision deficiency, since their colors deliberately stay within one hue family.
+
 <AttrPropDisplay name='stylePalette'/>
 
 ## Examples

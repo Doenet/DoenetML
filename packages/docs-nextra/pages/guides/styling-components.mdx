@@ -258,7 +258,7 @@ Redefining styles one at a time is precise but laborious when you want a whole d
 </graph>
 ```
 
-Every built-in palette meets WCAG contrast requirements in both light and dark mode, and palettes vary marker shapes and line styles alongside colors, so the distinctions your style numbers encode never rest on color alone.
+Every built-in palette meets WCAG contrast requirements in both light and dark mode, and palettes vary marker shapes and line styles alongside colors, so the distinctions your style numbers encode never rest on color alone. If your audience includes colorblind readers, the `okabeito` palette (based on the Okabe–Ito colorblind-friendly palette) uses hues chosen to remain distinguishable under the common forms of color vision deficiency.
 
 Like `<styleDefinition>{:dn}`, a `<stylePalette>{:dn}` scopes to its containing section: place it in a `<section>{:dn}` and only that section (and its subsections) use the palette. Selecting a palette **resets** the styles for that scope — customizations made by `<styleDefinition>{:dn}`s in ancestor sections don't carry in (they were tuned for different colors) — but `<styleDefinition>{:dn}`s in the same section or below still apply on top of the palette. See the [`<stylePalette>{:dn}` reference](../reference/stylePalette) for the full rules, including how style numbers beyond the palette's size wrap around.
 

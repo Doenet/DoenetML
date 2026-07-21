@@ -1,13 +1,21 @@
 import type { StylePalette } from "./types";
 
 /**
- * A warm-hued palette of reds, oranges, golds, and plums, authored compactly:
- * only light-mode anchor colors plus explicit `textColorDarkMode` values (the
- * lightness-inversion derivation for text falls short of WCAG AA for some of
- * these hues, so each style pins a value derived at the 4.5:1 text threshold).
- * All other dark-mode colors and `*Word` descriptors are derived at expansion
- * time. Marker shapes and line styles vary across styles so distinctions
- * don't rest on color alone.
+ * A warm-hued palette of reds, oranges, golds, and plums. Light-mode anchor
+ * colors were tuned with a CVD-simulation + CIEDE2000 analysis so that no
+ * two styles fall below dE 10 for typical vision; because the palette is
+ * deliberately warm-only, red-green color vision deficiencies compress it
+ * further, and the varied marker shapes and line styles carry the
+ * distinction there (colorblind readers may prefer the `okabeito` palette,
+ * whose hues are chosen for CVD separation).
+ *
+ * Dark-mode colors are pinned rather than derived: the automatic derivation
+ * lightens every color to just past the contrast threshold, which flattens
+ * the lightness ladder the light-mode anchors were tuned for. Each pinned
+ * value keeps the style's hue, clears WCAG AA for text (4.5:1 on the dark
+ * canvas), and restores the lightness spread (style 5's line color sits
+ * between the graphic and text thresholds, so its text pin is a lighter
+ * variant). `*Word` descriptors are derived at expansion time.
  */
 export const sunsetPalette: StylePalette = {
     name: "sunset",
@@ -20,27 +28,36 @@ export const sunsetPalette: StylePalette = {
             fillColor: "#c22047",
             textColor: "#c22047",
             highContrastColor: "#c22047",
-            textColorDarkMode: "#e04267",
+            lineColorDarkMode: "#ee7d96",
+            markerColorDarkMode: "#ee7d96",
+            fillColorDarkMode: "#ee7d96",
+            textColorDarkMode: "#ee7d96",
             lineWidth: 4,
             markerStyle: "circle",
         },
         2: {
-            lineColor: "#a34a0b",
-            markerColor: "#a34a0b",
-            fillColor: "#a34a0b",
-            textColor: "#a34a0b",
-            highContrastColor: "#a34a0b",
-            textColorDarkMode: "#cd5e0e",
+            lineColor: "#b5520c",
+            markerColor: "#b5520c",
+            fillColor: "#b5520c",
+            textColor: "#b5520c",
+            highContrastColor: "#b5520c",
+            lineColorDarkMode: "#f0913c",
+            markerColorDarkMode: "#f0913c",
+            fillColorDarkMode: "#f0913c",
+            textColorDarkMode: "#f0913c",
             lineWidth: 2,
             markerStyle: "square",
         },
         3: {
-            lineColor: "#756008",
-            markerColor: "#756008",
-            fillColor: "#756008",
-            textColor: "#756008",
-            highContrastColor: "#756008",
-            textColorDarkMode: "#997c0b",
+            lineColor: "#6a5607",
+            markerColor: "#6a5607",
+            fillColor: "#6a5607",
+            textColor: "#6a5607",
+            highContrastColor: "#6a5607",
+            lineColorDarkMode: "#e8c623",
+            markerColorDarkMode: "#e8c623",
+            fillColorDarkMode: "#e8c623",
+            textColorDarkMode: "#e8c623",
             lineWidth: 3,
             markerStyle: "triangle",
         },
@@ -50,37 +67,49 @@ export const sunsetPalette: StylePalette = {
             fillColor: "#b01e8c",
             textColor: "#b01e8c",
             highContrastColor: "#b01e8c",
-            textColorDarkMode: "#dc2eb0",
+            lineColorDarkMode: "#e668c8",
+            markerColorDarkMode: "#e668c8",
+            fillColorDarkMode: "#e668c8",
+            textColorDarkMode: "#e668c8",
             lineWidth: 2,
             markerStyle: "diamond",
         },
         5: {
-            lineColor: "#9c3518",
-            markerColor: "#9c3518",
-            fillColor: "#9c3518",
-            textColor: "#9c3518",
-            highContrastColor: "#9c3518",
-            textColorDarkMode: "#dd4b22",
+            lineColor: "#7c2a13",
+            markerColor: "#7c2a13",
+            fillColor: "#7c2a13",
+            textColor: "#7c2a13",
+            highContrastColor: "#7c2a13",
+            lineColorDarkMode: "#c84a28",
+            markerColorDarkMode: "#c84a28",
+            fillColorDarkMode: "#c84a28",
+            textColorDarkMode: "#d45d3d",
             lineWidth: 2,
             markerStyle: "plus",
         },
         6: {
-            lineColor: "#7d3c98",
-            markerColor: "#7d3c98",
-            fillColor: "#7d3c98",
-            textColor: "#7d3c98",
-            highContrastColor: "#7d3c98",
-            textColorDarkMode: "#a462c0",
+            lineColor: "#63307a",
+            markerColor: "#63307a",
+            fillColor: "#63307a",
+            textColor: "#63307a",
+            highContrastColor: "#63307a",
+            lineColorDarkMode: "#c49add",
+            markerColorDarkMode: "#c49add",
+            fillColorDarkMode: "#c49add",
+            textColorDarkMode: "#c49add",
             lineWidth: 2,
             markerStyle: "cross",
         },
         7: {
-            lineColor: "#ad3a5e",
-            markerColor: "#ad3a5e",
-            fillColor: "#ad3a5e",
-            textColor: "#ad3a5e",
-            highContrastColor: "#ad3a5e",
-            textColorDarkMode: "#c7577a",
+            lineColor: "#922d4d",
+            markerColor: "#922d4d",
+            fillColor: "#922d4d",
+            textColor: "#922d4d",
+            highContrastColor: "#922d4d",
+            lineColorDarkMode: "#c75d7d",
+            markerColorDarkMode: "#c75d7d",
+            fillColorDarkMode: "#c75d7d",
+            textColorDarkMode: "#c75d7d",
             lineWidth: 3,
             lineStyle: "dashed",
             markerStyle: "circle",
@@ -91,7 +120,10 @@ export const sunsetPalette: StylePalette = {
             fillColor: "#6d625c",
             textColor: "#6d625c",
             highContrastColor: "#6d625c",
-            textColorDarkMode: "#877a73",
+            lineColorDarkMode: "#a99d96",
+            markerColorDarkMode: "#a99d96",
+            fillColorDarkMode: "#a99d96",
+            textColorDarkMode: "#a99d96",
             lineWidth: 1,
             lineStyle: "dotted",
             markerStyle: "square",

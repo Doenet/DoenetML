@@ -1,13 +1,20 @@
 import type { StylePalette } from "./types";
 
 /**
- * A cool-hued palette of blues, teals, and greens, authored compactly: only
- * light-mode anchor colors plus explicit `textColorDarkMode` values (the
- * lightness-inversion derivation for text falls short of WCAG AA for some of
- * these hues, so each style pins a value derived at the 4.5:1 text threshold).
- * All other dark-mode colors and `*Word` descriptors are derived at expansion
- * time. Marker shapes and line styles vary across styles so distinctions
- * don't rest on color alone.
+ * A cool-hued palette of blues, teals, and greens. Light-mode anchor colors
+ * were tuned with a CVD-simulation + CIEDE2000 analysis so that no two
+ * styles fall below dE 9 for typical vision; because the palette is
+ * deliberately a single hue family, red-green color vision deficiencies
+ * compress it further, and the varied marker shapes and line styles carry
+ * the distinction there (colorblind readers may prefer the `okabeito`
+ * palette, whose hues are chosen for CVD separation).
+ *
+ * Dark-mode colors are pinned rather than derived: the automatic derivation
+ * lightens every color to just past the contrast threshold, which flattens
+ * the lightness ladder the light-mode anchors were tuned for. Each pinned
+ * value keeps the style's hue, clears WCAG AA for text (4.5:1 on the dark
+ * canvas), and restores the lightness spread. `*Word` descriptors are
+ * derived at expansion time.
  */
 export const oceanPalette: StylePalette = {
     name: "ocean",
@@ -30,7 +37,10 @@ export const oceanPalette: StylePalette = {
             fillColor: "#00695f",
             textColor: "#00695f",
             highContrastColor: "#00695f",
-            textColorDarkMode: "#008f81",
+            lineColorDarkMode: "#00b3a1",
+            markerColorDarkMode: "#00b3a1",
+            fillColorDarkMode: "#00b3a1",
+            textColorDarkMode: "#00b3a1",
             lineWidth: 2,
             markerStyle: "square",
         },
@@ -40,7 +50,10 @@ export const oceanPalette: StylePalette = {
             fillColor: "#1e7145",
             textColor: "#1e7145",
             highContrastColor: "#1e7145",
-            textColorDarkMode: "#279158",
+            lineColorDarkMode: "#37a568",
+            markerColorDarkMode: "#37a568",
+            fillColorDarkMode: "#37a568",
+            textColorDarkMode: "#37a568",
             lineWidth: 3,
             markerStyle: "triangle",
         },
@@ -50,17 +63,23 @@ export const oceanPalette: StylePalette = {
             fillColor: "#00648f",
             textColor: "#00648f",
             highContrastColor: "#00648f",
-            textColorDarkMode: "#0088c2",
+            lineColorDarkMode: "#53c1f0",
+            markerColorDarkMode: "#53c1f0",
+            fillColorDarkMode: "#53c1f0",
+            textColorDarkMode: "#53c1f0",
             lineWidth: 2,
             markerStyle: "diamond",
         },
         5: {
-            lineColor: "#4949b8",
-            markerColor: "#4949b8",
-            fillColor: "#4949b8",
-            textColor: "#4949b8",
-            highContrastColor: "#4949b8",
-            textColorDarkMode: "#7777ca",
+            lineColor: "#6a5fdd",
+            markerColor: "#6a5fdd",
+            fillColor: "#6a5fdd",
+            textColor: "#6a5fdd",
+            highContrastColor: "#6a5fdd",
+            lineColorDarkMode: "#a89df0",
+            markerColorDarkMode: "#a89df0",
+            fillColorDarkMode: "#a89df0",
+            textColorDarkMode: "#a89df0",
             lineWidth: 2,
             markerStyle: "plus",
         },
@@ -70,28 +89,37 @@ export const oceanPalette: StylePalette = {
             fillColor: "#4a5e77",
             textColor: "#4a5e77",
             highContrastColor: "#4a5e77",
-            textColorDarkMode: "#657f9f",
+            lineColorDarkMode: "#8fa3bd",
+            markerColorDarkMode: "#8fa3bd",
+            fillColorDarkMode: "#8fa3bd",
+            textColorDarkMode: "#8fa3bd",
             lineWidth: 2,
             markerStyle: "cross",
         },
         7: {
-            lineColor: "#316986",
-            markerColor: "#316986",
-            fillColor: "#316986",
-            textColor: "#316986",
-            highContrastColor: "#316986",
-            textColorDarkMode: "#3e84a8",
+            lineColor: "#1d4655",
+            markerColor: "#1d4655",
+            fillColor: "#1d4655",
+            textColor: "#1d4655",
+            highContrastColor: "#1d4655",
+            lineColorDarkMode: "#4f92b8",
+            markerColorDarkMode: "#4f92b8",
+            fillColorDarkMode: "#4f92b8",
+            textColorDarkMode: "#4f92b8",
             lineWidth: 3,
             lineStyle: "dashed",
             markerStyle: "circle",
         },
         8: {
-            lineColor: "#5c6670",
-            markerColor: "#5c6670",
-            fillColor: "#5c6670",
-            textColor: "#5c6670",
-            highContrastColor: "#5c6670",
-            textColorDarkMode: "#73808c",
+            lineColor: "#6b7480",
+            markerColor: "#6b7480",
+            fillColor: "#6b7480",
+            textColor: "#6b7480",
+            highContrastColor: "#6b7480",
+            lineColorDarkMode: "#d5dce2",
+            markerColorDarkMode: "#d5dce2",
+            fillColorDarkMode: "#d5dce2",
+            textColorDarkMode: "#d5dce2",
             lineWidth: 1,
             lineStyle: "dotted",
             markerStyle: "square",
