@@ -2,6 +2,8 @@ export { DoenetViewer, DoenetEditor } from "./doenetml";
 export type { DiagnosticsTabId, DoenetEditorHandle } from "./doenetml";
 
 export {
+    getStylePalettes,
+    getStylePalette,
     mathjaxConfig,
     cidFromText,
     retrieveTextFileForCid,
@@ -15,6 +17,8 @@ export {
     // returnAllPossibleVariants,
 } from "@doenet/utils";
 export type {
+    StylePaletteInfo,
+    ResolvedStyleDefinition,
     DiagnosticRecord,
     ErrorRecord,
     WarningRecord,

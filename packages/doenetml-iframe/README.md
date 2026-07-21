@@ -142,6 +142,37 @@ The same prop exists on `<DoenetEditor>`, where it applies to the editor's
 rendered preview (the code pane and context help keep showing the authored
 values).
 
+#### Listing the available palettes (`onStylePalettes`)
+
+To build a palette picker, a host needs the palettes that the DoenetML
+version **inside the iframe** supports — this wrapper and the standalone
+bundle ship separately, and a host may pin an older `doenetmlVersion`. The
+`onStylePalettes` callback fires once the bundle has booted, with that
+bundle's palettes:
+
+```tsx
+const [palettes, setPalettes] = React.useState(null);
+
+<DoenetViewer
+    doenetML={source}
+    onStylePalettes={setPalettes}
+    styleOverrides={chosenPalette ? { palette: chosenPalette } : undefined}
+/>;
+```
+
+Each entry is `{ name, description, styles }`, where `styles` is keyed by
+style number (contiguous from 1, always at least four) and each style is a
+fully-resolved style definition — `lineColor`, `markerColor`, `fillColor`,
+`textColor` and their `*DarkMode` variants for swatches in either theme,
+plus `lineWidth`, `lineStyle`, `markerStyle`, and `markerSize` for the
+non-color distinctions palettes also carry, and the `*Word` fields (e.g.
+`"blue"`) for labelling swatches accessibly. Feed a chosen `name` back in as
+the `palette` field of `styleOverrides`.
+
+The callback receives `null` when the booted bundle predates palette
+discovery, which is the host's cue to hide the picker. The same prop exists
+on `<DoenetEditor>`.
+
 Function props (callbacks) are forwarded across the iframe boundary via
 Comlink proxies and always follow the latest identity passed — parents may
 pass inline arrow functions freely; identity churn does not re-render the

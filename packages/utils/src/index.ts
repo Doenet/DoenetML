@@ -21,6 +21,7 @@ export * from "./math/subset-of-reals-operations";
 export * from "./style/colorWords";
 export * from "./style/fillPattern";
 export * from "./style/palettes";
+export * from "./style/paletteInfo";
 export * from "./style/readerOverrides";
 export * from "./style/style";
 export * from "./style/styleDefinitionHelpers";

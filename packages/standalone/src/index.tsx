@@ -13,6 +13,8 @@ import type {
     DiagnosticsTabId,
     DoenetEditorHandle,
 } from "@doenet/doenetml/doenetml-external-worker.js";
+import { getStylePalettes, getStylePalette } from "@doenet/utils";
+import type { StylePaletteInfo } from "@doenet/utils";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { ResizeWatcher } from "./resize-watcher";
@@ -24,6 +26,11 @@ import {
 
 // Re-export React and friends in case a user really wants to use them
 export { React, ReactDOM, DoenetViewer, DoenetEditor };
+
+// Style-palette discovery, so a host can render a palette picker (with
+// swatches) whose choices match the palettes THIS bundle supports.
+export { getStylePalettes, getStylePalette };
+export type { StylePaletteInfo };
 
 export const version: string = STANDALONE_VERSION;
 
@@ -332,3 +339,13 @@ function kebobCaseToCamelCase(str: string) {
 window.renderDoenetViewerToContainer = renderDoenetViewerToContainer;
 // @ts-ignore
 window.renderDoenetEditorToContainer = renderDoenetEditorToContainer;
+
+// Expose style-palette discovery on the global object as well, so a page
+// that loads this bundle from the CDN (rather than importing it) can list
+// the palettes this DoenetML version ships and render swatches for them.
+// The iframe wrapper feature-detects these globals to report the palettes
+// of whichever bundle version it booted.
+// @ts-ignore
+window.getDoenetStylePalettes = getStylePalettes;
+// @ts-ignore
+window.getDoenetStylePalette = getStylePalette;

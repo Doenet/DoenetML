@@ -67,6 +67,7 @@ export {
 } from "@doenet/utils";
 export type { DiagnosticRecord, ErrorRecord, WarningRecord };
 export type {
+    StylePaletteInfo,
     MediaLicenseInfo,
     MediaLicenseKind,
     MediaLicenseDisplay,
@@ -74,6 +75,7 @@ export type {
     ReaderStyleOverrides,
     ReaderStyleValueOverrides,
 } from "@doenet/utils";
+import type { StylePaletteInfo } from "@doenet/utils";
 import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 export type { DiagnosticsTabId, DoenetEditorHandle };
 import { detectVersionFromDoenetML } from "@doenet/parser";
@@ -111,6 +113,15 @@ type IframeMessage = {
 
 export type DoenetViewerIframeProps = DoenetViewerProps & {
     doenetML: string;
+    /**
+     * Called once the standalone bundle inside the iframe has booted, with
+     * the style palettes THAT bundle supports — the source of truth for a
+     * host rendering a palette picker, since the iframe may run a pinned or
+     * older DoenetML version than this wrapper. Receives `null` when the
+     * booted bundle predates palette discovery. Feed a chosen palette name
+     * back in as the `palette` field of `styleOverrides`.
+     */
+    onStylePalettes?: (palettes: StylePaletteInfo[] | null) => void;
     /**
      * The URL of a standalone DoenetML bundle. This may be from the CDN.
      * If autodetectVersion is `true` and a version is detected, this URL is ignored.
@@ -179,6 +190,15 @@ export type DoenetViewerIframeProps = DoenetViewerProps & {
 };
 
 export type DoenetEditorIframeProps = DoenetEditorProps & {
+    /**
+     * Called once the standalone bundle inside the iframe has booted, with
+     * the style palettes THAT bundle supports — the source of truth for a
+     * host rendering a palette picker, since the iframe may run a pinned or
+     * older DoenetML version than this wrapper. Receives `null` when the
+     * booted bundle predates palette discovery. Feed a chosen palette name
+     * back in as the `palette` field of `styleOverrides`.
+     */
+    onStylePalettes?: (palettes: StylePaletteInfo[] | null) => void;
     doenetML: string;
     /**
      * The URL of a standalone DoenetML bundle. This may be from the CDN.
@@ -246,6 +266,7 @@ export function DoenetViewer({
     useSharedCoreWorker = false,
     mountPolicy,
     keepLive = false,
+    onStylePalettes,
     ...doenetViewerProps
 }: DoenetViewerIframeProps) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
@@ -271,6 +292,10 @@ export function DoenetViewer({
     // closure's.
     const doenetViewerPropsRef = React.useRef(doenetViewerProps);
     doenetViewerPropsRef.current = doenetViewerProps;
+    // Read by the deps-empty message listener, which would otherwise call a
+    // stale closure (and never see a callback passed after mount).
+    const onStylePalettesRef = React.useRef(onStylePalettes);
+    onStylePalettesRef.current = onStylePalettes;
     const doenetMLRef = React.useRef(doenetML);
     doenetMLRef.current = doenetML;
 
@@ -715,6 +740,13 @@ export function DoenetViewer({
             } else if (data.iframeReady) {
                 // if `iframeReady`, then Comlink.expose has been called in the iframe
                 // and we can call `renderViewerWithFunctionProps`
+
+                // Report the booted bundle's style palettes before wiring
+                // anything else up: hosts use them to build a palette picker,
+                // and a bundle too old to report them yields null.
+                onStylePalettesRef.current?.(
+                    (data.stylePalettes as StylePaletteInfo[] | null) ?? null,
+                );
 
                 if (ref.current) {
                     const viewerIframe: ViewerIframeRemote = Comlink.wrap(
@@ -1308,6 +1340,7 @@ export const DoenetEditor = React.forwardRef<
         width = "100%",
         height = "500px",
         autodetectVersion = true,
+        onStylePalettes,
         ...doenetEditorProps
     },
     forwardedRef,
@@ -1334,6 +1367,9 @@ export const DoenetEditor = React.forwardRef<
     // re-entrant effects can read current values rather than the closure's.
     const doenetEditorPropsRef = React.useRef(doenetEditorProps);
     doenetEditorPropsRef.current = doenetEditorProps;
+    // Read by the deps-empty iframeReady listener (see the viewer's copy).
+    const onStylePalettesRef = React.useRef(onStylePalettes);
+    onStylePalettesRef.current = onStylePalettes;
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
@@ -1478,6 +1514,13 @@ export const DoenetEditor = React.forwardRef<
             } else if (data.iframeReady) {
                 // if `iframeReady`, then Comlink.expose has been called in the iframe
                 // and we can call `renderEditorWithFunctionProps`
+
+                // Report the booted bundle's style palettes before wiring
+                // anything else up: hosts use them to build a palette picker,
+                // and a bundle too old to report them yields null.
+                onStylePalettesRef.current?.(
+                    (data.stylePalettes as StylePaletteInfo[] | null) ?? null,
+                );
 
                 if (ref.current) {
                     const editorIframe: EditorIframeRemote = Comlink.wrap(

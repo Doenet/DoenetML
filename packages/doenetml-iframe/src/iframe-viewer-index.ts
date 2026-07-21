@@ -22,6 +22,12 @@ interface Window {
         config?: object,
     ) => void;
     doenetGlobalConfig: Record<string, any>;
+    /**
+     * Style-palette discovery, defined by standalone bundles new enough to
+     * ship it. Feature-detected (not version-gated) so an older bundle
+     * simply reports no palettes.
+     */
+    getDoenetStylePalettes?: () => unknown[];
 }
 
 // Module-scope state below is per-iframe-document: each `<DoenetViewer>` lives
@@ -371,7 +377,10 @@ function installSharedCorePortProvider() {
         ) {
             installSharedCorePortProvider();
         }
-        messageParentFromViewer({ iframeReady: true });
+        messageParentFromViewer({
+            iframeReady: true,
+            stylePalettes: readStylePalettesFromBundle(),
+        });
     } else {
         messageParentFromViewer({
             error: "Invalid DoenetML version or DoenetML package not found",
@@ -390,6 +399,24 @@ function installSharedCorePortProvider() {
         // Last-resort fallback — see the editor counterpart.
     }
 });
+
+/**
+ * The style palettes of the standalone bundle running in this iframe, or
+ * `null` when the bundle predates palette discovery. Reported to the parent
+ * with `iframeReady` so a host can build a palette picker matching the
+ * DoenetML version it actually booted.
+ */
+function readStylePalettesFromBundle(): unknown[] | null {
+    try {
+        return window.getDoenetStylePalettes?.() ?? null;
+    } catch (err) {
+        console.error(
+            "iframe DoenetML: failed to read style palettes from the standalone bundle",
+            err,
+        );
+        return null;
+    }
+}
 
 /**
  * Send a message to the parent React component.
