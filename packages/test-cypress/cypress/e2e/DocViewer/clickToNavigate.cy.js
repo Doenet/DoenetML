@@ -18,64 +18,53 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         setUpClickListener();
     });
 
-    it("clicking a rendered element reports its exact source range", () => {
-        const doenetML = [
-            `<p name="p1">First paragraph.</p>`,
-            `<p name="p2">Second paragraph.</p>`,
-            `<p name="p3">Third paragraph.</p>`,
-        ].join("\n");
+    const threeParagraphs = [
+        `<p name="p1">First paragraph.</p>`,
+        `<p name="p2">Second paragraph.</p>`,
+        `<p name="p3">Third paragraph.</p>`,
+    ].join("\n");
 
+    /**
+     * Click the rendered `#name` element and assert the most recently
+     * reported click position is exactly the `<p name="...">...</p>`
+     * element's source range within `doenetML`.
+     */
+    function clickAndExpectSourceRange(name, doenetML) {
+        const expectedStart = doenetML.indexOf(`<p name="${name}">`);
+        const expectedEnd =
+            doenetML.indexOf(`</p>`, expectedStart) + `</p>`.length;
+
+        cy.get(`#${name}`).click();
+
+        cy.wrap(null)
+            .should(() => {
+                expect(clickMessages.length).to.be.gte(1);
+            })
+            .then(() => {
+                const { start, end } = clickMessages[clickMessages.length - 1];
+                expect(start.offset).to.equal(expectedStart);
+                expect(end.offset).to.equal(expectedEnd);
+            });
+    }
+
+    it("clicking a rendered element reports its exact source range", () => {
         cy.window().then((win) => {
-            win.postMessage({ doenetML }, "*");
+            win.postMessage({ doenetML: threeParagraphs }, "*");
         });
 
         cy.get("#p2").should("have.text", "Second paragraph.");
 
-        const expectedStart = doenetML.indexOf(`<p name="p2">`);
-        const expectedEnd =
-            doenetML.indexOf(`</p>`, expectedStart) + `</p>`.length;
-
-        cy.get("#p2").click();
-
-        cy.wrap(null)
-            .should(() => {
-                expect(clickMessages.length).to.be.gte(1);
-            })
-            .then(() => {
-                const { start, end } = clickMessages[clickMessages.length - 1];
-                expect(start.offset).to.equal(expectedStart);
-                expect(end.offset).to.equal(expectedEnd);
-            });
+        clickAndExpectSourceRange("p2", threeParagraphs);
     });
 
     it("clicking a different element reports a different, correct range", () => {
-        const doenetML = [
-            `<p name="p1">First paragraph.</p>`,
-            `<p name="p2">Second paragraph.</p>`,
-            `<p name="p3">Third paragraph.</p>`,
-        ].join("\n");
-
         cy.window().then((win) => {
-            win.postMessage({ doenetML }, "*");
+            win.postMessage({ doenetML: threeParagraphs }, "*");
         });
 
         cy.get("#p3").should("have.text", "Third paragraph.");
 
-        const expectedStart = doenetML.indexOf(`<p name="p3">`);
-        const expectedEnd =
-            doenetML.indexOf(`</p>`, expectedStart) + `</p>`.length;
-
-        cy.get("#p3").click();
-
-        cy.wrap(null)
-            .should(() => {
-                expect(clickMessages.length).to.be.gte(1);
-            })
-            .then(() => {
-                const { start, end } = clickMessages[clickMessages.length - 1];
-                expect(start.offset).to.equal(expectedStart);
-                expect(end.offset).to.equal(expectedEnd);
-            });
+        clickAndExpectSourceRange("p3", threeParagraphs);
     });
 
     it("setting scrollToSourceOffset scrolls the matching element into view", () => {
@@ -95,7 +84,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         // Target a paragraph far from both the top and bottom, so a real
         // scroll has to happen to bring it into view.
         const targetStart = doenetML.indexOf(`<p name="p40">`);
-        const targetOffset = targetStart + 3; // inside the tag's content
+        const targetOffset = targetStart + 3; // inside the element's source range
 
         // Force the target out of view first (rather than relying on
         // Cypress's `.should("be.visible")`, which reflects CSS visibility

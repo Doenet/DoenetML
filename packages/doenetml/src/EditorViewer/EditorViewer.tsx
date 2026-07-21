@@ -330,6 +330,11 @@ export const EditorViewer = React.forwardRef<
     // different concern with different timing needs).
     const editorViewRef = useRef<EditorView | null>(null);
     const viewerScrollDebounceTimer = useRef<number | undefined>(undefined);
+    // Set by `handleSourcePositionClick` right before it dispatches a cursor
+    // move into the editor, so `onCursorChange` can tell that move apart
+    // from a real keystroke/click and skip echoing it back into the viewer
+    // (mirrors the VS Code extension's `suppressNextSelectionEcho`).
+    const suppressNextViewerFollowRef = useRef(false);
     const [scrollToSourceOffset, setScrollToSourceOffset] = useState<
         number | null
     >(null);
@@ -788,11 +793,19 @@ export const EditorViewer = React.forwardRef<
 
             // Click-to-navigate: scroll the viewer to follow the editor
             // cursor, debounced so it doesn't scroll on every single
-            // keystroke while typing.
-            window.clearTimeout(viewerScrollDebounceTimer.current);
-            viewerScrollDebounceTimer.current = window.setTimeout(() => {
-                setScrollToSourceOffset(offset);
-            }, 120);
+            // keystroke while typing. Skipped when this cursor move is
+            // itself the echo of a click in the viewer (see
+            // `handleSourcePositionClick`) — the user just put the viewer
+            // where they want it, so re-centering the clicked element
+            // would yank the content out from under their pointer.
+            if (suppressNextViewerFollowRef.current) {
+                suppressNextViewerFollowRef.current = false;
+            } else {
+                window.clearTimeout(viewerScrollDebounceTimer.current);
+                viewerScrollDebounceTimer.current = window.setTimeout(() => {
+                    setScrollToSourceOffset(offset);
+                }, 120);
+            }
 
             window.clearTimeout(cursorDebounceTimer.current);
             // Skip the RPC when no one's looking — the help-becoming-visible
@@ -1079,17 +1092,20 @@ export const EditorViewer = React.forwardRef<
      * `EditorView.scrollIntoView`'s `y: "center"` effect is what actually
      * centers it.
      *
-     * The resulting selection change echoes back through `onCursorChange`,
-     * which schedules the same offset back into `scrollToSourceOffset` —
-     * harmless (and not specifically suppressed, unlike the VS Code
-     * extension's equivalent): it's the identical offset, so `DocViewer`'s
-     * own dedup (`lastScrolledSourceOffset`) makes the round-trip a no-op.
+     * The dispatched selection change echoes back through `onCursorChange`
+     * synchronously (CodeMirror reports every transaction that carries a
+     * selection, even one that leaves the cursor where it was — so the
+     * flag set here is always consumed). Without suppression that echo
+     * would schedule the viewer to scroll the clicked element to center;
+     * the flag makes `onCursorChange` skip exactly that one viewer-follow
+     * update while its other work (help-panel context, etc.) still runs.
      */
     function handleSourcePositionClick(position: SourcePosition) {
         const view = editorViewRef.current;
         if (!view) {
             return;
         }
+        suppressNextViewerFollowRef.current = true;
         view.dispatch({
             selection: EditorSelection.cursor(position.start.offset),
             effects: EditorView.scrollIntoView(position.start.offset, {

@@ -44,7 +44,6 @@ vi.mock("vscode", () => ({
         ) {}
     },
     TextEditorRevealType: { InCenterIfOutsideViewport: 2 },
-    TextEditorSelectionChangeKind: { Keyboard: 1, Mouse: 2, Command: 3 },
     window: {
         activeTextEditor: undefined,
         visibleTextEditors: [] as unknown[],

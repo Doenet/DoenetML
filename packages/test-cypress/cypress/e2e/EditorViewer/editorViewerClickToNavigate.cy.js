@@ -12,46 +12,38 @@ describe(
             cy.get("#testRunner_toggleControls").click();
         });
 
-        it("clicking a rendered element moves the code editor's cursor to its source", () => {
-            const doenetML = [
-                `<p name="p1">First paragraph.</p>`,
-                `<p name="p2">Second paragraph.</p>`,
-                `<p name="p3">Third paragraph.</p>`,
-            ].join("\n");
+        const threeParagraphs = [
+            `<p name="p1">First paragraph.</p>`,
+            `<p name="p2">Second paragraph.</p>`,
+            `<p name="p3">Third paragraph.</p>`,
+        ].join("\n");
 
+        /**
+         * Load `threeParagraphs`, click the rendered `#name` element (whose
+         * text is `text`), and assert the code editor's cursor landed on
+         * that paragraph's source line.
+         */
+        function clickAndExpectCursorOnSourceLine(name, text) {
             cy.window().then((win) => {
-                win.postMessage({ doenetML }, "*");
+                win.postMessage({ doenetML: threeParagraphs }, "*");
             });
 
-            cy.get("#p2").should("have.text", "Second paragraph.");
+            cy.get(`#${name}`).should("have.text", text);
 
-            cy.get("#p2").click();
+            cy.get(`#${name}`).click();
 
             cy.get(".cm-activeLine").should(
                 "contain.text",
-                `<p name="p2">Second paragraph.</p>`,
+                `<p name="${name}">${text}</p>`,
             );
+        }
+
+        it("clicking a rendered element moves the code editor's cursor to its source", () => {
+            clickAndExpectCursorOnSourceLine("p2", "Second paragraph.");
         });
 
         it("clicking a different element moves the cursor to a different, correct line", () => {
-            const doenetML = [
-                `<p name="p1">First paragraph.</p>`,
-                `<p name="p2">Second paragraph.</p>`,
-                `<p name="p3">Third paragraph.</p>`,
-            ].join("\n");
-
-            cy.window().then((win) => {
-                win.postMessage({ doenetML }, "*");
-            });
-
-            cy.get("#p3").should("have.text", "Third paragraph.");
-
-            cy.get("#p3").click();
-
-            cy.get(".cm-activeLine").should(
-                "contain.text",
-                `<p name="p3">Third paragraph.</p>`,
-            );
+            clickAndExpectCursorOnSourceLine("p3", "Third paragraph.");
         });
 
         it("moving the code editor's cursor scrolls the viewer to follow", () => {

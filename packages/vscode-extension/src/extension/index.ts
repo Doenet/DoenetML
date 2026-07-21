@@ -258,7 +258,15 @@ function setupPreviewWindow(context: ExtensionContext) {
             range,
             vscode.TextEditorRevealType.InCenterIfOutsideViewport,
         );
+        const selection = new vscode.Selection(range.start, range.start);
+        if (editor.selection.isEqual(selection)) {
+            // Cursor is already there (e.g. the same element was clicked
+            // twice). Assigning an identical selection fires no
+            // selection-change event, so setting the suppression flag would
+            // leave it latched and swallow the next real cursor move.
+            return;
+        }
         suppressNextSelectionEcho = true;
-        editor.selection = new vscode.Selection(range.start, range.start);
+        editor.selection = selection;
     };
 }

@@ -7,7 +7,7 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { DocViewer, SourcePosition } from "./Viewer/DocViewer";
+import { DocViewer, type SourcePosition } from "./Viewer/DocViewer";
 export type { SourcePosition } from "./Viewer/DocViewer";
 import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";

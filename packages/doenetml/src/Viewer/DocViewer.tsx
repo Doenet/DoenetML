@@ -169,9 +169,24 @@ export function DocViewer({
         }
         lastScrolledSourceOffset.current = scrollToSourceOffset;
 
-        let bestId: string | null = null;
+        // Resolve a candidate id to its element, scoped to this viewer.
+        // `positionByDomId` is only ever added to, so it can hold stale
+        // entries — ids recorded from an earlier version of the source that
+        // no longer exist in the DOM, or components not currently rendered
+        // (e.g. hidden) — and a candidate only counts if its element is
+        // actually present. Checked lazily, only when a candidate would
+        // become the new best, so most entries never incur a DOM lookup.
+        function renderedElement(id: string): Element | null {
+            return (
+                viewerContainerRef.current?.querySelector(
+                    `#${CSS.escape(id)}`,
+                ) ?? null
+            );
+        }
+
+        let bestEl: Element | null = null;
         let bestRangeSize = Infinity;
-        let nearestId: string | null = null;
+        let nearestEl: Element | null = null;
         let nearestDistance = Infinity;
         for (const [id, position] of positionByDomId.current) {
             const { offset: start } = position.start;
@@ -179,8 +194,11 @@ export function DocViewer({
             if (start <= scrollToSourceOffset && scrollToSourceOffset <= end) {
                 const rangeSize = end - start;
                 if (rangeSize < bestRangeSize) {
-                    bestId = id;
-                    bestRangeSize = rangeSize;
+                    const el = renderedElement(id);
+                    if (el) {
+                        bestEl = el;
+                        bestRangeSize = rangeSize;
+                    }
                 }
             } else {
                 const distance = Math.min(
@@ -188,20 +206,16 @@ export function DocViewer({
                     Math.abs(end - scrollToSourceOffset),
                 );
                 if (distance < nearestDistance) {
-                    nearestId = id;
-                    nearestDistance = distance;
+                    const el = renderedElement(id);
+                    if (el) {
+                        nearestEl = el;
+                        nearestDistance = distance;
+                    }
                 }
             }
         }
 
-        const targetId = bestId ?? nearestId;
-        if (!targetId) {
-            return;
-        }
-        const target = viewerContainerRef.current?.querySelector(
-            `#${CSS.escape(targetId)}`,
-        );
-        target?.scrollIntoView({ block: "center" });
+        (bestEl ?? nearestEl)?.scrollIntoView({ block: "center" });
     }, [scrollToSourceOffset]);
 
     const [errMsg, setErrMsg] = useState<string | null>(null);
