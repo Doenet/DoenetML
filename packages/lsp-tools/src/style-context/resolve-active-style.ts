@@ -556,7 +556,17 @@ export function resolveActiveStyle(
     let paletteName: string | undefined;
     let mergeStartIndex = 0;
     for (let i = 0; i < chain.length; i++) {
-        const owned = findOwnedStylePaletteName(chain[i]);
+        const ancestor = chain[i];
+        // A <setup> is not a styles-hosting scope of its own — the runtime
+        // attributes its <stylePalette> children to the setup's *parent*
+        // (the setup route of `findOwnedStylePaletteName` covers that when
+        // the parent is scanned). Skip it here so a cursor *inside* the
+        // setup doesn't reset the walk one level too deep and drop sibling
+        // blocks owned by the parent scope.
+        if (ancestor.type === "element" && ancestor.name === "setup") {
+            continue;
+        }
+        const owned = findOwnedStylePaletteName(ancestor);
         if (owned !== undefined) {
             paletteName = owned;
             mergeStartIndex = i;

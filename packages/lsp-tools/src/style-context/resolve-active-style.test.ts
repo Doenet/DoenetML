@@ -847,4 +847,26 @@ describe("resolveActiveStyle — style palettes", () => {
             "#1f5dff",
         );
     });
+
+    it("resolving inside a <setup> attributes its palette to the parent scope, keeping sibling blocks", () => {
+        // The runtime attributes a <stylePalette> inside <setup> to the
+        // setup's parent section, so a styleDefinition owned by that parent
+        // *outside* the setup still applies on top of the palette. A cursor
+        // inside the setup (context help on the styleDefinition there) must
+        // not reset the walk at the setup itself and lose the sibling block.
+        const sourceObj = new DoenetSourceObject(
+            `<styleDefinition styleNumber="1" markerColor="green"/>
+<setup><stylePalette palette="ocean"/><styleDefinition styleNumber="1" lineColor="black"/></setup>`,
+        );
+        // Target the styleDefinition inside the setup (findElement's BFS
+        // would return the shallower top-level one).
+        const setup = findElement(sourceObj, "setup");
+        const insideSetup = setup.children.find(
+            (child): child is DastElement =>
+                child.type === "element" && child.name === "styleDefinition",
+        )!;
+        const resolved = resolveActiveStyle(sourceObj, insideSetup);
+        expect(resolved.style.lineColor).toBe("black");
+        expect(resolved.style.markerColor).toBe("green");
+    });
 });
