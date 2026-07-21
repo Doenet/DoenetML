@@ -10,7 +10,7 @@ export default defineConfig({
         minify: false,
         sourcemap: true,
         lib: {
-            entry: "./src/CodeMirror.tsx",
+            entry: "./src/index.ts",
             fileName: "index",
             formats: ["es"],
         },

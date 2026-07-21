@@ -7,7 +7,8 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { DocViewer } from "./Viewer/DocViewer";
+import { DocViewer, SourcePosition } from "./Viewer/DocViewer";
+export type { SourcePosition } from "./Viewer/DocViewer";
 import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
 import type { DiagnosticsSummary } from "./EditorViewer/diagnostics";
@@ -101,6 +102,8 @@ export function DoenetViewer({
     initializeCounters = {},
     fetchExternalDoenetML,
     requestScrollTo,
+    onSourcePositionClick,
+    scrollToSourceOffset,
     mathjaxUrl,
     useExistingMathjax = false,
     onInit = () => {},
@@ -156,6 +159,18 @@ export function DoenetViewer({
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
+    /**
+     * Called when the user clicks a rendered element that has a known
+     * source location, e.g. so a host app can move an editor's cursor to
+     * the corresponding DoenetML.
+     */
+    onSourcePositionClick?: (position: SourcePosition) => void;
+    /**
+     * Set to a character offset into `doenetML` (e.g. the editor's cursor
+     * position) to scroll the corresponding rendered element into view.
+     * Only re-scrolls when this value changes.
+     */
+    scrollToSourceOffset?: number | null;
     /**
      * URL of the MathJax script to load when the page does not already provide
      * MathJax. Defaults to the version Doenet is tested against. Ignored when a
@@ -311,6 +326,8 @@ export function DoenetViewer({
             initializeCounters={initializeCounters}
             fetchExternalDoenetML={fetchExternalDoenetML}
             requestScrollTo={requestScrollTo}
+            onSourcePositionClick={onSourcePositionClick}
+            scrollToSourceOffset={scrollToSourceOffset}
         />
     );
 

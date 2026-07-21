@@ -122,6 +122,11 @@ export function CypressTest() {
     const [includeVariantSelector, setIncludeVariantSelector] = useState(
         testSettings.includeVariantSelector,
     );
+    // For Cypress tests of click-to-navigate: set via `scrollToSourceOffset`
+    // in a postMessage to scroll the viewer to that source character offset.
+    const [scrollToSourceOffset, setScrollToSourceOffset] = useState<
+        number | null
+    >(null);
     const diagnosticsSummaryRef = useRef<Record<string, number> | null>(null);
     const diagnosticsSummaryCallsRef = useRef<
         { summary: Record<string, number>; doenetML: string }[]
@@ -212,6 +217,10 @@ export function CypressTest() {
 
         if (e.data.prototypeCoreType !== undefined) {
             newPrototypeCoreType = e.data.prototypeCoreType;
+        }
+
+        if (e.data.scrollToSourceOffset !== undefined) {
+            setScrollToSourceOffset(e.data.scrollToSourceOffset);
         }
 
         // don't do anything if receive a message from another source (like the youtube player)
@@ -688,6 +697,13 @@ export function CypressTest() {
                         });
                     }
                 }}
+                onSourcePositionClick={(position) => {
+                    window.postMessage({
+                        position,
+                        messageType: "sourcePositionClick",
+                    });
+                }}
+                scrollToSourceOffset={scrollToSourceOffset}
                 activityId="activityIdFromCypress"
                 render={render}
                 darkMode={darkMode}

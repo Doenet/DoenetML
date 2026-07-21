@@ -28,6 +28,7 @@ const CodeMirror = React.memo(function CodeMirror({
     onBlur,
     onFocus,
     languageServerRef,
+    editorViewRef,
     ariaLabel = "DoenetML code editor",
     doenetWorkerUrl,
     darkMode = "light",
@@ -52,6 +53,13 @@ const CodeMirror = React.memo(function CodeMirror({
         lsp: typeof uniqueLanguageServerInstance;
         documentUri: string;
     } | null>;
+    /**
+     * Optional ref populated with the underlying CodeMirror `EditorView` once
+     * it mounts. Lets a controlling component drive the editor imperatively —
+     * e.g. moving the cursor/selection and scrolling to a position in
+     * response to something outside the editor (a click in a linked preview).
+     */
+    editorViewRef?: React.RefObject<EditorView | null>;
     /**
      * Accessible label for the editor. Defaults to "DoenetML code editor".
      */
@@ -162,6 +170,11 @@ const CodeMirror = React.memo(function CodeMirror({
                 }}
                 onBlur={onBlur}
                 onFocus={onFocus}
+                onCreateEditor={(view) => {
+                    if (editorViewRef) {
+                        editorViewRef.current = view;
+                    }
+                }}
                 height="100%"
                 extensions={extensions}
             />

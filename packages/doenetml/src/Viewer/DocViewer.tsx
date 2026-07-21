@@ -46,6 +46,11 @@ import type { ResolvedTheme } from "../utils/theme";
 // `@doenet/doenetml/Viewer/DocViewer` via the package's `./*` exports map.
 export { renderersLoadComponent } from "./renderersLoadComponent";
 
+export type SourcePosition = {
+    start: { line: number; column: number; offset: number };
+    end: { line: number; column: number; offset: number };
+};
+
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
@@ -84,6 +89,8 @@ export function DocViewer({
     initializeCounters: prescribedInitializeCounters = {},
     fetchExternalDoenetML,
     requestScrollTo,
+    onSourcePositionClick,
+    scrollToSourceOffset,
 }: {
     doenetML: string;
     userId?: string;
@@ -122,6 +129,8 @@ export function DocViewer({
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
+    onSourcePositionClick?: (position: SourcePosition) => void;
+    scrollToSourceOffset?: number | null;
 }) {
     // Sometimes components eagerly update before waiting for core to determine their exact state
     // This map from event ids to event values helps keep track of the updates that need to be ignored
@@ -130,6 +139,70 @@ export function DocViewer({
         new Map(),
     );
     const dispatch = useAppDispatch();
+
+    // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
+    // source position, so a click anywhere in the preview can be traced
+    // back to a location in the original DoenetML. Populated as renderer
+    // instructions stream in from the core; not stored in Redux since it
+    // doesn't need to trigger re-renders.
+    const positionByDomId = useRef<Map<string, SourcePosition>>(new Map());
+    const viewerContainerRef = useRef<HTMLDivElement>(null);
+    const lastScrolledSourceOffset = useRef<number | null>(null);
+
+    // Whenever the host asks for a specific source offset (e.g. the
+    // editor's cursor moved), scroll the rendered element whose source
+    // range contains that offset into view. Falls back to the element
+    // whose range starts closest to the offset if none contains it exactly
+    // (e.g. the offset falls inside markup with no direct source-mapped
+    // renderer, like inside a tag's attributes).
+    //
+    // Placed here, before this component's several early `return null`
+    // paths further down, so it's called unconditionally on every render
+    // (skipping it on some renders but not others would violate the Rules
+    // of Hooks).
+    useEffect(() => {
+        if (scrollToSourceOffset == null) {
+            return;
+        }
+        if (lastScrolledSourceOffset.current === scrollToSourceOffset) {
+            return;
+        }
+        lastScrolledSourceOffset.current = scrollToSourceOffset;
+
+        let bestId: string | null = null;
+        let bestRangeSize = Infinity;
+        let nearestId: string | null = null;
+        let nearestDistance = Infinity;
+        for (const [id, position] of positionByDomId.current) {
+            const { offset: start } = position.start;
+            const { offset: end } = position.end;
+            if (start <= scrollToSourceOffset && scrollToSourceOffset <= end) {
+                const rangeSize = end - start;
+                if (rangeSize < bestRangeSize) {
+                    bestId = id;
+                    bestRangeSize = rangeSize;
+                }
+            } else {
+                const distance = Math.min(
+                    Math.abs(start - scrollToSourceOffset),
+                    Math.abs(end - scrollToSourceOffset),
+                );
+                if (distance < nearestDistance) {
+                    nearestId = id;
+                    nearestDistance = distance;
+                }
+            }
+        }
+
+        const targetId = bestId ?? nearestId;
+        if (!targetId) {
+            return;
+        }
+        const target = viewerContainerRef.current?.querySelector(
+            `#${CSS.escape(targetId)}`,
+        );
+        target?.scrollIntoView({ block: "center" });
+    }, [scrollToSourceOffset]);
 
     const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -772,6 +845,33 @@ export function DocViewer({
         }
     }
 
+    /**
+     * Record the DOM id -> source position of every renderer instruction in
+     * `childrenInstructions` (each entry carries its own `id`, `componentIdx`,
+     * and, if the component has a direct source origin, `position`). Called
+     * wherever a batch of renderer instructions arrives from the core, so
+     * `positionByDomId` stays in sync with whatever's actually rendered.
+     */
+    function recordPositions(childrenInstructions: unknown): void {
+        if (!Array.isArray(childrenInstructions)) {
+            return;
+        }
+        for (const instruction of childrenInstructions) {
+            if (
+                instruction &&
+                typeof instruction === "object" &&
+                "id" in instruction &&
+                "position" in instruction &&
+                instruction.position
+            ) {
+                positionByDomId.current.set(
+                    prefixForIds + (instruction as { id: string }).id,
+                    (instruction as { position: SourcePosition }).position,
+                );
+            }
+        }
+    }
+
     function initializeRenderers(args: Record<string, any>) {
         if (args.rendererState) {
             if (
@@ -789,6 +889,9 @@ export function DocViewer({
                 });
             }
             for (let componentIdx in args.rendererState) {
+                recordPositions(
+                    args.rendererState[componentIdx].childrenInstructions,
+                );
                 dispatch(
                     mainThunks.updateRendererSVs({
                         coreId: coreId.current,
@@ -930,6 +1033,7 @@ export function DocViewer({
                     rendererType,
                     childrenInstructions,
                 } of instruction.rendererStatesToUpdate) {
+                    recordPositions(childrenInstructions);
                     dispatch(
                         mainThunks.updateRendererSVs({
                             coreId: coreId.current,
@@ -1714,6 +1818,24 @@ export function DocViewer({
         }
     }
 
+    function handleViewerClick(event: React.MouseEvent<HTMLDivElement>) {
+        if (!onSourcePositionClick) {
+            return;
+        }
+        let el: HTMLElement | null = event.target as HTMLElement;
+        const container = viewerContainerRef.current;
+        while (el && el !== container) {
+            const position = el.id
+                ? positionByDomId.current.get(el.id)
+                : undefined;
+            if (position) {
+                onSourcePositionClick(position);
+                return;
+            }
+            el = el.parentElement;
+        }
+    }
+
     let errorOverview = null;
     if (documentRenderer && hasInitialError) {
         let errorStyle = {
@@ -1740,7 +1862,12 @@ export function DocViewer({
             coreCreated={coreCreated.current}
         >
             {noCoreWarning}
-            <div style={viewerStyle} className="doenet-viewer">
+            <div
+                style={viewerStyle}
+                className="doenet-viewer"
+                ref={viewerContainerRef}
+                onClick={handleViewerClick}
+            >
                 {errorOverview}
                 <DocContext.Provider value={contextForRenderers}>
                     {documentRenderer}
