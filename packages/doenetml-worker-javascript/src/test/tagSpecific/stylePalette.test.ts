@@ -296,4 +296,25 @@ describe("Style palette tag tests @group4", async () => {
             "A section can select only one <stylePalette>; using the last one.",
         );
     });
+
+    it("last-wins ordering follows document order across the setup boundary", async () => {
+        // A setup-hosted palette earlier in the document loses to a direct
+        // one later in it: the two arrival routes interleave in document
+        // order rather than grouping by route.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+    <stylePalette palette="sunset" />
+</setup>
+<stylePalette palette="ocean" />
+<point name="P" />
+`,
+        });
+
+        const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
+        expect(style.markerColor).eq(OCEAN_1);
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+    });
 });

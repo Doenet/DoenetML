@@ -869,4 +869,18 @@ describe("resolveActiveStyle — style palettes", () => {
         expect(resolved.style.lineColor).toBe("black");
         expect(resolved.style.markerColor).toBe("green");
     });
+
+    it("last-wins ordering follows document order across the setup boundary", () => {
+        // A setup-hosted palette earlier in the document loses to a direct
+        // one later in it, mirroring the runtime's document-order interleave
+        // of the two arrival routes.
+        const sourceObj = new DoenetSourceObject(
+            `<setup><stylePalette palette="sunset"/></setup>
+<stylePalette palette="ocean"/><point/>`,
+        );
+        const point = findElement(sourceObj, "point");
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#1c3fae",
+        );
+    });
 });

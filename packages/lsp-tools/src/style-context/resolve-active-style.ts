@@ -15,6 +15,8 @@
  *   - Dynamically-computed `styleNumber` (`<point styleNumber="$n"/>`) — we
  *     read the attribute text only, so a macro yields `undefined` and the
  *     active default falls back to the built-in preset for styleNumber=1.
+ *     (A macro-valued `palette` on `<stylePalette>` likewise reads as an
+ *     unknown name and falls back to the default palette.)
  *   - `<styleDefinition>` blocks (and `<stylePalette>` selections) parented
  *     by an element that doesn't host a `styleDefinitions` state variable
  *     (e.g. someone tucks one inside `<graph>`) — the runtime ignores them;
