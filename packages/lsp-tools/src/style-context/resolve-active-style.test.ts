@@ -722,78 +722,78 @@ describe("resolveActiveStyleBreakdown", () => {
 describe("resolveActiveStyle — style palettes", () => {
     it("seeds from the palette selected by an ancestor <stylePalette>", () => {
         const sourceObj = new DoenetSourceObject(
-            `<stylePalette palette="ocean"/><point/>`,
+            `<stylePalette palette="okabeito"/><point/>`,
         );
         const point = findElement(sourceObj, "point");
         const resolved = resolveActiveStyle(sourceObj, point);
-        expect(resolved.style.markerColor).toBe("#1c3fae");
+        expect(resolved.style.markerColor).toBe("#0072b2");
         expect(resolved.style.markerStyle).toBe("circle");
     });
 
     it("finds a <stylePalette> inside <setup>", () => {
         const sourceObj = new DoenetSourceObject(
-            `<setup><stylePalette palette="ocean"/></setup><point/>`,
+            `<setup><stylePalette palette="okabeito"/></setup><point/>`,
         );
         const point = findElement(sourceObj, "point");
         expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
-            "#1c3fae",
+            "#0072b2",
         );
     });
 
     it("a palette selection discards styleDefinition blocks above it", () => {
         const sourceObj = new DoenetSourceObject(
             `<styleDefinition styleNumber="1" markerColor="green"/>
-<section><stylePalette palette="ocean"/><point/></section>`,
+<section><stylePalette palette="okabeito"/><point/></section>`,
         );
         const point = findElement(sourceObj, "point");
         expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
-            "#1c3fae",
+            "#0072b2",
         );
     });
 
     it("styleDefinition blocks at or below the palette apply on top of it", () => {
         const sourceObj = new DoenetSourceObject(
-            `<section><stylePalette palette="ocean"/>
+            `<section><stylePalette palette="okabeito"/>
 <styleDefinition styleNumber="1" markerColor="green"/><point/></section>`,
         );
         const point = findElement(sourceObj, "point");
         const resolved = resolveActiveStyle(sourceObj, point);
         expect(resolved.style.markerColor).toBe("green");
-        expect(resolved.style.lineColor).toBe("#1c3fae");
+        expect(resolved.style.lineColor).toBe("#0072b2");
     });
 
     it("the deepest palette selection wins", () => {
         const sourceObj = new DoenetSourceObject(
-            `<stylePalette palette="ocean"/>
-<section><stylePalette palette="sunset"/><point/></section>`,
+            `<stylePalette palette="okabeito"/>
+<section><stylePalette palette="tolbright"/><point/></section>`,
         );
         const point = findElement(sourceObj, "point");
         expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
-            "#c22047",
+            "#4477aa",
         );
     });
 
     it("style numbers beyond the palette size cycle onto the palette", () => {
         const sourceObj = new DoenetSourceObject(
-            `<stylePalette palette="ocean"/><point styleNumber="10"/>`,
+            `<stylePalette palette="okabeito"/><point styleNumber="10"/>`,
         );
         const point = findElement(sourceObj, "point");
         const resolved = resolveActiveStyle(sourceObj, point);
-        // ocean has 8 styles; 10 cycles to 2.
+        // okabeito has 8 styles; 10 cycles to 2.
         expect(resolved.styleNumber).toBe(10);
-        expect(resolved.style.markerColor).toBe("#00695f");
+        expect(resolved.style.markerColor).toBe("#c15400");
         expect(resolved.style.markerStyle).toBe("square");
     });
 
     it("an authored block for an out-of-range number merges over the cycled seed", () => {
         const sourceObj = new DoenetSourceObject(
-            `<stylePalette palette="ocean"/>
+            `<stylePalette palette="okabeito"/>
 <styleDefinition styleNumber="10" lineColor="black"/><point styleNumber="10"/>`,
         );
         const point = findElement(sourceObj, "point");
         const resolved = resolveActiveStyle(sourceObj, point);
         expect(resolved.style.lineColor).toBe("black");
-        expect(resolved.style.markerColor).toBe("#00695f");
+        expect(resolved.style.markerColor).toBe("#c15400");
     });
 
     it("an unknown palette name falls back to the default palette", () => {
@@ -808,11 +808,11 @@ describe("resolveActiveStyle — style palettes", () => {
 
     it("palette names match case-insensitively, mirroring the runtime's toLowerCase", () => {
         const sourceObj = new DoenetSourceObject(
-            `<stylePalette palette="Ocean"/><point/>`,
+            `<stylePalette palette="OkabeIto"/><point/>`,
         );
         const point = findElement(sourceObj, "point");
         expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
-            "#1c3fae",
+            "#0072b2",
         );
     });
 
@@ -856,7 +856,7 @@ describe("resolveActiveStyle — style palettes", () => {
         // not reset the walk at the setup itself and lose the sibling block.
         const sourceObj = new DoenetSourceObject(
             `<styleDefinition styleNumber="1" markerColor="green"/>
-<setup><stylePalette palette="ocean"/><styleDefinition styleNumber="1" lineColor="black"/></setup>`,
+<setup><stylePalette palette="okabeito"/><styleDefinition styleNumber="1" lineColor="black"/></setup>`,
         );
         // Target the styleDefinition inside the setup (findElement's BFS
         // would return the shallower top-level one).
@@ -875,12 +875,12 @@ describe("resolveActiveStyle — style palettes", () => {
         // one later in it, mirroring the runtime's document-order interleave
         // of the two arrival routes.
         const sourceObj = new DoenetSourceObject(
-            `<setup><stylePalette palette="sunset"/></setup>
-<stylePalette palette="ocean"/><point/>`,
+            `<setup><stylePalette palette="tolbright"/></setup>
+<stylePalette palette="okabeito"/><point/>`,
         );
         const point = findElement(sourceObj, "point");
         expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
-            "#1c3fae",
+            "#0072b2",
         );
     });
 });

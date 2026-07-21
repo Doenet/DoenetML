@@ -13,8 +13,9 @@ import {
  * This is a floor against accidental collisions (e.g. two blues drifting
  * together during a tweak), not a colorblindness guarantee. Distinctness
  * under color vision deficiencies is engineered per palette — the
- * `okabeito` palette is hue-selected for it, while thematic palettes
- * (`ocean`, `sunset`) additionally vary marker shapes and line styles —
+ * `okabeito` palette is hue-selected for it, while `categorical` trades
+ * CVD separation for the widest normal-vision spread and leans on its
+ * marker shapes and line styles —
  * and was verified with a Machado-model CVD simulation when the palette
  * colors were chosen.
  */

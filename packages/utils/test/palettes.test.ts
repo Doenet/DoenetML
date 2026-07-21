@@ -217,18 +217,18 @@ describe("compact palette expansion", () => {
 });
 
 describe("cycleStyleNumberForPalette", () => {
-    // ocean has 8 styles.
+    // okabeito has 8 styles.
     it("returns in-range numbers unchanged, including the palette-size boundary", () => {
-        expect(cycleStyleNumberForPalette(1, "ocean")).toBe(1);
-        expect(cycleStyleNumberForPalette(8, "ocean")).toBe(8);
+        expect(cycleStyleNumberForPalette(1, "okabeito")).toBe(1);
+        expect(cycleStyleNumberForPalette(8, "okabeito")).toBe(8);
     });
 
     it("cycles numbers beyond the palette size onto the palette", () => {
-        expect(cycleStyleNumberForPalette(9, "ocean")).toBe(1);
-        expect(cycleStyleNumberForPalette(10, "ocean")).toBe(2);
+        expect(cycleStyleNumberForPalette(9, "okabeito")).toBe(1);
+        expect(cycleStyleNumberForPalette(10, "okabeito")).toBe(2);
         // Exact multiples of the size map to the last style, not 0.
-        expect(cycleStyleNumberForPalette(16, "ocean")).toBe(8);
-        expect(cycleStyleNumberForPalette(17, "ocean")).toBe(1);
+        expect(cycleStyleNumberForPalette(16, "okabeito")).toBe(8);
+        expect(cycleStyleNumberForPalette(17, "okabeito")).toBe(1);
     });
 
     it("uses each palette's own size", () => {
@@ -238,8 +238,8 @@ describe("cycleStyleNumberForPalette", () => {
 
     it("returns unexpected inputs unchanged", () => {
         expect(cycleStyleNumberForPalette(10, "noSuchPalette")).toBe(10);
-        expect(cycleStyleNumberForPalette(0, "ocean")).toBe(0);
-        expect(cycleStyleNumberForPalette(-3, "ocean")).toBe(-3);
-        expect(cycleStyleNumberForPalette(9.5, "ocean")).toBe(9.5);
+        expect(cycleStyleNumberForPalette(0, "okabeito")).toBe(0);
+        expect(cycleStyleNumberForPalette(-3, "okabeito")).toBe(-3);
+        expect(cycleStyleNumberForPalette(9.5, "okabeito")).toBe(9.5);
     });
 });

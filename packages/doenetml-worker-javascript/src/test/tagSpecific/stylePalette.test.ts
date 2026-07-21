@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { colorValueToWord } from "@doenet/utils";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -10,9 +9,9 @@ vi.mock("hyperformula");
 // Anchor colors of the built-in palettes used by these tests.
 const DEFAULT_1 = "#1f5dff";
 const DEFAULT_4 = "#644CD6";
-const OCEAN_1 = "#1c3fae";
-const OCEAN_2 = "#00695f";
-const SUNSET_1 = "#c22047";
+const OKABEITO_1 = "#0072b2";
+const OKABEITO_2 = "#c15400";
+const TOLBRIGHT_1 = "#4477aa";
 
 async function selectedStyleOf(
     core: any,
@@ -28,18 +27,18 @@ describe("Style palette tag tests @group4", async () => {
     it("selects a palette for the document", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <point name="P" />
 <point name="Q" styleNumber="2" />
 `,
         });
 
         const styleP = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
-        expect(styleP.markerColor).eq(OCEAN_1);
+        expect(styleP.markerColor).eq(OKABEITO_1);
         expect(styleP.lineWidth).eq(4);
 
         const styleQ = await selectedStyleOf(core, resolvePathToNodeIdx, "Q");
-        expect(styleQ.markerColor).eq(OCEAN_2);
+        expect(styleQ.markerColor).eq(OKABEITO_2);
         expect(styleQ.markerStyle).eq("square");
     });
 
@@ -47,21 +46,21 @@ describe("Style palette tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <setup>
-    <stylePalette palette="ocean" />
+    <stylePalette palette="okabeito" />
 </setup>
 <point name="P" />
 `,
         });
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
-        expect(style.markerColor).eq(OCEAN_1);
+        expect(style.markerColor).eq(OKABEITO_1);
     });
 
     it("palette scopes to its section; outside is unaffected", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <section name="s1">
-    <stylePalette palette="ocean" />
+    <stylePalette palette="okabeito" />
     <point name="P" />
 </section>
 <section name="s2">
@@ -73,7 +72,7 @@ describe("Style palette tag tests @group4", async () => {
         expect(
             (await selectedStyleOf(core, resolvePathToNodeIdx, "s1.P"))
                 .markerColor,
-        ).eq(OCEAN_1);
+        ).eq(OKABEITO_1);
         expect(
             (await selectedStyleOf(core, resolvePathToNodeIdx, "s2.P"))
                 .markerColor,
@@ -85,7 +84,7 @@ describe("Style palette tag tests @group4", async () => {
             doenetML: `
 <styleDefinition styleNumber="1" markerColor="green" />
 <section name="s1">
-    <stylePalette palette="ocean" />
+    <stylePalette palette="okabeito" />
     <point name="P" />
 </section>
 <section name="s2">
@@ -99,7 +98,7 @@ describe("Style palette tag tests @group4", async () => {
         expect(
             (await selectedStyleOf(core, resolvePathToNodeIdx, "s1.P"))
                 .markerColor,
-        ).eq(OCEAN_1);
+        ).eq(OKABEITO_1);
         expect(
             (await selectedStyleOf(core, resolvePathToNodeIdx, "s2.P"))
                 .markerColor,
@@ -110,7 +109,7 @@ describe("Style palette tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <section name="s">
-    <stylePalette palette="ocean" />
+    <stylePalette palette="okabeito" />
     <styleDefinition styleNumber="1" markerColor="green" />
     <point name="P" />
 </section>
@@ -120,17 +119,17 @@ describe("Style palette tag tests @group4", async () => {
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "s.P");
         expect(style.markerColor).eq("green");
         // Non-overridden keys still come from the palette.
-        expect(style.lineColor).eq(OCEAN_1);
+        expect(style.lineColor).eq(OKABEITO_1);
     });
 
     it("subsection can select a different palette", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <section name="outer">
     <point name="P" />
     <section name="inner">
-        <stylePalette palette="sunset" />
+        <stylePalette palette="tolbright" />
         <point name="Q" />
     </section>
 </section>
@@ -140,24 +139,24 @@ describe("Style palette tag tests @group4", async () => {
         expect(
             (await selectedStyleOf(core, resolvePathToNodeIdx, "outer.P"))
                 .markerColor,
-        ).eq(OCEAN_1);
+        ).eq(OKABEITO_1);
         expect(
             (await selectedStyleOf(core, resolvePathToNodeIdx, "outer.inner.Q"))
                 .markerColor,
-        ).eq(SUNSET_1);
+        ).eq(TOLBRIGHT_1);
     });
 
     it("style numbers beyond the palette size cycle through the palette", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <point name="P" styleNumber="10" />
 `,
         });
 
-        // ocean has 8 styles, so style 10 cycles to style 2.
+        // okabeito has 8 styles, so style 10 cycles to style 2.
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
-        expect(style.markerColor).eq(OCEAN_2);
+        expect(style.markerColor).eq(OKABEITO_2);
         expect(style.markerStyle).eq("square");
     });
 
@@ -167,7 +166,7 @@ describe("Style palette tag tests @group4", async () => {
         // name inherited from the document.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <section name="s">
     <point name="P" styleNumber="10" />
 </section>
@@ -175,7 +174,7 @@ describe("Style palette tag tests @group4", async () => {
         });
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "s.P");
-        expect(style.markerColor).eq(OCEAN_2);
+        expect(style.markerColor).eq(OKABEITO_2);
         expect(style.markerStyle).eq("square");
     });
 
@@ -193,7 +192,7 @@ describe("Style palette tag tests @group4", async () => {
     it("a styleDefinition for an out-of-range number seeds from the cycled palette entry", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <styleDefinition styleNumber="10" lineColor="black" />
 <point name="P" styleNumber="10" />
 `,
@@ -201,8 +200,8 @@ describe("Style palette tag tests @group4", async () => {
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
         expect(style.lineColor).eq("black");
-        // Unset keys come from ocean style 2 (10 cycles to 2 in a palette of 8).
-        expect(style.markerColor).eq(OCEAN_2);
+        // Unset keys come from okabeito style 2 (10 cycles to 2 in a palette of 8).
+        expect(style.markerColor).eq(OKABEITO_2);
     });
 
     it("an unknown palette name falls back to the default palette with a diagnostic", async () => {
@@ -229,13 +228,13 @@ describe("Style palette tag tests @group4", async () => {
     it("palette names match case-insensitively", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="Ocean" />
+<stylePalette palette="OkabeIto" />
 <point name="P" />
 `,
         });
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
-        expect(style.markerColor).eq(OCEAN_1);
+        expect(style.markerColor).eq(OKABEITO_1);
     });
 
     it("a bare <stylePalette/> selects the default palette explicitly, so it still resets and cycles", async () => {
@@ -266,29 +265,32 @@ describe("Style palette tag tests @group4", async () => {
     it("style descriptions reflect the palette colors", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <point name="P" />
 <p name="p">The $P.styleDescription point.</p>
 `,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
+        // The palette pins this word: the nearest-anchor derivation would
+        // misname okabeito's blue as "cyan" (see issue #1527), so asserting
+        // the curated word is the point of the test.
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq(`The ${colorValueToWord(OCEAN_1)} point.`);
+        ).eq("The blue point.");
     });
 
     it("with multiple stylePalettes in a section, the last wins and the others warn", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
-<stylePalette palette="sunset" />
+<stylePalette palette="okabeito" />
+<stylePalette palette="tolbright" />
 <point name="P" />
 `,
         });
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
-        expect(style.markerColor).eq(SUNSET_1);
+        expect(style.markerColor).eq(TOLBRIGHT_1);
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
@@ -304,15 +306,15 @@ describe("Style palette tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <setup>
-    <stylePalette palette="sunset" />
+    <stylePalette palette="tolbright" />
 </setup>
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <point name="P" />
 `,
         });
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
-        expect(style.markerColor).eq(OCEAN_1);
+        expect(style.markerColor).eq(OKABEITO_1);
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);

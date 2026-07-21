@@ -26,10 +26,9 @@ The remaining palettes give more options:
 - **`tolmuted`** — nine colorblind-friendly styles from Paul Tol's muted palette; the largest built-in set, useful when a document needs many distinct styles.
 - **`ibm`** — five colorblind-friendly styles from the IBM Design Library's accessible palette.
 - **`grayscale`** — four grays with no hue at all, laddered for maximum luminance separation. The best choice for readers with achromatopsia (total colorblindness) or anyone viewing in grayscale, since it spends its entire distinguishing budget on the one channel such readers perceive.
-- **`ocean`** — eight cool styles: blues, teals, and greens.
-- **`sunset`** — eight warm styles: reds, oranges, golds, and plums.
+- **`categorical`** — ten maximally varied hues (blue, orange, green, red, purple, brown, pink, gray, olive, cyan), adapted from the widely used Category10 sequence. The widest color spread of any built-in palette, for documents that need many styles whose distinctions are obvious at a glance. Unlike the palettes above it is *not* engineered for color vision deficiency, so prefer a colorblind-friendly palette when the choice is yours.
 
-The colorblind-aware palettes keep their published colors wherever those meet Doenet's contrast requirements; in light mode some colors are darkened just far enough to meet them (dark mode shows the published colors, which all pass on a dark canvas). Every palette varies marker shapes and line styles alongside colors, so style distinctions never rest on color alone — `ocean` and `sunset` in particular lean on those shape distinctions under red-green color vision deficiency, since their colors deliberately stay within one hue family.
+The colorblind-aware palettes keep their published colors wherever those meet Doenet's contrast requirements; in light mode some colors are darkened just far enough to meet them (dark mode shows the published colors, which all pass on a dark canvas). Every palette varies marker shapes and line styles alongside colors, so style distinctions never rest on color alone — `categorical` in particular leans on those shape distinctions under red-green color vision deficiency.
 
 <AttrPropDisplay name='stylePalette'/>
 
@@ -38,10 +37,10 @@ The colorblind-aware palettes keep their published colors wherever those meet Do
 ### Example: Selecting a palette for a document
 
 ```doenet-editor-horiz
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 
 <graph size="small" xmin="-1" xmax="3" ymin="0" ymax="9">
-  <shortDescription>Eight points, one in each style of the ocean palette</shortDescription>
+  <shortDescription>Eight points, one in each style of the okabeito palette</shortDescription>
   <point coords="(1,8)" styleNumber="1" />
   <point coords="(1,7)" styleNumber="2" />
   <point coords="(1,6)" styleNumber="3" />
@@ -53,7 +52,7 @@ The colorblind-aware palettes keep their published colors wherever those meet Do
 </graph>
 ```
 
-Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:dn}` block) makes every style number draw from the named palette. The `ocean` palette defines eight styles, each with its own color, marker shape, and line style.
+Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:dn}` block) makes every style number draw from the named palette. The `okabeito` palette defines eight styles, each with its own color, marker shape, and line style.
 
 ---
 
@@ -61,10 +60,10 @@ Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:
 
 ```doenet-editor-horiz
 <section>
-  <title>Ocean section</title>
-  <stylePalette palette="ocean" />
+  <title>Colorblind-friendly section</title>
+  <stylePalette palette="okabeito" />
   <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
-    <shortDescription>A point using the ocean palette's style 1</shortDescription>
+    <shortDescription>A point using the okabeito palette's style 1</shortDescription>
     <point coords="(1,1)" />
   </graph>
 </section>
