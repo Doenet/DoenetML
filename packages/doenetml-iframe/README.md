@@ -109,6 +109,26 @@ prop changes:
 />
 ```
 
+A reader can also switch the whole document to one of the built-in style
+palettes by name (case-insensitive) — for example `grayscale`, four grays
+laddered for maximum luminance separation, for readers who distinguish
+styles by lightness alone, or `okabeito` for common color vision
+deficiencies:
+
+```tsx
+<DoenetViewer
+    doenetML={source}
+    styleOverrides={{ palette: "grayscale" }}
+/>
+```
+
+A reader-selected palette replaces the document's base styles everywhere:
+authored `<stylePalette>` selections and `<styleDefinition>` customizations
+are discarded (they were tuned against different colors), style numbers
+beyond the reader palette's size wrap around onto it, and any `styles`
+overrides apply on top of the reader's palette. Unregistered palette names
+are ignored, so offer readers the palette list as fixed choices.
+
 Every style-definition key is overridable except the `*Word` descriptors:
 all colors (including the `*DarkMode` variants), opacities, `lineWidth`,
 `lineStyle`, `markerStyle`, `markerSize`, `markerFilled`, and the fill

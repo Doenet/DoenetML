@@ -22,6 +22,7 @@ import {
     type StylePalette,
 } from "./palettes";
 import type { ReaderStyleOverrides } from "./readerOverrides";
+import { resolveReaderPaletteName } from "./readerOverrides";
 import {
     deriveAccessibleDarkModeColor,
     deriveAccessibleDarkModeBackground,
@@ -1028,6 +1029,13 @@ function childrenExpandingSetups(
  * author-facing diagnostics, and cannot suppress diagnostics about authored
  * values.
  *
+ * When the overrides name a registered `palette`, that palette's expansion
+ * REPLACES the merged map wholesale — authored `<stylePalette>` selections
+ * and `<styleDefinition>` customizations are discarded, since they were
+ * tuned against different colors and the reader's palette (e.g. `grayscale`)
+ * is a coherent accessible set on its own. Any `styles` overrides then apply
+ * on top of the reader's palette.
+ *
  * Per override block: unknown and `*Word` keys are dropped (words are always
  * re-derived so style descriptions stay truthful), missing dark-mode colors
  * are derived from the reader's light colors, and values are stored without
@@ -1038,6 +1046,17 @@ export function applyReaderStyleOverrides(
     styleDefinitions: StyleDefinitions,
     overrides: ReaderStyleOverrides | null | undefined,
 ): void {
+    const readerPaletteName = resolveReaderPaletteName(overrides);
+    if (readerPaletteName != null) {
+        for (const styleNumber of Object.keys(styleDefinitions)) {
+            delete styleDefinitions[styleNumber];
+        }
+        Object.assign(
+            styleDefinitions,
+            returnPaletteStyleDefinitions(readerPaletteName),
+        );
+    }
+
     const styles = overrides?.styles;
     if (!styles || typeof styles !== "object") {
         return;
@@ -1441,6 +1460,7 @@ export function returnSelectedStyleStateVariableDefinition(
                         variableNames: [
                             "styleDefinitions",
                             "activeStylePaletteName",
+                            "readerStyleOverrides",
                         ],
                     },
                 };
@@ -1473,16 +1493,23 @@ export function returnSelectedStyleStateVariableDefinition(
                 if (selectedStyle === undefined) {
                     // With a palette active, out-of-range style numbers cycle
                     // through the palette instead of falling back to the
-                    // generic default style.
-                    const activeStylePaletteName =
+                    // generic default style. A reader-selected palette (which
+                    // replaced the merged map wholesale) takes precedence over
+                    // the authored selection for the cycle size — essential
+                    // when a reader picks a smaller palette like `grayscale`.
+                    const effectivePaletteName =
+                        resolveReaderPaletteName(
+                            dependencyValues.ancestorWithStyle?.stateValues
+                                .readerStyleOverrides,
+                        ) ??
                         dependencyValues.ancestorWithStyle?.stateValues
                             .activeStylePaletteName;
-                    if (activeStylePaletteName != null) {
+                    if (effectivePaletteName != null) {
                         selectedStyle =
                             styleDefinitions[
                                 cycleStyleNumberForPalette(
                                     dependencyValues.styleNumber,
-                                    activeStylePaletteName,
+                                    effectivePaletteName,
                                 )
                             ];
                     }

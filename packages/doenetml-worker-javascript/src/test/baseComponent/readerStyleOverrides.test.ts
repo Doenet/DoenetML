@@ -55,6 +55,97 @@ describe("Reader style overrides @group4", async () => {
         ).eq("purple");
     });
 
+    it("a reader palette replaces authored styling and cycles onto its size", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<stylePalette palette="ocean" />
+<styleDefinition styleNumber="1" lineColor="orange" />
+<point name="P" />
+<point name="Q" styleNumber="6" />
+<p name="p">The $P.styleDescription point.</p>
+`,
+            styleOverrides: { palette: "grayscale" },
+        });
+
+        // Authored palette (ocean) and styleDefinition (orange) are both
+        // discarded in favor of the reader's palette.
+        const styleP = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
+        expect(styleP.lineColor).eq("#000000");
+
+        // grayscale has 4 styles, so styleNumber 6 cycles onto style 2 —
+        // driven by the reader palette even though the authored palette
+        // (ocean) has 8 styles.
+        const styleQ = await selectedStyleOf(core, resolvePathToNodeIdx, "Q");
+        expect(styleQ.lineColor).eq("#323232");
+
+        // Style descriptions use the reader palette's curated words.
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("The black point.");
+    });
+
+    it("styles overrides apply on top of a reader palette", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="P" />`,
+            styleOverrides: {
+                palette: "grayscale",
+                styles: { 1: { markerColor: "purple" } },
+            },
+        });
+
+        const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
+        expect(style.markerColor).eq("purple");
+        expect(style.lineColor).eq("#000000");
+    });
+
+    it("setStyleOverrides switches a reader palette live and back", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="P" /><point name="Q" styleNumber="6" />`,
+        });
+
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "P")).lineColor,
+        ).eq("#1f5dff");
+
+        await core.requestAction({
+            componentIdx: undefined,
+            actionName: "setStyleOverrides",
+            args: { styleOverrides: { palette: "grayscale" } },
+        });
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "P")).lineColor,
+        ).eq("#000000");
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "Q")).lineColor,
+        ).eq("#323232");
+
+        await core.requestAction({
+            componentIdx: undefined,
+            actionName: "setStyleOverrides",
+            args: { styleOverrides: null },
+        });
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "P")).lineColor,
+        ).eq("#1f5dff");
+        // With overrides cleared, style 6 is the default palette's gray
+        // again (in range for the six default styles, so no cycling).
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "Q")).lineColor,
+        ).eq("#636363");
+    });
+
+    it("an unregistered reader palette name is ignored", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="P" />`,
+            styleOverrides: { palette: "sepia" },
+        });
+
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "P")).lineColor,
+        ).eq("#1f5dff");
+    });
+
     it("styleOverrides win over a selected style palette", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

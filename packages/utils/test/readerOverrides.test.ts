@@ -4,7 +4,9 @@ import {
     colorValueToWord,
     getStyleValueString,
     getStyleValueNumber,
+    resolveReaderPaletteName,
     returnDefaultStyleDefinitions,
+    returnPaletteStyleDefinitions,
     type ReaderStyleOverrides,
 } from "../src/style";
 
@@ -102,5 +104,67 @@ describe("applyReaderStyleOverrides", () => {
         });
 
         expect(getStyleValueString(defs[1], "markerColor")).toBe("purple");
+    });
+});
+
+describe("reader palette selection", () => {
+    it("replaces the merged map wholesale with the named palette", () => {
+        const defs = returnDefaultStyleDefinitions();
+        // Simulate an authored customization that must NOT survive.
+        applyReaderStyleOverrides(defs, { styles: { 1: { lineWidth: 9 } } });
+
+        applyReaderStyleOverrides(defs, { palette: "grayscale" });
+
+        expect(Object.keys(defs)).toEqual(["1", "2", "3", "4"]);
+        expect(getStyleValueString(defs[1], "lineColor")).toBe("#000000");
+        expect(getStyleValueNumber(defs[1], "lineWidth")).toBe(4);
+        expect(getStyleValueString(defs[4], "lineColorDarkMode")).toBe(
+            "#626262",
+        );
+    });
+
+    it("applies styles overrides on top of the reader palette", () => {
+        const defs = returnDefaultStyleDefinitions();
+        applyReaderStyleOverrides(defs, {
+            palette: "grayscale",
+            styles: { 2: { lineWidth: 7 } },
+        });
+
+        expect(getStyleValueString(defs[2], "lineColor")).toBe("#323232");
+        expect(getStyleValueNumber(defs[2], "lineWidth")).toBe(7);
+    });
+
+    it("matches reader palette names case-insensitively with whitespace", () => {
+        const defs = returnDefaultStyleDefinitions();
+        applyReaderStyleOverrides(defs, { palette: "  GrayScale " });
+        expect(Object.keys(defs)).toEqual(["1", "2", "3", "4"]);
+    });
+
+    it("ignores unregistered reader palette names", () => {
+        const defs = returnDefaultStyleDefinitions();
+        const before = JSON.stringify(defs);
+        applyReaderStyleOverrides(defs, { palette: "not-a-palette" });
+        expect(JSON.stringify(defs)).toBe(before);
+    });
+
+    it("resolveReaderPaletteName validates and normalizes", () => {
+        expect(resolveReaderPaletteName({ palette: "okabeito" })).toBe(
+            "okabeito",
+        );
+        expect(resolveReaderPaletteName({ palette: " TolMuted " })).toBe(
+            "tolmuted",
+        );
+        expect(resolveReaderPaletteName({ palette: "nope" })).toBeNull();
+        expect(resolveReaderPaletteName({ palette: 3 as any })).toBeNull();
+        expect(resolveReaderPaletteName({})).toBeNull();
+        expect(resolveReaderPaletteName(null)).toBeNull();
+        // prototype keys are not palettes
+        expect(resolveReaderPaletteName({ palette: "constructor" })).toBeNull();
+    });
+
+    it("reader palette expansion matches the registry expansion", () => {
+        const defs = returnDefaultStyleDefinitions();
+        applyReaderStyleOverrides(defs, { palette: "okabeito" });
+        expect(defs).toEqual(returnPaletteStyleDefinitions("okabeito"));
     });
 });
