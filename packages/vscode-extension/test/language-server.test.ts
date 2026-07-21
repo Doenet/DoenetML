@@ -7,6 +7,7 @@ const hoisted = vi.hoisted(() => ({
     onDidChangeTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     onDidSaveTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
+    onDidChangeTextEditorSelection: vi.fn(() => ({ dispose: vi.fn() })),
     start: vi.fn(async () => {}),
     stop: vi.fn(async () => {}),
     sendRequest: vi.fn(),
@@ -30,9 +31,25 @@ vi.mock("vscode", () => ({
     Uri: {
         joinPath: hoisted.joinPath,
     },
+    Range: class MockRange {
+        constructor(
+            public start: unknown,
+            public end: unknown,
+        ) {}
+    },
+    Selection: class MockSelection {
+        constructor(
+            public anchor: unknown,
+            public active: unknown,
+        ) {}
+    },
+    TextEditorRevealType: { InCenterIfOutsideViewport: 2 },
+    TextEditorSelectionChangeKind: { Keyboard: 1, Mouse: 2, Command: 3 },
     window: {
         activeTextEditor: undefined,
+        visibleTextEditors: [] as unknown[],
         onDidChangeActiveTextEditor: hoisted.onDidChangeActiveTextEditor,
+        onDidChangeTextEditorSelection: hoisted.onDidChangeTextEditorSelection,
     },
 }));
 
@@ -108,6 +125,7 @@ describe("Doenet vscode extension", () => {
         hoisted.onDidChangeTextDocument.mockClear();
         hoisted.onDidSaveTextDocument.mockClear();
         hoisted.onDidChangeActiveTextEditor.mockClear();
+        hoisted.onDidChangeTextEditorSelection.mockClear();
         hoisted.start.mockReset();
         hoisted.stop.mockClear();
         hoisted.sendRequest.mockClear();
