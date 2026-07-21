@@ -4,6 +4,8 @@ import {
     returnPaletteStyleDefinitions,
     getStyleValueString,
     styleAttributes,
+    CANVAS_TEXT_LIGHT_MODE_COLOR,
+    CANVAS_TEXT_DARK_MODE_COLOR,
 } from "../src/style";
 
 /**
@@ -208,4 +210,48 @@ describe("palette enum-valued keys reach renderers normalized", () => {
             }
         });
     }
+});
+
+describe("style 1 renders text in the canvas text color", () => {
+    // Content that specifies no style number falls on style 1, and text or
+    // math outside a graph renders with `selectedStyle.textColor`. If a
+    // palette painted style 1's text, selecting that palette would recolor
+    // every unstyled `<text>` and `<m>` in the document, so expansion forces
+    // it neutral. A style's own color stays reachable for text through
+    // `highContrastColor`, which this pins is left alone.
+    for (const paletteName of STYLE_PALETTE_NAMES) {
+        it(`palette "${paletteName}"`, () => {
+            const styleOne = returnPaletteStyleDefinitions(paletteName)["1"];
+
+            expect(getStyleValueString(styleOne, "textColor")).toBe(
+                CANVAS_TEXT_LIGHT_MODE_COLOR,
+            );
+            expect(getStyleValueString(styleOne, "textColorDarkMode")).toBe(
+                CANVAS_TEXT_DARK_MODE_COLOR,
+            );
+            // Descriptions must describe the neutral color, not whatever the
+            // palette originally authored.
+            expect(getStyleValueString(styleOne, "textColorWord")).toBe(
+                CANVAS_TEXT_LIGHT_MODE_COLOR,
+            );
+            expect(getStyleValueString(styleOne, "textColorWordDarkMode")).toBe(
+                CANVAS_TEXT_DARK_MODE_COLOR,
+            );
+
+            // The style keeps its own identity everywhere else.
+            expect(
+                getStyleValueString(styleOne, "highContrastColor"),
+            ).toBeTruthy();
+            expect(getStyleValueString(styleOne, "lineColor")).toBeTruthy();
+        });
+    }
+
+    it("leaves styles 2 and up painting their own text", () => {
+        // Only style 1 is the implicit landing spot; marked styles keep
+        // coloring text so `<text styleNumber="2">` still works.
+        const styles = returnPaletteStyleDefinitions("categorical");
+        expect(getStyleValueString(styles["2"], "textColor")).not.toBe(
+            CANVAS_TEXT_LIGHT_MODE_COLOR,
+        );
+    });
 });

@@ -293,6 +293,42 @@ describe("Style palette tag tests @group4", async () => {
         }
     });
 
+    it("unstyled text and math keep the canvas text color under any palette", async () => {
+        // Regression: text/math outside a graph render with
+        // selectedStyle.textColor and unstyled content falls on style 1, so a
+        // palette that painted style 1's text recolored ordinary prose.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<stylePalette palette="categorical" />
+<text name="t">hello</text>
+<m name="m">x^2</m>
+<text name="marked" styleNumber="2">marked</text>
+<text name="wrapped" styleNumber="11">wrapped</text>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const textColorOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .selectedStyle.textColor;
+
+        // Unstyled prose and math stay neutral...
+        expect(await textColorOf("t")).eq("black");
+        expect(await textColorOf("m")).eq("black");
+        // ...while an explicitly marked style still paints its text...
+        expect(await textColorOf("marked")).eq("#b95b07");
+        // ...and a style number that wraps onto style 1 (categorical has ten
+        // styles, so 11 cycles to 1) is neutral too, matching what
+        // out-of-range numbers already do with no palette selected.
+        expect(await textColorOf("wrapped")).eq("black");
+
+        // The palette still owns style 1's graphics.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .selectedStyle.lineColor,
+        ).eq("#1f77b4");
+    });
+
     it("style descriptions reflect the palette colors", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

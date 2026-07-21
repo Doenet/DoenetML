@@ -27,6 +27,8 @@ import {
     invertLightness,
     GRAPHIC_CONTRAST_THRESHOLD,
     TEXT_CONTRAST_THRESHOLD,
+    CANVAS_TEXT_LIGHT_MODE_COLOR,
+    CANVAS_TEXT_DARK_MODE_COLOR,
 } from "./colorAccessibility";
 
 /**
@@ -766,13 +768,53 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
 export function expandStylePalette(palette: StylePalette): StyleDefinitions {
     const styleDefinitions = normalizeStyleDefinitionsValues(palette.styles);
 
-    for (const styleDef of Object.values(styleDefinitions)) {
+    for (const [styleNumber, styleDef] of Object.entries(styleDefinitions)) {
         lowercaseEnumStyleValues(styleDef);
+        if (styleNumber === NEUTRAL_TEXT_STYLE_NUMBER) {
+            applyNeutralTextColor(styleDef);
+        }
         addMissingChildStyleColorFields(styleDef);
         deriveMissingStyleWords(styleDef);
     }
 
     return styleDefinitions;
+}
+
+/**
+ * The style number that content lands on when its author specified none.
+ * Its text color is neutral in every palette — see
+ * {@link applyNeutralTextColor}.
+ */
+const NEUTRAL_TEXT_STYLE_NUMBER = "1";
+
+/**
+ * Forces style number 1's text color to the canvas text color, in place.
+ *
+ * Text and math outside a graph render with `selectedStyle.textColor`
+ * (see `textRendererStyle`), and content that specifies no style number
+ * falls on style 1 — so whatever style 1 says its text color is becomes the
+ * color of ordinary prose. A palette must therefore not paint style 1's
+ * text, or selecting it would recolor every unstyled `<text>` and `<m>` in
+ * the document.
+ *
+ * The `"default"` palette has always encoded this (its style 1 pairs
+ * `textColor: black` with `highContrastColor: #2963FF`); applying it here
+ * makes the rule uniform and unforgettable rather than something each
+ * palette must remember. A style's own color remains available for text
+ * through `highContrastColor`, which is exactly that color at text-contrast
+ * strength, and styles 2 and up are unaffected.
+ *
+ * Cycled style numbers resolve to style 1's definition, so they inherit the
+ * neutral text too — matching what out-of-range style numbers already do
+ * without a palette, where the fallback is `DEFAULT_STYLE_VALUES` (also
+ * black). Authored `*Word` entries for these keys are dropped so the
+ * descriptions re-derive from the neutral colors and stay truthful.
+ */
+function applyNeutralTextColor(styleDef: StyleDefinition): void {
+    setStyleValue(styleDef, "textColor", CANVAS_TEXT_LIGHT_MODE_COLOR);
+    setStyleValue(styleDef, "textColorDarkMode", CANVAS_TEXT_DARK_MODE_COLOR);
+    delete styleDef.textColorWord;
+    delete styleDef.textColorWordDarkMode;
 }
 
 /**
