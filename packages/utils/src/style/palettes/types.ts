@@ -16,6 +16,12 @@ import type { RawStyleDefinitions } from "../styleDefinitionHelpers";
  * thresholds in both light and dark mode; `presetPaletteAccessibility.test.ts`
  * enforces this for the whole registry.
  */
+/*
+ * Every palette must define at least four styles (contiguous from 1) — the
+ * documented author contract is that style numbers 1-4 always land on
+ * distinct styles, so authors reserve them for their most important
+ * distinctions. A guard test enforces the minimum for registered palettes.
+ */
 export interface StylePalette {
     /**
      * Registry key and the author-facing value of `<stylePalette palette="..."/>`.

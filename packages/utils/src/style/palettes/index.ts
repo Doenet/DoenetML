@@ -5,6 +5,7 @@ import { tolBrightPalette } from "./tolBright";
 import { tolMutedPalette } from "./tolMuted";
 import { tolHighContrastPalette } from "./tolHighContrast";
 import { ibmPalette } from "./ibm";
+import { grayscalePalette } from "./grayscale";
 import { sunsetPalette } from "./sunset";
 import type { StylePalette } from "./types";
 
@@ -62,6 +63,7 @@ export const STYLE_PALETTES: Record<string, StylePalette> = Object.assign(
             tolHighContrastPalette,
         ),
         [ibmPalette.name]: deepFreezePalette(ibmPalette),
+        [grayscalePalette.name]: deepFreezePalette(grayscalePalette),
         [sunsetPalette.name]: deepFreezePalette(sunsetPalette),
     },
 );
@@ -115,5 +117,6 @@ export { tolBrightPalette } from "./tolBright";
 export { tolMutedPalette } from "./tolMuted";
 export { tolHighContrastPalette } from "./tolHighContrast";
 export { ibmPalette } from "./ibm";
+export { grayscalePalette } from "./grayscale";
 export { sunsetPalette } from "./sunset";
 export type { StylePalette } from "./types";

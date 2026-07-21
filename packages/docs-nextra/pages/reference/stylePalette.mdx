@@ -25,6 +25,7 @@ The remaining palettes give more options:
 - **`tolbright`** — seven colorblind-friendly styles from Paul Tol's bright palette.
 - **`tolmuted`** — nine colorblind-friendly styles from Paul Tol's muted palette; the largest built-in set, useful when a document needs many distinct styles.
 - **`ibm`** — five colorblind-friendly styles from the IBM Design Library's accessible palette.
+- **`grayscale`** — four grays with no hue at all, laddered for maximum luminance separation. The best choice for readers with achromatopsia (total colorblindness) or anyone viewing in grayscale, since it spends its entire distinguishing budget on the one channel such readers perceive.
 - **`ocean`** — eight cool styles: blues, teals, and greens.
 - **`sunset`** — eight warm styles: reds, oranges, golds, and plums.
 
@@ -83,6 +84,7 @@ A `<stylePalette>{:dn}` placed inside a `<section>{:dn}` applies only to that se
 - **A palette selection is a reset.** Choosing a palette replaces the base styles for that section's subtree; `<styleDefinition>{:dn}` customizations made in *ancestor* sections do not carry into the subtree (they were tuned against a different palette's colors). To keep such a customization, restate it below the `<stylePalette>{:dn}`. This holds even when selecting the `default` palette — a bare `<stylePalette />{:dn}` is a handy way to return a subtree to the stock styles.
 - **`<styleDefinition>{:dn}` still works on top.** A `<styleDefinition>{:dn}` in the same section (or a descendant section) overrides individual settings of the selected palette, exactly as it does over the default styles.
 - **Style numbers beyond the palette wrap around.** With an eight-style palette, `styleNumber="10"{:dn}` draws as style 2. Every style number therefore stays on-palette and keeps the palette's contrast guarantees.
+- **Reserve style numbers 1–4 for your most important distinctions.** Every palette is guaranteed at least four styles, but only four: a reader may view your document with a four-style palette (such as `grayscale` or `tolhighcontrast`), where higher style numbers wrap around onto styles 1–4. Distinctions encoded in styles 1–4 survive every palette; distinctions encoded in higher numbers may not.
 - **One palette per section.** If several `<stylePalette>{:dn}` components appear in the same section, the last one wins and the others are flagged with a warning.
 - **Unknown names fall back to `default`.** Palette names match case-insensitively; a `palette{:dn}` value that isn't a built-in palette name selects the `default` palette, with a diagnostic flagging the unrecognized value.
 

@@ -153,3 +153,16 @@ describe("palette color words are unique per style", () => {
         }
     }
 });
+
+describe("palettes have at least four styles", () => {
+    // Documentation tells authors to reserve style numbers 1-4 for their
+    // most important distinctions because every palette guarantees at least
+    // four styles (readers may end up on a four-style palette such as
+    // grayscale, onto which higher numbers wrap).
+    for (const paletteName of STYLE_PALETTE_NAMES) {
+        it(`palette "${paletteName}"`, () => {
+            const styles = returnPaletteStyleDefinitions(paletteName);
+            expect(Object.keys(styles).length).toBeGreaterThanOrEqual(4);
+        });
+    }
+});
