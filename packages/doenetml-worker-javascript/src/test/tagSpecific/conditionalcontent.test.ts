@@ -1673,4 +1673,56 @@ describe("Conditional content tag tests @group2", async () => {
         expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.end.column).eq(45);
     });
+
+    it("can recreate a case containing a dynamic index reference", async () => {
+        // Regression test: a case whose content contains a dynamic index
+        // reference (`$p[$i]`) creates a hidden copy to resolve the index.
+        // That copy lives in the component's `refResolution` rather than in
+        // its children/attributes, so deleting the case's replacement used to
+        // leak it. When the case was later reselected and its replacement
+        // recreated (reusing the same reserved component indices), the leaked
+        // copy's index collided: "Found a duplicate componentIdx".
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <number name="i">1</number>
+        <pointList name="p">(3,4) (5,6)</pointList>
+        <booleanInput name="b" />
+        <p name="wrap"><conditionalContent>
+            <case condition="$b"><math>hello</math></case>
+            <case condition="not $b"><math>$p[$i].x</math></case>
+        </conditionalContent></p>
+  `,
+        });
+
+        const b = await resolvePathToNodeIdx("b");
+        const wrap = await resolvePathToNodeIdx("wrap");
+
+        const wrapText = async () =>
+            (await core.returnAllStateVariables(false, true))[wrap].stateValues
+                .text;
+
+        // b=false selects the second case, creating the `$p[$i]` index copy.
+        // The reference resolves to `$p[1].x`, i.e. 3.
+        expect(await wrapText()).eq("3");
+
+        // Toggle to the first case (deletes the second case's replacement,
+        // which must also delete the leaked `$p[$i]` index copy), then back
+        // (recreates the replacement, reusing the same reserved component
+        // indices). Before the fix, the recreation threw "Found a duplicate
+        // componentIdx"; now it recreates cleanly and the reference again
+        // resolves to 3.
+        //
+        // Deliberately do not evaluate state variables between the two
+        // toggles: a full evaluation while the first case is active masks
+        // the collision (it fails later with a different error), so an
+        // intermediate check here would stop this test from reproducing the
+        // documented "Found a duplicate componentIdx" crash.
+        await updateBooleanInputValue({ boolean: true, componentIdx: b, core });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: b,
+            core,
+        });
+        expect(await wrapText()).eq("3");
+    });
 });
