@@ -246,7 +246,7 @@ Redefining styles one at a time is precise but laborious when you want a whole d
 ```doenet-editor-horiz
 <stylePalette palette="categorical" />
 <graph size="small" xmin="-1" xmax="3" ymin="0" ymax="9">
-  <shortDescription>Eight points, one in each style of the categorical palette</shortDescription>
+  <shortDescription>Eight points, one in each of the first eight styles of the categorical palette</shortDescription>
   <point coords="(1,8)" styleNumber="1" />
   <point coords="(1,7)" styleNumber="2" />
   <point coords="(1,6)" styleNumber="3" />
@@ -258,7 +258,7 @@ Redefining styles one at a time is precise but laborious when you want a whole d
 </graph>
 ```
 
-Every built-in palette meets WCAG contrast requirements in both light and dark mode, and palettes vary marker shapes and line styles alongside colors, so the distinctions your style numbers encode never rest on color alone. If your audience includes colorblind readers, choose one of the colorblind-friendly palettes: `okabeito` (based on the Okabe–Ito palette) is the usual first choice, `tolhighcontrast` maximizes distinction (even in grayscale) with a compact set of four styles, and `tolbright`, `tolmuted`, and `ibm` offer more looks with the same design goal. For readers with total colorblindness, the `grayscale` palette maximizes pure luminance separation. See the [`<stylePalette>{:dn}` reference](../reference/stylePalette) for the full list.
+Every built-in palette meets WCAG contrast requirements in both light and dark mode, and palettes vary marker shapes and line widths alongside colors, so the distinctions your style numbers encode never rest on color alone. If your audience includes colorblind readers, choose one of the colorblind-friendly palettes: `okabeito` (based on the Okabe–Ito palette) is the usual first choice, `tolhighcontrast` maximizes distinction (even in grayscale) with a compact set of four styles, and `tolbright`, `tolmuted`, and `ibm` offer more looks with the same design goal. For readers with total colorblindness, the `grayscale` palette maximizes pure luminance separation. See the [`<stylePalette>{:dn}` reference](../reference/stylePalette) for the full list.
 
 Whatever palette a document ends up viewed with, **reserve style numbers 1–4 for your most important distinctions**: every palette guarantees at least four styles, but only four — on a four-style palette, higher style numbers wrap around onto 1–4.
 

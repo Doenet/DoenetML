@@ -6,13 +6,17 @@ import type { StylePalette } from "./types";
  * palette. This is the base style map every document starts from when no
  * `<stylePalette>` is selected.
  *
- * Unlike newer palettes, these entries hand-author their dark-mode colors and
- * `*Word` descriptors (they predate the derivation pipeline); the expansion
- * derivation steps are all no-ops here, which keeps the expanded output
- * byte-identical to the historical `returnDefaultStyleDefinitions()` result.
- * Don't imitate this style in new palettes — author compactly and let
- * expansion derive the rest, pinning only the `*Word` fields that the
- * word derivation misnames.
+ * These entries predate the derivation pipeline, so they spell out dark-mode
+ * colors and `*Word` descriptors even where the derivation would produce the
+ * same value. That redundancy is deliberate here: it makes every expansion
+ * step value-preserving for this palette, so its output stays identical to
+ * the historical `returnDefaultStyleDefinitions()` result. New palettes
+ * should author only what the derivation gets wrong — see the
+ * {@link StylePalette} doc.
+ *
+ * Style 1 spreads `DEFAULT_STYLE_VALUES`, whose `textColor`/`textColorDarkMode`
+ * are already the canvas text colors that expansion forces onto style 1; new
+ * palettes should simply leave those keys off style 1.
  */
 export const defaultPalette: StylePalette = {
     name: "default",

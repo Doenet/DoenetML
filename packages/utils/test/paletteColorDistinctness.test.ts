@@ -158,6 +158,53 @@ describe("palette color words are unique per style", () => {
     }
 });
 
+describe("palette color words agree across keys describing the same color", () => {
+    // Words are pinned per key, because the hex-to-word matcher runs on each
+    // color key independently (issue #1527). Pinning a hue on `lineColorWord`
+    // but forgetting `markerColorWord` leaves one style describing its lines
+    // and its markers by different names even though they are the same color.
+    const COLOR_KEYS = [
+        "lineColor",
+        "markerColor",
+        "fillColor",
+        "textColor",
+        "highContrastColor",
+    ] as const;
+
+    for (const paletteName of STYLE_PALETTE_NAMES) {
+        for (const suffix of ["", "DarkMode"] as const) {
+            it(`palette "${paletteName}"${suffix ? " dark mode" : ""}`, () => {
+                const styles = returnPaletteStyleDefinitions(paletteName);
+                for (const [styleNumber, styleDef] of Object.entries(styles)) {
+                    const wordByColor = new Map<string, [string, string]>();
+                    for (const colorKey of COLOR_KEYS) {
+                        const color = getStyleValueString(
+                            styleDef,
+                            `${colorKey}${suffix}`,
+                        )?.toLowerCase();
+                        const word = getStyleValueString(
+                            styleDef,
+                            `${colorKey}Word${suffix}`,
+                        );
+                        if (!color || !word) {
+                            continue;
+                        }
+                        const seen = wordByColor.get(color);
+                        if (seen) {
+                            expect(
+                                word,
+                                `${paletteName} style ${styleNumber}: ${colorKey}${suffix} and ${seen[0]}${suffix} are both ${color} but are described as "${word}" and "${seen[1]}"`,
+                            ).toBe(seen[1]);
+                        } else {
+                            wordByColor.set(color, [colorKey, word]);
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+
 describe("palettes have at least four styles", () => {
     // Documentation tells authors to reserve style numbers 1-4 for their
     // most important distinctions because every palette guarantees at least

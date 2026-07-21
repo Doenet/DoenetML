@@ -3,14 +3,15 @@ import type { StylePalette } from "./types";
 /**
  * The IBM Design Library's colorblind-safe palette (ultramarine, indigo,
  * magenta, orange, gold). Doenet's default style 1 dark-mode blue (#648FFF)
- * is this palette's ultramarine, so it will feel familiar. *
+ * is this palette's ultramarine, so it will feel familiar.
+ *
  * Light-mode anchors are the canonical colors wherever they meet Doenet's
  * contrast thresholds on white (3:1 as a graphic, 4.5:1 as text) and are
  * darkened chromaticity-preserving where they do not, with further-darkened
  * text variants where a graphic anchor sits below 4.5:1. Dark mode pins the
  * canonical colors wherever they clear the thresholds on the dark canvas.
  * Verified with a Machado-model CVD simulation + CIEDE2000 analysis; marker
- * shapes and line styles vary across styles so distinctions never rest on
+ * shapes and line widths vary across styles so distinctions never rest on
  * color alone.
  */
 export const ibmPalette: StylePalette = {
@@ -22,21 +23,17 @@ export const ibmPalette: StylePalette = {
             lineColor: "#648fff",
             markerColor: "#648fff",
             fillColor: "#648fff",
-            textColor: "#4f71cb",
             highContrastColor: "#4f71cb",
             lineColorWord: "blue",
             markerColorWord: "blue",
             fillColorWord: "blue",
-            textColorWord: "blue",
             highContrastColorWord: "blue",
             lineColorDarkMode: "#648fff",
             markerColorDarkMode: "#648fff",
             fillColorDarkMode: "#648fff",
-            textColorDarkMode: "#648fff",
             lineColorWordDarkMode: "blue",
             markerColorWordDarkMode: "blue",
             fillColorWordDarkMode: "blue",
-            textColorWordDarkMode: "blue",
             highContrastColorWordDarkMode: "blue",
             lineWidth: 4,
             markerStyle: "circle",

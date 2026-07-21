@@ -23,13 +23,13 @@ If you are unsure which palette to pick, start with one of these three:
 The remaining palettes give more options:
 
 - **`tolbright`** — seven colorblind-friendly styles from Paul Tol's bright palette.
-- **`tolmuted`** — nine colorblind-friendly styles from Paul Tol's muted palette; the largest built-in set, useful when a document needs many distinct styles.
+- **`tolmuted`** — nine colorblind-friendly styles from Paul Tol's muted palette; the largest of the colorblind-friendly sets, useful when a document needs many distinct styles.
 - **`ibm`** — five colorblind-friendly styles from the IBM Design Library's accessible palette.
 - **`grayscale`** — four grays with no hue at all, laddered for maximum luminance separation. The best choice for readers with achromatopsia (total colorblindness) or anyone viewing in grayscale, since it spends its entire distinguishing budget on the one channel such readers perceive.
 - **`categorical`** — ten maximally varied hues (blue, orange, green, red, purple, brown, pink, gray, olive, cyan), adapted from the widely used Category10 sequence. The widest color spread of any built-in palette, for documents that need many styles whose distinctions are obvious at a glance. Unlike the palettes above it is *not* engineered for color vision deficiency, so prefer a colorblind-friendly palette when the choice is yours.
 - **`grumpynarwhal`** — six saturated hues (burnt orange, forest green, deep pink, arctic teal, gold, and purple) that go neon in dark mode. Like `categorical` it is not engineered for color vision deficiency.
 
-The colorblind-aware palettes keep their published colors wherever those meet Doenet's contrast requirements; in light mode some colors are darkened just far enough to meet them (dark mode shows the published colors, which all pass on a dark canvas). Every palette varies marker shapes and line styles alongside colors, so style distinctions never rest on color alone — `categorical` in particular leans on those shape distinctions under red-green color vision deficiency.
+The colorblind-aware palettes keep their published colors wherever those meet Doenet's contrast requirements, and adjust them only as far as the requirements demand: in light mode some colors are darkened, and in dark mode most of the published colors pass as-is on the dark canvas and are used verbatim. Every palette varies marker shapes and line widths alongside colors (and several vary line styles too), so style distinctions never rest on color alone — `categorical` in particular leans on those shape distinctions under red-green color vision deficiency.
 
 <AttrPropDisplay name='stylePalette'/>
 
@@ -53,7 +53,7 @@ The colorblind-aware palettes keep their published colors wherever those meet Do
 </graph>
 ```
 
-Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:dn}` block) makes every style number draw from the named palette. The `okabeito` palette defines eight styles, each with its own color, marker shape, and line style.
+Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:dn}` block) makes every style number draw from the named palette. The `okabeito` palette defines eight styles, each with its own color and with marker shapes, line widths, and line styles varied so that no two styles look alike even without color.
 
 ---
 

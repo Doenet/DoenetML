@@ -13,8 +13,8 @@ import type { StylePalette } from "./types";
  * with a darker text variant for the lightest style); dark mode inverts the
  * ladder, white down to the 3:1 threshold on the dark canvas. Steps are ~20
  * L* in both modes — the widest even spacing possible for four styles.
- * Marker shapes, line widths, and line styles vary as well, so styles stay
- * distinguishable even where grays approach each other.
+ * Marker shapes and line widths vary as well, so styles stay distinguishable
+ * even where grays approach each other.
  *
  * Style 1 carries the maximum contrast (black on light, white on dark);
  * authors are advised to reserve style numbers 1-4 for their most important
@@ -29,21 +29,17 @@ export const grayscalePalette: StylePalette = {
             lineColor: "#000000",
             markerColor: "#000000",
             fillColor: "#000000",
-            textColor: "#000000",
             highContrastColor: "#000000",
             lineColorWord: "black",
             markerColorWord: "black",
             fillColorWord: "black",
-            textColorWord: "black",
             highContrastColorWord: "black",
             lineColorDarkMode: "#ffffff",
             markerColorDarkMode: "#ffffff",
             fillColorDarkMode: "#ffffff",
-            textColorDarkMode: "#ffffff",
             lineColorWordDarkMode: "white",
             markerColorWordDarkMode: "white",
             fillColorWordDarkMode: "white",
-            textColorWordDarkMode: "white",
             highContrastColorWordDarkMode: "white",
             lineWidth: 4,
             markerStyle: "circle",

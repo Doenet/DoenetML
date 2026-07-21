@@ -5,7 +5,8 @@ import type { StylePalette } from "./types";
  * the largest of the built-in colorblind-aware sets (nine styles). Its three
  * yellow-green members (green, olive, sand) compress under red-green CVD
  * more than the okabeito or tolbright hues do; the lightness ladder and the
- * marker-shape variation carry the distinction there. *
+ * marker-shape variation carry the distinction there.
+ *
  * Light-mode anchors are the canonical colors wherever they meet Doenet's
  * contrast thresholds on white (3:1 as a graphic, 4.5:1 as text) and are
  * darkened chromaticity-preserving where they do not, with further-darkened
@@ -24,21 +25,17 @@ export const tolMutedPalette: StylePalette = {
             lineColor: "#332288",
             markerColor: "#332288",
             fillColor: "#332288",
-            textColor: "#332288",
             highContrastColor: "#332288",
             lineColorWord: "indigo",
             markerColorWord: "indigo",
             fillColorWord: "indigo",
-            textColorWord: "indigo",
             highContrastColorWord: "indigo",
             lineColorDarkMode: "#8a86e8",
             markerColorDarkMode: "#8a86e8",
             fillColorDarkMode: "#8a86e8",
-            textColorDarkMode: "#8a86e8",
             lineColorWordDarkMode: "indigo",
             markerColorWordDarkMode: "indigo",
             fillColorWordDarkMode: "indigo",
-            textColorWordDarkMode: "indigo",
             highContrastColorWordDarkMode: "indigo",
             lineWidth: 4,
             markerStyle: "circle",

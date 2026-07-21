@@ -754,14 +754,21 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
 }
 
 /**
- * Expands a palette's compact raw style definitions into the full wrapped
- * form: values are normalized to `{ style, position? }`, missing
- * `*ColorDarkMode` values are derived from their light-mode colors, and
- * missing `*Word` descriptors are derived from the resulting values. Authored
- * values (including the default palette's hand-authored dark colors and
- * words) are left untouched, so every derivation step is a no-op for the
- * `"default"` palette and its expansion is identical to the historical
- * six-preset output.
+ * Expands a palette's raw style definitions into the full wrapped form. Per
+ * style, in order:
+ *
+ *   1. values are normalized to `{ style, position? }`;
+ *   2. enum-valued keys are lowercased (see {@link lowercaseEnumStyleValues});
+ *   3. style number 1's text color is forced neutral (see
+ *      {@link applyNeutralTextColor});
+ *   4. missing `*ColorDarkMode` values are derived from their light-mode
+ *      colors;
+ *   5. missing `*Word` descriptors are derived from the resulting values.
+ *
+ * Steps 4 and 5 never overwrite an authored value, and steps 2 and 3 are
+ * value-preserving for the `"default"` palette (its enum values are already
+ * lowercase and its style 1 already carries the canvas text color), so its
+ * expansion reproduces the historical six-preset output.
  *
  * Returns a fresh map on every call; the input palette data is not mutated.
  */
@@ -804,11 +811,13 @@ const NEUTRAL_TEXT_STYLE_NUMBER = "1";
  * through `highContrastColor`, which is exactly that color at text-contrast
  * strength, and styles 2 and up are unaffected.
  *
- * Cycled style numbers resolve to style 1's definition, so they inherit the
- * neutral text too — matching what out-of-range style numbers already do
- * without a palette, where the fallback is `DEFAULT_STYLE_VALUES` (also
- * black). Authored `*Word` entries for these keys are dropped so the
- * descriptions re-derive from the neutral colors and stay truthful.
+ * Style numbers that cycle onto style 1 resolve to this definition, so they
+ * inherit the neutral text too — matching what out-of-range style numbers
+ * already do without a palette, where the fallback is `DEFAULT_STYLE_VALUES`
+ * (also black). Authored `*Word` entries for these keys are dropped so the
+ * descriptions re-derive from the neutral colors and stay truthful; palettes
+ * should not author any of the four keys in the first place (see the
+ * {@link StylePalette} doc).
  */
 function applyNeutralTextColor(styleDef: StyleDefinition): void {
     setStyleValue(styleDef, "textColor", CANVAS_TEXT_LIGHT_MODE_COLOR);
@@ -818,8 +827,16 @@ function applyNeutralTextColor(styleDef: StyleDefinition): void {
 }
 
 /**
- * Lowercases the values of text attributes whose spec sets
- * `toLowerCase: true` (`markerStyle`, `lineStyle`, `fillStyle`), in place.
+ * The style keys whose values renderers require lowercased, i.e. those whose
+ * attribute spec sets `toLowerCase: true` (today `lineStyle`, `markerStyle`,
+ * and `fillStyle`). Computed once rather than per style definition.
+ */
+const LOWERCASED_STYLE_KEYS = Object.entries(styleAttributes)
+    .filter(([, spec]) => spec.toLowerCase)
+    .map(([key]) => key as StyleDefinitionKey);
+
+/**
+ * Lowercases the values of the {@link LOWERCASED_STYLE_KEYS}, in place.
  *
  * Authored values reach renderers already lowercased — the
  * `<styleDefinition>` path lowercases unconditionally, and the
@@ -833,17 +850,10 @@ function applyNeutralTextColor(styleDef: StyleDefinition): void {
  * palette modules use the documented spelling and still be renderer-correct.
  */
 function lowercaseEnumStyleValues(styleDef: StyleDefinition): void {
-    for (const [key, spec] of Object.entries(styleAttributes)) {
-        if (!spec.toLowerCase) {
-            continue;
-        }
-        const value = getStyleValueString(styleDef, key as StyleDefinitionKey);
-        if (typeof value === "string" && value !== value.toLowerCase()) {
-            setStyleValue(
-                styleDef,
-                key as StyleDefinitionKey,
-                value.toLowerCase(),
-            );
+    for (const key of LOWERCASED_STYLE_KEYS) {
+        const value = getStyleValueString(styleDef, key);
+        if (value !== undefined && value !== value.toLowerCase()) {
+            setStyleValue(styleDef, key, value.toLowerCase());
         }
     }
 }
@@ -1166,8 +1176,8 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
  * authored values on top of the styleNumber-based definition. The override
  * layer mirrors how `<styleDefinition>` attributes are read in
  * `StyleDefinitions.js`, with one deliberate divergence: string values here
- * are lowercased only when the spec opts in via `toLowerCase: true` (today
- * just the enum-typed `markerStyle` / `lineStyle`), whereas the
+ * are lowercased only when the spec opts in via `toLowerCase: true` (the
+ * enum-typed keys — see {@link LOWERCASED_STYLE_KEYS}), whereas the
  * `<styleDefinition>` path lowercases unconditionally to keep color-name
  * lookups case-insensitive. Source positions are preserved, and missing
  * `*Word` descriptors get re-derived from the underlying value via

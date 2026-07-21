@@ -329,6 +329,22 @@ describe("Style palette tag tests @group4", async () => {
         ).eq("#1f77b4");
     });
 
+    it("a styleDefinition can still paint style 1's text on top of a palette", async () => {
+        // The neutral style-1 text color is an expansion rule for palette
+        // data, not a lock: an author who deliberately wants colored prose
+        // overrides it like any other style key.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<stylePalette palette="categorical" />
+<styleDefinition styleNumber="1" textColor="green" />
+<text name="t">hello</text>
+`,
+        });
+
+        const style = await selectedStyleOf(core, resolvePathToNodeIdx, "t");
+        expect(style.textColor).eq("green");
+    });
+
     it("style descriptions reflect the palette colors", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

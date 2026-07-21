@@ -2,7 +2,8 @@ import type { StylePalette } from "./types";
 
 /**
  * Paul Tol's "bright" qualitative palette (https://personal.sron.nl/~pault/),
- * a well-researched colorblind-friendly scheme. *
+ * a well-researched colorblind-friendly scheme.
+ *
  * Light-mode anchors are the canonical colors wherever they meet Doenet's
  * contrast thresholds on white (3:1 as a graphic, 4.5:1 as text) and are
  * darkened chromaticity-preserving where they do not, with further-darkened
@@ -21,21 +22,17 @@ export const tolBrightPalette: StylePalette = {
             lineColor: "#4477aa",
             markerColor: "#4477aa",
             fillColor: "#4477aa",
-            textColor: "#4477aa",
             highContrastColor: "#4477aa",
             lineColorWord: "blue",
             markerColorWord: "blue",
             fillColorWord: "blue",
-            textColorWord: "blue",
             highContrastColorWord: "blue",
             lineColorDarkMode: "#4477aa",
             markerColorDarkMode: "#4477aa",
             fillColorDarkMode: "#4477aa",
-            textColorDarkMode: "#5781af",
             lineColorWordDarkMode: "blue",
             markerColorWordDarkMode: "blue",
             fillColorWordDarkMode: "blue",
-            textColorWordDarkMode: "blue",
             highContrastColorWordDarkMode: "blue",
             lineWidth: 4,
             markerStyle: "circle",
