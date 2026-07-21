@@ -6,6 +6,7 @@ import {
     colorValueToWord,
     cycleStyleNumberForPalette,
     expandStylePalette,
+    getStyleValueNumber,
     getStyleValueString,
     returnDefaultStyleDefinitions,
     returnPaletteStyleDefinitions,
@@ -271,6 +272,116 @@ describe("style 1's neutral text color overrides palette data", () => {
 
         expect(getStyleValueString(expanded[2], "textColor")).toBe("#1f5dff");
         expect(getStyleValueString(expanded[2], "textColorWord")).toBe("azure");
+    });
+});
+
+describe("palette graphics are opaque unless the palette says otherwise", () => {
+    // A palette's colors are verified against the graphic threshold at the
+    // opacity they render with. Inheriting the 0.7 default would blend a
+    // color verified at full strength 70% into the canvas and drop it below
+    // 3:1, so expansion states full opacity.
+    const opacityPalette: StylePalette = {
+        name: "testOpacity",
+        description: "Palette exercising the opacity rule.",
+        styles: {
+            1: { lineColor: "#D4042D", markerColor: "#D4042D" },
+            2: {
+                lineColor: "#1f5dff",
+                markerColor: "#1f5dff",
+                lineOpacity: 0.7,
+                markerOpacity: 0.5,
+            },
+        },
+    };
+
+    it("fills unstated line and marker opacities with 1", () => {
+        const expanded = expandStylePalette(opacityPalette);
+        expect(getStyleValueNumber(expanded[1], "lineOpacity")).toBe(1);
+        expect(getStyleValueNumber(expanded[1], "markerOpacity")).toBe(1);
+    });
+
+    it("never overwrites an opacity the palette states", () => {
+        const expanded = expandStylePalette(opacityPalette);
+        expect(getStyleValueNumber(expanded[2], "lineOpacity")).toBe(0.7);
+        expect(getStyleValueNumber(expanded[2], "markerOpacity")).toBe(0.5);
+    });
+
+    it("leaves the default palette's own 0.7 opacities alone", () => {
+        const expanded = returnPaletteStyleDefinitions(DEFAULT_PALETTE_NAME);
+        expect(getStyleValueNumber(expanded[1], "lineOpacity")).toBe(0.7);
+        expect(getStyleValueNumber(expanded[5], "lineOpacity")).toBe(1);
+    });
+});
+
+describe("dark-mode high contrast follows dark-mode text", () => {
+    // `highContrastColor` is a style's own color at text strength, which is
+    // what `textColor` is too — so when a palette gives them one light-mode
+    // value, they must not split apart in dark mode. Deriving the dark
+    // high-contrast color from the light one instead would ignore the
+    // brighter dark anchor the palette pinned for its text: a style that is
+    // white in dark mode reported the derivation's mid-gray floor, and a
+    // style that is bright yellow reported a dark olive.
+    const pairedPalette: StylePalette = {
+        name: "testPaired",
+        description: "Palette exercising the dark high-contrast pairing.",
+        styles: {
+            1: { lineColor: "#000000" },
+            2: {
+                lineColor: "#000000",
+                textColor: "#000000",
+                highContrastColor: "#000000",
+                textColorDarkMode: "#ffffff",
+            },
+            3: {
+                lineColor: "#000000",
+                textColor: "#000000",
+                highContrastColor: "#000000",
+                textColorDarkMode: "#ffffff",
+                highContrastColorDarkMode: "#cccccc",
+            },
+            4: {
+                lineColor: "#000000",
+                textColor: "#000000",
+                // A style whose high-contrast color is deliberately its own,
+                // distinct from its text color, keeps deriving on its own.
+                highContrastColor: "#5a5513",
+                textColorDarkMode: "#ffffff",
+            },
+        },
+    };
+
+    it("gives an unstated dark high-contrast color the dark text color", () => {
+        const expanded = expandStylePalette(pairedPalette);
+        expect(
+            getStyleValueString(expanded[2], "highContrastColorDarkMode"),
+        ).toBe("#ffffff");
+    });
+
+    it("never overwrites a dark high-contrast color the palette states", () => {
+        const expanded = expandStylePalette(pairedPalette);
+        expect(
+            getStyleValueString(expanded[3], "highContrastColorDarkMode"),
+        ).toBe("#cccccc");
+    });
+
+    it("leaves a style whose high-contrast color differs in light mode to derive", () => {
+        const expanded = expandStylePalette(pairedPalette);
+        const derived = getStyleValueString(
+            expanded[4],
+            "highContrastColorDarkMode",
+        );
+        expect(derived).toBeTruthy();
+        expect(derived).not.toBe("#ffffff");
+    });
+
+    it("does not apply to style 1, whose text color is not the style's own", () => {
+        // `applyNeutralTextColor` has already replaced style 1's text color
+        // with the canvas text color, so pairing off it would paint style 1's
+        // high contrast white regardless of the style's actual color.
+        const expanded = expandStylePalette(pairedPalette);
+        expect(
+            getStyleValueString(expanded[1], "highContrastColorDarkMode"),
+        ).not.toBe("white");
     });
 });
 

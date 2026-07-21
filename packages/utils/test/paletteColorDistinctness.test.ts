@@ -243,6 +243,41 @@ describe("palette color words agree across keys describing the same color", () =
     }
 });
 
+describe("a style's high-contrast color is described like its lines", () => {
+    // A style is one color; `highContrastColor` is that color at
+    // text-contrast strength. The two need not be the same hex — a graphic
+    // anchor is often lightened or darkened to clear the text threshold —
+    // but they must still answer to the same name, or the style's
+    // descriptions contradict each other within a single mode.
+    //
+    // The previous guard only compares keys that hold the *same* value, so
+    // it cannot see this: derivation used to lighten a black style's
+    // light-mode high-contrast color just far enough for the dark canvas and
+    // land on a mid-gray, leaving the style's lines "white" and its high
+    // contrast "gray". Compare the words instead of the colors to catch it.
+    for (const paletteName of STYLE_PALETTE_NAMES) {
+        for (const suffix of ["", "DarkMode"] as const) {
+            it(`palette "${paletteName}"${suffix ? " dark mode" : ""}`, () => {
+                const styles = returnPaletteStyleDefinitions(paletteName);
+                for (const [styleNumber, styleDef] of Object.entries(styles)) {
+                    const lineWord = getStyleValueString(
+                        styleDef,
+                        `lineColorWord${suffix}`,
+                    );
+                    const highContrastWord = getStyleValueString(
+                        styleDef,
+                        `highContrastColorWord${suffix}`,
+                    );
+                    expect(
+                        highContrastWord,
+                        `${paletteName} style ${styleNumber}: lines are described as "${lineWord}" but the high-contrast color as "${highContrastWord}"`,
+                    ).toBe(lineWord);
+                }
+            });
+        }
+    }
+});
+
 describe("palettes have at least four styles", () => {
     // Documentation tells authors to reserve style numbers 1-4 for their
     // most important distinctions because every palette guarantees at least

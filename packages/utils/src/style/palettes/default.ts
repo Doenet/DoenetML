@@ -21,7 +21,7 @@ import type { StylePalette } from "./types";
 export const defaultPalette: StylePalette = {
     name: "default",
     description:
-        "The standard Doenet styles: blue, red, brown, purple, black, and gray.",
+        "The standard Doenet styles: blue, red, orange, purple, black, and gray.",
     styles: {
         1: { ...DEFAULT_STYLE_VALUES },
         2: {

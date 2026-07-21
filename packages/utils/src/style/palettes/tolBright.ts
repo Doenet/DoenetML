@@ -88,7 +88,6 @@ export const tolBrightPalette: StylePalette = {
             markerColorDarkMode: "#ccbb44",
             fillColorDarkMode: "#ccbb44",
             textColorDarkMode: "#ccbb44",
-            highContrastColorWordDarkMode: "olive",
             lineWidth: 2,
             markerStyle: "diamond",
         },

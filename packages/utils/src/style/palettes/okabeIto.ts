@@ -120,7 +120,7 @@ export const okabeItoPalette: StylePalette = {
             markerStyle: "diamond",
         },
         5: {
-            // black (canonical #000000; neutral gray in dark mode)
+            // black (canonical #000000; inverted to white in dark mode)
             lineColor: "#000000",
             markerColor: "#000000",
             fillColor: "#000000",
@@ -149,7 +149,6 @@ export const okabeItoPalette: StylePalette = {
             markerColorDarkMode: "#f0e442",
             fillColorDarkMode: "#f0e442",
             textColorDarkMode: "#f0e442",
-            highContrastColorWordDarkMode: "olive",
             lineWidth: 2,
             markerStyle: "cross",
         },

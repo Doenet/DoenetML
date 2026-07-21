@@ -26,9 +26,21 @@ import type { RawStyleDefinitions } from "../styleDefinitionHelpers";
  * `applyNeutralTextColor`). Style 1's own color still belongs on its other
  * keys, `highContrastColor` included.
  *
+ * Two further expansion rules shape what a palette needs to say:
+ * - Lines and markers render fully opaque unless the style states
+ *   `lineOpacity` / `markerOpacity` (see `applyFullGraphicOpacity`). A
+ *   palette that wants a softer stroke states the opacity, and its colors
+ *   are then contrast-checked at that opacity.
+ * - A style that gives `textColor` and `highContrastColor` one light-mode
+ *   value gets its authored `textColorDarkMode` for
+ *   `highContrastColorDarkMode` too, unless it states one (see
+ *   `pairDarkModeHighContrastWithText`), so the pair cannot split apart in
+ *   dark mode.
+ *
  * Every style of every registered palette must meet the WCAG contrast
- * thresholds in both light and dark mode; `presetPaletteAccessibility.test.ts`
- * enforces this for the whole registry.
+ * thresholds in both light and dark mode — composited onto the canvas at the
+ * style's own opacity, which is how readers see it;
+ * `presetPaletteAccessibility.test.ts` enforces this for the whole registry.
  *
  * Every palette must define at least four styles (contiguous from 1) — the
  * documented author contract is that style numbers 1-4 always land on

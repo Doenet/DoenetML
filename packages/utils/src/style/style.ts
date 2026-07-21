@@ -761,11 +761,15 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
  *   2. enum-valued keys are lowercased (see {@link lowercaseEnumStyleValues});
  *   3. style number 1's text color is forced neutral (see
  *      {@link applyNeutralTextColor});
- *   4. missing `*ColorDarkMode` values are derived from their light-mode
+ *   4. unstated line/marker opacities become fully opaque (see
+ *      {@link applyFullGraphicOpacity});
+ *   5. an unstated dark-mode high-contrast color follows the style's dark-mode
+ *      text color (see {@link pairDarkModeHighContrastWithText});
+ *   6. missing `*ColorDarkMode` values are derived from their light-mode
  *      colors;
- *   5. missing `*Word` descriptors are derived from the resulting values.
+ *   7. missing `*Word` descriptors are derived from the resulting values.
  *
- * Steps 4 and 5 never overwrite an authored value, and steps 2 and 3 are
+ * Steps 4-7 never overwrite an authored value, and steps 2 and 3 are
  * value-preserving for the `"default"` palette (its enum values are already
  * lowercase and its style 1 already carries the canvas text color), so its
  * expansion reproduces the historical six-preset output.
@@ -780,6 +784,8 @@ export function expandStylePalette(palette: StylePalette): StyleDefinitions {
         if (styleNumber === NEUTRAL_TEXT_STYLE_NUMBER) {
             applyNeutralTextColor(styleDef);
         }
+        applyFullGraphicOpacity(styleDef);
+        pairDarkModeHighContrastWithText(styleDef);
         addMissingChildStyleColorFields(styleDef);
         deriveMissingStyleWords(styleDef);
     }
@@ -856,6 +862,84 @@ function lowercaseEnumStyleValues(styleDef: StyleDefinition): void {
             setStyleValue(styleDef, key, value.toLowerCase());
         }
     }
+}
+
+/**
+ * Makes a palette style's lines and markers fully opaque unless the palette
+ * says otherwise, in place.
+ *
+ * A palette's colors are chosen against the WCAG graphic threshold (3:1) as
+ * they will be *composited onto the canvas*, which means at the opacity they
+ * render with — `presetPaletteAccessibility.test.ts` checks them that way.
+ * Without this rule a palette that states no opacity inherits
+ * `DEFAULT_STYLE_VALUES.lineOpacity` / `.markerOpacity` of `0.7`, which drops
+ * a color verified at full strength well below 3:1 (a published palette
+ * anchor sitting at 3.0-4.5 lands near 2.1-2.9 once it is 70% blended into
+ * the canvas). Full opacity is therefore the palette default, and a palette
+ * that wants the softer look states `lineOpacity` / `markerOpacity`
+ * explicitly and gets checked at that value.
+ *
+ * The `"default"` palette states both on every style (`0.7`, and `1` on style
+ * 5), so it is unaffected — the historical look is preserved. This runs
+ * before dark-mode derivation on purpose: `deriveDarkModeColorForItem` reads
+ * the style's line/marker opacity when choosing how far to lighten a color
+ * for the dark canvas, so it must see the opacity the style will render with.
+ */
+function applyFullGraphicOpacity(styleDef: StyleDefinition): void {
+    for (const key of ["lineOpacity", "markerOpacity"] as const) {
+        if (!(key in styleDef)) {
+            setStyleValue(styleDef, key, 1);
+        }
+    }
+}
+
+/**
+ * Gives an unstated `highContrastColorDarkMode` the style's authored
+ * `textColorDarkMode`, in place, when the two keys carry the same color in
+ * light mode.
+ *
+ * `highContrastColor` is a style's own color at text-contrast strength, which
+ * is the same thing `textColor` is for styles 2 and up — every built-in
+ * palette gives them one shared light-mode value. Deriving the dark-mode
+ * high-contrast color independently breaks that pairing, because derivation
+ * only lightens the *light-mode* color as far as 4.5:1 on the dark canvas
+ * requires and knows nothing about the brighter dark-mode anchor the palette
+ * pinned for its text. A style whose dark mode is white would report a
+ * mid-gray `highContrastColorDarkMode` (the derivation's floor), and a style
+ * whose dark mode is bright yellow would report a dark olive — each
+ * contradicting the style's own dark-mode description.
+ *
+ * Only an authored `textColorDarkMode` counts: with none, both keys derive
+ * from the same light-mode color and stay consistent on their own. Style
+ * number 1 drops out on the same light-mode test, because
+ * {@link applyNeutralTextColor} has already replaced its text color with the
+ * canvas text color — and in the one case where it still matches (a style 1
+ * whose own color *is* that neutral), pairing gives the right answer anyway.
+ */
+function pairDarkModeHighContrastWithText(styleDef: StyleDefinition): void {
+    if ("highContrastColorDarkMode" in styleDef) {
+        return;
+    }
+    const textColorDarkMode = getStyleValueString(
+        styleDef,
+        "textColorDarkMode",
+    );
+    if (textColorDarkMode === undefined) {
+        return;
+    }
+    const textColor = getStyleValueString(styleDef, "textColor");
+    const highContrastColor = getStyleValueString(
+        styleDef,
+        "highContrastColor",
+    );
+    if (
+        textColor === undefined ||
+        highContrastColor === undefined ||
+        textColor.toLowerCase() !== highContrastColor.toLowerCase()
+    ) {
+        return;
+    }
+    setStyleValue(styleDef, "highContrastColorDarkMode", textColorDarkMode);
 }
 
 /**

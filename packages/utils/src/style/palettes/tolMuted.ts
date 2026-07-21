@@ -97,6 +97,7 @@ export const tolMutedPalette: StylePalette = {
             fillColorDarkMode: "#117733",
             textColorDarkMode: "#548a5f",
             textColorWordDarkMode: "green",
+            highContrastColorWordDarkMode: "green",
             lineWidth: 2,
             markerStyle: "diamond",
         },
