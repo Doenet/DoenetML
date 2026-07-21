@@ -152,9 +152,9 @@ export function DocViewer({
     // Whenever the host asks for a specific source offset (e.g. the
     // editor's cursor moved), scroll the rendered element whose source
     // range contains that offset into view. Falls back to the element
-    // whose range starts closest to the offset if none contains it exactly
-    // (e.g. the offset falls inside markup with no direct source-mapped
-    // renderer, like inside a tag's attributes).
+    // whose range boundary (start or end) lies closest to the offset if
+    // none contains it exactly (e.g. the offset falls inside markup with
+    // no direct source-mapped renderer, like inside a tag's attributes).
     //
     // Placed here, before this component's several early `return null`
     // paths further down, so it's called unconditionally on every render
