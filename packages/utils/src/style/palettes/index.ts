@@ -54,8 +54,15 @@ Object.freeze(STYLE_PALETTES);
 /** Name of the palette used when no `<stylePalette>` is selected. */
 export const DEFAULT_PALETTE_NAME = defaultPalette.name;
 
-/** All registered palette names, e.g. for schema `validValues` generation. */
-export const STYLE_PALETTE_NAMES = Object.keys(STYLE_PALETTES);
+/**
+ * All registered palette names, e.g. for schema `validValues` generation.
+ * Frozen for the same reason as the registry: an in-place mutation (e.g. a
+ * consumer sorting it for display) would silently desync it from
+ * `STYLE_PALETTES`.
+ */
+export const STYLE_PALETTE_NAMES: readonly string[] = Object.freeze(
+    Object.keys(STYLE_PALETTES),
+);
 
 export { defaultPalette } from "./default";
 export type { StylePalette } from "./types";

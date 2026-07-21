@@ -45,6 +45,7 @@ describe("palette registry", () => {
         // runtime mutation of registry data would silently desync the LSP
         // from the runtime; freezing makes such a mutation throw instead.
         expect(Object.isFrozen(STYLE_PALETTES)).toBe(true);
+        expect(Object.isFrozen(STYLE_PALETTE_NAMES)).toBe(true);
         for (const palette of Object.values(STYLE_PALETTES)) {
             expect(Object.isFrozen(palette)).toBe(true);
             expect(Object.isFrozen(palette.styles)).toBe(true);
