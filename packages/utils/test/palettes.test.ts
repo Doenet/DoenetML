@@ -216,6 +216,64 @@ describe("compact palette expansion", () => {
     });
 });
 
+describe("style 1's neutral text color overrides palette data", () => {
+    // `paletteColorDistinctness.test.ts` checks that every *registered*
+    // palette ends up with neutral style-1 text, but no built-in palette
+    // authors those keys, so that check cannot tell "force" apart from
+    // "fill in when missing". A palette that paints style 1's text is
+    // exactly the case the rule exists to defuse — content with no
+    // `styleNumber` lands on style 1, so the authored color would recolor
+    // every unstyled `<text>` and `<m>` in the document.
+    const paintedTextPalette: StylePalette = {
+        name: "testPaintedText",
+        description: "Palette that paints style 1's text, for expansion tests.",
+        styles: {
+            1: {
+                lineColor: "#D4042D",
+                textColor: "#D4042D",
+                textColorWord: "crimson",
+                textColorDarkMode: "#F1466A",
+                textColorWordDarkMode: "crimson",
+                highContrastColor: "#D4042D",
+            },
+            2: {
+                lineColor: "#1f5dff",
+                textColor: "#1f5dff",
+                textColorWord: "azure",
+            },
+        },
+    };
+
+    it("replaces authored style-1 text colors and re-derives their words", () => {
+        const expanded = expandStylePalette(paintedTextPalette);
+
+        expect(getStyleValueString(expanded[1], "textColor")).toBe("black");
+        expect(getStyleValueString(expanded[1], "textColorDarkMode")).toBe(
+            "white",
+        );
+        // The authored words described the discarded colors, so they must be
+        // discarded too rather than left describing a color nothing uses.
+        expect(getStyleValueString(expanded[1], "textColorWord")).toBe(
+            colorValueToWord("black"),
+        );
+        expect(getStyleValueString(expanded[1], "textColorWordDarkMode")).toBe(
+            colorValueToWord("white"),
+        );
+        // Style 1 keeps its own color on every other key.
+        expect(getStyleValueString(expanded[1], "lineColor")).toBe("#D4042D");
+        expect(getStyleValueString(expanded[1], "highContrastColor")).toBe(
+            "#D4042D",
+        );
+    });
+
+    it("leaves styles other than 1 painting their own text", () => {
+        const expanded = expandStylePalette(paintedTextPalette);
+
+        expect(getStyleValueString(expanded[2], "textColor")).toBe("#1f5dff");
+        expect(getStyleValueString(expanded[2], "textColorWord")).toBe("azure");
+    });
+});
+
 describe("cycleStyleNumberForPalette", () => {
     // okabeito has 8 styles.
     it("returns in-range numbers unchanged, including the palette-size boundary", () => {

@@ -137,6 +137,44 @@ describe("palette line colors are pairwise distinct", () => {
     }
 });
 
+describe("palette high-contrast colors never collapse onto one value", () => {
+    // `highContrastColor` is a style's own color at text-contrast strength —
+    // what a style paints with where the graphic thresholds are too weak
+    // (the `button` renderer fills with it today, and it is the color style
+    // 1 keeps for text after the neutral-text rule below). Two styles
+    // sharing one is the same failure as two styles sharing a line color.
+    //
+    // The dE floor above is deliberately not applied here: text-strength
+    // variants of neighbouring hues legitimately sit closer together than
+    // their graphic anchors do. What must never happen is an exact
+    // collapse, and derivation makes that easy to trip into — a missing
+    // `highContrastColorDarkMode` is derived by lightening the light-mode
+    // color only as far as the 4.5:1 threshold on the dark canvas requires,
+    // so every style whose color starts below that threshold derives to the
+    // *same* minimum. That is how all four `grayscale` styles once shared
+    // one dark-mode high-contrast gray while their `*Word` descriptors
+    // still claimed four different grays.
+    for (const paletteName of STYLE_PALETTE_NAMES) {
+        for (const colorKey of [
+            "highContrastColor",
+            "highContrastColorDarkMode",
+        ] as const) {
+            it(`palette "${paletteName}" ${colorKey}`, () => {
+                const styles = returnPaletteStyleDefinitions(paletteName);
+                const colors = Object.keys(styles).map((styleNumber) =>
+                    getStyleValueString(
+                        styles[styleNumber],
+                        colorKey,
+                    )!.toLowerCase(),
+                );
+                expect(new Set(colors).size, colors.join(", ")).toBe(
+                    colors.length,
+                );
+            });
+        }
+    }
+});
+
 describe("palette color words are unique per style", () => {
     // The color words feed the core-computed style descriptions; if two
     // styles of a palette share a word, descriptions cannot tell them apart.
@@ -265,7 +303,7 @@ describe("style 1 renders text in the canvas text color", () => {
     // palette painted style 1's text, selecting that palette would recolor
     // every unstyled `<text>` and `<m>` in the document, so expansion forces
     // it neutral. A style's own color stays reachable for text through
-    // `highContrastColor`, which this pins is left alone.
+    // `highContrastColor`, which the rule leaves alone — pinned below.
     for (const paletteName of STYLE_PALETTE_NAMES) {
         it(`palette "${paletteName}"`, () => {
             const styleOne = returnPaletteStyleDefinitions(paletteName)["1"];

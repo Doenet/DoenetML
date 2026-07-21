@@ -11,10 +11,18 @@ import type { StylePalette } from "./types";
  *
  * Light mode spans L* 0-61 (black up to the 3:1 graphic threshold on white,
  * with a darker text variant for the lightest style); dark mode inverts the
- * ladder, white down to the 3:1 threshold on the dark canvas. Steps are ~20
- * L* in both modes — the widest even spacing possible for four styles.
- * Marker shapes and line widths vary as well, so styles stay distinguishable
- * even where grays approach each other.
+ * ladder, white down to the 3:1 threshold on the dark canvas (with a lighter
+ * text variant for the darkest style). Steps are ~20 L* in both modes — the
+ * widest even spacing possible for four styles. Marker shapes and line widths
+ * vary as well, so styles stay distinguishable even where grays approach each
+ * other.
+ *
+ * Every dark-mode text color (`textColorDarkMode` and
+ * `highContrastColorDarkMode`) is pinned rather than derived. Derivation
+ * lightens a light-mode color only as far as its threshold on the dark
+ * canvas requires, and each of these grays sits below the 4.5:1 text
+ * threshold — so all four would derive to the same minimum gray, collapsing
+ * the ladder this palette exists to provide.
  *
  * Style 1 carries the maximum contrast (black on light, white on dark);
  * authors are advised to reserve style numbers 1-4 for their most important
@@ -37,6 +45,7 @@ export const grayscalePalette: StylePalette = {
             lineColorDarkMode: "#ffffff",
             markerColorDarkMode: "#ffffff",
             fillColorDarkMode: "#ffffff",
+            highContrastColorDarkMode: "#ffffff",
             lineColorWordDarkMode: "white",
             markerColorWordDarkMode: "white",
             fillColorWordDarkMode: "white",
@@ -59,6 +68,7 @@ export const grayscalePalette: StylePalette = {
             markerColorDarkMode: "#c7c7c7",
             fillColorDarkMode: "#c7c7c7",
             textColorDarkMode: "#c7c7c7",
+            highContrastColorDarkMode: "#c7c7c7",
             lineColorWordDarkMode: "light gray",
             markerColorWordDarkMode: "light gray",
             fillColorWordDarkMode: "light gray",
@@ -82,6 +92,7 @@ export const grayscalePalette: StylePalette = {
             markerColorDarkMode: "#929292",
             fillColorDarkMode: "#929292",
             textColorDarkMode: "#929292",
+            highContrastColorDarkMode: "#929292",
             lineColorWordDarkMode: "gray",
             markerColorWordDarkMode: "gray",
             fillColorWordDarkMode: "gray",
@@ -105,6 +116,7 @@ export const grayscalePalette: StylePalette = {
             markerColorDarkMode: "#626262",
             fillColorDarkMode: "#626262",
             textColorDarkMode: "#7d7d7d",
+            highContrastColorDarkMode: "#7d7d7d",
             lineColorWordDarkMode: "dark gray",
             markerColorWordDarkMode: "dark gray",
             fillColorWordDarkMode: "dark gray",
