@@ -20,7 +20,7 @@ import type { StylePalette } from "./types";
  *
  * Dark mode pins the CANONICAL Okabe–Ito colors: on a near-black canvas they
  * all clear the contrast thresholds, so dark mode gets the palette exactly
- * as designed (only black itself is replaced by a neutral gray, and blue's
+ * as designed (only black itself is replaced by white, and blue's
  * text variant is lightened to reach 4.5:1).
  *
  * Verified with a Machado-model CVD simulation + CIEDE2000 analysis: in
@@ -130,9 +130,9 @@ export const okabeItoPalette: StylePalette = {
             fillColor: "#000000",
             textColor: "#000000",
             highContrastColor: "#000000",
-            lineColorDarkMode: "#b3b3b3",
-            markerColorDarkMode: "#b3b3b3",
-            fillColorDarkMode: "#b3b3b3",
+            lineColorDarkMode: "#ffffff",
+            markerColorDarkMode: "#ffffff",
+            fillColorDarkMode: "#ffffff",
             textColorDarkMode: "#ffffff",
             lineWidth: 2,
             markerStyle: "plus",

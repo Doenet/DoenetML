@@ -5,7 +5,10 @@ import type { StylePalette } from "./types";
  * (https://personal.sron.nl/~pault/): only four styles, but with the largest
  * separation of any built-in palette — every pair stays above CIEDE2000
  * dE 14 under every simulated color vision deficiency, and the lightness
- * ladder keeps it legible even in pure grayscale. *
+ * ladder keeps it legible even in pure grayscale. Dark mode rebuilds the
+ * ladder rather than pinning canonical colors: blue just above the graphic
+ * threshold, then red, then yellow, then white (black's inversion), so the
+ * grayscale legibility carries over to the dark canvas. *
  * Light-mode anchors are the canonical colors wherever they meet Doenet's
  * contrast thresholds on white (3:1 as a graphic, 4.5:1 as text) and are
  * darkened chromaticity-preserving where they do not, with further-darkened
@@ -72,10 +75,15 @@ export const tolHighContrastPalette: StylePalette = {
             fillColor: "#bb5566",
             textColor: "#bb5566",
             highContrastColor: "#bb5566",
-            lineColorDarkMode: "#bb5566",
-            markerColorDarkMode: "#bb5566",
-            fillColorDarkMode: "#bb5566",
-            textColorDarkMode: "#be6270",
+            lineColorDarkMode: "#c06976",
+            markerColorDarkMode: "#c06976",
+            fillColorDarkMode: "#c06976",
+            textColorDarkMode: "#c06976",
+            lineColorWordDarkMode: "red",
+            markerColorWordDarkMode: "red",
+            fillColorWordDarkMode: "red",
+            textColorWordDarkMode: "red",
+            highContrastColorWordDarkMode: "red",
             lineWidth: 3,
             markerStyle: "triangle",
         },
@@ -85,10 +93,10 @@ export const tolHighContrastPalette: StylePalette = {
             fillColor: "#000000",
             textColor: "#000000",
             highContrastColor: "#000000",
-            lineColorDarkMode: "#a6a6a6",
-            markerColorDarkMode: "#a6a6a6",
-            fillColorDarkMode: "#a6a6a6",
-            textColorDarkMode: "#a6a6a6",
+            lineColorDarkMode: "#ffffff",
+            markerColorDarkMode: "#ffffff",
+            fillColorDarkMode: "#ffffff",
+            textColorDarkMode: "#ffffff",
             lineWidth: 2,
             markerStyle: "diamond",
         },
