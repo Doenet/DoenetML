@@ -1105,10 +1105,16 @@ export const EditorViewer = React.forwardRef<
         if (!view) {
             return;
         }
+        // The position indexes into the last-compiled source
+        // (`viewerDoenetML`), but the editor may hold newer, shorter text —
+        // the viewer only recompiles on an explicit update. Clamp so the
+        // dispatch below can't throw a selection-out-of-range error (which
+        // would also leave the suppression flag latched).
+        const offset = Math.min(position.start.offset, view.state.doc.length);
         suppressNextViewerFollowRef.current = true;
         view.dispatch({
-            selection: EditorSelection.cursor(position.start.offset),
-            effects: EditorView.scrollIntoView(position.start.offset, {
+            selection: EditorSelection.cursor(offset),
+            effects: EditorView.scrollIntoView(offset, {
                 y: "center",
             }),
         });

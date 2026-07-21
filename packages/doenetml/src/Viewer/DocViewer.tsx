@@ -865,22 +865,36 @@ export function DocViewer({
      * and, if the component has a direct source origin, `position`). Called
      * wherever a batch of renderer instructions arrives from the core, so
      * `positionByDomId` stays in sync with whatever's actually rendered.
+     *
+     * Entries can also be plain strings or nulls (text children), and a
+     * position's `offset` fields are optional in the underlying DAST types
+     * (unist `Point.offset?`), while everything reading this map — the
+     * scroll-target search and both click handlers — does arithmetic on
+     * them. Validating numeric start/end offsets here, at the single entry
+     * point, is what makes the map's `SourcePosition` value type honest.
      */
     function recordPositions(childrenInstructions: unknown): void {
         if (!Array.isArray(childrenInstructions)) {
             return;
         }
-        for (const instruction of childrenInstructions) {
+        for (const entry of childrenInstructions) {
+            const instruction = entry as {
+                id?: unknown;
+                position?: {
+                    start?: { offset?: unknown };
+                    end?: { offset?: unknown };
+                };
+            } | null;
             if (
                 instruction &&
                 typeof instruction === "object" &&
-                "id" in instruction &&
-                "position" in instruction &&
-                instruction.position
+                typeof instruction.id === "string" &&
+                typeof instruction.position?.start?.offset === "number" &&
+                typeof instruction.position?.end?.offset === "number"
             ) {
                 positionByDomId.current.set(
-                    prefixForIds + (instruction as { id: string }).id,
-                    (instruction as { position: SourcePosition }).position,
+                    prefixForIds + instruction.id,
+                    instruction.position as SourcePosition,
                 );
             }
         }
