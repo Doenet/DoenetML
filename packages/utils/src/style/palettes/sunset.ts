@@ -15,7 +15,9 @@ import type { StylePalette } from "./types";
  * value keeps the style's hue, clears WCAG AA for text (4.5:1 on the dark
  * canvas), and restores the lightness spread (style 5's line color sits
  * between the graphic and text thresholds, so its text pin is a lighter
- * variant). `*Word` descriptors are derived at expansion time.
+ * variant). `*Word` descriptors are derived at expansion time, except where
+ * the nearest-anchor word matcher misnames a color (crimson came back as
+ * "brown", gold as "orange"); those styles pin explicit words.
  */
 export const sunsetPalette: StylePalette = {
     name: "sunset",
@@ -28,6 +30,11 @@ export const sunsetPalette: StylePalette = {
             fillColor: "#c22047",
             textColor: "#c22047",
             highContrastColor: "#c22047",
+            lineColorWord: "red",
+            markerColorWord: "red",
+            fillColorWord: "red",
+            textColorWord: "red",
+            highContrastColorWord: "red",
             lineColorDarkMode: "#ee7d96",
             markerColorDarkMode: "#ee7d96",
             fillColorDarkMode: "#ee7d96",
@@ -58,6 +65,11 @@ export const sunsetPalette: StylePalette = {
             markerColorDarkMode: "#e8c623",
             fillColorDarkMode: "#e8c623",
             textColorDarkMode: "#e8c623",
+            lineColorWordDarkMode: "gold",
+            markerColorWordDarkMode: "gold",
+            fillColorWordDarkMode: "gold",
+            textColorWordDarkMode: "gold",
+            highContrastColorWordDarkMode: "gold",
             lineWidth: 3,
             markerStyle: "triangle",
         },
@@ -106,6 +118,11 @@ export const sunsetPalette: StylePalette = {
             fillColor: "#922d4d",
             textColor: "#922d4d",
             highContrastColor: "#922d4d",
+            lineColorWord: "red",
+            markerColorWord: "red",
+            fillColorWord: "red",
+            textColorWord: "red",
+            highContrastColorWord: "red",
             lineColorDarkMode: "#c75d7d",
             markerColorDarkMode: "#c75d7d",
             fillColorDarkMode: "#c75d7d",
@@ -124,6 +141,11 @@ export const sunsetPalette: StylePalette = {
             markerColorDarkMode: "#a99d96",
             fillColorDarkMode: "#a99d96",
             textColorDarkMode: "#a99d96",
+            lineColorWordDarkMode: "gray",
+            markerColorWordDarkMode: "gray",
+            fillColorWordDarkMode: "gray",
+            textColorWordDarkMode: "gray",
+            highContrastColorWordDarkMode: "gray",
             lineWidth: 1,
             lineStyle: "dotted",
             markerStyle: "square",

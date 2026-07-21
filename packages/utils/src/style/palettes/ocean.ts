@@ -14,7 +14,9 @@ import type { StylePalette } from "./types";
  * the lightness ladder the light-mode anchors were tuned for. Each pinned
  * value keeps the style's hue, clears WCAG AA for text (4.5:1 on the dark
  * canvas), and restores the lightness spread. `*Word` descriptors are
- * derived at expansion time.
+ * derived at expansion time, except where the nearest-anchor word matcher
+ * misnames a color (it has no notion of teal, for instance); those styles pin
+ * explicit words.
  */
 export const oceanPalette: StylePalette = {
     name: "ocean",
@@ -37,10 +39,20 @@ export const oceanPalette: StylePalette = {
             fillColor: "#00695f",
             textColor: "#00695f",
             highContrastColor: "#00695f",
+            lineColorWord: "teal",
+            markerColorWord: "teal",
+            fillColorWord: "teal",
+            textColorWord: "teal",
+            highContrastColorWord: "teal",
             lineColorDarkMode: "#00b3a1",
             markerColorDarkMode: "#00b3a1",
             fillColorDarkMode: "#00b3a1",
             textColorDarkMode: "#00b3a1",
+            lineColorWordDarkMode: "teal",
+            markerColorWordDarkMode: "teal",
+            fillColorWordDarkMode: "teal",
+            textColorWordDarkMode: "teal",
+            highContrastColorWordDarkMode: "teal",
             lineWidth: 2,
             markerStyle: "square",
         },
@@ -63,10 +75,16 @@ export const oceanPalette: StylePalette = {
             fillColor: "#00648f",
             textColor: "#00648f",
             highContrastColor: "#00648f",
+            lineColorWord: "blue",
+            markerColorWord: "blue",
+            fillColorWord: "blue",
+            textColorWord: "blue",
+            highContrastColorWord: "blue",
             lineColorDarkMode: "#53c1f0",
             markerColorDarkMode: "#53c1f0",
             fillColorDarkMode: "#53c1f0",
             textColorDarkMode: "#53c1f0",
+            highContrastColorWordDarkMode: "blue",
             lineWidth: 2,
             markerStyle: "diamond",
         },
@@ -102,10 +120,16 @@ export const oceanPalette: StylePalette = {
             fillColor: "#1d4655",
             textColor: "#1d4655",
             highContrastColor: "#1d4655",
+            lineColorWord: "blue",
+            markerColorWord: "blue",
+            fillColorWord: "blue",
+            textColorWord: "blue",
+            highContrastColorWord: "blue",
             lineColorDarkMode: "#4f92b8",
             markerColorDarkMode: "#4f92b8",
             fillColorDarkMode: "#4f92b8",
             textColorDarkMode: "#4f92b8",
+            highContrastColorWordDarkMode: "blue",
             lineWidth: 3,
             lineStyle: "dashed",
             markerStyle: "circle",

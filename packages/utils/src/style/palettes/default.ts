@@ -11,7 +11,8 @@ import type { StylePalette } from "./types";
  * derivation steps are all no-ops here, which keeps the expanded output
  * byte-identical to the historical `returnDefaultStyleDefinitions()` result.
  * Don't imitate this style in new palettes — author compactly and let
- * expansion derive the rest.
+ * expansion derive the rest, pinning only the `*Word` fields that the
+ * word derivation misnames.
  */
 export const defaultPalette: StylePalette = {
     name: "default",
