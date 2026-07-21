@@ -18,7 +18,7 @@ import type { RawStyleDefinitions } from "../styleDefinitionHelpers";
  */
 export interface StylePalette {
     /**
-     * Registry key and the author-facing value of `<stylePalette name="..."/>`.
+     * Registry key and the author-facing value of `<stylePalette palette="..."/>`.
      * Lower-camel-case, must match the key in `STYLE_PALETTES`.
      */
     name: string;

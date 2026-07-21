@@ -36,6 +36,10 @@ describe("palette registry", () => {
 describe("default palette expansion", () => {
     it("matches returnDefaultStyleDefinitions and preserves the historical preset values", () => {
         const expanded = returnPaletteStyleDefinitions(DEFAULT_PALETTE_NAME);
+        // Delegation guard: returnDefaultStyleDefinitions must stay wired to
+        // the "default" palette. (It expands that palette itself, so the
+        // historical values are pinned by the spot-checks below, not by this
+        // comparison.)
         expect(expanded).toEqual(returnDefaultStyleDefinitions());
 
         expect(Object.keys(expanded).sort()).toEqual([
@@ -47,11 +51,17 @@ describe("default palette expansion", () => {
             "6",
         ]);
 
-        // Spot-check historical values, including authored empty words that
-        // derivation must not overwrite.
+        // Spot-check historical values, including authored empty words and
+        // authored dark-mode colors that derivation must not overwrite.
         expect(getStyleValueString(expanded[1], "lineColor")).toBe("#1f5dff");
         expect(getStyleValueString(expanded[1], "lineWidthWord")).toBe("thick");
         expect(getStyleValueString(expanded[2], "lineColor")).toBe("#D4042D");
+        expect(getStyleValueString(expanded[2], "lineColorDarkMode")).toBe(
+            "#F1466A",
+        );
+        expect(getStyleValueString(expanded[2], "textColorDarkMode")).toBe(
+            "#FF7A7A",
+        );
         expect(getStyleValueString(expanded[2], "lineWidthWord")).toBe("");
         expect(getStyleValueString(expanded[2], "markerStyleWord")).toBe(
             "square",

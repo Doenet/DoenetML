@@ -3,7 +3,7 @@ import type { StylePalette } from "./types";
 
 /**
  * Registry of built-in style palettes, keyed by palette name (the value
- * authors write in `<stylePalette name="..."/>`).
+ * authors write in `<stylePalette palette="..."/>`).
  *
  * This module holds palette *data* only; the expansion pipeline
  * (`expandStylePalette` / `returnPaletteStyleDefinitions`) lives in
