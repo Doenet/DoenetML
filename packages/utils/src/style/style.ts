@@ -801,7 +801,8 @@ export function returnPaletteStyleDefinitions(
  * IMPORTANT: this function is lazily cached on the LSP side (see
  * `resolve-active-style.ts`'s `_builtInPresetsCache`), so its output must
  * stay pure w.r.t. mutable module state. Palette expansion reads only the
- * immutable palette registry; do not switch it to read from the mutable
+ * palette registry, which is deeply frozen at registration precisely to
+ * protect this invariant; do not switch it to read from the mutable
  * `defaultStyle` variable without first dropping that cache or the LSP will
  * silently desync from runtime mutations.
  */

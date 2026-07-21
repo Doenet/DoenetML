@@ -31,6 +31,20 @@ describe("palette registry", () => {
             );
         }
     });
+
+    it("is deeply frozen, so shared registry data cannot be mutated at runtime", () => {
+        // The LSP lazily caches the expansion of the default palette, so any
+        // runtime mutation of registry data would silently desync the LSP
+        // from the runtime; freezing makes such a mutation throw instead.
+        expect(Object.isFrozen(STYLE_PALETTES)).toBe(true);
+        for (const palette of Object.values(STYLE_PALETTES)) {
+            expect(Object.isFrozen(palette)).toBe(true);
+            expect(Object.isFrozen(palette.styles)).toBe(true);
+            for (const styleDef of Object.values(palette.styles)) {
+                expect(Object.isFrozen(styleDef)).toBe(true);
+            }
+        }
+    });
 });
 
 describe("default palette expansion", () => {

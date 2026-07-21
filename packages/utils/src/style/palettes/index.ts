@@ -2,8 +2,32 @@ import { defaultPalette } from "./default";
 import type { StylePalette } from "./types";
 
 /**
+ * Deep-freezes a palette (the palette object, its styles map, each style
+ * definition, and any wrapped values). Palette data is shared module state
+ * whose immutability is load-bearing: `returnDefaultStyleDefinitions()` is
+ * lazily cached on the LSP side, so a mutation of registry data would
+ * silently desync the LSP from the runtime. Freezing turns that class of bug
+ * into a loud `TypeError` at the mutation site instead. Expansion
+ * (`expandStylePalette`) copies before deriving, so freezing never bites
+ * legitimate callers.
+ */
+function deepFreezePalette(palette: StylePalette): StylePalette {
+    for (const styleDef of Object.values(palette.styles)) {
+        for (const value of Object.values(styleDef)) {
+            if (typeof value === "object" && value !== null) {
+                Object.freeze(value);
+            }
+        }
+        Object.freeze(styleDef);
+    }
+    Object.freeze(palette.styles);
+    return Object.freeze(palette);
+}
+
+/**
  * Registry of built-in style palettes, keyed by palette name (the value
- * authors write in `<stylePalette palette="..."/>`).
+ * authors write in `<stylePalette palette="..."/>`). All entries are deeply
+ * frozen at registration (see {@link deepFreezePalette}).
  *
  * This module holds palette *data* only; the expansion pipeline
  * (`expandStylePalette` / `returnPaletteStyleDefinitions`) lives in
@@ -15,8 +39,9 @@ import type { StylePalette } from "./types";
  * iterates this registry and enforces WCAG contrast in both modes).
  */
 export const STYLE_PALETTES: Record<string, StylePalette> = {
-    [defaultPalette.name]: defaultPalette,
+    [defaultPalette.name]: deepFreezePalette(defaultPalette),
 };
+Object.freeze(STYLE_PALETTES);
 
 /** Name of the palette used when no `<stylePalette>` is selected. */
 export const DEFAULT_PALETTE_NAME = defaultPalette.name;
