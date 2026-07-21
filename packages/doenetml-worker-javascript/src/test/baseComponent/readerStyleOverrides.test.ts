@@ -58,7 +58,7 @@ describe("Reader style overrides @group4", async () => {
     it("a reader palette replaces authored styling and cycles onto its size", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <styleDefinition styleNumber="1" lineColor="orange" />
 <point name="P" />
 <point name="Q" styleNumber="6" />
@@ -67,14 +67,14 @@ describe("Reader style overrides @group4", async () => {
             styleOverrides: { palette: "grayscale" },
         });
 
-        // Authored palette (ocean) and styleDefinition (orange) are both
+        // Authored palette (okabeito) and styleDefinition (orange) are both
         // discarded in favor of the reader's palette.
         const styleP = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
         expect(styleP.lineColor).eq("#000000");
 
         // grayscale has 4 styles, so styleNumber 6 cycles onto style 2 —
         // driven by the reader palette even though the authored palette
-        // (ocean) has 8 styles.
+        // (okabeito) has 8 styles.
         const styleQ = await selectedStyleOf(core, resolvePathToNodeIdx, "Q");
         expect(styleQ.lineColor).eq("#323232");
 
@@ -149,7 +149,7 @@ describe("Reader style overrides @group4", async () => {
     it("styleOverrides win over a selected style palette", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<stylePalette palette="ocean" />
+<stylePalette palette="okabeito" />
 <point name="P" />
 `,
             styleOverrides: { styles: { 1: { markerColor: "purple" } } },
@@ -158,7 +158,7 @@ describe("Reader style overrides @group4", async () => {
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
         expect(style.markerColor).eq("purple");
         // Keys the reader did not override still come from the palette.
-        expect(style.lineColor).eq("#1c3fae");
+        expect(style.lineColor).eq("#0072b2");
     });
 
     it("hex overrides derive color words and dark-mode colors", async () => {
