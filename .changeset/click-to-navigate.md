@@ -12,4 +12,4 @@ Clicking a rendered element now moves the editor's cursor to (and reveals/center
 
 Implementation notes: the core now includes each component's source `position` in its renderer instructions; `DocViewer` maintains an id-to-position map from that stream to power a delegated click handler and a `scrollToSourceOffset` prop, with no changes required to individual renderer components. Content produced via `<copy>` collapses to the `<copy>` tag's own source range rather than mapping to the exact nested element, since copied content doesn't retain its original element-level positions.
 
-Also fixes `@doenet/codemirror`'s library build, whose Vite config pointed `lib.entry` at `CodeMirror.tsx` instead of `index.ts` — silently dropping any runtime (non-type-only) export added to `index.ts` from the published bundle.
+Also fixes `@doenet/codemirror`'s library build, whose Vite config pointed `lib.entry` at `CodeMirror.tsx` instead of `index.ts` — silently dropping any runtime (non-type-only) export added to `index.ts` from the built bundle that `@doenet/doenetml` consumes.

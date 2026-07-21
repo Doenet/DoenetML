@@ -170,12 +170,13 @@ export function DocViewer({
         lastScrolledSourceOffset.current = scrollToSourceOffset;
 
         // Resolve a candidate id to its element, scoped to this viewer.
-        // `positionByDomId` is only ever added to, so it can hold stale
-        // entries — ids recorded from an earlier version of the source that
-        // no longer exist in the DOM, or components not currently rendered
-        // (e.g. hidden) — and a candidate only counts if its element is
-        // actually present. Checked lazily, only when a candidate would
-        // become the new best, so most entries never incur a DOM lookup.
+        // Within a document's lifetime `positionByDomId` is only ever added
+        // to (it's cleared only when the document itself resets), so it can
+        // hold stale entries — ids from renderer instructions whose
+        // components are no longer rendered (e.g. hidden or removed by an
+        // update) — and a candidate only counts if its element is actually
+        // present. Checked lazily, only when a candidate would become the
+        // new best, so most entries never incur a DOM lookup.
         function renderedElement(id: string): Element | null {
             return (
                 viewerContainerRef.current?.querySelector(
@@ -1773,6 +1774,11 @@ export function DocViewer({
         coreCreated.current = false;
         coreCreationInProgress.current = false;
         loadedInitialRendererState.current = false;
+        // Source positions recorded for the old document are meaningless
+        // offsets into the new one; drop them rather than letting them
+        // accumulate across recompiles (`recordPositions` repopulates the
+        // map as the new core's renderer instructions stream in).
+        positionByDomId.current.clear();
 
         setStage("wait");
 
