@@ -6,6 +6,7 @@ import { tolHighContrastPalette } from "./tolHighContrast";
 import { ibmPalette } from "./ibm";
 import { grayscalePalette } from "./grayscale";
 import { categoricalPalette } from "./categorical";
+import { grumpyNarwhalPalette } from "./grumpyNarwhal";
 import type { StylePalette } from "./types";
 
 /**
@@ -63,6 +64,7 @@ export const STYLE_PALETTES: Record<string, StylePalette> = Object.assign(
         [ibmPalette.name]: deepFreezePalette(ibmPalette),
         [grayscalePalette.name]: deepFreezePalette(grayscalePalette),
         [categoricalPalette.name]: deepFreezePalette(categoricalPalette),
+        [grumpyNarwhalPalette.name]: deepFreezePalette(grumpyNarwhalPalette),
     },
 );
 Object.freeze(STYLE_PALETTES);
@@ -116,4 +118,5 @@ export { tolHighContrastPalette } from "./tolHighContrast";
 export { ibmPalette } from "./ibm";
 export { grayscalePalette } from "./grayscale";
 export { categoricalPalette } from "./categorical";
+export { grumpyNarwhalPalette } from "./grumpyNarwhal";
 export type { StylePalette } from "./types";
