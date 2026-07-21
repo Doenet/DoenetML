@@ -32,6 +32,14 @@ describe("palette registry", () => {
         }
     });
 
+    it("does not expose Object.prototype keys as palettes", () => {
+        // Palette names are author-supplied strings; a default-prototype
+        // registry would let e.g. "constructor" pass `in`/truthiness checks
+        // and shadow the not-registered fallback.
+        expect("constructor" in STYLE_PALETTES).toBe(false);
+        expect(STYLE_PALETTES["constructor"]).toBeUndefined();
+    });
+
     it("is deeply frozen, so shared registry data cannot be mutated at runtime", () => {
         // The LSP lazily caches the expansion of the default palette, so any
         // runtime mutation of registry data would silently desync the LSP
@@ -117,8 +125,15 @@ describe("default palette expansion", () => {
     });
 
     it("falls back to the default palette for an unknown name", () => {
+        const defaultExpansion =
+            returnPaletteStyleDefinitions(DEFAULT_PALETTE_NAME);
         expect(returnPaletteStyleDefinitions("noSuchPalette")).toEqual(
-            returnPaletteStyleDefinitions(DEFAULT_PALETTE_NAME),
+            defaultExpansion,
+        );
+        // Object.prototype keys must also hit the fallback, not resolve to
+        // inherited junk that expands to an empty style map.
+        expect(returnPaletteStyleDefinitions("constructor")).toEqual(
+            defaultExpansion,
         );
     });
 });

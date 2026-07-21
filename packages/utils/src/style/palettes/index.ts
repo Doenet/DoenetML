@@ -37,10 +37,18 @@ function deepFreezePalette(palette: StylePalette): StylePalette {
  * To add a palette: create `./<name>.ts` exporting a `StylePalette`, register
  * it here, and make sure it passes `presetPaletteAccessibility.test.ts` (which
  * iterates this registry and enforces WCAG contrast in both modes).
+ *
+ * The registry has a null prototype: palette names are author-supplied
+ * strings, so without it an `Object.prototype` key (e.g. `"constructor"`)
+ * would pass `in`/truthiness checks and shadow the not-registered fallback
+ * with a garbage "palette".
  */
-export const STYLE_PALETTES: Record<string, StylePalette> = {
-    [defaultPalette.name]: deepFreezePalette(defaultPalette),
-};
+export const STYLE_PALETTES: Record<string, StylePalette> = Object.assign(
+    Object.create(null),
+    {
+        [defaultPalette.name]: deepFreezePalette(defaultPalette),
+    },
+);
 Object.freeze(STYLE_PALETTES);
 
 /** Name of the palette used when no `<stylePalette>` is selected. */
