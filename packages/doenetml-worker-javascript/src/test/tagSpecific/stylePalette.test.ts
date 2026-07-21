@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import { colorValueToWord } from "@doenet/utils";
 
 const Mock = vi.fn();
@@ -159,6 +160,24 @@ describe("Style palette tag tests @group4", async () => {
         expect(style.markerStyle).eq("square");
     });
 
+    it("cycling also applies inside a section that inherits the palette", async () => {
+        // Exercises the activeStylePaletteName ancestor chain: the section
+        // selects no palette of its own, so cycling must key off the palette
+        // name inherited from the document.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<stylePalette palette="ocean" />
+<section name="s">
+    <point name="P" styleNumber="10" />
+</section>
+`,
+        });
+
+        const style = await selectedStyleOf(core, resolvePathToNodeIdx, "s.P");
+        expect(style.markerColor).eq(OCEAN_2);
+        expect(style.markerStyle).eq("square");
+    });
+
     it("without a palette, style numbers beyond the defaults keep the historical fallback", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -185,7 +204,7 @@ describe("Style palette tag tests @group4", async () => {
         expect(style.markerColor).eq(OCEAN_2);
     });
 
-    it("an unknown palette name falls back to the default palette", async () => {
+    it("an unknown palette name falls back to the default palette with a diagnostic", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <stylePalette palette="noSuchPalette" />
@@ -195,6 +214,27 @@ describe("Style palette tag tests @group4", async () => {
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
         expect(style.markerColor).eq(DEFAULT_1);
+
+        const { infos } = getDiagnosticsByType(core);
+        expect(
+            infos.some((diagnostic: any) =>
+                diagnostic.message.includes(
+                    "Invalid value `noSuchPalette` for attribute `palette`",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("palette names match case-insensitively", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<stylePalette palette="Ocean" />
+<point name="P" />
+`,
+        });
+
+        const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
+        expect(style.markerColor).eq(OCEAN_1);
     });
 
     it("style descriptions reflect the palette colors", async () => {
@@ -212,7 +252,7 @@ describe("Style palette tag tests @group4", async () => {
         ).eq(`The ${colorValueToWord(OCEAN_1)} point.`);
     });
 
-    it("with multiple stylePalettes in a section, the last wins", async () => {
+    it("with multiple stylePalettes in a section, the last wins and the others warn", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <stylePalette palette="ocean" />
@@ -223,5 +263,11 @@ describe("Style palette tag tests @group4", async () => {
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
         expect(style.markerColor).eq(SUNSET_1);
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).contain(
+            "A section can select only one <stylePalette>; using the last one.",
+        );
     });
 });

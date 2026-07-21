@@ -800,7 +800,7 @@ export function returnPaletteStyleDefinitions(
  * same preset the runtime would.
  *
  * IMPORTANT: this function is lazily cached on the LSP side (see
- * `resolve-active-style.ts`'s `_builtInPresetsCache`), so its output must
+ * `resolve-active-style.ts`'s `_palettePresetsCache`), so its output must
  * stay pure w.r.t. mutable module state. Palette expansion reads only the
  * palette registry, which is deeply frozen at registration precisely to
  * protect this invariant; do not switch it to read from the mutable
@@ -809,6 +809,31 @@ export function returnPaletteStyleDefinitions(
  */
 export function returnDefaultStyleDefinitions(): StyleDefinitions {
     return returnPaletteStyleDefinitions(DEFAULT_PALETTE_NAME);
+}
+
+/**
+ * Flatten a mixed child list (target children interleaved with `<setup>`
+ * children, in document order) into just the target children: each `<setup>`
+ * child is replaced by the target children the caller registered for it under
+ * the dependency key `` `${perSetupPrefix}${componentIdx}` ``. Preserves
+ * document order, which "last wins" semantics rely on.
+ */
+function childrenExpandingSetups(
+    dependencyValues: any,
+    mixedChildren: any[],
+    perSetupPrefix: string,
+): any[] {
+    const out: any[] = [];
+    for (const child of mixedChildren) {
+        if (child.componentType === "setup") {
+            out.push(
+                ...dependencyValues[`${perSetupPrefix}${child.componentIdx}`],
+            );
+        } else {
+            out.push(child);
+        }
+    }
+    return out;
 }
 
 /**
@@ -861,18 +886,11 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             return dependencies;
         },
         definition({ dependencyValues }: { dependencyValues: any }) {
-            const stylePaletteChildren = [] as any[];
-            for (let child of dependencyValues.stylePaletteSetupChildren) {
-                if (child.componentType === "setup") {
-                    stylePaletteChildren.push(
-                        ...dependencyValues[
-                            `stylePalettesOf${child.componentIdx}`
-                        ],
-                    );
-                } else {
-                    stylePaletteChildren.push(child);
-                }
-            }
+            const stylePaletteChildren = childrenExpandingSetups(
+                dependencyValues,
+                dependencyValues.stylePaletteSetupChildren,
+                "stylePalettesOf",
+            );
 
             if (stylePaletteChildren.length === 0) {
                 return { setValue: { localStylePaletteName: null } };
@@ -995,18 +1013,11 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 );
             }
 
-            const styleDefinitionChildren = [] as any[];
-            for (let child of dependencyValues.styleDefinitionSetupChildren) {
-                if (child.componentType === "setup") {
-                    styleDefinitionChildren.push(
-                        ...dependencyValues[
-                            `styleDefinitionsOf${child.componentIdx}`
-                        ],
-                    );
-                } else {
-                    styleDefinitionChildren.push(child);
-                }
-            }
+            const styleDefinitionChildren = childrenExpandingSetups(
+                dependencyValues,
+                dependencyValues.styleDefinitionSetupChildren,
+                "styleDefinitionsOf",
+            );
 
             for (const child of styleDefinitionChildren) {
                 const styleNumber = child.stateValues.styleNumber;

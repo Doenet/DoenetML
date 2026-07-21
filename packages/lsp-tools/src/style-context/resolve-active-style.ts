@@ -15,10 +15,11 @@
  *   - Dynamically-computed `styleNumber` (`<point styleNumber="$n"/>`) — we
  *     read the attribute text only, so a macro yields `undefined` and the
  *     active default falls back to the built-in preset for styleNumber=1.
- *   - `<styleDefinition>` blocks parented by an element that doesn't host a
- *     `styleDefinitions` state variable (e.g. someone tucks one inside
- *     `<graph>`) — the runtime ignores them; we include them. Best-effort
- *     hint that matches what an author would expect to influence the view.
+ *   - `<styleDefinition>` blocks (and `<stylePalette>` selections) parented
+ *     by an element that doesn't host a `styleDefinitions` state variable
+ *     (e.g. someone tucks one inside `<graph>`) — the runtime ignores them;
+ *     we include them. Best-effort hint that matches what an author would
+ *     expect to influence the view.
  *   - Resolution while the DAST is still mid-edit — we return whatever the
  *     current parse contains, including incomplete styleDefinitions.
  */
@@ -424,11 +425,11 @@ function mergeBlockInto(
 }
 
 /**
- * Lazy-initialized primitive view of the runtime's 6 built-in styleDefinitions
- * (lazy so the module-load cost is paid only when the help panel actually
- * resolves an active style). `returnDefaultStyleDefinitions` returns the
- * position-wrapped runtime shape; we unwrap to primitives because the LSP
- * doesn't need source positions for the active-default hint.
+ * Lazy per-palette cache of primitive views of the runtime's built-in style
+ * presets (lazy so the expansion cost is paid only for palettes the help
+ * panel actually resolves against). `returnPaletteStyleDefinitions` returns
+ * the position-wrapped runtime shape; we unwrap to primitives because the
+ * LSP doesn't need source positions for the active-default hint.
  */
 const _palettePresetsCache = new Map<
     string,
@@ -492,7 +493,9 @@ function findOwnedStylePaletteName(
         }
     }
     if (!found) return undefined;
-    const raw = readAttributeText(found, "palette");
+    // Case-insensitive to match the runtime's `toLowerCase: true` on the
+    // `palette` attribute (registry names are all lowercase).
+    const raw = readAttributeText(found, "palette")?.toLowerCase();
     if (raw !== undefined && raw in STYLE_PALETTES) return raw;
     return DEFAULT_PALETTE_NAME;
 }
@@ -515,16 +518,20 @@ export interface ExcludeAttribute {
 /**
  * Resolve the active style at `element`'s scope. The walk:
  *   1. Determine the styleNumber active at `element`.
- *   2. Seed a primitive style map from the built-in preset for that number
- *      (or the global default if the number is unknown).
- *   3. Walk ancestors root-to-leaf; for each, build a normalized
+ *   2. Determine the active palette: the deepest ancestor owning a
+ *      `<stylePalette>` wins, resets the walk at that ancestor (blocks above
+ *      it are discarded), and cycles out-of-range style numbers onto the
+ *      palette — see the inline comments in the body.
+ *   3. Seed a primitive style map from the active palette's preset for that
+ *      number (or the global default if the number is unknown).
+ *   4. Walk the (possibly reset) ancestor chain; for each, build a normalized
  *      `<styleDefinition>` block (per-block dark-mode + word derivation,
  *      mirroring the worker's `returnStyleDefinitionStateVariables`) for
  *      every block whose `styleNumber` matches, skipping
  *      `options.excludeAttribute.attributeName` on the matching node so the
  *      hint reflects "what if I removed just this attribute". Merge in
  *      source order so later wins.
- *   4. Pass through `resolveStyleDefinition` so every key in the
+ *   5. Pass through `resolveStyleDefinition` so every key in the
  *      `ResolvedStyleDefinition` shape is populated — the same fallback
  *      pass the runtime uses for `selectedStyle`.
  *

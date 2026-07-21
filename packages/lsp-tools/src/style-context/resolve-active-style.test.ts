@@ -806,6 +806,16 @@ describe("resolveActiveStyle — style palettes", () => {
         );
     });
 
+    it("palette names match case-insensitively, mirroring the runtime's toLowerCase", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<stylePalette palette="Ocean"/><point/>`,
+        );
+        const point = findElement(sourceObj, "point");
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#1c3fae",
+        );
+    });
+
     it("without a palette, out-of-range numbers keep the historical default fallback", () => {
         const sourceObj = new DoenetSourceObject(`<point styleNumber="10"/>`);
         const point = findElement(sourceObj, "point");
