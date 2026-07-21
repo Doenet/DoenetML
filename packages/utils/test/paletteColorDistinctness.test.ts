@@ -3,6 +3,7 @@ import {
     STYLE_PALETTE_NAMES,
     returnPaletteStyleDefinitions,
     getStyleValueString,
+    styleAttributes,
 } from "../src/style";
 
 /**
@@ -164,6 +165,47 @@ describe("palettes have at least four styles", () => {
         it(`palette "${paletteName}"`, () => {
             const styles = returnPaletteStyleDefinitions(paletteName);
             expect(Object.keys(styles).length).toBeGreaterThanOrEqual(4);
+        });
+    }
+});
+
+describe("palette enum-valued keys reach renderers normalized", () => {
+    // Authored `<styleDefinition markerStyle="triangleDown">` values are
+    // lowercased on their way to a renderer (the attribute specs below set
+    // `toLowerCase: true`), and renderers pass them straight to JSXGraph,
+    // whose face/dash names are all lowercase. Palette data does not travel
+    // the attribute path, so expansion must apply the same normalization —
+    // otherwise a camelCase palette value reaches JSXGraph as an unknown
+    // face name and the object silently renders INVISIBLE.
+    const ENUM_KEYS = ["markerStyle", "lineStyle", "fillStyle"] as const;
+
+    for (const paletteName of STYLE_PALETTE_NAMES) {
+        it(`palette "${paletteName}"`, () => {
+            const styles = returnPaletteStyleDefinitions(paletteName);
+            for (const [styleNumber, styleDef] of Object.entries(styles)) {
+                for (const key of ENUM_KEYS) {
+                    const value = getStyleValueString(styleDef, key);
+                    if (!value) {
+                        continue;
+                    }
+                    const spec = styleAttributes[key];
+                    const validValues = spec.validValues!.map((v) =>
+                        typeof v === "string" ? v : v.value,
+                    );
+                    // Names a real value (case-insensitively)...
+                    expect(
+                        validValues.map((v) => v.toLowerCase()),
+                        `${paletteName} style ${styleNumber} ${key}="${value}"`,
+                    ).toContain(value.toLowerCase());
+                    // ...and arrives in the case the renderer requires.
+                    if (spec.toLowerCase) {
+                        expect(
+                            value,
+                            `${paletteName} style ${styleNumber} ${key} must reach the renderer lowercased`,
+                        ).toBe(value.toLowerCase());
+                    }
+                }
+            }
         });
     }
 });

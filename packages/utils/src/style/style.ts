@@ -767,11 +767,43 @@ export function expandStylePalette(palette: StylePalette): StyleDefinitions {
     const styleDefinitions = normalizeStyleDefinitionsValues(palette.styles);
 
     for (const styleDef of Object.values(styleDefinitions)) {
+        lowercaseEnumStyleValues(styleDef);
         addMissingChildStyleColorFields(styleDef);
         deriveMissingStyleWords(styleDef);
     }
 
     return styleDefinitions;
+}
+
+/**
+ * Lowercases the values of text attributes whose spec sets
+ * `toLowerCase: true` (`markerStyle`, `lineStyle`, `fillStyle`), in place.
+ *
+ * Authored values reach renderers already lowercased — the
+ * `<styleDefinition>` path lowercases unconditionally, and the
+ * per-component override path honours the same flag — and renderers hand
+ * these straight to JSXGraph, whose face and dash names are all lowercase.
+ * Palette data never travels the attribute path, so without this a palette
+ * written with the schema's camelCase spelling (`markerStyle:
+ * "triangleDown"`, which is exactly how `validValues` presents it) would
+ * reach JSXGraph as an unknown face name and its objects would render
+ * INVISIBLE rather than fall back to a default shape. Normalizing here lets
+ * palette modules use the documented spelling and still be renderer-correct.
+ */
+function lowercaseEnumStyleValues(styleDef: StyleDefinition): void {
+    for (const [key, spec] of Object.entries(styleAttributes)) {
+        if (!spec.toLowerCase) {
+            continue;
+        }
+        const value = getStyleValueString(styleDef, key as StyleDefinitionKey);
+        if (typeof value === "string" && value !== value.toLowerCase()) {
+            setStyleValue(
+                styleDef,
+                key as StyleDefinitionKey,
+                value.toLowerCase(),
+            );
+        }
+    }
 }
 
 /**
