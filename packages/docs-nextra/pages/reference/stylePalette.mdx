@@ -62,7 +62,7 @@ A `<stylePalette>{:dn}` placed inside a `<section>{:dn}` applies only to that se
 
 ## Behavior details
 
-- **A palette selection is a reset.** Choosing a palette replaces the base styles for that section's subtree; `<styleDefinition>{:dn}` customizations made in *ancestor* sections do not carry into the subtree (they were tuned against a different palette's colors). To keep such a customization, restate it below the `<stylePalette>{:dn}`.
+- **A palette selection is a reset.** Choosing a palette replaces the base styles for that section's subtree; `<styleDefinition>{:dn}` customizations made in *ancestor* sections do not carry into the subtree (they were tuned against a different palette's colors). To keep such a customization, restate it below the `<stylePalette>{:dn}`. This holds even when selecting the `default` palette — a bare `<stylePalette />{:dn}` is a handy way to return a subtree to the stock styles.
 - **`<styleDefinition>{:dn}` still works on top.** A `<styleDefinition>{:dn}` in the same section (or a descendant section) overrides individual settings of the selected palette, exactly as it does over the default styles.
 - **Style numbers beyond the palette wrap around.** With an eight-style palette, `styleNumber="10"{:dn}` draws as style 2. Every style number therefore stays on-palette and keeps the palette's contrast guarantees.
 - **One palette per section.** If several `<stylePalette>{:dn}` components appear in the same section, the last one wins and the others are flagged with a warning.

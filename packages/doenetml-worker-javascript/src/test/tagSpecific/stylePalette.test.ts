@@ -9,6 +9,7 @@ vi.mock("hyperformula");
 
 // Anchor colors of the built-in palettes used by these tests.
 const DEFAULT_1 = "#1f5dff";
+const DEFAULT_4 = "#644CD6";
 const OCEAN_1 = "#1c3fae";
 const OCEAN_2 = "#00695f";
 const SUNSET_1 = "#c22047";
@@ -235,6 +236,31 @@ describe("Style palette tag tests @group4", async () => {
 
         const style = await selectedStyleOf(core, resolvePathToNodeIdx, "P");
         expect(style.markerColor).eq(OCEAN_1);
+    });
+
+    it("a bare <stylePalette/> selects the default palette explicitly, so it still resets and cycles", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<styleDefinition styleNumber="1" markerColor="green" />
+<section name="s">
+    <stylePalette />
+    <point name="P" />
+    <point name="Q" styleNumber="10" />
+</section>
+`,
+        });
+
+        // Selecting the default palette is still a reset: the ancestor
+        // override is discarded and style 1 returns to the stock blue.
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "s.P"))
+                .markerColor,
+        ).eq(DEFAULT_1);
+        // And cycling is active: default has 6 styles, so 10 cycles to 4.
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "s.Q"))
+                .markerColor,
+        ).eq(DEFAULT_4);
     });
 
     it("style descriptions reflect the palette colors", async () => {

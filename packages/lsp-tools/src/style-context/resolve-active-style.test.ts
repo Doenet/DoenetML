@@ -816,6 +816,30 @@ describe("resolveActiveStyle — style palettes", () => {
         );
     });
 
+    it("a bare <stylePalette/> selects the default palette explicitly, so it still resets", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<styleDefinition styleNumber="1" markerColor="green"/>
+<section><stylePalette/><point/></section>`,
+        );
+        // The ancestor override is discarded and style 1 returns to the
+        // stock blue.
+        const point = findElement(sourceObj, "point");
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#1f5dff",
+        );
+    });
+
+    it("a bare <stylePalette/> also activates cycling for out-of-range numbers", () => {
+        const sourceObj = new DoenetSourceObject(
+            `<stylePalette/><point styleNumber="10"/>`,
+        );
+        const point = findElement(sourceObj, "point");
+        // default has 6 styles; 10 cycles to 4 (purple).
+        expect(resolveActiveStyle(sourceObj, point).style.markerColor).toBe(
+            "#644CD6",
+        );
+    });
+
     it("without a palette, out-of-range numbers keep the historical default fallback", () => {
         const sourceObj = new DoenetSourceObject(`<point styleNumber="10"/>`);
         const point = findElement(sourceObj, "point");
