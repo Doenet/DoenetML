@@ -1,6 +1,10 @@
 import { defaultPalette } from "./default";
 import { oceanPalette } from "./ocean";
 import { okabeItoPalette } from "./okabeIto";
+import { tolBrightPalette } from "./tolBright";
+import { tolMutedPalette } from "./tolMuted";
+import { tolHighContrastPalette } from "./tolHighContrast";
+import { ibmPalette } from "./ibm";
 import { sunsetPalette } from "./sunset";
 import type { StylePalette } from "./types";
 
@@ -52,6 +56,12 @@ export const STYLE_PALETTES: Record<string, StylePalette> = Object.assign(
         [defaultPalette.name]: deepFreezePalette(defaultPalette),
         [oceanPalette.name]: deepFreezePalette(oceanPalette),
         [okabeItoPalette.name]: deepFreezePalette(okabeItoPalette),
+        [tolBrightPalette.name]: deepFreezePalette(tolBrightPalette),
+        [tolMutedPalette.name]: deepFreezePalette(tolMutedPalette),
+        [tolHighContrastPalette.name]: deepFreezePalette(
+            tolHighContrastPalette,
+        ),
+        [ibmPalette.name]: deepFreezePalette(ibmPalette),
         [sunsetPalette.name]: deepFreezePalette(sunsetPalette),
     },
 );
@@ -101,5 +111,9 @@ export function cycleStyleNumberForPalette(
 export { defaultPalette } from "./default";
 export { oceanPalette } from "./ocean";
 export { okabeItoPalette } from "./okabeIto";
+export { tolBrightPalette } from "./tolBright";
+export { tolMutedPalette } from "./tolMuted";
+export { tolHighContrastPalette } from "./tolHighContrast";
+export { ibmPalette } from "./ibm";
 export { sunsetPalette } from "./sunset";
 export type { StylePalette } from "./types";

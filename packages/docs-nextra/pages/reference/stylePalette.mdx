@@ -14,12 +14,21 @@ Every palette is checked to meet WCAG contrast requirements in both light and da
 
 ## Built-in palettes
 
+If you are unsure which palette to pick, start with one of these three:
+
 - **`default`** — the six standard Doenet styles: blue, red, brown, purple, black, and gray.
-- **`okabeito`** — a colorblind-friendly palette of eight styles based on the [Okabe–Ito palette](https://jfly.uni-koeln.de/color/), whose hues were chosen to stay distinguishable under the common forms of color vision deficiency. Light mode darkens the colors as far as Doenet's contrast requirements demand; dark mode shows the canonical Okabe–Ito colors. Choose this palette when color distinctions must work for the widest range of vision.
+- **`okabeito`** — a colorblind-friendly palette of eight styles based on the [Okabe–Ito palette](https://jfly.uni-koeln.de/color/), whose hues were chosen to stay distinguishable under the common forms of color vision deficiency. The first choice when color distinctions must work for the widest range of vision.
+- **`tolhighcontrast`** — four styles from [Paul Tol's high-contrast palette](https://personal.sron.nl/~pault/), with the largest separation of any built-in palette: every pair of styles stays distinguishable under every common color vision deficiency, and even in pure grayscale. Choose it when maximum distinction matters more than variety.
+
+The remaining palettes give more options:
+
+- **`tolbright`** — seven colorblind-friendly styles from Paul Tol's bright palette.
+- **`tolmuted`** — nine colorblind-friendly styles from Paul Tol's muted palette; the largest built-in set, useful when a document needs many distinct styles.
+- **`ibm`** — five colorblind-friendly styles from the IBM Design Library's accessible palette.
 - **`ocean`** — eight cool styles: blues, teals, and greens.
 - **`sunset`** — eight warm styles: reds, oranges, golds, and plums.
 
-Every palette varies marker shapes and line styles alongside colors, so style distinctions never rest on color alone — `ocean` and `sunset` in particular lean on those shape distinctions under red-green color vision deficiency, since their colors deliberately stay within one hue family.
+The colorblind-aware palettes keep their published colors wherever those meet Doenet's contrast requirements; in light mode some colors are darkened just far enough to meet them (dark mode shows the published colors, which all pass on a dark canvas). Every palette varies marker shapes and line styles alongside colors, so style distinctions never rest on color alone — `ocean` and `sunset` in particular lean on those shape distinctions under red-green color vision deficiency, since their colors deliberately stay within one hue family.
 
 <AttrPropDisplay name='stylePalette'/>
 

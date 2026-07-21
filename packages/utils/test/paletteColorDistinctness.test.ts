@@ -132,3 +132,24 @@ describe("palette line colors are pairwise distinct", () => {
         }
     }
 });
+
+describe("palette color words are unique per style", () => {
+    // The color words feed the core-computed style descriptions; if two
+    // styles of a palette share a word, descriptions cannot tell them apart.
+    for (const paletteName of STYLE_PALETTE_NAMES) {
+        for (const colorKey of [
+            "lineColorWord",
+            "lineColorWordDarkMode",
+        ] as const) {
+            it(`palette "${paletteName}" ${colorKey}`, () => {
+                const styles = returnPaletteStyleDefinitions(paletteName);
+                const words = Object.keys(styles).map((styleNumber) =>
+                    getStyleValueString(styles[styleNumber], colorKey)!,
+                );
+                expect(new Set(words).size, words.join(", ")).toBe(
+                    words.length,
+                );
+            });
+        }
+    }
+});
