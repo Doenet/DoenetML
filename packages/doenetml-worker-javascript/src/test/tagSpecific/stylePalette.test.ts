@@ -42,6 +42,31 @@ describe("Style palette tag tests @group4", async () => {
         expect(styleQ.markerStyle).eq("square");
     });
 
+    it("palette graphics reach the renderer at the opacity they were verified at", async () => {
+        // Palette colors are checked against the 3:1 graphic threshold at full
+        // strength, so expansion states full opacity for a palette that names
+        // none. What matters is that the value survives all the way to
+        // `selectedStyle`: if it did not, `resolveStyleDefinition` would fill
+        // in the built-in 0.7 and blend every one of these colors 70% into the
+        // canvas, well below the threshold it was chosen against.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="s"><stylePalette palette="okabeito" /><point name="P" /></section>
+<point name="D" />
+`,
+        });
+
+        const styleP = await selectedStyleOf(core, resolvePathToNodeIdx, "s.P");
+        expect(styleP.lineOpacity).eq(1);
+        expect(styleP.markerOpacity).eq(1);
+
+        // The default palette names 0.7 on every style, so the historical
+        // softer look is untouched outside the palette's scope.
+        const styleD = await selectedStyleOf(core, resolvePathToNodeIdx, "D");
+        expect(styleD.lineOpacity).eq(0.7);
+        expect(styleD.markerOpacity).eq(0.7);
+    });
+
     it("selects a palette from inside setup", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

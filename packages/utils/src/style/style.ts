@@ -774,6 +774,21 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
  * lowercase and its style 1 already carries the canvas text color), so its
  * expansion reproduces the historical six-preset output.
  *
+ * The order is load-bearing, not incidental. Steps 3-5 all fill in values
+ * that step 6 would otherwise derive, and each of them wants to be the one
+ * that decides:
+ *
+ *   - 3 before 5 and 6: the neutral text color must already be in place, so
+ *     that step 5 sees style 1's text is not the style's own color (and skips
+ *     it) and step 6 does not derive a dark text color from the palette's.
+ *   - 4 before 6: `deriveDarkModeColorForItem` reads the style's line/marker
+ *     opacity to decide how far to lighten a color for the dark canvas, so it
+ *     must see the opacity the style will actually render with.
+ *   - 5 before 6: the pairing rule keys off the *authored* `textColorDarkMode`
+ *     — once step 6 has derived one, "authored" is no longer distinguishable.
+ *   - 7 last: every `*Word` descriptor must describe the value that survived
+ *     the preceding steps rather than the one the palette wrote.
+ *
  * Returns a fresh map on every call; the input palette data is not mutated.
  */
 export function expandStylePalette(palette: StylePalette): StyleDefinitions {
