@@ -2,6 +2,7 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 
 export default class RegionBetweenCurveXAxis extends GraphicalComponent {
     static componentType = "regionBetweenCurveXAxis";
+    static styleOverrideCategories = ["fill"];
 
     static componentDocs = {
         summary: "A region bounded between a curve and the x-axis",

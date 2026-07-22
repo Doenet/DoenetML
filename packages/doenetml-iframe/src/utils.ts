@@ -16,6 +16,65 @@ export type DoenetEditorProps = Omit<
     "doenetML" | "width" | "height" | "externalVirtualKeyboardProvided"
 >;
 
+type IframeDarkMode =
+    DoenetViewerProps["darkMode"] | DoenetEditorProps["darkMode"];
+type BodyBackgroundMode = "dark" | "light" | "system";
+
+const DARK_CANVAS = "#121212";
+const LIGHT_CANVAS = "white";
+const BODY_BACKGROUND_ATTRIBUTE = "data-doenet-body-background";
+const BODY_BACKGROUND_STYLE_BLOCK = `<style>
+body[${BODY_BACKGROUND_ATTRIBUTE}="light"],
+body[${BODY_BACKGROUND_ATTRIBUTE}="system"] {
+    background-color: ${LIGHT_CANVAS};
+}
+body[${BODY_BACKGROUND_ATTRIBUTE}="dark"] {
+    background-color: ${DARK_CANVAS};
+}
+@media (prefers-color-scheme: dark) {
+    body[${BODY_BACKGROUND_ATTRIBUTE}="system"] {
+        background-color: ${DARK_CANVAS};
+    }
+}
+</style>`;
+
+/**
+ * Normalize the public dark-mode prop to the subset used for the iframe body.
+ * Omitted values follow the public component default of `"system"`.
+ */
+function bodyBackgroundMode(darkMode: IframeDarkMode): BodyBackgroundMode {
+    if (darkMode === "dark") {
+        return "dark";
+    }
+    if (darkMode === undefined || darkMode === "system") {
+        return "system";
+    }
+    return "light";
+}
+
+/**
+ * Update the iframe body's theme attribute without rebuilding the document.
+ */
+export function setIframeBodyBackground(
+    body: HTMLElement,
+    darkMode: IframeDarkMode,
+) {
+    body.setAttribute(BODY_BACKGROUND_ATTRIBUTE, bodyBackgroundMode(darkMode));
+}
+
+function createIframeHead(standaloneUrl: string, cssUrl: string) {
+    return `
+    <head>
+        <script type="module" src="${standaloneUrl}"></script>
+        <link rel="stylesheet" href="${cssUrl}">
+        ${BODY_BACKGROUND_STYLE_BLOCK}
+    </head>`;
+}
+
+function createIframeBodyOpenTag(darkMode: IframeDarkMode) {
+    return `<body style="margin:0" ${BODY_BACKGROUND_ATTRIBUTE}="${bodyBackgroundMode(darkMode)}">`;
+}
+
 /**
  * Create HTML for a single page document that renders the given DoenetML.
  */
@@ -25,27 +84,34 @@ export function createHtmlForDoenetViewer(
     doenetViewerProps: DoenetViewerProps,
     standaloneUrl: string,
     cssUrl: string,
+    useSharedCoreWorker = false,
+    windowed = false,
 ) {
     // Since function props disappear when stringifying
-    // and we'll have access tot them only via proxying with ComLink,
+    // and we'll have access to them only via proxying with ComLink,
     // whether or not a function prop was specified is masked.
     // Since for some callbacks, we have different behavior whether or not it was specified,
     // we pass an extra variable of the props that were specified.
     const doenetViewerPropsSpecified: string[] = Object.keys(doenetViewerProps);
+    // The wrapper may supply its own composed `initializedCallback` (the
+    // windowed-mounting boot-slot release) even when the host didn't specify
+    // one; list it so the in-iframe entry adopts the proxy when sent.
+    if (!doenetViewerPropsSpecified.includes("initializedCallback")) {
+        doenetViewerPropsSpecified.push("initializedCallback");
+    }
 
     // XXX: rather than serving Comlink from the cdn, below, serve it directly
-    // TODO: rather tha load the doenet logo from doenet.org, serve it directly
+    // TODO: rather than load the Doenet logo from doenet.org, serve it directly
     return `
     <html style="overflow:hidden">
-    <head>
-        <script type="module" src="${standaloneUrl}"></script>
-        <link rel="stylesheet" href="${cssUrl}">
-    </head>
-    <body style="margin:0; background-color:white">
+    ${createIframeHead(standaloneUrl, cssUrl)}
+    ${createIframeBodyOpenTag(doenetViewerProps.darkMode)}
         <script type="module">
             const viewerId = "${id}";
             const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
             const doenetViewerPropsSpecified = ${JSON.stringify(doenetViewerPropsSpecified)};
+            const doenetSharedCoreWorker = ${JSON.stringify(!!useSharedCoreWorker)};
+            const doenetWindowedViewer = ${JSON.stringify(!!windowed)};
             import * as ComlinkViewer from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
 
             // This source code has been compiled by vite and should be directly included.
@@ -78,7 +144,7 @@ export function createHtmlForDoenetEditor(
     const augmentedProps = { width, height: "100vh", ...doenetEditorProps };
 
     // Since function props disappear when stringifying
-    // and we'll have access tot them only via proxying with ComLink,
+    // and we'll have access to them only via proxying with ComLink,
     // whether or not a function prop was specified is masked.
     // Since for some callbacks, we have different behavior whether or not it was specified,
     // we pass an extra variable of the props that were specified.
@@ -86,11 +152,8 @@ export function createHtmlForDoenetEditor(
 
     return `
     <html style="overflow:hidden">
-    <head>
-        <script type="module" src="${standaloneUrl}"></script>
-        <link rel="stylesheet" href="${cssUrl}">
-    </head>
-    <body style="margin:0; background-color:white">
+    ${createIframeHead(standaloneUrl, cssUrl)}
+    ${createIframeBodyOpenTag(doenetEditorProps.darkMode)}
         <script type="module">
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};

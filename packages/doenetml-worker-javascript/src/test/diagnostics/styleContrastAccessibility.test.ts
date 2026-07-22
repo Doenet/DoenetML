@@ -75,7 +75,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         expect(accessibility.length).eq(0);
     });
 
-    it("emits accessibility diagnostic for line contrast failure when opacity lowers contrast", async () => {
+    it("emits accessibility diagnostics for line contrast failure when opacity lowers contrast", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="9" lineColor="#000000" />
@@ -85,16 +85,22 @@ describe("Style definition accessibility diagnostics @group4", async () => {
 
         const { accessibility } = getDiagnosticsByType(core);
 
-        expect(accessibility.length).eq(1);
-        expectStyleContrastAccessibility({
-            diagnostic: accessibility[0],
-            styleNumber: 9,
-            context: "line color against the canvas",
-            line: 3,
-        });
+        expect(accessibility.length).eq(2);
+        for (const diagnostic of accessibility) {
+            expectStyleContrastAccessibility({
+                diagnostic,
+                styleNumber: 9,
+                context: "line color against the canvas",
+                line: 3,
+            });
+        }
+        expect(accessibility.map((d) => d.message)).toEqual([
+            expect.not.stringContaining("(dark mode)"),
+            expect.stringContaining("(dark mode)"),
+        ]);
     });
 
-    it("emits accessibility diagnostic for high-contrast color that fails against canvas text", async () => {
+    it("emits accessibility diagnostic for high-contrast color that fails against the canvas", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="10" highContrastColor="#f0f0f0" />
@@ -107,7 +113,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         expectStyleContrastAccessibility({
             diagnostic: accessibility[0],
             styleNumber: 10,
-            context: "high-contrast color against canvas text",
+            context: "high-contrast color against the canvas",
             line: 2,
         });
     });
@@ -159,6 +165,24 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         expect(accessibility.length).eq(0);
     });
 
+    it("emits accessibility diagnostic when derived text-only dark color fails against the dark canvas", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<styleDefinition styleNumber="23" textColor="#a14545" />
+`,
+        });
+
+        const { accessibility } = getDiagnosticsByType(core);
+
+        expect(accessibility.length).eq(1);
+        expect(accessibility[0].message).toContain("style definition 23");
+        expect(accessibility[0].message).toContain(
+            "dark-mode text color derived from this value",
+        );
+        expect(accessibility[0].message).toContain("textColorDarkMode");
+        expect(accessibility[0].position.start.line).eq(2);
+    });
+
     it("does not emit accessibility diagnostic for near-threshold line contrast that is above 3:1", async () => {
         const { core } = await createTestCore({
             doenetML: `
@@ -189,7 +213,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
 
         const { accessibility } = getDiagnosticsByType(core);
 
-        expect(accessibility.length).eq(4);
+        expect(accessibility.length).eq(6);
 
         const contexts = accessibility.map((x) => x.message);
         expect(
@@ -199,7 +223,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         ).eq(true);
         expect(
             contexts.some((m) =>
-                m.includes("high-contrast color against canvas text"),
+                m.includes("high-contrast color against the canvas"),
             ),
         ).eq(true);
         expect(
@@ -210,7 +234,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         ).eq(true);
     });
 
-    it("emits accessibility diagnostic for marker contrast failure when markerOpacity lowers contrast", async () => {
+    it("emits accessibility diagnostics for marker contrast failure when markerOpacity lowers contrast", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="19" markerColor="#000000" />
@@ -220,13 +244,19 @@ describe("Style definition accessibility diagnostics @group4", async () => {
 
         const { accessibility } = getDiagnosticsByType(core);
 
-        expect(accessibility.length).eq(1);
-        expectStyleContrastAccessibility({
-            diagnostic: accessibility[0],
-            styleNumber: 19,
-            context: "marker color against the canvas",
-            line: 3,
-        });
+        expect(accessibility.length).eq(2);
+        for (const diagnostic of accessibility) {
+            expectStyleContrastAccessibility({
+                diagnostic,
+                styleNumber: 19,
+                context: "marker color against the canvas",
+                line: 3,
+            });
+        }
+        expect(accessibility.map((d) => d.message)).toEqual([
+            expect.not.stringContaining("(dark mode)"),
+            expect.stringContaining("(dark mode)"),
+        ]);
     });
 
     it("does not emit accessibility diagnostics or crash when color values are not parseable", async () => {
@@ -263,7 +293,7 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         });
     });
 
-    it("does not duplicate non-text accessibility diagnostic when line style values are referenced", async () => {
+    it("does not duplicate non-text accessibility diagnostics when line style values are referenced", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="22" lineColor="#000000" lineOpacity="0.2" />
@@ -277,11 +307,13 @@ describe("Style definition accessibility diagnostics @group4", async () => {
 
         const { accessibility } = getDiagnosticsByType(core);
 
-        expect(accessibility.length).eq(1);
-        expectStyleContrastAccessibility({
-            diagnostic: accessibility[0],
-            styleNumber: 22,
-            context: "line color against the canvas",
-        });
+        expect(accessibility.length).eq(2);
+        for (const diagnostic of accessibility) {
+            expectStyleContrastAccessibility({
+                diagnostic,
+                styleNumber: 22,
+                context: "line color against the canvas",
+            });
+        }
     });
 });

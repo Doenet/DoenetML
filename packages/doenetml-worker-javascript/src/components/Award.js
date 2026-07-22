@@ -861,6 +861,79 @@ export default class Award extends BaseComponent {
             description: "The first feedback message produced by this award.",
         };
 
+        // Identifies which answer-input state variables this award's condition
+        // references, so the answer can compute per-input coloring.
+        // Each entry is { componentIdx, propVariable } pointing to the source
+        // component+variable that a code-child in the <when> expression shadows.
+        // Only entries whose componentIdx is one of the answer's own inputs are included.
+        stateVariableDefinitions.colorInputsSeparatelyFromAnswer = {
+            returnDependencies: () => ({
+                colorInputsSeparately: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "colorInputsSeparately",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        colorInputsSeparatelyFromAnswer:
+                            dependencyValues.colorInputsSeparately ?? false,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.referencedInputStateVars = {
+            stateVariablesDeterminingDependencies: [
+                "colorInputsSeparatelyFromAnswer",
+            ],
+            returnDependencies({ stateValues }) {
+                const deps = {
+                    colorInputsSeparatelyFromAnswer: {
+                        dependencyType: "parentStateVariable",
+                        variableName: "colorInputsSeparately",
+                    },
+                };
+                // Only add the remaining deps when colorInputsSeparately is
+                // active — avoids resolving When.referencedStateVars (which
+                // traverses descendants) unnecessarily.
+                if (stateValues.colorInputsSeparatelyFromAnswer) {
+                    // Lightweight structural set — no live values so coloring
+                    // doesn't go stale on every keystroke.
+                    deps.allInputComponentIdxs = {
+                        dependencyType: "parentStateVariable",
+                        variableName: "allInputComponentIdxs",
+                    };
+                    deps.whenChild = {
+                        dependencyType: "child",
+                        childGroups: ["whens"],
+                        variableNames: ["referencedStateVars"],
+                    };
+                }
+                return deps;
+            },
+            definition({ dependencyValues }) {
+                if (!dependencyValues.colorInputsSeparatelyFromAnswer) {
+                    return { setValue: { referencedInputStateVars: [] } };
+                }
+
+                const allInputComponentIdxs =
+                    dependencyValues.allInputComponentIdxs ?? new Set();
+
+                const referencedStateVars =
+                    dependencyValues.whenChild?.[0]?.stateValues
+                        .referencedStateVars ?? [];
+                return {
+                    setValue: {
+                        referencedInputStateVars: referencedStateVars.filter(
+                            (ref) =>
+                                allInputComponentIdxs.has(ref.componentIdx),
+                        ),
+                    },
+                };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 

@@ -24,14 +24,11 @@ type LineSegmentSectionConfig = {
     sectionHeadingHasDivider: boolean;
     labelForAriaPrefix: "endpoint 1" | "endpoint 2";
     pairAriaLabelPrefix:
-        | "coordinates for endpoint 1"
-        | "coordinates for endpoint 2";
+        "coordinates for endpoint 1" | "coordinates for endpoint 2";
     xSliderAriaLabelPrefix:
-        | "endpoint 1 x coordinate"
-        | "endpoint 2 x coordinate";
+        "endpoint 1 x coordinate" | "endpoint 2 x coordinate";
     ySliderAriaLabelPrefix:
-        | "endpoint 1 y coordinate"
-        | "endpoint 2 y coordinate";
+        "endpoint 1 y coordinate" | "endpoint 2 y coordinate";
     xInputAriaLabelPrefix: "endpoint 1 x input" | "endpoint 2 x input";
     yInputAriaLabelPrefix: "endpoint 1 y input" | "endpoint 2 y input";
 };

@@ -8,7 +8,7 @@ import React, {
     useState,
 } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
-import { MathJaxContext } from "better-react-mathjax";
+import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
 import type { DiagnosticsSummary } from "./EditorViewer/diagnostics";
 import type {
@@ -29,7 +29,14 @@ import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
 import { store, useAppDispatch } from "./state";
 import { keyboardSlice } from "./state/slices/keyboard";
-import { setVariantsFromCallback } from "./utils/variants";
+import {
+    setVariantIndex,
+    setVariantsFromCallback,
+    type VariantsState,
+} from "./utils/variants";
+import { useResolvedTheme } from "./utils/theme";
+import type { ThemeSetting } from "./utils/theme";
+export type { ThemeSetting, ResolvedTheme } from "./utils/theme";
 import { defaultFlags } from "./flags";
 import type { DoenetMLFlags } from "./flags";
 export type { DoenetMLFlags } from "./flags";
@@ -86,14 +93,16 @@ export function DoenetViewer({
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
     doenetViewerUrl,
-    doenetMediaUrl,
-    darkMode = "light",
+    doenetImagesUrl,
+    darkMode = "system",
     showAnswerResponseButton = false,
     answerResponseCounts = {},
     includeVariantSelector = false,
     initializeCounters = {},
     fetchExternalDoenetML,
     requestScrollTo,
+    mathjaxUrl,
+    useExistingMathjax = false,
     onInit = () => {},
 }: {
     doenetML: string;
@@ -134,8 +143,13 @@ export function DoenetViewer({
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    doenetImagesUrl?: string;
+    /**
+     * Theme for the rendered content. `"light"` / `"dark"` pin a theme;
+     * `"system"` (the default) follows the user's OS/browser
+     * `prefers-color-scheme` and updates live when it changes.
+     */
+    darkMode?: ThemeSetting;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     includeVariantSelector?: boolean;
@@ -143,12 +157,27 @@ export function DoenetViewer({
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
     /**
+     * URL of the MathJax script to load when the page does not already provide
+     * MathJax. Defaults to the version Doenet is tested against. Ignored when a
+     * host-provided MathJax engine or script is detected. Because a page shares
+     * a single MathJax, only the first-mounted viewer's value takes effect.
+     */
+    mathjaxUrl?: string;
+    /**
+     * Force Doenet to reuse a MathJax provided by the host page instead of ever
+     * loading its own — wait for `window.MathJax` rather than injecting a
+     * script. Use when the host loads MathJax after Doenet mounts (so no script
+     * is detectable yet). Existing/loading MathJax is reused automatically even
+     * without this flag; it only matters when detection cannot see it in time.
+     */
+    useExistingMathjax?: boolean;
+    /**
      * Called when React has initialized and passed the DOM node that is a parent of
      * the DoenetML UI.
      */
     onInit?: (elm: HTMLElement) => void;
 }) {
-    const [variants, setVariants] = useState({
+    const [variants, setVariants] = useState<VariantsState>({
         index: 1,
         numVariants: 1,
         allPossibleVariants: ["a"],
@@ -158,6 +187,8 @@ export function DoenetViewer({
     const lastPropSet = useRef<any[]>([]);
 
     const variantIndex = useRef(1);
+
+    const resolvedTheme = useResolvedTheme(darkMode);
 
     // Start off hidden and then unhide once the viewer is visible.
     // This is needed to delay the initialization of JSXgraph
@@ -222,16 +253,11 @@ export function DoenetViewer({
         if (variants.numVariants > 1) {
             variantSelector = (
                 <VariantSelect
-                    size="sm"
-                    menuWidth="140px"
+                    darkMode={resolvedTheme}
                     array={variants.allPossibleVariants}
                     syncIndex={variants.index}
                     onChange={(index: number) =>
-                        setVariants((prev) => {
-                            let next = { ...prev };
-                            next.index = index + 1;
-                            return next;
-                        })
+                        setVariantIndex(setVariants, index)
                     }
                 />
             );
@@ -278,8 +304,8 @@ export function DoenetViewer({
             forceShowSolution={forceShowSolution}
             forceUnsuppressCheckWork={forceUnsuppressCheckWork}
             doenetViewerUrl={doenetViewerUrl}
-            doenetMediaUrl={doenetMediaUrl}
-            darkMode={darkMode}
+            doenetImagesUrl={doenetImagesUrl}
+            darkMode={resolvedTheme}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             initializeCounters={initializeCounters}
@@ -290,8 +316,14 @@ export function DoenetViewer({
 
     return (
         <ReduxProvider store={store}>
-            <MathJaxContext config={mathjaxConfig} version={4}>
+            <MathJaxContext
+                config={mathjaxConfig}
+                version={4}
+                src={mathjaxUrl}
+                useExistingMathJax={useExistingMathjax}
+            >
                 <div
+                    data-theme={resolvedTheme}
                     ref={(r) => {
                         ref.current = r;
                         if (onInit && r) {
@@ -304,6 +336,7 @@ export function DoenetViewer({
                         externalVirtualKeyboardProvided={
                             externalVirtualKeyboardProvided
                         }
+                        theme={resolvedTheme}
                     >
                         {variantSelector}
                         {viewer}
@@ -321,8 +354,13 @@ type DoenetEditorProps = {
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    doenetImagesUrl?: string;
+    /**
+     * Theme for the rendered content. `"light"` / `"dark"` pin a theme;
+     * `"system"` (the default) follows the user's OS/browser
+     * `prefers-color-scheme` and updates live when it changes.
+     */
+    darkMode?: ThemeSetting;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
@@ -351,6 +389,17 @@ type DoenetEditorProps = {
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     docsURL?: string;
     /**
+     * URL of the MathJax script to load when the page does not already provide
+     * MathJax. Defaults to the version Doenet is tested against. Ignored when a
+     * host-provided MathJax engine or script is detected. See `DoenetViewer`.
+     */
+    mathjaxUrl?: string;
+    /**
+     * Force reuse of a host-provided MathJax instead of ever loading Doenet's
+     * own copy. See `DoenetViewer` for details.
+     */
+    useExistingMathjax?: boolean;
+    /**
      * Controls which tab the diagnostics/responses/help panel opens to at
      * mount. Three forms:
      *  - prop omitted (`undefined`): default — panel opens on the help tab
@@ -375,8 +424,8 @@ export const DoenetEditor = React.forwardRef<
         addVirtualKeyboard = true,
         externalVirtualKeyboardProvided = false,
         doenetViewerUrl,
-        doenetMediaUrl,
-        darkMode = "light",
+        doenetImagesUrl,
+        darkMode = "system",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
         width,
@@ -402,9 +451,13 @@ export const DoenetEditor = React.forwardRef<
         fetchExternalDoenetML,
         docsURL,
         initialOpenTab,
+        mathjaxUrl,
+        useExistingMathjax = false,
     },
     ref,
 ) {
+    const resolvedTheme = useResolvedTheme(darkMode);
+
     const normalizedShowDiagnostics =
         showDiagnostics ?? showErrorsWarnings ?? true;
 
@@ -449,8 +502,8 @@ export const DoenetEditor = React.forwardRef<
             activityId={activityId}
             prefixForIds={prefixForIds}
             doenetViewerUrl={doenetViewerUrl}
-            doenetMediaUrl={doenetMediaUrl}
-            darkMode={darkMode}
+            doenetImagesUrl={doenetImagesUrl}
+            darkMode={resolvedTheme}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
             width={width}
@@ -478,15 +531,23 @@ export const DoenetEditor = React.forwardRef<
 
     return (
         <ReduxProvider store={store}>
-            <MathJaxContext config={mathjaxConfig} version={4}>
-                <WrapWithKeyboard
-                    addVirtualKeyboard={addVirtualKeyboard}
-                    externalVirtualKeyboardProvided={
-                        externalVirtualKeyboardProvided
-                    }
-                >
-                    {editor}
-                </WrapWithKeyboard>
+            <MathJaxContext
+                config={mathjaxConfig}
+                version={4}
+                src={mathjaxUrl}
+                useExistingMathJax={useExistingMathjax}
+            >
+                <div data-theme={resolvedTheme} style={{ display: "contents" }}>
+                    <WrapWithKeyboard
+                        addVirtualKeyboard={addVirtualKeyboard}
+                        externalVirtualKeyboardProvided={
+                            externalVirtualKeyboardProvided
+                        }
+                        theme={resolvedTheme}
+                    >
+                        {editor}
+                    </WrapWithKeyboard>
+                </div>
             </MathJaxContext>
         </ReduxProvider>
     );
@@ -498,16 +559,20 @@ export const DoenetEditor = React.forwardRef<
 function WrapWithKeyboard({
     addVirtualKeyboard,
     externalVirtualKeyboardProvided,
+    theme,
     children,
 }: React.PropsWithChildren<{
     addVirtualKeyboard: boolean;
     externalVirtualKeyboardProvided: boolean;
+    theme?: "dark" | "light";
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
     const keyboard = addVirtualKeyboard ? (
         <VirtualKeyboard
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+            ownerRef={focusedMathInput}
+            theme={theme}
             onClick={(keyCommands) => {
                 dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
             }}

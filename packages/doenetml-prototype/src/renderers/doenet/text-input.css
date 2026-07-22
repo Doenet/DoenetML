@@ -1,10 +1,18 @@
 .doenet-document {
     .text-input {
         label {
-            @apply max-w-full;
+            @apply max-w-full gap-1 inline-flex items-baseline;
+            &.input-label-right {
+                flex-direction: row-reverse;
+            }
         }
-        input {
-            @apply border-black border-2 px-1 py-0.5 w-24;
+        input,
+        textarea {
+            @apply border-black border-2 px-1 py-0.5 w-32;
+        }
+        textarea {
+            width: unset;
+            resize: both;
         }
     }
 }

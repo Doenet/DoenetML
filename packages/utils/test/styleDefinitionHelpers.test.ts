@@ -29,6 +29,9 @@ const expectedKeys: (keyof ResolvedStyleDefinition)[] = [
     "fillColorDarkMode",
     "fillColorWordDarkMode",
     "fillOpacity",
+    "fillPatternOpacity",
+    "fillStyle",
+    "fillStyleWord",
     "textColor",
     "textColorWord",
     "textColorDarkMode",
@@ -59,9 +62,10 @@ describe("resolveStyleDefinition", () => {
         expect(resolved.textColor).eq("black");
         expect(resolved.textColorDarkMode).eq("white");
         expect(resolved.highContrastColor).eq("#2963FF");
-        expect(resolved.highContrastColorDarkMode).eq("#2963FF");
-        expect(resolved.lineColor).eq("#648FFF");
+        expect(resolved.highContrastColorDarkMode).eq("#92B4FF");
+        expect(resolved.lineColor).eq("#1f5dff");
         expect(resolved.fillOpacity).eq(0.3);
+        expect(resolved.fillPatternOpacity).eq(1);
     });
 
     it("fills color and word keys absent from DEFAULT_STYLE_VALUES with empty string", () => {
@@ -91,7 +95,7 @@ describe("resolveStyleDefinition", () => {
         expect(resolved.lineWidth).eq(2);
         // Untouched keys still get fallbacks.
         expect(resolved.textColorDarkMode).eq("white");
-        expect(resolved.lineColor).eq("#648FFF");
+        expect(resolved.lineColor).eq("#1f5dff");
     });
 
     it("treats explicit undefined as absent and falls through to the fallback", () => {

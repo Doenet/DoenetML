@@ -40,7 +40,7 @@ function processMarkerTokens(snippet: string): {
     let selectionStartTokenCount = 0;
     let selectionEndTokenCount = 0;
 
-    for (let index = 0; index < snippet.length; ) {
+    for (let index = 0; index < snippet.length;) {
         if (snippet.startsWith(SELECTION_START_TOKEN, index)) {
             selectionStartTokenCount += 1;
             selectionStartOffset = output.length;

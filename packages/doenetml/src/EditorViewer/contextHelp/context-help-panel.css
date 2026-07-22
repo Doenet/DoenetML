@@ -312,3 +312,61 @@
 .editor-panel .help-docs-link:focus {
     text-decoration: underline;
 }
+
+/* ============================================================
+ * Dark mode overrides for the context-help panel
+ *
+ * Light-mode muted grays (#667085, #475467, #344054) have
+ * insufficient contrast on the dark canvas (#121212):
+ *   #667085 → ~3.9:1 (fails 4.5:1), #344054 → worse.
+ *
+ * Blue accents: var(--mainBlue) = #1a5a99 is only ~1.9:1 on
+ * #121212 in dark mode. Override locally to #79c0ff (~10:1).
+ *
+ * Chip/code backgrounds: var(--mainGray) = #a9a9a9 in dark mode,
+ * which gives only 2.3:1 contrast with white (var(--canvasText)).
+ * Override to an elevated dark surface (#2a2a2a, same as tooltips).
+ * ============================================================ */
+
+/* Muted secondary text — #94a3b8 ≈ 7.7:1 on #121212 */
+[data-theme="dark"] .editor-panel .help-panel-empty,
+[data-theme="dark"] .editor-panel .help-placeholder,
+[data-theme="dark"] .editor-panel .help-kind-label,
+[data-theme="dark"] .editor-panel .help-detail-label,
+[data-theme="dark"] .editor-panel .help-detail-annotation,
+[data-theme="dark"] .editor-panel .help-suggestions-footer,
+[data-theme="dark"] .editor-panel .help-ref-derived {
+    color: #94a3b8;
+}
+
+/* Slightly stronger muted text — #cbd5e1 ≈ 11.7:1 on #121212 */
+[data-theme="dark"] .editor-panel .help-allowed-values-list dd,
+[data-theme="dark"] .editor-panel .help-style-breakdown-list dt,
+[data-theme="dark"] .editor-panel .help-suggestion-summary {
+    color: #cbd5e1;
+}
+
+/* Blue accent text — #79c0ff ≈ 10:1 on #121212 */
+[data-theme="dark"] .editor-panel a.help-element-name-link,
+[data-theme="dark"] .editor-panel .help-attribute-name,
+[data-theme="dark"] .editor-panel .help-property-name,
+[data-theme="dark"] .editor-panel .help-snippet-name,
+[data-theme="dark"] .editor-panel .help-detail-value,
+[data-theme="dark"] .editor-panel .help-docs-link {
+    color: #79c0ff;
+}
+
+/* Chip and inline-code backgrounds — elevated dark surface so white text passes */
+[data-theme="dark"] .editor-panel .help-snippet-preview,
+[data-theme="dark"] .editor-panel .help-value-item,
+[data-theme="dark"] .editor-panel .help-style-breakdown-list dd,
+[data-theme="dark"] .editor-panel .help-description code,
+[data-theme="dark"] .editor-panel .help-ref-sentence code,
+[data-theme="dark"] .editor-panel .help-ref-derived code,
+[data-theme="dark"] .editor-panel .help-value-description code,
+[data-theme="dark"] .editor-panel .help-suggestions-header code,
+[data-theme="dark"] .editor-panel .help-suggestions-footer code,
+[data-theme="dark"] .editor-panel .help-placeholder code {
+    background: #2a2a2a;
+    color: var(--canvasText);
+}

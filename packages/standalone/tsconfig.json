@@ -2,11 +2,18 @@
     "extends": "../../tsconfig.build.json",
     "compilerOptions": {
         "outDir": "./dist/",
-        "rootDir": "./src"
+        // rootDir spans `packages/` (not just `src`) and composite is off so
+        // the typecheck tolerates coordinator.ts importing
+        // `@doenet/doenetml-iframe`'s shared-core-pool source directly (it
+        // bundles that one implementation; the dist d.ts, rolled up from
+        // index.tsx by vite-plugin-dts, never reaches the coordinator entry).
+        "rootDir": "..",
+        "composite": false
     },
     "include": ["./**/*.ts", "./**/*.tsx", "./**/*.js", "./**/*.jsx"],
     "exclude": [
         "vite.config.ts",
+        "vite.config-coordinator.ts",
         "node_modules",
         "runner-results",
         ".wireit",

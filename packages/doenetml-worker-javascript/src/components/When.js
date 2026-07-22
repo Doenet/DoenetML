@@ -190,6 +190,54 @@ export default class When extends BooleanComponent {
             },
         };
 
+        // Collect the component indices of all descendants so we can check each
+        // for shadow-source info in referencedStateVars below.
+        stateVariableDefinitions._descendantIdxs = {
+            returnDependencies: () => ({
+                allDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["_base"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        _descendantIdxs: (
+                            dependencyValues.allDescendants ?? []
+                        ).map((d) => d.componentIdx),
+                    },
+                };
+            },
+        };
+
+        // For each descendant, check whether it is a shadow of an input's state
+        // variable. Handles both direct references ($fi.numerator = 2) and
+        // nested ones (<when><math>$fi.numerator</math>=2</when>).
+        // Used by Award.referencedInputStateVars to build the per-input coloring
+        // map for colorInputsSeparately.
+        stateVariableDefinitions.referencedStateVars = {
+            stateVariablesDeterminingDependencies: ["_descendantIdxs"],
+            returnDependencies({ stateValues }) {
+                const deps = {};
+                for (const idx of stateValues._descendantIdxs ?? []) {
+                    deps[`shadowInfo_${idx}`] = {
+                        dependencyType: "shadowInfo",
+                        componentIdx: idx,
+                    };
+                }
+                return deps;
+            },
+            definition({ dependencyValues }) {
+                const referencedStateVars = [];
+                for (const [key, value] of Object.entries(dependencyValues)) {
+                    if (key.startsWith("shadowInfo_") && value !== null) {
+                        referencedStateVars.push(value);
+                    }
+                }
+                return { setValue: { referencedStateVars } };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 

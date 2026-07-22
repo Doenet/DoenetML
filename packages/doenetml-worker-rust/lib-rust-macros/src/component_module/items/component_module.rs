@@ -156,7 +156,7 @@ impl ComponentModule {
             Some(ref_transmutes_to) => {
                 doc_comments.push_str(&format!(
                     r#"Bare references to this component are rendered as the <{}> component. E.g., `<{} name="a"/>$a` becomes `<{} name="a"/><{} extend="$a"/>`"#,
-                    ref_transmutes_to, &self.name, &self.name, ref_transmutes_to
+                    ref_transmutes_to, self.name, self.name, ref_transmutes_to
                 ));
             }
             None => {

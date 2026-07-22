@@ -441,17 +441,14 @@ export default class SelectFromSequence extends Sequence {
         if (coprimeCombinationsComponent) {
             // unique variants is only implemented if know that coprime is false,
             // i.e., if have an boolean with a single string child that is "false"
-            if (
-                !(
-                    coprimeCombinationsComponent.componentType === "boolean" &&
-                    coprimeCombinationsComponent.children?.length === 1 &&
-                    typeof coprimeCombinationsComponent.children[0] ===
-                        "string" &&
-                    coprimeCombinationsComponent.children[0]
-                        .trim()
-                        .toLowerCase() === "false"
-                )
-            ) {
+            if (!(
+                coprimeCombinationsComponent.componentType === "boolean" &&
+                coprimeCombinationsComponent.children?.length === 1 &&
+                typeof coprimeCombinationsComponent.children[0] === "string" &&
+                coprimeCombinationsComponent.children[0]
+                    .trim()
+                    .toLowerCase() === "false"
+            )) {
                 info(
                     `cannot determine unique variants of selectFromSequence as cannot determine coprime is always false.`,
                 );

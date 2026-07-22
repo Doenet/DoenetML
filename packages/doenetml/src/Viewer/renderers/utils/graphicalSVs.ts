@@ -12,6 +12,7 @@ export interface GraphicalSVs {
     labelHasLatex: boolean;
     labelPosition: LabelPosition;
     applyStyleToLabel: boolean;
+    maskLabel: boolean;
     selectedStyle: ResolvedStyleDefinition;
 }
 

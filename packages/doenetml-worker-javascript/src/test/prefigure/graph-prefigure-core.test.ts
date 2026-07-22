@@ -255,6 +255,26 @@ describe("Graph prefigure renderer core @group4", () => {
         );
     });
 
+    it("renderer=prefigure uses fill-pattern for patterned polygon fills", async () => {
+        const doenetML = withStyleDefinitions(
+            '    <styleDefinition styleNumber="7" fillColor="green" fillStyle="dots" fillOpacity="0.3" fillPatternOpacity="0.8" />',
+            prefigureGraph(
+                '<polygon styleNumber="7" filled vertices="(0,0) (2,0) (1,1)" />',
+            ),
+        );
+        const prefigureXML = await getPrefigureXML(doenetML);
+
+        expect(prefigureXML).toContain(`fill-pattern="dot"`);
+        expect(prefigureXML).toContain(`fill="green"`);
+        expect(prefigureXML).toContain(`stroke-opacity="0.7"`);
+        expect(prefigureXML).toContain(`fill-opacity="0.8"`);
+        expect(prefigureXML).not.toContain(`fill-opacity="0.3"`);
+        expect(prefigureXML).not.toContain(`url(#`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(diagnosticsByType.warnings).toHaveLength(0);
+    });
+
     it("renderer=prefigure maps endpoint and equilibriumPoint as points", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(

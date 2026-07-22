@@ -1,16 +1,16 @@
-import React, { useRef } from "react";
+import React, { useContext, useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-// @ts-ignore
-import { HotTable } from "@handsontable/react";
+import { HotTable } from "@handsontable/react-wrapper";
 import { HyperFormula } from "hyperformula";
-import "handsontable/dist/handsontable.full.css";
+import "handsontable/styles/handsontable.min.css";
+import "handsontable/styles/ht-theme-classic.min.css";
 import { sizeToCSS } from "./utils/css";
-// @ts-ignore
 import { registerAllModules } from "handsontable/registry";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
+import { DocContext } from "../DocViewer";
 
 interface SpreadsheetSVs {
     [key: string]: any;
@@ -36,6 +36,8 @@ export default React.memo(function SpreadsheetRenderer(
     let { id, SVs, actions, callAction } =
         useDoenetRenderer<SpreadsheetSVs>(props);
 
+    const { darkMode } = useContext(DocContext) || {};
+
     const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
@@ -57,6 +59,14 @@ export default React.memo(function SpreadsheetRenderer(
             <HotTable
                 // style={{ borderRadius:"var(--mainBorderRadius)", border:"var(--mainBorder)" }}
                 licenseKey="non-commercial-and-evaluation"
+                theme={
+                    darkMode === "dark"
+                        ? "ht-theme-classic-dark"
+                        : "ht-theme-classic"
+                }
+                // Handsontable 18's ARIA treegrid roles currently violate
+                // aria-required-children; preserve native table semantics.
+                ariaTags={false}
                 data={SVs.cells.map((x) => [...x])}
                 colHeaders={SVs.columnHeaders as any}
                 rowHeaders={SVs.rowHeaders as any}

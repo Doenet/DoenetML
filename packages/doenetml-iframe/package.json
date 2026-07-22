@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml-iframe",
     "type": "module",
     "description": "A renderer for DoenetML contained in an iframe",
-    "version": "0.7.20",
+    "version": "0.7.21",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -27,7 +27,7 @@
         "build:component": "wireit",
         "build:iframe-viewer": "wireit",
         "build:iframe-editor": "wireit",
-        "publish": "npm run build && cd dist/component && npm publish",
+        "publish": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist/component",
         "test": "echo \"No tests \"",
         "test-cypress": "cypress open --component",
         "test-cypress-all": "cypress run --component -b 'chrome' --config video=false --headless"

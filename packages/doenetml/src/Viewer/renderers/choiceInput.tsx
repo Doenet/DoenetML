@@ -1,9 +1,17 @@
-import React, { createContext, useMemo, useRef, useState } from "react";
+import React, {
+    createContext,
+    useContext,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import Select, { components, MultiValue, OnChangeValue } from "react-select";
+import { CANVAS_DARK_MODE_COLOR } from "@doenet/utils/style";
+import { DocContext } from "../DocViewer";
 import "./choiceInput.css";
 import {
     calculateValidationState,
@@ -28,9 +36,12 @@ type Option = { value: number; label: any; isDisabled: boolean };
  * 1. isHidden: indicates that the content is being rendered invisibly to size the select input.
  *    It is used by the math renderer to turn off hideUntilTypeset, which would cause it to
  *    overwrite the invisible rendering and add tab stops to the invisible content.
- * 2. inOption: indicates that the content is being rendered inside a select option.
- *    It is used to turn off color specifications so that the font color of selected options
- *    can be set to white for contrast.
+ * 2. inOption: indicates that the content is being rendered inside a selected
+ *    (highlighted) select option. Because a selected option uses a dark
+ *    background, it is used to turn off color specifications so that the font
+ *    color can be set to white for contrast. (With selectMultiple, more than
+ *    one option can be selected at once.) Unselected options and the displayed
+ *    value render with their own style colors.
  */
 export const ChoiceInputInlineContext = createContext<{
     isHidden: boolean;
@@ -64,6 +75,8 @@ interface ChoiceInputSVs {
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
         useDoenetRenderer<ChoiceInputSVs>(props);
+
+    const { darkMode } = useContext(DocContext) || {};
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
@@ -231,7 +244,22 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             // interfering with option selection.
             Option: (props: any) => (
                 <components.Option {...props}>
-                    <div style={{ pointerEvents: "none" }}>{props.label}</div>
+                    {/*
+                     * Render the option content with its style colors, except
+                     * for selected options, which are highlighted with a dark
+                     * background. There, the text color is left to react-select
+                     * (white) for contrast.
+                     */}
+                    <ChoiceInputInlineContext.Provider
+                        value={{
+                            isHidden: false,
+                            inOption: !!props.isSelected,
+                        }}
+                    >
+                        <div style={{ pointerEvents: "none" }}>
+                            {props.label}
+                        </div>
+                    </ChoiceInputInlineContext.Provider>
                 </components.Option>
             ),
             // Add aria-details to the internal input used by react-select.
@@ -289,14 +317,34 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         const menuPortalTarget =
             typeof document === "undefined" ? undefined : document.body;
 
+        // The dropdown menu is portaled to document.body, which sits outside
+        // the `data-theme` wrapper, so its CSS custom properties don't resolve
+        // to the dark-mode values. Drive the colors from the doc-level dark mode
+        // instead. (These mirror the `--canvas` / `--canvasText` palette.)
+        const isDark = darkMode === "dark";
+        const surfaceColor = isDark ? CANVAS_DARK_MODE_COLOR : "#fff";
+        const onSurfaceColor = isDark ? "#fff" : "#000";
+        // The dropdown is a floating surface: in dark mode it must read as
+        // *elevated* above the canvas, so use a lighter surface plus a border
+        // rather than the same color as the canvas (which would be invisible).
+        const menuSurfaceColor = isDark ? "#2a2a2a" : "#fff";
+        const focusedOptionColor = isDark ? "#3d3d3d" : "#e9ecef";
+        const menuBorder = isDark ? "1px solid #555" : undefined;
+
         const customStyles = {
             control: (provided: any) => ({
                 ...provided,
-                background: "#fff",
+                background: surfaceColor,
+                color: onSurfaceColor,
                 minHeight: "0.8lh",
                 pointerEvents: disabled ? "auto" : undefined,
                 boxShadow: "none",
                 border: "none",
+            }),
+
+            singleValue: (provided: any) => ({
+                ...provided,
+                color: onSurfaceColor,
             }),
 
             valueContainer: (provided: any) => ({
@@ -307,6 +355,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             input: (provided: any) => ({
                 ...provided,
                 margin: "0px",
+                color: onSurfaceColor,
             }),
             indicatorSeparator: () => ({
                 display: "none",
@@ -319,15 +368,20 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 ...provided,
                 padding: "2px",
             }),
+            menu: (provided: any) => ({
+                ...provided,
+                backgroundColor: menuSurfaceColor,
+                border: menuBorder,
+            }),
             option: (provided: any, state: any) => ({
                 ...provided,
                 cursor: state.isDisabled ? "not-allowed" : "pointer",
                 backgroundColor: state.isSelected
                     ? "#0056b3" // Darker blue for better contrast
                     : state.isFocused
-                      ? "#e9ecef"
-                      : "#fff",
-                color: state.isSelected ? "#fff" : "#000",
+                      ? focusedOptionColor
+                      : menuSurfaceColor,
+                color: state.isSelected ? "#fff" : onSurfaceColor,
             }),
             menuPortal: (provided: any) => ({
                 ...provided,
@@ -398,7 +452,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     }}
                 >
                     <ChoiceInputInlineContext.Provider
-                        value={{ isHidden: false, inOption: true }}
+                        value={{ isHidden: false, inOption: false }}
                     >
                         <Select
                             id={id}
@@ -504,6 +558,52 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     } else {
         // Non-inline choice input
 
+        // Prevent the wrapping <label> from redirecting focus to the
+        // radio/checkbox when the click originates from an interactive input
+        // (e.g. a <mathInput> or <textInput>) inside the choice content.
+        //
+        // React uses root-level event delegation, so a bubble-phase onClick
+        // fires after the native event has already passed through the <label>
+        // (too late to cancel the label's activation behavior). Using
+        // onClickCapture fires in the capture phase — before the native event
+        // reaches <label> — so calling preventDefault() here marks the event
+        // as cancelled before the label can redirect focus to the radio button.
+        // The event still propagates down to the interactive element, which
+        // receives focus normally.
+        //
+        // The selector covers:
+        //   - any nested form control except choiceInput radio/checkbox
+        //     controls, whose own click behavior should not be cancelled
+        //   - <textarea>
+        //   - <select> and <button>
+        //   - [contenteditable]
+        //   - .mathInputWrapper — MathQuill's visual spans are regular <span>
+        //     elements; clicking them does not target a native form control, so
+        //     the above selectors miss them. MathQuill focuses its internal
+        //     textarea programmatically. Detecting the wrapper class is the
+        //     reliable way to identify a mathInput click.
+        //   - booleanInput containers
+        //   - inline choiceInput controls rendered by react-select
+        //
+        function preventDefaultIfInput(e: React.MouseEvent) {
+            const target = e.target as HTMLElement;
+            const outerChoiceControl = e.currentTarget.querySelector(
+                ":scope > input.choiceinput-control",
+            );
+
+            const interactiveTarget = target.closest(
+                "input, textarea, select, button, [contenteditable], .mathInputWrapper, .boolean-container, .custom-select",
+            );
+
+            if (
+                interactiveTarget &&
+                interactiveTarget !== outerChoiceControl &&
+                !interactiveTarget.classList.contains("choiceinput-control")
+            ) {
+                e.preventDefault();
+            }
+        }
+
         let inputKey = id;
         let listStyle = {
             listStyleType: "none",
@@ -549,8 +649,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             <label
                                 className={containerClassName}
                                 key={inputKey + "_choice" + (i + 1)}
+                                onClickCapture={preventDefaultIfInput}
                             >
                                 <input
+                                    className="choiceinput-control"
                                     type="radio"
                                     id={keyBeginning + (i + 1) + "_input"}
                                     name={inputKey}
@@ -583,8 +685,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             <label
                                 className={containerClassName}
                                 key={inputKey + "_choice" + (i + 1)}
+                                onClickCapture={preventDefaultIfInput}
                             >
                                 <input
+                                    className="choiceinput-control"
                                     type="checkbox"
                                     id={keyBeginning + (i + 1) + "_input"}
                                     name={inputKey}

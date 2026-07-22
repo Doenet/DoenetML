@@ -78,14 +78,12 @@ export default class CollaborateGroups extends BaseComponent {
                         let group =
                             point.stateValues.xs[1].evaluate_to_constant();
 
-                        if (
-                            !(
-                                Number.isInteger(numberOfGroups) &&
-                                numberOfGroups > 0 &&
-                                Number.isInteger(group) &&
-                                group > 0
-                            )
-                        ) {
+                        if (!(
+                            Number.isInteger(numberOfGroups) &&
+                            numberOfGroups > 0 &&
+                            Number.isInteger(group) &&
+                            group > 0
+                        )) {
                             console.warn(
                                 `invalid collaborate group: ${point.stateValues.coords.toString()}`,
                             );

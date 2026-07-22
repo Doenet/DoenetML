@@ -416,3 +416,55 @@ be matched, and the credit achieved will the sum of their corresponding credits 
 Combining multiple `<award>{:dn}`s with `numAwardsCredited` can be an approach for 
 assigning partial credit based on different required aspects of the answer.
 
+---
+
+### Attribute Example: colorInputsSeparately
+
+```doenet-editor-horiz
+<p>Enter a fraction equal to <m>\dfrac{2}{3}</m>:</p>
+<answer name="ans" numAwardsCredited="2" colorInputsSeparately>
+  <fractionInput name="fi">
+    <label>Enter a fraction equal to two thirds</label>
+  </fractionInput>
+  <award credit="0.5"><when>$fi.numerator = 2</when></award>
+  <award credit="0.5"><when>$fi.denominator = 3</when></award>
+</answer>
+```
+When `colorInputsSeparately` is set and the `<award>{:dn}`s of the answer are structured appropriately,
+then each input will be colored based on the correctness of its value
+(green if correct, red if incorrect, and orange if partially correct).
+
+At present, `colorInputsSeparately` requires a particular setup of the `<award>{:dn}`s so that the credit associated
+with each input can be correctly calculated.
+It works best when:
+1. `numAwardsCredited` is set to the number of inputs used,
+2. each input is referenced in its own `<award>{:dn}`, and
+3. the credits for those awards add up to 1.
+
+(Additional `<award>{:dn}`s can be added to create partial-credit scenarios for each input.)
+
+Using other patterns for awards,
+such as referencing multiple inputs in an award
+or having multiple awards credited for a single input,
+may lead to unexpected results.
+
+A common use case for `colorInputsSeparately` is to color the numerator and denominator
+boxes of a fraction input separately, as illustrated above.
+The attribute also applies to multiple `<mathInput>{:dn}`s connected to an answer via
+`forAnswer`:
+
+```doenet-editor-horiz
+<mathInput name="mi1" forAnswer="$ans2">
+  <label>Enter a value greater than 0</label>
+</mathInput>
+<mathInput name="mi2" forAnswer="$ans2">
+  <label>Enter a value greater than 5</label>
+</mathInput>
+<answer name="ans2" numAwardsCredited="2" colorInputsSeparately>
+  <award credit="0.5"><when>$mi1 > 0</when></award>
+  <award credit="0.5"><when>$mi2 > 5</when></award>
+</answer>
+```
+
+Each `<mathInput>{:dn}` box colors independently: green when its award is satisfied,
+red when not.

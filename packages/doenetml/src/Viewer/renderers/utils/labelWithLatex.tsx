@@ -1,5 +1,5 @@
 import React from "react";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./DynamicMath";
 
 /**
  * Render a label as plain text or as inline MathJax, depending on whether the
@@ -13,11 +13,7 @@ export function renderLabelWithLatex({
     labelHasLatex: boolean;
 }): React.ReactNode {
     if (labelHasLatex) {
-        return (
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {label}
-            </MathJax>
-        );
+        return <DynamicMath latex={label} />;
     }
 
     return label;

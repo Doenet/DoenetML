@@ -939,21 +939,23 @@ describe("odeSystem Tag Tests @group4", async () => {
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(4);
 
+        // Warnings surface in evaluation order, which under on-demand
+        // dependency setup follows document order.
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Invalid value of a variable: \`sin(x)\``,
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(6);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(26);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(6);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(54);
-
-        expect(diagnosticsByType.warnings[1].message).contain(
             `Variables of \`<odeSystem>\` must be different than independent variable`,
         );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(12);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(25);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(12);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(25);
+
+        expect(diagnosticsByType.warnings[1].message).contain(
+            `Invalid value of a variable: \`sin(x)\``,
+        );
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(6);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(26);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(6);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(54);
 
         expect(diagnosticsByType.warnings[2].message).contain(
             `Invalid value of a variable: \`sin(y)\``,

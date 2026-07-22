@@ -60,12 +60,7 @@ export namespace Interfaces {
         subsets: (Singleton | OpenInterval)[];
     }
     export type Subset =
-        | InvalidSet
-        | EmptySet
-        | RealLine
-        | Singleton
-        | OpenInterval
-        | Union;
+        InvalidSet | EmptySet | RealLine | Singleton | OpenInterval | Union;
 }
 
 export function isSubset(obj: unknown) {

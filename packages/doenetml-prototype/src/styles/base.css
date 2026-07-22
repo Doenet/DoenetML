@@ -5,3 +5,7 @@
 a {
     @apply text-blue-500 hover:text-blue-600 hover:underline;
 }
+
+hr {
+    @apply border-t-2 border-gray-300 my-4;
+}

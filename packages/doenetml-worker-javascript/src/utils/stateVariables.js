@@ -100,59 +100,70 @@ export function renameStateVariable({
     }
 }
 
-export function returnDefaultGetArrayKeysFromVarName(numDim) {
-    // the default function for getArrayKeysFromVarName ignores the
-    // array entry prefix, but is just based on the variable ending.
-    // A component class's function could use arrayEntryPrefix
+// The default functions for getArrayKeysFromVarName ignore the
+// array entry prefix, but are just based on the variable ending.
+// A component class's function could use arrayEntryPrefix.
+// They are shared module-level functions (rather than closures created
+// per call) so that every array state variable using the default holds
+// a reference to the same function.
 
-    if (numDim > 1) {
-        return function ({
-            arrayEntryPrefix,
-            varEnding,
-            arraySize,
-            numDimensions,
-        }) {
-            let indices = varEnding.split("_").map((x) => Number(x) - 1);
-            if (
-                indices.length === numDimensions &&
-                indices.every((x, i) => Number.isInteger(x) && x >= 0)
-            ) {
-                if (arraySize) {
-                    if (indices.every((x, i) => x < arraySize[i])) {
-                        return [String(indices)];
-                    } else {
-                        return [];
-                    }
-                } else {
-                    // If not given the array size,
-                    // then return the array keys assuming the array is large enough.
-                    // Must do this as it is used to determine potential array entries.
-                    return [String(indices)];
-                }
+function defaultGetArrayKeysFromVarNameMultiDim({
+    arrayEntryPrefix,
+    varEnding,
+    arraySize,
+    numDimensions,
+}) {
+    let indices = varEnding.split("_").map((x) => Number(x) - 1);
+    if (
+        indices.length === numDimensions &&
+        indices.every((x, i) => Number.isInteger(x) && x >= 0)
+    ) {
+        if (arraySize) {
+            if (indices.every((x, i) => x < arraySize[i])) {
+                return [String(indices)];
             } else {
                 return [];
             }
-        };
+        } else {
+            // If not given the array size,
+            // then return the array keys assuming the array is large enough.
+            // Must do this as it is used to determine potential array entries.
+            return [String(indices)];
+        }
     } else {
-        return function ({ arrayEntryPrefix, varEnding, arraySize }) {
-            let index = Number(varEnding) - 1;
-            if (Number.isInteger(index) && index >= 0) {
-                if (arraySize) {
-                    if (index < arraySize[0]) {
-                        return [String(index)];
-                    } else {
-                        return [];
-                    }
-                } else {
-                    // If not given the array size,
-                    // then return the array keys assuming the array is large enough.
-                    // Must do this as it is used to determine potential array entries.
-                    return [String(index)];
-                }
+        return [];
+    }
+}
+
+function defaultGetArrayKeysFromVarNameOneDim({
+    arrayEntryPrefix,
+    varEnding,
+    arraySize,
+}) {
+    let index = Number(varEnding) - 1;
+    if (Number.isInteger(index) && index >= 0) {
+        if (arraySize) {
+            if (index < arraySize[0]) {
+                return [String(index)];
             } else {
                 return [];
             }
-        };
+        } else {
+            // If not given the array size,
+            // then return the array keys assuming the array is large enough.
+            // Must do this as it is used to determine potential array entries.
+            return [String(index)];
+        }
+    } else {
+        return [];
+    }
+}
+
+export function returnDefaultGetArrayKeysFromVarName(numDim) {
+    if (numDim > 1) {
+        return defaultGetArrayKeysFromVarNameMultiDim;
+    } else {
+        return defaultGetArrayKeysFromVarNameOneDim;
     }
 }
 

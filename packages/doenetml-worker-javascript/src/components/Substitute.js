@@ -433,12 +433,10 @@ export default class Substitute extends CompositeComponent {
                         dependencyValues.replacement.subscripts_to_strings();
 
                     // allow only if match and replacement are single variables
-                    if (
-                        !(
-                            typeof match.tree === "string" &&
-                            typeof replacement.tree === "string"
-                        )
-                    ) {
+                    if (!(
+                        typeof match.tree === "string" &&
+                        typeof replacement.tree === "string"
+                    )) {
                         return { success: false };
                     }
 

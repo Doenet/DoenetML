@@ -6865,4 +6865,213 @@ describe("Point tag tests @group4", async () => {
         expect(p2Latex).contain("0.000000000007");
         expect(p2Latex).contain("2000000000000000000000");
     });
+
+    it("referencing a point directly in its own label works", async () => {
+        // Regression test for: https://github.com/Doenet/DoenetML/issues/1333
+        // `<label>$a</label>` inside point `a` should display the point's
+        // coordinates (same as `$a.coords`), not an error.
+        // Also covers context-aware fallback selection:
+        // - $a directly in <label>
+        // - $a via transparent <group> inside <label>
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <point name="a">(2,3)
+    <label>$a</label>
+  </point>
+  <point name="ref">(2,3)
+    <label>$ref.coords</label>
+  </point>
+  <point name="viaGroup">(2,3)
+    <label><group>$viaGroup</group></label>
+  </point>
+</graph>
+`,
+        });
+
+        const aIdx = await resolvePathToNodeIdx("a");
+        const refIdx = await resolvePathToNodeIdx("ref");
+        const viaGroupIdx = await resolvePathToNodeIdx("viaGroup");
+
+        async function check_labels(x: number, y: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const aLabel = stateVariables[aIdx].stateValues.label;
+            const refLabel = stateVariables[refIdx].stateValues.label;
+            const viaGroupLabel = stateVariables[viaGroupIdx].stateValues.label;
+
+            // $a (self-reference) should give same result as $ref.coords
+            expect(aLabel).eq(refLabel);
+            // $viaGroup inside a transparent <group> should also match
+            expect(viaGroupLabel).eq(refLabel);
+
+            expect(
+                stateVariables[aIdx].stateValues.xs.map((v: any) => v.tree),
+            ).eqls([x, y]);
+            expect(
+                stateVariables[refIdx].stateValues.xs.map((v: any) => v.tree),
+            ).eqls([x, y]);
+            expect(
+                stateVariables[viaGroupIdx].stateValues.xs.map(
+                    (v: any) => v.tree,
+                ),
+            ).eqls([x, y]);
+        }
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        // Initial state: all points at (2, 3), labels non-empty
+        const initialStateVariables = await core.returnAllStateVariables(
+            false,
+            true,
+        );
+        const initialLabel = initialStateVariables[aIdx].stateValues.label;
+        expect(typeof initialLabel).eq("string");
+        expect(initialLabel.length).greaterThan(0);
+        await check_labels(2, 3);
+
+        // Move point a and verify its label updates
+        await movePoint({ componentIdx: aIdx, x: -4, y: 7, core });
+        await movePoint({ componentIdx: refIdx, x: -4, y: 7, core });
+        await movePoint({ componentIdx: viaGroupIdx, x: -4, y: 7, core });
+        await check_labels(-4, 7);
+
+        // Move again
+        await movePoint({ componentIdx: aIdx, x: 0, y: -1, core });
+        await movePoint({ componentIdx: refIdx, x: 0, y: -1, core });
+        await movePoint({ componentIdx: viaGroupIdx, x: 0, y: -1, core });
+        await check_labels(0, -1);
+    });
+
+    it("self-referential point in label works via m, math, boolean contexts", async () => {
+        // <m>, <math>, and <boolean> are all recognized contexts, so a
+        // self-referential $a inside them within a <label> should resolve
+        // to the point's coordinates rather than error.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <point name="viaM">(2,3)
+    <label><m>$viaM</m></label>
+  </point>
+  <point name="viaMath">(2,3)
+    <label><math>$viaMath</math></label>
+  </point>
+  <point name="viaBoolean">(2,3)
+    <label><boolean>$viaBoolean</boolean></label>
+  </point>
+  <point name="ref">(2,3)
+    <label>$ref.coords</label>
+  </point>
+</graph>
+`,
+        });
+
+        const viaMIdx = await resolvePathToNodeIdx("viaM");
+        const viaMathIdx = await resolvePathToNodeIdx("viaMath");
+        const viaBooleanIdx = await resolvePathToNodeIdx("viaBoolean");
+        const refIdx = await resolvePathToNodeIdx("ref");
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        async function check_labels(x: number, y: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const viaMLabel = stateVariables[viaMIdx].stateValues.label;
+            const viaMathLabel = stateVariables[viaMathIdx].stateValues.label;
+            const viaBooleanLabel =
+                stateVariables[viaBooleanIdx].stateValues.label;
+
+            // All three should be non-empty strings
+            expect(typeof viaMLabel).eq("string");
+            expect(viaMLabel.length).greaterThan(0);
+            expect(typeof viaMathLabel).eq("string");
+            expect(viaMathLabel.length).greaterThan(0);
+            expect(typeof viaBooleanLabel).eq("string");
+            expect(viaBooleanLabel.length).greaterThan(0);
+
+            // <m> and <math> both render math, so they should match $ref.coords
+            const refLabel = stateVariables[refIdx].stateValues.label;
+            expect(viaMLabel).eq(refLabel);
+            expect(viaMathLabel).eq(refLabel);
+
+            expect(
+                stateVariables[viaMIdx].stateValues.xs.map((v: any) => v.tree),
+            ).eqls([x, y]);
+        }
+
+        await check_labels(2, 3);
+
+        await movePoint({ componentIdx: viaMIdx, x: -1, y: 4, core });
+        await movePoint({ componentIdx: viaMathIdx, x: -1, y: 4, core });
+        await movePoint({ componentIdx: viaBooleanIdx, x: -1, y: 4, core });
+        await movePoint({ componentIdx: refIdx, x: -1, y: 4, core });
+        await check_labels(-1, 4);
+    });
+
+    it("self-referential point works via number context and via adapted inner point", async () => {
+        // <number> is a recognized context (qualitatively similar to <math>).
+        // An inner <point> also works because point adapts to coords, a math subtype.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <point name="viaNumber">(2,3)
+    <label><number>$viaNumber</number></label>
+  </point>
+  <point name="viaInnerPoint">(2,3)
+    <label><point>$viaInnerPoint</point></label>
+  </point>
+</graph>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        const viaNumberIdx = await resolvePathToNodeIdx("viaNumber");
+        const viaInnerPointIdx = await resolvePathToNodeIdx("viaInnerPoint");
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const viaNumberLabel = stateVariables[viaNumberIdx].stateValues.label;
+        const viaInnerPointLabel =
+            stateVariables[viaInnerPointIdx].stateValues.label;
+
+        expect(typeof viaNumberLabel).eq("string");
+        expect(viaNumberLabel.length).greaterThan(0);
+        expect(typeof viaInnerPointLabel).eq("string");
+        expect(viaInnerPointLabel.length).greaterThan(0);
+
+        // Labels update when the point moves (inner-point case tracks coords;
+        // number context renders NaN for a non-scalar, which is acceptable)
+        await movePoint({ componentIdx: viaNumberIdx, x: 5, y: -2, core });
+        await movePoint({ componentIdx: viaInnerPointIdx, x: 5, y: -2, core });
+        const sv2 = await core.returnAllStateVariables(false, true);
+        expect(sv2[viaInnerPointIdx].stateValues.label).not.eq(
+            viaInnerPointLabel,
+        );
+    });
+
+    it("self-reference inside a non-sensical context like <answer> still errors", async () => {
+        // Components like <answer> are not in the recognized rendering-context
+        // list and don't make sense inside a <label>. The circular-dependency
+        // error is the expected outcome in such cases.
+        const { core } = await createTestCore({
+            doenetML: `
+<point name="a">(2,3)
+  <label><answer>$a</answer></label>
+</point>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).greaterThan(0);
+        expect(diagnostics.errors[0].message).contain(
+            "Circular dependency detected",
+        );
+    });
 });

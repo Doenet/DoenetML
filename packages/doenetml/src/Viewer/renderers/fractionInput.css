@@ -1,0 +1,40 @@
+.doenet-viewer .fraction-input {
+    position: relative;
+    margin: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    width: auto;
+
+    & table {
+        border-collapse: collapse;
+    }
+
+    /* Override the default mathInput wrapper margin (0 4px 4px 4px), which
+       would otherwise push the numerator farther from the bar than the
+       denominator and make each box narrower than its cell (so the bar
+       overhangs). A symmetric margin keeps the gaps equal and the bar flush
+       with the boxes. */
+    & div.mathInputWrapper {
+        margin: 0;
+    }
+
+    & .fractionNumerator,
+    & .fractionDenominator {
+        text-align: center;
+        /* A little vertical space so the focus-state double border on the
+           input boxes doesn't touch the bar. */
+        padding: 4px 0;
+    }
+
+    & .fractionVinculum {
+        /* Paint the bar as a solid 2px-high block rather than a border on an
+           empty, zero-height cell. A collapsed border on an empty zero-height
+           cell gets snapped to the device-pixel grid and rounds away to
+           nothing on high-DPI (e.g. Retina) displays, so the vinculum would
+           vanish on those screens. A filled background box of explicit height
+           rasterizes reliably at any devicePixelRatio. */
+        height: 2px;
+        padding: 0;
+        background-color: currentColor;
+    }
+}

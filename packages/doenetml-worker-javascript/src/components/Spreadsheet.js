@@ -507,14 +507,12 @@ export default class Spreadsheet extends BlockComponent {
                         }
                     }
 
-                    if (
-                        !(
-                            fromRow >= 0 &&
-                            toRow >= 0 &&
-                            fromCol >= 0 &&
-                            toCol >= 0
-                        )
-                    ) {
+                    if (!(
+                        fromRow >= 0 &&
+                        toRow >= 0 &&
+                        fromCol >= 0 &&
+                        toCol >= 0
+                    )) {
                         // invalid range
                         return [];
                     }
@@ -937,14 +935,12 @@ export default class Spreadsheet extends BlockComponent {
                         }
                     }
 
-                    if (
-                        !(
-                            fromRow >= 0 &&
-                            toRow >= 0 &&
-                            fromCol >= 0 &&
-                            toCol >= 0
-                        )
-                    ) {
+                    if (!(
+                        fromRow >= 0 &&
+                        toRow >= 0 &&
+                        fromCol >= 0 &&
+                        toCol >= 0
+                    )) {
                         // invalid range
                         return [];
                     }
@@ -1293,14 +1289,12 @@ export default class Spreadsheet extends BlockComponent {
                         }
                     }
 
-                    if (
-                        !(
-                            fromRow >= 0 &&
-                            toRow >= 0 &&
-                            fromCol >= 0 &&
-                            toCol >= 0
-                        )
-                    ) {
+                    if (!(
+                        fromRow >= 0 &&
+                        toRow >= 0 &&
+                        fromCol >= 0 &&
+                        toCol >= 0
+                    )) {
                         // invalid range
                         return [];
                     }

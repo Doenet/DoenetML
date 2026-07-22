@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml",
     "type": "module",
     "description": "Semantic markup for building interactive web activities",
-    "version": "0.7.20",
+    "version": "0.7.21",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -31,7 +31,7 @@
         "test": "vitest",
         "test-cypress": "cypress open --component",
         "test-cypress-all": "cypress run --component -b 'chrome' --config video=false --headless",
-        "publish": "npm run build && cd dist && npm publish"
+        "publish": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist"
     },
     "wireit": {
         "build:dev": {
@@ -89,7 +89,7 @@
     "dependencies": {
         "@doenet/lsp-tools": "*",
         "@doenet/static-assets": "*",
-        "dompurify": "^3.3.0"
+        "dompurify": "^3.4.11"
     },
     "prettier": {
         "tabWidth": 4

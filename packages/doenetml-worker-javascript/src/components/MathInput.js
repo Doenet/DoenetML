@@ -19,6 +19,15 @@ import {
     stripLatex,
 } from "../utils/math";
 import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
+import {
+    buildInputResponseEvent,
+    defineSubmitAnswerExternalAction,
+} from "../utils/input";
+import {
+    moveGraphicalObjectWithAnchorAction,
+    returnAnchorAttributes,
+    returnAnchorStateVariableDefinition,
+} from "../utils/graphical";
 
 export default class MathInput extends Input {
     constructor(args) {
@@ -27,25 +36,10 @@ export default class MathInput extends Input {
         Object.assign(this.actions, {
             updateRawValue: this.updateRawValue.bind(this),
             updateValue: this.updateValue.bind(this),
+            moveInput: this.moveInput.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
     static componentType = "mathInput";
 
@@ -197,6 +191,17 @@ export default class MathInput extends Input {
             description: "Whether to display a preview of the parsed math.",
         };
 
+        attributes.draggable = {
+            description: "Whether the input can be dragged on a graph.",
+            createComponentOfType: "boolean",
+            createStateVariable: "draggable",
+            defaultValue: true,
+            public: true,
+            forRenderer: true,
+        };
+
+        Object.assign(attributes, returnAnchorAttributes());
+
         return attributes;
     }
 
@@ -246,6 +251,11 @@ export default class MathInput extends Input {
                 displayDigitsDefault: 10,
                 displaySmallAsZeroDefault: 0,
             }),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnAnchorStateVariableDefinition(),
         );
 
         stateVariableDefinitions.effectiveFunctionNames = {
@@ -370,7 +380,7 @@ export default class MathInput extends Input {
 
         stateVariableDefinitions.valueChanged = {
             description:
-                "Whether the saved value has been changed from its initial state.",
+                "Whether the value has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -397,7 +407,7 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.value = {
-            description: "The most recently saved math value.",
+            description: "The math value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -543,7 +553,7 @@ export default class MathInput extends Input {
 
         stateVariableDefinitions.immediateValueChanged = {
             description:
-                "Whether the live value differs from its initial state.",
+                "Whether the value, including in-progress edits, has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -573,7 +583,7 @@ export default class MathInput extends Input {
 
         stateVariableDefinitions.immediateValue = {
             description:
-                "The current math value being entered (live, before saving).",
+                "The math value reflecting the user's in-progress edits.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1217,24 +1227,12 @@ export default class MathInput extends Input {
                     valueOfStateVariable: "valueForDisplay",
                 });
 
-                let event = {
+                let event = await buildInputResponseEvent({
+                    component: this,
                     verb: "answered",
-                    object: {
-                        componentIdx: this.componentIdx,
-                        componentType: this.componentType,
-                    },
-                    result: {
-                        response: immediateValue,
-                        responseText: immediateValue.toString(),
-                    },
-                };
-
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor) {
-                    event.context = {
-                        answerAncestor: answerAncestor.componentIdx,
-                    };
-                }
+                    response: immediateValue,
+                    responseText: immediateValue.toString(),
+                });
 
                 // TODO: we should should skip renderer updates here,
                 // but doing so triggers a bug in the resolveItem logic
@@ -1257,6 +1255,29 @@ export default class MathInput extends Input {
                 });
             }
         }
+    }
+
+    async moveInput({
+        x,
+        y,
+        z,
+        transient,
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        return await moveGraphicalObjectWithAnchorAction({
+            x,
+            y,
+            z,
+            transient,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+            componentIdx: this.componentIdx,
+            componentType: this.componentType,
+            coreFunctions: this.coreFunctions,
+        });
     }
 
     static adapters = [

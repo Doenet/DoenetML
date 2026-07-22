@@ -3,6 +3,19 @@ import { escapeXml, formatNumber, pushWarning } from "./common";
 import type { SelectedStyle } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
 
+/**
+ * Maps DoenetML fillStyle values (stored lowercase) to prefigure fill-pattern values.
+ * DoenetML's "dots"/"diamonds" (plural) map to prefigure's "dot"/"diamond" (singular).
+ */
+const prefigureFillPatternByFillStyle: Record<string, string> = {
+    horizontal: "horizontal",
+    vertical: "vertical",
+    diagonal: "diagonal",
+    backdiagonal: "backdiagonal",
+    dots: "dot",
+    diamonds: "diamond",
+};
+
 const prefigureDashByLineStyle: Record<string, string | null> = {
     solid: null,
     dashed: "9 9",
@@ -18,6 +31,49 @@ const prefigurePointStyleByMarkerStyle: Record<string, string> = {
     plus: "plus",
     "double-circle": "double-circle",
 };
+
+/**
+ * Returns a `selectedStyle` whose color fields hold the dark-mode values when
+ * `darkMode` is true, so the rest of the PreFigure conversion (which reads the
+ * plain `*Color`/`*ColorWord` fields) emits theme-appropriate colors without
+ * every converter needing to know about dark mode.
+ *
+ * The dark values are derived by the worker to satisfy WCAG AA against the dark
+ * canvas, matching what the JSXGraph renderer picks via `resolveLineColor` etc.
+ * In light mode (or when no style is present) the input is returned unchanged.
+ */
+export function resolveSelectedStyleForTheme(
+    selectedStyle: SelectedStyle | undefined,
+    darkMode: boolean,
+): SelectedStyle | undefined {
+    if (!selectedStyle || !darkMode) {
+        return selectedStyle;
+    }
+
+    const pickDark = (darkKey: string, lightValue: string | undefined) => {
+        const darkValue = selectedStyle[darkKey];
+        return typeof darkValue === "string" ? darkValue : lightValue;
+    };
+
+    return {
+        ...selectedStyle,
+        lineColor: pickDark("lineColorDarkMode", selectedStyle.lineColor),
+        lineColorWord: pickDark(
+            "lineColorWordDarkMode",
+            selectedStyle.lineColorWord,
+        ),
+        fillColor: pickDark("fillColorDarkMode", selectedStyle.fillColor),
+        fillColorWord: pickDark(
+            "fillColorWordDarkMode",
+            selectedStyle.fillColorWord,
+        ),
+        markerColor: pickDark("markerColorDarkMode", selectedStyle.markerColor),
+        markerColorWord: pickDark(
+            "markerColorWordDarkMode",
+            selectedStyle.markerColorWord,
+        ),
+    };
+}
 
 /**
  * Maps common line/fill style fields from Doenet selectedStyle to PreFigure attributes.
@@ -48,22 +104,48 @@ export function styleAttributes({
     }
 
     if (includeFill) {
+        const fillStyle = selectedStyle?.fillStyle;
+        const prefigurePattern =
+            fillStyle && fillStyle !== "solid"
+                ? prefigureFillPatternByFillStyle[fillStyle]
+                : undefined;
+
         const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
-        if (fill) {
-            attrs.push(`fill="${escapeXml(fill)}"`);
+
+        if (prefigurePattern !== undefined) {
+            // Patterned fill: emit fill-pattern, fill color, and fillPatternOpacity
+            attrs.push(`fill-pattern="${escapeXml(prefigurePattern)}"`);
+            if (fill) {
+                attrs.push(`fill="${escapeXml(fill)}"`);
+            }
+            const fillPatternOpacity = formatNumber(
+                selectedStyle?.fillPatternOpacity,
+            );
+            if (fillPatternOpacity !== null) {
+                attrs.push(`fill-opacity="${escapeXml(fillPatternOpacity)}"`);
+            }
+        } else {
+            // Solid fill (or unsupported pattern falling back to solid)
+            if (fill) {
+                attrs.push(`fill="${escapeXml(fill)}"`);
+            }
+            const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
+            if (fillOpacity !== null) {
+                attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
+            }
+            if (fillStyle && fillStyle !== "solid") {
+                pushWarning({
+                    diagnostics,
+                    message: `${warningPrefix}: fill style '${fillStyle}' is unsupported by PreFigure; falling back to a solid fill.`,
+                    position: warningPosition,
+                });
+            }
         }
     }
 
     const lineOpacity = formatNumber(selectedStyle?.lineOpacity);
     if (lineOpacity !== null) {
         attrs.push(`stroke-opacity="${escapeXml(lineOpacity)}"`);
-    }
-
-    if (includeFill) {
-        const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
-        if (fillOpacity !== null) {
-            attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
-        }
     }
 
     const lineStyle = selectedStyle?.lineStyle;

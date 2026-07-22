@@ -1,4 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+import {
+    compositedContrastRatio,
+    TEXT_CONTRAST_THRESHOLD,
+} from "@doenet/utils/style";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -1072,6 +1076,154 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(false);
     });
 
+    it("startOpen only affects collapsible sectioning components", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <section name="closedSection" collapsible startOpen="false">
+        <title>Closed section</title>
+        <p>Content</p>
+      </section>
+      <example name="openExample" collapsible>
+        <title>Open example</title>
+        <p>Content</p>
+      </example>
+      <section name="plainSection" startOpen="false">
+        <title>Plain section</title>
+        <p name="plainText">Plain content</p>
+      </section>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        // collapsible + startOpen="false" → starts closed
+        expect(
+            stateVariables[await resolvePathToNodeIdx("closedSection")]
+                .stateValues.open,
+        ).eq(false);
+        // collapsible without startOpen → starts open (default startOpen=true)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("openExample")]
+                .stateValues.open,
+        ).eq(true);
+        // not collapsible → always open; startOpen is ignored
+        expect(
+            stateVariables[await resolvePathToNodeIdx("plainSection")]
+                .stateValues.open,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("plainText")].stateValues
+                .text,
+        ).eq("Plain content");
+
+        await core.requestAction({
+            actionName: "revealSection",
+            componentIdx: await resolvePathToNodeIdx("closedSection"),
+            args: {},
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("closedSection")]
+                .stateValues.open,
+        ).eq(true);
+    });
+
+    it("sectioning components default to collapsible=false; aside and proof default to collapsible=true", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <section name="sec" />
+      <example name="ex" />
+      <theorem name="thm"><title>T</title><p>P</p></theorem>
+      <aside name="as" />
+      <proof name="pf"><p>P</p></proof>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Non-collapsible by default
+        for (const name of ["sec", "ex", "thm"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .collapsible,
+                `${name} should default to collapsible=false`,
+            ).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .open,
+                `${name} should be open`,
+            ).eq(true);
+        }
+
+        // Collapsible by default
+        for (const name of ["as", "pf"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .collapsible,
+                `${name} should default to collapsible=true`,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .open,
+                `${name} should start closed`,
+            ).eq(false);
+        }
+    });
+
+    it("section with dynamic collapsible attribute stays open when collapsible toggles to false", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <booleanInput name="toggle" />
+      <section name="sec" collapsible="$toggle" startOpen="false">
+        <title>Dynamic section</title>
+        <p name="content">Content</p>
+      </section>
+    `,
+        });
+
+        // Initially collapsible=false (toggle is false), so open must be true
+        // regardless of startOpen="false"
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .collapsible,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
+        ).eq(true);
+
+        // Enable collapsible — section starts closed per startOpen="false",
+        // so the essential open value is now false
+        await core.requestAction({
+            actionName: "updateBoolean",
+            componentIdx: await resolvePathToNodeIdx("toggle"),
+            args: { boolean: true },
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .collapsible,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
+        ).eq(false);
+
+        // Disable collapsible with the section still closed (essential open=false) —
+        // the section must be forced open despite the stored essential value
+        await core.requestAction({
+            actionName: "updateBoolean",
+            componentIdx: await resolvePathToNodeIdx("toggle"),
+            args: { boolean: false },
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues
+                .collapsible,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues.open,
+        ).eq(true);
+    });
+
     it("aside content with postponeRendering isn't created before opening", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -1443,5 +1595,273 @@ describe("Sectioning tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("sec4")].stateValues
                 .endsWithConclusion,
         ).eq(false);
+    });
+});
+
+describe("Section heading color accessibility diagnostics @group3", async () => {
+    it("emits no diagnostics when default CSS-variable colors are used", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<problem name="p" boxed>
+  <title>Default colors</title>
+  <p>Content.</p>
+</problem>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) => d.type === "accessibility" && d.level === 1,
+        );
+        expect(diagnostics).to.have.length(0);
+    });
+
+    it("emits diagnostics for insufficient light-mode heading colors", async () => {
+        // black on black = 1:1, fails 4.5:1
+        const { core } = await createTestCore({
+            doenetML: `<problem name="p" boxed
+  notStartedColor="black"
+  inProgressColor="black"
+  completedColor="black">
+  <title>Bad colors</title>
+  <p>Content.</p>
+</problem>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics.length).toBeGreaterThanOrEqual(3);
+        expect(
+            diagnostics.some((d: any) => d.message.includes("completedColor")),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) => d.message.includes("inProgressColor")),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) => d.message.includes("notStartedColor")),
+        ).toBe(true);
+    });
+
+    it("emits diagnostics for insufficient dark-mode heading colors", async () => {
+        // white on white = 1:1, fails 4.5:1
+        const { core } = await createTestCore({
+            doenetML: `<problem name="p" boxed
+  notStartedColorDarkMode="white"
+  inProgressColorDarkMode="white"
+  completedColorDarkMode="white">
+  <title>Bad dark colors</title>
+  <p>Content.</p>
+</problem>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics.length).toBeGreaterThanOrEqual(3);
+        expect(
+            diagnostics.some((d: any) =>
+                d.message.includes("completedColorDarkMode"),
+            ),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) =>
+                d.message.includes("inProgressColorDarkMode"),
+            ),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) =>
+                d.message.includes("notStartedColorDarkMode"),
+            ),
+        ).toBe(true);
+        expect(
+            diagnostics.some((d: any) => d.message.includes("(dark mode)")),
+        ).toBe(true);
+    });
+
+    it("emits no diagnostics for accessible custom colors", async () => {
+        // #d0d0d0 on white canvas: black text contrast > 4.5:1
+        const { core } = await createTestCore({
+            doenetML: `<problem name="p" boxed
+  notStartedColor="#d0d0d0"
+  notStartedColorDarkMode="#2a2a2a">
+  <title>Good colors</title>
+  <p>Content.</p>
+</problem>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics).to.have.length(0);
+    });
+
+    it("does not emit diagnostics for non-boxed sections", async () => {
+        // Heading colors are irrelevant for non-boxed/non-collapsible sections.
+        const { core } = await createTestCore({
+            doenetML: `<section name="sec" notStartedColor="black">
+  <title>Non-boxed</title>
+  <p>Content.</p>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics).to.have.length(0);
+    });
+
+    it("emits diagnostics when a boxed child inherits inaccessible parent heading colors", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<section name="parent" notStartedColor="black">
+  <section name="child" boxed>
+    <title>Inherited bad color</title>
+    <p>Content.</p>
+  </section>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(
+            diagnostics.some((d: any) => d.message.includes("notStartedColor")),
+        ).toBe(true);
+    });
+
+    it("does not duplicate diagnostics across nested boxed sections", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<section name="parent" boxed notStartedColor="black">
+  <title>Parent</title>
+  <section name="child" boxed>
+    <title>Child</title>
+    <p>Content.</p>
+  </section>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ) &&
+                d.message?.includes("notStartedColor"),
+        );
+        expect(diagnostics).toHaveLength(1);
+    });
+
+    it("does not duplicate diagnostics across boxed sections separated by a non-boxed intermediary", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<section name="parent" boxed notStartedColor="black">
+  <title>Parent</title>
+  <section name="middle">
+    <title>Middle</title>
+    <problem name="child" boxed>
+      <title>Child</title>
+      <p>Content.</p>
+    </problem>
+  </section>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ) &&
+                d.message?.includes("notStartedColor"),
+        );
+        expect(diagnostics).toHaveLength(1);
+    });
+
+    it("falls back to the accessible default dark-mode heading color for authored CSS variables", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<section name="sec" boxed notStartedColor="var(--mainGray)">
+  <title>CSS variable color</title>
+  <p>Content.</p>
+</section>`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sectionState =
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues;
+
+        expect(sectionState.titleColor).eq("var(--mainGray)");
+        expect(sectionState.titleColorDarkMode).eq("#3a3a3a");
+    });
+
+    it("does not emit diagnostics for translucent heading colors that remain accessible after compositing", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<section name="sec" boxed notStartedColor="rgba(0,0,0,0.5)">
+  <title>Translucent heading</title>
+  <p>Content.</p>
+</section>`,
+        });
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics).to.have.length(0);
+
+        const ratio = compositedContrastRatio({
+            foreground: "#000000",
+            canvas: "#ffffff",
+            background: "rgba(0,0,0,0.5)",
+        });
+        expect(ratio).not.toBeNull();
+        expect(ratio!).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
+    });
+
+    it("derives an accessible dark-mode heading color from an authored light-mode color", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<section name="sec" boxed notStartedColor="#d9d9d9">
+  <title>Derived dark color</title>
+  <p>Content.</p>
+</section>`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sectionState =
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues;
+
+        expect(sectionState.titleColor).eq("#d9d9d9");
+        expect(sectionState.titleColorDarkMode).not.eq("#3a3a3a");
+
+        const darkRatio = compositedContrastRatio({
+            foreground: "#ffffff",
+            canvas: sectionState.titleColorDarkMode,
+        });
+        expect(darkRatio).not.toBeNull();
+        expect(darkRatio!).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
+
+        const diagnostics = core.core!.diagnostics.filter(
+            (d: any) =>
+                d.type === "accessibility" &&
+                d.level === 1 &&
+                d.message?.includes(
+                    "insufficient contrast for the section heading text",
+                ),
+        );
+        expect(diagnostics).to.have.length(0);
     });
 });

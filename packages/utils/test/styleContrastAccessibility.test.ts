@@ -1,0 +1,293 @@
+import { describe, expect, it } from "vitest";
+import {
+    contrastAccessibilityDiagnosticsForStyleDefinitions,
+    normalizeStyleDefinitionsValues,
+    normalizeStyleDefinitionValues,
+    addMissingChildStyleColorFields,
+    type RawStyleDefinitions,
+} from "../src/style";
+
+const POS = { start: { line: 1, column: 1, offset: 0 } };
+
+function diagnose(defs: RawStyleDefinitions) {
+    return contrastAccessibilityDiagnosticsForStyleDefinitions(
+        normalizeStyleDefinitionsValues(defs),
+    );
+}
+
+describe("contrast diagnostics — light mode (regression)", () => {
+    it("flags low-contrast light-mode text", () => {
+        const diags = diagnose({
+            1: { textColor: { style: "#ff9900", position: POS } },
+        });
+        expect(diags.length).toBe(1);
+        expect(diags[0].message).toMatch(/insufficient contrast/);
+        expect(diags[0].message).not.toMatch(/dark mode/);
+    });
+
+    it("does not flag good-contrast light-mode text", () => {
+        const diags = diagnose({
+            1: { textColor: { style: "#111111", position: POS } },
+        });
+        expect(diags.length).toBe(0);
+    });
+
+    it("flags an authored background color that fails against a default text color", () => {
+        const diags = diagnose({
+            1: {
+                textColor: "black",
+                backgroundColor: { style: "black", position: POS },
+            },
+        });
+        expect(diags.length).toBe(1);
+        expect(diags[0].position).toBe(POS);
+        expect(diags[0].message).toMatch(/text color against background color/);
+    });
+
+    it("flags authored low line and marker opacity on default colors", () => {
+        const diags = diagnose({
+            1: {
+                lineColor: "#648FFF",
+                lineOpacity: { style: 0.1, position: POS },
+                markerColor: "#648FFF",
+                markerOpacity: { style: 0.1, position: POS },
+            },
+        });
+        expect(diags.length).toBe(2);
+        expect(diags.map((d) => d.message)).toEqual([
+            expect.stringMatching(/line color against the canvas/),
+            expect.stringMatching(/marker color against the canvas/),
+        ]);
+    });
+
+    it("checks line/marker contrast at the default opacity (0.7) when none is authored", () => {
+        // #808080 clears 3:1 against white at full opacity (~3.94:1) but not at
+        // the renderer's default 0.7 opacity (~2.43:1). With no opacity authored,
+        // the diagnostic must use 0.7 so it matches what is actually painted.
+        const diags = diagnose({
+            1: {
+                lineColor: { style: "#808080", position: POS },
+                markerColor: { style: "#808080", position: POS },
+            },
+        });
+        expect(diags.map((d) => d.message)).toEqual([
+            expect.stringMatching(/line color against the canvas/),
+            expect.stringMatching(/marker color against the canvas/),
+        ]);
+    });
+});
+
+describe("contrast diagnostics — dark mode", () => {
+    it("flags an author-supplied dark-mode text color that fails on the dark canvas", () => {
+        // Near-black dark-mode text is unreadable on #121212.
+        const diags = diagnose({
+            1: {
+                textColor: { style: "#111111", position: POS },
+                textColorDarkMode: { style: "#111111", position: POS },
+            },
+        });
+        const darkDiags = diags.filter((d) =>
+            d.message.includes("(dark mode)"),
+        );
+        expect(darkDiags.length).toBe(1);
+        expect(darkDiags[0].message).toMatch(/text color.*dark mode/);
+    });
+
+    it("does not flag an accessible author-supplied dark-mode text color", () => {
+        const diags = diagnose({
+            1: {
+                textColor: { style: "#111111", position: POS },
+                textColorDarkMode: { style: "#eeeeee", position: POS },
+            },
+        });
+        expect(
+            diags.filter((d) => d.message.includes("(dark mode)")).length,
+        ).toBe(0);
+    });
+
+    it("flags an author-supplied dark-mode line color that fails", () => {
+        const diags = diagnose({
+            1: {
+                lineColor: { style: "#648FFF", position: POS },
+                lineColorDarkMode: { style: "#101010", position: POS },
+                lineOpacity: { style: 0.7, position: POS },
+            },
+        });
+        const darkDiags = diags.filter((d) =>
+            d.message.includes("(dark mode)"),
+        );
+        expect(darkDiags.length).toBe(1);
+        expect(darkDiags[0].message).toMatch(/line color.*dark mode/);
+    });
+
+    it("does not flag a bright dark-mode line color", () => {
+        const diags = diagnose({
+            1: {
+                lineColor: { style: "#648FFF", position: POS },
+                lineColorDarkMode: { style: "#648FFF", position: POS },
+                lineOpacity: { style: 0.7, position: POS },
+            },
+        });
+        expect(
+            diags.filter((d) => d.message.includes("(dark mode)")).length,
+        ).toBe(0);
+    });
+
+    it("flags an authored dark-mode background color that fails against a default dark-mode text color", () => {
+        const diags = diagnose({
+            1: {
+                textColor: "black",
+                textColorDarkMode: "white",
+                backgroundColor: "white",
+                backgroundColorDarkMode: { style: "#888888", position: POS },
+            },
+        });
+        const darkDiags = diags.filter((d) =>
+            d.message.includes("(dark mode)"),
+        );
+        expect(darkDiags.length).toBe(1);
+        expect(darkDiags[0].position).toBe(POS);
+        expect(darkDiags[0].message).toMatch(
+            /text color against background color.*dark mode/,
+        );
+    });
+});
+
+describe("derived dark-mode combination diagnostics", () => {
+    function deriveAndDiagnose(def: RawStyleDefinitions[string]) {
+        const styleDef = normalizeStyleDefinitionValues(def);
+        addMissingChildStyleColorFields(styleDef);
+        return contrastAccessibilityDiagnosticsForStyleDefinitions({
+            1: styleDef,
+        });
+    }
+
+    it("flags an accessible light pair that derives to an inaccessible dark pair, and suggests a fix under the squiggled attribute", () => {
+        // navy text on silver is accessible in light mode (~7.6:1), but the
+        // independent lightness inversion (#8080ff on #404040) drops below AA.
+        const diags = deriveAndDiagnose({
+            textColor: { style: "#000080", position: POS },
+            backgroundColor: { style: "#c0c0c0", position: POS },
+        });
+        const derived = diags.filter((d) =>
+            d.message.includes("dark-mode colors derived from these values"),
+        );
+        expect(derived.length).toBe(1);
+        expect(derived[0].message).toMatch(/insufficient contrast/);
+
+        // The two colors share a position, so the squiggle resolves to
+        // backgroundColor: the dark-mode override targets backgroundColorDarkMode
+        // and the light-mode remedy targets backgroundColor.
+        const darkMatch = derived[0].message.match(
+            /set (backgroundColorDarkMode)="(#[0-9a-fA-F]+)"/,
+        );
+        const lightMatch = derived[0].message.match(
+            /set (backgroundColor)="(#[0-9a-fA-F]+)"/,
+        );
+        expect(darkMatch).not.toBeNull();
+        expect(lightMatch).not.toBeNull();
+        const suggestedDark = darkMatch![2];
+        const suggestedLight = lightMatch![2];
+
+        // Either remedy must actually clear AA: pinning the dark override, or
+        // adopting the suggested light color (which derives to the same dark
+        // value), should silence the diagnostic.
+        const fixedViaDark = deriveAndDiagnose({
+            textColor: { style: "#000080", position: POS },
+            backgroundColor: { style: "#c0c0c0", position: POS },
+            backgroundColorDarkMode: { style: suggestedDark, position: POS },
+        });
+        expect(
+            fixedViaDark.filter((d) =>
+                d.message.includes(
+                    "dark-mode colors derived from these values",
+                ),
+            ).length,
+        ).toBe(0);
+
+        const fixedViaLight = deriveAndDiagnose({
+            textColor: { style: "#000080", position: POS },
+            backgroundColor: { style: suggestedLight, position: POS },
+        });
+        expect(
+            fixedViaLight.filter((d) =>
+                d.message.includes(
+                    "dark-mode colors derived from these values",
+                ),
+            ).length,
+        ).toBe(0);
+    });
+
+    it("targets textColorDarkMode when the squiggle is under textColor", () => {
+        const earlier = { start: { line: 1, column: 1, offset: 0 } };
+        const later = { start: { line: 2, column: 1, offset: 40 } };
+        const diags = deriveAndDiagnose({
+            backgroundColor: { style: "#c0c0c0", position: earlier },
+            textColor: { style: "#000080", position: later },
+        });
+        const derived = diags.filter((d) =>
+            d.message.includes("dark-mode colors derived from these values"),
+        );
+        expect(derived.length).toBe(1);
+        expect(derived[0].message).toMatch(/set textColorDarkMode="#/);
+        expect(derived[0].message).toMatch(/set textColor="#/);
+    });
+
+    it("does not flag a derived dark pair that stays accessible", () => {
+        const diags = deriveAndDiagnose({
+            textColor: { style: "black", position: POS },
+            backgroundColor: { style: "white", position: POS },
+        });
+        expect(
+            diags.filter((d) =>
+                d.message.includes(
+                    "dark-mode colors derived from these values",
+                ),
+            ).length,
+        ).toBe(0);
+    });
+
+    it("does not flag an intentionally low-contrast light pair", () => {
+        const diags = deriveAndDiagnose({
+            textColor: { style: "#888888", position: POS },
+            backgroundColor: { style: "#999999", position: POS },
+        });
+        expect(
+            diags.filter((d) =>
+                d.message.includes(
+                    "dark-mode colors derived from these values",
+                ),
+            ).length,
+        ).toBe(0);
+    });
+
+    it("flags derived text-only dark colors that fail against the dark canvas", () => {
+        // This muted red clears AA against the light canvas, but its independent
+        // lightness inversion does not clear AA against the dark canvas.
+        const diags = deriveAndDiagnose({
+            textColor: { style: "#a14545", position: POS },
+        });
+        const derived = diags.filter((d) =>
+            d.message.includes("dark-mode text color derived from this value"),
+        );
+        expect(derived.length).toBe(1);
+        expect(derived[0].message).toMatch(/set textColorDarkMode="#/);
+        expect(derived[0].message).toMatch(/set textColor="#/);
+
+        const darkMatch = derived[0].message.match(
+            /set textColorDarkMode="(#[0-9a-fA-F]+)"/,
+        );
+        expect(darkMatch).not.toBeNull();
+        const fixedViaDark = deriveAndDiagnose({
+            textColor: { style: "#a14545", position: POS },
+            textColorDarkMode: { style: darkMatch![1], position: POS },
+        });
+        expect(
+            fixedViaDark.filter((d) =>
+                d.message.includes(
+                    "dark-mode text color derived from this value",
+                ),
+            ).length,
+        ).toBe(0);
+    });
+});

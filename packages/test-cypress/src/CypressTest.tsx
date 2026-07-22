@@ -65,7 +65,7 @@ export function CypressTest() {
             attemptNumber,
             externalDoenetMLs,
             answerResponseCounts,
-            doenetMediaUrl,
+            doenetImagesUrl,
             usePrototype,
             prototypeCoreType,
         },
@@ -75,7 +75,7 @@ export function CypressTest() {
         attemptNumber: number;
         externalDoenetMLs: Record<string, string>;
         answerResponseCounts?: Record<string, number>;
-        doenetMediaUrl?: string;
+        doenetImagesUrl?: string;
         usePrototype?: boolean;
         prototypeCoreType?: "rust" | "javascript";
     }>({
@@ -166,7 +166,7 @@ export function CypressTest() {
         let newExternalDoenetMLs: Record<string, string> = {};
         let newAnswerResponseCounts: Record<string, number> | undefined =
             undefined;
-        let newDoenetMediaUrl: string | undefined = undefined;
+        let newDoenetImagesUrl: string | undefined = undefined;
         // Keep the selected renderer sticky across incremental messages (e.g. a
         // later message that only changes `attemptNumber` or re-sends
         // `doenetML`): default to the current values and only override when the
@@ -177,6 +177,12 @@ export function CypressTest() {
 
         if (e.data.doenetML !== undefined) {
             newDoenetMLstring = e.data.doenetML;
+        }
+
+        if (e.data.darkMode !== undefined) {
+            setDarkMode(e.data.darkMode);
+            testSettings.darkMode = e.data.darkMode;
+            localStorage.setItem("test settings", JSON.stringify(testSettings));
         }
 
         if (e.data.requestedVariantIndex !== undefined) {
@@ -196,8 +202,8 @@ export function CypressTest() {
             newAnswerResponseCounts = e.data.answerResponseCounts;
         }
 
-        if (e.data.doenetMediaUrl !== undefined) {
-            newDoenetMediaUrl = e.data.doenetMediaUrl;
+        if (e.data.doenetImagesUrl !== undefined) {
+            newDoenetImagesUrl = e.data.doenetImagesUrl;
         }
 
         if (e.data.usePrototype !== undefined) {
@@ -218,7 +224,7 @@ export function CypressTest() {
                 attemptNumber: newAttemptNumber,
                 externalDoenetMLs: newExternalDoenetMLs,
                 answerResponseCounts: newAnswerResponseCounts,
-                doenetMediaUrl: newDoenetMediaUrl,
+                doenetImagesUrl: newDoenetImagesUrl,
                 usePrototype: newUsePrototype,
                 prototypeCoreType: newPrototypeCoreType,
             });
@@ -639,8 +645,9 @@ export function CypressTest() {
                 fetchExternalDoenetML={fetchExternalDoenetML}
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
-                doenetMediaUrl={doenetMediaUrl}
+                doenetImagesUrl={doenetImagesUrl}
                 readOnly={readOnly}
+                darkMode={darkMode}
                 diagnosticsSummaryCallback={(
                     nextDiagnosticsSummary: Record<string, number>,
                     nextDoenetML: string,
@@ -688,7 +695,7 @@ export function CypressTest() {
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
                 includeVariantSelector={includeVariantSelector}
-                doenetMediaUrl={doenetMediaUrl}
+                doenetImagesUrl={doenetImagesUrl}
             />
         );
 

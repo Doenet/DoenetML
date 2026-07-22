@@ -32,7 +32,7 @@ export class PreFigureCompiler {
         }
     }
 
-    private normalizeIndexUrl(pyodide: PyodideInterface): string {
+    _normalizeIndexUrl(pyodide: PyodideInterface): string {
         // Accessing this internal field is currently required to align package
         // downloads with the runtime index URL.
         const rawIndexUrl = (pyodide as any)._api.config.indexURL as string;
@@ -42,7 +42,7 @@ export class PreFigureCompiler {
         return `${rawIndexUrl}/`;
     }
 
-    private async loadPrefigureDependencies(
+    async _loadPrefigureDependencies(
         pyodide: PyodideInterface,
         indexURL: string,
     ) {
@@ -89,7 +89,7 @@ for _handler in _prefigure_logger.handlers:
         }
     }
 
-    private async initialize(options: Options) {
+    async _initialize(options: Options) {
         // Prefer `._pyodide` over creating a new pyodide instance since
         // `._pyodide` was provided by the user.
         const pyodide = (await this._pyodide) || (await loadPyodide(options));
@@ -101,8 +101,8 @@ for _handler in _prefigure_logger.handlers:
         // Python with `import prefigBrowserApi`.
         pyodide.registerJsModule("prefigBrowserApi", prefigBrowserApi);
 
-        const indexURL = this.normalizeIndexUrl(pyodide);
-        await this.loadPrefigureDependencies(pyodide, indexURL);
+        const indexURL = this._normalizeIndexUrl(pyodide);
+        await this._loadPrefigureDependencies(pyodide, indexURL);
 
         this.pyodide = pyodide;
     }
@@ -121,7 +121,7 @@ for _handler in _prefigure_logger.handlers:
             return;
         }
 
-        this.pyodideInitPromise = this.initialize(options).catch((error) => {
+        this.pyodideInitPromise = this._initialize(options).catch((error) => {
             // Allow retries after transient init failures.
             this.pyodideInitPromise = null;
             throw error;

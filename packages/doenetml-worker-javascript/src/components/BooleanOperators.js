@@ -52,3 +52,44 @@ export class Xor extends BooleanBaseOperator {
         return numberTrues === 1;
     }
 }
+
+export class Iff extends BooleanBaseOperator {
+    static componentType = "iff";
+
+    static componentDocs = {
+        summary:
+            "IF and only iF: Logical bicondition (IFF): true when all child boolean values are the same",
+    };
+
+    static applyBooleanOperator(values) {
+        return values.every((x) => x === values[0]);
+    }
+}
+
+export class Implies extends BooleanBaseOperator {
+    static componentType = "implies";
+
+    static componentDocs = {
+        summary:
+            "Logical implication (binary): true when the first value is false or the second value is true",
+    };
+
+    static applyBooleanOperator(values) {
+        let tooManyValues = values.length > 2;
+        if (tooManyValues) {
+            console.warn(
+                "Implies operator should have at most two boolean children",
+            );
+        }
+        switch (values.length) {
+            case 0:
+                return true;
+            case 1:
+                return !values[0];
+            case 2:
+                return !values[0] || values[1];
+            default:
+                return false;
+        }
+    }
+}

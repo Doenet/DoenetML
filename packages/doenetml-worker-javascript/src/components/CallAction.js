@@ -34,6 +34,13 @@ export default class CallAction extends InlineComponent {
     };
     static rendererType = "button";
 
+    // The children of a `<callAction>` are kept serialized (see
+    // `keepChildrenSerialized`) and passed to the invoked action — e.g. as the
+    // components to insert for an `addChildren` action — rather than being matched
+    // to child groups. Since those children can be any component, declare `_base`
+    // as an additional schema child so the schema accepts arbitrary children.
+    static additionalSchemaChildren = ["_base"];
+
     static keepChildrenSerialized({
         serializedComponent,
         componentInfoObjects,

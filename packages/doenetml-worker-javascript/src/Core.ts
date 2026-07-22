@@ -159,7 +159,6 @@ export default class Core {
     cumulativeStateVariableChanges: any;
     canonicalGeneratedVariantString?: string;
     canonicalDocVariantStrings?: string[];
-    coreInfo?: CoreInfo;
     coreInfoString?: string;
     doenetMLNewlines?: any;
 
@@ -311,6 +310,11 @@ export default class Core {
             copyToClipboard: this.copyToClipboard.bind(this),
             navigateToTarget: (args: any) =>
                 navigateToTarget({ core: this, args }),
+            // State-variable runtime plumbing, not component-facing API:
+            // the shared state-variable functions in StateVariableInitializer
+            // reach core through `svComponent.coreFunctions`.
+            getStateVariableValue: this.getStateVariableValue, // bound above
+            addDiagnostic: this.addDiagnostic.bind(this),
         };
 
         this.updateInfo = {
@@ -392,6 +396,11 @@ export default class Core {
         this.doenetMLNewlines = findAllNewlines(this.allDoenetMLs[0]);
 
         let serializedComponents = [deepClone(this.serializedDocument)];
+
+        // The serialized document is consumed only by the clone above;
+        // release it so the worker does not retain a full serialized copy
+        // of the document for the life of the session.
+        this.serializedDocument = undefined;
 
         numberAnswers(serializedComponents, this.componentInfoObjects);
 
@@ -534,7 +543,10 @@ export default class Core {
         // Note: `coreInfo` is fixed even though `this.rendererTypesInDocument`
         // could change. Both the canonical variant strings and the original
         // `rendererTypesInDocument` could differ depending on the initial state.
-        this.coreInfo = {
+        // Only the JSON string is retained on the instance (for saved-state
+        // payloads); keeping the object as well would duplicate the initial
+        // renderer instructions for the life of the session.
+        const coreInfo: CoreInfo = {
             generatedVariantString: this.canonicalGeneratedVariantString!,
             allPossibleVariants: deepClone(
                 await this.document.sharedParameters!.allPossibleVariants,
@@ -544,7 +556,7 @@ export default class Core {
         };
 
         this.coreInfoString = JSON.stringify(
-            this.coreInfo,
+            coreInfo,
             serializedComponentsReplacer,
         );
 
@@ -569,8 +581,13 @@ export default class Core {
             );
         }
 
+        // The circular-check memos now hold one entry per state variable
+        // created during the load; drop them and let them regrow with the
+        // (typically few) components involved in later updates.
+        this.dependencies.clearCircularCheckMemos();
+
         const returnResult = {
-            coreInfo: this.coreInfo,
+            coreInfo,
         };
 
         // Warn about any unmatched children.
@@ -1001,6 +1018,28 @@ export default class Core {
 
     async saveImmediately(): Promise<any> {
         return this.statePersistence.saveImmediately();
+    }
+
+    /**
+     * Flush-state-on-demand (Doenet/DoenetML#1440): wait briefly for
+     * in-flight action processing to settle (the same bounded wait
+     * `terminate` uses), then push any pending state through the normal
+     * `reportScoreAndState` pipeline so a persistence host saves it. Returns
+     * whether the viewer held any state. Hosts use this to unmount the
+     * document losslessly.
+     */
+    async flushState(): Promise<boolean> {
+        if (this.processQueue.processing) {
+            const pause100 = () =>
+                new Promise<void>((resolve) => setTimeout(resolve, 100));
+            for (let i = 0; i < 10; i++) {
+                await pause100();
+                if (!this.processQueue.processing) {
+                    break;
+                }
+            }
+        }
+        return this.statePersistence.flushState();
     }
 
     async saveState(

@@ -49,6 +49,9 @@ export type StyleDefinitionKey =
     | "fillColorDarkMode"
     | "fillColorWordDarkMode"
     | "fillOpacity"
+    | "fillPatternOpacity"
+    | "fillStyle"
+    | "fillStyleWord"
     | "textColor"
     | "textColorWord"
     | "textColorDarkMode"
@@ -110,6 +113,9 @@ export interface ResolvedStyleDefinition {
     fillColorDarkMode: string;
     fillColorWordDarkMode: string;
     fillOpacity: number;
+    fillPatternOpacity: number;
+    fillStyle: string;
+    fillStyleWord: string;
     textColor: string;
     textColorWord: string;
     textColorDarkMode: string;
@@ -298,16 +304,19 @@ export const DEFAULT_STYLE_VALUES = {
     markerSize: 5,
     markerFilled: true,
     fillOpacity: 0.3,
-    lineColor: "#648FFF",
+    fillPatternOpacity: 1,
+    fillStyle: "solid",
+    fillStyleWord: "",
+    lineColor: "#1f5dff",
     lineColorDarkMode: "#648FFF",
-    markerColor: "#648FFF",
+    markerColor: "#1f5dff",
     markerColorDarkMode: "#648FFF",
-    fillColor: "#648FFF",
+    fillColor: "#1f5dff",
     fillColorDarkMode: "#648FFF",
     textColor: "black",
     textColorDarkMode: "white",
     highContrastColor: "#2963FF",
-    highContrastColorDarkMode: "#2963FF",
+    highContrastColorDarkMode: "#92B4FF",
 } as const satisfies Partial<
     Record<StyleDefinitionKey, StyleDefinitionPrimitive>
 >;

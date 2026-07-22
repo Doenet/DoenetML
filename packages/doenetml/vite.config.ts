@@ -43,6 +43,9 @@ export default defineConfig(({ mode }) => {
                             externalDeps: EXTERNAL_DEPS,
                         }),
                     },
+                    // Ship the README in the published package (`dist/` is
+                    // the publish root) so npm displays it.
+                    { src: "README.md", dest: "./" },
                 ],
             }),
             prefigureDynamicImportIgnorePlugin(),
@@ -61,6 +64,8 @@ export default defineConfig(({ mode }) => {
                 entry: {
                     index: "./src/index.ts",
                     "doenetml-inline-worker": "./src/doenetml-inline-worker.ts",
+                    "doenetml-external-worker":
+                        "./src/doenetml-external-worker.ts",
                 },
                 formats: ["es"],
                 cssFileName: "style",

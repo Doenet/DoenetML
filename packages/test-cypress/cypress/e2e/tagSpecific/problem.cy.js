@@ -1,5 +1,6 @@
 import { cesc } from "@doenet/utils";
 import { verifySideBySideColumnTopAlignment } from "./utils/listItemAlignment";
+import { verifyListItemNumbersAlign } from "./utils/listItemNumberAlignment";
 
 describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
@@ -1168,6 +1169,33 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    /** Run assertions against the CSS `::before` pseudo-element for an item. */
+    function withBeforeStyle(itemId, callback) {
+        const escapedItemId = cesc(itemId);
+
+        cy.get(`#${escapedItemId}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            callback(win.getComputedStyle($el[0], "::before"));
+        });
+    }
+
+    /** Assert the CSS list marker rendered through the item's `::before`. */
+    function verifyBeforeContent(itemId, expectedContent) {
+        withBeforeStyle(itemId, (before) => {
+            expect(before.getPropertyValue("content")).to.equal(
+                expectedContent,
+            );
+        });
+    }
+
+    /** Assert that an item does not render a CSS list marker. */
+    function verifyNoBeforeContent(itemId) {
+        withBeforeStyle(itemId, (before) => {
+            const content = before.getPropertyValue("content");
+            expect(content).to.be.oneOf(["none", '""', ""]);
+        });
+    }
+
     /**
      * Verifies baseline list-item numbering behavior for two non-boxed items.
      *
@@ -1190,34 +1218,12 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(`#${escapedItem2Id}`).should("have.text", item2Text);
 
         // Verify section numbers are rendered via CSS ::before pseudo-elements
-        cy.get(`#${escapedItem1Id}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.equal('"1."');
-        });
-
-        cy.get(`#${escapedItem2Id}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.equal('"2."');
-        });
+        verifyBeforeContent(item1Id, '"1."');
+        verifyBeforeContent(item2Id, '"2."');
 
         // Introduction and conclusion should NOT have section numbers
-        cy.get("#intro").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.be.oneOf(["none", '""', ""]);
-        });
-
-        cy.get("#conclusion").then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            const content = before.getPropertyValue("content");
-            expect(content).to.be.oneOf(["none", '""', ""]);
-        });
+        verifyNoBeforeContent("intro");
+        verifyNoBeforeContent("conclusion");
     }
 
     /**
@@ -1226,11 +1232,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
      * (e.g., choiceInput/math on the first rendered line).
      */
     function verifyNonBoxedListItemUsesInlineBefore(itemId, expectedNumber) {
-        const escapedItemId = cesc(itemId);
-
-        cy.get(`#${escapedItemId}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (before) => {
             expect(before.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );
@@ -1253,18 +1255,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         const escapedItemId = cesc(itemId);
         const escapedHeadingClassName = cesc(`section-heading-${itemId}`);
 
-        cy.get(`#${escapedItemId}`).then(($sectionEl) => {
-            const win = $sectionEl[0].ownerDocument.defaultView;
-            const sectionBefore = win.getComputedStyle(
-                $sectionEl[0],
-                "::before",
-            );
-            expect(sectionBefore.getPropertyValue("content")).to.be.oneOf([
-                "none",
-                '""',
-                "",
-            ]);
-        });
+        verifyNoBeforeContent(itemId);
 
         cy.get(`#${escapedItemId} .${escapedHeadingClassName}`).then(
             ($headingEl) => {
@@ -1287,11 +1278,13 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     }
 
     /**
-     * Verifies untitled, unboxed list items use the flex-row layout that keeps
-     * the section number and first child on the same line, even when first child
-     * is a block-level renderer.
+     * Verifies untitled, unboxed list items use the hanging-number grid layout:
+     * a fixed number column (holding the ::before marker) plus a content column,
+     * which keeps the number and first child on the same line — even when the
+     * first child is a block-level renderer — and keeps the number's horizontal
+     * position independent of the content.
      */
-    function verifyUntitledUnboxedListItemUsesFlexLayout(
+    function verifyUntitledUnboxedListItemUsesGridLayout(
         itemId,
         expectedNumber,
     ) {
@@ -1301,31 +1294,31 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(`#${escapedItemId}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
-            expect(style.getPropertyValue("display")).to.equal("flex");
+            expect(style.getPropertyValue("display")).to.equal("grid");
+        });
 
-            const before = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (before) => {
             expect(before.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );
             expect(before.getPropertyValue("position")).to.not.equal(
                 "absolute",
             );
+            // The number lives in the fixed first grid column.
+            expect(before.getPropertyValue("grid-column-start")).to.equal("1");
         });
 
         cy.get(`#${escapedContentWrapperId}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
-            expect(style.getPropertyValue("flex-grow")).to.equal("1");
+            expect(style.getPropertyValue("grid-column-start")).to.equal("2");
             expect(style.getPropertyValue("min-width")).to.equal("0px");
         });
     }
 
+    /** Assert that the section root itself owns the rendered list marker. */
     function verifySectionNumberRenderedOnRoot(itemId, expectedNumber) {
-        const escapedItemId = cesc(itemId);
-
-        cy.get(`#${escapedItemId}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const rootBefore = win.getComputedStyle($el[0], "::before");
+        withBeforeStyle(itemId, (rootBefore) => {
             expect(rootBefore.getPropertyValue("content")).to.equal(
                 `"${expectedNumber}."`,
             );
@@ -1483,14 +1476,14 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        verifyUntitledUnboxedListItemUsesFlexLayout("task1", 1);
-        verifyUntitledUnboxedListItemUsesFlexLayout("task2", 2);
-        verifyUntitledUnboxedListItemUsesFlexLayout("task3", 3);
-        verifyUntitledUnboxedListItemUsesFlexLayout("task4", 4);
-        verifyUntitledUnboxedListItemUsesFlexLayout("task5", 5);
-        verifyUntitledUnboxedListItemUsesFlexLayout("task8", 8);
-        verifyUntitledUnboxedListItemUsesFlexLayout("task9", 9);
-        verifyUntitledUnboxedListItemUsesFlexLayout("task10", 10);
+        verifyUntitledUnboxedListItemUsesGridLayout("task1", 1);
+        verifyUntitledUnboxedListItemUsesGridLayout("task2", 2);
+        verifyUntitledUnboxedListItemUsesGridLayout("task3", 3);
+        verifyUntitledUnboxedListItemUsesGridLayout("task4", 4);
+        verifyUntitledUnboxedListItemUsesGridLayout("task5", 5);
+        verifyUntitledUnboxedListItemUsesGridLayout("task8", 8);
+        verifyUntitledUnboxedListItemUsesGridLayout("task9", 9);
+        verifyUntitledUnboxedListItemUsesGridLayout("task10", 10);
         verifySideBySideColumnTopAlignment({
             sideBySideId: "sbs",
             expectedAlignment: "baseline",
@@ -1515,7 +1508,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(`#${cesc("task6")}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
-            expect(style.getPropertyValue("display")).to.not.equal("flex");
+            expect(style.getPropertyValue("display")).to.not.equal("grid");
         });
 
         verifyBoxedListItemNumberInHeadingBox("task7", 7);
@@ -1541,7 +1534,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(`#${cesc("task1")}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
-            expect(style.getPropertyValue("display")).to.equal("flex");
+            expect(style.getPropertyValue("display")).to.equal("grid");
             expect(style.getPropertyValue("align-items")).to.equal("baseline");
         });
 
@@ -1549,7 +1542,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(`#${cesc("task2")}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
-            expect(style.getPropertyValue("display")).to.equal("flex");
+            expect(style.getPropertyValue("display")).to.equal("grid");
             expect(style.getPropertyValue("align-items")).to.equal("baseline");
         });
 
@@ -1557,7 +1550,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(`#${cesc("task3")}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
-            expect(style.getPropertyValue("display")).to.equal("flex");
+            expect(style.getPropertyValue("display")).to.equal("grid");
             expect(style.getPropertyValue("align-items")).to.equal(
                 "flex-start",
             );
@@ -1589,5 +1582,118 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             "Do this",
             "Do that",
         );
+    });
+
+    it("problems render children as list through cascade", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade name="cascade">
+                <problem name="problem1">1+1=<answer>2</answer></problem>
+                <problem name="problem2">2+1=<answer>3</answer></problem>
+                <problem name="problem3">3+1=<answer>4</answer></problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Wait for the document to render
+        cy.get("#problem1").should("exist");
+
+        verifyNoBeforeContent("cascade");
+        verifyBeforeContent("problem1", '"1."');
+        verifyBeforeContent("problem2", '"2."');
+        verifyBeforeContent("problem3", '"3."');
+    });
+
+    // ---------------------------------------------------------------------
+    // Outcome-based list-item number alignment (regression guard for #1482).
+    //
+    // These assert the RENDERED geometry — that sibling list-item numbers line
+    // up at the decimal / content is not shifted — which is technique-
+    // independent and would have caught #1482. See
+    // ./utils/listItemNumberAlignment.js for why this measures content-left.
+    // ---------------------------------------------------------------------
+
+    it("list-item numbers align across first-child types at narrow width (#1482)", () => {
+        cy.viewport(500, 800);
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <problem name="p1"><text>Hello plus more text to make it longer so that it wraps to the next line here</text></problem>
+            <problem name="p2">Hello plus more text to make it longer so that it wraps to the next line here</problem>
+            <problem name="p3"><p>Hello plus more text to make it longer so that it wraps to the next line here</p></problem>
+            <problem name="p4">Hello <text>plus more text to make it longer so that it wraps to the next line here</text></problem>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p4").should("exist");
+
+        verifyListItemNumbersAlign(["p1", "p2", "p3", "p4"], {
+            label: "first-child types at 500px",
+        });
+    });
+
+    it("list-item numbers align across single- and multi-line items at narrow width (#1482)", () => {
+        cy.viewport(500, 800);
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <problem name="p1"><answer><label>Hello.</label>x</answer></problem>
+            <problem name="p2"><answer><label>Hello plus more text to make it longer</label>x</answer></problem>
+            <problem name="p3"><answer><label>Hello plus more text to make it longer so that we wrap to the next line</label>x</answer></problem>
+            <problem name="p4"><answer><label>Write an unsimplified equation that shows the function evaluated. Do not simplify or rearrange any terms.</label>x</answer></problem>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p4").should("exist");
+
+        verifyListItemNumbersAlign(["p1", "p2", "p3", "p4"], {
+            label: "single- vs multi-line at 500px",
+        });
+    });
+
+    it("list-item numbers align through a cascade at narrow width (#1482)", () => {
+        cy.viewport(500, 800);
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade revealAll name="cascade">
+                <problem name="p1"><answer><label>Hello.</label>x</answer></problem>
+                <problem name="p2"><answer><label>Hello plus more text to make it longer</label>x</answer></problem>
+                <problem name="p3"><answer><label>Hello plus more text to make it longer so that we wrap to the next line</label>x</answer></problem>
+                <problem name="p4"><answer><label>Write an unsimplified equation that shows the function evaluated. Do not simplify or rearrange any terms.</label>x</answer></problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p4").should("exist");
+
+        verifyListItemNumbersAlign(["p1", "p2", "p3", "p4"], {
+            label: "cascade single- vs multi-line at 500px",
+        });
     });
 });

@@ -27,8 +27,7 @@ jobs:
 
         strategy:
             matrix:
-                # See ci.yml for the rationale behind pinning to 24.15.0.
-                node-version: [24.15.0]
+                node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:

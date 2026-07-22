@@ -334,13 +334,10 @@ export class ChildDependency extends Dependency {
             activeChildrenIndices = [];
 
             for (let [ind, child] of allActiveChildrenMatched.entries()) {
-                if (
-                    !(
-                        child.shadows &&
-                        child.shadows.compositeIdx ===
-                            parent?.shadows?.compositeIdx
-                    )
-                ) {
+                if (!(
+                    child.shadows &&
+                    child.shadows.compositeIdx === parent?.shadows?.compositeIdx
+                )) {
                     activeChildrenMatched.push(child);
                     activeChildrenIndices.push(allActiveChildrenIndices[ind]);
                 }

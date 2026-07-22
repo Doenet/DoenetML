@@ -1,6 +1,7 @@
 import type Core from "../Core";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
+import { ensureStateVariableMaterialized } from "./StateVariableInitializer";
 /**
  * Resolves a state variable's value: walks the dependency graph to gather
  * fresh inputs, invokes the variable's `definition` function (or
@@ -62,6 +63,14 @@ export class StateVariableEvaluator {
                 `Can't get value of ${stateVariable} of ${component.componentIdx} as it doesn't exist.`,
             );
         }
+
+        // first read of a placeholder builds the full runtime object
+        // (including its definition group) before anything below touches it
+        await ensureStateVariableMaterialized({
+            core: this.core,
+            component,
+            stateVariable,
+        });
 
         if (component.reprocessAfterEvaluate) {
             // This is a kludge
@@ -574,12 +583,10 @@ export class StateVariableEvaluator {
             // Not only is marking those values stale not available when getting state variable values,
             // but it would cause an infinite loop when those definitions also set the essential value
 
-            if (
-                !(
-                    component.state[varName].shadowVariable ||
-                    component.state[varName].doNotShadowEssential
-                )
-            ) {
+            if (!(
+                component.state[varName].shadowVariable ||
+                component.state[varName].doNotShadowEssential
+            )) {
                 throw Error(
                     `Attempting to set the essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it is not allowed unless the state variable is shadowed or the essential state is not shadowed.`,
                 );
@@ -781,13 +788,11 @@ export class StateVariableEvaluator {
         }
 
         for (let varName in receivedValue) {
-            if (
-                !(
-                    receivedValue[varName] ||
-                    component.state[varName].isArrayEntry ||
-                    component.state[varName].isArray
-                )
-            ) {
+            if (!(
+                receivedValue[varName] ||
+                component.state[varName].isArrayEntry ||
+                component.state[varName].isArray
+            )) {
                 throw Error(
                     `definition of ${stateVariable} of ${component.componentIdx} didn't return value of ${varName}`,
                 );

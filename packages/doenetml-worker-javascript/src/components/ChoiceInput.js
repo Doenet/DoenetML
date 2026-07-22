@@ -3,6 +3,10 @@ import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    buildInputResponseEvent,
+    defineSubmitAnswerExternalAction,
+} from "../utils/input";
 
 export default class Choiceinput extends Input {
     constructor(args) {
@@ -12,23 +16,7 @@ export default class Choiceinput extends Input {
             updateSelectedIndices: this.updateSelectedIndices.bind(this),
         });
 
-        this.externalActions = {};
-
-        //Complex because the stateValues isn't defined until later
-        Object.defineProperty(this.externalActions, "submitAnswer", {
-            enumerable: true,
-            get: async function () {
-                let answerAncestor = await this.stateValues.answerAncestor;
-                if (answerAncestor !== null) {
-                    return {
-                        componentIdx: answerAncestor.componentIdx,
-                        actionName: "submitAnswer",
-                    };
-                } else {
-                    return;
-                }
-            }.bind(this),
-        });
+        defineSubmitAnswerExternalAction(this);
     }
 
     static componentType = "choiceInput";
@@ -702,33 +690,69 @@ export default class Choiceinput extends Input {
             },
         };
 
-        stateVariableDefinitions.indicesMatchedByBoundValue = {
+        // hasBoundValue is used by indicesMatchedByBoundValue to avoid
+        // depending on choiceChildren.text when bindValueTo is absent.
+        // Without this guard, $choice.selected inside a <choice> creates a
+        // circular resolve-blocker:
+        //   allSelectedIndices → indicesMatchedByBoundValue → c1.text
+        //   → ($c1.selected composite) → c1.selected → childIndicesSelected
+        //   → selectedIndices → allSelectedIndices
+        stateVariableDefinitions.hasBoundValue = {
             returnDependencies: () => ({
-                choiceOrder: {
-                    dependencyType: "stateVariable",
-                    variableName: "choiceOrder",
-                },
-                choiceChildren: {
-                    dependencyType: "child",
-                    childGroups: ["choices"],
-                    variableNames: ["text"],
-                },
                 bindValueTo: {
                     dependencyType: "attributeComponent",
                     attributeName: "bindValueTo",
-                    variableNames: ["value"],
-                },
-                selectMultiple: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectMultiple",
                 },
             }),
             definition({ dependencyValues }) {
-                let choiceChildrenOrdered = dependencyValues.choiceOrder.map(
-                    (i) => dependencyValues.choiceChildren[i - 1],
-                );
+                return {
+                    setValue: {
+                        hasBoundValue: dependencyValues.bindValueTo !== null,
+                    },
+                };
+            },
+        };
 
+        stateVariableDefinitions.indicesMatchedByBoundValue = {
+            // Only pull in bound-value-specific dependencies when
+            // bindValueTo is present. When bindValueTo is absent this
+            // variable always returns [], so those dependencies are
+            // unnecessary and the choiceChildren.text dependency causes the
+            // cycle described on hasBoundValue above.
+            stateVariablesDeterminingDependencies: ["hasBoundValue"],
+            returnDependencies: ({ stateValues }) => {
+                const deps = {
+                    bindValueTo: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "bindValueTo",
+                        variableNames: ["value"],
+                    },
+                };
+
+                if (stateValues.hasBoundValue) {
+                    deps.choiceOrder = {
+                        dependencyType: "stateVariable",
+                        variableName: "choiceOrder",
+                    };
+                    deps.selectMultiple = {
+                        dependencyType: "stateVariable",
+                        variableName: "selectMultiple",
+                    };
+                    deps.choiceChildren = {
+                        dependencyType: "child",
+                        childGroups: ["choices"],
+                        variableNames: ["text"],
+                    };
+                }
+
+                return deps;
+            },
+            definition({ dependencyValues }) {
                 if (dependencyValues.bindValueTo !== null) {
+                    const choiceChildrenOrdered =
+                        dependencyValues.choiceOrder.map(
+                            (i) => dependencyValues.choiceChildren[i - 1],
+                        );
                     let choiceTexts = choiceChildrenOrdered.map((x) =>
                         x.stateValues.text.toLowerCase().trim(),
                     );
@@ -1597,26 +1621,14 @@ export default class Choiceinput extends Input {
             ];
 
             let choiceTexts = await this.stateValues.choiceTexts;
-            let event = {
+            let event = await buildInputResponseEvent({
+                component: this,
                 verb: "selected",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                },
-                result: {
-                    response: effectiveSelectedIndices,
-                    responseText: effectiveSelectedIndices.map(
-                        (i) => choiceTexts[i - 1],
-                    ),
-                },
-            };
-
-            let answerAncestor = await this.stateValues.answerAncestor;
-            if (answerAncestor) {
-                event.context = {
-                    answerAncestor: answerAncestor.componentIdx,
-                };
-            }
+                response: effectiveSelectedIndices,
+                responseText: effectiveSelectedIndices.map(
+                    (i) => choiceTexts[i - 1],
+                ),
+            });
 
             await this.coreFunctions.performUpdate({
                 updateInstructions,

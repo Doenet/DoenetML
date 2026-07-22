@@ -192,7 +192,7 @@ fn section_gets_serial_number() {
     let section_idx = 1.into();
     assert_eq!(get_serial_number_prop(section_idx, &mut core), 0);
 
-    let section_idx = 5.into();
+    let section_idx = 6.into();
     assert_eq!(get_serial_number_prop(section_idx, &mut core), 1);
 }
 
@@ -230,7 +230,7 @@ fn section_gets_code_number() {
         get_code_number_prop(section_idx, &mut core).as_str(),
         "1.1.1"
     );
-    let section_idx = 9.into();
+    let section_idx = 12.into();
     assert_eq!(get_code_number_prop(section_idx, &mut core).as_str(), "2");
 }
 
@@ -263,7 +263,7 @@ fn section_gets_division_depth() {
     assert_eq!(get_division_depth_prop(section_idx, &mut core), 1);
     let section_idx = 7.into();
     assert_eq!(get_division_depth_prop(section_idx, &mut core), 2);
-    let section_idx = 9.into();
+    let section_idx = 12.into();
     assert_eq!(get_division_depth_prop(section_idx, &mut core), 0);
 }
 
@@ -282,7 +282,7 @@ fn section_title_reference_works() {
     // just to make sure this doesn't error
     core.to_flat_dast();
 
-    let fragment_idx = 4.into();
+    let fragment_idx = 5.into();
 
     assert_eq!(
         get_fragment_rendered_children_prop(fragment_idx, &mut core),
@@ -309,7 +309,7 @@ fn can_get_xref_label() {
     core.to_flat_dast();
 
     // Get the nested section
-    let section_idx = 3;
+    let section_idx = 4;
     let xref_label: prop_type::XrefLabel =
         core.get_prop_value_typed(section_idx, DivisionProps::XrefLabel.local_idx());
 

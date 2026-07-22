@@ -429,6 +429,216 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         }
     });
 
+    it("embedded textInputs stay visible inside non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><textInput name="radioTi" prefill="alpha" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><textInput name="checkboxTi" prefill="beta" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioTi_input")
+            .should("be.visible")
+            .should("have.value", "alpha");
+        cy.get("#checkboxTi_input")
+            .should("be.visible")
+            .should("have.value", "beta");
+
+        cy.get("#radioTi_input").click();
+        cy.get("#radioTi_input").should("be.focused");
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.get("#radioCi_choice1_input")
+            .siblings(".radio-checkmark")
+            .should("have.css", "outline-style", "none");
+
+        cy.get("#checkboxTi_input").click();
+        cy.get("#checkboxTi_input").should("be.focused");
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.get("#checkboxCi_choice1_input")
+            .siblings(".checkbox-checkmark")
+            .should("have.css", "outline-style", "none");
+
+        cy.get("#radioTi_input").type("{end}1");
+        cy.get("#checkboxTi_input").type("{end}2");
+
+        cy.get("#radioTi_input").should("have.value", "alpha1");
+        cy.get("#checkboxTi_input").should("have.value", "beta2");
+    });
+
+    it("clicking embedded mathInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><mathInput name="radioMi" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><mathInput name="checkboxMi" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioMi .mq-editable-field").click();
+        cy.get("#radioMi textarea").should("be.focused").type("x", {
+            force: true,
+        });
+        cy.get("#radioMi .mq-editable-field").should("contain.text", "x");
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.get("#radioCi_choice1_input")
+            .siblings(".radio-checkmark")
+            .should("have.css", "outline-style", "none");
+
+        cy.get("#checkboxMi .mq-editable-field").click();
+        cy.get("#checkboxMi textarea").should("be.focused").type("y", {
+            force: true,
+        });
+        cy.get("#checkboxMi .mq-editable-field").should("contain.text", "y");
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.get("#checkboxCi_choice1_input")
+            .siblings(".checkbox-checkmark")
+            .should("have.css", "outline-style", "none");
+    });
+
+    it("clicking embedded booleanInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice><booleanInput name="radioBi" /></choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice><booleanInput name="checkboxBi" /></choice>
+      <choice>cat</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioBi-container").click();
+        cy.get("#radioBi_input").should("be.checked");
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+
+        cy.get("#checkboxBi-container").click();
+        cy.get("#checkboxBi_input").should("be.checked");
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+    });
+
+    it("clicking embedded inline choiceInputs does not activate non-inline choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="radioCi">
+      <choice>
+        <choiceInput inline name="radioInlineCi">
+          <choice>red</choice>
+          <choice>blue</choice>
+        </choiceInput>
+      </choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="checkboxCi" selectMultiple>
+      <choice>
+        <choiceInput inline name="checkboxInlineCi">
+          <choice>cat</choice>
+          <choice>mouse</choice>
+        </choiceInput>
+      </choice>
+      <choice>bird</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#radioInlineCi").click();
+        getOpenInlineChoiceMenu().contains("red").click({ force: true });
+        cy.get("#radioCi_choice1_input").should("not.be.checked");
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("radioInlineCi")]
+                    .stateValues.selectedValues,
+            ).eqls(["red"]);
+        });
+
+        cy.get("#checkboxInlineCi").click();
+        getOpenInlineChoiceMenu().contains("mouse").click({ force: true });
+        cy.get("#checkboxCi_choice1_input").should("not.be.checked");
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("checkboxInlineCi")]
+                    .stateValues.selectedValues,
+            ).eqls(["mouse"]);
+        });
+    });
+
+    it("clicking embedded non-inline choiceInput controls does not activate outer choices", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="outerRadioCi">
+      <choice>
+        <choiceInput name="innerRadioCi">
+          <choice>red</choice>
+          <choice>blue</choice>
+        </choiceInput>
+      </choice>
+      <choice>dog</choice>
+    </choiceInput>
+
+    <choiceInput name="outerCheckboxCi" selectMultiple>
+      <choice>
+        <choiceInput name="innerCheckboxCi" selectMultiple>
+          <choice>cat</choice>
+          <choice>mouse</choice>
+        </choiceInput>
+      </choice>
+      <choice>bird</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#innerRadioCi").contains("red").click();
+        cy.get("#innerRadioCi_choice1_input").should("be.checked");
+        cy.get("#outerRadioCi_choice1_input").should("not.be.checked");
+
+        cy.get("#innerCheckboxCi").contains("mouse").click();
+        cy.get("#innerCheckboxCi_choice2_input").should("be.checked");
+        cy.get("#outerCheckboxCi_choice1_input").should("not.be.checked");
+    });
+
     it("inline choiceInput menu stays within viewport near bottom", () => {
         cy.viewport(900, 420);
 
@@ -1444,5 +1654,56 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.log("Blur the second radio input: focused becomes false");
         cy.get("#ci_choice2_input").blur();
         cy.get("#fv").should("have.text", "focused: false");
+    });
+
+    it("inline choiceInput options use their style text color", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <setup>
+        <styleDefinition styleNumber="2" textColor="green" />
+        <styleDefinition styleNumber="3" textColor="red" />
+    </setup>
+
+    <choiceInput name="ci" inline placeholder="Choose fruit">
+      <choice><text styleNumber="2">apple</text></choice>
+      <choice><text styleNumber="3">banana</text></choice>
+      <choice><text>cherry</text></choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        const green = "rgb(0, 128, 0)";
+        const red = "rgb(255, 0, 0)";
+        const black = "rgb(0, 0, 0)";
+        const white = "rgb(255, 255, 255)";
+
+        cy.log("Open the menu: unselected options show their style color");
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").should("have.css", "color", green);
+            cy.contains("banana").should("have.css", "color", red);
+            cy.contains("cherry").should("have.css", "color", black);
+        });
+
+        cy.log("Select the green option; the displayed value keeps its color");
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").click({ force: true });
+        });
+        cy.get("#ci").contains("apple").should("have.css", "color", green);
+
+        cy.log(
+            "Reopen the menu: the selected option uses white text for contrast",
+        );
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("apple").should("have.css", "color", white);
+            cy.contains("banana").should("have.css", "color", red);
+            cy.contains("cherry").should("have.css", "color", black);
+        });
     });
 });

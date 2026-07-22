@@ -10,7 +10,7 @@ import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
-import { resolveLineColor } from "./utils/styleColors";
+import { resolveLineColor, resolveHandleColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
@@ -20,10 +20,16 @@ import {
 } from "./utils/lineFamilyDragHandlers";
 import {
     removeJXGEventHandlers,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
+    syncVisPropValues,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 
 interface PolylineSVs extends DraggableGraphicalSVs {
@@ -123,7 +129,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: "black",
+            highlightFillColor: resolveHandleColor(darkMode),
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
             showInfoBox: SVs.showCoordsWhenDragging,
         });
@@ -132,6 +138,11 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         }
         jsxPolylineAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxPolylineAttributes.label.useMathJax = true;
@@ -171,6 +182,16 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             jsxPolylineAttributes,
         );
         newPolylineJXG.isDraggable = !fixLocation.current;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newPolylineJXG,
+            getLabelJXG: () => polylineJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         for (let i = 0; i < SVs.numVertices; i++) {
             attachVertexDragHandlers(pointsJXG.current[i], i);
@@ -367,7 +388,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         if (!verticesFixed.current && pointsJXG.current) {
             for (let [i, point] of pointsJXG.current.entries()) {
                 if (vertexIndicesDraggable.current.includes(i)) {
-                    point.setAttribute({ fillcolor: "black" });
+                    point.setAttribute({ fillcolor: "var(--canvasText)" });
                     point.needsUpdate = true;
                     point.update();
                 }
@@ -410,6 +431,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             polylineJXG.current.visProp.fixed = fixed.current;
             polylineJXG.current.visProp.highlight = !fixLocation.current;
             polylineJXG.current.isDraggable = !fixLocation.current;
+
+            const handleColor = resolveHandleColor(darkMode);
+            jsxPointAttributes.current!.highlightFillColor = handleColor;
 
             let pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
             let layerChanged = syncLayer(
@@ -493,6 +517,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                     let pointVisible =
                         pointsVisible &&
                         vertexIndicesDraggable.current.includes(i);
+                    syncVisPropValues(pointsJXG.current[i], {
+                        highlightfillcolor: handleColor,
+                    });
                     pointsJXG.current[i].visProp["visible"] = pointVisible;
                     pointsJXG.current[i].visPropCalc["visible"] = pointVisible;
                     pointsJXG.current[i].visProp.showinfobox =
@@ -522,6 +549,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             if (polylineJXG.current.hasLabel && polylineJXG.current.label) {
                 const label = polylineJXG.current.label;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    maskLabel: SVs.maskLabel,
+                });
                 label.needsUpdate = true;
                 label.update();
             }

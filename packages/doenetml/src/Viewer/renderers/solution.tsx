@@ -117,7 +117,7 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
                     borderTopRightRadius: "5px",
                     borderBottomLeftRadius: SVs.open ? "0px" : "5px",
                     borderBottomRightRadius: SVs.open ? "0px" : "5px",
-                    backgroundColor: "var(--mainGray)",
+                    backgroundColor: "var(--revealButtonSurface)",
                     cursor: "pointer",
                 }}
                 tabIndex={0}

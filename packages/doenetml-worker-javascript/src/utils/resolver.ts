@@ -14,9 +14,7 @@ export function addNodesToFlatFragment({
 }: {
     flatFragment: FlatFragment;
     serializedComponents: (
-        | SerializedComponent
-        | UnflattenedComponent
-        | string
+        SerializedComponent | UnflattenedComponent | string
     )[];
     parentIdx: number;
 }) {

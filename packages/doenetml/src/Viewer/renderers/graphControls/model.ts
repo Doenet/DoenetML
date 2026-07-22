@@ -1,29 +1,16 @@
 export type GraphControlsMode = "all" | "slidersonly" | "inputsonly" | "none";
 export type PointControlsMode = "both" | "xonly" | "yonly" | "none";
 export type CircleControlsMode =
-    | "center"
-    | "radius"
-    | "centerandradius"
-    | "none";
+    "center" | "radius" | "centerandradius" | "none";
 export type RegularPolygonControlsMode =
-    | "center"
-    | "radius"
-    | "centerandradius"
-    | "none";
+    "center" | "radius" | "centerandradius" | "none";
 export type PolygonControlsMode = "center" | "none";
 export type TriangleControlsMode = "center" | "none";
 export type RectangleControlsMode =
-    | "center"
-    | "widthandheight"
-    | "centerwidthandheight"
-    | "none";
+    "center" | "widthandheight" | "centerwidthandheight" | "none";
 export type LineSegmentControlsMode = "endpoints" | "none";
 export type VectorControlsMode =
-    | "displacement"
-    | "headandtail"
-    | "headonly"
-    | "tailonly"
-    | "none";
+    "displacement" | "headandtail" | "headonly" | "tailonly" | "none";
 export type GraphControlAxis = "x" | "y";
 
 export type PointMoveRole =

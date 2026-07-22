@@ -1280,10 +1280,10 @@ export class AutoCompleter {
      * Get snippets allowed for a given set of allowed element names.
      * Filters snippets by:
      * 1. Whether their element is in the allowed elements set
-     * 2. Whether their key starts with the typed prefix
+     * 2. Whether their key contains the typed text
      *
      * @param allowedElements - Set of allowed element names
-     * @param typedPrefix - The text typed after `<` (used for prefix filtering)
+     * @param typedPrefix - The text typed after `<` (used for substring filtering)
      * @returns Array of ProcessedSnippets that match the criteria
      */
     _getSnippetsForElements(
@@ -1299,11 +1299,13 @@ export class AutoCompleter {
             results.push(...snippets);
         }
 
-        // Filter by typed prefix on snippet key if prefix is provided
+        // Filter by typed text on snippet key (substring, so the snippet
+        // surfaces when its key contains the typed text — matching element
+        // name matching).
         if (typedPrefix) {
             const prefixLower = typedPrefix.toLowerCase();
             return results.filter((s) =>
-                s.key.toLowerCase().startsWith(prefixLower),
+                s.key.toLowerCase().includes(prefixLower),
             );
         }
         return results;

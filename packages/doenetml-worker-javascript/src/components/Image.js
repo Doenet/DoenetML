@@ -363,7 +363,7 @@ export default class Image extends BlockComponent {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xscale"],
+                    variableNames: ["xScale"],
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
@@ -390,7 +390,7 @@ export default class Image extends BlockComponent {
                         if (dependencyValues.graphAncestor) {
                             let xscale =
                                 dependencyValues.graphAncestor.stateValues
-                                    .xscale;
+                                    .xScale;
                             midpoints = orderedPercentWidthMidpoints.map(
                                 (x) => (x / 100) * xscale,
                             );
@@ -466,7 +466,7 @@ export default class Image extends BlockComponent {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xscale"],
+                    variableNames: ["xScale"],
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
@@ -474,7 +474,7 @@ export default class Image extends BlockComponent {
 
                 if (dependencyValues.graphAncestor) {
                     let xscale =
-                        dependencyValues.graphAncestor.stateValues.xscale;
+                        dependencyValues.graphAncestor.stateValues.xScale;
                     if (!usedDefault.specifiedSize) {
                         return {
                             setValue: {
@@ -556,7 +556,7 @@ export default class Image extends BlockComponent {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xscale"],
+                    variableNames: ["xScale"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -569,7 +569,7 @@ export default class Image extends BlockComponent {
                         isAbsolute: true,
                         size:
                             (widthForGraph.size / 100) *
-                            dependencyValues.graphAncestor.stateValues.xscale,
+                            dependencyValues.graphAncestor.stateValues.xScale,
                     };
                 }
 

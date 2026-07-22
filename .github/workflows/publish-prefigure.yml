@@ -13,14 +13,124 @@ on:
                 required: true
                 type: string
                 default: latest
+    workflow_run:
+        workflows: ["CI"]
+        types: [completed]
+        branches: [main]
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
     cancel-in-progress: false
 
 jobs:
+    check-version-changed:
+        name: Check if prefigure needs publishing
+        runs-on: ubuntu-latest
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+        permissions:
+            actions: read
+            contents: read
+        outputs:
+            should_publish: ${{ steps.check.outputs.should_publish }}
+            matches_main_version: ${{ steps.check.outputs.matches_main_version }}
+            already_published: ${{ steps.check.outputs.already_published }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  ref: ${{ github.event.workflow_run.head_sha }}
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24.x
+                  registry-url: https://registry.npmjs.org
+
+            - name: Check whether current version is already published
+              id: check
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  CI_RUN_ID: ${{ github.event.workflow_run.id }}
+                  CI_RUN_CREATED_AT: ${{ github.event.workflow_run.created_at }}
+                  TRIGGER_SHA: ${{ github.event.workflow_run.head_sha }}
+              run: |
+                  json_version() {
+                      node -e 'const fs = require("fs"); process.stdout.write(JSON.parse(fs.readFileSync(0, "utf8")).version);'
+                  }
+
+                  git fetch origin main
+                  CURR=$(node -e "console.log(require('./packages/prefigure/package.json').version)")
+                  # If main has moved on to a different prefigure version, let the
+                  # newer run own that publish instead of moving the registry back.
+                  MAIN=$(git show origin/main:packages/prefigure/package.json | json_version)
+                  echo "Triggering commit version: $CURR"
+                  echo "Current origin/main version: $MAIN"
+                  if [ "$CURR" != "$MAIN" ]; then
+                      echo "Triggered commit no longer matches the current origin/main prefigure version, skipping publish."
+                      echo "matches_main_version=false" >> "$GITHUB_OUTPUT"
+                      echo "already_published=false" >> "$GITHUB_OUTPUT"
+                      echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+
+                  echo "matches_main_version=true" >> "$GITHUB_OUTPUT"
+
+                  # Compare against the previous distinct main CI head so a single
+                  # push containing multiple commits still counts as one version bump.
+                  PREV_SHA=$(node .github/scripts/find-previous-ci-sha.mjs)
+                  if [ -n "$PREV_SHA" ]; then
+                      PREV=$(git show "${PREV_SHA}:packages/prefigure/package.json" | json_version)
+                      echo "Previous main CI version (${PREV_SHA}): $PREV"
+                  elif git rev-parse HEAD^ >/dev/null 2>&1; then
+                      PREV=$(git show HEAD^:packages/prefigure/package.json | json_version)
+                      echo "Previous main CI run not found; falling back to parent version: $PREV"
+                  else
+                      PREV=""
+                      echo "No previous main baseline found; treating current version as new."
+                  fi
+
+                  if [ -n "$PREV" ] && [ "$CURR" = "$PREV" ]; then
+                      echo "Prefigure version is unchanged since the previous main CI baseline, skipping publish."
+                      echo "already_published=false" >> "$GITHUB_OUTPUT"
+                      echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+
+                  set +e
+                  VIEW_OUTPUT=$(npm view "@doenet/prefigure@${CURR}" version --json 2>&1)
+                  VIEW_STATUS=$?
+                  set -e
+                  if [ "$VIEW_STATUS" -eq 0 ]; then
+                      echo "Version ${CURR} is already published, skipping publish."
+                      echo "already_published=true" >> "$GITHUB_OUTPUT"
+                      echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  elif echo "$VIEW_OUTPUT" | grep -q "E404"; then
+                      echo "Version ${CURR} is not yet published."
+                      echo "already_published=false" >> "$GITHUB_OUTPUT"
+                      echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "$VIEW_OUTPUT" >&2
+                      echo "Failed to query npm for @doenet/prefigure@${CURR}." >&2
+                      exit 1
+                  fi
+
     publish-prefigure:
         name: Publish Prefigure
+        needs: [check-version-changed]
+        # Allow reruns to retry post-publish steps without attempting a
+        # duplicate npm publish once the version is already on the registry.
+        if: >-
+            always() && (
+              github.event_name == 'workflow_dispatch' ||
+              (github.event.workflow_run.conclusion == 'success' &&
+               needs.check-version-changed.result == 'success' &&
+               needs.check-version-changed.outputs.matches_main_version == 'true' &&
+               (needs.check-version-changed.outputs.should_publish == 'true' ||
+                (needs.check-version-changed.outputs.already_published == 'true' &&
+                 github.run_attempt > 1)))
+            )
         runs-on: ubuntu-latest
         environment: production
         permissions:
@@ -28,30 +138,54 @@ jobs:
             contents: read
             id-token: write
         steps:
+            - name: Set publish parameters
+              id: params
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                      echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+                      echo "npm_tag=${{ inputs.npm_tag }}" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "dry_run=false" >> "$GITHUB_OUTPUT"
+                      echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Checkout repository
               uses: actions/checkout@v6
               with:
                   fetch-depth: 0
+                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24.x
+                  registry-url: https://registry.npmjs.org
+                  cache: "npm"
 
             - name: Determine checked out commit SHA
               id: checked-sha
               run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-            - name: Verify commit is on main
+            - name: Verify target still matches main
               run: |
+                  json_version_from_stdin() {
+                      node -e 'const fs = require("fs"); process.stdout.write(JSON.parse(fs.readFileSync(0, "utf8")).version);'
+                  }
+
                   git fetch origin main
-                  if ! git merge-base --is-ancestor HEAD origin/main; then
+                  if [ "${{ github.event_name }}" = "workflow_run" ]; then
+                      HEAD_VERSION=$(node -e "console.log(require('./packages/prefigure/package.json').version)")
+                      # Allow later main commits with the same prefigure version,
+                      # but stop once main advances to a newer prefigure version.
+                      MAIN_VERSION=$(git show origin/main:packages/prefigure/package.json | json_version_from_stdin)
+                      if [ "$HEAD_VERSION" != "$MAIN_VERSION" ]; then
+                          echo "Error: auto-publish only runs while origin/main still carries prefigure version ${HEAD_VERSION} (current main version: ${MAIN_VERSION})." >&2
+                          exit 1
+                      fi
+                  elif ! git merge-base --is-ancestor HEAD origin/main; then
                       echo "Error: checked-out commit is not reachable from origin/main. Only commits on main may be published." >&2
                       exit 1
                   fi
-
-            - name: Use Node.js 24
-              uses: actions/setup-node@v6
-              with:
-                  # See ci.yml for the rationale behind pinning to 24.15.0.
-                  node-version: 24.15.0
-                  registry-url: https://registry.npmjs.org
-                  cache: "npm"
 
             - name: Install dependencies
               run: npm ci
@@ -73,19 +207,22 @@ jobs:
               run: npm run verify-wheel-sync -w @doenet/prefigure
 
             - name: Publish prefigure package
-              if: ${{ !inputs.dry_run }}
+              if: >-
+                  steps.params.outputs.dry_run != 'true' &&
+                  (github.event_name == 'workflow_dispatch' ||
+                   needs.check-version-changed.outputs.should_publish == 'true')
               env:
-                  NPM_TAG: ${{ inputs.npm_tag }}
+                  NPM_TAG: ${{ steps.params.outputs.npm_tag }}
               run: |
-                  cd packages/prefigure/dist
-                  npm publish --tag "${NPM_TAG}"
+                  node .github/scripts/npm-publish-with-retry.mjs packages/prefigure/dist --tag "${NPM_TAG}"
 
             - name: Purge jsDelivr cache
-              if: ${{ !inputs.dry_run }}
+              if: >-
+                  steps.params.outputs.dry_run != 'true' &&
+                  (github.event_name == 'workflow_dispatch' ||
+                   needs.check-version-changed.outputs.should_publish == 'true' ||
+                   (needs.check-version-changed.outputs.already_published == 'true' &&
+                    github.run_attempt > 1))
               env:
-                  NPM_TAG: ${{ inputs.npm_tag }}
-              run: |
-                  echo "Waiting for npm package propagation before purging jsDelivr cache..."
-                  sleep 15
-                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${NPM_TAG}" || exit 1
-                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${NPM_TAG}/prefigure.js" || exit 1
+                  NPM_TAG: ${{ steps.params.outputs.npm_tag }}
+              run: bash .github/scripts/purge-jsdelivr-prefigure.sh "${NPM_TAG}"

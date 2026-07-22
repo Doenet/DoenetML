@@ -29,7 +29,7 @@ Or load from CDN:
 
 ```html
 <script type="module">
-  import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.15/prefigure.js';
+  import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.6.7/prefigure.js';
   await prefigure.initPrefigure();
   const result = await prefigure.compilePrefigure(diagramXml, { mode: 'svg' });
 </script>
@@ -150,14 +150,19 @@ npm run verify-wheel-sync -w @doenet/prefigure
 
 ### Upgrade PreFigure runtime version
 
-1. Update `version` in `packages/prefigure/package.json`.
+`@doenet/prefigure` is **not** managed by Changesets. Its npm version is manually
+pinned to match the bundled `prefig` Python wheel so consumers can immediately
+see which upstream version they are running. Follow these steps when bumping:
+
+1. Update `version` in `packages/prefigure/package.json` to match the new wheel version.
 2. Update `PREFIG_VERSION` in `src/worker/compiler-metadata.ts`.
 3. Update the default CDN module URL in `packages/doenetml/src/Viewer/renderers/utils/prefigureConfig.ts`.
 4. If the bundled accessibility runtime changed, update the default diagcess CDN URL there as well.
 5. Update `prefigure.doenet.org` outside this repository so the fallback build-service path matches the new runtime behavior before local WASM compilation warms up.
-6. Run `npm run setup -w @doenet/prefigure` to fetch the matching `prefig-<version>-py3-none-any.whl`.
-7. Run `npm run verify-wheel-sync -w @doenet/prefigure`.
-8. Build and run the browser runtime check:
+6. Update the hardcoded wheel path in `packages/doenetml-print/src/ptx-compiler.ts` — the Vite `?uint8array&base64` asset import must be a static literal string, so it cannot reference `PREFIG_WHEEL_FILENAME` directly. Search for the old version string and replace it.
+7. Run `npm run setup -w @doenet/prefigure` to fetch the matching `prefig-<version>-py3-none-any.whl`.
+8. Run `npm run verify-wheel-sync -w @doenet/prefigure`.
+9. Build and run the browser runtime check:
 
 ```bash
 npm run build -w @doenet/prefigure

@@ -423,5 +423,46 @@ describe.skipIf(!wasmAvailable)(
             expect(updates[mmIdx]).toBeDefined();
             expect(updates[mmIdx].changedState?.latex).toBe("xyz");
         });
+
+        it("wraps a `<booleanList>`'s replacements in a synthetic `<asList>` parent in the initial FlatDast", async () => {
+            const { resolvePathToNodeIdx, flatDastRoot } =
+                await createCapturingCore(
+                    `<p name="p1">Values: <booleanList name="bl">true false true</booleanList></p>`,
+                );
+
+            const p1Idx = await resolvePathToNodeIdx("p1");
+            const blIdx = await resolvePathToNodeIdx("bl");
+
+            const p1 = flatDastRoot.elements[p1Idx];
+            expect(p1.type).toBe("element");
+            if (p1.type !== "element") {
+                throw Error("expected element");
+            }
+
+            // The paragraph's children are the leading text and a single ref to
+            // the synthetic wrapper (rather than the three booleans directly).
+            const elementRefChildren = p1.children.filter(
+                (
+                    c,
+                ): c is { id: number; annotation: "original" | "duplicate" } =>
+                    typeof c !== "string",
+            );
+            expect(elementRefChildren).toHaveLength(1);
+            const wrapperIdx = elementRefChildren[0].id;
+
+            // The wrapper borrows the composite's own componentIdx.
+            expect(wrapperIdx).toBe(blIdx);
+
+            const wrapper = flatDastRoot.elements[wrapperIdx];
+            expect(wrapper.type).toBe("element");
+            if (wrapper.type !== "element") {
+                throw Error("expected element");
+            }
+            expect(wrapper.name).toBe("asList");
+            // The wrapper holds exactly the three boolean replacements.
+            expect(
+                wrapper.children.filter((c) => typeof c !== "string"),
+            ).toHaveLength(3);
+        });
     },
 );

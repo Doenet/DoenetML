@@ -32,11 +32,7 @@ jobs:
 
         strategy:
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -79,11 +75,7 @@ jobs:
         needs: build
         strategy:
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         steps:
             - uses: actions/checkout@v6
@@ -120,11 +112,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
                 test-group: [group1, group2, group3, group4]
         steps:
@@ -162,11 +150,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
                 test-group:
                     [
@@ -261,11 +245,7 @@ jobs:
         if: needs.changes.outputs.prefigure == 'true'
         strategy:
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
         steps:
             - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
@@ -297,18 +277,22 @@ jobs:
         steps:
             - uses: actions/checkout@v6
 
+            - name: Install devcontainer CLI
+              run: npm install -g @devcontainers/cli@0
+
             - name: Build and test in devcontainer
-              uses: devcontainers/ci@v0.3
-              with:
-                  runCmd: |
-                      for attempt in 1 2 3; do
-                          npm ci && break
-                          if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
-                          echo "npm ci attempt $attempt failed, retrying..." && sleep 15
-                      done
+              run: |
+                  set -eu
+                  # Retry only the image build (see the script for why); the
+                  # tests below run once, so a real failure is never masked.
+                  bash .github/scripts/devcontainer-up-with-retry.sh --workspace-folder .
+                  devcontainer exec --workspace-folder . /bin/bash -c '
+                      set -eu
+                      bash .devcontainer/npm-install-with-rollup-check.sh npm ci
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
+                  '
 
     test-doenetml-to-pretext-full-devcontainer:
         name: DoenetML to PreTeXt Tests
@@ -323,19 +307,23 @@ jobs:
               with:
                   name: build-artifacts
 
+            - name: Install devcontainer CLI
+              run: npm install -g @devcontainers/cli@0
+
             - name: Build and test in devcontainer
-              uses: devcontainers/ci@v0.3
-              with:
-                  runCmd: |
-                      for attempt in 1 2 3; do
-                          npm ci && break
-                          if [ "$attempt" -eq 3 ]; then echo "npm ci failed after $attempt attempts" && exit 1; fi
-                          echo "npm ci attempt $attempt failed, retrying..." && sleep 15
-                      done
+              run: |
+                  set -eu
+                  # Retry only the image build (see the script for why); the
+                  # tests below run once, so a real failure is never masked.
+                  bash .github/scripts/devcontainer-up-with-retry.sh --workspace-folder .
+                  devcontainer exec --workspace-folder . /bin/bash -c '
+                      set -eu
+                      bash .devcontainer/npm-install-with-rollup-check.sh npm ci
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
                       npm run build -w packages/doenetml-to-pretext-python
                       npm run test -w packages/doenetml-to-pretext-python
+                  '
 
     lint:
         name: Lint Rust Code
@@ -366,11 +354,7 @@ jobs:
 
         strategy:
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -409,17 +393,61 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
+            # Upload the static export so the accessibility test job can serve it.
+            - name: Upload docs static export
+              uses: actions/upload-artifact@v7
+              with:
+                  name: docs-out
+                  path: ./packages/docs-nextra/out/
+
+    test-docs-cypress:
+        name: Docs Accessibility (Cypress + axe)
+        runs-on: ubuntu-latest
+        needs: build-docs
+        strategy:
+            matrix:
+                node-version: [24.x]
+        steps:
+            - uses: actions/checkout@v6
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Download docs static export
+              uses: actions/download-artifact@v8
+              with:
+                  name: docs-out
+                  path: ./packages/docs-nextra/out/
+
+            - name: Start docs server
+              run: |
+                  npm exec serve -- --no-port-switching -l 3000 packages/docs-nextra/out/ > /tmp/docs-serve.log 2>&1 &
+                  echo $! > /tmp/docs-serve.pid
+
+            - name: Wait for docs server
+              run: npm exec wait-on -- http://localhost:3000 --timeout 30000
+
+            - name: Run docs accessibility tests
+              run: npm run test-cypress-docs-all -w packages/docs-cypress
+
+            - name: Upload screenshots on failure
+              if: failure()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: docs-cypress-screenshots
+                  path: ./packages/docs-cypress/cypress/screenshots
+                  if-no-files-found: ignore
+
     lint-ts:
         name: Lint Typescript Code
         runs-on: ubuntu-latest
 
         strategy:
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
 
         steps:
             - name: Checkout sources
@@ -471,11 +499,7 @@ jobs:
 
         strategy:
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
 
         steps:
             - uses: actions/checkout@v6
@@ -531,11 +555,7 @@ jobs:
 
         strategy:
             matrix:
-                # Pinned to 24.15.0: Node 24.16.0 has an extract-zip regression
-                # (https://github.com/nodejs/node/issues/63487) that hangs
-                # cypress/playwright install scripts, freezing `npm ci` indefinitely.
-                # Revisit once a fixed 24.x release is available in setup-node.
-                node-version: [24.15.0]
+                node-version: [24.x]
 
         steps:
             - uses: actions/checkout@v6

@@ -40,7 +40,7 @@ export function returnConstraintGraphInfoDefinitions() {
                 graphAncestor: {
                     dependencyType: "ancestor",
                     componentType: "graph",
-                    variableNames: ["xscale", "yscale"],
+                    variableNames: ["xScale", "yScale"],
                 },
                 shadowedConstraints: {
                     dependencyType: "shadowSource",
@@ -50,7 +50,7 @@ export function returnConstraintGraphInfoDefinitions() {
             definition({ dependencyValues }) {
                 if (dependencyValues.graphAncestor) {
                     let SVs = dependencyValues.graphAncestor.stateValues;
-                    let scales = [SVs.xscale, SVs.yscale, 1];
+                    let scales = [SVs.xScale, SVs.yScale, 1];
 
                     if (scales.every((x) => Number.isFinite(x) && x > 0)) {
                         return { setValue: { scales } };

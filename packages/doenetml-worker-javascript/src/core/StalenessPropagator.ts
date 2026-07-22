@@ -1,7 +1,11 @@
 import type Core from "../Core";
 import type { ComponentInstance } from "../types/componentInstance";
 import { returnActiveChildrenIndicesToRender } from "./ChildMatcher";
-import { initializeStateVariable } from "./StateVariableInitializer";
+import {
+    ensureStateVariableMaterialized,
+    initializeStateVariable,
+    installStaleValueGetter,
+} from "./StateVariableInitializer";
 /**
  * Walks the dependency graph to invalidate state-variable values and
  * propagate freshness changes:
@@ -60,6 +64,14 @@ export class StalenessPropagator {
             ) {
                 let arrayVariableName =
                     component.arrayEntryPrefixes[arrayEntryPrefix];
+                // entry initialization copies materialized-only fields off
+                // the array object (definition, freshnessInfo, entry-name
+                // bookkeeping), so build the array first
+                await ensureStateVariableMaterialized({
+                    core: this.core,
+                    component,
+                    stateVariable: arrayVariableName,
+                });
                 let arrayStateVarObj = component.state[arrayVariableName];
                 let arrayKeys = arrayStateVarObj.getArrayKeysFromVarName({
                     arrayEntryPrefix,
@@ -105,12 +117,12 @@ export class StalenessPropagator {
                         }
                     }
 
-                    await this.core.dependencies.setUpStateVariableDependencies(
-                        {
-                            component,
-                            stateVariable,
-                            allStateVariablesAffected,
-                        },
+                    // Route through the idempotent wrapper so a re-entrant
+                    // demand for one of these just-created entries cannot
+                    // set up the group's dependencies twice.
+                    await this.core.dependencies.ensureStateVariableDependenciesSetUp(
+                        component.componentIdx,
+                        stateVariable,
                     );
 
                     let newStateVariablesToResolve = [];
@@ -428,21 +440,28 @@ export class StalenessPropagator {
                         if (!upDep.valuesChanged) {
                             upDep.valuesChanged = [];
                         }
+                        // the interned (frozen, shared) structures must be
+                        // replaced with mutable copies before recording
+                        upDep.thawValuesChangedRecord(componentInd);
                         if (!upDep.valuesChanged[componentInd]) {
                             upDep.valuesChanged[componentInd] = {};
                         }
-                        if (!upDep.valuesChanged[componentInd][varName]) {
-                            upDep.valuesChanged[componentInd][varName] = {};
+                        let changeRecord =
+                            upDep.valuesChanged[componentInd][varName];
+                        if (!changeRecord || Object.isFrozen(changeRecord)) {
+                            // absent (consumed by a previous getValue) or the
+                            // shared frozen initial record — (re)create it
+                            changeRecord = upDep.valuesChanged[componentInd][
+                                varName
+                            ] = changeRecord
+                                ? { changed: changeRecord.changed }
+                                : {};
                         }
-                        upDep.valuesChanged[componentInd][
-                            varName
-                        ].potentialChange = true;
+                        changeRecord.potentialChange = true;
 
                         // add any additional information about the stalename of component/varName
                         if (freshnessInfo) {
-                            upDep.valuesChanged[componentInd][
-                                varName
-                            ].freshnessInfo = freshnessInfo;
+                            changeRecord.freshnessInfo = freshnessInfo;
                             // = new Proxy(freshnessInfo, readOnlyProxyHandler);
                         }
 
@@ -605,11 +624,7 @@ export class StalenessPropagator {
      * as stale: the next `await stateVarObj.value` will recompute, while
      * `_previousValue` is preserved for change-detection.
      */
-    async _replaceWithStaleGetter(
-        stateVarObj: any,
-        component: any,
-        vName: string,
-    ) {
+    async _replaceWithStaleGetter(stateVarObj: any) {
         // save old value
         stateVarObj._previousValue = await stateVarObj.value;
         if (Array.isArray(stateVarObj._previousValue)) {
@@ -617,12 +632,7 @@ export class StalenessPropagator {
         }
         // mark stale by putting the getter back in place to compute a new
         // value next time it is requested
-        delete stateVarObj.value;
-        const getStateVar = this.core.getStateVariableValue;
-        Object.defineProperty(stateVarObj, "value", {
-            get: () => getStateVar({ component, stateVariable: vName }),
-            configurable: true,
-        });
+        installStaleValueGetter(stateVarObj);
     }
 
     /**
@@ -665,12 +675,10 @@ export class StalenessPropagator {
             const stateVarObj = allStateVariablesAffectedObj[vName];
             // if don't have a getter set, this indicates that, before this markStale function,
             // a state variable was fresh.
-            if (
-                !(
-                    Object.getOwnPropertyDescriptor(stateVarObj, "value")
-                        ?.get || stateVarObj.immutable
-                )
-            ) {
+            if (!(
+                Object.getOwnPropertyDescriptor(stateVarObj, "value")?.get ||
+                stateVarObj.immutable
+            )) {
                 previouslyFreshVars.push(vName);
             } else if (currentFreshnessInfo) {
                 if (
@@ -803,11 +811,7 @@ export class StalenessPropagator {
             delete stateVarObj.recursiveDependencyValues;
 
             if (previouslyFreshVars.includes(vName)) {
-                await this._replaceWithStaleGetter(
-                    stateVarObj,
-                    component,
-                    vName,
-                );
+                await this._replaceWithStaleGetter(stateVarObj);
             }
         }
 

@@ -1,0 +1,5 @@
+.doenet-document {
+    blockquote {
+        @apply mx-10 my-3;
+    }
+}

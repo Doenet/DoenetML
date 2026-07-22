@@ -22,6 +22,9 @@
         },
         "./style": {
             "import": "./dist/style.js"
+        },
+        "./mathjax": {
+            "import": "./dist/mathjax.js"
         }
     },
     "scripts": {
@@ -35,6 +38,7 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
+                "src/**/*.tsx",
                 "src/**/*.js",
                 "vite.config.ts",
                 "tsconfig.json"
@@ -52,11 +56,10 @@
     },
     "dependencies": {
         "color-name": "^1.1.4",
-        "get-contrast": "^3.0.0",
+        "colord": "^2.9.3",
         "math-expressions": "^2.0.0-alpha93",
         "micromark": "^4.0.2",
-        "nearest-color": "^0.4.4",
-        "rgb": "^0.1.0"
+        "nearest-color": "^0.4.4"
     },
     "devDependencies": {
         "@types/color-name": "^2.0.0",

@@ -4,13 +4,27 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import { JXGAngle, JXGPoint } from "./jsxgraph-distrib/types";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { GraphicalSVs } from "./utils/graphicalSVs";
-import { syncLayer, syncWithLabelToggle } from "./utils/jsxgraph";
+import {
+    syncLabelMaskCssStyle,
+    syncLayer,
+    syncWithLabelToggle,
+} from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
+import {
+    resolveLineColor,
+    resolveFillColor,
+    resolveCanvasColor,
+} from "./utils/styleColors";
 
 interface AngleSVs extends GraphicalSVs {
     numericalPoints: [number, number][];
@@ -66,6 +80,16 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             return null;
         }
 
+        const fillAttributes = getPatternFillAttributes({
+            defsEl: board.renderer.defs as SVGDefsElement | null,
+            boardId: board.container.id,
+            fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+            fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
+            fillOpacity: SVs.selectedStyle.fillOpacity,
+            canvasColor: resolveCanvasColor(darkMode),
+            fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+        });
+
         var jsxAngleAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
@@ -73,14 +97,20 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             fixed: true,
             layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
             radius: SVs.numericalRadius,
-            fillColor: SVs.selectedStyle.fillColor,
-            strokeColor: SVs.selectedStyle.lineColor,
+            fillColor: fillAttributes.fillColor,
+            fillOpacity: fillAttributes.fillOpacity,
+            strokeColor: resolveLineColor(SVs.selectedStyle, darkMode),
             highlight: false,
             orthoType: SVs.emphasizeRightAngle ? "square" : "sector",
         };
 
         jsxAngleAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            highlightStrokeOpacity: 1,
         };
         if (SVs.labelHasLatex) {
             jsxAngleAttributes.label.useMathJax = true;
@@ -125,11 +155,23 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             jsxPointAttributes,
         );
 
-        return board.create(
+        const newAngleJXG = board.create(
             "angle",
             [point1JXG.current, point2JXG.current, point3JXG.current],
             jsxAngleAttributes,
         );
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newAngleJXG,
+            getLabelJXG: () => angleJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
+
+        return newAngleJXG;
     }
 
     if (SVs.hidden) {
@@ -184,19 +226,32 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
             syncLayer(angleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
-            if (
-                angleJXG.current.visProp.fillcolor !==
-                SVs.selectedStyle.fillColor
-            ) {
-                angleJXG.current.visProp.fillcolor =
-                    SVs.selectedStyle.fillColor;
+            const fillAttributes = getPatternFillAttributes({
+                defsEl: board.renderer.defs as SVGDefsElement | null,
+                boardId: board.container.id,
+                fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                fillColor: resolveFillColor(SVs.selectedStyle, darkMode),
+                fillOpacity: SVs.selectedStyle.fillOpacity,
+                canvasColor: resolveCanvasColor(darkMode),
+                fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+            });
+            const angleFillColor = fillAttributes.fillColor;
+            if (angleJXG.current.visProp.fillcolor !== angleFillColor) {
+                angleJXG.current.visProp.fillcolor = angleFillColor;
             }
             if (
-                angleJXG.current.visProp.strokecolor !==
-                SVs.selectedStyle.lineColor
+                angleJXG.current.visProp.fillopacity !==
+                fillAttributes.fillOpacity
             ) {
-                angleJXG.current.visProp.strokecolor =
-                    SVs.selectedStyle.lineColor;
+                angleJXG.current.visProp.fillopacity =
+                    fillAttributes.fillOpacity;
+            }
+            const angleLineColor = resolveLineColor(
+                SVs.selectedStyle,
+                darkMode,
+            );
+            if (angleJXG.current.visProp.strokecolor !== angleLineColor) {
+                angleJXG.current.visProp.strokecolor = angleLineColor;
             }
 
             angleJXG.current.name = SVs.labelForGraph;
@@ -216,6 +271,9 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
             if (angleJXG.current.hasLabel && angleJXG.current.label) {
                 angleJXG.current.label.needsUpdate = true;
+                syncLabelMaskCssStyle(angleJXG.current.label, SVs.layer, {
+                    maskLabel: SVs.maskLabel,
+                });
                 angleJXG.current.label.update();
             }
             board.updateRenderer();
@@ -230,9 +288,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
         : undefined;
     return (
         <span style={style} id={id}>
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {mathJaxify}
-            </MathJax>
+            <DynamicMath latex={mathJaxify} />
         </span>
     );
 });

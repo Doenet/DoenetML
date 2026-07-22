@@ -8,6 +8,13 @@ import { DocContext } from "../DocViewer";
 import { GraphicalSVs } from "./utils/graphicalSVs";
 import { JXGCurve } from "./jsxgraph-distrib/types";
 import { styleToDash } from "./utils/styleToDash";
+import { getPatternFillAttributes } from "./utils/fillPatterns";
+import { resolveCanvasColor } from "./utils/styleColors";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
+import { syncLabelMaskCssStyle } from "./utils/jsxgraph";
 
 interface RegionBetweenCurvesSVs extends GraphicalSVs {
     haveFunctions: boolean;
@@ -63,10 +70,18 @@ export default React.memo(function RegionBetweenCurves(
                 ? SVs.selectedStyle.lineColorDarkMode
                 : SVs.selectedStyle.lineColor;
 
-        let fillColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.fillColorDarkMode
-                : SVs.selectedStyle.fillColor;
+        const fillAttributes = getPatternFillAttributes({
+            defsEl: board.renderer.defs as SVGDefsElement | null,
+            boardId: board.container.id,
+            fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+            fillColor:
+                darkMode === "dark"
+                    ? SVs.selectedStyle.fillColorDarkMode
+                    : SVs.selectedStyle.fillColor,
+            fillOpacity: SVs.selectedStyle.fillOpacity,
+            canvasColor: resolveCanvasColor(darkMode),
+            fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+        });
 
         let jsxAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
@@ -80,13 +95,18 @@ export default React.memo(function RegionBetweenCurves(
             strokeWidth: SVs.selectedStyle.lineWidth,
             dash: styleToDash(SVs.selectedStyle.lineStyle, SVs.dashed),
 
-            fillColor,
-            fillOpacity: SVs.selectedStyle.fillOpacity,
+            fillColor: fillAttributes.fillColor,
+            fillOpacity: fillAttributes.fillOpacity,
             highlight: false,
         };
 
         jsxAttributes.label = {
             highlight: false,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            highlightStrokeOpacity: 1,
         };
 
         let f1 = createFunctionFromDefinition(SVs.fDefinitions[0]);
@@ -150,6 +170,16 @@ export default React.memo(function RegionBetweenCurves(
                 this.dataY = y;
             }
         };
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: region,
+            getLabelJXG: () => regionJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         return region;
     }
@@ -232,21 +262,37 @@ export default React.memo(function RegionBetweenCurves(
                     SVs.selectedStyle.lineWidth;
             }
 
-            let fillColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.fillColorDarkMode
-                    : SVs.selectedStyle.fillColor;
+            const fillAttributes = getPatternFillAttributes({
+                defsEl: board.renderer.defs as SVGDefsElement | null,
+                boardId: board.container.id,
+                fillStyle: SVs.selectedStyle.fillStyle ?? "solid",
+                fillColor:
+                    darkMode === "dark"
+                        ? SVs.selectedStyle.fillColorDarkMode
+                        : SVs.selectedStyle.fillColor,
+                fillOpacity: SVs.selectedStyle.fillOpacity,
+                canvasColor: resolveCanvasColor(darkMode),
+                fillPatternOpacity: SVs.selectedStyle.fillPatternOpacity,
+            });
 
-            if (regionJXG.current.visProp.fillcolor !== fillColor) {
-                regionJXG.current.visProp.fillcolor = fillColor;
+            if (
+                regionJXG.current.visProp.fillcolor !== fillAttributes.fillColor
+            ) {
+                regionJXG.current.visProp.fillcolor = fillAttributes.fillColor;
             }
 
             if (
                 regionJXG.current.visProp.fillopacity !==
-                SVs.selectedStyle.fillOpacity
+                fillAttributes.fillOpacity
             ) {
                 regionJXG.current.visProp.fillopacity =
-                    SVs.selectedStyle.fillOpacity;
+                    fillAttributes.fillOpacity;
+            }
+
+            if (regionJXG.current.hasLabel && regionJXG.current.label) {
+                syncLabelMaskCssStyle(regionJXG.current.label, SVs.layer, {
+                    maskLabel: SVs.maskLabel,
+                });
             }
 
             regionJXG.current.needsUpdate = true;

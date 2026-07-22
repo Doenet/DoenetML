@@ -29,7 +29,6 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub struct PublicDoenetMLCore {
     core: Core,
     dast_root: Option<DastRoot>,
-    source: String,
     flags_json: Option<String>,
     initialized: bool,
 }
@@ -82,17 +81,26 @@ impl PublicDoenetMLCore {
         PublicDoenetMLCore {
             core: Core::new(),
             dast_root: None,
-            source: "".to_string(),
             flags_json: None,
             initialized: false,
         }
     }
 
-    pub fn set_source(&mut self, dast: DastRoot, source: &str) -> Result<(), String> {
+    // `source` is unused; the parameter is kept so the JS-side calling
+    // convention does not change.
+    pub fn set_source(&mut self, dast: DastRoot, _source: &str) -> Result<(), String> {
         self.dast_root = Some(dast);
-        self.source = source.to_string();
         self.initialized = false;
         Ok(())
+    }
+
+    /// Drop the data that is only needed while initializing a core
+    /// (currently the document's DAST, which for large documents holds
+    /// megabytes of WASM linear memory). Called by the worker once the
+    /// JavaScript core has consumed the normalized DAST; calling
+    /// `set_source` again repopulates the data.
+    pub fn release_initialization_data(&mut self) {
+        self.dast_root = None;
     }
 
     pub fn set_flags(&mut self, flags: &str) {

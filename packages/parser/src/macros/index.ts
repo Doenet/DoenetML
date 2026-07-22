@@ -8,8 +8,6 @@ export function parseMacros(
     str: string,
 ): (DastText | DastMacro | DastFunctionMacro)[] {
     return MacroParser.parse(str) as (
-        | DastText
-        | DastMacro
-        | DastFunctionMacro
+        DastText | DastMacro | DastFunctionMacro
     )[];
 }

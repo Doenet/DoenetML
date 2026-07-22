@@ -15,6 +15,11 @@ can be nested within a `<section>{:dn}` to group and order content.
 Some examples are: another `<section>{:dn}`, a `<figure>{:dn}`, or a
 `<problem>{:dn}`.
 
+Content can also be added to or removed from a `<section>{:dn}` at runtime using the
+[`<callAction>{:dn}`](callAction) `addChildren` and `deleteChildren` actions. The same applies to
+the other sectioning components (such as `<subsection>{:dn}`, `<paragraphs>{:dn}`,
+`<problem>{:dn}`, `<exercise>{:dn}`, and `<example>{:dn}`).
+
 
 <AttrPropDisplay name='section'/>
 
@@ -249,11 +254,11 @@ all `<answer>{:dn}` components within the `<section>{:dn}` become disabled.
 
 ---
 
-### Attribute Example: forceIndividualAnswerColoring
+### Attribute Example: colorAnswersSeparately
 
 
 ```doenet-example
-<section sectionWideCheckWork forceIndividualAnswerColoring><title>Multiple questions</title>
+<section sectionWideCheckWork colorAnswersSeparately><title>Multiple questions</title>
   <p><answer><label>Enter <m>x</m></label>x</answer></p>
   <p><answer><label>Enter <m>y</m></label>y</answer></p>
   <p><answer><label>Enter <m>z</m></label>z</answer></p>
@@ -263,7 +268,7 @@ all `<answer>{:dn}` components within the `<section>{:dn}` become disabled.
 Typically, the `sectionWideCheckWork` attribute causes all answer box border colors
 to correspond to the overall correctness of the entire section
 (i.e., the colors don't reveal additional information about which answer is correct).
-If `forceIndividualAnswerColoring` is also specified, then each answer box border
+If `colorAnswersSeparately` is also specified, then each answer box border
 will instead be colored according to its own answer's correctness.
 
 
@@ -282,6 +287,32 @@ will instead be colored according to its own answer's correctness.
 
 The `boxed` attribute changes the default formatting for section to one 
 that has a border and a shaded banner for the title.
+
+
+
+---
+
+### Attribute Example: collapsible
+
+
+```doenet-example
+<section collapsible><title>Optional reading</title>
+  <p>This section can be collapsed and expanded by clicking the title banner.</p>
+</section>
+
+<section collapsible startOpen="false"><title>Start collapsed</title>
+  <p>This section starts collapsed because <c>startOpen</c> is set to <c>false</c>.</p>
+</section>
+```
+
+
+
+The `collapsible` attribute makes a `<section>{:dn}` collapsible — clicking the title
+banner toggles the section open or closed. By default a collapsible section starts
+expanded; set `startOpen="false"` to have it start collapsed.
+
+(`<aside>{:dn}` and `<proof>{:dn}` are collapsible and start collapsed by default
+without setting this attribute.)
 
 
 

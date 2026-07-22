@@ -10,6 +10,7 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
+import type { Expression } from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -97,12 +98,12 @@ async function runPointBasedTests({
         core,
     });
 
-    let point1Indices = componentIndices.map((v) => v[1]);
+    let point1Indices = componentIndices.map((v: number[]) => v[1]);
     if (definingPointNames.length > 0) {
         point1Indices.push(definingPointIndices[0]);
     }
 
-    let point2Indices = componentIndices.map((v) => v[2]);
+    let point2Indices = componentIndices.map((v: number[]) => v[2]);
     if (definingPointNames.length > 1) {
         point2Indices.push(definingPointIndices[1]);
     }
@@ -206,9 +207,11 @@ async function checkAllLineValues({
 
     const stateVariables = await core.returnAllStateVariables(false, true);
     for (let [ind, pointIdx] of definingPointIndices.entries()) {
-        expect(stateVariables[pointIdx].stateValues.xs.map((v) => v.tree)).eqls(
-            points[ind],
-        );
+        expect(
+            stateVariables[pointIdx].stateValues.xs.map(
+                (v: Expression) => v.tree,
+            ),
+        ).eqls(points[ind]);
     }
 }
 
@@ -401,6 +404,26 @@ describe("LineSegment tag tests @group1", async () => {
         });
     });
 
+    it("midpointOffset without midpoint preserves legacy one-endpoint behavior", async () => {
+        const { core, resolvePathToNodeIdx } = await setupScene({
+            lineProperties: `endpoints="$dp1" midpointOffset="1"`,
+            additionalComponents: `<point name="dp1">(1,2)</point>`,
+        });
+
+        let points = [
+            [1, 2],
+            [0, 0],
+        ];
+        let definingPointNames = ["dp1"];
+
+        await runPointBasedTests({
+            core,
+            resolvePathToNodeIdx,
+            points,
+            definingPointNames,
+        });
+    });
+
     it("multiple layers of copied points", async () => {
         const { core, resolvePathToNodeIdx } = await setupScene({
             lineProperties: `endpoints="$p1c $p2c"`,
@@ -477,12 +500,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls(["q", 2]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([-2, 3]);
 
         // change point to be numeric
@@ -495,12 +518,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([5, 2]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([-2, 3]);
     });
 
@@ -509,7 +532,7 @@ describe("LineSegment tag tests @group1", async () => {
             doenetML: `
   <text name="t">a</text>
   <graph>
-    <line name="l1" through="A" />
+    <lineSegment name="l1" endpoints="A" />
   </graph>
   `,
         });
@@ -549,12 +572,12 @@ describe("LineSegment tag tests @group1", async () => {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls([x, y]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls([y, x]);
             expect(
                 stateVariables[await resolvePathToNodeIdx("x1")].stateValues
@@ -655,32 +678,32 @@ describe("LineSegment tag tests @group1", async () => {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l1")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls([x2, y2]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l1")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls([x1, y1]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l2")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls([x3, y3]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l2")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls([x2, y2]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l3")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls([x1, y1]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("l3")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls([x3, y3]);
         }
 
@@ -1728,12 +1751,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([1, 2]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([3, 4]);
         expect(
             stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
@@ -1756,12 +1779,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([-4, 4]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([4, -4]);
 
         let xorig = -5;
@@ -1896,12 +1919,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([1, 2]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([3, 4]);
         expect(
             stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
@@ -1924,12 +1947,12 @@ describe("LineSegment tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[0].map((v) => v.tree),
+            ].stateValues.endpoints[0].map((v: Expression) => v.tree),
         ).eqls([-4, 4]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.endpoints[1].map((v) => v.tree),
+            ].stateValues.endpoints[1].map((v: Expression) => v.tree),
         ).eqls([4, -4]);
         expect(
             stateVariables[await resolvePathToNodeIdx("P3")].stateValues.xs[0]
@@ -2149,7 +2172,7 @@ describe("LineSegment tag tests @group1", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("Ps[1]")
-                    ].stateValues.xs.map((v) => v.tree),
+                    ].stateValues.xs.map((v: Expression) => v.tree),
                 ).eqls([t1x, t1y]);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("x")].stateValues
@@ -2163,7 +2186,7 @@ describe("LineSegment tag tests @group1", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("Ps[1]")
-                    ].stateValues.xs.map((v) => v.tree),
+                    ].stateValues.xs.map((v: Expression) => v.tree),
                 ).eqls([t2x, t2y]);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("x")].stateValues
@@ -2482,12 +2505,12 @@ describe("LineSegment tag tests @group1", async () => {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("p")
-                ].stateValues.endpoints[0].map((v) => v.tree),
+                ].stateValues.endpoints[0].map((v: Expression) => v.tree),
             ).eqls(point1);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("p")
-                ].stateValues.endpoints[1].map((v) => v.tree),
+                ].stateValues.endpoints[1].map((v: Expression) => v.tree),
             ).eqls(point2);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
@@ -2685,5 +2708,2885 @@ describe("LineSegment tag tests @group1", async () => {
 
         await test_items("light");
         await test_items("dark");
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Helper: compute direction unit vector from slope.
+// Matches LineSegment.js for finite slopes and ±Infinity, which are the cases these tests use.
+// ---------------------------------------------------------------------------
+function dirFromSlope(slope: number): [number, number] {
+    if (slope === Infinity) return [0, 1];
+    if (slope === -Infinity) return [0, -1];
+    const theta = Math.atan(slope);
+    return [Math.cos(theta), Math.sin(theta)];
+}
+
+function ep2FromEp1SlopeLength(
+    ep1: number[],
+    slope: number,
+    L: number,
+): number[] {
+    const [dx, dy] = dirFromSlope(slope);
+    return [ep1[0] + L * dx, ep1[1] + L * dy];
+}
+
+function lengthFromEndpoints(ep1: number[], ep2: number[]): number {
+    const dx = ep2[0] - ep1[0];
+    const dy = ep2[1] - ep1[1];
+    return Math.hypot(dx, dy);
+}
+
+// Changing the public slope (via a bound mathInput) rotates the segment around
+// its midpoint, preserving the midpoint and length. `setup` is a lineSegment
+// attribute string that must produce the horizontal segment (0,0)-(4,0)
+// (midpoint (2,0), slope 0, length 4).
+async function expectSlopeChangeRotatesAroundMidpoint(setup: string) {
+    const { core, resolvePathToNodeIdx } = await createTestCore({
+        doenetML: `
+<graph name="g">
+  <lineSegment name="l" ${setup} />
+</graph>
+<mathInput name="mi">$l.slope</mathInput>
+`,
+    });
+
+    const lIdx = await resolvePathToNodeIdx("l");
+    const miIdx = await resolvePathToNodeIdx("mi");
+
+    // Initial: midpoint=(2,0), slope=0, length=4
+    let sv = await core.returnAllStateVariables(false, true);
+    expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+    expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+        2,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+        0,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+        4,
+        1e-10,
+    );
+
+    // Set slope to 1 — rotate around midpoint (2,0), keep length 4
+    await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
+    sv = await core.returnAllStateVariables(false, true);
+
+    const [dx, dy] = dirFromSlope(1);
+    expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+    expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+        2,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+        0,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+        4,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant()).closeTo(
+        2 - 2 * dx,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant()).closeTo(
+        -2 * dy,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant()).closeTo(
+        2 + 2 * dx,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant()).closeTo(
+        2 * dy,
+        1e-10,
+    );
+}
+
+// Changing the public length (via a bound mathInput) scales the segment around
+// its midpoint, preserving the midpoint and slope. `setup` must produce the
+// horizontal segment (0,0)-(4,0) (midpoint (2,0), slope 0, length 4).
+async function expectLengthChangeScalesAroundMidpoint(setup: string) {
+    const { core, resolvePathToNodeIdx } = await createTestCore({
+        doenetML: `
+<graph name="g">
+  <lineSegment name="l" ${setup} />
+</graph>
+<mathInput name="mi">$l.length</mathInput>
+`,
+    });
+
+    const lIdx = await resolvePathToNodeIdx("l");
+    const miIdx = await resolvePathToNodeIdx("mi");
+
+    // Initial: midpoint=(2,0), slope=0, length=4
+    let sv = await core.returnAllStateVariables(false, true);
+    expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+    expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+        2,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+        0,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+        4,
+        1e-10,
+    );
+
+    // Set length to 6 — scale around midpoint (2,0), keep slope 0 → ep1=(-1,0), ep2=(5,0)
+    await updateMathInputValue({ latex: "6", componentIdx: miIdx, core });
+    sv = await core.returnAllStateVariables(false, true);
+
+    expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+        6,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+    expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+        2,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+        0,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant()).closeTo(
+        -1,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant()).closeTo(
+        0,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant()).closeTo(
+        5,
+        1e-10,
+    );
+    expect(sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant()).closeTo(
+        0,
+        1e-10,
+    );
+}
+
+describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @group5", async () => {
+    // -----------------------------------------------------------------------
+    // Case D: no endpoints, slope only
+    // -----------------------------------------------------------------------
+    it("slope only — basic geometry, drag endpoints, drag segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" slope="2" />
+</graph>
+<number name="slope">$l.slope</number>
+<math name="midpoint">$l.midpoint</math>
+<math name="len">$l.length</math>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+
+        // Initial: ep1=(0,0), L=1 (essentialSignedLength default), slope=2
+        let ep1 = [0, 0];
+        let ep2 = ep2FromEp1SlopeLength(ep1, 2, 1);
+
+        async function checkState(ep1: number[], ep2: number[]) {
+            const sv = await core.returnAllStateVariables(false, true);
+            const seg = sv[lIdx].stateValues;
+            expect(seg.endpoints[0][0].evaluate_to_constant()).closeTo(
+                ep1[0],
+                1e-10,
+            );
+            expect(seg.endpoints[0][1].evaluate_to_constant()).closeTo(
+                ep1[1],
+                1e-10,
+            );
+            expect(seg.endpoints[1][0].evaluate_to_constant()).closeTo(
+                ep2[0],
+                1e-10,
+            );
+            expect(seg.endpoints[1][1].evaluate_to_constant()).closeTo(
+                ep2[1],
+                1e-10,
+            );
+            const expectedSlope = (ep2[1] - ep1[1]) / (ep2[0] - ep1[0]);
+            if (Number.isFinite(expectedSlope)) {
+                expect(seg.slope).closeTo(expectedSlope, 1e-10);
+            } else {
+                expect(seg.slope).eqls(expectedSlope);
+            }
+            const expectedLen = lengthFromEndpoints(ep1, ep2);
+            expect(seg.length.evaluate_to_constant()).closeTo(
+                expectedLen,
+                1e-10,
+            );
+        }
+
+        await checkState(ep1, ep2);
+
+        // Drag ep1 via action — ep2 should stay fixed
+        let newEp1 = [3, 1];
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: newEp1,
+            core,
+        });
+        ep1 = newEp1;
+        // ep2 unchanged (action keeps ep2 fixed)
+        await checkState(ep1, ep2);
+
+        // Drag ep2 via action — ep1 should stay fixed
+        let newEp2 = [5, 4];
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: newEp2,
+            core,
+        });
+        ep2 = newEp2;
+        await checkState(ep1, ep2);
+
+        // Drag whole segment
+        let newEp1b = [-1, 2];
+        let newEp2b = [2, -1];
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: newEp1b,
+            point2coords: newEp2b,
+            core,
+        });
+        await checkState(newEp1b, newEp2b);
+    });
+
+    // -----------------------------------------------------------------------
+    // Case D: slope only — slope attribute propagates back when ep2 is dragged
+    // -----------------------------------------------------------------------
+    it("slope only — drag ep2 updates referenced slope number", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">2</number>
+<graph name="g">
+  <lineSegment name="l" slope="$m" />
+</graph>
+<number name="slopeOut">$l.slope</number>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mIdx = await resolvePathToNodeIdx("m");
+
+        // Initial: ep1=(0,0), essentialSignedLength default=1, slope=2 → $m=2
+        let sv = await core.returnAllStateVariables(false, true);
+        let ep2Init = ep2FromEp1SlopeLength([0, 0], 2, 1);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(ep2Init[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(ep2Init[1], 1e-10);
+        expect(sv[mIdx].stateValues.value).closeTo(2, 1e-10);
+
+        // Drag ep2 to a new position; slope attr should update, so $m updates
+        // ep1=(0,0), drag ep2 to (0,3) → vertical, slope=Infinity
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [0, 3],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(sv[mIdx].stateValues.value).eqls(Infinity);
+
+        // Drag ep2 to (-2,0) → slope = 0/(−2) = 0, L is negative (going left)
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [-2, 0],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 still at (0,0); ep2 at (-2,0)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(-2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        // slope of line is 0 (horizontal)
+        expect(sv[mIdx].stateValues.value).closeTo(0, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // Case D: length only
+    // -----------------------------------------------------------------------
+    it("length only — basic geometry and drag", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="L">3</number>
+<graph name="g">
+  <lineSegment name="l" length="$L" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        // Initial: ep1=(0,0), slope essential default=0, length=3
+        // ep2 = (3, 0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+
+        // Drag ep2 — length attr should update, ep1 stays
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [0, 4],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        // length attr ($L) should now be ~4 (vertical going up, signed attr updated)
+        expect(sv[LIdx].stateValues.value).closeTo(4, 1e-10);
+
+        // ep1 should be unchanged
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [0, -4],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 still at (0,0)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(-4, 1e-10);
+        expect(sv[LIdx].stateValues.value).closeTo(4, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // Case D: slope + length both specified
+    // -----------------------------------------------------------------------
+    it("slope and length both specified — basic geometry and drag", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">1</number>
+<number name="L">2</number>
+<graph name="g">
+  <lineSegment name="l" slope="$m" length="$L" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mIdx = await resolvePathToNodeIdx("m");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        // slope=1, L=2: dir=(cos45°,sin45°)=1/√2 each, ep2=(√2, √2)
+        const [dx, dy] = dirFromSlope(1);
+        const expectedEp2 = [2 * dx, 2 * dy];
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(expectedEp2[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(expectedEp2[1], 1e-10);
+
+        // Drag ep2 to (3,0) — slope becomes 0, length becomes 3
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [3, 0],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[mIdx].stateValues.value).closeTo(0, 1e-10);
+        expect(sv[LIdx].stateValues.value).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+
+        // Drag ep1 to (1,0) — ep2 stays at (3,0), slope/length update
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: [1, 0],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(sv[mIdx].stateValues.value).closeTo(0, 1e-10);
+        expect(sv[LIdx].stateValues.value).closeTo(2, 1e-10);
+    });
+
+    it("slope and length both specified keep public length Euclidean", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">0</number>
+<number name="L">3</number>
+<graph name="g">
+  <lineSegment name="l" slope="$m" length="$L" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        // Initial: ep1=(0,0), slope=0, length=3 → ep2=(3,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([3, 0]);
+        expect(sv[LIdx].stateValues.value).closeTo(3, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [-2, 0],
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[LIdx].stateValues.value).closeTo(-2, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+    });
+
+    it("vertical drag canonicalizes signed length onto the slope sign", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">Infinity</number>
+<number name="L">-3</number>
+<graph name="g">
+  <lineSegment name="l" slope="$m" length="$L" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mIdx = await resolvePathToNodeIdx("m");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        // Initial: slope attr=Infinity (points up), length attr=-3 (flips it
+        // down) → ep1=(0,0), ep2=(0,-3)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[mIdx].stateValues.value).eqls(Infinity);
+        expect(sv[LIdx].stateValues.value).closeTo(-3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, -3]);
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: [0, 1],
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[mIdx].stateValues.value).eqls(-Infinity);
+        expect(sv[LIdx].stateValues.value).closeTo(4, 1e-10);
+        // Vertical segment: both endpoints keep x=0
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(-3, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // Case D: dragging a referenced endpoint translates the whole segment
+    // -----------------------------------------------------------------------
+    it("slope only — drag referenced endpoint1 translates whole segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" slope="1" length="2" />
+  <point extend="$l.endpoint1" name="p1" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const p1Idx = await resolvePathToNodeIdx("p1");
+
+        // Initial ep1=(0,0), ep2 = 2*(cos45,sin45)
+        const [dx0, dy0] = dirFromSlope(1);
+        const initEp2 = [2 * dx0, 2 * dy0];
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(initEp2[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(initEp2[1], 1e-10);
+        expect(
+            sv[p1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+
+        // Move p1 (referenced endpoint) — whole segment should translate
+        await movePoint({ componentIdx: p1Idx, x: 3, y: 1, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        const delta = [3 - 0, 1 - 0];
+        // ep1 should be at (3,1)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        // ep2 should have translated by the same delta
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(initEp2[0] + delta[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(initEp2[1] + delta[1], 1e-10);
+    });
+
+    it("slope only — drag referenced endpoint2 updates slope and length", async () => {
+        // Case D: ep1 is the essential anchor and ep2 = ep1 + L*dir(slope).
+        // Dragging a point that references endpoint2 must keep ep1 fixed and
+        // fold the new position into the slope/length parameterization.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" slope="1" length="2" />
+  <point extend="$l.endpoint2" name="p2" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+
+        // Initial ep1=(0,0), ep2 = 2*(cos45,sin45); p2 mirrors ep2
+        const initEp2 = ep2FromEp1SlopeLength([0, 0], 1, 2);
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(initEp2[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(initEp2[1], 1e-10);
+        expect(sv[p2Idx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            initEp2[0],
+            1e-10,
+        );
+        expect(sv[p2Idx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            initEp2[1],
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+
+        // Drag p2 (referenced ep2) to (3,0) — ep1 stays, slope→0, length→3
+        await movePoint({ componentIdx: p2Idx, x: 3, y: 0, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+    });
+
+    // -----------------------------------------------------------------------
+    // Case B: 1 endpoint + slope
+    // -----------------------------------------------------------------------
+    it("one endpoint and slope", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="dp1">(2,3)</point>
+<number name="m">0</number>
+<graph name="g">
+  <lineSegment name="l" endpoints="$dp1" slope="$m" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const dp1Idx = await resolvePathToNodeIdx("dp1");
+        const mIdx = await resolvePathToNodeIdx("m");
+
+        // ep1=(2,3), slope=0, default signedLength=1 → ep2=(3,3)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+
+        // Drag ep2 via action — ep1 stays, slope attr ($m) updates
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [2, 6],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 unchanged
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        // ep2 at (2,6) → vertical → slope=Infinity
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(6, 1e-10);
+        expect(sv[mIdx].stateValues.value).eqls(Infinity);
+
+        // Drag ep1 via action — ep2 stays, dp1 updates
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: [0, 0],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 now (0,0)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        // ep2 still at (2,6)
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(6, 1e-10);
+        // dp1 moves to (0,0)
+        expect(sv[dp1Idx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        expect(sv[dp1Idx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+    });
+
+    // -----------------------------------------------------------------------
+    // Case B: dragging a referenced endpoint1 translates whole segment
+    // -----------------------------------------------------------------------
+    it("one endpoint and slope — drag referenced endpoint1 translates whole segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2)" slope="1" length="3" />
+  <point extend="$l.endpoint1" name="p1" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const p1Idx = await resolvePathToNodeIdx("p1");
+
+        const [dx, dy] = dirFromSlope(1);
+        const initEp1 = [1, 2];
+        const initEp2 = [1 + 3 * dx, 2 + 3 * dy];
+
+        // Initial: ep1=(1,2), ep2=(1+3cos45, 2+3sin45); p1 mirrors ep1
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls(initEp1);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(initEp2[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(initEp2[1], 1e-10);
+        expect(
+            sv[p1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls(initEp1);
+
+        // Move p1 (referenced endpoint) — whole segment translates
+        await movePoint({ componentIdx: p1Idx, x: 4, y: 0, core });
+        const delta = [4 - initEp1[0], 0 - initEp1[1]];
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(initEp2[0] + delta[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(initEp2[1] + delta[1], 1e-10);
+    });
+
+    it("one endpoint and slope — drag referenced endpoint2 updates slope and length", async () => {
+        // Case B: ep1 (endpoints attr) is the anchor and ep2 = ep1 + L*dir(slope).
+        // Dragging a point that references endpoint2 keeps ep1 fixed and folds
+        // the new position into the slope/length parameterization.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2)" slope="1" length="3" />
+  <point extend="$l.endpoint2" name="p2" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+
+        // Initial: ep1=(1,2), ep2=(1+3cos45, 2+3sin45); p2 mirrors ep2
+        const initEp2 = ep2FromEp1SlopeLength([1, 2], 1, 3);
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(initEp2[0], 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(initEp2[1], 1e-10);
+        expect(sv[p2Idx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            initEp2[0],
+            1e-10,
+        );
+        expect(sv[p2Idx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            initEp2[1],
+            1e-10,
+        );
+
+        // Drag p2 (referenced ep2) to (4,2) — ep1 stays at (1,2), slope→0, length→3
+        await movePoint({ componentIdx: p2Idx, x: 4, y: 2, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+    });
+
+    // -----------------------------------------------------------------------
+    // Case A: 1 endpoint + 1 midpoint → the midpoint point is the segment's
+    // midpoint (with default midpointOffset=0), so ep2 = 2*midpoint - ep1.
+    // -----------------------------------------------------------------------
+    it("one endpoint and midpoint — midpoint is the segment's midpoint", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="dp1">(1,2)</point>
+<point name="T">(4,6)</point>
+<graph name="g">
+  <lineSegment name="l" endpoints="$dp1" midpoint="$T" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const dp1Idx = await resolvePathToNodeIdx("dp1");
+        const TIdx = await resolvePathToNodeIdx("T");
+
+        // ep1=(1,2), midpoint=(4,6) → ep2 = 2*(4,6) - (1,2) = (7,10)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(10, 1e-10);
+        // midpoint property equals the input midpoint point here (midpointOffset=0)
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+            6,
+            1e-10,
+        );
+
+        // Drag ep2 via action — ep1 stays fixed, midpoint tracks the new midpoint
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [7, 1],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        // midpoint = ((1,2)+(7,1))/2 = (4, 1.5)
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            1.5,
+            1e-10,
+        );
+
+        // Drag ep1 via action — ep2 stays fixed, dp1 and midpoint update
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: [-1, 0],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 now (-1,0)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(-1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(sv[dp1Idx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            -1,
+            1e-10,
+        );
+        expect(sv[dp1Idx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        // midpoint = ((-1,0)+(7,1))/2 = (3, 0.5)
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            0.5,
+            1e-10,
+        );
+    });
+
+    it("one endpoint and midpoint — drag referenced endpoint2 updates the midpoint", async () => {
+        // Case A: ep1 (endpoints attr) is the anchor and the midpoint attr point
+        // tracks the segment midpoint. Dragging a point that references endpoint2
+        // keeps ep1 fixed and moves the midpoint to the new (ep1+ep2)/2.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="dp1">(1,2)</point>
+<point name="T">(4,6)</point>
+<graph name="g">
+  <lineSegment name="l" endpoints="$dp1" midpoint="$T" />
+  <point extend="$l.endpoint2" name="p2" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const dp1Idx = await resolvePathToNodeIdx("dp1");
+        const TIdx = await resolvePathToNodeIdx("T");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+
+        // ep1=(1,2), midpoint=(4,6) → ep2 = 2*(4,6)-(1,2) = (7,10); p2 mirrors ep2
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([7, 10]);
+        expect(
+            sv[p2Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([7, 10]);
+
+        // Drag p2 (referenced ep2) to (7,1) — ep1 stays, midpoint tracks to (4,1.5)
+        await movePoint({ componentIdx: p2Idx, x: 7, y: 1, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        // midpoint attr point tracks to ((1,2)+(7,1))/2 = (4, 1.5)
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            1.5,
+            1e-10,
+        );
+        // dp1 (referenced ep1) unchanged
+        expect(
+            sv[dp1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+    });
+
+    it("one endpoint and midpoint keeps length Euclidean (length attr ignored)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="L" prefill="5" />
+<point name="dp1">(1,2)</point>
+<point name="T">(4,6)</point>
+<graph name="g">
+  <lineSegment name="l" endpoints="$dp1" midpoint="$T" length="$L" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        // ep1=(1,2), ep2=2*(4,6)-(1,2)=(7,10); Euclidean length = |(6,8)| = 10.
+        // The length attr (5) is ignored.
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            10,
+            1e-10,
+        );
+
+        await updateMathInputValue({
+            componentIdx: LIdx,
+            latex: "100",
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            10,
+            1e-10,
+        );
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(10, 1e-10);
+    });
+
+    it("one endpoint and midpoint respects midpointOffset (Case A)", async () => {
+        // With ep1=(1,2) and midpoint M=(2,3):
+        //   midpointOffset=0 (default): M is the midpoint → ep2 = 2M - ep1 = (3,4)
+        //   midpointOffset=1: M is the second endpoint → ep2 = M = (2,3)
+        //   midpointOffset=-1: M coincides with ep1 → ep2 undefined
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="mid" endpoints="(1,2)" midpoint="(2,3)" />
+  <lineSegment name="asEp2" endpoints="(1,2)" midpoint="(2,3)" midpointOffset="1" />
+  <lineSegment name="undef" endpoints="(1,2)" midpoint="(2,3)" midpointOffset="-1" />
+</graph>
+`,
+        });
+
+        const sv = await core.returnAllStateVariables(false, true);
+
+        // Default midpointOffset=0: endpoints (1,2) and (3,4), midpoint (2,3)
+        const midIdx = await resolvePathToNodeIdx("mid");
+        expect(
+            sv[midIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            sv[midIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([3, 4]);
+        expect(
+            sv[midIdx].stateValues.midpoint.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, 3]);
+
+        // midpointOffset=1: midpoint acts as the second endpoint
+        const asEp2Idx = await resolvePathToNodeIdx("asEp2");
+        expect(
+            sv[asEp2Idx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            sv[asEp2Idx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, 3]);
+
+        // midpointOffset=-1: midpoint pins ep1, so ep2 is undefined (NaN)
+        const undefIdx = await resolvePathToNodeIdx("undef");
+        expect(
+            sv[undefIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 2]);
+        expect(
+            Number.isNaN(
+                sv[undefIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+            ),
+        ).eq(true);
+        expect(
+            Number.isNaN(
+                sv[undefIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+            ),
+        ).eq(true);
+    });
+
+    it("one endpoint and midpoint, midpointOffset=-1 — referenced ep1 is still draggable", async () => {
+        // Regression: with midpointOffset=-1 (Case A, tT=0) the specified
+        // midpoint sits on ep1 and ep2 is undefined. The inverse used to bail
+        // with success:false for every drag, freezing the (perfectly defined)
+        // first endpoint. Dragging ep1 alone has a well-defined inverse: just
+        // move ep1, leaving ep2 undefined and the specified midpoint untouched.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="ls" endpoints="(-3,1)" midpoint="(5,3)" midpointOffset="$off" />
+  <point extend="$ls.endpoint1" name="p1" />
+</graph>
+<mathInput name="off" prefill="-1" />
+`,
+        });
+
+        const lsIdx = await resolvePathToNodeIdx("ls");
+        const p1Idx = await resolvePathToNodeIdx("p1");
+        const offIdx = await resolvePathToNodeIdx("off");
+
+        // Initial: ep1=(-3,1), ep2 undefined.
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lsIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([-3, 1]);
+        expect(
+            Number.isNaN(
+                sv[lsIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+            ),
+        ).eq(true);
+        expect(
+            Number.isNaN(
+                sv[lsIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+            ),
+        ).eq(true);
+        expect(
+            sv[p1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([-3, 1]);
+
+        // Drag the referenced first endpoint to (2,-4).
+        await movePoint({ componentIdx: p1Idx, x: 2, y: -4, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 moved; ep2 remains undefined.
+        expect(
+            sv[lsIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, -4]);
+        expect(
+            Number.isNaN(
+                sv[lsIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+            ),
+        ).eq(true);
+        expect(
+            Number.isNaN(
+                sv[lsIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+            ),
+        ).eq(true);
+        expect(
+            sv[p1Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, -4]);
+
+        // The specified midpoint was left untouched at (5,3): flipping
+        // midpointOffset to 0 makes M the true midpoint, so
+        // ep2 = 2M - ep1 = 2*(5,3) - (2,-4) = (8,10).
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: offIdx,
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 unchanged at (2,-4); ep2 now defined
+        expect(
+            sv[lsIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, -4]);
+        expect(
+            sv[lsIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([8, 10]);
+    });
+
+    // -----------------------------------------------------------------------
+    // Case C: 0 endpoints + 1 midpoint, slope, length, midpointOffset=0 (midpoint)
+    // -----------------------------------------------------------------------
+    it("midpoint with slope/length — segment centered on midpoint", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,3)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const TIdx = await resolvePathToNodeIdx("T");
+
+        // slope=0 (horizontal), L=4, po=0 (default=midpoint)
+        // ep1 = T - 2*(1,0) = (0,3), ep2 = T + 2*(1,0) = (4,3)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+
+        // Drag ep2 via action — T moves, slope/length update; ep1 stays
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [4, 7],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        // T moved to new t=0.5 position: midpoint of [(0,3),(4,7)] = (2,5)
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            5,
+            1e-10,
+        );
+    });
+
+    it("midpoint alone uses default slope/length and updates them when dragging ep2", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,3)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" />
+</graph>
+<number name="m">$l.slope</number>
+<math name="L">$l.length</math>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const TIdx = await resolvePathToNodeIdx("T");
+        const mIdx = await resolvePathToNodeIdx("m");
+        const LIdx = await resolvePathToNodeIdx("L");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1.5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2.5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(sv[mIdx].stateValues.value).closeTo(0, 1e-10);
+        expect(sv[LIdx].stateValues.value.evaluate_to_constant()).closeTo(
+            1,
+            1e-10,
+        );
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [2.5, 4],
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1.5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2.5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            3.5,
+            1e-10,
+        );
+        expect(sv[mIdx].stateValues.value).closeTo(1, 1e-10);
+        expect(sv[LIdx].stateValues.value.evaluate_to_constant()).closeTo(
+            Math.sqrt(2),
+            1e-10,
+        );
+    });
+
+    // -----------------------------------------------------------------------
+    // Case C: midpointOffset = -1 (midpoint is ep1)
+    // -----------------------------------------------------------------------
+    it("midpoint with midpointOffset=-1 — midpoint is ep1", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" midpoint="(1,2)" slope="0" length="3" midpointOffset="-1" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+
+        // po=-1: ep1=T=(1,2), ep2=T+3*(1,0)=(4,2)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // Case C: midpointOffset = 1 (midpoint is ep2)
+    // -----------------------------------------------------------------------
+    it("midpoint with midpointOffset=1 — midpoint is ep2", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" midpoint="(4,2)" slope="0" length="3" midpointOffset="1" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+
+        // po=1: ep2=T=(4,2), ep1=T-3*(1,0)=(1,2)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+    });
+
+    it("midpoint clamps midpointOffset to [-1,1]", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l1" midpoint="(1,2)" slope="0" length="3" midpointOffset="-2" />
+  <lineSegment name="l2" midpoint="(4,2)" slope="0" length="3" midpointOffset="2" />
+</graph>
+`,
+        });
+
+        const l1Idx = await resolvePathToNodeIdx("l1");
+        const l2Idx = await resolvePathToNodeIdx("l2");
+
+        const sv = await core.returnAllStateVariables(false, true);
+
+        expect(
+            sv[l1Idx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[l1Idx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[l1Idx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[l1Idx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+
+        expect(
+            sv[l2Idx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[l2Idx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[l2Idx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[l2Idx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // Case C: dragging referenced endpoint1 translates whole segment
+    // -----------------------------------------------------------------------
+    it("midpoint — drag referenced endpoint1 translates whole segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,0)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
+  <point extend="$l.endpoint1" name="p1" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const p1Idx = await resolvePathToNodeIdx("p1");
+        const TIdx = await resolvePathToNodeIdx("T");
+
+        // Initial: po=0, slope=0, L=4, T=(2,0)
+        // ep1=(0,0), ep2=(4,0), T=(2,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+
+        // Drag p1 (referenced ep1) to (2,0) — whole segment translates by (2,0)
+        await movePoint({ componentIdx: p1Idx, x: 2, y: 0, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 at (2,0), ep2 at (6,0), T at (4,0)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(6, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(sv[TIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[TIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+    });
+
+    it("midpoint — drag referenced endpoint2 updates midpoint", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">0</number>
+<number name="L">4</number>
+<point name="T">(0,0)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" slope="$m" length="$L" />
+  <point extend="$l.endpoint2" name="p2" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mIdx = await resolvePathToNodeIdx("m");
+        const lNumberIdx = await resolvePathToNodeIdx("L");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+        const tIdx = await resolvePathToNodeIdx("T");
+
+        // Initial: T=(0,0), slope=0, length=4 → ep1=(-2,0), ep2=(2,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([-2, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, 0]);
+        expect(
+            sv[p2Idx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, 0]);
+        expect(
+            sv[tIdx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+        expect(sv[mIdx].stateValues.value).closeTo(0, 1e-10);
+        expect(sv[lNumberIdx].stateValues.value).closeTo(4, 1e-10);
+
+        await movePoint({ componentIdx: p2Idx, x: 0, y: 2, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(-2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(sv[tIdx].stateValues.xs[0].evaluate_to_constant()).closeTo(
+            -1,
+            1e-10,
+        );
+        expect(sv[tIdx].stateValues.xs[1].evaluate_to_constant()).closeTo(
+            1,
+            1e-10,
+        );
+        expect(sv[mIdx].stateValues.value).closeTo(1, 1e-10);
+        expect(sv[lNumberIdx].stateValues.value).closeTo(
+            2 * Math.sqrt(2),
+            1e-10,
+        );
+    });
+
+    // -----------------------------------------------------------------------
+    // Case C: midpoint — drag midpoint directly moves whole segment
+    // -----------------------------------------------------------------------
+    it("midpoint — drag midpoint moves whole segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,0)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const TIdx = await resolvePathToNodeIdx("T");
+
+        // Initial: T=(2,0), slope=0, length=4 → ep1=(0,0), ep2=(4,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 0]);
+        expect(
+            sv[TIdx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, 0]);
+
+        await movePoint({ componentIdx: TIdx, x: 5, y: 3, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        // T moves to (5,3); ep1=T-(1+0)/2*4*(1,0)=(5-2,3)=(3,3), ep2=(7,3)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // Case C: slope attr updates when dragging endpoint via action (full 360°)
+    // -----------------------------------------------------------------------
+    it("midpoint — full 360° rotation by dragging ep2", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">0</number>
+<graph name="g">
+  <lineSegment name="l" midpoint="(0,0)" slope="$m" length="4" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mIdx = await resolvePathToNodeIdx("m");
+
+        // slope=0, po=0, L=4: ep1=(-2,0), ep2=(2,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(-2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+
+        // Drag ep2 to (0,2) — slope should go to Infinity (pointing up)
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [0, 2],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 stays at (-2,0)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(-2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+
+        // Drag ep2 to (-2, -2) — ep2 is now to the left and below ep1(-2,0)...
+        // This means ep2 is "left" of the horizontal: slope = -2/(-2 - -2) → vertical
+        // Actually let's drag ep2 to (-3, 0) — ep2 is to the left, slope=0, L negative
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point2coords: [-3, 0],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        // ep1 stays at (-2,0)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(-2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(-3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(sv[mIdx].stateValues.value).closeTo(0, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // midpoint state variable
+    // -----------------------------------------------------------------------
+    it("midpoint property is the actual midpoint, differing from the midpoint attribute when midpointOffset is nonzero", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+  <point name="P">(0,0)</point>
+  <lineSegment name="l" midpoint="$P" slope="0" length="4" midpointOffset="0.5" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const sv = await core.returnAllStateVariables(false, true);
+
+        // po=0.5, L=4, horizontal: the input point P=(0,0) sits 3/4 of the way
+        // along the segment, giving endpoints (-3,0) and (1,0).
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([-3, 0]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([1, 0]);
+        // The midpoint property is the actual midpoint (-1,0), not the input
+        // point (0,0) given by the midpoint attribute.
+        expect(
+            sv[lIdx].stateValues.midpoint.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([-1, 0]);
+    });
+
+    it("midpoint state variable is derived from endpoints and updates when the segment moves", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2) (5,4)" />
+</graph>
+<math name="cx">$l.midpoint.x</math>
+<math name="cy">$l.midpoint.y</math>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const cxIdx = await resolvePathToNodeIdx("cx");
+        const cyIdx = await resolvePathToNodeIdx("cy");
+
+        // midpoint of (1,2)-(5,4) = (3,3)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[cxIdx].stateValues.value.evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+        expect(sv[cyIdx].stateValues.value.evaluate_to_constant()).closeTo(
+            3,
+            1e-10,
+        );
+
+        // The midpoint state variable is derived from endpoints — just verify
+        // it updates when the segment moves
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: [0, 0],
+            point2coords: [4, 2],
+            core,
+        });
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[cxIdx].stateValues.value.evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[cyIdx].stateValues.value.evaluate_to_constant()).closeTo(
+            1,
+            1e-10,
+        );
+    });
+
+    it("dragging a point referenced from the midpoint property translates the segment in every direction", async () => {
+        // Regression: a point bound to $l.midpoint receives its coordinates
+        // through separate math components, so the midpoint state-variable
+        // inverse is invoked once per dimension. It must translate only the
+        // supplied dimension; recomputing the other from the stale current
+        // midpoint used to revert it, freezing vertical drags (Case A).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2)" midpoint="(2,3)" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        async function checkSegment(ep1: number[], ep2: number[]) {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            const mid = sv[lIdx].stateValues.midpoint;
+            expect(mid[0].evaluate_to_constant()).closeTo(
+                (ep1[0] + ep2[0]) / 2,
+                1e-10,
+            );
+            expect(mid[1].evaluate_to_constant()).closeTo(
+                (ep1[1] + ep2[1]) / 2,
+                1e-10,
+            );
+        }
+
+        // endpoints (1,2),(3,4); midpoint (2,3)
+        await checkSegment([1, 2], [3, 4]);
+
+        // Drag the midpoint horizontally: (2,3) -> (5,3)
+        await movePoint({ componentIdx: mpIdx, x: 5, y: 3, core });
+        await checkSegment([4, 2], [6, 4]);
+
+        // Drag vertically: (5,3) -> (5,7) (used to be frozen)
+        await movePoint({ componentIdx: mpIdx, x: 5, y: 7, core });
+        await checkSegment([4, 6], [6, 8]);
+
+        // Drag diagonally: (5,7) -> (0,0)
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        await checkSegment([-1, -1], [1, 1]);
+    });
+
+    it("two endpoints — dragging a referenced midpoint translates the segment", async () => {
+        // The public midpoint property is the average of the endpoints; dragging
+        // a point bound to it translates the whole segment so the midpoint lands
+        // on the drag target, preserving the endpoint separation. (Original
+        // two-endpoint case, basedOnSlopeOrMidpoint = false.)
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2) (5,4)" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        let ep1 = [1, 2];
+        let ep2 = [5, 4];
+
+        async function checkSegment() {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            const mid = sv[lIdx].stateValues.midpoint;
+            expect(mid[0].evaluate_to_constant()).closeTo(
+                (ep1[0] + ep2[0]) / 2,
+                1e-10,
+            );
+            expect(mid[1].evaluate_to_constant()).closeTo(
+                (ep1[1] + ep2[1]) / 2,
+                1e-10,
+            );
+        }
+
+        function dragMidTo(mx: number, my: number) {
+            const d = [mx - (ep1[0] + ep2[0]) / 2, my - (ep1[1] + ep2[1]) / 2];
+            ep1 = [ep1[0] + d[0], ep1[1] + d[1]];
+            ep2 = [ep2[0] + d[0], ep2[1] + d[1]];
+        }
+
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        dragMidTo(0, 0);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 6, y: -2, core });
+        dragMidTo(6, -2);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: -4, y: 5, core });
+        dragMidTo(-4, 5);
+        await checkSegment();
+    });
+
+    it("one endpoint and slope (Case B) — dragging a referenced midpoint translates the segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(1,2)" slope="1" length="3" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        let ep1 = [1, 2];
+        let ep2 = ep2FromEp1SlopeLength([1, 2], 1, 3);
+
+        async function checkSegment() {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            // Translation preserves slope and length.
+            expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+            expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+                3,
+                1e-10,
+            );
+        }
+
+        function dragMidTo(mx: number, my: number) {
+            const d = [mx - (ep1[0] + ep2[0]) / 2, my - (ep1[1] + ep2[1]) / 2];
+            ep1 = [ep1[0] + d[0], ep1[1] + d[1]];
+            ep2 = [ep2[0] + d[0], ep2[1] + d[1]];
+        }
+
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        dragMidTo(0, 0);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 6, y: -2, core });
+        dragMidTo(6, -2);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: -4, y: 5, core });
+        dragMidTo(-4, 5);
+        await checkSegment();
+    });
+
+    it("midpoint with slope/length (Case C) — dragging a referenced midpoint translates the segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,3)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        let ep1 = [0, 3];
+        let ep2 = [4, 3];
+
+        async function checkSegment() {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            // Translation preserves slope and length.
+            expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+            expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+                4,
+                1e-10,
+            );
+        }
+
+        function dragMidTo(mx: number, my: number) {
+            const d = [mx - (ep1[0] + ep2[0]) / 2, my - (ep1[1] + ep2[1]) / 2];
+            ep1 = [ep1[0] + d[0], ep1[1] + d[1]];
+            ep2 = [ep2[0] + d[0], ep2[1] + d[1]];
+        }
+
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        dragMidTo(0, 0);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 6, y: -2, core });
+        dragMidTo(6, -2);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: -4, y: 5, core });
+        dragMidTo(-4, 5);
+        await checkSegment();
+    });
+
+    it("slope only (Case D) — dragging a referenced midpoint translates the segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" slope="1" length="2" />
+  <point name="mp">$l.midpoint</point>
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const mpIdx = await resolvePathToNodeIdx("mp");
+
+        let ep1 = [0, 0];
+        let ep2 = ep2FromEp1SlopeLength([0, 0], 1, 2);
+
+        async function checkSegment() {
+            const sv = await core.returnAllStateVariables(false, true);
+            const eps = sv[lIdx].stateValues.endpoints;
+            expect(eps[0][0].evaluate_to_constant()).closeTo(ep1[0], 1e-10);
+            expect(eps[0][1].evaluate_to_constant()).closeTo(ep1[1], 1e-10);
+            expect(eps[1][0].evaluate_to_constant()).closeTo(ep2[0], 1e-10);
+            expect(eps[1][1].evaluate_to_constant()).closeTo(ep2[1], 1e-10);
+            // Translation preserves slope and length.
+            expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+            expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+                2,
+                1e-10,
+            );
+        }
+
+        function dragMidTo(mx: number, my: number) {
+            const d = [mx - (ep1[0] + ep2[0]) / 2, my - (ep1[1] + ep2[1]) / 2];
+            ep1 = [ep1[0] + d[0], ep1[1] + d[1]];
+            ep2 = [ep2[0] + d[0], ep2[1] + d[1]];
+        }
+
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 0, y: 0, core });
+        dragMidTo(0, 0);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: 6, y: -2, core });
+        dragMidTo(6, -2);
+        await checkSegment();
+
+        await movePoint({ componentIdx: mpIdx, x: -4, y: 5, core });
+        dragMidTo(-4, 5);
+        await checkSegment();
+    });
+
+    it("midpoint state variable stays symbolic and supports inverse updates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="a" prefill="q" />
+<graph name="g">
+  <lineSegment name="l" endpoints="($a,0) (2,0)" />
+</graph>
+<math name="cx">$l.midpoint.x</math>
+<mathInput name="mi">$l.midpoint.x</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const cxIdx = await resolvePathToNodeIdx("cx");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[cxIdx].stateValues.value.tree).not.eq("\uff3f");
+
+        await updateMathInputValue({ latex: "5", componentIdx: miIdx, core });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.midpoint[0].simplify().tree).eq(5);
+        expect(sv[lIdx].stateValues.midpoint[1].simplify().tree).eq(0);
+    });
+
+    // -----------------------------------------------------------------------
+    // slope inverse
+    // -----------------------------------------------------------------------
+    it("slope, midpoint, and length state variables return correct initial values", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(0,0) (4,0)" />
+</graph>
+<number name="s">$l.slope</number>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const sIdx = await resolvePathToNodeIdx("s");
+
+        // slope=0, midpoint=(2,0), length=4 — verify initial state
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[sIdx].stateValues.value).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+    });
+
+    // -----------------------------------------------------------------------
+    // slope inverse via mathInput — keeps midpoint and length, rotates direction
+    // -----------------------------------------------------------------------
+    it("slope inverse via mathInput — rotates segment around midpoint", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(0,0) (4,0)" />
+</graph>
+<mathInput name="mi">$l.slope</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        // Initial: midpoint=(2,0), length=4, slope=0
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+
+        // Set slope to 1 via mathInput — should rotate around midpoint (2,0), keep length 4
+        await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
+        sv = await core.returnAllStateVariables(false, true);
+
+        const expectedSlope = 1;
+        expect(sv[lIdx].stateValues.slope).closeTo(expectedSlope, 1e-10);
+        // Center should stay at (2,0)
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        // Length should stay at 4
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        // Verify endpoints are symmetric around midpoint
+        const theta = Math.atan(1);
+        const [dx, dy] = [Math.cos(theta), Math.sin(theta)];
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(2 - 2 * dx, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0 - 2 * dy, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(2 + 2 * dx, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0 + 2 * dy, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // length inverse via mathInput — keeps midpoint and direction, changes length
+    // -----------------------------------------------------------------------
+    it("length inverse via mathInput — scales segment around midpoint", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(0,0) (4,0)" />
+</graph>
+<mathInput name="mi">$l.length</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        // Initial: midpoint=(2,0), length=4, slope=0
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+
+        // Set length to 6 — midpoint stays at (2,0), direction unchanged, ep1=(-1,0), ep2=(5,0)
+        await updateMathInputValue({ latex: "6", componentIdx: miIdx, core });
+        sv = await core.returnAllStateVariables(false, true);
+
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            6,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(-1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // midpoint inverse via mathInput — translates segment
+    // -----------------------------------------------------------------------
+    it("midpoint inverse via mathInput — translates segment", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" endpoints="(0,0) (4,0)" />
+</graph>
+<mathInput name="mi">$l.midpoint.x</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        // Initial: midpoint=(2,0), ep1=(0,0), ep2=(4,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+            2,
+            1e-10,
+        );
+
+        // Set midpoint x to 5 → translate by 3: ep1=(3,0), ep2=(7,0)
+        await updateMathInputValue({ latex: "5", componentIdx: miIdx, core });
+        sv = await core.returnAllStateVariables(false, true);
+
+        expect(sv[lIdx].stateValues.midpoint[0].evaluate_to_constant()).closeTo(
+            5,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.midpoint[1].evaluate_to_constant()).closeTo(
+            0,
+            1e-10,
+        );
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        // Length and slope unchanged
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+    });
+
+    // -----------------------------------------------------------------------
+    // slope inverse works with basedOnSlopeOrMidpoint (Case D)
+    // -----------------------------------------------------------------------
+    it("slope inverse via mathInput — works when slope attr present", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="m">0</number>
+<graph name="g">
+  <lineSegment name="l" slope="$m" length="4" />
+</graph>
+<mathInput name="mi">$l.slope</mathInput>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const miIdx = await resolvePathToNodeIdx("mi");
+        const mIdx = await resolvePathToNodeIdx("m");
+
+        // Initial: slope=0, length=4, ep1=(0,0), ep2=(4,0)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(sv[lIdx].stateValues.slope).closeTo(0, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+
+        // Change slope to 1 via mathInput
+        await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
+        sv = await core.returnAllStateVariables(false, true);
+
+        // Slope should update to 1; midpoint and length preserved
+        expect(sv[lIdx].stateValues.slope).closeTo(1, 1e-10);
+        expect(sv[lIdx].stateValues.length.evaluate_to_constant()).closeTo(
+            4,
+            1e-10,
+        );
+        const theta = Math.atan(1);
+        const [dx, dy] = [Math.cos(theta), Math.sin(theta)];
+        const cx = sv[lIdx].stateValues.midpoint[0].evaluate_to_constant();
+        const cy = sv[lIdx].stateValues.midpoint[1].evaluate_to_constant();
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(cx - 2 * dx, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(cy - 2 * dy, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(cx + 2 * dx, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(cy + 2 * dy, 1e-10);
+    });
+
+    // Changing the referenced slope/length via a mathInput, for every case.
+    // (The original two-endpoint case and Case D slope are covered above.)
+    it("one endpoint and midpoint (Case A) — changing referenced slope rotates around the midpoint", async () => {
+        await expectSlopeChangeRotatesAroundMidpoint(
+            `endpoints="(0,0)" midpoint="(2,0)"`,
+        );
+    });
+
+    it("one endpoint and midpoint (Case A) — changing referenced length scales around the midpoint", async () => {
+        await expectLengthChangeScalesAroundMidpoint(
+            `endpoints="(0,0)" midpoint="(2,0)"`,
+        );
+    });
+
+    it("one endpoint and slope (Case B) — changing referenced slope rotates around the midpoint", async () => {
+        await expectSlopeChangeRotatesAroundMidpoint(
+            `endpoints="(0,0)" slope="0" length="4"`,
+        );
+    });
+
+    it("one endpoint and slope (Case B) — changing referenced length scales around the midpoint", async () => {
+        await expectLengthChangeScalesAroundMidpoint(
+            `endpoints="(0,0)" slope="0" length="4"`,
+        );
+    });
+
+    it("midpoint with slope/length (Case C) — changing referenced slope rotates around the midpoint", async () => {
+        await expectSlopeChangeRotatesAroundMidpoint(
+            `midpoint="(2,0)" slope="0" length="4"`,
+        );
+    });
+
+    it("midpoint with slope/length (Case C) — changing referenced length scales around the midpoint", async () => {
+        await expectLengthChangeScalesAroundMidpoint(
+            `midpoint="(2,0)" slope="0" length="4"`,
+        );
+    });
+
+    it("slope only (Case D) — changing referenced length scales around the midpoint", async () => {
+        await expectLengthChangeScalesAroundMidpoint(`slope="0" length="4"`);
+    });
+
+    // -----------------------------------------------------------------------
+    // Backward compatibility: no new attrs → same default (1,0)-(0,0)
+    // -----------------------------------------------------------------------
+    it("no new attrs — preserves old default (1,0)-(0,0)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <lineSegment name="l" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(0, 1e-10);
+    });
+
+    it("3D slope parameterization uses the x-y plane and preserves higher coordinates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="P">(1,2,3)</point>
+<point name="T">(2,3,4)</point>
+<graph name="g">
+  <lineSegment name="caseB" endpoints="$P" slope="1" length="2" />
+  <lineSegment name="caseC" midpoint="$T" slope="1" length="2" />
+</graph>
+`,
+        });
+
+        const caseBIdx = await resolvePathToNodeIdx("caseB");
+        const caseCIdx = await resolvePathToNodeIdx("caseC");
+        const sv = await core.returnAllStateVariables(false, true);
+        const planarDelta = Math.sqrt(2);
+
+        expect(sv[caseBIdx].stateValues.numDimensions).eq(3);
+        expect(sv[caseBIdx].stateValues.basedOnSlopeOrMidpoint).eq(true);
+        expect(sv[caseBIdx].stateValues.slope).eqls(NaN);
+        expect(
+            sv[caseBIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(1 + planarDelta, 1e-10);
+        expect(
+            sv[caseBIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(2 + planarDelta, 1e-10);
+        expect(
+            sv[caseBIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+
+        expect(sv[caseCIdx].stateValues.numDimensions).eq(3);
+        expect(sv[caseCIdx].stateValues.basedOnSlopeOrMidpoint).eq(true);
+        expect(sv[caseCIdx].stateValues.slope).eqls(NaN);
+        expect(
+            sv[caseCIdx].stateValues.endpoints[0][2].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+        expect(
+            sv[caseCIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
+        ).closeTo(4, 1e-10);
+    });
+
+    it("moving the midpoint in 3D updates the segment in every dimension", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,3,4)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const tIdx = await resolvePathToNodeIdx("T");
+
+        // Initial: T=(2,3,4), slope=0, length=4 → ep1=(0,3,4), ep2=(4,3,4)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 3, 4]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 3, 4]);
+        expect(sv[tIdx].stateValues.xs.map((v: Expression) => v.tree)).eqls([
+            2, 3, 4,
+        ]);
+
+        await movePoint({
+            componentIdx: tIdx,
+            x: 3,
+            y: 5,
+            z: 6,
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][2].evaluate_to_constant(),
+        ).closeTo(6, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(5, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
+        ).closeTo(6, 1e-10);
+        expect(sv[tIdx].stateValues.xs.map((v: Expression) => v.tree)).eqls([
+            3, 5, 6,
+        ]);
+    });
+
+    it("moveLineSegment action in 3D updates every coordinate", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="T">(2,3,4)</point>
+<graph name="g">
+  <lineSegment name="l" midpoint="$T" slope="0" length="4" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const tIdx = await resolvePathToNodeIdx("T");
+
+        // Initial: T=(2,3,4), slope=0, length=4 → ep1=(0,3,4), ep2=(4,3,4)
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 3, 4]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 3, 4]);
+        expect(
+            sv[tIdx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, 3, 4]);
+
+        await moveLineSegment({
+            componentIdx: lIdx,
+            point1coords: [0, 1, 7],
+            point2coords: [4, 1, 7],
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[lIdx].stateValues.endpoints[0].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([0, 1, 7]);
+        expect(
+            sv[lIdx].stateValues.endpoints[1].map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 1, 7]);
+        expect(
+            sv[tIdx].stateValues.xs.map((v: Expression) =>
+                v.evaluate_to_constant(),
+            ),
+        ).eqls([2, 1, 7]);
+    });
+
+    it("moveLineSegment action in 3D preserves compensation after a constraint", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g">
+  <point name="P">(4,6,10)<constrainToGrid dx="2" dy="3" dz="5" /></point>
+  <point name="Q">(-4,-1,1)</point>
+  <lineSegment name="l" endpoints="$P $Q" />
+</graph>
+`,
+        });
+
+        // Initial: P snaps to grid at (4,6,10), Q=(-4,-1,1); endpoints follow
+        let sv = await core.returnAllStateVariables(false, true);
+        expect(
+            sv[await resolvePathToNodeIdx("P")].stateValues.xs.map(
+                (v: Expression) => v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 6, 10]);
+        expect(
+            sv[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
+                (v: Expression) => v.evaluate_to_constant(),
+            ),
+        ).eqls([-4, -1, 1]);
+        expect(
+            sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[0].map(
+                (v: Expression) => v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 6, 10]);
+        expect(
+            sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[1].map(
+                (v: Expression) => v.evaluate_to_constant(),
+            ),
+        ).eqls([-4, -1, 1]);
+
+        await moveLineSegment({
+            componentIdx: await resolvePathToNodeIdx("l"),
+            point1coords: [4.5, 2, 14],
+            point2coords: [-3.5, -5, 5],
+            core,
+        });
+
+        sv = await core.returnAllStateVariables(false, true);
+
+        expect(
+            sv[await resolvePathToNodeIdx("P")].stateValues.xs.map(
+                (v: Expression) => v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 3, 15]);
+        expect(
+            sv[await resolvePathToNodeIdx("Q")].stateValues.xs.map(
+                (v: Expression) => v.evaluate_to_constant(),
+            ),
+        ).eqls([-4, -4, 6]);
+        expect(
+            sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[0].map(
+                (v: Expression) => v.evaluate_to_constant(),
+            ),
+        ).eqls([4, 3, 15]);
+        expect(
+            sv[await resolvePathToNodeIdx("l")].stateValues.endpoints[1].map(
+                (v: Expression) => v.evaluate_to_constant(),
+            ),
+        ).eqls([-4, -4, 6]);
+    });
+
+    it("Case A (1 endpoint + 1 midpoint) works in 3D", async () => {
+        // The midpoint parameterization is dimension-agnostic:
+        // ep2 = 2*midpoint - ep1 in every coordinate (default midpointOffset=0).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="P">(1,2,3)</point>
+<point name="T">(4,5,6)</point>
+<graph name="g">
+  <lineSegment name="l" endpoints="$P" midpoint="$T" />
+</graph>
+`,
+        });
+
+        const lIdx = await resolvePathToNodeIdx("l");
+        const sv = await core.returnAllStateVariables(false, true);
+
+        expect(sv[lIdx].stateValues.numDimensions).eq(3);
+        expect(sv[lIdx].stateValues.basedOnSlopeOrMidpoint).eq(true);
+        // ep1 = P = (1,2,3), ep2 = 2*(4,5,6) - (1,2,3) = (7,8,9)
+        expect(
+            sv[lIdx].stateValues.endpoints[0][0].evaluate_to_constant(),
+        ).closeTo(1, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][1].evaluate_to_constant(),
+        ).closeTo(2, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[0][2].evaluate_to_constant(),
+        ).closeTo(3, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
+        ).closeTo(7, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
+        ).closeTo(8, 1e-10);
+        expect(
+            sv[lIdx].stateValues.endpoints[1][2].evaluate_to_constant(),
+        ).closeTo(9, 1e-10);
+        // midpoint property = (4,5,6)
+        expect(sv[lIdx].stateValues.midpoint[2].evaluate_to_constant()).closeTo(
+            6,
+            1e-10,
+        );
+    });
+});
+
+describe("LineSegment info diagnostics @group5", async () => {
+    // -----------------------------------------------------------------------
+    // midpointOffset without midpoint → info diagnostic
+    // -----------------------------------------------------------------------
+    it("midpointOffset without midpoint emits info diagnostic", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" midpointOffset="1" />
+</graph>
+`,
+        });
+
+        const { getDiagnosticsByType } = await import("../utils/diagnostics");
+        const d = getDiagnosticsByType(core);
+        expect(d.errors.length).eq(0);
+        expect(d.warnings.length).eq(0);
+        expect(d.infos.length).eq(1);
+        expect(d.infos[0].message).contain("midpointOffset");
+        expect(d.infos[0].message).contain("without a midpoint");
+    });
+
+    // -----------------------------------------------------------------------
+    // slope/length/midpoint/midpointOffset ignored when two endpoints given
+    // -----------------------------------------------------------------------
+    it("slope and length ignored when two endpoints specified — emits info diagnostic", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" endpoints="(1,2) (4,5)" slope="1" length="3" />
+</graph>
+`,
+        });
+
+        const { getDiagnosticsByType } = await import("../utils/diagnostics");
+        const d = getDiagnosticsByType(core);
+        expect(d.errors.length).eq(0);
+        expect(d.warnings.length).eq(0);
+        expect(d.infos.length).eq(1);
+        expect(d.infos[0].message).contain("slope");
+        expect(d.infos[0].message).contain("length");
+        expect(d.infos[0].message).contain("two endpoints");
+    });
+
+    // -----------------------------------------------------------------------
+    // slope/length ignored when endpoint + midpoint given (Case A). Note that
+    // midpointOffset is NOT ignored — it sets where the midpoint sits.
+    // -----------------------------------------------------------------------
+    it("slope and length ignored when one endpoint and midpoint given — emits info diagnostic", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" endpoints="(1,2)" midpoint="(4,5)" slope="2" length="3" midpointOffset="0.5" />
+</graph>
+`,
+        });
+
+        const { getDiagnosticsByType } = await import("../utils/diagnostics");
+        const d = getDiagnosticsByType(core);
+        expect(d.errors.length).eq(0);
+        expect(d.warnings.length).eq(0);
+        expect(d.infos.length).eq(1);
+        expect(d.infos[0].message).contain("slope");
+        expect(d.infos[0].message).contain("length");
+        expect(d.infos[0].message).contain("endpoint and a midpoint");
+        // midpointOffset is used in Case A, so it must not be reported as ignored
+        expect(d.infos[0].message).not.contain("midpointOffset");
+    });
+
+    // -----------------------------------------------------------------------
+    // No diagnostic when slope/midpoint used correctly
+    // -----------------------------------------------------------------------
+    it("no info diagnostic when slope and midpoint used without endpoints", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" midpoint="(2,0)" slope="0" length="4" />
+</graph>
+`,
+        });
+
+        const { getDiagnosticsByType } = await import("../utils/diagnostics");
+        const d = getDiagnosticsByType(core);
+        expect(d.errors.length).eq(0);
+        expect(d.warnings.length).eq(0);
+        expect(d.infos.length).eq(0);
     });
 });

@@ -60,12 +60,21 @@ function pushUnsupportedAxisPositionWarnings({
     }
 }
 
+// Dark-mode axis/tick stroke. PreFigure defaults axes/ticks to black (tuned for
+// a white canvas); on the dark canvas they vanish. We bake a light stroke that
+// matches the JSXGraph renderer's axes (`--canvasText`, which is white in dark
+// mode). Tick *labels* are MathJax `currentColor` and already inherit the
+// canvas text color via CSS, so only the lines need recoloring.
+const PREFIGURE_DARK_AXIS_COLOR = "#ffffff";
+
 function axesElementFromLabels({
     dependencyValues,
     axesMode,
+    darkMode,
 }: {
     dependencyValues: GraphDependencyValues;
     axesMode: "all" | "horizontal" | "vertical";
+    darkMode: boolean;
 }): string {
     const axisLabelElements = [];
 
@@ -85,10 +94,12 @@ function axesElementFromLabels({
         axisLabelElements.push(`<ylabel alignment="se">${yLabel}</ylabel>`);
     }
 
+    const strokeAttr = darkMode ? ` stroke="${PREFIGURE_DARK_AXIS_COLOR}"` : "";
+
     if (axisLabelElements.length > 0) {
-        return `<axes axes="${axesMode}">${axisLabelElements.join("")}</axes>`;
+        return `<axes axes="${axesMode}"${strokeAttr}>${axisLabelElements.join("")}</axes>`;
     }
-    return `<axes axes="${axesMode}" />`;
+    return `<axes axes="${axesMode}"${strokeAttr} />`;
 }
 
 /**
@@ -108,6 +119,7 @@ export function createPrefigureXML({
     annotations,
     graphComponentIdx,
     functionToCurveComponentIdx,
+    darkMode = false,
 }: {
     dependencyValues: GraphDependencyValues;
     descendants: Descendant[];
@@ -115,6 +127,7 @@ export function createPrefigureXML({
     annotations: AnnotationNode[] | null;
     graphComponentIdx: number;
     functionToCurveComponentIdx?: Record<number, number>;
+    darkMode?: boolean;
 }): { xml: string; diagnostics: DiagnosticRecord[] } {
     const diagnostics: DiagnosticRecord[] = [];
     const usedHandles = new Set<string>();
@@ -181,6 +194,7 @@ export function createPrefigureXML({
             diagnostics,
             graphBounds,
             graphDimensions,
+            darkMode,
         });
         if (converted) {
             elements.push(converted.xml);
@@ -215,7 +229,11 @@ export function createPrefigureXML({
 
     if (axesMode) {
         pushUnsupportedAxisPositionWarnings({ dependencyValues, diagnostics });
-        axesElement = axesElementFromLabels({ dependencyValues, axesMode });
+        axesElement = axesElementFromLabels({
+            dependencyValues,
+            axesMode,
+            darkMode,
+        });
     }
 
     const annotationsElement = convertDoenetMLAnnotationsToPreFigureXml({

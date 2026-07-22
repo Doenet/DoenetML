@@ -11,6 +11,7 @@ import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
+    static styleOverrideCategories = ["fill"];
 
     static componentDocs = {
         summary: "An angle defined by three points or a measure",
@@ -825,16 +826,14 @@ function calculateLineIntersection(line1, line2) {
     let b2 = line2.stateValues.coeffvar2.evaluate_to_constant();
     let c2 = line2.stateValues.coeff0.evaluate_to_constant();
 
-    if (
-        !(
-            Number.isFinite(a1) &&
-            Number.isFinite(b1) &&
-            Number.isFinite(c1) &&
-            Number.isFinite(a2) &&
-            Number.isFinite(b2) &&
-            Number.isFinite(c2)
-        )
-    ) {
+    if (!(
+        Number.isFinite(a1) &&
+        Number.isFinite(b1) &&
+        Number.isFinite(c1) &&
+        Number.isFinite(a2) &&
+        Number.isFinite(b2) &&
+        Number.isFinite(c2)
+    )) {
         console.log(
             "Calculating angle between two lines implemented only for constant coefficients",
         );

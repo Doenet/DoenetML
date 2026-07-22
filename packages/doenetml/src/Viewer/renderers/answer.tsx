@@ -9,7 +9,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { MathJax } from "better-react-mathjax";
+import { DynamicMath } from "./utils/DynamicMath";
 import { DescriptionPopover } from "./utils/Description";
 
 interface AnswerSVs {
@@ -58,11 +58,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
 
     let label: React.ReactNode = SVs.label;
     if (SVs.labelHasLatex) {
-        label = (
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {label}
-            </MathJax>
-        );
+        label = <DynamicMath latex={SVs.label} />;
     }
 
     const inputChildrenToRender = SVs.inputChildIndices.map(

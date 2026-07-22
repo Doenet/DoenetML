@@ -91,6 +91,58 @@ function createTextEditRange(
     };
 }
 
+type CompletionTextEditOffsets = {
+    sourceObj: DoenetSourceObject;
+    startOffset: number;
+    endOffset: number;
+};
+
+/**
+ * Preserve the schema/context-help ordering within each bucket, but put items
+ * whose match text starts with the typed text ahead of mid-string matches.
+ */
+function getPrefixAwareSortText(
+    matchText: string,
+    typedTextLower: string,
+    baseSortText?: string,
+): string | undefined {
+    if (!typedTextLower) {
+        return baseSortText;
+    }
+    const prefixBucket = matchText.toLowerCase().startsWith(typedTextLower)
+        ? "0"
+        : "1";
+    return `${prefixBucket}:${baseSortText ?? matchText.toLowerCase()}`;
+}
+
+function createCloseTagCompletionItem(
+    elementName: string,
+    editOffsets?: CompletionTextEditOffsets,
+): CompletionItem {
+    const item: CompletionItem = {
+        label: `/${elementName}>`,
+        kind: CompletionItemKind.Property,
+    };
+    if (editOffsets) {
+        item.textEdit = {
+            range: createTextEditRange(
+                editOffsets.sourceObj,
+                editOffsets.startOffset,
+                editOffsets.endOffset,
+            ),
+            newText: `</${elementName}>`,
+        };
+        // VS Code uses `filterText` (falling back to `label`) to decide
+        // which items to show as the user types.  The textEdit range starts
+        // at the `<` character, so the "typed prefix" VS Code compares
+        // against is e.g. `<`, `</`, `</t` — none of which is a prefix of
+        // the label `"/text>"`.  Setting filterText to the full close tag
+        // ensures the item keeps appearing after each additional keystroke.
+        item.filterText = `</${elementName}>`;
+    }
+    return item;
+}
+
 /**
  * Format a multiline snippet by adding indentation to subsequent lines.
  * The indentation matches the column position where the snippet starts,
@@ -205,6 +257,24 @@ function createSnippetCompletionItems(
     }>,
     startOffset: number,
     endOffset: number,
+    /**
+     * Prefix prepended to `snippet.key` when building `filterText`.
+     *
+     * When the textEdit range starts at `<` (i.e. the user typed `<`), VS Code
+     * computes the filter prefix as the text in the range — e.g. `<ans` after
+     * typing `<ans`.  Without the `<` prefix, `filterText = "answer-labeled"`
+     * would not match the filter prefix `<ans` and the snippet would disappear
+     * from the list.  Passing `"<"` here makes `filterText = "<answer-labeled"`,
+     * which starts with `<ans` and keeps the item visible.
+     *
+     * CodemirrorLSP plugin strips the leading `<` before applying its own
+     * substring filter, so `"<answer-labeled".includes("ans")` still matches.
+     *
+     * Default `""` (no prefix) is correct for explicit Ctrl+Space invocations
+     * where the textEdit range is empty (starts at cursor) and the filter prefix
+     * is the bare typed word without a leading `<`.
+     */
+    filterTextPrefix: string = "",
 ): CompletionItem[] {
     return snippets.map((snippet) => {
         const { formattedSnippet, indentSize } = formatSnippetWithIndent(
@@ -230,7 +300,7 @@ function createSnippetCompletionItems(
                 range: createTextEditRange(sourceObj, startOffset, endOffset),
                 newText: formattedSnippet,
             },
-            filterText: snippet.key,
+            filterText: filterTextPrefix + snippet.key,
             ...(completionData
                 ? {
                       data: completionData,
@@ -268,6 +338,7 @@ function createDynamicSnippetCompletionItems(
     startOffset: number,
     endOffset: number,
     typedPrefix = "",
+    filterTextPrefix = "",
 ): CompletionItem[] {
     if (!allowedElementNames.includes("annotations")) {
         return [];
@@ -284,7 +355,7 @@ function createDynamicSnippetCompletionItems(
 
     if (
         typedPrefix &&
-        !dynamicSnippet.key.toLowerCase().startsWith(typedPrefix.toLowerCase())
+        !dynamicSnippet.key.toLowerCase().includes(typedPrefix.toLowerCase())
     ) {
         return [];
     }
@@ -294,6 +365,7 @@ function createDynamicSnippetCompletionItems(
         [dynamicSnippet],
         startOffset,
         endOffset,
+        filterTextPrefix,
     );
 }
 
@@ -330,9 +402,15 @@ function createElementAndSnippetCompletionItems(
     );
     const sortTextByKey = sortTextLookup(ranked);
 
+    // Match element names that *contain* the typed text (not just a prefix), so
+    // `<num` also surfaces `isNumber`. Prefix-aware `sortText` keeps prefix
+    // matches before mid-name matches for LSP clients that honor server sort
+    // keys; CodeMirror's matcher also scores prefix matches higher. Keeping
+    // this a substring (rather than full subsequence) match keeps the
+    // suggestions predictable for short tag names.
     const schemaItems: DoenetCompletionItem[] = allowedElementNames
         .filter((name) =>
-            prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
+            prefixLower ? name.toLowerCase().includes(prefixLower) : true,
         )
         .map((name) => {
             const item: DoenetCompletionItem = {
@@ -368,8 +446,12 @@ function createElementAndSnippetCompletionItems(
             if (effectiveEntry?.summary) {
                 item.documentation = asMarkdown(effectiveEntry.summary);
             }
-            const sortText = sortTextByKey.get(`elem:${name.toLowerCase()}`);
-            if (sortText !== undefined) {
+            const sortText = getPrefixAwareSortText(
+                name,
+                prefixLower,
+                sortTextByKey.get(`elem:${name.toLowerCase()}`),
+            );
+            if (sortText) {
                 item.sortText = sortText;
             }
             return item;
@@ -379,20 +461,32 @@ function createElementAndSnippetCompletionItems(
         new Set(allowedElementNames),
         typedPrefix,
     );
+    // When the textEdit range starts at `<` (insertLeadingBracket=false, meaning
+    // the user typed `<`), VS Code computes the filter prefix from the range text
+    // (e.g. `<ans`). Prepend `<` to filterText so items match that prefix while
+    // still matching the bare typed word in codemirror (which uses substring).
+    const snippetFilterTextPrefix = insertLeadingBracket ? "" : "<";
     const snippetItems = createSnippetCompletionItems(
         autoCompleter.sourceObj,
         snippets,
         startOffset,
         endOffset,
+        snippetFilterTextPrefix,
     );
     for (const item of snippetItems) {
         // Snippet labels are unique snippet keys; look up sortText by the
         // same key the ranker emits.
+        const snippetKey = item.label as string;
         const sortText = sortTextByKey.get(
-            `snippet:${(item.label as string).toLowerCase()}`,
+            `snippet:${snippetKey.toLowerCase()}`,
         );
-        if (sortText !== undefined) {
-            item.sortText = sortText;
+        const prefixAwareSortText = getPrefixAwareSortText(
+            snippetKey,
+            prefixLower,
+            sortText,
+        );
+        if (prefixAwareSortText) {
+            item.sortText = prefixAwareSortText;
         }
     }
 
@@ -403,6 +497,7 @@ function createElementAndSnippetCompletionItems(
         startOffset,
         endOffset,
         typedPrefix,
+        snippetFilterTextPrefix,
     );
 
     return [...schemaItems, ...snippetItems, ...dynamicSnippetItems];
@@ -708,14 +803,6 @@ export async function getCompletionItems(
         offset = this.sourceObj.rowColToOffset(offset);
     }
 
-    // Ensure the per-instance `<module>` attribute allowlist is up to date
-    // for the current source revision before the attribute-name branch
-    // consults it.  Coalesces with the matching call in `getSchemaViolations`
-    // (validation typically runs first), so back-to-back validation +
-    // completion between edits costs at most one resolver round-trip per
-    // `<module copy=…>` site total.
-    await this._refreshModuleInstanceAttributes();
-
     const prevChar = this.sourceObj.source.charAt(offset - 1);
     const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
 
@@ -728,6 +815,17 @@ export async function getCompletionItems(
     const showElementMenu = hasLeadingLt || explicit;
     const elementMenuStart = hasLeadingLt ? offset - 1 : offset;
     const insertLeadingBracket = !hasLeadingLt;
+    // Always provide a textEdit range for close-tag completions so that
+    // VS Code (which re-triggers completion on `/`) inserts the correct
+    // text.  When `hasLeadingLt`, the range covers the `<` (offset-1 →
+    // offset), and `newText` starts with `</`, replacing the whole thing.
+    // When there is no leading `<` (explicit Ctrl+Space invoke), the range
+    // is empty (cursor → cursor) so `</tag>` is inserted verbatim.
+    const closeTagEditOffsets: CompletionTextEditOffsets = {
+        sourceObj: this.sourceObj,
+        startOffset: elementMenuStart,
+        endOffset: offset,
+    };
     let prevNonWhitespaceCharOffset = offset - 1;
     while (
         this.sourceObj.source
@@ -1002,6 +1100,82 @@ export async function getCompletionItems(
         );
     }
 
+    // The author typed `<` (or invoked completion explicitly) immediately
+    // before an existing element — the cursor sits exactly on that element's
+    // opening `<`. They are inserting a new element in front of it, so offer
+    // what can go in the surrounding container. Error recovery parses the
+    // half-typed `<` + following tag as a complete element, which otherwise
+    // leaves the cursor classified as that element's body/unknown with no
+    // menu, so the popup never opens when typing a tag name before another
+    // tag (#1328).
+    //
+    // Use the element that *starts* at the cursor as the signal rather than
+    // `containingElement.node`: the latter's classification varies with
+    // error-recovery state (especially at the top level, where the cursor
+    // before a tag reports `{ node: null }`), whereas the element starting at
+    // the offset is reliable.
+    //
+    // Skip this when the cursor is at `openTagName` (`<nu|<text>`): there the
+    // author is typing the *name* of the element before the tag, so the
+    // openTagName branch below should offer element names filtered by the
+    // typed prefix rather than the surrounding container's full menu. Without
+    // this guard, explicit Ctrl+Space (which sets `showElementMenu`) would
+    // fire this branch and offer the half-typed element's close tag instead.
+    const elementStartingAtCursor = this.sourceObj.nodeAtOffset(offset, {
+        type: "element",
+        side: "right",
+    }) as DastElement | null;
+    if (
+        showElementMenu &&
+        cursorPosition !== "openTagName" &&
+        elementStartingAtCursor &&
+        elementStartingAtCursor.position?.start?.offset === offset
+    ) {
+        // Error recovery can wrap the cursor's position in a half-typed,
+        // empty-named element (the very `<` the author just typed). Climb past
+        // any such placeholder to the real container so the menu reflects the
+        // right set of allowed children.
+        let containerParent = this.sourceObj.getParent(elementStartingAtCursor);
+        while (
+            containerParent?.type === "element" &&
+            containerParent.name === ""
+        ) {
+            containerParent = this.sourceObj.getParent(containerParent);
+        }
+        const containerElement =
+            containerParent?.type === "element" ? containerParent : null;
+        const allowedElementNames = containerElement
+            ? this._getAllowedChildren(
+                  containerElement.name,
+                  this.sourceObj.getParentElementName(containerElement),
+              )
+            : this.schemaTopAllowedElements;
+        const completionItems = createElementAndSnippetCompletionItems(
+            this,
+            allowedElementNames,
+            elementMenuStart,
+            offset,
+            "",
+            containerElement,
+            insertLeadingBracket,
+        );
+        if (
+            containerElement &&
+            !this.sourceObj.isCompleteElement(containerElement).closed
+        ) {
+            // Match the normal body completion path for unclosed containers:
+            // first offer the parent close tag, then child elements.
+            return [
+                createCloseTagCompletionItem(
+                    containerElement.name,
+                    closeTagEditOffsets,
+                ),
+                ...completionItems,
+            ];
+        }
+        return completionItems;
+    }
+
     if (!element && containingNode && containingNode.type === "text") {
         // We're in the root of the document and not inside any special XML tags (like `<? foo ?>` or `<!DOCTYPE xml>`)
         // Find out what items we can complete.
@@ -1028,12 +1202,26 @@ export async function getCompletionItems(
     }
 
     if (cursorPosition === "closeTagName") {
-        // We're in the close tag name. Suggest the close tag name.
+        // Cursor is inside a partially-typed closing tag name (e.g. `</te|`).
+        // Scan backward from cursor to find the `<` so the textEdit can
+        // replace the entire `</...` prefix, not just what was typed after `/`.
+        // Without a textEdit, VS Code inserts at the cursor and duplicates
+        // the already-typed characters.
+        const src = this.sourceObj.source;
+        let ltPos = offset - 1;
+        while (ltPos >= 0 && src.charAt(ltPos) !== "<") {
+            ltPos--;
+        }
+        const closeTagNameEditOffsets: CompletionTextEditOffsets | undefined =
+            ltPos >= 0
+                ? {
+                      sourceObj: this.sourceObj,
+                      startOffset: ltPos,
+                      endOffset: offset,
+                  }
+                : undefined;
         return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
+            createCloseTagCompletionItem(element.name, closeTagNameEditOffsets),
         ];
     }
 
@@ -1068,10 +1256,7 @@ export async function getCompletionItems(
         }
         // We are the child of a non-closed tag. Suggest the close tag or allowed children
         return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
+            createCloseTagCompletionItem(element.name, closeTagEditOffsets),
             ...completionItems,
         ];
     }
@@ -1086,16 +1271,20 @@ export async function getCompletionItems(
             (cursorPosition === "unknown" &&
                 this.sourceObj.source.charAt(offset).match(/(\s|\n)/)))
     ) {
+        // Provide a textEdit so VS Code replaces the `</` prefix instead of
+        // appending after the `/` (which would produce `<//text>`).
         return [
-            {
-                label: `/${element.name}>`,
-                kind: CompletionItemKind.Property,
-            },
+            createCloseTagCompletionItem(element.name, {
+                sourceObj: this.sourceObj,
+                startOffset: offset - 2,
+                endOffset: offset,
+            }),
         ];
     }
 
     if (cursorPosition === "openTagName") {
-        // We're in the open tag name. Suggest everything that starts with the current text.
+        // We're in the open tag name. Suggest element names and snippets whose
+        // keys contain the current text.
         const currentText = element.name.toLowerCase();
         const parent = this.sourceObj.getParent(element);
 
@@ -1158,6 +1347,14 @@ export async function getCompletionItems(
         !isBareValueAfterEquals &&
         prevNonWhitespaceChar !== "="
     ) {
+        // Only attribute-name completions consult the per-instance
+        // `<module copy|extend=...>` allowlist, so defer the refresh until
+        // we know we are in that branch. This keeps unrelated completion
+        // triggers (notably close-tag flows in VS Code) off the resolver path.
+        // Coalesces with the matching call in `getSchemaViolations`, so
+        // back-to-back validation + completion between edits still costs at
+        // most one resolver round-trip per `<module copy=…>` site total.
+        await this._refreshModuleInstanceAttributes();
         const elmName = this.normalizeElementName(element.name);
         const ownEntry = this.schemaElementsByName[elmName];
         const helpEntry = this.resolveEffectiveSchemaElement(

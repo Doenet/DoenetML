@@ -2,6 +2,7 @@ import me from "math-expressions";
 import { cesc } from "@doenet/utils";
 import type { RefObject } from "react";
 import { JXGBoard, JXGElement } from "../jsxgraph-distrib/types";
+import { computeLabelMaskCssStyle } from "./labelMaskStyle";
 
 export type AxisJXG = JXGElement & {
     defaultTicks: {
@@ -549,13 +550,22 @@ export function buildLineFamilyLabelAttributes({
     labelHasLatex,
     applyStyleToLabel,
     lineColor,
+    layer,
+    maskLabel = true,
 }: {
     labelForGraph: string;
     labelPosition: string;
     labelHasLatex: boolean;
     applyStyleToLabel: boolean;
     lineColor: string;
+    layer: number;
+    maskLabel?: boolean;
 }): Record<string, any> {
+    const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+        layer,
+        masked: maskLabel,
+    });
+
     if (labelForGraph !== "") {
         const { position, offset, anchorx, anchory } =
             getLineFamilyLabelPlacementSpec(labelPosition);
@@ -567,6 +577,9 @@ export function buildLineFamilyLabelAttributes({
             anchory,
             highlight: false,
             strokeColor: applyStyleToLabel ? lineColor : "var(--canvasText)",
+            cssStyle,
+            highlightCssStyle,
+            highlightStrokeOpacity: 1,
         };
 
         if (labelHasLatex) {
@@ -578,6 +591,9 @@ export function buildLineFamilyLabelAttributes({
 
     const labelAttributes: Record<string, any> = {
         highlight: false,
+        cssStyle,
+        highlightCssStyle,
+        highlightStrokeOpacity: 1,
     };
 
     if (labelHasLatex) {
@@ -837,6 +853,22 @@ export function syncLineStrokeStyle(
 }
 
 /**
+ * Sync one or more raw `visProp` entries on a JSXGraph object without calling
+ * `setAttribute`, which is often unnecessarily expensive during per-render
+ * updates.
+ */
+export function syncVisPropValues(
+    obj: { visProp: Record<string, any> },
+    values: Record<string, any>,
+): void {
+    for (const [key, value] of Object.entries(values)) {
+        if (obj.visProp[key] !== value) {
+            obj.visProp[key] = value;
+        }
+    }
+}
+
+/**
  * Sync the `withlabel` attribute based on whether `labelForGraph` is
  * non-empty, calling `setAttribute` only when the value actually changes.
  * `previousWithLabelRef` tracks the last applied value across renders.
@@ -867,6 +899,41 @@ export function syncLabelStrokeColor(
     label.visProp.strokecolor = applyStyleToLabel
         ? lineColor
         : "var(--canvasText)";
+}
+
+/**
+ * Sync a label's opaque mask background (see `computeLabelMaskCssStyle`),
+ * recomputing the CSS from the current `layer` (which affects z-index).
+ * Since these object-attached labels are created with `highlight: false`,
+ * JSXGraph never automatically applies `highlightcssstyle`; instead,
+ * `attachLabelHoverHighlight` directly toggles `label.visProp.cssstyle`
+ * between the returned `cssStyle` and `highlightCssStyle` on the object's
+ * over/out events.
+ *
+ * This preserves an active hover highlight across a re-render: the hover
+ * handler records its desired state on `label.visProp.labelMaskHovered`, and
+ * we re-apply the freshly recomputed highlight style when it is set rather
+ * than clobbering the border back to the base style.
+ */
+export function syncLabelMaskCssStyle(
+    label: { visProp: Record<string, any> },
+    layer: number,
+    options: {
+        backgroundColor?: string;
+        maskLabel?: boolean;
+    } = {},
+): { cssStyle: string; highlightCssStyle: string } {
+    const { backgroundColor, maskLabel = true } = options;
+    const { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
+        layer,
+        backgroundColor,
+        masked: maskLabel,
+    });
+    const hovered = label.visProp.labelMaskHovered === true;
+    label.visProp.cssstyle = hovered ? highlightCssStyle : cssStyle;
+    label.visProp.highlightcssstyle = highlightCssStyle;
+    label.visProp.highlightstrokeopacity = 1;
+    return { cssStyle, highlightCssStyle };
 }
 
 /**

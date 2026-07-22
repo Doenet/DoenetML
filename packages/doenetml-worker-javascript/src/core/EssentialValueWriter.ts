@@ -4,6 +4,7 @@ import type { ComponentIdx } from "@doenet/utils";
 import me from "math-expressions";
 import { processNewDefiningChildren } from "./ComponentLifecycle";
 import { expandAllComposites } from "./CompositeExpander";
+import { ensureStateVariableMaterialized } from "./StateVariableInitializer";
 import {
     preprocessMathInverseDefinition,
     removeFunctionsMathExpressionClass,
@@ -266,6 +267,17 @@ export class EssentialValueWriter {
 
             for (let vName in newComponentStateVariables) {
                 let compStateObj = comp.state[vName];
+                if (compStateObj) {
+                    // the writes below read materialized-only fields
+                    // (`essentialVarName` overrides from shadow plans,
+                    // array machinery like `setArrayValue` /
+                    // `arraySizeStateVariable`)
+                    await ensureStateVariableMaterialized({
+                        core: this.core,
+                        component: comp,
+                        stateVariable: vName,
+                    });
+                }
                 if (compStateObj === undefined) {
                     let match = vName.match(/^__def_primitive_(\d+)$/);
 
@@ -486,6 +498,14 @@ export class EssentialValueWriter {
 
         let stateVarObj = component.state[stateVariable];
 
+        // materialize before reading the definition group and the inverse
+        // definition: pending shadow modifications can change both
+        await ensureStateVariableMaterialized({
+            core: this.core,
+            component,
+            stateVariable,
+        });
+
         let additionalStateVariablesDefined =
             stateVarObj.additionalStateVariablesDefined;
 
@@ -681,12 +701,10 @@ export class EssentialValueWriter {
             return;
         }
 
-        if (
-            !(
-                initialChange ||
-                (await component.stateValues.modifyIndirectly) !== false
-            )
-        ) {
+        if (!(
+            initialChange ||
+            (await component.stateValues.modifyIndirectly) !== false
+        )) {
             this.core.addDiagnostic({
                 type: "info",
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because modifyIndirectly is false.`,
@@ -786,12 +804,10 @@ export class EssentialValueWriter {
                         }
 
                         // haven't implemented combining when have additional dependency values
-                        if (
-                            !(
-                                newInstruction.additionalDependencyValues ||
-                                depStateVarObj.basedOnArrayKeyStateVariables
-                            )
-                        ) {
+                        if (!(
+                            newInstruction.additionalDependencyValues ||
+                            depStateVarObj.basedOnArrayKeyStateVariables
+                        )) {
                             foundArrayInstruction = true;
 
                             if (!arrayInstructionInProgress) {
@@ -1236,15 +1252,13 @@ export class EssentialValueWriter {
                                 this.core.dependencies.downstreamDependencies[
                                     component.componentIdx
                                 ][stateVariable][dependencyName2];
-                            if (
-                                !(
-                                    [
-                                        "stateVariable",
-                                        "parentStateVariable",
-                                    ].includes(dep2.dependencyType) &&
-                                    dep2.downstreamComponentIndices.length === 1
-                                )
-                            ) {
+                            if (!(
+                                [
+                                    "stateVariable",
+                                    "parentStateVariable",
+                                ].includes(dep2.dependencyType) &&
+                                dep2.downstreamComponentIndices.length === 1
+                            )) {
                                 this.core.addDiagnostic({
                                     type: "info",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,

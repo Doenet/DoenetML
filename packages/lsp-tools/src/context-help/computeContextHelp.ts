@@ -149,8 +149,7 @@ function findSchemaProperty(
 function augmentWithPerInstanceAttributes(
     effective: SchemaEntryForHelp | undefined,
     perInstanceAllowlist:
-        | ReadonlyMap<string, DeclaredModuleAttribute>
-        | undefined,
+        ReadonlyMap<string, DeclaredModuleAttribute> | undefined,
 ): SchemaEntryForHelp | undefined {
     if (
         !effective ||

@@ -15,9 +15,18 @@ import { JXGCurve, JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { resolveLineColor } from "./utils/styleColors";
+import { resolveLineColor, resolveHandleColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
-import { syncLabelStrokeColor, syncLayer } from "./utils/jsxgraph";
+import {
+    syncLabelMaskCssStyle,
+    syncLabelStrokeColor,
+    syncLayer,
+    syncVisPropValues,
+} from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
@@ -171,6 +180,11 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 position,
                 anchorx,
                 highlight: false,
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
+                highlightStrokeOpacity: 1,
             };
 
             if (SVs.labelHasLatex) {
@@ -185,6 +199,11 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
         } else {
             curveAttributes.label = {
                 highlight: false,
+                ...computeLabelMaskCssStyle({
+                    layer: SVs.layer,
+                    masked: SVs.maskLabel,
+                }),
+                highlightStrokeOpacity: 1,
             };
             if (SVs.labelHasLatex) {
                 curveAttributes.label.useMathJax = true;
@@ -300,12 +319,13 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 });
             });
 
+            const handleColor = resolveHandleColor(darkMode);
             segmentAttributes.current = {
                 visible: false,
                 withLabel: false,
                 fixed: true,
-                strokeColor: "#404040",
-                highlightStrokeColor: "#404040",
+                strokeColor: handleColor,
+                highlightStrokeColor: handleColor,
                 layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
@@ -316,8 +336,8 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 fixed: false,
                 fillColor: "none",
                 strokeColor: "none",
-                highlightFillColor: "#404040",
-                highlightStrokeColor: "#404040",
+                highlightFillColor: handleColor,
+                highlightStrokeColor: handleColor,
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
                 layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
@@ -325,8 +345,8 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 showInfoBox: SVs.showCoordsWhenDragging,
             };
             throughPointAlwaysVisible.current = {
-                fillcolor: "#404040",
-                strokecolor: "#404040",
+                fillcolor: handleColor,
+                strokecolor: handleColor,
             };
             throughPointHoverVisible.current = {
                 fillcolor: "none",
@@ -337,10 +357,10 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 visible: false,
                 withLabel: false,
                 fixed: false,
-                fillColor: "#404040",
-                strokeColor: "#404040",
-                highlightFillColor: "#404040",
-                highlightStrokeColor: "#404040",
+                fillColor: handleColor,
+                strokeColor: handleColor,
+                highlightFillColor: handleColor,
+                highlightStrokeColor: handleColor,
                 strokeWidth: 1,
                 highlightStrokeWidth: 1,
                 layer: 10 * SVs.layer + CONTROL_POINT_LAYER_OFFSET,
@@ -387,6 +407,16 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 });
             });
         }
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newCurveJXG,
+            getLabelJXG: () => curveJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         return newCurveJXG;
     }
@@ -767,6 +797,25 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 controlPointAttributes.current!.layer = controlPointLayer;
             }
 
+            const handleColor = resolveHandleColor(darkMode);
+
+            if (SVs.curveType === "bezier") {
+                segmentAttributes.current!.strokeColor = handleColor;
+                segmentAttributes.current!.highlightStrokeColor = handleColor;
+                throughPointAttributes.current!.highlightFillColor =
+                    handleColor;
+                throughPointAttributes.current!.highlightStrokeColor =
+                    handleColor;
+                throughPointAlwaysVisible.current!.fillcolor = handleColor;
+                throughPointAlwaysVisible.current!.strokecolor = handleColor;
+                controlPointAttributes.current!.fillColor = handleColor;
+                controlPointAttributes.current!.strokeColor = handleColor;
+                controlPointAttributes.current!.highlightFillColor =
+                    handleColor;
+                controlPointAttributes.current!.highlightStrokeColor =
+                    handleColor;
+            }
+
             let lineColor =
                 darkMode === "dark"
                     ? SVs.selectedStyle.lineColorDarkMode
@@ -859,6 +908,9 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 label.needsUpdate = true;
                 label.visPropCalc.visible = SVs.labelForGraph !== "";
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    maskLabel: SVs.maskLabel,
+                });
                 label.update();
             }
 
@@ -1062,6 +1114,37 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                         layer: controlPointLayer,
                     });
                 }
+
+                syncVisPropValues(throughPointsJXG.current![i], {
+                    highlightfillcolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
+                if (throughPointsJXG.current![i].visProp.fillcolor !== "none") {
+                    syncVisPropValues(throughPointsJXG.current![i], {
+                        fillcolor: handleColor,
+                        strokecolor: handleColor,
+                    });
+                }
+                syncVisPropValues(controlPointsJXG.current![i][0], {
+                    fillcolor: handleColor,
+                    strokecolor: handleColor,
+                    highlightfillcolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
+                syncVisPropValues(segmentsJXG.current![i][0], {
+                    strokecolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
+                syncVisPropValues(controlPointsJXG.current![i][1], {
+                    fillcolor: handleColor,
+                    strokecolor: handleColor,
+                    highlightfillcolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
+                syncVisPropValues(segmentsJXG.current![i][1], {
+                    strokecolor: handleColor,
+                    highlightstrokecolor: handleColor,
+                });
 
                 throughPointsJXG.current![i].coords.setCoordinates(
                     JXG.COORDS_BY_USER,

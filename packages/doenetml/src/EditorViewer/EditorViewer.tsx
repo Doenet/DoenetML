@@ -14,7 +14,11 @@ import "@doenet/codemirror/style.css";
 import { DocViewer } from "../Viewer/DocViewer";
 import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
 import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
-import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
+import {
+    DiagnosticRecord,
+    nanInfinityReviver,
+    isSaveShortcutKeydown,
+} from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
@@ -23,7 +27,8 @@ import { EditorFooter } from "./EditorFooter";
 import { ViewerControlsBar } from "./ViewerControlsBar";
 import "./editor-viewer.css";
 import { useTabStore } from "@ariakit/react";
-import { setVariantsFromCallback } from "../utils/variants";
+import type { ResolvedTheme } from "../utils/theme";
+import { setVariantsFromCallback, type VariantsState } from "../utils/variants";
 import type { DiagnosticsSummary } from "./diagnostics";
 import {
     mergeDiagnosticsByType,
@@ -82,8 +87,8 @@ type EditorViewerProps = {
     activityId?: string;
     prefixForIds?: string;
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    doenetImagesUrl?: string;
+    darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
@@ -130,6 +135,35 @@ type EditorViewerProps = {
     initialOpenTab?: DiagnosticsTabId | null;
 };
 
+type TabVisibilityOptions = Pick<
+    EditorViewerProps,
+    "showDiagnostics" | "showResponses" | "showHelp"
+>;
+
+function firstEnabledTab({
+    showDiagnostics,
+    showResponses,
+    showHelp,
+}: TabVisibilityOptions): DiagnosticsTabId | null {
+    if (showHelp) return "help";
+    if (showDiagnostics) return "errors";
+    if (showResponses) return "responses";
+    return null;
+}
+
+function isTabEnabled(
+    tabId: DiagnosticsTabId,
+    { showDiagnostics, showResponses, showHelp }: TabVisibilityOptions,
+) {
+    if (tabId === "responses") {
+        return showResponses;
+    }
+    if (tabId === "help") {
+        return showHelp;
+    }
+    return showDiagnostics;
+}
+
 /**
  * Combined DoenetML editor/viewer shell with diagnostics, responses, formatting, and variants.
  */
@@ -142,7 +176,7 @@ export const EditorViewer = React.forwardRef<
         activityId: specifiedActivityId,
         prefixForIds = "",
         doenetViewerUrl,
-        doenetMediaUrl,
+        doenetImagesUrl,
         darkMode = "light",
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -169,14 +203,6 @@ export const EditorViewer = React.forwardRef<
     },
     ref,
 ) {
-    //Win, Mac or Linux
-    let platform = "Linux";
-    if (navigator.platform.indexOf("Win") != -1) {
-        platform = "Win";
-    } else if (navigator.platform.indexOf("Mac") != -1) {
-        platform = "Mac";
-    }
-
     if (readOnly) {
         showFormatter = false;
     }
@@ -208,21 +234,12 @@ export const EditorViewer = React.forwardRef<
 
     const [viewerResetNum, setViewerResetNum] = useState(0);
 
-    const [variants, setVariants] = useState({
+    const [variants, setVariants] = useState<VariantsState>({
         index: 1,
         numVariants: 1,
         allPossibleVariants: ["a"],
     });
-
-    // First enabled tab in the canonical order (help → errors → responses), or
-    // `null` if no tabs are enabled. Used both for the `initialOpenTab` fallback
-    // and as the tab store's `defaultSelectedId` when the panel mounts closed.
-    function firstEnabledTab(): DiagnosticsTabId | null {
-        if (showHelp) return "help";
-        if (showDiagnostics) return "errors";
-        if (showResponses) return "responses";
-        return null;
-    }
+    const tabVisibility = { showDiagnostics, showResponses, showHelp };
 
     // Resolve `initialOpenTab` once at mount:
     //  - `null`               → panel closed at mount
@@ -243,19 +260,13 @@ export const EditorViewer = React.forwardRef<
         }
         if (initialOpenTab === undefined) {
             return {
-                resolvedInitialOpenTab: firstEnabledTab(),
+                resolvedInitialOpenTab: firstEnabledTab(tabVisibility),
                 initialOpenTabWarning: null,
             };
         }
-        const tabEnabled =
-            initialOpenTab === "responses"
-                ? showResponses
-                : initialOpenTab === "help"
-                  ? showHelp
-                  : showDiagnostics;
-        if (!tabEnabled) {
+        if (!isTabEnabled(initialOpenTab, tabVisibility)) {
             return {
-                resolvedInitialOpenTab: firstEnabledTab(),
+                resolvedInitialOpenTab: firstEnabledTab(tabVisibility),
                 initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}); falling back to default.`,
             };
         }
@@ -327,7 +338,9 @@ export const EditorViewer = React.forwardRef<
     // store's selectedId is unobservable — `undefined` is fine.
     const tabStore = useTabStore({
         defaultSelectedId:
-            resolvedInitialOpenTab ?? firstEnabledTab() ?? undefined,
+            resolvedInitialOpenTab ??
+            firstEnabledTab(tabVisibility) ??
+            undefined,
     });
     const selectedTabId = tabStore.useState("selectedId");
     const isAccessibilityReportOpen =
@@ -361,12 +374,14 @@ export const EditorViewer = React.forwardRef<
         [activateTab],
     );
 
-    // Shared between the "Update" button click, the Ctrl/Cmd-S keyboard
-    // shortcut, and the imperative `updateRenderedView()` ref method. Reads
-    // via refs and early-returns when nothing has changed so the programmatic
-    // call is a true no-op (no spurious `setResponses([])` re-render). For
-    // the button this guard is invisible (the button is disabled when both
-    // `codeChanged` and `documentInteracted` are false).
+    // Shared between the viewer-controls button and the imperative
+    // `updateRenderedView()` ref method. Reads via refs and early-returns when
+    // nothing has changed so the programmatic call is a true no-op (no
+    // spurious `setResponses([])` re-render). When source is unchanged but the
+    // rendered document has been interacted with, this remounts the viewer to
+    // clear that interaction state. The Ctrl/Cmd-S shortcut reuses this helper
+    // only when `codeChangedRef.current` is true so the shortcut mirrors
+    // "Update", not "Reset".
     const updateViewer = useCallback(() => {
         if (!codeChangedRef.current && !documentInteractedRef.current) {
             return;
@@ -399,13 +414,7 @@ export const EditorViewer = React.forwardRef<
         ref,
         () => ({
             openDiagnosticsTab(tabId: DiagnosticsTabId) {
-                const tabEnabled =
-                    tabId === "responses"
-                        ? showResponses
-                        : tabId === "help"
-                          ? showHelp
-                          : showDiagnostics;
-                if (!tabEnabled) {
+                if (!isTabEnabled(tabId, tabVisibility)) {
                     console.warn(
                         `DoenetEditor: openDiagnosticsTab("${tabId}") ignored — tab is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}, showHelp=${showHelp}).`,
                     );
@@ -547,6 +556,10 @@ export const EditorViewer = React.forwardRef<
         function submittedResponseListener(event: any) {
             if (event.data.subject == "SPLICE.sendEvent") {
                 const data = event.data.data;
+                if (data.activityId !== activityId) {
+                    return;
+                }
+
                 if (data.verb !== "experienced" && data.verb !== "isVisible") {
                     setDocumentInteracted(true);
                     if (!codeChangedRef.current) {
@@ -599,7 +612,7 @@ export const EditorViewer = React.forwardRef<
         return () => {
             removeEventListener("message", submittedResponseListener);
         };
-    }, [showViewer]);
+    }, [activityId]);
 
     useEffect(() => {
         editorDoenetMLRef.current = initialDoenetML;
@@ -836,19 +849,30 @@ export const EditorViewer = React.forwardRef<
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {
-            if (
-                (platform == "Mac" && event.metaKey && event.code === "KeyS") ||
-                (platform != "Mac" && event.ctrlKey && event.code === "KeyS")
-            ) {
+            if (isSaveShortcutKeydown(event)) {
                 event.preventDefault();
                 event.stopPropagation();
-                updateViewer();
+                // Ctrl/Cmd-S mirrors "Update", not "Reset": still suppress the
+                // browser save dialog, but only flush pending source edits.
+                if (codeChangedRef.current) {
+                    updateViewer();
+                }
             }
         };
 
         let codeEditorContainer = document.getElementById(id);
+        let viewerPanelContainer = viewerContainer.current;
         if (showViewer) {
             codeEditorContainer?.addEventListener(
+                "keydown",
+                handleEditorKeyDown,
+            );
+            // Also listen on the viewer panel so the shortcut works when focus
+            // is in the rendered document. The viewer container has
+            // tabIndex={-1}, so clicking non-focusable content (e.g. plain
+            // text) keeps focus within it rather than falling back to
+            // document.body, which would bypass this listener.
+            viewerPanelContainer?.addEventListener(
                 "keydown",
                 handleEditorKeyDown,
             );
@@ -856,6 +880,10 @@ export const EditorViewer = React.forwardRef<
 
         return () => {
             codeEditorContainer?.removeEventListener(
+                "keydown",
+                handleEditorKeyDown,
+            );
+            viewerPanelContainer?.removeEventListener(
                 "keydown",
                 handleEditorKeyDown,
             );
@@ -897,6 +925,7 @@ export const EditorViewer = React.forwardRef<
             onSelectedCompletionChange={onSelectedCompletionChange}
             languageServerRef={lspRef}
             doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
+            darkMode={darkMode}
         />
     );
 
@@ -991,16 +1020,18 @@ export const EditorViewer = React.forwardRef<
 
     if (!showViewer) {
         return (
-            <div
-                style={{
-                    display: "flex",
-                    width: width,
-                    height: height,
-                    border: border,
-                    boxSizing: "border-box",
-                }}
-            >
-                {editorPanel}
+            <div data-theme={darkMode} style={{ display: "contents" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        width: width,
+                        height: height,
+                        border: border,
+                        boxSizing: "border-box",
+                    }}
+                >
+                    {editorPanel}
+                </div>
             </div>
         );
     }
@@ -1016,13 +1047,12 @@ export const EditorViewer = React.forwardRef<
     }
 
     const viewerPanel = (
-        <div className="viewer-panel" id={id + "-viewer"}>
+        <div className="viewer-panel" id={id + "-viewer-panel"}>
             <ViewerControlsBar
                 id={id}
                 readOnly={readOnly}
                 codeChanged={codeChanged}
                 documentInteracted={documentInteracted}
-                platform={platform as "Mac" | "Win" | "Linux"}
                 updateWord={updateWord}
                 onUpdateViewer={updateViewer}
                 variants={variants}
@@ -1032,8 +1062,14 @@ export const EditorViewer = React.forwardRef<
                 accessibilityLevel2Count={accessibilityLevel2Count}
                 isAccessibilityReportOpen={isAccessibilityReportOpen}
                 onToggleAccessibilityReport={toggleAccessibilityReport}
+                darkMode={darkMode}
             />
-            <div className="viewer" id={id + "-viewer"} ref={viewerContainer}>
+            <div
+                className="viewer"
+                id={id + "-viewer"}
+                ref={viewerContainer}
+                tabIndex={-1}
+            >
                 <DocViewer
                     doenetML={viewerDoenetML}
                     flags={{
@@ -1063,7 +1099,7 @@ export const EditorViewer = React.forwardRef<
                         documentStructureThenChangeCallback
                     }
                     doenetViewerUrl={doenetViewerUrl}
-                    doenetMediaUrl={doenetMediaUrl}
+                    doenetImagesUrl={doenetImagesUrl}
                     darkMode={darkMode}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}
@@ -1077,17 +1113,19 @@ export const EditorViewer = React.forwardRef<
     const viewerFirst = viewerLocation === "left" || viewerLocation === "top";
 
     return (
-        <ResizablePanelPair
-            panelA={viewerFirst ? viewerPanel : editorPanel}
-            panelB={viewerFirst ? editorPanel : viewerPanel}
-            preferredDirection={
-                viewerLocation === "bottom" || viewerLocation === "top"
-                    ? "vertical"
-                    : "horizontal"
-            }
-            width={width}
-            height={height}
-            border={border}
-        />
+        <div data-theme={darkMode} style={{ display: "contents" }}>
+            <ResizablePanelPair
+                panelA={viewerFirst ? viewerPanel : editorPanel}
+                panelB={viewerFirst ? editorPanel : viewerPanel}
+                preferredDirection={
+                    viewerLocation === "bottom" || viewerLocation === "top"
+                        ? "vertical"
+                        : "horizontal"
+                }
+                width={width}
+                height={height}
+                border={border}
+            />
+        </div>
     );
 });

@@ -17,6 +17,12 @@ import { gatherVariantComponents } from "../utils/variants";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 import { extractCreateComponentIdxMapping } from "../utils/componentIndices";
 
+// Most components keep no children serialized (only classes with a static
+// `keepChildrenSerialized` do), so they all share one frozen empty array
+// instead of allocating one apiece. Frozen so an accidental in-place
+// mutation throws instead of corrupting every other component.
+const EMPTY_SERIALIZED_CHILDREN: any[] = Object.freeze([]) as any;
+
 /**
  * Builds component instances from serialized DAST. Handles the recursive
  * walk that creates a parent before its children, registers each new
@@ -662,7 +668,10 @@ export async function createChildrenThenComponent({
         ancestors,
         definingChildren,
         stateVariableDefinitions,
-        serializedChildren: childrenToRemainSerialized,
+        serializedChildren:
+            childrenToRemainSerialized.length > 0
+                ? childrenToRemainSerialized
+                : EMPTY_SERIALIZED_CHILDREN,
         serializedComponent,
         attributes,
         componentInfoObjects: core.componentInfoObjects,
@@ -753,7 +762,9 @@ export async function createChildrenThenComponent({
 
     await initializeComponentStateVariables({ core, component: newComponent });
 
-    await core.dependencies.setUpComponentDependencies(newComponent);
+    // Per-state-variable dependencies are built on demand at first
+    // resolution attempt; only the per-component map slots are created here.
+    core.dependencies.createComponentDependencySlots(newComponent);
 
     const variablesChanged =
         await core.dependencies.checkForDependenciesOnNewComponent(
@@ -772,8 +783,13 @@ export async function createChildrenThenComponent({
         componentIdx,
     });
 
-    await core.dependencies.resolveStateVariablesIfReady({
-        component: newComponent,
+    // Other components' dependencies may be blocked on this component's
+    // identity, so that resolution stays eager. The former per-state-variable
+    // resolve pass is gone: state variables now resolve on first demand.
+    await core.dependencies.resolveIfReady({
+        componentIdx,
+        type: "componentIdentity",
+        expandComposites: false,
     });
 
     core.recordStateVariablesMustEvaluate(componentIdx);

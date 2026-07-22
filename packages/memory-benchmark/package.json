@@ -1,0 +1,26 @@
+{
+    "name": "@doenet/memory-benchmark",
+    "type": "module",
+    "description": "Headless-browser memory benchmark for embedded DoenetML (standalone bundle, direct and iframe embedding)",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "scripts": {
+        "benchmark": "wireit",
+        "test": "echo \"No tests\""
+    },
+    "wireit": {
+        "benchmark": {
+            "command": "node src/measure.mjs",
+            "dependencies": [
+                "../standalone:build",
+                "../doenetml-iframe:build"
+            ]
+        }
+    },
+    "devDependencies": {
+        "playwright": "^1.61.1"
+    }
+}

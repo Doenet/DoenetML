@@ -2,7 +2,10 @@ import { deepClone } from "@doenet/utils";
 import type { ComponentIdx } from "@doenet/utils";
 import type { ComponentInstance } from "../../types/componentInstance";
 import type { DependencyHandler } from "./DependencyHandler";
-import { arrayEntryNamesFromPropIndex } from "../StateVariableInitializer";
+import {
+    arrayEntryNamesFromPropIndex,
+    ensureStateVariableMaterialized,
+} from "../StateVariableInitializer";
 
 /**
  * Base class shared by every concrete dependency type. Concrete subclasses
@@ -27,6 +30,16 @@ export function cloneChangeMetadataIfNeeded({
 }) {
     return consumeChanges ? changeMetadata : deepClone(changeMetadata);
 }
+
+/**
+ * Shared initial change record for every downstream variable of every new
+ * dependency. Frozen: code that needs to record additional change metadata
+ * must replace the record (writers check `Object.isFrozen`; see
+ * `recordActualChangeInUpstreamDependencies` and `StalenessPropagator`).
+ * One shared object instead of one `{ changed: true }` per
+ * (dependency, downstream component, variable).
+ */
+export const INITIAL_CHANGE_RECORD = Object.freeze({ changed: true });
 
 export class Dependency {
     [key: string]: any;
@@ -75,7 +88,11 @@ export class Dependency {
         this.upstreamComponentIdx = component.componentIdx;
         this.upstreamVariableNames = allStateVariablesAffected;
 
-        this.definition = Object.assign({}, dependencyDefinition);
+        // Store the definition by reference: nothing writes to the stored
+        // object (its nested arrays were shared under the previous shallow
+        // copy anyway), and `returnDependencies` produces a fresh object per
+        // call, so per-instance copies only wasted memory.
+        this.definition = dependencyDefinition;
         this.representativeStateVariable = stateVariable;
 
         if (dependencyDefinition.doNotProxy) {
@@ -156,6 +173,21 @@ export class Dependency {
             downComponents.downstreamComponentIndices;
         let downstreamComponentTypes = downComponents.downstreamComponentTypes;
 
+        // These two name lists repeat heavily across dependencies and often
+        // alias definition-owned arrays, so intern frozen copies (the
+        // originals stay mutable for their owners). After this point the
+        // fields are only replaced, never mutated in place; the one appender
+        // (`ShadowSourceDependency.determineDownstreamComponents`) thaws
+        // first.
+        this.upstreamVariableNames =
+            this.dependencyHandler.internVariableNameListByCopy(
+                this.upstreamVariableNames,
+            );
+        this.originalDownstreamVariableNames =
+            this.dependencyHandler.internVariableNameListByCopy(
+                this.originalDownstreamVariableNames,
+            );
+
         this.componentIdentitiesChanged = true;
 
         let upCompDownDeps =
@@ -199,6 +231,128 @@ export class Dependency {
                 index,
             });
         }
+
+        // The parallel downstream arrays repeat heavily across dependencies
+        // (mostly length 1, and all the dependencies of one component point
+        // at the same targets), so share one frozen array per distinct list.
+        // The mutators below thaw before changing the downstream set.
+        this.downstreamComponentIndices =
+            this.dependencyHandler.internComponentIndexList(
+                this.downstreamComponentIndices,
+            );
+        this.downstreamComponentTypes =
+            this.dependencyHandler.internComponentTypeList(
+                this.downstreamComponentTypes,
+            );
+        if (this.mappedDownstreamVariableNamesByComponent) {
+            this.mappedDownstreamVariableNamesByComponent =
+                this.dependencyHandler.internNameListArray(
+                    this.mappedDownstreamVariableNamesByComponent,
+                );
+        }
+        if (this.valuesChanged) {
+            this.valuesChanged =
+                this.dependencyHandler.internValuesChangedArray(
+                    this.valuesChanged,
+                );
+        }
+    }
+
+    /**
+     * Replace the interned (frozen, shared) parallel downstream arrays with
+     * mutable copies before changing the downstream set.
+     */
+    thawDownstreamArrays() {
+        if (Object.isFrozen(this.downstreamComponentIndices)) {
+            this.downstreamComponentIndices = [
+                ...this.downstreamComponentIndices,
+            ];
+        }
+        if (Object.isFrozen(this.downstreamComponentTypes)) {
+            this.downstreamComponentTypes = [...this.downstreamComponentTypes];
+        }
+        if (
+            this.mappedDownstreamVariableNamesByComponent &&
+            Object.isFrozen(this.mappedDownstreamVariableNamesByComponent)
+        ) {
+            this.mappedDownstreamVariableNamesByComponent = [
+                ...this.mappedDownstreamVariableNamesByComponent,
+            ];
+        }
+        if (this.valuesChanged && Object.isFrozen(this.valuesChanged)) {
+            this.valuesChanged = [...this.valuesChanged];
+        }
+    }
+
+    /**
+     * Replace the interned (frozen, shared) `valuesChanged` outer array
+     * and/or the record at `componentInd` with mutable copies so a caller
+     * can record change metadata on them.
+     */
+    thawValuesChangedRecord(componentInd: number) {
+        if (!this.valuesChanged) {
+            return;
+        }
+        if (Object.isFrozen(this.valuesChanged)) {
+            this.valuesChanged = [...this.valuesChanged];
+        }
+        const record = this.valuesChanged[componentInd];
+        if (record && Object.isFrozen(record)) {
+            this.valuesChanged[componentInd] = { ...record };
+        }
+    }
+
+    /**
+     * Remove the change record for `varName` of the downstream component at
+     * `componentInd` after `getValue` consumed it (records are recreated on
+     * demand when marked changed again). Fully-consumed records converge to
+     * the shared frozen empty record, and outer arrays of shared records are
+     * re-interned, so an unchanging dependency retains no per-dependency
+     * change-tracking allocations at all.
+     */
+    consumeChangeRecord(componentInd: number, varName: string) {
+        const outer = this.valuesChanged;
+        if (!outer) {
+            return;
+        }
+        const record = outer[componentInd];
+        if (!record) {
+            return;
+        }
+        let replacement = record;
+        if (Object.isFrozen(record)) {
+            if (!(varName in record)) {
+                return;
+            }
+            const remaining = Object.keys(record).filter(
+                (name) => name !== varName,
+            );
+            if (remaining.length === 0) {
+                replacement = this.dependencyHandler.emptyValuesChangedRecord;
+            } else {
+                replacement = {};
+                for (const name of remaining) {
+                    replacement[name] = record[name];
+                }
+            }
+        } else {
+            delete record[varName];
+            if (Object.keys(record).length === 0) {
+                replacement = this.dependencyHandler.emptyValuesChangedRecord;
+            }
+        }
+        if (replacement !== record) {
+            if (Object.isFrozen(this.valuesChanged)) {
+                this.valuesChanged = [...this.valuesChanged];
+            }
+            this.valuesChanged[componentInd] = replacement;
+        }
+        if (!Object.isFrozen(this.valuesChanged)) {
+            this.valuesChanged =
+                this.dependencyHandler.internValuesChangedArray(
+                    this.valuesChanged,
+                );
+        }
     }
 
     async addDownstreamComponent({
@@ -207,6 +361,8 @@ export class Dependency {
         index,
     }: any) {
         this.componentIdentitiesChanged = true;
+
+        this.thawDownstreamArrays();
 
         this.downstreamComponentIndices.splice(
             index,
@@ -250,15 +406,33 @@ export class Dependency {
             });
 
             if ((this.constructor as typeof Dependency).convertToArraySize) {
-                mappedVarNames = mappedVarNames.map(function (vName: string) {
+                // `arraySizeStateVariable` exists only once the array has
+                // materialized, so build arrays before converting names
+                // (which is why this is a loop rather than a sync map)
+                const convertedVarNames: string[] = [];
+                for (const vName of mappedVarNames) {
                     let stateVarObj = downComponent.state[vName];
                     if (stateVarObj) {
-                        if (stateVarObj.arraySizeStateVariable) {
-                            return stateVarObj.arraySizeStateVariable;
-                        } else {
-                            return `__${vName}_is_not_an_array`;
+                        if (stateVarObj.isArray) {
+                            await ensureStateVariableMaterialized({
+                                core: this.dependencyHandler.core,
+                                component: downComponent,
+                                stateVariable: vName,
+                            });
                         }
+                        if (stateVarObj.arraySizeStateVariable) {
+                            convertedVarNames.push(
+                                stateVarObj.arraySizeStateVariable,
+                            );
+                        } else {
+                            convertedVarNames.push(
+                                `__${vName}_is_not_an_array`,
+                            );
+                        }
+                        continue;
                     }
+
+                    let converted = `__${vName}_is_not_an_array`;
 
                     // check if vName begins when an arrayEntry
                     if (downComponent.arrayEntryPrefixes) {
@@ -287,15 +461,22 @@ export class Dependency {
                                     });
 
                                 if (arrayKeys.length > 0) {
-                                    return downComponent.state[
-                                        arrayVariableName
-                                    ].arraySizeStateVariable;
+                                    await ensureStateVariableMaterialized({
+                                        core: this.dependencyHandler.core,
+                                        component: downComponent,
+                                        stateVariable: arrayVariableName,
+                                    });
+                                    converted =
+                                        downComponent.state[arrayVariableName]
+                                            .arraySizeStateVariable;
+                                    break;
                                 }
                             }
                         }
                     }
-                    return `__${vName}_is_not_an_array`;
-                });
+                    convertedVarNames.push(converted);
+                }
+                mappedVarNames = convertedVarNames;
             }
 
             if (this.propIndex !== undefined) {
@@ -317,17 +498,30 @@ export class Dependency {
                 originalVarNames.length > 0 ||
                 this.originalVariablesByComponent
             ) {
+                // Intern the (frozen) name list: most dependencies map the
+                // same few lists, so share one array per distinct list.
+                mappedVarNames =
+                    this.dependencyHandler.internVariableNameList(
+                        mappedVarNames,
+                    );
+
                 this.mappedDownstreamVariableNamesByComponent.splice(
                     index,
                     0,
                     mappedVarNames,
                 );
 
-                let valsChanged: Record<string, any> = {};
-                for (let downVar of mappedVarNames) {
-                    valsChanged[downVar] = { changed: true };
-                }
-                this.valuesChanged.splice(index, 0, valsChanged);
+                // The initial change state is fully determined by the
+                // (interned) variable-name list, so share one frozen record
+                // per distinct list. Writers thaw/replace before mutating.
+                this.valuesChanged.splice(
+                    index,
+                    0,
+                    this.dependencyHandler.internInitialValuesChangedRecord(
+                        mappedVarNames,
+                        INITIAL_CHANGE_RECORD,
+                    ),
+                );
 
                 if (this.variablesOptional) {
                     // if variables are optional, then include variables in downVarNames
@@ -398,10 +592,17 @@ export class Dependency {
             }
 
             for (let varName of downVarNames) {
-                if (downCompUpDeps[varName] === undefined) {
-                    downCompUpDeps[varName] = [];
+                // Exact-capacity growth: most variables keep a single
+                // upstream dependency, while a push-grown array reserves
+                // ≥16 element slots. `concat` allocates exactly the needed
+                // length; readers always re-fetch the list from the map, so
+                // replacing the array is safe.
+                const existingUpDeps = downCompUpDeps[varName];
+                if (existingUpDeps === undefined) {
+                    downCompUpDeps[varName] = [this];
+                } else {
+                    downCompUpDeps[varName] = existingUpDeps.concat(this);
                 }
-                downCompUpDeps[varName].push(this);
 
                 if (varName !== this.downstreamVariableNameIfNoVariables) {
                     for (let upstreamVarName of this.upstreamVariableNames) {
@@ -448,6 +649,8 @@ export class Dependency {
             this.componentIdentitiesChanged = true;
         }
 
+        this.thawDownstreamArrays();
+
         let componentIdx = this.downstreamComponentIndices[indexToRemove];
 
         this.downstreamComponentIndices.splice(indexToRemove, 1);
@@ -477,9 +680,12 @@ export class Dependency {
                     // (It doesn't matter if extra variables are included,
                     // as they will be skipped below.  And, since the component may have
                     // been deleted already, we don't want to check its state.)
-                    affectedDownstreamVariableNames.push(
+                    // Copy first: the name list is interned (frozen) and
+                    // shared with other dependencies.
+                    affectedDownstreamVariableNames = [
+                        ...affectedDownstreamVariableNames,
                         this.downstreamVariableNameIfNoVariables,
-                    );
+                    ];
                 }
             }
 
@@ -498,7 +704,13 @@ export class Dependency {
                                 componentIdx
                             ][vName];
                         } else {
-                            downCompUpDeps.splice(ind, 1);
+                            // exact-capacity rebuild — splice keeps the
+                            // over-allocated backing store
+                            this.dependencyHandler.upstreamDependencies[
+                                componentIdx
+                            ][vName] = downCompUpDeps
+                                .slice(0, ind)
+                                .concat(downCompUpDeps.slice(ind + 1));
                         }
                     }
                 }
@@ -538,6 +750,8 @@ export class Dependency {
 
     async swapDownstreamComponents(index1: number, index2: number) {
         this.componentIdentitiesChanged = true;
+
+        this.thawDownstreamArrays();
 
         [
             this.downstreamComponentIndices[index1],
@@ -657,7 +871,13 @@ export class Dependency {
                                 downCompIdx as number
                             ][vName as string];
                         } else {
-                            downCompUpDeps.splice(ind, 1);
+                            // exact-capacity rebuild — splice keeps the
+                            // over-allocated backing store
+                            this.dependencyHandler.upstreamDependencies[
+                                downCompIdx as number
+                            ][vName as string] = downCompUpDeps
+                                .slice(0, ind)
+                                .concat(downCompUpDeps.slice(ind + 1));
                         }
                     }
                 }
@@ -799,11 +1019,13 @@ export class Dependency {
                             if (!mappedStateVarObj.deferred) {
                                 componentObj.stateValues[nameForOutput] =
                                     await mappedStateVarObj.value;
+                                // absent when already consumed and not
+                                // marked changed since
                                 let valueChanged =
                                     this.valuesChanged[componentInd][
                                         mappedVarName
                                     ];
-                                if (valueChanged.changed) {
+                                if (valueChanged?.changed) {
                                     if (!changes.valuesChanged) {
                                         changes.valuesChanged = {};
                                     }
@@ -819,9 +1041,10 @@ export class Dependency {
                                     });
                                 }
                                 if (consumeChanges) {
-                                    this.valuesChanged[componentInd][
-                                        mappedVarName
-                                    ] = {};
+                                    this.consumeChangeRecord(
+                                        componentInd,
+                                        mappedVarName,
+                                    );
                                 }
 
                                 if (mappedStateVarObj.usedDefault) {

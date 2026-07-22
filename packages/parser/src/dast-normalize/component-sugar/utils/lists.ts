@@ -42,10 +42,7 @@ export function groupTextAndReferencesBySpacesOutsideParens({
     | {
           success: true;
           newChildren: (
-              | DastText
-              | DastMacro
-              | DastFunctionMacro
-              | DastElement
+              DastText | DastMacro | DastFunctionMacro | DastElement
           )[];
       } {
     // Only apply transformation if all children are text or references
@@ -56,16 +53,10 @@ export function groupTextAndReferencesBySpacesOutsideParens({
     }
 
     const newChildren: (
-        | DastText
-        | DastMacro
-        | DastFunctionMacro
-        | DastElement
+        DastText | DastMacro | DastFunctionMacro | DastElement
     )[] = [];
     let currentGroup: (
-        | DastText
-        | DastMacro
-        | DastFunctionMacro
-        | DastElement
+        DastText | DastMacro | DastFunctionMacro | DastElement
     )[] = [];
 
     let nParens = 0;

@@ -1,15 +1,30 @@
 .answer-response-button {
-    --button-color: #aaa;
-    --button-hover-color: #ccc;
-    --button-active-color: #ddd;
+    --button-color: var(--revealButtonSurface);
+    --button-hover-color: color-mix(
+        in srgb,
+        var(--revealButtonSurface) 85%,
+        var(--canvasText)
+    );
+    --button-active-color: color-mix(
+        in srgb,
+        var(--revealButtonSurface) 80%,
+        var(--canvasText)
+    );
+    color: var(--canvasText);
     padding: 0;
     height: 2.2em;
     width: 2.2em;
+}
+.answer-response-button:hover,
+.answer-response-button:active {
+    color: var(--canvasText);
 }
 .answer-response-tooltip-anchor {
     display: inline;
 }
 .answer-response-tooltip {
-    background-color: var(--mainGray);
+    background-color: var(--canvas);
+    color: var(--canvasText);
+    border: 1px solid var(--canvasText);
     padding: 0.2em 0.5em;
 }

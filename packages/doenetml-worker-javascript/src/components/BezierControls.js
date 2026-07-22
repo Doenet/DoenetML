@@ -681,9 +681,9 @@ export default class BezierControls extends InlineComponent {
                     let direction = dependencyValuesByKey[arrayKey].direction;
                     if (direction) {
                         if (arrayIndices[1] === 0) {
-                            if (
-                                !(direction === "none" || direction === "next")
-                            ) {
+                            if (!(
+                                direction === "none" || direction === "next"
+                            )) {
                                 let controlChild =
                                     dependencyValuesByKey[arrayKey]
                                         .controlChild;
@@ -729,12 +729,9 @@ export default class BezierControls extends InlineComponent {
                                 }
                             }
                         } else if (arrayIndices[1] === 1) {
-                            if (
-                                !(
-                                    direction === "none" ||
-                                    direction === "previous"
-                                )
-                            ) {
+                            if (!(
+                                direction === "none" || direction === "previous"
+                            )) {
                                 let controlChild =
                                     dependencyValuesByKey[arrayKey]
                                         .controlChild;

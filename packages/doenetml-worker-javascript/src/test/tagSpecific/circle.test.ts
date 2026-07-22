@@ -6022,15 +6022,15 @@ $c7.radius
             doenetML: `
     <setup>
         <styleDefinition stylenumber="1" lineColor="blue" fillColor="blue" lineWidth="2" lineStyle="solid" />
-        <styleDefinition stylenumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" />
+        <styleDefinition stylenumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" fillStyle="horizontal" />
 
         <styleDefinition stylenumber="3" lineColor="blue" fillColor="blue" lineWidth="5" lineStyle="solid" />
-        <styleDefinition stylenumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" />
+        <styleDefinition stylenumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" fillStyle="dots" />
     </setup>
 
     <graph>
       <circle center="(-8,0)" name="c1" />
-      <circle center="(-8,4)" name="c2" filled />
+      <circle center="(-8,4)" name="c2" filled fillStyle="vertical" />
       <circle center="(-4,0)" name="c3" stylenumber="2" />
       <circle center="(-4,4)" name="c4" stylenumber="2" filled />
 
@@ -6115,11 +6115,11 @@ $c7.radius
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st2")].stateValues.value,
-        ).toContain("filled blue");
+        ).toContain("filled blue with vertical lines");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn2")].stateValues
                 .value,
-        ).toContain("filled blue circle");
+        ).toContain("filled blue circle with vertical lines");
         expect(
             stateVariables[await resolvePathToNodeIdx("bst2")].stateValues
                 .value,
@@ -6127,7 +6127,7 @@ $c7.radius
         expect(
             stateVariables[await resolvePathToNodeIdx("fst2")].stateValues
                 .value,
-        ).toContain("blue");
+        ).toContain("blue vertical lines");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st3")].stateValues.value,
@@ -6147,11 +6147,13 @@ $c7.radius
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st4")].stateValues.value,
-        ).toContain("filled green with red border");
+        ).toContain("filled green with horizontal lines and red border");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn4")].stateValues
                 .value,
-        ).toContain("filled green circle with a red border");
+        ).toContain(
+            "filled green circle with horizontal lines and a red border",
+        );
         expect(
             stateVariables[await resolvePathToNodeIdx("bst4")].stateValues
                 .value,
@@ -6159,7 +6161,7 @@ $c7.radius
         expect(
             stateVariables[await resolvePathToNodeIdx("fst4")].stateValues
                 .value,
-        ).toContain("green");
+        ).toContain("green horizontal lines");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st5")].stateValues.value,
@@ -6211,11 +6213,13 @@ $c7.radius
 
         expect(
             stateVariables[await resolvePathToNodeIdx("st8")].stateValues.value,
-        ).toContain("filled green with thin dotted red border");
+        ).toContain("filled green with dots and thin dotted red border");
         expect(
             stateVariables[await resolvePathToNodeIdx("stn8")].stateValues
                 .value,
-        ).toContain("filled green circle with a thin dotted red border");
+        ).toContain(
+            "filled green circle with dots and a thin dotted red border",
+        );
         expect(
             stateVariables[await resolvePathToNodeIdx("bst8")].stateValues
                 .value,
@@ -6223,7 +6227,7 @@ $c7.radius
         expect(
             stateVariables[await resolvePathToNodeIdx("fst8")].stateValues
                 .value,
-        ).toContain("green");
+        ).toContain("green dots");
     });
 
     it("hideOffGraphIndicator", async () => {

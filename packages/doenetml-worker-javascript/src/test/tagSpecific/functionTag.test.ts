@@ -1831,21 +1831,23 @@ describe("Function tag tests @group4", async () => {
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(2);
 
+        // Warnings surface in evaluation order, which under on-demand
+        // dependency setup follows document order.
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Invalid value of a variable: \`cos(x)\``,
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(15);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(32);
-
-        expect(diagnosticsByType.warnings[1].message).contain(
             `Invalid value of a variable: \`sin(x)\``,
         );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(15);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(33);
+
+        expect(diagnosticsByType.warnings[1].message).contain(
+            `Invalid value of a variable: \`cos(x)\``,
+        );
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(3);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(15);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(33);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(32);
     });
 
     it("point constrained to function in different variable", async () => {

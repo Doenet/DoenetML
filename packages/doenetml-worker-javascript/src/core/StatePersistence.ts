@@ -82,6 +82,44 @@ export class StatePersistence {
         }
     }
 
+    /**
+     * Build the serialized document-state payload — the shape
+     * `reportScoreAndState` delivers to hosts and `DocViewer`'s
+     * `initialState` accepts back.
+     */
+    buildDocStatePayload(onSubmission = false) {
+        const core = this.core;
+
+        const coreStateString = JSON.stringify(
+            core.cumulativeStateVariableChanges,
+            serializedComponentsReplacer,
+        );
+        let rendererStateString: string | null = null;
+
+        if (core.flags.saveRendererState) {
+            rendererStateString = JSON.stringify(
+                core.rendererState,
+                serializedComponentsReplacer,
+            );
+        }
+
+        return {
+            payload: {
+                cid: core.cid,
+                coreInfo: core.coreInfoString,
+                coreState: coreStateString,
+                rendererState: rendererStateString,
+                initializeCounters: core.initializeCounters,
+                docId: core.docId,
+                attemptNumber: core.attemptNumber,
+                activityId: core.activityId,
+                onSubmission,
+            },
+            coreStateString,
+            rendererStateString,
+        };
+    }
+
     async saveState(
         overrideThrottle = false,
         onSubmission = false,
@@ -94,18 +132,8 @@ export class StatePersistence {
             return;
         }
 
-        let coreStateString = JSON.stringify(
-            core.cumulativeStateVariableChanges,
-            serializedComponentsReplacer,
-        );
-        let rendererStateString: string | null = null;
-
-        if (core.flags.saveRendererState) {
-            rendererStateString = JSON.stringify(
-                core.rendererState,
-                serializedComponentsReplacer,
-            );
-        }
+        const { payload, coreStateString, rendererStateString } =
+            this.buildDocStatePayload(onSubmission);
 
         if (core.flags.allowLocalState) {
             await idb_set(
@@ -123,17 +151,7 @@ export class StatePersistence {
             return;
         }
 
-        this.docStateToBeSavedToDatabase = {
-            cid: core.cid,
-            coreInfo: core.coreInfoString,
-            coreState: coreStateString,
-            rendererState: rendererStateString,
-            initializeCounters: core.initializeCounters,
-            docId: core.docId,
-            attemptNumber: core.attemptNumber,
-            activityId: core.activityId,
-            onSubmission,
-        };
+        this.docStateToBeSavedToDatabase = payload;
 
         // mark presence of changes
         // so that next call to saveChangesToDatabase will save changes
@@ -141,6 +159,27 @@ export class StatePersistence {
 
         // if not currently in throttle, save changes to database
         await this.saveChangesToDatabase(overrideThrottle);
+    }
+
+    /**
+     * Flush-state-on-demand (Doenet/DoenetML#1440): push any pending changes
+     * through the normal `reportScoreAndState` pipeline (via `saveImmediately`)
+     * so a persistence host saves them right away — exactly as it does for a
+     * routine autosave, with no knowledge that a flush occurred. Reports honor
+     * the `allowSaveState`/`allowLocalState` flags, so nothing is emitted when
+     * saving is off (there is no persistence host to receive it).
+     *
+     * Returns whether this viewer held any state: `false` before document
+     * generation has produced `coreInfoString` (the viewer holds nothing
+     * beyond what it was initialized with, so tearing it down loses nothing
+     * either way).
+     */
+    async flushState(): Promise<boolean> {
+        if (!this.core.coreInfoString) {
+            return false;
+        }
+        await this.saveImmediately();
+        return true;
     }
 
     async saveChangesToDatabase(overrideThrottle = false): Promise<void> {

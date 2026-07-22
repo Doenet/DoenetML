@@ -5,6 +5,12 @@ import useDoenetRenderer, {
 import { Button } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
+const ORBITAL_ARROW_STYLE: React.CSSProperties = {
+    fill: "none",
+    stroke: "var(--canvasText)",
+    strokeWidth: "2",
+};
+
 interface OrbitalRowData {
     orbitalText: string;
     boxes: string[];
@@ -18,8 +24,6 @@ interface OrbitalDiagramInputSVs {
     selectedRowIndex: number;
     selectedBoxIndex: number;
 }
-
-// border: ${(props) => (props.alert ? '2px solid #C1292E' : '2px solid black')};
 
 export default React.memo(function orbitalDiagramInput(
     props: UseDoenetRendererProps,
@@ -263,15 +267,14 @@ const OrbitalRow = React.memo(function OrbitalRow({
         width: "800px",
         height: "44px",
         display: "flex",
-        backgroundColor: "#E2E2E2",
+        backgroundColor: "var(--revealButtonSurface)",
         marginTop: "2px",
         marginBottom: "2px",
         padding: "2px",
-        border: "white solid 2px",
+        border: "var(--canvas) solid 2px",
     };
     if (selectedRow === rowNumber) {
-        rowStyle["border"] = "#1A5A99 solid 2px";
-        // rowStyle['backgroundColor'] = '#1A5A99';
+        rowStyle["border"] = "var(--mainBlue) solid 2px";
     }
 
     //Make boxes
@@ -369,7 +372,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxfirstUp${boxNum}`}
             id={`firstUp${boxNum}`}
             points="6,14 12,6 18,14 12,6 12,35"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const firstDown = (
@@ -377,7 +380,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxfirstDown${boxNum}`}
             id={`firstDown${boxNum}`}
             points="6,26 12,34 18,26 12,34 12,5"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const secondUp = (
@@ -385,7 +388,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxsecondUp${boxNum}`}
             id={`secondUp${boxNum}`}
             points="22,14 28,6 34,14 28,6 28,35"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const secondDown = (
@@ -393,7 +396,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxsecondDown${boxNum}`}
             id={`secondDown${boxNum}`}
             points="22,26 28,34 34,26 28,34 28,5"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const thirdUp = (
@@ -401,7 +404,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxthirdUp${boxNum}`}
             id={`thirdUp${boxNum}`}
             points="38,14 44,6 50,14 44,6 44,35"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
     const thirdDown = (
@@ -409,7 +412,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
             key={`orbitalboxthirdDown${boxNum}`}
             id={`thirdDown${boxNum}`}
             points="38,26 44,34 50,26 44,34 44,5"
-            style={{ fill: "none", stroke: "black", strokeWidth: "2" }}
+            style={ORBITAL_ARROW_STYLE}
         />
     );
 
@@ -440,10 +443,10 @@ const OrbitalBox = React.memo(function OrbitalBox({
         boxWidth = 56;
     }
 
-    let boxColor = "black";
+    let boxColor = "var(--canvasText)";
     let strokeWidth = "2px";
     if (isSelected) {
-        boxColor = "#1A5A99";
+        boxColor = "var(--mainBlue)";
         strokeWidth = "6px";
     }
 
@@ -468,7 +471,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
                 width={boxWidth}
                 height="40"
                 style={{
-                    fill: "white",
+                    fill: "var(--canvas)",
                     stroke: boxColor,
                     strokeWidth: strokeWidth,
                     fillOpacity: "1",

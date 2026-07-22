@@ -51,3 +51,6 @@ export const renderingOnServerSelector = (state: RootState) =>
     selfSelector(state).renderingOnServer;
 export const renderModeSelector = (state: RootState) =>
     selfSelector(state).renderMode;
+
+export const darkModeSelector = (state: RootState) =>
+    selfSelector(state).darkMode;

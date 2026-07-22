@@ -8,7 +8,7 @@ import type {
     ElementRefAnnotation,
     FlatDastElementContent,
 } from "@doenet/doenetml-worker";
-import { AncestorChain, extendAncestorChain } from "./utils";
+import { AncestorChain, extendAncestorChain, generateHtmlId } from "./utils";
 import { renderModeSelector } from "../state/redux-slices/global";
 import {
     PRETEXT_GRAPH_MODE_COMPONENTS,
@@ -80,6 +80,8 @@ export const Element = React.memo(
               )
             : undefined;
 
+        const htmlId = generateHtmlId(value, annotation, ancestors);
+
         if (Component.monitorVisibility) {
             return (
                 <VisibilitySensor
@@ -89,6 +91,7 @@ export const Element = React.memo(
                     children={children}
                     annotation={annotation}
                     ancestors={ancestors}
+                    htmlId={htmlId}
                 />
             );
         }
@@ -100,6 +103,7 @@ export const Element = React.memo(
                 children={children}
                 annotation={annotation}
                 ancestors={ancestors}
+                htmlId={htmlId}
             />
         );
     },

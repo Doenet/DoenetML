@@ -127,8 +127,31 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" label-location="0.95" alignment="s">A</line></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" label-location="0.95" alignment="s">A</line></coordinates><annotations></annotations></diagram>"`,
         );
+    });
+
+    it("renderer=prefigure dark mode uses dark style colors and a light axis stroke", async () => {
+        const lightXML = await getPrefigureXML(
+            prefigureGraph('<line styleNumber="2" through="(1,2) (3,4)" />'),
+            "g",
+            { theme: "light" },
+        );
+        const darkXML = await getPrefigureXML(
+            prefigureGraph('<line styleNumber="2" through="(1,2) (3,4)" />'),
+            "g",
+            { theme: "dark" },
+        );
+
+        // Light mode: PreFigure-default (black) axes, style 2 light line color.
+        expect(lightXML).toContain('<axes axes="all" />');
+        expect(lightXML).toContain('stroke="#D4042D"');
+
+        // Dark mode: axes carry an explicit light stroke; the line and its fill
+        // switch to style 2's derived dark-mode color.
+        expect(darkXML).toContain('<axes axes="all" stroke="#ffffff" />');
+        expect(darkXML).toContain('stroke="#F1466A"');
+        expect(darkXML).not.toContain('stroke="#D4042D"');
     });
 
     it("renderer=prefigure line label default is center (no explicit label-location)", async () => {
@@ -1060,7 +1083,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates><annotations></annotations></diagram>"`,
         );
     });
 
@@ -1164,16 +1187,17 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).not.toContain(
-            `points="((0,0),(2,0),(1,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+            `points="((0,0),(2,0),(1,1))" closed="yes" stroke="#1f5dff" thickness="4" fill="red"`,
         );
 
         expect(prefigureXML).toContain(`points="((3,0),(5,0),(4,1))"`);
         expect(prefigureXML).toContain(
-            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#1f5dff" thickness="4" fill="red"`,
         );
-        expect(prefigureXML).toContain(
-            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red" stroke-opacity="0.7" fill-opacity="0.4"`,
-        );
+        // Verify fill attrs are present on the filled polygon (order-independent)
+        expect(prefigureXML).toContain(`fill="red"`);
+        expect(prefigureXML).toContain(`stroke-opacity="0.7"`);
+        expect(prefigureXML).toContain(`fill-opacity="0.4"`);
     });
 
     it("renderer=prefigure maps triangle and rectangle directly to polygons", async () => {
@@ -1200,17 +1224,17 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).not.toContain(
-            `points="((0,0),(2,0),(1,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+            `points="((0,0),(2,0),(1,1))" closed="yes" stroke="#1f5dff" thickness="4" fill="red"`,
         );
         expect(prefigureXML).toContain(
-            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#1f5dff" thickness="4" fill="red"`,
         );
 
         expect(prefigureXML).not.toContain(
-            `points="((0,2),(2,2),(2,3),(0,3))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+            `points="((0,2),(2,2),(2,3),(0,3))" closed="yes" stroke="#1f5dff" thickness="4" fill="red"`,
         );
         expect(prefigureXML).toContain(
-            `points="((3,2),(5,2),(5,3),(3,3))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+            `points="((3,2),(5,2),(5,3),(3,3))" closed="yes" stroke="#1f5dff" thickness="4" fill="red"`,
         );
     });
 
@@ -1241,9 +1265,9 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`sector="yes"`);
         expect(prefigureXML).toContain(`points="((1,0),(0,0),(0,1))"`);
         expect(prefigureXML).toContain(`radius="1"`);
-        expect(prefigureXML).toContain(`stroke="#648FFF"`);
+        expect(prefigureXML).toContain(`stroke="#1f5dff"`);
         expect(prefigureXML).toContain(`thickness="4"`);
-        expect(prefigureXML).toContain(`fill="#648FFF"`);
+        expect(prefigureXML).toContain(`fill="#1f5dff"`);
         expect(prefigureXML).toContain(`<label anchor="`);
         expect(prefigureXML).toContain(`\\theta`);
     });

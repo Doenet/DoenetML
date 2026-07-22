@@ -99,7 +99,7 @@ export const GRAPH_CONTROL_TEXT_INPUT_STYLE: React.CSSProperties = {
 };
 
 export const GRAPH_CONTROL_ERROR_TEXT_STYLE: React.CSSProperties = {
-    color: "#b00020",
+    color: "var(--errorText)",
     fontSize: "0.85em",
 };
 

@@ -34,7 +34,9 @@ export interface SelectedStyle {
     fillColorWord?: string;
     lineOpacity?: number;
     fillOpacity?: number;
+    fillPatternOpacity?: number;
     lineStyle?: string;
+    fillStyle?: string;
     markerStyle?: string;
     markerSize?: number;
     markerColor?: string;
@@ -157,4 +159,5 @@ export interface GraphDependencyValues extends Record<string, unknown> {
     curveDescendants?: Descendant[];
     curveDescendantComponentIndices?: number[];
     functionToCurveComponentIdx?: Record<number, number>;
+    document?: { stateValues?: { theme?: "dark" | "light" } } | null;
 }

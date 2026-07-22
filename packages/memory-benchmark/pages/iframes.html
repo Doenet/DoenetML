@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>iframe embed</title>
+    </head>
+    <body>
+        <script type="module">
+            // Mimic @doenet/doenetml-iframe (and PreTeXt): each instance is an
+            // iframe whose document loads the full standalone bundle and
+            // renders one viewer. ?doc= selects the document.
+            import * as Comlink from "/comlink.mjs";
+            const params = new URLSearchParams(location.search);
+            const n = parseInt(params.get("n") ?? "1", 10);
+            const doc = params.get("doc") ?? "default";
+            const origin = location.origin;
+            // Where the standalone bundle (and its co-located worker) is served
+            // from. Defaults to same-origin; the `iframe-xorigin-*` scenarios
+            // pass ?cdn=<other-origin> to model a CDN-hosted bundle whose
+            // worker is cross-origin to this (inherited-origin) srcdoc realm.
+            const assetOrigin = params.get("cdn") || origin;
+            // ?shared=1 models the cross-iframe shared core-worker host
+            // (#1466, as @doenet/doenetml-iframe's useSharedCoreWorker does):
+            // this PARENT page owns one host worker, and each iframe's viewer
+            // gets its core over a MessagePort forwarded to that host.
+            const shared = params.get("shared") === "1";
+            window.__done = false;
+            window.__initializedCount = 0;
+
+            // Parent-owned shared host worker (created on first request).
+            let hostRemote = null;
+            function getHostRemote() {
+                if (!hostRemote) {
+                    const workerUrl = new URL(
+                        "./doenetml-worker/index.js",
+                        assetOrigin + "/standalone/doenet-standalone.js",
+                    ).href;
+                    // Cross-origin worker URLs need the same-origin
+                    // importScripts bootstrap (same technique as the
+                    // standalone external-worker entry).
+                    const creationUrl =
+                        new URL(workerUrl).origin === origin
+                            ? workerUrl
+                            : URL.createObjectURL(
+                                  new Blob(
+                                      [
+                                          `importScripts(${JSON.stringify(workerUrl)});`,
+                                      ],
+                                      { type: "text/javascript" },
+                                  ),
+                              );
+                    const worker = new Worker(creationUrl, {
+                        type: "classic",
+                    });
+                    hostRemote = Comlink.wrap(worker);
+                }
+                return hostRemote;
+            }
+
+            window.addEventListener("message", (e) => {
+                if (e.data === "viewer-initialized") {
+                    window.__initializedCount++;
+                    return;
+                }
+                if (
+                    e.data &&
+                    e.data.type === "createSharedCore" &&
+                    e.ports[0]
+                ) {
+                    const port = e.ports[0];
+                    getHostRemote()
+                        .createCore(Comlink.transfer(port, [port]))
+                        .catch((err) =>
+                            console.error("createCore failed", err),
+                        );
+                }
+            });
+            (async () => {
+                const source = await fetch(
+                    "/doenetml-source?doc=" + encodeURIComponent(doc),
+                ).then((r) => r.text());
+                const srcdoc = `<!doctype html><html><head>
+<link rel="stylesheet" href="${assetOrigin}/standalone/style.css">
+<script type="module" src="${assetOrigin}/standalone/doenet-standalone.js"><\/script>
+</head><body><div id="root"></div>
+<script>
+const SOURCE = ${JSON.stringify(source)};
+const SHARED = ${JSON.stringify(shared)};
+const waitForApi = setInterval(() => {
+  if (!window.renderDoenetViewerToContainer) return;
+  clearInterval(waitForApi);
+  if (SHARED) {
+    // Obtain cores from the parent-owned shared host: mint a channel, keep
+    // one port for this realm's viewer, send the other to the parent to be
+    // forwarded to the host worker's createCore (messages buffer meanwhile).
+    window.doenetGlobalConfig.createExternalCoreWorkerPort = () => {
+      const channel = new MessageChannel();
+      window.parent.postMessage({ type: "createSharedCore" }, "*", [
+        channel.port2,
+      ]);
+      return { port: channel.port1, destroy: () => {} };
+    };
+  }
+  window.renderDoenetViewerToContainer(
+    document.getElementById("root"),
+    SOURCE,
+    {
+      addVirtualKeyboard: false,
+      initializedCallback: () => {
+        window.parent.postMessage("viewer-initialized", "*");
+      },
+    },
+  );
+}, 50);
+<\/script></body></html>`;
+                for (let i = 0; i < n; i++) {
+                    const iframe = document.createElement("iframe");
+                    iframe.style =
+                        "width: 600px; height: 400px; display: block;";
+                    iframe.srcdoc = srcdoc;
+                    document.body.appendChild(iframe);
+                }
+                window.__done = true;
+            })();
+        </script>
+    </body>
+</html>

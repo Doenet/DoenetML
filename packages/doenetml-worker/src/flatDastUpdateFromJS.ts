@@ -1,5 +1,10 @@
 import type { FlatDastElement, FlatDastElementContent } from "./CoreWorker";
 import {
+    applyCompositeListWrapping,
+    type ChildContent,
+    type CompositeReplacementRange,
+} from "./compositeListWrapping";
+import {
     applyElementJsToRustFixups,
     childInstructionToContent,
     type ComponentInstruction,
@@ -12,10 +17,17 @@ import {
  * `ActionResponse["payload"]` entry). `doenetml-prototype`'s
  * `processElementUpdates` reducer merges `changedState` into `data.props` and
  * replaces `children` with `newChildren` when present.
+ *
+ * `newFlatDastElement` is a JS-bridge-only extension: when a children update
+ * introduces a synthetic `<asList>`/`<_fragment>` wrapper (see
+ * `applyCompositeListWrapping`), the wrapper element does not exist in the
+ * consumer's `elements` array, so the bridge ships the whole element for the
+ * reducer to upsert. The rust core never sets this.
  */
 export type FlatDastElementUpdateFromJS = {
     changedState?: Record<string, any>;
     newChildren?: FlatDastElementContent[];
+    newFlatDastElement?: FlatDastElement;
 };
 
 /**
@@ -133,18 +145,40 @@ export function flatDastUpdateFromJS(
 ): Record<number, FlatDastElementUpdateFromJS> {
     const updates: Record<number, FlatDastElementUpdateFromJS> = {};
 
+    function mergeUpdate(idx: number, update: FlatDastElementUpdateFromJS) {
+        const existing = updates[idx];
+        if (existing) {
+            existing.changedState = {
+                ...existing.changedState,
+                ...update.changedState,
+            };
+            if (update.newChildren) {
+                existing.newChildren = update.newChildren;
+            }
+            if (update.newFlatDastElement) {
+                existing.newFlatDastElement = update.newFlatDastElement;
+            }
+        } else {
+            updates[idx] = update;
+        }
+    }
+
     for (const instruction of updateInstructions) {
         for (const rendererState of instruction.rendererStatesToUpdate) {
             const { componentIdx, stateValues, childrenInstructions } =
                 rendererState;
 
-            const children: FlatDastElementContent[] = [];
+            // Keep child slots aligned with the child-instruction index space
+            // (null placeholders included) so the
+            // `_compositeReplacementActiveRange` indices line up.
+            const childContents: ChildContent[] = [];
             if (childrenInstructions) {
                 for (const childInstruction of childrenInstructions) {
                     if (childInstruction == null) {
+                        childContents.push(null);
                         continue;
                     }
-                    children.push(
+                    childContents.push(
                         childInstructionToContent(
                             childInstruction,
                             doenetIdToComponentIdx,
@@ -153,6 +187,18 @@ export function flatDastUpdateFromJS(
                 }
             }
 
+            // Wrap composite replacement ranges in synthetic `<asList>` (and,
+            // where nesting requires grouping, `<_fragment>`) parents, exactly
+            // as `flatDastFromJS` does for the initial render. Wrapping happens
+            // before the JS->Rust fixups so the range indices still line up with
+            // the children (e.g. before `section` splices its title child out).
+            const { children: wrappedChildren, wrapperElements } =
+                applyCompositeListWrapping(
+                    childContents,
+                    stateValues?._compositeReplacementActiveRange as
+                        CompositeReplacementRange[] | undefined,
+                );
+
             // Assemble a synthetic element so the shared JS->Rust converter
             // (which may read or mutate children, e.g. `section`) can be reused
             // verbatim.
@@ -160,7 +206,7 @@ export function flatDastUpdateFromJS(
                 type: "element",
                 name: componentIdxToName[componentIdx] ?? "",
                 attributes: {},
-                children,
+                children: wrappedChildren,
                 data: { id: componentIdx, props: { ...stateValues } },
             };
 
@@ -175,17 +221,13 @@ export function flatDastUpdateFromJS(
                 update.newChildren = element.children;
             }
 
-            const existing = updates[componentIdx];
-            if (existing) {
-                existing.changedState = {
-                    ...existing.changedState,
-                    ...update.changedState,
-                };
-                if (update.newChildren) {
-                    existing.newChildren = update.newChildren;
-                }
-            } else {
-                updates[componentIdx] = update;
+            mergeUpdate(componentIdx, update);
+
+            // Ship each synthetic wrapper as a full element so the prototype's
+            // `processElementUpdates` reducer can upsert it (the wrapper has no
+            // pre-existing slot in the consumer's `elements` array).
+            for (const wrapper of wrapperElements) {
+                mergeUpdate(wrapper.data.id, { newFlatDastElement: wrapper });
             }
         }
     }

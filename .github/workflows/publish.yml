@@ -56,8 +56,7 @@ jobs:
             - name: Use Node.js 24
               uses: actions/setup-node@v6
               with:
-                  # See ci.yml for the rationale behind pinning to 24.15.0.
-                  node-version: 24.15.0
+                  node-version: 24.x
                   registry-url: https://registry.npmjs.org
                   cache: "npm"
 
@@ -74,9 +73,7 @@ jobs:
             - name: Update versions
               run: |
                   CURRENT_VERSION=$(node -p "require('./packages/doenetml/package.json').version")
-                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
-                  COMMIT_HASH=$(git rev-parse --short HEAD)
-                  VERSION="${CURRENT_VERSION}-dev.${TIMESTAMP}.${COMMIT_HASH}"
+                  VERSION="${CURRENT_VERSION}-dev.${{ github.run_number }}"
                   npm run version -- ${VERSION} --no-git-tag-version
 
             - name: Build workspaces
@@ -99,6 +96,111 @@ jobs:
             - name: Purge jsDelivr cache
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
               run: bash .github/scripts/purge-jsdelivr.sh dev
+
+    # Publishes a VS Code extension pre-release on every successful CI run on
+    # main, mirroring the `dev-release` pattern for npm packages.
+    #
+    # Version scheme: the extension version uses an integer semver (required by
+    # the VS Code Marketplace), so we cannot use the `-dev.N` suffix that npm
+    # dev packages use.  Instead we add a large offset (10000) to the publish
+    # workflow run number to keep the patch well above any stable patch while
+    # remaining unique and monotonically increasing.  The two are correlatable:
+    #   npm 0.7.20-dev.150  ↔  VS Code 0.7.10150  (publish workflow run 150)
+    # A workflow rerun republishes the same code under the same version, which
+    # is correct — "version already published" on a rerun means the first
+    # attempt succeeded.
+    #
+    # Secret requirement: `VSCE_PAT` must be configured as a **repository-level**
+    # secret (not only in the `production` environment) for this job to publish.
+    # If the secret is absent the publish step emits a warning and exits cleanly.
+    dev-vscode-extension:
+        name: Dev VS Code Extension Pre-release
+        runs-on: ubuntu-latest
+        if: >-
+            (github.event_name == 'workflow_run' &&
+            github.event.workflow_run.conclusion == 'success' &&
+            github.event.workflow_run.head_branch == 'main') ||
+            (github.event_name == 'workflow_dispatch' && inputs.channel == 'dev')
+        permissions:
+            actions: read
+            contents: read
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+            - name: Determine checked out commit SHA
+              id: checked-sha
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24.x
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Verify CI succeeded for target commit
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  TARGET_SHA: ${{ steps.checked-sha.outputs.sha }}
+              run: node .github/scripts/verify-ci.mjs
+
+            - name: Compute pre-release version
+              id: prerelease-version
+              run: |
+                  # Read the current stable version from the extension manifest.
+                  CURRENT=$(node -p "require('./packages/vscode-extension/extension/package.json').version")
+                  MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+                  MINOR=$(echo "$CURRENT" | cut -d. -f2)
+                  # Add 10000 to the publish workflow run number to keep pre-release
+                  # patches well above any stable patch (e.g. 0.7.20).  Correlates
+                  # with the npm dev release: npm 0.7.20-dev.150 ↔ VS Code 0.7.10150.
+                  PATCH=$(( ${{ github.run_number }} + 10000 ))
+                  VERSION="${MAJOR}.${MINOR}.${PATCH}"
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "Pre-release version: ${VERSION} (publish run: ${{ github.run_number }})"
+
+            - name: Set pre-release version in extension manifest
+              run: |
+                  node -e "
+                    const fs = require('fs');
+                    const version = '${{ steps.prerelease-version.outputs.version }}';
+                    for (const p of [
+                      'packages/vscode-extension/package.json',
+                      'packages/vscode-extension/extension/package.json',
+                    ]) {
+                      const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
+                      pkg.version = version;
+                      fs.writeFileSync(p, JSON.stringify(pkg, null, 4) + '\n');
+                    }
+                  "
+
+            - name: Build VS Code extension
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w @doenet/vscode-extension
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Publish VS Code extension pre-release
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: |
+                  # secrets.* is not available in `if:` expressions (GitHub Actions
+                  # treats secrets as empty strings there), so we guard here in the
+                  # shell where the secret is actually populated via env:.
+                  if [ -z "${VSCE_PAT}" ]; then
+                      echo "::warning::VSCE_PAT repository secret is not set — VS Code extension pre-release was not published."
+                      echo "Add VSCE_PAT as a repository-level secret (Settings → Secrets → Actions) to enable pre-release publishing."
+                      exit 0
+                  fi
+                  npm run publish:prerelease -w @doenet/vscode-extension
+              env:
+                  VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
     production-release:
         name: Production Release
@@ -125,8 +227,7 @@ jobs:
             - name: Use Node.js 24
               uses: actions/setup-node@v6
               with:
-                  # See ci.yml for the rationale behind pinning to 24.15.0.
-                  node-version: 24.15.0
+                  node-version: 24.x
                   registry-url: https://registry.npmjs.org
                   cache: "npm"
 

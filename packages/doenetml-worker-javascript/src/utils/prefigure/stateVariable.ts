@@ -259,6 +259,11 @@ function prefigureBaseDependencies() {
             dependencyType: "stateVariable",
             variableName: "yLabelPosition",
         },
+        document: {
+            dependencyType: "ancestor",
+            componentType: "document",
+            variableNames: ["theme"],
+        },
     };
 }
 
@@ -442,8 +447,7 @@ function collectConfiguredDescendants(
         ...GRAPHICAL_DESCENDANT_CONFIGS,
     ]) {
         for (const descendant of (dependencyValues[config.key] as
-            | Descendant[]
-            | undefined) ?? []) {
+            Descendant[] | undefined) ?? []) {
             if (!Number.isFinite(descendant.componentIdx)) {
                 continue;
             }
@@ -576,6 +580,8 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                 graphComponentIdx: componentIdx,
                 functionToCurveComponentIdx:
                     dependencyValues.functionToCurveComponentIdx ?? {},
+                darkMode:
+                    dependencyValues.document?.stateValues?.theme === "dark",
             });
 
             if (

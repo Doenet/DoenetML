@@ -1,4 +1,5 @@
 import createStateProxyHandler from "../../StateProxyHandler";
+import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefinitionFactory";
 import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
@@ -6,6 +7,8 @@ import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
 } from "../../utils/stateVariables";
+
+export const SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX = "Encountered ";
 
 export default class BaseComponent {
     constructor({
@@ -59,14 +62,39 @@ export default class BaseComponent {
         }
 
         this.state = {};
-        for (let stateVariable in stateVariableDefinitions) {
-            // need to separately create a shallow copy of each state variable
-            // as state variable definitions of multiple variables could be same object
-            this.state[stateVariable] = Object.assign(
-                {},
-                stateVariableDefinitions[stateVariable],
-            );
+        if (stateVariableDefinitions[SHARED_STATE_VARIABLE_DEFINITIONS]) {
+            // The definitions are class-shared (see the cache in
+            // StateVariableDefinitionFactory). Each state variable object is
+            // a per-instance wrapper whose prototype is the definition:
+            // reads of definition fields fall through to the shared
+            // definition, while runtime writes create own properties on the
+            // wrapper. This also isolates state variables whose definitions
+            // are the same object. The runtime deletes
+            // (`delete stateVarObj.value` etc.) only ever target runtime
+            // fields, which live on the wrapper.
+            // Per-instance copies of nested mutable fields and workspaces
+            // are made when a state variable materializes
+            // (`ensureStateVariableMaterialized`), not here.
+            for (let stateVariable in stateVariableDefinitions) {
+                this.state[stateVariable] = Object.create(
+                    stateVariableDefinitions[stateVariable],
+                );
+            }
+        } else {
+            // Adapter / reference-shadow definitions: the factory already
+            // produced per-instance prototype wrappers over the class
+            // definitions and recorded (but did not yet apply) their
+            // adapter/shadow modifications as own `isShadow` / `svShadow*`
+            // markers. The nested mutable-field copies and the shadow
+            // overrides are applied when each variable materializes
+            // (`ensureStateVariableMaterialized`), so the wrappers can be
+            // used directly as the state variable objects here.
+            for (let stateVariable in stateVariableDefinitions) {
+                this.state[stateVariable] =
+                    stateVariableDefinitions[stateVariable];
+            }
         }
+
         this.stateValues = new Proxy(this.state, createStateProxyHandler());
 
         this.essentialState = {};
@@ -560,6 +588,21 @@ export default class BaseComponent {
             },
         };
 
+        // `hiddenIgnoreParent` is whether the component is hidden by its own
+        // `hide` attribute (or by an explicitly hidden source composite/adapter
+        // source), ignoring the visibility it inherits from its parent.
+        //
+        // It deliberately recurses through `hiddenIgnoreParent` (rather than
+        // `hidden`) of the source composite and adapter source so that it never
+        // depends on the visibility of ancestor sections. If it depended on the
+        // source composite's `hidden`, then for a component created by a
+        // composite (e.g. inside a `<repeat>`), the dependency would still climb
+        // up to ancestor sections through the composite's parent. That matters
+        // because `<choice>`'s `text` uses `hiddenIgnoreParent`, and a choice's
+        // text can be a credit-achieved dependency of an answer: if the choice
+        // is inside a `<cascade>`, ancestor `hidden` changes after submission,
+        // which would otherwise make the answer's `justSubmitted` immediately
+        // become false.
         stateVariableDefinitions.hiddenIgnoreParent = {
             returnDependencies: () => ({
                 hide: {
@@ -569,11 +612,11 @@ export default class BaseComponent {
                 },
                 sourceCompositeHidden: {
                     dependencyType: "sourceCompositeStateVariable",
-                    variableName: "hidden",
+                    variableName: "hiddenIgnoreParent",
                 },
                 adapterSourceHidden: {
                     dependencyType: "adapterSourceStateVariable",
-                    variableName: "hidden",
+                    variableName: "hiddenIgnoreParent",
                 },
             }),
             definition: ({ dependencyValues }) => {
@@ -1397,7 +1440,9 @@ export default class BaseComponent {
 
     async serialize(parameters = {}) {
         if (parameters.errorIfEncounterComponent?.includes(this.componentIdx)) {
-            throw Error("Encountered " + this.componentIdx);
+            throw Error(
+                `${SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX}${this.componentIdx}`,
+            );
         }
 
         let includeDefiningChildren = true;

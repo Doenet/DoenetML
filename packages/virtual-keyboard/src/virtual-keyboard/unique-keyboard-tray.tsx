@@ -2,14 +2,22 @@ import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { OnClick } from "./keyboard";
 import { KeyboardTray } from "./keyboard-tray";
-import { MathJaxContext } from "better-react-mathjax";
+import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig } from "@doenet/utils";
 
 type VirtualKeyboardState = {
     count: number;
     keyboardDomNode: HTMLElement | null;
     keyboardReactRoot: Root | null;
-    callbacks: OnClick[];
+    registrations: {
+        id: number;
+        onClick: OnClick;
+        theme?: "dark" | "light";
+        ownerRef: React.RefObject<HTMLElement | null>;
+    }[];
+    lastActiveRegistrationId: number | null;
+    nextRegistrationId: number;
+    handleFocusChange?: () => void;
 };
 
 const globalThis = Function("return this")() || {};
@@ -19,15 +27,138 @@ const virtualKeyboardState: VirtualKeyboardState =
         count: 0,
         keyboardDomNode: null,
         keyboardReactRoot: null,
-        callbacks: [],
+        registrations: [],
+        lastActiveRegistrationId: null,
+        nextRegistrationId: 0,
     };
 globalThis.virtualKeyboardState = virtualKeyboardState;
+
+function getRegistrationById(id: number | null) {
+    if (id === null) {
+        return null;
+    }
+    return (
+        virtualKeyboardState.registrations.find(
+            (registration) => registration.id === id,
+        ) ?? null
+    );
+}
+
+function getTrayElement() {
+    return document.getElementById("virtual-keyboard-tray");
+}
+
+function getActiveRegistration() {
+    const activeElement = document.activeElement;
+
+    for (
+        let i = virtualKeyboardState.registrations.length - 1;
+        i >= 0;
+        i -= 1
+    ) {
+        const registration = virtualKeyboardState.registrations[i];
+        const ownerElement = registration.ownerRef?.current;
+        if (
+            ownerElement &&
+            activeElement instanceof Node &&
+            (ownerElement === activeElement ||
+                ownerElement.contains(activeElement))
+        ) {
+            virtualKeyboardState.lastActiveRegistrationId = registration.id;
+            return registration;
+        }
+    }
+
+    if (
+        activeElement instanceof Node &&
+        getTrayElement()?.contains(activeElement)
+    ) {
+        return getRegistrationById(
+            virtualKeyboardState.lastActiveRegistrationId,
+        );
+    }
+
+    return null;
+}
+
+function getTrayTheme() {
+    const activeRegistration = getActiveRegistration();
+    if (activeRegistration) {
+        return activeRegistration.theme;
+    }
+    const lastActiveRegistration = getRegistrationById(
+        virtualKeyboardState.lastActiveRegistrationId,
+    );
+    if (lastActiveRegistration) {
+        return lastActiveRegistration.theme;
+    }
+    // No owner is currently focused — use the last registration's theme so
+    // the tray reflects the correct dark/light setting even before any
+    // interaction (e.g. on initial page load).
+    const registrations = virtualKeyboardState.registrations;
+    return registrations[registrations.length - 1]?.theme;
+}
+
+function rerenderTray() {
+    const theme = getTrayTheme();
+    // The focusin listener fires on every focus change anywhere in the
+    // document. Skip the React re-render when the tray's data-theme is
+    // already correct — reconciling the MathJaxContext + tray subtree on
+    // every focus event would be wasteful.
+    // getAttribute returns null when the attribute is absent; theme is
+    // undefined when no owner has an explicit theme (renders as light).
+    // Both cases mean "no data-theme attribute", so normalize null→undefined
+    // before comparing so they compare equal.
+    const trayEl = getTrayElement();
+    if (trayEl) {
+        const currentTheme =
+            (trayEl.getAttribute("data-theme") as
+                "dark" | "light" | null | undefined) ?? undefined;
+        if (currentTheme === theme) {
+            return;
+        }
+    }
+    virtualKeyboardState.keyboardReactRoot?.render(renderTray(theme));
+}
+
+function renderTray(theme: "dark" | "light" | undefined) {
+    return (
+        <MathJaxContext config={mathjaxConfig} version={4}>
+            <KeyboardTray
+                theme={theme}
+                onClick={(e) => {
+                    // Route key events only to the active (focused) owner.
+                    getActiveRegistration()?.onClick(e);
+                }}
+            />
+        </MathJaxContext>
+    );
+}
 
 /**
  * An expandable keyboard tray that is unique among the document. If multiple instances of `UniqueKeyboardTray` are used,
  * only one will be inserted into the document.
  */
-export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
+export function UniqueKeyboardTray({
+    onClick,
+    theme,
+    ownerRef,
+}: {
+    onClick: OnClick;
+    theme?: "dark" | "light";
+    ownerRef: React.RefObject<HTMLElement | null>;
+}) {
+    // Allocate a stable registration ID for this instance using a lazy useState
+    // initializer. React may invoke the initializer more than once in
+    // StrictMode development builds, which can leave gaps in
+    // nextRegistrationId, but the first returned value remains this mounted
+    // instance's stable ID.
+    const [id] = React.useState<number>(() => {
+        const next = virtualKeyboardState.nextRegistrationId;
+        virtualKeyboardState.nextRegistrationId += 1;
+        return next;
+    });
+
     React.useEffect(() => {
         // If the count is zero, we need to create the tray.
         if (virtualKeyboardState.count === 0) {
@@ -38,31 +169,48 @@ export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
 
             const root = createRoot(keyboardDomNode);
             virtualKeyboardState.keyboardReactRoot = root;
-            root.render(
-                <MathJaxContext config={mathjaxConfig} version={4}>
-                    <KeyboardTray
-                        onClick={(e) => {
-                            virtualKeyboardState.callbacks.forEach((cb) =>
-                                cb(e),
-                            );
-                        }}
-                    />
-                </MathJaxContext>,
+            virtualKeyboardState.handleFocusChange = () => {
+                rerenderTray();
+            };
+            document.addEventListener(
+                "focusin",
+                virtualKeyboardState.handleFocusChange,
             );
         }
-        // Add ourselves to the keyboard count and the list of callbacks.
+
         virtualKeyboardState.count += 1;
-        virtualKeyboardState.callbacks.push(onClick);
+        virtualKeyboardState.registrations.push({
+            id,
+            onClick,
+            theme,
+            ownerRef,
+        });
+        rerenderTray();
 
         return () => {
-            // Remove ourselves from the list of callbacks and decrement the count.
-            const callbackIndex =
-                virtualKeyboardState.callbacks.indexOf(onClick);
-            virtualKeyboardState.callbacks.splice(callbackIndex, 1);
+            virtualKeyboardState.registrations =
+                virtualKeyboardState.registrations.filter(
+                    (registration) => registration.id !== id,
+                );
+            if (virtualKeyboardState.lastActiveRegistrationId === id) {
+                // Fall back to the last remaining registration so the tray
+                // continues to route events if focus is in the tray or no
+                // owner is focused when the active registration unmounts.
+                const remaining = virtualKeyboardState.registrations;
+                virtualKeyboardState.lastActiveRegistrationId =
+                    remaining[remaining.length - 1]?.id ?? null;
+            }
             virtualKeyboardState.count -= 1;
 
             // If the count is zero, we need to remove the tray.
             if (virtualKeyboardState.count === 0) {
+                if (virtualKeyboardState.handleFocusChange) {
+                    document.removeEventListener(
+                        "focusin",
+                        virtualKeyboardState.handleFocusChange,
+                    );
+                    virtualKeyboardState.handleFocusChange = undefined;
+                }
                 if (virtualKeyboardState.keyboardReactRoot) {
                     // React insists we asynchronously unmount.
                     const root = virtualKeyboardState.keyboardReactRoot;
@@ -77,9 +225,21 @@ export function UniqueKeyboardTray({ onClick }: { onClick: OnClick }) {
                     );
                     virtualKeyboardState.keyboardDomNode = null;
                 }
+            } else {
+                rerenderTray();
             }
         };
     }, []);
+
+    React.useEffect(() => {
+        const registration = getRegistrationById(id);
+        if (registration) {
+            registration.onClick = onClick;
+            registration.theme = theme;
+            registration.ownerRef = ownerRef;
+            rerenderTray();
+        }
+    }, [onClick, ownerRef, theme]);
 
     // This component doesn't render anything directly. Instead it relies on a common instance of the keyboard tray already existing.
     return null;

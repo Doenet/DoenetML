@@ -10,8 +10,12 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<callAction>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
 component that triggers an action based on a click interaction or a specified boolean condition. The 
 available actions are:
-- `addChildren`: Adds one or more children to the target component.
-- `deleteChildren`: Deletes one or more children from the target component.
+- `addChildren`: Adds one or more children to the target component. Supported on
+  `<graph>{:dn}`, `<stickyGroup>{:dn}`, and the sectioning components (such as
+  `<section>{:dn}`, `<subsection>{:dn}`, `<paragraphs>{:dn}`, `<problem>{:dn}`,
+  `<exercise>{:dn}`, `<example>{:dn}`, and `<aside>{:dn}`).
+- `deleteChildren`: Deletes one or more children from the target component. Supported on the
+  same components as `addChildren`.
 - `submitAnswer`: Submits the target answer component.
 - `resample`: Resamples the target component.
 - `startAnimation`: Starts the animation of the target component.

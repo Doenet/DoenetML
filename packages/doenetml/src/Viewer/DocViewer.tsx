@@ -39,6 +39,7 @@ import {
     CORE_BOOT_RETRY_DELAY_MS,
     CORE_START_FAILED_MESSAGE,
 } from "./coreWorkerBoot";
+import type { ResolvedTheme } from "../utils/theme";
 
 // Re-export for back-compat: `renderersLoadComponent` was previously defined
 // here, and external consumers may deep-import it from
@@ -47,8 +48,8 @@ export { renderersLoadComponent } from "./renderersLoadComponent";
 
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    doenetImagesUrl?: string;
+    darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
 }>({});
@@ -76,7 +77,7 @@ export function DocViewer({
     setIsInErrorState,
     prefixForIds = "",
     doenetViewerUrl,
-    doenetMediaUrl,
+    doenetImagesUrl,
     darkMode,
     showAnswerResponseButton = false,
     answerResponseCounts = {},
@@ -114,8 +115,8 @@ export function DocViewer({
     setIsInErrorState?: Function;
     prefixForIds?: string;
     doenetViewerUrl?: string;
-    doenetMediaUrl?: string;
-    darkMode?: "dark" | "light";
+    doenetImagesUrl?: string;
+    darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     initializeCounters?: Record<string, number>;
@@ -171,13 +172,16 @@ export function DocViewer({
     const diagnostics = useRef<DiagnosticRecord[]>([]);
     const [hasInitialError, setHasInitialError] = useState(false);
 
-    const actionsBeforeCoreCreated = useRef<
-        {
-            actionName: string;
-            componentIdx: number | undefined;
-            args: Record<string, any>;
-        }[]
-    >([]);
+    type DeferredCoreAction = {
+        actionName: string;
+        componentIdx: number | undefined;
+        args: Record<string, any>;
+    };
+
+    // Actions queued while a new core is still booting. Always clear this
+    // queue after handing its contents off so entries from an earlier core
+    // lifetime cannot leak into a later reinitialization.
+    const actionsBeforeCoreCreated = useRef<DeferredCoreAction[]>([]);
 
     const preventMoreAnimations = useRef(false);
     const animationInfo = useRef<
@@ -216,38 +220,51 @@ export function DocViewer({
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
-    // Native handle for the same worker `coreWorker` wraps, kept so a wedged
-    // worker can be force-terminated even when its Comlink `terminate()` would
-    // itself hang on the stuck queue (Doenet/DoenetApps#2957). Set and
-    // cleared in lockstep with `coreWorker` (always via
-    // `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
-    const nativeCoreWorker = useRef<Worker | null>(null);
+    // Kill switch for the same core `coreWorker` wraps, kept so a wedged
+    // core can be force-released even when its Comlink `terminate()` would
+    // itself hang on the stuck queue (Doenet/DoenetApps#2957). Natively
+    // terminates a dedicated worker; on a shared host worker (#1466) it
+    // destroys just this core. Set and cleared in lockstep with `coreWorker`
+    // (always via `attachNewCoreWorker`/`teardownCurrentCoreWorker`).
+    const coreWorkerKill = useRef<((suspectWedge?: boolean) => void) | null>(
+        null,
+    );
 
-    // Spin up a fresh core worker and store its Comlink remote and native
-    // handle in lockstep. Returns the remote for the caller to drive.
+    // Spin up a fresh core worker and store its Comlink remote and kill
+    // switch in lockstep. Returns the remote for the caller to drive.
     function attachNewCoreWorker(): Remote<CoreWorker> {
-        const { remote, worker } = createCoreWorker();
+        const { remote, kill } = createCoreWorker();
         coreWorker.current = remote;
-        nativeCoreWorker.current = worker;
+        coreWorkerKill.current = kill;
         return remote;
     }
 
-    // Tear down whatever worker the refs currently point at and clear them
+    // Tear down whatever core the refs currently point at and clear them
     // (keeping the two refs in lockstep). Refs are cleared up front so a
-    // worker that's being terminated is never reachable mid-teardown; the
+    // core that's being terminated is never reachable mid-teardown; the
     // returned promise settles once `disposeCoreWorker` has finished, for
     // callers that need to await the teardown before swapping in a replacement.
     function teardownCurrentCoreWorker({ graceful }: { graceful: boolean }) {
         const remote = coreWorker.current;
-        const native = nativeCoreWorker.current;
+        const kill = coreWorkerKill.current;
         coreWorker.current = null;
-        nativeCoreWorker.current = null;
-        return disposeCoreWorker(remote, native, { graceful });
+        coreWorkerKill.current = null;
+        return disposeCoreWorker(remote, kill, { graceful });
+    }
+
+    function clearDeferredCoreActions() {
+        actionsBeforeCoreCreated.current = [];
+    }
+
+    function takeDeferredCoreActions() {
+        const pendingActions = actionsBeforeCoreCreated.current;
+        clearDeferredCoreActions();
+        return pendingActions;
     }
 
     const contextForRenderers = {
         doenetViewerUrl,
-        doenetMediaUrl,
+        doenetImagesUrl,
         darkMode,
         showAnswerResponseButton,
         answerResponseCounts,
@@ -354,6 +371,43 @@ export function DocViewer({
                     } else {
                         window.postMessage(message);
                     }
+                }
+            } else if (e.data.subject === "SPLICE.flushState") {
+                // Flush-state-on-demand (Doenet/DoenetML#1440): settle in-flight
+                // updates and push any pending state through the normal
+                // `SPLICE.reportScoreAndState` pipeline, then send this
+                // stateless acknowledgement. A persistence host (e.g. Runestone)
+                // saves the resulting `reportScoreAndState` exactly as it does a
+                // routine autosave — it need not know a flush occurred. This
+                // response is the completion signal a lifecycle coordinator
+                // (e.g. a PreTeXt page unmounting an off-screen viewer) waits
+                // for: once it arrives, tearing the viewer down loses nothing.
+                //
+                // `hadState: false` means the viewer held no state beyond what
+                // it was initialized with (e.g. its core was never created), so
+                // unmounting is equally safe.
+                const message: Record<string, unknown> = {
+                    subject: "SPLICE.flushState.response",
+                    activity_id: activityId,
+                    doc_id: docId,
+                    message_id: e.data.message_id,
+                    success: true,
+                    hadState: false,
+                };
+                if (coreCreated.current && coreWorker.current) {
+                    try {
+                        message.hadState =
+                            await coreWorker.current.flushState();
+                    } catch (err) {
+                        console.warn("DocViewer: flushState failed", err);
+                        message.success = false;
+                    }
+                }
+
+                if (flags.messageParent && window.parent) {
+                    window.parent.postMessage(message);
+                } else {
+                    window.postMessage(message);
                 }
             }
         };
@@ -472,7 +526,7 @@ export function DocViewer({
             // in a fresh worker can't hang on a wedged predecessor
             // (Doenet/DoenetApps#2957).
             await teardownCurrentCoreWorker({ graceful: true });
-            actionsBeforeCoreCreated.current = [];
+            clearDeferredCoreActions();
             for (let id in animationInfo.current) {
                 cancelAnimationFrame(id);
             }
@@ -615,7 +669,9 @@ export function DocViewer({
             args,
         };
 
-        executeAction(actionArgs);
+        executeAction(actionArgs).catch((e) => {
+            console.warn("DocViewer: executeAction failed", e);
+        });
 
         if (promiseResolve) {
             // If we were sent promiseResolve as an argument,
@@ -632,11 +688,7 @@ export function DocViewer({
         }
     }
 
-    async function executeAction(actionArgs: {
-        actionName: string;
-        componentIdx: number | undefined;
-        args: Record<string, any>;
-    }) {
+    async function executeAction(actionArgs: DeferredCoreAction) {
         if (!coreCreated.current) {
             // If core has not yet been created,
             // queue the action to be sent once core is created
@@ -644,12 +696,33 @@ export function DocViewer({
             return;
         }
 
-        // Note: it is possible that core has been terminated, so we need the question mark
-        const actionResult =
-            await coreWorker.current?.dispatchActionJavascript(actionArgs);
+        // Note: it is possible that core has been terminated, so we need the question mark.
+        // If the dispatch rejects or the worker is absent (optional chaining returns
+        // undefined), settle the pending callAction promise as false so it does not hang
+        // and so lastSkippableAction can be released.
+        let actionResult;
+        try {
+            actionResult =
+                await coreWorker.current?.dispatchActionJavascript(actionArgs);
+        } catch (e) {
+            console.warn("DocViewer: dispatchActionJavascript failed", e);
+            resolveAction({
+                actionId: actionArgs.args?.actionId,
+                success: false,
+            });
+            return;
+        }
 
         if (actionResult) {
             resolveAction(actionResult);
+        } else {
+            // coreWorker.current was null/undefined — optional chaining returned
+            // undefined, which is not a throw. Settle the callback as false so the
+            // callAction promise does not hang.
+            resolveAction({
+                actionId: actionArgs.args?.actionId,
+                success: false,
+            });
         }
     }
 
@@ -884,13 +957,19 @@ export function DocViewer({
         resolveAction({ actionId });
     }
 
-    function resolveAction({ actionId }: { actionId?: string }) {
+    function resolveAction({
+        actionId,
+        success = true,
+    }: {
+        actionId?: string;
+        success?: boolean;
+    }) {
         if (!actionId) {
             return;
         }
         const callback = onActionCallbacks.current.get(actionId);
         if (callback) {
-            callback(true);
+            callback(success);
             onActionCallbacks.current.delete(actionId);
         }
 
@@ -1304,8 +1383,16 @@ export function DocViewer({
         coreCreated.current = true;
         coreCreationInProgress.current = false;
         preventMoreAnimations.current = false;
-        for (let actionArgs of actionsBeforeCoreCreated.current) {
-            executeAction(actionArgs);
+        // Snapshot and clear the queue before dispatching so that stale
+        // actions from a previous core lifetime (e.g. an initial setTheme
+        // queued before the first core was created) cannot survive into a
+        // future core reinitialization and override the correctly-initialized
+        // theme or other state.
+        const pendingActions = takeDeferredCoreActions();
+        for (let actionArgs of pendingActions) {
+            executeAction(actionArgs).catch((e) => {
+                console.warn("DocViewer: deferred executeAction failed", e);
+            });
         }
         setStage("coreCreated");
         initializedCallback?.({ activityId, docId });
@@ -1569,9 +1656,15 @@ export function DocViewer({
         return (
             <div
                 style={{
+                    backgroundColor: "var(--lightRed)",
+                    color: "var(--canvasText)",
+                    borderWidth: 3,
+                    borderStyle: "solid",
+                    borderColor: "var(--mainRed)",
                     fontSize: "1.3em",
                     marginLeft: "20px",
                     marginTop: "20px",
+                    padding: "0.5em",
                 }}
             >
                 <MdError color="red" fontSize={"24pt"} /> {errMsg}
@@ -1603,27 +1696,33 @@ export function DocViewer({
         maxWidth: "850px",
         paddingLeft: "20px",
         paddingRight: "20px",
-        backgroundColor: "inherit",
+        backgroundColor: "var(--canvas)",
         containerType: "inline-size",
     };
     if (!coreCreated.current) {
         if (!documentRenderer) {
             noCoreWarning = (
-                <div style={{ backgroundColor: "lightCyan" }}>
+                <div
+                    style={{
+                        backgroundColor: "var(--canvas)",
+                        color: "var(--canvasText)",
+                    }}
+                >
                     <p>Initializing....</p>
                 </div>
             );
         }
-        viewerStyle.backgroundColor = "#F0F0F0";
     }
 
     let errorOverview = null;
     if (documentRenderer && hasInitialError) {
         let errorStyle = {
-            backgroundColor: "#ff9999",
+            backgroundColor: "var(--lightRed)",
+            color: "var(--canvasText)",
             textAlign: "center" as const,
             borderWidth: 3,
             borderStyle: "solid",
+            borderColor: "var(--mainRed)",
         };
         errorOverview = (
             <div style={errorStyle}>
@@ -1679,7 +1778,21 @@ class ErrorBoundary extends React.Component<ErrorProps, ErrorState> {
             if (!this.props.coreCreated) {
                 return null;
             } else {
-                return <h1>Something went wrong.</h1>;
+                return (
+                    <div
+                        style={{
+                            backgroundColor: "var(--lightRed)",
+                            color: "var(--canvasText)",
+                            padding: "1em",
+                            textAlign: "center",
+                            borderWidth: 3,
+                            borderStyle: "solid",
+                            borderColor: "var(--mainRed)",
+                        }}
+                    >
+                        <b>Error</b>: Something went wrong.
+                    </div>
+                );
             }
         }
         return this.props.children;

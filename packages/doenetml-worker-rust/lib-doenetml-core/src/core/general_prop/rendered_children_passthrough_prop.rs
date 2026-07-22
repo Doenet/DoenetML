@@ -15,14 +15,20 @@ impl RenderedChildrenPassthroughProp {
         RenderedChildrenPassthroughProp {
             data_query: DataQuery::AnnotatedContentRefs {
                 container: PropSource::Me,
-                filter: Rc::new(Op::Or(
-                    // Keep things without a "hidden" prop
-                    OpNot(ContentFilter::HasPropMatchingProfile(PropProfile::Hidden)),
-                    // Keep things with a "hidden != true" prop
-                    ContentFilter::HasPropMatchingProfileAndCondition(
-                        PropProfile::Hidden,
-                        Cond::Eq(PropValue::Boolean(false)),
+                filter: Rc::new(Op::And(
+                    Op::Or(
+                        // Keep things without a "hidden" prop
+                        OpNot(ContentFilter::HasPropMatchingProfile(PropProfile::Hidden)),
+                        // Keep things with a "hidden != true" prop
+                        ContentFilter::HasPropMatchingProfileAndCondition(
+                            PropProfile::Hidden,
+                            Cond::Eq(PropValue::Boolean(false)),
+                        ),
                     ),
+                    // Exclude the internal `<_dynamicChildren>` placeholder (added
+                    // during normalization for the `addChildren` action), which has
+                    // no static content to render.
+                    OpNot(ContentFilter::IsType("_dynamicChildren")),
                 )),
             },
         }

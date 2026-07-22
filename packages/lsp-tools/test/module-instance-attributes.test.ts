@@ -127,6 +127,22 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 );
             });
 
+            it('issue #1375: <math> attribute declared in <moduleAttributes> does not warn (ans="57")', async () => {
+                // Exact DoenetML from the bug report.  VSCode was flagging
+                // `ans` as an unknown attribute because the Rust resolver
+                // adapter was never initialized in the extension context.
+                const source = `<setup>
+  <module name="testModule">
+    <moduleAttributes>
+      <math name="ans" />
+    </moduleAttributes>
+  </module>
+</setup>
+
+<module copy="$testModule" ans="57" />`;
+                expect(await moduleAttrDiagnostics(source, "ans")).toEqual([]);
+            });
+
             it("undeclared attribute still warns", async () => {
                 const source = `<setup><module name="m"><moduleAttributes><text name="declared">x</text></moduleAttributes></module></setup>
 <module copy="$m" undeclared="x" />`;

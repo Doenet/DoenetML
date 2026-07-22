@@ -10,19 +10,25 @@ import {
     buildLineFamilyLabelAttributes,
     removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelMaskCssStyle,
     syncLabelStrokeColor,
     syncLayer,
     syncLineFamilyVisibility,
     syncLineStrokeStyle,
+    syncVisPropValues,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import {
+    attachLabelHoverHighlight,
+    computeLabelMaskCssStyle,
+} from "./utils/labelMaskStyle";
 import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
-import { resolveLineColor } from "./utils/styleColors";
+import { resolveLineColor, resolveHandleColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
@@ -115,6 +121,8 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             labelHasLatex: SVs.labelHasLatex,
             applyStyleToLabel: SVs.applyStyleToLabel,
             lineColor,
+            layer: SVs.layer,
+            maskLabel: SVs.maskLabel,
         });
 
         let endpointsVisible = !endpointsFixed.current && !SVs.hidden;
@@ -127,9 +135,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
-            highlightFillColor: getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue("--mainGray"),
+            highlightFillColor: resolveHandleColor(darkMode),
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
             showInfoBox: SVs.showCoordsWhenDragging,
             visible: endpointsVisible,
@@ -161,6 +167,16 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         );
         lineSegmentJXG.current = newSegmentJXG;
         newSegmentJXG.isDraggable = !fixLocation.current;
+
+        attachLabelHoverHighlight({
+            hoverTargetJXG: newSegmentJXG,
+            getLabelJXG: () => lineSegmentJXG.current?.label,
+            ...computeLabelMaskCssStyle({
+                layer: SVs.layer,
+                masked: SVs.maskLabel,
+            }),
+            board,
+        });
 
         const segmentBuildCommit = (): Record<string, any> | null => {
             if (!pointCoords.current) {
@@ -435,6 +451,14 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             }
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
+            const handleColor = resolveHandleColor(darkMode);
+
+            syncVisPropValues(point1JXG.current, {
+                highlightfillcolor: handleColor,
+            });
+            syncVisPropValues(point2JXG.current, {
+                highlightfillcolor: handleColor,
+            });
 
             syncLineStrokeStyle(lineSegmentJXG.current, {
                 lineColor,
@@ -466,6 +490,9 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
                 const label = lineSegmentJXG.current.label;
                 label.needsUpdate = true;
                 syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                syncLabelMaskCssStyle(label, SVs.layer, {
+                    maskLabel: SVs.maskLabel,
+                });
 
                 applyLineFamilyLabelPlacement({
                     board,

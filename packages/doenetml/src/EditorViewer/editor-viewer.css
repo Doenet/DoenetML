@@ -229,8 +229,7 @@
     margin-right: 0.35rem;
 }
 
-/* TODO: Add dark mode overrides for .diagnostic-entry-message code (background and color)
- * once dark mode is fully supported. See issue #966 (Complete dark mode). */
+/* Dark mode overrides for .diagnostic-entry-message code — see [data-theme="dark"] block below. */
 .editor-panel .diagnostic-entry-message code {
     font-family: monospace;
     background-color: #f5f5f5;
@@ -358,4 +357,252 @@
 
 .update-syntax-menu {
     z-index: 100;
+}
+
+/* ============================================================
+ * Dark mode overrides
+ * All colors below have been verified for WCAG AA contrast on
+ * the dark canvas (#121212) or on their respective surfaces.
+ * The accent palette (error/warning/accessibility) is kept in
+ * sync with the tooltip dark overrides in tooltip.css so that
+ * hover tooltips and panel entries use the same colors.
+ * ============================================================ */
+
+/*
+ * Scrollbars. Light-mode OS scrollbars are glaring on a dark canvas.
+ * `scrollbar-color` is the standard property (Firefox + Chromium ≥121).
+ * `::-webkit-scrollbar` rules cover Chromium for full cross-browser support.
+ *
+ * Note: `scrollbar-color` is NOT inherited, so each scroll container must be
+ * targeted directly. The known scroll containers are:
+ *   - `.diagnostics-response-tabs-panels` — the diagnostics/help/responses panel
+ *   - `.viewer-panel .viewer`              — the viewer content area
+ *   - `.cm-scroller`                       — CodeMirror's own scroll container
+ */
+[data-theme="dark"] .editor-panel .diagnostics-response-tabs-panels,
+[data-theme="dark"] .viewer-panel .viewer,
+[data-theme="dark"] .editor-panel .cm-scroller {
+    scrollbar-color: #555 #1e1e1e;
+}
+
+[data-theme="dark"]
+    .editor-panel
+    .diagnostics-response-tabs-panels::-webkit-scrollbar,
+[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar,
+[data-theme="dark"] .editor-panel .cm-scroller::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+[data-theme="dark"]
+    .editor-panel
+    .diagnostics-response-tabs-panels::-webkit-scrollbar-track,
+[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-track,
+[data-theme="dark"] .editor-panel .cm-scroller::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+[data-theme="dark"]
+    .editor-panel
+    .diagnostics-response-tabs-panels::-webkit-scrollbar-thumb,
+[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-thumb,
+[data-theme="dark"] .editor-panel .cm-scroller::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 4px;
+    border: 2px solid #1e1e1e;
+}
+
+[data-theme="dark"]
+    .editor-panel
+    .diagnostics-response-tabs-panels::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .viewer-panel .viewer::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .editor-panel .cm-scroller::-webkit-scrollbar-thumb:hover {
+    background-color: #777;
+}
+
+/*
+ * Base panel surfaces. `.editor-panel` and its sub-panels have no explicit
+ * background-color in light mode (they rely on the white page default).
+ * In dark mode we must set them explicitly; otherwise the transparent panels
+ * show through to the white document body.
+ */
+[data-theme="dark"] .editor-panel {
+    background-color: var(--canvas);
+    color: var(--canvasText);
+}
+
+/*
+ * Footer and viewer-controls toolbars use `--mainGray` (#a9a9a9 in dark),
+ * producing a stark light band against the near-black canvas. Switch them to
+ * the same dark elevated surface used by the drag handles.
+ */
+[data-theme="dark"] .editor-panel .editor-footer {
+    background-color: #1e1e1e;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .viewer-panel .viewer-controls {
+    background-color: #1e1e1e;
+    border-bottom-color: #555;
+}
+
+/*
+ * Footer tab highlight: var(--lightBlue) is a pastel sky-blue that pops
+ * too loudly against the dark #1e1e1e toolbar. Use a subtle white-alpha
+ * wash and keep just the inset blue underline as the selected indicator.
+ */
+[data-theme="dark"]
+    .editor-panel
+    .footer-icons.is-open
+    button[aria-selected="true"] {
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 -3px 0 var(--mainBlue);
+}
+
+/*
+ * Hover state on footer buttons: lightBlue also too bright on dark toolbar.
+ */
+[data-theme="dark"] .editor-panel .footer-menu-button:hover,
+[data-theme="dark"] .editor-panel .footer-icons button:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/*
+ * Footer copy. Light-mode defaults rely on inherited black text, which falls
+ * below contrast on the dark toolbar. Use the same bright-muted text across
+ * the version stamp, help label, and zero-count badges so the whole footer
+ * reads consistently.
+ */
+[data-theme="dark"] .editor-panel .doenetml-version,
+[data-theme="dark"] .editor-panel .diagnostic-tab-label,
+[data-theme="dark"] .editor-panel .diagnostic-tab-count {
+    color: #cbd5e1;
+}
+
+/*
+ * CodeMirror editor area. `@uiw/react-codemirror` injects
+ * `backgroundColor: '#fff'` via its default light theme extension. Our
+ * `colorTheme()` factory already sets `backgroundColor: "var(--canvas)"` on
+ * the same `&` selector, and because our extensions are appended after the
+ * @uiw defaults in the CodeMirror state they should win. The CSS rule below
+ * acts as a belt-and-suspenders override with higher specificity
+ * (attribute(0,1,0) + class(0,0,1) = 0,1,1 beats the generated single-class
+ * theme rules at 0,0,1) so the editor background is guaranteed dark.
+ */
+[data-theme="dark"] .editor-panel .cm-editor {
+    background-color: var(--canvas);
+}
+
+/*
+ * Gutters: in dark mode `--mainGray` = #a9a9a9, which is a stark medium-gray
+ * bar against the near-black canvas. Most dark editors (VS Code, GitHub dark)
+ * use a gutter background barely distinguishable from the code area. Use
+ * #1e1e1e (VS Code-style) so the gutter is subtle, with muted line-number
+ * text at #8b949e (5.2:1 on #1e1e1e — WCAG AA).
+ * Active-line gutter: CodeMirror base theme uses #e2f2ff (light blue), which
+ * is garish on a dark gutter. Use a barely-lighter #363636 instead.
+ */
+[data-theme="dark"] .editor-panel .cm-gutters {
+    background-color: #1e1e1e;
+    color: #8b949e;
+    border-right: 1px solid #333;
+}
+
+[data-theme="dark"] .editor-panel .cm-activeLineGutter {
+    background-color: #363636;
+}
+
+/* Footer popup menu */
+[data-theme="dark"] .editor-panel .footer-menu {
+    background-color: var(--canvas);
+    border-color: #555;
+    color: var(--canvasText);
+}
+
+/* Responses icon — muted slate instead of medium gray (#667085 fails on #121212) */
+[data-theme="dark"] .editor-panel .diagnostic-tab-icon.is-responses {
+    color: #9ca3af;
+}
+
+/* Diagnostic icon colors — brightened for dark canvas (#121212) */
+[data-theme="dark"] .editor-panel .diagnostic-tab-icon.is-error,
+[data-theme="dark"] .editor-panel .diagnostic-entry-icon.is-error {
+    color: #ff6b6b;
+}
+
+[data-theme="dark"] .editor-panel .diagnostic-tab-icon.is-warning,
+[data-theme="dark"] .editor-panel .diagnostic-entry-icon.is-warning {
+    color: #ffb454;
+}
+
+[data-theme="dark"] .editor-panel .diagnostic-tab-icon.is-info,
+[data-theme="dark"] .editor-panel .diagnostic-entry-icon.is-info {
+    color: #60a5fa;
+}
+
+[data-theme="dark"]
+    .editor-panel
+    .diagnostic-tab-icon.is-accessibility-critical,
+[data-theme="dark"]
+    .editor-panel
+    .diagnostic-entry-icon.is-accessibility-critical {
+    color: #c4b5fd;
+}
+
+[data-theme="dark"]
+    .editor-panel
+    .diagnostic-tab-icon.is-accessibility-advisory,
+[data-theme="dark"]
+    .editor-panel
+    .diagnostic-entry-icon.is-accessibility-advisory {
+    color: #ddd6fe;
+}
+
+/* Inline code in diagnostic messages */
+[data-theme="dark"] .editor-panel .diagnostic-entry-message code {
+    background-color: #2a2a2a;
+    color: #ff7ac6;
+}
+
+/* Accessibility report card */
+[data-theme="dark"] .editor-panel .accessibility-report-section {
+    background: #1e1e1e;
+    border-color: #444;
+}
+
+[data-theme="dark"] .editor-panel .accessibility-report-intro {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .editor-panel .accessibility-report a {
+    color: #79c0ff;
+}
+
+[data-theme="dark"] .editor-panel .accessibility-report a:visited {
+    color: #79c0ff;
+}
+
+[data-theme="dark"] .editor-panel .accessibility-report-heading.critical {
+    color: #c4b5fd;
+}
+
+[data-theme="dark"] .editor-panel .accessibility-report-heading.advisory {
+    color: #ddd6fe;
+}
+
+/* Accessibility status button chips */
+[data-theme="dark"]
+    .viewer-panel
+    .accessibility-status-button.has-level-1-issues {
+    background: #2d1f4e;
+    color: #c4b5fd;
+    box-shadow: inset 0 0 0 1px #7c3aed;
+}
+
+[data-theme="dark"]
+    .viewer-panel
+    .accessibility-status-button.no-level-1-issues {
+    background: #1a3a2a;
+    color: #6ce9a6;
+    box-shadow: inset 0 0 0 1px #34d399;
 }

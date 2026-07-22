@@ -11,6 +11,20 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../../utils/scoredSection";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../../utils/dynamicChildren";
+import {
+    CANVAS_DARK_MODE_COLOR,
+    CANVAS_LIGHT_MODE_COLOR,
+    sectionTitleStateKeys,
+    titleStateKeyFromCredit,
+    resolveSectionTitleLightColorSpec,
+    resolveSectionTitleDarkColorSpec,
+    shouldEmitSectionTitleColorDiagnostic,
+    addSectionTitleColorContrastDiagnostic,
+} from "../../utils/sectionTitleColors";
 
 export class SectioningComponent extends BlockComponent {
     constructor(args) {
@@ -21,6 +35,8 @@ export class SectioningComponent extends BlockComponent {
             revealSection: this.revealSection.bind(this),
             closeSection: this.closeSection.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
+            addChildren: this.addChildren.bind(this),
+            deleteChildren: this.deleteChildren.bind(this),
         });
     }
 
@@ -101,6 +117,23 @@ export class SectioningComponent extends BlockComponent {
             description: "Whether to render this section's children as a list.",
         };
 
+        attributes.collapsible = {
+            createComponentOfType: "boolean",
+            createStateVariable: "collapsible",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+            description: "Whether the section can be collapsed and expanded.",
+        };
+
+        attributes.startOpen = {
+            createComponentOfType: "boolean",
+            createStateVariable: "startOpen",
+            defaultValue: true,
+            description:
+                "Whether the collapsible section starts in the open state.",
+        };
+
         attributes.level = {
             createComponentOfType: "integer",
             description:
@@ -134,6 +167,42 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: "var(--mainGray)",
             description:
                 "Color used to indicate this section has not been started.",
+        };
+
+        attributes.completedColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "completedColorDarkMode",
+            // Dark green; white text contrast ≈ 7.9:1 (passes WCAG AA and AAA).
+            defaultValue: "#1a5e20",
+            description:
+                "Color used to indicate this section has been completed (dark mode). " +
+                "If omitted, the dark-mode color is derived from `completedColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark green " +
+                "that meets WCAG AA contrast for white text.",
+        };
+
+        attributes.inProgressColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "inProgressColorDarkMode",
+            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+            defaultValue: "#3a3a3a",
+            description:
+                "Color used to indicate this section is in progress (dark mode). " +
+                "If omitted, the dark-mode color is derived from `inProgressColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark gray " +
+                "that meets WCAG AA contrast for white text.",
+        };
+
+        attributes.notStartedColorDarkMode = {
+            createComponentOfType: "text",
+            createStateVariable: "notStartedColorDarkMode",
+            // Dark gray; white text contrast ≈ 11.4:1 (passes WCAG AA and AAA).
+            defaultValue: "#3a3a3a",
+            description:
+                "Color used to indicate this section has not been started (dark mode). " +
+                "If omitted, the dark-mode color is derived from `notStartedColor` when " +
+                "that attribute is explicitly set; otherwise falls back to a dark gray " +
+                "that meets WCAG AA contrast for white text.",
         };
 
         return attributes;
@@ -599,6 +668,36 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        // Whether the renderer should lay out this list item with the
+        // hanging-number grid (a fixed number column + a content column). This
+        // is what keeps the section number's horizontal position independent of
+        // the content's width/wrapping and of whether the first child is a
+        // string or a component. Unlike `firstVisibleChildAdjustedForListItem`
+        // (which stays component-only because it drives first-child top-margin
+        // suppression), this applies to any non-empty untitled/unboxed list
+        // item, including string-first ones.
+        stateVariableDefinitions.useListItemGridLayout = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                nonBoxedListItemWithoutTitle: {
+                    dependencyType: "stateVariable",
+                    variableName: "nonBoxedListItemWithoutTitle",
+                },
+                firstVisibleChild: {
+                    dependencyType: "stateVariable",
+                    variableName: "firstVisibleChild",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const useListItemGridLayout = Boolean(
+                    dependencyValues.nonBoxedListItemWithoutTitle &&
+                    dependencyValues.firstVisibleChild != null,
+                );
+
+                return { setValue: { useListItemGridLayout } };
+            },
+        };
+
         stateVariableDefinitions.firstChildListItemAlignment = {
             stateVariablesDeterminingDependencies: ["firstVisibleChild"],
             forRenderer: true,
@@ -810,9 +909,12 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.titleColor = {
-            // Note: currently title color is used only when boxed or collapsible
-            forRenderer: true,
+        stateVariableDefinitions.sectionTitleStateColors = {
+            additionalStateVariablesDefined: [
+                "sectionTitleStateColorsDarkMode",
+                "sectionTitleStateColorSources",
+                "sectionTitleStateColorSourcesDarkMode",
+            ],
             returnDependencies: () => ({
                 completedColor: {
                     dependencyType: "stateVariable",
@@ -826,61 +928,211 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "notStartedColor",
                 },
-                parentCompletedColor: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "completedColor",
+                completedColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "completedColorDarkMode",
                 },
-                parentInProgressColor: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "inProgressColor",
+                inProgressColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "inProgressColorDarkMode",
                 },
-                parentNotStartedColor: {
+                notStartedColorDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "notStartedColorDarkMode",
+                },
+                parentSectionTitleStateColors: {
                     dependencyType: "parentStateVariable",
-                    variableName: "notStartedColor",
+                    variableName: "sectionTitleStateColors",
+                },
+                parentSectionTitleStateColorsDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorsDarkMode",
+                },
+                parentSectionTitleStateColorSources: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorSources",
+                },
+                parentSectionTitleStateColorSourcesDarkMode: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionTitleStateColorSourcesDarkMode",
+                },
+                parentBoxed: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "boxed",
+                },
+                parentCollapsible: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "collapsible",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                const sectionTitleStateColors = {};
+                const sectionTitleStateColorsDarkMode = {};
+                const sectionTitleStateColorSources = {};
+                const sectionTitleStateColorSourcesDarkMode = {};
+                const parentIsBoxedOrCollapsible = Boolean(
+                    dependencyValues.parentBoxed ||
+                    dependencyValues.parentCollapsible,
+                );
+
+                const colorNamesByState = {
+                    completed: {
+                        light: "completedColor",
+                        dark: "completedColorDarkMode",
+                    },
+                    inProgress: {
+                        light: "inProgressColor",
+                        dark: "inProgressColorDarkMode",
+                    },
+                    notStarted: {
+                        light: "notStartedColor",
+                        dark: "notStartedColorDarkMode",
+                    },
+                };
+
+                for (const stateKey of sectionTitleStateKeys) {
+                    const colorNames = colorNamesByState[stateKey];
+                    const lightSpec = resolveSectionTitleLightColorSpec({
+                        dependencyValues,
+                        usedDefault,
+                        ownColorName: colorNames.light,
+                        parentColors:
+                            dependencyValues.parentSectionTitleStateColors,
+                        parentSources:
+                            dependencyValues.parentSectionTitleStateColorSources,
+                        parentIsBoxedOrCollapsible,
+                        stateKey,
+                    });
+                    sectionTitleStateColors[stateKey] = lightSpec.value;
+                    sectionTitleStateColorSources[stateKey] = lightSpec.source;
+
+                    const darkSpec = resolveSectionTitleDarkColorSpec({
+                        dependencyValues,
+                        usedDefault,
+                        ownDarkColorName: colorNames.dark,
+                        ownLightColorName: colorNames.light,
+                        parentColorsDarkMode:
+                            dependencyValues.parentSectionTitleStateColorsDarkMode,
+                        parentSourcesDarkMode:
+                            dependencyValues.parentSectionTitleStateColorSourcesDarkMode,
+                        parentIsBoxedOrCollapsible,
+                        stateKey,
+                    });
+                    sectionTitleStateColorsDarkMode[stateKey] = darkSpec.value;
+                    sectionTitleStateColorSourcesDarkMode[stateKey] =
+                        darkSpec.source;
+                }
+
+                return {
+                    setValue: {
+                        sectionTitleStateColors,
+                        sectionTitleStateColorsDarkMode,
+                        sectionTitleStateColorSources,
+                        sectionTitleStateColorSourcesDarkMode,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.titleColor = {
+            // Note: currently title color is used only when boxed or collapsible
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "titleColorDarkMode",
+                    forRenderer: true,
+                },
+            ],
+            forRenderer: true,
+            returnDependencies: () => ({
+                sectionTitleStateColors: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColors",
+                },
+                sectionTitleStateColorsDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorsDarkMode",
+                },
+                sectionTitleStateColorSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorSources",
+                },
+                sectionTitleStateColorSourcesDarkMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "sectionTitleStateColorSourcesDarkMode",
                 },
                 creditAchieved: {
                     dependencyType: "stateVariable",
                     variableName: "creditAchieved",
                 },
+                boxed: {
+                    dependencyType: "stateVariable",
+                    variableName: "boxed",
+                },
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
             }),
-            definition({ dependencyValues, usedDefault }) {
-                let titleColor = dependencyValues.notStartedColor;
-                if (dependencyValues.creditAchieved === 1) {
-                    if (!usedDefault.completedColor) {
-                        titleColor = dependencyValues.completedColor;
-                    } else if (
-                        typeof dependencyValues.parentCompletedColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentCompletedColor;
-                    } else {
-                        titleColor = dependencyValues.completedColor;
-                    }
-                } else if (dependencyValues.creditAchieved > 0) {
-                    if (!usedDefault.inProgressColor) {
-                        titleColor = dependencyValues.inProgressColor;
-                    } else if (
-                        typeof dependencyValues.parentInProgressColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentInProgressColor;
-                    } else {
-                        titleColor = dependencyValues.inProgressColor;
-                    }
-                } else {
-                    if (!usedDefault.notStartedColor) {
-                        titleColor = dependencyValues.notStartedColor;
-                    } else if (
-                        typeof dependencyValues.parentNotStartedColor ===
-                        "string"
-                    ) {
-                        titleColor = dependencyValues.parentNotStartedColor;
-                    } else {
-                        titleColor = dependencyValues.notStartedColor;
+            definition({ dependencyValues }) {
+                const titleStateKey = titleStateKeyFromCredit(
+                    dependencyValues.creditAchieved,
+                );
+                const titleColor =
+                    dependencyValues.sectionTitleStateColors[titleStateKey];
+                const titleColorDarkMode =
+                    dependencyValues.sectionTitleStateColorsDarkMode[
+                        titleStateKey
+                    ];
+
+                const diagnostics = [];
+                if (dependencyValues.boxed || dependencyValues.collapsible) {
+                    for (const stateKey of sectionTitleStateKeys) {
+                        const lightSource =
+                            dependencyValues.sectionTitleStateColorSources[
+                                stateKey
+                            ];
+                        addSectionTitleColorContrastDiagnostic({
+                            diagnostics,
+                            authorSet: shouldEmitSectionTitleColorDiagnostic({
+                                source: lightSource,
+                            }),
+                            colorValue:
+                                dependencyValues.sectionTitleStateColors[
+                                    stateKey
+                                ],
+                            colorName: lightSource?.colorName ?? stateKey,
+                            textColor: "#000000",
+                            canvasColor: CANVAS_LIGHT_MODE_COLOR,
+                        });
+
+                        const darkSource =
+                            dependencyValues
+                                .sectionTitleStateColorSourcesDarkMode[
+                                stateKey
+                            ];
+                        addSectionTitleColorContrastDiagnostic({
+                            diagnostics,
+                            authorSet: shouldEmitSectionTitleColorDiagnostic({
+                                source: darkSource,
+                            }),
+                            colorValue:
+                                dependencyValues
+                                    .sectionTitleStateColorsDarkMode[stateKey],
+                            colorName: darkSource?.colorName ?? stateKey,
+                            textColor: "#ffffff",
+                            canvasColor: CANVAS_DARK_MODE_COLOR,
+                            modeSuffix: " (dark mode)",
+                        });
                     }
                 }
 
-                return { setValue: { titleColor } };
+                return {
+                    setValue: {
+                        titleColor,
+                        titleColorDarkMode,
+                    },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
@@ -988,14 +1240,6 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.collapsible = {
-            forRenderer: true,
-            returnDependencies: () => ({}),
-            definition() {
-                return { setValue: { collapsible: false } };
-            },
-        };
-
         stateVariableDefinitions.open = {
             description:
                 "Whether this section is currently open (for collapsible sections).",
@@ -1006,11 +1250,25 @@ export class SectioningComponent extends BlockComponent {
             forRenderer: true,
             defaultValue: true,
             hasEssential: true,
-            returnDependencies: () => ({}),
-            definition() {
+            returnDependencies: () => ({
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
+                startOpen: {
+                    dependencyType: "stateVariable",
+                    variableName: "startOpen",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // When not collapsible, always open regardless of any stored
+                // essential value (handles collapsible toggling false at runtime).
+                if (!dependencyValues.collapsible) {
+                    return { setValue: { open: true } };
+                }
                 return {
                     useEssentialOrDefaultValue: {
-                        open: true,
+                        open: { defaultValue: dependencyValues.startOpen },
                     },
                 };
             },
@@ -1066,6 +1324,14 @@ export class SectioningComponent extends BlockComponent {
             sourceInformation,
             skipRendererUpdate,
         });
+    }
+
+    async addChildren(args) {
+        return await addChildrenToDynamicChild(this, args);
+    }
+
+    async deleteChildren(args) {
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     async revealSection({

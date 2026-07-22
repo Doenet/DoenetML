@@ -15,6 +15,18 @@ import {
     type StyleDefinitions,
 } from "./styleDefinitionHelpers";
 import { contrastAccessibilityDiagnosticsForStyleDefinitions } from "./styleContrastAccessibility";
+import {
+    DEFAULT_PALETTE_NAME,
+    STYLE_PALETTES,
+    type StylePalette,
+} from "./palettes";
+import {
+    deriveAccessibleDarkModeColor,
+    deriveAccessibleDarkModeBackground,
+    invertLightness,
+    GRAPHIC_CONTRAST_THRESHOLD,
+    TEXT_CONTRAST_THRESHOLD,
+} from "./colorAccessibility";
 
 /**
  * Style helpers and state-variable definitions shared by renderable components.
@@ -159,7 +171,47 @@ export let styleAttributes: StyleAttributes = {
     },
     fillOpacity: {
         componentType: "number",
-        description: "Opacity of fills, 0 to 1.",
+        description: "Opacity of solid fills, 0 to 1.",
+    },
+    fillPatternOpacity: {
+        componentType: "number",
+        description: "Opacity of pattern fills (non-solid fillStyle), 0 to 1.",
+    },
+    fillStyle: {
+        componentType: "text",
+        description: "Fill pattern used inside closed shapes.",
+        toLowerCase: true,
+        validValues: [
+            { value: "solid", description: "Solid fill." },
+            {
+                value: "horizontal",
+                description: "Horizontal line pattern.",
+            },
+            {
+                value: "vertical",
+                description: "Vertical line pattern.",
+            },
+            {
+                value: "diagonal",
+                description: "Diagonal line pattern (/).",
+            },
+            {
+                value: "backDiagonal",
+                description: "Back-diagonal line pattern (\\).",
+            },
+            {
+                value: "dots",
+                description: "Dots pattern.",
+            },
+            {
+                value: "diamonds",
+                description: "Filled diamonds pattern.",
+            },
+        ],
+    },
+    fillStyleWord: {
+        componentType: "text",
+        description: "Human-readable name of the fill style.",
     },
     textColor: {
         componentType: "text",
@@ -259,6 +311,8 @@ const LINE_OVERRIDE_KEYS = [
 
 const FILL_OVERRIDE_KEYS = [
     "fillOpacity",
+    "fillPatternOpacity",
+    "fillStyle",
 ] as const satisfies readonly StyleDefinitionKey[];
 
 /**
@@ -280,9 +334,9 @@ export const lineOverrideAttributes: StyleAttributes = Object.fromEntries(
 );
 
 /**
- * Fill toggles for closed-shape components. Only `fillOpacity` is included —
- * it's decorative and not part of the contrast check, unlike `lineOpacity` /
- * `markerOpacity`.
+ * Fill toggles for closed-shape components. `fillOpacity`, `fillPatternOpacity`,
+ * and `fillStyle` are both decorative and not part of the contrast check, unlike
+ * `lineOpacity` / `markerOpacity`.
  */
 export const fillOverrideAttributes: StyleAttributes = Object.fromEntries(
     FILL_OVERRIDE_KEYS.map((key) => [key, styleAttributes[key]]),
@@ -319,13 +373,14 @@ export type StyleOverrideCategory = keyof typeof STYLE_OVERRIDE_CATEGORIES;
  *    are fed into the contrast diagnostic as `opacityMultiplier` on the
  *    foreground alpha (see `styleContrastAccessibility.ts`), so they
  *    participate in the effective-color check just like the color itself.
- *    Only `fillOpacity` is contrast-irrelevant and overridable.
+ *    Only `fillOpacity` and `fillPatternOpacity` are contrast-irrelevant and
+ *    overridable.
  * 3. **Text-typed keys must opt in to lowercase.** The override path in
  *    `returnSelectedStyleStateVariableDefinition` only lowercases string
  *    values when the attribute spec sets `toLowerCase: true`, but the
  *    parallel `<styleDefinition>` path lowercases unconditionally. Today's
- *    text-typed override keys (`markerStyle`, `lineStyle`) all opt in; the
- *    guard fails loudly if a new one slips in without opting in.
+ *    text-typed override keys (`markerStyle`, `lineStyle`, `fillStyle`) all
+ *    opt in; the guard fails loudly if a new one slips in without opting in.
  */
 for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
     for (const [key, spec] of Object.entries(group)) {
@@ -336,11 +391,15 @@ for (const [category, group] of Object.entries(STYLE_OVERRIDE_CATEGORIES)) {
                     `If this is intentional, also reconcile the lowercase asymmetry in returnSelectedStyleStateVariableDefinition.`,
             );
         }
-        if (key.endsWith("Opacity") && key !== "fillOpacity") {
+        if (
+            key.endsWith("Opacity") &&
+            key !== "fillOpacity" &&
+            key !== "fillPatternOpacity"
+        ) {
             throw new Error(
                 `Style override category "${category}" contains contrast-feeding opacity key "${key}"; ` +
                     `lineOpacity and markerOpacity feed the WCAG contrast diagnostic as an opacityMultiplier on the foreground alpha, ` +
-                    `so they stay <styleDefinition>-only alongside colors. Only fillOpacity is contrast-irrelevant and overridable.`,
+                    `so they stay <styleDefinition>-only alongside colors. Only fillOpacity and fillPatternOpacity are contrast-irrelevant and overridable.`,
             );
         }
         if (spec.componentType === "text" && !spec.toLowerCase) {
@@ -435,17 +494,6 @@ function addMissingColorWordsToStyleDefinition(
     return styleDef;
 }
 
-/** Applies missing color-word enrichment to an entire style-definition map. */
-function addMissingColorWordsToStyleDefinitions(
-    styleDefinitions: StyleDefinitions,
-): StyleDefinitions {
-    for (const styleDef of Object.values(styleDefinitions)) {
-        addMissingColorWordsToStyleDefinition(styleDef);
-    }
-
-    return styleDefinitions;
-}
-
 /**
  * Clones the baseline default style and enriches it with any missing color words.
  */
@@ -456,8 +504,98 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
 }
 
 /**
- * For selected color items, adds missing dark-mode color values (mirroring light mode)
- * and color-word fields without overwriting authored word overrides.
+ * Derives a dark-mode color for one color item from its light-mode value.
+ *
+ * Two strategies are used, and the choice between them is deliberate — it tracks
+ * **what the color is contrasted against**, not the kind of item:
+ *
+ *  - **Contrasted against the *fixed* canvas** (`line`, `marker`, `fill`,
+ *    `highContrast`): visibility on the dark canvas is *monotonic in lightness*
+ *    (lighter = more visible), so we lighten the color just until it clears its
+ *    threshold against the dark canvas. Because the other side of the contrast
+ *    is a known constant, this **guarantees** an accessible result by
+ *    construction (no diagnostic needed) with zero author effort. Note that
+ *    lightness *inversion* would be wrong here: a light-mode-accessible graphic
+ *    color may already sit on the lighter half of the scale, and inverting its
+ *    lightness would push it *darker* and below threshold.
+ *
+ *  - **Contrasted against an *author-variable* partner** (`text` vs
+ *    `background`): the goal is to flip the figure/ground relationship
+ *    (white-on-black → black-on-white), so we invert each color's lightness
+ *    independently of the other. Text uses this same inversion even when no
+ *    background is authored, so its behavior stays stable if a background later
+ *    comes from a parent/child style block. Independence keeps the result
+ *    order/locality-invariant but means the derived dark value is not accessible
+ *    by construction, so contrast is checked after the fact by the diagnostics
+ *    (which also suggest a concrete `*ColorDarkMode` fix).
+ *
+ * The unifying rule: derive each color to be accessible against its fixed
+ * reference when it has one; only fall back to independent inversion + diagnostic
+ * when two author-variable colors form a pair. If graphic items ever gain an
+ * author-specified background, that graphic/background pairing should move to
+ * the second strategy (invert + diagnose), the same way text/background does.
+ *
+ * Per-item thresholds and opacity handling:
+ *  - `highContrast`: text threshold (4.5:1) against the canvas, opaque.
+ *  - `line` / `marker`: graphic threshold (3:1), composited with the item's
+ *    stroke/marker opacity so the derived color reads at its rendered opacity.
+ *  - `fill`: graphic threshold (3:1) treated as opaque — fills paint at a low
+ *    `fillOpacity` and are decorative, so we derive a readable tint and let the
+ *    opacity apply at render time rather than forcing the (unreachable) 3:1 on
+ *    the translucent fill.
+ */
+function deriveDarkModeColorForItem(
+    item: (typeof coloredItemsForWords)[number],
+    lightColor: string,
+    styleDef: StyleDefinition,
+): string {
+    if (item === "background") {
+        return deriveAccessibleDarkModeBackground(lightColor);
+    }
+
+    if (item === "text") {
+        // Invert independently of the background (a fixed canvas is not the
+        // reference here — the partner background is author-variable), so the
+        // pair's accessibility is verified by the diagnostics rather than
+        // guaranteed by construction. See deriveDarkModeColorForItem docs.
+        return invertLightness(lightColor);
+    }
+
+    if (item === "highContrast") {
+        return deriveAccessibleDarkModeColor({
+            lightColor,
+            threshold: TEXT_CONTRAST_THRESHOLD,
+        });
+    }
+
+    if (item === "line" || item === "marker") {
+        const opacityKey = `${item}Opacity` as StyleDefinitionKey;
+        const opacityDefault = DEFAULT_STYLE_VALUES[
+            opacityKey as keyof typeof DEFAULT_STYLE_VALUES
+        ] as number | undefined;
+        const opacity =
+            getStyleValueNumber(styleDef, opacityKey) ?? opacityDefault ?? 1;
+        return deriveAccessibleDarkModeColor({
+            lightColor,
+            threshold: GRAPHIC_CONTRAST_THRESHOLD,
+            opacityMultiplier: opacity,
+        });
+    }
+
+    // fill (and any future graphic item): readable opaque tint.
+    return deriveAccessibleDarkModeColor({
+        lightColor,
+        threshold: GRAPHIC_CONTRAST_THRESHOLD,
+    });
+}
+
+/**
+ * For each color item where the author supplied a light-mode color but no
+ * dark-mode color, derives an accessible dark-mode color (see
+ * {@link deriveDarkModeColorForItem}). Authored dark-mode colors are left
+ * untouched. Missing `*Word` descriptors (light and dark) are then derived from
+ * the resulting color values, so the dark-mode word reflects the derived
+ * dark-mode color rather than the light-mode one.
  *
  * Exported so the LSP-side static styleDefinition resolver (issue #1198) can
  * apply the same per-block normalization the worker runs before merging an
@@ -469,35 +607,42 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
 export function addMissingChildStyleColorFields(
     styleDef: StyleDefinition,
 ): StyleDefinition {
+    // Each color item's dark-mode value is derived independently of the others,
+    // so the order here doesn't affect the result.
     for (const item of coloredItemsForWords) {
-        const colorKey = `${item}Color` as StyleDefinitionKey;
-        const colorWordKey = `${colorKey}Word` as StyleDefinitionKey;
-        const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
-        const darkWordKey = `${colorWordKey}DarkMode` as StyleDefinitionKey;
-
-        if (colorKey in styleDef && !(darkKey in styleDef)) {
-            const colorValue = styleDef[colorKey]?.style;
-            if (colorValue !== undefined) {
-                const colorPosition = styleDef[colorKey]?.position;
-                setStyleValue(styleDef, darkKey, colorValue, colorPosition);
-            }
-
-            if (colorWordKey in styleDef && !(darkWordKey in styleDef)) {
-                const wordValue = styleDef[colorWordKey]?.style;
-                if (typeof wordValue === "string") {
-                    const wordPosition = styleDef[colorWordKey]?.position;
-                    setStyleValue(
-                        styleDef,
-                        darkWordKey,
-                        wordValue,
-                        wordPosition,
-                    );
-                }
-            }
-        }
+        deriveMissingDarkModeColor(styleDef, item);
     }
 
     return addMissingColorWordsToStyleDefinition(styleDef);
+}
+
+/**
+ * Derives the missing `${item}ColorDarkMode` value for one color item from its
+ * light-mode `${item}Color`, if the light color is present and the dark color is
+ * not. The derived value carries no source position: the per-channel contrast
+ * diagnostics only flag values that have a position, which keeps those
+ * diagnostics scoped to author-supplied `*ColorDarkMode` values. (A derived
+ * text/background *combination* that ends up inaccessible is reported separately
+ * by the contrast diagnostics, anchored to the authored light colors.)
+ */
+function deriveMissingDarkModeColor(
+    styleDef: StyleDefinition,
+    item: (typeof coloredItemsForWords)[number],
+): void {
+    const colorKey = `${item}Color` as StyleDefinitionKey;
+    const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
+
+    if (!(colorKey in styleDef) || darkKey in styleDef) {
+        return;
+    }
+
+    const colorValue = getStyleValueString(styleDef, colorKey);
+    if (colorValue === undefined) {
+        return;
+    }
+
+    const darkColor = deriveDarkModeColorForItem(item, colorValue, styleDef);
+    setStyleValue(styleDef, darkKey, darkColor);
 }
 
 /**
@@ -510,6 +655,9 @@ export function addMissingChildStyleColorFields(
  * - `lineStyle` (text) → `lineStyleWord`: `"dashed"`, `"dotted"`, else `""`.
  * - `markerStyle` (text) → `markerStyleWord`: copies the value, then normalizes
  *   `"circle"` → `"point"` and any `"triangle*"` → `"triangle"`.
+ * - `fillStyle` (text) → `fillStyleWord`: human-readable description of the
+ *   fill pattern (e.g. `"horizontal lines"`, `"diamonds"`), or `""` for
+ *   `"solid"`.
  *
  * Used both by the styleDefinitions-merge path and by the per-component
  * override path so the two share identical word-derivation rules.
@@ -582,13 +730,67 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
             );
         }
     }
+
+    if ("fillStyle" in styleDef && !("fillStyleWord" in styleDef)) {
+        const fillStyle = getStyleValueString(styleDef, "fillStyle");
+        if (fillStyle) {
+            const fillStylePosition = styleDef.fillStyle?.position;
+            const fillStyleWordMap: Record<string, string> = {
+                solid: "",
+                horizontal: "horizontal lines",
+                vertical: "vertical lines",
+                diagonal: "diagonal lines",
+                backdiagonal: "reverse diagonal lines",
+                dots: "dots",
+                diamonds: "diamonds",
+            };
+            const word = fillStyleWordMap[fillStyle] ?? "";
+            setStyleValue(styleDef, "fillStyleWord", word, fillStylePosition);
+        }
+    }
 }
 
 /**
- * Returns built-in style presets used when no ancestor style definitions exist.
+ * Expands a palette's compact raw style definitions into the full wrapped
+ * form: values are normalized to `{ style, position? }`, missing
+ * `*ColorDarkMode` values are derived from their light-mode colors, and
+ * missing `*Word` descriptors are derived from the resulting values. Authored
+ * values (including the default palette's hand-authored dark colors and
+ * words) are left untouched, so every derivation step is a no-op for the
+ * `"default"` palette and its expansion is identical to the historical
+ * six-preset output.
  *
- * Preset color-word fields are injected in a second pass from the corresponding
- * color values.
+ * Returns a fresh map on every call; the input palette data is not mutated.
+ */
+export function expandStylePalette(palette: StylePalette): StyleDefinitions {
+    const styleDefinitions = normalizeStyleDefinitionsValues(palette.styles);
+
+    for (const styleDef of Object.values(styleDefinitions)) {
+        addMissingChildStyleColorFields(styleDef);
+        deriveMissingStyleWords(styleDef);
+    }
+
+    return styleDefinitions;
+}
+
+/**
+ * Returns the expanded style definitions of the named built-in palette,
+ * falling back to the `"default"` palette when the name is not registered
+ * (callers surface their own unknown-name warning).
+ *
+ * Returns a fresh map on every call, so callers may mutate the result.
+ */
+export function returnPaletteStyleDefinitions(
+    paletteName: string,
+): StyleDefinitions {
+    const palette =
+        STYLE_PALETTES[paletteName] ?? STYLE_PALETTES[DEFAULT_PALETTE_NAME];
+    return expandStylePalette(palette);
+}
+
+/**
+ * Returns built-in style presets used when no ancestor style definitions exist
+ * — the expansion of the `"default"` palette (see `palettes/default.ts`).
  *
  * Exported so the LSP-side static styleDefinition resolver (issue #1198) can
  * seed its inheritance walk with the same 6 numbered presets the runtime uses
@@ -598,127 +800,14 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
  *
  * IMPORTANT: this function is lazily cached on the LSP side (see
  * `resolve-active-style.ts`'s `_builtInPresetsCache`), so its output must
- * stay pure w.r.t. mutable module state. Today it spreads
- * `DEFAULT_STYLE_VALUES` directly; do not switch it to read from the
- * mutable `defaultStyle` variable without first dropping that cache or the
- * LSP will silently desync from runtime mutations.
+ * stay pure w.r.t. mutable module state. Palette expansion reads only the
+ * palette registry, which is deeply frozen at registration precisely to
+ * protect this invariant; do not switch it to read from the mutable
+ * `defaultStyle` variable without first dropping that cache or the LSP will
+ * silently desync from runtime mutations.
  */
 export function returnDefaultStyleDefinitions(): StyleDefinitions {
-    return addMissingColorWordsToStyleDefinitions(
-        normalizeStyleDefinitionsValues({
-            1: { ...DEFAULT_STYLE_VALUES },
-            2: {
-                lineColor: "#D4042D",
-                lineColorDarkMode: "#D4042D",
-                lineOpacity: 0.7,
-                lineWidth: 2,
-                lineWidthWord: "",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "#D4042D",
-                markerColorDarkMode: "#D4042D",
-                markerOpacity: 0.7,
-                markerStyle: "square",
-                markerStyleWord: "square",
-                markerSize: 5,
-                fillColor: "#D4042D",
-                fillColorDarkMode: "#D4042D",
-                fillOpacity: 0.3,
-                textColor: "#D4042D",
-                textColorDarkMode: "#D4042D",
-                highContrastColor: "#D4042D",
-                highContrastColorDarkMode: "#D4042D",
-            },
-            3: {
-                lineColor: "#F19143",
-                lineColorDarkMode: "#F19143",
-                lineOpacity: 0.7,
-                lineWidth: 3,
-                lineWidthWord: "",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "#F19143",
-                markerColorDarkMode: "#F19143",
-                markerOpacity: 0.7,
-                markerStyle: "triangle",
-                markerStyleWord: "triangle",
-                markerSize: 5,
-                fillColor: "#F19143",
-                fillColorDarkMode: "#F19143",
-                fillOpacity: 0.3,
-                textColor: "#BE5A0E",
-                textColorDarkMode: "#BE5A0E",
-                highContrastColor: "#BE5A0E",
-                highContrastColorDarkMode: "#BE5A0E",
-            },
-            4: {
-                lineColor: "#644CD6",
-                lineColorDarkMode: "#644CD6",
-                lineOpacity: 0.7,
-                lineWidth: 2,
-                lineWidthWord: "",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "#644CD6",
-                markerColorDarkMode: "#644CD6",
-                markerOpacity: 0.7,
-                markerStyle: "diamond",
-                markerStyleWord: "diamond",
-                markerSize: 5,
-                fillColor: "#644CD6",
-                fillColorDarkMode: "#644CD6",
-                fillOpacity: 0.3,
-                textColor: "#644CD6",
-                textColorDarkMode: "#644CD6",
-                highContrastColor: "#644CD6",
-                highContrastColorDarkMode: "#644CD6",
-            },
-            5: {
-                lineColor: "black",
-                lineColorDarkMode: "white",
-                lineOpacity: 1,
-                lineWidth: 1,
-                lineWidthWord: "thin",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "black",
-                markerColorDarkMode: "white",
-                markerOpacity: 1,
-                markerStyle: "circle",
-                markerStyleWord: "point",
-                markerSize: 5,
-                fillColor: "black",
-                fillColorDarkMode: "white",
-                fillOpacity: 0.7,
-                textColor: "black",
-                textColorDarkMode: "white",
-                highContrastColor: "black",
-                highContrastColorDarkMode: "black",
-            },
-            6: {
-                lineColor: "gray",
-                lineColorDarkMode: "gray",
-                lineOpacity: 0.7,
-                lineWidth: 1,
-                lineWidthWord: "thin",
-                lineStyle: "dotted",
-                lineStyleWord: "dotted",
-                markerColor: "gray",
-                markerColorDarkMode: "gray",
-                markerOpacity: 0.7,
-                markerStyle: "circle",
-                markerStyleWord: "point",
-                markerSize: 5,
-                fillColor: "gray",
-                fillColorDarkMode: "gray",
-                fillOpacity: 0.3,
-                textColor: "#757575",
-                textColorDarkMode: "#757575",
-                highContrastColor: "#757575",
-                highContrastColorDarkMode: "#757575",
-            },
-        }),
-    );
+    return returnPaletteStyleDefinitions(DEFAULT_PALETTE_NAME);
 }
 
 /**

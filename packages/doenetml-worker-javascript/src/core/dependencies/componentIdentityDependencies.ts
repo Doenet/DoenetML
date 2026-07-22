@@ -251,18 +251,16 @@ export class AttributeComponentDependency extends Dependency {
                     comp.constructor.implicitPropReturnsSameType
                 )
             ) {
-                if (
-                    !(
-                        comp.state[
-                            propVariable
-                        ]?.shadowingInstructions?.attributesToShadow?.includes(
-                            this.attributeName,
-                        ) ||
-                        comp.constructor.createAttributesObject()[
-                            this.attributeName
-                        ]?.propagateToProps
-                    )
-                ) {
+                if (!(
+                    comp.state[
+                        propVariable
+                    ]?.shadowingInstructions?.attributesToShadow?.includes(
+                        this.attributeName,
+                    ) ||
+                    comp.constructor.createAttributesObject()[
+                        this.attributeName
+                    ]?.propagateToProps
+                )) {
                     break;
                 }
             }

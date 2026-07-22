@@ -26,7 +26,8 @@
         "test:before": "npm run build:test2",
         "build:test1": "wireit",
         "build:test2": "wireit",
-        "test": "npm run build:test1 && vitest"
+        "test": "npm run build:test1 && vitest",
+        "create-renderer-stub": "vite-node scripts/create-renderer-stub.ts"
     },
     "wireit": {
         "build:test1": {

@@ -443,14 +443,12 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                     nxPty = numericalVertices[i]?.[1];
 
                     // only implement for constants
-                    if (
-                        !(
-                            Number.isFinite(prPtx) &&
-                            Number.isFinite(prPty) &&
-                            Number.isFinite(nxPtx) &&
-                            Number.isFinite(nxPty)
-                        )
-                    ) {
+                    if (!(
+                        Number.isFinite(prPtx) &&
+                        Number.isFinite(prPty) &&
+                        Number.isFinite(nxPtx) &&
+                        Number.isFinite(nxPty)
+                    )) {
                         vals.push(null);
                     } else {
                         let BA1sub = nxPtx - prPtx;

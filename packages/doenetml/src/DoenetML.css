@@ -71,6 +71,8 @@ html {
     --mainGreen: #3e844a;
     --canvas: white;
     --canvasText: black;
+    --revealButtonSurface: #e3e3e3;
+    --graphHandle: #404040;
     --lightGreen: #a6f19f;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #6d4445;
@@ -78,13 +80,17 @@ html {
     --lightOrange: #efab34;
     --mainOrange: #a36600;
     --mainPurple: #4a03d9;
+    --errorText: var(--mainRed);
+    --indicatorHoverBlue: var(--lightBlue);
+    --buttonHoverBlue: var(--lightBlue);
+    --doenetTagColor: #3e844a;
 }
 
 [data-theme="dark"] {
     font-family: "Open Sans" !important;
     --menuWidth: 220px;
     --mainBlue: #1a5a99;
-    --lightBlue: hsl(209, 54%, 82%);
+    --lightBlue: #1e3a5f;
     --solidLightBlue: #1a5a99;
     --mainGray: #a9a9a9;
     --donutBody: #eea177;
@@ -92,17 +98,23 @@ html {
     --mainBorder: 2px solid white;
     --mainBorderRadius: 5px;
     --mainRed: #c1292e;
-    --lightRed: hsl(0, 54%, 82%);
+    --lightRed: #7f1d1d;
     --mainGreen: #3e844a;
     --canvas: #121212;
     --canvasText: white;
-    --lightGreen: #a6f19f;
+    --revealButtonSurface: #3a3a3a;
+    --graphHandle: #b0b0b0;
+    --lightGreen: #1a5e20;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #a9abe5;
     --mainYellow: #efab34;
-    --lightOrange: #efab34;
+    --lightOrange: #7a3e00;
     --mainOrange: #a36600;
-    --mainPurple: #4a03d9;
+    --mainPurple: #7c3aed;
+    --errorText: #ff6b6b;
+    --indicatorHoverBlue: #5b8cb5;
+    --buttonHoverBlue: hsl(209, 54%, 82%);
+    --doenetTagColor: #5cb870;
 }
 .doenet-viewer {
     font-family: "Open Sans" !important;
@@ -217,6 +229,18 @@ div.jxgbox input[type="checkbox"] {
     user-select: none;
 }
 
+/*
+ * Keyboard-focus outline for graph objects. JSXGraph's own stylesheet sets a
+ * thin dotted outline with no explicit color (so it inherits a non-theme-aware
+ * default that is invisible on the dark canvas). Force a theme-aware outline so
+ * the focused object is visible in both light and dark mode.
+ */
+.jxgbox :focus,
+.jxgbox :focus-visible {
+    outline: 2px solid var(--canvasText);
+    outline-offset: 1px;
+}
+
 .JXGtext {
     font-family: Courier, monospace;
     /*
@@ -316,28 +340,28 @@ div.jxgbox input[type="checkbox"] {
 /* CSS rules for the wrapping div in fullscreen mode */
 
 .JXG_wrap_private:-moz-full-screen {
-    background-color: #ccc;
+    background-color: var(--canvas);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:-webkit-full-screen {
-    background-color: #ccc;
+    background-color: var(--canvas);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:fullscreen {
-    background-color: #ccc;
+    background-color: var(--canvas);
     padding: 0;
     width: 100%;
     height: 100%;
 }
 
 .JXG_wrap_private:-ms-fullscreen {
-    background-color: #ccc;
+    background-color: var(--canvas);
     padding: 0;
     width: 100%;
     height: 100%;
@@ -400,10 +424,41 @@ div.jxgbox input[type="checkbox"] {
     padding: 1px 7px 1px 7px;
 }
 
+/*
+ * Smart-label dark-mode overrides.
+ *
+ * `.smart-label-pure`: transparent background with hardcoded black text.
+ *   On a dark JSXGraph canvas this produces invisible text — switch to
+ *   canvas-text color so it adapts to the theme.
+ *
+ * `.smart-label-outline`: white bubble on the dark canvas is jarring.
+ *   Use an elevated-surface background consistent with other dark-mode
+ *   popover surfaces, with a theme-aware border and text.
+ */
+[data-theme="dark"] .smart-label-pure {
+    color: var(--canvasText);
+}
+
+[data-theme="dark"] .smart-label-outline {
+    background-color: #2d2d2d;
+    border-color: var(--canvasText);
+    color: var(--canvasText);
+}
+
 /* Fix: Ensure div-based paragraphs maintain standard paragraph spacing */
 .doenet-viewer .para {
     margin-block-start: 1em;
     margin-block-end: 1em;
+}
+
+/*
+ * DoenetML <tag> element: render as green inline code. `--doenetTagColor`
+ * stays separate from `--mainGreen` because button backgrounds need the darker
+ * `--mainGreen` shade for white foreground text, while inline tags need a
+ * brighter dark-mode green to stay readable on the canvas.
+ */
+.doenet-viewer .doenet-tag {
+    color: var(--doenetTagColor);
 }
 
 /**************************************************
