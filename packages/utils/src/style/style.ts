@@ -1097,11 +1097,20 @@ function normalizeReaderStyleValue(
  * the reader's light colors, and values are stored without source positions
  * (a second guard keeping diagnostics quiet on them). Overrides apply only
  * to style numbers already present in the map.
+ *
+ * Both lookups against host-supplied keys use own-property checks: the
+ * overrides are raw JSON, so a hostile or buggy host could send prototype
+ * key names — a style number of `"__proto__"` would otherwise resolve
+ * `styleDefinitions[styleNumber]` to `Object.prototype` and the final
+ * `Object.assign` would pollute it process-wide, and a key of
+ * `"constructor"` would pass an `in`-based filter via the prototype chain.
  */
 export function applyReaderStyleOverrides(
     styleDefinitions: StyleDefinitions,
     overrides: ReaderStyleOverrides | null | undefined,
 ): void {
+    const hasOwn = Object.prototype.hasOwnProperty;
+
     const readerPaletteName = resolveReaderPaletteName(overrides);
     if (readerPaletteName != null) {
         for (const styleNumber of Object.keys(styleDefinitions)) {
@@ -1119,6 +1128,9 @@ export function applyReaderStyleOverrides(
     }
 
     for (const [styleNumber, valueOverrides] of Object.entries(styles)) {
+        if (!hasOwn.call(styleDefinitions, styleNumber)) {
+            continue;
+        }
         const target = styleDefinitions[styleNumber];
         if (!target || !valueOverrides || typeof valueOverrides !== "object") {
             continue;
@@ -1126,7 +1138,7 @@ export function applyReaderStyleOverrides(
 
         const block: StyleDefinition = {};
         for (const [key, value] of Object.entries(valueOverrides)) {
-            if (!(key in styleAttributes) || key.includes("Word")) {
+            if (!hasOwn.call(styleAttributes, key) || key.includes("Word")) {
                 continue;
             }
             const normalized = normalizeReaderStyleValue(
@@ -1471,9 +1483,10 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
     // final layer — the map `selectedStyle` and every other style consumer
     // reads. Kept separate from `authoredStyleDefinitions` so reader values
     // never reach the diagnostics or a descendant's merge base (see above),
-    // while still winning over everything authored at every level. Built
-    // from per-style clones so the authored map stays pristine
-    // (`applyReaderStyleOverrides` mutates its argument).
+    // while still winning over everything authored at every level. When
+    // overrides exist, the overlay is built from per-style clones so the
+    // authored map stays pristine (`applyReaderStyleOverrides` mutates its
+    // argument).
     stateVariableDefinitions.styleDefinitions = {
         returnDependencies: () => ({
             authoredStyleDefinitions: {
@@ -1486,6 +1499,20 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             },
         }),
         definition({ dependencyValues }: { dependencyValues: any }) {
+            if (dependencyValues.readerStyleOverrides == null) {
+                // Common case (no reader overrides): share the authored map
+                // itself rather than cloning it per section. Safe because no
+                // consumer mutates the map — `selectedStyle` clones before
+                // merging per-component overrides, and descendant sections
+                // re-normalize each style definition into fresh objects.
+                return {
+                    setValue: {
+                        styleDefinitions:
+                            dependencyValues.authoredStyleDefinitions,
+                    },
+                };
+            }
+
             const styleDefinitions: StyleDefinitions = {};
             for (const styleNumber in dependencyValues.authoredStyleDefinitions) {
                 styleDefinitions[styleNumber] = Object.assign(

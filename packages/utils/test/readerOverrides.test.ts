@@ -147,6 +147,28 @@ describe("applyReaderStyleOverrides", () => {
         expect(defs[1].markerFilled?.style).toBe(true);
     });
 
+    it("ignores prototype key names in host JSON", () => {
+        const defs = returnDefaultStyleDefinitions();
+        const before = JSON.stringify(defs);
+
+        // A "__proto__" style number must not resolve through the prototype
+        // chain to Object.prototype (which the final merge would then
+        // pollute process-wide), and prototype-named style keys must not
+        // pass the known-key filter via inheritance.
+        applyReaderStyleOverrides(defs, {
+            styles: JSON.parse(
+                '{"__proto__": {"lineColor": "red"}, "1": {"constructor": "red", "hasOwnProperty": "red"}}',
+            ),
+        });
+
+        expect(JSON.stringify(defs)).toBe(before);
+        expect(
+            ({} as Record<string, unknown>).lineColor,
+            "Object.prototype polluted",
+        ).toBeUndefined();
+        expect(Object.keys(defs[1])).not.toContain("constructor");
+    });
+
     it("lowercases string values like authored styleDefinitions do", () => {
         const defs = returnDefaultStyleDefinitions();
         applyReaderStyleOverrides(defs, {
