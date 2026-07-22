@@ -97,6 +97,56 @@ describe("applyReaderStyleOverrides", () => {
         expect(defs[42]).toBeUndefined();
     });
 
+    it("coerces JSON values to each key's declared type like authored attributes", () => {
+        const defs = returnDefaultStyleDefinitions();
+        applyReaderStyleOverrides(defs, {
+            styles: {
+                1: {
+                    lineWidth: "1",
+                    markerFilled: "false",
+                    markerStyle: "triangleDown",
+                } as any,
+            },
+        });
+
+        // Numeric string → number, and the derived word describes the
+        // coerced value (1 → "thin"), not the pre-override width.
+        expect(getStyleValueNumber(defs[1], "lineWidth")).toBe(1);
+        expect(getStyleValueString(defs[1], "lineWidthWord")).toBe("thin");
+        // Boolean string → boolean.
+        expect(defs[1].markerFilled?.style).toBe(false);
+        // Enum values lowercase to the renderer-correct spelling, with the
+        // word normalized the same way authored values are.
+        expect(getStyleValueString(defs[1], "markerStyle")).toBe(
+            "triangledown",
+        );
+        expect(getStyleValueString(defs[1], "markerStyleWord")).toBe(
+            "triangle",
+        );
+    });
+
+    it("drops values that cannot be normalized to the key's type", () => {
+        const defs = returnDefaultStyleDefinitions();
+        const lineOpacityBefore = getStyleValueNumber(defs[1], "lineOpacity");
+        applyReaderStyleOverrides(defs, {
+            styles: {
+                1: {
+                    markerSize: NaN,
+                    lineOpacity: "not-a-number",
+                    markerColor: 42,
+                    markerFilled: "yes",
+                } as any,
+            },
+        });
+
+        expect(getStyleValueNumber(defs[1], "markerSize")).toBe(5);
+        expect(getStyleValueNumber(defs[1], "lineOpacity")).toBe(
+            lineOpacityBefore,
+        );
+        expect(getStyleValueString(defs[1], "markerColor")).toBe("#1f5dff");
+        expect(defs[1].markerFilled?.style).toBe(true);
+    });
+
     it("lowercases string values like authored styleDefinitions do", () => {
         const defs = returnDefaultStyleDefinitions();
         applyReaderStyleOverrides(defs, {

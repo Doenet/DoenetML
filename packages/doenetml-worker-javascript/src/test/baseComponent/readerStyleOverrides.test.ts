@@ -242,6 +242,29 @@ describe("Reader style overrides @group4", async () => {
         ).eq("green");
     });
 
+    it("reader values mixed with authored ones stay diagnostic-free in sections", async () => {
+        // A section re-merges its ancestor's style definitions (which already
+        // carry the reader's positionless values) and re-runs the contrast
+        // diagnostics. A pair diagnostic anchored to the AUTHORED partner's
+        // position (here backgroundColor) must not fire for a contrast
+        // failure the READER's textColor caused.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<styleDefinition styleNumber="2" textColor="black" backgroundColor="#ffff99" />
+<section name="s"><point name="P" styleNumber="2" /></section>
+`,
+            styleOverrides: { styles: { 2: { textColor: "#ffff00" } } },
+        });
+
+        expect(
+            (await selectedStyleOf(core, resolvePathToNodeIdx, "s.P"))
+                .textColor,
+        ).eq("#ffff00");
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.accessibility ?? []).toEqual([]);
+    });
+
     it("reader overrides do not emit contrast diagnostics", async () => {
         // Yellow on white would fail every contrast threshold; supplied by
         // the reader it must stay diagnostic-free.

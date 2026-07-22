@@ -12,6 +12,7 @@ import {
     type StyleAttributes,
     type StyleDefinition,
     type StyleDefinitionKey,
+    type StyleDefinitionPrimitive,
     type StyleDefinitions,
 } from "./styleDefinitionHelpers";
 import { contrastAccessibilityDiagnosticsForStyleDefinitions } from "./styleContrastAccessibility";
@@ -1022,12 +1023,65 @@ function childrenExpandingSetups(
 }
 
 /**
+ * Normalizes one reader-supplied override value to the type its style key
+ * declares, mirroring what the attribute machinery does for authored values
+ * (a number-typed attribute like `lineWidth="6"` reaches the merge as the
+ * number `6`, a boolean like `markerFilled="true"` as `true`). Reader
+ * overrides arrive as raw JSON from the host, so without this a string
+ * `"6"` for `lineWidth` would flow to renderers where a number is expected —
+ * and, because word derivation reads values type-checked, would leave a
+ * stale `lineWidthWord` describing the pre-override width.
+ *
+ * Strings are lowercased (matching the unconditional lowercasing of the
+ * authored `<styleDefinition>` path, which is what makes color names and
+ * enum values like `markerStyle: "triangleDown"` case-insensitive and
+ * renderer-correct). Returns `undefined` for values that cannot be
+ * normalized to the key's declared type; callers drop those.
+ */
+function normalizeReaderStyleValue(
+    key: StyleDefinitionKey,
+    value: unknown,
+): StyleDefinitionPrimitive | undefined {
+    switch (styleAttributes[key]?.componentType) {
+        case "number": {
+            const num =
+                typeof value === "number"
+                    ? value
+                    : typeof value === "string" && value.trim() !== ""
+                      ? Number(value)
+                      : NaN;
+            return Number.isFinite(num) ? num : undefined;
+        }
+        case "boolean": {
+            if (typeof value === "boolean") {
+                return value;
+            }
+            if (typeof value === "string") {
+                const lowered = value.toLowerCase();
+                if (lowered === "true") {
+                    return true;
+                }
+                if (lowered === "false") {
+                    return false;
+                }
+            }
+            return undefined;
+        }
+        default:
+            // text (colors, enum-valued styles, ...)
+            return typeof value === "string" ? value.toLowerCase() : undefined;
+    }
+}
+
+/**
  * Applies reader (end-user) style overrides on top of a merged
- * style-definition map, in place. This is the final layer of the merge: it
- * runs after authored `<styleDefinition>`s and after the contrast
- * diagnostics, so reader values win over everything authored, never emit
- * author-facing diagnostics, and cannot suppress diagnostics about authored
- * values.
+ * style-definition map, in place. This is the final layer of the merge:
+ * it runs on a clone of the merged authored map (the
+ * `authoredStyleDefinitions` state variable), which is what the contrast
+ * diagnostics inspect and what descendant sections inherit — so reader
+ * values win over everything authored, never emit author-facing
+ * diagnostics (at any section depth), and cannot suppress diagnostics
+ * about authored values.
  *
  * When the overrides name a registered `palette`, that palette's expansion
  * REPLACES the merged map wholesale — authored `<stylePalette>` selections
@@ -1037,10 +1091,12 @@ function childrenExpandingSetups(
  * on top of the reader's palette.
  *
  * Per override block: unknown and `*Word` keys are dropped (words are always
- * re-derived so style descriptions stay truthful), missing dark-mode colors
- * are derived from the reader's light colors, and values are stored without
- * source positions (a second guard keeping diagnostics quiet on them).
- * Overrides apply only to style numbers already present in the map.
+ * re-derived so style descriptions stay truthful), values are normalized to
+ * each key's declared type (see {@link normalizeReaderStyleValue}) with
+ * un-normalizable values dropped, missing dark-mode colors are derived from
+ * the reader's light colors, and values are stored without source positions
+ * (a second guard keeping diagnostics quiet on them). Overrides apply only
+ * to style numbers already present in the map.
  */
 export function applyReaderStyleOverrides(
     styleDefinitions: StyleDefinitions,
@@ -1070,22 +1126,17 @@ export function applyReaderStyleOverrides(
 
         const block: StyleDefinition = {};
         for (const [key, value] of Object.entries(valueOverrides)) {
-            if (
-                !(key in styleAttributes) ||
-                key.includes("Word") ||
-                value == null
-            ) {
+            if (!(key in styleAttributes) || key.includes("Word")) {
                 continue;
             }
-            const type = typeof value;
-            if (type !== "string" && type !== "number" && type !== "boolean") {
-                continue;
-            }
-            setStyleValue(
-                block,
+            const normalized = normalizeReaderStyleValue(
                 key as StyleDefinitionKey,
-                type === "string" ? (value as string).toLowerCase() : value,
+                value,
             );
+            if (normalized === undefined) {
+                continue;
+            }
+            setStyleValue(block, key as StyleDefinitionKey, normalized);
         }
 
         if (Object.keys(block).length === 0) {
@@ -1265,14 +1316,25 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
         },
     };
 
-    stateVariableDefinitions.styleDefinitions = {
+    // The merged AUTHORED style definitions: palette base (local or
+    // inherited), ancestor definitions, and local <styleDefinition> children
+    // — with reader overrides deliberately NOT applied. This is the map the
+    // contrast diagnostics inspect and the map descendant sections inherit
+    // as their merge base. Both must see only authored values: a reader's
+    // positionless value paired with an authored positioned partner (e.g. a
+    // reader textColor against an authored backgroundColor) would otherwise
+    // anchor a pair diagnostic to the authored position during a descendant
+    // section's re-merge, emitting an author-facing diagnostic for a
+    // contrast failure the reader caused.
+    stateVariableDefinitions.authoredStyleDefinitions = {
+        // Always evaluated so the diagnostics side effect reliably runs.
         mustEvaluate: true,
         stateVariablesDeterminingDependencies: ["setupChildren"],
         returnDependencies({ stateValues }: { stateValues: any }) {
             let dependencies: Record<string, any> = {
                 ancestorWithStyle: {
                     dependencyType: "ancestor",
-                    variableNames: ["styleDefinitions"],
+                    variableNames: ["authoredStyleDefinitions"],
                 },
                 localStylePaletteName: {
                     dependencyType: "stateVariable",
@@ -1281,10 +1343,6 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 activeStylePaletteName: {
                     dependencyType: "stateVariable",
                     variableName: "activeStylePaletteName",
-                },
-                readerStyleOverrides: {
-                    dependencyType: "stateVariable",
-                    variableName: "readerStyleOverrides",
                 },
                 styleDefinitionSetupChildren: {
                     dependencyType: "child",
@@ -1324,7 +1382,7 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             } else if (dependencyValues.ancestorWithStyle) {
                 startingStateVariableDefinitions =
                     dependencyValues.ancestorWithStyle.stateValues
-                        .styleDefinitions;
+                        .authoredStyleDefinitions;
             }
 
             if (!startingStateVariableDefinitions) {
@@ -1402,18 +1460,46 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     styleDefinitions,
                 );
 
-            // Reader overrides are the final layer, applied AFTER the
-            // diagnostics run so reader values never produce author-facing
-            // diagnostics and cannot mask diagnostics about authored values.
+            return {
+                setValue: { authoredStyleDefinitions: styleDefinitions },
+                sendDiagnostics: diagnostics,
+            };
+        },
+    };
+
+    // The authored definitions with the reader's overrides applied as the
+    // final layer — the map `selectedStyle` and every other style consumer
+    // reads. Kept separate from `authoredStyleDefinitions` so reader values
+    // never reach the diagnostics or a descendant's merge base (see above),
+    // while still winning over everything authored at every level. Built
+    // from per-style clones so the authored map stays pristine
+    // (`applyReaderStyleOverrides` mutates its argument).
+    stateVariableDefinitions.styleDefinitions = {
+        returnDependencies: () => ({
+            authoredStyleDefinitions: {
+                dependencyType: "stateVariable",
+                variableName: "authoredStyleDefinitions",
+            },
+            readerStyleOverrides: {
+                dependencyType: "stateVariable",
+                variableName: "readerStyleOverrides",
+            },
+        }),
+        definition({ dependencyValues }: { dependencyValues: any }) {
+            const styleDefinitions: StyleDefinitions = {};
+            for (const styleNumber in dependencyValues.authoredStyleDefinitions) {
+                styleDefinitions[styleNumber] = Object.assign(
+                    {},
+                    dependencyValues.authoredStyleDefinitions[styleNumber],
+                );
+            }
+
             applyReaderStyleOverrides(
                 styleDefinitions,
                 dependencyValues.readerStyleOverrides,
             );
 
-            return {
-                setValue: { styleDefinitions },
-                sendDiagnostics: diagnostics,
-            };
+            return { setValue: { styleDefinitions } };
         },
     };
 
