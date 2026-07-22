@@ -135,6 +135,62 @@ describe("DoenetViewer (iframe wrapper) — serializable prop changes apply with
         assertNotReloaded();
     });
 
+    it("styleOverrides apply live and clear when the prop is dropped (no reload)", () => {
+        // The clear step deliberately passes `undefined` (dropping the prop)
+        // rather than `null`: JSON serialization drops undefined values and
+        // the iframe merges updates over previously-received props, so
+        // without explicit normalization the stale override would survive.
+        function Harness() {
+            const [overridden, setOverridden] = useState(false);
+            return (
+                <div>
+                    <button
+                        data-test="toggle-overrides"
+                        onClick={() => setOverridden((o) => !o)}
+                    >
+                        Toggle overrides
+                    </button>
+                    <DoenetViewer
+                        doenetML={`<point name="P" /><p>The $P.styleDescription point.</p>`}
+                        styleOverrides={
+                            overridden
+                                ? { styles: { 1: { markerColor: "purple" } } }
+                                : undefined
+                        }
+                        standaloneUrl={STANDALONE_BLOB_URL}
+                        cssUrl={STANDALONE_CSS_BLOB_URL}
+                        addVirtualKeyboard={false}
+                    />
+                </div>
+            );
+        }
+
+        cy.mount(<Harness />);
+
+        // Default style 1: a blue point.
+        cy.get("iframe", { timeout: IFRAME_READY_TIMEOUT })
+            .its("0.contentDocument.body", { timeout: CONTENT_TIMEOUT })
+            .should("contain.text", "The blue point.");
+
+        stampReloadMarker();
+
+        // Reader override wins over the default style, live.
+        cy.get("[data-test=toggle-overrides]").click();
+        cy.get("iframe")
+            .its("0.contentDocument.body", { timeout: 10_000 })
+            .should("contain.text", "The purple point.");
+
+        assertNotReloaded();
+
+        // Dropping the prop restores the authored/default styles.
+        cy.get("[data-test=toggle-overrides]").click();
+        cy.get("iframe")
+            .its("0.contentDocument.body", { timeout: 10_000 })
+            .should("contain.text", "The blue point.");
+
+        assertNotReloaded();
+    });
+
     it("a prop change during boot queues and applies once the iframe is ready", () => {
         function Harness() {
             const [darkMode, setDarkMode] = useState<"light" | "dark">("light");

@@ -1305,6 +1305,15 @@ type EditorIframeRemote = Comlink.Remote<{
 // reordering produces spurious diffs. If a new prop with an exotic value type
 // is added later, prefer a structural comparator over expanding what this
 // serializer handles.
+//
+// Because `undefined` values are dropped AND the iframe merges each update
+// over the props it last received, a prop that clears by going back to
+// `undefined` would silently stay stuck at its old value: the key vanishes
+// from the snapshot, so the iframe-side merge never overwrites it. Props
+// where `undefined` is a meaningful live value (rather than "initial-only,
+// never changes") must therefore be pinned to an explicit `null` below.
+// `styleOverrides` is such a prop: its documented clear gesture is passing
+// `null` *or* dropping the prop, and both must restore authored styles.
 function serializePropsSnapshot(
     seed: Record<string, any>,
     props: Record<string, any>,
@@ -1314,6 +1323,9 @@ function serializePropsSnapshot(
         if (typeof val !== "function") {
             snapshot[key] = val;
         }
+    }
+    if (snapshot.styleOverrides === undefined) {
+        snapshot.styleOverrides = null;
     }
     return JSON.stringify(snapshot);
 }
