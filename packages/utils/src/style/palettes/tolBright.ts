@@ -112,7 +112,7 @@ export const tolBrightPalette: StylePalette = {
             textColorWordDarkMode: "cyan",
             highContrastColorWordDarkMode: "cyan",
             lineWidth: 2,
-            markerStyle: "plus",
+            markerStyle: "triangleDown",
         },
         6: {
             lineColor: "#aa3377",
@@ -130,7 +130,7 @@ export const tolBrightPalette: StylePalette = {
             textColorWordDarkMode: "purple",
             highContrastColorWordDarkMode: "purple",
             lineWidth: 2,
-            markerStyle: "cross",
+            markerStyle: "triangleLeft",
         },
         7: {
             lineColor: "#939393",
@@ -144,7 +144,7 @@ export const tolBrightPalette: StylePalette = {
             textColorDarkMode: "#bbbbbb",
             lineWidth: 3,
             lineStyle: "dashed",
-            markerStyle: "circle",
+            markerStyle: "triangleRight",
         },
     },
 };

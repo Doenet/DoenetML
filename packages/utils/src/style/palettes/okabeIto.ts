@@ -131,7 +131,7 @@ export const okabeItoPalette: StylePalette = {
             fillColorDarkMode: "#ffffff",
             textColorDarkMode: "#ffffff",
             lineWidth: 2,
-            markerStyle: "plus",
+            markerStyle: "triangleDown",
         },
         6: {
             // yellow (canonical #f0e442, darkened to olive in light mode)
@@ -150,7 +150,7 @@ export const okabeItoPalette: StylePalette = {
             fillColorDarkMode: "#f0e442",
             textColorDarkMode: "#f0e442",
             lineWidth: 2,
-            markerStyle: "cross",
+            markerStyle: "triangleLeft",
         },
         7: {
             // sky blue (canonical #56b4e9, darkened for light mode)
@@ -175,7 +175,7 @@ export const okabeItoPalette: StylePalette = {
             highContrastColorWordDarkMode: "skyblue",
             lineWidth: 3,
             lineStyle: "dashed",
-            markerStyle: "circle",
+            markerStyle: "triangleRight",
         },
         8: {
             // orange (canonical #e69f00, darkened for light mode)
@@ -200,7 +200,7 @@ export const okabeItoPalette: StylePalette = {
             highContrastColorWordDarkMode: "goldenrod",
             lineWidth: 1,
             lineStyle: "dotted",
-            markerStyle: "square",
+            markerStyle: "circle",
         },
     },
 };

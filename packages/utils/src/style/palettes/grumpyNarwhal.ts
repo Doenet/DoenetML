@@ -137,7 +137,7 @@ export const grumpyNarwhalPalette: StylePalette = {
             textColorWordDarkMode: "yellow",
             highContrastColorWordDarkMode: "yellow",
             lineWidth: 2,
-            markerStyle: "plus",
+            markerStyle: "triangleDown",
         },
         6: {
             // Contributed as the same purple in both modes; on Doenet's
@@ -165,7 +165,7 @@ export const grumpyNarwhalPalette: StylePalette = {
             textColorWordDarkMode: "purple",
             highContrastColorWordDarkMode: "purple",
             lineWidth: 2,
-            markerStyle: "cross",
+            markerStyle: "triangleLeft",
         },
     },
 };

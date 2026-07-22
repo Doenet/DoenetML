@@ -122,7 +122,7 @@ export const tolMutedPalette: StylePalette = {
             textColorWordDarkMode: "olive",
             highContrastColorWordDarkMode: "olive",
             lineWidth: 2,
-            markerStyle: "plus",
+            markerStyle: "triangleDown",
         },
         6: {
             lineColor: "#867c46",
@@ -145,7 +145,7 @@ export const tolMutedPalette: StylePalette = {
             textColorWordDarkMode: "tan",
             highContrastColorWordDarkMode: "tan",
             lineWidth: 2,
-            markerStyle: "cross",
+            markerStyle: "triangleLeft",
         },
         7: {
             lineColor: "#cc6677",
@@ -169,7 +169,7 @@ export const tolMutedPalette: StylePalette = {
             highContrastColorWordDarkMode: "pink",
             lineWidth: 3,
             lineStyle: "dashed",
-            markerStyle: "circle",
+            markerStyle: "triangleRight",
         },
         8: {
             lineColor: "#882255",
@@ -193,7 +193,7 @@ export const tolMutedPalette: StylePalette = {
             highContrastColorWordDarkMode: "maroon",
             lineWidth: 1,
             lineStyle: "dotted",
-            markerStyle: "square",
+            markerStyle: "circle",
         },
         9: {
             lineColor: "#aa4499",
@@ -212,7 +212,7 @@ export const tolMutedPalette: StylePalette = {
             highContrastColorWordDarkMode: "purple",
             lineWidth: 2,
             lineStyle: "dashed",
-            markerStyle: "triangle",
+            markerStyle: "square",
         },
     },
 };

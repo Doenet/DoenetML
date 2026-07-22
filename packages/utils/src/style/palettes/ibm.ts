@@ -108,7 +108,7 @@ export const ibmPalette: StylePalette = {
             textColorWordDarkMode: "gold",
             highContrastColorWordDarkMode: "gold",
             lineWidth: 2,
-            markerStyle: "plus",
+            markerStyle: "triangleDown",
         },
     },
 };

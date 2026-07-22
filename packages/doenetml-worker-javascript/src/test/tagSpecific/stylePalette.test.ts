@@ -288,27 +288,27 @@ describe("Style palette tag tests @group4", async () => {
     });
 
     it("palette marker styles reach the renderer in JSXGraph's spelling", async () => {
-        // Regression: the categorical palette's styles 7-9 use the schema's
-        // camelCase spellings (triangleDown/triangleLeft/triangleRight).
-        // Authored attribute values are lowercased on the way to a renderer,
-        // but palette data does not travel that path, so these arrived at
+        // Regression: the directional triangles use the schema's camelCase
+        // spellings (triangleDown/triangleLeft/triangleRight). Authored
+        // attribute values are lowercased on the way to a renderer, but
+        // palette data does not travel that path, so these arrived at
         // JSXGraph as unknown face names and the points rendered INVISIBLE.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <stylePalette palette="categorical" />
 <graph>
+  <point name="P5" styleNumber="5">(-6,5)</point>
+  <point name="P6" styleNumber="6">(-6,6)</point>
   <point name="P7" styleNumber="7">(-6,7)</point>
-  <point name="P8" styleNumber="8">(-6,8)</point>
-  <point name="P9" styleNumber="9">(-6,9)</point>
 </graph>
 `,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (const [name, expected] of [
-            ["P7", "triangledown"],
-            ["P8", "triangleleft"],
-            ["P9", "triangleright"],
+            ["P5", "triangledown"],
+            ["P6", "triangleleft"],
+            ["P7", "triangleright"],
         ] as const) {
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues

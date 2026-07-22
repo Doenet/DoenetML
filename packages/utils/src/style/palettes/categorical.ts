@@ -140,7 +140,7 @@ export const categoricalPalette: StylePalette = {
             textColorWordDarkMode: "purple",
             highContrastColorWordDarkMode: "purple",
             lineWidth: 2,
-            markerStyle: "plus",
+            markerStyle: "triangleDown",
         },
         6: {
             lineColor: "#7a4a41",
@@ -163,7 +163,7 @@ export const categoricalPalette: StylePalette = {
             textColorWordDarkMode: "brown",
             highContrastColorWordDarkMode: "brown",
             lineWidth: 2,
-            markerStyle: "cross",
+            markerStyle: "triangleLeft",
         },
         7: {
             lineColor: "#d670b7",
@@ -187,7 +187,7 @@ export const categoricalPalette: StylePalette = {
             highContrastColorWordDarkMode: "pink",
             lineWidth: 3,
             lineStyle: "dashed",
-            markerStyle: "triangleDown",
+            markerStyle: "triangleRight",
         },
         8: {
             lineColor: "#7f7f7f",
@@ -211,7 +211,7 @@ export const categoricalPalette: StylePalette = {
             highContrastColorWordDarkMode: "gray",
             lineWidth: 1,
             lineStyle: "dotted",
-            markerStyle: "triangleLeft",
+            markerStyle: "circle",
         },
         9: {
             lineColor: "#6e6e12",
@@ -235,7 +235,7 @@ export const categoricalPalette: StylePalette = {
             highContrastColorWordDarkMode: "olive",
             lineWidth: 2,
             lineStyle: "dashed",
-            markerStyle: "triangleRight",
+            markerStyle: "square",
         },
         10: {
             lineColor: "#12a2b1",
@@ -259,7 +259,7 @@ export const categoricalPalette: StylePalette = {
             highContrastColorWordDarkMode: "cyan",
             lineWidth: 2,
             lineStyle: "dotted",
-            markerStyle: "circle",
+            markerStyle: "diamond",
         },
     },
 };

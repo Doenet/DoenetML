@@ -375,3 +375,29 @@ describe("style 1 renders text in the canvas text color", () => {
         );
     });
 });
+
+describe("palette markers have an interior", () => {
+    // `cross` and `plus` are drawn as bare strokes, so `markerFilled` has no
+    // effect on them (see the `markerFilled` description in `styleAttributes`).
+    // A palette using them would deny those styles the filled/open distinction
+    // that marks closed vs. open endpoints and stable vs. unstable equilibria,
+    // and both read as the mathematical symbols for multiplication and
+    // division. Palettes therefore draw only from the closed shapes.
+    const INTERIOR_LESS = ["cross", "plus", "minus", "divide"];
+
+    for (const paletteName of STYLE_PALETTE_NAMES) {
+        it(`palette "${paletteName}"`, () => {
+            const styles = returnPaletteStyleDefinitions(paletteName);
+            for (const [styleNumber, styleDef] of Object.entries(styles)) {
+                const markerStyle = getStyleValueString(
+                    styleDef,
+                    "markerStyle",
+                );
+                expect(
+                    INTERIOR_LESS,
+                    `${paletteName} style ${styleNumber} uses "${markerStyle}", which has no interior`,
+                ).not.toContain(markerStyle);
+            }
+        });
+    }
+});
