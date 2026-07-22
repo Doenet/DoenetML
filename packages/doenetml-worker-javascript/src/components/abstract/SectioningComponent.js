@@ -227,6 +227,10 @@ export class SectioningComponent extends BlockComponent {
                 componentTypes: ["styleDefinition"],
             },
             {
+                group: "stylePalettes",
+                componentTypes: ["stylePalette"],
+            },
+            {
                 group: "feedbackDefinitions",
                 componentTypes: ["feedbackDefinition"],
             },

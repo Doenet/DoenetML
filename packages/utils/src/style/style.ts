@@ -16,6 +16,7 @@ import {
 } from "./styleDefinitionHelpers";
 import { contrastAccessibilityDiagnosticsForStyleDefinitions } from "./styleContrastAccessibility";
 import {
+    cycleStyleNumberForPalette,
     DEFAULT_PALETTE_NAME,
     STYLE_PALETTES,
     type StylePalette,
@@ -26,6 +27,8 @@ import {
     invertLightness,
     GRAPHIC_CONTRAST_THRESHOLD,
     TEXT_CONTRAST_THRESHOLD,
+    CANVAS_TEXT_LIGHT_MODE_COLOR,
+    CANVAS_TEXT_DARK_MODE_COLOR,
 } from "./colorAccessibility";
 
 /**
@@ -751,26 +754,207 @@ export function deriveMissingStyleWords(styleDef: StyleDefinition): void {
 }
 
 /**
- * Expands a palette's compact raw style definitions into the full wrapped
- * form: values are normalized to `{ style, position? }`, missing
- * `*ColorDarkMode` values are derived from their light-mode colors, and
- * missing `*Word` descriptors are derived from the resulting values. Authored
- * values (including the default palette's hand-authored dark colors and
- * words) are left untouched, so every derivation step is a no-op for the
- * `"default"` palette and its expansion is identical to the historical
- * six-preset output.
+ * Expands a palette's raw style definitions into the full wrapped form. Per
+ * style, in order:
+ *
+ *   1. values are normalized to `{ style, position? }`;
+ *   2. enum-valued keys are lowercased (see {@link lowercaseEnumStyleValues});
+ *   3. style number 1's text color is forced neutral (see
+ *      {@link applyNeutralTextColor});
+ *   4. unstated line/marker opacities become fully opaque (see
+ *      {@link applyFullGraphicOpacity});
+ *   5. an unstated dark-mode high-contrast color follows the style's dark-mode
+ *      text color (see {@link pairDarkModeHighContrastWithText});
+ *   6. missing `*ColorDarkMode` values are derived from their light-mode
+ *      colors;
+ *   7. missing `*Word` descriptors are derived from the resulting values.
+ *
+ * Steps 4-7 never overwrite an authored value, and steps 2 and 3 are
+ * value-preserving for the `"default"` palette (its enum values are already
+ * lowercase and its style 1 already carries the canvas text color), so its
+ * expansion reproduces the historical six-preset output.
+ *
+ * The order is load-bearing, not incidental. Steps 3-5 all fill in values
+ * that step 6 would otherwise derive, and each of them wants to be the one
+ * that decides:
+ *
+ *   - 3 before 5 and 6: the neutral text color must already be in place, so
+ *     that step 5 sees style 1's text is not the style's own color (and skips
+ *     it) and step 6 does not derive a dark text color from the palette's.
+ *   - 4 before 6: `deriveDarkModeColorForItem` reads the style's line/marker
+ *     opacity to decide how far to lighten a color for the dark canvas, so it
+ *     must see the opacity the style will actually render with.
+ *   - 5 before 6: the pairing rule keys off the *authored* `textColorDarkMode`
+ *     — once step 6 has derived one, "authored" is no longer distinguishable.
+ *   - 7 last: every `*Word` descriptor must describe the value that survived
+ *     the preceding steps rather than the one the palette wrote.
  *
  * Returns a fresh map on every call; the input palette data is not mutated.
  */
 export function expandStylePalette(palette: StylePalette): StyleDefinitions {
     const styleDefinitions = normalizeStyleDefinitionsValues(palette.styles);
 
-    for (const styleDef of Object.values(styleDefinitions)) {
+    for (const [styleNumber, styleDef] of Object.entries(styleDefinitions)) {
+        lowercaseEnumStyleValues(styleDef);
+        if (styleNumber === NEUTRAL_TEXT_STYLE_NUMBER) {
+            applyNeutralTextColor(styleDef);
+        }
+        applyFullGraphicOpacity(styleDef);
+        pairDarkModeHighContrastWithText(styleDef);
         addMissingChildStyleColorFields(styleDef);
         deriveMissingStyleWords(styleDef);
     }
 
     return styleDefinitions;
+}
+
+/**
+ * The style number that content lands on when its author specified none.
+ * Its text color is neutral in every palette — see
+ * {@link applyNeutralTextColor}.
+ */
+const NEUTRAL_TEXT_STYLE_NUMBER = "1";
+
+/**
+ * Forces style number 1's text color to the canvas text color, in place.
+ *
+ * Text and math outside a graph render with `selectedStyle.textColor`
+ * (see `textRendererStyle`), and content that specifies no style number
+ * falls on style 1 — so whatever style 1 says its text color is becomes the
+ * color of ordinary prose. A palette must therefore not paint style 1's
+ * text, or selecting it would recolor every unstyled `<text>` and `<m>` in
+ * the document.
+ *
+ * The `"default"` palette has always encoded this (its style 1 pairs
+ * `textColor: black` with `highContrastColor: #2963FF`); applying it here
+ * makes the rule uniform and unforgettable rather than something each
+ * palette must remember. A style's own color remains available for text
+ * through `highContrastColor`, which is exactly that color at text-contrast
+ * strength, and styles 2 and up are unaffected.
+ *
+ * Style numbers that cycle onto style 1 resolve to this definition, so they
+ * inherit the neutral text too — matching what out-of-range style numbers
+ * already do without a palette, where the fallback is `DEFAULT_STYLE_VALUES`
+ * (also black). Authored `*Word` entries for these keys are dropped so the
+ * descriptions re-derive from the neutral colors and stay truthful; palettes
+ * should not author any of the four keys in the first place (see the
+ * {@link StylePalette} doc).
+ */
+function applyNeutralTextColor(styleDef: StyleDefinition): void {
+    setStyleValue(styleDef, "textColor", CANVAS_TEXT_LIGHT_MODE_COLOR);
+    setStyleValue(styleDef, "textColorDarkMode", CANVAS_TEXT_DARK_MODE_COLOR);
+    delete styleDef.textColorWord;
+    delete styleDef.textColorWordDarkMode;
+}
+
+/**
+ * The style keys whose values renderers require lowercased, i.e. those whose
+ * attribute spec sets `toLowerCase: true` (today `lineStyle`, `markerStyle`,
+ * and `fillStyle`). Computed once rather than per style definition.
+ */
+const LOWERCASED_STYLE_KEYS = Object.entries(styleAttributes)
+    .filter(([, spec]) => spec.toLowerCase)
+    .map(([key]) => key as StyleDefinitionKey);
+
+/**
+ * Lowercases the values of the {@link LOWERCASED_STYLE_KEYS}, in place.
+ *
+ * Authored values reach renderers already lowercased — the
+ * `<styleDefinition>` path lowercases unconditionally, and the
+ * per-component override path honours the same flag — and renderers hand
+ * these straight to JSXGraph, whose face and dash names are all lowercase.
+ * Palette data never travels the attribute path, so without this a palette
+ * written with the schema's camelCase spelling (`markerStyle:
+ * "triangleDown"`, which is exactly how `validValues` presents it) would
+ * reach JSXGraph as an unknown face name and its objects would render
+ * INVISIBLE rather than fall back to a default shape. Normalizing here lets
+ * palette modules use the documented spelling and still be renderer-correct.
+ */
+function lowercaseEnumStyleValues(styleDef: StyleDefinition): void {
+    for (const key of LOWERCASED_STYLE_KEYS) {
+        const value = getStyleValueString(styleDef, key);
+        if (value !== undefined && value !== value.toLowerCase()) {
+            setStyleValue(styleDef, key, value.toLowerCase());
+        }
+    }
+}
+
+/**
+ * Makes a palette style's lines and markers fully opaque unless the palette
+ * says otherwise, in place.
+ *
+ * A palette's colors are chosen against the WCAG graphic threshold (3:1) as
+ * they will be *composited onto the canvas*, which means at the opacity they
+ * render with — `presetPaletteAccessibility.test.ts` checks them that way.
+ * Without this rule a palette that states no opacity inherits
+ * `DEFAULT_STYLE_VALUES.lineOpacity` / `.markerOpacity` of `0.7`, which drops
+ * a color verified at full strength well below 3:1 (a published palette
+ * anchor sitting at 3.0-4.5 lands near 2.1-2.9 once it is 70% blended into
+ * the canvas). Full opacity is therefore the palette default, and a palette
+ * that wants the softer look states `lineOpacity` / `markerOpacity`
+ * explicitly and gets checked at that value.
+ *
+ * The `"default"` palette states both on every style (`0.7`, and `1` on style
+ * 5), so it is unaffected — the historical look is preserved. This runs
+ * before dark-mode derivation on purpose: `deriveDarkModeColorForItem` reads
+ * the style's line/marker opacity when choosing how far to lighten a color
+ * for the dark canvas, so it must see the opacity the style will render with.
+ */
+function applyFullGraphicOpacity(styleDef: StyleDefinition): void {
+    for (const key of ["lineOpacity", "markerOpacity"] as const) {
+        if (!(key in styleDef)) {
+            setStyleValue(styleDef, key, 1);
+        }
+    }
+}
+
+/**
+ * Gives an unstated `highContrastColorDarkMode` the style's authored
+ * `textColorDarkMode`, in place, when the two keys carry the same color in
+ * light mode.
+ *
+ * `highContrastColor` is a style's own color at text-contrast strength, which
+ * is the same thing `textColor` is for styles 2 and up — every built-in
+ * palette gives them one shared light-mode value. Deriving the dark-mode
+ * high-contrast color independently breaks that pairing, because derivation
+ * only lightens the *light-mode* color as far as 4.5:1 on the dark canvas
+ * requires and knows nothing about the brighter dark-mode anchor the palette
+ * pinned for its text. A style whose dark mode is white would report a
+ * mid-gray `highContrastColorDarkMode` (the derivation's floor), and a style
+ * whose dark mode is bright yellow would report a dark olive — each
+ * contradicting the style's own dark-mode description.
+ *
+ * Only an authored `textColorDarkMode` counts: with none, both keys derive
+ * from the same light-mode color and stay consistent on their own. Style
+ * number 1 drops out on the same light-mode test, because
+ * {@link applyNeutralTextColor} has already replaced its text color with the
+ * canvas text color — and in the one case where it still matches (a style 1
+ * whose own color *is* that neutral), pairing gives the right answer anyway.
+ */
+function pairDarkModeHighContrastWithText(styleDef: StyleDefinition): void {
+    if ("highContrastColorDarkMode" in styleDef) {
+        return;
+    }
+    const textColorDarkMode = getStyleValueString(
+        styleDef,
+        "textColorDarkMode",
+    );
+    if (textColorDarkMode === undefined) {
+        return;
+    }
+    const textColor = getStyleValueString(styleDef, "textColor");
+    const highContrastColor = getStyleValueString(
+        styleDef,
+        "highContrastColor",
+    );
+    if (
+        textColor === undefined ||
+        highContrastColor === undefined ||
+        textColor.toLowerCase() !== highContrastColor.toLowerCase()
+    ) {
+        return;
+    }
+    setStyleValue(styleDef, "highContrastColorDarkMode", textColorDarkMode);
 }
 
 /**
@@ -799,7 +983,7 @@ export function returnPaletteStyleDefinitions(
  * same preset the runtime would.
  *
  * IMPORTANT: this function is lazily cached on the LSP side (see
- * `resolve-active-style.ts`'s `_builtInPresetsCache`), so its output must
+ * `resolve-active-style.ts`'s `_palettePresetsCache`), so its output must
  * stay pure w.r.t. mutable module state. Palette expansion reads only the
  * palette registry, which is deeply frozen at registration precisely to
  * protect this invariant; do not switch it to read from the mutable
@@ -811,8 +995,34 @@ export function returnDefaultStyleDefinitions(): StyleDefinitions {
 }
 
 /**
+ * Flatten a mixed child list (target children interleaved with `<setup>`
+ * children, in document order) into just the target children: each `<setup>`
+ * child is replaced by the target children the caller registered for it under
+ * the dependency key `` `${perSetupPrefix}${componentIdx}` ``. Preserves
+ * document order, which "last wins" semantics rely on.
+ */
+function childrenExpandingSetups(
+    dependencyValues: any,
+    mixedChildren: any[],
+    perSetupPrefix: string,
+): any[] {
+    const out: any[] = [];
+    for (const child of mixedChildren) {
+        if (child.componentType === "setup") {
+            out.push(
+                ...dependencyValues[`${perSetupPrefix}${child.componentIdx}`],
+            );
+        } else {
+            out.push(child);
+        }
+    }
+    return out;
+}
+
+/**
  * State-variable definitions that construct merged `styleDefinitions` from:
- * - ancestor defaults,
+ * - a local stylePalette selection (which resets the base for the subtree),
+ * - otherwise ancestor defaults,
  * - local styleDefinition children,
  * - setup descendants.
  */
@@ -834,6 +1044,86 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
         },
     };
 
+    stateVariableDefinitions.localStylePaletteName = {
+        stateVariablesDeterminingDependencies: ["setupChildren"],
+        returnDependencies({ stateValues }: { stateValues: any }) {
+            let dependencies: Record<string, any> = {
+                stylePaletteSetupChildren: {
+                    dependencyType: "child",
+                    childGroups: ["stylePalettes", "setups"],
+                    variableNames: ["palette"],
+                    variablesOptional: true,
+                    proceedIfAllChildrenNotMatched: true,
+                },
+            };
+
+            for (let setupChild of stateValues.setupChildren) {
+                dependencies[`stylePalettesOf${setupChild.componentIdx}`] = {
+                    dependencyType: "child",
+                    parentIdx: setupChild.componentIdx,
+                    childGroups: ["stylePalettes"],
+                    variableNames: ["palette"],
+                };
+            }
+
+            return dependencies;
+        },
+        definition({ dependencyValues }: { dependencyValues: any }) {
+            const stylePaletteChildren = childrenExpandingSetups(
+                dependencyValues,
+                dependencyValues.stylePaletteSetupChildren,
+                "stylePalettesOf",
+            );
+
+            if (stylePaletteChildren.length === 0) {
+                return { setValue: { localStylePaletteName: null } };
+            }
+
+            const diagnostics = [];
+            if (stylePaletteChildren.length > 1) {
+                for (const child of stylePaletteChildren.slice(0, -1)) {
+                    diagnostics.push({
+                        type: "warning",
+                        message:
+                            "A section can select only one <stylePalette>; using the last one.",
+                        position: child.position,
+                    });
+                }
+            }
+
+            const localStylePaletteName =
+                stylePaletteChildren[stylePaletteChildren.length - 1]
+                    .stateValues.palette;
+
+            return {
+                setValue: { localStylePaletteName },
+                sendDiagnostics: diagnostics,
+            };
+        },
+    };
+
+    stateVariableDefinitions.activeStylePaletteName = {
+        returnDependencies: () => ({
+            localStylePaletteName: {
+                dependencyType: "stateVariable",
+                variableName: "localStylePaletteName",
+            },
+            ancestorWithStyle: {
+                dependencyType: "ancestor",
+                variableNames: ["activeStylePaletteName"],
+            },
+        }),
+        definition({ dependencyValues }: { dependencyValues: any }) {
+            const activeStylePaletteName =
+                dependencyValues.localStylePaletteName ??
+                dependencyValues.ancestorWithStyle?.stateValues
+                    .activeStylePaletteName ??
+                null;
+
+            return { setValue: { activeStylePaletteName } };
+        },
+    };
+
     stateVariableDefinitions.styleDefinitions = {
         mustEvaluate: true,
         stateVariablesDeterminingDependencies: ["setupChildren"],
@@ -842,6 +1132,14 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 ancestorWithStyle: {
                     dependencyType: "ancestor",
                     variableNames: ["styleDefinitions"],
+                },
+                localStylePaletteName: {
+                    dependencyType: "stateVariable",
+                    variableName: "localStylePaletteName",
+                },
+                activeStylePaletteName: {
+                    dependencyType: "stateVariable",
+                    variableName: "activeStylePaletteName",
                 },
                 styleDefinitionSetupChildren: {
                     dependencyType: "child",
@@ -868,7 +1166,17 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 
             let startingStateVariableDefinitions: StyleDefinitions | undefined;
 
-            if (dependencyValues.ancestorWithStyle) {
+            // A local <stylePalette> resets the base for this subtree: the
+            // palette replaces the ancestor's merged map, so ancestor
+            // <styleDefinition> overrides (tuned against a different
+            // palette's colors) are deliberately discarded. Local and
+            // descendant <styleDefinition>s apply on top of the palette.
+            if (dependencyValues.localStylePaletteName != null) {
+                startingStateVariableDefinitions =
+                    returnPaletteStyleDefinitions(
+                        dependencyValues.localStylePaletteName,
+                    );
+            } else if (dependencyValues.ancestorWithStyle) {
                 startingStateVariableDefinitions =
                     dependencyValues.ancestorWithStyle.stateValues
                         .styleDefinitions;
@@ -888,26 +1196,36 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 );
             }
 
-            const styleDefinitionChildren = [] as any[];
-            for (let child of dependencyValues.styleDefinitionSetupChildren) {
-                if (child.componentType === "setup") {
-                    styleDefinitionChildren.push(
-                        ...dependencyValues[
-                            `styleDefinitionsOf${child.componentIdx}`
-                        ],
-                    );
-                } else {
-                    styleDefinitionChildren.push(child);
-                }
-            }
+            const styleDefinitionChildren = childrenExpandingSetups(
+                dependencyValues,
+                dependencyValues.styleDefinitionSetupChildren,
+                "styleDefinitionsOf",
+            );
 
             for (const child of styleDefinitionChildren) {
                 const styleNumber = child.stateValues.styleNumber;
                 let styleDef = styleDefinitions[styleNumber];
 
                 if (!styleDef) {
+                    // With a palette active, an out-of-range style number
+                    // seeds from its cycled on-palette entry; otherwise keep
+                    // the historical default-style seed.
+                    let seed: StyleDefinition | undefined;
+                    if (dependencyValues.activeStylePaletteName != null) {
+                        const cycledNumber = cycleStyleNumberForPalette(
+                            styleNumber,
+                            dependencyValues.activeStylePaletteName,
+                        );
+                        const cycledDef = styleDefinitions[cycledNumber];
+                        if (cycledDef) {
+                            seed = normalizeStyleDefinitionValues(
+                                Object.assign({}, cycledDef),
+                            );
+                        }
+                    }
+
                     styleDef = styleDefinitions[styleNumber] =
-                        cloneDefaultStyleWithMissingColorWords();
+                        seed ?? cloneDefaultStyleWithMissingColorWords();
                 }
 
                 const theNewDef = normalizeStyleDefinitionValues(
@@ -957,8 +1275,8 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
  * authored values on top of the styleNumber-based definition. The override
  * layer mirrors how `<styleDefinition>` attributes are read in
  * `StyleDefinitions.js`, with one deliberate divergence: string values here
- * are lowercased only when the spec opts in via `toLowerCase: true` (today
- * just the enum-typed `markerStyle` / `lineStyle`), whereas the
+ * are lowercased only when the spec opts in via `toLowerCase: true` (the
+ * enum-typed keys — see {@link LOWERCASED_STYLE_KEYS}), whereas the
  * `<styleDefinition>` path lowercases unconditionally to keep color-name
  * lookups case-insensitive. Source positions are preserved, and missing
  * `*Word` descriptors get re-derived from the underlying value via
@@ -986,7 +1304,10 @@ export function returnSelectedStyleStateVariableDefinition(
                     },
                     ancestorWithStyle: {
                         dependencyType: "ancestor",
-                        variableNames: ["styleDefinitions"],
+                        variableNames: [
+                            "styleDefinitions",
+                            "activeStylePaletteName",
+                        ],
                     },
                 };
 
@@ -1014,6 +1335,24 @@ export function returnSelectedStyleStateVariableDefinition(
 
                 let selectedStyle =
                     styleDefinitions[dependencyValues.styleNumber];
+
+                if (selectedStyle === undefined) {
+                    // With a palette active, out-of-range style numbers cycle
+                    // through the palette instead of falling back to the
+                    // generic default style.
+                    const activeStylePaletteName =
+                        dependencyValues.ancestorWithStyle?.stateValues
+                            .activeStylePaletteName;
+                    if (activeStylePaletteName != null) {
+                        selectedStyle =
+                            styleDefinitions[
+                                cycleStyleNumberForPalette(
+                                    dependencyValues.styleNumber,
+                                    activeStylePaletteName,
+                                )
+                            ];
+                    }
+                }
 
                 if (selectedStyle === undefined) {
                     selectedStyle = cloneDefaultStyleWithMissingColorWords();

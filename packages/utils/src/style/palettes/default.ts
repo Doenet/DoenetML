@@ -6,17 +6,22 @@ import type { StylePalette } from "./types";
  * palette. This is the base style map every document starts from when no
  * `<stylePalette>` is selected.
  *
- * Unlike newer palettes, these entries hand-author their dark-mode colors and
- * `*Word` descriptors (they predate the derivation pipeline); the expansion
- * derivation steps are all no-ops here, which keeps the expanded output
- * byte-identical to the historical `returnDefaultStyleDefinitions()` result.
- * Don't imitate this style in new palettes — author compactly and let
- * expansion derive the rest.
+ * These entries predate the derivation pipeline, so they spell out dark-mode
+ * colors and `*Word` descriptors even where the derivation would produce the
+ * same value. That redundancy is deliberate here: it makes every expansion
+ * step value-preserving for this palette, so its output stays identical to
+ * the historical `returnDefaultStyleDefinitions()` result. New palettes
+ * should author only what the derivation gets wrong — see the
+ * {@link StylePalette} doc.
+ *
+ * Style 1 spreads `DEFAULT_STYLE_VALUES`, whose `textColor`/`textColorDarkMode`
+ * are already the canvas text colors that expansion forces onto style 1; new
+ * palettes should simply leave those keys off style 1.
  */
 export const defaultPalette: StylePalette = {
     name: "default",
     description:
-        "The standard Doenet styles: blue, red, brown, purple, black, and gray.",
+        "The standard Doenet styles: blue, red, orange, purple, black, and gray.",
     styles: {
         1: { ...DEFAULT_STYLE_VALUES },
         2: {
@@ -66,6 +71,7 @@ export const defaultPalette: StylePalette = {
         4: {
             lineColor: "#644CD6",
             lineColorDarkMode: "#9F8FE8",
+            lineColorWordDarkMode: "purple",
             lineOpacity: 0.7,
             lineWidth: 2,
             lineWidthWord: "",
@@ -73,12 +79,14 @@ export const defaultPalette: StylePalette = {
             lineStyleWord: "",
             markerColor: "#644CD6",
             markerColorDarkMode: "#9F8FE8",
+            markerColorWordDarkMode: "purple",
             markerOpacity: 0.7,
             markerStyle: "diamond",
             markerStyleWord: "diamond",
             markerSize: 5,
             fillColor: "#644CD6",
             fillColorDarkMode: "#9F8FE8",
+            fillColorWordDarkMode: "purple",
             fillOpacity: 0.3,
             textColor: "#644CD6",
             textColorDarkMode: "#B0A4EE",

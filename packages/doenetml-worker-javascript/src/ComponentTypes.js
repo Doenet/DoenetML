@@ -15,6 +15,7 @@ import * as DynamicalSystems from "./components/dynamicalSystems";
 import * as Chemistry from "./components/chemistry";
 import * as FeedbackDefinitions from "./components/FeedbackDefinitions";
 import * as StyleDefinitions from "./components/StyleDefinitions";
+import * as StylePalette from "./components/StylePalette";
 import * as ComponentWithSelectableType from "./components/abstract/ComponentWithSelectableType";
 import * as SideBySide from "./components/SideBySide";
 import * as Indexing from "./components/Indexing";
@@ -222,6 +223,7 @@ const componentTypeArray = [
     ...Object.values(Chemistry),
     ...Object.values(FeedbackDefinitions),
     ...Object.values(StyleDefinitions),
+    ...Object.values(StylePalette),
     ...Object.values(SideBySide),
     ...Object.values(ComponentWithSelectableType),
     ...Object.values(Indexing),

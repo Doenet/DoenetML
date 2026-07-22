@@ -5,6 +5,7 @@ import {
     getStyleValueString,
     getStyleValueNumber,
     compositedContrastRatio,
+    DEFAULT_STYLE_VALUES,
     CANVAS_DARK_MODE_COLOR,
     CANVAS_LIGHT_MODE_COLOR,
     GRAPHIC_CONTRAST_THRESHOLD,
@@ -51,10 +52,18 @@ function describePaletteAccessibility(
             const styleDef = styles[styleNumber];
 
             it(`style ${styleNumber} line/marker meet the graphic threshold in ${mode} mode`, () => {
+                // Fall back the way the renderer does: `selectedStyle` runs
+                // through `resolveStyleDefinition`, so a style that states no
+                // opacity is drawn at `DEFAULT_STYLE_VALUES`' 0.7, not at 1.
+                // Assuming 1 here would check a stronger color than readers
+                // actually see (palette expansion states full opacity for
+                // exactly this reason — see `applyFullGraphicOpacity`).
                 const lineOpacity =
-                    getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
+                    getStyleValueNumber(styleDef, "lineOpacity") ??
+                    DEFAULT_STYLE_VALUES.lineOpacity;
                 const markerOpacity =
-                    getStyleValueNumber(styleDef, "markerOpacity") ?? 1;
+                    getStyleValueNumber(styleDef, "markerOpacity") ??
+                    DEFAULT_STYLE_VALUES.markerOpacity;
 
                 for (const [colorKey, opacity] of [
                     [graphicColorKeys[0], lineOpacity],
