@@ -12,14 +12,14 @@
  *
  * Divergence from the runtime is accepted in three known cases, all called
  * out by the issue's edge-case list:
- *   - Dynamically-computed `styleNumber` (`<point styleNumber="$n"/>`) — we
- *     read the attribute text only, so a macro yields `undefined` and the
- *     active default falls back to the built-in preset for styleNumber=1.
- *     A reference-valued `palette` on `<stylePalette>` diverges the same
- *     way, though not for the same reason: the attribute is a `text`
- *     component, so the runtime resolves the reference and selects that
- *     palette, while we see only the literal `"$p"`, fail the registry
- *     lookup, and report the default palette.
+ *   - A reference-valued `styleNumber` or `palette` (`<point
+ *     styleNumber="$n"/>`, `<stylePalette palette="$p"/>`). Both attributes
+ *     are component-typed (`integer` and `text`), so the runtime resolves
+ *     the reference and styles accordingly; we read attribute text only and
+ *     cannot. The fallbacks then differ in shape but not in cause: the
+ *     literal `"$n"` is not an integer, so the active default comes from the
+ *     built-in preset for styleNumber=1, and the literal `"$p"` is not a
+ *     registered palette name, so we report the default palette.
  *   - `<styleDefinition>` blocks (and `<stylePalette>` selections) parented
  *     by an element that doesn't host a `styleDefinitions` state variable
  *     (e.g. someone tucks one inside `<graph>`) — the runtime ignores them;
