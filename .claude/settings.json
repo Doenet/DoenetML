@@ -1,4 +1,33 @@
 {
+    "permissions": {
+        "deny": [
+            "Bash(gh pr merge:*)",
+            "Bash(gh repo delete:*)",
+            "Bash(gh repo edit:*)",
+            "Bash(gh repo rename:*)",
+            "Bash(gh repo archive:*)",
+            "Bash(git push upstream:*)",
+            "Bash(npm run publish:*)",
+            "Bash(npm publish:*)",
+            "Bash(pnpm publish:*)",
+            "Bash(yarn publish:*)",
+            "Bash(npx changeset publish:*)",
+            "Bash(sudo:*)",
+            "Bash(gh release create:*)",
+            "Bash(gh release delete:*)",
+            "Bash(gh secret:*)",
+            "Bash(git filter-branch:*)",
+            "Bash(git filter-repo:*)",
+            "Bash(dd:*)",
+            "Bash(mkfs:*)"
+        ],
+        "ask": [
+            "Bash(git push --force:*)",
+            "Bash(git push -f:*)",
+            "Bash(git reset --hard:*)",
+            "Bash(git clean:*)"
+        ]
+    },
     "hooks": {
         "PreToolUse": [
             {
