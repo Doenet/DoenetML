@@ -36,6 +36,29 @@ describe("palette registry", () => {
         }
     });
 
+    it("surfaces the canonical camelCase name for every multi-word palette, so schema/autocomplete values never regress to lowercase", () => {
+        // The schema's `validValues` (and LSP autocomplete / context-help)
+        // surface each palette's `name` verbatim, while the registry keys by
+        // its lower-cased form. The key/name correspondence check above passes
+        // for a lowercase `name` too, so it cannot catch a regression like
+        // `name: "okabeIto"` -> `name: "okabeito"` — that would silently ship
+        // lowercase schema values. Pin the canonical spelling of every palette
+        // whose name actually carries casing (single-word/acronym names like
+        // `default`, `ibm`, `grayscale`, and `categorical` are lowercase by
+        // nature and covered by the correspondence check).
+        const nameByKey = Object.fromEntries(
+            Object.values(STYLE_PALETTES).map((p) => [
+                p.name.toLowerCase(),
+                p.name,
+            ]),
+        );
+        expect(nameByKey.okabeito).toBe("okabeIto");
+        expect(nameByKey.tolbright).toBe("tolBright");
+        expect(nameByKey.tolmuted).toBe("tolMuted");
+        expect(nameByKey.tolhighcontrast).toBe("tolHighContrast");
+        expect(nameByKey.grumpynarwhal).toBe("grumpyNarwhal");
+    });
+
     it("does not expose Object.prototype keys as palettes", () => {
         // Palette names are author-supplied strings; a default-prototype
         // registry would let e.g. "constructor" pass `in`/truthiness checks
