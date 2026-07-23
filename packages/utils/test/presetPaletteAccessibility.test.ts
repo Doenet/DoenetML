@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-    returnDefaultStyleDefinitions,
+    STYLE_PALETTE_NAMES,
+    returnPaletteStyleDefinitions,
     getStyleValueString,
     getStyleValueNumber,
     compositedContrastRatio,
+    DEFAULT_STYLE_VALUES,
     CANVAS_DARK_MODE_COLOR,
     CANVAS_LIGHT_MODE_COLOR,
     GRAPHIC_CONTRAST_THRESHOLD,
@@ -27,27 +29,41 @@ const MODE_CONFIG = {
 } as const;
 
 /**
- * Guards that every built-in preset is accessible in both LIGHT and DARK mode,
- * so the palette can never silently regress below WCAG AA.
+ * Guards that every style of every registered palette is accessible in both
+ * LIGHT and DARK mode, so no palette can silently regress below WCAG AA.
+ * Expanded (derived) dark-mode colors are checked the same as authored ones,
+ * so palette authors are pushed to supply explicit dark values whenever the
+ * derivation isn't good enough.
  *
- * Light-mode failures (styles 1, 3, 6) were fixed alongside adding these
- * assertions (see Doenet/DoenetML#1364). Dark-mode values were fixed in the
- * earlier dark-mode accessibility PR.
+ * Light-mode failures in the default palette (styles 1, 3, 6) were fixed
+ * alongside adding these assertions (see Doenet/DoenetML#1364). Dark-mode
+ * values were fixed in the earlier dark-mode accessibility PR.
  */
-function describePresetPaletteAccessibility(mode: "light" | "dark") {
+function describePaletteAccessibility(
+    paletteName: string,
+    mode: "light" | "dark",
+) {
     const { canvas, graphicColorKeys, textColorKeys } = MODE_CONFIG[mode];
 
-    describe(`preset palette ${mode}-mode accessibility`, () => {
-        const presets = returnDefaultStyleDefinitions();
+    describe(`palette "${paletteName}" ${mode}-mode accessibility`, () => {
+        const styles = returnPaletteStyleDefinitions(paletteName);
 
-        for (const styleNumber of Object.keys(presets)) {
-            const styleDef = presets[styleNumber];
+        for (const styleNumber of Object.keys(styles)) {
+            const styleDef = styles[styleNumber];
 
             it(`style ${styleNumber} line/marker meet the graphic threshold in ${mode} mode`, () => {
+                // Fall back the way the renderer does: `selectedStyle` runs
+                // through `resolveStyleDefinition`, so a style that states no
+                // opacity is drawn at `DEFAULT_STYLE_VALUES`' 0.7, not at 1.
+                // Assuming 1 here would check a stronger color than readers
+                // actually see (palette expansion states full opacity for
+                // exactly this reason — see `applyFullGraphicOpacity`).
                 const lineOpacity =
-                    getStyleValueNumber(styleDef, "lineOpacity") ?? 1;
+                    getStyleValueNumber(styleDef, "lineOpacity") ??
+                    DEFAULT_STYLE_VALUES.lineOpacity;
                 const markerOpacity =
-                    getStyleValueNumber(styleDef, "markerOpacity") ?? 1;
+                    getStyleValueNumber(styleDef, "markerOpacity") ??
+                    DEFAULT_STYLE_VALUES.markerOpacity;
 
                 for (const [colorKey, opacity] of [
                     [graphicColorKeys[0], lineOpacity],
@@ -61,7 +77,7 @@ function describePresetPaletteAccessibility(mode: "light" | "dark") {
                     })!;
                     expect(
                         contrastRatio,
-                        `style ${styleNumber} ${colorKey}`,
+                        `palette ${paletteName} style ${styleNumber} ${colorKey}`,
                     ).toBeGreaterThanOrEqual(GRAPHIC_CONTRAST_THRESHOLD);
                 }
             });
@@ -75,7 +91,7 @@ function describePresetPaletteAccessibility(mode: "light" | "dark") {
                     })!;
                     expect(
                         contrastRatio,
-                        `style ${styleNumber} ${colorKey}`,
+                        `palette ${paletteName} style ${styleNumber} ${colorKey}`,
                     ).toBeGreaterThanOrEqual(TEXT_CONTRAST_THRESHOLD);
                 }
             });
@@ -83,5 +99,7 @@ function describePresetPaletteAccessibility(mode: "light" | "dark") {
     });
 }
 
-describePresetPaletteAccessibility("light");
-describePresetPaletteAccessibility("dark");
+for (const paletteName of STYLE_PALETTE_NAMES) {
+    describePaletteAccessibility(paletteName, "light");
+    describePaletteAccessibility(paletteName, "dark");
+}

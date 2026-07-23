@@ -232,6 +232,7 @@ export default {
     statement: { title: "statement" },
     stickyGroup: { title: "stickyGroup" },
     styleDefinition: { title: "styleDefinition" },
+    stylePalette: { title: "stylePalette" },
     subsection: { title: "subsection" },
     subsetOfReals: { title: "subsetOfReals" },
     subsetOfRealsInput: { title: "subsetOfRealsInput" },

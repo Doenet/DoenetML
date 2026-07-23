@@ -12,13 +12,19 @@
  *
  * Divergence from the runtime is accepted in three known cases, all called
  * out by the issue's edge-case list:
- *   - Dynamically-computed `styleNumber` (`<point styleNumber="$n"/>`) — we
- *     read the attribute text only, so a macro yields `undefined` and the
- *     active default falls back to the built-in preset for styleNumber=1.
- *   - `<styleDefinition>` blocks parented by an element that doesn't host a
- *     `styleDefinitions` state variable (e.g. someone tucks one inside
- *     `<graph>`) — the runtime ignores them; we include them. Best-effort
- *     hint that matches what an author would expect to influence the view.
+ *   - A reference-valued `styleNumber` or `palette` (`<point
+ *     styleNumber="$n"/>`, `<stylePalette palette="$p"/>`). Both attributes
+ *     are component-typed (`integer` and `text`), so the runtime resolves
+ *     the reference and styles accordingly; we read attribute text only and
+ *     cannot. The fallbacks then differ in shape but not in cause: the
+ *     literal `"$n"` is not an integer, so the active default comes from the
+ *     built-in preset for styleNumber=1, and the literal `"$p"` is not a
+ *     registered palette name, so we report the default palette.
+ *   - `<styleDefinition>` blocks (and `<stylePalette>` selections) parented
+ *     by an element that doesn't host a `styleDefinitions` state variable
+ *     (e.g. someone tucks one inside `<graph>`) — the runtime ignores them;
+ *     we include them. Best-effort hint that matches what an author would
+ *     expect to influence the view.
  *   - Resolution while the DAST is still mid-edit — we return whatever the
  *     current parse contains, including incomplete styleDefinitions.
  */
@@ -31,13 +37,16 @@ import { toXml } from "@doenet/parser";
 // on the critical path before the editor can answer cursor-help requests
 // (boot lag here surfaces as flaky "no help on first cursor change" in CI).
 import {
+    DEFAULT_PALETTE_NAME,
     DEFAULT_STYLE_VALUES,
+    STYLE_PALETTES,
     addMissingChildStyleColorFields,
     colorValueToWord,
     coloredItemsForWords,
+    cycleStyleNumberForPalette,
     deriveMissingStyleWords,
     resolveStyleDefinition,
-    returnDefaultStyleDefinitions,
+    returnPaletteStyleDefinitions,
     setStyleValue,
     styleAttributes,
     unwrapStyleDefinition,
@@ -421,20 +430,22 @@ function mergeBlockInto(
 }
 
 /**
- * Lazy-initialized primitive view of the runtime's 6 built-in styleDefinitions
- * (lazy so the module-load cost is paid only when the help panel actually
- * resolves an active style). `returnDefaultStyleDefinitions` returns the
- * position-wrapped runtime shape; we unwrap to primitives because the LSP
- * doesn't need source positions for the active-default hint.
+ * Lazy per-palette cache of primitive views of the runtime's built-in style
+ * presets (lazy so the expansion cost is paid only for palettes the help
+ * panel actually resolves against). `returnPaletteStyleDefinitions` returns
+ * the position-wrapped runtime shape; we unwrap to primitives because the
+ * LSP doesn't need source positions for the active-default hint.
  */
-let _builtInPresetsCache:
-    ReadonlyMap<number, Readonly<PrimitiveStyleDefinition>> | undefined;
-function builtInPresets(): ReadonlyMap<
-    number,
-    Readonly<PrimitiveStyleDefinition>
-> {
-    if (_builtInPresetsCache) return _builtInPresetsCache;
-    const wrapped = returnDefaultStyleDefinitions();
+const _palettePresetsCache = new Map<
+    string,
+    ReadonlyMap<number, Readonly<PrimitiveStyleDefinition>>
+>();
+function palettePresets(
+    paletteName: string,
+): ReadonlyMap<number, Readonly<PrimitiveStyleDefinition>> {
+    const cached = _palettePresetsCache.get(paletteName);
+    if (cached) return cached;
+    const wrapped = returnPaletteStyleDefinitions(paletteName);
     const out = new Map<number, Readonly<PrimitiveStyleDefinition>>();
     for (const [k, def] of Object.entries(wrapped)) {
         // Freeze the cached value so a caller that forgets to clone (via
@@ -442,19 +453,56 @@ function builtInPresets(): ReadonlyMap<
         // silently mutating the shared preset for every subsequent lookup.
         out.set(Number(k), Object.freeze(unwrapStyleDefinition(def)));
     }
-    _builtInPresetsCache = out;
+    _palettePresetsCache.set(paletteName, out);
     return out;
 }
 
 /**
  * Return a fresh primitive-only style map for `styleNumber`, seeded from the
- * built-in preset for that number or (for unknown numbers) from
+ * active palette's preset for that number or (for unknown numbers) from
  * `DEFAULT_STYLE_VALUES`. Cloned so the caller can mutate freely.
  */
-function seedStyleDefinition(styleNumber: number): PrimitiveStyleDefinition {
-    const preset = builtInPresets().get(styleNumber);
+function seedStyleDefinition(
+    styleNumber: number,
+    paletteName: string,
+): PrimitiveStyleDefinition {
+    const preset = palettePresets(paletteName).get(styleNumber);
     if (preset) return { ...preset };
     return { ...DEFAULT_STYLE_VALUES };
+}
+
+/**
+ * Find the `<stylePalette>` owned by `ancestor` (direct child or child of a
+ * `<setup>` child — the same two routes `<styleDefinition>` uses) and return
+ * its validated palette name. Mirrors the runtime: with several palettes the
+ * last one wins, and an unknown (or absent) `palette` attribute falls back to
+ * the default palette, matching the runtime's `validValues` coercion.
+ * Returns undefined when the ancestor owns no `<stylePalette>` at all.
+ */
+function findOwnedStylePaletteName(
+    ancestor: DastElement | DastRoot,
+): string | undefined {
+    let found: DastElement | undefined;
+    for (const child of ancestor.children) {
+        if (child.type !== "element") continue;
+        if (child.name === "stylePalette") {
+            found = child;
+            continue;
+        }
+        if (child.name === "setup") {
+            for (const grand of child.children) {
+                if (grand.type === "element" && grand.name === "stylePalette") {
+                    found = grand;
+                }
+            }
+        }
+    }
+    if (!found) return undefined;
+    // Case-insensitive to match the runtime's `toLowerCase: true` on the
+    // `palette` attribute (registry names are all lowercase).
+    const raw = readAttributeText(found, "palette")?.toLowerCase();
+    if (raw !== undefined && raw in STYLE_PALETTES) return raw;
+    return DEFAULT_PALETTE_NAME;
 }
 
 /**
@@ -475,16 +523,20 @@ export interface ExcludeAttribute {
 /**
  * Resolve the active style at `element`'s scope. The walk:
  *   1. Determine the styleNumber active at `element`.
- *   2. Seed a primitive style map from the built-in preset for that number
- *      (or the global default if the number is unknown).
- *   3. Walk ancestors root-to-leaf; for each, build a normalized
+ *   2. Determine the active palette: the deepest ancestor owning a
+ *      `<stylePalette>` wins, resets the walk at that ancestor (blocks above
+ *      it are discarded), and cycles out-of-range style numbers onto the
+ *      palette — see the inline comments in the body.
+ *   3. Seed a primitive style map from the active palette's preset for that
+ *      number (or the global default if the number is unknown).
+ *   4. Walk the (possibly reset) ancestor chain; for each, build a normalized
  *      `<styleDefinition>` block (per-block dark-mode + word derivation,
  *      mirroring the worker's `returnStyleDefinitionStateVariables`) for
  *      every block whose `styleNumber` matches, skipping
  *      `options.excludeAttribute.attributeName` on the matching node so the
  *      hint reflects "what if I removed just this attribute". Merge in
  *      source order so later wins.
- *   4. Pass through `resolveStyleDefinition` so every key in the
+ *   5. Pass through `resolveStyleDefinition` so every key in the
  *      `ResolvedStyleDefinition` shape is populated — the same fallback
  *      pass the runtime uses for `selectedStyle`.
  *
@@ -499,19 +551,78 @@ export function resolveActiveStyle(
 ): ActiveStyleResolution {
     const styleNumber = resolveActiveStyleNumber(sourceObj, element);
 
-    const merged = seedStyleDefinition(styleNumber);
+    const chain = ancestorChainRootToLeaf(sourceObj, element);
 
-    for (const ancestor of ancestorChainRootToLeaf(sourceObj, element)) {
-        for (const styleDef of findOwnedStyleDefinitions(ancestor)) {
-            const sdNumber = parseStyleNumberAttribute(styleDef) ?? 1;
-            if (sdNumber !== styleNumber) continue;
-            const excludeAttrName =
-                options.excludeAttribute &&
-                styleDef === options.excludeAttribute.node
-                    ? options.excludeAttribute.attributeName
-                    : undefined;
-            const block = buildStyleDefinitionBlock(styleDef, excludeAttrName);
-            mergeBlockInto(merged, block);
+    // The deepest ancestor owning a <stylePalette> resets the walk: the
+    // palette replaces the base presets for its subtree, and
+    // <styleDefinition> blocks above it are discarded (mirroring the
+    // runtime's palette-reset semantics). Blocks owned by the palette's own
+    // section still apply on top of the palette.
+    let paletteName: string | undefined;
+    let mergeStartIndex = 0;
+    for (let i = 0; i < chain.length; i++) {
+        const ancestor = chain[i];
+        // A <setup> is not a styles-hosting scope of its own — the runtime
+        // attributes its <stylePalette> children to the setup's *parent*
+        // (the setup route of `findOwnedStylePaletteName` covers that when
+        // the parent is scanned). Skip it here so a cursor *inside* the
+        // setup doesn't reset the walk one level too deep and drop sibling
+        // blocks owned by the parent scope.
+        if (ancestor.type === "element" && ancestor.name === "setup") {
+            continue;
+        }
+        const owned = findOwnedStylePaletteName(ancestor);
+        if (owned !== undefined) {
+            paletteName = owned;
+            mergeStartIndex = i;
+        }
+    }
+    const activePalette = paletteName !== undefined;
+    const basePaletteName = paletteName ?? DEFAULT_PALETTE_NAME;
+    const mergeChain = activePalette ? chain.slice(mergeStartIndex) : chain;
+
+    // With a palette active, style numbers beyond the palette size cycle
+    // onto the palette (mirroring the runtime). When an authored block also
+    // defines the out-of-range number, the runtime seeds it from the cycled
+    // entry as of the block's own scope; we approximate by merging
+    // cycled-number blocks first, then the out-of-range number's blocks —
+    // a cycled-number block *below* the first out-of-range block can
+    // diverge, an accepted best-effort edge for editor hints.
+    let seedNumber = styleNumber;
+    let matchNumbers: number[] = [styleNumber];
+    if (activePalette) {
+        const cycled = cycleStyleNumberForPalette(styleNumber, basePaletteName);
+        if (cycled !== styleNumber) {
+            seedNumber = cycled;
+            const hasBlockForNumber = mergeChain.some((ancestor) =>
+                findOwnedStyleDefinitions(ancestor).some(
+                    (styleDef) =>
+                        (parseStyleNumberAttribute(styleDef) ?? 1) ===
+                        styleNumber,
+                ),
+            );
+            matchNumbers = hasBlockForNumber ? [cycled, styleNumber] : [cycled];
+        }
+    }
+
+    const merged = seedStyleDefinition(seedNumber, basePaletteName);
+
+    for (const matchNumber of matchNumbers) {
+        for (const ancestor of mergeChain) {
+            for (const styleDef of findOwnedStyleDefinitions(ancestor)) {
+                const sdNumber = parseStyleNumberAttribute(styleDef) ?? 1;
+                if (sdNumber !== matchNumber) continue;
+                const excludeAttrName =
+                    options.excludeAttribute &&
+                    styleDef === options.excludeAttribute.node
+                        ? options.excludeAttribute.attributeName
+                        : undefined;
+                const block = buildStyleDefinitionBlock(
+                    styleDef,
+                    excludeAttrName,
+                );
+                mergeBlockInto(merged, block);
+            }
         }
     }
 

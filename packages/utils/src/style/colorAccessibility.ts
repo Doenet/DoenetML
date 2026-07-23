@@ -27,6 +27,16 @@ export const CANVAS_LIGHT_MODE_COLOR = "#ffffff";
  */
 export const CANVAS_DARK_MODE_COLOR = "#121212";
 
+/**
+ * Default body-text colors, matching the `--canvasText` custom property in
+ * `packages/doenetml/src/DoenetML.css`. Style number 1 is the style that
+ * unstyled content falls on, so every palette renders its text in these —
+ * see `applyNeutralTextColor` in `style.ts`.
+ */
+export const CANVAS_TEXT_LIGHT_MODE_COLOR = "black";
+/** Dark-mode counterpart of {@link CANVAS_TEXT_LIGHT_MODE_COLOR}. */
+export const CANVAS_TEXT_DARK_MODE_COLOR = "white";
+
 /** WCAG AA contrast threshold for non-text graphics (lines, markers). */
 export const GRAPHIC_CONTRAST_THRESHOLD = 3;
 /** WCAG AA contrast threshold for normal-size text. */
