@@ -112,7 +112,7 @@ prop changes:
 A reader can also switch the whole document to one of the built-in style
 palettes by name (case-insensitive) — for example `grayscale`, four grays
 laddered for maximum luminance separation, for readers who distinguish
-styles by lightness alone, or `okabeito` for common color vision
+styles by lightness alone, or `okabeIto` for common color vision
 deficiencies:
 
 ```tsx
