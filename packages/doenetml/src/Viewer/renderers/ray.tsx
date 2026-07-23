@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
@@ -72,6 +73,7 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
     lastThroughpointFromCore.current = SVs.numericalThroughpoint;
 
     const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 
@@ -133,6 +135,7 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
         newRayJXG.isDraggable = !fixLocation.current;
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newRayJXG,
             tag: 0,
             dragState,

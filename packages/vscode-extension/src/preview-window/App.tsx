@@ -71,6 +71,9 @@ function App() {
     );
     const [dirty, setDirty] = React.useState(false);
     const [darkMode, setDarkMode] = React.useState(false);
+    const [scrollToSourceOffset, setScrollToSourceOffset] = React.useState<
+        number | null
+    >(null);
     const previewContainerRef = React.useRef<HTMLDivElement>(null);
     const cancelScrollRestoreRef = React.useRef<(() => void) | null>(null);
 
@@ -92,6 +95,9 @@ function App() {
                     break;
                 case "dirty":
                     setDirty(true);
+                    break;
+                case "cursorMoved":
+                    setScrollToSourceOffset(message.offset);
                     break;
             }
         };
@@ -133,6 +139,17 @@ function App() {
         });
     }
 
+    function handleSourcePositionClick(position: {
+        start: { offset: number };
+        end: { offset: number };
+    }) {
+        vscode.postMessage({
+            command: "revealPosition",
+            start: position.start.offset,
+            end: position.end.offset,
+        });
+    }
+
     return (
         <div className="main">
             <div className="header">
@@ -148,6 +165,8 @@ function App() {
                 <DoenetViewer
                     doenetML={source}
                     darkMode={darkMode ? "dark" : "light"}
+                    onSourcePositionClick={handleSourcePositionClick}
+                    scrollToSourceOffset={scrollToSourceOffset}
                 />
             </div>
         </div>

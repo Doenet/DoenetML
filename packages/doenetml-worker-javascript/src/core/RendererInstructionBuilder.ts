@@ -458,6 +458,16 @@ export class RendererInstructionBuilder {
             componentType: component.componentType,
             rendererType: component.rendererType,
             actions: requestActions,
+            // Source range in the original DoenetML, used by hosts (e.g. the
+            // VS Code preview) to sync cursor/click position with the
+            // editor. Absent for components with no direct source origin.
+            // Note: a copy's replacement gets the copy reference's own range
+            // (e.g. `$g`'s), while descendants that already carried a
+            // position keep the original definition's range — see
+            // `assignDoenetMLRange`'s `init` flag. The viewer compensates
+            // when attributing clicks on copied content (`containsRange` in
+            // DocViewer).
+            position: component.position,
         };
 
         this.componentsToRender[componentIdx] = {

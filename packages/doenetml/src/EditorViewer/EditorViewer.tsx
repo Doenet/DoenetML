@@ -9,9 +9,9 @@ import React, {
 } from "react";
 import { flushSync } from "react-dom";
 import { ResizablePanelPair } from "@doenet/ui-components";
-import { CodeMirror, LSP } from "@doenet/codemirror";
+import { CodeMirror, LSP, EditorView } from "@doenet/codemirror";
 import "@doenet/codemirror/style.css";
-import { DocViewer } from "../Viewer/DocViewer";
+import { DocViewer, type SourcePosition } from "../Viewer/DocViewer";
 import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
 import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
 import {
@@ -321,6 +321,23 @@ export const EditorViewer = React.forwardRef<
     // their `HelpContent` to state.  Drops stale responses without needing
     // JSON-RPC cancellation (issue #1086 / Option 4).
     const helpRequestIdRef = useRef(0);
+
+    // Click-to-navigate: the underlying CodeMirror `EditorView`, populated
+    // once it mounts, so a click in the viewer can imperatively move the
+    // editor's cursor/selection. And the debounced editor-cursor offset fed
+    // into the viewer so it scrolls to follow the editor cursor — separate
+    // from `cursorDebounceTimer` above (that one drives the help panel, a
+    // different concern with different timing needs).
+    const editorViewRef = useRef<EditorView | null>(null);
+    const viewerScrollDebounceTimer = useRef<number | undefined>(undefined);
+    // Set by `handleSourcePositionClick` right before it dispatches a cursor
+    // move into the editor, so `onCursorChange` can tell that move apart
+    // from a real keystroke/click and skip echoing it back into the viewer
+    // (mirrors the VS Code extension's `suppressNextSelectionEcho`).
+    const suppressNextViewerFollowRef = useRef(false);
+    const [scrollToSourceOffset, setScrollToSourceOffset] = useState<
+        number | null
+    >(null);
 
     // Wall-clock time of the most recent source-change reset.  Used by
     // `runHelpRequest` to retry on a brief delay if a help RPC arrives
@@ -773,6 +790,23 @@ export const EditorViewer = React.forwardRef<
         (selection: EditorSelection) => {
             const offset = selection.main.head;
             lastCursorOffsetRef.current = offset;
+
+            // Click-to-navigate: scroll the viewer to follow the editor
+            // cursor, debounced so it doesn't scroll on every single
+            // keystroke while typing. Skipped when this cursor move is
+            // itself the echo of a click in the viewer (see
+            // `handleSourcePositionClick`) — the user just put the viewer
+            // where they want it, so re-centering the clicked element
+            // would yank the content out from under their pointer.
+            if (suppressNextViewerFollowRef.current) {
+                suppressNextViewerFollowRef.current = false;
+            } else {
+                window.clearTimeout(viewerScrollDebounceTimer.current);
+                viewerScrollDebounceTimer.current = window.setTimeout(() => {
+                    setScrollToSourceOffset(offset);
+                }, 120);
+            }
+
             window.clearTimeout(cursorDebounceTimer.current);
             // Skip the RPC when no one's looking — the help-becoming-visible
             // effect below will compute on demand for the current cursor.
@@ -912,6 +946,7 @@ export const EditorViewer = React.forwardRef<
             // component.
             window.clearTimeout(cursorDebounceTimer.current);
             window.clearTimeout(helpRetryTimerRef.current);
+            window.clearTimeout(viewerScrollDebounceTimer.current);
         };
     }, []);
 
@@ -924,6 +959,7 @@ export const EditorViewer = React.forwardRef<
             onCursorChange={onCursorChange}
             onSelectedCompletionChange={onSelectedCompletionChange}
             languageServerRef={lspRef}
+            editorViewRef={editorViewRef}
             doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
             darkMode={darkMode}
         />
@@ -1046,6 +1082,44 @@ export const EditorViewer = React.forwardRef<
         }
     }
 
+    /**
+     * Click-to-navigate: move the code editor's cursor/selection to a
+     * rendered element's source position and scroll it to the center of the
+     * editor's viewport (falling back to as-centered-as-possible near the
+     * start/end of the document). Plain `scrollIntoView: true` on the
+     * transaction only scrolls the minimum distance needed, landing the
+     * line at whichever edge (top or bottom) it happened to enter from —
+     * `EditorView.scrollIntoView`'s `y: "center"` effect is what actually
+     * centers it.
+     *
+     * The dispatched selection change echoes back through `onCursorChange`
+     * synchronously (CodeMirror reports every transaction that carries a
+     * selection, even one that leaves the cursor where it was — so the
+     * flag set here is always consumed). Without suppression that echo
+     * would schedule the viewer to scroll the clicked element to center;
+     * the flag makes `onCursorChange` skip exactly that one viewer-follow
+     * update while its other work (help-panel context, etc.) still runs.
+     */
+    function handleSourcePositionClick(position: SourcePosition) {
+        const view = editorViewRef.current;
+        if (!view) {
+            return;
+        }
+        // The position indexes into the last-compiled source
+        // (`viewerDoenetML`), but the editor may hold newer, shorter text —
+        // the viewer only recompiles on an explicit update. Clamp so the
+        // dispatch below can't throw a selection-out-of-range error (which
+        // would also leave the suppression flag latched).
+        const offset = Math.min(position.start.offset, view.state.doc.length);
+        suppressNextViewerFollowRef.current = true;
+        view.dispatch({
+            selection: EditorSelection.cursor(offset),
+            effects: EditorView.scrollIntoView(offset, {
+                y: "center",
+            }),
+        });
+    }
+
     const viewerPanel = (
         <div className="viewer-panel" id={id + "-viewer-panel"}>
             <ViewerControlsBar
@@ -1105,6 +1179,8 @@ export const EditorViewer = React.forwardRef<
                     answerResponseCounts={answerResponseCounts}
                     fetchExternalDoenetML={fetchExternalDoenetML}
                     requestScrollTo={requestScrollTo}
+                    onSourcePositionClick={handleSourcePositionClick}
+                    scrollToSourceOffset={scrollToSourceOffset}
                 />
             </div>
         </div>

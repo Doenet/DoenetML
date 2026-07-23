@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
@@ -76,6 +77,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         !SVs.endpointsDraggable || SVs.fixed || SVs.fixLocation;
 
     const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 
@@ -189,6 +191,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         };
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newSegmentJXG,
             tag: 0,
             dragState,
@@ -265,6 +268,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             argKey: "point1coords" | "point2coords",
         ) {
             attachLineFamilyDragHandlers({
+                sourceNavigation,
                 jxg: point,
                 tag: tagN,
                 dragState,

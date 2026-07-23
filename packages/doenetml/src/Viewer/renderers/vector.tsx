@@ -7,6 +7,7 @@ import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DynamicMath } from "./utils/DynamicMath";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import {
@@ -84,6 +85,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     headDraggable.current = SVs.headDraggable && !SVs.fixed && !SVs.fixLocation;
 
     const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 
@@ -195,6 +197,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         }
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newVectorJXG,
             tag: 0,
             dragState,
@@ -268,6 +271,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             isDraggable: typeof tailDraggable,
         ) {
             attachLineFamilyDragHandlers({
+                sourceNavigation,
                 jxg: point,
                 tag: tagN,
                 dragState,

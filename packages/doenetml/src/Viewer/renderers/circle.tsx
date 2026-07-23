@@ -18,6 +18,7 @@ import {
     normalizePointStyle,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import { JXGCircle, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -99,6 +100,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let offGraphIndicatorOffsetAtDown = useRef([0, 0]);
 
     const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 
@@ -313,6 +315,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         }
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: circleJXG.current,
             tag: 0,
             dragState,
@@ -360,6 +363,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         });
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: indicatorJXG.current,
             tag: 1,
             dragState,

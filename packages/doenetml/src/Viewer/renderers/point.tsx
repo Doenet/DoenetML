@@ -15,6 +15,7 @@ import {
     normalizePointStyle,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import { JXGPoint } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
@@ -88,6 +89,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     switchable.current = SVs.switchable && !SVs.fixed;
 
     const { darkMode = undefined } = useContext(DocContext);
+    const sourceNavigation = useSourceNavigation(id);
 
     // Components with their own semantic open/closed state (Endpoint.open,
     // EquilibriumPoint.open) take precedence: when SVs.open is defined, it's
@@ -252,6 +254,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         });
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newShadowPointJXG,
             tag: 0,
             dragState,

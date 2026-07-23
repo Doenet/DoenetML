@@ -212,4 +212,61 @@ function setupPreviewWindow(context: ExtensionContext) {
         DoenetPreviewPanel.setSource(e.document.getText());
         DoenetPreviewPanel.triggerRefresh();
     });
+
+    // Editor -> preview: scroll the preview to whatever the cursor is on.
+    // Debounced since selection-change fires on every arrow key / click.
+    //
+    // `suppressNextSelectionEcho` guards against feedback: `onRevealPosition`
+    // below sets `editor.selection` to reflect a preview click, which itself
+    // fires this same event. Excluding `kind === Command` looks like the
+    // right filter for "this change was caused by us," but VS Code only
+    // tags selection changes as `Command` when they result from executing a
+    // registered command — a direct `editor.selection = ...` assignment
+    // fires with `kind: undefined`, same as a real (non-keyboard/mouse)
+    // change, so `Command` alone doesn't catch it. Set right before the
+    // assignment and consumed here, once, regardless of `kind`.
+    let suppressNextSelectionEcho = false;
+    let cursorMoveTimer: ReturnType<typeof setTimeout> | undefined;
+    vscode.window.onDidChangeTextEditorSelection((e) => {
+        if (e.textEditor.document.languageId !== "doenet") {
+            return;
+        }
+        if (suppressNextSelectionEcho) {
+            suppressNextSelectionEcho = false;
+            return;
+        }
+        const offset = e.textEditor.document.offsetAt(e.selections[0].active);
+        clearTimeout(cursorMoveTimer);
+        cursorMoveTimer = setTimeout(() => {
+            DoenetPreviewPanel.sendCursorPosition(offset);
+        }, 120);
+    });
+
+    // Preview -> editor: reveal the source range for a clicked element.
+    DoenetPreviewPanel.onRevealPosition = (start, end) => {
+        const editor = vscode.window.visibleTextEditors.find(
+            (e) => e.document.languageId === "doenet",
+        );
+        if (!editor) {
+            return;
+        }
+        const range = new vscode.Range(
+            editor.document.positionAt(start),
+            editor.document.positionAt(end),
+        );
+        editor.revealRange(
+            range,
+            vscode.TextEditorRevealType.InCenterIfOutsideViewport,
+        );
+        const selection = new vscode.Selection(range.start, range.start);
+        if (editor.selection.isEqual(selection)) {
+            // Cursor is already there (e.g. the same element was clicked
+            // twice). Assigning an identical selection fires no
+            // selection-change event, so setting the suppression flag would
+            // leave it latched and swallow the next real cursor move.
+            return;
+        }
+        suppressNextSelectionEcho = true;
+        editor.selection = selection;
+    };
 }

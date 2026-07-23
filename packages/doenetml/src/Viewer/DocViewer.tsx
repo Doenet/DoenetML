@@ -3,6 +3,7 @@ import React, {
     ErrorInfo,
     ReactElement,
     ReactNode,
+    useCallback,
     useEffect,
     useRef,
     useState,
@@ -46,12 +47,34 @@ import type { ResolvedTheme } from "../utils/theme";
 // `@doenet/doenetml/Viewer/DocViewer` via the package's `./*` exports map.
 export { renderersLoadComponent } from "./renderersLoadComponent";
 
+export type SourcePosition = {
+    start: { line: number; column: number; offset: number };
+    end: { line: number; column: number; offset: number };
+};
+
+/** Whether `inner`'s source range lies entirely within `outer`'s. */
+function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
+    return (
+        inner.start.offset >= outer.start.offset &&
+        inner.end.offset <= outer.end.offset
+    );
+}
+
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
+    /**
+     * Called by in-graph renderers when a JSXGraph element handled a
+     * pointer-up: with the element's DOM id (and its board's DOM id, for
+     * copy attribution) for a genuine click — navigate to its source — or
+     * `null` for a drag release (no navigation). Either way the viewer's
+     * own delegated click listener skips the native click that follows,
+     * so the graph-level fallback doesn't fire on top.
+     */
+    reportGraphElementUp?: (domId: string | null, graphDomId?: string) => void;
 }>({});
 
 export function DocViewer({
@@ -84,6 +107,8 @@ export function DocViewer({
     initializeCounters: prescribedInitializeCounters = {},
     fetchExternalDoenetML,
     requestScrollTo,
+    onSourcePositionClick,
+    scrollToSourceOffset,
 }: {
     doenetML: string;
     userId?: string;
@@ -122,6 +147,8 @@ export function DocViewer({
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
+    onSourcePositionClick?: (position: SourcePosition) => void;
+    scrollToSourceOffset?: number | null;
 }) {
     // Sometimes components eagerly update before waiting for core to determine their exact state
     // This map from event ids to event values helps keep track of the updates that need to be ignored
@@ -130,6 +157,242 @@ export function DocViewer({
         new Map(),
     );
     const dispatch = useAppDispatch();
+
+    // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
+    // source position, so a click anywhere in the preview can be traced
+    // back to a location in the original DoenetML. Populated as renderer
+    // instructions stream in from the core; not stored in Redux since it
+    // doesn't need to trigger re-renders.
+    const positionByDomId = useRef<Map<string, SourcePosition>>(new Map());
+    const viewerContainerRef = useRef<HTMLDivElement>(null);
+    const lastScrolledSourceOffset = useRef<number | null>(null);
+
+    // Whenever the host asks for a specific source offset (e.g. the
+    // editor's cursor moved), scroll a matching rendered element into
+    // view. The rule: find the innermost mapped element containing the
+    // offset (the "container" — implicitly the whole document when none
+    // does), then prefer the nearest mapped element inside the container
+    // that starts after the offset, then the nearest one ending before
+    // it, then the container itself. Offsets with no mapped element of
+    // their own (whitespace between siblings, or inside a composite like
+    // <group> that produces no renderer instruction) thus resolve to a
+    // nearby sibling — the same way whether the container is a component
+    // like <section> or the document itself — rather than centering a
+    // possibly-huge container.
+    //
+    // Placed here, before this component's several early `return null`
+    // paths further down, so it's called unconditionally on every render
+    // (skipping it on some renders but not others would violate the Rules
+    // of Hooks).
+    useEffect(() => {
+        if (scrollToSourceOffset == null) {
+            return;
+        }
+        if (lastScrolledSourceOffset.current === scrollToSourceOffset) {
+            return;
+        }
+        lastScrolledSourceOffset.current = scrollToSourceOffset;
+
+        // Resolve a candidate id to its element, scoped to this viewer.
+        // Within a document's lifetime `positionByDomId` is only ever added
+        // to (it's cleared only when the document itself resets), so it can
+        // hold stale entries — ids from renderer instructions whose
+        // components are no longer rendered (e.g. hidden or removed by an
+        // update) — and a candidate only counts if its element is actually
+        // present. Checked lazily, only when a candidate would become the
+        // new best, so most entries never incur a DOM lookup.
+        function renderedElement(id: string): Element | null {
+            return (
+                viewerContainerRef.current?.querySelector(
+                    `#${CSS.escape(id)}`,
+                ) ?? null
+            );
+        }
+
+        // Pass 1: the container — the element with the smallest source
+        // range containing the offset, or implicitly the whole document
+        // when none does.
+        let containerEl: Element | null = null;
+        let containerStart = -Infinity;
+        let containerEnd = Infinity;
+        let containerSize = Infinity;
+        for (const [id, position] of positionByDomId.current) {
+            const { offset: start } = position.start;
+            const { offset: end } = position.end;
+            if (
+                start <= scrollToSourceOffset &&
+                scrollToSourceOffset <= end &&
+                end - start < containerSize
+            ) {
+                const el = renderedElement(id);
+                if (el) {
+                    containerEl = el;
+                    containerStart = start;
+                    containerEnd = end;
+                    containerSize = end - start;
+                }
+            }
+        }
+
+        // Pass 2: gap candidates — elements within the container's range
+        // (none of them can contain the offset, or pass 1 would have made
+        // them the container). Prefer the nearest one starting after the
+        // offset: unmapped source between siblings renders between them,
+        // so the following sibling is the right neighborhood.
+        let followingEl: Element | null = null;
+        let followingStart = Infinity;
+        let precedingEl: Element | null = null;
+        let precedingEnd = -Infinity;
+        for (const [id, position] of positionByDomId.current) {
+            const { offset: start } = position.start;
+            const { offset: end } = position.end;
+            if (start < containerStart || end > containerEnd) {
+                continue;
+            }
+            if (start > scrollToSourceOffset && start < followingStart) {
+                const el = renderedElement(id);
+                if (el) {
+                    followingEl = el;
+                    followingStart = start;
+                }
+            } else if (end < scrollToSourceOffset && end > precedingEnd) {
+                const el = renderedElement(id);
+                if (el) {
+                    precedingEl = el;
+                    precedingEnd = end;
+                }
+            }
+        }
+
+        const target = followingEl ?? precedingEl ?? containerEl;
+        if (!target) {
+            return;
+        }
+
+        // Graphical components (e.g. a vector inside a graph) render only
+        // an empty anchor span — the visible drawing lives on the shared
+        // canvas — so centering the anchor itself can leave the graph cut
+        // off. Walk up to the nearest ancestor with real extent.
+        let el: Element = target;
+        while (
+            el !== viewerContainerRef.current &&
+            el.parentElement &&
+            el.getBoundingClientRect().height === 0
+        ) {
+            el = el.parentElement;
+        }
+
+        // Find the viewport of the nearest scrollable ancestor (falling
+        // back to the window) so we can tell how far centering would move
+        // the element.
+        let viewportTop = 0;
+        let viewportHeight = window.innerHeight;
+        for (let a = el.parentElement; a; a = a.parentElement) {
+            const style = window.getComputedStyle(a);
+            if (
+                /(auto|scroll|overlay)/.test(style.overflowY) &&
+                a.scrollHeight > a.clientHeight
+            ) {
+                viewportTop = a.getBoundingClientRect().top;
+                viewportHeight = a.clientHeight;
+                break;
+            }
+        }
+
+        // Skip the scroll when centering would move the element less than
+        // ~5% of the viewport height: tiny corrective nudges (e.g.
+        // re-centering the enclosing <p> after one of its children) are
+        // more distracting than useful.
+        const rect = el.getBoundingClientRect();
+        const currentCenter = rect.top + rect.height / 2;
+        const targetCenter = viewportTop + viewportHeight / 2;
+        if (Math.abs(currentCenter - targetCenter) < 0.05 * viewportHeight) {
+            return;
+        }
+
+        el.scrollIntoView({ block: "center" });
+    }, [scrollToSourceOffset]);
+
+    // Set when an in-graph JSXGraph element already handled the current
+    // pointer interaction (element-level navigation, or a drag release):
+    // the native click that follows the pointer-up must not also trigger
+    // the graph-level fallback navigation. Cleared at the start of every
+    // pointer interaction so a report whose click never arrives (e.g. the
+    // pointer was released outside the board) can't suppress a later,
+    // unrelated click.
+    const skipNextClickNavigation = useRef(false);
+
+    const onSourcePositionClickRef = useRef(onSourcePositionClick);
+    onSourcePositionClickRef.current = onSourcePositionClick;
+
+    // Stable identity so JSXGraph event handlers — registered once per
+    // element creation with whatever closure the renderer had at the time —
+    // never hold a stale version.
+    const reportGraphElementUp = useCallback(
+        (domId: string | null, graphDomId?: string) => {
+            if (domId == null) {
+                // Drag release: suppress the native click without navigating.
+                skipNextClickNavigation.current = true;
+                return;
+            }
+            let position = positionByDomId.current.get(domId);
+            if (!position) {
+                // No recorded source position (e.g. a component created at
+                // runtime by an `addChildren` action): leave the native click
+                // alone so it falls back to the enclosing graph.
+                return;
+            }
+            // A component whose source range lies outside its rendering
+            // graph's range wasn't authored there — it was brought in by
+            // whatever authored the graph (a copy like `$g` or
+            // `<graph extend="$g">`). Navigate to that, not to the copied
+            // component's original definition. Directly authored children
+            // (including inside `<graph extend>`) and `<repeat>` templates
+            // are contained in their graph's range and unaffected.
+            const graphPosition = graphDomId
+                ? positionByDomId.current.get(graphDomId)
+                : undefined;
+            if (graphPosition && !containsRange(graphPosition, position)) {
+                position = graphPosition;
+            }
+            skipNextClickNavigation.current = true;
+            onSourcePositionClickRef.current?.(position);
+        },
+        [],
+    );
+
+    // Delegated click-to-navigate listener, attached natively in the
+    // CAPTURE phase: JSXGraph's own click handler on a graph's board div
+    // calls `stopPropagation()` unconditionally, so a bubble-phase
+    // listener (like React's `onClick`) never hears clicks on a graph.
+    // Capture runs top-down before the board can stop the event, and we
+    // neither stop nor prevent anything ourselves, so JSXGraph's behavior
+    // is unaffected. Re-attached every render (no dependency array) so it
+    // is in place whenever the container div exists and always sees the
+    // current `onSourcePositionClick`.
+    useEffect(() => {
+        const container = viewerContainerRef.current;
+        if (!container) {
+            return;
+        }
+        function handleViewerPointerDown() {
+            skipNextClickNavigation.current = false;
+        }
+        container.addEventListener("click", handleViewerClick, true);
+        container.addEventListener(
+            "pointerdown",
+            handleViewerPointerDown,
+            true,
+        );
+        return () => {
+            container.removeEventListener("click", handleViewerClick, true);
+            container.removeEventListener(
+                "pointerdown",
+                handleViewerPointerDown,
+                true,
+            );
+        };
+    });
 
     const [errMsg, setErrMsg] = useState<string | null>(null);
 
@@ -268,6 +531,7 @@ export function DocViewer({
         darkMode,
         showAnswerResponseButton,
         answerResponseCounts,
+        reportGraphElementUp,
     };
 
     useEffect(() => {
@@ -772,6 +1036,47 @@ export function DocViewer({
         }
     }
 
+    /**
+     * Record the DOM id -> source position of every renderer instruction in
+     * `childrenInstructions` (each entry carries its own `id`, `componentIdx`,
+     * and, if the component has a direct source origin, `position`). Called
+     * wherever a batch of renderer instructions arrives from the core, so
+     * `positionByDomId` stays in sync with whatever's actually rendered.
+     *
+     * Entries can also be plain strings or nulls (text children), and a
+     * position's `offset` fields are optional in the underlying DAST types
+     * (unist `Point.offset?`), while everything reading this map — the
+     * scroll-target search and both click handlers — does arithmetic on
+     * them. Validating numeric start/end offsets here, at the single entry
+     * point, is what makes the map's `SourcePosition` value type honest.
+     */
+    function recordPositions(childrenInstructions: unknown): void {
+        if (!Array.isArray(childrenInstructions)) {
+            return;
+        }
+        for (const entry of childrenInstructions) {
+            const instruction = entry as {
+                id?: unknown;
+                position?: {
+                    start?: { offset?: unknown };
+                    end?: { offset?: unknown };
+                };
+            } | null;
+            if (
+                instruction &&
+                typeof instruction === "object" &&
+                typeof instruction.id === "string" &&
+                typeof instruction.position?.start?.offset === "number" &&
+                typeof instruction.position?.end?.offset === "number"
+            ) {
+                positionByDomId.current.set(
+                    prefixForIds + instruction.id,
+                    instruction.position as SourcePosition,
+                );
+            }
+        }
+    }
+
     function initializeRenderers(args: Record<string, any>) {
         if (args.rendererState) {
             if (
@@ -789,6 +1094,9 @@ export function DocViewer({
                 });
             }
             for (let componentIdx in args.rendererState) {
+                recordPositions(
+                    args.rendererState[componentIdx].childrenInstructions,
+                );
                 dispatch(
                     mainThunks.updateRendererSVs({
                         coreId: coreId.current,
@@ -930,6 +1238,7 @@ export function DocViewer({
                     rendererType,
                     childrenInstructions,
                 } of instruction.rendererStatesToUpdate) {
+                    recordPositions(childrenInstructions);
                     dispatch(
                         mainThunks.updateRendererSVs({
                             coreId: coreId.current,
@@ -1641,6 +1950,11 @@ export function DocViewer({
         coreCreated.current = false;
         coreCreationInProgress.current = false;
         loadedInitialRendererState.current = false;
+        // Source positions recorded for the old document are meaningless
+        // offsets into the new one; drop them rather than letting them
+        // accumulate across recompiles (`recordPositions` repopulates the
+        // map as the new core's renderer instructions stream in).
+        positionByDomId.current.clear();
 
         setStage("wait");
 
@@ -1714,6 +2028,53 @@ export function DocViewer({
         }
     }
 
+    function handleViewerClick(event: MouseEvent) {
+        if (skipNextClickNavigation.current) {
+            skipNextClickNavigation.current = false;
+            return;
+        }
+        if (!onSourcePositionClick) {
+            return;
+        }
+        // Innermost mapped element wins, with one correction: walking on
+        // up the ancestor chain, a mapped ancestor whose source range does
+        // NOT contain the chosen range means the chosen element wasn't
+        // authored where it renders — it was brought in by whatever
+        // authored that ancestor (a copy like `$section1`) — so navigate
+        // to the ancestor's range instead.
+        let chosen: SourcePosition | undefined;
+        let el: Element | null = event.target as Element;
+        const container = viewerContainerRef.current;
+        while (el && el !== container) {
+            const position = mappedPositionForDomId(el.id);
+            if (position) {
+                if (!chosen || !containsRange(position, chosen)) {
+                    chosen = position;
+                }
+            }
+            el = el.parentElement;
+        }
+        if (chosen) {
+            onSourcePositionClick(chosen);
+        }
+    }
+
+    // Look up a DOM id in the position map, also recognizing the
+    // `${id}-container` wrapper convention (e.g. GraphFrame, choiceInput)
+    // so clicks in a component's margins resolve to the component.
+    function mappedPositionForDomId(domId: string) {
+        if (!domId) {
+            return undefined;
+        }
+        const direct = positionByDomId.current.get(domId);
+        if (direct || !domId.endsWith("-container")) {
+            return direct;
+        }
+        return positionByDomId.current.get(
+            domId.slice(0, -"-container".length),
+        );
+    }
+
     let errorOverview = null;
     if (documentRenderer && hasInitialError) {
         let errorStyle = {
@@ -1740,7 +2101,11 @@ export function DocViewer({
             coreCreated={coreCreated.current}
         >
             {noCoreWarning}
-            <div style={viewerStyle} className="doenet-viewer">
+            <div
+                style={viewerStyle}
+                className="doenet-viewer"
+                ref={viewerContainerRef}
+            >
                 {errorOverview}
                 <DocContext.Provider value={contextForRenderers}>
                     {documentRenderer}
