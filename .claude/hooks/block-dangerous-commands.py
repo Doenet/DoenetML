@@ -208,6 +208,19 @@ def _is_catastrophic_rm_target(tok: str, cwd: str = None) -> bool:
                 return True
         except (OSError, ValueError):
             pass
+    # Independently of the env var, the payload's own `cwd` — and any ancestor
+    # of it — is a protected target: removing the directory the agent is working
+    # in, or anything that contains it, is catastrophic. This closes the residual
+    # where CLAUDE_PROJECT_DIR is unset and the repo root is reachable only as a
+    # mixed relative path (`../<repo-dir-name>`) that resolves back onto cwd, or
+    # onto an ancestor of it, rather than as a pure upward traversal.
+    if cwd:
+        try:
+            cwd_r = os.path.realpath(cwd)
+            if resolved == cwd_r or cwd_r.startswith(resolved.rstrip("/") + os.sep):
+                return True
+        except (OSError, ValueError):
+            pass
     return False
 
 
