@@ -28,9 +28,10 @@ import type { StylePalette } from "./types";
  * weakest dichromat pairs (~dE 7-8) are assigned distinct marker shapes;
  * dark mode keeps dE >= 10 for all pairs under every dichromacy. Marker
  * shapes and line styles vary across styles so distinctions never rest on
- * color alone. Color words are pinned wherever the nearest-anchor word
- * matcher misnames a hue (it called this palette's blue "cyan" and its
- * reddish purple "red").
+ * color alone. Color words are pinned only where the perceptual matcher's
+ * twelve-word vocabulary is too coarse for the intended name ("skyblue",
+ * "olive", "goldenrod") or rounds a borderline hue to a neighbour (the
+ * reddish purple, which the matcher calls "pink").
  */
 export const okabeItoPalette: StylePalette = {
     name: "okabeito",
@@ -43,17 +44,9 @@ export const okabeItoPalette: StylePalette = {
             markerColor: "#0072b2",
             fillColor: "#0072b2",
             highContrastColor: "#0072b2",
-            lineColorWord: "blue",
-            markerColorWord: "blue",
-            fillColorWord: "blue",
-            highContrastColorWord: "blue",
             lineColorDarkMode: "#0072b2",
             markerColorDarkMode: "#0072b2",
             fillColorDarkMode: "#0072b2",
-            lineColorWordDarkMode: "blue",
-            markerColorWordDarkMode: "blue",
-            fillColorWordDarkMode: "blue",
-            highContrastColorWordDarkMode: "blue",
             lineWidth: 4,
             markerStyle: "circle",
         },
@@ -78,20 +71,10 @@ export const okabeItoPalette: StylePalette = {
             fillColor: "#009e73",
             textColor: "#008561",
             highContrastColor: "#008561",
-            lineColorWord: "green",
-            markerColorWord: "green",
-            fillColorWord: "green",
-            textColorWord: "green",
-            highContrastColorWord: "green",
             lineColorDarkMode: "#009e73",
             markerColorDarkMode: "#009e73",
             fillColorDarkMode: "#009e73",
             textColorDarkMode: "#009e73",
-            lineColorWordDarkMode: "green",
-            markerColorWordDarkMode: "green",
-            fillColorWordDarkMode: "green",
-            textColorWordDarkMode: "green",
-            highContrastColorWordDarkMode: "green",
             lineWidth: 3,
             markerStyle: "triangle",
         },
@@ -105,8 +88,6 @@ export const okabeItoPalette: StylePalette = {
             lineColorWord: "purple",
             markerColorWord: "purple",
             fillColorWord: "purple",
-            textColorWord: "purple",
-            highContrastColorWord: "purple",
             lineColorDarkMode: "#cc79a7",
             markerColorDarkMode: "#cc79a7",
             fillColorDarkMode: "#cc79a7",
