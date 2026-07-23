@@ -7,6 +7,7 @@ import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { DynamicMath } from "./utils/DynamicMath";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import {
     applyLineFamilyLabelPlacement,
@@ -76,10 +77,8 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
     let switchable = useRef(false);
     switchable.current = SVs.switchable && !SVs.fixed;
 
-    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
-    const sourceNavigation = reportGraphElementUp
-        ? { domId: id, report: reportGraphElementUp }
-        : undefined;
+    const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 

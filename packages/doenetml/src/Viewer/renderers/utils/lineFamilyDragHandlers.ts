@@ -26,6 +26,17 @@ export interface DragCoordinationState<TTag = number> {
 
 export type CommitVariant = "up" | "keyEnter" | "keyFocusOut";
 
+/**
+ * Click-to-navigate wiring for `AttachDragHandlersConfig.sourceNavigation`.
+ * Renderers build it with the `useSourceNavigation` hook.
+ */
+export interface SourceNavigationConfig {
+    /** The renderer's DOM id (the key into the viewer's position map). */
+    domId: string;
+    /** The viewer's `reportGraphElementUp` callback from `DocContext`. */
+    report: (domId: string | null, graphDomId?: string) => void;
+}
+
 type MoveArgs = Record<string, any>;
 
 export interface AttachDragHandlersConfig<TTag, TSnapshot> {
@@ -154,10 +165,7 @@ export interface AttachDragHandlersConfig<TTag, TSnapshot> {
      * Deliberately not gated on `fixedRef`: navigation is an authoring aid
      * and applies to fixed components too.
      */
-    sourceNavigation?: {
-        domId: string;
-        report: (domId: string | null, graphDomId?: string) => void;
-    };
+    sourceNavigation?: SourceNavigationConfig;
 
     /** Extra setup at the end of `down` (e.g., circle indicator offsets). */
     onDownExtra?: (e: { x: number; y: number }) => void;

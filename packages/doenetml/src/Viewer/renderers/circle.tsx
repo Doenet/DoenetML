@@ -18,6 +18,7 @@ import {
     normalizePointStyle,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import { JXGCircle, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -98,10 +99,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let offGraphIndicatorCoords = useRef<[number, number] | null>([0, 0]);
     let offGraphIndicatorOffsetAtDown = useRef([0, 0]);
 
-    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
-    const sourceNavigation = reportGraphElementUp
-        ? { domId: id, report: reportGraphElementUp }
-        : undefined;
+    const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 

@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
@@ -75,10 +76,8 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
     endpointsFixed.current =
         !SVs.endpointsDraggable || SVs.fixed || SVs.fixLocation;
 
-    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
-    const sourceNavigation = reportGraphElementUp
-        ? { domId: id, report: reportGraphElementUp }
-        : undefined;
+    const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 

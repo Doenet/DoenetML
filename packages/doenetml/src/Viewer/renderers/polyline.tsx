@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import { JXGCurve, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -74,10 +75,8 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
     vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
 
-    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
-    const sourceNavigation = reportGraphElementUp
-        ? { domId: id, report: reportGraphElementUp }
-        : undefined;
+    const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 

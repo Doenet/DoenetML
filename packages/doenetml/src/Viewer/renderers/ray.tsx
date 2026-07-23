@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
+import { useSourceNavigation } from "./utils/useSourceNavigation";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
@@ -71,10 +72,8 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
     let lastThroughpointFromCore = useRef<[number, number] | null>(null);
     lastThroughpointFromCore.current = SVs.numericalThroughpoint;
 
-    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
-    const sourceNavigation = reportGraphElementUp
-        ? { domId: id, report: reportGraphElementUp }
-        : undefined;
+    const { darkMode } = useContext(DocContext) || {};
+    const sourceNavigation = useSourceNavigation(id);
 
     useBoardPointerTracking(board, dragState);
 

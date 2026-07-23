@@ -461,9 +461,12 @@ export class RendererInstructionBuilder {
             // Source range in the original DoenetML, used by hosts (e.g. the
             // VS Code preview) to sync cursor/click position with the
             // editor. Absent for components with no direct source origin.
-            // Note: components inside a `<copy>` replacement all share the
-            // `<copy>` tag's own range (see assignDoenetMLRange), so this is
-            // not a precise 1:1 mapping for copied content.
+            // Note: a copy's replacement gets the copy reference's own range
+            // (e.g. `$g`'s), while descendants that already carried a
+            // position keep the original definition's range — see
+            // `assignDoenetMLRange`'s `init` flag. The viewer compensates
+            // when attributing clicks on copied content (`containsRange` in
+            // DocViewer).
             position: component.position,
         };
 
