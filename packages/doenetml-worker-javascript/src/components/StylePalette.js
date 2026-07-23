@@ -19,9 +19,13 @@ export class StylePalette extends BaseComponent {
         // `validValues` both surfaces the palette names in the schema
         // (autocomplete with each palette's description) and makes the runtime
         // fall back to the default palette with a diagnostic when an unknown
-        // name is authored. `toLowerCase` makes matching case-insensitive
-        // (registry names are all lowercase); the LSP resolver mirrors both
-        // rules in `findOwnedStylePaletteName`.
+        // name is authored. The surfaced value is the palette's canonical
+        // camelCase `name`, per the repo convention that enumerated value names
+        // read as camelCase. `toLowerCase` makes matching case-insensitive — it
+        // lower-cases both the authored value and every `validValues[].value`
+        // before comparison, so the lower-cased `name` lands back on the
+        // registry key; the LSP resolver mirrors both rules in
+        // `findOwnedStylePaletteName`.
         attributes.palette = {
             createComponentOfType: "text",
             createStateVariable: "palette",

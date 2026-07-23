@@ -21,7 +21,11 @@ import {
  * labelling swatches accessibly.
  */
 export interface StylePaletteInfo {
-    /** Registered palette name, as written in `<stylePalette palette="...">`. */
+    /**
+     * Canonical palette name in camelCase — the spelling to show in a picker
+     * and feed back to `<stylePalette palette="...">` (which matches it
+     * case-insensitively).
+     */
     name: string;
     /** One-line human-readable summary of the palette. */
     description: string;

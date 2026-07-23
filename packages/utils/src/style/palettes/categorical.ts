@@ -9,7 +9,7 @@ import type { StylePalette } from "./types";
  * conventional names (blue, orange, green, red, ...) that make style
  * descriptions easy to talk about.
  *
- * Unlike `okabeito`, `tolbright`, `tolmuted`, `tolhighcontrast`, and `ibm`,
+ * Unlike `okabeIto`, `tolBright`, `tolMuted`, `tolHighContrast`, and `ibm`,
  * this palette is NOT engineered for color vision deficiency: several pairs
  * (notably green/olive and blue/purple) converge under red-green CVD. It
  * varies marker shapes and line styles across all ten styles so the

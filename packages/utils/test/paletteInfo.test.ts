@@ -9,8 +9,13 @@ import {
 describe("getStylePalettes", () => {
     it("describes every registered palette, in registration order", () => {
         const palettes = getStylePalettes();
-        expect(palettes.map((p) => p.name)).toEqual([...STYLE_PALETTE_NAMES]);
-        expect(palettes[0].name).toBe(DEFAULT_PALETTE_NAME);
+        // `name` is the canonical camelCase spelling; the registry keys
+        // (`STYLE_PALETTE_NAMES`) are its lower-cased form, so compare
+        // case-insensitively to check both correspondence and order.
+        expect(palettes.map((p) => p.name.toLowerCase())).toEqual([
+            ...STYLE_PALETTE_NAMES,
+        ]);
+        expect(palettes[0].name.toLowerCase()).toBe(DEFAULT_PALETTE_NAME);
     });
 
     it("gives every palette a description and at least four styles", () => {
@@ -70,7 +75,9 @@ describe("getStylePalettes", () => {
     });
 
     it("matches palette names case-insensitively and rejects unknown ones", () => {
-        expect(getStylePalette("  OkabeIto ")?.name).toBe("okabeito");
+        // Lookup is case-insensitive, but the returned `name` is always the
+        // canonical camelCase spelling.
+        expect(getStylePalette("  OkabeIto ")?.name).toBe("okabeIto");
         expect(getStylePalette("not-a-palette")).toBeNull();
         expect(getStylePalette("constructor")).toBeNull();
         expect(getStylePalette(undefined as any)).toBeNull();

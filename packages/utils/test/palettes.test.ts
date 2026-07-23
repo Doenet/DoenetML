@@ -19,9 +19,11 @@ describe("palette registry", () => {
         expect(STYLE_PALETTES[DEFAULT_PALETTE_NAME]).toBeDefined();
     });
 
-    it("every palette has a matching name key, a description, and styles numbered contiguously from 1", () => {
+    it("every palette is keyed by the lower-cased form of its name, has a description, and styles numbered contiguously from 1", () => {
         for (const [key, palette] of Object.entries(STYLE_PALETTES)) {
-            expect(palette.name).toBe(key);
+            // `name` is the canonical camelCase spelling; the registry keys by
+            // its lower-cased form (see `registerByKey` in ./palettes/index.ts).
+            expect(palette.name.toLowerCase()).toBe(key);
             expect(palette.description.length).toBeGreaterThan(0);
 
             const styleNumbers = Object.keys(palette.styles)

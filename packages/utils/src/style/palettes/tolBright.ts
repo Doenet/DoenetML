@@ -14,7 +14,7 @@ import type { StylePalette } from "./types";
  * color alone.
  */
 export const tolBrightPalette: StylePalette = {
-    name: "tolbright",
+    name: "tolBright",
     description:
         "Colorblind-friendly bright blues, reds, greens, and purples from Paul Tol's bright palette, with varied marker shapes and line styles.",
     styles: {
