@@ -144,6 +144,21 @@ export interface AttachDragHandlersConfig<TTag, TSnapshot> {
      */
     participatesInDownTag?: boolean;
 
+    /**
+     * Click-to-navigate wiring. On a click-like `up` (and keyboard Enter),
+     * `report` is called with `domId` — plus the enclosing board's DOM id,
+     * so the viewer can attribute copy-produced components to the copy
+     * that authored them — and the viewer navigates to the component's
+     * source; on a drag release it's called with `null` so the viewer
+     * suppresses the native click that follows without navigating.
+     * Deliberately not gated on `fixedRef`: navigation is an authoring aid
+     * and applies to fixed components too.
+     */
+    sourceNavigation?: {
+        domId: string;
+        report: (domId: string | null, graphDomId?: string) => void;
+    };
+
     /** Extra setup at the end of `down` (e.g., circle indicator offsets). */
     onDownExtra?: (e: { x: number; y: number }) => void;
     /** Extra teardown at the end of `up`. */
@@ -188,6 +203,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         onDragApplied,
         suppressClickWhenDownOnOtherTag,
         suppressFocusOnDownWhenDownOnOtherTag,
+        sourceNavigation,
         participatesInDownTag = true,
         clickPreludeGate,
         onDownExtra,
@@ -198,6 +214,13 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
 
     const focusArgs = { componentIdx };
     let currentSnapshot: TSnapshot | null = null;
+
+    function reportNavigationClick() {
+        sourceNavigation?.report(
+            sourceNavigation.domId,
+            (jxg as any).board?.container,
+        );
+    }
 
     function dispatchFocus() {
         if (actions.focus) {
@@ -288,16 +311,19 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         if (coordination.draggedTag.current === tag) {
             dispatchCommit("up");
             coordination.draggedTag.current = null;
+            sourceNavigation?.report(null);
         } else if (
             !dragState.pointerMovedSinceDown.current &&
-            !fixedRef.current &&
             !(
                 suppressClickWhenDownOnOtherTag &&
                 coordination.downOnTag.current !== null &&
                 coordination.downOnTag.current !== tag
             )
         ) {
-            dispatchClick();
+            reportNavigationClick();
+            if (!fixedRef.current) {
+                dispatchClick();
+            }
         }
 
         if (coordination.downOnTag.current === tag) {
@@ -323,6 +349,9 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
             dispatchCommit("keyEnter");
             coordination.draggedTag.current = null;
         }
+        // No native click follows a keyboard Enter, so the report can't be
+        // double-consumed; the next pointerdown clears the skip flag anyway.
+        reportNavigationClick();
         dispatchClick();
     });
 }

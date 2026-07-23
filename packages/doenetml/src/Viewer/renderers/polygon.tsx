@@ -90,7 +90,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
     vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
 
-    const { darkMode } = useContext(DocContext) || {};
+    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
+    const sourceNavigation = reportGraphElementUp
+        ? { domId: id, report: reportGraphElementUp }
+        : undefined;
 
     useBoardPointerTracking(board, dragState);
 
@@ -272,6 +275,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
     function attachPolygonBodyDragHandlers(polygon: JXGPolygon) {
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: polygon,
             tag: -1,
             dragState,
@@ -351,6 +355,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
     function attachPolygonVertexDragHandlers(vertex: JXGPoint, i: number) {
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: vertex,
             tag: i,
             dragState,

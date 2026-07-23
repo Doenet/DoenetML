@@ -3,6 +3,7 @@ import React, {
     ErrorInfo,
     ReactElement,
     ReactNode,
+    useCallback,
     useEffect,
     useRef,
     useState,
@@ -51,12 +52,29 @@ export type SourcePosition = {
     end: { line: number; column: number; offset: number };
 };
 
+/** Whether `inner`'s source range lies entirely within `outer`'s. */
+function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
+    return (
+        inner.start.offset >= outer.start.offset &&
+        inner.end.offset <= outer.end.offset
+    );
+}
+
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
+    /**
+     * Called by in-graph renderers when a JSXGraph element handled a
+     * pointer-up: with the element's DOM id (and its board's DOM id, for
+     * copy attribution) for a genuine click — navigate to its source — or
+     * `null` for a drag release (no navigation). Either way the viewer's
+     * own delegated click listener skips the native click that follows,
+     * so the graph-level fallback doesn't fire on top.
+     */
+    reportGraphElementUp?: (domId: string | null, graphDomId?: string) => void;
 }>({});
 
 export function DocViewer({
@@ -295,6 +313,87 @@ export function DocViewer({
         el.scrollIntoView({ block: "center" });
     }, [scrollToSourceOffset]);
 
+    // Set when an in-graph JSXGraph element already handled the current
+    // pointer interaction (element-level navigation, or a drag release):
+    // the native click that follows the pointer-up must not also trigger
+    // the graph-level fallback navigation. Cleared at the start of every
+    // pointer interaction so a report whose click never arrives (e.g. the
+    // pointer was released outside the board) can't suppress a later,
+    // unrelated click.
+    const skipNextClickNavigation = useRef(false);
+
+    const onSourcePositionClickRef = useRef(onSourcePositionClick);
+    onSourcePositionClickRef.current = onSourcePositionClick;
+
+    // Stable identity so JSXGraph event handlers — registered once per
+    // element creation with whatever closure the renderer had at the time —
+    // never hold a stale version.
+    const reportGraphElementUp = useCallback(
+        (domId: string | null, graphDomId?: string) => {
+            if (domId == null) {
+                // Drag release: suppress the native click without navigating.
+                skipNextClickNavigation.current = true;
+                return;
+            }
+            let position = positionByDomId.current.get(domId);
+            if (!position) {
+                // No recorded source position (e.g. a component created at
+                // runtime by an `addChildren` action): leave the native click
+                // alone so it falls back to the enclosing graph.
+                return;
+            }
+            // A component whose source range lies outside its rendering
+            // graph's range wasn't authored there — it was brought in by
+            // whatever authored the graph (a copy like `$g` or
+            // `<graph extend="$g">`). Navigate to that, not to the copied
+            // component's original definition. Directly authored children
+            // (including inside `<graph extend>`) and `<repeat>` templates
+            // are contained in their graph's range and unaffected.
+            const graphPosition = graphDomId
+                ? positionByDomId.current.get(graphDomId)
+                : undefined;
+            if (graphPosition && !containsRange(graphPosition, position)) {
+                position = graphPosition;
+            }
+            skipNextClickNavigation.current = true;
+            onSourcePositionClickRef.current?.(position);
+        },
+        [],
+    );
+
+    // Delegated click-to-navigate listener, attached natively in the
+    // CAPTURE phase: JSXGraph's own click handler on a graph's board div
+    // calls `stopPropagation()` unconditionally, so a bubble-phase
+    // listener (like React's `onClick`) never hears clicks on a graph.
+    // Capture runs top-down before the board can stop the event, and we
+    // neither stop nor prevent anything ourselves, so JSXGraph's behavior
+    // is unaffected. Re-attached every render (no dependency array) so it
+    // is in place whenever the container div exists and always sees the
+    // current `onSourcePositionClick`.
+    useEffect(() => {
+        const container = viewerContainerRef.current;
+        if (!container) {
+            return;
+        }
+        function handleViewerPointerDown() {
+            skipNextClickNavigation.current = false;
+        }
+        container.addEventListener("click", handleViewerClick, true);
+        container.addEventListener(
+            "pointerdown",
+            handleViewerPointerDown,
+            true,
+        );
+        return () => {
+            container.removeEventListener("click", handleViewerClick, true);
+            container.removeEventListener(
+                "pointerdown",
+                handleViewerPointerDown,
+                true,
+            );
+        };
+    });
+
     const [errMsg, setErrMsg] = useState<string | null>(null);
 
     const cid = useRef<string | null>(null);
@@ -432,6 +531,7 @@ export function DocViewer({
         darkMode,
         showAnswerResponseButton,
         answerResponseCounts,
+        reportGraphElementUp,
     };
 
     useEffect(() => {
@@ -1928,22 +2028,51 @@ export function DocViewer({
         }
     }
 
-    function handleViewerClick(event: React.MouseEvent<HTMLDivElement>) {
+    function handleViewerClick(event: MouseEvent) {
+        if (skipNextClickNavigation.current) {
+            skipNextClickNavigation.current = false;
+            return;
+        }
         if (!onSourcePositionClick) {
             return;
         }
-        let el: HTMLElement | null = event.target as HTMLElement;
+        // Innermost mapped element wins, with one correction: walking on
+        // up the ancestor chain, a mapped ancestor whose source range does
+        // NOT contain the chosen range means the chosen element wasn't
+        // authored where it renders — it was brought in by whatever
+        // authored that ancestor (a copy like `$section1`) — so navigate
+        // to the ancestor's range instead.
+        let chosen: SourcePosition | undefined;
+        let el: Element | null = event.target as Element;
         const container = viewerContainerRef.current;
         while (el && el !== container) {
-            const position = el.id
-                ? positionByDomId.current.get(el.id)
-                : undefined;
+            const position = mappedPositionForDomId(el.id);
             if (position) {
-                onSourcePositionClick(position);
-                return;
+                if (!chosen || !containsRange(position, chosen)) {
+                    chosen = position;
+                }
             }
             el = el.parentElement;
         }
+        if (chosen) {
+            onSourcePositionClick(chosen);
+        }
+    }
+
+    // Look up a DOM id in the position map, also recognizing the
+    // `${id}-container` wrapper convention (e.g. GraphFrame, choiceInput)
+    // so clicks in a component's margins resolve to the component.
+    function mappedPositionForDomId(domId: string) {
+        if (!domId) {
+            return undefined;
+        }
+        const direct = positionByDomId.current.get(domId);
+        if (direct || !domId.endsWith("-container")) {
+            return direct;
+        }
+        return positionByDomId.current.get(
+            domId.slice(0, -"-container".length),
+        );
     }
 
     let errorOverview = null;
@@ -1976,7 +2105,6 @@ export function DocViewer({
                 style={viewerStyle}
                 className="doenet-viewer"
                 ref={viewerContainerRef}
-                onClick={handleViewerClick}
             >
                 {errorOverview}
                 <DocContext.Provider value={contextForRenderers}>

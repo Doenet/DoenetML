@@ -76,7 +76,10 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
     let switchable = useRef(false);
     switchable.current = SVs.switchable && !SVs.fixed;
 
-    const { darkMode } = useContext(DocContext) || {};
+    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
+    const sourceNavigation = reportGraphElementUp
+        ? { domId: id, report: reportGraphElementUp }
+        : undefined;
 
     useBoardPointerTracking(board, dragState);
 
@@ -145,6 +148,7 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
         }
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newLineJXG,
             tag: 0,
             dragState,

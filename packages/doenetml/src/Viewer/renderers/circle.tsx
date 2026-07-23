@@ -98,7 +98,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let offGraphIndicatorCoords = useRef<[number, number] | null>([0, 0]);
     let offGraphIndicatorOffsetAtDown = useRef([0, 0]);
 
-    const { darkMode } = useContext(DocContext) || {};
+    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
+    const sourceNavigation = reportGraphElementUp
+        ? { domId: id, report: reportGraphElementUp }
+        : undefined;
 
     useBoardPointerTracking(board, dragState);
 
@@ -313,6 +316,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         }
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: circleJXG.current,
             tag: 0,
             dragState,
@@ -360,6 +364,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         });
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: indicatorJXG.current,
             tag: 1,
             dragState,

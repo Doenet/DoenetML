@@ -75,7 +75,10 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
     endpointsFixed.current =
         !SVs.endpointsDraggable || SVs.fixed || SVs.fixLocation;
 
-    const { darkMode } = useContext(DocContext) || {};
+    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
+    const sourceNavigation = reportGraphElementUp
+        ? { domId: id, report: reportGraphElementUp }
+        : undefined;
 
     useBoardPointerTracking(board, dragState);
 
@@ -189,6 +192,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         };
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newSegmentJXG,
             tag: 0,
             dragState,
@@ -265,6 +269,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             argKey: "point1coords" | "point2coords",
         ) {
             attachLineFamilyDragHandlers({
+                sourceNavigation,
                 jxg: point,
                 tag: tagN,
                 dragState,

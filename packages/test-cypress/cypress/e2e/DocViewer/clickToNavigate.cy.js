@@ -109,6 +109,154 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("clicking a graph's board reports the graph's source range", () => {
+        // JSXGraph's own click handler on the board div stops propagation,
+        // so this only works because the viewer listens in the capture
+        // phase — regression guard for that.
+        const doenetML = [
+            `<graph name="g"><vector name="v">(3,4)</vector></graph>`,
+            `<p name="p1">A paragraph.</p>`,
+        ].join("\n");
+
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#p1").should("have.text", "A paragraph.");
+        cy.get("#g").should("exist");
+
+        const expectedStart = doenetML.indexOf("<graph");
+        const expectedEnd = doenetML.indexOf("</graph>") + "</graph>".length;
+
+        // Click near the board's top-left corner, away from the vector
+        // (which occupies the center region and would navigate to itself).
+        cy.get("#g").click(20, 20, { force: true });
+
+        cy.wrap(null)
+            .should(() => {
+                expect(clickMessages.length).to.be.gte(1);
+            })
+            .then(() => {
+                const { start, end } = clickMessages[clickMessages.length - 1];
+                expect(start.offset).to.equal(expectedStart);
+                expect(end.offset).to.equal(expectedEnd);
+            });
+    });
+
+    /**
+     * Click the board `boardSelector` at the pixel corresponding to graph
+     * coordinates (x, y), assuming the default [-10, 10] bounding box.
+     */
+    function clickBoardAtGraphCoords(boardSelector, x, y) {
+        cy.get(boardSelector).then(($el) => {
+            const rect = $el[0].getBoundingClientRect();
+            const px = ((x + 10) / 20) * rect.width;
+            const py = ((10 - y) / 20) * rect.height;
+            cy.wrap($el).click(px, py, { force: true });
+        });
+    }
+
+    it("clicking a point inside a graph reports the point's own source range", () => {
+        const doenetML = [
+            `<graph name="g"><point name="P">(3,4)</point></graph>`,
+            `<p name="p1">A paragraph.</p>`,
+        ].join("\n");
+
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#p1").should("have.text", "A paragraph.");
+        cy.get("#g").should("exist");
+
+        const expectedStart = doenetML.indexOf("<point");
+        const expectedEnd = doenetML.indexOf("</point>") + "</point>".length;
+
+        clickBoardAtGraphCoords("#g", 3, 4);
+
+        cy.wrap(null)
+            .should(() => {
+                expect(clickMessages.length).to.be.gte(1);
+            })
+            .then(() => {
+                // Exactly one navigation: the element-level report, with the
+                // graph-level fallback suppressed (no double navigation).
+                expect(clickMessages.length).to.equal(1);
+                const { start, end } = clickMessages[0];
+                expect(start.offset).to.equal(expectedStart);
+                expect(end.offset).to.equal(expectedEnd);
+            });
+    });
+
+    it("clicking a copied point navigates to the copy source, not the original", () => {
+        // The copied point still carries the original <point>'s source
+        // range, but that range lies outside the copied graph's range
+        // (the `$g` token) — which is how the viewer knows the point was
+        // brought in by the copy and navigates to `$g`, the thing the
+        // author actually wrote here.
+        const doenetML = [
+            `<graph name="g"><point name="P">(3,4)</point></graph>`,
+            `$g`,
+            `<p name="p1">A paragraph.</p>`,
+        ].join("\n");
+
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#p1").should("have.text", "A paragraph.");
+        cy.get(".jxgbox").should("have.length", 2);
+
+        const copyStart = doenetML.indexOf("$g");
+
+        clickBoardAtGraphCoords(".jxgbox:eq(1)", 3, 4);
+
+        cy.wrap(null)
+            .should(() => {
+                expect(clickMessages.length).to.be.gte(1);
+            })
+            .then(() => {
+                const { start, end } = clickMessages[clickMessages.length - 1];
+                expect(start.offset).to.equal(copyStart);
+                expect(end.offset).to.equal(copyStart + "$g".length);
+            });
+    });
+
+    it("clicking the margin beside a graph reports the graph's source range", () => {
+        // The margin is inside the `${id}-container` wrapper but outside
+        // the board itself; the click handler recognizes the -container
+        // suffix and resolves it to the graph.
+        const doenetML = [
+            `<graph name="g"><vector name="v">(3,4)</vector></graph>`,
+            `<p name="p1">A paragraph.</p>`,
+        ].join("\n");
+
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#p1").should("have.text", "A paragraph.");
+        cy.get("#g").should("exist");
+
+        const expectedStart = doenetML.indexOf("<graph");
+
+        cy.get("#g-container").then(($el) => {
+            const rect = $el[0].getBoundingClientRect();
+            // Far left edge of the container, vertically centered: outside
+            // the (centered, fixed-aspect) board, inside the wrapper.
+            cy.wrap($el).click(2, rect.height / 2, { force: true });
+        });
+
+        cy.wrap(null)
+            .should(() => {
+                expect(clickMessages.length).to.be.gte(1);
+            })
+            .then(() => {
+                const { start } = clickMessages[clickMessages.length - 1];
+                expect(start.offset).to.equal(expectedStart);
+            });
+    });
+
     it("clicking, then scrolling elsewhere, then clicking again still reports correctly", () => {
         // Regression guard for the id -> position map staying in sync across
         // multiple updates, not just working once on first render.

@@ -87,7 +87,11 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     switchable.current = SVs.switchable && !SVs.fixed;
 
-    const { darkMode = undefined } = useContext(DocContext);
+    const { darkMode = undefined, reportGraphElementUp } =
+        useContext(DocContext);
+    const sourceNavigation = reportGraphElementUp
+        ? { domId: id, report: reportGraphElementUp }
+        : undefined;
 
     // Components with their own semantic open/closed state (Endpoint.open,
     // EquilibriumPoint.open) take precedence: when SVs.open is defined, it's
@@ -252,6 +256,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         });
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newShadowPointJXG,
             tag: 0,
             dragState,

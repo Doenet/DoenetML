@@ -74,7 +74,10 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
     vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
 
-    const { darkMode } = useContext(DocContext) || {};
+    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
+    const sourceNavigation = reportGraphElementUp
+        ? { domId: id, report: reportGraphElementUp }
+        : undefined;
 
     useBoardPointerTracking(board, dragState);
 
@@ -212,6 +215,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
 
     function attachPolylineBodyDragHandlers(polyline: JXGCurve) {
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: polyline,
             tag: -1,
             dragState,
@@ -304,6 +308,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
 
     function attachVertexDragHandlers(vertex: JXGPoint, i: number) {
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: vertex,
             tag: i,
             dragState,

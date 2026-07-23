@@ -71,7 +71,10 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
     let lastThroughpointFromCore = useRef<[number, number] | null>(null);
     lastThroughpointFromCore.current = SVs.numericalThroughpoint;
 
-    const { darkMode } = useContext(DocContext) || {};
+    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
+    const sourceNavigation = reportGraphElementUp
+        ? { domId: id, report: reportGraphElementUp }
+        : undefined;
 
     useBoardPointerTracking(board, dragState);
 
@@ -133,6 +136,7 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
         newRayJXG.isDraggable = !fixLocation.current;
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newRayJXG,
             tag: 0,
             dragState,

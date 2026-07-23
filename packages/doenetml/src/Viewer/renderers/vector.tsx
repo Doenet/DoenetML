@@ -83,7 +83,10 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     tailDraggable.current = SVs.tailDraggable && !SVs.fixed && !SVs.fixLocation;
     headDraggable.current = SVs.headDraggable && !SVs.fixed && !SVs.fixLocation;
 
-    const { darkMode } = useContext(DocContext) || {};
+    const { darkMode, reportGraphElementUp } = useContext(DocContext) || {};
+    const sourceNavigation = reportGraphElementUp
+        ? { domId: id, report: reportGraphElementUp }
+        : undefined;
 
     useBoardPointerTracking(board, dragState);
 
@@ -195,6 +198,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         }
 
         attachLineFamilyDragHandlers({
+            sourceNavigation,
             jxg: newVectorJXG,
             tag: 0,
             dragState,
@@ -268,6 +272,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             isDraggable: typeof tailDraggable,
         ) {
             attachLineFamilyDragHandlers({
+                sourceNavigation,
                 jxg: point,
                 tag: tagN,
                 dragState,
