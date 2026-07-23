@@ -20,8 +20,10 @@ descriptions substantially more accurate for author-supplied colors.
 
 The built-in palettes previously pinned explicit `*Word` descriptors to work
 around the old matcher. With the improved matcher, 221 of those overrides are now
-redundant (the matcher derives the identical word) and have been removed; the
-expanded style definitions of every palette are byte-for-byte unchanged. The
+redundant (the matcher derives the identical word) and have been removed; every
+palette's fully expanded style definitions still resolve to the identical color
+word for every key (the only difference is key ordering, irrelevant for a
+field-keyed object). The
 overrides that remain are those where the canonical twelve-word vocabulary is too
 coarse for the intended name (e.g. "olive", "teal", "gold", "indigo", "magenta")
 or where the matcher rounds a borderline hue to a neighbouring family.
