@@ -10,15 +10,18 @@ import type { RawStyleDefinitions } from "../styleDefinitionHelpers";
  * a missing `*ColorDarkMode` is derived from its light-mode color, and a
  * missing `*Word` descriptor is derived from the resulting color value. So a
  * palette need only supply what the derivation would get wrong. In practice
- * the built-in palettes supply a lot: dark-mode colors, because most of them
- * pin their source's published colors rather than a derived approximation,
- * and `*Word` descriptors, because the nearest-anchor hex-to-word matcher
- * misnames several hues (issue #1527). Note that pinning is per key — the
- * matcher runs on each color key independently, so a hue that needs pinning
- * must be pinned on *every* key that carries it (`lineColorWord`,
- * `markerColorWord`, `fillColorWord`, ...), or one style will describe its
- * lines and its markers differently. `paletteColorDistinctness.test.ts`
- * guards that.
+ * the built-in palettes still supply a fair amount: dark-mode colors, because
+ * most of them pin their source's published colors rather than a derived
+ * approximation, and some `*Word` descriptors. The perceptual hex-to-word
+ * matcher (issue #1527) now names most hues correctly, so a palette pins a
+ * word only where the canonical twelve-word vocabulary is too coarse for the
+ * distinction it wants (e.g. "olive", "teal", "gold", "indigo", "magenta")
+ * or where the matcher rounds a borderline hue to the neighbouring family.
+ * Note that pinning is per key — the matcher runs on each color key
+ * independently, so a hue that needs pinning must be pinned on *every* key
+ * that carries it (`lineColorWord`, `markerColorWord`, `fillColorWord`, ...),
+ * or one style will describe its lines and its markers differently.
+ * `paletteColorDistinctness.test.ts` guards that.
  *
  * Do not author `textColor` / `textColorWord` (or their dark-mode partners)
  * on style number 1: expansion overwrites them with the canvas text color so
