@@ -169,6 +169,28 @@ export class UpdateExecutor {
             return { actionId: args!.actionId };
         }
 
+        if (actionName === "setStyleOverrides" && componentIdx === undefined) {
+            // Same co-opted mechanism as `setTheme`: reader style overrides
+            // are a UI-only state variable on the document that the viewer
+            // sets on behalf of the host application (e.g. a reader picking
+            // colors they can better distinguish). Not user content, so never
+            // saved.
+            await this.performUpdate({
+                updateInstructions: [
+                    {
+                        updateType: "updateValue",
+                        componentIdx: this.core.documentIdx,
+                        stateVariable: "readerStyleOverrides",
+                        value: args!.styleOverrides ?? null,
+                    },
+                ],
+                actionId: args!.actionId,
+                doNotSave: true, // this isn't an interaction, so don't save doc state
+            });
+
+            return { actionId: args!.actionId };
+        }
+
         let component = this.core._components[componentIdx!];
         if (component && component.actions) {
             let action = component.actions[actionName];

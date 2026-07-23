@@ -17,6 +17,11 @@ declare global {
             doenetMLSource?: string,
             config?: object,
         ) => DoenetEditorHandle | void;
+        /**
+         * Style-palette discovery, defined by standalone bundles new enough to
+         * ship it. Feature-detected so an older bundle reports no palettes.
+         */
+        getDoenetStylePalettes?: () => unknown[];
     }
 }
 
@@ -331,7 +336,10 @@ function renderWithLastAugmentedProps() {
 // move the user out of the silent-stuck state.
 (async () => {
     if (await waitForStandaloneBundle(60_000)) {
-        messageParentFromEditor({ iframeReady: true });
+        messageParentFromEditor({
+            iframeReady: true,
+            stylePalettes: readStylePalettesFromBundle(),
+        });
     } else {
         messageParentFromEditor({
             error: "Invalid DoenetML version or DoenetML package not found",
@@ -351,6 +359,24 @@ function renderWithLastAugmentedProps() {
         // here, there's nothing more we can do from inside the iframe.
     }
 });
+
+/**
+ * The style palettes of the standalone bundle running in this iframe, or
+ * `null` when the bundle predates palette discovery. Reported to the parent
+ * with `iframeReady` so a host can build a palette picker matching the
+ * DoenetML version it actually booted.
+ */
+function readStylePalettesFromBundle(): unknown[] | null {
+    try {
+        return window.getDoenetStylePalettes?.() ?? null;
+    } catch (err) {
+        console.error(
+            "iframe DoenetML: failed to read style palettes from the standalone bundle",
+            err,
+        );
+        return null;
+    }
+}
 
 /**
  * Send a message to the parent React component.

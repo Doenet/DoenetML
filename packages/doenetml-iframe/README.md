@@ -80,13 +80,98 @@ the inner viewer applies them with the same semantics as the in-process
 
 | Prop change                                                                | Effect                                                                                                      |
 | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `render`, `darkMode`, `flags`, `answerResponseCounts`, callbacks, …         | applied live, no reload (flipping `render` false→true starts the document in the already-loaded realm)       |
+| `render`, `darkMode`, `styleOverrides`, `flags`, `answerResponseCounts`, callbacks, … | applied live, no reload (flipping `render` false→true starts the document in the already-loaded realm)       |
 | `doenetML`, `activityId`, `docId`, `attemptNumber`, `requestedVariantIndex` | the document's core re-initializes **inside the same iframe realm** — the multi-MB bundle is not re-parsed   |
 | `initialState`, `forceDisable` and the other `force*` props, `userId`       | read at (re-)initialization only, exactly like the in-process viewer — change `docId`/`attemptNumber` or remount via `key=` to apply |
 | `standaloneUrl`, `cssUrl`, `doenetmlVersion` (or a version change detected in `doenetML`), `useSharedCoreWorker` | a different bundle/realm is required, so the iframe reloads                                                   |
 
 To force a full remount (fresh realm and worker), change the component's
 React `key`.
+
+### Reader style overrides (`styleOverrides`)
+
+Hosts can let a **reader** remap what each style number looks like — for
+example a color-blind user picking colors they can better tell apart — by
+passing a `styleOverrides` prop (type `ReaderStyleOverrides`, re-exported
+from this package). Overrides win over everything authored in the document
+(`<styleDefinition>` and `<stylePalette>` alike) and update live when the
+prop changes:
+
+```tsx
+<DoenetViewer
+    doenetML={source}
+    styleOverrides={{
+        styles: {
+            1: { lineColor: "#0072b2", markerColor: "#0072b2" },
+            2: { lineColor: "#d55e00", lineWidth: 6 },
+        },
+    }}
+/>
+```
+
+A reader can also switch the whole document to one of the built-in style
+palettes by name (case-insensitive) — for example `grayscale`, four grays
+laddered for maximum luminance separation, for readers who distinguish
+styles by lightness alone, or `okabeito` for common color vision
+deficiencies:
+
+```tsx
+<DoenetViewer
+    doenetML={source}
+    styleOverrides={{ palette: "grayscale" }}
+/>
+```
+
+A reader-selected palette replaces the document's base styles everywhere:
+authored `<stylePalette>` selections and `<styleDefinition>` customizations
+are discarded (they were tuned against different colors), style numbers
+beyond the reader palette's size wrap around onto it, and any `styles`
+overrides apply on top of the reader's palette. Unregistered palette names
+are ignored, so offer readers the palette list as fixed choices.
+
+Every style-definition key is overridable except the `*Word` descriptors:
+all colors (including the `*DarkMode` variants), opacities, `lineWidth`,
+`lineStyle`, `markerStyle`, `markerSize`, `markerFilled`, and the fill
+settings. Human-readable color/style words are always re-derived from the
+overridden values, so text style descriptions (e.g. "the blue line") stay
+truthful, and a missing dark-mode color is derived from the reader's
+light-mode color with the same accessibility-aware derivation authored
+styles get. Pass `null` (or omit the prop) to clear all overrides.
+
+The same prop exists on `<DoenetEditor>`, where it applies to the editor's
+rendered preview (the code pane and context help keep showing the authored
+values).
+
+#### Listing the available palettes (`onStylePalettes`)
+
+To build a palette picker, a host needs the palettes that the DoenetML
+version **inside the iframe** supports — this wrapper and the standalone
+bundle ship separately, and a host may pin an older `doenetmlVersion`. The
+`onStylePalettes` callback fires once the bundle has booted, with that
+bundle's palettes:
+
+```tsx
+const [palettes, setPalettes] = React.useState(null);
+
+<DoenetViewer
+    doenetML={source}
+    onStylePalettes={setPalettes}
+    styleOverrides={chosenPalette ? { palette: chosenPalette } : undefined}
+/>;
+```
+
+Each entry is `{ name, description, styles }`, where `styles` is keyed by
+style number (contiguous from 1, always at least four) and each style is a
+fully-resolved style definition — `lineColor`, `markerColor`, `fillColor`,
+`textColor` and their `*DarkMode` variants for swatches in either theme,
+plus `lineWidth`, `lineStyle`, `markerStyle`, and `markerSize` for the
+non-color distinctions palettes also carry, and the `*Word` fields (e.g.
+`"blue"`) for labelling swatches accessibly. Feed a chosen `name` back in as
+the `palette` field of `styleOverrides`.
+
+The callback receives `null` when the booted bundle predates palette
+discovery, which is the host's cue to hide the picker. The same prop exists
+on `<DoenetEditor>`.
 
 Function props (callbacks) are forwarded across the iframe boundary via
 Comlink proxies and always follow the latest identity passed — parents may

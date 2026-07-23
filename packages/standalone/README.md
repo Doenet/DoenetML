@@ -159,6 +159,26 @@ corresponding message is only posted when the prop is absent.)
 | `SPLICE.sendEvent`                         | viewer → host | analytics/event stream                   |
 | `lti.frameResize`                          | page → parent | content height for iframe sizing         |
 
+### Listing the available style palettes
+
+The bundle exposes its built-in style palettes so a page can render a
+palette picker — with swatches — whose choices match the DoenetML version
+it loaded:
+
+```js
+const palettes = window.getDoenetStylePalettes();
+// [{ name: "default", description: "...", styles: { "1": {...}, ... } }, ...]
+const grayscale = window.getDoenetStylePalette("grayscale");
+```
+
+Each style entry is a fully-resolved style definition: `lineColor`,
+`markerColor`, `fillColor`, `textColor` and their `*DarkMode` variants for
+swatches in either theme, plus `lineWidth`, `lineStyle`, `markerStyle`, and
+`markerSize`, and the `*Word` fields (e.g. `"blue"`) for accessible swatch
+labels. Every palette has at least four styles, keyed contiguously from
+`"1"`. Pass a chosen palette name back in as the `palette` field of the
+viewer's `styleOverrides` config to render the document with it.
+
 ### Saving and restoring state (lossless unmount)
 
 As the student works, the viewer posts `SPLICE.reportScoreAndState`

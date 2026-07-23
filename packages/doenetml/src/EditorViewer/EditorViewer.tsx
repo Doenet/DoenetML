@@ -18,6 +18,7 @@ import {
     DiagnosticRecord,
     nanInfinityReviver,
     isSaveShortcutKeydown,
+    type ReaderStyleOverrides,
 } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
@@ -89,6 +90,7 @@ type EditorViewerProps = {
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
+    styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     width?: string;
@@ -178,6 +180,7 @@ export const EditorViewer = React.forwardRef<
         doenetViewerUrl,
         doenetImagesUrl,
         darkMode = "light",
+        styleOverrides,
         showAnswerResponseButton = false,
         answerResponseCounts = {},
         width = "100%",
@@ -1175,6 +1178,7 @@ export const EditorViewer = React.forwardRef<
                     doenetViewerUrl={doenetViewerUrl}
                     doenetImagesUrl={doenetImagesUrl}
                     darkMode={darkMode}
+                    styleOverrides={styleOverrides}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}
                     fetchExternalDoenetML={fetchExternalDoenetML}

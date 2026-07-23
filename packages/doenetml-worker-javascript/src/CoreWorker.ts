@@ -1,4 +1,5 @@
 import Core from "./Core";
+import type { ReaderStyleOverrides } from "@doenet/utils";
 import { handleNavigatingToComponent } from "./core/NavigationHandler";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
@@ -207,6 +208,7 @@ export class PublicDoenetMLCore {
             userId?: string;
             cid: string | null;
             theme?: "dark" | "light";
+            styleOverrides?: ReaderStyleOverrides | null;
             requestedVariant?: Record<string, any>;
             stateVariableChanges?: string;
             initializeCounters: Record<string, number>;
