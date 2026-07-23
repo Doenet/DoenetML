@@ -26,11 +26,16 @@ import re
 import shlex
 import sys
 
-# Gap between tokens that must NOT cross a shell command separator (; & |),
-# so a rule only fires within a single command segment.
-GAP = r"[^;&|]*"
+# Gap between tokens that must NOT cross a shell command separator (; & | or a
+# newline), so a rule only fires within a single command segment. A bare
+# newline terminates a command just like `;`, so it is excluded here; `_scrub`
+# first folds genuine line-continuations (a trailing `\`, or a line ending in a
+# `|`/`&&`/`||` operator) onto one logical line, so a command deliberately
+# split across lines is still matched whole while an unrelated later line
+# cannot be stitched onto an earlier one.
+GAP = r"[^;&|\n]*"
 # Gap that may cross a pipe (for "fetch remote | run shell" detection).
-PIPE_GAP = r"[^;&]*"
+PIPE_GAP = r"[^;&\n]*"
 
 # Absolute-path first components whose recursive removal is catastrophic.
 SYSTEM_DIRS = {
@@ -143,7 +148,15 @@ _DQUOTE = re.compile(r'"(?:[^"\\]|\\.)*"')
 
 
 def _scrub(command: str) -> str:
-    s = _HEREDOC.sub(" ", command)
+    # Fold shell line-continuations onto one logical line BEFORE matching, so a
+    # command deliberately split across lines is still seen whole: a trailing
+    # backslash, or a line ending in a `|`/`&&`/`||` operator, continues on the
+    # next line. Every OTHER newline is a genuine command terminator that the
+    # gaps (now excluding `\n`) refuse to cross — so `git push origin X` newline
+    # `git checkout main` reads as two commands, not a spurious "push … main".
+    s = re.sub(r"\\\n", " ", command)
+    s = re.sub(r"(&&|\|\||\|)[ \t]*\n", r"\1 ", s)
+    s = _HEREDOC.sub(" ", s)
     s = _SQUOTE.sub(" ", s)
     s = _DQUOTE.sub(" ", s)
     return s
@@ -159,6 +172,14 @@ def _is_catastrophic_rm_target(tok: str, cwd: str = None) -> bool:
     t = _strip_quotes(tok).strip()
     if not t or t.startswith("-"):
         return False
+    # A trailing `/*` glob-removes an entire directory's contents; that is
+    # catastrophic exactly when the globbed directory is itself dangerous (the
+    # cwd, an ancestor, a system dir, home, or root). Reduce to that directory
+    # and let the checks below judge it: `../*` -> `..` (an ancestor, blocked)
+    # and `/*` -> `/` (root, blocked), while `../pkg/*` -> `../pkg` (a named
+    # sibling) and `dist/*` -> `dist` stay allowed.
+    if t.endswith("/*"):
+        t = t[:-2] or "/"
     if t in {"/", "~", "~/", ".", "..", "*", "/*", "./*"}:
         return True
     if t.startswith("~") or "$HOME" in t or "${HOME}" in t:
