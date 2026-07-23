@@ -150,11 +150,17 @@ export function DocViewer({
     const lastScrolledSourceOffset = useRef<number | null>(null);
 
     // Whenever the host asks for a specific source offset (e.g. the
-    // editor's cursor moved), scroll the rendered element whose source
-    // range contains that offset into view. Falls back to the element
-    // whose range boundary (start or end) lies closest to the offset if
-    // none contains it exactly (e.g. the offset falls inside markup with
-    // no direct source-mapped renderer, like inside a tag's attributes).
+    // editor's cursor moved), scroll a matching rendered element into
+    // view. The rule: find the innermost mapped element containing the
+    // offset (the "container" — implicitly the whole document when none
+    // does), then prefer the nearest mapped element inside the container
+    // that starts after the offset, then the nearest one ending before
+    // it, then the container itself. Offsets with no mapped element of
+    // their own (whitespace between siblings, or inside a composite like
+    // <group> that produces no renderer instruction) thus resolve to a
+    // nearby sibling — the same way whether the container is a component
+    // like <section> or the document itself — rather than centering a
+    // possibly-huge container.
     //
     // Placed here, before this component's several early `return null`
     // paths further down, so it's called unconditionally on every render
@@ -185,38 +191,62 @@ export function DocViewer({
             );
         }
 
-        let bestEl: Element | null = null;
-        let bestRangeSize = Infinity;
-        let nearestEl: Element | null = null;
-        let nearestDistance = Infinity;
+        // Pass 1: the container — the element with the smallest source
+        // range containing the offset, or implicitly the whole document
+        // when none does.
+        let containerEl: Element | null = null;
+        let containerStart = -Infinity;
+        let containerEnd = Infinity;
+        let containerSize = Infinity;
         for (const [id, position] of positionByDomId.current) {
             const { offset: start } = position.start;
             const { offset: end } = position.end;
-            if (start <= scrollToSourceOffset && scrollToSourceOffset <= end) {
-                const rangeSize = end - start;
-                if (rangeSize < bestRangeSize) {
-                    const el = renderedElement(id);
-                    if (el) {
-                        bestEl = el;
-                        bestRangeSize = rangeSize;
-                    }
-                }
-            } else {
-                const distance = Math.min(
-                    Math.abs(start - scrollToSourceOffset),
-                    Math.abs(end - scrollToSourceOffset),
-                );
-                if (distance < nearestDistance) {
-                    const el = renderedElement(id);
-                    if (el) {
-                        nearestEl = el;
-                        nearestDistance = distance;
-                    }
+            if (
+                start <= scrollToSourceOffset &&
+                scrollToSourceOffset <= end &&
+                end - start < containerSize
+            ) {
+                const el = renderedElement(id);
+                if (el) {
+                    containerEl = el;
+                    containerStart = start;
+                    containerEnd = end;
+                    containerSize = end - start;
                 }
             }
         }
 
-        const target = bestEl ?? nearestEl;
+        // Pass 2: gap candidates — elements within the container's range
+        // (none of them can contain the offset, or pass 1 would have made
+        // them the container). Prefer the nearest one starting after the
+        // offset: unmapped source between siblings renders between them,
+        // so the following sibling is the right neighborhood.
+        let followingEl: Element | null = null;
+        let followingStart = Infinity;
+        let precedingEl: Element | null = null;
+        let precedingEnd = -Infinity;
+        for (const [id, position] of positionByDomId.current) {
+            const { offset: start } = position.start;
+            const { offset: end } = position.end;
+            if (start < containerStart || end > containerEnd) {
+                continue;
+            }
+            if (start > scrollToSourceOffset && start < followingStart) {
+                const el = renderedElement(id);
+                if (el) {
+                    followingEl = el;
+                    followingStart = start;
+                }
+            } else if (end < scrollToSourceOffset && end > precedingEnd) {
+                const el = renderedElement(id);
+                if (el) {
+                    precedingEl = el;
+                    precedingEnd = end;
+                }
+            }
+        }
+
+        const target = followingEl ?? precedingEl ?? containerEl;
         if (!target) {
             return;
         }
