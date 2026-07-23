@@ -4,7 +4,7 @@ import type { StylePalette } from "./types";
  * Paul Tol's "muted" qualitative palette (https://personal.sron.nl/~pault/),
  * the largest of the built-in colorblind-aware sets (nine styles). Its three
  * yellow-green members (green, olive, sand) compress under red-green CVD
- * more than the okabeito or tolbright hues do; the lightness ladder and the
+ * more than the okabeIto or tolBright hues do; the lightness ladder and the
  * marker-shape variation carry the distinction there.
  *
  * Light-mode anchors are the canonical colors wherever they meet Doenet's
@@ -17,7 +17,7 @@ import type { StylePalette } from "./types";
  * color alone.
  */
 export const tolMutedPalette: StylePalette = {
-    name: "tolmuted",
+    name: "tolMuted",
     description:
         "Nine colorblind-friendly muted styles from Paul Tol's muted palette, with varied marker shapes and line styles.",
     styles: {

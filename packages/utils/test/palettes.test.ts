@@ -19,9 +19,11 @@ describe("palette registry", () => {
         expect(STYLE_PALETTES[DEFAULT_PALETTE_NAME]).toBeDefined();
     });
 
-    it("every palette has a matching name key, a description, and styles numbered contiguously from 1", () => {
+    it("every palette is keyed by the lower-cased form of its name, has a description, and styles numbered contiguously from 1", () => {
         for (const [key, palette] of Object.entries(STYLE_PALETTES)) {
-            expect(palette.name).toBe(key);
+            // `name` is the canonical camelCase spelling; the registry keys by
+            // its lower-cased form (see `registerByKey` in ./palettes/index.ts).
+            expect(palette.name.toLowerCase()).toBe(key);
             expect(palette.description.length).toBeGreaterThan(0);
 
             const styleNumbers = Object.keys(palette.styles)
@@ -32,6 +34,29 @@ describe("palette registry", () => {
                 Array.from({ length: styleNumbers.length }, (_, i) => i + 1),
             );
         }
+    });
+
+    it("surfaces the canonical camelCase name for every multi-word palette, so schema/autocomplete values never regress to lowercase", () => {
+        // The schema's `validValues` (and LSP autocomplete / context-help)
+        // surface each palette's `name` verbatim, while the registry keys by
+        // its lower-cased form. The key/name correspondence check above passes
+        // for a lowercase `name` too, so it cannot catch a regression like
+        // `name: "okabeIto"` -> `name: "okabeito"` — that would silently ship
+        // lowercase schema values. Pin the canonical spelling of every palette
+        // whose name actually carries casing (single-word/acronym names like
+        // `default`, `ibm`, `grayscale`, and `categorical` are lowercase by
+        // nature and covered by the correspondence check).
+        const nameByKey = Object.fromEntries(
+            Object.values(STYLE_PALETTES).map((p) => [
+                p.name.toLowerCase(),
+                p.name,
+            ]),
+        );
+        expect(nameByKey.okabeito).toBe("okabeIto");
+        expect(nameByKey.tolbright).toBe("tolBright");
+        expect(nameByKey.tolmuted).toBe("tolMuted");
+        expect(nameByKey.tolhighcontrast).toBe("tolHighContrast");
+        expect(nameByKey.grumpynarwhal).toBe("grumpyNarwhal");
     });
 
     it("does not expose Object.prototype keys as palettes", () => {

@@ -48,7 +48,7 @@ export interface ReaderStyleOverrides {
     /**
      * Name of a built-in style palette (case-insensitive) the reader wants
      * the whole document rendered with — e.g. `"grayscale"` for a reader who
-     * distinguishes styles by lightness alone, or `"okabeito"` for common
+     * distinguishes styles by lightness alone, or `"okabeIto"` for common
      * color vision deficiencies. When set (and registered), it replaces the
      * document's base styles everywhere: authored `<stylePalette>` selections
      * and `<styleDefinition>` customizations are discarded (they were tuned

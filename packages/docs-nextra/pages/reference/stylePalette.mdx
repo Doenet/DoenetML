@@ -17,17 +17,17 @@ Every palette is checked to meet WCAG contrast requirements in both light and da
 If you are unsure which palette to pick, start with one of these three:
 
 - **`default`** — the six standard Doenet styles: blue, red, orange, purple, black, and gray.
-- **`okabeito`** — a colorblind-friendly palette of eight styles based on the [Okabe–Ito palette](https://jfly.uni-koeln.de/color/), whose hues were chosen to stay distinguishable under the common forms of color vision deficiency. The first choice when color distinctions must work for the widest range of vision.
-- **`tolhighcontrast`** — four styles from [Paul Tol's high-contrast palette](https://personal.sron.nl/~pault/), with the largest separation of any built-in palette: every pair of styles stays distinguishable under every common color vision deficiency, and even in pure grayscale. Choose it when maximum distinction matters more than variety.
+- **`okabeIto`** — a colorblind-friendly palette of eight styles based on the [Okabe–Ito palette](https://jfly.uni-koeln.de/color/), whose hues were chosen to stay distinguishable under the common forms of color vision deficiency. The first choice when color distinctions must work for the widest range of vision.
+- **`tolHighContrast`** — four styles from [Paul Tol's high-contrast palette](https://personal.sron.nl/~pault/), with the largest separation of any built-in palette: every pair of styles stays distinguishable under every common color vision deficiency, and even in pure grayscale. Choose it when maximum distinction matters more than variety.
 
 The remaining palettes give more options:
 
-- **`tolbright`** — seven colorblind-friendly styles from Paul Tol's bright palette.
-- **`tolmuted`** — nine colorblind-friendly styles from Paul Tol's muted palette; the largest of the colorblind-friendly sets, useful when a document needs many distinct styles.
+- **`tolBright`** — seven colorblind-friendly styles from Paul Tol's bright palette.
+- **`tolMuted`** — nine colorblind-friendly styles from Paul Tol's muted palette; the largest of the colorblind-friendly sets, useful when a document needs many distinct styles.
 - **`ibm`** — five colorblind-friendly styles from the IBM Design Library's accessible palette.
 - **`grayscale`** — four grays with no hue at all, laddered for maximum luminance separation. The best choice for readers with achromatopsia (total colorblindness) or anyone viewing in grayscale, since it spends its entire distinguishing budget on the one channel such readers perceive.
 - **`categorical`** — ten maximally varied hues (blue, orange, green, red, purple, brown, pink, gray, olive, cyan), adapted from the widely used Category10 sequence. The widest color spread of any built-in palette, for documents that need many styles whose distinctions are obvious at a glance. Unlike the palettes above it is *not* engineered for color vision deficiency, so prefer a colorblind-friendly palette when the choice is yours.
-- **`grumpynarwhal`** — six saturated hues (burnt orange, forest green, deep pink, arctic teal, gold, and purple) that go neon in dark mode. Like `categorical` it is not engineered for color vision deficiency.
+- **`grumpyNarwhal`** — six saturated hues (burnt orange, forest green, deep pink, arctic teal, gold, and purple) that go neon in dark mode. Like `categorical` it is not engineered for color vision deficiency.
 
 The colorblind-aware palettes keep their published colors wherever those meet Doenet's contrast requirements, and adjust them only as far as the requirements demand: in light mode some colors are darkened, and in dark mode most of the published colors pass as-is on the dark canvas and are used verbatim. Every palette varies marker shapes and line widths alongside colors (and several vary line styles too), so style distinctions never rest on color alone — `categorical` in particular leans on those shape distinctions under red-green color vision deficiency. Markers are drawn only from the closed shapes (circle, square, diamond, and the four triangles), so every style can still show a filled or open marker — the distinction that marks a closed versus open endpoint, or a stable versus unstable equilibrium.
 
@@ -38,10 +38,10 @@ The colorblind-aware palettes keep their published colors wherever those meet Do
 ### Example: Selecting a palette for a document
 
 ```doenet-editor-horiz
-<stylePalette palette="okabeito" />
+<stylePalette palette="okabeIto" />
 
 <graph size="small" xmin="-1" xmax="8" ymin="0" ymax="9" identicalAxisScales>
-  <shortDescription>Eight points and eight filled circles, one pair in each style of the okabeito palette</shortDescription>
+  <shortDescription>Eight points and eight filled circles, one pair in each style of the okabeIto palette</shortDescription>
   <point coords="(1,8)" styleNumber="1" />
   <point coords="(1,7)" styleNumber="2" />
   <point coords="(1,6)" styleNumber="3" />
@@ -61,7 +61,7 @@ The colorblind-aware palettes keep their published colors wherever those meet Do
 </graph>
 ```
 
-Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:dn}` block) makes every style number draw from the named palette. The points show each style's marker color and shape, and the filled circles show its line color (the outline) and fill color (the interior). The `okabeito` palette defines eight styles, each with its own color and with marker shapes, line widths, and line styles varied so that no two styles look alike even without color.
+Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:dn}` block) makes every style number draw from the named palette. The points show each style's marker color and shape, and the filled circles show its line color (the outline) and fill color (the interior). The `okabeIto` palette defines eight styles, each with its own color and with marker shapes, line widths, and line styles varied so that no two styles look alike even without color.
 
 ---
 
@@ -70,9 +70,9 @@ Placing the `<stylePalette>{:dn}` at the top of the document (or in a `<setup>{:
 ```doenet-editor-horiz
 <section>
   <title>Colorblind-friendly section</title>
-  <stylePalette palette="okabeito" />
+  <stylePalette palette="okabeIto" />
   <graph size="small" xmin="-3" xmax="3" ymin="-3" ymax="3">
-    <shortDescription>A point using the okabeito palette's style 1</shortDescription>
+    <shortDescription>A point using the okabeIto palette's style 1</shortDescription>
     <point coords="(1,1)" />
   </graph>
 </section>
@@ -92,7 +92,7 @@ A `<stylePalette>{:dn}` placed inside a `<section>{:dn}` applies only to that se
 - **A palette selection is a reset.** Choosing a palette replaces the base styles for that section's subtree; `<styleDefinition>{:dn}` customizations made in *ancestor* sections do not carry into the subtree (they were tuned against a different palette's colors). To keep such a customization, restate it below the `<stylePalette>{:dn}`. This holds even when selecting the `default` palette — a bare `<stylePalette />{:dn}` is a handy way to return a subtree to the stock styles.
 - **`<styleDefinition>{:dn}` still works on top.** A `<styleDefinition>{:dn}` in the same section (or a descendant section) overrides individual settings of the selected palette, exactly as it does over the default styles.
 - **Style numbers beyond the palette wrap around.** With an eight-style palette, `styleNumber="10"{:dn}` draws as style 2. Every style number therefore stays on-palette and keeps the palette's contrast guarantees.
-- **Reserve style numbers 1–4 for your most important distinctions.** Every palette is guaranteed at least four styles, but only four: a reader may view your document with a four-style palette (such as `grayscale` or `tolhighcontrast`), where higher style numbers wrap around onto styles 1–4. Distinctions encoded in styles 1–4 survive every palette; distinctions encoded in higher numbers may not.
+- **Reserve style numbers 1–4 for your most important distinctions.** Every palette is guaranteed at least four styles, but only four: a reader may view your document with a four-style palette (such as `grayscale` or `tolHighContrast`), where higher style numbers wrap around onto styles 1–4. Distinctions encoded in styles 1–4 survive every palette; distinctions encoded in higher numbers may not.
 - **Style 1's text stays the ordinary text color.** Text and math outside a graph take their color from their style, and content that specifies no `styleNumber{:dn}` uses style 1 — so if a palette painted style 1's text, choosing that palette would recolor all of your prose. Every palette therefore renders style 1's text in the normal document text color (black, or white in dark mode), including for style numbers that wrap around onto style 1. Style 1 still owns its color everywhere else — lines, markers, and fills — and styles 2 and up color their text normally, so `<text styleNumber="2">{:dn}` is still a colored piece of text. This is a rule about what the palettes contain, not a lock: if you deliberately want colored prose, a `<styleDefinition styleNumber="1" textColor="..." />{:dn}` overrides it like any other setting.
 - **Palette lines and markers are fully opaque.** Most of the standard `default` styles draw lines and markers at 70% opacity, so overlapping curves show through each other; every other palette draws them at full strength, which is the opacity its colors were contrast-checked at. Expect denser strokes after switching. Fills are unaffected. To bring the softer look back, set it per style — `<styleDefinition styleNumber="1" lineOpacity="0.7" />{:dn}` — remembering that each `<styleDefinition>{:dn}` targets a single style number, and applies to style 1 when you omit the attribute.
 - **One palette per section.** If several `<stylePalette>{:dn}` components appear in the same section, the last one wins and the others are flagged with a warning.

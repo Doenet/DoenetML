@@ -49,10 +49,14 @@ import type { RawStyleDefinitions } from "../styleDefinitionHelpers";
  */
 export interface StylePalette {
     /**
-     * Registry key and the author-facing value of `<stylePalette palette="..."/>`.
-     * Must match the key in `STYLE_PALETTES`, and must be all lowercase: the
-     * `palette` attribute sets `toLowerCase: true`, so a name with any
-     * uppercase letter could never be selected.
+     * Canonical, author-facing name of the palette, written in the repo's
+     * conventional camelCase (e.g. `grumpyNarwhal`). This is the value surfaced
+     * in schema autocomplete and context-help. The registry (`STYLE_PALETTES`)
+     * keys each palette by the *lower-cased* form of this name, and the
+     * `palette` attribute sets `toLowerCase: true`, so an authored value is
+     * lower-cased before it is matched — matching is therefore case-insensitive
+     * and `name` is the single source of truth for both the display value and
+     * (once lower-cased) the internal key.
      */
     name: string;
     /**

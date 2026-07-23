@@ -33,7 +33,7 @@ import type { StylePalette } from "./types";
  * reddish purple "red").
  */
 export const okabeItoPalette: StylePalette = {
-    name: "okabeito",
+    name: "okabeIto",
     description:
         "Colorblind-friendly blues, oranges, greens, and purples adapted from the Okabe-Ito palette, with varied marker shapes and line styles.",
     styles: {

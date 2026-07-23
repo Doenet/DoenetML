@@ -24,7 +24,7 @@ import type { StylePalette } from "./types";
  * colorblind-friendly palette when the choice is yours.
  */
 export const grumpyNarwhalPalette: StylePalette = {
-    name: "grumpynarwhal",
+    name: "grumpyNarwhal",
     description:
         "Six saturated hues — burnt orange, forest green, deep pink, arctic teal, gold, and purple — going neon in dark mode.",
     styles: {

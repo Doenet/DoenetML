@@ -19,7 +19,7 @@ import type { StylePalette } from "./types";
  * color alone.
  */
 export const tolHighContrastPalette: StylePalette = {
-    name: "tolhighcontrast",
+    name: "tolHighContrast",
     description:
         "Four maximum-distinction styles from Paul Tol's high-contrast palette, distinguishable even in grayscale.",
     styles: {

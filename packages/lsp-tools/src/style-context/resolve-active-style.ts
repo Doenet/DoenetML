@@ -499,7 +499,10 @@ function findOwnedStylePaletteName(
     }
     if (!found) return undefined;
     // Case-insensitive to match the runtime's `toLowerCase: true` on the
-    // `palette` attribute (registry names are all lowercase).
+    // `palette` attribute: palette names are canonical camelCase, but the
+    // registry keys by their lower-cased form, so we lower-case here to land on
+    // the key. The value returned is that lower-cased registry key — what
+    // `returnPaletteStyleDefinitions` / `cycleStyleNumberForPalette` expect.
     const raw = readAttributeText(found, "palette")?.toLowerCase();
     if (raw !== undefined && raw in STYLE_PALETTES) return raw;
     return DEFAULT_PALETTE_NAME;

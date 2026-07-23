@@ -33,9 +33,22 @@ function deepFreezePalette(palette: StylePalette): StylePalette {
 }
 
 /**
- * Registry of built-in style palettes, keyed by palette name (the value
- * authors write in `<stylePalette palette="..."/>`). All entries are deeply
- * frozen at registration (see {@link deepFreezePalette}).
+ * Registers a palette under the lower-cased form of its (camelCase) `name`.
+ * `name` is the single source of truth: it carries the canonical author-facing
+ * spelling shown in autocomplete, while the registry — and every runtime/LSP
+ * lookup — keys by its lower-cased form, matching the `toLowerCase: true` the
+ * `palette` attribute applies to authored values. Keeping the derivation in
+ * one place is what lets a palette declare its casing exactly once.
+ */
+function registerByKey(palette: StylePalette): [string, StylePalette] {
+    return [palette.name.toLowerCase(), deepFreezePalette(palette)];
+}
+
+/**
+ * Registry of built-in style palettes, keyed by the lower-cased palette name
+ * (the value authors write in `<stylePalette palette="..."/>`, matched
+ * case-insensitively). All entries are deeply frozen at registration (see
+ * {@link deepFreezePalette}).
  *
  * This module holds palette *data* only; the expansion pipeline
  * (`expandStylePalette` / `returnPaletteStyleDefinitions`) lives in
@@ -53,30 +66,34 @@ function deepFreezePalette(palette: StylePalette): StylePalette {
  */
 export const STYLE_PALETTES: Record<string, StylePalette> = Object.assign(
     Object.create(null),
-    {
-        [defaultPalette.name]: deepFreezePalette(defaultPalette),
-        [okabeItoPalette.name]: deepFreezePalette(okabeItoPalette),
-        [tolBrightPalette.name]: deepFreezePalette(tolBrightPalette),
-        [tolMutedPalette.name]: deepFreezePalette(tolMutedPalette),
-        [tolHighContrastPalette.name]: deepFreezePalette(
+    Object.fromEntries(
+        [
+            defaultPalette,
+            okabeItoPalette,
+            tolBrightPalette,
+            tolMutedPalette,
             tolHighContrastPalette,
-        ),
-        [ibmPalette.name]: deepFreezePalette(ibmPalette),
-        [grayscalePalette.name]: deepFreezePalette(grayscalePalette),
-        [categoricalPalette.name]: deepFreezePalette(categoricalPalette),
-        [grumpyNarwhalPalette.name]: deepFreezePalette(grumpyNarwhalPalette),
-    },
+            ibmPalette,
+            grayscalePalette,
+            categoricalPalette,
+            grumpyNarwhalPalette,
+        ].map(registerByKey),
+    ),
 );
 Object.freeze(STYLE_PALETTES);
 
-/** Name of the palette used when no `<stylePalette>` is selected. */
-export const DEFAULT_PALETTE_NAME = defaultPalette.name;
+/**
+ * Registry key of the palette used when no `<stylePalette>` is selected — the
+ * lower-cased form of the default palette's name, so it indexes `STYLE_PALETTES`
+ * directly.
+ */
+export const DEFAULT_PALETTE_NAME = defaultPalette.name.toLowerCase();
 
 /**
- * All registered palette names, e.g. for schema `validValues` generation.
- * Frozen for the same reason as the registry: an in-place mutation (e.g. a
- * consumer sorting it for display) would silently desync it from
- * `STYLE_PALETTES`.
+ * All registered palette keys (lower-cased names), e.g. for schema
+ * `validValues` generation. Frozen for the same reason as the registry: an
+ * in-place mutation (e.g. a consumer sorting it for display) would silently
+ * desync it from `STYLE_PALETTES`.
  */
 export const STYLE_PALETTE_NAMES: readonly string[] = Object.freeze(
     Object.keys(STYLE_PALETTES),
