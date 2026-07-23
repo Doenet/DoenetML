@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+"""Block irreversible / outward-facing shell commands that the prefix-based
+permission rules in .claude/settings.json cannot reliably catch.
+
+The `deny`/`ask` permission rules match a command's *text prefix*, so they are
+defeated by leading global flags (`git -C <path> push upstream`), reordered
+flags (`git push origin main --force`), command chaining (`foo && gh pr merge`),
+and the API equivalents of blocked CLI commands (`gh api --method PUT .../merge`).
+This hook parses the whole command instead, so it enforces the same intent
+regardless of surface form.
+
+Contract (identical to the other PreToolUse hooks in this dir): read the hook
+JSON on stdin, inspect `.tool_input.command`; on a match, print an explanation
+to stderr and exit 2 (which blocks the tool call). Otherwise exit 0. Parsing
+failures fail open (exit 0) so a malformed payload never bricks every command.
+
+Scope note: this is a guardrail against an agent running these by accident or
+by misreading an instruction — not a sandbox. It is deliberately conservative
+about false positives on the everyday workflow (fork pushes to `origin`,
+`gh pr create/view/diff`, `npm run <script>`, GET/POST `gh api` review calls).
+"""
+
+import json
+import os
+import re
+import shlex
+import sys
+
+# Gap between tokens that must NOT cross a shell command separator (; & |),
+# so a rule only fires within a single command segment.
+GAP = r"[^;&|]*"
+# Gap that may cross a pipe (for "fetch remote | run shell" detection).
+PIPE_GAP = r"[^;&]*"
+
+# Absolute-path first components whose recursive removal is catastrophic.
+SYSTEM_DIRS = {
+    "etc", "usr", "var", "bin", "sbin", "lib", "lib64", "boot", "dev",
+    "proc", "sys", "root", "home", "opt", "srv", "run",
+    "System", "Applications", "Library", "Users",
+}
+
+# (compiled regex, human-readable reason). First match blocks the command.
+RULES = [
+    (
+        rf"\bgit\b{GAP}\bpush\b{GAP}\bupstream\b",
+        "Pushing to the `upstream` remote (the canonical Doenet/DoenetML repo). "
+        "Agents push branches to the fork `origin` and open a PR; they never "
+        "push to `upstream`.",
+    ),
+    (
+        rf"\bgit\b{GAP}\bpush\b{GAP}(?::|\s\+?)(?:main|master)(?:[\s:;&|)]|$)",
+        "Pushing directly to the `main`/`master` branch. Changes reach main "
+        "through a reviewed PR, never a direct push.",
+    ),
+    (
+        rf"\bgit\b{GAP}\b(?:filter-branch|filter-repo)\b",
+        "Rewriting history with filter-branch/filter-repo is destructive and "
+        "is never part of this workflow.",
+    ),
+    (
+        rf"\bgh\b{GAP}\bpr\b{GAP}\bmerge\b",
+        "Merging a pull request. Merging is a human decision; agents do not "
+        "merge PRs in this repo.",
+    ),
+    (
+        rf"\bgh\b{GAP}\brepo\b{GAP}\b(?:delete|edit|rename|archive)\b",
+        "Deleting/editing/renaming/archiving a repository is an irreversible "
+        "administrative action agents must not take.",
+    ),
+    (
+        rf"\bgh\b{GAP}\brelease\b{GAP}\b(?:create|delete)\b",
+        "Creating or deleting a GitHub release is an outward-facing action "
+        "agents must not take.",
+    ),
+    (
+        rf"\bgh\b{GAP}\bsecret\b",
+        "Managing repository/CI secrets is out of bounds for agents.",
+    ),
+    (
+        rf"\bgh\b{GAP}\bapi\b{GAP}(?:-X|--method[= ])\s*(?:PUT|PATCH|DELETE)\b",
+        "A mutating `gh api` call (PUT/PATCH/DELETE) is the API equivalent of "
+        "merging a PR or deleting/editing a repo/secret/release. Use a read-only "
+        "(GET) or comment-posting (POST) call instead.",
+    ),
+    (
+        rf"\b(?:npm|pnpm|yarn)\b{GAP}\bpublish\b",
+        "Publishing packages to the npm registry is effectively irreversible "
+        "and is done by the release process, not by agents.",
+    ),
+    (
+        rf"\bchangeset\b{GAP}\bpublish\b",
+        "`changeset publish` releases packages to npm; agents must not publish.",
+    ),
+    (
+        r"\bsudo\b",
+        "Running commands as root (sudo) is never required for tasks in this "
+        "repo and is blocked.",
+    ),
+    (
+        rf"\b(?:curl|wget)\b{PIPE_GAP}\|{PIPE_GAP}"
+        r"\b(?:sh|bash|zsh|dash|ksh|python[0-9.]*|node|ruby|perl)\b",
+        "Piping downloaded content straight into an interpreter (curl|sh) runs "
+        "unreviewed remote code. Download, inspect, then run deliberately.",
+    ),
+    (
+        rf"\b(?:sh|bash|zsh|dash|ksh)\b{GAP}[<$]\([^)]*\b(?:curl|wget)\b",
+        "Executing downloaded content via process/command substitution "
+        "(bash <(curl ...)) runs unreviewed remote code.",
+    ),
+    (
+        r"--no-preserve-root\b",
+        "`--no-preserve-root` exists only to enable `rm -rf /`.",
+    ),
+    (
+        r"\bdd\b[^;&|]*\b(?:if|of)=",
+        "Raw disk I/O with `dd` can destroy a device or file irrecoverably.",
+    ),
+    (
+        r"\bmkfs(?:\.[a-z0-9]+)?\b",
+        "Formatting a filesystem with mkfs is catastrophic and never needed here.",
+    ),
+]
+
+COMPILED = [(re.compile(pat, re.IGNORECASE), reason) for pat, reason in RULES]
+
+# The command a shell actually executes is unquoted; text passed as data
+# (commit messages, echo/printf, PR `--body`, heredocs) is quoted. Scrub quoted
+# spans and heredoc bodies before pattern-matching so a message that merely
+# *mentions* `git push upstream` isn't mistaken for running it. This trades away
+# catching a payload hidden inside quotes (e.g. `sh -c "curl x | sh"`) — out of
+# scope for an anti-accident guard, and defeatable countless other ways anyway.
+# The rm check runs on the raw command instead, because shlex tokenization keeps
+# a quoted target like `rm -rf "/"` intact so it is still caught.
+#
+# Residual false positive: deeply nested quoting the scrub can't balance, e.g.
+# `-m "$(printf "... npm publish ...")"`, can still trip a rule. Write such
+# messages/bodies with a heredoc (handled) or `git commit -F <file>` /
+# `--body-file <file>` instead.
+_HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_]\w*)\1.*?^\s*\2\b",
+                      re.DOTALL | re.MULTILINE)
+_SQUOTE = re.compile(r"'[^']*'")
+_DQUOTE = re.compile(r'"(?:[^"\\]|\\.)*"')
+
+
+def _scrub(command: str) -> str:
+    s = _HEREDOC.sub(" ", command)
+    s = _SQUOTE.sub(" ", s)
+    s = _DQUOTE.sub(" ", s)
+    return s
+
+
+def _strip_quotes(tok: str) -> str:
+    if len(tok) >= 2 and tok[0] == tok[-1] and tok[0] in "\"'":
+        return tok[1:-1]
+    return tok
+
+
+def _is_catastrophic_rm_target(tok: str) -> bool:
+    t = _strip_quotes(tok).strip()
+    if not t or t.startswith("-"):
+        return False
+    if t in {"/", "~", "~/", ".", "..", "*", "/*", "./*"}:
+        return True
+    if t.startswith("~") or "$HOME" in t or "${HOME}" in t:
+        return True
+    if t == ".git" or t.endswith("/.git"):
+        return True
+    if t.startswith("/"):
+        first = t.strip("/").split("/", 1)[0]
+        if first == "" or first in SYSTEM_DIRS:
+            return True
+    # The repo root itself or any ancestor of it.
+    proj = os.environ.get("CLAUDE_PROJECT_DIR")
+    if proj and t.startswith("/"):
+        try:
+            proj_r = os.path.realpath(proj)
+            tok_r = os.path.realpath(t)
+            if proj_r == tok_r or proj_r.startswith(tok_r.rstrip("/") + "/"):
+                return True
+        except OSError:
+            pass
+    return False
+
+
+def _rm_reason(command: str):
+    """Return a reason string if the command contains a catastrophic
+    `rm -r -f <dangerous target>`, else None. Handled procedurally because
+    flag/target parsing is clearer than a single regex."""
+    for segment in re.split(r"[;&|\n]+", command):
+        if not re.search(r"\brm\b", segment):
+            continue
+        try:
+            tokens = shlex.split(segment)
+        except ValueError:
+            tokens = segment.split()
+        if "rm" not in tokens:
+            continue
+        args = tokens[tokens.index("rm") + 1 :]
+        recursive = force = False
+        targets = []
+        for a in args:
+            if a.startswith("--"):
+                if a == "--recursive":
+                    recursive = True
+                elif a == "--force":
+                    force = True
+            elif a.startswith("-") and len(a) > 1:
+                if "r" in a[1:] or "R" in a[1:]:
+                    recursive = True
+                if "f" in a[1:]:
+                    force = True
+            else:
+                targets.append(a)
+        if recursive and force:
+            for t in targets:
+                if _is_catastrophic_rm_target(t):
+                    return (
+                        f"Recursively force-removing `{t}` would irreversibly "
+                        "delete critical files (a system path, your home, the "
+                        "repository root, or .git). Remove a specific "
+                        "subdirectory instead."
+                    )
+    return None
+
+
+def main() -> int:
+    try:
+        payload = json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        return 0
+    command = (payload.get("tool_input") or {}).get("command") or ""
+    if not command:
+        return 0
+
+    scrubbed = _scrub(command)
+    for pattern, reason in COMPILED:
+        if pattern.search(scrubbed):
+            _block(reason)
+            return 2
+
+    rm_reason = _rm_reason(command)
+    if rm_reason:
+        _block(rm_reason)
+        return 2
+
+    return 0
+
+
+def _block(reason: str) -> None:
+    sys.stderr.write(
+        "Blocked by .claude/hooks/block-dangerous-commands.py "
+        "(repository safety policy).\n\n"
+        f"{reason}\n\n"
+        "This is a deliberate guardrail, not a transient error. Do not retry "
+        "the same command or a reworded variant. If a human genuinely needs "
+        "this, they must run it themselves outside the agent.\n"
+    )
+
+
+if __name__ == "__main__":
+    sys.exit(main())
