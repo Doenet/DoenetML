@@ -155,40 +155,63 @@ def _strip_quotes(tok: str) -> str:
     return tok
 
 
-def _is_catastrophic_rm_target(tok: str) -> bool:
+def _is_catastrophic_rm_target(tok: str, cwd: str = None) -> bool:
     t = _strip_quotes(tok).strip()
     if not t or t.startswith("-"):
         return False
     if t in {"/", "~", "~/", ".", "..", "*", "/*", "./*"}:
         return True
-    # Normalize relative dot-paths so `./`, `.//`, `./.` collapse to the cwd
-    # and `../` to the parent, and catch any target that escapes upward out of
-    # the current directory (`..`, `../..`, `../sibling`).
-    norm = os.path.normpath(t)
-    if norm in {".", ".."} or norm.startswith(".." + os.sep):
-        return True
     if t.startswith("~") or "$HOME" in t or "${HOME}" in t:
         return True
     if t == ".git" or t.endswith("/.git"):
         return True
+    # A target composed *purely* of upward traversals (`..`, `../..`, `../../..`)
+    # always resolves to an ANCESTOR of the current directory, so removing it
+    # wipes the cwd and everything around it. Block those. A path that escapes
+    # upward into a *named* sibling subdirectory (`../sibling/dist`,
+    # `../../node_modules`) is a routine monorepo cleanup and is NOT blocked on
+    # the basis of escaping upward alone — only if it resolves onto a protected
+    # location (checked below).
+    norm = os.path.normpath(t)
+    if norm and set(norm.split(os.sep)) == {".."}:
+        return True
+    # Absolute paths into the filesystem root or a top-level system directory.
     if t.startswith("/"):
         first = t.strip("/").split("/", 1)[0]
         if first == "" or first in SYSTEM_DIRS:
             return True
-    # The repo root itself or any ancestor of it.
+    # Resolve the target (absolute, or relative to the agent's cwd) and block
+    # only if it lands on a protected location: the filesystem root, a top-level
+    # system dir, $HOME, or the repo root / an ancestor of it. This catches a
+    # mixed relative path like `../../<repo-root-name>` while still allowing a
+    # sibling subdirectory that resolves nowhere protected.
+    try:
+        base = cwd if (cwd and not os.path.isabs(t)) else None
+        resolved = os.path.realpath(os.path.join(base, t) if base else t)
+    except (OSError, ValueError):
+        return False
+    if resolved == os.sep:
+        return True
+    parts = resolved.split(os.sep)
+    if len(parts) == 2 and parts[1] in SYSTEM_DIRS:
+        return True
+    try:
+        if resolved == os.path.realpath(os.path.expanduser("~")):
+            return True
+    except (OSError, ValueError):
+        pass
     proj = os.environ.get("CLAUDE_PROJECT_DIR")
-    if proj and t.startswith("/"):
+    if proj:
         try:
             proj_r = os.path.realpath(proj)
-            tok_r = os.path.realpath(t)
-            if proj_r == tok_r or proj_r.startswith(tok_r.rstrip("/") + "/"):
+            if resolved == proj_r or proj_r.startswith(resolved.rstrip("/") + os.sep):
                 return True
-        except OSError:
+        except (OSError, ValueError):
             pass
     return False
 
 
-def _rm_reason(command: str):
+def _rm_reason(command: str, cwd: str = None):
     """Return a reason string if the command contains a catastrophic
     `rm -r -f <dangerous target>`, else None. Handled procedurally because
     flag/target parsing is clearer than a single regex."""
@@ -219,7 +242,7 @@ def _rm_reason(command: str):
                 targets.append(a)
         if recursive and force:
             for t in targets:
-                if _is_catastrophic_rm_target(t):
+                if _is_catastrophic_rm_target(t, cwd):
                     return (
                         f"Recursively force-removing `{t}` would irreversibly "
                         "delete critical files (a system path, your home, the "
@@ -263,8 +286,14 @@ def _gh_api_reason(command: str):
                 method = t[2:].upper()
             elif t.startswith("--method="):
                 method = t.split("=", 1)[1].upper()
-            elif t in ("-f", "-F", "--field", "--raw-field", "--input") or \
-                    t.startswith(("--field=", "--raw-field=", "--input=")):
+            elif t in ("-f", "-F", "--field", "--raw-field", "--input"):
+                # A bare field flag takes its `key=value` (or filename) as the
+                # NEXT token; skip that token so a value mentioning a releases
+                # URL (`-f body=.../releases/...`) is never read as the endpoint.
+                has_field = True
+                i += 2
+                continue
+            elif t.startswith(("--field=", "--raw-field=", "--input=")):
                 has_field = True
             elif not t.startswith("-") and "releases" in t and "/" in t:
                 endpoint_has_releases = True
@@ -291,6 +320,7 @@ def main() -> int:
     command = (payload.get("tool_input") or {}).get("command") or ""
     if not command:
         return 0
+    cwd = payload.get("cwd") or None
 
     scrubbed = _scrub(command)
     for pattern, reason in COMPILED:
@@ -298,7 +328,7 @@ def main() -> int:
             _block(reason)
             return 2
 
-    rm_reason = _rm_reason(command)
+    rm_reason = _rm_reason(command, cwd)
     if rm_reason:
         _block(rm_reason)
         return 2
@@ -323,4 +353,10 @@ def _block(reason: str) -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # Fail open on ANY unexpected error: a guardrail that crashed must never
+    # brick every Bash call. `sys.exit(int)` raises SystemExit (a BaseException,
+    # not Exception), so a clean 0/2 return still propagates as the exit code.
+    try:
+        sys.exit(main())
+    except Exception:
+        sys.exit(0)
