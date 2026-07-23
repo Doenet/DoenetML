@@ -161,6 +161,12 @@ def _is_catastrophic_rm_target(tok: str) -> bool:
         return False
     if t in {"/", "~", "~/", ".", "..", "*", "/*", "./*"}:
         return True
+    # Normalize relative dot-paths so `./`, `.//`, `./.` collapse to the cwd
+    # and `../` to the parent, and catch any target that escapes upward out of
+    # the current directory (`..`, `../..`, `../sibling`).
+    norm = os.path.normpath(t)
+    if norm in {".", ".."} or norm.startswith(".." + os.sep):
+        return True
     if t.startswith("~") or "$HOME" in t or "${HOME}" in t:
         return True
     if t == ".git" or t.endswith("/.git"):
@@ -223,6 +229,60 @@ def _rm_reason(command: str):
     return None
 
 
+def _gh_api_reason(command: str):
+    """Return a reason if the command creates/modifies a GitHub *release* via
+    `gh api`, else None. The RULES regex catches explicit PUT/PATCH/DELETE, but
+    release creation is a POST — issued either explicitly (`-X POST`) or by
+    default whenever a field flag (`-f`/`-F`/`--field`/`--raw-field`/`--input`)
+    is present. GET listing of releases (no method, no fields) stays allowed, as
+    do POST comment/review calls (they don't hit a releases endpoint). Handled
+    procedurally because it depends on the effective HTTP method, not surface
+    text; shlex keeps quoted commit-message mentions as a single token, so a
+    message that merely *mentions* such a call is not misread as running it."""
+    for segment in re.split(r"[;&|\n]+", command):
+        if "gh" not in segment or "api" not in segment:
+            continue
+        try:
+            toks = shlex.split(segment)
+        except ValueError:
+            toks = segment.split()
+        if "gh" not in toks or "api" not in toks:
+            continue
+        method = None
+        has_field = False
+        endpoint_has_releases = False
+        i = 0
+        while i < len(toks):
+            t = toks[i]
+            if t in ("-X", "--method"):
+                if i + 1 < len(toks):
+                    method = toks[i + 1].upper()
+                i += 2
+                continue
+            if t.startswith("-X") and len(t) > 2:
+                method = t[2:].upper()
+            elif t.startswith("--method="):
+                method = t.split("=", 1)[1].upper()
+            elif t in ("-f", "-F", "--field", "--raw-field", "--input") or \
+                    t.startswith(("--field=", "--raw-field=", "--input=")):
+                has_field = True
+            elif not t.startswith("-") and "releases" in t and "/" in t:
+                endpoint_has_releases = True
+            i += 1
+        if not endpoint_has_releases:
+            continue
+        if method is None:
+            method = "POST" if has_field else "GET"
+        if method in ("POST", "PUT", "PATCH", "DELETE"):
+            return (
+                "Creating or modifying a GitHub release via `gh api` "
+                f"({method} to a releases endpoint) is the API equivalent of "
+                "`gh release create`/`gh release delete` — an outward-facing "
+                "action agents must not take. Use a read-only (GET) call."
+            )
+    return None
+
+
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
@@ -241,6 +301,11 @@ def main() -> int:
     rm_reason = _rm_reason(command)
     if rm_reason:
         _block(rm_reason)
+        return 2
+
+    gh_api_reason = _gh_api_reason(command)
+    if gh_api_reason:
+        _block(gh_api_reason)
         return 2
 
     return 0
