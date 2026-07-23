@@ -216,7 +216,53 @@ export function DocViewer({
             }
         }
 
-        (bestEl ?? nearestEl)?.scrollIntoView({ block: "center" });
+        const target = bestEl ?? nearestEl;
+        if (!target) {
+            return;
+        }
+
+        // Graphical components (e.g. a vector inside a graph) render only
+        // an empty anchor span — the visible drawing lives on the shared
+        // canvas — so centering the anchor itself can leave the graph cut
+        // off. Walk up to the nearest ancestor with real extent.
+        let el: Element = target;
+        while (
+            el !== viewerContainerRef.current &&
+            el.parentElement &&
+            el.getBoundingClientRect().height === 0
+        ) {
+            el = el.parentElement;
+        }
+
+        // Find the viewport of the nearest scrollable ancestor (falling
+        // back to the window) so we can tell how far centering would move
+        // the element.
+        let viewportTop = 0;
+        let viewportHeight = window.innerHeight;
+        for (let a = el.parentElement; a; a = a.parentElement) {
+            const style = window.getComputedStyle(a);
+            if (
+                /(auto|scroll|overlay)/.test(style.overflowY) &&
+                a.scrollHeight > a.clientHeight
+            ) {
+                viewportTop = a.getBoundingClientRect().top;
+                viewportHeight = a.clientHeight;
+                break;
+            }
+        }
+
+        // Skip the scroll when centering would move the element less than
+        // ~5% of the viewport height: tiny corrective nudges (e.g.
+        // re-centering the enclosing <p> after one of its children) are
+        // more distracting than useful.
+        const rect = el.getBoundingClientRect();
+        const currentCenter = rect.top + rect.height / 2;
+        const targetCenter = viewportTop + viewportHeight / 2;
+        if (Math.abs(currentCenter - targetCenter) < 0.05 * viewportHeight) {
+            return;
+        }
+
+        el.scrollIntoView({ block: "center" });
     }, [scrollToSourceOffset]);
 
     const [errMsg, setErrMsg] = useState<string | null>(null);
