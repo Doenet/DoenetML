@@ -2,6 +2,47 @@ import { EditorView } from "@codemirror/view";
 
 export type ThemeMode = "dark" | "light";
 
+/**
+ * Text-selection (highlight) background, shared by the editable and read-only
+ * themes so they can't drift.
+ *
+ *  - light: neutral `--mainGray` (#e3e3e3) behind dark syntax tokens.
+ *  - dark:  a dark navy (#092c4d) rather than `--mainGray` (#a9a9a9). The dark
+ *           syntax palette is near-white/bright (verified ≥4.5:1 on the #121212
+ *           canvas); a light-gray selection painted behind those tokens washed
+ *           them out — most visibly the near-white content color. #092c4d keeps
+ *           every token, down to the dim comment gray, at WCAG AA contrast while
+ *           still reading as a selection against the canvas. Covered by
+ *           `selectionAccessibility.cy.tsx`.
+ */
+function getSelectionBackgroundColor(darkMode: ThemeMode) {
+    return darkMode === "dark" ? "#092c4d" : "var(--mainGray)";
+}
+
+/**
+ * Selection-highlight rules shared by the editable and read-only themes.
+ *
+ * CodeMirror's base theme colors the selection itself, and does so with a
+ * high-specificity selector for the *focused* state
+ * (`&<light|dark>.cm-focused > .cm-scroller > .cm-selectionLayer
+ * .cm-selectionBackground`). We mirror that full path so our color actually
+ * wins when focused, and add a focus-agnostic rule so the *blurred* selection
+ * (base default `#d9d9d9` light / `#222` dark) is overridden too — otherwise
+ * clicking away from the editor reverts the highlight to the washed-out base
+ * color. `::selection` covers the native-selection fallback.
+ */
+function selectionThemeRules(darkMode: ThemeMode) {
+    const backgroundColor = getSelectionBackgroundColor(darkMode);
+    return {
+        "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
+            { backgroundColor },
+        "& > .cm-scroller > .cm-selectionLayer .cm-selectionBackground": {
+            backgroundColor,
+        },
+        "::selection": { backgroundColor },
+    };
+}
+
 // Shared gutter palette used by both the editable and read-only themes to keep colors aligned per mode.
 function getGutterColors(darkMode: ThemeMode) {
     if (darkMode === "dark") {
@@ -37,42 +78,46 @@ function getGutterColors(darkMode: ThemeMode) {
  */
 export function colorTheme(darkMode: ThemeMode) {
     const gutterColors = getGutterColors(darkMode);
-    return EditorView.theme({
-        "&": {
-            color: "var(--canvasText)",
-            height: "100%",
-            backgroundColor: "var(--canvas)",
+    return EditorView.theme(
+        {
+            "&": {
+                color: "var(--canvasText)",
+                height: "100%",
+                backgroundColor: "var(--canvas)",
+            },
+            ".cm-content": {
+                caretColor: "#0e9",
+            },
+            "&.cm-focused .cm-cursor": {
+                borderLeftColor: "var(--canvasText)",
+            },
+            ...selectionThemeRules(darkMode),
+            "&.cm-focused": {
+                color: "var(--canvasText)",
+            },
+            ".cm-gutters": {
+                backgroundColor: gutterColors.backgroundColor,
+                color: gutterColors.textColor,
+                border: "none",
+                borderRight: gutterColors.borderRight,
+            },
+            ".cm-activeLine": {
+                backgroundColor: "#50505020",
+                // Must be explicit: CodeMirror's base theme sets activeLine color
+                // to a dark value which is invisible on a dark canvas.
+                color: "var(--canvasText)",
+            },
+            // Subtle gutter highlight on the active line — CodeMirror's base
+            // theme uses #e2f2ff (light blue) which is glaring on a dark gutter.
+            ".cm-activeLineGutter": {
+                backgroundColor: gutterColors.activeLineBackgroundColor,
+            },
         },
-        ".cm-content": {
-            caretColor: "#0e9",
-        },
-        "&.cm-focused .cm-cursor": {
-            borderLeftColor: "var(--canvasText)",
-        },
-        "&.cm-focused .cm-selectionBackground, ::selection": {
-            backgroundColor: "var(--mainGray)",
-        },
-        "&.cm-focused": {
-            color: "var(--canvasText)",
-        },
-        ".cm-gutters": {
-            backgroundColor: gutterColors.backgroundColor,
-            color: gutterColors.textColor,
-            border: "none",
-            borderRight: gutterColors.borderRight,
-        },
-        ".cm-activeLine": {
-            backgroundColor: "#50505020",
-            // Must be explicit: CodeMirror's base theme sets activeLine color
-            // to a dark value which is invisible on a dark canvas.
-            color: "var(--canvasText)",
-        },
-        // Subtle gutter highlight on the active line — CodeMirror's base
-        // theme uses #e2f2ff (light blue) which is glaring on a dark gutter.
-        ".cm-activeLineGutter": {
-            backgroundColor: gutterColors.activeLineBackgroundColor,
-        },
-    });
+        // Tell CodeMirror the actual brightness so its base theme applies
+        // dark-appropriate defaults (e.g. the blurred selection color) instead
+        // of light ones.
+        { dark: darkMode === "dark" },
+    );
 }
 
 // Shared icon palette so all completion types flip together between modes.
@@ -171,39 +216,40 @@ export function readOnlyColorTheme(darkMode: ThemeMode) {
     const lineTextColor = darkMode === "dark" ? "#c8c8c8" : "#595959";
     const activeLineBackgroundColor =
         darkMode === "dark" ? "#50505020" : "var(--mainGray)";
-    return EditorView.theme({
-        "&": {
-            color: "var(--canvasText)",
-            height: "100%",
+    return EditorView.theme(
+        {
+            "&": {
+                color: "var(--canvasText)",
+                height: "100%",
+            },
+            ".cm-content": {
+                caretColor: "#0e9",
+                backgroundColor: "#77777720",
+            },
+            "&.cm-focused .cm-cursor": {
+                borderLeftColor: "var(--canvasText)",
+            },
+            ...selectionThemeRules(darkMode),
+            "&.cm-focused": {
+                color: "var(--canvasText)",
+            },
+            ".cm-gutters": {
+                backgroundColor: gutterColors.backgroundColor,
+                color: gutterColors.textColor,
+                border: "none",
+                borderRight: gutterColors.borderRight,
+            },
+            ".cm-activeLine": {
+                backgroundColor: activeLineBackgroundColor,
+                color: "var(--canvasText)",
+            },
+            ".cm-activeLineGutter": {
+                backgroundColor: gutterColors.activeLineBackgroundColor,
+            },
+            ".cm-line": {
+                color: lineTextColor,
+            },
         },
-        ".cm-content": {
-            caretColor: "#0e9",
-            backgroundColor: "#77777720",
-        },
-        "&.cm-focused .cm-cursor": {
-            borderLeftColor: "var(--canvasText)",
-        },
-        "&.cm-focused .cm-selectionBackground, ::selection": {
-            backgroundColor: "var(--mainGray)",
-        },
-        "&.cm-focused": {
-            color: "var(--canvasText)",
-        },
-        ".cm-gutters": {
-            backgroundColor: gutterColors.backgroundColor,
-            color: gutterColors.textColor,
-            border: "none",
-            borderRight: gutterColors.borderRight,
-        },
-        ".cm-activeLine": {
-            backgroundColor: activeLineBackgroundColor,
-            color: "var(--canvasText)",
-        },
-        ".cm-activeLineGutter": {
-            backgroundColor: gutterColors.activeLineBackgroundColor,
-        },
-        ".cm-line": {
-            color: lineTextColor,
-        },
-    });
+        { dark: darkMode === "dark" },
+    );
 }
