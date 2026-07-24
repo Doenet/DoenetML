@@ -1,5 +1,72 @@
 # @doenet/doenetml
 
+## 0.7.22
+
+### Patch Changes
+
+- 97d65a5: Editor: Add bidirectional click-to-navigate between the source editor and the rendered preview.
+
+    Clicking a rendered element now moves the editor's cursor to (and reveals/centers) its source location, and moving the editor's cursor scrolls the preview to follow, debounced so it doesn't fight active typing. Works in both the VS Code extension's preview panel and `DoenetEditor`'s built-in CodeMirror editor. Clicks on a graph navigate to the `<graph>` source, clicks on the graphical elements inside it (point, vector, line, ray, lineSegment, circle, polygon, polyline) navigate to the element's own source, and drag releases don't navigate.
+
+    Implementation notes: the core now includes each component's source `position` in its renderer instructions; `DocViewer` maintains an id-to-position map from that stream to power a delegated capture-phase click handler and a `scrollToSourceOffset` prop; the line-family renderers report clicks on their JSXGraph elements through a `DocContext` callback at the same click-vs-drag disambiguation point that powers `triggerWhenObjectsClicked`. Content brought in by a copy (e.g. `$g` or `<graph extend="$g">`) navigates to the copy the author wrote where it renders, not to the copied component's original definition.
+
+    Also fixes `@doenet/codemirror`'s library build, whose Vite config pointed `lib.entry` at `CodeMirror.tsx` instead of `index.ts` — silently dropping any runtime (non-type-only) export added to `index.ts` from the built bundle that `@doenet/doenetml` consumes.
+
+- c205608: Editor: fix the code editor's text-selection highlight so highlighted (selected) text stays legible, especially in dark mode.
+
+    The selection highlight was rendering with CodeMirror's built-in light lavender (`#d7d4f0`) in every mode: the theme's own selection rule never took effect (CodeMirror's base theme targets the selection with a higher-specificity selector), and the editor was never told it was in dark mode, so it also fell back to CodeMirror's light-mode defaults. On the dark canvas the near-white and brightly-colored syntax tokens were then washed out under the pale highlight — and clicking away from the editor made it worse, reverting the blurred selection to the base light-gray default.
+
+    The dark-mode selection is now a dark navy (`#092c4d`) that keeps every syntax token — down to the dim comment gray — at WCAG AA contrast (≥ 4.5:1) while still reading as a selection, and light mode now correctly uses its intended neutral gray. The override matches CodeMirror's base-theme selector for both the focused and blurred states, and the theme now passes the real brightness to CodeMirror so its base defaults align.
+
+    The light-mode comment color is also darkened slightly (`#656d76` → `#5c636d`) so highlighted comments clear WCAG AA against the light selection background too (they previously sat at ~4.1:1); it remains above AA on the white canvas.
+
+    Adds `@doenet/codemirror` Cypress component tests (`selectionAccessibility.cy.tsx`) that select highlighted code and assert the WCAG contrast between each rendered token color and the actual selection-background color, in light mode, dark mode, and after the editor is blurred. (`cy.checkA11y` can't be used for this: axe-core cannot resolve CodeMirror's separate selection layer / `::selection` pseudo-element and instead compares tokens against a phantom white background.)
+
+- 4ef80b6: Fix a "Found a duplicate componentIdx" crash when content containing a dynamic index reference (such as `$p[$i]`) is repeatedly removed and recreated.
+
+    A reference with a dynamic index creates a hidden copy to resolve the index (for example, the copy that evaluates `$i` in `$p[$i]`). That copy lives in the referencing component's internal reference resolution rather than among its children or attributes, so deleting the component left the copy behind. When the surrounding composite — for instance a `<conditionalContent>` case or the branch of a `<triggerSet>` — later recreated its replacement and reused the same reserved component indices, the leaked copy's index collided and the activity errored. Deletion now also removes the copies created for reference-path indices, so such content can be recreated cleanly.
+
+- 07b1f24: Graphing: add new ways to define a `<lineSegment>` via `slope`, `length`, `midpoint`, and `midpointOffset` attributes, plus a public `midpoint` property giving its actual midpoint.
+
+    A `<lineSegment>` can now be positioned without giving both endpoints explicitly:
+
+    - `midpoint` (attribute) — a reference point on the segment, located at its midpoint by default.
+    - `slope` and `length` — the segment's x-y direction and its signed defining length (a negative `length` flips the endpoints). The public `length` state variable still reports the Euclidean distance between the endpoints.
+    - `midpointOffset` (clamped to `[-1, 1]`) — where the `midpoint` point sits along the segment: `-1` = first endpoint, `0` = midpoint, `1` = second endpoint.
+    - `midpoint` (property) — a public state variable giving the segment's actual midpoint (the average of its endpoints), with `midpoint.x`/`midpoint.y` access and a translation inverse. It equals the `midpoint` attribute point when `midpointOffset` is `0` and differs from it when `midpointOffset` is nonzero.
+
+    These combine so a segment can be defined by an endpoint plus `midpoint`, an endpoint plus `slope`/`length`, `midpoint` plus `slope`/`length`, or `slope`/`length` alone. When one endpoint and `midpoint` are given, the second endpoint is placed so the given point sits at the `midpointOffset` position of the segment — by default the midpoint, so `endpoints="(1,2)" midpoint="(2,3)"` yields endpoints `(1,2)` and `(3,4)`. Dragging a graph handle keeps the opposite endpoint fixed while the midpoint tracks its position, and dragging a referenced endpoint translates the segment (for the slope/length cases). When none of the new attributes are given, behavior is unchanged. The generated schema recognizes the new attributes in editor diagnostics.
+
+    Closes #1376.
+
+- 817ae69: Added a `styleOverrides` prop to `<DoenetViewer>` and `<DoenetEditor>` that lets a host application pass reader (end-user) style overrides — per-styleNumber remappings of colors and other style settings, e.g. colors a color-blind reader can better distinguish. Overrides win over everything authored in the document (`<styleDefinition>` and `<stylePalette>` alike), update live when the prop changes, never produce author-facing diagnostics, and keep text style descriptions truthful by re-deriving color words (with dark-mode colors derived from the reader's light-mode colors when not supplied). A reader can also switch the whole document to one of the built-in style palettes by name (e.g. `grayscale` for readers who distinguish styles by lightness alone): the reader's palette replaces all authored styling, style numbers beyond its size wrap around onto it, and per-styleNumber overrides apply on top. The format is exported as the `ReaderStyleOverrides` type.
+- f08da0c: Graphing: a `<rectangle>` that binds one of its sizes to the other, such as `<rectangle name="R" width="4" height="$R.width" />`, can now be dragged and resized.
+
+    Previously, dragging such a rectangle could leave it pinned along one axis, and dragging a corner resized it in unpredictable ways rather than following the pointer. It now translates freely, and dragging a corner resizes it while keeping it square. This applies whether the rectangle is anchored on a center, on a specified vertex, or on neither.
+
+    Rectangles without a self-referential size are unaffected.
+
+- 817ae69: Added a way for host applications to look up the available style palettes, so they can present readers a palette picker with swatches. `@doenet/doenetml` exports `getStylePalettes()` and `getStylePalette(name)`, returning each palette's name, description, and per-style resolved colors (light and dark), line/marker settings, and color words. The standalone bundle exposes the same functions as `window.getDoenetStylePalettes` / `window.getDoenetStylePalette` for pages that load it from a CDN. In `@doenet/doenetml-iframe`, `<DoenetViewer>` and `<DoenetEditor>` accept an `onStylePalettes` callback that reports the palettes of the standalone bundle actually booted in the iframe (`null` when that version is too old to provide them).
+- bfe075d: Added style palettes: named, coordinated sets of style definitions selectable with the new `<stylePalette>` component. The six standard styles are now the `default` palette, joined by eight more — the colorblind-friendly `okabeIto` (Okabe-Ito), `tolBright`, `tolMuted`, and `tolHighContrast` (Paul Tol), and `ibm` (IBM Design Library); a pure-luminance `grayscale` for readers who distinguish styles by lightness alone; and `categorical` (ten maximally varied hues) and `grumpyNarwhal` (six saturated hues that go neon in dark mode) for documents that need many obviously different styles. Every palette is WCAG-checked in light and dark mode, varies marker shapes and line widths alongside colors, and carries curated style-description color words.
+
+    A palette selection scopes to its containing section and resets that subtree's base styles; `<styleDefinition>` overrides still apply on top, and style numbers beyond the palette's size cycle through the palette. Every palette has at least four styles, and the documentation now advises reserving style numbers 1-4 for the most important distinctions. Style number 1 always renders text in the ordinary document text color, so selecting a palette never recolors prose that specifies no style number. Palette names autocomplete in the editor, and the context-help panel resolves styles against the active palette.
+
+- 96b2e21: Viewer: don't stay permanently blank when the browser reports the not-yet-rendered viewer as off-page.
+
+    The viewer starts hidden and unhides once an IntersectionObserver sees its
+    wrapper on the page (a guard that keeps JSXGraph from initializing while
+    actually hidden). But while hidden the viewer renders nothing, so the observed
+    wrapper has zero height — and some browsers (observed in branded Chrome 149,
+    with activities embedded in a same-origin iframe as in PreTeXt books) report a
+    zero-area target as non-intersecting even with the observer's huge rootMargin.
+    The viewer then deadlocked as a silent blank box: hidden ⇒ zero height ⇒
+    reported off-page ⇒ stays hidden.
+
+    A zero-area element that still generates a layout box cannot meaningfully be
+    off the page, so it now counts as on-page; `display: none` — the state the
+    guard exists to detect — generates no layout boxes and still keeps the viewer
+    hidden.
+
 ## 0.7.21
 
 ### Patch Changes
