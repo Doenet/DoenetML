@@ -64,6 +64,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     const dragState = usePointerDragState();
     let previousWithLabel = useRef<boolean | null>(null);
     let previousLabelPosition = useRef<LabelPosition | null>(null);
+    let previousUseOpenSymbol = useRef<boolean | null>(null);
     let calculatedX = useRef<number | null>(null);
     let calculatedY = useRef<number | null>(null);
 
@@ -108,6 +109,8 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         (SVs.open === undefined && SVs.selectedStyle.markerFilled === false) ||
         ["cross", "plus"].includes(SVs.selectedStyle.markerStyle);
 
+    const fillOpacity = useOpenSymbol ? 1 : SVs.selectedStyle.markerOpacity;
+
     useBoardPointerTracking(board, dragState);
 
     React.useEffect(() => {
@@ -143,7 +146,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             fillColor: fillColor,
             strokeColor,
             strokeOpacity: SVs.selectedStyle.markerOpacity,
-            fillOpacity: SVs.selectedStyle.markerOpacity,
+            fillOpacity,
             highlightFillColor: "var(--mainGray)",
             highlightStrokeColor: "var(--lightBlue)",
             size: normalizePointSize(
@@ -392,6 +395,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         pointJXG.current = newPointJXG;
         shadowPointJXG.current = newShadowPointJXG;
         previousWithLabel.current = withlabel;
+        previousUseOpenSymbol.current = useOpenSymbol;
     }
 
     if (board) {
@@ -538,9 +542,16 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             ) {
                 pointJXG.current.visProp.strokeopacity =
                     SVs.selectedStyle.markerOpacity;
-                pointJXG.current.visProp.fillopacity =
-                    SVs.selectedStyle.markerOpacity;
+                // An open symbol has an opaque interior regardless of
+                // markerOpacity, so its fill stays fully opaque.
+                pointJXG.current.visProp.fillopacity = fillOpacity;
+            } else if (useOpenSymbol !== previousUseOpenSymbol.current) {
+                // markerOpacity didn't change, but the open/closed state did
+                // (e.g. a switchable endpoint toggled). Update the fill
+                // opacity to match the new state.
+                pointJXG.current.visProp.fillopacity = fillOpacity;
             }
+            previousUseOpenSymbol.current = useOpenSymbol;
 
             let newFace = normalizePointStyle(
                 SVs.selectedStyle.markerStyle,
