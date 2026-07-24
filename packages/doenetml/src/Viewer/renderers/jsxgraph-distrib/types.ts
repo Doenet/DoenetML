@@ -21,6 +21,10 @@ export type JXGEvent = {
     y: number;
     type: string;
     key: string;
+    // Present at runtime (JSXGraph forwards the native DOM event); optional
+    // because synthetic callers in tests may omit them.
+    metaKey?: boolean;
+    ctrlKey?: boolean;
 };
 
 /** Common base for the per-kind interfaces. New code only. */

@@ -25,16 +25,17 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
     ].join("\n");
 
     /**
-     * Click the rendered `#name` element and assert the most recently
+     * Cmd+click the rendered `#name` element and assert the most recently
      * reported click position is exactly the `<p name="...">...</p>`
-     * element's source range within `doenetML`.
+     * element's source range within `doenetML`. (Navigation only fires
+     * with the Cmd/Ctrl modifier held.)
      */
     function clickAndExpectSourceRange(name, doenetML) {
         const expectedStart = doenetML.indexOf(`<p name="${name}">`);
         const expectedEnd =
             doenetML.indexOf(`</p>`, expectedStart) + `</p>`.length;
 
-        cy.get(`#${name}`).click();
+        cy.get(`#${name}`).click({ metaKey: true });
 
         cy.wrap(null)
             .should(() => {
@@ -47,7 +48,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
             });
     }
 
-    it("clicking a rendered element reports its exact source range", () => {
+    it("cmd+clicking a rendered element reports its exact source range", () => {
         cy.window().then((win) => {
             win.postMessage({ doenetML: threeParagraphs }, "*");
         });
@@ -57,7 +58,29 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         clickAndExpectSourceRange("p2", threeParagraphs);
     });
 
-    it("clicking a different element reports a different, correct range", () => {
+    it("a plain click (no modifier) does not navigate", () => {
+        cy.window().then((win) => {
+            win.postMessage({ doenetML: threeParagraphs }, "*");
+        });
+
+        cy.get("#p2").should("have.text", "Second paragraph.");
+
+        cy.get("#p2").click();
+        // Follow with a Cmd+click so we have a positive signal that the
+        // pipeline works — the plain click must not have reported anything
+        // before it.
+        cy.get("#p2").click({ metaKey: true });
+
+        cy.wrap(null)
+            .should(() => {
+                expect(clickMessages.length).to.be.gte(1);
+            })
+            .then(() => {
+                expect(clickMessages.length).to.equal(1);
+            });
+    });
+
+    it("cmd+clicking a different element reports a different, correct range", () => {
         cy.window().then((win) => {
             win.postMessage({ doenetML: threeParagraphs }, "*");
         });
@@ -109,7 +132,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         });
     });
 
-    it("clicking a graph's board reports the graph's source range", () => {
+    it("cmd+clicking a graph's board reports the graph's source range", () => {
         // JSXGraph's own click handler on the board div stops propagation,
         // so this only works because the viewer listens in the capture
         // phase — regression guard for that.
@@ -128,9 +151,9 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         const expectedStart = doenetML.indexOf("<graph");
         const expectedEnd = doenetML.indexOf("</graph>") + "</graph>".length;
 
-        // Click near the board's top-left corner, away from the vector
+        // Cmd+click near the board's top-left corner, away from the vector
         // (which occupies the center region and would navigate to itself).
-        cy.get("#g").click(20, 20, { force: true });
+        cy.get("#g").click(20, 20, { force: true, metaKey: true });
 
         cy.wrap(null)
             .should(() => {
@@ -144,19 +167,19 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
     });
 
     /**
-     * Click the board `boardSelector` at the pixel corresponding to graph
-     * coordinates (x, y), assuming the default [-10, 10] bounding box.
+     * Cmd+click the board `boardSelector` at the pixel corresponding to
+     * graph coordinates (x, y), assuming the default [-10, 10] bounding box.
      */
     function clickBoardAtGraphCoords(boardSelector, x, y) {
         cy.get(boardSelector).then(($el) => {
             const rect = $el[0].getBoundingClientRect();
             const px = ((x + 10) / 20) * rect.width;
             const py = ((10 - y) / 20) * rect.height;
-            cy.wrap($el).click(px, py, { force: true });
+            cy.wrap($el).click(px, py, { force: true, metaKey: true });
         });
     }
 
-    it("clicking a point inside a graph reports the point's own source range", () => {
+    it("cmd+clicking a point inside a graph reports the point's own source range", () => {
         const doenetML = [
             `<graph name="g"><point name="P">(3,4)</point></graph>`,
             `<p name="p1">A paragraph.</p>`,
@@ -188,7 +211,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
             });
     });
 
-    it("clicking a copied point navigates to the copy source, not the original", () => {
+    it("cmd+clicking a copied point navigates to the copy source, not the original", () => {
         // The copied point still carries the original <point>'s source
         // range, but that range lies outside the copied graph's range
         // (the `$g` token) — which is how the viewer knows the point was
@@ -222,7 +245,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
             });
     });
 
-    it("clicking the margin beside a graph reports the graph's source range", () => {
+    it("cmd+clicking the margin beside a graph reports the graph's source range", () => {
         // The margin is inside the `${id}-container` wrapper but outside
         // the board itself; the click handler recognizes the -container
         // suffix and resolves it to the graph.
@@ -244,7 +267,10 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
             const rect = $el[0].getBoundingClientRect();
             // Far left edge of the container, vertically centered: outside
             // the (centered, fixed-aspect) board, inside the wrapper.
-            cy.wrap($el).click(2, rect.height / 2, { force: true });
+            cy.wrap($el).click(2, rect.height / 2, {
+                force: true,
+                metaKey: true,
+            });
         });
 
         cy.wrap(null)
@@ -257,7 +283,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
             });
     });
 
-    it("clicking, then scrolling elsewhere, then clicking again still reports correctly", () => {
+    it("cmd+clicking, then scrolling elsewhere, then clicking again still reports correctly", () => {
         // Regression guard for the id -> position map staying in sync across
         // multiple updates, not just working once on first render.
         const doenetML = [
@@ -274,7 +300,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         const alphaStart = doenetML.indexOf(`<p name="alpha">`);
         const betaStart = doenetML.indexOf(`<p name="beta">`);
 
-        cy.get("#alpha").click();
+        cy.get("#alpha").click({ metaKey: true });
         cy.wrap(null).should(() => {
             expect(clickMessages.length).to.be.gte(1);
         });
@@ -284,7 +310,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
             ).to.equal(alphaStart);
         });
 
-        cy.get("#beta").click();
+        cy.get("#beta").click({ metaKey: true });
         cy.wrap(null).should(() => {
             expect(clickMessages.length).to.be.gte(2);
         });

@@ -326,18 +326,11 @@ export const EditorViewer = React.forwardRef<
     const helpRequestIdRef = useRef(0);
 
     // Click-to-navigate: the underlying CodeMirror `EditorView`, populated
-    // once it mounts, so a click in the viewer can imperatively move the
-    // editor's cursor/selection. And the debounced editor-cursor offset fed
-    // into the viewer so it scrolls to follow the editor cursor — separate
-    // from `cursorDebounceTimer` above (that one drives the help panel, a
-    // different concern with different timing needs).
+    // once it mounts, so a Cmd/Ctrl+click in the viewer can imperatively
+    // move the editor's cursor/selection, and a Cmd/Ctrl+click in the
+    // editor can be resolved to a source offset that the viewer scrolls to
+    // (via `scrollToSourceOffset`).
     const editorViewRef = useRef<EditorView | null>(null);
-    const viewerScrollDebounceTimer = useRef<number | undefined>(undefined);
-    // Set by `handleSourcePositionClick` right before it dispatches a cursor
-    // move into the editor, so `onCursorChange` can tell that move apart
-    // from a real keystroke/click and skip echoing it back into the viewer
-    // (mirrors the VS Code extension's `suppressNextSelectionEcho`).
-    const suppressNextViewerFollowRef = useRef(false);
     const [scrollToSourceOffset, setScrollToSourceOffset] = useState<
         number | null
     >(null);
@@ -794,22 +787,6 @@ export const EditorViewer = React.forwardRef<
             const offset = selection.main.head;
             lastCursorOffsetRef.current = offset;
 
-            // Click-to-navigate: scroll the viewer to follow the editor
-            // cursor, debounced so it doesn't scroll on every single
-            // keystroke while typing. Skipped when this cursor move is
-            // itself the echo of a click in the viewer (see
-            // `handleSourcePositionClick`) — the user just put the viewer
-            // where they want it, so re-centering the clicked element
-            // would yank the content out from under their pointer.
-            if (suppressNextViewerFollowRef.current) {
-                suppressNextViewerFollowRef.current = false;
-            } else {
-                window.clearTimeout(viewerScrollDebounceTimer.current);
-                viewerScrollDebounceTimer.current = window.setTimeout(() => {
-                    setScrollToSourceOffset(offset);
-                }, 120);
-            }
-
             window.clearTimeout(cursorDebounceTimer.current);
             // Skip the RPC when no one's looking — the help-becoming-visible
             // effect below will compute on demand for the current cursor.
@@ -949,23 +926,50 @@ export const EditorViewer = React.forwardRef<
             // component.
             window.clearTimeout(cursorDebounceTimer.current);
             window.clearTimeout(helpRetryTimerRef.current);
-            window.clearTimeout(viewerScrollDebounceTimer.current);
         };
     }, []);
 
+    // Editor→viewer navigation: Cmd/Ctrl+click on a spot in the editor
+    // scrolls the viewer to the element rendered from that source offset —
+    // the same explicit go-to-definition-style gesture the viewer uses in
+    // the other direction, so plain clicks and typing never move the
+    // viewer. The wrapper div is `display: contents` so it stays out of
+    // layout and exists only to observe the click (in the capture phase,
+    // before CodeMirror handles it). CodeMirror's own Cmd/Ctrl+click
+    // behavior (adding a selection range) is deliberately left alone —
+    // navigation runs alongside it, not instead of it.
+    const handleEditorClickCapture = (e: React.MouseEvent) => {
+        if (!e.metaKey && !e.ctrlKey) {
+            return;
+        }
+        const view = editorViewRef.current;
+        if (!view) {
+            return;
+        }
+        const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+        if (pos != null) {
+            setScrollToSourceOffset(pos);
+        }
+    };
+
     const codeMirror = (
-        <CodeMirror
-            value={editorDoenetML}
-            readOnly={readOnly}
-            onBlur={onBlur}
-            onChange={onEditorChange}
-            onCursorChange={onCursorChange}
-            onSelectedCompletionChange={onSelectedCompletionChange}
-            languageServerRef={lspRef}
-            editorViewRef={editorViewRef}
-            doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
-            darkMode={darkMode}
-        />
+        <div
+            style={{ display: "contents" }}
+            onClickCapture={handleEditorClickCapture}
+        >
+            <CodeMirror
+                value={editorDoenetML}
+                readOnly={readOnly}
+                onBlur={onBlur}
+                onChange={onEditorChange}
+                onCursorChange={onCursorChange}
+                onSelectedCompletionChange={onSelectedCompletionChange}
+                languageServerRef={lspRef}
+                editorViewRef={editorViewRef}
+                doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
+                darkMode={darkMode}
+            />
+        </div>
     );
 
     const editorAndCollapsiblePanel =
@@ -1094,14 +1098,6 @@ export const EditorViewer = React.forwardRef<
      * line at whichever edge (top or bottom) it happened to enter from —
      * `EditorView.scrollIntoView`'s `y: "center"` effect is what actually
      * centers it.
-     *
-     * The dispatched selection change echoes back through `onCursorChange`
-     * synchronously (CodeMirror reports every transaction that carries a
-     * selection, even one that leaves the cursor where it was — so the
-     * flag set here is always consumed). Without suppression that echo
-     * would schedule the viewer to scroll the clicked element to center;
-     * the flag makes `onCursorChange` skip exactly that one viewer-follow
-     * update while its other work (help-panel context, etc.) still runs.
      */
     function handleSourcePositionClick(position: SourcePosition) {
         const view = editorViewRef.current;
@@ -1111,10 +1107,8 @@ export const EditorViewer = React.forwardRef<
         // The position indexes into the last-compiled source
         // (`viewerDoenetML`), but the editor may hold newer, shorter text —
         // the viewer only recompiles on an explicit update. Clamp so the
-        // dispatch below can't throw a selection-out-of-range error (which
-        // would also leave the suppression flag latched).
+        // dispatch below can't throw a selection-out-of-range error.
         const offset = Math.min(position.start.offset, view.state.doc.length);
-        suppressNextViewerFollowRef.current = true;
         view.dispatch({
             selection: EditorSelection.cursor(offset),
             effects: EditorView.scrollIntoView(offset, {
