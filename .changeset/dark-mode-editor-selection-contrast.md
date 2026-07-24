@@ -12,4 +12,6 @@ The selection highlight was rendering with CodeMirror's built-in light lavender 
 
 The dark-mode selection is now a dark navy (`#092c4d`) that keeps every syntax token — down to the dim comment gray — at WCAG AA contrast (≥ 4.5:1) while still reading as a selection, and light mode now correctly uses its intended neutral gray. The override matches CodeMirror's base-theme selector for both the focused and blurred states, and the theme now passes the real brightness to CodeMirror so its base defaults align.
 
+The light-mode comment color is also darkened slightly (`#656d76` → `#5c636d`) so highlighted comments clear WCAG AA against the light selection background too (they previously sat at ~4.1:1); it remains above AA on the white canvas.
+
 Adds `@doenet/codemirror` Cypress component tests (`selectionAccessibility.cy.tsx`) that select highlighted code and assert the WCAG contrast between each rendered token color and the actual selection-background color, in light mode, dark mode, and after the editor is blurred. (`cy.checkA11y` can't be used for this: axe-core cannot resolve CodeMirror's separate selection layer / `::selection` pseudo-element and instead compares tokens against a phantom white background.)

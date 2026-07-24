@@ -92,7 +92,7 @@ const customHighlightStyle = createHighlightStyle({
     tagName: "#0550ae", // Blue - 7.67:1 on white
     propertyName: "#953800", // Burnt orange - 5.17:1 on white
     invalid: "#a80000", // Dark red - 6.23:1 on white
-    blockComment: "#656d76", // Gray - 4.54:1 on white
+    blockComment: "#5c636d", // Gray - 6.1:1 on white, 4.7:1 on the --mainGray selection
     macroName: "#6f42c1", // Purple - 5.01:1 on white
     content: "#24292f", // Near black - 15.3:1 on white
 });

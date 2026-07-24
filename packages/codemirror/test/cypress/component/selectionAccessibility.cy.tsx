@@ -40,8 +40,10 @@ const THEME_VARS: Record<ThemeMode, Record<string, string>> = {
 };
 
 // Exercises the main token categories: tag names / angle brackets, attribute
-// names, attribute-value strings, macros, and (near-white) text content.
+// names, attribute-value strings, macros, (near-white) text content, and the
+// dim comment gray — the tightest-contrast token in both palettes.
 const DOENET_SOURCE = `<section name="s">
+  <!-- comments must stay legible when highlighted too -->
   <title>Highlighted text should stay legible</title>
   <p>Body text with a macro $s and the number 42.</p>
   <point name="P" coords="(3, 4)" />
