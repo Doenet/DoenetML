@@ -156,14 +156,17 @@ export interface AttachDragHandlersConfig<TTag, TSnapshot> {
     participatesInDownTag?: boolean;
 
     /**
-     * Click-to-navigate wiring. On a click-like `up` (and keyboard Enter),
-     * `report` is called with `domId` — plus the enclosing board's DOM id,
-     * so the viewer can attribute copy-produced components to the copy
-     * that authored them — and the viewer navigates to the component's
-     * source; on a drag release it's called with `null` so the viewer
-     * suppresses the native click that follows without navigating.
-     * Deliberately not gated on `fixedRef`: navigation is an authoring aid
-     * and applies to fixed components too.
+     * Click-to-navigate wiring. On a click-like `up` (and keyboard Enter)
+     * with the Cmd/Ctrl modifier held — navigation is an explicit
+     * go-to-definition-style gesture, so unmodified clicks only interact
+     * with the document — `report` is called with `domId`, plus the
+     * enclosing board's DOM id so the viewer can attribute copy-produced
+     * components to the copy that authored them, and the viewer navigates
+     * to the component's source; on a drag release it's called with `null`
+     * (regardless of modifiers) so the viewer suppresses the native click
+     * that follows without navigating. Deliberately not gated on
+     * `fixedRef`: navigation is an authoring aid and applies to fixed
+     * components too.
      */
     sourceNavigation?: SourceNavigationConfig;
 
@@ -315,7 +318,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         onDragApplied?.(currentSnapshot, e);
     });
 
-    jxg.on("up", function (_e: JXGEvent) {
+    jxg.on("up", function (e: JXGEvent) {
         if (coordination.draggedTag.current === tag) {
             dispatchCommit("up");
             coordination.draggedTag.current = null;
@@ -328,7 +331,9 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
                 coordination.downOnTag.current !== tag
             )
         ) {
-            reportNavigationClick();
+            if (e.metaKey || e.ctrlKey) {
+                reportNavigationClick();
+            }
             if (!fixedRef.current) {
                 dispatchClick();
             }
@@ -357,9 +362,13 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
             dispatchCommit("keyEnter");
             coordination.draggedTag.current = null;
         }
-        // No native click follows a keyboard Enter, so the report can't be
-        // double-consumed; the next pointerdown clears the skip flag anyway.
-        reportNavigationClick();
+        // Cmd/Ctrl+Enter is the keyboard equivalent of the Cmd/Ctrl+click
+        // navigation gesture. No native click follows a keyboard Enter, so
+        // the report can't be double-consumed; the next pointerdown clears
+        // the skip flag anyway.
+        if (e.metaKey || e.ctrlKey) {
+            reportNavigationClick();
+        }
         dispatchClick();
     });
 }
