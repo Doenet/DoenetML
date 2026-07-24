@@ -1698,6 +1698,31 @@ function validateAttributeValue({
         value = value.trim();
     }
 
+    // Map a boolean-valued attribute source onto its text equivalent via
+    // `valueForTrue`/`valueForFalse`. Literal `"true"`/`"false"` authored
+    // strings are already mapped during DAST conversion (see
+    // `createInitialComponentFromAttribute`), but a value bound to a boolean
+    // component (e.g. `displayXAxis="$someBooleanInput"`) arrives here as the
+    // adapted text `"true"`/`"false"` and would otherwise be rejected by the
+    // `validValues` check below and fall back to the default.
+    if (
+        typeof value === "string" &&
+        (attributeSpecification.valueForTrue !== undefined ||
+            attributeSpecification.valueForFalse !== undefined)
+    ) {
+        if (
+            value === "true" &&
+            attributeSpecification.valueForTrue !== undefined
+        ) {
+            value = attributeSpecification.valueForTrue;
+        } else if (
+            value === "false" &&
+            attributeSpecification.valueForFalse !== undefined
+        ) {
+            value = attributeSpecification.valueForFalse;
+        }
+    }
+
     if (attributeSpecification.validValues) {
         const allowed = attributeSpecification.validValues.map((v) => v.value);
         if (!allowed.includes(value)) {

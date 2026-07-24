@@ -147,18 +147,52 @@ export default class Graph extends BlockComponent {
         };
         attributes.displayXAxis = {
             description: "Whether to display the x axis.",
-            createComponentOfType: "boolean",
+            createComponentOfType: "text",
             createStateVariable: "displayXAxis",
-            defaultValue: true,
+            defaultValue: "full",
             public: true,
+            toLowerCase: true,
+            validValues: [
+                { value: "full", description: "Display the full x axis." },
+                { value: "none", description: "Hide the x axis." },
+                {
+                    value: "positiveOnly",
+                    description:
+                        "Display only the positive half of the x axis.",
+                },
+                {
+                    value: "negativeOnly",
+                    description:
+                        "Display only the negative half of the x axis.",
+                },
+            ],
+            valueForTrue: "full",
+            valueForFalse: "none",
             forRenderer: true,
         };
         attributes.displayYAxis = {
             description: "Whether to display the y axis.",
-            createComponentOfType: "boolean",
+            createComponentOfType: "text",
             createStateVariable: "displayYAxis",
-            defaultValue: true,
+            defaultValue: "full",
             public: true,
+            toLowerCase: true,
+            validValues: [
+                { value: "full", description: "Display the full y axis." },
+                { value: "none", description: "Hide the y axis." },
+                {
+                    value: "positiveOnly",
+                    description:
+                        "Display only the positive half of the y axis.",
+                },
+                {
+                    value: "negativeOnly",
+                    description:
+                        "Display only the negative half of the y axis.",
+                },
+            ],
+            valueForTrue: "full",
+            valueForFalse: "none",
             forRenderer: true,
         };
         attributes.addControls = {

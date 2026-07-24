@@ -21,8 +21,13 @@ function axisModeFromVisibility({
     displayXAxis,
     displayYAxis,
 }: GraphDependencyValues): "all" | "horizontal" | "vertical" | null {
-    const showXAxis = Boolean(displayXAxis);
-    const showYAxis = Boolean(displayYAxis);
+    // `displayXAxis`/`displayYAxis` are the text values "full"/"none"/
+    // "positiveOnly"/"negativeOnly" (see Graph.js), not booleans. Any value
+    // other than "none" means the axis is shown in some form; prefigure has
+    // no partial-axis rendering, so positiveOnly/negativeOnly are treated the
+    // same as full here.
+    const showXAxis = displayXAxis !== "none";
+    const showYAxis = displayYAxis !== "none";
 
     if (showXAxis && showYAxis) {
         return "all";
@@ -82,7 +87,7 @@ function axesElementFromLabels({
         label: dependencyValues.xLabel,
         labelHasLatex: dependencyValues.xLabelHasLatex,
     });
-    if (xLabel && dependencyValues.displayXAxis) {
+    if (xLabel && dependencyValues.displayXAxis !== "none") {
         axisLabelElements.push(`<xlabel alignment="nw">${xLabel}</xlabel>`);
     }
 
@@ -90,7 +95,7 @@ function axesElementFromLabels({
         label: dependencyValues.yLabel,
         labelHasLatex: dependencyValues.yLabelHasLatex,
     });
-    if (yLabel && dependencyValues.displayYAxis) {
+    if (yLabel && dependencyValues.displayYAxis !== "none") {
         axisLabelElements.push(`<ylabel alignment="se">${yLabel}</ylabel>`);
     }
 

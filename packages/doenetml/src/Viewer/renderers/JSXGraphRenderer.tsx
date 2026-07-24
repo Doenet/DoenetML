@@ -103,7 +103,7 @@ export default function JSXGraphRenderer({
 
         setBoard(newBoard);
 
-        if (SVs.displayXAxis) {
+        if (SVs.displayXAxis !== "none") {
             createXAxis({
                 theBoard: newBoard,
                 SVs,
@@ -112,7 +112,7 @@ export default function JSXGraphRenderer({
             });
         }
 
-        if (SVs.displayYAxis) {
+        if (SVs.displayYAxis !== "none") {
             createYAxis({
                 theBoard: newBoard,
                 SVs,
