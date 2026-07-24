@@ -19,9 +19,10 @@ describe(
         ].join("\n");
 
         /**
-         * Load `threeParagraphs`, click the rendered `#name` element (whose
-         * text is `text`), and assert the code editor's cursor landed on
-         * that paragraph's source line.
+         * Load `threeParagraphs`, cmd+click the rendered `#name` element
+         * (whose text is `text`), and assert the code editor's cursor
+         * landed on that paragraph's source line. (Navigation only fires
+         * with the Cmd/Ctrl modifier held.)
          */
         function clickAndExpectCursorOnSourceLine(name, text) {
             cy.window().then((win) => {
@@ -30,7 +31,7 @@ describe(
 
             cy.get(`#${name}`).should("have.text", text);
 
-            cy.get(`#${name}`).click();
+            cy.get(`#${name}`).click({ metaKey: true });
 
             cy.get(".cm-activeLine").should(
                 "contain.text",
@@ -38,15 +39,32 @@ describe(
             );
         }
 
-        it("clicking a rendered element moves the code editor's cursor to its source", () => {
+        it("cmd+clicking a rendered element moves the code editor's cursor to its source", () => {
             clickAndExpectCursorOnSourceLine("p2", "Second paragraph.");
         });
 
-        it("clicking a different element moves the cursor to a different, correct line", () => {
+        it("cmd+clicking a different element moves the cursor to a different, correct line", () => {
             clickAndExpectCursorOnSourceLine("p3", "Third paragraph.");
         });
 
-        it("moving the code editor's cursor scrolls the viewer to follow", () => {
+        it("a plain click on a rendered element does not move the editor's cursor", () => {
+            cy.window().then((win) => {
+                win.postMessage({ doenetML: threeParagraphs }, "*");
+            });
+
+            cy.get("#p2").should("have.text", "Second paragraph.");
+
+            cy.get("#p2").click();
+            // Give any (incorrect) navigation time to land before checking.
+            cy.wait(300);
+            cy.get(".cm-activeLine").should("not.contain.text", `name="p2"`);
+
+            // Positive control: the same click with the modifier navigates.
+            cy.get("#p2").click({ metaKey: true });
+            cy.get(".cm-activeLine").should("contain.text", `name="p2"`);
+        });
+
+        it("cmd+clicking a line in the editor scrolls the viewer to the matching element", () => {
             const paragraphs = [];
             for (let i = 1; i <= 60; i++) {
                 paragraphs.push(`<p name="p${i}">Paragraph number ${i}.</p>`);
@@ -68,10 +86,21 @@ describe(
                 ).to.be.true;
             });
 
-            // Clicking a line in the editor moves the CodeMirror cursor there
-            // (a real user action, not the programmatic reveal from the other
-            // tests), which should debounce-trigger the viewer to follow.
+            // A plain click in the editor moves the cursor but must NOT
+            // scroll the viewer.
             cy.contains(".cm-line", `name="p40"`).click();
+            cy.wait(400);
+            cy.get("#p40").then(($el) => {
+                const rect = $el[0].getBoundingClientRect();
+                expect(
+                    rect.bottom < 0 ||
+                        rect.top > Cypress.config("viewportHeight"),
+                ).to.be.true;
+            });
+
+            // Cmd+click on the same line scrolls the viewer to the
+            // corresponding rendered element.
+            cy.contains(".cm-line", `name="p40"`).click({ metaKey: true });
 
             cy.get("#p40", { timeout: 8000 }).should(($el) => {
                 const rect = $el[0].getBoundingClientRect();
@@ -83,7 +112,7 @@ describe(
             });
         });
 
-        it("clicking a rendered element centers the matching line in the editor, not just at an edge", () => {
+        it("cmd+clicking a rendered element centers the matching line in the editor, not just at an edge", () => {
             const paragraphs = [];
             for (let i = 1; i <= 100; i++) {
                 paragraphs.push(`<p name="p${i}">Paragraph number ${i}.</p>`);
@@ -98,7 +127,7 @@ describe(
 
             // Target a line comfortably far from the top and bottom of the
             // document, so there's real room to center it either way.
-            cy.get("#p50").click();
+            cy.get("#p50").click({ metaKey: true });
 
             cy.get(".cm-activeLine")
                 .should("contain.text", `name="p50"`)

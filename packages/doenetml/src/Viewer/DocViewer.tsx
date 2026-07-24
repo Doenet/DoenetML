@@ -2058,6 +2058,15 @@ export function DocViewer({
     }
 
     function handleViewerClick(event: MouseEvent) {
+        // Navigation is an explicit gesture — Cmd+click (macOS) or
+        // Ctrl+click (Windows/Linux), like go-to-definition — so plain
+        // clicks interact with the document without moving the editor.
+        // Checked before the skip flag: a plain click after an
+        // element-level report leaves the flag set, but every pointerdown
+        // clears it, so it can't latch across interactions.
+        if (!event.metaKey && !event.ctrlKey) {
+            return;
+        }
         if (skipNextClickNavigation.current) {
             skipNextClickNavigation.current = false;
             return;
