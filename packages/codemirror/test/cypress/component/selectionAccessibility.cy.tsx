@@ -141,7 +141,7 @@ function expectHighlightedTextIsLegible(mode: ThemeMode) {
             win.document.querySelectorAll(".cm-content .cm-line span"),
         ) as HTMLElement[];
 
-        const failures = spans
+        const measured = spans
             .filter(
                 (span) =>
                     (span.textContent ?? "").trim().length > 0 &&
@@ -159,8 +159,17 @@ function expectHighlightedTextIsLegible(mode: ThemeMode) {
                     color: win.getComputedStyle(span).color,
                     ratio: Number(ratio.toFixed(2)),
                 };
-            })
-            .filter((entry) => entry.ratio < AA_CONTRAST);
+            });
+
+        // Guard against a vacuous pass: if syntax highlighting stopped
+        // producing token spans, there would be nothing to check and the
+        // contrast assertion below would trivially succeed.
+        expect(
+            measured.length,
+            "highlighted tokens measured",
+        ).to.be.greaterThan(0);
+
+        const failures = measured.filter((entry) => entry.ratio < AA_CONTRAST);
 
         const selectionCss = win.getComputedStyle(selEl!).backgroundColor;
         expect(
