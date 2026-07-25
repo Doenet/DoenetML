@@ -27,7 +27,12 @@ import {
  * The descriptions are content, so they answer to the document's locale rather
  * than the reader's, and they stay *computed* — never essential — so that a
  * locale change recomputes them and no English is written into saved state.
+ *
+ * The composition itself lives in `./styleDescriptions`; this module only wires
+ * it to the core's dependency system.
  */
+
+/** The shape of a component's state-variable definition table. */
 type StateVariableDefinitions = Record<string, any>;
 
 /**
@@ -44,7 +49,12 @@ export type StyleDescriptionKind =
 /** The noun a component's description names. */
 export type StyleDescriptionNoun = NounKey | "regular-polygon";
 
-/** The English word for a noun key, for the author-facing `description`s. */
+/**
+ * The English word for a noun key, for the author-facing `description`s.
+ *
+ * `split`/`join` rather than `replaceAll`, which this package's `lib` target
+ * does not declare.
+ */
 function englishNoun(noun: StyleDescriptionNoun): string {
     return noun.split("-").join(" ");
 }
@@ -122,6 +132,8 @@ function nounSpec(noun: StyleDescriptionNoun, dependencyValues: any): NounSpec {
  * @param kind How the description is composed.
  * @param noun The noun the description names. `"regular-polygon"` names the
  *   shape by its side count, so it also brings in a `numSides` dependency.
+ *   A `"marker"` description names its marker shape instead, so there `noun`
+ *   only supplies the wording of the author-facing `description` fields.
  */
 export function returnGraphicalStyleDescriptionDefinitions({
     kind,

@@ -1,4 +1,6 @@
-describe("Chrome translation Tests", { tags: ["@group5"] }, function () {
+// Covers both halves of the split: chrome, which follows the reader's
+// `uiLocale`, and worker-computed content, which follows the document's.
+describe("Translation Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

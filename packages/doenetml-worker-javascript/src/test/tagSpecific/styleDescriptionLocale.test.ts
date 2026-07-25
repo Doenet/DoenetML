@@ -8,8 +8,8 @@ vi.mock("hyperformula");
  *
  * These go through the whole worker path — `setLocaleData`, the document's
  * `locale` state variable, the `translator` dependency, and the shared
- * description definitions — rather than calling `describeStyle` directly, which
- * `@doenet/utils`' golden-file suite already covers. What is checked here is
+ * description definitions — rather than calling the `describe*` helpers
+ * directly, which `@doenet/utils`' golden-file suite covers. What is checked is
  * that the locale reaches the definitions at all, and that it is the document's
  * locale rather than the host's when the two disagree.
  */
@@ -49,8 +49,10 @@ describe("style descriptions follow the document locale", () => {
     <text name="stn" extend="$l.styleDescriptionWithNoun" />
     <text name="pt" extend="$p.styleDescriptionWithNoun" />
     <text name="sh" extend="$c.styleDescriptionWithNoun" />
+    <text name="bd" extend="$c.borderStyleDescription" />
+    <text name="fd" extend="$c.fillStyleDescription" />
     `;
-    const names = ["st", "stn", "pt", "sh"];
+    const names = ["st", "stn", "pt", "sh", "bd", "fd"];
 
     it("renders English by default", async () => {
         const values = await descriptions(styled, names);
@@ -60,6 +62,8 @@ describe("style descriptions follow the document locale", () => {
         expect(values.sh).eq(
             "filled blue circle with dots and a thick dashed red border",
         );
+        expect(values.bd).eq("thick dashed red");
+        expect(values.fd).eq("blue dots");
     });
 
     it("renders Spanish when the host asks for it", async () => {
@@ -70,6 +74,9 @@ describe("style descriptions follow the document locale", () => {
         expect(values.sh).eq(
             "círculo azul relleno con puntos y un borde discontinuo grueso rojo",
         );
+        // Reported on its own, the border's adjectives agree with "borde".
+        expect(values.bd).eq("discontinuo grueso rojo");
+        expect(values.fd).eq("puntos de color azul");
     });
 
     it("negotiates a regional tag down to the catalog it has", async () => {

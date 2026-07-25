@@ -203,7 +203,7 @@ function lookUp(
 }
 
 /** The word naming a {@link NounSpec}. */
-export function nounWord(t: Translator, noun: NounSpec): string {
+function nounWord(t: Translator, noun: NounSpec): string {
     if (noun.key === "regular-polygon") {
         return t(
             "noun-regular-polygon",
@@ -259,7 +259,7 @@ export type StrokeWords = {
  *
  * @param gender The gender of whatever the stroke describes, for agreement.
  */
-export function describeStroke(
+function describeStroke(
     t: Translator,
     words: StrokeWords,
     gender: string,
@@ -280,11 +280,7 @@ export function describeStroke(
 }
 
 /** A description followed by what it describes: "thick red line". */
-export function attachNoun(
-    t: Translator,
-    description: string,
-    noun: string,
-): string {
+function attachNoun(t: Translator, description: string, noun: string): string {
     return t(
         "style-with-noun",
         { description, noun },
@@ -337,13 +333,14 @@ export function describeClosedShape(
         withNoun,
     }: { filled: boolean; noun: NounSpec; withNoun: boolean },
 ): string {
+    // An unfilled shape is described by its outline alone, which is exactly
+    // what a stroked component's description is.
+    if (!filled) {
+        return describeStrokedShape(t, words, { noun, withNoun });
+    }
+
     const gender = genderOf(t, noun.key);
     const nounText = withNoun ? nounWord(t, noun) : "";
-
-    if (!filled) {
-        const stroke = describeStroke(t, words, gender);
-        return withNoun ? attachNoun(t, stroke, nounText) : stroke;
-    }
 
     const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
     const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
@@ -376,9 +373,11 @@ export function describeClosedShape(
                   : `${filledWord} ${color}`,
           );
 
-    // The border repeats the fill's color only when they differ; comparing the
-    // authored words rather than the translated ones keeps the test from
-    // depending on whether two color keys happen to share a translation.
+    // The border names its color only when it differs from the fill's — the
+    // description just said that color, and English does not repeat it.
+    // Compared as the authored words rather than the translated ones, so that
+    // two color keys sharing a translation in some language cannot silently
+    // suppress the border's color there.
     const borderRepeatsFill = words.fillColorWord === words.colorWord;
     const borderGender = genderOf(t, "border");
     const border = describeStroke(
@@ -392,6 +391,10 @@ export function describeClosedShape(
 
     const connective = pattern ? "and" : "with";
     const borderParts = withNoun ? `${connective}-article` : connective;
+    // The one join the catalog does not own: the clause is appended with a
+    // plain space. A language that wants other punctuation between the two has
+    // to carry it inside `style-border-clause`, which every variant can do
+    // because the connective is already the variant's own text.
     return (
         filledText +
         " " +
