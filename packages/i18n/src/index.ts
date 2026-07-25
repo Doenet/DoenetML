@@ -47,4 +47,18 @@ export {
     type LocaleData,
 } from "./localeData";
 
+export {
+    DIAGNOSTIC_CODES,
+    DIAGNOSTIC_CODE_PATTERN,
+    createDiagnosticFormatter,
+    formatEnglishDiagnostic,
+    isDiagnosticCode,
+    type DiagnosticArgs,
+    type DiagnosticArgValue,
+    type DiagnosticCode,
+    type DiagnosticFormatter,
+    type DiagnosticListArg,
+    type FormattableDiagnostic,
+} from "./diagnostics";
+
 export { MESSAGE_KEYS, type MessageKey } from "./generated/messageKeys";

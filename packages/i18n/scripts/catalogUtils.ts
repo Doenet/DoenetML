@@ -21,6 +21,18 @@ export const GENERATED_KEYS_FILE = path.join(
     "generated",
     "messageKeys.ts",
 );
+/**
+ * Every diagnostic code ever issued.
+ *
+ * Committed, and only ever appended to. The registry in `src/diagnostics.ts`
+ * is what the code reads; this file is what makes the registry's promise
+ * checkable — a renumbered or reused code shows up as a lock entry the
+ * registry no longer agrees with, and `lint:i18n` fails on it.
+ */
+export const DIAGNOSTIC_CODES_LOCK_FILE = path.join(
+    PACKAGE_ROOT,
+    "diagnostic-codes.lock.json",
+);
 
 export type CatalogKey = {
     key: string;
@@ -217,6 +229,98 @@ export async function renderMessageKeysModule(keys: string[]): Promise<string> {
         filepath: GENERATED_KEYS_FILE,
         parser: "typescript",
     });
+}
+
+/** The lock as committed, or an empty lock if it doesn't exist yet. */
+export function readDiagnosticCodesLock(): Record<string, string> {
+    if (!fs.existsSync(DIAGNOSTIC_CODES_LOCK_FILE)) {
+        return {};
+    }
+    return JSON.parse(fs.readFileSync(DIAGNOSTIC_CODES_LOCK_FILE, "utf-8"));
+}
+
+/**
+ * The lock these codes imply: every entry already locked, plus every code the
+ * registry has added since.
+ *
+ * Locked entries are never rewritten from the registry — that is the whole
+ * point. A registry that disagrees with the lock is reported, not absorbed.
+ */
+export function mergeDiagnosticCodesLock(
+    lock: Record<string, string>,
+    registry: Record<string, string>,
+): Record<string, string> {
+    const merged: Record<string, string> = { ...lock };
+    for (const [code, key] of Object.entries(registry)) {
+        merged[code] ??= key;
+    }
+    return Object.fromEntries(
+        Object.entries(merged).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+    );
+}
+
+export async function renderDiagnosticCodesLock(
+    lock: Record<string, string>,
+): Promise<string> {
+    const prettierConfig = await prettier.resolveConfig(
+        DIAGNOSTIC_CODES_LOCK_FILE,
+    );
+    return prettier.format(JSON.stringify(lock, null, 4), {
+        ...prettierConfig,
+        filepath: DIAGNOSTIC_CODES_LOCK_FILE,
+        parser: "json",
+    });
+}
+
+/**
+ * Diagnostic codes named in source: `code: "doenet-w0001"` and nothing else.
+ *
+ * The worker's components are JavaScript, so the registry's types cannot catch
+ * a typo'd code there. This is the check that does — a code no registry entry
+ * defines would otherwise emit a diagnostic that silently never translates.
+ */
+const DIAGNOSTIC_CODE_USE_PATTERN = /code:\s*["'`](doenet-[a-z]\d+)["'`]/g;
+
+/**
+ * A raw diagnostic literal: `type: "warning"` and its siblings.
+ *
+ * Counted, not validated. The ratio of these to coded call sites is the
+ * burn-down `lint:i18n` reports while the ~200 legacy messages migrate.
+ */
+const DIAGNOSTIC_LITERAL_PATTERN =
+    /type:\s*["'`](?:warning|error|info|accessibility)["'`]/g;
+
+export type DiagnosticUsage = {
+    codes: CallSite[];
+    literalCount: number;
+};
+
+/** Diagnostic call sites under `packages/<name>/src`. */
+export function collectDiagnosticUsage(): DiagnosticUsage {
+    const packagesDir = path.join(REPO_ROOT, "packages");
+    const codes: CallSite[] = [];
+    let literalCount = 0;
+    for (const entry of fs.readdirSync(packagesDir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) {
+            continue;
+        }
+        for (const file of walkSourceFiles(
+            path.join(packagesDir, entry.name, "src"),
+        )) {
+            const contents = fs.readFileSync(file, "utf-8");
+            for (const match of contents.matchAll(
+                DIAGNOSTIC_CODE_USE_PATTERN,
+            )) {
+                codes.push({
+                    key: match[1],
+                    file: path.relative(REPO_ROOT, file),
+                });
+            }
+            literalCount += [...contents.matchAll(DIAGNOSTIC_LITERAL_PATTERN)]
+                .length;
+        }
+    }
+    return { codes, literalCount };
 }
 
 function renderMessageKeysModuleRaw(keys: string[]): string {

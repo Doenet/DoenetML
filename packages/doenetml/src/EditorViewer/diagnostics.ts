@@ -88,6 +88,11 @@ function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
         message: diagnostic.message,
         severity: DIAGNOSTIC_TYPE_TO_LSP_SEVERITY[diagnostic.type],
         range,
+        // The editor renders `code` beside the message, which makes a
+        // diagnostic something a user can search for and an author can cite.
+        // Only records that have migrated to the catalogs carry one (#1518);
+        // `code` is optional in LSP, so the rest are unchanged.
+        ...(diagnostic.code === undefined ? {} : { code: diagnostic.code }),
     };
 }
 

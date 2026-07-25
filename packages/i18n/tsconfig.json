@@ -2,7 +2,12 @@
     "extends": "../../tsconfig.build.json",
     "compilerOptions": {
         "outDir": "./dist/",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        // `Intl.ListFormat`, which joins a diagnostic's list arguments, is
+        // ES2021. The repo targets ES2020, and the default lib follows the
+        // target — so this package asks for the one built-in it needs rather
+        // than raising the target for everything.
+        "lib": ["ES2021", "DOM"]
     },
     "include": ["./src/**/*.ts"],
     "exclude": [

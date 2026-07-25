@@ -6,6 +6,7 @@ import {
     createTranslatorFromLocaleData,
 } from "../src/localeData";
 import { CHROME_NAMESPACES, WORKER_NAMESPACES } from "../src/namespaces";
+import { extractKeys, readCatalog } from "../scripts/catalogUtils";
 
 describe("createTranslatorFromLocaleData", () => {
     it("negotiates the requested locale against the catalogs that arrived", () => {
@@ -74,5 +75,33 @@ describe("bundledResources", () => {
         expect(Object.keys(chrome).sort()).toEqual(["en", "es"]);
         expect(chrome.es).toContain("keyboard-open");
         expect(chrome.es).not.toContain("noun-regular-polygon");
+    });
+
+    // A locale is inlined namespace by namespace, so a new catalog file is
+    // easy to write and then forget to bundle — it would simply never load,
+    // silently, with everything falling back to English. Every namespace a
+    // context asks for has to arrive for every bundled locale.
+    it("bundles every namespace a context asks for, for every locale", () => {
+        for (const namespaces of [CHROME_NAMESPACES, WORKER_NAMESPACES]) {
+            for (const [locale, source] of Object.entries(
+                bundledResources(namespaces),
+            )) {
+                // Compared as parsed keys, not as substrings: an attribute is
+                // addressed as `color.black` but written as a `.black` line
+                // under `color`, so searching the source text for the key
+                // would report every attribute as missing.
+                const bundled = new Set(extractKeys(source));
+                for (const namespace of namespaces) {
+                    for (const key of extractKeys(
+                        readCatalog(locale, namespace) ?? "",
+                    )) {
+                        expect(
+                            bundled.has(key),
+                            `${locale}/${namespace}: ${key}`,
+                        ).toBe(true);
+                    }
+                }
+            }
+        }
     });
 });

@@ -14,6 +14,7 @@ import {
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnNVariables, roundForDisplay } from "../utils/math";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Line extends GraphicalComponent {
     constructor(args) {
@@ -1413,11 +1414,10 @@ export default class Line extends GraphicalComponent {
                 let numDimens = dependencyValues.numDimensions;
 
                 if (Number.isNaN(numDimens)) {
-                    let warning = {
-                        message:
-                            "Line through points of undetermined dimensions.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0001",
+                    });
                     return {
                         setValue: {
                             equation: blankMath,
@@ -1430,11 +1430,10 @@ export default class Line extends GraphicalComponent {
                 }
 
                 if (numDimens < 2) {
-                    let warning = {
-                        message:
-                            "Line must be through points of at least two dimensions.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0002",
+                    });
                     return {
                         setValue: {
                             equation: blankMath,
@@ -1460,13 +1459,19 @@ export default class Line extends GraphicalComponent {
                         point2x.variables().indexOf(varStrings[i]) !== -1 ||
                         point2y.variables().indexOf(varStrings[i]) !== -1
                     ) {
-                        let warning = {
-                            message:
-                                "Line is through points that depend on variables: " +
-                                varStrings.join(", ") +
-                                ".",
+                        let warning = codedDiagnostic({
                             type: "warning",
-                        };
+                            code: "doenet-w0003",
+                            // A bare enumeration, not an "and" list: the
+                            // message names which variables were seen, it
+                            // doesn't conjoin them.
+                            args: {
+                                variables: {
+                                    list: varStrings,
+                                    type: "unit",
+                                },
+                            },
+                        });
                         return {
                             setValue: {
                                 equation: blankMath,
@@ -2352,15 +2357,14 @@ function calculateCoeffsFromEquation({ equation, variables }) {
         } else if (typeof term === "number") {
             c0 = term;
         } else if (!Array.isArray(term)) {
-            let warning = {
-                message:
-                    "Invalid format for equation of line in variables " +
-                    var1 +
-                    " and " +
-                    var2 +
-                    ".",
+            let warning = codedDiagnostic({
                 type: "warning",
-            };
+                code: "doenet-w0004",
+                args: {
+                    variable1: String(var1),
+                    variable2: String(var2),
+                },
+            });
             return { success: false, sendDiagnostics: [warning] };
         } else {
             let operator = term[0];
@@ -2374,15 +2378,14 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                 cv2 = ["-", coeffs.coeffvar2.tree];
                 c0 = ["-", coeffs.coeff0.tree];
             } else if (operator === "+") {
-                let warning = {
-                    message:
-                        "Invalid format for equation of line in variables " +
-                        var1 +
-                        " and " +
-                        var2 +
-                        ".",
+                let warning = codedDiagnostic({
                     type: "warning",
-                };
+                    code: "doenet-w0004",
+                    args: {
+                        variable1: String(var1),
+                        variable2: String(var2),
+                    },
+                });
                 return { success: false, sendDiagnostics: [warning] };
             } else if (operator === "*") {
                 let var1ind = -1,
@@ -2463,28 +2466,26 @@ function calculatePointsFromCoeffs({
         coeff0.variables(true).indexOf(var1String) !== -1 ||
         coeff0.variables(true).indexOf(var2String) !== -1
     ) {
-        let warning = {
-            message:
-                "Invalid format for equation of line in variables " +
-                var1String +
-                " and " +
-                var2String +
-                ".",
+        let warning = codedDiagnostic({
             type: "warning",
-        };
+            code: "doenet-w0004",
+            args: {
+                variable1: var1String,
+                variable2: var2String,
+            },
+        });
         return { success: false, sendDiagnostics: [warning] };
     }
     let zero = me.fromAst(0);
     if (coeffvar1.equals(zero) && coeffvar2.equals(zero)) {
-        let warning = {
-            message:
-                "Invalid format for equation of line in variables " +
-                var1String +
-                " and " +
-                var2String +
-                ".",
+        let warning = codedDiagnostic({
             type: "warning",
-        };
+            code: "doenet-w0004",
+            args: {
+                variable1: var1String,
+                variable2: var2String,
+            },
+        });
         return { success: false, sendDiagnostics: [warning] };
     }
 

@@ -243,6 +243,71 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    describe("diagnostics", () => {
+        // Neither chrome nor content: raised in the worker, read by whoever is
+        // looking at the screen. So they follow `uiLocale` even though the
+        // core produced them, which it can only do because the record carries
+        // a code and its arguments rather than a finished sentence.
+        const overprescribed = `
+        <graph>
+          <lineSegment name="l" endpoints="(1,2) (4,5)" slope="1" length="3" />
+        </graph>
+        <p name="ready">ready</p>`;
+
+        const ignoredInEnglish =
+            "slope and length are ignored when two endpoints are specified";
+        const ignoredInSpanish =
+            "slope y length se ignoran cuando se especifican los dos extremos";
+
+        /**
+         * Assert on a field of the diagnostics the viewer is holding.
+         *
+         * Through `should` rather than `then`, so it retries: the records
+         * arrive with the core's first result, which is not tied to any
+         * element being on screen.
+         */
+        function shouldHaveDiagnostic(field, value) {
+            cy.window().should((win) => {
+                const diagnostics = win.returnDiagnostics1?.() ?? [];
+                expect(diagnostics.map((d) => d[field])).to.include(value);
+            });
+        }
+
+        it("reports diagnostics in English by default", () => {
+            render({ doenetML: overprescribed });
+
+            cy.get("#ready").should("have.text", "ready");
+            shouldHaveDiagnostic("message", ignoredInEnglish);
+        });
+
+        it("reports diagnostics in the reader's language", () => {
+            render({ doenetML: overprescribed, uiLocale: "es" });
+
+            cy.get("#ready").should("have.text", "ready");
+            shouldHaveDiagnostic("message", ignoredInSpanish);
+        });
+
+        it("follows the reader's language, not the content's", () => {
+            // The mirror image of the style-description case above: a Spanish
+            // reader working a French activity gets the activity's prose in
+            // French and its warnings in Spanish.
+            render({
+                doenetML: `<document lang="fr">${overprescribed}</document>`,
+                uiLocale: "es",
+            });
+
+            cy.get("#ready").should("have.text", "ready");
+            shouldHaveDiagnostic("message", ignoredInSpanish);
+        });
+
+        it("keeps the stable code on the record", () => {
+            render({ doenetML: overprescribed, uiLocale: "es" });
+
+            cy.get("#ready").should("have.text", "ready");
+            shouldHaveDiagnostic("code", "doenet-i0001");
+        });
+    });
+
     describe("pseudo-locale", () => {
         // `en-XA` accents every string that goes through the catalogs.
         // Anything still plain ASCII is a string that was never extracted —

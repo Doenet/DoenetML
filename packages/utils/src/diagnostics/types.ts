@@ -1,3 +1,4 @@
+import type { DiagnosticArgs, DiagnosticCode } from "@doenet/i18n";
 import type { Position, Point } from "@doenet/parser";
 
 export type { Position, Point };
@@ -8,7 +9,25 @@ export type DiagnosticLevel = 1 | 2;
 export type DiagnosticType = "error" | "warning" | "info" | "accessibility";
 
 type BaseDiagnosticRecord = {
+    /**
+     * The diagnostic in English.
+     *
+     * Always present, even on a coded record: it is what dedupe keys on, what
+     * a host reading `setDiagnosticsCallback` gets, and what renders when a
+     * locale has no translation for the code.
+     */
     message: string;
+    /**
+     * The stable code naming this situation, for records that have migrated to
+     * the catalogs (#1518). Absent on a legacy diagnostic, whose English
+     * string is all there is.
+     */
+    code?: DiagnosticCode;
+    /**
+     * The values filling the coded message's blanks, kept as data so the main
+     * thread can re-render the message in the reader's language.
+     */
+    args?: DiagnosticArgs;
     position?: Position;
     sourceDoc?: number;
 };

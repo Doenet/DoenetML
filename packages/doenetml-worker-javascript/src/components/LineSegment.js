@@ -12,10 +12,10 @@ import {
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
+import { codedDiagnostic } from "../utils/diagnostics";
 import {
     addMidpointInstructions,
     addSlopeAndLengthInstructions,
-    buildIgnoredPhrase,
     directionFromSlope,
     getConfiguredSignedLength,
     getConfiguredSlope,
@@ -333,21 +333,21 @@ export default class LineSegment extends GraphicalComponent {
                     }
 
                     result.sendDiagnostics = [
-                        {
+                        codedDiagnostic({
                             type: "info",
-                            message: `${buildIgnoredPhrase(ignored)} ignored when two endpoints are specified`,
-                        },
+                            code: "doenet-i0001",
+                            args: { attributes: ignored },
+                        }),
                     ];
                 } else if (
                     !basedOnSlopeOrMidpoint &&
                     !usedDefault.midpointOffset
                 ) {
                     result.sendDiagnostics = [
-                        {
+                        codedDiagnostic({
                             type: "info",
-                            message:
-                                "midpointOffset has no effect without a midpoint",
-                        },
+                            code: "doenet-i0002",
+                        }),
                     ];
                 }
 
@@ -746,20 +746,24 @@ export default class LineSegment extends GraphicalComponent {
                             ignored.push("length");
                         }
 
-                        sendDiagnostics.push({
-                            type: "info",
-                            message: `${buildIgnoredPhrase(ignored)} ignored when an endpoint and a midpoint are both specified`,
-                        });
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0003",
+                                args: { attributes: ignored },
+                            }),
+                        );
                     }
                 } else if (
                     !g.midpointSpecified &&
                     !gUsedDefault.midpointOffset
                 ) {
-                    sendDiagnostics.push({
-                        type: "info",
-                        message:
-                            "midpointOffset has no effect without a midpoint",
-                    });
+                    sendDiagnostics.push(
+                        codedDiagnostic({
+                            type: "info",
+                            code: "doenet-i0002",
+                        }),
+                    );
                 }
 
                 let unconstrainedEndpoints = {};
