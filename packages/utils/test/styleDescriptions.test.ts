@@ -23,6 +23,10 @@ import {
  * test files assert it verbatim, and authors interpolate it into their prose.
  * The tables below are golden files — a diff here is a change to published
  * content, not an implementation detail.
+ *
+ * Note that `@doenet/i18n` resolves to its *build* output here, as every
+ * cross-package import in this repo does. After editing a catalog, run
+ * `npm run build -w @doenet/i18n` or these tests will still see the old words.
  */
 const en: Translator = createTranslator([], {});
 
@@ -232,6 +236,24 @@ describe("closed shapes", () => {
             "filled red 5-sided regular polygon with dots and a thick blue border",
         );
     });
+
+    it("formats a large side count by the locale's number rules", () => {
+        // The side count is handed over as a real number, so Fluent formats it
+        // with `Intl` — the package's number-formatting policy. It is the one
+        // place a description is not character-for-character what the
+        // pre-catalog concatenation produced, which said "1000-sided".
+        const bigPolygon: NounSpec = {
+            key: "regular-polygon",
+            numSides: 1000,
+        };
+        expect(
+            describeStrokedShape(
+                en,
+                { colorWord: "red" },
+                { noun: bigPolygon, withNoun: true },
+            ),
+        ).toBe("red 1,000-sided regular polygon");
+    });
 });
 
 describe("the other descriptions", () => {
@@ -438,5 +460,52 @@ describe("Spanish", () => {
                 { noun: line, withNoun: true },
             ),
         ).toBe("línea rebeccapurple");
+    });
+});
+
+describe("a partly translated locale", () => {
+    // A translation is allowed to lag: every key it does not define falls
+    // through to English. The split noun is the case where that matters, since
+    // English never selects the `-tail` variants for itself — it keeps them so
+    // that a locale which translates `noun-regular-polygon` but not the
+    // messages composing it still gets its complement placed rather than
+    // dropped.
+    // Fluent is whitespace-sensitive, so the source starts at column zero.
+    const de = createTranslator(["de"], {
+        de: `
+noun-regular-polygon =
+    { $part ->
+        [tail] mit { $numSides } Seiten
+       *[head] regelmäßiges Vieleck
+    }
+`,
+    });
+
+    const polygon: NounSpec = { key: "regular-polygon", numSides: 5 };
+
+    it("keeps the noun's complement in the unfilled description", () => {
+        expect(
+            describeStrokedShape(
+                de,
+                { lineWidthWord: "thick", colorWord: "red" },
+                { noun: polygon, withNoun: true },
+            ),
+        ).toBe("thick red regelmäßiges Vieleck mit 5 Seiten");
+    });
+
+    it("keeps it in the filled description too", () => {
+        expect(
+            describeClosedShape(
+                de,
+                {
+                    colorWord: "red",
+                    fillColorWord: "blue",
+                    fillStyleWord: "dots",
+                },
+                { filled: true, noun: polygon, withNoun: true },
+            ),
+        ).toBe(
+            "filled blue regelmäßiges Vieleck mit 5 Seiten with dots and a red border",
+        );
     });
 });

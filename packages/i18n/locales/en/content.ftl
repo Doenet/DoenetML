@@ -88,6 +88,11 @@ noun =
 # regular" and puts "de 5 lados" after the adjectives, so that they stay beside
 # the noun they agree with. `style-with-noun` and `style-filled-with-noun`
 # place the two halves.
+#
+# `$numSides` is a real number, so it is formatted by the locale's own rules —
+# a 1000-gon reads "1,000-sided" here and "de 1000 lados" in Spanish. That is
+# the number-formatting policy in the README, and the one place a description
+# is not character-for-character what the pre-catalog code produced.
 noun-regular-polygon =
     { $part ->
         [tail] { "" }

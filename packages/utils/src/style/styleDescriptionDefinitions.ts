@@ -1,3 +1,5 @@
+import type { Translator } from "@doenet/i18n";
+
 import {
     describeBorder,
     describeClosedShape,
@@ -125,6 +127,54 @@ function nounSpec(noun: StyleDescriptionNoun, dependencyValues: any): NounSpec {
 }
 
 /**
+ * The already-translated background color, or `undefined` when nothing is
+ * drawn behind the text.
+ *
+ * Presence is decided from the authored word rather than by comparing against
+ * what `backgroundColor` reports, because that "none" is itself translated.
+ */
+function backgroundDescription(
+    t: Translator,
+    dependencyValues: any,
+): string | undefined {
+    const word = colorWord(dependencyValues, "background");
+    return word ? describeColor(t, word, "background") : undefined;
+}
+
+/**
+ * One state variable of the `styleDescription` family.
+ *
+ * All seven of them are public `text` variables computed from the same
+ * dependencies, differing only in the words they assemble, so the shape is
+ * written once here rather than seven times.
+ *
+ * @param name The variable's name, which is also the key its definition sets.
+ * @param description The author-facing description. Published in the schema,
+ *   so it names the component's own noun.
+ * @param returnDependencies Shared across a component's whole table, so that
+ *   the component collects one set of dependencies rather than near-copies.
+ * @param compute The words themselves.
+ */
+function textStateVariable(
+    name: string,
+    description: string,
+    returnDependencies: () => Record<string, any>,
+    compute: (dependencyValues: any) => string,
+): Record<string, any> {
+    return {
+        description,
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "text",
+        },
+        returnDependencies,
+        definition({ dependencyValues }: { dependencyValues: any }) {
+            return { setValue: { [name]: compute(dependencyValues) } };
+        },
+    };
+}
+
+/**
  * `styleDescription` and `styleDescriptionWithNoun` for a graphical component,
  * plus `borderStyleDescription` and `fillStyleDescription` for the shapes that
  * have an interior.
@@ -192,6 +242,10 @@ export function returnGraphicalStyleDescriptionDefinitions({
                     { fillColorWord: colorWord(dependencyValues, "fill") },
                     { noun: spec, withNoun },
                 );
+            // `default` as well as the case it names: the components asking
+            // for these definitions are `.js`, so nothing type-checks their
+            // `kind`, and a stroke is the safe thing to fall back to.
+            case "stroke":
             default:
                 return describeStrokedShape(t, strokeWords(dependencyValues), {
                     noun: spec,
@@ -201,89 +255,48 @@ export function returnGraphicalStyleDescriptionDefinitions({
     }
 
     const definitions: StateVariableDefinitions = {
-        styleDescription: {
-            description: `A textual description of the ${label}'s style.`,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: dependencies,
-            definition({ dependencyValues }: { dependencyValues: any }) {
-                return {
-                    setValue: {
-                        styleDescription: describe(dependencyValues, false),
-                    },
-                };
-            },
-        },
+        styleDescription: textStateVariable(
+            "styleDescription",
+            `A textual description of the ${label}'s style.`,
+            dependencies,
+            (dependencyValues) => describe(dependencyValues, false),
+        ),
 
-        styleDescriptionWithNoun: {
-            description: `Style description including the noun "${label}".`,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: dependencies,
-            definition({ dependencyValues }: { dependencyValues: any }) {
-                return {
-                    setValue: {
-                        styleDescriptionWithNoun: describe(
-                            dependencyValues,
-                            true,
-                        ),
-                    },
-                };
-            },
-        },
+        styleDescriptionWithNoun: textStateVariable(
+            "styleDescriptionWithNoun",
+            `Style description including the noun "${label}".`,
+            dependencies,
+            (dependencyValues) => describe(dependencyValues, true),
+        ),
     };
 
     if (kind === "closedShape") {
-        definitions.borderStyleDescription = {
-            description: `A textual description of the ${label}'s border style.`,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: dependencies,
-            definition({ dependencyValues }: { dependencyValues: any }) {
-                return {
-                    setValue: {
-                        borderStyleDescription: describeBorder(
-                            translatorFor(dependencyValues),
-                            strokeWords(dependencyValues),
-                        ),
-                    },
-                };
-            },
-        };
+        definitions.borderStyleDescription = textStateVariable(
+            "borderStyleDescription",
+            `A textual description of the ${label}'s border style.`,
+            dependencies,
+            (dependencyValues) =>
+                describeBorder(
+                    translatorFor(dependencyValues),
+                    strokeWords(dependencyValues),
+                ),
+        );
 
-        definitions.fillStyleDescription = {
-            description: `A textual description of the ${label}'s fill style.`,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: dependencies,
-            definition({ dependencyValues }: { dependencyValues: any }) {
-                return {
-                    setValue: {
-                        fillStyleDescription: describeFill(
-                            translatorFor(dependencyValues),
-                            {
-                                fillColorWord: colorWord(
-                                    dependencyValues,
-                                    "fill",
-                                ),
-                                fillStyleWord:
-                                    dependencyValues.selectedStyle
-                                        .fillStyleWord,
-                            },
-                            { filled: dependencyValues.filled },
-                        ),
+        definitions.fillStyleDescription = textStateVariable(
+            "fillStyleDescription",
+            `A textual description of the ${label}'s fill style.`,
+            dependencies,
+            (dependencyValues) =>
+                describeFill(
+                    translatorFor(dependencyValues),
+                    {
+                        fillColorWord: colorWord(dependencyValues, "fill"),
+                        fillStyleWord:
+                            dependencyValues.selectedStyle.fillStyleWord,
                     },
-                };
-            },
-        };
+                    { filled: dependencyValues.filled },
+                ),
+        );
     }
 
     return definitions;
@@ -295,81 +308,49 @@ export function returnGraphicalStyleDescriptionDefinitions({
  */
 export function returnTextStyleDescriptionDefinitions(): StateVariableDefinitions {
     return {
-        textColor: {
-            description:
-                "Human-readable name for this component's text color, derived from the active style and theme.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: commonDependencies,
-            definition({ dependencyValues }: { dependencyValues: any }) {
-                return {
-                    setValue: {
-                        textColor: describeColor(
-                            translatorFor(dependencyValues),
-                            colorWord(dependencyValues, "text"),
-                            "text",
-                        ),
-                    },
-                };
-            },
-        },
+        textColor: textStateVariable(
+            "textColor",
+            "Human-readable name for this component's text color, derived from the active style and theme.",
+            commonDependencies,
+            (dependencyValues) =>
+                describeColor(
+                    translatorFor(dependencyValues),
+                    colorWord(dependencyValues, "text"),
+                    "text",
+                ),
+        ),
 
-        backgroundColor: {
-            description:
-                "Human-readable name for this component's background color, derived from the active style and theme.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: commonDependencies,
-            definition({ dependencyValues }: { dependencyValues: any }) {
+        backgroundColor: textStateVariable(
+            "backgroundColor",
+            "Human-readable name for this component's background color, derived from the active style and theme.",
+            commonDependencies,
+            (dependencyValues) => {
                 const t = translatorFor(dependencyValues);
-                const word = colorWord(dependencyValues, "background");
-                return {
-                    setValue: {
-                        backgroundColor: word
-                            ? describeColor(t, word, "background")
-                            : noBackgroundWord(t),
-                    },
-                };
-            },
-        },
-
-        textStyleDescription: {
-            description:
-                "Human-readable description of this component's text styling (color and any background color).",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            // Reads the raw style rather than the two state variables above.
-            // Whether a background exists has to be decided from the authored
-            // word: `backgroundColor` answers "none" when there is none, and
-            // that sentinel is itself translated.
-            returnDependencies: commonDependencies,
-            definition({ dependencyValues }: { dependencyValues: any }) {
-                const t = translatorFor(dependencyValues);
-                const backgroundWord = colorWord(
-                    dependencyValues,
-                    "background",
+                return (
+                    backgroundDescription(t, dependencyValues) ??
+                    noBackgroundWord(t)
                 );
-                return {
-                    setValue: {
-                        textStyleDescription: describeText(t, {
-                            color: describeColor(
-                                t,
-                                colorWord(dependencyValues, "text"),
-                                "text",
-                            ),
-                            background: backgroundWord
-                                ? describeColor(t, backgroundWord, "background")
-                                : undefined,
-                        }),
-                    },
-                };
             },
-        },
+        ),
+
+        // Reads the raw style rather than the two variables above, since
+        // `backgroundColor` reports a translated "none" that this cannot
+        // usefully compare against.
+        textStyleDescription: textStateVariable(
+            "textStyleDescription",
+            "Human-readable description of this component's text styling (color and any background color).",
+            commonDependencies,
+            (dependencyValues) => {
+                const t = translatorFor(dependencyValues);
+                return describeText(t, {
+                    color: describeColor(
+                        t,
+                        colorWord(dependencyValues, "text"),
+                        "text",
+                    ),
+                    background: backgroundDescription(t, dependencyValues),
+                });
+            },
+        ),
     };
 }
