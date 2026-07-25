@@ -162,10 +162,12 @@ export function DoenetViewer({
      * BCP-47 tag for the *content's* language, e.g. `"es"` or `"es-MX"`.
      * Defaults to `"en"`. An authored `<document lang>` overrides it: the
      * author knows what language they wrote in, the host only knows what it
-     * would prefer. Sets `lang` on the rendered wrapper — an accessibility win
-     * for screen-reader pronunciation independent of any translation — and
-     * selects the language of prose the core computes (style descriptions and
-     * the like). Changing it rebuilds the document.
+     * would prefer. Selects the language of prose the core computes (style
+     * descriptions and the like), and sets `lang` on the rendered wrapper — an
+     * accessibility win for screen-reader pronunciation independent of any
+     * translation. Leave it unset and the wrapper carries no `lang` at all,
+     * inheriting the embedding page's rather than claiming English. Changing
+     * it rebuilds the document.
      */
     documentLocale?: string | null;
     /**
@@ -421,10 +423,12 @@ type DoenetEditorProps = {
      * BCP-47 tag for the *content's* language, e.g. `"es"` or `"es-MX"`.
      * Defaults to `"en"`. An authored `<document lang>` overrides it: the
      * author knows what language they wrote in, the host only knows what it
-     * would prefer. Sets `lang` on the rendered wrapper — an accessibility win
-     * for screen-reader pronunciation independent of any translation — and
-     * selects the language of prose the core computes (style descriptions and
-     * the like). Changing it rebuilds the document.
+     * would prefer. Selects the language of prose the core computes (style
+     * descriptions and the like), and sets `lang` on the rendered wrapper — an
+     * accessibility win for screen-reader pronunciation independent of any
+     * translation. Leave it unset and the wrapper carries no `lang` at all,
+     * inheriting the embedding page's rather than claiming English. Changing
+     * it rebuilds the document.
      */
     documentLocale?: string | null;
     /**

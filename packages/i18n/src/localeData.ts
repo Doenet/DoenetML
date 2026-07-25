@@ -11,7 +11,15 @@ import { createTranslator, type Translator } from "./translator";
  * file), and cannot reliably resolve a relative fetch in all of them.
  */
 export type LocaleData = {
-    /** The requested content locale, e.g. `"es-MX"`. */
+    /**
+     * The requested content locale, e.g. `"es-MX"`.
+     *
+     * One tag, not two: the worker only needs `documentLocale` while the
+     * strings it computes are content. The phase that moves diagnostics into
+     * the worker will have to carry `uiLocale` alongside it — diagnostics are
+     * produced by the worker but addressed to the reader, so they follow the
+     * chrome's language (see `WORKER_NAMESPACES`).
+     */
     locale: string;
     /**
      * FTL source per locale, already merged across the namespaces the

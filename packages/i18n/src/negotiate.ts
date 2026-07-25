@@ -42,24 +42,40 @@ export function negotiateLocales(
 }
 
 /**
+ * The content language somebody actually declared: an authored
+ * `<document lang>` if there is one, otherwise the locale the hosting page
+ * asked for, normalized. `undefined` when neither said anything.
+ *
+ * The author knows what language they wrote the content in; the host only
+ * knows what language it would prefer to receive — hence the precedence.
+ * Callers that need a language regardless want {@link resolveDocumentLocale},
+ * which supplies English; this one preserves the difference between "English"
+ * and "nobody said", which is what the rendered `lang` attribute turns on.
+ */
+export function declaredDocumentLocale(
+    authoredLang: string | null | undefined,
+    hostLocale: string | null | undefined,
+): string | undefined {
+    const tag = (authoredLang ?? "").trim() || (hostLocale ?? "").trim();
+    if (tag === "") {
+        return undefined;
+    }
+    return normalizeLocaleTag(tag) || undefined;
+}
+
+/**
  * Apply the document-locale precedence rule: an authored `<document lang>`
  * beats the locale the hosting page asked for, which beats English.
  *
- * The author knows what language they wrote the content in; the host only
- * knows what language it would prefer to receive. Shared by the main thread
- * (which sets `lang` on the rendered wrapper) and the worker (whose
- * `document.locale` state variable drives translated content), so the two can
- * never drift apart.
+ * Shared by the main thread and the worker (whose `document.locale` state
+ * variable drives translated content), so the language the viewer reports and
+ * the language the core translates into can never drift apart.
  */
 export function resolveDocumentLocale(
     authoredLang: string | null | undefined,
     hostLocale: string | null | undefined,
 ): string {
-    const tag =
-        (authoredLang ?? "").trim() ||
-        (hostLocale ?? "").trim() ||
-        DEFAULT_LOCALE;
-    return normalizeLocaleTag(tag) || DEFAULT_LOCALE;
+    return declaredDocumentLocale(authoredLang, hostLocale) ?? DEFAULT_LOCALE;
 }
 
 /**

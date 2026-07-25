@@ -26,6 +26,13 @@ should still say "thick red line" in French.
 `"en"`. `uiLocale` defaults to `documentLocale`, so a fully Spanish activity is
 fully Spanish without the host configuring anything.
 
+`resolveDocumentLocale` applies that rule and supplies `"en"` when nobody
+declared anything; `declaredDocumentLocale` applies the same rule but returns
+`undefined` in that case. The viewer uses the second for the `lang` attribute
+on the rendered wrapper: an activity whose language nobody stated inherits the
+embedding page's, rather than asserting English over a host that said
+`<html lang="es">`.
+
 ## Catalog layout
 
 ```
@@ -42,6 +49,11 @@ inlined into every build via `?raw` imports — the worker cannot reliably fetch
 a relative URL across the standalone/iframe/dedicated-worker variants, so the
 fallback locale must not depend on the network. Other locales are code-split
 modules the main thread loads and hands to `createTranslator`.
+
+Note that the two namespaces the worker loads answer to *different* settings:
+`content` to `documentLocale`, `diagnostics` to `uiLocale`. `LocaleData` carries
+only the content locale today, so the phase that moves diagnostics into the
+worker has to start sending both tags.
 
 ## Keys
 

@@ -21,7 +21,7 @@ import * as Comlink from "comlink";
 import { MdError } from "react-icons/md";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
-import { resolveDocumentLocale } from "@doenet/i18n";
+import { DEFAULT_LOCALE, declaredDocumentLocale } from "@doenet/i18n";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
@@ -66,8 +66,9 @@ export const DocContext = createContext<{
     doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
     /**
-     * The content's language, after `<document lang>` has had its say. Renderers
-     * that emit prose alongside core-computed content should follow this.
+     * The content's language, after `<document lang>` has had its say, or
+     * `"en"` when nobody declared one. Renderers that emit prose alongside
+     * core-computed content should follow this.
      */
     documentLocale?: string;
     /**
@@ -166,7 +167,11 @@ export function DocViewer({
     documentLocale?: string | null;
     /** BCP-47 tag for the chrome's language. Defaults to `documentLocale`. */
     uiLocale?: string | null;
-    /** FTL catalogs keyed by locale. English is bundled and never needed here. */
+    /**
+     * FTL catalogs keyed by locale. English is bundled and never needed here.
+     * A locale appearing or disappearing rebuilds the core, since the catalogs
+     * are handed to it at creation.
+     */
     localeResources?: Record<string, string> | null;
     styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;
@@ -430,6 +435,9 @@ export function DocViewer({
     const lastAttemptNumber = useRef<number | null>(null);
     const lastRequestedVariantIndex = useRef<number | null>(null);
     const lastDocumentLocale = useRef<string | null>(null);
+    // "" rather than null: no catalogs is the starting state, not "not yet
+    // seen", so a host that never passes any never triggers a rebuild.
+    const lastLocaleResourceKey = useRef("");
 
     const [stage, setStage] = useState<
         | "initial"
@@ -510,12 +518,17 @@ export function DocViewer({
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
-    // The content language actually in effect, which the DoenetML can override
-    // with `<document lang>`. Seeded from the prop so the wrapper is labeled
-    // correctly from the first paint, then corrected once the source is parsed.
-    const [effectiveDocumentLocale, setEffectiveDocumentLocale] = useState(() =>
-        resolveDocumentLocale(undefined, documentLocale),
+    // The content language somebody declared — the `documentLocale` prop,
+    // overridden by an authored `<document lang>` — or `undefined` when nobody
+    // did. Seeded from the prop so the wrapper is labeled correctly from the
+    // first paint, then corrected once the source is parsed.
+    const [declaredLocale, setDeclaredLocale] = useState(() =>
+        declaredDocumentLocale(undefined, documentLocale),
     );
+    // What the core will actually translate into: undeclared content is
+    // treated as English. (The wrapper's `lang` deliberately does *not* fall
+    // back this way — see `initializeCoreWorker`.)
+    const effectiveDocumentLocale = declaredLocale ?? DEFAULT_LOCALE;
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
@@ -848,9 +861,9 @@ export function DocViewer({
 
     /**
      * Initialize a core worker for this document, recording the content
-     * language it resolved to.
+     * language it declared.
      *
-     * The effective locale depends on the DoenetML (an authored
+     * The declared locale depends on the DoenetML (an authored
      * `<document lang>` overrides the prop), so it isn't known until the
      * source has been parsed — which `initializeCoreWorker` does anyway.
      */
@@ -868,7 +881,7 @@ export function DocViewer({
             documentLocale,
             localeResources,
         });
-        setEffectiveDocumentLocale(result.effectiveDocumentLocale);
+        setDeclaredLocale(result.declaredDocumentLocale);
         return result;
     }
 
@@ -1994,12 +2007,24 @@ export function DocViewer({
         changedState = true;
     }
 
-    // The content language is fixed for a core's lifetime — it feeds every
-    // string the core computes — so changing it rebuilds the core rather than
-    // updating in place, the way a changed `doenetML` does. (`uiLocale` is
-    // main-thread only and needs no rebuild.)
+    // The content locale and its catalogs are fixed for a core's lifetime —
+    // they feed every string the core computes — so changing either rebuilds
+    // the core rather than updating in place, the way a changed `doenetML`
+    // does. (`uiLocale` is main-thread only and needs no rebuild.)
     if (lastDocumentLocale.current !== (documentLocale ?? null)) {
         lastDocumentLocale.current = documentLocale ?? null;
+        changedState = true;
+    }
+
+    // Catalogs are compared by *which locales* arrived, not by their contents:
+    // hosts load them as code-split modules, so the change that matters is a
+    // locale appearing (or going away), and hashing every catalog on every
+    // render to catch an edited one would cost far more than it buys.
+    const localeResourceKey = Object.keys(localeResources ?? {})
+        .sort()
+        .join(",");
+    if (lastLocaleResourceKey.current !== localeResourceKey) {
+        lastLocaleResourceKey.current = localeResourceKey;
         changedState = true;
     }
 
@@ -2173,7 +2198,9 @@ export function DocViewer({
             <div
                 style={viewerStyle}
                 className="doenet-viewer"
-                lang={effectiveDocumentLocale}
+                // Omitted when nobody declared a language, so the content
+                // inherits the embedding page's rather than claiming English.
+                lang={declaredLocale}
                 ref={viewerContainerRef}
             >
                 {errorOverview}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
-import { resolveDocumentLocale } from "@doenet/i18n";
+import { declaredDocumentLocale, resolveDocumentLocale } from "@doenet/i18n";
 
 import { readDocumentLang } from "./documentLang";
 
@@ -9,13 +9,18 @@ function langOf(doenetML: string) {
 }
 
 /**
- * The locale the viewer will put on the rendered wrapper. Mirrors what
+ * The content language the core will translate into. Mirrors what
  * `initializeCoreWorker` computes, and must match the `document.locale` state
  * variable the worker derives from the same source — see the "document lang /
  * locale" tests in `@doenet/doenetml-worker-javascript`.
  */
 function effectiveLocale(doenetML: string, documentLocale?: string) {
     return resolveDocumentLocale(langOf(doenetML), documentLocale);
+}
+
+/** The value the viewer puts in the wrapper's `lang` attribute, if any. */
+function wrapperLang(doenetML: string, documentLocale?: string) {
+    return declaredDocumentLocale(langOf(doenetML), documentLocale);
 }
 
 describe("readDocumentLang", () => {
@@ -69,5 +74,23 @@ describe("effective document locale", () => {
         expect(
             effectiveLocale(`<document lang=" "><p>hi</p></document>`, "de"),
         ).eq("de");
+    });
+});
+
+describe("wrapper lang attribute", () => {
+    it("labels the wrapper whenever a language was declared", () => {
+        expect(wrapperLang(`<document lang="fr"><p>bonjour</p></document>`)).eq(
+            "fr",
+        );
+        expect(wrapperLang(`<p>hola</p>`, "es-MX")).eq("es-MX");
+    });
+
+    it("is omitted when neither the document nor the host declared one", () => {
+        // The embedding page's `lang` then applies, which is a better guess
+        // than asserting English over a host that said `<html lang="es">`.
+        expect(wrapperLang(`<p>hello</p>`)).eq(undefined);
+        expect(wrapperLang(`<document lang=" "><p>hi</p></document>`)).eq(
+            undefined,
+        );
     });
 });

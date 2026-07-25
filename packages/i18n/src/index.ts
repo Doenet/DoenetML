@@ -9,6 +9,7 @@ export {
 export {
     negotiateLocales,
     normalizeLocaleTag,
+    declaredDocumentLocale,
     resolveDocumentLocale,
     type NegotiateLocalesOptions,
 } from "./negotiate";

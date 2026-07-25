@@ -7,7 +7,7 @@ import {
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
-import { DEFAULT_LOCALE, resolveDocumentLocale } from "@doenet/i18n";
+import { DEFAULT_LOCALE, declaredDocumentLocale } from "@doenet/i18n";
 import { readDocumentLang } from "./documentLang";
 
 export type CoreWorkerHandle = {
@@ -287,16 +287,22 @@ export async function initializeCoreWorker({
         },
     });
 
-    // The effective content language, for the `lang` attribute on the rendered
-    // wrapper. Resolved from the DAST we already parsed rather than asked of
-    // the core, so it is available before the first render — a screen reader
-    // should not have to wait for evaluation to learn what language it is
-    // reading. The core resolves the same value with the same helper for its
-    // own `document.locale` state variable.
-    const effectiveDocumentLocale = resolveDocumentLocale(
+    // The content language somebody declared, for the `lang` attribute on the
+    // rendered wrapper. Resolved from the DAST we already parsed rather than
+    // asked of the core, so it is available before the first render — a screen
+    // reader should not have to wait for evaluation to learn what language it
+    // is reading. The core resolves the same value with the same helper for
+    // its own `document.locale` state variable.
+    //
+    // `undefined` when neither the document nor the host declared a language.
+    // The core still treats such content as English, but the wrapper stays
+    // silent rather than asserting `lang="en"` over an embedding page that
+    // said `<html lang="es">` — an unfounded guess is worse for a screen
+    // reader than inheriting the page's.
+    const declaredLocale = declaredDocumentLocale(
         readDocumentLang(dast),
         documentLocale,
     );
 
-    return { ...result, effectiveDocumentLocale };
+    return { ...result, declaredDocumentLocale: declaredLocale };
 }
