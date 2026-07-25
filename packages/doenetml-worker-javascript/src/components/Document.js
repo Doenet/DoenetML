@@ -248,13 +248,14 @@ export default class Document extends BaseComponent {
         // The author knows what language they wrote in; the host only knows
         // what language it would prefer.
         //
-        // Known Phase 0 gap: only the *outer* document's language reaches the
+        // Known gap (#1546): only the *outer* document's language reaches the
         // DOM. The viewer puts `lang` on the wrapper it renders around the
         // whole activity; a nested `<document lang="de">` resolves this state
-        // variable correctly but renders through the section renderer, which
-        // emits no `lang`. Closing that needs `forRenderer` here plus renderer
-        // changes, which belongs with the phase that first renders translated
-        // content (#1515).
+        // variable correctly — and since Phase 2 (#1517) describes its
+        // graphics in that language — but renders through the section
+        // renderer, which emits no `lang`, so a screen reader keeps the outer
+        // document's voice. Closing it needs `forRenderer` here plus renderer
+        // changes.
         stateVariableDefinitions.locale = {
             description:
                 "The BCP-47 language tag in effect for the document's content.",

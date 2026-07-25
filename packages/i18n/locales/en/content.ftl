@@ -88,6 +88,11 @@ noun =
 # regular" and puts "de 5 lados" after the adjectives, so that they stay beside
 # the noun they agree with. `style-with-noun` and `style-filled-with-noun`
 # place the two halves.
+#
+# `$numSides` is a real number, so it is formatted by the locale's own rules —
+# a 1000-gon reads "1,000-sided" here and "de 1000 lados" in Spanish. That is
+# the number-formatting policy in the README, and the one place a description
+# is not character-for-character what the pre-catalog code produced.
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
@@ -98,9 +103,12 @@ noun-regular-polygon =
 # describing it so that translations can agree. English has no grammatical
 # gender, so every noun answers the same and the answer goes unused.
 #
-# `$noun` is one of `noun`'s attribute names, or the head of a phrase the
-# description builds without naming it as a noun: `border`, `fill`, `text`, or
-# `background`.
+# `$noun` is one of `noun`'s attribute names, `regular-polygon` for the shape
+# `noun-regular-polygon` names, or the head of a phrase the description builds
+# without naming it as a noun: `border`, `fill`, `text`, or `background`. A
+# word this message does not list falls to its default gender — which is also
+# what an author's own `markerStyleWord` gets, since the catalog has never seen
+# it.
 noun-gender = neuter
 
 
@@ -140,9 +148,13 @@ style-with-noun =
 
 # The word marking a shape as filled.
 #
-# A word of its own rather than literal text inside the messages below, because
-# a language that inflects it has to agree it with the shape, and Fluent passes
-# arguments to a message but not to a message it references.
+# A key of its own, looked up by the code and handed to the messages below as
+# `$filled`, rather than literal text inside them: a language that inflects it
+# has to agree it with the shape. Referencing it from those messages would not
+# do — a term reference (`{ -filled }`) gets an empty scope and never sees
+# `$gender`, and a message reference resolves only inside its own bundle, so a
+# locale that translated `style-filled` but not this word would render the
+# reference literally instead of falling back to English.
 style-filled-word = filled
 
 # A filled shape, and the pattern its interior is drawn with, if any.

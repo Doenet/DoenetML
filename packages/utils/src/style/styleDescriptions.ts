@@ -183,8 +183,15 @@ type PhraseHead = "border" | "fill" | "text" | "background";
  * The gender the catalog assigns a noun, for the adjectives that describe it.
  *
  * `"neuter"` in English, where nothing selects on it.
+ *
+ * @param noun A {@link NounKey}, a {@link PhraseHead}, `"regular-polygon"`, or
+ *   — for a marker shape the style pipeline did not derive — an author's own
+ *   word. Anything the catalog does not list falls to its default gender, which
+ *   is the only sensible answer for a word the catalog has never seen. Typed as
+ *   `string` rather than that union precisely because the last case admits any
+ *   word at all.
  */
-function genderOf(t: Translator, noun: NounKey | PhraseHead | string): string {
+function genderOf(t: Translator, noun: string): string {
     return t("noun-gender", { noun }, "neuter");
 }
 
@@ -257,7 +264,13 @@ function strokeParts(width: string, lineStyle: string, color: string) {
     return null;
 }
 
-/** The English words of a stroke, in order, with the absent ones dropped. */
+/**
+ * Words joined by single spaces, with the absent ones dropped.
+ *
+ * The English word order, used to build each call's fallback string — the one
+ * the translator falls back to if even the bundled English catalog is missing
+ * the key.
+ */
 function joinPresent(...words: string[]): string {
     return words.filter(Boolean).join(" ");
 }
@@ -378,9 +391,14 @@ export function describeClosedShape(
     const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
     const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
     const fillParts = pattern ? "pattern" : "plain";
-    // Looked up separately rather than written into the messages below: a
-    // language that inflects "filled" has to agree it with the shape, and
-    // Fluent passes arguments to a message but not on to one it references.
+    // Looked up here and handed over as an argument rather than referenced
+    // from the messages below: a language that inflects "filled" has to agree
+    // it with the shape, and no Fluent reference both carries `$gender` and
+    // survives a partial translation. A term reference gets an empty scope and
+    // never sees it; a message reference does inherit it, but resolves only
+    // within its own bundle, so a locale that translated `style-filled` and
+    // not this word would render the reference literally instead of falling
+    // back to English.
     const filledWord = t("style-filled-word", { gender }, "filled");
     const patternClause = pattern ? ` with ${pattern}` : "";
 
