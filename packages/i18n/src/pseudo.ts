@@ -52,7 +52,7 @@ const ACCENT_MAP: Record<string, string> = {
     N: "Ñ",
     O: "Ó",
     P: "Þ",
-    Q: "Q",
+    Q: "Ɋ",
     R: "Ř",
     S: "Š",
     T: "Ţ",
@@ -78,8 +78,15 @@ export type PseudoLocalizeOptions = {
     brackets?: [string, string];
 };
 
-/** A message id / attribute / variant-key prefix that is syntax, not text. */
+/**
+ * A message id / term id / attribute / variant-key prefix that is syntax, not
+ * text. Terms (`-brand = Doenet`) need their own pattern: their leading `-`
+ * means the message pattern doesn't match them, and accenting a term's id
+ * would both break the definition and orphan every `{ -brand }` that
+ * references it.
+ */
 const MESSAGE_PREFIX = /^([a-zA-Z][\w-]*\s*=\s*)/;
+const TERM_PREFIX = /^(-[a-zA-Z][\w-]*\s*=\s*)/;
 const ATTRIBUTE_PREFIX = /^(\s+\.[a-zA-Z][\w-]*\s*=\s*)/;
 const VARIANT_PREFIX = /^(\s*\*?\[[^\]]*\]\s*)/;
 const INDENT_PREFIX = /^(\s+)/;
@@ -137,6 +144,7 @@ function splitValue(line: string): { prefix: string; value: string } | null {
     }
     for (const pattern of [
         MESSAGE_PREFIX,
+        TERM_PREFIX,
         ATTRIBUTE_PREFIX,
         VARIANT_PREFIX,
         INDENT_PREFIX,

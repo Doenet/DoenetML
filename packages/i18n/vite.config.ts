@@ -14,9 +14,9 @@ export default defineConfig({
             },
             formats: ["es"],
         },
-        // `@fluent/bundle` and `@fluent/langneg` are deliberately *not*
-        // external: this package is bundled into the viewer, the worker, and
-        // the LSP, none of which resolve bare specifiers at runtime.
-        rollupOptions: {},
+        // Note there is no `rollupOptions.external`: `@fluent/bundle` and
+        // `@fluent/langneg` are deliberately bundled in, because this package
+        // is inlined into the viewer, the worker, and the LSP, none of which
+        // resolve bare specifiers at runtime.
     },
 });

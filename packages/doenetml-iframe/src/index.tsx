@@ -1292,6 +1292,18 @@ type EditorIframeRemote = Comlink.Remote<{
     updateRenderedView: () => void;
 }>;
 
+// Props whose "clear" gesture is passing `null` *or* dropping the prop, where
+// both gestures have to reach the iframe: dropping `styleOverrides` restores
+// the authored styles, dropping `documentLocale` means "back to English",
+// `uiLocale` "follow the document", and `localeResources` "English only".
+// See `serializePropsSnapshot` for why these need pinning.
+const PROPS_PINNED_TO_NULL = [
+    "styleOverrides",
+    "documentLocale",
+    "uiLocale",
+    "localeResources",
+];
+
 // Serialize the live-updatable props into the JSON string used both for
 // change detection (against what the iframe last received) and as the
 // payload pushed through `updateViewerProps`/`updateEditorProps`. The `seed`
@@ -1311,9 +1323,8 @@ type EditorIframeRemote = Comlink.Remote<{
 // `undefined` would silently stay stuck at its old value: the key vanishes
 // from the snapshot, so the iframe-side merge never overwrites it. Props
 // where `undefined` is a meaningful live value (rather than "initial-only,
-// never changes") must therefore be pinned to an explicit `null` below.
-// `styleOverrides` is such a prop: its documented clear gesture is passing
-// `null` *or* dropping the prop, and both must restore authored styles.
+// never changes") must therefore be pinned to an explicit `null` —
+// `PROPS_PINNED_TO_NULL` above is that list.
 function serializePropsSnapshot(
     seed: Record<string, any>,
     props: Record<string, any>,
@@ -1324,18 +1335,7 @@ function serializePropsSnapshot(
             snapshot[key] = val;
         }
     }
-    // `styleOverrides` clears by being passed `null` *or* dropped, and both
-    // must restore authored styles. The locale props behave the same way:
-    // dropping `documentLocale` means "back to English", dropping `uiLocale`
-    // means "follow the document", and dropping `localeResources` means
-    // "English only" — each has to reach the iframe as an explicit `null`
-    // rather than vanishing from the snapshot.
-    for (const key of [
-        "styleOverrides",
-        "documentLocale",
-        "uiLocale",
-        "localeResources",
-    ]) {
+    for (const key of PROPS_PINNED_TO_NULL) {
         if (snapshot[key] === undefined) {
             snapshot[key] = null;
         }

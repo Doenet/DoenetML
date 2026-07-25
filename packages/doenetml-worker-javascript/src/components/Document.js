@@ -254,7 +254,6 @@ export default class Document extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
-            forRenderer: true,
             returnDependencies: () => ({
                 lang: {
                     dependencyType: "attributePrimitive",
@@ -270,10 +269,10 @@ export default class Document extends BaseComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                if (
-                    !dependencyValues.lang &&
-                    dependencyValues.documentAncestor
-                ) {
+                // A blank `lang` counts as absent, matching
+                // `resolveDocumentLocale`.
+                const lang = dependencyValues.lang?.trim();
+                if (!lang && dependencyValues.documentAncestor) {
                     // Nested inside another document, and this one didn't
                     // declare a language of its own: inherit rather than
                     // jumping back to the host's locale.
@@ -287,7 +286,7 @@ export default class Document extends BaseComponent {
                 return {
                     setValue: {
                         locale: resolveDocumentLocale(
-                            dependencyValues.lang,
+                            lang,
                             dependencyValues.hostLocale,
                         ),
                     },

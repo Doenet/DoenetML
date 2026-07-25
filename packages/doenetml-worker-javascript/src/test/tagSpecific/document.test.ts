@@ -323,6 +323,7 @@ describe("Document tag tests @group4", async () => {
         async function localeOf(
             doenetML: string,
             documentLocale?: string,
+            path = "_document1",
         ): Promise<string> {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
@@ -332,8 +333,8 @@ describe("Document tag tests @group4", async () => {
                 false,
                 true,
             );
-            return stateVariables[await resolvePathToNodeIdx("_document1")]
-                .stateValues.locale;
+            return stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                .locale;
         }
 
         it("defaults to en", async () => {
@@ -365,6 +366,23 @@ describe("Document tag tests @group4", async () => {
             expect(
                 await localeOf(`<document lang=" "><p>hi</p></document>`, "de"),
             ).eq("de");
+        });
+
+        it("lets a nested document inherit from its ancestor", async () => {
+            // An inner document that declares nothing follows the language it
+            // is embedded in rather than jumping back to the host's locale.
+            const doenetML = `<document lang="fr"><document name="inner"><p>bonjour</p></document></document>`;
+            expect(await localeOf(doenetML, "es-MX", "inner")).eq("fr");
+        });
+
+        it("treats a blank lang on a nested document as absent", async () => {
+            const doenetML = `<document lang="fr"><document name="inner" lang=" "><p>bonjour</p></document></document>`;
+            expect(await localeOf(doenetML, "es-MX", "inner")).eq("fr");
+        });
+
+        it("lets a nested document declare its own lang", async () => {
+            const doenetML = `<document lang="fr"><document name="inner" lang="de"><p>guten Tag</p></document></document>`;
+            expect(await localeOf(doenetML, "es-MX", "inner")).eq("de");
         });
     });
 });

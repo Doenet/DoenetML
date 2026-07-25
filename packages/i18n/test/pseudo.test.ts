@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { PSEUDO_LOCALE, pseudoLocalize } from "../src/pseudo";
 import { createTranslator } from "../src/translator";
-import { extractKeys } from "../scripts/catalogUtils";
+import { catalogParseErrors, extractKeys } from "../scripts/catalogUtils";
 
 const SOURCE = `# A comment that must survive untouched
+-brand = Doenet
 greeting = Hello there
 count-items = You have { $count } items
+welcome = Welcome to { -brand }
 plural =
     { $count ->
         [one] one apple
@@ -20,7 +22,17 @@ color =
 describe("pseudoLocalize", () => {
     it("round-trips: the output is still a catalog with the same keys", () => {
         const pseudo = pseudoLocalize(SOURCE);
+        expect(catalogParseErrors(pseudo)).toEqual([]);
         expect(extractKeys(pseudo)).toEqual(extractKeys(SOURCE));
+    });
+
+    it("leaves term ids alone so term references still resolve", () => {
+        // `-brand` is syntax, not text: accenting the id would break the
+        // definition and orphan every `{ -brand }` that references it.
+        const t = createTranslator([PSEUDO_LOCALE], {
+            [PSEUDO_LOCALE]: pseudoLocalize(SOURCE),
+        });
+        expect(t("welcome")).toContain("Ðóéñéţ");
     });
 
     it("accents the text so unextracted strings stand out", () => {

@@ -107,8 +107,8 @@ greeting = Hello there   →   greeting = »Ĥéļļó ţĥéřé···«
 Load it as a locale and look at the app. Anything that renders **unaccented**
 is a string that never went through the catalogs — the class of bug no
 key-based lint can see. Anything with a **missing `«`** is a layout that only
-fits English. Message ids, placeables (`{ $count }`), and select expressions are
-left untouched, so the output is a working catalog.
+fits English. Message ids, term ids (`-brand`), placeables (`{ $count }`), and
+select expressions are left untouched, so the output is a working catalog.
 
 ## Number formatting
 

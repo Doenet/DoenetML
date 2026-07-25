@@ -1999,11 +1999,8 @@ export function DocViewer({
     // updating in place, the way a changed `doenetML` does. (`uiLocale` is
     // main-thread only and needs no rebuild.)
     if (lastDocumentLocale.current !== (documentLocale ?? null)) {
-        const firstPass = lastDocumentLocale.current === null && initialPass;
         lastDocumentLocale.current = documentLocale ?? null;
-        if (!firstPass) {
-            changedState = true;
-        }
+        changedState = true;
     }
 
     if (changedState) {

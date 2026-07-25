@@ -92,12 +92,14 @@ export function catalogParseErrors(source: string): string[] {
             continue;
         }
         for (const annotation of entry.annotations) {
-            const line = source
-                .slice(0, annotation.span.start)
-                .split("\n").length;
-            errors.push(
-                `line ${line}: ${annotation.code} ${annotation.message}`,
-            );
+            // `span` is optional in the AST (it is dropped when parsing
+            // `withSpans: false`); report without a line number rather than
+            // losing the diagnostic.
+            const where =
+                annotation.span === undefined
+                    ? ""
+                    : `line ${source.slice(0, annotation.span.start).split("\n").length}: `;
+            errors.push(`${where}${annotation.code} ${annotation.message}`);
         }
     }
 
@@ -125,12 +127,13 @@ export function collectLocaleKeys(locale: string): CatalogKey[] {
 }
 
 /**
- * Translator call sites: a bare `t(...)` or any `translate*(...)` applied to a
- * string literal.
+ * Translator call sites: `t("key")` or `translate("key")`, and nothing else.
  *
- * A convention, not inference — call sites must pass the key as a literal so
- * the catalogs can be checked statically. A computed key (`t(makeKey(x))`) is
- * invisible here and will silently miss at runtime.
+ * A convention, not inference — the translator must be bound to one of those
+ * two names and the key must be a string literal, so that the catalogs can be
+ * checked statically. A computed key (`t(makeKey(x))`), a differently-named
+ * translator, or a key with more than one dot (which can never resolve
+ * anyway) is invisible here and will silently miss at runtime.
  */
 const CALL_SITE_PATTERN =
     /(?<![\w$.])(?:t|translate)\(\s*["'`]([a-zA-Z][\w-]*(?:\.[a-zA-Z][\w-]*)?)["'`]/g;
