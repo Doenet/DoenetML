@@ -144,9 +144,7 @@ math-input-invalid-expression = Invalid expression:
 ## Document status
 
 # Shown while the core is still starting up and nothing can be rendered yet.
-# The four-dot ellipsis reproduces today's English exactly; normalizing it is
-# a separate change, since doing it here would alter English output.
-viewer-initializing = Initializing....
+viewer-initializing = Initializing...
 
 
 ## Errors

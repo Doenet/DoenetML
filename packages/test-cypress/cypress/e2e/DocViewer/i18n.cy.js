@@ -222,5 +222,232 @@ describe("Chrome translation Tests", { tags: ["@group5"] }, function () {
 
             cy.get("#p").should("have.text", "plain content");
         });
+
+        // The two tests above can only confirm that strings we already know
+        // about were extracted. The bug they cannot see is the opposite one:
+        // a string still hard-coded in a renderer, which no key-based lint can
+        // detect either, because both directions of `lint:i18n` start from
+        // something already in the catalogs. This sweep is the detector —
+        // under `en-XA` every string that went through a catalog is accented
+        // and bracketed, so any plain-ASCII word left in the chrome never did.
+        describe("sweep", () => {
+            // Authored text would be indistinguishable from unextracted
+            // chrome, so this fixture writes none: its filler is `•`, its
+            // inputs are left empty, and every English word the viewer
+            // renders therefore belongs to us.
+            const chromeFixture = `
+    <problem sectionWideCheckWork maxNumAttempts="2" name="prob">
+      <p><answer name="ans"><textInput name="ti" /><award>•</award></answer></p>
+      <p><answer name="ans2"><choiceInput name="ci">
+        <choice credit="1">•</choice><choice>••</choice>
+      </choiceInput></answer></p>
+      <p><matrixInput name="mx" numRows="2" numColumns="2" /></p>
+      <solution name="sol"><p>•</p></solution>
+      <hint name="h"><title>•</title><p>•</p></hint>
+      <feedback name="fb" condition="true"><p>•</p></feedback>
+      <section name="sec" collapsible><title>•</title><p>•</p></section>
+    </problem>`;
+
+            // Two or more consecutive ASCII letters. One letter is not enough
+            // to judge: `R` (the reals) and a matrix's index labels are
+            // mathematical notation, not prose, and are deliberately left
+            // untranslated.
+            const ASCII_WORD = /[A-Za-z]{2,}/;
+
+            // Subtrees this sweep cannot judge, for two different reasons.
+            //
+            // Third-party widgets build their own DOM — MathQuill a math
+            // field, JSXGraph and prefigure an SVG, MathJax its rendered
+            // output — and whatever English is in there was never ours to
+            // extract. `svg` also covers the graph controls, whose labels are
+            // a documented Phase 1 deferral; when they move, drop it here and
+            // this sweep starts guarding them.
+            //
+            // `style` and `script` hold code, not prose. Their text is full
+            // of ASCII words and none of it reaches a reader.
+            const FOREIGN_SUBTREES = [
+                ".mq-editable-field",
+                ".mq-math-mode",
+                ".jxgbox",
+                "svg",
+                "mjx-container",
+                "style",
+                "script",
+            ].join(",");
+
+            // Attributes that reach a reader — through a screen reader or a
+            // tooltip — and so have to be translated like visible text.
+            const TEXT_ATTRIBUTES = [
+                "aria-label",
+                "title",
+                "alt",
+                "placeholder",
+            ];
+
+            // Reader-visible English this sweep tolerates, each for a stated
+            // reason. Deleting an entry is how a later phase turns the sweep
+            // into that string's guard, so the list is a deferral made
+            // executable rather than a note in a PR description.
+            //
+            // Every entry so far is a string the *worker* computes, which is
+            // the honest result of running this sweep: the renderers really
+            // are extracted, and what is left belongs to the content locale,
+            // a later phase. A renderer-side string appearing here would be a
+            // Phase 1 miss and should be extracted instead of listed.
+            const KNOWN_UNTRANSLATED = [
+                // `submitLabel` / `submitLabelNoCorrectness` — the check-work
+                // button's resting label. Public authorable attributes, so
+                // translating the default also needs a rule for not
+                // overwriting a label the author wrote.
+                // (doenetml-worker-javascript/src/utils/answer.js)
+                /Check Work/g,
+                /Submit Response/g,
+
+                // `sectionName`, with the auto-numbering a sectioning
+                // component applies when the author writes no <title>.
+                // (components/Solution.js, and its siblings)
+                /Problem \d+/g,
+                /Solution/g,
+
+                // A matrix cell's accessible short description.
+                // (components/MatrixInput.js)
+                /row \d+, column \d+/g,
+            ];
+
+            const stripKnown = (text) =>
+                KNOWN_UNTRANSLATED.reduce(
+                    (rest, allowed) => rest.replace(allowed, ""),
+                    text,
+                );
+
+            /** Whether `text` holds English that should have been translated. */
+            const isUnextracted = (text) => ASCII_WORD.test(stripKnown(text));
+
+            /**
+             * Every reader-visible string in `root` that is still plain
+             * English, as `{ where, text }` pairs.
+             *
+             * Returns the offenders rather than asserting, so a failure can
+             * name them: "3 unextracted strings" is not actionable, but
+             * `button#prob_button: "Check Work"` is.
+             */
+            function findUnextracted(root) {
+                const foreign = new Set(
+                    root.querySelectorAll(FOREIGN_SUBTREES),
+                );
+                const inForeignSubtree = (node) => {
+                    for (let el = node; el && el !== root.parentElement;) {
+                        if (foreign.has(el)) {
+                            return true;
+                        }
+                        el = el.parentElement;
+                    }
+                    return false;
+                };
+
+                const describeNode = (el) =>
+                    el.tagName.toLowerCase() + (el.id ? `#${el.id}` : "");
+
+                const offenders = [];
+
+                // `root.ownerDocument`, not `document`: the app runs in
+                // Cypress's iframe, and the spec's own document is a
+                // different one.
+                const walker = root.ownerDocument.createTreeWalker(
+                    root,
+                    NodeFilter.SHOW_TEXT,
+                );
+                for (
+                    let node = walker.nextNode();
+                    node;
+                    node = walker.nextNode()
+                ) {
+                    if (
+                        isUnextracted(node.nodeValue) &&
+                        !inForeignSubtree(node)
+                    ) {
+                        offenders.push({
+                            where: describeNode(node.parentElement),
+                            text: node.nodeValue.trim(),
+                        });
+                    }
+                }
+
+                const attributeSelector = TEXT_ATTRIBUTES.map(
+                    (name) => `[${name}]`,
+                ).join(",");
+                for (const el of root.querySelectorAll(attributeSelector)) {
+                    if (inForeignSubtree(el)) {
+                        continue;
+                    }
+                    for (const name of TEXT_ATTRIBUTES) {
+                        const value = el.getAttribute(name);
+                        if (value && isUnextracted(value)) {
+                            offenders.push({
+                                where: `${describeNode(el)}[${name}]`,
+                                text: value,
+                            });
+                        }
+                    }
+                }
+
+                return offenders;
+            }
+
+            /** How many strings in `root` did come from a catalog. */
+            function countTranslated(root) {
+                return (root.textContent.match(/»/g) ?? []).length;
+            }
+
+            function sweep(label) {
+                cy.get(".doenet-viewer").then(([root]) => {
+                    const offenders = findUnextracted(root);
+                    const report = offenders
+                        .map((o) => `  ${o.where}: ${JSON.stringify(o.text)}`)
+                        .join("\n");
+                    expect(
+                        offenders,
+                        `${label}: chrome still hard-coded in English —\n${report}\n`,
+                    ).to.be.empty;
+
+                    // Guard against a vacuous pass: a viewer that rendered
+                    // nothing, or a locale that silently fell back to English,
+                    // would have no ASCII words either.
+                    expect(
+                        countTranslated(root),
+                        `${label}: strings that went through a catalog`,
+                    ).to.be.greaterThan(4);
+                });
+            }
+
+            it("finds no hard-coded English in the chrome as first rendered", () => {
+                render({ doenetML: chromeFixture, uiLocale: "en-XA" });
+
+                // Wait for a string only the catalogs can produce, so the
+                // sweep cannot race the first paint.
+                cy.get("[data-test=attempts-remaining]").should(
+                    "contain.text",
+                    "»",
+                );
+                sweep("initial render");
+            });
+
+            it("finds no hard-coded English in the chrome after submitting", () => {
+                // Validation states, the attempts counter and the feedback a
+                // submission reveals are chrome that does not exist until the
+                // reader acts, so the first sweep cannot see them.
+                render({ doenetML: chromeFixture, uiLocale: "en-XA" });
+
+                cy.get("[data-test=attempts-remaining]").should(
+                    "contain.text",
+                    "»",
+                );
+                cy.get("#ti_input").type("wrong");
+                cy.get("#prob_button").click();
+                cy.get("#prob_button").should("contain.text", "»");
+
+                sweep("after submitting");
+            });
+        });
     });
 });

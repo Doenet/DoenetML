@@ -104,8 +104,6 @@ math-input-invalid-expression = Expresión no válida:
 
 ## Document status
 
-# Three dots on purpose: the English still carries a four-dot ellipsis for
-# byte-compatibility, and a translation has no reason to reproduce the typo.
 viewer-initializing = Inicializando...
 
 

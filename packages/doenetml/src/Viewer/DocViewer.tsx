@@ -2140,7 +2140,7 @@ export function DocViewer({
                         {translate(
                             "viewer-initializing",
                             undefined,
-                            "Initializing....",
+                            "Initializing...",
                         )}
                     </p>
                 </div>
