@@ -62,6 +62,9 @@ solution-initializing = Initializing...
 footnote-show = Show footnote
 footnote-hide = Hide footnote
 
+# Tooltip on the ⓘ affordance that reveals an input's description.
+description-more-information = more information
+
 
 ## Controls
 
@@ -70,6 +73,13 @@ slider-next = Next
 
 keyboard-open = Open Keyboard
 keyboard-close = Close Keyboard
+
+# Accessible names of a matrix input's size controls, whose visible labels are
+# the symbols `r-` `r+` `c-` `c+`.
+matrix-remove-row = Remove row
+matrix-add-row = Add row
+matrix-remove-column = Remove column
+matrix-add-column = Add column
 
 
 ## Math input
@@ -81,7 +91,18 @@ math-input-preview = Preview
 math-input-invalid-expression = Invalid expression:
 
 
+## Document status
+
+# Shown while the core is still starting up and nothing can be rendered yet.
+# The four-dot ellipsis reproduces today's English exactly; normalizing it is
+# a separate change, since doing it here would alter English output.
+viewer-initializing = Initializing....
+
+
 ## Errors
 
 # Prefixes the message of a document that failed to compile.
 error-heading = Error
+
+# Banner above a document that compiled with at least one error in it.
+document-contains-errors = This document contains errors!

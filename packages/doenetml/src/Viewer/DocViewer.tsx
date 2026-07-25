@@ -24,6 +24,7 @@ import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
     DEFAULT_LOCALE,
     declaredDocumentLocale,
+    localeResourceKey,
     resolveUiLocale,
 } from "@doenet/i18n";
 import type { CoreWorker } from "@doenet/doenetml-worker";
@@ -540,10 +541,11 @@ export function DocViewer({
         uiLocale,
         effectiveDocumentLocale,
     );
-    const translateChrome = useChromeTranslator(
-        effectiveUiLocale,
-        localeResources,
-    );
+    // Bound to `translate` rather than a more descriptive name on purpose:
+    // `lint:i18n` only recognizes call sites through a translator named `t` or
+    // `translate`, so a key reached from here would otherwise read as an
+    // orphan.
+    const translate = useChromeTranslator(effectiveUiLocale, localeResources);
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
@@ -2031,15 +2033,11 @@ export function DocViewer({
         changedState = true;
     }
 
-    // Catalogs are compared by *which locales* arrived, not by their contents:
-    // hosts load them as code-split modules, so the change that matters is a
-    // locale appearing (or going away), and hashing every catalog on every
-    // render to catch an edited one would cost far more than it buys.
-    const localeResourceKey = Object.keys(localeResources ?? {})
-        .sort()
-        .join(",");
-    if (lastLocaleResourceKey.current !== localeResourceKey) {
-        lastLocaleResourceKey.current = localeResourceKey;
+    // Compared by *which locales* arrived, not by their contents — see
+    // `localeResourceKey`.
+    const resourceKey = localeResourceKey(localeResources);
+    if (lastLocaleResourceKey.current !== resourceKey) {
+        lastLocaleResourceKey.current = resourceKey;
         changedState = true;
     }
 
@@ -2131,7 +2129,13 @@ export function DocViewer({
                         color: "var(--canvasText)",
                     }}
                 >
-                    <p>Initializing....</p>
+                    <p>
+                        {translate(
+                            "viewer-initializing",
+                            undefined,
+                            "Initializing....",
+                        )}
+                    </p>
                 </div>
             );
         }
@@ -2196,7 +2200,13 @@ export function DocViewer({
         };
         errorOverview = (
             <div style={errorStyle}>
-                <b>This document contains errors!</b>
+                <b>
+                    {translate(
+                        "document-contains-errors",
+                        undefined,
+                        "This document contains errors!",
+                    )}
+                </b>
             </div>
         );
     }
@@ -2224,7 +2234,7 @@ export function DocViewer({
                         the props alone: only here is the authored
                         `<document lang>` known, so only here can the chrome
                         follow the language the content was written in. */}
-                    <I18nProvider translate={translateChrome}>
+                    <I18nProvider translate={translate}>
                         {documentRenderer}
                     </I18nProvider>
                 </DocContext.Provider>

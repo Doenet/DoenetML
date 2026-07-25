@@ -3,6 +3,10 @@
 # reports a key that exists there but not here as missing coverage.
 #
 # Message ids are never translated — only the text to the right of `=`.
+#
+# Register: impersonal throughout — infinitives and bare nouns, never a `tú`
+# or `usted` verb form. The viewer does not know how formally a deployment
+# addresses its readers, and an impersonal label is correct for both.
 
 
 ## Answer submission
@@ -41,12 +45,14 @@ validation-partially-correct = (Parcialmente correcto)
 
 feedback-heading = Comentarios
 
-solution-click-to-open = (haz clic para abrir)
-solution-click-to-close = (haz clic para cerrar)
+solution-click-to-open = (clic para abrir)
+solution-click-to-close = (clic para cerrar)
 solution-initializing = Inicializando...
 
-footnote-show = Mostrar la nota
-footnote-hide = Ocultar la nota
+footnote-show = Mostrar la nota al pie
+footnote-hide = Ocultar la nota al pie
+
+description-more-information = más información
 
 
 ## Controls
@@ -57,6 +63,11 @@ slider-next = Siguiente
 keyboard-open = Abrir el teclado
 keyboard-close = Cerrar el teclado
 
+matrix-remove-row = Eliminar fila
+matrix-add-row = Añadir fila
+matrix-remove-column = Eliminar columna
+matrix-add-column = Añadir columna
+
 
 ## Math input
 
@@ -65,6 +76,15 @@ math-input-preview = Vista previa
 math-input-invalid-expression = Expresión no válida:
 
 
+## Document status
+
+# Three dots on purpose: the English still carries a four-dot ellipsis for
+# byte-compatibility, and a translation has no reason to reproduce the typo.
+viewer-initializing = Inicializando...
+
+
 ## Errors
 
 error-heading = Error
+
+document-contains-errors = ¡Este documento contiene errores!

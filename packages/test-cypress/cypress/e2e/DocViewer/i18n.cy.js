@@ -134,9 +134,9 @@ describe("Chrome translation Tests", { tags: ["@group5"] }, function () {
             uiLocale: "es",
         });
 
-        cy.get("#sol_button").should("contain.text", "(haz clic para abrir)");
+        cy.get("#sol_button").should("contain.text", "(clic para abrir)");
         cy.get("#sol_button").click();
-        cy.get("#sol_button").should("contain.text", "(haz clic para cerrar)");
+        cy.get("#sol_button").should("contain.text", "(clic para cerrar)");
     });
 
     it("translates the virtual keyboard tray, which lives in its own root", () => {

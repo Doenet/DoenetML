@@ -28,14 +28,21 @@ export type MessageKey =
     | "solution-initializing"
     | "footnote-show"
     | "footnote-hide"
+    | "description-more-information"
     | "slider-previous"
     | "slider-next"
     | "keyboard-open"
     | "keyboard-close"
+    | "matrix-remove-row"
+    | "matrix-add-row"
+    | "matrix-remove-column"
+    | "matrix-add-column"
     | "math-input-preview-region"
     | "math-input-preview"
     | "math-input-invalid-expression"
-    | "error-heading";
+    | "viewer-initializing"
+    | "error-heading"
+    | "document-contains-errors";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -60,12 +67,19 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "solution-initializing",
     "footnote-show",
     "footnote-hide",
+    "description-more-information",
     "slider-previous",
     "slider-next",
     "keyboard-open",
     "keyboard-close",
+    "matrix-remove-row",
+    "matrix-add-row",
+    "matrix-remove-column",
+    "matrix-add-column",
     "math-input-preview-region",
     "math-input-preview",
     "math-input-invalid-expression",
+    "viewer-initializing",
     "error-heading",
+    "document-contains-errors",
 ];

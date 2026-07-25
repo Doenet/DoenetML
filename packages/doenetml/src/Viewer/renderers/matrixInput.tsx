@@ -116,7 +116,11 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                             })
                         }
                         disabled={SVs.numRows < 2 || disabled}
-                        ariaLabel="Remove row"
+                        ariaLabel={t(
+                            "matrix-remove-row",
+                            undefined,
+                            "Remove row",
+                        )}
                     ></ActionButton>
                     <ActionButton
                         id={id + "_rowIncrement"}
@@ -128,7 +132,7 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                             })
                         }
                         disabled={disabled}
-                        ariaLabel="Add row"
+                        ariaLabel={t("matrix-add-row", undefined, "Add row")}
                     ></ActionButton>
                 </ActionButtonGroup>
             </span>
@@ -149,7 +153,11 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                             })
                         }
                         disabled={SVs.numColumns < 2 || disabled}
-                        ariaLabel="Remove column"
+                        ariaLabel={t(
+                            "matrix-remove-column",
+                            undefined,
+                            "Remove column",
+                        )}
                     ></ActionButton>
                     <ActionButton
                         id={id + "_columnIncrement"}
@@ -161,7 +169,11 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                             })
                         }
                         disabled={disabled}
-                        ariaLabel="Add column"
+                        ariaLabel={t(
+                            "matrix-add-column",
+                            undefined,
+                            "Add column",
+                        )}
                     ></ActionButton>
                 </ActionButtonGroup>
             </span>

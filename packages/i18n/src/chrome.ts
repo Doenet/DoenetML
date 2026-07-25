@@ -52,7 +52,9 @@ function chromeResources(
     if (uiLocale === PSEUDO_LOCALE) {
         resources[PSEUDO_LOCALE] = getPseudoChromeCatalog();
     }
-    return { ...resources, ...hostResources };
+    // `Object.assign` ignores a null or undefined source, so an absent
+    // `hostResources` needs no special case.
+    return Object.assign(resources, hostResources);
 }
 
 /**
@@ -84,5 +86,8 @@ export function createChromeTranslator(
  * Renderers are exported individually and can be mounted by a host that never
  * set up a locale; falling back to today's English is the behavior that
  * changes nothing for them.
+ *
+ * Resolves against every bundled English catalog, not only `chrome` — keys are
+ * unique across namespaces, so the extra ones cannot be reached by mistake.
  */
 export const EN_CHROME_TRANSLATOR: Translator = createTranslator([], {});

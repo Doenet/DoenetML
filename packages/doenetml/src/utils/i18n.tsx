@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo } from "react";
 import {
     createChromeTranslator,
+    localeResourceKey,
     EN_CHROME_TRANSLATOR,
     type Translator,
 } from "@doenet/i18n";
@@ -25,14 +26,9 @@ export function useChromeTranslator(
     uiLocale: string,
     localeResources?: Record<string, string> | null,
 ): Translator {
-    // Catalogs are compared by *which locales* arrived, not by their contents,
-    // matching how `DocViewer` decides the core needs rebuilding: hosts load
-    // them as whole modules, so the change that matters is a locale appearing
-    // or going away, and hashing every catalog on every render would cost far
-    // more than it buys.
-    const resourceKey = Object.keys(localeResources ?? {})
-        .sort()
-        .join(",");
+    // Keyed by *which locales* arrived, not by their contents — the same
+    // comparison `DocViewer` uses to decide the core needs rebuilding.
+    const resourceKey = localeResourceKey(localeResources);
 
     return useMemo(
         () => createChromeTranslator(uiLocale, localeResources),
