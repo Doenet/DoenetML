@@ -1,6 +1,7 @@
 import MathList from "../MathList";
 import me from "math-expressions";
 import { isValidVariable } from "../../utils/math";
+import { codedDiagnostic } from "../../utils/diagnostics";
 
 export default class VariableNameList extends MathList {
     static componentType = "_variableNameList";
@@ -52,13 +53,13 @@ export default class VariableNameList extends MathList {
                     let variable = dependencyValuesByKey[arrayKey].math;
                     let validVariable = isValidVariable(variable);
                     if (!validVariable) {
-                        diagnostics.push({
-                            message:
-                                "Invalid value of a variable: `" +
-                                variable.toString() +
-                                "`",
-                            type: "warning",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0017",
+                                args: { value: variable.toString() },
+                            }),
+                        );
                         validVariable = false;
                     }
                     variables[arrayKey] = variable;

@@ -20,6 +20,7 @@ import {
     suggestAccessibleDarkModeColorAgainst,
     TEXT_CONTRAST_THRESHOLD,
 } from "@doenet/utils/style";
+import { codedDiagnostic } from "./diagnostics";
 
 /**
  * The three heading-bar completion states, in their canonical string form.
@@ -300,7 +301,10 @@ export function shouldEmitSectionTitleColorDiagnostic({ source }) {
  * @param {string} params.colorName - Attribute name for the diagnostic message.
  * @param {string} params.textColor - Heading text color (#000000 or #ffffff).
  * @param {string} params.canvasColor - Viewer canvas color for the current theme.
- * @param {string} [params.modeSuffix] - Optional mode suffix for the message.
+ * @param {"light"|"dark"} [params.mode] - Theme the shortfall was measured in.
+ *   Selects a variant of the message rather than appending a suffix to it:
+ *   "(dark mode)" is prose, and prose concatenated onto a message in the
+ *   caller is prose no translator ever sees.
  */
 export function addSectionTitleColorContrastDiagnostic({
     diagnostics,
@@ -309,7 +313,7 @@ export function addSectionTitleColorContrastDiagnostic({
     colorName,
     textColor,
     canvasColor,
-    modeSuffix = "",
+    mode = "light",
 }) {
     if (!authorSet || !colorValue) {
         return;
@@ -321,11 +325,22 @@ export function addSectionTitleColorContrastDiagnostic({
         background: colorValue,
     });
     if (ratio !== null && ratio < TEXT_CONTRAST_THRESHOLD) {
-        diagnostics.push({
-            type: "accessibility",
-            level: 1,
-            message: `${colorName} has insufficient contrast for the section heading text${modeSuffix} (${ratio.toFixed(2)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`,
-        });
+        diagnostics.push(
+            codedDiagnostic({
+                type: "accessibility",
+                level: 1,
+                code: "doenet-a0006",
+                args: {
+                    colorName,
+                    // Numbers, not the strings they used to be formatted
+                    // into: a locale that writes 4,50 rather than 4.50 can
+                    // only do so if the value arrives as a number.
+                    ratio,
+                    threshold: TEXT_CONTRAST_THRESHOLD,
+                    mode,
+                },
+            }),
+        );
     }
 }
 

@@ -368,3 +368,74 @@ describe("createDiagnosticFormatter", () => {
         }
     });
 });
+
+/**
+ * The shapes that first appear in the second migration batch: a single code
+ * standing in for several components, and a message that selects on something
+ * other than a count.
+ */
+describe("one code, several components", () => {
+    it("names the component it was given, in English", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-w0009", { component: "polygon" }),
+        ).toBe(
+            "Cannot attract to a `<polygon>` as it doesn't have a nearestPoint state variable.",
+        );
+        expect(
+            formatEnglishDiagnostic("doenet-a0001", { component: "graph" }),
+        ).toBe(
+            "For accessibility, `<graph>` must either have a short description or be specified as decorative.",
+        );
+        expect(
+            formatEnglishDiagnostic("doenet-a0001", { component: "image" }),
+        ).toBe(
+            "For accessibility, `<image>` must either have a short description or be specified as decorative.",
+        );
+    });
+
+    // The component name is part of the DoenetML language, so it survives
+    // translation untouched while the sentence around it changes.
+    it("keeps the component name in English when the sentence is Spanish", () => {
+        const formatEs = createDiagnosticFormatter(
+            createChromeTranslator("es"),
+            "es",
+        );
+        const message = formatEs({
+            message: "unused",
+            code: "doenet-w0015",
+            args: { value: "a b c", component: "sort" },
+        });
+        expect(message).toContain("sort");
+        expect(message).toContain('"a b c"');
+        expect(message).not.toContain("Ignoring");
+    });
+});
+
+describe("the section-title contrast message", () => {
+    const args = {
+        colorName: "backgroundColor",
+        ratio: 3.5,
+        threshold: 4.5,
+    };
+
+    it("reproduces the concatenated English, including the two decimals", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-a0006", {
+                ...args,
+                mode: "light",
+            }),
+        ).toBe(
+            "backgroundColor has insufficient contrast for the section heading text (3.50:1; requires at least 4.5:1).",
+        );
+    });
+
+    // The suffix this replaced was English prose concatenated in the caller,
+    // which no translator would ever have seen.
+    it("selects the dark-mode wording rather than appending a suffix", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-a0006", { ...args, mode: "dark" }),
+        ).toBe(
+            "backgroundColor has insufficient contrast for the section heading text (dark mode) (3.50:1; requires at least 4.5:1).",
+        );
+    });
+});

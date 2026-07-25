@@ -1,5 +1,6 @@
 import { findFiniteNumericalValue } from "../utils/math";
 import ConstraintComponent from "./abstract/ConstraintComponent";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class ConstrainTo extends ConstraintComponent {
     static componentType = "constrainTo";
@@ -50,15 +51,14 @@ export default class ConstrainTo extends ConstraintComponent {
 
                 for (let child of dependencyValues.graphicalChildren) {
                     if (!child.stateValues.nearestPoint) {
-                        const warning = {
-                            type: "warning",
-                            message: `Cannot constrain to a \`<${child.componentType}>\` as it doesn't have a nearestPoint state variable.`,
-                        };
-                        if (child.position) {
-                            warning.position = child.position;
-                        }
-
-                        diagnostics.push(warning);
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0010",
+                                args: { component: child.componentType },
+                                position: child.position || undefined,
+                            }),
+                        );
                         continue;
                     }
                     nearestPointFunctions.push(child.stateValues.nearestPoint);

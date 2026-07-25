@@ -3,6 +3,7 @@ import {
     returnLabelStateVariableDefinitions,
 } from "../../utils/label";
 import InlineComponent from "./InlineComponent";
+import { codedDiagnostic } from "../../utils/diagnostics";
 
 export default class Input extends InlineComponent {
     constructor(args) {
@@ -915,17 +916,30 @@ export default class Input extends InlineComponent {
                     !dependencyValues.label &&
                     !hasExternalForLabel
                 ) {
-                    let objectNeedingLabel =
+                    // Two codes rather than one with the subject passed in.
+                    // The subject is a component name in one branch but an
+                    // English phrase in the other, and a phrase handed over
+                    // as an argument would never reach a translator.
+                    const createdByAnswer =
                         dependencyValues.createdFromSugar &&
-                        dependencyValues.answerAncestor
-                            ? "an `<answer>` creating an input"
-                            : `\`<${componentClass.componentType}>\``;
+                        dependencyValues.answerAncestor;
 
-                    diagnostics.push({
-                        type: "accessibility",
-                        level: 1,
-                        message: `For accessibility, ${objectNeedingLabel} must have a short description or a label.`,
-                    });
+                    diagnostics.push(
+                        createdByAnswer
+                            ? codedDiagnostic({
+                                  type: "accessibility",
+                                  level: 1,
+                                  code: "doenet-a0004",
+                              })
+                            : codedDiagnostic({
+                                  type: "accessibility",
+                                  level: 1,
+                                  code: "doenet-a0003",
+                                  args: {
+                                      component: componentClass.componentType,
+                                  },
+                              }),
+                    );
                 }
 
                 return {

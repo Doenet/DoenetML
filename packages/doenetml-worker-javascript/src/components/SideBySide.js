@@ -1,6 +1,7 @@
 import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
+import { codedDiagnostic } from "../utils/diagnostics";
 const { max } = me.math;
 
 export class SideBySide extends BlockComponent {
@@ -313,11 +314,13 @@ export class SideBySide extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    diagnostics.push({
-                        message:
-                            "`<sideBySide>` is not implemented for absolute measurements. Setting widths to relative.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0018",
+                            args: { component: "sideBySide" },
+                        }),
+                    );
                 }
                 widthsAbsolute = false;
 
@@ -487,11 +490,13 @@ export class SideBySide extends BlockComponent {
                 }
 
                 if (secondMarginAbsolute || marginsAbsolute) {
-                    diagnostics.push({
-                        message:
-                            "`<sideBySide>` is not implemented for absolute measurements. Setting margins to relative.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0019",
+                            args: { component: "sideBySide" },
+                        }),
+                    );
                 }
 
                 marginsAbsolute = false;
@@ -679,11 +684,13 @@ export class SideBySide extends BlockComponent {
                             allMargins[1] =
                                 100 - (allMargins[0] + allWidths[0]);
                         } else {
-                            diagnostics.push({
-                                message:
-                                    "Invalid `<sideBySide>`: it must have at least one block child.",
-                                type: "warning",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "warning",
+                                    code: "doenet-w0020",
+                                    args: { component: "sideBySide" },
+                                }),
+                            );
                         }
                     }
                 } else {
@@ -1594,11 +1601,13 @@ export class SbsGroup extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    diagnostics.push({
-                        message:
-                            "`<sbsGroup>` is not implemented for absolute measurements. Setting widths to relative.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0018",
+                            args: { component: "sbsGroup" },
+                        }),
+                    );
                 }
                 widthsAbsolute = false;
 
@@ -1853,11 +1862,13 @@ export class SbsGroup extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    diagnostics.push({
-                        message:
-                            "`<sbsGroup>` is not implemented for absolute measurements. Setting margins to relative.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0019",
+                            args: { component: "sbsGroup" },
+                        }),
+                    );
                 }
                 marginsAbsolute = false;
 
@@ -2047,11 +2058,13 @@ export class SbsGroup extends BlockComponent {
                             allMargins[1] =
                                 100 - (allMargins[0] + allWidths[0]);
                         } else {
-                            diagnostics.push({
-                                message:
-                                    "Invalid `<sbsGroup>`: it must have at least one block child.",
-                                type: "warning",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "warning",
+                                    code: "doenet-w0020",
+                                    args: { component: "sbsGroup" },
+                                }),
+                            );
                         }
                     }
                 } else {

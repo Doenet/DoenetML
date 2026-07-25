@@ -6,6 +6,7 @@ import {
     sizePossibilities,
 } from "@doenet/utils";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Video extends BlockComponent {
     constructor(args) {
@@ -172,12 +173,13 @@ export default class Video extends BlockComponent {
                         shortDescriptionChild.stateValues.text.trim();
                 }
                 if (shortDescription === "") {
-                    diagnostics.push({
-                        type: "accessibility",
-                        level: 1,
-                        message:
-                            "For accessibility, `<video>` must have a short description.",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "accessibility",
+                            level: 1,
+                            code: "doenet-a0002",
+                        }),
+                    );
                 }
 
                 return {

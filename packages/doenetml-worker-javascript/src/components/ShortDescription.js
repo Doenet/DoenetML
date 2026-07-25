@@ -1,5 +1,6 @@
 import TextOrInline from "./abstract/TextOrInline";
 import { textFromChildren } from "../utils/text";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class ShortDescription extends TextOrInline {
     static componentType = "shortDescription";
@@ -109,11 +110,14 @@ export default class ShortDescription extends TextOrInline {
 
                 const diagnostics = [];
                 if (foundMathType) {
-                    diagnostics.push({
-                        type: "accessibility",
-                        level: 2,
-                        message: `Short descriptions should not contain math components such as \`<${foundMathType}>\`. Spell out any math with words.`,
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "accessibility",
+                            level: 2,
+                            code: "doenet-a0005",
+                            args: { component: foundMathType },
+                        }),
+                    );
                 }
 
                 return { setValue: { value }, sendDiagnostics: diagnostics };

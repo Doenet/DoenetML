@@ -123,7 +123,39 @@ export type MessageKey =
     | "ray-overprescribed-through"
     | "ray-dimension-mismatch"
     | "vector-overprescribed-head"
-    | "vector-dimension-mismatch";
+    | "vector-dimension-mismatch"
+    | "attract-to-without-nearest-point"
+    | "constrain-to-without-nearest-point"
+    | "constrain-to-interior-without-nearest-point"
+    | "choice-input-label-position-ignored"
+    | "choice-input-indices-count-mismatch"
+    | "pretzel-indices-count-mismatch"
+    | "shuffle-indices-count-mismatch"
+    | "indices-ignored-out-of-range"
+    | "pretzel-indices-repeated"
+    | "pretzel-circuit-first-index"
+    | "string-children-need-type"
+    | "invalid-type-defaulting-to-math"
+    | "string-not-valid-component-to-arrange"
+    | "invalid-type-defaulting-to-number"
+    | "invalid-variable-value"
+    | "variant-index-must-be-number"
+    | "variant-index-must-be-integer"
+    | "side-by-side-absolute-widths"
+    | "side-by-side-absolute-margins"
+    | "side-by-side-no-block-child"
+    | "label-for-ignored-on-graphical"
+    | "label-for-must-resolve-to-one"
+    | "label-for-unresolved"
+    | "label-for-answer-with-authored-inputs"
+    | "label-for-answer-without-input"
+    | "label-for-must-reference-input-or-answer"
+    | "accessibility-short-description-or-decorative"
+    | "accessibility-video-short-description"
+    | "accessibility-input-short-description-or-label"
+    | "accessibility-answer-input-short-description-or-label"
+    | "accessibility-short-description-contains-math"
+    | "accessibility-section-title-insufficient-contrast";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -244,4 +276,36 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "ray-dimension-mismatch",
     "vector-overprescribed-head",
     "vector-dimension-mismatch",
+    "attract-to-without-nearest-point",
+    "constrain-to-without-nearest-point",
+    "constrain-to-interior-without-nearest-point",
+    "choice-input-label-position-ignored",
+    "choice-input-indices-count-mismatch",
+    "pretzel-indices-count-mismatch",
+    "shuffle-indices-count-mismatch",
+    "indices-ignored-out-of-range",
+    "pretzel-indices-repeated",
+    "pretzel-circuit-first-index",
+    "string-children-need-type",
+    "invalid-type-defaulting-to-math",
+    "string-not-valid-component-to-arrange",
+    "invalid-type-defaulting-to-number",
+    "invalid-variable-value",
+    "variant-index-must-be-number",
+    "variant-index-must-be-integer",
+    "side-by-side-absolute-widths",
+    "side-by-side-absolute-margins",
+    "side-by-side-no-block-child",
+    "label-for-ignored-on-graphical",
+    "label-for-must-resolve-to-one",
+    "label-for-unresolved",
+    "label-for-answer-with-authored-inputs",
+    "label-for-answer-without-input",
+    "label-for-must-reference-input-or-answer",
+    "accessibility-short-description-or-decorative",
+    "accessibility-video-short-description",
+    "accessibility-input-short-description-or-label",
+    "accessibility-answer-input-short-description-or-label",
+    "accessibility-short-description-contains-math",
+    "accessibility-section-title-insufficient-contrast",
 ];
