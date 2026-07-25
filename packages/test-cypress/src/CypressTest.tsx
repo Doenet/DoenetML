@@ -127,6 +127,11 @@ export function CypressTest() {
     const [scrollToSourceOffset, setScrollToSourceOffset] = useState<
         number | null
     >(null);
+    // Locale settings a spec can drive without reloading, so a test can show
+    // that `uiLocale` retranslates the chrome in place while `documentLocale`
+    // rebuilds the core.
+    const [documentLocale, setDocumentLocale] = useState<string | null>(null);
+    const [uiLocale, setUiLocale] = useState<string | null>(null);
     const diagnosticsSummaryRef = useRef<Record<string, number> | null>(null);
     const diagnosticsSummaryCallsRef = useRef<
         { summary: Record<string, number>; doenetML: string }[]
@@ -221,6 +226,14 @@ export function CypressTest() {
 
         if (e.data.scrollToSourceOffset !== undefined) {
             setScrollToSourceOffset(e.data.scrollToSourceOffset);
+        }
+
+        if (e.data.documentLocale !== undefined) {
+            setDocumentLocale(e.data.documentLocale);
+        }
+
+        if (e.data.uiLocale !== undefined) {
+            setUiLocale(e.data.uiLocale);
         }
 
         // don't do anything if receive a message from another source (like the youtube player)
@@ -657,6 +670,8 @@ export function CypressTest() {
                 doenetImagesUrl={doenetImagesUrl}
                 readOnly={readOnly}
                 darkMode={darkMode}
+                documentLocale={documentLocale}
+                uiLocale={uiLocale}
                 diagnosticsSummaryCallback={(
                     nextDiagnosticsSummary: Record<string, number>,
                     nextDoenetML: string,
@@ -712,6 +727,8 @@ export function CypressTest() {
                 answerResponseCounts={answerResponseCounts}
                 includeVariantSelector={includeVariantSelector}
                 doenetImagesUrl={doenetImagesUrl}
+                documentLocale={documentLocale}
+                uiLocale={uiLocale}
             />
         );
 

@@ -11,6 +11,7 @@ import {
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DynamicMath } from "./utils/DynamicMath";
 import { DescriptionPopover } from "./utils/Description";
+import { useT } from "../../utils/i18n";
 
 interface AnswerSVs {
     [key: string]: any;
@@ -38,6 +39,8 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         flags,
         callAction,
     } = useDoenetRenderer<AnswerSVs>(props);
+
+    const t = useT();
 
     const { showAnswerResponseButton, answerResponseCounts } =
         useContext(DocContext) || {};
@@ -101,6 +104,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         submitActionWithPending,
         SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton,
         isPending,
+        t,
     );
 
     if (checkWorkComponent) {

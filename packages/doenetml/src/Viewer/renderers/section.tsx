@@ -21,6 +21,8 @@ import {
 import { cesc } from "@doenet/utils";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DocContext } from "../DocViewer";
+import { useT } from "../../utils/i18n";
+import { clickToToggleLabel } from "./utils/disclosure";
 
 interface SectionSVs {
     [key: string]: any;
@@ -47,6 +49,8 @@ interface SectionSVs {
 export default React.memo(function Section(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<SectionSVs>(props);
+
+    const t = useT();
 
     const { darkMode } = useContext(DocContext) || {};
 
@@ -375,21 +379,14 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
     let headingId = id + "_title";
 
     if (SVs.collapsible) {
-        if (SVs.open) {
-            title = (
-                <>
-                    <FontAwesomeIcon icon={twirlIsOpen} /> {title} (click to
-                    close)
-                </>
-            );
-        } else {
-            title = (
-                <>
-                    <FontAwesomeIcon icon={twirlIsClosed} /> {title} (click to
-                    open)
-                </>
-            );
-        }
+        title = (
+            <>
+                <FontAwesomeIcon
+                    icon={SVs.open ? twirlIsOpen : twirlIsClosed}
+                />{" "}
+                {title} {clickToToggleLabel(t, SVs.open)}
+            </>
+        );
     }
 
     let headingStyle = {};
@@ -455,6 +452,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         submitActionWithPending,
         true,
         isPending,
+        t,
     );
 
     if (checkWorkComponent) {
@@ -535,7 +533,17 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             };
             innerContent = (
                 <div style={innerContentStyle}>
-                    {SVs.rendered ? children : <p>Initializing...</p>}
+                    {SVs.rendered ? (
+                        children
+                    ) : (
+                        <p>
+                            {t(
+                                "collapsible-initializing",
+                                undefined,
+                                "Initializing...",
+                            )}
+                        </p>
+                    )}
                     {checkWorkComponent}
                 </div>
             );

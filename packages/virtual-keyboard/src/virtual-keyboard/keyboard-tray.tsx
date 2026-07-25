@@ -3,7 +3,18 @@ import { createPortal } from "react-dom";
 import { OnClick } from "./keyboard";
 import { ManagedKeyboard } from "./managed-keyboard";
 import classNames from "classnames";
+import type { Translator } from "@doenet/i18n";
 import "./keyboard-tray.css";
+
+/**
+ * Renders the English string the call site already supplies.
+ *
+ * A type-only import of `@doenet/i18n` is erased at build time, so this keeps
+ * the catalogs out of the keyboard bundle. `@doenet/doenetml` bundles both
+ * this package's output and `@doenet/i18n`, and a runtime import here would
+ * inline a second copy of the English catalogs into the result.
+ */
+const untranslated: Translator = (key, _args, fallback) => fallback ?? key;
 
 const KeyboardIcon = () => (
     <svg
@@ -27,11 +38,22 @@ const KeyboardIcon = () => (
 export function KeyboardTray({
     onClick,
     theme,
+    translate,
 }: {
     onClick: OnClick;
     theme?: "dark" | "light";
+    /**
+     * Chrome translator for the tray's labels. Passed in rather than read from
+     * React context because the tray is rendered into its own root, shared by
+     * every viewer on the page — see `UniqueKeyboardTray`. Defaults to English
+     * so a host that never configured a locale is unaffected.
+     */
+    translate?: Translator;
 }) {
     const [open, setOpen] = React.useState(false);
+    const t = translate ?? untranslated;
+    const openLabel = t("keyboard-open", undefined, "Open Keyboard");
+    const closeLabel = t("keyboard-close", undefined, "Close Keyboard");
 
     return createPortal(
         <div
@@ -58,8 +80,8 @@ export function KeyboardTray({
             <button
                 className="open-keyboard-button"
                 onClick={() => setOpen((old) => !old)}
-                title={open ? "Close Keyboard" : "Open Keyboard"}
-                aria-label={open ? "Close Keyboard" : "Open Keyboard"}
+                title={open ? closeLabel : openLabel}
+                aria-label={open ? closeLabel : openLabel}
             >
                 <KeyboardIcon />
             </button>
@@ -67,8 +89,8 @@ export function KeyboardTray({
                 <button
                     className="close-keyboard-button"
                     onClick={() => setOpen(false)}
-                    title="Close Keyboard"
-                    aria-label="Close Keyboard"
+                    title={closeLabel}
+                    aria-label={closeLabel}
                 >
                     &times;
                 </button>

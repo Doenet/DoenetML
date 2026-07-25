@@ -46,7 +46,8 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
-                "../utils:build"
+                "../utils:build",
+                "../i18n:build"
             ]
         }
     },

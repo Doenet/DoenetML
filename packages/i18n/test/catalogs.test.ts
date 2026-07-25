@@ -21,16 +21,28 @@ describe("bundled English catalogs", () => {
     });
 
     it("is inlined rather than fetched, so it works in a worker", () => {
-        // Not empty even in Phase 0: each file carries its header comment, so
-        // an empty string here means the `?raw` import silently produced
-        // nothing rather than the catalog's contents.
+        // Not empty even for a namespace no phase has populated: each file
+        // carries its header comment, so an empty string here means the `?raw`
+        // import silently produced nothing rather than the catalog's contents.
         for (const [namespace, source] of Object.entries(EN_CATALOGS)) {
             expect(source, namespace).not.toBe("");
         }
     });
 
-    it("defines no keys yet — Phase 0 moves no strings", () => {
-        expect(extractKeys(EN_CATALOG_SOURCE)).toEqual([]);
+    it("defines the chrome keys Phase 1 extracted", () => {
+        const chromeKeys = extractKeys(EN_CATALOGS.chrome);
+        expect(chromeKeys).toContain("answer-correct");
+        expect(chromeKeys).toContain("attempts-remaining");
+    });
+
+    it("still defines no keys in the namespaces later phases populate", () => {
+        // The orphan check in `lint:i18n` is only meaningful while every key
+        // that exists is one some call site actually uses. A key appearing
+        // here before its phase moves the strings would be a key nothing
+        // references.
+        for (const namespace of ["content", "diagnostics", "editor"] as const) {
+            expect(extractKeys(EN_CATALOGS[namespace]), namespace).toEqual([]);
+        }
     });
 });
 

@@ -30,7 +30,14 @@ export {
     type Catalogs,
 } from "./namespaces";
 
-export { DEFAULT_LOCALE, EN_CATALOGS, EN_CATALOG_SOURCE } from "./catalogs";
+export {
+    DEFAULT_LOCALE,
+    EN_CATALOGS,
+    EN_CATALOG_SOURCE,
+    localeResourceKey,
+} from "./catalogs";
+
+export { createChromeTranslator, EN_CHROME_TRANSLATOR } from "./chrome";
 
 export {
     DEFAULT_LOCALE_DATA,

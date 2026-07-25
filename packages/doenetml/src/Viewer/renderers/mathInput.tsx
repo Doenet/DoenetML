@@ -38,6 +38,7 @@ import {
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
+import { useT } from "../../utils/i18n";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
@@ -286,6 +287,8 @@ function MathInputPreviewPopover({
     immediateValueLatex: string;
     errorMessageRawRenderer: string | null;
 }) {
+    const t = useT();
+
     if (!showPreview) {
         return null;
     }
@@ -298,7 +301,11 @@ function MathInputPreviewPopover({
         <Ariakit.Popover
             store={preview.previewPopover}
             className="description-popover mathInputPreviewPopover"
-            aria-label="math expression preview"
+            aria-label={t(
+                "math-input-preview-region",
+                undefined,
+                "math expression preview",
+            )}
             gutter={8}
             flip="top bottom left"
             fitViewport
@@ -316,14 +323,20 @@ function MathInputPreviewPopover({
                 id={preview.previewId}
                 className="mathInputPreviewContent"
                 tabIndex={0}
-                aria-label="Preview"
+                aria-label={t("math-input-preview", undefined, "Preview")}
                 onFocus={() => preview.setInteractingWithPreview(true)}
                 onBlur={() => preview.setInteractingWithPreview(false)}
                 onKeyDown={preview.handlePreviewKeyDown}
             >
                 {showParseErrorMessage ? (
                     <div className="mathInputPreviewErrorMessage">
-                        <strong>Invalid expression:</strong>{" "}
+                        <strong>
+                            {t(
+                                "math-input-invalid-expression",
+                                undefined,
+                                "Invalid expression:",
+                            )}
+                        </strong>{" "}
                         {errorMessageRawRenderer}
                     </div>
                 ) : (
@@ -404,6 +417,8 @@ interface MathInputSVs {
 export default function MathInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<MathInputSVs>(props);
+
+    const t = useT();
 
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
@@ -1057,6 +1072,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
             shortDescription = addValidationStateToShortDescription(
                 validationState.current,
                 shortDescription,
+                t,
             );
         }
     }
@@ -1281,6 +1297,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
+        t,
     );
 
     const labelComponent = hasLabel ? (

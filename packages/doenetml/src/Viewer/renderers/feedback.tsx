@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment as thoughtBubble } from "@fortawesome/free-regular-svg-icons";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { useT } from "../../utils/i18n";
 import "./feedback.css";
 
 interface FeedbackSVs {
@@ -18,6 +19,8 @@ interface FeedbackSVs {
 export default React.memo(function Feedback(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<FeedbackSVs>(props);
+
+    const t = useT();
 
     const ref = useRef(null);
 
@@ -41,7 +44,9 @@ export default React.memo(function Feedback(props: UseDoenetRendererProps) {
 
     return (
         <div ref={ref} className="feedback">
-            <span tabIndex={0}>{icon} Feedback</span>
+            <span tabIndex={0}>
+                {icon} {t("feedback-heading", undefined, "Feedback")}
+            </span>
             <aside id={id}>
                 {SVs.feedbackText}
                 {children}

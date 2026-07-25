@@ -2,6 +2,7 @@ import React from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
+import { useT } from "../../utils/i18n";
 
 interface ErrorSVs {
     hidden: boolean;
@@ -12,6 +13,8 @@ interface ErrorSVs {
 
 export default React.memo(function Error(props: UseDoenetRendererProps) {
     let { id, SVs, children } = useDoenetRenderer<ErrorSVs>(props);
+
+    const t = useT();
 
     let displayedMessage = null;
 
@@ -35,7 +38,7 @@ export default React.memo(function Error(props: UseDoenetRendererProps) {
         }
         displayedMessage = (
             <div style={errorStyle}>
-                <b>Error</b>: {SVs.message}
+                <b>{t("error-heading", undefined, "Error")}</b>: {SVs.message}
                 {rangeMessage}
             </div>
         );

@@ -20,6 +20,7 @@ import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+import { useT } from "../../utils/i18n";
 
 interface TextInputSVs {
     [key: string]: any;
@@ -47,6 +48,8 @@ interface TextInputSVs {
 export default function TextInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<TextInputSVs>(props);
+
+    const t = useT();
 
     let width = sizeToCSS(SVs.width);
     let height = sizeToCSS(SVs.height); // only for TextArea
@@ -614,6 +617,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
+        t,
     );
 
     let input;
@@ -654,6 +658,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         shortDescription = addValidationStateToShortDescription(
             validationState,
             shortDescription,
+            t,
         );
     }
 

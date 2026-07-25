@@ -6,6 +6,7 @@ import useDoenetRenderer, {
 import { sizeToCSS } from "./utils/css";
 import { ActionButton, ActionButtonGroup } from "@doenet/ui-components";
 import { renderLabelWithLatex } from "./utils/labelWithLatex";
+import { useT } from "../../utils/i18n";
 
 let round_to_decimals = (x: number, n: number) => {
     try {
@@ -196,6 +197,8 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     let { id, SVs, actions, ignoreUpdate, rendererName, callAction } =
         useDoenetRenderer<SliderSVs>(props);
 
+    const t = useT();
+
     // @ts-ignore
     Slider.baseStateVariable = "index";
 
@@ -365,7 +368,7 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 style={{ marginBottom: "12px", marginTop: "5px" }}
             >
                 <ActionButton
-                    value="Prev"
+                    value={t("slider-previous", undefined, "Prev")}
                     onClick={() => {
                         if (inputRef.current) {
                             inputRef.current.stepDown();
@@ -376,7 +379,7 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                     disabled={SVs.disabled || index === 0}
                 ></ActionButton>
                 <ActionButton
-                    value="Next"
+                    value={t("slider-next", undefined, "Next")}
                     onClick={() => {
                         if (inputRef.current) {
                             inputRef.current.stepUp();

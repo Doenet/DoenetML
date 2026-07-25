@@ -8,6 +8,7 @@ import {
     faSpinner,
     faTimes,
 } from "@fortawesome/free-solid-svg-icons";
+import type { Translator } from "@doenet/i18n";
 import "./checkWork.css";
 
 /** Validation state for answer submissions */
@@ -47,6 +48,9 @@ export function calculateValidationState(
  * - showText: if true, then the button includes text like "Submit" or "Correct"
  *   in addition to the symbols
  * - isPending: if true, shows pending/checking state with spinner
+ * - t: chrome translator from `useT()`. Passed in rather than read from
+ *   context here because this is a plain function that several renderers call
+ *   conditionally, so it cannot itself use a hook.
  */
 export function createCheckWorkComponent(
     SVs: Record<string, any>,
@@ -54,7 +58,8 @@ export function createCheckWorkComponent(
     validationState: ValidationState,
     submitAnswer: () => void,
     showText: boolean,
-    isPending = false,
+    isPending: boolean,
+    t: Translator,
 ) {
     if (!SVs.showCheckWork) {
         return null;
@@ -79,11 +84,11 @@ export function createCheckWorkComponent(
     if (isPending) {
         buttonClassNames.push("check-work-pending");
         const pendingText = SVs.showCorrectness
-            ? "Checking..."
-            : "Submitting...";
+            ? t("answer-checking", undefined, "Checking...")
+            : t("answer-submitting", undefined, "Submitting...");
         liveLabel = SVs.showCorrectness
-            ? "Checking answer"
-            : "Submitting answer";
+            ? t("answer-checking-status", undefined, "Checking answer")
+            : t("answer-submitting-status", undefined, "Submitting answer");
         buttonContent = showText ? <>&nbsp; {pendingText}</> : null;
         buttonContent = (
             <span aria-hidden={true}>
@@ -114,8 +119,8 @@ export function createCheckWorkComponent(
         buttonClassNames.push(`check-work-${validationState}`);
         if (validationState === "correct") {
             // When the button changes to "Correct", it should be read by the screen reader
-            liveLabel = "Correct";
-            buttonContent = showText ? <>&nbsp; Correct</> : null;
+            liveLabel = t("answer-correct", undefined, "Correct");
+            buttonContent = showText ? <>&nbsp; {liveLabel}</> : null;
             buttonContent = (
                 <span aria-hidden={true}>
                     <FontAwesomeIcon
@@ -127,8 +132,8 @@ export function createCheckWorkComponent(
             );
         } else if (validationState === "incorrect") {
             // When the button changes to "Incorrect", it should be read by the screen reader
-            liveLabel = "Incorrect";
-            buttonContent = showText ? <>&nbsp; Incorrect</> : null;
+            liveLabel = t("answer-incorrect", undefined, "Incorrect");
+            buttonContent = showText ? <>&nbsp; {liveLabel}</> : null;
             buttonContent = (
                 <span aria-hidden={true}>
                     <FontAwesomeIcon
@@ -142,11 +147,21 @@ export function createCheckWorkComponent(
             // partially correct
             const percent = Math.round(SVs.creditAchieved * 100);
             const partialText = SVs.creditIsReducedByAttempt
-                ? `${percent}% Credit`
-                : `${percent}% Correct`;
+                ? t("answer-percent-credit", { percent }, `${percent}% Credit`)
+                : t(
+                      "answer-percent-correct",
+                      { percent },
+                      `${percent}% Correct`,
+                  );
             buttonContent = (
                 <span aria-hidden={true}>
-                    {showText ? partialText : `${percent} %`}
+                    {showText
+                        ? partialText
+                        : t(
+                              "answer-percent-short",
+                              { percent },
+                              `${percent} %`,
+                          )}
                 </span>
             );
 
@@ -158,8 +173,8 @@ export function createCheckWorkComponent(
         buttonClassNames.push("check-work-response-saved");
 
         // When the button changes to "Response Saved", it should be read by the screen reader
-        liveLabel = "Response Saved";
-        buttonContent = showText ? <>&nbsp; Response Saved</> : null;
+        liveLabel = t("answer-response-saved", undefined, "Response Saved");
+        buttonContent = showText ? <>&nbsp; {liveLabel}</> : null;
         buttonContent = (
             <span aria-hidden={true}>
                 <FontAwesomeIcon icon={faCloud as IconProp} title={liveLabel} />
@@ -190,25 +205,41 @@ export function createCheckWorkComponent(
     let messages = [];
 
     if (SVs.creditIsReducedByAttempt) {
+        let maxCreditPercent: number;
         if (SVs.numIncorrectSubmissions === 0) {
-            messages.push("Max credit available: 100%");
+            maxCreditPercent = 100;
         } else if (SVs.creditAchieved > 0) {
-            messages.push(
-                `Max credit available: ${Math.round(100 * SVs.creditFactorUsed)}%`,
-            );
+            maxCreditPercent = Math.round(100 * SVs.creditFactorUsed);
         } else {
-            messages.push(
-                `Max credit available: ${Math.round(100 * SVs.nextCreditFactor)}%`,
-            );
+            maxCreditPercent = Math.round(100 * SVs.nextCreditFactor);
         }
+        messages.push(
+            t(
+                "max-credit-available",
+                { percent: maxCreditPercent },
+                `Max credit available: ${maxCreditPercent}%`,
+            ),
+        );
     }
 
+    // One message with a plural selector rather than three branches: how many
+    // forms a count needs is a property of the language, not of this code.
+    // English has two plus a special case for zero; other languages differ.
     if (SVs.numAttemptsLeft < 1) {
-        messages.push("no attempts remaining");
-    } else if (SVs.numAttemptsLeft === 1) {
-        messages.push("1 attempt remaining");
+        messages.push(
+            t("attempts-remaining", { count: 0 }, "no attempts remaining"),
+        );
     } else if (Number.isFinite(SVs.numAttemptsLeft)) {
-        messages.push(`${SVs.numAttemptsLeft} attempts remaining`);
+        const count: number = SVs.numAttemptsLeft;
+        messages.push(
+            t(
+                "attempts-remaining",
+                { count },
+                count === 1
+                    ? "1 attempt remaining"
+                    : `${count} attempts remaining`,
+            ),
+        );
     }
 
     if (messages.length > 0) {

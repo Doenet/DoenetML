@@ -15,6 +15,7 @@ import {
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+import { useT } from "../../utils/i18n";
 
 interface MatrixInputSVs {
     [key: string]: any;
@@ -36,6 +37,8 @@ interface MatrixInputSVs {
 export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, callAction } =
         useDoenetRenderer<MatrixInputSVs>(props);
+
+    const t = useT();
 
     // need to use a ref for validation state as handlePressEnter
     // does not update to current values
@@ -75,6 +78,7 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
         submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
+        t,
     );
 
     let matrixInputs = [];
@@ -112,7 +116,11 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                             })
                         }
                         disabled={SVs.numRows < 2 || disabled}
-                        ariaLabel="Remove row"
+                        ariaLabel={t(
+                            "matrix-remove-row",
+                            undefined,
+                            "Remove row",
+                        )}
                     ></ActionButton>
                     <ActionButton
                         id={id + "_rowIncrement"}
@@ -124,7 +132,7 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                             })
                         }
                         disabled={disabled}
-                        ariaLabel="Add row"
+                        ariaLabel={t("matrix-add-row", undefined, "Add row")}
                     ></ActionButton>
                 </ActionButtonGroup>
             </span>
@@ -145,7 +153,11 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                             })
                         }
                         disabled={SVs.numColumns < 2 || disabled}
-                        ariaLabel="Remove column"
+                        ariaLabel={t(
+                            "matrix-remove-column",
+                            undefined,
+                            "Remove column",
+                        )}
                     ></ActionButton>
                     <ActionButton
                         id={id + "_columnIncrement"}
@@ -157,7 +169,11 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                             })
                         }
                         disabled={disabled}
-                        ariaLabel="Add column"
+                        ariaLabel={t(
+                            "matrix-add-column",
+                            undefined,
+                            "Add column",
+                        )}
                     ></ActionButton>
                 </ActionButtonGroup>
             </span>

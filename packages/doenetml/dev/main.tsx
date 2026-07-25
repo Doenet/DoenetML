@@ -8,46 +8,49 @@ import doenetMLstring from "./testCode.doenet?raw";
 
 const SOURCE_STORAGE_KEY = "doenetml-dev-source";
 const THEME_STORAGE_KEY = "doenetml-dev-theme";
+const DOCUMENT_LOCALE_STORAGE_KEY = "doenetml-dev-document-locale";
+const UI_LOCALE_STORAGE_KEY = "doenetml-dev-ui-locale";
 const SAVE_DEBOUNCE_MS = 500;
+const LOCALE_DEBOUNCE_MS = 400;
 
 type DevTheme = "light" | "dark" | "system";
 
 let saveTimer: number | null = null;
 
-function getInitialSource(): string {
+// localStorage throws in constrained environments (private browsing, an iframe
+// with third-party storage blocked), and a dev server that can't remember a
+// setting should still run. Every read degrades to the default; every write is
+// best-effort.
+function readSetting(key: string): string | null {
     try {
-        return localStorage.getItem(SOURCE_STORAGE_KEY) ?? doenetMLstring;
+        return localStorage.getItem(key);
     } catch {
-        return doenetMLstring;
+        return null;
     }
 }
 
-function getInitialTheme(): DevTheme {
+function writeSetting(key: string, value: string) {
     try {
-        const stored = localStorage.getItem(THEME_STORAGE_KEY);
-        if (stored === "light" || stored === "dark" || stored === "system") {
-            return stored;
-        }
+        localStorage.setItem(key, value);
     } catch {
         // Ignore localStorage failures in constrained environments.
+    }
+}
+
+function getInitialSource(): string {
+    return readSetting(SOURCE_STORAGE_KEY) ?? doenetMLstring;
+}
+
+function getInitialTheme(): DevTheme {
+    const stored = readSetting(THEME_STORAGE_KEY);
+    if (stored === "light" || stored === "dark" || stored === "system") {
+        return stored;
     }
     return "light";
 }
 
-function writeTheme(theme: DevTheme) {
-    try {
-        localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {
-        // Ignore localStorage failures in constrained environments.
-    }
-}
-
 function writeSource(source: string) {
-    try {
-        localStorage.setItem(SOURCE_STORAGE_KEY, source);
-    } catch {
-        // Ignore localStorage failures in constrained environments.
-    }
+    writeSetting(SOURCE_STORAGE_KEY, source);
 }
 
 // Wired to the editor's immediate (per-keystroke) change callback, so debounce
@@ -109,10 +112,41 @@ await configurePrefigureDevSource();
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
+/**
+ * `value`, but only after it has stopped changing for `delayMs`.
+ *
+ * The locale controls are free text, so every keystroke produces an
+ * intermediate tag — typing `es-MX` passes through `e`, `es`, `es-`. Changing
+ * `documentLocale` rebuilds the core, so applying each prefix as it is typed
+ * would rebuild once per character.
+ */
+function useDebounced<T>(value: T, delayMs: number): T {
+    const [debounced, setDebounced] = React.useState(value);
+
+    React.useEffect(() => {
+        const timer = window.setTimeout(() => setDebounced(value), delayMs);
+        return () => window.clearTimeout(timer);
+    }, [value, delayMs]);
+
+    return debounced;
+}
+
 function App() {
     const [initialSource] = React.useState(getInitialSource);
     const [resetKey, setResetKey] = React.useState(0);
     const [darkMode, setDarkMode] = React.useState<DevTheme>(getInitialTheme);
+    const [documentLocale, setDocumentLocale] = React.useState(
+        () => readSetting(DOCUMENT_LOCALE_STORAGE_KEY) ?? "",
+    );
+    const [uiLocale, setUiLocale] = React.useState(
+        () => readSetting(UI_LOCALE_STORAGE_KEY) ?? "",
+    );
+
+    const appliedDocumentLocale = useDebounced(
+        documentLocale,
+        LOCALE_DEBOUNCE_MS,
+    );
+    const appliedUiLocale = useDebounced(uiLocale, LOCALE_DEBOUNCE_MS);
 
     function handleReset() {
         resetSource();
@@ -122,13 +156,25 @@ function App() {
     function handleThemeChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const next = event.target.value as DevTheme;
         setDarkMode(next);
-        writeTheme(next);
+        writeSetting(THEME_STORAGE_KEY, next);
+    }
+
+    function handleDocumentLocaleChange(
+        event: React.ChangeEvent<HTMLInputElement>,
+    ) {
+        setDocumentLocale(event.target.value);
+        writeSetting(DOCUMENT_LOCALE_STORAGE_KEY, event.target.value);
+    }
+
+    function handleUiLocaleChange(event: React.ChangeEvent<HTMLInputElement>) {
+        setUiLocale(event.target.value);
+        writeSetting(UI_LOCALE_STORAGE_KEY, event.target.value);
     }
 
     return (
         <div className="dev-app">
             <div className="dev-toolbar">
-                <label className="dev-theme-control">
+                <label className="dev-control">
                     Theme:{" "}
                     <select value={darkMode} onChange={handleThemeChange}>
                         <option value="light">Light</option>
@@ -136,6 +182,45 @@ function App() {
                         <option value="system">System</option>
                     </select>
                 </label>
+                <label className="dev-control">
+                    Document locale:{" "}
+                    <input
+                        className="dev-locale-input"
+                        list="dev-locale-options"
+                        value={documentLocale}
+                        placeholder="en"
+                        title={
+                            "The `documentLocale` prop: the language of the activity's content, " +
+                            "and the default for the UI locale. Blank means English. " +
+                            "An authored `<document lang>` overrides it, so edit the source to test that. " +
+                            "Changing it rebuilds the core."
+                        }
+                        onChange={handleDocumentLocaleChange}
+                    />
+                </label>
+                <label className="dev-control">
+                    UI locale:{" "}
+                    <input
+                        className="dev-locale-input"
+                        list="dev-locale-options"
+                        value={uiLocale}
+                        placeholder="(document)"
+                        title={
+                            "The `uiLocale` prop: the language of the chrome around the content — " +
+                            "buttons, labels, and diagnostics. Blank falls back to the document locale. " +
+                            "Updates live, without rebuilding the core."
+                        }
+                        onChange={handleUiLocaleChange}
+                    />
+                </label>
+                {/* Suggestions only — the inputs stay free text so an
+                    unrecognized tag can be typed to watch it negotiate. */}
+                <datalist id="dev-locale-options">
+                    <option value="en" />
+                    <option value="es" />
+                    <option value="es-MX" />
+                    <option value="en-XA" />
+                </datalist>
                 <span className="dev-toolbar-status">
                     DoenetML source is saved to local storage as you edit.
                 </span>
@@ -153,6 +238,10 @@ function App() {
                     doenetML={resetKey === 0 ? initialSource : doenetMLstring}
                     height="100%"
                     darkMode={darkMode}
+                    // Blank means "not set", so the prop's own default applies:
+                    // English for the document, the document locale for the UI.
+                    documentLocale={appliedDocumentLocale || undefined}
+                    uiLocale={appliedUiLocale || undefined}
                     fetchExternalDoenetML={fetchExternalDoenetML}
                     immediateDoenetmlChangeCallback={saveSource}
                 />

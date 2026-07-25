@@ -24,7 +24,9 @@ import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
     DEFAULT_LOCALE,
     declaredDocumentLocale,
+    localeResourceKey,
     resolveUiLocale,
+    type Translator,
 } from "@doenet/i18n";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
@@ -46,6 +48,7 @@ import {
     CORE_START_FAILED_MESSAGE,
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
+import { I18nProvider, useChromeTranslator } from "../utils/i18n";
 
 // Re-export for back-compat: `renderersLoadComponent` was previously defined
 // here, and external consumers may deep-import it from
@@ -539,6 +542,11 @@ export function DocViewer({
         uiLocale,
         effectiveDocumentLocale,
     );
+    // Bound to `translate` rather than a more descriptive name on purpose:
+    // `lint:i18n` only recognizes call sites through a translator named `t` or
+    // `translate`, so a key reached from here would otherwise read as an
+    // orphan.
+    const translate = useChromeTranslator(effectiveUiLocale, localeResources);
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
@@ -1588,7 +1596,13 @@ export function DocViewer({
     function failCoreStart() {
         coreCreationInProgress.current = false;
         setIsInErrorState?.(true);
-        setErrMsg(CORE_START_FAILED_MESSAGE);
+        setErrMsg(
+            translate(
+                "core-start-failed",
+                undefined,
+                CORE_START_FAILED_MESSAGE,
+            ),
+        );
         setHasInitialError(true);
     }
 
@@ -2026,15 +2040,11 @@ export function DocViewer({
         changedState = true;
     }
 
-    // Catalogs are compared by *which locales* arrived, not by their contents:
-    // hosts load them as code-split modules, so the change that matters is a
-    // locale appearing (or going away), and hashing every catalog on every
-    // render to catch an edited one would cost far more than it buys.
-    const localeResourceKey = Object.keys(localeResources ?? {})
-        .sort()
-        .join(",");
-    if (lastLocaleResourceKey.current !== localeResourceKey) {
-        lastLocaleResourceKey.current = localeResourceKey;
+    // Compared by *which locales* arrived, not by their contents — see
+    // `localeResourceKey`.
+    const resourceKey = localeResourceKey(localeResources);
+    if (lastLocaleResourceKey.current !== resourceKey) {
+        lastLocaleResourceKey.current = resourceKey;
         changedState = true;
     }
 
@@ -2126,7 +2136,13 @@ export function DocViewer({
                         color: "var(--canvasText)",
                     }}
                 >
-                    <p>Initializing....</p>
+                    <p>
+                        {translate(
+                            "viewer-initializing",
+                            undefined,
+                            "Initializing...",
+                        )}
+                    </p>
                 </div>
             );
         }
@@ -2191,7 +2207,13 @@ export function DocViewer({
         };
         errorOverview = (
             <div style={errorStyle}>
-                <b>This document contains errors!</b>
+                <b>
+                    {translate(
+                        "document-contains-errors",
+                        undefined,
+                        "This document contains errors!",
+                    )}
+                </b>
             </div>
         );
     }
@@ -2203,6 +2225,7 @@ export function DocViewer({
             errorHandler={errorHandler}
             ignoreError={ignoreRendererError}
             coreCreated={coreCreated.current}
+            translate={translate}
         >
             {noCoreWarning}
             <div
@@ -2215,7 +2238,13 @@ export function DocViewer({
             >
                 {errorOverview}
                 <DocContext.Provider value={contextForRenderers}>
-                    {documentRenderer}
+                    {/* Nested inside the provider `doenetml.tsx` mounts from
+                        the props alone: only here is the authored
+                        `<document lang>` known, so only here can the chrome
+                        follow the language the content was written in. */}
+                    <I18nProvider translate={translate}>
+                        {documentRenderer}
+                    </I18nProvider>
                 </DocContext.Provider>
             </div>
         </ErrorBoundary>
@@ -2227,6 +2256,12 @@ type ErrorProps = {
     errorHandler: Function | undefined;
     ignoreError: boolean;
     coreCreated: boolean;
+    /**
+     * Chrome translator. A class component cannot use `useT()`, and this one
+     * sits above the provider besides, so it is handed the same translator
+     * `DocViewer` built.
+     */
+    translate: Translator;
     children?: ReactNode;
 };
 
@@ -2250,6 +2285,10 @@ class ErrorBoundary extends React.Component<ErrorProps, ErrorState> {
             if (!this.props.coreCreated) {
                 return null;
             } else {
+                // Destructured rather than called as `this.props.translate(…)`
+                // because `lint:i18n` finds keys only through a bare `t` or
+                // `translate` call.
+                const { translate } = this.props;
                 return (
                     <div
                         style={{
@@ -2262,7 +2301,12 @@ class ErrorBoundary extends React.Component<ErrorProps, ErrorState> {
                             borderColor: "var(--mainRed)",
                         }}
                     >
-                        <b>Error</b>: Something went wrong.
+                        <b>{translate("error-heading", undefined, "Error")}</b>:{" "}
+                        {translate(
+                            "something-went-wrong",
+                            undefined,
+                            "Something went wrong.",
+                        )}
                     </div>
                 );
             }

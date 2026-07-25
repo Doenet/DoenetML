@@ -25,3 +25,21 @@ export const EN_CATALOGS: Required<Catalogs> = {
 
 /** All English catalogs as a single FTL source. */
 export const EN_CATALOG_SOURCE = combineCatalogs(EN_CATALOGS);
+
+/**
+ * A stable identity for a set of host-supplied catalogs, for memo and effect
+ * dependency lists.
+ *
+ * Catalogs are compared by *which locales* arrived, not by their contents:
+ * hosts load them as whole modules, so the change that matters is a locale
+ * appearing or going away, and hashing every catalog on every render would
+ * cost far more than it buys. A host that edits a catalog in place and expects
+ * the change to take effect has to hand over a map with different keys.
+ */
+export function localeResourceKey(
+    resources?: Record<string, string> | null,
+): string {
+    return Object.keys(resources ?? {})
+        .sort()
+        .join(",");
+}
