@@ -18,4 +18,4 @@ Language tags are accepted in any casing (`ES-mx` works the same as `es-MX`), an
 
 Content itself is not translated yet. With the default locale, output is unchanged.
 
-Also corrects the `@doenet/standalone` README, which showed `data-doenet-*` settings on the inner `<script type="text/doenetml">` element. They are read from the container element only, so attributes written on the script have never taken effect.
+Also corrects two long-standing errors in the `@doenet/standalone` README: it showed `data-doenet-*` settings on the inner `<script type="text/doenetml">` element, when they are read from the container element only, so attributes written on the script have never taken effect; and its usage example called a global named `renderDoenetToContainer`, which does not exist — the exported globals are `renderDoenetViewerToContainer` and `renderDoenetEditorToContainer`.

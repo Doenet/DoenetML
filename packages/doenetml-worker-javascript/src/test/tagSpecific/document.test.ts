@@ -362,6 +362,21 @@ describe("Document tag tests @group4", async () => {
             ).eq("es-MX");
         });
 
+        it("matches the attribute name case-insensitively", async () => {
+            // The viewer reads `lang` straight off the DAST to label the
+            // rendered wrapper, and the DAST preserves the author's casing
+            // while the core lowercases before matching. Both sides therefore
+            // have to accept `Lang`, or the wrapper's `lang` attribute and
+            // `document.locale` would disagree — see the matching test in
+            // `@doenet/doenetml`'s `documentLang.test.ts`.
+            expect(
+                await localeOf(
+                    `<document Lang="fr"><p>bonjour</p></document>`,
+                    "es-MX",
+                ),
+            ).eq("fr");
+        });
+
         it("ignores a blank lang and falls back", async () => {
             expect(
                 await localeOf(`<document lang=" "><p>hi</p></document>`, "de"),

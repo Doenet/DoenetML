@@ -10,14 +10,16 @@ Include
 <script type="module" src="doenet-standalone.js"></script>
 ```
 
-in your webpage. Then you can call the globally-exported function `renderDoenetToContainer`, which expects
-a `<div>` element containing a `<source type="text/doenetml"></source>` as a child.
+in your webpage. Then you can call the globally-exported function
+`renderDoenetViewerToContainer` (or `renderDoenetEditorToContainer` for the
+editor), which expects a `<div>` element containing a
+`<script type="text/doenetml"></script>` as a child.
 
 For example
 
 ```html
 <script type="module">
-    renderDoenetToContainer(document.querySelector(".doenetml-applet"));
+    renderDoenetViewerToContainer(document.querySelector(".doenetml-applet"));
 </script>
 
 <div class="doenetml-applet">
@@ -38,7 +40,7 @@ For example
 
 To pass attributes to the DoenetML react component, write them in kebob-case
 prefixed with `data-doenet` **on the container element** — the same element you
-hand to `renderDoenetToContainer`. Attributes on the inner
+hand to `renderDoenet{Viewer,Editor}ToContainer`. Attributes on the inner
 `<script type="text/doenetml">` are part of the source payload and are not read.
 For example,
 
