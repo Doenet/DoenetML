@@ -8,6 +8,7 @@ import {
     Tooltip,
     Button,
 } from "@ariakit/react";
+import { useT } from "../../utils/i18n";
 
 interface FootnoteSVs {
     [key: string]: any;
@@ -19,6 +20,7 @@ interface FootnoteSVs {
 export default React.memo(function Footnote(props: UseDoenetRendererProps) {
     let { id, SVs } = useDoenetRenderer<FootnoteSVs>(props, false);
     let [isVisible, setIsVisible] = useState(false);
+    const t = useT();
 
     if (SVs.hidden) {
         return null;
@@ -68,7 +70,9 @@ export default React.memo(function Footnote(props: UseDoenetRendererProps) {
                             padding: "0.2em 0.5em",
                         }}
                     >
-                        {isVisible ? "Hide" : "Show"} footnote
+                        {isVisible
+                            ? t("footnote-hide", undefined, "Hide footnote")
+                            : t("footnote-show", undefined, "Show footnote")}
                     </Tooltip>
                 </TooltipProvider>
             </sup>

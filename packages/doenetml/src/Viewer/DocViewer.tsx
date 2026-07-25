@@ -46,6 +46,7 @@ import {
     CORE_START_FAILED_MESSAGE,
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
+import { I18nProvider, useChromeTranslator } from "../utils/i18n";
 
 // Re-export for back-compat: `renderersLoadComponent` was previously defined
 // here, and external consumers may deep-import it from
@@ -538,6 +539,10 @@ export function DocViewer({
     const effectiveUiLocale = resolveUiLocale(
         uiLocale,
         effectiveDocumentLocale,
+    );
+    const translateChrome = useChromeTranslator(
+        effectiveUiLocale,
+        localeResources,
     );
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
@@ -2215,7 +2220,13 @@ export function DocViewer({
             >
                 {errorOverview}
                 <DocContext.Provider value={contextForRenderers}>
-                    {documentRenderer}
+                    {/* Nested inside the provider `doenetml.tsx` mounts from
+                        the props alone: only here is the authored
+                        `<document lang>` known, so only here can the chrome
+                        follow the language the content was written in. */}
+                    <I18nProvider translate={translateChrome}>
+                        {documentRenderer}
+                    </I18nProvider>
                 </DocContext.Provider>
             </div>
         </ErrorBoundary>

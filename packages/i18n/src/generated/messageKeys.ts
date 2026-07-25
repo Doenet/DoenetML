@@ -5,11 +5,67 @@
 
 /**
  * A key `createTranslator`'s translator can resolve.
- * `never` while the Phase 0 catalogs are empty (#1515) — no strings have moved
- * yet. It becomes a real union as soon as the first message lands, at which
- * point call sites can be typed `MessageKey` instead of `string`.
  */
-export type MessageKey = never;
+export type MessageKey =
+    | "answer-checking"
+    | "answer-submitting"
+    | "answer-checking-status"
+    | "answer-submitting-status"
+    | "answer-correct"
+    | "answer-incorrect"
+    | "answer-response-saved"
+    | "answer-percent-credit"
+    | "answer-percent-correct"
+    | "answer-percent-short"
+    | "max-credit-available"
+    | "attempts-remaining"
+    | "validation-correct"
+    | "validation-incorrect"
+    | "validation-partially-correct"
+    | "feedback-heading"
+    | "solution-click-to-open"
+    | "solution-click-to-close"
+    | "solution-initializing"
+    | "footnote-show"
+    | "footnote-hide"
+    | "slider-previous"
+    | "slider-next"
+    | "keyboard-open"
+    | "keyboard-close"
+    | "math-input-preview-region"
+    | "math-input-preview"
+    | "math-input-invalid-expression"
+    | "error-heading";
 
 /** Every key in the English catalogs, in catalog order. */
-export const MESSAGE_KEYS: readonly MessageKey[] = [];
+export const MESSAGE_KEYS: readonly MessageKey[] = [
+    "answer-checking",
+    "answer-submitting",
+    "answer-checking-status",
+    "answer-submitting-status",
+    "answer-correct",
+    "answer-incorrect",
+    "answer-response-saved",
+    "answer-percent-credit",
+    "answer-percent-correct",
+    "answer-percent-short",
+    "max-credit-available",
+    "attempts-remaining",
+    "validation-correct",
+    "validation-incorrect",
+    "validation-partially-correct",
+    "feedback-heading",
+    "solution-click-to-open",
+    "solution-click-to-close",
+    "solution-initializing",
+    "footnote-show",
+    "footnote-hide",
+    "slider-previous",
+    "slider-next",
+    "keyboard-open",
+    "keyboard-close",
+    "math-input-preview-region",
+    "math-input-preview",
+    "math-input-invalid-expression",
+    "error-heading",
+];

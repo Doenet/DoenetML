@@ -39,6 +39,12 @@ import {
 import { useResolvedTheme } from "./utils/theme";
 import type { ThemeSetting } from "./utils/theme";
 export type { ThemeSetting, ResolvedTheme } from "./utils/theme";
+import { I18nProvider, useChromeTranslator } from "./utils/i18n";
+import {
+    resolveDocumentLocale,
+    resolveUiLocale,
+    type Translator,
+} from "@doenet/i18n";
 import { defaultFlags } from "./flags";
 import type { DoenetMLFlags } from "./flags";
 export type { DoenetMLFlags } from "./flags";
@@ -241,6 +247,16 @@ export function DoenetViewer({
     const variantIndex = useRef(1);
 
     const resolvedTheme = useResolvedTheme(darkMode);
+    // Chrome outside the document — the virtual keyboard, the variant
+    // selector — has only the props to go on. `DocViewer` mounts a nested
+    // provider that also accounts for an authored `<document lang>`.
+    const translateChrome = useChromeTranslator(
+        resolveUiLocale(
+            uiLocale,
+            resolveDocumentLocale(undefined, documentLocale),
+        ),
+        localeResources,
+    );
 
     // Start off hidden and then unhide once the viewer is visible.
     // This is needed to delay the initialization of JSXgraph
@@ -389,16 +405,19 @@ export function DoenetViewer({
                         }
                     }}
                 >
-                    <WrapWithKeyboard
-                        addVirtualKeyboard={addVirtualKeyboard}
-                        externalVirtualKeyboardProvided={
-                            externalVirtualKeyboardProvided
-                        }
-                        theme={resolvedTheme}
-                    >
-                        {variantSelector}
-                        {viewer}
-                    </WrapWithKeyboard>
+                    <I18nProvider translate={translateChrome}>
+                        <WrapWithKeyboard
+                            addVirtualKeyboard={addVirtualKeyboard}
+                            externalVirtualKeyboardProvided={
+                                externalVirtualKeyboardProvided
+                            }
+                            theme={resolvedTheme}
+                            translate={translateChrome}
+                        >
+                            {variantSelector}
+                            {viewer}
+                        </WrapWithKeyboard>
+                    </I18nProvider>
                 </div>
             </MathJaxContext>
         </ReduxProvider>
@@ -551,6 +570,15 @@ export const DoenetEditor = React.forwardRef<
     ref,
 ) {
     const resolvedTheme = useResolvedTheme(darkMode);
+    // As in `DoenetViewer`: props only here, authored `<document lang>` in the
+    // nested provider `DocViewer` mounts.
+    const translateChrome = useChromeTranslator(
+        resolveUiLocale(
+            uiLocale,
+            resolveDocumentLocale(undefined, documentLocale),
+        ),
+        localeResources,
+    );
 
     const normalizedShowDiagnostics =
         showDiagnostics ?? showErrorsWarnings ?? true;
@@ -636,15 +664,18 @@ export const DoenetEditor = React.forwardRef<
                 useExistingMathJax={useExistingMathjax}
             >
                 <div data-theme={resolvedTheme} style={{ display: "contents" }}>
-                    <WrapWithKeyboard
-                        addVirtualKeyboard={addVirtualKeyboard}
-                        externalVirtualKeyboardProvided={
-                            externalVirtualKeyboardProvided
-                        }
-                        theme={resolvedTheme}
-                    >
-                        {editor}
-                    </WrapWithKeyboard>
+                    <I18nProvider translate={translateChrome}>
+                        <WrapWithKeyboard
+                            addVirtualKeyboard={addVirtualKeyboard}
+                            externalVirtualKeyboardProvided={
+                                externalVirtualKeyboardProvided
+                            }
+                            theme={resolvedTheme}
+                            translate={translateChrome}
+                        >
+                            {editor}
+                        </WrapWithKeyboard>
+                    </I18nProvider>
                 </div>
             </MathJaxContext>
         </ReduxProvider>
@@ -658,11 +689,13 @@ function WrapWithKeyboard({
     addVirtualKeyboard,
     externalVirtualKeyboardProvided,
     theme,
+    translate,
     children,
 }: React.PropsWithChildren<{
     addVirtualKeyboard: boolean;
     externalVirtualKeyboardProvided: boolean;
     theme?: "dark" | "light";
+    translate?: Translator;
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
@@ -671,6 +704,11 @@ function WrapWithKeyboard({
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
             ownerRef={focusedMathInput}
             theme={theme}
+            // The tray lives in its own React root outside this tree (it is
+            // shared by every viewer on the page), so the translator has to be
+            // handed to it the same way `theme` already is — context cannot
+            // cross a root boundary.
+            translate={translate}
             onClick={(keyCommands) => {
                 dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
             }}

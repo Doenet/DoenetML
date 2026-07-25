@@ -11,6 +11,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
+import { useT } from "../../utils/i18n";
 
 interface PretzelSVs {
     [key: string]: any;
@@ -32,6 +33,8 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         callAction,
         flags,
     } = useDoenetRenderer<PretzelSVs>(props);
+
+    const t = useT();
 
     const ref = useRef(null);
 
@@ -136,6 +139,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         submitActionWithPending,
         true,
         isPending,
+        t,
     );
 
     return (

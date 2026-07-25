@@ -32,6 +32,8 @@ export {
 
 export { DEFAULT_LOCALE, EN_CATALOGS, EN_CATALOG_SOURCE } from "./catalogs";
 
+export { createChromeTranslator, EN_CHROME_TRANSLATOR } from "./chrome";
+
 export {
     DEFAULT_LOCALE_DATA,
     createTranslatorFromLocaleData,

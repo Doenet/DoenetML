@@ -21,6 +21,7 @@ import {
 import { cesc } from "@doenet/utils";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DocContext } from "../DocViewer";
+import { useT } from "../../utils/i18n";
 
 interface SectionSVs {
     [key: string]: any;
@@ -47,6 +48,8 @@ interface SectionSVs {
 export default React.memo(function Section(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<SectionSVs>(props);
+
+    const t = useT();
 
     const { darkMode } = useContext(DocContext) || {};
 
@@ -455,6 +458,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         submitActionWithPending,
         true,
         isPending,
+        t,
     );
 
     if (checkWorkComponent) {

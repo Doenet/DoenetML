@@ -3,6 +3,7 @@ import React from "react";
 import { IframeMessage } from "./external-virtual-keyboard";
 import { UniqueKeyboardTray } from "./unique-keyboard-tray";
 import { KeyCommand } from "./keys";
+import type { Translator } from "@doenet/i18n";
 
 /**
  * Virtual keyboard that can be made aware of an externally provided virtual keyboard (e.g., when used
@@ -12,6 +13,7 @@ export function ExternalAwareVirtualKeyboard({
     externalVirtualKeyboardProvided = false,
     onClick = () => {},
     theme,
+    translate,
     ownerRef,
 }: {
     /**
@@ -29,6 +31,11 @@ export function ExternalAwareVirtualKeyboard({
      * before passing here.
      */
     theme?: "dark" | "light";
+    /**
+     * Chrome translator for the tray's labels. Defaults to English when
+     * omitted.
+     */
+    translate?: Translator;
     /**
      * Element whose focus should be treated as this keyboard instance being
      * active when a document-wide shared tray is used.
@@ -74,6 +81,7 @@ export function ExternalAwareVirtualKeyboard({
             onClick={onClick}
             ownerRef={ownerRef}
             theme={theme}
+            translate={translate}
         />
     );
 }

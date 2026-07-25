@@ -1,24 +1,32 @@
+import type { Translator } from "@doenet/i18n";
+
 /**
  * Append validation state to short description if answer is validated.
  *
  * @param validationState - one of "correct", "incorrect", "partialcorrect", or "unvalidated"
  * @param shortDescription - the existing short description
+ * @param t - chrome translator from `useT()`
  * @returns updated short description with validation state appended if applicable
  */
 export function addValidationStateToShortDescription(
     validationState: string,
     shortDescription: string | undefined,
+    t: Translator,
 ) {
+    let suffix: string | null = null;
     if (validationState === "correct") {
-        shortDescription =
-            (shortDescription ? shortDescription + " " : "") + "(Correct)";
+        suffix = t("validation-correct", undefined, "(Correct)");
     } else if (validationState === "incorrect") {
-        shortDescription =
-            (shortDescription ? shortDescription + " " : "") + "(Incorrect)";
+        suffix = t("validation-incorrect", undefined, "(Incorrect)");
     } else if (validationState === "partialcorrect") {
-        shortDescription =
-            (shortDescription ? shortDescription + " " : "") +
-            "(Partially correct)";
+        suffix = t(
+            "validation-partially-correct",
+            undefined,
+            "(Partially correct)",
+        );
     }
-    return shortDescription;
+    if (suffix === null) {
+        return shortDescription;
+    }
+    return (shortDescription ? shortDescription + " " : "") + suffix;
 }

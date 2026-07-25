@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPuzzlePiece as puzzle } from "@fortawesome/free-solid-svg-icons";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { useT } from "../../utils/i18n";
 import "./solution.css";
 
 interface SolutionSVs {
@@ -23,11 +24,19 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<SolutionSVs>(props);
 
+    const t = useT();
+
     const ref = useRef(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
-    let openCloseText = "open";
+    // The whole parenthetical is one message: which word goes where inside it
+    // is the translator's business, not this component's.
+    let openCloseText = t(
+        "solution-click-to-open",
+        undefined,
+        "(click to open)",
+    );
 
     if (SVs.hidden) {
         return null;
@@ -53,8 +62,16 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
         }
 
         icon = <FontAwesomeIcon icon={puzzle} />;
-        openCloseText = "close";
-        childrenToRender = SVs.rendered ? children : <p>Initializing...</p>;
+        openCloseText = t(
+            "solution-click-to-close",
+            undefined,
+            "(click to close)",
+        );
+        childrenToRender = SVs.rendered ? (
+            children
+        ) : (
+            <p>{t("solution-initializing", undefined, "Initializing...")}</p>
+        );
         infoBlockStyle = {
             display: "block",
             margin: "0px 4px 12px 4px",
@@ -125,8 +142,7 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
                 onClick={onClickFunction}
                 onKeyDown={onKeyPressFunction}
             >
-                {icon} {SVs.sectionName} {SVs.message} (click to {openCloseText}
-                )
+                {icon} {SVs.sectionName} {SVs.message} {openCloseText}
             </span>
             <span style={infoBlockStyle}>{childrenToRender}</span>
         </aside>

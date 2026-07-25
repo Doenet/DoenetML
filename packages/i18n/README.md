@@ -52,8 +52,14 @@ The split is by **load context**, not topic: the worker never draws chrome, so
 it ships only `content` + `diagnostics` (`WORKER_NAMESPACES`). English is
 inlined into every build via `?raw` imports — the worker cannot reliably fetch
 a relative URL across the standalone/iframe/dedicated-worker variants, so the
-fallback locale must not depend on the network. Other locales are code-split
-modules the main thread loads and hands to `createTranslator`.
+fallback locale must not depend on the network.
+
+Spanish chrome is inlined the same way, so `uiLocale="es"` works with no host
+configuration. That does not scale, and additional locales are still meant to
+arrive as modules the host loads and passes in as `localeResources`, which
+`createChromeTranslator` merges over the bundled ones (the host's copy wins for
+a locale that exists in both). Revisit the inlining when the count reaches a
+handful.
 
 Note that the two namespaces the worker loads answer to *different* settings:
 `content` to `documentLocale`, `diagnostics` to `uiLocale`. `LocaleData` carries
@@ -94,6 +100,30 @@ Resolution order is the negotiated chain → the bundled English catalogs → th
 **The key must be a string literal**, and the translator must be named `t` or
 `translate`. `lint:i18n` matches exactly that shape; a computed key
 (`t(makeKey(x))`) is invisible to the lint and will silently miss at runtime.
+
+### In the viewer
+
+React chrome does not call `createTranslator` directly. `@doenet/doenetml`
+mounts a provider (`src/utils/i18n.tsx`) over `createChromeTranslator`, and
+renderers read it with `useT()`:
+
+```tsx
+const t = useT();
+return <button>{t("slider-next", undefined, "Next")}</button>;
+```
+
+Always pass the English fallback. It is what renders if a catalog is somehow
+missing the key, and it keeps the English visible next to the call site.
+
+The provider is mounted twice on purpose. `doenetml.tsx` mounts one from the
+props alone, covering chrome that sits outside the document — the virtual
+keyboard, the variant selector. `DocViewer` nests a second one inside it,
+because only there is an authored `<document lang>` known, and the chrome
+follows the content's language by default.
+
+The virtual keyboard tray is the exception: it renders into its own React root
+shared by every viewer on the page, which context cannot cross, so it takes a
+`translate` prop the same way it already takes `theme`.
 
 ## Commands
 
