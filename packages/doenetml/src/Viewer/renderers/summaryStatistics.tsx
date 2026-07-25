@@ -4,11 +4,13 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { useT } from "../../utils/i18n";
 
 interface SummaryStatisticsSVs {
     [key: string]: any;
     hidden: boolean;
-    columnName: string;
+    /** `null` when the author named no column, or named one that isn't there. */
+    columnName: string | null;
     height?: any;
     summaryStatistics?: any;
     width?: any;
@@ -19,6 +21,8 @@ export default React.memo(function SummaryStatistics(
 ) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<SummaryStatisticsSVs>(props);
+
+    const t = useT();
 
     const ref = useRef(null);
 
@@ -70,7 +74,16 @@ export default React.memo(function SummaryStatistics(
 
     return (
         <div style={{ margin: "12px 0" }} ref={ref}>
-            <p>Summary statistics of {SVs.columnName}</p>
+            <p>
+                {t(
+                    "summary-statistics-caption",
+                    // Fluent renders `{ $column }` literally if handed a
+                    // `null`, so an unnamed column becomes an empty string —
+                    // which is what interpolating it into JSX used to do.
+                    { column: SVs.columnName ?? "" },
+                    `Summary statistics of ${SVs.columnName ?? ""}`,
+                )}
+            </p>
             <table id={id} style={tableStyle}>
                 <tbody>
                     {heading}

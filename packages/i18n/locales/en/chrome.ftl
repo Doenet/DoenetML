@@ -125,6 +125,12 @@ orbital-row-label = Label for row { $row }
 # Labels the answer column of a pretzel exercise's grid.
 pretzel-answer = Answer
 
+# Caption above the table a `<summaryStatistics>` renders. `$column` is the
+# authored name of the data column being summarized and is never translated.
+# The table's own headings (`mean`, `stdev`, `quartile1`, …) are the statistic
+# ids an author references, not prose, and stay in place.
+summary-statistics-caption = Summary statistics of { $column }
+
 
 ## Math input
 

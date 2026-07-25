@@ -36,6 +36,15 @@ export function useChromeTranslator(
     );
 }
 
+/**
+ * Publish a translator to every `useT()` below it.
+ *
+ * Mounted twice per viewer, on purpose: `doenetml.tsx` mounts one from the
+ * props alone, covering chrome outside the document, and `DocViewer` nests a
+ * second inside it, because only there is an authored `<document lang>` known.
+ * The inner one wins for renderers, which is the right split — the keyboard is
+ * host chrome, the renderers are inside the document.
+ */
 export function I18nProvider({
     translate,
     children,

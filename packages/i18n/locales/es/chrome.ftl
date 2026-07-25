@@ -92,6 +92,8 @@ orbital-row-label = Etiqueta de la fila { $row }
 
 pretzel-answer = Respuesta
 
+summary-statistics-caption = Resumen estadístico de { $column }
+
 
 ## Math input
 
