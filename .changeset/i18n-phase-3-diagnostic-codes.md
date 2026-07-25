@@ -12,6 +12,6 @@ Every diagnostic that has moved into the message catalogs now carries a permanen
 
 Because a diagnostic now carries its code and the values that fill its message in, rather than a finished sentence, it can be shown in the reader's language. Diagnostics follow `uiLocale`, not `documentLocale`: they are addressed to whoever is looking at the screen, so a Spanish-speaking student working a French activity reads the activity in French and its warnings in Spanish. Setting `uiLocale="es"` now reports `<line>`, `<lineSegment>`, `<ray>` and `<vector>` diagnostics in Spanish with nothing else configured.
 
-Lists inside a message are assembled in the reader's language too, agreement included — "slope and length are ignored" against "slope se ignora" for a single attribute — instead of being pieced together as English and handed over as a finished string.
+Lists inside a message are assembled by whichever language ends up rendering it, rather than pieced together as English and handed over as a finished string. So the verb agrees with the list beside it — "slope is ignored" for one attribute against "slope and length are ignored" for two — and a message that has no translation yet keeps both its sentence and its list in English instead of mixing the two.
 
 The remaining messages still report in English and are unaffected. With no locale configured, every diagnostic reads exactly as it did.

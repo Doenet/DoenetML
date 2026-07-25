@@ -53,10 +53,48 @@ describe("coded diagnostics reach the record", () => {
         expect(infos.length).eq(1);
         expect(infos[0].code).eq("doenet-i0001");
         expect(infos[0].args).eqls({ attributes: ["slope", "length"] });
-        // The English is still what `buildIgnoredPhrase` produced, verb
-        // agreement and all — every existing assertion elsewhere depends on it.
+        // The English is still what the hand-written phrase builder produced,
+        // verb agreement and all — assertions elsewhere depend on it.
         expect(infos[0].message).eq(
             "slope and length are ignored when two endpoints are specified",
+        );
+    });
+
+    // The plural selector's singular branch, through a real component rather
+    // than a hand-built record — one attribute ignored, so the catalog has to
+    // say "is" where the two-attribute case says "are".
+    it("agrees the verb with a one-attribute list", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" endpoints="(1,2)" midpoint="(4,6)" slope="1" />
+</graph>
+`,
+        });
+
+        const { infos } = getDiagnosticsByType(core);
+        expect(infos.length).eq(1);
+        expect(infos[0].code).eq("doenet-i0003");
+        expect(infos[0].args).eqls({ attributes: ["slope"] });
+        expect(infos[0].message).eq(
+            "slope is ignored when an endpoint and a midpoint are both specified",
+        );
+    });
+
+    it("attaches a code to the midpointOffset notice", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<graph>
+  <lineSegment name="l" endpoints="(1,2) (4,5)" midpointOffset="0.3" />
+</graph>
+`,
+        });
+
+        const { infos } = getDiagnosticsByType(core);
+        expect(infos.length).eq(1);
+        expect(infos[0].code).eq("doenet-i0002");
+        expect(infos[0].message).eq(
+            "midpointOffset has no effect without a midpoint",
         );
     });
 

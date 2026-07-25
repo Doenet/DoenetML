@@ -19,8 +19,9 @@
  * A code is a permanent name. It appears in the editor's problem list, it is
  * what someone searches for, and it is the anchor a documentation page will
  * hang off. `diagnostic-codes.lock.json` records every code ever issued and
- * `lint:i18n` fails if an entry changes or disappears, so a code can be
- * retired but never reused or renumbered.
+ * `lint:i18n` fails as soon as this registry stops agreeing with an entry, so
+ * a code can be retired but never reused or renumbered. (Editing the lock
+ * itself is what review is for — see the package README.)
  *
  * The letter records what the diagnostic was born as — `w` warning, `e` error,
  * `i` info, `a` accessibility. It is part of the name, not a live severity: a
@@ -59,7 +60,13 @@ export const DIAGNOSTIC_CODES = {
 
 export type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;
 
-/** The shape every code has to match: `doenet-` + severity letter + 4 digits. */
+/**
+ * The shape every code has to match: `doenet-` + severity letter + 4 digits.
+ *
+ * The rule `lint:i18n` holds a newly registered code to. Not re-exported from
+ * the package index: a consumer should look a code up in
+ * {@link DIAGNOSTIC_CODES}, never parse it.
+ */
 export const DIAGNOSTIC_CODE_PATTERN = /^doenet-[weia]\d{4}$/;
 
 export function isDiagnosticCode(code: string): code is DiagnosticCode {
@@ -207,16 +214,19 @@ let enTranslator: Translator | undefined;
  * An unregistered code renders as itself rather than throwing. The call sites
  * are untyped JavaScript components, so `lint:i18n` is what catches a typo'd
  * code; until it does, a bad code must not take a state-variable definition
- * down with it.
+ * down with it. Hence {@link isDiagnosticCode} rather than an `undefined`
+ * check: a code that happens to name something on `Object.prototype`
+ * (`"toString"`) would otherwise resolve to a function and blow up in the
+ * translator.
  */
 export function formatEnglishDiagnostic(
     code: DiagnosticCode,
     args?: DiagnosticArgs,
 ): string {
-    const key = DIAGNOSTIC_CODES[code];
-    if (key === undefined) {
+    if (!isDiagnosticCode(code)) {
         return code;
     }
+    const key = DIAGNOSTIC_CODES[code];
     enTranslator ??= createTranslator([], {});
     return enTranslator(key, lowerArgs(args, DEFAULT_LOCALE), code);
 }

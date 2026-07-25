@@ -96,9 +96,9 @@ describe("formatEnglishDiagnostic", () => {
         ).toBe("Invalid format for equation of line in variables x and y.");
     });
 
-    // The English these replaced was built by `buildIgnoredPhrase`, which
-    // hand-wrote the comma, the "and", and the verb agreement. Each of these
-    // is one of its branches.
+    // The English these replaced was assembled by hand in the worker — the
+    // serial comma, the "and", and the verb agreement all written out. Each of
+    // these is one of that helper's branches.
     it("agrees the verb with a one-item list", () => {
         expect(
             formatEnglishDiagnostic("doenet-i0001", { attributes: ["slope"] }),
@@ -130,6 +130,17 @@ describe("formatEnglishDiagnostic", () => {
         expect(formatEnglishDiagnostic("doenet-w9999" as DiagnosticCode)).toBe(
             "doenet-w9999",
         );
+    });
+
+    // The registry is a plain object, so a code naming something on
+    // `Object.prototype` looks registered to a `!== undefined` check and
+    // resolves to a function. Only an own-property test rules it out.
+    it("does not mistake an inherited property for a registered code", () => {
+        for (const code of ["toString", "constructor", "__proto__"]) {
+            expect(formatEnglishDiagnostic(code as DiagnosticCode), code).toBe(
+                code,
+            );
+        }
     });
 
     it("enumerates a `unit` list without conjoining it", () => {

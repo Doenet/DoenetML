@@ -240,8 +240,14 @@ A code is a permanent name — it shows up in the editor's problem list, it is
 what someone searches for, and it is the anchor a documentation page will hang
 off. `DIAGNOSTIC_CODES` in `src/diagnostics.ts` maps each to a message id, and
 `diagnostic-codes.lock.json` records every code ever issued, so `lint:i18n`
-fails if one is renumbered, reused, or dropped. Retire a code in place; never
-recycle it.
+fails if one is renumbered, reused, or dropped from the registry. Retire a code
+in place; never recycle it.
+
+The lock is a committed file, not a service, so it enforces the contract only
+against the registry — deleting a code's line from *both* files in one change
+passes the lint, exactly as deleting a `package-lock.json` entry does. That is
+what makes the lock worth reviewing: a diff that removes or edits an existing
+line, rather than only adding one at the end, is the thing to refuse.
 
 The letter is part of the name (`w` warning, `e` error, `i` info, `a`
 accessibility), recording what the diagnostic was born as. It is not a live

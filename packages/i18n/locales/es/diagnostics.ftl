@@ -28,7 +28,11 @@ line-points-too-few-dimensions = La recta debe pasar por puntos de al menos dos 
 
 line-points-depend-on-variables = La recta pasa por puntos que dependen de las variables: { $variables }.
 
-line-equation-invalid-format = Formato no válido para la ecuación de la recta en las variables { $variable1 } y { $variable2 }.
+# Enumeradas con coma en vez de «y»: las variables de <line> son `x` e `y` por
+# omisión, y «en las variables x y y» sería a la vez incorrecto (ante el sonido
+# /i/ la conjunción es «e») e ilegible. La coma es correcta sea cual sea el
+# nombre de la variable, que aquí no se conoce de antemano.
+line-equation-invalid-format = Formato no válido para la ecuación de la recta en las variables { $variable1 }, { $variable2 }.
 
 ## `<ray>`
 
