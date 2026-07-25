@@ -81458,6 +81458,12 @@
                     "type": [
                         "string"
                     ]
+                },
+                "lang": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [
@@ -82245,6 +82251,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The document's title."
+                },
+                {
+                    "name": "locale",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The BCP-47 language tag in effect for the document's content."
                 }
             ]
         },

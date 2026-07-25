@@ -97,6 +97,9 @@ export function DoenetViewer({
     doenetViewerUrl,
     doenetImagesUrl,
     darkMode = "system",
+    documentLocale,
+    uiLocale,
+    localeResources,
     styleOverrides,
     showAnswerResponseButton = false,
     answerResponseCounts = {},
@@ -155,6 +158,31 @@ export function DoenetViewer({
      * `prefers-color-scheme` and updates live when it changes.
      */
     darkMode?: ThemeSetting;
+    /**
+     * BCP-47 tag for the *content's* language, e.g. `"es"` or `"es-MX"`.
+     * Defaults to `"en"`. An authored `<document lang>` overrides it: the
+     * author knows what language they wrote in, the host only knows what it
+     * would prefer. Selects the language of prose the core computes (style
+     * descriptions and the like), and sets `lang` on the rendered wrapper — an
+     * accessibility win for screen-reader pronunciation independent of any
+     * translation. Leave it unset and the wrapper carries no `lang` at all,
+     * inheriting the embedding page's rather than claiming English. Changing
+     * it rebuilds the document.
+     */
+    documentLocale?: string | null;
+    /**
+     * BCP-47 tag for the *chrome's* language: buttons, panel headers,
+     * diagnostics. Defaults to `documentLocale`, so a fully Spanish activity is
+     * fully Spanish out of the box. Set it separately when the reader's
+     * language differs from the content's — a Spanish-speaking student working
+     * a French physics problem.
+     */
+    uiLocale?: string | null;
+    /**
+     * FTL message catalogs keyed by locale, for locales other than English.
+     * English is bundled, so a host that only needs English passes nothing.
+     */
+    localeResources?: Record<string, string> | null;
     /**
      * Reader (end-user) style overrides: per-styleNumber remappings of style
      * settings (colors, widths, marker/line styles) chosen by the reader —
@@ -330,6 +358,9 @@ export function DoenetViewer({
             doenetViewerUrl={doenetViewerUrl}
             doenetImagesUrl={doenetImagesUrl}
             darkMode={resolvedTheme}
+            documentLocale={documentLocale}
+            uiLocale={uiLocale}
+            localeResources={localeResources}
             styleOverrides={styleOverrides}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
@@ -388,6 +419,31 @@ type DoenetEditorProps = {
      * `prefers-color-scheme` and updates live when it changes.
      */
     darkMode?: ThemeSetting;
+    /**
+     * BCP-47 tag for the *content's* language, e.g. `"es"` or `"es-MX"`.
+     * Defaults to `"en"`. An authored `<document lang>` overrides it: the
+     * author knows what language they wrote in, the host only knows what it
+     * would prefer. Selects the language of prose the core computes (style
+     * descriptions and the like), and sets `lang` on the rendered wrapper — an
+     * accessibility win for screen-reader pronunciation independent of any
+     * translation. Leave it unset and the wrapper carries no `lang` at all,
+     * inheriting the embedding page's rather than claiming English. Changing
+     * it rebuilds the document.
+     */
+    documentLocale?: string | null;
+    /**
+     * BCP-47 tag for the *chrome's* language: buttons, panel headers,
+     * diagnostics. Defaults to `documentLocale`, so a fully Spanish activity is
+     * fully Spanish out of the box. Set it separately when the reader's
+     * language differs from the content's — a Spanish-speaking student working
+     * a French physics problem.
+     */
+    uiLocale?: string | null;
+    /**
+     * FTL message catalogs keyed by locale, for locales other than English.
+     * English is bundled, so a host that only needs English passes nothing.
+     */
+    localeResources?: Record<string, string> | null;
     /**
      * Reader (end-user) style overrides: per-styleNumber remappings of style
      * settings (colors, widths, marker/line styles) chosen by the reader —
@@ -460,6 +516,9 @@ export const DoenetEditor = React.forwardRef<
         doenetViewerUrl,
         doenetImagesUrl,
         darkMode = "system",
+        documentLocale,
+        uiLocale,
+        localeResources,
         styleOverrides,
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -539,6 +598,9 @@ export const DoenetEditor = React.forwardRef<
             doenetViewerUrl={doenetViewerUrl}
             doenetImagesUrl={doenetImagesUrl}
             darkMode={resolvedTheme}
+            documentLocale={documentLocale}
+            uiLocale={uiLocale}
+            localeResources={localeResources}
             styleOverrides={styleOverrides}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}

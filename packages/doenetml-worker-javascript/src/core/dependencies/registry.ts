@@ -42,6 +42,7 @@ import {
     CountAmongSiblingsDependency,
     ValueDependency,
     FlagDependency,
+    LocaleDependency,
 } from "./siblingAndValueDependencies";
 import {
     DoenetAttributeDependency,
@@ -103,6 +104,7 @@ export const dependencyTypeClasses: ReadonlyArray<DependencyClass> = [
     CountAmongSiblingsDependency,
     ValueDependency,
     FlagDependency,
+    LocaleDependency,
     DoenetAttributeDependency,
     ExtendingDependency,
     AttributePrimitiveDependency,

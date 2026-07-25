@@ -1,0 +1,113 @@
+import { describe, expect, it } from "vitest";
+
+import {
+    declaredDocumentLocale,
+    negotiateLocales,
+    normalizeLocaleTag,
+    resolveDocumentLocale,
+    resolveUiLocale,
+} from "../src/negotiate";
+
+describe("negotiateLocales", () => {
+    it("builds the regional -> language -> default chain", () => {
+        expect(negotiateLocales(["es-MX"], ["es-MX", "es", "en"])).toEqual([
+            "es-MX",
+            "es",
+            "en",
+        ]);
+    });
+
+    it("falls back to the base language when the region has no catalog", () => {
+        expect(negotiateLocales(["es-MX"], ["es", "en"])).toEqual(["es", "en"]);
+    });
+
+    it("appends the default locale even when it is not offered", () => {
+        expect(negotiateLocales(["es"], ["es"])).toEqual(["es", "en"]);
+    });
+
+    it("returns just the default when nothing matches", () => {
+        expect(negotiateLocales(["ja"], ["es", "en"])).toEqual(["en"]);
+    });
+
+    it("honors an explicit default locale", () => {
+        expect(
+            negotiateLocales(["ja"], ["es", "fr"], { defaultLocale: "fr" }),
+        ).toEqual(["fr"]);
+    });
+});
+
+describe("resolveDocumentLocale", () => {
+    it("prefers the authored lang over the host's locale", () => {
+        expect(resolveDocumentLocale("fr", "es-MX")).toBe("fr");
+    });
+
+    it("falls back to the host's locale, then to English", () => {
+        expect(resolveDocumentLocale(undefined, "es-MX")).toBe("es-MX");
+        expect(resolveDocumentLocale(undefined, undefined)).toBe("en");
+    });
+
+    it("treats blank and null as absent", () => {
+        expect(resolveDocumentLocale("  ", "de")).toBe("de");
+        expect(resolveDocumentLocale(null, null)).toBe("en");
+        expect(resolveDocumentLocale("", "")).toBe("en");
+    });
+
+    it("normalizes whatever it returns", () => {
+        expect(resolveDocumentLocale("ES-mx", undefined)).toBe("es-MX");
+        expect(resolveDocumentLocale(undefined, "PT-br")).toBe("pt-BR");
+    });
+});
+
+describe("declaredDocumentLocale", () => {
+    it("follows the same precedence as resolveDocumentLocale", () => {
+        expect(declaredDocumentLocale("fr", "es-MX")).toBe("fr");
+        expect(declaredDocumentLocale(undefined, "ES-mx")).toBe("es-MX");
+    });
+
+    it("is undefined when nobody declared a language", () => {
+        // The distinction `resolveDocumentLocale` erases: the viewer leaves
+        // `lang` off the wrapper here rather than asserting English over
+        // whatever the embedding page declared.
+        expect(declaredDocumentLocale(undefined, undefined)).toBe(undefined);
+        expect(declaredDocumentLocale("  ", null)).toBe(undefined);
+    });
+});
+
+describe("resolveUiLocale", () => {
+    it("follows the content's language when the host configures none", () => {
+        // A fully Spanish activity is fully Spanish out of the box.
+        expect(resolveUiLocale(undefined, "es-MX")).toBe("es-MX");
+        expect(resolveUiLocale(null, "en")).toBe("en");
+    });
+
+    it("lets the host set the chrome's language separately", () => {
+        expect(resolveUiLocale("es", "fr")).toBe("es");
+    });
+
+    it("treats a blank tag as unset", () => {
+        expect(resolveUiLocale("   ", "fr")).toBe("fr");
+        expect(resolveUiLocale("", "fr")).toBe("fr");
+    });
+
+    it("normalizes what it returns, so the chrome negotiates like the content", () => {
+        expect(resolveUiLocale("ES-mx", "fr")).toBe("es-MX");
+    });
+});
+
+describe("normalizeLocaleTag", () => {
+    it("canonicalizes casing so hand-typed lang attributes negotiate", () => {
+        expect(normalizeLocaleTag("ES-mx")).toBe("es-MX");
+        expect(normalizeLocaleTag("  en  ")).toBe("en");
+    });
+
+    it("leaves unparseable tags alone rather than throwing", () => {
+        expect(normalizeLocaleTag("not a locale")).toBe("not a locale");
+        expect(normalizeLocaleTag("")).toBe("");
+    });
+
+    it("produces a tag that negotiates against a differently-cased catalog", () => {
+        expect(
+            negotiateLocales([normalizeLocaleTag("es-mx")], ["es-MX", "en"]),
+        ).toEqual(["es-MX", "en"]);
+    });
+});

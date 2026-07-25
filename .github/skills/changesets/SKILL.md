@@ -33,9 +33,27 @@ following the instructions in `packages/prefigure/README.md`.
 
 ## Never Versioned
 
-`@doenet/lsp-tools` and `@doenet/static-assets` are never published — their source is bundled into `@doenet/doenetml`, so a change to either rides under `@doenet/doenetml`'s version. **Do not list them in any changeset, ever** — not even when files under `packages/lsp-tools/` or `packages/static-assets/` themselves changed.
+Most `@doenet/*` packages are **internal**: their source is bundled into `@doenet/doenetml`, so a change to any of them rides out under `@doenet/doenetml`'s version. **Never list an internal package in a changeset** — not even when the files that changed are its own.
 
-Don't infer "never published" from `"private": true` alone. Most packages in this repo (including `@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, and `@doenet/prefigure`) carry `"private": true` at the root and are still published, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with `private: false`. The real signal for "never published" is the absence of that transformer in the package's `vite.config.ts` — `@doenet/lsp-tools` and `@doenet/static-assets` are the two packages where it's missing.
+Rather than enumerate them — the list grows — invert it. **Exactly six packages are published**, and every other `@doenet/*` package is internal:
+
+- `@doenet/doenetml`
+- `@doenet/standalone`
+- `@doenet/doenetml-iframe`
+- `@doenet/v06-to-v07`
+- `@doenet/vscode-extension` / `doenet-vscode-extension`
+- `@doenet/prefigure` (published, but never listed in a changeset — see above)
+
+So `@doenet/i18n`, `@doenet/utils`, `@doenet/parser`, `@doenet/ui-components`, `@doenet/static-assets`, `@doenet/lsp-tools`, `@doenet/lsp`, `@doenet/codemirror`, `@doenet/virtual-keyboard`, `@doenet/doenetml-worker`, `@doenet/doenetml-worker-javascript`, `@doenet/debug-hooks` and the rest never appear in a changeset. A change to any of them is a change to `@doenet/doenetml`.
+
+Don't infer "never published" from `"private": true` alone, and don't infer "published" from its absence. Most packages in this repo — including every published one (`@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, `@doenet/prefigure`) — carry `"private": true` at the root and are published anyway, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with `private: false`.
+
+**The two reliable signals**, either of which settles it:
+
+1. The package's `vite.config.ts` runs `scripts/transform-package-json.ts`. Internal packages have no such step.
+2. The package appears in the publish targets in `.github/workflows/publish.yml` (`npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07`, plus `@doenet/vscode-extension`), or has a publish workflow of its own (`publish-prefigure.yml`).
+
+Check one of those before adding an unfamiliar package to a changeset — the enumeration above is a convenience, and new packages land as internal by default.
 
 ## Which packages to list
 

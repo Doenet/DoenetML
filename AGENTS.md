@@ -28,6 +28,7 @@ Both use Redux for state management (`packages/doenetml/src/state/`) and share a
 - **`@doenet/standalone`, `@doenet/doenetml-iframe`** — bundled variants of the main library for different hosting scenarios
 - **`@doenet/codemirror`** — code editor integration
 - **`@doenet/ui-components`** — reusable UI components (used across doenetml, prefigure, etc.)
+- **`@doenet/i18n`** — message catalogs (Fluent `.ftl`) and the translator/locale-negotiation utilities shared by the viewer, the worker, and the LSP. See [`packages/i18n/README.md`](packages/i18n/README.md); run `npm run lint:i18n` after touching a catalog.
 - **`packages/vscode-extension`** — VS Code extension with LSP support (`packages/lsp`)
 
 ## Monorepo Structure
@@ -158,7 +159,7 @@ This includes review-comment replies posted via `gh api ... /replies`, full revi
 
 ## Changesets
 
-The repo uses Changesets for version management. Configuration is in `.changeset/config.json`. **When creating or editing a file under `.changeset/`, invoke the [`changesets`](.github/skills/changesets/SKILL.md) skill** — it documents which `@doenet/*` packages a changeset must list, which must never appear, how version propagation works (one-directional, forward to consumers only), the private-flag trap, and the changeset file format. Don't pattern-match the package list from a sibling `.changeset/*.md` without consulting the skill — recurring mistakes (notably adding `@doenet/lsp-tools` or `@doenet/static-assets`) have crept in that way.
+The repo uses Changesets for version management. Configuration is in `.changeset/config.json`. **When creating or editing a file under `.changeset/`, invoke the [`changesets`](.github/skills/changesets/SKILL.md) skill** — it documents which `@doenet/*` packages a changeset must list, which must never appear, how version propagation works (one-directional, forward to consumers only), the private-flag trap, and the changeset file format. Don't pattern-match the package list from a sibling `.changeset/*.md` without consulting the skill — recurring mistakes have crept in that way, always the same shape: listing an internal package (`@doenet/utils`, `@doenet/lsp-tools`, `@doenet/static-assets`, …) instead of the published packages that carry the change to users. Only six packages are ever published; every other `@doenet/*` package is bundled into `@doenet/doenetml`.
 
 ## Key State & Data Flow
 

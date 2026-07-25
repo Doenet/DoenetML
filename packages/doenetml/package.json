@@ -74,6 +74,7 @@
                 "../doenetml-worker:build",
                 "../codemirror:build",
                 "../ui-components:build",
+                "../i18n:build",
                 "../utils:build",
                 "../virtual-keyboard:build",
                 "../parser:build",

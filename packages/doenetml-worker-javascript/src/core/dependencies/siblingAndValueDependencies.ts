@@ -386,3 +386,18 @@ export class FlagDependency extends ValueDependency {
         this.value = this.dependencyHandler.core.flags[this.flagName];
     }
 }
+
+/**
+ * The content locale the hosting page asked for, as a BCP-47 tag.
+ *
+ * Fixed for a core's lifetime, like flags: changing the content language
+ * changes every computed string in the document, so the viewer rebuilds the
+ * core rather than trying to update in place.
+ */
+export class LocaleDependency extends ValueDependency {
+    static dependencyType = "locale";
+
+    setUpParameters() {
+        this.value = this.dependencyHandler.core.localeData.locale;
+    }
+}

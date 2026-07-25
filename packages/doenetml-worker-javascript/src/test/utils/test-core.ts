@@ -42,6 +42,8 @@ export async function createTestCore({
     requestedVariantIndex = 1,
     flags: specifiedFlags = {},
     theme,
+    documentLocale,
+    localeResources,
     styleOverrides,
     initializeCounters = {},
     requestSolutionView = async () => ({ allowView: true }),
@@ -52,6 +54,10 @@ export async function createTestCore({
     requestedVariantIndex?: number;
     flags?: DoenetMLFlagsSubset;
     theme?: "dark" | "light";
+    /** BCP-47 tag the hosting page asks for; `<document lang>` overrides it. */
+    documentLocale?: string;
+    /** FTL catalogs keyed by locale, as `setLocaleData` would deliver them. */
+    localeResources?: Record<string, string>;
     styleOverrides?: ReaderStyleOverrides | null;
     initializeCounters?: Record<string, number>;
     requestSolutionView?: (componentIdx: number) => Promise<{
@@ -139,6 +145,12 @@ export async function createTestCore({
 
     core.setSource(doenetML);
     core.setFlags(flags);
+    if (documentLocale !== undefined || localeResources !== undefined) {
+        core.setLocaleData({
+            locale: documentLocale ?? "en",
+            resources: localeResources ?? {},
+        });
+    }
 
     await core.initializeWorker({
         activityId: "",

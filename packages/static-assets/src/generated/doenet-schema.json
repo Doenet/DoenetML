@@ -64733,6 +64733,11 @@
                     "name": "type",
                     "description": "Document type identifier.",
                     "type": "text"
+                },
+                {
+                    "name": "lang",
+                    "description": "BCP-47 language tag for the document's content, e.g. \"es\" or \"es-MX\". Overrides the locale supplied by the hosting page.",
+                    "type": "text"
                 }
             ],
             "properties": [
@@ -64835,6 +64840,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The document's title."
+                },
+                {
+                    "name": "locale",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The BCP-47 language tag in effect for the document's content."
                 }
             ],
             "top": true,

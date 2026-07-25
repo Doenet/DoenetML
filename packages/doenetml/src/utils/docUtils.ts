@@ -7,6 +7,12 @@ import {
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
+import {
+    DEFAULT_LOCALE,
+    declaredDocumentLocale,
+    normalizeLocaleTag,
+} from "@doenet/i18n";
+import { readDocumentLang } from "./documentLang";
 
 export type CoreWorkerHandle = {
     /** The Comlink-wrapped async API for the core worker. */
@@ -228,6 +234,8 @@ export async function initializeCoreWorker({
     attemptNumber,
     documentStructureCallback,
     fetchExternalDoenetML,
+    documentLocale,
+    localeResources,
 }: {
     coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
@@ -238,6 +246,16 @@ export async function initializeCoreWorker({
     attemptNumber: number;
     documentStructureCallback?: Function;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    /**
+     * BCP-47 tag for the content's language. An authored `<document lang>`
+     * overrides it — the author knows what language they wrote in.
+     */
+    documentLocale?: string | null;
+    /**
+     * FTL catalogs for the content, keyed by locale. English is bundled into
+     * the worker and never needs to be supplied.
+     */
+    localeResources?: Record<string, string> | null;
 }) {
     let dast = lezerToDast(doenetML);
 
@@ -250,6 +268,16 @@ export async function initializeCoreWorker({
     await coreWorker.setCoreType("javascript");
     await coreWorker.setSource({ source: doenetML, dast });
     await coreWorker.setFlags({ flags });
+    // Sent unconditionally, even with nothing configured: a reused worker
+    // (the shared-core pool) would otherwise keep the previous document's
+    // locale. Normalized here so the tag the core stores is canonical for
+    // everything that later negotiates against it.
+    await coreWorker.setLocaleData({
+        localeData: {
+            locale: normalizeLocaleTag(documentLocale ?? "") || DEFAULT_LOCALE,
+            resources: localeResources ?? {},
+        },
+    });
 
     const result = await coreWorker.initializeJavascriptCore({
         activityId,
@@ -267,5 +295,22 @@ export async function initializeCoreWorker({
         },
     });
 
-    return result;
+    // The content language somebody declared, for the `lang` attribute on the
+    // rendered wrapper. Resolved from the DAST we already parsed rather than
+    // asked of the core, so it is available before the first render — a screen
+    // reader should not have to wait for evaluation to learn what language it
+    // is reading. The core resolves the same value with the same helper for
+    // its own `document.locale` state variable.
+    //
+    // `undefined` when neither the document nor the host declared a language.
+    // The core still treats such content as English, but the wrapper stays
+    // silent rather than asserting `lang="en"` over an embedding page that
+    // said `<html lang="es">` — an unfounded guess is worse for a screen
+    // reader than inheriting the page's.
+    const declaredLocale = declaredDocumentLocale(
+        readDocumentLang(dast),
+        documentLocale,
+    );
+
+    return { ...result, declaredDocumentLocale: declaredLocale };
 }

@@ -11,6 +11,7 @@ import {
     type ComponentIdx,
     type ReaderStyleOverrides,
 } from "@doenet/utils";
+import { DEFAULT_LOCALE_DATA, type LocaleData } from "@doenet/i18n";
 import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
@@ -60,6 +61,7 @@ export interface CoreOptions {
     requestedVariantIndex?: number;
     initializeCounters?: Record<string, number>;
     theme?: "dark" | "light";
+    localeData?: LocaleData;
     styleOverrides?: ReaderStyleOverrides | null;
     prerender?: boolean;
     stateVariableChanges?: string;
@@ -132,6 +134,11 @@ export default class Core {
     cid: string | null;
     flags: Record<string, any>;
     theme?: "dark" | "light";
+    /**
+     * The content locale and message catalogs supplied by the hosting page.
+     * Read via the `locale` dependency type; fixed for the core's lifetime.
+     */
+    localeData: LocaleData;
     styleOverrides?: ReaderStyleOverrides | null;
     initializeCounters: Record<string, number>;
 
@@ -230,6 +237,7 @@ export default class Core {
         requestedVariantIndex,
         initializeCounters = {},
         theme,
+        localeData = DEFAULT_LOCALE_DATA,
         styleOverrides,
         prerender = false,
         stateVariableChanges: stateVariableChangesString,
@@ -283,6 +291,7 @@ export default class Core {
         this.numerics = new (Numerics as any)();
         this.flags = flags;
         this.theme = theme;
+        this.localeData = localeData;
         this.styleOverrides = styleOverrides;
 
         this.getStateVariableValue = this.getStateVariableValue.bind(this);

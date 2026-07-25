@@ -1,5 +1,6 @@
 import Core from "./Core";
 import type { ReaderStyleOverrides } from "@doenet/utils";
+import { DEFAULT_LOCALE_DATA, type LocaleData } from "@doenet/i18n";
 import { handleNavigatingToComponent } from "./core/NavigationHandler";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
@@ -60,6 +61,7 @@ export class PublicDoenetMLCore {
     coreBaseArgs?: {
         doenetML: string;
         flags: Record<string, unknown>;
+        localeData: LocaleData;
         activityId: string;
         docId: string;
         requestedVariantIndex: number;
@@ -73,6 +75,7 @@ export class PublicDoenetMLCore {
     initialized = false;
     doenetML = "";
     flags: Record<string, unknown> = {};
+    localeData: LocaleData = DEFAULT_LOCALE_DATA;
     addNodesToResolver?: (
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
@@ -95,6 +98,17 @@ export class PublicDoenetMLCore {
 
     setFlags(flags: Record<string, unknown>) {
         this.flags = flags;
+    }
+
+    /**
+     * Set the content locale and the message catalogs to translate with.
+     *
+     * Catalogs arrive as plain FTL strings rather than URLs: the worker runs
+     * from a blob or an inlined script depending on the bundling variant, and
+     * cannot reliably resolve a relative fetch in all of them.
+     */
+    setLocaleData(localeData: LocaleData) {
+        this.localeData = localeData;
     }
 
     async initializeWorker({
@@ -153,6 +167,7 @@ export class PublicDoenetMLCore {
         this.coreBaseArgs = {
             doenetML: this.doenetML,
             flags: this.flags,
+            localeData: this.localeData,
             activityId,
             docId,
             requestedVariantIndex,

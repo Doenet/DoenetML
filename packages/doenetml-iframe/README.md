@@ -80,8 +80,8 @@ the inner viewer applies them with the same semantics as the in-process
 
 | Prop change                                                                | Effect                                                                                                      |
 | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `render`, `darkMode`, `styleOverrides`, `flags`, `answerResponseCounts`, callbacks, … | applied live, no reload (flipping `render` false→true starts the document in the already-loaded realm)       |
-| `doenetML`, `activityId`, `docId`, `attemptNumber`, `requestedVariantIndex` | the document's core re-initializes **inside the same iframe realm** — the multi-MB bundle is not re-parsed   |
+| `render`, `darkMode`, `styleOverrides`, `uiLocale`, `flags`, `answerResponseCounts`, callbacks, … | applied live, no reload (flipping `render` false→true starts the document in the already-loaded realm)       |
+| `doenetML`, `activityId`, `docId`, `attemptNumber`, `requestedVariantIndex`, `documentLocale`, `localeResources` | the document's core re-initializes **inside the same iframe realm** — the multi-MB bundle is not re-parsed   |
 | `initialState`, `forceDisable` and the other `force*` props, `userId`       | read at (re-)initialization only, exactly like the in-process viewer — change `docId`/`attemptNumber` or remount via `key=` to apply |
 | `standaloneUrl`, `cssUrl`, `doenetmlVersion` (or a version change detected in `doenetML`), `useSharedCoreWorker` | a different bundle/realm is required, so the iframe reloads                                                   |
 
@@ -182,6 +182,32 @@ inner viewer.
 > older version is pinned (via `doenetmlVersion` or detected from the
 > document's `xmlns`), the wrapper falls back to its historical behavior of
 > reloading the iframe on any prop change.
+
+### Language (`documentLocale` / `uiLocale`)
+
+Doenet keeps the language of the **content** apart from the language of the
+**chrome** (buttons, panel headers, diagnostics), because they genuinely
+differ — a Spanish-speaking student may work a French physics problem.
+
+- `documentLocale` — BCP-47 tag for the content's language (`"es"`,
+  `"es-MX"`). Defaults to `"en"`. An authored `<document lang="es-MX">`
+  overrides it: the author knows what language they wrote in, the host only
+  knows what it would prefer to receive.
+- `uiLocale` — BCP-47 tag for the chrome's language. Defaults to following
+  `documentLocale`, so a fully Spanish activity is fully Spanish without the
+  host configuring anything.
+- `localeResources` — FTL message catalogs keyed by locale, for locales other
+  than English. English is bundled, so a host that only needs English passes
+  nothing. Nothing is translated yet, so there are no catalogs to supply today.
+
+When a language is declared — by either route — the rendered container carries
+a matching `lang` attribute, so screen readers pronounce the content with the
+right voice and rules. When neither declares one it carries no `lang` at all
+and inherits the embedding page's, a better guess than asserting English over
+a page that said `<html lang="es">`.
+
+Passing `null` (or dropping the prop) clears any of the three, exactly as with
+`styleOverrides`.
 
 ### Windowed mounting (`mountPolicy`)
 

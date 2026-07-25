@@ -10,14 +10,16 @@ Include
 <script type="module" src="doenet-standalone.js"></script>
 ```
 
-in your webpage. Then you can call the globally-exported function `renderDoenetToContainer`, which expects
-a `<div>` element containing a `<source type="text/doenetml"></source>` as a child.
+in your webpage. Then you can call the globally-exported function
+`renderDoenetViewerToContainer` (or `renderDoenetEditorToContainer` for the
+editor), which expects a `<div>` element containing a
+`<script type="text/doenetml"></script>` as a child.
 
 For example
 
 ```html
 <script type="module">
-    renderDoenetToContainer(document.querySelector(".doenetml-applet"));
+    renderDoenetViewerToContainer(document.querySelector(".doenetml-applet"));
 </script>
 
 <div class="doenetml-applet">
@@ -36,12 +38,15 @@ For example
 </div>
 ```
 
-To pass attributes to the DoenetML react component, you may write them in kebob-case prefixed with `data-doenet`.
+To pass attributes to the DoenetML react component, write them in kebob-case
+prefixed with `data-doenet` **on the container element** — the same element you
+hand to `renderDoenet{Viewer,Editor}ToContainer`. Attributes on the inner
+`<script type="text/doenetml">` are part of the source payload and are not read.
 For example,
 
 ```html
-<div class="doenetml-applet">
-    <script type="text/doenetml" data-doenet-read-only="true">
+<div class="doenetml-applet" data-doenet-read-only="true">
+    <script type="text/doenetml">
         <graph showNavigation="false">
           <line equation="x=-6" styleNumber="4" />
         </graph>
@@ -73,11 +78,8 @@ config keys / React props) control this:
 | `data-doenet-use-existing-mathjax`    | `useExistingMathjax` | Force reuse of a host MathJax even when it is not yet detectable (host loads it after Doenet). |
 
 ```html
-<div class="doenetml-applet">
-    <script
-        type="text/doenetml"
-        data-doenet-use-existing-mathjax="true"
-    >
+<div class="doenetml-applet" data-doenet-use-existing-mathjax="true">
+    <script type="text/doenetml">
         <p>$x^2 + y^2$</p>
     </script>
 </div>
@@ -90,6 +92,44 @@ only the first one to mount decides which MathJax is loaded.
 when injecting its own copy. When reusing a host-provided engine, the host's
 version governs typesetting; MathJax 3.x–4.x are supported for reuse (they
 share the typesetting API Doenet relies on). MathJax 2 is not supported.
+
+## Language
+
+Doenet keeps two languages apart: the language of the **content** and the
+language of the **chrome** (buttons, panel headers, diagnostics). They
+genuinely differ — a Spanish-speaking student may work a French physics
+problem.
+
+| Attribute                       | Prop / config key | Meaning                                                                    |
+| ------------------------------- | ----------------- | -------------------------------------------------------------------------- |
+| `data-doenet-document-locale`   | `documentLocale`  | BCP-47 tag for the content's language (`es`, `es-MX`). Defaults to `en`.   |
+| `data-doenet-ui-locale`         | `uiLocale`        | BCP-47 tag for the chrome's language. Defaults to following `documentLocale`. |
+
+```html
+<div class="doenetml-applet" data-doenet-document-locale="es-MX">
+    <script type="text/doenetml">
+        <p>Hola</p>
+    </script>
+</div>
+```
+
+An authored `<document lang="es-MX">` overrides `documentLocale`: the author
+knows what language they wrote in, the host only knows what it would prefer to
+receive.
+
+When a language is declared — by either route — the rendered container carries
+a matching `lang` attribute, so screen readers pronounce the content with the
+right voice and rules. When neither declares one, the container carries no
+`lang` at all and inherits the embedding page's, which is a better guess than
+asserting English over a page that said `<html lang="es">`.
+
+Changing `documentLocale` rebuilds the document, since it changes every string
+the core computes; `uiLocale` updates in place.
+
+Translated message catalogs (`localeResources`) are supplied only through the
+`renderDoenet{Viewer,Editor}ToContainer` config object — they are FTL sources
+keyed by locale, too large to ride an HTML attribute. Nothing is translated
+yet, so hosts have no catalogs to supply today.
 
 ## Editor control handle
 

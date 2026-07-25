@@ -4,6 +4,7 @@ import {
     getVariantsForDescendantsForUniqueVariants,
 } from "../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
+import { resolveDocumentLocale } from "@doenet/i18n";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 import {
     returnScoredSectionAttributes,
@@ -66,6 +67,12 @@ export default class Document extends BaseComponent {
         attributes.type = {
             createPrimitiveOfType: "string",
             description: "Document type identifier.",
+        };
+
+        attributes.lang = {
+            createPrimitiveOfType: "string",
+            description:
+                'BCP-47 language tag for the document\'s content, e.g. "es" or "es-MX". Overrides the locale supplied by the hosting page.',
         };
 
         return attributes;
@@ -228,6 +235,70 @@ export default class Document extends BaseComponent {
                         ],
                     };
                 }
+            },
+        };
+
+        // The content's language, as a BCP-47 tag. Drives translation of the
+        // prose the core computes (style descriptions and the like) and the
+        // `lang` attribute of the rendered document, which is what lets a
+        // screen reader pronounce the content correctly.
+        //
+        // Precedence: an authored `lang` attribute wins over the locale the
+        // hosting page supplied via `setLocaleData`, which falls back to "en".
+        // The author knows what language they wrote in; the host only knows
+        // what language it would prefer.
+        //
+        // Known Phase 0 gap: only the *outer* document's language reaches the
+        // DOM. The viewer puts `lang` on the wrapper it renders around the
+        // whole activity; a nested `<document lang="de">` resolves this state
+        // variable correctly but renders through the section renderer, which
+        // emits no `lang`. Closing that needs `forRenderer` here plus renderer
+        // changes, which belongs with the phase that first renders translated
+        // content (#1515).
+        stateVariableDefinitions.locale = {
+            description:
+                "The BCP-47 language tag in effect for the document's content.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                lang: {
+                    dependencyType: "attributePrimitive",
+                    attributeName: "lang",
+                },
+                hostLocale: {
+                    dependencyType: "locale",
+                },
+                documentAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "document",
+                    variableNames: ["locale"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                // A blank `lang` counts as absent, matching
+                // `resolveDocumentLocale`.
+                const lang = dependencyValues.lang?.trim();
+                if (!lang && dependencyValues.documentAncestor) {
+                    // Nested inside another document, and this one didn't
+                    // declare a language of its own: inherit rather than
+                    // jumping back to the host's locale.
+                    return {
+                        setValue: {
+                            locale: dependencyValues.documentAncestor
+                                .stateValues.locale,
+                        },
+                    };
+                }
+                return {
+                    setValue: {
+                        locale: resolveDocumentLocale(
+                            lang,
+                            dependencyValues.hostLocale,
+                        ),
+                    },
+                };
             },
         };
 
