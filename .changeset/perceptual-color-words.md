@@ -1,5 +1,7 @@
 ---
-"@doenet/utils": patch
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
 ---
 
 Improve the hex/rgb-to-color-word algorithm used for style descriptions.
