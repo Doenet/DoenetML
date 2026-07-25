@@ -23,6 +23,7 @@ import type {
     NodeList,
 } from "@doenet/doenetml-worker-rust";
 import type { DastRoot } from "@doenet/parser";
+import type { LocaleData } from "@doenet/i18n";
 import {
     CancelAnimationFrame,
     CopyToClipboard,
@@ -315,6 +316,38 @@ export class CoreWorker {
             // Always release the queue, even if WASM init or set_flags throws,
             // so a transient failure doesn't deadlock all later calls
             // (Doenet/DoenetApps#2957).
+            resolve();
+        }
+    }
+
+    /**
+     * Supply the content locale and the message catalogs to translate with.
+     *
+     * Optional — the core defaults to English — so, unlike `setFlags`, this is
+     * not a precondition of `initializeJavascriptCore`. Catalogs cross as
+     * plain FTL strings rather than URLs: depending on the bundling variant
+     * this worker runs from a blob or an inlined script and cannot reliably
+     * resolve a relative fetch.
+     *
+     * Only the JavaScript core consumes this; the Rust core computes no prose.
+     */
+    async setLocaleData(args: { localeData: LocaleData }) {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        try {
+            if (this.core_type === "javascript") {
+                if (!this.javascriptCore) {
+                    this.javascriptCore = new PublicDoenetMLCoreJavascript();
+                }
+                this.javascriptCore.setLocaleData(args.localeData);
+            }
+        } finally {
+            // Always release the queue, so a failure here cannot deadlock
+            // every later call (Doenet/DoenetApps#2957).
             resolve();
         }
     }

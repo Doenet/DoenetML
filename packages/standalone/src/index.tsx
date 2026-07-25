@@ -111,13 +111,16 @@ export function renderDoenetViewerToContainer(
         const value = normalizeBooleanAttr(attr.value);
         attrs[name] = value;
     }
-    // `mathjaxUrl` / `useExistingMathjax` are viewer props, not flags — pull
-    // them out so they reach `DoenetViewer` directly instead of `flags`.
+    // `mathjaxUrl` / `useExistingMathjax` / the locale settings are viewer
+    // props, not flags — pull them out so they reach `DoenetViewer` directly
+    // instead of `flags`.
     const {
         addVirtualKeyboard,
         sendResizeEvents,
         mathjaxUrl,
         useExistingMathjax,
+        documentLocale,
+        uiLocale,
         ...flags
     } = attrs;
 
@@ -169,6 +172,8 @@ export function renderDoenetViewerToContainer(
             flags={flags}
             mathjaxUrl={mathjaxUrl}
             useExistingMathjax={useExistingMathjax}
+            documentLocale={documentLocale}
+            uiLocale={uiLocale}
             onInit={(r) => {
                 if (sendResizeEvents) {
                     resizeWatcher.watch(r);
@@ -241,8 +246,14 @@ export function renderDoenetEditorToContainer(
     }
 
     // DoenetEditor doesn't accept flags, so the only attributes used are
-    // addVirtualKeyboard and the MathJax loading controls.
-    const { addVirtualKeyboard, mathjaxUrl, useExistingMathjax } = attrs;
+    // addVirtualKeyboard, the MathJax loading controls, and the locales.
+    const {
+        addVirtualKeyboard,
+        mathjaxUrl,
+        useExistingMathjax,
+        documentLocale,
+        uiLocale,
+    } = attrs;
 
     // Hold pending control actions until the inner DoenetEditor commits
     // (callback ref fires). React commits asynchronously after `createRoot.render`,
@@ -313,6 +324,8 @@ export function renderDoenetEditorToContainer(
             addVirtualKeyboard={addVirtualKeyboard}
             mathjaxUrl={mathjaxUrl}
             useExistingMathjax={useExistingMathjax}
+            documentLocale={documentLocale}
+            uiLocale={uiLocale}
             {...config}
         />,
     );

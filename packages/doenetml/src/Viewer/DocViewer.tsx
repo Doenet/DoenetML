@@ -21,6 +21,7 @@ import * as Comlink from "comlink";
 import { MdError } from "react-icons/md";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
+import { resolveDocumentLocale } from "@doenet/i18n";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
@@ -64,6 +65,17 @@ export const DocContext = createContext<{
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
+    /**
+     * The content's language, after `<document lang>` has had its say. Renderers
+     * that emit prose alongside core-computed content should follow this.
+     */
+    documentLocale?: string;
+    /**
+     * The language of the chrome — buttons, panel headers, diagnostics.
+     * Defaults to `documentLocale`, so a fully Spanish activity is fully
+     * Spanish without the host configuring anything.
+     */
+    uiLocale?: string;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
     /**
@@ -102,6 +114,9 @@ export function DocViewer({
     doenetViewerUrl,
     doenetImagesUrl,
     darkMode,
+    documentLocale,
+    uiLocale,
+    localeResources,
     styleOverrides,
     showAnswerResponseButton = false,
     answerResponseCounts = {},
@@ -143,6 +158,16 @@ export function DocViewer({
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
+    /**
+     * BCP-47 tag for the content's language, e.g. `"es-MX"`. An authored
+     * `<document lang>` overrides it. Changing it rebuilds the core: every
+     * string the core computes depends on it.
+     */
+    documentLocale?: string | null;
+    /** BCP-47 tag for the chrome's language. Defaults to `documentLocale`. */
+    uiLocale?: string | null;
+    /** FTL catalogs keyed by locale. English is bundled and never needed here. */
+    localeResources?: Record<string, string> | null;
     styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -404,6 +429,7 @@ export function DocViewer({
     const lastDocId = useRef<string | null>(null);
     const lastAttemptNumber = useRef<number | null>(null);
     const lastRequestedVariantIndex = useRef<number | null>(null);
+    const lastDocumentLocale = useRef<string | null>(null);
 
     const [stage, setStage] = useState<
         | "initial"
@@ -484,6 +510,13 @@ export function DocViewer({
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
+    // The content language actually in effect, which the DoenetML can override
+    // with `<document lang>`. Seeded from the prop so the wrapper is labeled
+    // correctly from the first paint, then corrected once the source is parsed.
+    const [effectiveDocumentLocale, setEffectiveDocumentLocale] = useState(() =>
+        resolveDocumentLocale(undefined, documentLocale),
+    );
+
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
     // core can be force-released even when its Comlink `terminate()` would
@@ -531,6 +564,8 @@ export function DocViewer({
         doenetViewerUrl,
         doenetImagesUrl,
         darkMode,
+        documentLocale: effectiveDocumentLocale,
+        uiLocale: uiLocale || effectiveDocumentLocale,
         showAnswerResponseButton,
         answerResponseCounts,
         reportGraphElementUp,
@@ -811,6 +846,32 @@ export function DocViewer({
         });
     }, [styleOverrides]);
 
+    /**
+     * Initialize a core worker for this document, recording the content
+     * language it resolved to.
+     *
+     * The effective locale depends on the DoenetML (an authored
+     * `<document lang>` overrides the prop), so it isn't known until the
+     * source has been parsed — which `initializeCoreWorker` does anyway.
+     */
+    async function initializeCoreWorkerForDoc(worker: Remote<CoreWorker>) {
+        const result = await initializeCoreWorker({
+            coreWorker: worker,
+            doenetML,
+            flags,
+            activityId,
+            docId,
+            requestedVariantIndex,
+            attemptNumber,
+            documentStructureCallback,
+            fetchExternalDoenetML,
+            documentLocale,
+            localeResources,
+        });
+        setEffectiveDocumentLocale(result.effectiveDocumentLocale);
+        return result;
+    }
+
     async function reinitializeCoreAndTerminateAnimations() {
         if (coreWorker.current !== null) {
             preventMoreAnimations.current = true;
@@ -830,17 +891,7 @@ export function DocViewer({
         coreCreated.current = false;
         coreCreationInProgress.current = false;
 
-        await initializeCoreWorker({
-            coreWorker: remote,
-            doenetML,
-            flags,
-            activityId,
-            docId,
-            requestedVariantIndex,
-            attemptNumber,
-            documentStructureCallback,
-            fetchExternalDoenetML,
-        });
+        await initializeCoreWorkerForDoc(remote);
 
         return remote;
     }
@@ -1544,17 +1595,7 @@ export function DocViewer({
             // the initial-pass `!render` branch pre-created a worker to report
             // document structure, or a document/parameter change reset
             // `coreCreated` while keeping the existing worker.
-            await initializeCoreWorker({
-                coreWorker: thisCoreWorker,
-                doenetML,
-                flags,
-                activityId,
-                docId,
-                requestedVariantIndex,
-                attemptNumber,
-                documentStructureCallback,
-                fetchExternalDoenetML,
-            });
+            await initializeCoreWorkerForDoc(thisCoreWorker);
         }
 
         // [Doenet/DoenetApps#2957] Test seam — simulate a handshake-phase
@@ -1919,17 +1960,7 @@ export function DocViewer({
         // Fire-and-forget: this only primes the worker so it can report the
         // document structure; core itself isn't started until `render` flips
         // true. Surface failures rather than swallowing the promise.
-        initializeCoreWorker({
-            coreWorker: remote,
-            doenetML,
-            flags,
-            activityId,
-            docId,
-            requestedVariantIndex,
-            attemptNumber,
-            documentStructureCallback,
-            fetchExternalDoenetML,
-        }).catch((e) => {
+        initializeCoreWorkerForDoc(remote).catch((e) => {
             console.warn(
                 "DocViewer: core worker initialization (no-render path) failed",
                 e,
@@ -1961,6 +1992,18 @@ export function DocViewer({
     if (lastRequestedVariantIndex.current !== requestedVariantIndex) {
         lastRequestedVariantIndex.current = requestedVariantIndex;
         changedState = true;
+    }
+
+    // The content language is fixed for a core's lifetime — it feeds every
+    // string the core computes — so changing it rebuilds the core rather than
+    // updating in place, the way a changed `doenetML` does. (`uiLocale` is
+    // main-thread only and needs no rebuild.)
+    if (lastDocumentLocale.current !== (documentLocale ?? null)) {
+        const firstPass = lastDocumentLocale.current === null && initialPass;
+        lastDocumentLocale.current = documentLocale ?? null;
+        if (!firstPass) {
+            changedState = true;
+        }
     }
 
     if (changedState) {
@@ -2133,6 +2176,7 @@ export function DocViewer({
             <div
                 style={viewerStyle}
                 className="doenet-viewer"
+                lang={effectiveDocumentLocale}
                 ref={viewerContainerRef}
             >
                 {errorOverview}

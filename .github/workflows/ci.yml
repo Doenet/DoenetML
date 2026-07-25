@@ -102,6 +102,9 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
+            - name: Lint message catalogs
+              run: npm run lint:i18n
+
             - name: Test
               run: npm run test:all-no-worker-js
 

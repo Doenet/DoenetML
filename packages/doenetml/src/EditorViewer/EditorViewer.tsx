@@ -90,6 +90,12 @@ type EditorViewerProps = {
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
     darkMode?: ResolvedTheme;
+    /** BCP-47 tag for the previewed content's language. See `DoenetViewer`. */
+    documentLocale?: string | null;
+    /** BCP-47 tag for the chrome's language. Defaults to `documentLocale`. */
+    uiLocale?: string | null;
+    /** FTL catalogs keyed by locale; English is bundled. */
+    localeResources?: Record<string, string> | null;
     styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -180,6 +186,9 @@ export const EditorViewer = React.forwardRef<
         doenetViewerUrl,
         doenetImagesUrl,
         darkMode = "light",
+        documentLocale,
+        uiLocale,
+        localeResources,
         styleOverrides,
         showAnswerResponseButton = false,
         answerResponseCounts = {},
@@ -1178,6 +1187,9 @@ export const EditorViewer = React.forwardRef<
                     doenetViewerUrl={doenetViewerUrl}
                     doenetImagesUrl={doenetImagesUrl}
                     darkMode={darkMode}
+                    documentLocale={documentLocale}
+                    uiLocale={uiLocale}
+                    localeResources={localeResources}
                     styleOverrides={styleOverrides}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}

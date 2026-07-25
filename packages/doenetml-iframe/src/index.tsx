@@ -1324,8 +1324,21 @@ function serializePropsSnapshot(
             snapshot[key] = val;
         }
     }
-    if (snapshot.styleOverrides === undefined) {
-        snapshot.styleOverrides = null;
+    // `styleOverrides` clears by being passed `null` *or* dropped, and both
+    // must restore authored styles. The locale props behave the same way:
+    // dropping `documentLocale` means "back to English", dropping `uiLocale`
+    // means "follow the document", and dropping `localeResources` means
+    // "English only" — each has to reach the iframe as an explicit `null`
+    // rather than vanishing from the snapshot.
+    for (const key of [
+        "styleOverrides",
+        "documentLocale",
+        "uiLocale",
+        "localeResources",
+    ]) {
+        if (snapshot[key] === undefined) {
+            snapshot[key] = null;
+        }
     }
     return JSON.stringify(snapshot);
 }

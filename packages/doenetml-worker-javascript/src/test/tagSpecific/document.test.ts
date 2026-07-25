@@ -314,4 +314,57 @@ describe("Document tag tests @group4", async () => {
         const documentIdx = await resolvePathToNodeIdx("_document1");
         expect(stateVariables[documentIdx].componentType).eq("document");
     });
+
+    // i18n Phase 0 (#1515): `<document lang>` declares the content's language.
+    // Precedence is authored `lang` > the locale the hosting page supplied via
+    // `setLocaleData` > "en" — the author knows what language they wrote in,
+    // the host only knows what it would prefer to receive.
+    describe("document lang / locale", () => {
+        async function localeOf(
+            doenetML: string,
+            documentLocale?: string,
+        ): Promise<string> {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                documentLocale,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("_document1")]
+                .stateValues.locale;
+        }
+
+        it("defaults to en", async () => {
+            expect(await localeOf(`<p>hello</p>`)).eq("en");
+        });
+
+        it("uses the host locale when the document declares none", async () => {
+            expect(await localeOf(`<p>hola</p>`, "es-MX")).eq("es-MX");
+        });
+
+        it("lets an authored lang override the host locale", async () => {
+            expect(
+                await localeOf(
+                    `<document lang="fr"><p>bonjour</p></document>`,
+                    "es-MX",
+                ),
+            ).eq("fr");
+        });
+
+        it("normalizes a hand-typed tag to canonical casing", async () => {
+            // Authors type `lang` by hand; `es-mx` has to negotiate against
+            // the `es-MX` catalog the same as the canonical form.
+            expect(
+                await localeOf(`<document lang="ES-mx"><p>hola</p></document>`),
+            ).eq("es-MX");
+        });
+
+        it("ignores a blank lang and falls back", async () => {
+            expect(
+                await localeOf(`<document lang=" "><p>hi</p></document>`, "de"),
+            ).eq("de");
+        });
+    });
 });

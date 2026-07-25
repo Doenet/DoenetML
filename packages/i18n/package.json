@@ -1,0 +1,48 @@
+{
+    "name": "@doenet/i18n",
+    "type": "module",
+    "description": "Message catalogs and translation utilities for DoenetML",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "test": "vitest",
+        "build": "wireit",
+        "codegen": "vite-node ./scripts/generate-message-keys.ts",
+        "lint:i18n": "vite-node ./scripts/lint-catalogs.ts"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "locales/**/*.ftl",
+                "vite.config.ts",
+                "tsconfig.json",
+                "package.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.map",
+                "dist/**/*.d.ts"
+            ]
+        }
+    },
+    "dependencies": {
+        "@fluent/bundle": "^0.19.1",
+        "@fluent/langneg": "^0.7.0"
+    },
+    "devDependencies": {
+        "@fluent/syntax": "^0.19.0"
+    }
+}

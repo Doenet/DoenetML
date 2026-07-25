@@ -7,6 +7,8 @@ import {
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
+import { DEFAULT_LOCALE, resolveDocumentLocale } from "@doenet/i18n";
+import { readDocumentLang } from "./documentLang";
 
 export type CoreWorkerHandle = {
     /** The Comlink-wrapped async API for the core worker. */
@@ -228,6 +230,8 @@ export async function initializeCoreWorker({
     attemptNumber,
     documentStructureCallback,
     fetchExternalDoenetML,
+    documentLocale,
+    localeResources,
 }: {
     coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
@@ -238,6 +242,16 @@ export async function initializeCoreWorker({
     attemptNumber: number;
     documentStructureCallback?: Function;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    /**
+     * BCP-47 tag for the content's language. An authored `<document lang>`
+     * overrides it — the author knows what language they wrote in.
+     */
+    documentLocale?: string | null;
+    /**
+     * FTL catalogs for the content, keyed by locale. English is bundled into
+     * the worker and never needs to be supplied.
+     */
+    localeResources?: Record<string, string> | null;
 }) {
     let dast = lezerToDast(doenetML);
 
@@ -250,6 +264,12 @@ export async function initializeCoreWorker({
     await coreWorker.setCoreType("javascript");
     await coreWorker.setSource({ source: doenetML, dast });
     await coreWorker.setFlags({ flags });
+    await coreWorker.setLocaleData({
+        localeData: {
+            locale: documentLocale || DEFAULT_LOCALE,
+            resources: localeResources ?? {},
+        },
+    });
 
     const result = await coreWorker.initializeJavascriptCore({
         activityId,
@@ -267,5 +287,16 @@ export async function initializeCoreWorker({
         },
     });
 
-    return result;
+    // The effective content language, for the `lang` attribute on the rendered
+    // wrapper. Resolved from the DAST we already parsed rather than asked of
+    // the core, so it is available before the first render — a screen reader
+    // should not have to wait for evaluation to learn what language it is
+    // reading. The core resolves the same value with the same helper for its
+    // own `document.locale` state variable.
+    const effectiveDocumentLocale = resolveDocumentLocale(
+        readDocumentLang(dast),
+        documentLocale,
+    );
+
+    return { ...result, effectiveDocumentLocale };
 }
