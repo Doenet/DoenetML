@@ -30381,7 +30381,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"function\"."
+                    "description": "Style description including the noun \"function\"."
                 },
                 {
                     "name": "displayDigits",
@@ -31317,7 +31317,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"function\"."
+                    "description": "Style description including the noun \"function\"."
                 },
                 {
                     "name": "displayDigits",
@@ -32237,7 +32237,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"function\"."
+                    "description": "Style description including the noun \"function\"."
                 },
                 {
                     "name": "displayDigits",
@@ -53902,7 +53902,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"polyline\"."
+                    "description": "Style description including the noun \"polyline\"."
                 },
                 {
                     "name": "preserveSimilarity",
@@ -54739,7 +54739,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"point\"."
+                    "description": "Style description including the noun \"point\"."
                 },
                 {
                     "name": "hideOffGraphIndicator",
@@ -55355,7 +55355,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"line\"."
+                    "description": "Style description including the noun \"line\"."
                 },
                 {
                     "name": "numDimensions",
@@ -56177,7 +56177,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"curve\"."
+                    "description": "Style description including the noun \"curve\"."
                 },
                 {
                     "name": "parMax",
@@ -69526,7 +69526,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"point\"."
+                    "description": "Style description including the noun \"point\"."
                 },
                 {
                     "name": "hideOffGraphIndicator",
@@ -70951,7 +70951,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"line\"."
+                    "description": "Style description including the noun \"line\"."
                 },
                 {
                     "name": "numDimensions",
@@ -71557,7 +71557,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including \"line segment\"."
+                    "description": "Style description including the noun \"line segment\"."
                 },
                 {
                     "name": "endpointsDraggable",
@@ -72054,7 +72054,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"ray\"."
+                    "description": "Style description including the noun \"ray\"."
                 },
                 {
                     "name": "numDimensions",
@@ -72633,7 +72633,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"polyline\"."
+                    "description": "Style description including the noun \"polyline\"."
                 },
                 {
                     "name": "preserveSimilarity",
@@ -73341,7 +73341,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"polygon\"."
+                    "description": "Style description including the noun \"polygon\"."
                 },
                 {
                     "name": "preserveSimilarity",
@@ -74067,13 +74067,13 @@
                     "name": "styleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's style."
+                    "description": "A textual description of the triangle's style."
                 },
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"polygon\"."
+                    "description": "Style description including the noun \"triangle\"."
                 },
                 {
                     "name": "preserveSimilarity",
@@ -74148,13 +74148,13 @@
                     "name": "borderStyleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's border style."
+                    "description": "A textual description of the triangle's border style."
                 },
                 {
                     "name": "fillStyleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's fill style."
+                    "description": "A textual description of the triangle's fill style."
                 },
                 {
                     "name": "perimeter",
@@ -74824,13 +74824,13 @@
                     "name": "styleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's style."
+                    "description": "A textual description of the rectangle's style."
                 },
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"polygon\"."
+                    "description": "Style description including the noun \"rectangle\"."
                 },
                 {
                     "name": "preserveSimilarity",
@@ -74905,13 +74905,13 @@
                     "name": "borderStyleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's border style."
+                    "description": "A textual description of the rectangle's border style."
                 },
                 {
                     "name": "fillStyleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's fill style."
+                    "description": "A textual description of the rectangle's fill style."
                 },
                 {
                     "name": "perimeter",
@@ -75619,13 +75619,13 @@
                     "name": "styleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's style."
+                    "description": "A textual description of the regular polygon's style."
                 },
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"polygon\"."
+                    "description": "Style description including the noun \"regular polygon\"."
                 },
                 {
                     "name": "preserveSimilarity",
@@ -75700,13 +75700,13 @@
                     "name": "borderStyleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's border style."
+                    "description": "A textual description of the regular polygon's border style."
                 },
                 {
                     "name": "fillStyleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the polygon's fill style."
+                    "description": "A textual description of the regular polygon's fill style."
                 },
                 {
                     "name": "perimeter",
@@ -76534,7 +76534,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"circle\"."
+                    "description": "Style description including the noun \"circle\"."
                 },
                 {
                     "name": "borderStyleDescription",
@@ -77272,13 +77272,13 @@
                     "name": "styleDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A textual description of the curve's style."
+                    "description": "A textual description of the parabola's style."
                 },
                 {
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"parabola\"."
+                    "description": "Style description including the noun \"parabola\"."
                 },
                 {
                     "name": "parMax",
@@ -78057,7 +78057,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"curve\"."
+                    "description": "Style description including the noun \"curve\"."
                 },
                 {
                     "name": "parMax",
@@ -79476,7 +79476,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"vector\"."
+                    "description": "Style description including the noun \"vector\"."
                 },
                 {
                     "name": "tailDraggable",
@@ -87951,7 +87951,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"function\"."
+                    "description": "Style description including the noun \"function\"."
                 },
                 {
                     "name": "displayDigits",
@@ -88756,7 +88756,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"function\"."
+                    "description": "Style description including the noun \"function\"."
                 },
                 {
                     "name": "displayDigits",
@@ -109171,7 +109171,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"point\"."
+                    "description": "Style description including the noun \"point\"."
                 },
                 {
                     "name": "hideOffGraphIndicator",
@@ -112305,7 +112305,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"line\"."
+                    "description": "Style description including the noun \"line\"."
                 },
                 {
                     "name": "numDimensions",
@@ -112735,7 +112735,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"region\"."
+                    "description": "Style description including the noun \"region\"."
                 }
             ],
             "top": true,
@@ -113058,7 +113058,7 @@
                     "name": "styleDescriptionWithNoun",
                     "type": "text",
                     "isArray": false,
-                    "description": "Style description including the word \"region\"."
+                    "description": "Style description including the noun \"region\"."
                 }
             ],
             "top": true,
