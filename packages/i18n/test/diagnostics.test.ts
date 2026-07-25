@@ -439,3 +439,168 @@ describe("the section-title contrast message", () => {
         );
     });
 });
+
+/**
+ * The shape this batch introduces: a message whose wording turns on *two*
+ * independent counts, so the variants multiply out inside the catalog rather
+ * than being suffixed with an "s" in the caller.
+ */
+describe("a message that agrees two counts at once", () => {
+    it("renders every combination of the domain warning's two counts", () => {
+        const domain = (intervals: number, inputs: number) =>
+            formatEnglishDiagnostic("doenet-w0038", { intervals, inputs });
+
+        expect(domain(1, 1)).toBe(
+            "Insufficient dimensions for domain for function. Domain has 1 interval but the function has 1 input.",
+        );
+        expect(domain(1, 2)).toBe(
+            "Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.",
+        );
+        expect(domain(3, 1)).toBe(
+            "Insufficient dimensions for domain for function. Domain has 3 intervals but the function has 1 input.",
+        );
+        expect(domain(3, 2)).toBe(
+            "Insufficient dimensions for domain for function. Domain has 3 intervals but the function has 2 inputs.",
+        );
+    });
+
+    it("renders every combination of the function-iterates counts", () => {
+        const iterates = (inputs: number, outputs: number) =>
+            formatEnglishDiagnostic("doenet-w0056", { inputs, outputs });
+        const prefix =
+            "Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has ";
+
+        expect(iterates(1, 1)).toBe(`${prefix}1 input and 1 output.`);
+        expect(iterates(1, 2)).toBe(`${prefix}1 input and 2 outputs.`);
+        expect(iterates(2, 1)).toBe(`${prefix}2 inputs and 1 output.`);
+        expect(iterates(3, 4)).toBe(`${prefix}3 inputs and 4 outputs.`);
+    });
+
+    // Nesting a select inside a select is the part that is easy to get wrong:
+    // a variant has to begin on a new line, so the inner select spans lines
+    // too. Newlines inside a placeable never reach the rendered value, which
+    // is what these assertions pin down — a stray one would show up here.
+    it("keeps the nested select off the rendered value", () => {
+        for (const message of [
+            formatEnglishDiagnostic("doenet-w0038", {
+                intervals: 2,
+                inputs: 3,
+            }),
+            formatEnglishDiagnostic("doenet-w0056", { inputs: 2, outputs: 3 }),
+        ]) {
+            expect(message).not.toContain("\n");
+            expect(message).not.toMatch(/ {2}/);
+        }
+    });
+});
+
+/**
+ * The nouns a message selects on, rather than substitutes in. `maximum` and
+ * `slope` are English prose, so each has to be worded by the catalog; an
+ * unlisted value still renders the way the concatenated version did.
+ */
+describe("the function interpolation-point warnings", () => {
+    it("words each kind of point it was given", () => {
+        for (const [type, expected] of [
+            ["maximum", "Ignoring non-numerical maximum of function."],
+            ["minimum", "Ignoring non-numerical minimum of function."],
+            ["extremum", "Ignoring non-numerical extremum of function."],
+            ["point", "Ignoring non-numerical point of function."],
+            ["slope", "Ignoring non-numerical slope of function."],
+        ] as const) {
+            expect(formatEnglishDiagnostic("doenet-w0040", { type })).toBe(
+                expected,
+            );
+        }
+        expect(formatEnglishDiagnostic("doenet-w0041", { type: "point" })).toBe(
+            "Ignoring empty point of function.",
+        );
+    });
+
+    it("words them in Spanish, agreeing the adjective", () => {
+        const formatEs = createDiagnosticFormatter(es, "es");
+        const nonNumerical = (type: string) =>
+            formatEs({
+                message: "unused",
+                code: "doenet-w0040",
+                args: { type },
+            });
+
+        expect(nonNumerical("point")).toBe(
+            "Se ignora el punto no numérico de la función.",
+        );
+        // Feminine in Spanish where English has no gender to agree — the
+        // reason the noun cannot be passed in as an argument.
+        expect(nonNumerical("slope")).toBe(
+            "Se ignora la pendiente no numérica de la función.",
+        );
+    });
+
+    it("falls back to substituting an unrecognized kind", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-w0040", { type: "inflection" }),
+        ).toBe("Ignoring non-numerical inflection of function.");
+    });
+});
+
+/**
+ * The author's own numbers are echoed back as strings. Formatting them as
+ * quantities would round a small radius away entirely.
+ */
+describe("the circle radius warning", () => {
+    it("reproduces the value the author wrote, however small", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-w0031", {
+                distance: "5",
+                radius: "0.0001",
+            }),
+        ).toBe(
+            "Cannot calculate circle: given that the distance between the two points is 5, the specified radius 0.0001 is too small.",
+        );
+    });
+});
+
+/**
+ * The two messages a component raises when its `target` will not resolve. The
+ * component that raised them is an argument rather than part of the wording,
+ * so every component taking a `target` shares the pair.
+ */
+describe("the target-resolution warnings", () => {
+    it("names the component that raised it", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-w0043", {
+                source: "animateFromSequence",
+            }),
+        ).toBe(
+            "Invalid target for `<animateFromSequence>`: cannot find target.",
+        );
+        expect(
+            formatEnglishDiagnostic("doenet-w0044", {
+                source: "animateFromSequence",
+                property: "value",
+                component: "point",
+            }),
+        ).toBe(
+            'Invalid target for `<animateFromSequence>`: cannot find a state variable named "value" on a `<point>`.',
+        );
+    });
+
+    // Both tags are DoenetML, so both survive translation untouched while the
+    // sentence around them changes.
+    it("keeps both tags in English when the sentence is Spanish", () => {
+        const formatEs = createDiagnosticFormatter(es, "es");
+        expect(
+            formatEs({
+                message: "unused",
+                code: "doenet-w0044",
+                args: {
+                    source: "animateFromSequence",
+                    property: "value",
+                    component: "point",
+                },
+            }),
+        ).toBe(
+            'Destino no válido para `<animateFromSequence>`: no se encuentra una variable de estado llamada "value" en un `<point>`.',
+        );
+    });
+});

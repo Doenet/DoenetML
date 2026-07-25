@@ -165,3 +165,155 @@ accessibility-section-title-insufficient-contrast =
         [dark] { $colorName } has insufficient contrast for the section heading text (dark mode) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1).
        *[other] { $colorName } has insufficient contrast for the section heading text ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1).
     }
+
+## `<circle>`
+
+# $count is the number of through points.
+circle-through-points-non-numerical = Haven't implemented `<circle>` through { $count } points in case where the points don't have numerical values.
+
+circle-too-many-through-points = Cannot calculate circle through more than 3 points.
+
+circle-overprescribed-radius-center-points = Cannot calculate circle with specified radius, center and through points.
+
+circle-center-with-multiple-points = Cannot calculate circle with specified center through more than 1 point.
+
+# $distance and $radius arrive as strings, not numbers: $radius is the author's
+# own value echoed back for diagnosis, and formatting it as a quantity would
+# round a radius of 0.0001 away to 0.
+circle-radius-too-small = Cannot calculate circle: given that the distance between the two points is { $distance }, the specified radius { $radius } is too small.
+
+circle-radius-with-many-points = Cannot create circle through more than two points with a specified radius.
+
+circle-invalid-center-or-through-points = Invalid center or through points of circle.
+
+circle-radius-center-with-multiple-points = Cannot calculate radius of circle with specified center through more than 1 point.
+
+circle-change-radius-non-numerical = Cannot change radius of circle with non-numerical through points
+
+circle-radius-with-points-non-numerical = Cannot create circle through more than one point with specified radius when don't have numerical values.
+
+circle-change-center-non-numerical = Haven't implemented changing center of circle through points with non numerical values.
+
+## `<function>`
+
+# Two independent counts in one sentence, so the variants multiply out. A
+# select's variants each need their own line, so the inner one spans lines too;
+# that is safe because newlines inside a placeable never reach the rendered
+# value. Only text continuing onto a further line would.
+function-domain-insufficient-dimensions =
+    { $intervals ->
+        [one] Insufficient dimensions for domain for function. Domain has { $intervals } interval but the function has { $inputs ->
+            [one] { $inputs } input
+           *[other] { $inputs } inputs
+        }.
+       *[other] Insufficient dimensions for domain for function. Domain has { $intervals } intervals but the function has { $inputs ->
+            [one] { $inputs } input
+           *[other] { $inputs } inputs
+        }.
+    }
+
+function-domain-invalid-format = Invalid format for domain for function.
+
+# $type is what was being read off the point. It selects the wording rather
+# than being substituted into it: "maximum", "slope" and the rest are English
+# nouns, and a noun handed over as an argument would never reach a translator.
+# The catch-all reproduces the pre-catalog behavior for a value not listed here.
+function-ignoring-non-numerical =
+    { $type ->
+        [maximum] Ignoring non-numerical maximum of function.
+        [minimum] Ignoring non-numerical minimum of function.
+        [extremum] Ignoring non-numerical extremum of function.
+        [point] Ignoring non-numerical point of function.
+        [slope] Ignoring non-numerical slope of function.
+       *[other] Ignoring non-numerical { $type } of function.
+    }
+
+function-ignoring-empty =
+    { $type ->
+        [maximum] Ignoring empty maximum of function.
+        [minimum] Ignoring empty minimum of function.
+        [extremum] Ignoring empty extremum of function.
+        [point] Ignoring empty point of function.
+       *[other] Ignoring empty { $type } of function.
+    }
+
+function-points-too-close = Function contains two points with locations too close together. Can't define function.
+
+function-iterates-input-output-mismatch =
+    { $inputs ->
+        [one] Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has { $inputs } input and { $outputs ->
+            [one] { $outputs } output
+           *[other] { $outputs } outputs
+        }.
+       *[other] Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has { $inputs } inputs and { $outputs ->
+            [one] { $outputs } output
+           *[other] { $outputs } outputs
+        }.
+    }
+
+## `<sequence>`
+
+sequence-invalid-length = Invalid length of sequence.  Must be a non-negative integer.
+
+# $type is a sequence type: number, letters, or math.
+sequence-invalid-step = Invalid step of sequence.  Must be a number for sequence of type { $type }.
+
+# $attribute is `from` or `to` — an attribute name, so it stays in English.
+sequence-invalid-endpoint-number = Invalid "{ $attribute }" of number sequence.  Must be a number.
+
+sequence-invalid-endpoint-letters = Invalid "{ $attribute }" of letters sequence.  Must be a letter combination.
+
+sequence-invalid-endpoint = Invalid "{ $attribute }" of sequence.
+
+select-from-sequence-coprime-not-numbers = coprime ignored since not selecting numbers
+
+select-from-sequence-coprime-with-exclude-combinations = coprime ignored since excludeCombinations specified
+
+## Resolving a `target`
+##
+## Raised by the components that take a `target` attribute. They resolve it
+## through the same code and fail the same two ways, so they share these two
+## messages rather than spelling each one out per component: $source is the tag
+## of the component that raised it, part of the DoenetML language, so it stays
+## in English.
+
+target-not-found = Invalid target for `<{ $source }>`: cannot find target.
+
+# $property is the state variable that was looked for; $component is the tag it
+# was looked for on.
+target-state-variable-not-found = Invalid target for `<{ $source }>`: cannot find a state variable named "{ $property }" on a `<{ $component }>`.
+
+## `<odeSystem>`
+
+ode-system-variables-match-independent = Variables of `<odeSystem>` must be different than independent variable.
+
+ode-system-duplicate-variable-names = Can't define ODE RHS functions with duplicate dependent variable names.
+
+ode-system-rhs-function-error = Cannot define ODE RHS function.  Error creating mathjs function.
+
+## `<angle>`, `<parabola>`, and `<intersection>`
+
+# $count is how many line children were found.
+angle-too-many-lines = Cannot define an angle between { $count } lines
+
+angle-invalid-through-point = Invalid point in through of `<angle>`
+
+parabola-vertex-too-many-points = Haven't implemented parabola with vertex through more than 1 point.
+
+parabola-too-many-points = Haven't implemented parabola through more than 3 points.
+
+intersection-too-many-items = Haven't implemented intersection for more than two items
+
+## Other math components
+
+ionic-compound-not-two-ions = Have not implemented ionic compound for anything other than two ions.
+
+ionic-compound-needs-cation-and-anion = Ionic compound implemented only for one cation and one anion.
+
+# $equation is the equation as the author wrote it.
+solve-equations-cannot-evaluate = Cannot solve equation as could not evaluate equation: { $equation }
+
+# Translators: `operandNumber` is an attribute name and stays in English.
+math-operators-operand-number-required = Must specify a operandNumber when extracting a math operand.
+
+eigen-decomposition-failed = Could not calculate eigenvalues of matrix

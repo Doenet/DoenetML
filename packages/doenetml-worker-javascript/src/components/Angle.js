@@ -8,6 +8,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
@@ -274,10 +275,14 @@ export default class Angle extends GraphicalComponent {
             arrayDefinitionByKey({ globalDependencyValues }) {
                 if (globalDependencyValues.lineChildren) {
                     if (globalDependencyValues.lineChildren.length > 2) {
-                        let warning = {
-                            message: `Cannot define an angle between ${globalDependencyValues.lineChildren.length} lines`,
+                        let warning = codedDiagnostic({
                             type: "info",
-                        };
+                            code: "doenet-i0017",
+                            args: {
+                                count: globalDependencyValues.lineChildren
+                                    .length,
+                            },
+                        });
 
                         let points = {};
                         for (let i = 0; i < 3; i++) {
@@ -456,14 +461,15 @@ export default class Angle extends GraphicalComponent {
 
                 const diagnostics = [];
                 if (foundBadThroughPoint) {
-                    diagnostics.push({
-                        message: "Invalid point in through of `<angle>`",
-                        type: "warning",
-                    });
-                    if (globalDependencyValues.throughAttr.position) {
-                        diagnostics[diagnostics.length - 1].position =
-                            globalDependencyValues.throughAttr.position;
-                    }
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0048",
+                            position:
+                                globalDependencyValues.throughAttr.position ||
+                                undefined,
+                        }),
+                    );
                 }
 
                 if (numPointsSpecified === 0) {

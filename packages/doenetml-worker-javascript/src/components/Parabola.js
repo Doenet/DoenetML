@@ -6,6 +6,7 @@ import {
 import Curve from "./Curve";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Parabola extends Curve {
     static componentType = "parabola";
@@ -669,11 +670,10 @@ export default class Parabola extends Curve {
 
                         return { setValue: { a, b, c, realValued } };
                     } else {
-                        let warning = {
-                            message:
-                                "Haven't implemented parabola with vertex through more than 1 point.",
+                        let warning = codedDiagnostic({
                             type: "warning",
-                        };
+                            code: "doenet-w0049",
+                        });
                         return {
                             setValue: {
                                 a: NaN,
@@ -849,11 +849,10 @@ export default class Parabola extends Curve {
 
                     return { setValue: { a, b, c, realValued } };
                 } else {
-                    let warning = {
-                        message:
-                            "Haven't implemented parabola through more than 3 points.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0050",
+                    });
                     return {
                         setValue: {
                             a: NaN,

@@ -6,6 +6,7 @@ import {
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class FunctionIterates extends InlineComponent {
     static componentType = "functionIterates";
@@ -87,22 +88,15 @@ export default class FunctionIterates extends InlineComponent {
                 ) {
                     let numInputs =
                         dependencyValues.functionAttr.stateValues.numInputs;
-                    let numInputsPhrase =
-                        numInputs.toString() +
-                        (numInputs === 1 ? " input" : " inputs");
                     let numOutputs =
                         dependencyValues.functionAttr.stateValues.numOutputs;
-                    let numOutputsPhrase =
-                        numOutputs.toString() +
-                        (numOutputs === 1 ? " output" : " outputs");
-                    let warning = {
+                    let warning = codedDiagnostic({
                         type: "warning",
-                        message: `Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has ${numInputsPhrase} and ${numOutputsPhrase}.`,
-                    };
-                    if (dependencyValues.functionAttr.position) {
-                        warning.position =
-                            dependencyValues.functionAttr.position;
-                    }
+                        code: "doenet-w0056",
+                        args: { inputs: numInputs, outputs: numOutputs },
+                        position:
+                            dependencyValues.functionAttr.position || undefined,
+                    });
                     return {
                         setValue: { numDimensions: 0 },
                         sendDiagnostics: [warning],

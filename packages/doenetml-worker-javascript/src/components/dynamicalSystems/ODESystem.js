@@ -12,6 +12,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../../utils/numberDisplay";
 import { returnNVariables, roundForDisplay } from "../../utils/math";
+import { codedDiagnostic } from "../../utils/diagnostics";
 
 export default class ODESystem extends InlineComponent {
     static componentType = "odeSystem";
@@ -243,17 +244,15 @@ export default class ODESystem extends InlineComponent {
                         x.equals(globalDependencyValues.independentVariable),
                     )
                 ) {
-                    const warning = {
-                        type: "warning",
-                        message:
-                            "Variables of `<odeSystem>` must be different than independent variable.",
-                    };
-                    if (globalDependencyValues.variables?.position) {
-                        warning.position =
-                            globalDependencyValues.variables.position;
-                    }
-
-                    diagnostics.push(warning);
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0045",
+                            position:
+                                globalDependencyValues.variables?.position ||
+                                undefined,
+                        }),
+                    );
                 }
 
                 if (validVariables.length < numDims) {
@@ -631,11 +630,12 @@ export default class ODESystem extends InlineComponent {
                 }
 
                 if ([...new Set(varNames)].length !== varNames.length) {
-                    diagnostics.push({
-                        message:
-                            "Can't define ODE RHS functions with duplicate dependent variable names.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0046",
+                        }),
+                    );
                     valid = false;
                 }
 
@@ -645,11 +645,12 @@ export default class ODESystem extends InlineComponent {
                         x.subscripts_to_strings().f(),
                     );
                 } catch (e) {
-                    diagnostics.push({
-                        message:
-                            "Cannot define ODE RHS function.  Error creating mathjs function.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0047",
+                        }),
+                    );
                     valid = false;
                 }
 

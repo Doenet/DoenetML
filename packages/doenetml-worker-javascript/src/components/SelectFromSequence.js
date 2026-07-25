@@ -20,6 +20,7 @@ import {
     mergeContainingNumberCombinations,
 } from "../utils/excludeCombinations";
 import me from "math-expressions";
+import { codedDiagnostic } from "../utils/diagnostics";
 const { gcd } = me.math;
 
 export default class SelectFromSequence extends Sequence {
@@ -122,10 +123,12 @@ export default class SelectFromSequence extends Sequence {
                     dependencyValues.coprime &&
                     dependencyValues.type !== "number"
                 ) {
-                    diagnostics.push({
-                        message: "coprime ignored since not selecting numbers",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0051",
+                        }),
+                    );
                 }
                 if (dependencyValues.excludeCombinations !== null) {
                     let excludedCombinations =
@@ -152,11 +155,12 @@ export default class SelectFromSequence extends Sequence {
                         }
 
                         if (dependencyValues.coprime) {
-                            diagnostics.push({
-                                message:
-                                    "coprime ignored since excludeCombinations specified",
-                                type: "warning",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "warning",
+                                    code: "doenet-w0052",
+                                }),
+                            );
                         }
                     }
                     return {

@@ -8,6 +8,7 @@ import Curve from "./Curve";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 
 import me from "math-expressions";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Circle extends Curve {
     constructor(args) {
@@ -925,13 +926,11 @@ export default class Circle extends Curve {
             }),
             definition: function ({ dependencyValues }) {
                 if (dependencyValues.haveNonNumericalThroughPoints) {
-                    let message =
-                        "Haven't implemented `<circle>` through " +
-                        dependencyValues.numThroughPoints +
-                        " points";
-                    message +=
-                        " in case where the points don't have numerical values.";
-                    let warning = { message, type: "warning" };
+                    let warning = codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0027",
+                        args: { count: dependencyValues.numThroughPoints },
+                    });
                     return {
                         setValue: {
                             numericalRadiusCalculatedWithCenter: null,
@@ -1036,11 +1035,10 @@ export default class Circle extends Curve {
                         },
                     };
                 } else if (dependencyValues.numThroughPoints > 3) {
-                    let warning = {
-                        message:
-                            "Cannot calculate circle through more than 3 points.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0028",
+                    });
                     return {
                         setValue: {
                             numericalRadiusCalculatedWithCenter: null,
@@ -1081,11 +1079,10 @@ export default class Circle extends Curve {
                     dependencyValues.havePrescribedRadius &&
                     dependencyValues.numThroughPoints > 0
                 ) {
-                    let warning = {
-                        message:
-                            "Cannot calculate circle with specified radius, center and through points.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0029",
+                    });
                     return {
                         setValue: { haveCenterRadiusPoints: true },
                         sendDiagnostics: [warning],
@@ -1257,11 +1254,10 @@ export default class Circle extends Curve {
                         );
                         return { setValue: { numericalRadius } };
                     } else {
-                        let warning = {
-                            message:
-                                "Cannot calculate circle with specified center through more than 1 point.",
+                        let warning = codedDiagnostic({
                             type: "warning",
-                        };
+                            code: "doenet-w0030",
+                        });
 
                         return {
                             setValue: { numericalRadius: NaN },
@@ -1660,10 +1656,18 @@ export default class Circle extends Curve {
 
                         if (r < 0 || 4 * r2 < dist2) {
                             let dist = Math.round(Math.sqrt(dist2) * 100) / 100;
-                            let warning = {
-                                message: `Cannot calculate circle: given that the distance between the two points is ${dist}, the specified radius ${r} is too small.`,
+                            let warning = codedDiagnostic({
                                 type: "warning",
-                            };
+                                code: "doenet-w0031",
+                                // Strings rather than numbers: the radius is
+                                // the author's own value quoted back, and a
+                                // number argument is formatted as a quantity,
+                                // which would round 0.0001 away to 0.
+                                args: {
+                                    distance: String(dist),
+                                    radius: String(r),
+                                },
+                            });
                             return {
                                 setValue: { numericalCenter: [NaN, NaN] },
                                 sendDiagnostics: [warning],
@@ -1695,11 +1699,10 @@ export default class Circle extends Curve {
                             setValue: { numericalCenter: [centerx, centery] },
                         };
                     } else {
-                        let warning = {
-                            message:
-                                "Cannot create circle through more than two points with a specified radius.",
+                        let warning = codedDiagnostic({
                             type: "warning",
-                        };
+                            code: "doenet-w0032",
+                        });
                         return {
                             setValue: { numericalCenter: [NaN, NaN] },
                             sendDiagnostics: [warning],
@@ -2043,22 +2046,20 @@ export default class Circle extends Curve {
 
                             return { setValue: { radius } };
                         } catch (e) {
-                            let warning = {
-                                message:
-                                    "Invalid center or through points of circle.",
+                            let warning = codedDiagnostic({
                                 type: "warning",
-                            };
+                                code: "doenet-w0033",
+                            });
                             return {
                                 setValue: { radius: me.fromAst("\uff3f") },
                                 sendDiagnostics: [warning],
                             };
                         }
                     } else {
-                        let warning = {
-                            message:
-                                "Cannot calculate radius of circle with specified center through more than 1 point.",
+                        let warning = codedDiagnostic({
                             type: "warning",
-                        };
+                            code: "doenet-w0034",
+                        });
                         return {
                             setValue: { radius: me.fromAst("\uff3f") },
                             sendDiagnostics: [warning],
@@ -2144,11 +2145,10 @@ export default class Circle extends Curve {
                         instructions,
                     };
                 } else {
-                    let warning = {
-                        message:
-                            "Cannot change radius of circle with non-numerical through points",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0035",
+                    });
                     return { success: false, sendDiagnostics: [warning] };
                 }
             },
@@ -2500,11 +2500,12 @@ export default class Circle extends Curve {
                             globalDependencyValues.haveNonNumericalPrescribedRadius ||
                             globalDependencyValues.haveNonNumericalThroughPoints
                         ) {
-                            diagnostics.push({
-                                message:
-                                    "Cannot create circle through more than one point with specified radius when don't have numerical values.",
-                                type: "warning",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "warning",
+                                    code: "doenet-w0036",
+                                }),
+                            );
                         }
                         return {
                             setValue: {
@@ -2658,11 +2659,10 @@ export default class Circle extends Curve {
                         instructions,
                     };
                 } else {
-                    let warning = {
-                        message:
-                            "Haven't implemented changing center of circle through points with non numerical values.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0037",
+                    });
                     return { success: false, sendDiagnostics: [warning] };
                 }
             },

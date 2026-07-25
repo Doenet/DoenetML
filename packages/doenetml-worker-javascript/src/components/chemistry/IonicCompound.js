@@ -5,6 +5,7 @@ import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
+import { codedDiagnostic } from "../../utils/diagnostics";
 
 export default class IonicCompound extends InlineComponent {
     static componentType = "ionicCompound";
@@ -74,11 +75,10 @@ export default class IonicCompound extends InlineComponent {
                 );
 
                 if (charges.length !== 2) {
-                    let warning = {
-                        message:
-                            "Have not implemented ionic compound for anything other than two ions.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0053",
+                    });
                     return {
                         setValue: { ionicCompound: null },
                         sendDiagnostics: [warning],
@@ -86,11 +86,10 @@ export default class IonicCompound extends InlineComponent {
                 }
 
                 if (!(charges[0] * charges[1] < 0)) {
-                    let warning = {
-                        message:
-                            "Ionic compound implemented only for one cation and one anion.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0054",
+                    });
                     return {
                         setValue: { ionicCompound: null },
                         sendDiagnostics: [warning],

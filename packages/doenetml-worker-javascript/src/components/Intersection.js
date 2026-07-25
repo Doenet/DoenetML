@@ -1,6 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import me from "math-expressions";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import { codedDiagnostic } from "../utils/diagnostics";
 export default class Intersection extends CompositeComponent {
     static componentType = "intersection";
 
@@ -170,11 +171,12 @@ export default class Intersection extends CompositeComponent {
         if (totNums < 2) {
             return { replacements: [], diagnostics, nComponents };
         } else if (totNums > 2) {
-            diagnostics.push({
-                message:
-                    "Haven't implemented intersection for more than two items",
-                type: "warning",
-            });
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0055",
+                }),
+            );
             return { replacements: [], diagnostics, nComponents };
         }
 
