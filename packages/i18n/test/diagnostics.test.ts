@@ -12,7 +12,7 @@ import {
 } from "../src/diagnostics";
 import { EN_CATALOGS } from "../src/catalogs";
 import { createChromeTranslator } from "../src/chrome";
-import { createTranslator } from "../src/translator";
+import { createTranslator, type Translator } from "../src/translator";
 import { extractKeys } from "../scripts/catalogUtils";
 
 const LOCK_FILE = path.join(__dirname, "..", "diagnostic-codes.lock.json");
@@ -265,16 +265,23 @@ describe("createDiagnosticFormatter", () => {
     });
 
     // `en_US` is the POSIX spelling of a locale tag and the usual way a host
-    // gets one wrong. `normalizeLocaleTag` passes it through untouched, and
-    // Fluent renders from a bundle built for it — but `Intl.ListFormat` throws
-    // `RangeError` on it, and that throw would escape `DocViewer` on the core
-    // result the diagnostic arrived with. The list falls back to English; the
-    // message still renders from the catalog the host supplied.
+    // gets one wrong. `normalizeLocaleTag` passes it through untouched and
+    // negotiation keeps it, because rewriting it would stop the host's own
+    // catalog from being found — so it reaches `Intl`, which refuses it, on
+    // both sides at once: `Intl.ListFormat` here, and `Intl.PluralRules` inside
+    // Fluent for the plural selector every list message has. Either one taking
+    // the diagnostic down, or resolving it to `{???}`, would do so on the core
+    // result the record arrived with. Both fall back to English conventions;
+    // the message still renders from the catalog the host supplied.
     it("still renders when the negotiated tag is one Intl rejects", () => {
         const posix = createDiagnosticFormatter(
             translatorFor(
                 "en_US",
-                "line-segment-attributes-ignored-with-endpoints = { $attributes } dropped ({ $attributesCount })",
+                `line-segment-attributes-ignored-with-endpoints =
+                    { $attributesCount ->
+                        [one] { $attributes } dropped
+                       *[other] { $attributes } all dropped
+                    }`,
             ),
             "en_US",
         );
@@ -285,7 +292,55 @@ describe("createDiagnosticFormatter", () => {
                 code: "doenet-i0001",
                 args: { attributes: ["slope", "length"] },
             }),
-        ).toBe("slope and length dropped (2)");
+        ).toBe("slope and length all dropped");
+    });
+
+    // The tag only reaches `Intl.ListFormat` directly when the translator
+    // can't say which locale answered — a plain function satisfies
+    // `Translator` without `localeOf`, and the message then renders from the
+    // record's English while the list is still joined somewhere.
+    it("joins a list even when the fallback tag is one Intl rejects", () => {
+        const echoArgs: Translator = (_key, args) => String(args?.attributes);
+        const bare = createDiagnosticFormatter(echoArgs, "en_US");
+        expect(
+            bare({
+                message: "ignored",
+                code: "doenet-i0001",
+                args: { attributes: ["slope", "length"] },
+            }),
+        ).toBe("slope and length");
+    });
+
+    // The worker's call sites are untyped JavaScript, and this runs where the
+    // state variable raises the diagnostic: an argument of the wrong shape has
+    // to produce a wrong-looking message, not a `TypeError` out of a
+    // definition. Every one of these threw before it was made total.
+    it.each([
+        ["a missing value", { attributes: undefined }],
+        ["a null value", { attributes: null }],
+        ["a non-list object", { attributes: { name: "slope" } }],
+        ["a list of non-strings", { attributes: [1, 2] }],
+        [
+            "a list under a bogus join type",
+            {
+                attributes: { list: ["slope"], type: "sentence" },
+            },
+        ],
+    ])("survives %s", (_label, args) => {
+        expect(() =>
+            formatEnglishDiagnostic(
+                "doenet-i0001",
+                args as unknown as Parameters<
+                    typeof formatEnglishDiagnostic
+                >[1],
+            ),
+        ).not.toThrow();
+    });
+
+    it("renders a code left off the call site as text rather than nothing", () => {
+        expect(
+            formatEnglishDiagnostic(undefined as unknown as DiagnosticCode),
+        ).toBe("undefined");
     });
 
     it("renders English unchanged when English is the UI language", () => {

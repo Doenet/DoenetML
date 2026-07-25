@@ -81,18 +81,60 @@ function lookupPattern(bundle: FluentBundle, key: string) {
     return message.attributes[attribute] ?? null;
 }
 
-function createBundle(
+/**
+ * The tag a bundle should hand to `Intl`, which is not always the tag its
+ * catalog is filed under.
+ *
+ * A locale tag does two jobs here: it keys the catalog, and it names the
+ * language `Intl` counts and formats in. They come apart for a tag `Intl`
+ * refuses — `en_US`, the POSIX spelling, is the usual way a host gets one
+ * wrong, and `normalizeLocaleTag` passes it through untouched because
+ * rewriting it would stop the host's own catalog from being found.
+ *
+ * Fluent builds its `Intl.PluralRules` from `bundle.locales`, and unlike its
+ * number formatting it does not degrade when that constructor throws: the
+ * `RangeError` is recorded as a formatting error and the whole message
+ * resolves to `{???}`. So a bundle formats under English whenever its tag is
+ * one `Intl` cannot parse. That loses the locale's counting and number
+ * conventions — which were never available for such a tag anyway — and keeps
+ * the host's own words, which are the part that was really asked for.
+ */
+function intlFormattingLocale(locale: string): string {
+    try {
+        // Throws `RangeError` for a structurally invalid tag — the same tags,
+        // and the same error, every `Intl` constructor rejects.
+        Intl.getCanonicalLocales(locale);
+        return locale;
+    } catch {
+        return DEFAULT_LOCALE;
+    }
+}
+
+/** A locale's catalog, with the tag it was filed under. */
+type ChainLink = {
+    /**
+     * The tag as the caller wrote it, which is what {@link Translator.localeOf}
+     * reports and what an error is attributed to — not necessarily the tag the
+     * bundle formats under. See {@link intlFormattingLocale}.
+     */
+    locale: string;
+    bundle: FluentBundle;
+};
+
+function createChainLink(
     locale: string,
     source: string,
     useIsolating: boolean,
     onError: CreateTranslatorOptions["onError"],
-): FluentBundle {
-    const bundle = new FluentBundle(locale, { useIsolating });
+): ChainLink {
+    const bundle = new FluentBundle(intlFormattingLocale(locale), {
+        useIsolating,
+    });
     const errors = bundle.addResource(new FluentResource(source));
     for (const error of errors) {
         onError?.(error, "", locale);
     }
-    return bundle;
+    return { locale, bundle };
 }
 
 /**
@@ -115,16 +157,18 @@ export function createTranslator(
         includeBuiltinEnglish = true,
     } = options;
 
-    const bundles: FluentBundle[] = [];
+    const bundles: ChainLink[] = [];
     for (const locale of locales) {
         const source = resources[locale];
         if (source !== undefined) {
-            bundles.push(createBundle(locale, source, useIsolating, onError));
+            bundles.push(
+                createChainLink(locale, source, useIsolating, onError),
+            );
         }
     }
     if (includeBuiltinEnglish) {
         bundles.push(
-            createBundle(
+            createChainLink(
                 DEFAULT_LOCALE,
                 EN_CATALOG_SOURCE,
                 useIsolating,
@@ -134,7 +178,7 @@ export function createTranslator(
     }
 
     const translate: Translator = (key, args, fallback) => {
-        for (const bundle of bundles) {
+        for (const { locale, bundle } of bundles) {
             const pattern = lookupPattern(bundle, key);
             if (pattern === null) {
                 continue;
@@ -142,7 +186,7 @@ export function createTranslator(
             const errors: Error[] = [];
             const formatted = bundle.formatPattern(pattern, args, errors);
             for (const error of errors) {
-                onError?.(error, key, bundle.locales[0]);
+                onError?.(error, key, locale);
             }
             return formatted;
         }
@@ -153,8 +197,8 @@ export function createTranslator(
     };
 
     translate.localeOf = (key: string) =>
-        bundles.find((bundle) => lookupPattern(bundle, key) !== null)
-            ?.locales[0];
+        bundles.find(({ bundle }) => lookupPattern(bundle, key) !== null)
+            ?.locale;
 
     return translate;
 }

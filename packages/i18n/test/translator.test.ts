@@ -107,6 +107,27 @@ describe("createTranslator", () => {
         expect(t.localeOf?.("nonexistent-key")).toBe(undefined);
     });
 
+    // `en_US` is the POSIX spelling and the usual way a host mis-keys a
+    // catalog. Negotiation keeps the tag verbatim — rewriting it would stop
+    // the host's own catalog from being found — so it is here that it has to
+    // stop being handed to `Intl`. Fluent builds `Intl.PluralRules` from
+    // `bundle.locales` and, unlike its number formatting, does not degrade
+    // when that throws: the whole message resolves to `{???}`.
+    it("renders a selector under a tag Intl rejects", () => {
+        const t = createTranslator(["en_US"], {
+            en_US: `count-items =
+    { $count ->
+        [one] You have one item
+       *[other] You have { $count } items
+    }`,
+        });
+        expect(t("count-items", { count: 1 })).toBe("You have one item");
+        expect(t("count-items", { count: 3 })).toBe("You have 3 items");
+        // The tag it was filed under is still what it reports and what an
+        // error is attributed to; only `Intl` sees the substitute.
+        expect(t.localeOf?.("count-items")).toBe("en_US");
+    });
+
     it("adapts to the two-argument colorWords translate hook", () => {
         const t = createTranslator(["en"], { en: EN });
         const translate = asFallbackTranslator(t);

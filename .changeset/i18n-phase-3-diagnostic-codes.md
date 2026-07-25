@@ -14,4 +14,6 @@ Because a diagnostic now carries its code and the values that fill its message i
 
 Lists inside a message are assembled by whichever language ends up rendering it, rather than pieced together as English and handed over as a finished string. So the verb agrees with the list beside it — "slope is ignored" for one attribute against "slope and length are ignored" for two — and a message that has no translation yet keeps both its sentence and its list in English instead of mixing the two.
 
+Also fixed: a host that files its `localeResources` under a locale tag `Intl` cannot parse — `en_US`, the POSIX spelling, rather than `en-US` — no longer renders that catalog's messages that count things as `{???}`. That covers the chrome's "attempts remaining" and submitted-response counts as well as the new diagnostics: the host's own wording is used, with English counting and number conventions.
+
 The remaining messages still report in English and are unaffected. With no locale configured, every diagnostic reads exactly as it did.

@@ -111,36 +111,48 @@ export type FormattableDiagnostic = {
 };
 
 /**
- * Normalize the two list spellings — a bare array, or `{list, type}` — into
- * one. Reached only once the scalar cases are ruled out, so it is total.
+ * The list a value stands for — a bare array, or `{list, type}` — or
+ * `undefined` if it is not a list at all.
+ *
+ * The shape is tested for rather than asserted, because the call sites that
+ * build these arguments are untyped JavaScript components:
+ * {@link DiagnosticArgValue} says what they are meant to pass, not what they
+ * can.
  */
-function toListArg(
-    value: readonly string[] | DiagnosticListArg,
-): DiagnosticListArg {
-    return Array.isArray(value)
-        ? { list: value }
-        : (value as DiagnosticListArg);
+function asListArg(value: unknown): DiagnosticListArg | undefined {
+    if (Array.isArray(value)) {
+        return { list: value };
+    }
+    if (typeof value === "object" && value !== null && "list" in value) {
+        const candidate = value as DiagnosticListArg;
+        return Array.isArray(candidate.list) ? candidate : undefined;
+    }
+    return undefined;
 }
+
+const LIST_TYPES: readonly string[] = ["conjunction", "disjunction", "unit"];
 
 /**
  * An `Intl.ListFormat` for `locale`, falling back to English for a tag `Intl`
  * refuses.
  *
  * Nothing upstream promises a well-formed tag. `normalizeLocaleTag` leaves an
- * unparseable one alone on purpose, and Fluent will happily build a bundle for
- * it, so a host that supplies its catalogs under `en_US` — the POSIX spelling,
- * and the usual way to get this wrong — negotiates a chain that renders fine
- * and then reaches a constructor that throws `RangeError`. Joining that list in
- * English is a cosmetic loss; throwing would take the diagnostic down, and with
- * it the core result it arrived on.
+ * unparseable one alone on purpose, and negotiation keeps it so the host's own
+ * catalog can still be found, so a host that supplies its catalogs under
+ * `en_US` — the POSIX spelling, and the usual way to get this wrong — reaches
+ * a constructor that throws `RangeError`. Joining that list in English is a
+ * cosmetic loss; throwing would take the diagnostic down, and with it the core
+ * result it arrived on.
+ *
+ * The `type` is checked rather than passed on for the same reason: an
+ * unrecognized one throws too, and would throw again out of the fallback.
  */
-function listFormatFor(
-    locale: string,
-    type: DiagnosticListArg["type"],
-): Intl.ListFormat {
+function listFormatFor(locale: string, type: unknown): Intl.ListFormat {
     const options: Intl.ListFormatOptions = {
         style: "long",
-        type: type ?? "conjunction",
+        type: LIST_TYPES.includes(type as string)
+            ? (type as DiagnosticListArg["type"])
+            : "conjunction",
     };
     try {
         return new Intl.ListFormat(locale, options);
@@ -156,6 +168,14 @@ function listFormatFor(
  * also contributes `<name>Count`, because a message that names a list almost
  * always has to agree a verb with how many things are in it, and a count the
  * catalog derives itself can never disagree with the list beside it.
+ *
+ * Total over any value, not only the ones {@link DiagnosticArgValue} allows.
+ * This runs inside the worker, at the point a state variable raises the
+ * diagnostic, so a component that passes `undefined` for an argument or an
+ * array of numbers must get a wrong-looking message rather than a `TypeError`
+ * out of its own definition — the same reasoning that makes an unregistered
+ * code render as itself. Anything unrecognized is stringified, which is
+ * visible in the message and so gets noticed.
  */
 function lowerArgs(
     args: DiagnosticArgs | undefined,
@@ -170,13 +190,15 @@ function lowerArgs(
             lowered[name] = value;
             continue;
         }
-        if (typeof value === "boolean") {
+        const listArg = asListArg(value);
+        if (listArg === undefined) {
             lowered[name] = String(value);
             continue;
         }
-        const listArg = toListArg(value);
+        // `Intl.ListFormat` rejects a non-string element outright, so the
+        // elements are coerced rather than trusted.
         lowered[name] = listFormatFor(locale, listArg.type).format(
-            listArg.list,
+            listArg.list.map((item) => String(item)),
         );
         lowered[`${name}Count`] = listArg.list.length;
     }
@@ -246,14 +268,16 @@ let enTranslator: Translator | undefined;
  * down with it. Hence {@link isDiagnosticCode} rather than an `undefined`
  * check: a code that happens to name something on `Object.prototype`
  * (`"toString"`) would otherwise resolve to a function and blow up in the
- * translator.
+ * translator. `String` for the same reason: a call site that left `code` out
+ * altogether still has to produce a `message`, and "undefined" on screen is
+ * findable where a record with no message at all is a crash somewhere else.
  */
 export function formatEnglishDiagnostic(
     code: DiagnosticCode,
     args?: DiagnosticArgs,
 ): string {
     if (!isDiagnosticCode(code)) {
-        return code;
+        return String(code);
     }
     const key = DIAGNOSTIC_CODES[code];
     enTranslator ??= createTranslator([], {});

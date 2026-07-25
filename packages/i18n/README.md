@@ -38,6 +38,16 @@ All three normalize what they return (`ES-mx` → `es-MX`) and treat a blank tag
 as unset, so a hand-typed `lang` and a hand-configured prop negotiate the same
 way a canonical tag does.
 
+A tag they cannot parse is left alone rather than rejected — `en_US`, the POSIX
+spelling, is the usual way a host mis-keys a catalog, and rewriting it would
+stop that catalog from being found. So such a tag keys and negotiates like any
+other; what it must not do is reach `Intl`, which refuses it outright.
+`createTranslator` therefore builds the bundle's formatter under English
+whenever the tag is one `Intl` can't parse — otherwise Fluent's
+`Intl.PluralRules` throws and the whole message resolves to `{???}` — and
+`createDiagnosticFormatter` joins its lists the same way. The host's own words
+are kept; only the counting and number conventions fall back.
+
 ## Catalog layout
 
 ```

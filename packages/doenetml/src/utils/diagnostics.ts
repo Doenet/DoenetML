@@ -15,8 +15,8 @@ import type { DiagnosticRecord } from "@doenet/utils";
  * the values that fill the message in, and English as a fallback.
  *
  * @param translate The chrome translator already in effect.
- * @param uiLocale The resolved `uiLocale`. `Intl.ListFormat` needs the tag,
- *   which the translator does not expose.
+ * @param uiLocale The resolved `uiLocale`, which `Intl.ListFormat` falls back
+ *   to for a message no catalog in the chain answers for.
  */
 export function useDiagnosticFormatter(
     translate: Translator,
