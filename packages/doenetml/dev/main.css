@@ -19,12 +19,17 @@
     color: #666;
 }
 
-.dev-theme-control {
+.dev-control {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-size: 0.85em;
     color: #333;
+}
+
+.dev-locale-input {
+    width: 6em;
+    font-size: inherit;
 }
 
 .dev-reset-button {
