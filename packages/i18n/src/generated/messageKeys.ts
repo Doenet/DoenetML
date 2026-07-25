@@ -22,9 +22,10 @@ export type MessageKey =
     | "validation-correct"
     | "validation-incorrect"
     | "validation-partially-correct"
+    | "answer-show-responses"
     | "feedback-heading"
-    | "solution-click-to-open"
-    | "solution-click-to-close"
+    | "collapsible-click-to-open"
+    | "collapsible-click-to-close"
     | "collapsible-initializing"
     | "footnote-show"
     | "footnote-hide"
@@ -77,9 +78,10 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "validation-correct",
     "validation-incorrect",
     "validation-partially-correct",
+    "answer-show-responses",
     "feedback-heading",
-    "solution-click-to-open",
-    "solution-click-to-close",
+    "collapsible-click-to-open",
+    "collapsible-click-to-close",
     "collapsible-initializing",
     "footnote-show",
     "footnote-hide",

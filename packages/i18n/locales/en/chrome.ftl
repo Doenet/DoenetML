@@ -52,14 +52,26 @@ validation-correct = (Correct)
 validation-incorrect = (Incorrect)
 validation-partially-correct = (Partially correct)
 
+# Tooltip on the badge that reports how many responses have been submitted to
+# one answer, shown only to a host that asked for it. `$answerId` is the
+# answer's authored name and is never translated.
+answer-show-responses =
+    { $count ->
+        [one] Show { $count } response to { $answerId }
+       *[other] Show { $count } responses to { $answerId }
+    }
+
 
 ## Disclosure panels
 
 feedback-heading = Feedback
 
-# Follows the solution's own heading: "Solution (click to open)".
-solution-click-to-open = (click to open)
-solution-click-to-close = (click to close)
+# Follows a disclosure panel's own heading — "Solution (click to open)" — and
+# is shared by `<solution>`, `<hint>`, and a collapsible `<section>`. The whole
+# parenthetical is one message: where the word for open or close falls inside
+# it is the translator's business.
+collapsible-click-to-open = (click to open)
+collapsible-click-to-close = (click to close)
 
 # Placeholder inside a panel that has been opened before its contents have
 # arrived from the core. Shared by `<solution>` and a collapsible `<section>`.
@@ -88,8 +100,9 @@ matrix-add-row = Add row
 matrix-remove-column = Remove column
 matrix-add-column = Add column
 
-# Modes and actions of the subset-of-reals input's control strip. The buttons
-# for the empty set and all of R are symbols, not words, and stay in place.
+# Modes and actions of the subset-of-reals input's control strip. The button
+# that selects all of the reals is the symbol `R`, not a word, and stays in
+# place.
 subset-add-remove-points = Add/Remove points
 subset-toggle-points-intervals = Toggle points and intervals
 subset-move-points = Move Points
@@ -132,7 +145,9 @@ viewer-initializing = Initializing....
 
 ## Errors
 
-# Prefixes the message of a document that failed to compile.
+# Prefixes an error message wherever one is shown in place of content: an
+# `<error>` the core reported, the error boundary's fallback, and the
+# placeholder left where a renderer chunk failed to load.
 error-heading = Error
 
 # Banner above a document that compiled with at least one error in it.

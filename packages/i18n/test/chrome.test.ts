@@ -75,6 +75,23 @@ describe("createChromeTranslator", () => {
         expect(t("attempts-remaining", { count: 4 })).toBe("quedan 4 intentos");
     });
 
+    it("pluralizes around an untranslatable identifier", () => {
+        // `$answerId` is the answer's authored name and passes through as
+        // written, in either language.
+        const en = createChromeTranslator("en");
+        expect(en("answer-show-responses", { count: 1, answerId: "ans" })).toBe(
+            "Show 1 response to ans",
+        );
+        expect(en("answer-show-responses", { count: 3, answerId: "ans" })).toBe(
+            "Show 3 responses to ans",
+        );
+
+        const es = createChromeTranslator("es");
+        expect(es("answer-show-responses", { count: 3, answerId: "ans" })).toBe(
+            "Mostrar 3 respuestas a ans",
+        );
+    });
+
     it("substitutes without bidi isolation marks", () => {
         // `useIsolating` stays off so translated output can still be compared
         // and asserted on as plain text.
@@ -102,7 +119,7 @@ describe("createChromeTranslator", () => {
             // A committed pseudo catalog would drift: a key added to English
             // would render unaccented and read as an unextracted string.
             const t = createChromeTranslator(PSEUDO_LOCALE);
-            const args = { percent: 50, count: 2 };
+            const args = { percent: 50, count: 2, answerId: "ans" };
             for (const key of extractKeys(EN_CATALOGS.chrome)) {
                 const english = EN_CHROME_TRANSLATOR(key, args);
                 // A message with nothing but a placeable and punctuation

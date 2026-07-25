@@ -7,6 +7,7 @@ import {
 } from "@ariakit/react";
 import "./AnswerResponseButton.css";
 import { DoenetMLFlags } from "../../../doenetml";
+import { useT } from "../../../utils/i18n";
 
 export function AnswerResponseButton({
     answerId,
@@ -23,6 +24,8 @@ export function AnswerResponseButton({
     numResponses?: number;
     flags: DoenetMLFlags;
 }) {
+    const t = useT();
+
     return (
         <TooltipProvider>
             <TooltipAnchor className="answer-response-tooltip-anchor">
@@ -47,8 +50,13 @@ export function AnswerResponseButton({
                 </Button>
             </TooltipAnchor>
             <Tooltip className="answer-response-tooltip">
-                Show {numResponses} response
-                {numResponses === 1 ? "" : "s"} to {answerId}
+                {t(
+                    "answer-show-responses",
+                    { count: numResponses, answerId },
+                    `Show ${numResponses} response${
+                        numResponses === 1 ? "" : "s"
+                    } to ${answerId}`,
+                )}
             </Tooltip>
         </TooltipProvider>
     );

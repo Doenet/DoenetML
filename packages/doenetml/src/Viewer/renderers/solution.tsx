@@ -7,6 +7,7 @@ import { faPuzzlePiece as puzzle } from "@fortawesome/free-solid-svg-icons";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import { useT } from "../../utils/i18n";
+import { clickToToggleLabel } from "./utils/disclosure";
 import "./solution.css";
 
 interface SolutionSVs {
@@ -30,13 +31,7 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
-    // The whole parenthetical is one message: which word goes where inside it
-    // is the translator's business, not this component's.
-    let openCloseText = t(
-        "solution-click-to-open",
-        undefined,
-        "(click to open)",
-    );
+    const openCloseText = clickToToggleLabel(t, SVs.open);
 
     if (SVs.hidden) {
         return null;
@@ -62,11 +57,6 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
         }
 
         icon = <FontAwesomeIcon icon={puzzle} />;
-        openCloseText = t(
-            "solution-click-to-close",
-            undefined,
-            "(click to close)",
-        );
         childrenToRender = SVs.rendered ? (
             children
         ) : (

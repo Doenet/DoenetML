@@ -8,6 +8,8 @@ import { faLightbulb as lightOn } from "@fortawesome/free-regular-svg-icons";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { useT } from "../../utils/i18n";
+import { clickToToggleLabel } from "./utils/disclosure";
 import "./hint.css";
 
 interface HintSVs {
@@ -22,6 +24,8 @@ interface HintSVs {
 export default React.memo(function Hint(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<HintSVs>(props);
+
+    const t = useT();
 
     const ref = useRef(null);
 
@@ -72,7 +76,7 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
         }
     };
 
-    let openCloseText = "open";
+    const openCloseText = clickToToggleLabel(t, SVs.open);
 
     if (SVs.open) {
         if (SVs._compositeReplacementActiveRange) {
@@ -87,7 +91,6 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
         }
 
         // twirlIcon = <FontAwesomeIcon icon={twirlIsOpen} />;
-        openCloseText = "close";
         icon = <FontAwesomeIcon icon={lightOn} />;
         info = children;
         infoBlockStyle = {
@@ -130,7 +133,7 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
                 onKeyDown={onKeyPressFunction}
             >
                 {" "}
-                {icon} {title} (click to {openCloseText})
+                {icon} {title} {openCloseText}
             </span>
             <span style={infoBlockStyle}>{info}</span>
         </aside>

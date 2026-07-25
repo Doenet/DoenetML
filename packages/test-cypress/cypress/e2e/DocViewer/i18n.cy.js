@@ -143,6 +143,33 @@ describe("Chrome translation Tests", { tags: ["@group5"] }, function () {
         cy.get("#fb").should("have.text", "bien");
     });
 
+    it("translates the other two panels that share the click-to-open label", () => {
+        // `<hint>` and a collapsible `<section>` render the same parenthetical
+        // `<solution>` does, from the same pair of keys.
+        render({
+            doenetML: `
+    <hint name="h"><title>Pista</title><p>ayuda</p></hint>
+    <section name="sec" collapsible><title>Parte</title><p>contenido</p></section>`,
+            uiLocale: "es",
+        });
+
+        cy.get("#h [data-test=hint-heading]").should(
+            "contain.text",
+            "(clic para abrir)",
+        );
+        cy.get("#h [data-test=hint-heading]").click();
+        cy.get("#h [data-test=hint-heading]").should(
+            "contain.text",
+            "(clic para cerrar)",
+        );
+
+        // A collapsible section starts open (`startOpen` defaults to true),
+        // so this one runs the other way around.
+        cy.get("#sec_title").should("contain.text", "(clic para cerrar)");
+        cy.get("#sec_title").click();
+        cy.get("#sec_title").should("contain.text", "(clic para abrir)");
+    });
+
     it("translates the virtual keyboard tray, which lives in its own root", () => {
         // The tray is rendered into a separate React root shared by every
         // viewer on the page, so context cannot reach it — this asserts the

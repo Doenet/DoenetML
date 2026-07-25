@@ -40,13 +40,20 @@ validation-correct = (Correcto)
 validation-incorrect = (Incorrecto)
 validation-partially-correct = (Parcialmente correcto)
 
+# `Mostrar` is the infinitive, per the register note above.
+answer-show-responses =
+    { $count ->
+        [one] Mostrar { $count } respuesta a { $answerId }
+       *[other] Mostrar { $count } respuestas a { $answerId }
+    }
+
 
 ## Disclosure panels
 
 feedback-heading = Comentarios
 
-solution-click-to-open = (clic para abrir)
-solution-click-to-close = (clic para cerrar)
+collapsible-click-to-open = (clic para abrir)
+collapsible-click-to-close = (clic para cerrar)
 collapsible-initializing = Inicializando...
 
 footnote-show = Mostrar la nota al pie
