@@ -18,7 +18,11 @@ import fs from "node:fs";
 
 import { CATALOG_NAMESPACES } from "../src/namespaces";
 import { DEFAULT_LOCALE } from "../src/catalogs";
-import { DIAGNOSTIC_CODES, DIAGNOSTIC_CODE_PATTERN } from "../src/diagnostics";
+import {
+    DIAGNOSTIC_CODES,
+    DIAGNOSTIC_CODE_PATTERN,
+    isDiagnosticCode,
+} from "../src/diagnostics";
 import {
     DIAGNOSTIC_CODES_LOCK_FILE,
     GENERATED_KEYS_FILE,
@@ -182,7 +186,10 @@ if (actualLock !== expectedLock) {
 }
 
 for (const use of diagnosticUsage.codes) {
-    if (!(use.key in DIAGNOSTIC_CODES)) {
+    // The same own-property test the runtime lookup uses, so "is this a
+    // registered code?" has one answer everywhere: `in` would accept a code
+    // that happens to name something on `Object.prototype`.
+    if (!isDiagnosticCode(use.key)) {
         problems.push(
             `${use.file}: "${use.key}" is not defined in src/diagnostics.ts`,
         );

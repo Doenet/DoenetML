@@ -150,6 +150,40 @@ describe("formatEnglishDiagnostic", () => {
             }),
         ).toBe("Line is through points that depend on variables: x, y, z.");
     });
+
+    // The worker's call sites are untyped JavaScript, and this runs where the
+    // state variable raises the diagnostic: an argument of the wrong shape —
+    // or a whole bag of them that isn't there — has to produce a wrong-looking
+    // message, not a `TypeError` out of a definition. Each case below is one
+    // way `lowerArgs` would otherwise reach a method on a value that has none.
+    it.each([
+        ["a null bag of arguments", null],
+        ["a missing value", { attributes: undefined }],
+        ["a null value", { attributes: null }],
+        ["a non-list object", { attributes: { name: "slope" } }],
+        ["a list of non-strings", { attributes: [1, 2] }],
+        [
+            "a list under a bogus join type",
+            {
+                attributes: { list: ["slope"], type: "sentence" },
+            },
+        ],
+    ])("survives %s", (_label, args) => {
+        expect(() =>
+            formatEnglishDiagnostic(
+                "doenet-i0001",
+                args as unknown as Parameters<
+                    typeof formatEnglishDiagnostic
+                >[1],
+            ),
+        ).not.toThrow();
+    });
+
+    it("renders a code left off the call site as text rather than nothing", () => {
+        expect(
+            formatEnglishDiagnostic(undefined as unknown as DiagnosticCode),
+        ).toBe("undefined");
+    });
 });
 
 describe("the path the viewer actually takes", () => {
@@ -309,38 +343,6 @@ describe("createDiagnosticFormatter", () => {
                 args: { attributes: ["slope", "length"] },
             }),
         ).toBe("slope and length");
-    });
-
-    // The worker's call sites are untyped JavaScript, and this runs where the
-    // state variable raises the diagnostic: an argument of the wrong shape has
-    // to produce a wrong-looking message, not a `TypeError` out of a
-    // definition. Every one of these threw before it was made total.
-    it.each([
-        ["a missing value", { attributes: undefined }],
-        ["a null value", { attributes: null }],
-        ["a non-list object", { attributes: { name: "slope" } }],
-        ["a list of non-strings", { attributes: [1, 2] }],
-        [
-            "a list under a bogus join type",
-            {
-                attributes: { list: ["slope"], type: "sentence" },
-            },
-        ],
-    ])("survives %s", (_label, args) => {
-        expect(() =>
-            formatEnglishDiagnostic(
-                "doenet-i0001",
-                args as unknown as Parameters<
-                    typeof formatEnglishDiagnostic
-                >[1],
-            ),
-        ).not.toThrow();
-    });
-
-    it("renders a code left off the call site as text rather than nothing", () => {
-        expect(
-            formatEnglishDiagnostic(undefined as unknown as DiagnosticCode),
-        ).toBe("undefined");
     });
 
     it("renders English unchanged when English is the UI language", () => {

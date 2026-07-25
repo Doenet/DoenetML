@@ -169,19 +169,23 @@ function listFormatFor(locale: string, type: unknown): Intl.ListFormat {
  * always has to agree a verb with how many things are in it, and a count the
  * catalog derives itself can never disagree with the list beside it.
  *
- * Total over any value, not only the ones {@link DiagnosticArgValue} allows.
- * This runs inside the worker, at the point a state variable raises the
- * diagnostic, so a component that passes `undefined` for an argument or an
- * array of numbers must get a wrong-looking message rather than a `TypeError`
- * out of its own definition — the same reasoning that makes an unregistered
- * code render as itself. Anything unrecognized is stringified, which is
- * visible in the message and so gets noticed.
+ * Total over any value, not only the ones {@link DiagnosticArgValue} allows,
+ * and over an absent bag of them. This runs inside the worker, at the point a
+ * state variable raises the diagnostic, so a component that passes `null` for
+ * `args` itself, or `undefined` for one argument, or an array of numbers, must
+ * get a wrong-looking message rather than a `TypeError` out of its own
+ * definition — the same reasoning that makes an unregistered code render as
+ * itself. Anything unrecognized is stringified, which is visible in the
+ * message and so gets noticed; a boolean lands there too, as `"true"` or
+ * `"false"`, which is the form a Fluent selector would compare against anyway.
  */
 function lowerArgs(
     args: DiagnosticArgs | undefined,
     locale: string,
 ): Record<string, string | number> | undefined {
-    if (args === undefined) {
+    // `null` as well as `undefined`: an untyped call site can pass one as
+    // easily as leave the property off, and `Object.entries(null)` throws.
+    if (args === undefined || args === null) {
         return undefined;
     }
     const lowered: Record<string, string | number> = {};
