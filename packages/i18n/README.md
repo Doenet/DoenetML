@@ -170,12 +170,20 @@ that uses it.
 
 Two Fluent constraints shaped it, and both are easy to rediscover the hard way:
 
-- **A term's arguments must be literals.** `{ -filled(gender: $gender) }` does
-  not parse. A word that has to inflect from a runtime value has to be a
-  message the code looks up and passes in, not a term the catalog references.
-- **A multiline pattern keeps its newlines.** A select expression's variants
-  each need their own line, so a select nested inside another one puts a `\n`
-  in the middle of the output. Keep every variant on one line.
+- **A word that inflects has to be passed in, not referenced.** A *term*
+  reference cannot carry a runtime value — `{ -filled(gender: $gender) }` does
+  not parse (`E0014 Expected literal`), and `{ -filled }` gets an empty scope
+  and always picks its default variant. A *message* reference does inherit the
+  caller's arguments, but references never cross a bundle boundary: a locale
+  that translates `style-filled` and not `style-filled-word` would render the
+  literal `{style-filled-word}` rather than falling back to English. So the
+  inflecting word is a message the code looks up and hands over as an
+  argument, which is why `style-filled-word` is a key of its own.
+- **A multiline pattern keeps its newlines.** Continuing a variant onto a
+  further line puts a `\n` in the rendered string — including when that line
+  opens a nested select. Keep each variant's content on one line; a select
+  nested *within* that line is fine, and is how a message would sub-divide one
+  of its variants.
 
 ## Commands
 

@@ -107,8 +107,11 @@ noun-regular-polygon =
        *[head] polígono regular
     }
 
-# Además de los nombres de arriba, `$noun` puede ser el núcleo de un sintagma
-# que no se nombra en la descripción: «border», «fill», «text» y «background».
+# Además de los nombres de arriba, `$noun` puede ser «regular-polygon» (el
+# nombre que compone `noun-regular-polygon`) o el núcleo de un sintagma que no
+# se nombra en la descripción: «border», «fill», «text» y «background». Todos
+# ellos son masculinos en español —polígono, borde, relleno, texto, fondo—, así
+# que caen en el caso por defecto.
 noun-gender =
     { $noun ->
         [line] f

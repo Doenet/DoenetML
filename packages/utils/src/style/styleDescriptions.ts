@@ -391,9 +391,14 @@ export function describeClosedShape(
     const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
     const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
     const fillParts = pattern ? "pattern" : "plain";
-    // Looked up separately rather than written into the messages below: a
-    // language that inflects "filled" has to agree it with the shape, and
-    // Fluent passes arguments to a message but not on to one it references.
+    // Looked up here and handed over as an argument rather than referenced
+    // from the messages below: a language that inflects "filled" has to agree
+    // it with the shape, and no Fluent reference both carries `$gender` and
+    // survives a partial translation. A term reference gets an empty scope and
+    // never sees it; a message reference does inherit it, but resolves only
+    // within its own bundle, so a locale that translated `style-filled` and
+    // not this word would render the reference literally instead of falling
+    // back to English.
     const filledWord = t("style-filled-word", { gender }, "filled");
     const patternClause = pattern ? ` with ${pattern}` : "";
 
