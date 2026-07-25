@@ -3,7 +3,7 @@
  *
  * The split is by *load context*, not by topic: a consumer should be able to
  * ship only the catalogs it can actually render. The worker, for instance,
- * never draws chrome, so it only ever needs `content` and `diagnostics`.
+ * renders nothing but core-computed prose, so it only ever needs `content`.
  */
 export const CATALOG_NAMESPACES = [
     "chrome",
@@ -14,11 +14,18 @@ export const CATALOG_NAMESPACES = [
 
 export type CatalogNamespace = (typeof CATALOG_NAMESPACES)[number];
 
-/** Namespaces the web worker needs: core-computed prose and diagnostics. */
-export const WORKER_NAMESPACES: readonly CatalogNamespace[] = [
-    "content",
-    "diagnostics",
-];
+/**
+ * Namespaces the web worker needs: core-computed prose, and nothing else.
+ *
+ * Not `diagnostics`, even though the worker raises them. A diagnostic is
+ * addressed to whoever is looking at the screen, so it answers to `uiLocale`,
+ * which the worker has no business knowing — it emits a stable code plus the
+ * arguments that fill the message in, and the main thread renders it (#1518).
+ * The English it writes onto each record while it is there comes from the
+ * built-in English catalogs, which `createTranslator` appends whole. So a
+ * *translated* diagnostics catalog would be dead weight in the worker bundle.
+ */
+export const WORKER_NAMESPACES: readonly CatalogNamespace[] = ["content"];
 
 /** Namespaces the main-thread viewer/editor chrome needs. */
 export const CHROME_NAMESPACES: readonly CatalogNamespace[] = [

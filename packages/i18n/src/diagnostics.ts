@@ -16,12 +16,15 @@
  *
  * ## Codes are append-only
  *
- * A code is a permanent name. It appears in the editor's problem list, it is
- * what someone searches for, and it is the anchor a documentation page will
- * hang off. `diagnostic-codes.lock.json` records every code ever issued and
- * `lint:i18n` fails as soon as this registry stops agreeing with an entry, so
- * a code can be retired but never reused or renumbered. (Editing the lock
- * itself is what review is for — see the package README.)
+ * A code is a permanent name — what a bug report cites, what a host filters
+ * on, and the anchor a documentation page will hang off (#1548). It travels on
+ * the record and, for a positioned diagnostic, in the LSP `code` field; no
+ * surface renders it as text yet.
+ *
+ * `diagnostic-codes.lock.json` records every code ever issued and `lint:i18n`
+ * fails as soon as this registry stops agreeing with an entry, so a code can
+ * be retired but never reused or renumbered. (Editing the lock itself is what
+ * review is for — see the package README.)
  *
  * The letter records what the diagnostic was born as — `w` warning, `e` error,
  * `i` info, `a` accessibility. It is part of the name, not a live severity: a
@@ -120,6 +123,33 @@ function toListArg(
 }
 
 /**
+ * An `Intl.ListFormat` for `locale`, falling back to English for a tag `Intl`
+ * refuses.
+ *
+ * Nothing upstream promises a well-formed tag. `normalizeLocaleTag` leaves an
+ * unparseable one alone on purpose, and Fluent will happily build a bundle for
+ * it, so a host that supplies its catalogs under `en_US` — the POSIX spelling,
+ * and the usual way to get this wrong — negotiates a chain that renders fine
+ * and then reaches a constructor that throws `RangeError`. Joining that list in
+ * English is a cosmetic loss; throwing would take the diagnostic down, and with
+ * it the core result it arrived on.
+ */
+function listFormatFor(
+    locale: string,
+    type: DiagnosticListArg["type"],
+): Intl.ListFormat {
+    const options: Intl.ListFormatOptions = {
+        style: "long",
+        type: type ?? "conjunction",
+    };
+    try {
+        return new Intl.ListFormat(locale, options);
+    } catch {
+        return new Intl.ListFormat(DEFAULT_LOCALE, options);
+    }
+}
+
+/**
  * Lower {@link DiagnosticArgs} to what Fluent accepts.
  *
  * Fluent has no list type, so every list becomes a joined string. Each one
@@ -145,10 +175,9 @@ function lowerArgs(
             continue;
         }
         const listArg = toListArg(value);
-        lowered[name] = new Intl.ListFormat(locale, {
-            style: "long",
-            type: listArg.type ?? "conjunction",
-        }).format(listArg.list);
+        lowered[name] = listFormatFor(locale, listArg.type).format(
+            listArg.list,
+        );
         lowered[`${name}Count`] = listArg.list.length;
     }
     return lowered;

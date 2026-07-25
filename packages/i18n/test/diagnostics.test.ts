@@ -264,6 +264,30 @@ describe("createDiagnosticFormatter", () => {
         ).toBe("slope and length are ignored when two endpoints are specified");
     });
 
+    // `en_US` is the POSIX spelling of a locale tag and the usual way a host
+    // gets one wrong. `normalizeLocaleTag` passes it through untouched, and
+    // Fluent renders from a bundle built for it — but `Intl.ListFormat` throws
+    // `RangeError` on it, and that throw would escape `DocViewer` on the core
+    // result the diagnostic arrived with. The list falls back to English; the
+    // message still renders from the catalog the host supplied.
+    it("still renders when the negotiated tag is one Intl rejects", () => {
+        const posix = createDiagnosticFormatter(
+            translatorFor(
+                "en_US",
+                "line-segment-attributes-ignored-with-endpoints = { $attributes } dropped ({ $attributesCount })",
+            ),
+            "en_US",
+        );
+        expect(
+            posix({
+                message:
+                    "slope and length are ignored when two endpoints are specified",
+                code: "doenet-i0001",
+                args: { attributes: ["slope", "length"] },
+            }),
+        ).toBe("slope and length dropped (2)");
+    });
+
     it("renders English unchanged when English is the UI language", () => {
         const formatEn = createDiagnosticFormatter(
             createTranslator([], {}),

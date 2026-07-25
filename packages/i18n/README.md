@@ -62,18 +62,15 @@ them (the host's copy wins for a locale that exists in both). Inlining does not
 scale, and additional locales are still meant to arrive as modules the host
 loads and passes in; revisit when the count reaches a handful.
 
-Note that the two namespaces the worker loads answer to *different* settings:
-`content` to `documentLocale`, `diagnostics` to `uiLocale`. The worker knows
-only the first, and doesn't need the second: it renders `content` itself, but
-for `diagnostics` it emits a code and the values that fill the message in and
-lets the main thread render it. See [Diagnostics](#diagnostics) below.
-
-So the *translated* diagnostics catalogs the worker bundles are currently
-unread — the English it writes onto each record comes from the built-in
-English, which `createTranslator` appends whole regardless of namespace.
-`WORKER_NAMESPACES` keeps `diagnostics` anyway, so the split still describes
-what the worker is allowed to render rather than what today's code happens to
-reach for.
+Note that `content` and `diagnostics` answer to *different* settings —
+`documentLocale` and `uiLocale` respectively — which is why `WORKER_NAMESPACES`
+is `content` alone. The worker knows only the content locale, and needs only
+that: it renders `content` itself, but for a diagnostic it emits a code and the
+values that fill the message in and lets the main thread render it. The English
+it writes onto each record on the way past comes from the built-in English,
+which `createTranslator` appends whole regardless of namespace, so a translated
+diagnostics catalog inside the worker would never be read. See
+[Diagnostics](#diagnostics) below.
 
 ## Keys
 
@@ -236,9 +233,13 @@ on every run.
 
 ### Codes
 
-A code is a permanent name — it shows up in the editor's problem list, it is
-what someone searches for, and it is the anchor a documentation page will hang
-off. `DIAGNOSTIC_CODES` in `src/diagnostics.ts` maps each to a message id, and
+A code is a permanent name — what a bug report cites, what a host reading
+`setDiagnosticsCallback` can filter on, and the anchor a documentation page
+will hang off (#1548). It rides on the record, and on the LSP `code` field for
+a positioned diagnostic; nothing renders it as text yet, so the codes earn
+their keep as an identifier rather than as UI.
+
+`DIAGNOSTIC_CODES` in `src/diagnostics.ts` maps each to a message id, and
 `diagnostic-codes.lock.json` records every code ever issued, so `lint:i18n`
 fails if one is renumbered, reused, or dropped from the registry. Retire a code
 in place; never recycle it.

@@ -86,10 +86,10 @@ describe("toAdditionalDiagnosticsForLsp", () => {
         });
     });
 
-    // The code is what makes a diagnostic citable — the editor renders it
-    // beside the message (#1518). Only migrated records carry one, and `code`
-    // is optional in LSP, so a legacy record must come out without the key at
-    // all rather than with an explicit `undefined`.
+    // `code` is the LSP field a stable diagnostic name belongs in, and where a
+    // `codeDescription` link will attach (#1548). Only migrated records carry
+    // one (#1518), and `code` is optional in LSP, so a legacy record must come
+    // out without the key at all rather than with an explicit `undefined`.
     it("passes a migrated record's stable code through to LSP", () => {
         const coded: WarningRecord = {
             type: "warning",

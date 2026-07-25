@@ -7,6 +7,8 @@ import {
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 /**

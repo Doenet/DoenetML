@@ -88,10 +88,14 @@ function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
         message: diagnostic.message,
         severity: DIAGNOSTIC_TYPE_TO_LSP_SEVERITY[diagnostic.type],
         range,
-        // The editor renders `code` beside the message, which makes a
-        // diagnostic something a user can search for and an author can cite.
-        // Only records that have migrated to the catalogs carry one (#1518);
-        // `code` is optional in LSP, so the rest are unchanged.
+        // `code` is where LSP expects the stable name of a diagnostic, and it
+        // is what a `codeDescription` link will hang off (#1548). Populating
+        // it costs nothing and puts the code in front of any client that
+        // renders the field; the CodeMirror tooltip does not yet — it reads
+        // `code` only to pick the accessibility heading style, as the branch
+        // above relies on. Only records that have migrated to the catalogs
+        // carry one (#1518); `code` is optional in LSP, so the rest are
+        // unchanged.
         ...(diagnostic.code === undefined ? {} : { code: diagnostic.code }),
     };
 }

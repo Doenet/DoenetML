@@ -294,11 +294,19 @@ const DIAGNOSTIC_CODE_USE_PATTERN = /code:\s*["'`](doenet-[a-z]\d+)["'`]/g;
 /**
  * A raw diagnostic literal: `type: "warning"` and its siblings.
  *
- * Counted, not validated. The ratio of these to coded call sites is the
- * burn-down `lint:i18n` reports while the ~200 legacy messages migrate.
+ * Counted, not validated — a regex over source text can only approximate the
+ * real number. The two guards keep it from over-reporting in the ways that
+ * actually occur here: the lookbehind rules out a longer property name ending
+ * in `type` (`error_type: "warning"`, in the parser and the LSP), and the
+ * lookahead rules out a *type declaration* rather than an object literal
+ * (`type: "error";` in the `DiagnosticRecord` union), neither of which is a
+ * message anyone has to translate.
+ *
+ * The ratio of these to coded call sites is the burn-down `lint:i18n` reports
+ * while the legacy messages migrate.
  */
 const DIAGNOSTIC_LITERAL_PATTERN =
-    /type:\s*["'`](?:warning|error|info|accessibility)["'`]/g;
+    /(?<![\w$])type:\s*["'`](?:warning|error|info|accessibility)["'`](?!\s*;)/g;
 
 export type DiagnosticUsage = {
     codes: CallSite[];

@@ -22,6 +22,11 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset no tiene efecto s
 
 ## `<line>`
 
+# «Recta», no «línea», aunque `noun.line` en content.ftl diga «línea»: no es
+# una incoherencia, sino la diferencia entre describir el trazo dibujado («una
+# línea azul gruesa») y hablar del objeto geométrico, que en matemáticas es
+# una recta —de ahí «la ecuación de la recta».
+
 line-points-undetermined-dimensions = La recta pasa por puntos de dimensiones indeterminadas.
 
 line-points-too-few-dimensions = La recta debe pasar por puntos de al menos dos dimensiones.
