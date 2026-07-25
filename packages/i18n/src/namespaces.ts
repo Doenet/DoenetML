@@ -29,11 +29,14 @@ export const CHROME_NAMESPACES: readonly CatalogNamespace[] = [
 export type Catalogs = Partial<Record<CatalogNamespace, string>>;
 
 /**
- * Concatenate per-namespace FTL sources into the single source a
- * {@link FluentBundle} consumes.
+ * Concatenate per-namespace FTL sources into the single source a Fluent
+ * bundle consumes.
  *
  * Namespaces share one bundle, so message ids must be unique across the
  * catalogs a given context loads. `lint:i18n` enforces that.
+ *
+ * Sources are joined with a newline, so a catalog whose last line lacks one
+ * cannot run into the next catalog's first entry.
  */
 export function combineCatalogs(catalogs: Catalogs): string {
     return CATALOG_NAMESPACES.map((namespace) => catalogs[namespace])

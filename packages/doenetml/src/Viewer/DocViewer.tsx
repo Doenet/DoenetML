@@ -21,7 +21,11 @@ import * as Comlink from "comlink";
 import { MdError } from "react-icons/md";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
-import { DEFAULT_LOCALE, declaredDocumentLocale } from "@doenet/i18n";
+import {
+    DEFAULT_LOCALE,
+    declaredDocumentLocale,
+    resolveUiLocale,
+} from "@doenet/i18n";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
@@ -529,6 +533,12 @@ export function DocViewer({
     // treated as English. (The wrapper's `lang` deliberately does *not* fall
     // back this way — see `initializeCoreWorker`.)
     const effectiveDocumentLocale = declaredLocale ?? DEFAULT_LOCALE;
+    // The chrome's language: whatever the host configured, otherwise the
+    // content's.
+    const effectiveUiLocale = resolveUiLocale(
+        uiLocale,
+        effectiveDocumentLocale,
+    );
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
@@ -578,7 +588,7 @@ export function DocViewer({
         doenetImagesUrl,
         darkMode,
         documentLocale: effectiveDocumentLocale,
-        uiLocale: uiLocale || effectiveDocumentLocale,
+        uiLocale: effectiveUiLocale,
         showAnswerResponseButton,
         answerResponseCounts,
         reportGraphElementUp,

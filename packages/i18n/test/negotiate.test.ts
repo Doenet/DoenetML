@@ -5,6 +5,7 @@ import {
     negotiateLocales,
     normalizeLocaleTag,
     resolveDocumentLocale,
+    resolveUiLocale,
 } from "../src/negotiate";
 
 describe("negotiateLocales", () => {
@@ -69,6 +70,27 @@ describe("declaredDocumentLocale", () => {
         // whatever the embedding page declared.
         expect(declaredDocumentLocale(undefined, undefined)).toBe(undefined);
         expect(declaredDocumentLocale("  ", null)).toBe(undefined);
+    });
+});
+
+describe("resolveUiLocale", () => {
+    it("follows the content's language when the host configures none", () => {
+        // A fully Spanish activity is fully Spanish out of the box.
+        expect(resolveUiLocale(undefined, "es-MX")).toBe("es-MX");
+        expect(resolveUiLocale(null, "en")).toBe("en");
+    });
+
+    it("lets the host set the chrome's language separately", () => {
+        expect(resolveUiLocale("es", "fr")).toBe("es");
+    });
+
+    it("treats a blank tag as unset", () => {
+        expect(resolveUiLocale("   ", "fr")).toBe("fr");
+        expect(resolveUiLocale("", "fr")).toBe("fr");
+    });
+
+    it("normalizes what it returns, so the chrome negotiates like the content", () => {
+        expect(resolveUiLocale("ES-mx", "fr")).toBe("es-MX");
     });
 });
 

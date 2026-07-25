@@ -79,6 +79,28 @@ export function resolveDocumentLocale(
 }
 
 /**
+ * Apply the UI-locale precedence rule: an explicitly configured `uiLocale`
+ * beats the language of the content.
+ *
+ * The chrome follows the content by default, so a fully Spanish activity is
+ * fully Spanish without the host configuring anything. A host overrides it
+ * only when the reader's language genuinely differs from the content's — a
+ * Spanish-speaking student working a French physics problem. A blank tag
+ * counts as unset, and the result is normalized, so the chrome's locale
+ * negotiates exactly the way the content's does.
+ *
+ * @param uiLocale What the host configured, if anything.
+ * @param documentLocale The content locale to follow, already resolved by
+ *   {@link resolveDocumentLocale}.
+ */
+export function resolveUiLocale(
+    uiLocale: string | null | undefined,
+    documentLocale: string,
+): string {
+    return normalizeLocaleTag(uiLocale ?? "") || documentLocale;
+}
+
+/**
  * Normalize a BCP-47 tag to the casing Fluent and `Intl` expect
  * (`es-mx` → `es-MX`), leaving anything unparseable alone.
  *

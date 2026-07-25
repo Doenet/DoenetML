@@ -7,7 +7,11 @@ import {
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
-import { DEFAULT_LOCALE, declaredDocumentLocale } from "@doenet/i18n";
+import {
+    DEFAULT_LOCALE,
+    declaredDocumentLocale,
+    normalizeLocaleTag,
+} from "@doenet/i18n";
 import { readDocumentLang } from "./documentLang";
 
 export type CoreWorkerHandle = {
@@ -264,9 +268,13 @@ export async function initializeCoreWorker({
     await coreWorker.setCoreType("javascript");
     await coreWorker.setSource({ source: doenetML, dast });
     await coreWorker.setFlags({ flags });
+    // Sent unconditionally, even with nothing configured: a reused worker
+    // (the shared-core pool) would otherwise keep the previous document's
+    // locale. Normalized here so the tag the core stores is canonical for
+    // everything that later negotiates against it.
     await coreWorker.setLocaleData({
         localeData: {
-            locale: documentLocale || DEFAULT_LOCALE,
+            locale: normalizeLocaleTag(documentLocale ?? "") || DEFAULT_LOCALE,
             resources: localeResources ?? {},
         },
     });

@@ -11,6 +11,7 @@ export {
     normalizeLocaleTag,
     declaredDocumentLocale,
     resolveDocumentLocale,
+    resolveUiLocale,
     type NegotiateLocalesOptions,
 } from "./negotiate";
 
