@@ -97,7 +97,15 @@ noun =
     .cross = cruz
     .plus = signo más
 
-noun-regular-polygon = polígono regular de { $numSides } lados
+# El nombre se parte: «polígono regular» lleva los adjetivos y «de 5 lados»
+# cierra el sintagma detrás de ellos. Si el complemento fuera delante, los
+# adjetivos quedarían separados del nombre con el que concuerdan («polígono
+# regular de 5 lados grueso rojo»).
+noun-regular-polygon =
+    { $part ->
+        [tail] de { $numSides } lados
+       *[head] polígono regular
+    }
 
 # Además de los nombres de arriba, `$noun` puede ser el núcleo de un sintagma
 # que no se nombra en la descripción: «border», «fill», «text» y «background».
@@ -129,7 +137,13 @@ style-stroke =
     }
 
 # El nombre va delante y los adjetivos detrás: «línea discontinua gruesa roja».
-style-with-noun = { $noun } { $description }
+# El complemento del nombre, si lo hay, cierra el sintagma: «polígono regular
+# grueso rojo de 5 lados».
+style-with-noun =
+    { $parts ->
+        [noun-tail] { $noun } { $description } { $nounTail }
+       *[noun] { $noun } { $description }
+    }
 
 style-filled-word =
     { $gender ->
@@ -143,9 +157,14 @@ style-filled =
        *[plain] { $color } { $filled }
     }
 
+# Aquí el complemento va pegado al nombre, y no al final como en
+# `style-with-noun`: «relleno de …» se lee como «lleno de …», así que «relleno
+# de 5 lados» diría otra cosa. «Polígono regular de 5 lados azul relleno».
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } con { $pattern }
+        [plain-tail] { $noun } { $nounTail } { $color } { $filled }
+        [pattern-tail] { $noun } { $nounTail } { $color } { $filled } con { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
 

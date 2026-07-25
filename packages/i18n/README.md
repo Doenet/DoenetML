@@ -160,6 +160,14 @@ piece selects a different branch rather than substituting an empty string —
 that is what lets a translation reorder and re-punctuate each combination on
 its own terms.
 
+Even the noun is not one string. A regular polygon is "5-sided regular polygon"
+in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
+adjectives rather than sitting beside them, so `noun-regular-polygon` answers
+in two halves (`$part`) and the composing message places each. A noun that
+needs no complement leaves the second half empty. The rule generalizes: when a
+translation cannot keep a phrase contiguous, split the phrase, not the message
+that uses it.
+
 Two Fluent constraints shaped it, and both are easy to rediscover the hard way:
 
 - **A term's arguments must be literals.** `{ -filled(gender: $gender) }` does

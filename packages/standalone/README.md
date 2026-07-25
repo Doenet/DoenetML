@@ -126,10 +126,12 @@ asserting English over a page that said `<html lang="es">`.
 Changing `documentLocale` rebuilds the document, since it changes every string
 the core computes; `uiLocale` updates in place.
 
-Translated message catalogs (`localeResources`) are supplied only through the
+English and Spanish are bundled, so `es` needs no catalogs from the host.
+Further languages arrive as `localeResources`, supplied only through the
 `renderDoenet{Viewer,Editor}ToContainer` config object — they are FTL sources
-keyed by locale, too large to ride an HTML attribute. Nothing is translated
-yet, so hosts have no catalogs to supply today.
+keyed by locale, too large to ride an HTML attribute. A host's catalog also
+wins over a bundled one for the same locale, which is how a deployment
+corrects a translation it disagrees with.
 
 ## Editor control handle
 

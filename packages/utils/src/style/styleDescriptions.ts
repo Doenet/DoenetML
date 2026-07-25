@@ -202,16 +202,34 @@ function lookUp(
     return entry ? entry(t, { gender }) : word;
 }
 
-/** The word naming a {@link NounSpec}. */
-function nounWord(t: Translator, noun: NounSpec): string {
+/**
+ * A noun as the composition messages receive it: the word the adjectives
+ * attach to, and any complement trailing behind them.
+ *
+ * Only a regular polygon has a complement today, and only in some languages.
+ * English folds its side count into the word itself — "5-sided regular
+ * polygon" — and leaves `tail` empty. Spanish cannot: "de 5 lados" has to
+ * follow the noun, and putting it there first would strand the adjectives
+ * behind it ("polígono regular de 5 lados grueso rojo"), reading as a comment
+ * on the sides rather than on the shape. So the noun splits, and the message
+ * that composes the phrase decides where each half goes.
+ */
+type NounPhrase = { noun: string; tail: string };
+
+/** The words naming a {@link NounSpec}. */
+function nounPhrase(t: Translator, noun: NounSpec): NounPhrase {
     if (noun.key === "regular-polygon") {
-        return t(
-            "noun-regular-polygon",
-            { numSides: noun.numSides },
-            `${noun.numSides}-sided regular polygon`,
-        );
+        const { numSides } = noun;
+        return {
+            noun: t(
+                "noun-regular-polygon",
+                { part: "head", numSides },
+                `${numSides}-sided regular polygon`,
+            ),
+            tail: t("noun-regular-polygon", { part: "tail", numSides }, ""),
+        };
     }
-    return NOUN_WORDS[noun.key](t);
+    return { noun: NOUN_WORDS[noun.key](t), tail: "" };
 }
 
 /**
@@ -280,11 +298,26 @@ function describeStroke(
 }
 
 /** A description followed by what it describes: "thick red line". */
-function attachNoun(t: Translator, description: string, noun: string): string {
+function attachNoun(
+    t: Translator,
+    description: string,
+    { noun, tail }: NounPhrase,
+): string {
+    // With no adjectives there is nothing for a language to order, and going
+    // through the message would leave the space it puts beside the noun —
+    // trailing in Spanish, leading in English, invisible in both.
+    if (!description) {
+        return joinPresent(noun, tail);
+    }
     return t(
         "style-with-noun",
-        { description, noun },
-        `${description} ${noun}`,
+        {
+            parts: tail ? "noun-tail" : "noun",
+            description,
+            noun,
+            nounTail: tail,
+        },
+        joinPresent(description, noun, tail),
     );
 }
 
@@ -301,7 +334,7 @@ export function describeStrokedShape(
     { noun, withNoun }: { noun: NounSpec; withNoun: boolean },
 ): string {
     const stroke = describeStroke(t, words, genderOf(t, noun.key));
-    return withNoun ? attachNoun(t, stroke, nounWord(t, noun)) : stroke;
+    return withNoun ? attachNoun(t, stroke, nounPhrase(t, noun)) : stroke;
 }
 
 /** A shape's border on its own, as `borderStyleDescription` reports it. */
@@ -340,37 +373,39 @@ export function describeClosedShape(
     }
 
     const gender = genderOf(t, noun.key);
-    const nounText = withNoun ? nounWord(t, noun) : "";
+    const phrase = withNoun ? nounPhrase(t, noun) : undefined;
 
     const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
     const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
-    const parts = pattern ? "pattern" : "plain";
+    const fillParts = pattern ? "pattern" : "plain";
     // Looked up separately rather than written into the messages below: a
     // language that inflects "filled" has to agree it with the shape, and
     // Fluent passes arguments to a message but not on to one it references.
     const filledWord = t("style-filled-word", { gender }, "filled");
+    const patternClause = pattern ? ` with ${pattern}` : "";
 
-    const filledText = withNoun
+    const filledText = phrase
         ? t(
               "style-filled-with-noun",
               {
-                  parts,
+                  // A complement doubles the variants rather than adding a
+                  // placeable: a language that splits its noun has to say
+                  // where each half goes relative to the adjectives.
+                  parts: phrase.tail ? `${fillParts}-tail` : fillParts,
                   color,
                   pattern,
-                  noun: nounText,
+                  noun: phrase.noun,
+                  nounTail: phrase.tail,
                   filled: filledWord,
                   gender,
               },
-              pattern
-                  ? `${filledWord} ${color} ${nounText} with ${pattern}`
-                  : `${filledWord} ${color} ${nounText}`,
+              joinPresent(filledWord, color, phrase.noun, phrase.tail) +
+                  patternClause,
           )
         : t(
               "style-filled",
-              { parts, color, pattern, filled: filledWord, gender },
-              pattern
-                  ? `${filledWord} ${color} with ${pattern}`
-                  : `${filledWord} ${color}`,
+              { parts: fillParts, color, pattern, filled: filledWord, gender },
+              joinPresent(filledWord, color) + patternClause,
           );
 
     // The border names its color only when it differs from the fill's — the
@@ -436,7 +471,7 @@ export function describeMarker(
     const noun = markerWord(t, words.markerStyleWord);
     const gender = genderOf(t, words.markerStyleWord || "point");
     const color = lookUp(t, COLOR_WORDS, words.markerColorWord, gender);
-    return withNoun ? attachNoun(t, color, noun) : color;
+    return withNoun ? attachNoun(t, color, { noun, tail: "" }) : color;
 }
 
 /** A filled region, described by its fill color alone. */
@@ -447,7 +482,7 @@ export function describeRegion(
 ): string {
     const gender = genderOf(t, noun.key);
     const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
-    return withNoun ? attachNoun(t, color, nounWord(t, noun)) : color;
+    return withNoun ? attachNoun(t, color, nounPhrase(t, noun)) : color;
 }
 
 /** A color word on its own, as `textColor` and `backgroundColor` report it. */

@@ -107,8 +107,10 @@ describe("style descriptions follow the document locale", () => {
         expect((await descriptions(doenetML, ["stn"])).stn).eq(
             "thick red 5-sided regular polygon",
         );
+        // The noun splits so the adjectives stay beside the word they agree
+        // with, rather than trailing after "lados".
         expect((await descriptions(doenetML, ["stn"], "es")).stn).eq(
-            "polígono regular de 5 lados grueso rojo",
+            "polígono regular grueso rojo de 5 lados",
         );
     });
 

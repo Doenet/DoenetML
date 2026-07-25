@@ -88,13 +88,17 @@ describe("stroked shapes", () => {
     }
 
     it("describes nothing when the style names nothing", () => {
+        const nothing = { lineWidthWord: "", lineStyleWord: "", colorWord: "" };
         expect(
-            describeStrokedShape(
-                en,
-                { lineWidthWord: "", lineStyleWord: "", colorWord: "" },
-                { noun: line, withNoun: false },
-            ),
+            describeStrokedShape(en, nothing, {
+                noun: line,
+                withNoun: false,
+            }),
         ).toBe("");
+        // The noun alone, with no space where the adjectives would have been.
+        expect(
+            describeStrokedShape(en, nothing, { noun: line, withNoun: true }),
+        ).toBe("line");
     });
 });
 
@@ -207,17 +211,26 @@ describe("closed shapes", () => {
     });
 
     it("names a shape by its side count", () => {
+        const regularPolygon: NounSpec = {
+            key: "regular-polygon",
+            numSides: 5,
+        };
         expect(
             describeClosedShape(
                 en,
                 { ...blueOutline, fillColorWord: "blue", fillStyleWord: "" },
-                {
-                    filled: false,
-                    noun: { key: "regular-polygon", numSides: 5 },
-                    withNoun: true,
-                },
+                { filled: false, noun: regularPolygon, withNoun: true },
             ),
         ).toBe("thick blue 5-sided regular polygon");
+        expect(
+            describeClosedShape(
+                en,
+                { ...blueOutline, fillColorWord: "red", fillStyleWord: "dots" },
+                { filled: true, noun: regularPolygon, withNoun: true },
+            ),
+        ).toBe(
+            "filled red 5-sided regular polygon with dots and a thick blue border",
+        );
     });
 });
 
@@ -346,17 +359,44 @@ describe("Spanish", () => {
     });
 
     it("names a regular polygon by its side count", () => {
+        // The noun splits: the adjectives stay beside "polígono regular", and
+        // "de 7 lados" closes the phrase behind them. Filled, the complement
+        // moves back up against the noun instead — "relleno de 7 lados" would
+        // read as *what the shape is filled with*.
+        const regularPolygon: NounSpec = {
+            key: "regular-polygon",
+            numSides: 7,
+        };
+        expect(
+            describeClosedShape(
+                es,
+                { lineWidthWord: "thick", lineStyleWord: "", colorWord: "red" },
+                { filled: false, noun: regularPolygon, withNoun: true },
+            ),
+        ).toBe("polígono regular grueso rojo de 7 lados");
+        expect(
+            describeClosedShape(
+                es,
+                {
+                    lineWidthWord: "",
+                    lineStyleWord: "",
+                    colorWord: "red",
+                    fillColorWord: "blue",
+                    fillStyleWord: "dots",
+                },
+                { filled: true, noun: regularPolygon, withNoun: true },
+            ),
+        ).toBe(
+            "polígono regular de 7 lados azul relleno con puntos y un borde rojo",
+        );
+        // Without the noun there is nothing to split around.
         expect(
             describeClosedShape(
                 es,
                 { lineWidthWord: "", lineStyleWord: "", colorWord: "green" },
-                {
-                    filled: false,
-                    noun: { key: "regular-polygon", numSides: 7 },
-                    withNoun: true,
-                },
+                { filled: false, noun: regularPolygon, withNoun: false },
             ),
-        ).toBe("polígono regular de 7 lados verde");
+        ).toBe("verde");
     });
 
     it("translates the remaining descriptions", () => {

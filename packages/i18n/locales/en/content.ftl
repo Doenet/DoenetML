@@ -81,7 +81,18 @@ noun =
 
 # A regular polygon names its side count, so it is a message of its own rather
 # than one of `noun`'s attributes.
-noun-regular-polygon = { $numSides }-sided regular polygon
+#
+# `$part` splits the noun where a language needs it split: `head` is the word
+# the adjectives attach to, `tail` a complement that follows them. English
+# folds the side count into the head and has no tail; Spanish says "polígono
+# regular" and puts "de 5 lados" after the adjectives, so that they stay beside
+# the noun they agree with. `style-with-noun` and `style-filled-with-noun`
+# place the two halves.
+noun-regular-polygon =
+    { $part ->
+        [tail] { "" }
+       *[head] { $numSides }-sided regular polygon
+    }
 
 # The grammatical gender of the noun being described, passed to every adjective
 # describing it so that translations can agree. English has no grammatical
@@ -115,7 +126,17 @@ style-stroke =
     }
 
 # A style description followed by what it describes: "thick red line".
-style-with-noun = { $description } { $noun }
+#
+# `$nounTail` is the noun's trailing complement, for the nouns whose
+# translation splits around the adjectives (see `noun-regular-polygon`).
+# English has none today, so it only ever selects `noun` for itself — the other
+# variant is still what a partly-translated locale falls back to, and dropping
+# it would drop that locale's side count.
+style-with-noun =
+    { $parts ->
+        [noun-tail] { $description } { $noun } { $nounTail }
+       *[noun] { $description } { $noun }
+    }
 
 # The word marking a shape as filled.
 #
@@ -132,9 +153,14 @@ style-filled =
     }
 
 # The same, naming the shape: "filled blue circle with diamonds".
+#
+# The `-tail` variants carry the noun's trailing complement, as
+# `style-with-noun` does.
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } with { $pattern }
+        [plain-tail] { $filled } { $color } { $noun } { $nounTail }
+        [pattern-tail] { $filled } { $color } { $noun } { $nounTail } with { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
 

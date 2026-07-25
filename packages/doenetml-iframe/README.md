@@ -197,8 +197,9 @@ differ — a Spanish-speaking student may work a French physics problem.
   `documentLocale`, so a fully Spanish activity is fully Spanish without the
   host configuring anything.
 - `localeResources` — FTL message catalogs keyed by locale, for locales other
-  than English. English is bundled, so a host that only needs English passes
-  nothing. Nothing is translated yet, so there are no catalogs to supply today.
+  than the bundled ones. English and Spanish are bundled, so a host needing
+  only those passes nothing; a catalog supplied here wins over a bundled one
+  for the same locale, which is how a deployment corrects a translation.
 
 When a language is declared — by either route — the rendered container carries
 a matching `lang` attribute, so screen readers pronounce the content with the

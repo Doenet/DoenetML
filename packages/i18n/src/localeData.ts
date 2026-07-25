@@ -38,6 +38,16 @@ export const DEFAULT_LOCALE_DATA: LocaleData = {
 };
 
 /**
+ * The catalogs the worker carries, assembled once.
+ *
+ * A module constant rather than a call per translator, as in `chrome.ts`:
+ * `bundledResources` re-concatenates every namespace it is given, and a core
+ * builds a translator for each locale its documents declare.
+ */
+const BUNDLED_WORKER_RESOURCES: Record<string, string> =
+    bundledResources(WORKER_NAMESPACES);
+
+/**
  * Build the translator for a {@link LocaleData} payload, negotiating the
  * requested locale against the catalogs available inside the worker.
  *
@@ -55,7 +65,7 @@ export function createTranslatorFromLocaleData(
     locale: string = localeData.locale,
 ): Translator {
     const resources = {
-        ...bundledResources(WORKER_NAMESPACES),
+        ...BUNDLED_WORKER_RESOURCES,
         ...localeData.resources,
     };
     const chain = negotiateLocales([locale], Object.keys(resources));
