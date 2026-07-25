@@ -39,12 +39,8 @@ import {
 import { useResolvedTheme } from "./utils/theme";
 import type { ThemeSetting } from "./utils/theme";
 export type { ThemeSetting, ResolvedTheme } from "./utils/theme";
-import { I18nProvider, useChromeTranslator } from "./utils/i18n";
-import {
-    resolveDocumentLocale,
-    resolveUiLocale,
-    type Translator,
-} from "@doenet/i18n";
+import { I18nProvider, useHostChromeTranslator } from "./utils/i18n";
+import { type Translator } from "@doenet/i18n";
 import { defaultFlags } from "./flags";
 import type { DoenetMLFlags } from "./flags";
 export type { DoenetMLFlags } from "./flags";
@@ -250,11 +246,9 @@ export function DoenetViewer({
     // Chrome outside the document — the virtual keyboard, the variant
     // selector — has only the props to go on. `DocViewer` mounts a nested
     // provider that also accounts for an authored `<document lang>`.
-    const translateChrome = useChromeTranslator(
-        resolveUiLocale(
-            uiLocale,
-            resolveDocumentLocale(undefined, documentLocale),
-        ),
+    const translateChrome = useHostChromeTranslator(
+        uiLocale,
+        documentLocale,
         localeResources,
     );
 
@@ -572,11 +566,9 @@ export const DoenetEditor = React.forwardRef<
     const resolvedTheme = useResolvedTheme(darkMode);
     // As in `DoenetViewer`: props only here, authored `<document lang>` in the
     // nested provider `DocViewer` mounts.
-    const translateChrome = useChromeTranslator(
-        resolveUiLocale(
-            uiLocale,
-            resolveDocumentLocale(undefined, documentLocale),
-        ),
+    const translateChrome = useHostChromeTranslator(
+        uiLocale,
+        documentLocale,
         localeResources,
     );
 

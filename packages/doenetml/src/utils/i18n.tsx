@@ -2,6 +2,8 @@ import React, { createContext, useContext, useMemo } from "react";
 import {
     createChromeTranslator,
     localeResourceKey,
+    resolveDocumentLocale,
+    resolveUiLocale,
     EN_CHROME_TRANSLATOR,
     type Translator,
 } from "@doenet/i18n";
@@ -33,6 +35,33 @@ export function useChromeTranslator(
     return useMemo(
         () => createChromeTranslator(uiLocale, localeResources),
         [uiLocale, resourceKey],
+    );
+}
+
+/**
+ * Build the chrome translator a host's props alone imply.
+ *
+ * For chrome that sits *outside* the document — the virtual keyboard, the
+ * variant selector — where there is no authored `<document lang>` to consult:
+ * hence the `undefined` authored language. Inside the document, `DocViewer`
+ * resolves the same pair of rules again against the language it parsed out of
+ * the source, and mounts a nested provider with the result.
+ *
+ * @param uiLocale The `uiLocale` prop, if the host set one.
+ * @param documentLocale The `documentLocale` prop, if the host set one.
+ * @param localeResources Host-supplied catalogs as locale → FTL source.
+ */
+export function useHostChromeTranslator(
+    uiLocale: string | null | undefined,
+    documentLocale: string | null | undefined,
+    localeResources?: Record<string, string> | null,
+): Translator {
+    return useChromeTranslator(
+        resolveUiLocale(
+            uiLocale,
+            resolveDocumentLocale(undefined, documentLocale),
+        ),
+        localeResources,
     );
 }
 
