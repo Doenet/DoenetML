@@ -44,6 +44,19 @@ describe("readDocumentLang", () => {
     it("ignores a lang on something other than the document", () => {
         expect(langOf(`<p lang="fr">bonjour</p>`)).eq(undefined);
     });
+
+    it("matches the attribute name case-insensitively", () => {
+        // DoenetML attribute names are case-insensitive: the core lowercases
+        // before matching, so `<document Lang>` resolves `document.locale`
+        // there. The DAST keeps the author's casing, so reading it here has to
+        // lowercase too or the wrapper and the core would disagree.
+        expect(langOf(`<document Lang="es-MX"><p>hola</p></document>`)).eq(
+            "es-MX",
+        );
+        expect(langOf(`<document LANG="fr"><p>bonjour</p></document>`)).eq(
+            "fr",
+        );
+    });
 });
 
 describe("effective document locale", () => {

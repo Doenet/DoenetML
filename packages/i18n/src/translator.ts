@@ -148,8 +148,11 @@ export function createTranslator(
  * Adapt a {@link Translator} to the two-argument shape
  * `resolveColorWord`'s `translate` option already expects.
  *
- * Declared structurally rather than importing `ColorWordTranslator` from
- * `@doenet/utils`, which depends on this package.
+ * The signature is restated structurally rather than imported as
+ * `ColorWordTranslator` from `@doenet/utils`. This package deliberately
+ * depends on no other workspace package, so that every layer — the viewer,
+ * the worker, `@doenet/utils` itself — can consume it; importing a type back
+ * from a consumer would give that up to save one line.
  */
 export function asFallbackTranslator(
     translate: Translator,
