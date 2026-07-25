@@ -164,11 +164,13 @@ Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
 adjectives rather than sitting beside them, so `noun-regular-polygon` answers
 in two halves (`$part`) and the composing message places each. A noun that
-needs no complement leaves the second half empty. The rule generalizes: when a
-translation cannot keep a phrase contiguous, split the phrase, not the message
-that uses it.
+needs no complement leaves the second half empty. The rule generalizes: **a
+phrase a language cannot keep contiguous has to be split at the source** —
+there is no reaching inside `{ $noun }` from the message that places it, so
+split the phrase, not the message that uses it.
 
-Two Fluent constraints shaped it, and both are easy to rediscover the hard way:
+Two further Fluent constraints shaped it, and both are easy to rediscover the
+hard way:
 
 - **A word that inflects has to be passed in, not referenced.** A *term*
   reference cannot carry a runtime value — `{ -filled(gender: $gender) }` does
