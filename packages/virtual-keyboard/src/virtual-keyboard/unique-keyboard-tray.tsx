@@ -85,37 +85,35 @@ function getActiveRegistration() {
 }
 
 /**
- * Read a setting off the registration whose owner is focused, falling back to
- * the last one that was, then to the most recent registration.
+ * The registration whose settings the tray should reflect: the one whose owner
+ * is focused, else the last one that was, else the most recent registration.
  *
- * The tray is shared by every viewer on the page, so which viewer's settings
- * it should reflect is a question about focus. `theme` and `translate` answer
- * it the same way; only the field read differs.
+ * The tray is shared by every viewer on the page, so which viewer's `theme`
+ * and `translate` it shows is a question about focus.
  */
-function getTraySetting<T>(
-    read: (registration: VirtualKeyboardState["registrations"][number]) => T,
-): T | undefined {
+function getTrayRegistration():
+    VirtualKeyboardState["registrations"][number] | undefined {
     const activeRegistration = getActiveRegistration();
     if (activeRegistration) {
-        return read(activeRegistration);
+        return activeRegistration;
     }
     const lastActiveRegistration = getRegistrationById(
         virtualKeyboardState.lastActiveRegistrationId,
     );
     if (lastActiveRegistration) {
-        return read(lastActiveRegistration);
+        return lastActiveRegistration;
     }
     // No owner is currently focused — use the last registration so the tray
-    // reflects the correct setting even before any interaction (e.g. on
+    // reflects the correct settings even before any interaction (e.g. on
     // initial page load).
     const registrations = virtualKeyboardState.registrations;
-    const lastRegistration = registrations[registrations.length - 1];
-    return lastRegistration ? read(lastRegistration) : undefined;
+    return registrations[registrations.length - 1];
 }
 
 function rerenderTray() {
-    const theme = getTraySetting((registration) => registration.theme);
-    const translate = getTraySetting((registration) => registration.translate);
+    const registration = getTrayRegistration();
+    const theme = registration?.theme;
+    const translate = registration?.translate;
     // The focusin listener fires on every focus change anywhere in the
     // document. Skip the React re-render when what the tray already shows is
     // correct — reconciling the MathJaxContext + tray subtree on every focus

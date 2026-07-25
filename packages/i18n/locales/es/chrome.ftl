@@ -68,6 +68,13 @@ matrix-add-row = Añadir fila
 matrix-remove-column = Eliminar columna
 matrix-add-column = Añadir columna
 
+subset-add-remove-points = Añadir/Eliminar puntos
+subset-toggle-points-intervals = Alternar puntos e intervalos
+subset-move-points = Mover puntos
+subset-clear = Borrar
+
+pretzel-answer = Respuesta
+
 
 ## Math input
 
@@ -88,3 +95,9 @@ viewer-initializing = Inicializando...
 error-heading = Error
 
 document-contains-errors = ¡Este documento contiene errores!
+
+something-went-wrong = Algo salió mal.
+
+# Follows `error-heading` and a colon, so it begins in lower case, as in
+# English. The instruction is an infinitive, per the register note above.
+renderer-load-failed = no se pudo cargar un componente. Recargar la página.

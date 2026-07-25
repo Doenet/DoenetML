@@ -1,5 +1,7 @@
 import React from "react";
 
+import { useT } from "../utils/i18n";
+
 /**
  * True when `error` matches the transient dynamic-import failures we see when
  * Vite's dev server hiccups (Cypress component-test runs) or a network blip
@@ -60,6 +62,8 @@ export async function importRendererWithRetry<T>(
 export function RendererLoadFailed(props: {
     componentInstructions?: { id?: string };
 }) {
+    const t = useT();
+
     return (
         <div
             id={props.componentInstructions?.id}
@@ -74,7 +78,12 @@ export function RendererLoadFailed(props: {
                 textAlign: "center",
             }}
         >
-            <b>Error</b>: a renderer failed to load. Please reload the page.
+            <b>{t("error-heading", undefined, "Error")}</b>:{" "}
+            {t(
+                "renderer-load-failed",
+                undefined,
+                "a renderer failed to load. Please reload the page.",
+            )}
         </div>
     );
 }

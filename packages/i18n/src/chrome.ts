@@ -45,11 +45,11 @@ function getPseudoChromeCatalog(): string {
  * release. The pseudo-locale is materialized only when it is asked for.
  */
 function chromeResources(
-    uiLocale: string,
+    normalizedUiLocale: string,
     hostResources?: Record<string, string> | null,
 ): Record<string, string> {
     const resources: Record<string, string> = { ...BUNDLED_CHROME_CATALOGS };
-    if (uiLocale === PSEUDO_LOCALE) {
+    if (normalizedUiLocale === PSEUDO_LOCALE) {
         resources[PSEUDO_LOCALE] = getPseudoChromeCatalog();
     }
     // `Object.assign` ignores a null or undefined source, so an absent
@@ -71,11 +71,11 @@ export function createChromeTranslator(
     uiLocale: string,
     hostResources?: Record<string, string> | null,
 ): Translator {
-    const resources = chromeResources(uiLocale, hostResources);
-    const locales = negotiateLocales(
-        [normalizeLocaleTag(uiLocale) || DEFAULT_LOCALE],
-        Object.keys(resources),
-    );
+    // Normalize once, up front: the pseudo-locale is recognized by tag, so a
+    // hand-typed `en-xa` has to reach the same catalog `en-XA` does.
+    const normalized = normalizeLocaleTag(uiLocale) || DEFAULT_LOCALE;
+    const resources = chromeResources(normalized, hostResources);
+    const locales = negotiateLocales([normalized], Object.keys(resources));
     return createTranslator(locales, resources);
 }
 
@@ -89,5 +89,14 @@ export function createChromeTranslator(
  *
  * Resolves against every bundled English catalog, not only `chrome` — keys are
  * unique across namespaces, so the extra ones cannot be reached by mistake.
+ *
+ * Built on first call rather than at module scope: `@doenet/i18n` is bundled
+ * into the worker too, and parsing every English catalog into a `FluentBundle`
+ * on import would cost every consumer for something only a provider-less
+ * renderer ever reads. The exported identity is stable either way, which
+ * matters because it is a React context default.
  */
-export const EN_CHROME_TRANSLATOR: Translator = createTranslator([], {});
+let enChromeTranslator: Translator | undefined;
+
+export const EN_CHROME_TRANSLATOR: Translator = (key, args, fallback) =>
+    (enChromeTranslator ??= createTranslator([], {}))(key, args, fallback);

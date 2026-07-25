@@ -37,12 +37,19 @@ export type MessageKey =
     | "matrix-add-row"
     | "matrix-remove-column"
     | "matrix-add-column"
+    | "subset-add-remove-points"
+    | "subset-toggle-points-intervals"
+    | "subset-move-points"
+    | "subset-clear"
+    | "pretzel-answer"
     | "math-input-preview-region"
     | "math-input-preview"
     | "math-input-invalid-expression"
     | "viewer-initializing"
     | "error-heading"
-    | "document-contains-errors";
+    | "document-contains-errors"
+    | "something-went-wrong"
+    | "renderer-load-failed";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -76,10 +83,17 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "matrix-add-row",
     "matrix-remove-column",
     "matrix-add-column",
+    "subset-add-remove-points",
+    "subset-toggle-points-intervals",
+    "subset-move-points",
+    "subset-clear",
+    "pretzel-answer",
     "math-input-preview-region",
     "math-input-preview",
     "math-input-invalid-expression",
     "viewer-initializing",
     "error-heading",
     "document-contains-errors",
+    "something-went-wrong",
+    "renderer-load-failed",
 ];

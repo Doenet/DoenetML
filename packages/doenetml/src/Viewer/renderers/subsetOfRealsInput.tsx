@@ -7,6 +7,7 @@ import { ActionButtonGroup } from "@doenet/ui-components";
 import { ToggleButton } from "@doenet/ui-components";
 import { ToggleButtonGroup } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { useT } from "../../utils/i18n";
 import "./subsetOfRealsInput.css";
 
 interface PointDisplayed {
@@ -34,6 +35,7 @@ export default React.memo(function subsetOfReals(
     let { id, SVs, actions, callAction } =
         useDoenetRenderer<SubsetOfRealsInputSVs>(props, false);
     let [mode, setMode] = useState("add remove points");
+    const t = useT();
     let bounds = useRef<HTMLDivElement | null>(null);
     let pointGrabbed = useRef<number | null>(null);
 
@@ -61,9 +63,27 @@ export default React.memo(function subsetOfReals(
         controlButtons = (
             <>
                 <ToggleButtonGroup onClick={handleTogglePoints}>
-                    <ToggleButton value="Add/Remove points"></ToggleButton>
-                    <ToggleButton value="Toggle points and intervals"></ToggleButton>
-                    <ToggleButton value="Move Points"></ToggleButton>
+                    <ToggleButton
+                        value={t(
+                            "subset-add-remove-points",
+                            undefined,
+                            "Add/Remove points",
+                        )}
+                    ></ToggleButton>
+                    <ToggleButton
+                        value={t(
+                            "subset-toggle-points-intervals",
+                            undefined,
+                            "Toggle points and intervals",
+                        )}
+                    ></ToggleButton>
+                    <ToggleButton
+                        value={t(
+                            "subset-move-points",
+                            undefined,
+                            "Move Points",
+                        )}
+                    ></ToggleButton>
                 </ToggleButtonGroup>
                 <ActionButtonGroup>
                     <ActionButton
@@ -72,7 +92,7 @@ export default React.memo(function subsetOfReals(
                                 action: actions.clear,
                             })
                         }
-                        value="Clear"
+                        value={t("subset-clear", undefined, "Clear")}
                     ></ActionButton>
                     <ActionButton
                         onClick={() =>

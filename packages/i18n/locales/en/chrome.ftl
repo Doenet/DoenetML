@@ -81,6 +81,16 @@ matrix-add-row = Add row
 matrix-remove-column = Remove column
 matrix-add-column = Add column
 
+# Modes and actions of the subset-of-reals input's control strip. The buttons
+# for the empty set and all of R are symbols, not words, and stay in place.
+subset-add-remove-points = Add/Remove points
+subset-toggle-points-intervals = Toggle points and intervals
+subset-move-points = Move Points
+subset-clear = Clear
+
+# Labels the answer column of a pretzel exercise's grid.
+pretzel-answer = Answer
+
 
 ## Math input
 
@@ -106,3 +116,10 @@ error-heading = Error
 
 # Banner above a document that compiled with at least one error in it.
 document-contains-errors = This document contains errors!
+
+# Shown in place of the document when a renderer threw and the error boundary
+# caught it.
+something-went-wrong = Something went wrong.
+
+# Shown in place of a single renderer whose code chunk never arrived.
+renderer-load-failed = a renderer failed to load. Please reload the page.

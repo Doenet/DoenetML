@@ -26,6 +26,7 @@ import {
     declaredDocumentLocale,
     localeResourceKey,
     resolveUiLocale,
+    type Translator,
 } from "@doenet/i18n";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
@@ -2218,6 +2219,7 @@ export function DocViewer({
             errorHandler={errorHandler}
             ignoreError={ignoreRendererError}
             coreCreated={coreCreated.current}
+            translate={translate}
         >
             {noCoreWarning}
             <div
@@ -2248,6 +2250,12 @@ type ErrorProps = {
     errorHandler: Function | undefined;
     ignoreError: boolean;
     coreCreated: boolean;
+    /**
+     * Chrome translator. A class component cannot use `useT()`, and this one
+     * sits above the provider besides, so it is handed the same translator
+     * `DocViewer` built.
+     */
+    translate: Translator;
     children?: ReactNode;
 };
 
@@ -2271,6 +2279,10 @@ class ErrorBoundary extends React.Component<ErrorProps, ErrorState> {
             if (!this.props.coreCreated) {
                 return null;
             } else {
+                // Destructured rather than called as `this.props.translate(…)`
+                // because `lint:i18n` finds keys only through a bare `t` or
+                // `translate` call.
+                const { translate } = this.props;
                 return (
                     <div
                         style={{
@@ -2283,7 +2295,12 @@ class ErrorBoundary extends React.Component<ErrorProps, ErrorState> {
                             borderColor: "var(--mainRed)",
                         }}
                     >
-                        <b>Error</b>: Something went wrong.
+                        <b>{translate("error-heading", undefined, "Error")}</b>:{" "}
+                        {translate(
+                            "something-went-wrong",
+                            undefined,
+                            "Something went wrong.",
+                        )}
                     </div>
                 );
             }

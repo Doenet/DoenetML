@@ -122,9 +122,11 @@ second one inside it, because only there is an authored `<document lang>`
 known, and the chrome follows the content's language by default.
 
 A few strings — the "document contains errors" banner, the message shown while
-the core boots — render outside both providers and so call the translator
-directly rather than through `useT()`. Bind it to `t` or `translate` when you
-do; `lint:i18n` recognizes no other name, and a key it cannot see reads as an
+the core boots, the error boundary's fallback — render outside both providers,
+or from a class component that cannot call a hook at all, and so reach the
+translator directly rather than through `useT()`. Bind it to a local `t` or
+`translate` first (`const { translate } = this.props`); `lint:i18n` recognizes
+no other name and no member expression, and a key it cannot see reads as an
 orphan and fails the build.
 
 The virtual keyboard tray is the exception: it renders into its own React root

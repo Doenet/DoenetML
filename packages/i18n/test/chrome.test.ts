@@ -115,6 +115,16 @@ describe("createChromeTranslator", () => {
             }
         });
 
+        it("is recognized through a hand-typed tag", () => {
+            // The pseudo catalog is keyed by tag, so the casing has to be
+            // normalized before it is looked up, not only before negotiation.
+            const t = createChromeTranslator("en-xa");
+            expect(t("answer-correct")).toBe(
+                createChromeTranslator(PSEUDO_LOCALE)("answer-correct"),
+            );
+            expect(t("answer-correct")).not.toBe("Correct");
+        });
+
         it("is not offered unless it is asked for", () => {
             // Materializing it for every locale would put a pseudo catalog in
             // the fallback chain of real ones.
