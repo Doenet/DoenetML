@@ -1,3 +1,4 @@
+import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import {
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayStateVariableDefinitions,
@@ -67,28 +68,13 @@ export default class Parabola extends Curve {
         stateVariableDefinitions.graphXmin =
             curveStateVariableDefinitions.graphXmin;
 
-        stateVariableDefinitions.styleDescription =
-            curveStateVariableDefinitions.styleDescription;
-
-        stateVariableDefinitions.styleDescriptionWithNoun = {
-            description: 'Style description including the word "parabola".',
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                styleDescription: {
-                    dependencyType: "stateVariable",
-                    variableName: "styleDescription",
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphicalStyleDescriptionDefinitions({
+                kind: "stroke",
+                noun: "parabola",
             }),
-            definition: function ({ dependencyValues }) {
-                let styleDescriptionWithNoun =
-                    dependencyValues.styleDescription + " parabola";
-
-                return { setValue: { styleDescriptionWithNoun } };
-            },
-        };
+        );
 
         stateVariableDefinitions.curveType = {
             forRenderer: true,

@@ -1,3 +1,4 @@
+import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Polygon from "./Polygon";
 import me from "math-expressions";
@@ -129,32 +130,13 @@ export default class RegularPolygon extends Polygon {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let styleDescriptionWithNounDeps =
-            stateVariableDefinitions.styleDescriptionWithNoun.returnDependencies();
-        styleDescriptionWithNounDeps.numSides = {
-            dependencyType: "stateVariable",
-            variableName: "numSides",
-        };
-
-        stateVariableDefinitions.styleDescriptionWithNoun.returnDependencies =
-            () => styleDescriptionWithNounDeps;
-
-        let styleDescriptionWithNounDef =
-            stateVariableDefinitions.styleDescriptionWithNoun.definition;
-
-        stateVariableDefinitions.styleDescriptionWithNoun.definition =
-            function ({ dependencyValues }) {
-                let styleDescriptionWithNoun = styleDescriptionWithNounDef({
-                    dependencyValues,
-                }).setValue.styleDescriptionWithNoun;
-
-                styleDescriptionWithNoun = styleDescriptionWithNoun.replaceAll(
-                    "polygon",
-                    `${dependencyValues.numSides}-sided regular polygon`,
-                );
-
-                return { setValue: { styleDescriptionWithNoun } };
-            };
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphicalStyleDescriptionDefinitions({
+                kind: "closedShape",
+                noun: "regular-polygon",
+            }),
+        );
 
         // preserveSimilarity is always true for regular polygons
         stateVariableDefinitions.preserveSimilarity = {

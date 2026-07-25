@@ -35,12 +35,19 @@ describe("bundled English catalogs", () => {
         expect(chromeKeys).toContain("attempts-remaining");
     });
 
+    it("defines the style vocabulary Phase 2 extracted", () => {
+        const contentKeys = extractKeys(EN_CATALOGS.content);
+        expect(contentKeys).toContain("color.blue");
+        expect(contentKeys).toContain("noun.line");
+        expect(contentKeys).toContain("style-stroke");
+    });
+
     it("still defines no keys in the namespaces later phases populate", () => {
         // The orphan check in `lint:i18n` is only meaningful while every key
         // that exists is one some call site actually uses. A key appearing
         // here before its phase moves the strings would be a key nothing
         // references.
-        for (const namespace of ["content", "diagnostics", "editor"] as const) {
+        for (const namespace of ["diagnostics", "editor"] as const) {
             expect(extractKeys(EN_CATALOGS[namespace]), namespace).toEqual([]);
         }
     });

@@ -1,4 +1,6 @@
+import { bundledResources } from "./bundled";
 import { DEFAULT_LOCALE } from "./catalogs";
+import { WORKER_NAMESPACES } from "./namespaces";
 import { negotiateLocales } from "./negotiate";
 import { createTranslator, type Translator } from "./translator";
 
@@ -37,14 +39,25 @@ export const DEFAULT_LOCALE_DATA: LocaleData = {
 
 /**
  * Build the translator for a {@link LocaleData} payload, negotiating the
- * requested locale against the catalogs that actually arrived.
+ * requested locale against the catalogs available inside the worker.
+ *
+ * Those are the bundled translations plus whatever the host sent, host winning
+ * per locale — so a deployment can correct a bundled translation, and a
+ * bundled locale needs no host cooperation at all. `documentLocale="es"`
+ * therefore produces Spanish style descriptions with nothing configured.
+ *
+ * @param locale The content locale to render in. Defaults to the one in
+ *   `localeData`; the caller passes a different tag when an authored
+ *   `<document lang>` overrides what the host asked for.
  */
 export function createTranslatorFromLocaleData(
     localeData: LocaleData,
+    locale: string = localeData.locale,
 ): Translator {
-    const chain = negotiateLocales(
-        [localeData.locale],
-        Object.keys(localeData.resources),
-    );
-    return createTranslator(chain, localeData.resources);
+    const resources = {
+        ...bundledResources(WORKER_NAMESPACES),
+        ...localeData.resources,
+    };
+    const chain = negotiateLocales([locale], Object.keys(resources));
+    return createTranslator(chain, resources);
 }

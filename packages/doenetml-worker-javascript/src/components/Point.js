@@ -3,9 +3,10 @@ import me from "math-expressions";
 import { breakEmbeddedStringByCommas } from "./commonsugar/breakstrings";
 import {
     convertValueToMathExpression,
-    vectorOperators,
     deepClone,
+    returnGraphicalStyleDescriptionDefinitions,
     returnTextStyleDescriptionDefinitions,
+    vectorOperators,
 } from "@doenet/utils";
 import {
     buildNumberDisplayParameters,
@@ -426,66 +427,13 @@ export default class Point extends GraphicalComponent {
             returnTextStyleDescriptionDefinitions();
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
-        stateVariableDefinitions.styleDescription = {
-            description: "A textual description of the point's style.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                selectedStyle: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
-                },
-                document: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["theme"],
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphicalStyleDescriptionDefinitions({
+                kind: "marker",
+                noun: "point",
             }),
-            definition: function ({ dependencyValues }) {
-                let markerColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    markerColorWord =
-                        dependencyValues.selectedStyle.markerColorWordDarkMode;
-                } else {
-                    markerColorWord =
-                        dependencyValues.selectedStyle.markerColorWord;
-                }
-                return {
-                    setValue: {
-                        styleDescription: markerColorWord,
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.styleDescriptionWithNoun = {
-            description: 'Style description including the word "point".',
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                selectedStyle: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
-                },
-                styleDescription: {
-                    dependencyType: "stateVariable",
-                    variableName: "styleDescription",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let pointDescription =
-                    dependencyValues.styleDescription +
-                    " " +
-                    dependencyValues.selectedStyle.markerStyleWord;
-                return {
-                    setValue: { styleDescriptionWithNoun: pointDescription },
-                };
-            },
-        };
+        );
 
         stateVariableDefinitions.inUnorderedList = {
             returnDependencies: () => ({

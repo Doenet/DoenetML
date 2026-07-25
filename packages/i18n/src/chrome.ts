@@ -1,6 +1,6 @@
-import esChrome from "../locales/es/chrome.ftl?raw";
-
-import { DEFAULT_LOCALE, EN_CATALOGS } from "./catalogs";
+import { bundledResources } from "./bundled";
+import { DEFAULT_LOCALE } from "./catalogs";
+import { CHROME_NAMESPACES } from "./namespaces";
 import { negotiateLocales, normalizeLocaleTag } from "./negotiate";
 import { PSEUDO_LOCALE, pseudoLocalize } from "./pseudo";
 import { createTranslator, type Translator } from "./translator";
@@ -8,20 +8,14 @@ import { createTranslator, type Translator } from "./translator";
 /**
  * Chrome catalogs shipped inside the bundle, by locale.
  *
- * Bundling every locale does not scale, and the plan is still that additional
- * locales arrive as code-split modules the host loads and passes in as
- * `localeResources`. Spanish is inlined anyway because it is the only
- * translation that exists today and because a dynamic import would have to
- * survive four bundling variants — the library build, the single-file
- * standalone bundle (`inlineDynamicImports`), the iframe, and the dedicated
- * worker host. At roughly a kilobyte gzipped, paying for it unconditionally
- * costs less than the machinery to avoid it. Revisit when the count reaches
- * a handful.
+ * English is included under its own tag, unlike the worker's copy: the chrome
+ * negotiates the requested locale against these keys, so `en` has to be a
+ * candidate and not only the built-in end of the fallback chain.
  */
-const BUNDLED_CHROME_CATALOGS: Record<string, string> = {
-    [DEFAULT_LOCALE]: EN_CATALOGS.chrome,
-    es: esChrome,
-};
+const BUNDLED_CHROME_CATALOGS: Record<string, string> = bundledResources(
+    CHROME_NAMESPACES,
+    { includeEnglish: true },
+);
 
 /**
  * The pseudo-locale catalog, derived from English on first use.
@@ -34,7 +28,9 @@ const BUNDLED_CHROME_CATALOGS: Record<string, string> = {
 let pseudoChromeCatalog: string | undefined;
 
 function getPseudoChromeCatalog(): string {
-    return (pseudoChromeCatalog ??= pseudoLocalize(EN_CATALOGS.chrome));
+    return (pseudoChromeCatalog ??= pseudoLocalize(
+        BUNDLED_CHROME_CATALOGS[DEFAULT_LOCALE],
+    ));
 }
 
 /**

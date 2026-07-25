@@ -54,12 +54,13 @@ inlined into every build via `?raw` imports — the worker cannot reliably fetch
 a relative URL across the standalone/iframe/dedicated-worker variants, so the
 fallback locale must not depend on the network.
 
-Spanish chrome is inlined the same way, so `uiLocale="es"` works with no host
-configuration. That does not scale, and additional locales are still meant to
-arrive as modules the host loads and passes in as `localeResources`, which
-`createChromeTranslator` merges over the bundled ones (the host's copy wins for
-a locale that exists in both). Revisit the inlining when the count reaches a
-handful.
+Spanish is inlined the same way, so `uiLocale="es"` and `documentLocale="es"`
+both work with no host configuration. `bundledResources(namespaces)` is what
+assembles those catalogs for a context, and both `createChromeTranslator` and
+`createTranslatorFromLocaleData` merge host-supplied `localeResources` over
+them (the host's copy wins for a locale that exists in both). Inlining does not
+scale, and additional locales are still meant to arrive as modules the host
+loads and passes in; revisit when the count reaches a handful.
 
 Note that the two namespaces the worker loads answer to *different* settings:
 `content` to `documentLocale`, `diagnostics` to `uiLocale`. `LocaleData` carries
@@ -132,6 +133,41 @@ orphan and fails the build.
 The virtual keyboard tray is the exception: it renders into its own React root
 shared by every viewer on the page, which context cannot cross, so it takes a
 `translate` prop the same way it already takes `theme`.
+
+### In the worker
+
+Prose the core computes — style descriptions today — is content, so it follows
+`documentLocale` and is built where the core builds everything else. The
+translator arrives as the value of the `translator` dependency, which is a
+*factory* keyed by locale rather than a translator: the catalogs are fixed for
+a core's lifetime but the locale is not, since a nested `<document lang>` can
+differ from the one around it. A definition takes the `locale` of the document
+it sits in — an ordinary ancestor dependency, alongside `theme` — and asks the
+factory for the matching translator.
+
+Those state variables stay **computed, never essential**, so a locale change
+recomputes them and no English is written into saved state.
+
+### Composition, not substitution
+
+`@doenet/utils/style/styleDescriptions.ts` is the worked example of a phrase
+that cannot be translated word for word. English writes adjectives before the
+noun and inserts an article before "border"; Spanish writes them after and
+agrees them with the noun's gender. So each description is assembled by a
+message that receives the pieces as arguments plus a `$parts` argument naming
+*which* pieces are present, and every adjective is handed `$gender`. An absent
+piece selects a different branch rather than substituting an empty string —
+that is what lets a translation reorder and re-punctuate each combination on
+its own terms.
+
+Two Fluent constraints shaped it, and both are easy to rediscover the hard way:
+
+- **A term's arguments must be literals.** `{ -filled(gender: $gender) }` does
+  not parse. A word that has to inflect from a runtime value has to be a
+  message the code looks up and passes in, not a term the catalog references.
+- **A multiline pattern keeps its newlines.** A select expression's variants
+  each need their own line, so a select nested inside another one puts a `\n`
+  in the middle of the output. Keep every variant on one line.
 
 ## Commands
 

@@ -190,6 +190,57 @@ describe("Chrome translation Tests", { tags: ["@group5"] }, function () {
         );
     });
 
+    describe("style descriptions", () => {
+        // Content, not chrome: computed in the worker and following the
+        // language the activity was written in. This is the whole path —
+        // `setLocaleData`, the document's locale, the worker's translator —
+        // rather than the composition, which the unit suites cover.
+        const styled = `
+        <setup>
+          <styleDefinition styleNumber="1" lineColor="red" lineWidth="6"
+            lineStyle="dashed" markerColor="green" markerStyle="square" />
+        </setup>
+        <graph>
+          <line through="(0,0) (1,1)" name="l" />
+          <point name="pt" />
+        </graph>
+        <p name="line">$l.styleDescriptionWithNoun</p>
+        <p name="point">$pt.styleDescriptionWithNoun</p>`;
+
+        it("describes graphics in English by default", () => {
+            render({ doenetML: styled });
+
+            cy.get("#line").should("have.text", "thick dashed red line");
+            cy.get("#point").should("have.text", "green square");
+        });
+
+        it("describes graphics in the content's language", () => {
+            render({ doenetML: styled, documentLocale: "es" });
+
+            // Spanish orders the words its own way and agrees the adjectives
+            // with the noun's gender — feminine for "línea", masculine for
+            // "cuadrado".
+            cy.get("#line").should(
+                "have.text",
+                "línea discontinua gruesa roja",
+            );
+            cy.get("#point").should("have.text", "cuadrado verde");
+        });
+
+        it("follows the content's language, not the reader's", () => {
+            // A Spanish-speaking student working a French activity reads the
+            // chrome in Spanish and the activity's own prose in French. Here
+            // there is no French catalog, so the description stays English
+            // rather than being dragged into the reader's language.
+            render({
+                doenetML: `<document lang="fr">${styled}</document>`,
+                uiLocale: "es",
+            });
+
+            cy.get("#line").should("have.text", "thick dashed red line");
+        });
+    });
+
     describe("pseudo-locale", () => {
         // `en-XA` accents every string that goes through the catalogs.
         // Anything still plain ASCII is a string that was never extracted —

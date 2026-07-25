@@ -1,12 +1,6 @@
+import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
-import {
-    buildClosedShapeStyleDescription,
-    buildFillStyleDescription,
-    getBorderDescription,
-    getFillColorWord,
-    getLineColorWord,
-} from "../utils/graphicalStyleDescriptions";
 import Polyline from "./Polyline";
 
 export default class Polygon extends Polyline {
@@ -98,165 +92,13 @@ export default class Polygon extends Polyline {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.styleDescription = {
-            description: "A textual description of the polygon's style.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                selectedStyle: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
-                },
-                filled: {
-                    dependencyType: "stateVariable",
-                    variableName: "filled",
-                },
-                document: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["theme"],
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphicalStyleDescriptionDefinitions({
+                kind: "closedShape",
+                noun: "polygon",
             }),
-            definition: function ({ dependencyValues }) {
-                const theme = dependencyValues.document?.stateValues.theme;
-                const lineColorWord = getLineColorWord(
-                    dependencyValues.selectedStyle,
-                    theme,
-                );
-                const fillColorWord = getFillColorWord(
-                    dependencyValues.selectedStyle,
-                    theme,
-                );
-                const borderDescription = getBorderDescription(
-                    dependencyValues.selectedStyle,
-                );
-                const styleDescription = buildClosedShapeStyleDescription({
-                    filled: dependencyValues.filled,
-                    lineColorWord,
-                    fillColorWord,
-                    fillStyleWord: dependencyValues.selectedStyle.fillStyleWord,
-                    borderDescription,
-                });
-
-                return { setValue: { styleDescription } };
-            },
-        };
-
-        stateVariableDefinitions.styleDescriptionWithNoun = {
-            description: 'Style description including the word "polygon".',
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                selectedStyle: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
-                },
-                filled: {
-                    dependencyType: "stateVariable",
-                    variableName: "filled",
-                },
-                document: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["theme"],
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                const theme = dependencyValues.document?.stateValues.theme;
-                const lineColorWord = getLineColorWord(
-                    dependencyValues.selectedStyle,
-                    theme,
-                );
-                const fillColorWord = getFillColorWord(
-                    dependencyValues.selectedStyle,
-                    theme,
-                );
-                const borderDescription = getBorderDescription(
-                    dependencyValues.selectedStyle,
-                );
-                const styleDescriptionWithNoun =
-                    buildClosedShapeStyleDescription({
-                        filled: dependencyValues.filled,
-                        lineColorWord,
-                        fillColorWord,
-                        fillStyleWord:
-                            dependencyValues.selectedStyle.fillStyleWord,
-                        borderDescription,
-                        noun: " polygon",
-                        includeBorderArticle: true,
-                    });
-
-                return { setValue: { styleDescriptionWithNoun } };
-            },
-        };
-
-        stateVariableDefinitions.borderStyleDescription = {
-            description: "A textual description of the polygon's border style.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                selectedStyle: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
-                },
-                document: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["theme"],
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                const borderStyleDescription =
-                    getBorderDescription(dependencyValues.selectedStyle) +
-                    getLineColorWord(
-                        dependencyValues.selectedStyle,
-                        dependencyValues.document?.stateValues.theme,
-                    );
-
-                return { setValue: { borderStyleDescription } };
-            },
-        };
-
-        stateVariableDefinitions.fillStyleDescription = {
-            description: "A textual description of the polygon's fill style.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                selectedStyle: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
-                },
-                filled: {
-                    dependencyType: "stateVariable",
-                    variableName: "filled",
-                },
-                document: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["theme"],
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                const fillStyleDescription = buildFillStyleDescription({
-                    filled: dependencyValues.filled,
-                    fillColorWord: getFillColorWord(
-                        dependencyValues.selectedStyle,
-                        dependencyValues.document?.stateValues.theme,
-                    ),
-                    fillStyleWord: dependencyValues.selectedStyle.fillStyleWord,
-                });
-
-                return { setValue: { fillStyleDescription } };
-            },
-        };
+        );
 
         stateVariableDefinitions.numSides = {
             isAlias: true,
