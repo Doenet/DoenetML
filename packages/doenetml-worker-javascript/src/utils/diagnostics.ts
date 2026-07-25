@@ -25,10 +25,11 @@ import type {
  * the migration burn-down as if it were a real call site.
  *
  * `message` is filled in from the English catalog rather than by the caller,
- * so the English and the catalog cannot drift, and everything downstream that
- * has always read `message` — the dedupe in `DiagnosticsManager`, a host's
- * `setDiagnosticsCallback`, the worker tests that assert exact strings — sees
- * what it saw before.
+ * so the English and the catalog cannot drift, and everything that reads
+ * `message` inside the worker — the dedupe in `DiagnosticsManager`, the tests
+ * that assert exact strings — sees what it saw before. (`DocViewer` re-renders
+ * it in `uiLocale` on the way out, which is the whole point; that is the one
+ * consumer for which it is deliberately not the same string.)
  *
  * Note that the reader's language is `uiLocale`, not the `documentLocale` the
  * core computes content in: a diagnostic is addressed to whoever is looking at

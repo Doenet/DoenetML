@@ -222,11 +222,12 @@ sendDiagnostics.push(
 
 `codedDiagnostic` (in `@doenet/doenetml-worker-javascript/src/utils`) fills
 `message` in from the English catalog, so the English and the catalog cannot
-drift and everything that has always read `message` — the dedupe in
-`DiagnosticsManager`, a host's `setDiagnosticsCallback`, the worker tests that
-assert exact strings — sees what it saw before. `DocViewer` then re-renders
-`message` through `createDiagnosticFormatter` before handing the records on, so
-the editor's panel and the LSP squiggles both show one consistent set.
+drift and everything that reads `message` inside the worker — the dedupe in
+`DiagnosticsManager`, the tests that assert exact strings — sees what it saw
+before. `DocViewer` then re-renders `message` through
+`createDiagnosticFormatter` before handing the records on, so the editor's
+panel, the LSP squiggles and a host's `setDiagnosticsCallback` all show one
+consistent set, in the reader's language.
 
 Both shapes are valid records. A record with no code renders its English and
 nothing else, which is what lets the ~200 messages still holding a literal
@@ -245,6 +246,13 @@ recycle it.
 The letter is part of the name (`w` warning, `e` error, `i` info, `a`
 accessibility), recording what the diagnostic was born as. It is not a live
 severity — the emitting call site chooses the record's `type`.
+
+Two branches that each claim the next number collide in both the registry and
+the lock, which is the intended outcome: neither file can be auto-merged, so
+the conflict is resolved by hand. Give the later branch the next free number in
+*both* files — the lock is sorted by code, so its entry moves with it, and the
+lint passes once the two agree again. Never resolve it by editing a code that
+is already on `main`.
 
 The registry is also what makes these messages visible to the lint. They are
 reached by code rather than by a literal `t("key")`, which the call-site scan

@@ -92,6 +92,21 @@ describe("createTranslator", () => {
         expect(onError).toHaveBeenCalled();
     });
 
+    // What a caller formatting an argument *outside* Fluent needs — see
+    // `createDiagnosticFormatter`, which joins lists with `Intl.ListFormat`
+    // and must join them in the language of the message that answered.
+    it("reports which locale will answer for a key", () => {
+        const t = createTranslator(
+            ["es-MX", "es", "en"],
+            { "es-MX": ES_MX, es: ES, en: EN },
+            { includeBuiltinEnglish: false },
+        );
+        expect(t.localeOf?.("greeting")).toBe("es-MX");
+        expect(t.localeOf?.("color.blue")).toBe("es");
+        expect(t.localeOf?.("color.red")).toBe("en");
+        expect(t.localeOf?.("nonexistent-key")).toBe(undefined);
+    });
+
     it("adapts to the two-argument colorWords translate hook", () => {
         const t = createTranslator(["en"], { en: EN });
         const translate = asFallbackTranslator(t);

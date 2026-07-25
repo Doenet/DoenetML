@@ -155,12 +155,17 @@ export type DiagnosticFormatter = (diagnostic: FormattableDiagnostic) => string;
  *
  * @param translate A translator over that locale's catalogs — the same one the
  *   surrounding chrome renders with.
- * @param locale The resolved `uiLocale`, needed for `Intl.ListFormat`, which
- *   the translator does not expose.
+ * @param locale The resolved `uiLocale`. Used for `Intl.ListFormat` when the
+ *   translator can't say which locale a message resolved in.
  *
  * The English already on the record is passed as the fallback, so a code with
  * no message in the negotiated chain renders what the worker wrote rather than
  * a bare key.
+ *
+ * Lists are joined in the language of the message that actually resolves, not
+ * of the reader: a partial translation is legitimate, and its untranslated
+ * half falls back to English, which should not come out with its list joined
+ * in the reader's language ("slope et length are ignored").
  */
 export function createDiagnosticFormatter(
     translate: Translator,
@@ -171,9 +176,10 @@ export function createDiagnosticFormatter(
         if (code === undefined || !isDiagnosticCode(code)) {
             return diagnostic.message;
         }
+        const key = DIAGNOSTIC_CODES[code];
         return translate(
-            DIAGNOSTIC_CODES[code],
-            lowerArgs(diagnostic.args, locale),
+            key,
+            lowerArgs(diagnostic.args, translate.localeOf?.(key) ?? locale),
             diagnostic.message,
         );
     };
@@ -194,19 +200,23 @@ let enTranslator: Translator | undefined;
  *
  * What the worker puts on the record as `message`. Deriving it from the
  * catalog rather than leaving the English at the call site is the point: the
- * two cannot drift, and every existing consumer — the dedupe in
- * `DiagnosticsManager`, a host reading `setDiagnosticsCallback`, the ~900
- * worker tests that assert exact strings — keeps seeing the string it saw
- * before.
+ * two cannot drift, and everything reading `message` inside the worker — the
+ * dedupe in `DiagnosticsManager`, the ~900 tests that assert exact strings —
+ * keeps seeing the string it saw before.
+ *
+ * An unregistered code renders as itself rather than throwing. The call sites
+ * are untyped JavaScript components, so `lint:i18n` is what catches a typo'd
+ * code; until it does, a bad code must not take a state-variable definition
+ * down with it.
  */
 export function formatEnglishDiagnostic(
     code: DiagnosticCode,
     args?: DiagnosticArgs,
 ): string {
+    const key = DIAGNOSTIC_CODES[code];
+    if (key === undefined) {
+        return code;
+    }
     enTranslator ??= createTranslator([], {});
-    return enTranslator(
-        DIAGNOSTIC_CODES[code],
-        lowerArgs(args, DEFAULT_LOCALE),
-        code,
-    );
+    return enTranslator(key, lowerArgs(args, DEFAULT_LOCALE), code);
 }

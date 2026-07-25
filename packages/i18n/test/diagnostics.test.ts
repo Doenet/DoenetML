@@ -123,6 +123,15 @@ describe("formatEnglishDiagnostic", () => {
         );
     });
 
+    // The worker's call sites are untyped JavaScript, so a typo'd code reaches
+    // here at runtime. `lint:i18n` is what catches it; in the meantime it must
+    // not take a state-variable definition down.
+    it("renders an unregistered code as itself rather than throwing", () => {
+        expect(formatEnglishDiagnostic("doenet-w9999" as DiagnosticCode)).toBe(
+            "doenet-w9999",
+        );
+    });
+
     it("enumerates a `unit` list without conjoining it", () => {
         expect(
             formatEnglishDiagnostic("doenet-w0003", {
@@ -223,6 +232,25 @@ describe("createDiagnosticFormatter", () => {
                 code: "doenet-w0001",
             }),
         ).toBe("Line through points of undetermined dimensions.");
+    });
+
+    // The list is joined outside Fluent, so nothing but this makes it follow
+    // the message: a French reader whose catalog hasn't reached this code gets
+    // the English sentence, and "slope et length are ignored" would be neither
+    // language.
+    it("joins a list in the language of the message that answered", () => {
+        const partial = createDiagnosticFormatter(
+            translatorFor("fr", "ray-dimension-mismatch = Décalage."),
+            "fr",
+        );
+        expect(
+            partial({
+                message:
+                    "slope and length are ignored when two endpoints are specified",
+                code: "doenet-i0001",
+                args: { attributes: ["slope", "length"] },
+            }),
+        ).toBe("slope and length are ignored when two endpoints are specified");
     });
 
     it("renders English unchanged when English is the UI language", () => {

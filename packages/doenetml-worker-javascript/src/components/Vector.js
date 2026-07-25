@@ -641,15 +641,15 @@ export default class Vector extends GraphicalComponent {
                     if (dependencyValues.headAttr !== null) {
                         // if overprescribed by specifying head, tail, and displacement
                         // we ignore head
-                        const warning = codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0007",
-                        });
-                        if (dependencyValues.headAttr.position) {
-                            warning.position =
-                                dependencyValues.headAttr.position;
-                        }
-                        diagnostics.push(warning);
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0007",
+                                position:
+                                    dependencyValues.headAttr.position ??
+                                    undefined,
+                            }),
+                        );
                     }
                     return {
                         setValue: { basedOnHead: false },

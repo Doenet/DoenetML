@@ -10,11 +10,14 @@ export type DiagnosticType = "error" | "warning" | "info" | "accessibility";
 
 type BaseDiagnosticRecord = {
     /**
-     * The diagnostic in English.
+     * The diagnostic as a finished sentence.
      *
-     * Always present, even on a coded record: it is what dedupe keys on, what
-     * a host reading `setDiagnosticsCallback` gets, and what renders when a
-     * locale has no translation for the code.
+     * Always present, even on a coded record. The worker always writes it in
+     * English — that is what its dedupe keys on, and what the worker's own
+     * tests assert — and `DocViewer` re-renders it in `uiLocale` on the way
+     * out, so a host reading `setDiagnosticsCallback` sees the reader's
+     * language. A code with no translation in the negotiated locale keeps the
+     * English.
      */
     message: string;
     /**

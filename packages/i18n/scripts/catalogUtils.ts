@@ -193,23 +193,33 @@ function* walkSourceFiles(directory: string): Generator<string> {
 
 export type CallSite = { key: string; file: string };
 
-/** Every translator call site under `packages/<name>/src`. */
-export function collectCallSites(): CallSite[] {
+/**
+ * Every scanned source file under `packages/<name>/src`, with its contents and
+ * its repo-relative path — the corpus both the call-site scan and the
+ * diagnostic-code scan run over.
+ */
+function* scannedSources(): Generator<{ file: string; contents: string }> {
     const packagesDir = path.join(REPO_ROOT, "packages");
-    const sites: CallSite[] = [];
     for (const entry of fs.readdirSync(packagesDir, { withFileTypes: true })) {
         if (!entry.isDirectory()) {
             continue;
         }
         const srcDir = path.join(packagesDir, entry.name, "src");
         for (const file of walkSourceFiles(srcDir)) {
-            const contents = fs.readFileSync(file, "utf-8");
-            for (const match of contents.matchAll(CALL_SITE_PATTERN)) {
-                sites.push({
-                    key: match[1],
-                    file: path.relative(REPO_ROOT, file),
-                });
-            }
+            yield {
+                file: path.relative(REPO_ROOT, file),
+                contents: fs.readFileSync(file, "utf-8"),
+            };
+        }
+    }
+}
+
+/** Every translator call site under `packages/<name>/src`. */
+export function collectCallSites(): CallSite[] {
+    const sites: CallSite[] = [];
+    for (const { file, contents } of scannedSources()) {
+        for (const match of contents.matchAll(CALL_SITE_PATTERN)) {
+            sites.push({ key: match[1], file });
         }
     }
     return sites;
@@ -297,28 +307,14 @@ export type DiagnosticUsage = {
 
 /** Diagnostic call sites under `packages/<name>/src`. */
 export function collectDiagnosticUsage(): DiagnosticUsage {
-    const packagesDir = path.join(REPO_ROOT, "packages");
     const codes: CallSite[] = [];
     let literalCount = 0;
-    for (const entry of fs.readdirSync(packagesDir, { withFileTypes: true })) {
-        if (!entry.isDirectory()) {
-            continue;
+    for (const { file, contents } of scannedSources()) {
+        for (const match of contents.matchAll(DIAGNOSTIC_CODE_USE_PATTERN)) {
+            codes.push({ key: match[1], file });
         }
-        for (const file of walkSourceFiles(
-            path.join(packagesDir, entry.name, "src"),
-        )) {
-            const contents = fs.readFileSync(file, "utf-8");
-            for (const match of contents.matchAll(
-                DIAGNOSTIC_CODE_USE_PATTERN,
-            )) {
-                codes.push({
-                    key: match[1],
-                    file: path.relative(REPO_ROOT, file),
-                });
-            }
-            literalCount += [...contents.matchAll(DIAGNOSTIC_LITERAL_PATTERN)]
-                .length;
-        }
+        literalCount += [...contents.matchAll(DIAGNOSTIC_LITERAL_PATTERN)]
+            .length;
     }
     return { codes, literalCount };
 }

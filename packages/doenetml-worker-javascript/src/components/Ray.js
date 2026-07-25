@@ -193,15 +193,15 @@ export default class Ray extends GraphicalComponent {
                     if (dependencyValues.throughAttr !== null) {
                         // if overprescribed by specifying through, endpoint, and direction
                         // we ignore through
-                        const warning = codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0005",
-                        });
-                        if (dependencyValues.throughAttr.position) {
-                            warning.position =
-                                dependencyValues.throughAttr.position;
-                        }
-                        diagnostics.push(warning);
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0005",
+                                position:
+                                    dependencyValues.throughAttr.position ??
+                                    undefined,
+                            }),
+                        );
                     }
                     return {
                         setValue: { basedOnThrough: false },

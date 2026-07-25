@@ -20,11 +20,20 @@ export type TranslationArgs = Record<string, string | number | Date>;
  * negotiated locale chain, then the bundled English catalogs, then `fallback`,
  * then the key itself.
  */
-export type Translator = (
-    key: string,
-    args?: TranslationArgs,
-    fallback?: string,
-) => string;
+export type Translator = {
+    (key: string, args?: TranslationArgs, fallback?: string): string;
+    /**
+     * Which locale in the chain will actually render `key`, or `undefined` if
+     * none will and the caller's fallback is what renders.
+     *
+     * For the caller that has to format an argument *outside* Fluent —
+     * `Intl.ListFormat`, in `createDiagnosticFormatter` — so that a message
+     * falling back to English doesn't get its list joined in a language the
+     * rest of the sentence isn't in. Optional so that a plain function still
+     * satisfies `Translator`; {@link createTranslator} always provides it.
+     */
+    localeOf?: (key: string) => string | undefined;
+};
 
 export type CreateTranslatorOptions = {
     /**
@@ -124,7 +133,7 @@ export function createTranslator(
         );
     }
 
-    return function translate(key, args, fallback) {
+    const translate: Translator = (key, args, fallback) => {
         for (const bundle of bundles) {
             const pattern = lookupPattern(bundle, key);
             if (pattern === null) {
@@ -142,6 +151,12 @@ export function createTranslator(
         // a visible miss beats an empty label.
         return fallback ?? key;
     };
+
+    translate.localeOf = (key: string) =>
+        bundles.find((bundle) => lookupPattern(bundle, key) !== null)
+            ?.locales[0];
+
+    return translate;
 }
 
 /**
