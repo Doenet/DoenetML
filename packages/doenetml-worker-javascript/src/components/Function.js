@@ -2,7 +2,7 @@ import InlineComponent from "./abstract/InlineComponent";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import {
-    vectorOperators,
+    returnGraphicalStyleDescriptionDefinitions,
     returnInterpolatedFunction,
     returnNumericalFunctionFromFormula,
     returnNumericalFunctionFromReevaluatedFormula,
@@ -10,6 +10,7 @@ import {
     returnSymbolicFunctionFromFormula,
     returnSymbolicFunctionFromReevaluatedFormula,
     returnTextStyleDescriptionDefinitions,
+    vectorOperators,
 } from "@doenet/utils";
 import {
     buildNumberDisplayParameters,
@@ -296,72 +297,13 @@ export default class Function extends InlineComponent {
             returnTextStyleDescriptionDefinitions();
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
-        stateVariableDefinitions.styleDescription = {
-            description: "A textual description of the function's style.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                selectedStyle: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
-                },
-                document: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["theme"],
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphicalStyleDescriptionDefinitions({
+                kind: "stroke",
+                noun: "function",
             }),
-            definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let styleDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (styleDescription) {
-                        styleDescription += " ";
-                    }
-                    styleDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-
-                if (styleDescription) {
-                    styleDescription += " ";
-                }
-
-                styleDescription += lineColorWord;
-
-                return { setValue: { styleDescription } };
-            },
-        };
-
-        stateVariableDefinitions.styleDescriptionWithNoun = {
-            description: 'Style description including the word "function".',
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                styleDescription: {
-                    dependencyType: "stateVariable",
-                    variableName: "styleDescription",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let styleDescriptionWithNoun =
-                    dependencyValues.styleDescription + " function";
-
-                return { setValue: { styleDescriptionWithNoun } };
-            },
-        };
+        );
 
         let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["functions"],

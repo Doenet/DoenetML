@@ -60,7 +60,59 @@ export type MessageKey =
     | "document-contains-errors"
     | "something-went-wrong"
     | "renderer-load-failed"
-    | "core-start-failed";
+    | "core-start-failed"
+    | "color.black"
+    | "color.white"
+    | "color.gray"
+    | "color.red"
+    | "color.orange"
+    | "color.yellow"
+    | "color.green"
+    | "color.cyan"
+    | "color.blue"
+    | "color.purple"
+    | "color.pink"
+    | "color.brown"
+    | "line-width.thick"
+    | "line-width.thin"
+    | "line-style.dashed"
+    | "line-style.dotted"
+    | "fill-style.horizontal"
+    | "fill-style.vertical"
+    | "fill-style.diagonal"
+    | "fill-style.backdiagonal"
+    | "fill-style.dots"
+    | "fill-style.diamonds"
+    | "noun.line"
+    | "noun.line-segment"
+    | "noun.ray"
+    | "noun.vector"
+    | "noun.curve"
+    | "noun.function"
+    | "noun.parabola"
+    | "noun.polyline"
+    | "noun.polygon"
+    | "noun.triangle"
+    | "noun.rectangle"
+    | "noun.circle"
+    | "noun.region"
+    | "noun.point"
+    | "noun.square"
+    | "noun.diamond"
+    | "noun.cross"
+    | "noun.plus"
+    | "noun-regular-polygon"
+    | "noun-gender"
+    | "style-stroke"
+    | "style-with-noun"
+    | "style-filled-word"
+    | "style-filled"
+    | "style-filled-with-noun"
+    | "style-border-clause"
+    | "style-fill"
+    | "style-unfilled"
+    | "style-text"
+    | "style-background-none";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -118,4 +170,56 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "something-went-wrong",
     "renderer-load-failed",
     "core-start-failed",
+    "color.black",
+    "color.white",
+    "color.gray",
+    "color.red",
+    "color.orange",
+    "color.yellow",
+    "color.green",
+    "color.cyan",
+    "color.blue",
+    "color.purple",
+    "color.pink",
+    "color.brown",
+    "line-width.thick",
+    "line-width.thin",
+    "line-style.dashed",
+    "line-style.dotted",
+    "fill-style.horizontal",
+    "fill-style.vertical",
+    "fill-style.diagonal",
+    "fill-style.backdiagonal",
+    "fill-style.dots",
+    "fill-style.diamonds",
+    "noun.line",
+    "noun.line-segment",
+    "noun.ray",
+    "noun.vector",
+    "noun.curve",
+    "noun.function",
+    "noun.parabola",
+    "noun.polyline",
+    "noun.polygon",
+    "noun.triangle",
+    "noun.rectangle",
+    "noun.circle",
+    "noun.region",
+    "noun.point",
+    "noun.square",
+    "noun.diamond",
+    "noun.cross",
+    "noun.plus",
+    "noun-regular-polygon",
+    "noun-gender",
+    "style-stroke",
+    "style-with-noun",
+    "style-filled-word",
+    "style-filled",
+    "style-filled-with-noun",
+    "style-border-clause",
+    "style-fill",
+    "style-unfilled",
+    "style-text",
+    "style-background-none",
 ];

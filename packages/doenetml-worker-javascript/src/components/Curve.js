@@ -2,7 +2,10 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import { returnBreakStringsSugarFunction } from "./commonsugar/breakstrings";
 
 import me from "math-expressions";
-import { returnBezierFunctions } from "@doenet/utils";
+import {
+    returnBezierFunctions,
+    returnGraphicalStyleDescriptionDefinitions,
+} from "@doenet/utils";
 import {
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayAttributes,
@@ -331,72 +334,13 @@ export default class Curve extends GraphicalComponent {
             returnNumberDisplayStateVariableDefinitions(),
         );
 
-        stateVariableDefinitions.styleDescription = {
-            description: "A textual description of the curve's style.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                selectedStyle: {
-                    dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
-                },
-                document: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["theme"],
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphicalStyleDescriptionDefinitions({
+                kind: "stroke",
+                noun: "curve",
             }),
-            definition: function ({ dependencyValues }) {
-                let lineColorWord;
-                if (dependencyValues.document?.stateValues.theme === "dark") {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWordDarkMode;
-                } else {
-                    lineColorWord =
-                        dependencyValues.selectedStyle.lineColorWord;
-                }
-
-                let styleDescription =
-                    dependencyValues.selectedStyle.lineWidthWord;
-                if (dependencyValues.selectedStyle.lineStyleWord) {
-                    if (styleDescription) {
-                        styleDescription += " ";
-                    }
-                    styleDescription +=
-                        dependencyValues.selectedStyle.lineStyleWord;
-                }
-
-                if (styleDescription) {
-                    styleDescription += " ";
-                }
-
-                styleDescription += lineColorWord;
-
-                return { setValue: { styleDescription } };
-            },
-        };
-
-        stateVariableDefinitions.styleDescriptionWithNoun = {
-            description: 'Style description including the word "curve".',
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                styleDescription: {
-                    dependencyType: "stateVariable",
-                    variableName: "styleDescription",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let styleDescriptionWithNoun =
-                    dependencyValues.styleDescription + " curve";
-
-                return { setValue: { styleDescriptionWithNoun } };
-            },
-        };
+        );
 
         // fShadow will be null unless curve was created via an adapter
         // In case of adapter,

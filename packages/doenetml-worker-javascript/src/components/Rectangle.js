@@ -1,3 +1,4 @@
+import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Polygon from "./Polygon";
 import me from "math-expressions";
@@ -76,21 +77,13 @@ export default class Rectangle extends Polygon {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let styleDescriptionWithNounDef =
-            stateVariableDefinitions.styleDescriptionWithNoun.definition;
-
-        stateVariableDefinitions.styleDescriptionWithNoun.definition =
-            function ({ dependencyValues }) {
-                let styleDescriptionWithNoun = styleDescriptionWithNounDef({
-                    dependencyValues,
-                }).setValue.styleDescriptionWithNoun;
-                styleDescriptionWithNoun = styleDescriptionWithNoun.replaceAll(
-                    "polygon",
-                    "rectangle",
-                );
-
-                return { setValue: { styleDescriptionWithNoun } };
-            };
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphicalStyleDescriptionDefinitions({
+                kind: "closedShape",
+                noun: "rectangle",
+            }),
+        );
 
         stateVariableDefinitions.numVerticesSpecified = {
             returnDependencies: () => ({

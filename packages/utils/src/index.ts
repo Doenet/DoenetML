@@ -24,6 +24,8 @@ export * from "./style/palettes";
 export * from "./style/paletteInfo";
 export * from "./style/readerOverrides";
 export * from "./style/style";
+export * from "./style/styleDescriptions";
+export * from "./style/styleDescriptionDefinitions";
 export * from "./style/styleDefinitionHelpers";
 export * from "./theme/theme";
 export * from "./types/core";

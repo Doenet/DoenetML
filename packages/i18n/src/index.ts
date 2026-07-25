@@ -39,6 +39,8 @@ export {
 
 export { createChromeTranslator, EN_CHROME_TRANSLATOR } from "./chrome";
 
+export { bundledResources } from "./bundled";
+
 export {
     DEFAULT_LOCALE_DATA,
     createTranslatorFromLocaleData,

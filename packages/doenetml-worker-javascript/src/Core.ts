@@ -11,7 +11,12 @@ import {
     type ComponentIdx,
     type ReaderStyleOverrides,
 } from "@doenet/utils";
-import { DEFAULT_LOCALE_DATA, type LocaleData } from "@doenet/i18n";
+import {
+    createTranslatorFromLocaleData,
+    DEFAULT_LOCALE_DATA,
+    type LocaleData,
+    type Translator,
+} from "@doenet/i18n";
 import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
@@ -139,6 +144,33 @@ export default class Core {
      * Read via the `locale` dependency type; fixed for the core's lifetime.
      */
     localeData: LocaleData;
+    /**
+     * Content translators, one per locale actually asked for.
+     *
+     * The catalogs are fixed for the core's lifetime but the locale is not:
+     * a nested `<document lang="de">` resolves its own, and the state
+     * variables that compute prose ask for the one belonging to the document
+     * they sit in. Building a `FluentBundle` per locale is not free, and every
+     * style description in the document wants the same one, so they are cached
+     * here rather than rebuilt per definition call.
+     */
+    _contentTranslators = new Map<string, Translator>();
+    /**
+     * The content translator for `locale`, built once and reused.
+     *
+     * An arrow property rather than a method because it is handed out whole as
+     * the value of the `translator` dependency, and has to stay bound and
+     * stable across calls — dependency values are compared by identity.
+     */
+    getContentTranslator = (locale?: string): Translator => {
+        const tag = locale || this.localeData.locale;
+        let translator = this._contentTranslators.get(tag);
+        if (translator === undefined) {
+            translator = createTranslatorFromLocaleData(this.localeData, tag);
+            this._contentTranslators.set(tag, translator);
+        }
+        return translator;
+    };
     styleOverrides?: ReaderStyleOverrides | null;
     initializeCounters: Record<string, number>;
 

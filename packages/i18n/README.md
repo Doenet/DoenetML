@@ -54,12 +54,13 @@ inlined into every build via `?raw` imports — the worker cannot reliably fetch
 a relative URL across the standalone/iframe/dedicated-worker variants, so the
 fallback locale must not depend on the network.
 
-Spanish chrome is inlined the same way, so `uiLocale="es"` works with no host
-configuration. That does not scale, and additional locales are still meant to
-arrive as modules the host loads and passes in as `localeResources`, which
-`createChromeTranslator` merges over the bundled ones (the host's copy wins for
-a locale that exists in both). Revisit the inlining when the count reaches a
-handful.
+Spanish is inlined the same way, so `uiLocale="es"` and `documentLocale="es"`
+both work with no host configuration. `bundledResources(namespaces)` is what
+assembles those catalogs for a context, and both `createChromeTranslator` and
+`createTranslatorFromLocaleData` merge host-supplied `localeResources` over
+them (the host's copy wins for a locale that exists in both). Inlining does not
+scale, and additional locales are still meant to arrive as modules the host
+loads and passes in; revisit when the count reaches a handful.
 
 Note that the two namespaces the worker loads answer to *different* settings:
 `content` to `documentLocale`, `diagnostics` to `uiLocale`. `LocaleData` carries
@@ -132,6 +133,59 @@ orphan and fails the build.
 The virtual keyboard tray is the exception: it renders into its own React root
 shared by every viewer on the page, which context cannot cross, so it takes a
 `translate` prop the same way it already takes `theme`.
+
+### In the worker
+
+Prose the core computes — style descriptions today — is content, so it follows
+`documentLocale` and is built where the core builds everything else. The
+translator arrives as the value of the `translator` dependency, which is a
+*factory* keyed by locale rather than a translator: the catalogs are fixed for
+a core's lifetime but the locale is not, since a nested `<document lang>` can
+differ from the one around it. A definition takes the `locale` of the document
+it sits in — an ordinary ancestor dependency, alongside `theme` — and asks the
+factory for the matching translator.
+
+Those state variables stay **computed, never essential**, so a locale change
+recomputes them and no English is written into saved state.
+
+### Composition, not substitution
+
+`@doenet/utils/style/styleDescriptions.ts` is the worked example of a phrase
+that cannot be translated word for word. English writes adjectives before the
+noun and inserts an article before "border"; Spanish writes them after and
+agrees them with the noun's gender. So each description is assembled by a
+message that receives the pieces as arguments plus a `$parts` argument naming
+*which* pieces are present, and every adjective is handed `$gender`. An absent
+piece selects a different branch rather than substituting an empty string —
+that is what lets a translation reorder and re-punctuate each combination on
+its own terms.
+
+Even the noun is not one string. A regular polygon is "5-sided regular polygon"
+in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
+adjectives rather than sitting beside them, so `noun-regular-polygon` answers
+in two halves (`$part`) and the composing message places each. A noun that
+needs no complement leaves the second half empty. The rule generalizes: **a
+phrase a language cannot keep contiguous has to be split at the source** —
+there is no reaching inside `{ $noun }` from the message that places it, so
+split the phrase, not the message that uses it.
+
+Two further Fluent constraints shaped it, and both are easy to rediscover the
+hard way:
+
+- **A word that inflects has to be passed in, not referenced.** A *term*
+  reference cannot carry a runtime value — `{ -filled(gender: $gender) }` does
+  not parse (`E0014 Expected literal`), and `{ -filled }` gets an empty scope
+  and always picks its default variant. A *message* reference does inherit the
+  caller's arguments, but references never cross a bundle boundary: a locale
+  that translates `style-filled` and not `style-filled-word` would render the
+  literal `{style-filled-word}` rather than falling back to English. So the
+  inflecting word is a message the code looks up and hands over as an
+  argument, which is why `style-filled-word` is a key of its own.
+- **A multiline pattern keeps its newlines.** Continuing a variant onto a
+  further line puts a `\n` in the rendered string — including when that line
+  opens a nested select. Keep each variant's content on one line; a select
+  nested *within* that line is fine, and is how a message would sub-divide one
+  of its variants.
 
 ## Commands
 

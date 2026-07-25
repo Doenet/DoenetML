@@ -401,3 +401,23 @@ export class LocaleDependency extends ValueDependency {
         this.value = this.dependencyHandler.core.localeData.locale;
     }
 }
+
+/**
+ * A translator for the content the core computes, keyed by locale.
+ *
+ * The value is the *factory*, not a translator: the catalogs are fixed for the
+ * core's lifetime but the locale is not, since a nested `<document lang>` can
+ * differ from the one around it. A definition reads the locale of the document
+ * it sits in — an ordinary ancestor dependency — and asks this for the
+ * matching translator.
+ *
+ * The factory is a bound property on the core, so its identity is stable and
+ * this dependency never reports a spurious change.
+ */
+export class TranslatorDependency extends ValueDependency {
+    static dependencyType = "translator";
+
+    setUpParameters() {
+        this.value = this.dependencyHandler.core.getContentTranslator;
+    }
+}

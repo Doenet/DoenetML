@@ -1,3 +1,4 @@
+import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import Polygon from "./Polygon";
 import me from "math-expressions";
 
@@ -28,21 +29,15 @@ export default class Triangle extends Polygon {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let styleDescriptionWithNounDef =
-            stateVariableDefinitions.styleDescriptionWithNoun.definition;
-
-        stateVariableDefinitions.styleDescriptionWithNoun.definition =
-            function ({ dependencyValues }) {
-                let styleDescriptionWithNoun = styleDescriptionWithNounDef({
-                    dependencyValues,
-                }).setValue.styleDescriptionWithNoun;
-                styleDescriptionWithNoun = styleDescriptionWithNoun.replaceAll(
-                    "polygon",
-                    "triangle",
-                );
-
-                return { setValue: { styleDescriptionWithNoun } };
-            };
+        // A triangle is a polygon that names itself differently, which is a
+        // different noun and not a search-and-replace on the finished sentence.
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphicalStyleDescriptionDefinitions({
+                kind: "closedShape",
+                noun: "triangle",
+            }),
+        );
 
         stateVariableDefinitions.unconstrainedVertices.hasEssential = true;
 
