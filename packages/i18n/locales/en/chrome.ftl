@@ -35,6 +35,10 @@ answer-percent-short = { $percent } %
 
 max-credit-available = Max credit available: { $percent }%
 
+# Fluent formats `{ $count }` with `Intl.NumberFormat`, so a four-digit
+# attempt count renders as "1,000" where the hand-built string said "1000".
+# That is the one place English output is not byte-identical to what this
+# replaced, and grouping is the locale-correct rendering, so it stands.
 attempts-remaining =
     { $count ->
         [0] no attempts remaining
@@ -56,7 +60,10 @@ feedback-heading = Feedback
 # Follows the solution's own heading: "Solution (click to open)".
 solution-click-to-open = (click to open)
 solution-click-to-close = (click to close)
-solution-initializing = Initializing...
+
+# Placeholder inside a panel that has been opened before its contents have
+# arrived from the core. Shared by `<solution>` and a collapsible `<section>`.
+collapsible-initializing = Initializing...
 
 # Tooltip on a footnote marker, naming what activating it will do.
 footnote-show = Show footnote
@@ -87,6 +94,20 @@ subset-add-remove-points = Add/Remove points
 subset-toggle-points-intervals = Toggle points and intervals
 subset-move-points = Move Points
 subset-clear = Clear
+
+# Buttons that edit an orbital diagram: rows hold boxes, boxes hold up to
+# three spin arrows.
+orbital-add-row = Add Row
+orbital-remove-row = Remove Row
+orbital-add-box = Add Box
+orbital-remove-box = Remove Box
+orbital-add-up-arrow = Add Up Arrow
+orbital-add-down-arrow = Add Down Arrow
+orbital-remove-arrow = Remove Arrow
+
+# Accessible name of the text field naming one row of an orbital diagram,
+# counting from 1.
+orbital-row-label = Label for row { $row }
 
 # Labels the answer column of a pretzel exercise's grid.
 pretzel-answer = Answer
@@ -123,3 +144,7 @@ something-went-wrong = Something went wrong.
 
 # Shown in place of a single renderer whose code chunk never arrived.
 renderer-load-failed = a renderer failed to load. Please reload the page.
+
+# Shown in place of the document when the core worker could not be started
+# after retries, rather than leaving the pane blank.
+core-start-failed = The document viewer could not be started. Please reload the page.

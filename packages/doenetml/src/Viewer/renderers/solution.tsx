@@ -70,7 +70,7 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
         childrenToRender = SVs.rendered ? (
             children
         ) : (
-            <p>{t("solution-initializing", undefined, "Initializing...")}</p>
+            <p>{t("collapsible-initializing", undefined, "Initializing...")}</p>
         );
         infoBlockStyle = {
             display: "block",

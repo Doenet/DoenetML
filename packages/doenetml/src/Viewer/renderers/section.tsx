@@ -539,7 +539,17 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             };
             innerContent = (
                 <div style={innerContentStyle}>
-                    {SVs.rendered ? children : <p>Initializing...</p>}
+                    {SVs.rendered ? (
+                        children
+                    ) : (
+                        <p>
+                            {t(
+                                "collapsible-initializing",
+                                undefined,
+                                "Initializing...",
+                            )}
+                        </p>
+                    )}
                     {checkWorkComponent}
                 </div>
             );

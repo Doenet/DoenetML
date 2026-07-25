@@ -47,7 +47,7 @@ feedback-heading = Comentarios
 
 solution-click-to-open = (clic para abrir)
 solution-click-to-close = (clic para cerrar)
-solution-initializing = Inicializando...
+collapsible-initializing = Inicializando...
 
 footnote-show = Mostrar la nota al pie
 footnote-hide = Ocultar la nota al pie
@@ -72,6 +72,16 @@ subset-add-remove-points = Añadir/Eliminar puntos
 subset-toggle-points-intervals = Alternar puntos e intervalos
 subset-move-points = Mover puntos
 subset-clear = Borrar
+
+orbital-add-row = Añadir fila
+orbital-remove-row = Eliminar fila
+orbital-add-box = Añadir casilla
+orbital-remove-box = Eliminar casilla
+orbital-add-up-arrow = Añadir flecha hacia arriba
+orbital-add-down-arrow = Añadir flecha hacia abajo
+orbital-remove-arrow = Eliminar flecha
+
+orbital-row-label = Etiqueta de la fila { $row }
 
 pretzel-answer = Respuesta
 
@@ -101,3 +111,5 @@ something-went-wrong = Algo salió mal.
 # Follows `error-heading` and a colon, so it begins in lower case, as in
 # English. The instruction is an infinitive, per the register note above.
 renderer-load-failed = no se pudo cargar un componente. Recargar la página.
+
+core-start-failed = No se pudo iniciar el visor del documento. Recargar la página.

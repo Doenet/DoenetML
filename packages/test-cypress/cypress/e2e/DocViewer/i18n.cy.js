@@ -129,14 +129,18 @@ describe("Chrome translation Tests", { tags: ["@group5"] }, function () {
         render({
             doenetML: `
     <solution name="sol"><p>respuesta</p></solution>
-    <p><answer name="ans2" type="text">hola</answer></p>
-    <feedback name="fb" condition="$ans2.creditAchieved = 1"><p>bien</p></feedback>`,
+    <feedback name="fb" condition="true"><p>bien</p></feedback>`,
             uiLocale: "es",
         });
 
         cy.get("#sol_button").should("contain.text", "(clic para abrir)");
         cy.get("#sol_button").click();
         cy.get("#sol_button").should("contain.text", "(clic para cerrar)");
+
+        // The other disclosure panel: its heading is chrome, its body is the
+        // author's.
+        cy.get(".feedback").should("contain.text", "Comentarios");
+        cy.get("#fb").should("have.text", "bien");
     });
 
     it("translates the virtual keyboard tray, which lives in its own root", () => {

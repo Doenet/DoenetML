@@ -25,7 +25,7 @@ export type MessageKey =
     | "feedback-heading"
     | "solution-click-to-open"
     | "solution-click-to-close"
-    | "solution-initializing"
+    | "collapsible-initializing"
     | "footnote-show"
     | "footnote-hide"
     | "description-more-information"
@@ -41,6 +41,14 @@ export type MessageKey =
     | "subset-toggle-points-intervals"
     | "subset-move-points"
     | "subset-clear"
+    | "orbital-add-row"
+    | "orbital-remove-row"
+    | "orbital-add-box"
+    | "orbital-remove-box"
+    | "orbital-add-up-arrow"
+    | "orbital-add-down-arrow"
+    | "orbital-remove-arrow"
+    | "orbital-row-label"
     | "pretzel-answer"
     | "math-input-preview-region"
     | "math-input-preview"
@@ -49,7 +57,8 @@ export type MessageKey =
     | "error-heading"
     | "document-contains-errors"
     | "something-went-wrong"
-    | "renderer-load-failed";
+    | "renderer-load-failed"
+    | "core-start-failed";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -71,7 +80,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "feedback-heading",
     "solution-click-to-open",
     "solution-click-to-close",
-    "solution-initializing",
+    "collapsible-initializing",
     "footnote-show",
     "footnote-hide",
     "description-more-information",
@@ -87,6 +96,14 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "subset-toggle-points-intervals",
     "subset-move-points",
     "subset-clear",
+    "orbital-add-row",
+    "orbital-remove-row",
+    "orbital-add-box",
+    "orbital-remove-box",
+    "orbital-add-up-arrow",
+    "orbital-add-down-arrow",
+    "orbital-remove-arrow",
+    "orbital-row-label",
     "pretzel-answer",
     "math-input-preview-region",
     "math-input-preview",
@@ -96,4 +113,5 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "document-contains-errors",
     "something-went-wrong",
     "renderer-load-failed",
+    "core-start-failed",
 ];

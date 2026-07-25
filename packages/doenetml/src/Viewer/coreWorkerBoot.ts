@@ -47,7 +47,9 @@ const GRACEFUL_TERMINATE_TIMEOUT_MS = 2_000;
 // Shown in the viewer when the core worker can't be started after retries,
 // instead of leaving the pane blank (Doenet/DoenetApps#2957). One canonical
 // string so the message — which a test also matches on — stays consistent
-// across the several failure paths in DocViewer.startCore.
+// across the several failure paths in DocViewer.startCore. It is the English
+// fallback for the `core-start-failed` message; `DocViewer` translates it
+// before showing it.
 export const CORE_START_FAILED_MESSAGE =
     "The document viewer could not be started. Please reload the page.";
 

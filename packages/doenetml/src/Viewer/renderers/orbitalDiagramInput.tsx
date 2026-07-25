@@ -4,6 +4,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { useT } from "../../utils/i18n";
 
 const ORBITAL_ARROW_STYLE: React.CSSProperties = {
     fill: "none",
@@ -30,6 +31,8 @@ export default React.memo(function orbitalDiagramInput(
 ) {
     let { id, SVs, actions, callAction } =
         useDoenetRenderer<OrbitalDiagramInputSVs>(props);
+
+    const t = useT();
 
     let selectedRowIndex0 = SVs.selectedRowIndex - 1;
     let selectedBoxIndex0 = SVs.selectedBoxIndex - 1;
@@ -140,7 +143,7 @@ export default React.memo(function orbitalDiagramInput(
                                 action: actions.addRow,
                             });
                         }}
-                        value="Add Row"
+                        value={t("orbital-add-row", undefined, "Add Row")}
                     />
                 </div>
                 <div style={{ display: "inline-block", marginRight: "4px" }}>
@@ -151,7 +154,7 @@ export default React.memo(function orbitalDiagramInput(
                                 action: actions.removeRow,
                             });
                         }}
-                        value="Remove Row"
+                        value={t("orbital-remove-row", undefined, "Remove Row")}
                     />
                 </div>
 
@@ -166,7 +169,7 @@ export default React.memo(function orbitalDiagramInput(
                                 action: actions.addBox,
                             });
                         }}
-                        value="Add Box"
+                        value={t("orbital-add-box", undefined, "Add Box")}
                     />
                 </div>
 
@@ -181,7 +184,7 @@ export default React.memo(function orbitalDiagramInput(
                                 action: actions.removeBox,
                             });
                         }}
-                        value="Remove Box"
+                        value={t("orbital-remove-box", undefined, "Remove Box")}
                     />
                 </div>
 
@@ -196,7 +199,11 @@ export default React.memo(function orbitalDiagramInput(
                                 action: actions.addUpArrow,
                             });
                         }}
-                        value="Add Up Arrow"
+                        value={t(
+                            "orbital-add-up-arrow",
+                            undefined,
+                            "Add Up Arrow",
+                        )}
                     />
                 </div>
 
@@ -211,7 +218,11 @@ export default React.memo(function orbitalDiagramInput(
                                 action: actions.addDownArrow,
                             });
                         }}
-                        value="Add Down Arrow"
+                        value={t(
+                            "orbital-add-down-arrow",
+                            undefined,
+                            "Add Down Arrow",
+                        )}
                     />
                 </div>
 
@@ -226,7 +237,11 @@ export default React.memo(function orbitalDiagramInput(
                                 action: actions.removeArrow,
                             });
                         }}
-                        value="Remove Arrow"
+                        value={t(
+                            "orbital-remove-arrow",
+                            undefined,
+                            "Remove Arrow",
+                        )}
                     />
                 </div>
             </div>
@@ -336,6 +351,9 @@ const OrbitalText = React.memo(function OrbitalText({
     orbitalText: string;
     name: string;
 }) {
+    const t = useT();
+    const row = rowNumber + 1;
+
     return (
         <input
             id={`OrbitalText${rowNumber}${name}`}
@@ -347,7 +365,7 @@ const OrbitalText = React.memo(function OrbitalText({
                 let newValue = e.target.value;
                 updateRowText(newValue);
             }}
-            aria-label={`Label for row ${rowNumber + 1}`}
+            aria-label={t("orbital-row-label", { row }, `Label for row ${row}`)}
         />
     );
 });

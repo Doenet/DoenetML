@@ -1596,7 +1596,13 @@ export function DocViewer({
     function failCoreStart() {
         coreCreationInProgress.current = false;
         setIsInErrorState?.(true);
-        setErrMsg(CORE_START_FAILED_MESSAGE);
+        setErrMsg(
+            translate(
+                "core-start-failed",
+                undefined,
+                CORE_START_FAILED_MESSAGE,
+            ),
+        );
         setHasInitialError(true);
     }
 
