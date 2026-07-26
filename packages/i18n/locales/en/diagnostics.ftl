@@ -504,8 +504,9 @@ variant-non-constant-exclude-not-implemented = have not implemented unique varia
 # $subject identifies the component the warning is about, already written as
 # `<tag>` or `<tag> (name)`. It is composed in code rather than here because
 # Fluent terms cannot take a variable as an argument, so a shared subject
-# fragment cannot be parameterized from the catalog; it holds only identifiers
-# and punctuation, no words to translate.
+# fragment cannot be parameterized from the catalog. It holds only a tag name,
+# a component name and punctuation — never a word — which is why a descendant
+# with no type reads `<?>` rather than `<unknown>`.
 
 prefigure-descendant-unsupported = { $subject }: unsupported in graph prefigure renderer; descendant skipped.
 

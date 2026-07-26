@@ -121,7 +121,18 @@ export function createStableHandle(
 }
 
 /**
- * Builds a readable warning prefix for a descendant component.
+ * Builds the subject a PreFigure conversion warning names: the component it is
+ * about, as `<tag>` or `<tag> (name)`.
+ *
+ * This is handed to the catalog as an argument, so it deliberately contains no
+ * words — only a tag name, a component name, and punctuation, all of which
+ * stay as they are in every language. The catalog places it in the sentence
+ * (`packages/i18n/locales/en/diagnostics.ftl`, "PreFigure conversion").
+ *
+ * Hence `<?>` rather than `<unknown>` for a descendant with no type: it is the
+ * one place this function could put an English word into an argument that no
+ * translation can reach. The case needs a malformed descendant to arise at
+ * all, which is why it is a placeholder rather than a sentence of its own.
  */
 export function warningMessageForDescendant(
     descendant: Descendant | null | undefined,
@@ -129,7 +140,7 @@ export function warningMessageForDescendant(
     if (descendant?.componentName) {
         return `<${descendant.componentType}> (${descendant.componentName})`;
     }
-    return `<${descendant?.componentType ?? "unknown"}>`;
+    return `<${descendant?.componentType ?? "?"}>`;
 }
 
 /**
