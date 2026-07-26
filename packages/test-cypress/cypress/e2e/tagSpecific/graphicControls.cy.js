@@ -39,11 +39,12 @@ describe(
             if (prefigure) {
                 // These tests only check that graph controls behave the same
                 // next to a prefigure graph; they never inspect the rendered
-                // diagram. So serve a stub prefigure runtime and stub the build
-                // service, and the page never reaches the CDN. Downloading the
-                // real pyodide runtime and its wheels, and then initializing
-                // pyodide on the main thread, can otherwise starve the main
-                // thread long enough for control interactions to time out.
+                // diagram. So serve a stub prefigure runtime and stub the
+                // build service, and the page never fetches the real prefigure
+                // runtime from the CDN. Downloading that runtime and its
+                // pyodide wheels, then initializing pyodide on the main
+                // thread, can otherwise starve the main thread long enough for
+                // control interactions to time out.
                 const modulePath = installMockPrefigureModule();
                 installPrefigureBuildIntercept();
                 visitWithMockPrefigureModule(modulePath);
@@ -1698,6 +1699,7 @@ describe(
             );
 
             const xSlider = '[aria-label="x coordinate for P"]';
+            const xNumberInput = 'input[aria-label="x value input for P"]';
             cy.get(xSlider).focus();
 
             for (let i = 1; i <= 4; i++) {
@@ -1705,18 +1707,21 @@ describe(
             }
 
             // Before blur the slider holds the accumulated, unconstrained
-            // transient value, and the number input mirrors it. The slider is
-            // React-controlled and each keyboard step round-trips through the
-            // worker, so assert both facts in one retried callback: sampling
-            // the two elements in separate, non-retrying commands could catch
-            // them mid-update, disagreeing with each other.
+            // transient value, and the number input mirrors it. Each keyboard
+            // step round-trips through the worker, so read both elements in a
+            // single retried callback: capturing the slider value with a
+            // non-retrying command and then asserting the input against that
+            // captured string can pin a value the slider has already moved
+            // past. `cy.$$` queries the application under test, so both reads
+            // see the same document as `cy.get`.
             cy.get(xSlider).should(($slider) => {
                 const transientValue = $slider.val();
                 const transientNumber = Number(transientValue);
                 expect(transientNumber).to.be.greaterThan(0.5);
                 expect(transientNumber).to.be.lessThan(0.9);
                 expect(
-                    Cypress.$('input[aria-label="x value input for P"]').val(),
+                    cy.$$(xNumberInput).val(),
+                    "number input mirrors the transient slider value",
                 ).to.equal(transientValue);
             });
 
@@ -1727,10 +1732,7 @@ describe(
 
             // After blur: slider and input both snap to constrained value
             cy.get(xSlider).should("have.value", "1");
-            cy.get('input[aria-label="x value input for P"]').should(
-                "have.value",
-                "1",
-            );
+            cy.get(xNumberInput).should("have.value", "1");
             cy.get("#Px").should("have.text", "1");
         });
 
