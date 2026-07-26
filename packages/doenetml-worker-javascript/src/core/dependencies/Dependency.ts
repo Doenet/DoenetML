@@ -489,10 +489,12 @@ export class Dependency {
                 // from. Reconstructing it here rather than inside
                 // `arrayEntryNamesFromPropIndex` keeps that lookup on the one
                 // path that has an authored reference behind it.
-                const referenceText = doenetMLStringForReference(
+                const referringComponent =
                     this.dependencyHandler.core._components[
                         this.upstreamComponentIdx
-                    ]?.refResolution?.originalPath,
+                    ];
+                const referenceText = doenetMLStringForReference(
+                    referringComponent?.refResolution?.originalPath,
                     this.dependencyHandler.core.allDoenetMLs,
                 );
                 mappedVarNames = await arrayEntryNamesFromPropIndex({
@@ -500,7 +502,15 @@ export class Dependency {
                     stateVariables: mappedVarNames,
                     component: downComponent,
                     propIndex: this.propIndex,
-                    reference: referenceText ? `$${referenceText}` : "",
+                    reference: referenceText
+                        ? {
+                              text: `$${referenceText}`,
+                              // The referring component, not `downComponent`:
+                              // the mistake is where the index was written.
+                              position: referringComponent.position,
+                              sourceDoc: referringComponent.sourceDoc,
+                          }
+                        : undefined,
                 });
             }
 

@@ -201,16 +201,15 @@ describe("coded diagnostics reach the record @group4", () => {
     });
 
     // The two warnings that survived the core's invariant diagnostics becoming
-    // developer logs (#1518). What separates them from the fourteen that did
+    // developer logs (#1518). What separates them from the eighteen that did
     // not is that an author wrote something these can name: an index in a
     // reference, an `actionName` on a `target`. Everything the core knows and
     // the author doesn't — the state variable, the component index — went to
     // the console instead, so what is checked here is that the argument that
     // reaches the record is the source text and nothing else.
     it("names the reference an index cannot be applied to", async () => {
-        const { core } = await createTestCore({
-            doenetML: `<point name="p" /><text extend="$p.styleDescription[1]" />`,
-        });
+        const doenetML = `<point name="p" /><text extend="$p.styleDescription[1]" />`;
+        const { core } = await createTestCore({ doenetML });
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
@@ -220,6 +219,13 @@ describe("coded diagnostics reach the record @group4", () => {
         });
         expect(warnings[0].message).eq(
             "Cannot reference index `$p.styleDescription[1]`",
+        );
+        // Marked on the `<text>` that wrote the index, not on the `<point>`
+        // the reference resolved to. Attributing it to the referent would
+        // put every reference to `$p` on `$p` itself.
+        const { start, end } = warnings[0].position!;
+        expect(doenetML.substring(start.offset, end.offset)).eq(
+            `<text extend="$p.styleDescription[1]" />`,
         );
     });
 
