@@ -5,6 +5,7 @@
  */
 
 import { Dependency } from "./Dependency";
+import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
@@ -315,22 +316,11 @@ export class RefResolutionDependency extends Dependency {
          * and the DoenetML string from `this.dependencyHandler.core.allDoenetMLs[0]`,
          * return the substring of DoenetML corresponding to the resolution's `originalPath`.
          */
-        const getDoenetMLStringForReference = () => {
-            const originalPath = composite.refResolution.originalPath;
-            const startOffset = originalPath[0].position?.start.offset;
-            const endOffset =
-                originalPath[originalPath.length - 1].position?.end.offset;
-            const sourceDoc = originalPath[0].sourceDoc ?? 0;
-
-            let doenetMLString = "";
-            if (startOffset != undefined && endOffset != undefined) {
-                doenetMLString =
-                    this.dependencyHandler.core.allDoenetMLs?.[
-                        sourceDoc
-                    ]?.substring(startOffset, endOffset) ?? "";
-            }
-            return doenetMLString;
-        };
+        const getDoenetMLStringForReference = () =>
+            doenetMLStringForReference(
+                composite.refResolution.originalPath,
+                this.dependencyHandler.core.allDoenetMLs,
+            );
 
         // We skip parent search only if we start with no path,
         // which will happen from references to items created in a repeat

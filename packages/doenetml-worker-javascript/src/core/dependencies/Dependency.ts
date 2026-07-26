@@ -6,6 +6,7 @@ import {
     arrayEntryNamesFromPropIndex,
     ensureStateVariableMaterialized,
 } from "../StateVariableInitializer";
+import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
 /**
  * Base class shared by every concrete dependency type. Concrete subclasses
@@ -480,11 +481,33 @@ export class Dependency {
             }
 
             if (this.propIndex !== undefined) {
+                // The reference the author wrote — `$p.styleDescription[1]` —
+                // reconstructed from the source so that a propIndex that
+                // cannot be applied is reported in those terms. The upstream
+                // component is the one that carries the reference; its
+                // resolution remembers where in the document it was read
+                // from, which is why the lookup belongs here.
+                const referringComponent =
+                    this.dependencyHandler.core._components[
+                        this.upstreamComponentIdx
+                    ];
+                const referenceText = doenetMLStringForReference(
+                    referringComponent?.refResolution?.originalPath,
+                    this.dependencyHandler.core.allDoenetMLs,
+                );
                 mappedVarNames = await arrayEntryNamesFromPropIndex({
                     core: this.dependencyHandler.core,
                     stateVariables: mappedVarNames,
                     component: downComponent,
                     propIndex: this.propIndex,
+                    reference: referenceText
+                        ? {
+                              text: `$${referenceText}`,
+                              // Marked where the index was written.
+                              position: referringComponent.position,
+                              sourceDoc: referringComponent.sourceDoc,
+                          }
+                        : undefined,
                 });
             }
 

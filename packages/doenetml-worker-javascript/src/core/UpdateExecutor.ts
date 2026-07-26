@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentIdx } from "@doenet/utils";
 import { addComponents } from "./ComponentBuilder";
 import { deleteComponents } from "./DeletionEngine";
@@ -138,8 +139,13 @@ export class UpdateExecutor {
      * Main path: look up `component.actions[actionName]` (with optional
      * case-insensitive fallback when `caseInsensitiveMatch` is set), record
      * the `event` if provided, and `await` the action. Returns
-     * `{ actionId }` on success. If the component exists but the action
-     * does not, a warning diagnostic is added and `{}` is returned.
+     * `{ actionId }` on success. If the component exists but the action does
+     * not, `{ actionUnavailable: true }` is returned: what an author can be
+     * told about that depends on how the action was asked for, and only the
+     * caller knows. `<callAction>` turns it into a warning naming the
+     * `target` the author wrote; everything else reaches here from a
+     * renderer or from the core itself, where there is nothing an author
+     * wrote to name, so all that is left is a line on the console.
      */
     async performAction({
         componentIdx,
@@ -236,12 +242,10 @@ export class UpdateExecutor {
         }
 
         if (component) {
-            this.core.addDiagnostic({
-                type: "warning",
-                message: `Cannot run action ${actionName} on component ${componentIdx}`,
-                position: component.position,
-                sourceDoc: component.sourceDoc,
-            });
+            reportInternalError(
+                `Cannot run action ${actionName} on component ${componentIdx}`,
+            );
+            return { actionUnavailable: true };
         }
 
         return {};
@@ -360,10 +364,9 @@ export class UpdateExecutor {
                         if (component) {
                             componentsToDelete.push(component);
                         } else {
-                            this.core.addDiagnostic({
-                                type: "info",
-                                message: `Cannot delete ${componentIdx} as it doesn't exist.`,
-                            });
+                            reportInternalError(
+                                `Cannot delete ${componentIdx} as it doesn't exist.`,
+                            );
                         }
                     }
 

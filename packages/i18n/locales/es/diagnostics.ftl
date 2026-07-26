@@ -290,6 +290,12 @@ collect-no-source = No se encontró ninguna fuente para collect.
 
 collect-invalid-component-type = No se pueden recolectar componentes de tipo `<{ $component }>` porque no es un tipo de componente válido.
 
+reference-index-unavailable = No se puede referenciar el índice `{ $reference }`
+
+## `<callAction>`
+
+component-action-unavailable = No se puede llamar a { $action } en el componente `{ $reference }`
+
 ## `<dataFrame>`
 
 data-frame-inconsistent-row-lengths = Los datos tienen una forma no válida.  Las filas tienen longitudes distintas. Encontrado en componentIdx :{ $componentIdx }

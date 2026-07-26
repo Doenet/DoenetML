@@ -21,6 +21,7 @@ import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 import {
+    doenetMLStringForReference,
     getSourceLocationForComponent,
     narrowPositionToOpeningTag,
 } from "./utils/sourceLocation";
@@ -356,6 +357,12 @@ export default class Core {
             copyToClipboard: this.copyToClipboard.bind(this),
             navigateToTarget: (args: any) =>
                 navigateToTarget({ core: this, args }),
+            // The DoenetML behind a reference a component holds, so a
+            // component can name a `target` back to the author as they wrote
+            // it. The source text lives on core; the resolved path a
+            // component has is the half that needs looking up in it.
+            doenetMLStringForReference: (originalPath: any) =>
+                doenetMLStringForReference(originalPath, this.allDoenetMLs),
             // State-variable runtime plumbing, not component-facing API:
             // the shared state-variable functions in StateVariableInitializer
             // reach core through `svComponent.coreFunctions`.

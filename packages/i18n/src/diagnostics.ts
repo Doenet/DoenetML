@@ -184,6 +184,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0097": "annotation-ref-outside-graph",
     "doenet-w0098": "annotation-ref-unsupported-target",
     "doenet-w0099": "annotation-text-missing",
+    "doenet-w0100": "reference-index-unavailable",
+    "doenet-w0102": "component-action-unavailable",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

@@ -6,6 +6,7 @@ import {
 } from "@doenet/i18n";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { callAction } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -197,5 +198,79 @@ describe("coded diagnostics reach the record @group4", () => {
                 ).toContain(diagnostic.code);
             }
         }
+    });
+
+    // The two warnings that survived the core's invariant diagnostics becoming
+    // developer logs (#1518). What separates them from the eighteen that did
+    // not is that an author wrote something these can name: an index in a
+    // reference, an `actionName` on a `target`. Everything the core knows and
+    // the author doesn't — the state variable, the component index — went to
+    // the console instead, so what is checked here is that the argument that
+    // reaches the record is the source text and nothing else.
+    it("names the reference an index cannot be applied to", async () => {
+        const doenetML = `<point name="p" /><text extend="$p.styleDescription[1]" />`;
+        const { core } = await createTestCore({ doenetML });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({
+            reference: "$p.styleDescription[1]",
+        });
+        expect(warnings[0].message).eq(
+            "Cannot reference index `$p.styleDescription[1]`",
+        );
+        // Marked on the `<text>` that wrote the index, not on the `<point>`
+        // the reference resolved to. Attributing it to the referent would
+        // put every reference to `$p` on `$p` itself.
+        const { start, end } = warnings[0].position!;
+        expect(doenetML.substring(start.offset, end.offset)).eq(
+            `<text extend="$p.styleDescription[1]" />`,
+        );
+    });
+
+    // The same warning from the other site in `arrayEntryNamesFromPropIndex`.
+    // Above, `styleDescription` is not an array at all; here `vertexX1_1` is
+    // an entry of one, and it is `arrayVarNameFromPropIndex` that can make no
+    // name out of the index. One code covers both because the author's
+    // mistake is the same one — the difference is a fact about the core, and
+    // only the console line carries it (`… of 1`, with no trailing clause).
+    it("names the reference when the array can make no name for the index", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<polyline name="pg" vertices="(1,2) (3,4)" /><math extend="$pg.vertexX1_1[1]" />`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({ reference: "$pg.vertexX1_1[1]" });
+        expect(warnings[0].message).eq(
+            "Cannot reference index `$pg.vertexX1_1[1]`",
+        );
+    });
+
+    it("names the target a missing action was asked of", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="p" />
+<callAction name="ca" target="$p" actionName="notAnAction" />`,
+        });
+        // The warning is raised when the action is invoked, not when the
+        // document is built: until then nothing has asked the point for an
+        // action it doesn't have.
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("ca"),
+            core,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0102");
+        expect(warnings[0].args).eqls({
+            action: "notAnAction",
+            reference: "$p",
+        });
+        expect(warnings[0].message).eq(
+            "Cannot call notAnAction on component `$p`",
+        );
     });
 });
