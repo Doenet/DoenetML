@@ -271,6 +271,55 @@ describe("dedupeLspDiagnostics", () => {
         ).toHaveLength(1);
     });
 
+    it("leaves a key with the entry that claimed it first", () => {
+        // Two records at one span can disagree about which entry they
+        // belong to: `sharesMessage` matches the first on its message and
+        // the second on its code, and folds into the second.  Its message
+        // key is already spoken for, and must stay pointing at the record
+        // that actually has that message — otherwise a later uncoded copy
+        // of the first would be folded into the second instead.
+        const first = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Invalid attribute `h`.",
+            start: [0, 14],
+            end: [0, 17],
+            code: "doenet-e0042",
+        });
+        const second = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Invalid attribute `q`.",
+            start: [0, 14],
+            end: [0, 17],
+            code: "doenet-e0043",
+        });
+        const sharesMessage = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Invalid attribute `h`.",
+            start: [0, 14],
+            end: [0, 17],
+            code: "doenet-e0043",
+        });
+        const uncodedCopyOfFirst = {
+            ...mk({
+                sev: DiagnosticSeverity.Error,
+                msg: "Invalid attribute `h`.",
+                start: [0, 14],
+                end: [0, 17],
+            }),
+            // Something to merge, so which entry it folded into shows.
+            source: "parser",
+        };
+        const result = dedupeLspDiagnostics([
+            first,
+            second,
+            sharesMessage,
+            uncodedCopyOfFirst,
+        ]);
+        expect(result).toHaveLength(2);
+        expect(result[0].source).toBe("parser");
+        expect(result[1].source).toBeUndefined();
+    });
+
     it("keeps same-code diagnostics apart when they differ in span or severity", () => {
         // The code is only ever compared within a severity+range pair, so
         // one situation reported at two places stays two diagnostics.

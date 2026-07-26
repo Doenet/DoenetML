@@ -78,10 +78,9 @@ export function errorComponentState(
  * The extra `state` keys are inert. Serialized `state` becomes the created
  * component's `essentialState` wholesale, and only keys naming a state
  * variable that asked for an essential value are ever read back — `_error`
- * declares `message` and nothing else, so `code` and `args` sit alongside the
- * `unresolvedPath` this function's callers have long put there. Making them
- * `forRenderer` later is what would let the rendered error text be localized
- * too; today only the diagnostic is.
+ * has neither a `code` nor an `args` variable. Making them `forRenderer`
+ * later is what would let the rendered error text be localized too; today
+ * only the diagnostic is.
  */
 export function convertToErrorComponent(
     component: UnflattenedComponent | SerializedComponent,
