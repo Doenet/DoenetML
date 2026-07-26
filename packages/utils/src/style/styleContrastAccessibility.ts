@@ -62,44 +62,17 @@ type ContrastContext =
     | "marker";
 
 /**
- * Creates a standardized style-contrast accessibility diagnostic.
- *
- * The mode travels as an argument for the same reason the context does: dark
- * mode used to be a " (dark mode)" suffix concatenated onto the context, which
- * is a phrase in the middle of a sentence and cannot be positioned by a
- * translator once it has been glued on.
- */
-function createContrastAccessibilityDiagnostic({
-    styleNumber,
-    context,
-    mode,
-    ratio,
-    threshold,
-    position,
-}: {
-    styleNumber: string;
-    context: ContrastContext;
-    mode: Mode;
-    ratio: number;
-    threshold: number;
-    position?: Position;
-}): AccessibilityRecord {
-    return codedDiagnostic({
-        type: "accessibility",
-        level: 1,
-        code: "doenet-a0007",
-        args: { styleNumber, context, mode, ratio, threshold },
-        position,
-    }) as AccessibilityRecord;
-}
-
-/**
  * Conditionally appends a contrast accessibility diagnostic when the ratio is
  * insufficient.
  *
  * `position` is the latest authored contributor to the rendered contrast, such
  * as a foreground color, background color, or opacity attribute. Preset and
  * derived values carry no position, so default styles remain silent.
+ *
+ * The mode travels as an argument for the same reason the context does: dark
+ * mode used to be a " (dark mode)" suffix concatenated onto the context, which
+ * is a phrase in the middle of a sentence and cannot be positioned by a
+ * translator once it has been glued on.
  */
 function appendContrastAccessibilityDiagnosticIfNeeded({
     diagnostics,
@@ -123,14 +96,13 @@ function appendContrastAccessibilityDiagnosticIfNeeded({
     }
 
     diagnostics.push(
-        createContrastAccessibilityDiagnostic({
-            styleNumber,
-            context,
-            mode,
-            ratio,
-            threshold,
+        codedDiagnostic({
+            type: "accessibility",
+            level: 1,
+            code: "doenet-a0007",
+            args: { styleNumber, context, mode, ratio, threshold },
             position,
-        }),
+        }) as AccessibilityRecord,
     );
 }
 
