@@ -14,6 +14,7 @@ import {
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { errorComponentState } from "../../utils/dast/errors";
 
 export default class Copy extends CompositeComponent {
     static componentType = "_copy";
