@@ -15,9 +15,14 @@ import {
 import {
     createTranslatorFromLocaleData,
     DEFAULT_LOCALE_DATA,
+    type DiagnosticArgs,
+    type DiagnosticCode,
     type LocaleData,
     type Translator,
 } from "@doenet/i18n";
+
+/** A coded diagnostic `ChildMatcher` recorded for `Core` to raise later. */
+type UnmatchedChildren = { code: DiagnosticCode; args: DiagnosticArgs };
 import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
@@ -223,7 +228,12 @@ export default class Core {
     errorComponentsToAdd!: any[];
     essentialValuesSavedInDefinition!: Record<string, any>;
     rendererVariablesByComponentType!: Record<string, any>;
-    unmatchedChildren!: Record<number, any>;
+    /**
+     * The diagnostic to raise for each parent whose children did not match,
+     * keyed by parent index. `ChildMatcher` writes it and `Core` raises it a
+     * pass later, so the two are typed rather than left to agree by hand.
+     */
+    unmatchedChildren!: Record<number, UnmatchedChildren>;
     updateInfo: UpdateInfo;
     /** Set by `ComponentBuilder` once the document renderer tree exists. */
     documentRendererInstructions?: any;

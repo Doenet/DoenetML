@@ -273,4 +273,65 @@ describe("coded diagnostics reach the record @group4", () => {
             "Cannot call notAnAction on component `$p`",
         );
     });
+
+    // The diagnostics that are built for a caller rather than at the site that
+    // knows the situation: a composite reporting a cycle, `ChildMatcher`
+    // recording a mismatch for `Core` to raise a pass later, and reference
+    // resolution failing only once the group's replacements are known. Each
+    // crosses a boundary between where the arguments are gathered and where
+    // the record is made, which is where a code is easiest to drop.
+    it("codes a circular dependency a composite reports", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<point name="a">(2,3)
+  <label><answer>$a</answer></label>
+</point>
+`,
+        });
+
+        const { errors } = getDiagnosticsByType(core);
+        expect(errors.length).eq(1);
+        expect(errors[0].code).eq("doenet-e0005");
+        // `none` is the variant for a composite that never named a type, so
+        // the clause the concatenated version appended is simply absent.
+        expect(errors[0].args).eqls({ componentType: "none" });
+        expect(errors[0].message).eq("Circular dependency detected.");
+    });
+
+    it("codes children that did not match, across the pass that raises them", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<point><graph /></point>`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0107");
+        expect(warnings[0].args).eqls({
+            componentType: "coords",
+            children: "`<graph>`",
+        });
+        expect(warnings[0].message).eq(
+            "Invalid children for `<coords>`: Found invalid children: `<graph>`",
+        );
+    });
+
+    it("codes a reference resolved too late for the first pass", async () => {
+        // Extending with an index defers resolution until core knows the
+        // group's replacements, so this warning is the worker's own rather
+        // than the one the Rust resolver raises for a plainly absent name.
+        const { core } = await createTestCore({
+            doenetML: `
+<group name="g"></group>
+<text extend="$g[1]" />
+`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0104");
+        expect(warnings[0].args).eqls({ reference: "$g[1]" });
+        expect(warnings[0].message).eq(
+            "No referent found for reference: `$g[1]`",
+        );
+    });
 });
