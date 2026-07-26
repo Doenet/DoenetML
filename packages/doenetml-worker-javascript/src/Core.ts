@@ -20,9 +20,6 @@ import {
     type LocaleData,
     type Translator,
 } from "@doenet/i18n";
-
-/** A coded diagnostic `ChildMatcher` recorded for `Core` to raise later. */
-type UnmatchedChildren = { code: DiagnosticCode; args: DiagnosticArgs };
 import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
@@ -49,6 +46,9 @@ import { UpdateExecutor } from "./core/UpdateExecutor";
 import { VisibilityTracker } from "./core/VisibilityTracker";
 import * as nameResolver from "./StateVariableNameResolver";
 import { numberAnswers } from "./utils/answer";
+
+/** A coded diagnostic `ChildMatcher` recorded for `Core` to raise later. */
+type UnmatchedChildren = { code: DiagnosticCode; args: DiagnosticArgs };
 
 /**
  * Constructor arguments passed in from `CoreWorker`. The resolver callbacks
