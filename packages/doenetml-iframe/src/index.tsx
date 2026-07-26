@@ -4,6 +4,7 @@ import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
 import {
+    codedDiagnostic,
     findAllNewlines,
     getLineCharRange,
     getSystemTheme,
@@ -1766,10 +1767,23 @@ export const DoenetEditor = React.forwardRef<
         if (foundAutoVersion) {
             setIgnoreDetectedVersion(true);
             setInErrorState("");
-            let message = `DoenetML version ${detectedVersion} not found.`;
-            if (!specifiedStandaloneUrl) {
-                message += ` Falling back to version ${specifiedDoenetmlVersion ?? latestDoenetmlVersion}`;
-            }
+            // Reached through `@doenet/utils`, which already depends on
+            // `@doenet/i18n`, so this costs no new dependency. The fallback
+            // clause is a variant of the message rather than a sentence
+            // appended to it: whether there is a fallback is data, and a
+            // translator has to be able to place it.
+            const versionDiagnostic = codedDiagnostic({
+                type: "error",
+                code: "doenet-e0006",
+                args: {
+                    version: String(detectedVersion),
+                    fallback: specifiedStandaloneUrl
+                        ? "none"
+                        : String(
+                              specifiedDoenetmlVersion ?? latestDoenetmlVersion,
+                          ),
+                },
+            });
 
             // add line number to the doenetML range of the error
             let allNewlines = findAllNewlines(doenetML);
@@ -1779,7 +1793,7 @@ export const DoenetEditor = React.forwardRef<
             );
 
             setInitialDiagnostics([
-                { position: detectedDoenetMLrange!, message, type: "error" },
+                { ...versionDiagnostic, position: detectedDoenetMLrange! },
             ]);
             return null;
         }

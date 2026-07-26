@@ -1,4 +1,6 @@
 import type Core from "../Core";
+import { codedDiagnostic } from "../utils/diagnostics";
+import { errorComponentState } from "../utils/dast/errors";
 import { deepClone } from "@doenet/utils";
 import {
     deriveChildResultsFromDefiningChildren,
@@ -594,11 +596,20 @@ async function expandShadowingComposite({
     while (shadowedByShadowed?.length > 0) {
         if (shadowedByShadowed.includes(nameOfCompositeMediatingTheShadow)) {
             foundCircular = true;
-            let message = "Circular dependency detected";
-            if (component.attributes.createComponentOfType?.primitive) {
-                message += ` involving \`<${component.attributes.createComponentOfType.primitive.value}>\` component`;
-            }
-            message += ".";
+            // The same situation `<copy>` reports, so the same code. The
+            // component type is an argument rather than a clause spliced into
+            // the sentence, which is what lets the catalog say it either way.
+            const circular = codedDiagnostic({
+                type: "error",
+                code: "doenet-e0005",
+                args: {
+                    componentType:
+                        component.attributes.createComponentOfType?.primitive
+                            ?.value ?? "none",
+                },
+                position: compositeMediatingTheShadow.position,
+                sourceDoc: compositeMediatingTheShadow.sourceDoc,
+            });
             serializedReplacements = [
                 {
                     type: "serialized",
@@ -607,17 +618,12 @@ async function expandShadowingComposite({
                     attributes: {},
                     doenetAttributes: {},
                     children: [],
-                    state: { message },
+                    state: errorComponentState(circular.message, circular),
                     position: compositeMediatingTheShadow.position,
                     sourceDoc: compositeMediatingTheShadow.sourceDoc,
                 },
             ];
-            core.addDiagnostic({
-                type: "error",
-                message,
-                position: compositeMediatingTheShadow.position,
-                sourceDoc: compositeMediatingTheShadow.sourceDoc,
-            });
+            core.addDiagnostic(circular);
 
             break;
         }
@@ -805,6 +811,7 @@ export async function createAndSetReplacements({
         component.replacements = await core.setErrorReplacements({
             composite: component,
             message: e.message,
+            source: e,
         });
     }
     core.parameterStack.pop();

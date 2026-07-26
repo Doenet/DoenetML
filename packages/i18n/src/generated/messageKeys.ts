@@ -260,7 +260,14 @@ export type MessageKey =
     | "annotation-ref-multiple-targets"
     | "annotation-ref-outside-graph"
     | "annotation-ref-unsupported-target"
-    | "annotation-text-missing";
+    | "annotation-text-missing"
+    | "composite-circular-dependency"
+    | "reference-no-referent"
+    | "reference-multiple-referents"
+    | "children-invalid-attribute-format"
+    | "children-invalid"
+    | "attribute-value-invalid-using-default"
+    | "doenetml-version-not-found";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -518,4 +525,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "annotation-ref-outside-graph",
     "annotation-ref-unsupported-target",
     "annotation-text-missing",
+    "composite-circular-dependency",
+    "reference-no-referent",
+    "reference-multiple-referents",
+    "children-invalid-attribute-format",
+    "children-invalid",
+    "attribute-value-invalid-using-default",
+    "doenetml-version-not-found",
 ];

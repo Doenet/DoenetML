@@ -455,3 +455,33 @@ annotation-ref-outside-graph = `<annotation>`: `ref` no válido; el destino est�
 annotation-ref-unsupported-target = `<annotation>`: `ref` no válido; el destino no es un objeto gráfico admitido en la conversión a prefigure. Se omite la anotación.
 
 annotation-text-missing = `<annotation>`: falta `text` o está vacío; se emite texto vacío.
+
+## Composites y referencias
+
+composite-circular-dependency =
+    { $componentType ->
+        [none] Se detectó una dependencia circular.
+       *[other] Se detectó una dependencia circular en la que participa un componente `<{ $componentType }>`.
+    }
+
+reference-no-referent = No se encontró ningún referente para la referencia: `{ $reference }`
+
+reference-multiple-referents = Se encontraron varios referentes para la referencia: `{ $reference }`
+
+## Hijos que no coinciden
+
+children-invalid-attribute-format = Formato no válido para el atributo { $attribute } de `<{ $componentType }>`.
+
+children-invalid = Hijos no válidos para `<{ $componentType }>`: se encontraron hijos no válidos: { $children }
+
+## Se recurre a un valor predeterminado
+
+attribute-value-invalid-using-default = Valor no válido `{ $value }` para el atributo `{ $attribute }`; se usa el valor `{ $default }`
+
+## Carga de una versión de DoenetML
+
+doenetml-version-not-found =
+    { $fallback ->
+        [none] No se encontró la versión { $version } de DoenetML.
+       *[other] No se encontró la versión { $version } de DoenetML. Se recurrirá a la versión { $fallback }
+    }

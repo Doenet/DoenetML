@@ -162,15 +162,19 @@ export async function deriveChildResultsFromDefiningChildren({
                 let attributeForComponentType =
                     parent.ancestors[0].componentClass.componentType;
                 core.unmatchedChildren[parent.componentIdx] = {
-                    message: `Invalid format for attribute ${parent.doenetAttributes.isAttributeChildFor} of \`<${attributeForComponentType}>\`.`,
+                    code: "doenet-w0106",
+                    args: {
+                        attribute: parent.doenetAttributes.isAttributeChildFor,
+                        componentType: attributeForComponentType,
+                    },
                 };
             } else {
                 core.unmatchedChildren[parent.componentIdx] = {
-                    message: `Invalid children for \`<${
-                        parent.componentType
-                    }>\`: Found invalid children: ${unmatchedChildrenTypes.join(
-                        ", ",
-                    )}`,
+                    code: "doenet-w0107",
+                    args: {
+                        componentType: parent.componentType,
+                        children: unmatchedChildrenTypes.join(", "),
+                    },
                 };
             }
         }

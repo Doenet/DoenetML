@@ -7,6 +7,7 @@
 import { Dependency } from "./Dependency";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
+import { codedDiagnostic } from "../../utils/diagnostics";
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
 
@@ -347,17 +348,20 @@ export class RefResolutionDependency extends Dependency {
                 // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
                 // Rather than duplicating code to make the messages,
                 // we could make sure that `ref_resolve` formats the messages in this case, too.
-                const message =
-                    e === "NonUniqueReferent"
-                        ? `Multiple referents found for reference: \`$${referenceText}\``
-                        : `No referent found for reference: \`$${referenceText}\``;
-
-                this.dependencyHandler.core.addDiagnostic({
-                    type: "warning",
-                    message,
-                    position: composite.position,
-                    sourceDoc: composite.sourceDoc,
-                });
+                this.dependencyHandler.core.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        // Spread rather than a ternary on the value: the
+                        // code has to sit next to `code:` as a literal, or
+                        // `lint:i18n` reads it as a code nothing raises.
+                        ...(e === "NonUniqueReferent"
+                            ? { code: "doenet-w0105" as const }
+                            : { code: "doenet-w0104" as const }),
+                        args: { reference: `$${referenceText}` },
+                        position: composite.position,
+                        sourceDoc: composite.sourceDoc,
+                    }),
+                );
 
                 this.extendIdx = -1;
                 this.unresolvedPath = this.originalPath;
@@ -450,12 +454,15 @@ export class RefResolutionDependency extends Dependency {
             // then there is no replacement at that index, and we obtained no referent for the reference.
             const referenceText = getDoenetMLStringForReference();
 
-            this.dependencyHandler.core.addDiagnostic({
-                type: "warning",
-                message: `No referent found for reference: \`$${referenceText}\``,
-                position: composite.position,
-                sourceDoc: composite.sourceDoc,
-            });
+            this.dependencyHandler.core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0104",
+                    args: { reference: `$${referenceText}` },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
 
             this.compositeReplacementDependencies.push(
                 newRefComponent.componentIdx,

@@ -1,4 +1,5 @@
 import type { ComponentIdx } from "@doenet/utils";
+import { codedDiagnostic } from "../utils/diagnostics";
 import type Core from "../Core";
 import {
     preprocessAttributesObject,
@@ -1712,10 +1713,17 @@ function validateAttributeValue({
                     );
                 }
             }
-            diagnostics.push({
-                message: `Invalid value \`${valueOrig}\` for attribute \`${attribute}\`, using value \`${defaultValue}\``,
-                type: "info",
-            });
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "info",
+                    code: "doenet-i0048",
+                    args: {
+                        value: String(valueOrig),
+                        attribute,
+                        default: String(defaultValue),
+                    },
+                }),
+            );
             value = defaultValue;
         }
     } else if (attributeSpecification.clamp) {

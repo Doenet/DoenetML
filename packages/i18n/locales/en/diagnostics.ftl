@@ -562,3 +562,39 @@ annotation-ref-outside-graph = `<annotation>`: invalid `ref`; target is outside 
 annotation-ref-unsupported-target = `<annotation>`: invalid `ref`; target is not a supported graphical object in prefigure conversion. Annotation omitted.
 
 annotation-text-missing = `<annotation>`: missing or empty `text`; emitting empty text.
+
+## Composites and references
+
+# $componentType is the type the composite was asked to create, when it is
+# known; `none` when the composite did not say.
+composite-circular-dependency =
+    { $componentType ->
+        [none] Circular dependency detected.
+       *[other] Circular dependency detected involving `<{ $componentType }>` component.
+    }
+
+# $reference is the reference as the author wrote it, already carrying its `$`.
+reference-no-referent = No referent found for reference: `{ $reference }`
+
+reference-multiple-referents = Multiple referents found for reference: `{ $reference }`
+
+## Children that do not match
+
+children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.
+
+# $children is the list of child types that did not match, already joined.
+children-invalid = Invalid children for `<{ $componentType }>`: Found invalid children: { $children }
+
+## Falling back to a default
+
+attribute-value-invalid-using-default = Invalid value `{ $value }` for attribute `{ $attribute }`, using value `{ $default }`
+
+## Loading a DoenetML version
+
+# $fallback is the version that will be used instead, or `none` when the
+# embedding page named a standalone bundle of its own.
+doenetml-version-not-found =
+    { $fallback ->
+        [none] DoenetML version { $version } not found.
+       *[other] DoenetML version { $version } not found. Falling back to version { $fallback }
+    }

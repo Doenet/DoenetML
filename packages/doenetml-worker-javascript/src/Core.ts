@@ -1,4 +1,5 @@
 import ParameterStack from "./ParameterStack";
+import { codedDiagnostic } from "./utils/diagnostics";
 // `Numerics.js` is still JavaScript; cast at the import site once.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import Numerics from "./Numerics";
@@ -651,13 +652,17 @@ export default class Core {
         if (Object.keys(this.unmatchedChildren).length > 0) {
             for (const componentIdxStr in this.unmatchedChildren) {
                 let parent = this._components[Number(componentIdxStr)];
-                this.addDiagnostic({
-                    type: "warning",
-                    message:
-                        this.unmatchedChildren[Number(componentIdxStr)].message,
-                    position: parent.position,
-                    sourceDoc: parent.sourceDoc,
-                });
+                const unmatched =
+                    this.unmatchedChildren[Number(componentIdxStr)];
+                this.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: unmatched.code,
+                        args: unmatched.args,
+                        position: parent.position,
+                        sourceDoc: parent.sourceDoc,
+                    }),
+                );
             }
         }
 

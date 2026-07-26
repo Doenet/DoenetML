@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { diagnosticCodeFrom } from "../utils/diagnostics";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
 import { createIsolatedComponents } from "./ComponentBuilder";
@@ -351,6 +352,7 @@ export class CompositeReplacementUpdater {
                     newComponents = await this.setErrorReplacements({
                         composite: component,
                         message: e.message,
+                        source: e,
                     });
                 }
 
@@ -594,15 +596,24 @@ export class CompositeReplacementUpdater {
     async setErrorReplacements({
         composite,
         message,
+        source,
     }: {
         composite: ComponentInstance;
         message: string;
+        /**
+         * The caught value the message came from, when there is one. Every
+         * caller passes `e.message`, so this is what carries the code across
+         * when the thrower named one — the same forwarding the `catch` blocks
+         * in `convertNormalizedDast` do (#1518).
+         */
+        source?: unknown;
     }) {
         // display error for replacements and set composite to error state
 
         this.core.addDiagnostic({
             type: "error",
             message,
+            ...diagnosticCodeFrom(source),
             position: composite.position,
             sourceDoc: composite.sourceDoc,
         });
@@ -1016,6 +1027,7 @@ export class CompositeReplacementUpdater {
                     newComponents = await this.setErrorReplacements({
                         composite: shadowingComponent,
                         message: e.message,
+                        source: e,
                     });
                 }
 
