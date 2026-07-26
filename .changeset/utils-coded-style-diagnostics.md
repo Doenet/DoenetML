@@ -6,7 +6,8 @@
 "doenet-vscode-extension": patch
 ---
 
-Style-contrast accessibility alerts can now be translated.
+Style-contrast accessibility alerts can now be translated, as can the warning
+that a section selected more than one `<stylePalette>`.
 
 The contrast alerts named the colors they compared — "text color against
 background color", " (dark mode)" — by building the sentence out of English
