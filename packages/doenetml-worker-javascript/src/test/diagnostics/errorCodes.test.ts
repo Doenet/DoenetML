@@ -24,7 +24,7 @@ vi.mock("hyperformula");
  * That makes its `state` the slot everything here is about: whatever isn't on
  * it is gone by the time the main thread could render it in `uiLocale`.
  */
-describe("a thrown error keeps its code", () => {
+describe("a thrown error keeps its code @group4", () => {
     it("carries the code and arguments onto the `_error` it becomes", () => {
         const thrown = new DiagnosticError({
             code: "doenet-e0004",
@@ -98,7 +98,7 @@ describe("a thrown error keeps its code", () => {
     });
 });
 
-describe("errorComponentState", () => {
+describe("errorComponentState @group4", () => {
     // Three places build an `_error`, and each is the sole carrier of the
     // diagnostic it holds. They share this so none of them can quietly ship
     // one without its code.
@@ -125,7 +125,7 @@ describe("errorComponentState", () => {
     });
 });
 
-describe("diagnosticCodeFrom", () => {
+describe("diagnosticCodeFrom @group4", () => {
     it("reads the slot off an `_error` component's state", () => {
         // The shape `ComponentBuilder` passes it: a plain object, not a
         // `DiagnosticError`, which is why the check is structural.
@@ -159,7 +159,7 @@ describe("diagnosticCodeFrom", () => {
     });
 });
 
-describe("the code survives the whole trip through the component", () => {
+describe("the code survives the whole trip through the component @group4", () => {
     it("reaches the record for an attribute a component doesn't have", async () => {
         const { core } = await createTestCore({
             doenetML: `
