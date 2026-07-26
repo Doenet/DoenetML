@@ -52,6 +52,11 @@ const SCANNED_ROOTS = ["lsp-tools/src", "lsp/src"].map((dir) =>
 /** The root barrel: the specifier with no subpath after it. */
 const ROOT_BARREL = "@doenet/utils";
 
+/**
+ * Every `.ts`/`.tsx` file under `dir`, recursively. Co-located tests are
+ * skipped: they never reach the server bundle, so what they import is not this
+ * guard's business.
+ */
 function* sourceFiles(dir: string): Generator<string> {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
@@ -73,9 +78,12 @@ function literalText(node: ts.Node): string | undefined {
  * nothing — either because it is not an import at all, or because TypeScript
  * erases it before a bundler ever sees it.
  *
- * Type-only statements are erased and so cost no bytes; they are deliberately
- * allowed through. An inline `import { type Foo }` is not erased — the
- * statement is still emitted — so it counts as a runtime import.
+ * A whole-statement `import type` / `export type` is erased and so costs no
+ * bytes; those are deliberately allowed through. An inline `import { type Foo
+ * }` is reported anyway, even though today's toolchain happens to drop it when
+ * nothing else in the clause is a value: whether the statement survives turns
+ * on the rest of the clause and on compiler settings this scan has no view of,
+ * and `import type` states the same intent without the ambiguity.
  */
 function runtimeImportOf(node: ts.Node): string | undefined {
     if (ts.isImportDeclaration(node)) {
@@ -137,20 +145,21 @@ function rootImportsIn(source: string, fileName = "scan.ts"): string[] {
 // policy is pinned by the suite rather than re-derived by hand whenever the
 // scan is touched.
 
-/** Forms that survive to runtime, and so must be reported. */
+/** Forms that may survive to runtime, and so must be reported. */
 const REPORTED = {
     "a named import": `import { cesc } from "@doenet/utils";`,
     "a re-export": `export { deepClone } from "@doenet/utils";`,
     "a star re-export": `export * from "@doenet/utils";`,
     "a side-effect import": `import "@doenet/utils";`,
     "a dynamic import": `const utils = await import("@doenet/utils");`,
-    "an inline type modifier, still emitted": `import { type Foo } from "@doenet/utils";`,
+    "an inline type modifier, whose fate depends on the clause": `import { type Foo } from "@doenet/utils";`,
 };
 
 /**
- * Forms that cost nothing, and so must not be reported: type-only statements
- * are erased before a bundler sees them, a subpath is the whole point, and a
- * specifier sitting in a comment or a string is not an import at all.
+ * Forms that cost nothing, and so must not be reported: whole-statement
+ * type-only imports and re-exports are erased before a bundler sees them, a
+ * subpath is the whole point, and a specifier sitting in a comment or a string
+ * is not an import at all.
  */
 const ALLOWED = {
     "a type-only import": `import type { Foo } from "@doenet/utils";`,
@@ -204,7 +213,9 @@ describe("the language server's dependency on @doenet/utils", () => {
         expect(
             offenders,
             "Import the specific entry instead, adding one to @doenet/utils'" +
-                " `exports` and its vite `lib.entry` if it does not exist yet.",
+                " `exports` and its vite `lib.entry` if it does not exist yet." +
+                " If you only need types, a whole-statement `import type` is" +
+                " erased and allowed.",
         ).toEqual([]);
     });
 });
