@@ -227,7 +227,12 @@ sendDiagnostics.push(
 );
 ```
 
-`codedDiagnostic` (in `@doenet/doenetml-worker-javascript/src/utils`) fills
+`codedDiagnostic` lives in `@doenet/utils`, beside the `DiagnosticRecord` it
+builds, because the worker is no longer the only place that raises one — the
+style-contrast checks in that package do too, and a record assembled two
+different ways in two packages is a record whose shape can drift.
+`@doenet/doenetml-worker-javascript/src/utils/diagnostics.ts` re-exports it, so
+the worker's call sites import it from where they always did. It fills
 `message` in from the English catalog, so the English and the catalog cannot
 drift and everything that reads `message` inside the worker — the dedupe in
 `DiagnosticsManager`, the tests that assert exact strings — sees what it saw
@@ -262,7 +267,8 @@ throw new DiagnosticError({
 });
 ```
 
-`DiagnosticError` (alongside `codedDiagnostic`) is an `Error` subclass whose
+`DiagnosticError` (in the worker's `utils/diagnostics.ts`, alongside its
+re-export of `codedDiagnostic`) is an `Error` subclass whose
 `message` comes from the same English catalog, so it drops straight into a
 `throw` site: `instanceof Error` still holds and a `catch` reading `e.message`
 sees what it saw before. `errorComponentState` puts the code and arguments on
