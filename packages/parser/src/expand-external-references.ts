@@ -6,6 +6,7 @@ import {
     DastNodes,
     DastRoot,
 } from "./types";
+import { codedDastError } from "./coded-dast-error";
 import { visit } from "./pretty-printer/normalize/utils/visit";
 import { isDastElement } from "./types-util";
 import { toXml } from "./dast-to-xml/dast-util-to-xml";
@@ -89,11 +90,11 @@ export async function expandExternalReferences(
                 const parent = unresolved.parent;
 
                 if (unresolved.recursionLevel > maxRecursion) {
-                    const dastError: DastError = {
-                        type: "error",
+                    const dastError: DastError = codedDastError({
+                        code: "doenet-e0029",
                         message: `Unable to retrieve external DoenetML due to too many levels of recursion. Is there a circular reference?`,
                         position: unresolved.sourceAttribute.position,
-                    };
+                    });
 
                     parent.children.unshift(dastError);
 
@@ -105,11 +106,15 @@ export async function expandExternalReferences(
                     externalDoenetML = await unresolved.source;
                 } catch (e) {
                     console.error(e);
-                    const dastError: DastError = {
-                        type: "error",
+                    const dastError: DastError = codedDastError({
+                        code: "doenet-e0030",
                         message: `Unable to retrieve DoenetML from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}"`,
+                        args: {
+                            attribute: unresolved.sourceAttribute.name,
+                            uri: unresolved.sourceUri,
+                        },
                         position: unresolved.sourceAttribute.position,
-                    };
+                    });
                     parent.children.unshift(dastError);
 
                     continue;
@@ -126,11 +131,16 @@ export async function expandExternalReferences(
                 );
 
                 if (!matchResult.success) {
-                    const dastError: DastError = {
-                        type: "error",
+                    const dastError: DastError = codedDastError({
+                        code: "doenet-e0031",
                         message: `Invalid DoenetML retrieved from ${unresolved.sourceAttribute.name}="${unresolved.sourceUri}": it did not match the component type "${parent.name}"`,
+                        args: {
+                            attribute: unresolved.sourceAttribute.name,
+                            uri: unresolved.sourceUri,
+                            componentType: parent.name,
+                        },
                         position: unresolved.sourceAttribute.position,
-                    };
+                    });
                     parent.children.unshift(dastError);
 
                     continue;

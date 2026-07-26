@@ -333,6 +333,24 @@ const DIAGNOSTIC_CONSTRUCTION_PATTERN =
 const CODED_CONSTRUCTION_PATTERN = /(?<!function\s)codedDiagnostic\(/g;
 
 /**
+ * The parser's coded-error builder, counted at its *declaration* — the exact
+ * opposite of the rule above, for the exact same reason.
+ *
+ * `@doenet/parser` builds DAST error nodes rather than diagnostic records, so
+ * it has a builder of its own (`codedDastError`, in
+ * `packages/parser/src/coded-dast-error.ts`). What differs is where the
+ * construction sits. A `codedDiagnostic` call passes the severity in, so every
+ * call carries a `type: "…"` the denominator counts and the two cancel there. A
+ * DAST error's `type` is always `"error"` — the node kind, not a severity — so
+ * the builder writes it and its callers write nothing. Counting the calls would
+ * credit twenty migrations against one construction and take the burn-down
+ * below zero, which is the failure this whole scheme is arranged to avoid.
+ *
+ * One construction, in the declaration; one credit, in the same place.
+ */
+const CODED_DAST_ERROR_PATTERN = /function codedDastError\(/g;
+
+/**
  * A construction that *forwards* whatever code its source carried.
  *
  * The `catch` blocks that turn a caught error into a record hold no English
@@ -394,9 +412,9 @@ export function countDiagnosticConstructions(contents: string): {
         constructionCount: [
             ...contents.matchAll(DIAGNOSTIC_CONSTRUCTION_PATTERN),
         ].length,
-        codedConstructionCount: [
-            ...contents.matchAll(CODED_CONSTRUCTION_PATTERN),
-        ].length,
+        codedConstructionCount:
+            [...contents.matchAll(CODED_CONSTRUCTION_PATTERN)].length +
+            [...contents.matchAll(CODED_DAST_ERROR_PATTERN)].length,
         forwardedCount: [...contents.matchAll(FORWARDED_DIAGNOSTIC_PATTERN)]
             .length,
     };

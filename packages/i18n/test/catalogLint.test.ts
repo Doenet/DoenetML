@@ -117,6 +117,35 @@ describe("countDiagnosticConstructions", () => {
         expect(counts.constructionCount).toBe(0);
     });
 
+    it("credits the declaration of `codedDastError`, which is where its construction is", () => {
+        // The mirror image of the rule above. A DAST error's `type` is always
+        // `"error"` — the node kind — so the parser's builder writes it and
+        // its callers write nothing; the one construction and the one credit
+        // both belong to the declaration.
+        const counts = countDiagnosticConstructions(
+            `export function codedDastError({ code, message }: Args): DastError {\n    return { type: "error", message, code };\n}`,
+        );
+        expect(counts).toEqual({
+            constructionCount: 1,
+            codedConstructionCount: 1,
+            forwardedCount: 0,
+        });
+        expect(remainingLiteralDiagnostics({ ...counts, codes: [] })).toBe(0);
+    });
+
+    it("does not credit a call to `codedDastError`, which carries no construction", () => {
+        // Callers hand over a code and a message and nothing else; crediting
+        // them would take the burn-down below zero, one per call site.
+        const counts = countDiagnosticConstructions(
+            `children.push(codedDastError({ code: "doenet-e0009", message }));`,
+        );
+        expect(counts).toEqual({
+            constructionCount: 0,
+            codedConstructionCount: 0,
+            forwardedCount: 0,
+        });
+    });
+
     it("counts a forwarded code as migrated", () => {
         const counts = countDiagnosticConstructions(
             `addDiagnostic({ type: "error", ...diagnosticCodeFrom(e) });`,

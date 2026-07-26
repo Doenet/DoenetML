@@ -11,8 +11,12 @@
  * Two checks, doing different jobs:
  *
  *  - **The message catalogs must not be here at all.** The server renders no
- *    messages — it has no locale, and #1549 is the issue for giving it one.
- *    Nothing it does needs a translation, so a catalog in this bundle is
+ *    messages and has no locale. It does not need one: #1549 gave the parser's
+ *    diagnostics stable codes and left their English where it was, so the
+ *    server forwards a code and its arguments and whoever displays the
+ *    diagnostic renders it — the viewer already does, in the reader's
+ *    language, and its copy is the one the dedupe in `features/validate.ts`
+ *    keeps. Nothing here needs a translation, so a catalog in this bundle is
  *    always a leak rather than a judgement call, and needs no threshold.
  *
  *    One nearly arrived. `@doenet/utils` took a runtime dependency on

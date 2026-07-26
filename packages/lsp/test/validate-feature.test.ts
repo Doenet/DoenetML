@@ -70,8 +70,16 @@ vi.mock("../src/rust-core", () => ({
     getRustCore: () => getRustCoreMock(),
 }));
 
+/**
+ * What `extractDastErrors` returns for the next validation run.
+ *
+ * Mutable so a test can hand the server a parser error to forward without
+ * standing up a real parse; reset in `beforeEach`.
+ */
+let dastErrors: any[] = [];
+
 vi.mock("@doenet/parser", () => ({
-    extractDastErrors: () => [],
+    extractDastErrors: () => dastErrors,
 }));
 
 vi.mock("@doenet/static-assets/schema", () => ({
@@ -148,6 +156,7 @@ describe("addValidationSupport", () => {
         documentsMock.all.mockClear();
         documentsMock.get.mockClear();
         getRustCoreMock.mockClear();
+        dastErrors = [];
         rustCoreDeferred = createDeferred<unknown>();
         getRustCoreMock.mockImplementation(() => rustCoreDeferred.promise);
     });
@@ -317,5 +326,108 @@ describe("addValidationSupport", () => {
         // Per-document cores are how the LSP keeps rust resolver state from
         // bleeding between open documents.
         expect(coreA).not.toBe(coreB);
+    });
+
+    it("forwards a parser error's code and arguments, behind the worker's copy", async () => {
+        const { addValidationSupport } =
+            await import("../src/features/validate");
+
+        const uri = "file:///coded.doenet";
+        // A coded parser error, as `@doenet/parser` now produces them: the
+        // English it wrote, plus the name of the situation and the values
+        // filling the message in.
+        dastErrors = [
+            {
+                type: "error",
+                message: "Invalid DoenetML: Error in tag `<p>`",
+                code: "doenet-e0009",
+                args: { tagName: "p" },
+                position: {
+                    start: { line: 1, column: 1, offset: 0 },
+                    end: { line: 1, column: 4, offset: 3 },
+                },
+            },
+        ];
+        // The worker's echo of the same error, already rendered in the
+        // reader's language by `DocViewer`.
+        const workerEcho = {
+            message: "DoenetML no válido: error en la etiqueta `<p>`",
+            severity: 1,
+            code: "doenet-e0009",
+            data: { args: { tagName: "p" } },
+            range: {
+                start: { line: 0, character: 0 },
+                end: { line: 0, character: 3 },
+            },
+        };
+
+        const autoCompleter = {
+            sourceObj: { dast: {} },
+            setSource: vi.fn(),
+            setRustResolverAdapter: vi.fn(),
+            getSchemaViolations: vi.fn(async () => []),
+        };
+        const documentInfo = new Map([
+            [
+                uri,
+                {
+                    autoCompleter,
+                    additionalDiagnostics: [workerEcho],
+                    rustState: "ready" as const,
+                    rustAdapter: undefined,
+                },
+            ],
+        ]);
+
+        const sendDiagnostics = vi.fn();
+        const connection = {
+            onDidChangeConfiguration: vi.fn(),
+            onRequest: vi.fn(),
+            sendDiagnostics,
+        };
+
+        addValidationSupport(connection as any, documentInfo as any);
+
+        activeDocument = TextDocument.create(uri, "doenet", 1, "<p>");
+        onDidChangeContentHandler!({ document: activeDocument });
+        await settle();
+
+        const sent = sendDiagnostics.mock.calls.at(-1)![0].diagnostics;
+        // `dedupeLspDiagnostics` is mocked to a pass-through here, so this
+        // asserts the merge order the real dedupe then acts on rather than the
+        // dedupe itself (which `@doenet/lsp-tools` tests on its own). The
+        // worker's copy comes first, so it is the one the dedupe keeps and the
+        // hover shows the translated text.
+        //
+        // `onDidChangeContent` clears `additionalDiagnostics` before
+        // validating — an echo of the previous revision says nothing about
+        // this one — so what is asserted here is the order, not that a
+        // just-edited document still carries the worker's copy.
+        expect(sent.map((d: any) => d.code)).toEqual(["doenet-e0009"]);
+
+        // Deliver the worker's copy the way the viewer does, and both are
+        // present, in the order that keeps the rendered one.
+        const setAdditionalDiagnostics = connection.onRequest.mock.calls.find(
+            ([method]: [string]) =>
+                method === "doenet/setAdditionalDiagnostics",
+        )![1];
+        setAdditionalDiagnostics({
+            uri,
+            additionalDiagnostics: [workerEcho],
+        });
+        await settle();
+
+        const merged = sendDiagnostics.mock.calls.at(-1)![0].diagnostics;
+        expect(merged).toHaveLength(2);
+        expect(merged[0].message).toBe(workerEcho.message);
+        // The server's own copy carries the code and the arguments, which is
+        // what lets the real dedupe recognize it as the same diagnostic as the
+        // worker's copy even though the two messages are in different
+        // languages.
+        expect(merged[1]).toMatchObject({
+            message: "Invalid DoenetML: Error in tag `<p>`",
+            code: "doenet-e0009",
+            data: { args: { tagName: "p" } },
+        });
     });
 });

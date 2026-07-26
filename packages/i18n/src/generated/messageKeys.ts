@@ -267,7 +267,35 @@ export type MessageKey =
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
-    | "doenetml-version-not-found";
+    | "doenetml-version-not-found"
+    | "parse-invalid-doenetml"
+    | "parse-tag-missing-close-tag"
+    | "parse-tag-error"
+    | "parse-attribute-missing-value"
+    | "parse-attribute-invalid"
+    | "parse-attribute-value-invalid"
+    | "parse-attribute-value-quote-mismatch"
+    | "parse-open-tag-name-missing"
+    | "parse-tag-not-closed"
+    | "parse-self-closing-tag-name-missing"
+    | "parse-self-closing-tag-not-closed"
+    | "parse-tag-invalid-attributes"
+    | "parse-close-tag-name-missing"
+    | "parse-attribute-value-unquoted"
+    | "parse-close-tag-without-open-tag"
+    | "parse-close-tag-mismatched"
+    | "name-attribute-invalid"
+    | "component-name-invalid-start"
+    | "answer-video-watched-missing-video"
+    | "answer-video-watched-video-not-reference"
+    | "answer-name-not-single-text"
+    | "external-doenetml-recursion-limit"
+    | "external-doenetml-unavailable"
+    | "external-doenetml-type-mismatch"
+    | "deprecated-attribute-renamed"
+    | "deprecated-attribute-renamed-conflict"
+    | "deprecated-attribute-ignored"
+    | "parser-node-unconvertible";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -532,4 +560,32 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "children-invalid",
     "attribute-value-invalid-using-default",
     "doenetml-version-not-found",
+    "parse-invalid-doenetml",
+    "parse-tag-missing-close-tag",
+    "parse-tag-error",
+    "parse-attribute-missing-value",
+    "parse-attribute-invalid",
+    "parse-attribute-value-invalid",
+    "parse-attribute-value-quote-mismatch",
+    "parse-open-tag-name-missing",
+    "parse-tag-not-closed",
+    "parse-self-closing-tag-name-missing",
+    "parse-self-closing-tag-not-closed",
+    "parse-tag-invalid-attributes",
+    "parse-close-tag-name-missing",
+    "parse-attribute-value-unquoted",
+    "parse-close-tag-without-open-tag",
+    "parse-close-tag-mismatched",
+    "name-attribute-invalid",
+    "component-name-invalid-start",
+    "answer-video-watched-missing-video",
+    "answer-video-watched-video-not-reference",
+    "answer-name-not-single-text",
+    "external-doenetml-recursion-limit",
+    "external-doenetml-unavailable",
+    "external-doenetml-type-mismatch",
+    "deprecated-attribute-renamed",
+    "deprecated-attribute-renamed-conflict",
+    "deprecated-attribute-ignored",
+    "parser-node-unconvertible",
 ];

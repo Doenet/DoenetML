@@ -598,3 +598,118 @@ doenetml-version-not-found =
         [none] DoenetML version { $version } not found.
        *[other] DoenetML version { $version } not found. Falling back to version { $fallback }
     }
+
+## Reading the DoenetML
+
+# The parser's own diagnostics: what the author sees before anything runs, and
+# for a beginner usually the first Doenet message they ever read.
+#
+# The parser writes its English beside the code rather than rendering it from
+# here, because `@doenet/parser` is inside the language-server bundle and a
+# catalog there is dead weight on the editor's critical path
+# (`packages/lsp/scripts/check-server-bundle.mjs` fails if one arrives). The
+# two copies are held together by a test in that package, which parses a
+# corpus and asserts every coded error renders to exactly what the parser
+# wrote — so a message edited here without its counterpart fails there.
+#
+# $tag, $value, $attribute and their relatives quote the author's own source
+# back at them and stay exactly as written. The `Invalid DoenetML: ` opening is
+# repeated in each message instead of being a shared term: a term a locale
+# forgets to define renders as its own name, and a prefix on thirteen messages
+# is not worth that failure mode.
+
+parse-invalid-doenetml = Invalid DoenetML: { $content }
+
+parse-tag-missing-close-tag = Invalid DoenetML: The tag `{ $tag }` has no closing tag. Expected a self-closing tag or a `</{ $tagName }>` tag.
+
+parse-tag-error = Invalid DoenetML: Error in tag `<{ $tagName }>`
+
+parse-attribute-missing-value = Invalid DoenetML: Invalid attribute `{ $attribute }` appears to be missing a value.
+
+parse-attribute-invalid = Invalid DoenetML: Invalid attribute `{ $attribute }`
+
+parse-attribute-value-invalid = Invalid DoenetML: Invalid attribute value `{ $value }`
+
+# $quote is the quote character that would balance the pair: `"` or `'`.
+parse-attribute-value-quote-mismatch = Invalid DoenetML: Invalid attribute value `{ $value }`. The quote marks do not match. You appear to be missing a `{ $quote }`
+
+parse-open-tag-name-missing = Invalid DoenetML: Found a tag without a tag name, e.g. `<`
+
+parse-tag-not-closed = Invalid DoenetML: Tag `{ $tag }` was not closed (a `>` appears to be missing).
+
+parse-self-closing-tag-name-missing = Invalid DoenetML: Found a tag without a tag name `<{ $content }>`
+
+parse-self-closing-tag-not-closed = Invalid DoenetML: Tag `{ $tag }` was not closed (`/>` appears to be missing).
+
+parse-tag-invalid-attributes = Invalid DoenetML: Tag `{ $tag }` is not valid. It may have incorrect attributes.
+
+parse-close-tag-name-missing = Invalid DoenetML: Found a closing tag without a tag name, e.g. `</`
+
+# $attribute is the attribute name and $value the unquoted token that followed
+# it, shown reassembled the way the author should have written it.
+parse-attribute-value-unquoted = Attribute values must be enclosed in quotes: `{ $attribute }="{ $value }"`
+
+parse-close-tag-without-open-tag = Invalid DoenetML: Found closing tag `{ $tag }`, but no corresponding opening tag
+
+parse-close-tag-mismatched = Invalid DoenetML: Mismatched closing tag. Expected `</{ $expected }>`. Found `{ $found }`
+
+## Names
+
+# $reason says which rule the name broke, as a key rather than a phrase, so the
+# whole sentence is translatable rather than assembled from two halves.
+name-attribute-invalid =
+    Invalid attribute name='{ $name }'. { $reason ->
+        [characters] Names can contain only letters, numbers, underscores or hyphens.
+       *[start] Names must start with a letter.
+    }
+
+component-name-invalid-start = Invalid component name "{ $name }". Names must start with a letter.
+
+## `<answer>` sugar
+
+answer-video-watched-missing-video = Answer with type videoWatched must have a video attribute
+
+answer-video-watched-video-not-reference = Answer with type videoWatched must have video attribute that is a reference
+
+answer-name-not-single-text = Answer name attribute must have a single text child
+
+## Referencing another document
+
+# $attribute is the attribute the URI was written in (`copyFrom`, `extend`, …)
+# and stays as written; $uri is the author's own value.
+external-doenetml-recursion-limit = Unable to retrieve external DoenetML due to too many levels of recursion. Is there a circular reference?
+
+external-doenetml-unavailable = Unable to retrieve DoenetML from { $attribute }="{ $uri }"
+
+external-doenetml-type-mismatch = Invalid DoenetML retrieved from { $attribute }="{ $uri }": it did not match the component type "{ $componentType }"
+
+## Deprecated syntax
+
+# $from and $to are attribute names and $component a tag name; all three stay
+# as written. $component is `none` for a rename that applies to every component
+# accepting the attribute, where naming one would be wrong.
+#
+# The `[deprecation]` opening is a marker the editor and the documentation both
+# key on. Leave it as it is.
+deprecated-attribute-renamed =
+    { $component ->
+        [none] [deprecation] Attribute `{ $from }` is deprecated; use `{ $to }` instead.
+       *[other] [deprecation] Attribute `{ $from }` on `<{ $component }>` is deprecated; use `{ $to }` instead.
+    }
+
+deprecated-attribute-renamed-conflict =
+    { $component ->
+        [none] [deprecation] Attribute `{ $from }` is deprecated and ignored because `{ $to }` is also specified.
+       *[other] [deprecation] Attribute `{ $from }` on `<{ $component }>` is deprecated and ignored because `{ $to }` is also specified.
+    }
+
+deprecated-attribute-ignored = [deprecation] Attribute `{ $attribute }` on `<{ $component }>` is deprecated and ignored.
+
+## Reading the DoenetML
+
+# The parser's fall-through: the syntax tree held a node shape the DAST
+# conversion has no case for. Reaching an author means the grammar and the
+# conversion have gone out of step, which is a bug in Doenet rather than in
+# their document — but they are the one looking at it, so it is translated
+# like any other error. $node is the node's own name and stays as it is.
+parser-node-unconvertible = Could not convert node { $node } to Dast node.

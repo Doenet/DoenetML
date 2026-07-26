@@ -340,6 +340,14 @@ pub struct DastIndex {
     pub source_doc: Option<SourceDoc>,
 }
 
+/// The values filling a diagnostic message's blanks.
+///
+/// Carried through the core untouched: nothing here reads one, and the type is
+/// deliberately as permissive as JSON itself so that adding an argument shape
+/// on the JavaScript side can never turn into a deserialization failure that
+/// takes a whole document down. See [`DastError::code`].
+pub type DiagnosticArgs = serde_json::Map<String, serde_json::Value>;
+
 /// An error node that can be inserted into the Dast tree.
 /// Because `DastError`s can be inserted into the tree, they
 /// can appear close to whatever caused the error.
@@ -352,6 +360,25 @@ pub struct DastError {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error_type: Option<ErrorType>,
+
+    /// The stable name of what went wrong, when the producing site named one.
+    ///
+    /// Set by the JavaScript parser (`@doenet/parser`), read by nothing in the
+    /// core, and handed back out on the flattened node so the worker's
+    /// `_error` pipeline can re-render the message in the reader's language
+    /// (#1518). `message` remains the English the parser wrote, which is what
+    /// anything without the catalogs still shows.
+    ///
+    /// Kept as a `String` rather than an enum of the known codes: the registry
+    /// lives in `@doenet/i18n` and would have to be mirrored here to be
+    /// checked, and a mirror that falls behind would reject a document over a
+    /// code the core has no business knowing about.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "web", tsify(type = "Record<string, unknown>"))]
+    pub args: Option<DiagnosticArgs>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,

@@ -71,6 +71,8 @@ impl Expander {
                             parent: ref_.parent,
                             message: format_error_message(err, &ref_.path),
                             error_type: ErrorType::Warning,
+                            code: None,
+                            args: None,
                             unresolved_path: if let ResolutionError::NoReferent = err {
                                 Some(ref_.path.clone())
                             } else {
@@ -154,6 +156,8 @@ impl Expander {
                                 parent: function_ref.parent,
                                 message: format!("Ref resolution error: {err}"),
                                 error_type: ErrorType::Warning,
+                                code: None,
+                                args: None,
                                 unresolved_path: if let ResolutionError::NoReferent = err {
                                     Some(function_ref.path.clone())
                                 } else {
@@ -218,6 +222,8 @@ impl Expander {
                 element.children.push(flat_root.merge_content(
                     &DastElementContent::Error(DastError {
                         error_type: Some(ErrorType::Error),
+                        code: None,
+                        args: None,
                         message: "Duplicate `extend` or `copy` attributes".to_string(),
                         position: element.position.clone(),
                         source_doc: element.source_doc,
@@ -303,6 +309,8 @@ impl Expander {
                     &DastElementContent::Error(DastError {
                         message,
                         error_type: Some(error_type),
+                        code: None,
+                        args: None,
                         position: extend_or_copy.position.clone(),
                         source_doc: extend_or_copy.source_doc,
                     }),
