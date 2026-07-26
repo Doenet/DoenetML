@@ -1,4 +1,8 @@
-import { installPrefigureBuildIntercept } from "../../support/prefigure";
+import {
+    installMockPrefigureModule,
+    installPrefigureBuildIntercept,
+    visitWithMockPrefigureModule,
+} from "../../support/prefigure";
 
 describe(
     "Graph controls renderer-agnostic behavior @group4",
@@ -32,10 +36,21 @@ describe(
                 cy.viewport(viewport[0], viewport[1]);
             }
 
-            cy.visit("/");
-
             if (prefigure) {
+                // These tests only check that graph controls behave the same
+                // next to a prefigure graph; they never inspect the rendered
+                // diagram. So stub every prefigure dependency: a local ES
+                // module stands in for the CDN runtime, the build service is
+                // intercepted, and `visitWithMockPrefigureModule` also serves
+                // an empty diagcess bundle. Otherwise the page downloads the
+                // real runtime and its pyodide wheels and initializes pyodide
+                // on the main thread, which can starve the main thread long
+                // enough for control interactions to time out.
+                const modulePath = installMockPrefigureModule();
                 installPrefigureBuildIntercept();
+                visitWithMockPrefigureModule(modulePath);
+            } else {
+                cy.visit("/");
             }
 
             postDoenetML(doenetML);
@@ -1685,39 +1700,53 @@ describe(
             );
 
             const xSlider = '[aria-label="x coordinate for P"]';
+            const xNumberInput = 'input[aria-label="x value input for P"]';
             cy.get(xSlider).focus();
 
             for (let i = 1; i <= 4; i++) {
                 keyboardStepRangeRight(xSlider);
             }
 
+            // Before blur the slider holds the accumulated, unconstrained
+            // transient value, and the number input mirrors it. Read both
+            // elements in a single retried callback: capturing the slider
+            // value with a non-retrying command and then asserting the input
+            // against that captured string can pin a value the slider has
+            // already moved past. `cy.$$` queries the application under test,
+            // so both reads see the same document as `cy.get`.
+            //
+            // The slider step is (xMax - xMin) / 100 = 0.2 on the default
+            // -10..10 graph (`size` sets the graph's width, not its axis
+            // bounds), so four accumulated steps give 0.8. The lower bound is
+            // deliberately loose rather than pinned to 0.8: each step round
+            // trips through the worker, and `keyboardStepRangeRight` calls
+            // `stepUp()` on whatever value React last wrote to the slider, so
+            // a slow round trip legitimately drops one step and leaves 0.6.
+            // That was measured on cold page loads, so requiring 0.8 here
+            // reintroduces exactly the kind of flake this spec setup fixes.
+            // What the bounds do establish is that steps accumulated past a
+            // single 0.2 nudge and that the slider is not already showing the
+            // constrained value of 1.
+            cy.get(xSlider).should(($slider) => {
+                const transientValue = $slider.val();
+                const transientNumber = Number(transientValue);
+                expect(transientNumber).to.be.greaterThan(0.5);
+                expect(transientNumber).to.be.lessThan(0.9);
+                expect(
+                    cy.$$(xNumberInput).val(),
+                    "number input mirrors the transient slider value",
+                ).to.equal(transientValue);
+            });
+
             // Actual point snaps to 1 even during the transient
-
             cy.get("#Px").should("have.text", "1");
-            cy.get(xSlider)
-                .invoke("val")
-                .then((transientValue) => {
-                    const transientNumber = Number(transientValue);
-                    expect(transientNumber).to.be.greaterThan(0.5);
-                    expect(transientNumber).to.be.lessThan(0.9);
 
-                    // Before blur: number input should show transient value
-                    cy.get('input[aria-label="x value input for P"]').should(
-                        "have.value",
-                        transientValue,
-                    );
+            cy.get(xSlider).blur();
 
-                    cy.get(xSlider).blur();
-
-                    // After blur: slider and input both snap to constrained value
-                    cy.get(xSlider).should("have.value", "1");
-                    cy.get('input[aria-label="x value input for P"]').should(
-                        "have.value",
-                        "1",
-                    );
-                    cy.get("#Px").should("have.text", "1");
-                });
+            // After blur: slider and input both snap to constrained value
             cy.get(xSlider).should("have.value", "1");
+            cy.get(xNumberInput).should("have.value", "1");
+            cy.get("#Px").should("have.text", "1");
         });
 
         it("keyboard blur on constrained point does not send another movePoint", () => {
