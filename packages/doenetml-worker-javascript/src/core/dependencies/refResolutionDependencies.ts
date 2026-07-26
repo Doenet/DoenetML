@@ -5,9 +5,9 @@
  */
 
 import { Dependency } from "./Dependency";
+import { codedDiagnostic } from "../../utils/diagnostics";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
-import { codedDiagnostic } from "../../utils/diagnostics";
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
 
