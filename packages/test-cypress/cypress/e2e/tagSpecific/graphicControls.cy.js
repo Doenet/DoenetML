@@ -38,13 +38,14 @@ describe(
             }
 
             if (prefigure) {
-                // These tests only care that graph controls behave the same next
-                // to a prefigure graph; they never inspect the rendered diagram.
-                // Point the renderer at a stubbed prefigure module so the page
-                // does not download the pyodide runtime and its wheels from the
-                // CDN. That download, and the main-thread work of initializing
-                // it, can stall the page long enough for control interactions to
-                // time out.
+                // These tests only check that graph controls behave the same
+                // next to a prefigure graph; they never inspect the rendered
+                // diagram. So stub every prefigure network dependency — the
+                // WASM module, the diagcess script, and the build service —
+                // and the page never reaches the CDN. Downloading the pyodide
+                // runtime and its wheels, and then initializing pyodide on the
+                // main thread, can otherwise starve the main thread long enough
+                // for control interactions to time out.
                 const modulePath = installMockPrefigureModule();
                 installDiagcessScriptStub();
                 installPrefigureBuildIntercept();
@@ -1706,8 +1707,11 @@ describe(
                 keyboardStepRangeRight(xSlider);
             }
 
-            // Retry until every step has landed in the slider's local state, so
-            // the value read below cannot be a partially accumulated one.
+            // The slider is React-controlled, so each keyboard step is only
+            // reflected in the DOM once the transient state update round-trips.
+            // Retry until the accumulated transient value is in range before
+            // reading its exact value below, which `.invoke("val")` would
+            // otherwise sample without retrying.
             cy.get(xSlider).should(($slider) => {
                 const transientNumber = Number($slider.val());
                 expect(transientNumber).to.be.greaterThan(0.5);

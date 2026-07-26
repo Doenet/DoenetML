@@ -57,6 +57,11 @@ export function postDebounceTestDoenetML() {
     cy.get("#ready").should("have.text", "ready");
 }
 
+/**
+ * Serve a fake `@doenet/prefigure` ES module so the page never downloads the
+ * real pyodide runtime. Returns the path the stub is served from; pass it to
+ * {@link visitWithMockPrefigureModule}, which points the renderer at it.
+ */
 export function installMockPrefigureModule({
     modulePath = "/mock-prefigure-module.js",
     initDelayMs = 0,
@@ -98,9 +103,11 @@ export async function compilePrefigure(_diagramXML, _options) {
 }
 
 /**
- * Serve an empty diagcess bundle instead of letting the page pull it from the
- * CDN. Tests that do not exercise annotations get the same behavior either way:
- * `diagcessApi()` stays undefined, so the renderer skips its diagcess reinit.
+ * Serve an empty diagcess bundle instead of letting the page pull the real one
+ * from the CDN. The stub still loads, so the renderer's one-time script-load
+ * effect settles as usual, but `window.diagcess` is never defined and the
+ * diagcess re-init is skipped. Use only in tests that do not exercise
+ * annotations.
  */
 export function installDiagcessScriptStub() {
     cy.intercept("GET", "**/diagcess*.js*", {
@@ -110,6 +117,11 @@ export function installDiagcessScriptStub() {
     });
 }
 
+/**
+ * Visit the harness with the prefigure runtime overrides in place, so the
+ * renderer imports `modulePath` (see {@link installMockPrefigureModule})
+ * instead of the CDN build and passes no pyodide index URL.
+ */
 export function visitWithMockPrefigureModule(modulePath) {
     cy.visit("/", {
         onBeforeLoad(win) {
