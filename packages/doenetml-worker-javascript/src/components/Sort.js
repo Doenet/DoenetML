@@ -2,6 +2,7 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { createNewComponentIndices } from "../utils/componentIndices";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
@@ -100,20 +101,26 @@ export default class Sort extends CompositeComponent {
                 if (
                     matchedChildren.some((child) => typeof child === "string")
                 ) {
-                    diagnostics.push({
-                        type: "warning",
-                        message: `For \`<sort>\` to work with string children, a \`type\` attribute must be specified.`,
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0013",
+                            args: { component: "sort" },
+                        }),
+                    );
                 }
                 return { success: false, diagnostics };
             }
 
             if (!["math", "text", "number", "boolean"].includes(type)) {
                 console.warn(`Invalid type ${type}`);
-                diagnostics.push({
-                    type: "warning",
-                    message: `Invalid type ${type} for sort component. Must be one of math, text, number, or boolean. Defaulting to math.`,
-                });
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0014",
+                        args: { type, component: "sort" },
+                    }),
+                );
                 type = "math";
             }
 
@@ -188,10 +195,13 @@ export default class Sort extends CompositeComponent {
                 const diagnostics = [];
                 for (let child of dependencyValues.children) {
                     if (typeof child === "string") {
-                        diagnostics.push({
-                            type: "warning",
-                            message: `String "${child}" is not a valid component to sort. Ignoring.`,
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0015",
+                                args: { value: child, component: "sort" },
+                            }),
+                        );
                         continue;
                     }
                     if (child.stateValues.componentIndicesInList) {

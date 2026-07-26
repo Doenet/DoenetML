@@ -11,6 +11,7 @@ import {
 } from "../utils/graphical";
 import { textFromChildren } from "../utils/text";
 import { latexToText, textToLatex } from "../utils/math";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Label extends InlineComponent {
     constructor(args) {
@@ -544,23 +545,26 @@ export default class Label extends InlineComponent {
 
                 if (hasForAttribute) {
                     if (isGraphicalLabel) {
-                        diagnostics.push({
-                            message:
-                                "The `for` attribute on graphical `<label>` is ignored.",
-                            type: "warning",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0021",
+                            }),
+                        );
                     } else if (forResolutions.length !== 1) {
-                        diagnostics.push({
-                            message:
-                                "The `for` attribute on `<label>` must resolve to exactly one component.",
-                            type: "warning",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0022",
+                            }),
+                        );
                     } else if (forResolutions[0].unresolvedPath !== null) {
-                        diagnostics.push({
-                            message:
-                                "The `for` attribute on `<label>` could not be resolved to a component.",
-                            type: "warning",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0023",
+                            }),
+                        );
                     } else {
                         targetComponentIdx = forResolutions[0].componentIdx;
                     }
@@ -709,11 +713,12 @@ export default class Label extends InlineComponent {
                     }
 
                     if (answerHasAuthoredInputChildrenForLabel) {
-                        diagnostics.push({
-                            message:
-                                "The `for` attribute on `<label>` references an `<answer>` with explicitly authored inputs; reference the input directly.",
-                            type: "warning",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0024",
+                            }),
+                        );
 
                         return {
                             setValue: { forTargetInputComponentIdx: null },
@@ -721,11 +726,12 @@ export default class Label extends InlineComponent {
                         };
                     }
 
-                    diagnostics.push({
-                        message:
-                            "The `for` attribute on `<label>` references an `<answer>` without an input to label.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0025",
+                        }),
+                    );
 
                     return {
                         setValue: { forTargetInputComponentIdx: null },
@@ -733,11 +739,12 @@ export default class Label extends InlineComponent {
                     };
                 }
 
-                diagnostics.push({
-                    message:
-                        "The `for` attribute on `<label>` must reference an input or an answer.",
-                    type: "warning",
-                });
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0026",
+                    }),
+                );
 
                 return {
                     setValue: { forTargetInputComponentIdx: null },

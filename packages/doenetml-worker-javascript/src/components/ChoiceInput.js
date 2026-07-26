@@ -7,6 +7,7 @@ import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
 } from "../utils/input";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Choiceinput extends Input {
     constructor(args) {
@@ -177,12 +178,14 @@ export default class Choiceinput extends Input {
                 const diagnostics = [];
 
                 if (dependencyValues.labelPositionAttr && !isInline) {
-                    diagnostics.push({
-                        message:
-                            "labelPosition is ignored for non-inline choiceInput",
-                        type: "warning",
-                        position: dependencyValues.labelPositionAttr.position,
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0012",
+                            position:
+                                dependencyValues.labelPositionAttr.position,
+                        }),
+                    );
                 }
 
                 return {
@@ -257,11 +260,12 @@ export default class Choiceinput extends Input {
                         dependencyValues.variants?.desiredVariant?.indices;
                     if (desiredChoiceOrder !== undefined) {
                         if (desiredChoiceOrder.length !== numChoices) {
-                            diagnostics.push({
-                                message:
-                                    "Ignoring indices specified for choiceInput as number of indices doesn't match number of choice children.",
-                                type: "info",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "info",
+                                    code: "doenet-i0004",
+                                }),
+                            );
                         } else {
                             desiredChoiceOrder = desiredChoiceOrder.map(Number);
                             if (!desiredChoiceOrder.every(Number.isInteger)) {
@@ -274,11 +278,13 @@ export default class Choiceinput extends Input {
                                     (x) => x >= 1 && x <= numChoices,
                                 )
                             ) {
-                                diagnostics.push({
-                                    message:
-                                        "Ignoring indices specified for choiceInput as some indices out of range.",
-                                    type: "info",
-                                });
+                                diagnostics.push(
+                                    codedDiagnostic({
+                                        type: "info",
+                                        code: "doenet-i0007",
+                                        args: { component: "choiceInput" },
+                                    }),
+                                );
                             } else {
                                 return {
                                     setValue: {

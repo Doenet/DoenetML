@@ -1,6 +1,7 @@
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 /**
  * Determine which given answer should pair with a displayed problem.
@@ -218,11 +219,12 @@ export default class PretzelArranger extends CompositeComponent {
                     dependencyValues.variants?.desiredVariant?.indices;
                 if (desiredProblemOrder !== undefined) {
                     if (desiredProblemOrder.length !== numProblems) {
-                        diagnostics.push({
-                            message:
-                                "Ignoring indices specified for problem as number of indices doesn't match number of problem children.",
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0005",
+                            }),
+                        );
                     } else {
                         desiredProblemOrder = desiredProblemOrder.map(Number);
                         if (!desiredProblemOrder.every(Number.isInteger)) {
@@ -235,29 +237,33 @@ export default class PretzelArranger extends CompositeComponent {
                                 (x) => x >= 1 && x <= numProblems,
                             )
                         ) {
-                            diagnostics.push({
-                                message:
-                                    "Ignoring indices specified for pretzel as some indices out of range.",
-                                type: "info",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "info",
+                                    code: "doenet-i0007",
+                                    args: { component: "pretzel" },
+                                }),
+                            );
                         } else if (
                             new Set(desiredProblemOrder).size !== numProblems
                         ) {
-                            diagnostics.push({
-                                message:
-                                    "Ignoring indices specified for pretzel as some indices are repeated.",
-                                type: "info",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "info",
+                                    code: "doenet-i0008",
+                                }),
+                            );
                         } else if (
                             mode === "circuit" &&
                             numProblems > 0 &&
                             desiredProblemOrder[0] !== 1
                         ) {
-                            diagnostics.push({
-                                message:
-                                    "Ignoring indices specified for pretzel in circuit mode as the first index must be 1.",
-                                type: "info",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "info",
+                                    code: "doenet-i0009",
+                                }),
+                            );
                         } else {
                             return {
                                 setValue: {

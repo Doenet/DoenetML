@@ -4,6 +4,7 @@ import { convertValueToMathExpression } from "@doenet/utils";
 import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../commonsugar/lists";
 import { textToAst } from "../../utils/math";
+import { codedDiagnostic } from "../../utils/diagnostics";
 
 export class ComponentWithSelectableType extends BaseComponent {
     static componentType = "_componentWithSelectableType";
@@ -41,10 +42,13 @@ export class ComponentWithSelectableType extends BaseComponent {
             } else if (
                 !["number", "letters", "math", "text", "boolean"].includes(type)
             ) {
-                diagnostics.push({
-                    message: `Invalid type ${type}, setting type to number.`,
-                    type: "warning",
-                });
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0016",
+                        args: { type },
+                    }),
+                );
                 type = "number";
             }
 
@@ -122,10 +126,16 @@ export class ComponentWithSelectableType extends BaseComponent {
                         type,
                     )
                 ) {
-                    diagnostics.push({
-                        message: `Invalid type ${type}, setting type to number.`,
-                        type: "info",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            // Info here, a warning at the other three call
+                            // sites. The code names the situation, not the
+                            // severity, so they share it.
+                            type: "info",
+                            code: "doenet-w0016",
+                            args: { type },
+                        }),
+                    );
                     type = "number";
                 }
 
@@ -248,10 +258,13 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                         type,
                     )
                 ) {
-                    diagnostics.push({
-                        message: `Invalid type ${type}, setting type to number.`,
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0016",
+                            args: { type },
+                        }),
+                    );
                     type = "number";
                 }
 
@@ -454,10 +467,13 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             } else if (
                 !["number", "letters", "math", "text", "boolean"].includes(type)
             ) {
-                diagnostics.push({
-                    message: `Invalid type ${type}, setting type to number.`,
-                    type: "warning",
-                });
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0016",
+                        args: { type },
+                    }),
+                );
                 type = "number";
             }
 

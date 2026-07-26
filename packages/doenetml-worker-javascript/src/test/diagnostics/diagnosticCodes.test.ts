@@ -138,7 +138,26 @@ describe("coded diagnostics reach the record", () => {
         expect(formatEs(infos[0])).eq("slope y length se ignoran");
     });
 
-    it("leaves a diagnostic that has not migrated untouched", async () => {
+    it("leaves a diagnostic that has not migrated untouched", () => {
+        // Stated as a property of the record rather than by naming a component
+        // that still holds a literal. The original version of this test used
+        // `<sort>` as its example of an unmigrated diagnostic, and stopped
+        // meaning anything the moment `<sort>` was migrated — every batch of
+        // #1518 would break it again, and the fix would each time be to pick
+        // another component that is merely next in line.
+        const legacy = {
+            type: "warning" as const,
+            message: "Something the catalog has never heard of.",
+        };
+
+        const format = createDiagnosticFormatter(
+            createTranslator(["es"], { es: "" }),
+            "es",
+        );
+        expect(format(legacy)).eq(legacy.message);
+    });
+
+    it("gives every warning either a registered code or an English message", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <graph>
@@ -149,9 +168,14 @@ describe("coded diagnostics reach the record", () => {
         });
 
         const { warnings } = getDiagnosticsByType(core);
-        const legacy = warnings.filter((warning) => warning.code === undefined);
-        expect(legacy.length).toBeGreaterThan(0);
-        expect(legacy[0].message.length).toBeGreaterThan(0);
+        expect(warnings.length).toBeGreaterThan(0);
+        for (const warning of warnings) {
+            if (warning.code === undefined) {
+                expect(warning.message.length).toBeGreaterThan(0);
+            } else {
+                expect(Object.keys(DIAGNOSTIC_CODES)).toContain(warning.code);
+            }
+        }
     });
 
     it("emits only codes the registry defines", async () => {

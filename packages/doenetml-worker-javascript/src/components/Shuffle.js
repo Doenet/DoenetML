@@ -4,6 +4,7 @@ import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { createNewComponentIndices } from "../utils/componentIndices";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
@@ -67,20 +68,26 @@ export default class Shuffle extends CompositeComponent {
                 if (
                     matchedChildren.some((child) => typeof child === "string")
                 ) {
-                    diagnostics.push({
-                        type: "warning",
-                        message: `For \`<shuffle>\` to work with string children, a \`type\` attribute must be specified.`,
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0013",
+                            args: { component: "shuffle" },
+                        }),
+                    );
                 }
                 return { success: false, diagnostics };
             }
 
             if (!["math", "text", "number", "boolean"].includes(type)) {
                 console.warn(`Invalid type ${type}`);
-                diagnostics.push({
-                    type: "warning",
-                    message: `Invalid type ${type} for shuffle component. Must be one of math, text, number, or boolean. Defaulting to math.`,
-                });
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0014",
+                        args: { type, component: "shuffle" },
+                    }),
+                );
                 type = "math";
             }
 
@@ -144,10 +151,13 @@ export default class Shuffle extends CompositeComponent {
                 const diagnostics = [];
                 for (let child of dependencyValues.children) {
                     if (typeof child === "string") {
-                        diagnostics.push({
-                            type: "warning",
-                            message: `String "${child}" is not a valid component to shuffle. Ignoring.`,
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0015",
+                                args: { value: child, component: "shuffle" },
+                            }),
+                        );
                     }
                     if (child.stateValues?.componentIndicesInList) {
                         originalComponentIndices.push(
@@ -200,11 +210,12 @@ export default class Shuffle extends CompositeComponent {
                     dependencyValues.variants?.desiredVariant?.indices;
                 if (desiredComponentOrder !== undefined) {
                     if (desiredComponentOrder.length !== numComponents) {
-                        diagnostics.push({
-                            message:
-                                "Ignoring indices specified for shuffle as number of indices doesn't match number of components.",
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0006",
+                            }),
+                        );
                     } else {
                         desiredComponentOrder =
                             desiredComponentOrder.map(Number);
@@ -218,11 +229,13 @@ export default class Shuffle extends CompositeComponent {
                                 (x) => x >= 1 && x <= numComponents,
                             )
                         ) {
-                            diagnostics.push({
-                                message:
-                                    "Ignoring indices specified for shuffle as some indices out of range.",
-                                type: "info",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "info",
+                                    code: "doenet-i0007",
+                                    args: { component: "shuffle" },
+                                }),
+                            );
                         } else {
                             return {
                                 setValue: {

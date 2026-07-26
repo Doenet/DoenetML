@@ -1,6 +1,7 @@
 import { attractSegment } from "../utils/constraintUtils";
 import SegmentConstraintComponent from "./abstract/SegmentConstraintComponent";
 import me from "math-expressions";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class AttractSegmentTo extends SegmentConstraintComponent {
     static componentType = "attractSegmentTo";
@@ -142,15 +143,14 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
 
                 for (let child of dependencyValues.graphicalChildren) {
                     if (!child.stateValues.nearestPoint) {
-                        const warning = {
-                            type: "warning",
-                            message: `Cannot attract to a \`<${child.componentType}>\` as it doesn't have a nearestPoint state variable.`,
-                        };
-                        if (child.position) {
-                            warning.position = child.position;
-                        }
-
-                        diagnostics.push(warning);
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0009",
+                                args: { component: child.componentType },
+                                position: child.position || undefined,
+                            }),
+                        );
                         continue;
                     }
                     nearestPointFunctions.push(child.stateValues.nearestPoint);

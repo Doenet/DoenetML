@@ -1,6 +1,7 @@
 import { isValidVariable } from "../../utils/math";
 import { renameStateVariable } from "../../utils/stateVariables";
 import MathComponent from "../Math";
+import { codedDiagnostic } from "../../utils/diagnostics";
 
 export default class Variable extends MathComponent {
     static componentType = "_variableName";
@@ -43,13 +44,15 @@ export default class Variable extends MathComponent {
                 );
 
                 if (!validVariable) {
-                    diagnostics.push({
-                        message:
-                            "Invalid value of a variable: `" +
-                            dependencyValues.valuePreValidate.toString() +
-                            "`",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0017",
+                            args: {
+                                value: dependencyValues.valuePreValidate.toString(),
+                            },
+                        }),
+                    );
                 }
 
                 return {

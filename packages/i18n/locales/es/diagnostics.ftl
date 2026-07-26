@@ -50,3 +50,89 @@ ray-dimension-mismatch = Discrepancia de numDimensions en la semirrecta.
 vector-overprescribed-head = El vector está determinado por head, tail y displacement. Se ignora el head especificado.
 
 vector-dimension-mismatch = Discrepancia de numDimensions en el vector.
+
+## Atraer y restringir
+
+attract-to-without-nearest-point = No se puede atraer a un `<{ $component }>` porque no tiene la variable de estado nearestPoint.
+
+constrain-to-without-nearest-point = No se puede restringir a un `<{ $component }>` porque no tiene la variable de estado nearestPoint.
+
+constrain-to-interior-without-nearest-point = No se puede restringir al interior de un `<{ $component }>` porque no tiene la variable de estado nearestPoint.
+
+## `<choiceInput>`
+
+choice-input-label-position-ignored = labelPosition se ignora en un choiceInput que no es inline
+
+## Ordenar hijos por índice
+
+choice-input-indices-count-mismatch = Se ignoran los índices especificados para choiceInput porque su cantidad no coincide con la cantidad de hijos choice.
+
+pretzel-indices-count-mismatch = Se ignoran los índices especificados para problem porque su cantidad no coincide con la cantidad de hijos problem.
+
+shuffle-indices-count-mismatch = Se ignoran los índices especificados para shuffle porque su cantidad no coincide con la cantidad de componentes.
+
+indices-ignored-out-of-range = Se ignoran los índices especificados para { $component } porque algunos están fuera de rango.
+
+pretzel-indices-repeated = Se ignoran los índices especificados para pretzel porque algunos están repetidos.
+
+pretzel-circuit-first-index = Se ignoran los índices especificados para pretzel en modo circuit porque el primer índice debe ser 1.
+
+## `<shuffle>` y `<sort>`
+
+string-children-need-type = Para que `<{ $component }>` funcione con hijos de texto, se debe especificar el atributo `type`.
+
+invalid-type-defaulting-to-math = Tipo no válido { $type } para el componente { $component }. Debe ser math, text, number o boolean. Se usa math.
+
+string-not-valid-component-to-arrange = La cadena "{ $value }" no es un componente válido para { $component }. Se ignora.
+
+## Tipos y variables
+
+invalid-type-defaulting-to-number = Tipo no válido { $type }, se establece el tipo en number.
+
+invalid-variable-value = Valor no válido de una variable: `{ $value }`
+
+## Variantes
+
+variant-index-must-be-number = El índice de variante { $index } debe ser un número
+
+variant-index-must-be-integer = El índice de variante { $index } debe ser un número entero
+
+## `<sideBySide>`
+
+side-by-side-absolute-widths = `<{ $component }>` no está implementado para medidas absolutas. Los anchos se establecen como relativos.
+
+side-by-side-absolute-margins = `<{ $component }>` no está implementado para medidas absolutas. Los márgenes se establecen como relativos.
+
+side-by-side-no-block-child = `<{ $component }>` no es válido: debe tener al menos un hijo de bloque.
+
+## `<label>`
+
+label-for-ignored-on-graphical = Se ignora el atributo `for` en un `<label>` gráfico.
+
+label-for-must-resolve-to-one = El atributo `for` de `<label>` debe corresponder exactamente a un componente.
+
+label-for-unresolved = No se pudo resolver el atributo `for` de `<label>` a un componente.
+
+label-for-answer-with-authored-inputs = El atributo `for` de `<label>` hace referencia a un `<answer>` con entradas escritas explícitamente; haz referencia a la entrada directamente.
+
+label-for-answer-without-input = El atributo `for` de `<label>` hace referencia a un `<answer>` que no tiene ninguna entrada que etiquetar.
+
+label-for-must-reference-input-or-answer = El atributo `for` de `<label>` debe hacer referencia a una entrada o a un `<answer>`.
+
+## Accesibilidad
+
+accessibility-short-description-or-decorative = Por accesibilidad, `<{ $component }>` debe tener una descripción breve o estar marcado como decorativo.
+
+accessibility-video-short-description = Por accesibilidad, `<video>` debe tener una descripción breve.
+
+accessibility-input-short-description-or-label = Por accesibilidad, `<{ $component }>` debe tener una descripción breve o una etiqueta.
+
+accessibility-answer-input-short-description-or-label = Por accesibilidad, la entrada creada por un `<answer>` debe tener una descripción breve o una etiqueta.
+
+accessibility-short-description-contains-math = Las descripciones breves no deben contener componentes matemáticos como `<{ $component }>`. Expresa las matemáticas con palabras.
+
+accessibility-section-title-insufficient-contrast =
+    { $mode ->
+        [dark] { $colorName } no tiene suficiente contraste con el texto del encabezado de sección (modo oscuro) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; se requiere al menos { $threshold }:1).
+       *[other] { $colorName } no tiene suficiente contraste con el texto del encabezado de sección ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; se requiere al menos { $threshold }:1).
+    }

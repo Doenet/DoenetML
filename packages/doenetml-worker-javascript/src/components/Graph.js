@@ -24,6 +24,7 @@ import {
 // PreFigure conversion architecture and extension guide:
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Graph extends BlockComponent {
     constructor(args) {
@@ -495,12 +496,14 @@ export default class Graph extends BlockComponent {
                         shortDescriptionChild.stateValues.text.trim();
                 }
                 if (shortDescription === "" && !dependencyValues.decorative) {
-                    diagnostics.push({
-                        type: "accessibility",
-                        level: 1,
-                        message:
-                            "For accessibility, `<graph>` must either have a short description or be specified as decorative.",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "accessibility",
+                            level: 1,
+                            code: "doenet-a0001",
+                            args: { component: "graph" },
+                        }),
+                    );
                 }
 
                 return {

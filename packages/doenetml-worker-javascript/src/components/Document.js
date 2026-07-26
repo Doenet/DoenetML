@@ -11,6 +11,7 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Document extends BaseComponent {
     constructor(args) {
@@ -718,27 +719,27 @@ export default class Document extends BaseComponent {
             if (desiredVariant.index !== undefined) {
                 let desiredVariantIndex = Number(desiredVariant.index);
                 if (!Number.isFinite(desiredVariantIndex)) {
-                    core.addDiagnostic({
-                        type: "info",
-                        message:
-                            "Variant index " +
-                            desiredVariant.index +
-                            " must be a number",
-                        position: serializedComponent.position,
-                        sourceDoc: serializedComponent.sourceDoc,
-                    });
+                    core.addDiagnostic(
+                        codedDiagnostic({
+                            type: "info",
+                            code: "doenet-i0010",
+                            args: { index: String(desiredVariant.index) },
+                            position: serializedComponent.position,
+                            sourceDoc: serializedComponent.sourceDoc,
+                        }),
+                    );
                     variantIndex = 1;
                 } else {
                     if (!Number.isInteger(desiredVariantIndex)) {
-                        core.addDiagnostic({
-                            type: "info",
-                            message:
-                                "Variant index " +
-                                desiredVariant.index +
-                                " must be an integer",
-                            position: serializedComponent.position,
-                            sourceDoc: serializedComponent.sourceDoc,
-                        });
+                        core.addDiagnostic(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0011",
+                                args: { index: String(desiredVariant.index) },
+                                position: serializedComponent.position,
+                                sourceDoc: serializedComponent.sourceDoc,
+                            }),
+                        );
                         desiredVariantIndex = Math.round(desiredVariantIndex);
                     }
                     let indexFrom0 = (desiredVariantIndex - 1) % numVariants;
