@@ -3,7 +3,7 @@
  * specific way they have grown before: a second copy of the Rust core.
  *
  * The core ships as a single base64 `data:application/wasm` URI inlined into
- * the worker bundle — roughly 8.6 MB of the worker's 14.2 MB. When a build or
+ * the worker bundle — 8.3 MiB of the worker's 14.2 MiB. When a build or
  * dependency change causes that blob to be emitted twice, or to be pulled into
  * `doenet-standalone.js` as well, the bundle grows by megabytes and nothing
  * fails. That has happened more than once.

@@ -1,21 +1,15 @@
 {
     "comment": [
-        "Size ceilings for the built standalone bundles, in bytes, checked by",
-        "`npm run check:size -w packages/standalone` and by CI right after the",
-        "build. Growth is fine — silent growth is not. Raising a number here in",
-        "the same commit that causes it is the whole point: it puts the increase",
-        "in the diff where a reviewer can see it and ask about it.",
+        "Size ceilings in bytes for the built standalone bundles, enforced by",
+        "`npm run check:size -w packages/standalone`. See",
+        "`scripts/check-bundle-size.mjs` for what else that check does and why.",
         "",
-        "The budgets sit 7–8% above the sizes recorded in `observedBytes`, so",
-        "ordinary feature work does not trip them and a duplicated dependency",
-        "does. `observedBytes` is the size at the moment `maxBytes` was chosen:",
-        "documentation, not a second threshold — nothing enforces it — and what",
-        "makes the headroom in a raised `maxBytes` reviewable. Update the two",
-        "together.",
-        "",
-        "Only these files have ceilings. The separate check that the Rust core is",
-        "inlined exactly once, and only in the worker, scans every script under",
-        "`dist/`, budgeted or not — see `scripts/check-bundle-size.mjs`."
+        "Growth is fine; silent growth is not. Raising a `maxBytes` in the same",
+        "commit that causes the growth is the point — it puts the increase in",
+        "the diff where a reviewer can ask about it. Update `observedBytes` in",
+        "the same edit so the new headroom is visible: it records the size when",
+        "`maxBytes` was chosen and is documentation only, enforced by nothing.",
+        "Today's budgets sit 7–8% above it."
     ],
     "files": {
         "dist/doenet-standalone.js": {
@@ -26,7 +20,7 @@
         "dist/doenetml-worker/index.js": {
             "maxBytes": 15950000,
             "observedBytes": 14889393,
-            "note": "Carries the Rust core as a single inlined base64 wasm blob (~8.6 MB)."
+            "note": "Carries the Rust core as a single inlined base64 wasm blob (~8.3 MiB)."
         }
     }
 }

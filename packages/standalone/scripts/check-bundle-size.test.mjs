@@ -206,9 +206,11 @@ describe("the committed bundle-budgets.json", () => {
     // Everything above runs against synthetic budgets. This is the one check
     // of the real file, and of the one way its contents can drift out of step
     // with the script: `WASM_CORE_SCRIPT` and the budget keys are two records
-    // of the same path. Move the worker output and update only one of them and
-    // the placement check still passes while the largest bundle in the package
-    // quietly loses its ceiling — the exact silence this script exists to end.
+    // of the same path, so relocating the worker output means updating both.
+    // Updating only one does fail the check itself — as a budgeted file that
+    // does not exist, or as a wasm blob in an unexpected script — but only
+    // after a full build, and describing the symptom rather than the cause.
+    // This says it in a second, from the committed files alone.
     it("puts a ceiling on the script that carries the core", () => {
         const budgets = loadBudgets();
         expect(budgets.map(([relative]) => relative)).toContain(
