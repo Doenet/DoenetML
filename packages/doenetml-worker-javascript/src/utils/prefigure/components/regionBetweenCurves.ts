@@ -38,7 +38,8 @@ export function convertRegionBetweenCurvesToPrefigure({
     if (sv.flipFunctions) {
         pushWarning({
             diagnostics,
-            message: `${warningPrefix}: unsupported flipFunctions attribute on regionBetweenCurves; descendant skipped.`,
+            code: "doenet-w0088",
+            args: { subject: warningPrefix },
             position: warningPosition,
         });
         return null;
@@ -55,7 +56,8 @@ export function convertRegionBetweenCurvesToPrefigure({
     if (!f1 || !f2) {
         pushWarning({
             diagnostics,
-            message: `${warningPrefix}: only formula-typed child functions are supported on regionBetweenCurves; descendant skipped.`,
+            code: "doenet-w0089",
+            args: { subject: warningPrefix },
             position: warningPosition,
         });
         return null;

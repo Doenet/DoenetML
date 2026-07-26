@@ -498,3 +498,51 @@ variant-exclude-combinations-not-implemented = have not implemented unique varia
 variant-math-exclude-not-implemented = have not implemented unique variants of a { $component } of type math with exclude
 
 variant-non-constant-exclude-not-implemented = have not implemented unique variants of a { $component } with non-constant exclude
+
+## PreFigure conversion
+
+# $subject identifies the component the warning is about, already written as
+# `<tag>` or `<tag> (name)`. It is composed in code rather than here because
+# Fluent terms cannot take a variable as an argument, so a shared subject
+# fragment cannot be parameterized from the catalog; it holds only identifiers
+# and punctuation, no words to translate.
+
+prefigure-descendant-unsupported = { $subject }: unsupported in graph prefigure renderer; descendant skipped.
+
+prefigure-descendant-invalid-geometry = { $subject }: non-finite or incomplete geometry; descendant skipped.
+
+prefigure-curve-label-omitted = { $subject }: labels are not supported on converted curve elements; label omitted.
+
+prefigure-curve-unsupported-definition-type = { $subject }: unsupported curve function definition type '{ $definitionType }'; descendant skipped.
+
+prefigure-region-flip-functions-unsupported = { $subject }: unsupported flipFunctions attribute on regionBetweenCurves; descendant skipped.
+
+prefigure-region-non-formula-child = { $subject }: only formula-typed child functions are supported on regionBetweenCurves; descendant skipped.
+
+# $labelKind says which family of object carried the label, since the advice
+# is the same but the object is not.
+prefigure-label-position-unsupported =
+    { $subject }: unsupported labelPosition '{ $labelPosition }' for { $labelKind ->
+        [line-family] line-family label
+       *[point] point label
+    }; default PreFigure alignment used.
+
+prefigure-fill-style-unsupported = { $subject }: fill style '{ $fillStyle }' is unsupported by PreFigure; falling back to a solid fill.
+
+prefigure-line-style-unknown = { $subject }: unknown line style '{ $lineStyle }' omitted from PreFigure output.
+
+prefigure-marker-style-mapped-to-diamond = { $subject }: marker style '{ $markerStyle }' mapped to PreFigure style 'diamond'.
+
+prefigure-marker-style-unsupported = { $subject }: marker style '{ $markerStyle }' is unsupported by PreFigure; default style used.
+
+## PreFigure annotations
+
+annotation-ref-unresolvable = `<annotation>`: invalid `ref`; cannot resolve target. Annotation omitted.
+
+annotation-ref-multiple-targets = `<annotation>`: `ref` resolved to multiple targets; using the first target.
+
+annotation-ref-outside-graph = `<annotation>`: invalid `ref`; target is outside the containing graph. Annotation omitted.
+
+annotation-ref-unsupported-target = `<annotation>`: invalid `ref`; target is not a supported graphical object in prefigure conversion. Annotation omitted.
+
+annotation-text-missing = `<annotation>`: missing or empty `text`; emitting empty text.

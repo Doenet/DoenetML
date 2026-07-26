@@ -6,6 +6,7 @@ import type {
     UsedHandles,
 } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
+import { codedDiagnostic } from "@doenet/utils";
 
 /**
  * Escapes user-provided text for safe insertion into XML attributes/text nodes.
@@ -133,20 +134,21 @@ export function warningMessageForDescendant(
 
 /**
  * Pushes a warning record and attaches position when available.
+ *
+ * Takes a code and its arguments rather than a finished sentence: the dozen
+ * call sites behind this helper each held a literal English string, and the
+ * migration burn-down could not see them, because it counts diagnostic
+ * constructions and this is one construction for all of them (#1518).
  */
 export function pushWarning({
     diagnostics,
-    message,
+    code,
+    args,
     position,
 }: PushDiagnosticArgs): void {
-    const warning: DiagnosticRecord = {
-        type: "warning",
-        message,
-    };
-    if (position) {
-        warning.position = position;
-    }
-    diagnostics.push(warning);
+    diagnostics.push(
+        codedDiagnostic({ type: "warning", code, args, position }),
+    );
 }
 
 /**

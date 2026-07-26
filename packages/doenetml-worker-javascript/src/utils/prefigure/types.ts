@@ -1,3 +1,4 @@
+import type { DiagnosticArgs, DiagnosticCode } from "@doenet/i18n";
 import type { DiagnosticRecord, Position } from "@doenet/utils";
 
 export type Point = [number, number];
@@ -18,9 +19,11 @@ export interface Dimensions {
     height: number;
 }
 
+/** Arguments to {@link pushWarning}: a code, not a finished sentence. */
 export interface PushDiagnosticArgs {
     diagnostics: DiagnosticRecord[];
-    message: string;
+    code: DiagnosticCode;
+    args?: DiagnosticArgs;
     position?: Position;
 }
 

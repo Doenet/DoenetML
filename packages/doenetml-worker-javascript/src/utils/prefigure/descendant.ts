@@ -123,7 +123,8 @@ export function convertGraphicalDescendantToPrefigure({
     if (!converter) {
         pushWarning({
             diagnostics,
-            message: `${warningPrefix}: unsupported in graph prefigure renderer; descendant skipped.`,
+            code: "doenet-w0084",
+            args: { subject: warningPrefix },
             position: warningPosition,
         });
         return null;
@@ -145,7 +146,8 @@ export function convertGraphicalDescendantToPrefigure({
         if (diagnostics.length === diagnosticsCountBeforeConvert) {
             pushWarning({
                 diagnostics,
-                message: `${warningPrefix}: non-finite or incomplete geometry; descendant skipped.`,
+                code: "doenet-w0085",
+                args: { subject: warningPrefix },
                 position: warningPosition,
             });
         }

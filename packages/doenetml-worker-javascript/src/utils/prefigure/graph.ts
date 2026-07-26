@@ -187,7 +187,8 @@ export function createPrefigureXML({
     for (const descendant of unsupported ?? []) {
         pushWarning({
             diagnostics,
-            message: `${warningMessageForDescendant(descendant)}: unsupported in graph prefigure renderer; descendant skipped.`,
+            code: "doenet-w0084",
+            args: { subject: warningMessageForDescendant(descendant) },
             position: descendant?.position,
         });
     }

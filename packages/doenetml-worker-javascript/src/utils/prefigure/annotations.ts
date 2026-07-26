@@ -1,6 +1,8 @@
 import { escapeXml } from "./common";
 import type { AnnotationNode } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
+import { codedDiagnostic } from "@doenet/utils";
+import type { DiagnosticCode } from "@doenet/i18n";
 
 /**
  * Mutable context shared while building `<annotations>` XML.
@@ -28,9 +30,6 @@ interface BuildAnnotationsXmlParams {
     graphDescendantComponentIndices: Set<number>;
     functionToCurveComponentIdx?: Record<number, number>;
 }
-
-const INVALID_REF_WARNING =
-    "`<annotation>`: invalid `ref`; cannot resolve target. Annotation omitted.";
 
 /**
  * Finds the first free conceptual annotation ref of the form `annotation_N`.
@@ -118,22 +117,22 @@ export function convertDoenetMLAnnotationsToPreFigureXml({
 
 function pushAnnotationWarning({
     diagnostics,
-    message,
+    code,
     annotation,
 }: {
     diagnostics: DiagnosticRecord[];
-    message: string;
+    code: DiagnosticCode;
     annotation: AnnotationNode;
 }) {
     // TODO: populate annotation node positions so non-ref warnings can point
     // to the authored <annotation> node instead of falling back to ref data.
-    const warning: DiagnosticRecord = {
-        type: "warning",
-        message,
-        position: annotation?.refResolutions?.[0]?.position,
-    };
-
-    diagnostics.push(warning);
+    diagnostics.push(
+        codedDiagnostic({
+            type: "warning",
+            code,
+            position: annotation?.refResolutions?.[0]?.position,
+        }),
+    );
 }
 
 function pushInvalidRefWarning(
@@ -143,7 +142,10 @@ function pushInvalidRefWarning(
     pushAnnotationWarning({
         diagnostics: state.diagnostics,
         annotation,
-        message: INVALID_REF_WARNING,
+        // Inlined rather than held in a constant: `lint:i18n` finds raised
+        // codes by scanning for a `code:` property, and a code reached
+        // through a variable reads to it as a code nothing raises.
+        code: "doenet-w0095",
     });
     return null;
 }
@@ -173,8 +175,7 @@ function resolveAnnotationRef(
         pushAnnotationWarning({
             diagnostics: state.diagnostics,
             annotation,
-            message:
-                "`<annotation>`: `ref` resolved to multiple targets; using the first target.",
+            code: "doenet-w0096",
         });
     }
 
@@ -209,8 +210,7 @@ function resolveAnnotationRef(
         pushAnnotationWarning({
             diagnostics: state.diagnostics,
             annotation,
-            message:
-                "`<annotation>`: invalid `ref`; target is outside the containing graph. Annotation omitted.",
+            code: "doenet-w0097",
         });
         return null;
     }
@@ -220,8 +220,7 @@ function resolveAnnotationRef(
         pushAnnotationWarning({
             diagnostics: state.diagnostics,
             annotation,
-            message:
-                "`<annotation>`: invalid `ref`; target is not a supported graphical object in prefigure conversion. Annotation omitted.",
+            code: "doenet-w0098",
         });
         return null;
     }
@@ -248,8 +247,7 @@ function convertAnnotationNodeToPreFigureXml(
         pushAnnotationWarning({
             diagnostics: state.diagnostics,
             annotation,
-            message:
-                "`<annotation>`: missing or empty `text`; emitting empty text.",
+            code: "doenet-w0099",
         });
     }
 

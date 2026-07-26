@@ -242,7 +242,23 @@ export type MessageKey =
     | "variant-sort-not-implemented"
     | "variant-exclude-combinations-not-implemented"
     | "variant-math-exclude-not-implemented"
-    | "variant-non-constant-exclude-not-implemented";
+    | "variant-non-constant-exclude-not-implemented"
+    | "prefigure-descendant-unsupported"
+    | "prefigure-descendant-invalid-geometry"
+    | "prefigure-curve-label-omitted"
+    | "prefigure-curve-unsupported-definition-type"
+    | "prefigure-region-flip-functions-unsupported"
+    | "prefigure-region-non-formula-child"
+    | "prefigure-label-position-unsupported"
+    | "prefigure-fill-style-unsupported"
+    | "prefigure-line-style-unknown"
+    | "prefigure-marker-style-mapped-to-diamond"
+    | "prefigure-marker-style-unsupported"
+    | "annotation-ref-unresolvable"
+    | "annotation-ref-multiple-targets"
+    | "annotation-ref-outside-graph"
+    | "annotation-ref-unsupported-target"
+    | "annotation-text-missing";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -482,4 +498,20 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "variant-exclude-combinations-not-implemented",
     "variant-math-exclude-not-implemented",
     "variant-non-constant-exclude-not-implemented",
+    "prefigure-descendant-unsupported",
+    "prefigure-descendant-invalid-geometry",
+    "prefigure-curve-label-omitted",
+    "prefigure-curve-unsupported-definition-type",
+    "prefigure-region-flip-functions-unsupported",
+    "prefigure-region-non-formula-child",
+    "prefigure-label-position-unsupported",
+    "prefigure-fill-style-unsupported",
+    "prefigure-line-style-unknown",
+    "prefigure-marker-style-mapped-to-diamond",
+    "prefigure-marker-style-unsupported",
+    "annotation-ref-unresolvable",
+    "annotation-ref-multiple-targets",
+    "annotation-ref-outside-graph",
+    "annotation-ref-unsupported-target",
+    "annotation-text-missing",
 ];

@@ -409,3 +409,43 @@ variant-exclude-combinations-not-implemented = no se han implementado las varian
 variant-math-exclude-not-implemented = no se han implementado las variantes únicas de un { $component } de tipo math con exclude
 
 variant-non-constant-exclude-not-implemented = no se han implementado las variantes únicas de un { $component } con exclude no constante
+
+## Conversión a PreFigure
+
+prefigure-descendant-unsupported = { $subject }: no se admite en el renderizador prefigure de gráficos; se omite el descendiente.
+
+prefigure-descendant-invalid-geometry = { $subject }: geometría no finita o incompleta; se omite el descendiente.
+
+prefigure-curve-label-omitted = { $subject }: las etiquetas no se admiten en los elementos de curva convertidos; se omite la etiqueta.
+
+prefigure-curve-unsupported-definition-type = { $subject }: tipo de definición de función de curva no admitido '{ $definitionType }'; se omite el descendiente.
+
+prefigure-region-flip-functions-unsupported = { $subject }: atributo flipFunctions no admitido en regionBetweenCurves; se omite el descendiente.
+
+prefigure-region-non-formula-child = { $subject }: en regionBetweenCurves solo se admiten funciones hijas de tipo fórmula; se omite el descendiente.
+
+prefigure-label-position-unsupported =
+    { $subject }: labelPosition '{ $labelPosition }' no admitido para { $labelKind ->
+        [line-family] una etiqueta de la familia de líneas
+       *[point] una etiqueta de punto
+    }; se usa la alineación predeterminada de PreFigure.
+
+prefigure-fill-style-unsupported = { $subject }: PreFigure no admite el estilo de relleno '{ $fillStyle }'; se usa un relleno sólido.
+
+prefigure-line-style-unknown = { $subject }: estilo de línea desconocido '{ $lineStyle }'; se omite de la salida de PreFigure.
+
+prefigure-marker-style-mapped-to-diamond = { $subject }: el estilo de marcador '{ $markerStyle }' se asigna al estilo 'diamond' de PreFigure.
+
+prefigure-marker-style-unsupported = { $subject }: PreFigure no admite el estilo de marcador '{ $markerStyle }'; se usa el estilo predeterminado.
+
+## Anotaciones de PreFigure
+
+annotation-ref-unresolvable = `<annotation>`: `ref` no válido; no se puede resolver el destino. Se omite la anotación.
+
+annotation-ref-multiple-targets = `<annotation>`: `ref` se resolvió a varios destinos; se usa el primero.
+
+annotation-ref-outside-graph = `<annotation>`: `ref` no válido; el destino está fuera del gráfico que lo contiene. Se omite la anotación.
+
+annotation-ref-unsupported-target = `<annotation>`: `ref` no válido; el destino no es un objeto gráfico admitido en la conversión a prefigure. Se omite la anotación.
+
+annotation-text-missing = `<annotation>`: falta `text` o está vacío; se emite texto vacío.
