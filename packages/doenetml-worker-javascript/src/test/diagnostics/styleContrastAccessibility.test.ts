@@ -317,3 +317,61 @@ describe("Style definition accessibility diagnostics @group4", async () => {
         }
     });
 });
+
+describe("style contrast diagnostics carry their code @group4", async () => {
+    // The English these assert is checked exhaustively above; what is checked
+    // here is the half of the record the main thread renders from. A message
+    // that reads correctly but arrives with no code cannot be translated, and
+    // nothing else in the suite would notice.
+
+    it("names the color pair and the mode as data, not as a phrase", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<styleDefinition styleNumber="9" lineColor="#000000" />
+<styleDefinition styleNumber="9" lineOpacity="0.2" />
+`,
+        });
+
+        const { accessibility } = getDiagnosticsByType(core);
+        expect(accessibility.length).eq(2);
+
+        for (const diagnostic of accessibility) {
+            expect(diagnostic.code).eq("doenet-a0007");
+            // `context` used to be the English phrase itself, concatenated
+            // with a " (dark mode)" suffix. Both are symbolic now, so the
+            // catalog owns every word of the sentence.
+            expect(diagnostic.args?.context).eq("line");
+            expect(diagnostic.args?.styleNumber).eq("9");
+            expect(typeof diagnostic.args?.ratio).eq("number");
+            expect(diagnostic.args?.threshold).eq(3);
+        }
+
+        expect(accessibility.map((d) => d.args?.mode)).toEqual([
+            "light",
+            "dark",
+        ]);
+    });
+
+    it("carries the suggested replacement colors as arguments", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<styleDefinition styleNumber="23" textColor="#a14545" />
+`,
+        });
+
+        const { accessibility } = getDiagnosticsByType(core);
+        const derived = accessibility.filter((d) => d.code === "doenet-a0009");
+        expect(derived.length).eq(1);
+
+        // The advice is a variant of the message rather than a sentence glued
+        // on after it, so which advice applied is readable from the record.
+        expect(derived[0].args?.suggestion).eq("available");
+        expect(derived[0].args?.lightColor).toMatch(/^#/);
+        expect(derived[0].args?.darkColor).toMatch(/^#/);
+        // The colors are DoenetML source and stay as they are in every
+        // language, so they belong in the message as written.
+        expect(derived[0].message).toContain(
+            String(derived[0].args?.darkColor),
+        );
+    });
+});

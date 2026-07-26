@@ -347,3 +347,31 @@ component-type-invalid = Tipo de componente no válido: `<{ $componentType }>`
 attribute-repeated = No se puede repetir el atributo { $attribute }.
 
 attribute-invalid-for-component = Atributo "{ $attribute }" no válido para un componente de tipo `<{ $componentType }>`.
+
+## Contraste de las definiciones de estilo
+
+style-definition-insufficient-contrast =
+    La definición de estilo { $styleNumber } no tiene suficiente contraste para { $context ->
+        [text-on-background] el color del texto sobre el color de fondo
+        [high-contrast] el color de alto contraste sobre el lienzo
+        [line] el color de las líneas sobre el lienzo
+        [marker] el color de los marcadores sobre el lienzo
+       *[text-on-canvas] el color del texto sobre el lienzo
+    }{ $mode ->
+        [dark] { " (modo oscuro)" }
+       *[light] { "" }
+    } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; se requiere al menos { $threshold }:1).
+
+style-definition-dark-mode-text-background-contrast =
+    Aunque la definición de estilo { $styleNumber } especifica colores con suficiente contraste en modo claro, los colores de modo oscuro derivados de esos valores no tienen suficiente contraste entre el color del texto y el color de fondo ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; se requiere al menos { $threshold }:1). { $suggestion ->
+        [available] Para lograr suficiente contraste en modo oscuro, aumenta el contraste en modo claro (por ejemplo, con { $lightAttribute }="{ $lightColor }") o define el color de modo oscuro (por ejemplo, con { $darkAttribute }="{ $darkColor }").
+       *[none] Para lograr suficiente contraste en modo oscuro, aumenta el contraste en modo claro o sustituye los colores derivados mediante textColorDarkMode o backgroundColorDarkMode.
+    }
+
+style-definition-dark-mode-text-canvas-contrast =
+    Aunque la definición de estilo { $styleNumber } especifica un color de texto con suficiente contraste en modo claro, el color de texto de modo oscuro derivado de ese valor no tiene suficiente contraste sobre el lienzo ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; se requiere al menos { $threshold }:1). { $suggestion ->
+        [available] Para lograr suficiente contraste en modo oscuro, aumenta el contraste en modo claro (por ejemplo, con textColor="{ $lightColor }") o define el color de modo oscuro (por ejemplo, con textColorDarkMode="{ $darkColor }").
+       *[none] Para lograr suficiente contraste en modo oscuro, aumenta el contraste en modo claro o sustituye el color derivado mediante textColorDarkMode.
+    }
+
+section-multiple-style-palettes = Una sección solo puede seleccionar un <stylePalette>; se usará el último.

@@ -1,3 +1,4 @@
+import { codedDiagnostic } from "../diagnostics/coded";
 import { colorValueToWord } from "./colorWords";
 import {
     DEFAULT_STYLE_VALUES,
@@ -1286,12 +1287,13 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             const diagnostics = [];
             if (stylePaletteChildren.length > 1) {
                 for (const child of stylePaletteChildren.slice(0, -1)) {
-                    diagnostics.push({
-                        type: "warning",
-                        message:
-                            "A section can select only one <stylePalette>; using the last one.",
-                        position: child.position,
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0083",
+                            position: child.position,
+                        }),
+                    );
                 }
             }
 

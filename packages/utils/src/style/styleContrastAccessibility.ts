@@ -15,6 +15,7 @@
  *    opacity) makes the result fail WCAG AA.
  */
 import type { Position } from "@doenet/parser";
+import { codedDiagnostic } from "../diagnostics/coded";
 import type { AccessibilityRecord } from "../diagnostics/types";
 import {
     getStyleValueNumber,
@@ -43,41 +44,53 @@ const CANVAS_FOR_MODE: Record<Mode, string> = {
     dark: CANVAS_DARK_MODE_COLOR,
 };
 
-/** Suffix added to diagnostic context strings in dark mode. */
-const MODE_SUFFIX: Record<Mode, string> = {
-    light: "",
-    dark: " (dark mode)",
-};
-
 /**
- * Formats a contrast ratio for diagnostic text.
+ * Which pair of colors a contrast check compared.
+ *
+ * Symbolic rather than the phrase itself. The message names the pair in
+ * prose, and prose is the translator's to write — handing one over as an
+ * argument would nail the English into the record and leave nothing for the
+ * catalog to say. The catalog selects on these; `text-on-canvas` is the
+ * default variant there, so a value the catalog does not know still renders a
+ * sentence.
  */
-function formatRatio(value: number): string {
-    return value.toFixed(2);
-}
+type ContrastContext =
+    | "text-on-background"
+    | "text-on-canvas"
+    | "high-contrast"
+    | "line"
+    | "marker";
 
 /**
  * Creates a standardized style-contrast accessibility diagnostic.
+ *
+ * The mode travels as an argument for the same reason the context does: dark
+ * mode used to be a " (dark mode)" suffix concatenated onto the context, which
+ * is a phrase in the middle of a sentence and cannot be positioned by a
+ * translator once it has been glued on.
  */
 function createContrastAccessibilityDiagnostic({
     styleNumber,
     context,
+    mode,
     ratio,
     threshold,
     position,
 }: {
     styleNumber: string;
-    context: string;
+    context: ContrastContext;
+    mode: Mode;
     ratio: number;
     threshold: number;
     position?: Position;
 }): AccessibilityRecord {
-    return {
+    return codedDiagnostic({
         type: "accessibility",
         level: 1,
-        message: `Style definition ${styleNumber} has insufficient contrast for ${context} (${formatRatio(ratio)}:1; requires at least ${threshold}:1).`,
+        code: "doenet-a0007",
+        args: { styleNumber, context, mode, ratio, threshold },
         position,
-    };
+    }) as AccessibilityRecord;
 }
 
 /**
@@ -92,13 +105,15 @@ function appendContrastAccessibilityDiagnosticIfNeeded({
     diagnostics,
     styleNumber,
     context,
+    mode,
     ratio,
     threshold,
     position,
 }: {
     diagnostics: AccessibilityRecord[];
     styleNumber: string;
-    context: string;
+    context: ContrastContext;
+    mode: Mode;
     ratio: number | null;
     threshold: number;
     position?: Position;
@@ -111,6 +126,7 @@ function appendContrastAccessibilityDiagnosticIfNeeded({
         createContrastAccessibilityDiagnostic({
             styleNumber,
             context,
+            mode,
             ratio,
             threshold,
             position,
@@ -137,7 +153,6 @@ function contrastDiagnosticsForMode(
 ): AccessibilityRecord[] {
     const diagnostics: AccessibilityRecord[] = [];
     const canvas = CANVAS_FOR_MODE[mode];
-    const suffix = MODE_SUFFIX[mode];
 
     // --- Text color against background (or canvas). ---
     const textColor = getStyleValueString(styleDef, colorKey("text", mode));
@@ -159,10 +174,8 @@ function contrastDiagnosticsForMode(
         appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
-            context:
-                (backgroundColor
-                    ? "text color against background color"
-                    : "text color against the canvas") + suffix,
+            context: backgroundColor ? "text-on-background" : "text-on-canvas",
+            mode,
             ratio,
             threshold: TEXT_CONTRAST_THRESHOLD,
             position: diagnosticPosition,
@@ -184,7 +197,8 @@ function contrastDiagnosticsForMode(
         appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
-            context: "high-contrast color against the canvas" + suffix,
+            context: "high-contrast",
+            mode,
             ratio,
             threshold: TEXT_CONTRAST_THRESHOLD,
             position: highContrastPosition,
@@ -213,7 +227,8 @@ function contrastDiagnosticsForMode(
         appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
-            context: "line color against the canvas" + suffix,
+            context: "line",
+            mode,
             ratio,
             threshold: GRAPHIC_CONTRAST_THRESHOLD,
             position: diagnosticPosition,
@@ -241,7 +256,8 @@ function contrastDiagnosticsForMode(
         appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
-            context: "marker color against the canvas" + suffix,
+            context: "marker",
+            mode,
             ratio,
             threshold: GRAPHIC_CONTRAST_THRESHOLD,
             position: diagnosticPosition,
@@ -357,27 +373,38 @@ function derivedDarkModeCombinationDiagnostics(
         }
     }
 
-    const baseMessage = `Although style definition ${styleNumber} has specified colors that provide sufficient contrast for light mode, the dark-mode colors derived from these values have insufficient contrast for the text color against the background color (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).`;
-    let fixMessage: string;
-    if (suggestion) {
-        // The dark color is derived from the light color by inverting its
-        // lightness, and that inversion is its own inverse — so a light value
-        // that derives to the accessible dark color is just the inverted dark
-        // color. Offering both lets the author keep their dark color and fix the
-        // light contrast, or keep their light color and override the dark one.
-        const lightColor = invertLightness(suggestion.darkColor);
-        fixMessage = ` To ensure sufficient contrast in dark mode, either increase the light-mode contrast (e.g., set ${suggestion.lightAttribute}="${lightColor}") or override the dark-mode color (e.g., set ${suggestion.darkAttribute}="${suggestion.darkColor}").`;
-    } else {
-        fixMessage = ` To ensure sufficient contrast in dark mode, increase the light-mode contrast or override the derived colors with textColorDarkMode and/or backgroundColorDarkMode.`;
-    }
-
+    // The advice is a variant of the message rather than a second sentence
+    // appended to it: which advice applies is data (did a replacement color
+    // come out of the derivation?), and a sentence built by `base + fix` puts
+    // the join in the code, where a translator cannot move it.
     return [
-        {
+        codedDiagnostic({
             type: "accessibility",
             level: 1,
-            message: baseMessage + fixMessage,
+            code: "doenet-a0008",
+            args: {
+                styleNumber,
+                ratio: darkRatio,
+                threshold: TEXT_CONTRAST_THRESHOLD,
+                ...(suggestion
+                    ? {
+                          suggestion: "available",
+                          lightAttribute: suggestion.lightAttribute,
+                          // The dark color is derived from the light color by
+                          // inverting its lightness, and that inversion is its
+                          // own inverse — so a light value that derives to the
+                          // accessible dark color is just the inverted dark
+                          // color. Offering both lets the author keep their
+                          // dark color and fix the light contrast, or keep
+                          // their light color and override the dark one.
+                          lightColor: invertLightness(suggestion.darkColor),
+                          darkAttribute: suggestion.darkAttribute,
+                          darkColor: suggestion.darkColor,
+                      }
+                    : { suggestion: "none" }),
+            },
             position,
-        },
+        }) as AccessibilityRecord,
     ];
 }
 
@@ -438,19 +465,29 @@ function derivedDarkModeTextCanvasDiagnostics(
         foreground: suggestedDark,
         canvas: CANVAS_DARK_MODE_COLOR,
     });
-    const fixMessage =
+    const haveSuggestion =
         suggestedDarkRatio !== null &&
-        suggestedDarkRatio >= TEXT_CONTRAST_THRESHOLD
-            ? ` To ensure sufficient contrast in dark mode, either increase the light-mode contrast (e.g., set textColor="${invertLightness(suggestedDark)}") or override the dark-mode color (e.g., set textColorDarkMode="${suggestedDark}").`
-            : ` To ensure sufficient contrast in dark mode, increase the light-mode contrast or override the derived color with textColorDarkMode.`;
+        suggestedDarkRatio >= TEXT_CONTRAST_THRESHOLD;
 
     return [
-        {
+        codedDiagnostic({
             type: "accessibility",
             level: 1,
-            message: `Although style definition ${styleNumber} has a specified text color that provides sufficient contrast for light mode, the dark-mode text color derived from this value has insufficient contrast against the canvas (${formatRatio(darkRatio)}:1; requires at least ${TEXT_CONTRAST_THRESHOLD}:1).${fixMessage}`,
+            code: "doenet-a0009",
+            args: {
+                styleNumber,
+                ratio: darkRatio,
+                threshold: TEXT_CONTRAST_THRESHOLD,
+                ...(haveSuggestion
+                    ? {
+                          suggestion: "available",
+                          lightColor: invertLightness(suggestedDark),
+                          darkColor: suggestedDark,
+                      }
+                    : { suggestion: "none" }),
+            },
             position,
-        },
+        }) as AccessibilityRecord,
     ];
 }
 

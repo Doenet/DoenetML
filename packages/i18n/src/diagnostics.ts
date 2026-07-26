@@ -154,6 +154,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0080": "slider-markers-type-mismatch",
     "doenet-w0081": "nested-section-wide-check-work-max-num-attempts",
     "doenet-w0082": "math-input-invalid-function-names",
+    "doenet-w0083": "section-multiple-style-palettes",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -166,6 +167,9 @@ export const DIAGNOSTIC_CODES = {
     "doenet-a0004": "accessibility-answer-input-short-description-or-label",
     "doenet-a0005": "accessibility-short-description-contains-math",
     "doenet-a0006": "accessibility-section-title-insufficient-contrast",
+    "doenet-a0007": "style-definition-insufficient-contrast",
+    "doenet-a0008": "style-definition-dark-mode-text-background-contrast",
+    "doenet-a0009": "style-definition-dark-mode-text-canvas-contrast",
 } as const satisfies Record<string, MessageKey>;
 
 export type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;

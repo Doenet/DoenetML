@@ -420,3 +420,37 @@ component-type-invalid = Invalid component type: `<{ $componentType }>`
 attribute-repeated = Cannot repeat attribute { $attribute }.
 
 attribute-invalid-for-component = Invalid attribute "{ $attribute }" for a component of type `<{ $componentType }>`.
+
+## Style definition contrast
+
+# $context names the pair being compared, $mode which colour scheme it was
+# rendered in. Both are symbolic — the phrase is chosen here so a translator
+# can rewrite it, rather than being handed over already in English.
+style-definition-insufficient-contrast =
+    Style definition { $styleNumber } has insufficient contrast for { $context ->
+        [text-on-background] text color against background color
+        [high-contrast] high-contrast color against the canvas
+        [line] line color against the canvas
+        [marker] marker color against the canvas
+       *[text-on-canvas] text color against the canvas
+    }{ $mode ->
+        [dark] { " (dark mode)" }
+       *[light] { "" }
+    } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1).
+
+# $suggestion says whether a concrete replacement colour could be computed.
+# The attribute names and colour values in the `available` branch are
+# DoenetML source, not prose, and stay as they are in every language.
+style-definition-dark-mode-text-background-contrast =
+    Although style definition { $styleNumber } has specified colors that provide sufficient contrast for light mode, the dark-mode colors derived from these values have insufficient contrast for the text color against the background color ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1). { $suggestion ->
+        [available] To ensure sufficient contrast in dark mode, either increase the light-mode contrast (e.g., set { $lightAttribute }="{ $lightColor }") or override the dark-mode color (e.g., set { $darkAttribute }="{ $darkColor }").
+       *[none] To ensure sufficient contrast in dark mode, increase the light-mode contrast or override the derived colors with textColorDarkMode and/or backgroundColorDarkMode.
+    }
+
+style-definition-dark-mode-text-canvas-contrast =
+    Although style definition { $styleNumber } has a specified text color that provides sufficient contrast for light mode, the dark-mode text color derived from this value has insufficient contrast against the canvas ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1). { $suggestion ->
+        [available] To ensure sufficient contrast in dark mode, either increase the light-mode contrast (e.g., set textColor="{ $lightColor }") or override the dark-mode color (e.g., set textColorDarkMode="{ $darkColor }").
+       *[none] To ensure sufficient contrast in dark mode, increase the light-mode contrast or override the derived color with textColorDarkMode.
+    }
+
+section-multiple-style-palettes = A section can select only one <stylePalette>; using the last one.

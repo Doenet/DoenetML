@@ -33,6 +33,15 @@ export default defineConfig({
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",
                 "math-expressions",
+                // Left as a bare import rather than inlined. Consumers of this
+                // package overwhelmingly depend on `@doenet/i18n` themselves —
+                // the viewer formats diagnostics with it, the worker raises
+                // them — and inlining a second copy here would put two Fluent
+                // bundles, two message catalogs and two parsers in the same
+                // application. Externalized, the consumer's bundler resolves
+                // one. See `packages/lsp/scripts/check-server-bundle.mjs` for
+                // the check that it also stays out of the language server.
+                "@doenet/i18n",
             ],
         },
     },
