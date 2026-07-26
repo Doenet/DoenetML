@@ -2,6 +2,7 @@ import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { normalizeMathExpression } from "@doenet/utils";
 import { returnNVariables } from "../utils/math";
+import { codedDiagnostic } from "../utils/diagnostics";
 // import nerdamer from 'nerdamer'
 // import 'nerdamer/Algebra.js'
 // import 'nerdamer/Calculus.js'
@@ -294,10 +295,13 @@ export default class SolveEquations extends InlineComponent {
                 try {
                     f_base = formula.f();
                 } catch (e) {
-                    let message =
-                        "Cannot solve equation as could not evaluate equation: " +
-                        expression.toString();
-                    let diagnostics = [{ message, type: "warning" }];
+                    let diagnostics = [
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0057",
+                            args: { equation: expression.toString() },
+                        }),
+                    ];
 
                     return {
                         setValue: { allSolutions: [] },

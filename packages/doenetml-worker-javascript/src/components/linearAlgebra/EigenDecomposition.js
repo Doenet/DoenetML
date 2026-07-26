@@ -5,6 +5,7 @@ import {
 } from "../../utils/numberDisplay";
 import BaseComponent from "../abstract/BaseComponent";
 import me from "math-expressions";
+import { codedDiagnostic } from "../../utils/diagnostics";
 const { eigs, square, abs, divide } = me.math;
 
 export default class EigenDecomposition extends BaseComponent {
@@ -136,10 +137,10 @@ export default class EigenDecomposition extends BaseComponent {
                         "Could nt calculate eigenvalues of matrix",
                         e,
                     );
-                    let warning = {
-                        message: "Could not calculate eigenvalues of matrix",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0059",
+                    });
                     return {
                         setValue: { decomposition: null, numEigenvectors: 0 },
                         sendDiagnostics: [warning],

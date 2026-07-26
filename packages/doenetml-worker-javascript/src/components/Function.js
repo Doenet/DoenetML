@@ -32,6 +32,7 @@ import {
     mergeListsWithOtherContainers,
     superSubscriptsToUnicode,
 } from "../utils/math";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Function extends InlineComponent {
     static componentType = "function";
@@ -512,20 +513,17 @@ export default class Function extends InlineComponent {
                             numInputs,
                         );
                     if (specifiedDomain.length !== numInputs) {
-                        let warning = {
+                        let warning = codedDiagnostic({
                             type: "warning",
-                            message: `Insufficient dimensions for domain for function. Domain has ${
-                                specifiedDomain.length
-                            } interval${
-                                specifiedDomain.length === 1 ? "" : "s"
-                            } but the function has ${numInputs} input${
-                                numInputs === 1 ? "" : "s"
-                            }.`,
-                        };
-                        if (globalDependencyValues.domainAttr.position) {
-                            warning.position =
-                                globalDependencyValues.domainAttr.position;
-                        }
+                            code: "doenet-w0038",
+                            args: {
+                                intervals: specifiedDomain.length,
+                                inputs: numInputs,
+                            },
+                            position:
+                                globalDependencyValues.domainAttr.position ||
+                                undefined,
+                        });
                         let infDomain = me.fromAst([
                             "interval",
                             ["tuple", -Infinity, Infinity],
@@ -548,14 +546,13 @@ export default class Function extends InlineComponent {
                                 interval.tree[0] === "interval",
                         )
                     ) {
-                        let warning = {
+                        let warning = codedDiagnostic({
                             type: "warning",
-                            message: `Invalid format for domain for function.`,
-                        };
-                        if (globalDependencyValues.domainAttr.position) {
-                            warning.position =
-                                globalDependencyValues.domainAttr.position;
-                        }
+                            code: "doenet-w0039",
+                            position:
+                                globalDependencyValues.domainAttr.position ||
+                                undefined,
+                        });
                         let infDomain = me.fromAst([
                             "interval",
                             ["tuple", -Infinity, Infinity],
@@ -4534,39 +4531,51 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
             if (point.x !== null) {
                 x = point.x.evaluate_to_constant();
                 if (!Number.isFinite(x)) {
-                    diagnostics.push({
-                        message: `Ignoring non-numerical ${type} of function.`,
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0040",
+                            args: { type },
+                        }),
+                    );
                     continue;
                 }
             }
             if (point.y !== null) {
                 y = point.y.evaluate_to_constant();
                 if (!Number.isFinite(y)) {
-                    diagnostics.push({
-                        message: `Ignoring non-numerical ${type} of function.`,
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0040",
+                            args: { type },
+                        }),
+                    );
                     continue;
                 }
             }
             if (point.slope !== null && point.slope !== undefined) {
                 slope = point.slope.evaluate_to_constant();
                 if (!Number.isFinite(slope)) {
-                    diagnostics.push({
-                        message: `Ignoring non-numerical slope of function.`,
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0040",
+                            args: { type: "slope" },
+                        }),
+                    );
                     slope = null;
                 }
             }
             if (x === null) {
                 if (y === null) {
-                    diagnostics.push({
-                        message: `Ignoring empty ${type} of function.`,
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0041",
+                            args: { type },
+                        }),
+                    );
                     continue;
                 }
                 pointsWithoutX.push({
@@ -4594,10 +4603,12 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
     for (let ind = 0; ind < pointsWithX.length; ind++) {
         let p = pointsWithX[ind];
         if (p.x <= xPrev + eps) {
-            diagnostics.push({
-                message: `Function contains two points with locations too close together. Can't define function.`,
-                type: "warning",
-            });
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0042",
+                }),
+            );
             return {
                 setValue: { interpolationPoints: null },
                 sendDiagnostics: diagnostics,

@@ -7,6 +7,7 @@ import {
 import me from "math-expressions";
 const { mod } = me.math;
 import { nanoid } from "nanoid";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class AnimateFromSequence extends BaseComponent {
     constructor(args) {
@@ -450,11 +451,13 @@ export default class AnimateFromSequence extends BaseComponent {
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
-                    diagnostics.push({
-                        message:
-                            "Invalid target for `<animateFromSequence>`: cannot find target.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0043",
+                            args: { source: "animateFromSequence" },
+                        }),
+                    );
                 }
 
                 return {
@@ -534,13 +537,13 @@ export default class AnimateFromSequence extends BaseComponent {
                     for (let ind in dependencyValues.targetIdentities) {
                         let target = dependencyValues["target" + ind];
                         if (target == null) {
-                            let message =
-                                "Invalid target for `<animateFromSequence>`: cannot find target.";
-
-                            diagnostics.push({
-                                message,
-                                type: "warning",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "warning",
+                                    code: "doenet-w0043",
+                                    args: { source: "animateFromSequence" },
+                                }),
+                            );
                             continue;
                         }
                         targets.push(target);
@@ -557,17 +560,29 @@ export default class AnimateFromSequence extends BaseComponent {
                                         prop += `[idx]`;
                                     }
                                 }
-                                let message = `Invalid target for \`<animateFromSequence>\`: cannot find a state variable named "${prop}" on a \`<${target.componentType}>\`.`;
-                                diagnostics.push({
-                                    message,
-                                    type: "warning",
-                                });
+                                diagnostics.push(
+                                    codedDiagnostic({
+                                        type: "warning",
+                                        code: "doenet-w0044",
+                                        args: {
+                                            source: "animateFromSequence",
+                                            property: prop,
+                                            component: target.componentType,
+                                        },
+                                    }),
+                                );
                             } else {
-                                let message = `Invalid target for \`<animateFromSequence>\`: cannot find a state variable named "value" on a \`<${target.componentType}>\`.`;
-                                diagnostics.push({
-                                    message,
-                                    type: "warning",
-                                });
+                                diagnostics.push(
+                                    codedDiagnostic({
+                                        type: "warning",
+                                        code: "doenet-w0044",
+                                        args: {
+                                            source: "animateFromSequence",
+                                            property: "value",
+                                            component: target.componentType,
+                                        },
+                                    }),
+                                );
                             }
                         }
                     }

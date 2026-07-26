@@ -155,7 +155,46 @@ export type MessageKey =
     | "accessibility-input-short-description-or-label"
     | "accessibility-answer-input-short-description-or-label"
     | "accessibility-short-description-contains-math"
-    | "accessibility-section-title-insufficient-contrast";
+    | "accessibility-section-title-insufficient-contrast"
+    | "circle-through-points-non-numerical"
+    | "circle-too-many-through-points"
+    | "circle-overprescribed-radius-center-points"
+    | "circle-center-with-multiple-points"
+    | "circle-radius-too-small"
+    | "circle-radius-with-many-points"
+    | "circle-invalid-center-or-through-points"
+    | "circle-radius-center-with-multiple-points"
+    | "circle-change-radius-non-numerical"
+    | "circle-radius-with-points-non-numerical"
+    | "circle-change-center-non-numerical"
+    | "function-domain-insufficient-dimensions"
+    | "function-domain-invalid-format"
+    | "function-ignoring-non-numerical"
+    | "function-ignoring-empty"
+    | "function-points-too-close"
+    | "function-iterates-input-output-mismatch"
+    | "sequence-invalid-length"
+    | "sequence-invalid-step"
+    | "sequence-invalid-endpoint-number"
+    | "sequence-invalid-endpoint-letters"
+    | "sequence-invalid-endpoint"
+    | "select-from-sequence-coprime-not-numbers"
+    | "select-from-sequence-coprime-with-exclude-combinations"
+    | "target-not-found"
+    | "target-state-variable-not-found"
+    | "ode-system-variables-match-independent"
+    | "ode-system-duplicate-variable-names"
+    | "ode-system-rhs-function-error"
+    | "angle-too-many-lines"
+    | "angle-invalid-through-point"
+    | "parabola-vertex-too-many-points"
+    | "parabola-too-many-points"
+    | "intersection-too-many-items"
+    | "ionic-compound-not-two-ions"
+    | "ionic-compound-needs-cation-and-anion"
+    | "solve-equations-cannot-evaluate"
+    | "math-operators-operand-number-required"
+    | "eigen-decomposition-failed";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -308,4 +347,43 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "accessibility-answer-input-short-description-or-label",
     "accessibility-short-description-contains-math",
     "accessibility-section-title-insufficient-contrast",
+    "circle-through-points-non-numerical",
+    "circle-too-many-through-points",
+    "circle-overprescribed-radius-center-points",
+    "circle-center-with-multiple-points",
+    "circle-radius-too-small",
+    "circle-radius-with-many-points",
+    "circle-invalid-center-or-through-points",
+    "circle-radius-center-with-multiple-points",
+    "circle-change-radius-non-numerical",
+    "circle-radius-with-points-non-numerical",
+    "circle-change-center-non-numerical",
+    "function-domain-insufficient-dimensions",
+    "function-domain-invalid-format",
+    "function-ignoring-non-numerical",
+    "function-ignoring-empty",
+    "function-points-too-close",
+    "function-iterates-input-output-mismatch",
+    "sequence-invalid-length",
+    "sequence-invalid-step",
+    "sequence-invalid-endpoint-number",
+    "sequence-invalid-endpoint-letters",
+    "sequence-invalid-endpoint",
+    "select-from-sequence-coprime-not-numbers",
+    "select-from-sequence-coprime-with-exclude-combinations",
+    "target-not-found",
+    "target-state-variable-not-found",
+    "ode-system-variables-match-independent",
+    "ode-system-duplicate-variable-names",
+    "ode-system-rhs-function-error",
+    "angle-too-many-lines",
+    "angle-invalid-through-point",
+    "parabola-vertex-too-many-points",
+    "parabola-too-many-points",
+    "intersection-too-many-items",
+    "ionic-compound-not-two-ions",
+    "ionic-compound-needs-cation-and-anion",
+    "solve-equations-cannot-evaluate",
+    "math-operators-operand-number-required",
+    "eigen-decomposition-failed",
 ];

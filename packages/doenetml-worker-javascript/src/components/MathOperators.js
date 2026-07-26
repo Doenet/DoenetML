@@ -2,6 +2,7 @@ import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisp
 import MathBaseOperator from "./abstract/MathBaseOperator";
 import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
 import me from "math-expressions";
+import { codedDiagnostic } from "../utils/diagnostics";
 const { mod, median } = me.math;
 
 export class Sum extends MathBaseOperator {
@@ -1318,10 +1319,10 @@ export class ExtractMath extends MathBaseOperatorOneInput {
             definition({ dependencyValues }) {
                 if (dependencyValues.type === "operand") {
                     if (dependencyValues.operandNumber === null) {
-                        let warning = {
-                            message: `Must specify a operandNumber when extracting a math operand.`,
+                        let warning = codedDiagnostic({
                             type: "warning",
-                        };
+                            code: "doenet-w0058",
+                        });
                         return {
                             setValue: {
                                 mathOperator: () => me.fromAst("\uff3f"),

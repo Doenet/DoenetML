@@ -1,6 +1,7 @@
 import me from "math-expressions";
 import { numberToLetters, lettersToNumber } from "@doenet/utils";
 import { findFiniteNumericalValue } from "./math";
+import { codedDiagnostic } from "./diagnostics";
 
 export function returnStandardSequenceAttributes() {
     return {
@@ -312,11 +313,12 @@ export function returnStandardSequenceStateVariableDefinitions() {
                     !Number.isInteger(dependencyValues.specifiedLength) ||
                     dependencyValues.specifiedLength < 0
                 ) {
-                    diagnostics.push({
-                        message:
-                            "Invalid length of sequence.  Must be a non-negative integer.",
-                        type: "info",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "info",
+                            code: "doenet-i0012",
+                        }),
+                    );
                     validSequence = false;
                 }
             }
@@ -328,13 +330,13 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         dependencyValues.specifiedStep,
                     );
                     if (!Number.isFinite(numericalStep)) {
-                        diagnostics.push({
-                            message:
-                                "Invalid step of sequence.  Must be a number for sequence of type " +
-                                dependencyValues.type +
-                                ".",
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0013",
+                                args: { type: dependencyValues.type },
+                            }),
+                        );
                         validSequence = false;
                     }
                 }
@@ -346,10 +348,13 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         dependencyValues.specifiedFrom,
                     );
                     if (!Number.isFinite(numericalFrom)) {
-                        diagnostics.push({
-                            message: `Invalid "from" of number sequence.  Must be a number.`,
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0014",
+                                args: { attribute: "from" },
+                            }),
+                        );
                         validSequence = false;
                     }
                 } else if (dependencyValues.type === "letters") {
@@ -357,20 +362,26 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         lettersToNumber(dependencyValues.specifiedFrom) ===
                         undefined
                     ) {
-                        diagnostics.push({
-                            message: `Invalid "from" of letters sequence.  Must be a letter combination.`,
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0015",
+                                args: { attribute: "from" },
+                            }),
+                        );
                         validSequence = false;
                     }
                 } else {
                     // type === math
 
                     if (Number.isNaN(dependencyValues.specifiedFrom.tree)) {
-                        diagnostics.push({
-                            message: `Invalid "from" of sequence.`,
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0016",
+                                args: { attribute: "from" },
+                            }),
+                        );
                         validSequence = false;
                     }
                 }
@@ -382,10 +393,13 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         dependencyValues.specifiedTo,
                     );
                     if (!Number.isFinite(numericalTo)) {
-                        diagnostics.push({
-                            message: `Invalid "to" of number sequence.  Must be a number.`,
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0014",
+                                args: { attribute: "to" },
+                            }),
+                        );
                         validSequence = false;
                     }
                 } else if (dependencyValues.type === "letters") {
@@ -393,20 +407,26 @@ export function returnStandardSequenceStateVariableDefinitions() {
                         lettersToNumber(dependencyValues.specifiedTo) ===
                         undefined
                     ) {
-                        diagnostics.push({
-                            message: `Invalid "to" of letters sequence.  Must be a letter combination.`,
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0015",
+                                args: { attribute: "to" },
+                            }),
+                        );
                         validSequence = false;
                     }
                 } else {
                     // type === math
 
                     if (Number.isNaN(dependencyValues.specifiedTo.tree)) {
-                        diagnostics.push({
-                            message: `Invalid "to" of sequence.`,
-                            type: "info",
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0016",
+                                args: { attribute: "to" },
+                            }),
+                        );
                         validSequence = false;
                     }
                 }
