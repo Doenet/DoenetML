@@ -1,9 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-import { describe, expect, it } from "vitest";
-
 /**
  * The language server must reach `@doenet/utils` through a subpath, never
  * through its root export.
@@ -20,7 +14,7 @@ import { describe, expect, it } from "vitest";
  *
  * The cost is not marginal. One root import in `computeContextHelp.ts`, for a
  * single self-contained function, more than doubled the built server:
- * 1.0 MB minified against 2.2 MB with it (316 KB gzipped against 642 KB).
+ * 1.1 MB minified against 2.3 MB with it (317 KB gzipped against 640 KB).
  *
  * That reasoning lived only in a code comment, and the second import reached
  * the root barrel anyway. A comment cannot fail; this can.
@@ -29,6 +23,14 @@ import { describe, expect, it } from "vitest";
  * server to do it. This costs nothing and catches the mistake at the point it
  * is made — someone typing the import they are used to.
  */
+
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { describe, expect, it } from "vitest";
+
+/** The `packages/` directory, which the scanned roots are relative to. */
 const PACKAGES = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
     "..",
@@ -104,6 +106,136 @@ function rootImportsIn(contents: string): string[] {
     }
     return found;
 }
+
+/**
+ * Every import form {@link rootImportsIn} claims a verdict on, so those
+ * verdicts are checked by the suite rather than re-derived by hand each time
+ * the matching is touched. Anything that survives to runtime must be reported;
+ * type-only statements and subpath specifiers must not be.
+ *
+ * The comment cases are the ones that rule out the obvious one-regex
+ * formulations: scanning line by line mistakes the closing
+ * `} from "@doenet/utils";` of a wrapped type-only import for a statement of
+ * its own, matching `import`/`export` anywhere behind the specifier picks up
+ * the word from a trailing comment, and bounding a forward match at the
+ * nearest `;` stops early on a comment that contains one.
+ */
+const MATCHER_CASES: { form: string; source: string; flagged: boolean }[] = [
+    {
+        form: "a named import",
+        source: `import { cesc } from "@doenet/utils";`,
+        flagged: true,
+    },
+    {
+        form: "a single-quoted specifier",
+        source: `import { cesc } from '@doenet/utils';`,
+        flagged: true,
+    },
+    {
+        form: "a re-export",
+        source: `export { deepClone } from "@doenet/utils";`,
+        flagged: true,
+    },
+    {
+        form: "a star re-export",
+        source: `export * from "@doenet/utils";`,
+        flagged: true,
+    },
+    {
+        form: "a side-effect import",
+        source: `import "@doenet/utils";`,
+        flagged: true,
+    },
+    {
+        form: "a dynamic import",
+        source: `const utils = await import("@doenet/utils");`,
+        flagged: true,
+    },
+    {
+        form: "an inline type modifier, whose statement is still emitted",
+        source: `import { type Foo } from "@doenet/utils";`,
+        flagged: true,
+    },
+    {
+        form: "a wrapped import whose body comment says export",
+        source: `import {\n    isMacPlatform, // re-export below\n} from "@doenet/utils";`,
+        flagged: true,
+    },
+    {
+        form: "a wrapped import whose body comment contains a semicolon",
+        source: `import {\n    cesc, // escapes foo(x); bar\n} from "@doenet/utils";`,
+        flagged: true,
+    },
+    {
+        form: "a type-only import",
+        source: `import type { Foo } from "@doenet/utils";`,
+        flagged: false,
+    },
+    {
+        form: "a wrapped type-only import",
+        source: `import type {\n    Foo,\n} from "@doenet/utils";`,
+        flagged: false,
+    },
+    {
+        form: "a wrapped type-only import whose body comment says export",
+        source: `import type {\n    Foo, // re-export below\n} from "@doenet/utils";`,
+        flagged: false,
+    },
+    {
+        form: "a wrapped type-only import whose body comment contains a semicolon",
+        source: `import type {\n    Foo, // as in foo(x); bar\n} from "@doenet/utils";`,
+        flagged: false,
+    },
+    {
+        form: "a type-only re-export",
+        source: `export type { Foo } from "@doenet/utils";`,
+        flagged: false,
+    },
+    {
+        form: "a wrapped type-only re-export",
+        source: `export type {\n    Foo,\n} from "@doenet/utils";`,
+        flagged: false,
+    },
+    {
+        form: "a subpath import",
+        source: `import { STYLE_PALETTES } from "@doenet/utils/style";`,
+        flagged: false,
+    },
+    {
+        form: "a dynamic subpath import",
+        source: `const style = await import("@doenet/utils/style");`,
+        flagged: false,
+    },
+    {
+        form: "another package entirely",
+        source: `import { toXml } from "@doenet/parser";`,
+        flagged: false,
+    },
+];
+
+describe("the guard's matcher", () => {
+    it.each(MATCHER_CASES.filter((matcherCase) => matcherCase.flagged))(
+        "reports $form",
+        ({ source }) => {
+            expect(rootImportsIn(source)).toHaveLength(1);
+        },
+    );
+
+    it.each(MATCHER_CASES.filter((matcherCase) => !matcherCase.flagged))(
+        "allows $form",
+        ({ source }) => {
+            expect(rootImportsIn(source)).toEqual([]);
+        },
+    );
+
+    it("points at the head of a wrapped statement, collapsed onto one line", () => {
+        expect(
+            rootImportsIn(
+                `const x = 1;\nimport {\n    cesc,\n} from "@doenet/utils";\n`,
+            ),
+        ).toEqual([`2: import { cesc, } from "@doenet/utils"`]);
+    });
+});
 
 describe("the language server's dependency on @doenet/utils", () => {
     it("goes through a subpath, never the root barrel", () => {
