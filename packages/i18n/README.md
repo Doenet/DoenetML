@@ -364,6 +364,26 @@ Pass `{ list, type: "unit" }` instead of a bare array for a bare enumeration
 ("x, y, z") rather than a conjunction ("x, y, and z") — English distinguishes
 them and other languages distinguish them differently.
 
+## Bundling
+
+`package.json` declares `"sideEffects": false`, and that is load-bearing rather
+than tidiness. The English catalogs are `?raw` imports assembled by a
+module-level call in `catalogs.ts`; without the declaration a bundler has to
+assume that call might do something observable, so it keeps it — and keeping it
+keeps all four FTL files — in **any** bundle that reaches this package for any
+reason, even one where every function has already been tree-shaken away.
+
+That is not hypothetical. When `@doenet/utils` took its runtime dependency on
+this package (#1518), the DoenetML language server gained 20 KB gzipped of
+catalog text without gaining a single line of code that reads it: it imports
+`@doenet/utils/style` for something unrelated, and the strings came along.
+`packages/lsp/scripts/check-server-bundle.mjs` fails the build if they come
+back.
+
+Nothing here registers globals, patches prototypes, or imports for effect, so
+the claim is true today. Anything added that breaks it has to remove the
+declaration and pay the cost everywhere.
+
 ## Commands
 
 ```bash

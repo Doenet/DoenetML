@@ -21,6 +21,7 @@
     "scripts": {
         "watch": "vite build --watch",
         "build": "wireit",
+        "check:size": "node scripts/check-server-bundle.mjs",
         "test": "vitest",
         "compile_grammar": "npx lezer-generator --output src/generated-assets/lezer-doenet.ts src/doenet.grammar"
     },

@@ -1,6 +1,7 @@
 {
     "name": "@doenet/i18n",
     "type": "module",
+    "sideEffects": false,
     "description": "Message catalogs and translation utilities for DoenetML",
     "version": "1.0.0",
     "license": "AGPL-3.0-or-later",
