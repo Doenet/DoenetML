@@ -133,7 +133,7 @@ export function createStableHandle(
  * translation can reach. The case needs a malformed descendant to arise at
  * all, which is why it is a placeholder rather than a sentence of its own.
  */
-export function warningMessageForDescendant(
+export function warningSubjectForDescendant(
     descendant: Descendant | null | undefined,
 ): string {
     if (descendant?.componentName) {

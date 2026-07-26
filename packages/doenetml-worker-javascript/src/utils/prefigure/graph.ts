@@ -3,7 +3,7 @@ import {
     escapeXml,
     formatNumber,
     pushWarning,
-    warningMessageForDescendant,
+    warningSubjectForDescendant,
 } from "./common";
 import { labelMarkup } from "./label";
 import { convertGraphicalDescendantToPrefigure } from "./descendant";
@@ -188,7 +188,7 @@ export function createPrefigureXML({
         pushWarning({
             diagnostics,
             code: "doenet-w0084",
-            args: { subject: warningMessageForDescendant(descendant) },
+            args: { subject: warningSubjectForDescendant(descendant) },
             position: descendant?.position,
         });
     }

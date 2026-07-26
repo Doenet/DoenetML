@@ -785,13 +785,21 @@ describe("Warning Tests @group4", async () => {
         const diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(
-            diagnosticsByType.infos.some((info) =>
-                info.message.includes(
-                    "cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer",
-                ),
+        const info = diagnosticsByType.infos.find((info) =>
+            info.message.includes(
+                "cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer",
             ),
-        ).eq(true);
+        );
+        expect(info).toBeDefined();
+
+        // `pushVariantInfo` builds every one of these on its callers' behalf,
+        // so the code and arguments are the only evidence that the sentence
+        // came from the catalog rather than from a literal at the call site —
+        // and they are the half the main thread re-renders from. The tag is an
+        // argument because it is an identifier that stays as written in every
+        // language; the reason it gives is what the code names.
+        expect(info?.code).eq("doenet-i0022");
+        expect(info?.args?.component).eq("selectFromSequence");
     });
 
     it("non-integer requested variant index produces an info", async () => {

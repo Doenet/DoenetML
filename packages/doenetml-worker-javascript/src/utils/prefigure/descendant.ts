@@ -1,7 +1,7 @@
 import {
     createStableHandle,
     pushWarning,
-    warningMessageForDescendant,
+    warningSubjectForDescendant,
 } from "./common";
 import { styleAttributes, resolveSelectedStyleForTheme } from "./style";
 import { convertPointToPrefigure } from "./components/point";
@@ -108,7 +108,7 @@ export function convertGraphicalDescendantToPrefigure({
         return null;
     }
 
-    const warningPrefix = warningMessageForDescendant(descendant);
+    const warningPrefix = warningSubjectForDescendant(descendant);
     const warningPosition = descendant?.position;
     const handle = createStableHandle(descendant, index, usedHandles);
     const styleAttrs = styleAttributes({

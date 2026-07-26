@@ -15,10 +15,14 @@ import type { DiagnosticLevel, DiagnosticRecord, Position } from "./types";
  * to the main thread, where the message can be rendered in the reader's
  * language. `packages/i18n/README.md` shows the before and after.
  *
- * Do not write an example call in a comment here: `lint:i18n` counts a `code`
- * property naming a diagnostic code, and a `type` property naming a severity,
- * wherever they appear — comments included — so an illustration would land in
- * the migration burn-down as if it were a real call site.
+ * Do not write an example call in a comment here — not even a fragment of one,
+ * and note that the sentence you are reading deliberately never spells this
+ * function's name followed by an open parenthesis. `lint:i18n` scans source
+ * text with comments included, and counts three things: a `type` property
+ * naming a severity, a call to this function, and a `code` property naming a
+ * diagnostic code. The first two are the halves of the migration burn-down;
+ * the third is what proves a registered code is raised somewhere. An
+ * illustration is read as real on whichever of the three it contains.
  *
  * `message` is filled in from the English catalog rather than by the caller,
  * so the English and the catalog cannot drift, and everything that reads
