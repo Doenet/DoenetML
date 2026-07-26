@@ -52,9 +52,10 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
-            # The standalone bundles have grown by megabytes before, when the
-            # Rust core ended up inlined twice, and nothing failed. Checked here
-            # rather than in a test job because this is where the bundles exist.
+            # The standalone bundle has carried megabytes it should not have
+            # before — the Rust core was inlined into it until #1465 — and
+            # nothing failed. Checked here rather than in a test job because
+            # this is where the bundles exist.
             - name: Check standalone bundle size
               run: npm run check:size -w packages/standalone
 

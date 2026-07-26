@@ -1,12 +1,15 @@
 /**
  * Guards the built standalone bundles against silent growth, and against the
- * specific way they have grown before: a second copy of the Rust core.
+ * specific way they have grown before: the Rust core sitting somewhere it does
+ * not belong.
  *
  * The core ships as a single base64 `data:application/wasm` URI inlined into
- * the worker bundle — 8.3 MiB of the worker's 14.2 MiB. When a build or
- * dependency change causes that blob to be emitted twice, or to be pulled into
- * `doenet-standalone.js` as well, the bundle grows by megabytes and nothing
- * fails. That has happened more than once.
+ * the worker bundle — 8.3 MiB of the worker's 14.2 MiB. Until #1465 the whole
+ * worker, that blob included, was inlined into `doenet-standalone.js` instead,
+ * which is why that bundle was ~28 MB rather than today's ~14 MB — and nothing
+ * in the build noticed either its size or where the core had landed. A change
+ * that puts the blob back into `doenet-standalone.js`, or emits it twice, would
+ * be just as quiet.
  *
  * Two checks, doing different jobs:
  *
@@ -185,9 +188,10 @@ function blobPlacementProblem(relative, emitted, expected) {
     if (expected === 1) {
         return (
             `${relative} should carry the Rust core exactly once, but has ${observed}.\n` +
-            `    Zero means the core stopped being inlined — the worker would then have to\n` +
-            `    fetch it at runtime, which standalone hosting cannot do. More than one\n` +
-            `    means it was bundled twice, which adds megabytes.`
+            `    Zero means the core stopped being inlined, and vite.config.ts copies only\n` +
+            `    index.js (+ its map) into dist/ — there is no sibling .wasm left for the\n` +
+            `    worker to fetch. More than one means it was bundled twice, which adds\n` +
+            `    megabytes.`
         );
     }
     return (
