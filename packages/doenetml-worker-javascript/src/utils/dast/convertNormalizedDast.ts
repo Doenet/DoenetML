@@ -25,7 +25,7 @@ import {
     UnflattenedPathPart,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
-import { convertToErrorComponent } from "./errors";
+import { convertToErrorComponent, errorComponentState } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
@@ -164,7 +164,12 @@ export async function normalizedDastToSerializedComponents(
                             position: node.position,
                             sourceDoc: node.sourceDoc,
                             state: {
-                                message: node.message,
+                                // A `DastError` carries no code yet, so this
+                                // is the bare message today. It is the line
+                                // #1549 needs: once the parser names its
+                                // diagnostics, they reach the record through
+                                // here without this file changing again.
+                                ...errorComponentState(node.message, node),
                                 unresolvedPath: node.unresolvedPath,
                             },
                             children: [],

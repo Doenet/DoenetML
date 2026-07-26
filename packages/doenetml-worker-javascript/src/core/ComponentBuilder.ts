@@ -12,7 +12,10 @@ import {
 import { addComponentsToResolver } from "./ResolverAdapter";
 import { createStateVariableDefinitions } from "./StateVariableDefinitionFactory";
 import { initializeComponentStateVariables } from "./StateVariableInitializer";
-import { convertToErrorComponent } from "../utils/dast/errors";
+import {
+    convertToErrorComponent,
+    errorComponentState,
+} from "../utils/dast/errors";
 import { diagnosticCodeFrom } from "../utils/diagnostics";
 import { gatherVariantComponents } from "../utils/variants";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
@@ -961,10 +964,7 @@ export async function addQueuedErrorComponentsFromStateVariables({
                 // carries the same slot, whichever of the three places built
                 // it. (The record has already reached `addDiagnostic`; what
                 // this preserves is the component's own knowledge of it.)
-                state: {
-                    message: errorInfo.message,
-                    ...diagnosticCodeFrom(errorInfo),
-                },
+                state: errorComponentState(errorInfo.message, errorInfo),
                 position: errorInfo.position,
                 sourceDoc: errorInfo.sourceDoc,
                 children: [],

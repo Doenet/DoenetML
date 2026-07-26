@@ -265,9 +265,14 @@ throw new DiagnosticError({
 `DiagnosticError` (alongside `codedDiagnostic`) is an `Error` subclass whose
 `message` comes from the same English catalog, so it drops straight into a
 `throw` site: `instanceof Error` still holds and a `catch` reading `e.message`
-sees what it saw before. `convertToErrorComponent` copies the code and
-arguments onto the `_error`'s `state`, and the builder reads them back off
-when it raises the diagnostic.
+sees what it saw before. `errorComponentState` puts the code and arguments on
+the `_error`'s `state` — every place that builds one of those components uses
+it — and the builder reads them back off when it raises the diagnostic.
+
+The `catch` blocks in between hold no English of their own, so they have
+nothing to migrate and no code to name; they spread `diagnosticCodeFrom` to
+pass along whatever their source carried. `lint:i18n` counts those as migrated
+too, since there is nothing further to do to them.
 
 ### Codes
 

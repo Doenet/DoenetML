@@ -3,7 +3,10 @@ import { formatEnglishDiagnostic } from "@doenet/i18n";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { DiagnosticError, diagnosticCodeFrom } from "../../utils/diagnostics";
-import { convertToErrorComponent } from "../../utils/dast/errors";
+import {
+    convertToErrorComponent,
+    errorComponentState,
+} from "../../utils/dast/errors";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -92,6 +95,33 @@ describe("a thrown error keeps its code", () => {
             formatEnglishDiagnostic("doenet-e0003", { attribute: "name" }),
         );
         expect(thrown.message).eq("Cannot repeat attribute name.");
+    });
+});
+
+describe("errorComponentState", () => {
+    // Three places build an `_error`, and each is the sole carrier of the
+    // diagnostic it holds. They share this so none of them can quietly ship
+    // one without its code.
+    it("adds nothing when the source has no code to give", () => {
+        expect(
+            errorComponentState("Something went wrong.", Error("ignored")),
+        ).eqls({ message: "Something went wrong." });
+    });
+
+    it("takes the code from a diagnostic record", () => {
+        // The shape the state-variable queue hands it: the record itself.
+        expect(
+            errorComponentState("Cannot repeat attribute name.", {
+                type: "error",
+                message: "Cannot repeat attribute name.",
+                code: "doenet-e0003",
+                args: { attribute: "name" },
+            }),
+        ).eqls({
+            message: "Cannot repeat attribute name.",
+            code: "doenet-e0003",
+            args: { attribute: "name" },
+        });
     });
 });
 
