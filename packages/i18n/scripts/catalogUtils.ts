@@ -350,6 +350,12 @@ export type DiagnosticUsage = {
     codes: CallSite[];
     /** Sites that pass a code through from their source without naming one. */
     forwardedCount: number;
+    /**
+     * The denominator: every construction that raises a diagnostic, coded or
+     * not — a record's `type:` literal ({@link DIAGNOSTIC_LITERAL_PATTERN})
+     * and a throw's `new DiagnosticError(` ({@link THROWN_DIAGNOSTIC_PATTERN}).
+     * Subtracting the migrated sites from this is the burn-down.
+     */
     literalCount: number;
 };
 

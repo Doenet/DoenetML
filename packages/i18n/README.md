@@ -266,8 +266,11 @@ throw new DiagnosticError({
 `message` comes from the same English catalog, so it drops straight into a
 `throw` site: `instanceof Error` still holds and a `catch` reading `e.message`
 sees what it saw before. `errorComponentState` puts the code and arguments on
-the `_error`'s `state` — every place that builds one of those components uses
-it — and the builder reads them back off when it raises the diagnostic.
+the `_error`'s `state` — every place that builds one of those components out
+of something that could be carrying a code uses it — and the builder reads
+them back off when it raises the diagnostic. The other places that build an
+`_error` compose their own English string, so there is no code for them to
+lose; they join this path when those messages migrate.
 
 The sites in between — the two `catch` blocks that build a record from a
 caught error, and the `ComponentBuilder` branch that raises one from an

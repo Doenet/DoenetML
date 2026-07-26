@@ -99,9 +99,9 @@ describe("a thrown error keeps its code @group4", () => {
 });
 
 describe("errorComponentState @group4", () => {
-    // Three places build an `_error`, and each is the sole carrier of the
-    // diagnostic it holds. They share this so none of them can quietly ship
-    // one without its code.
+    // Three places build an `_error` out of something that might be carrying
+    // a code, and each is the sole carrier of the diagnostic it holds. They
+    // share this so none of them can quietly ship one without its code.
     it("adds nothing when the source has no code to give", () => {
         expect(
             errorComponentState("Something went wrong.", Error("ignored")),

@@ -90,6 +90,12 @@ export function codedDiagnostic({
  * Being an `Error` subclass is what makes it a drop-in at a `throw` site: the
  * `instanceof Error` checks and the `"message" in e` narrowing along these
  * paths all still hold.
+ *
+ * As with {@link codedDiagnostic}, do not write an example construction in a
+ * comment in a scanned source file: `lint:i18n` counts a `new` of this class
+ * wherever it appears in source text — comments included — so an illustration
+ * would land in the migration burn-down as if it were a real throw site.
+ * `packages/i18n/README.md` is not scanned, which is where the example lives.
  */
 export class DiagnosticError extends Error {
     readonly code: DiagnosticCode;

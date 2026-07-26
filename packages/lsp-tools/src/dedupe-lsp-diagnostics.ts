@@ -2,9 +2,11 @@ import type { Diagnostic } from "vscode-languageserver-protocol";
 
 /**
  * Drop diagnostics that already appear in the list at the same
- * `severity` and `range`, identified by their stable `code` (with the
- * arguments that fill it in) where they have one and by their
- * `message` where they don't.
+ * `severity` and `range`.  Within such a pair a record is identified
+ * by its `message`, and additionally — when it carries one — by its
+ * stable `code` together with the arguments that fill it in.  Two
+ * records matching on *either* identity are the same diagnostic; the
+ * two sections below are why it takes both.
  *
  * The LSP server (`@doenet/lsp` `validateTextDocument`) merges three
  * independent sources — `extractDastErrors(sourceObj.dast)`,
@@ -136,10 +138,13 @@ function argsFingerprint(d: Diagnostic): string {
 }
 
 /**
- * The keys this diagnostic dedupes on, most specific first.
+ * The keys this diagnostic dedupes on: always its message, plus its
+ * code and arguments when it carries a code.
  *
- * Always its message; additionally its code and arguments when it
- * carries a code.
+ * The code key comes first because it is the more reliable identity —
+ * in the rare case that the two keys point at different entries
+ * already in the list, the code decides which one this record folds
+ * into.
  */
 function diagnosticKeys(d: Diagnostic): string[] {
     // `severity` is optional in the LSP type; collapse undefined to a
