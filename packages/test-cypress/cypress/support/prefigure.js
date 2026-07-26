@@ -106,10 +106,9 @@ export async function compilePrefigure(_diagramXML, _options) {
  * Serve an empty diagcess bundle instead of letting the page pull the real one
  * from the CDN. The stub still loads, so the renderer's one-time script-load
  * effect settles as usual, but `window.diagcess` is never defined and the
- * diagcess re-init is skipped. Use only in tests that do not exercise
- * annotations.
+ * diagcess re-init is skipped.
  */
-export function installDiagcessScriptStub() {
+function installDiagcessScriptStub() {
     cy.intercept("GET", "**/diagcess*.js*", {
         statusCode: 200,
         headers: { "content-type": "application/javascript" },
@@ -118,11 +117,19 @@ export function installDiagcessScriptStub() {
 }
 
 /**
- * Visit the harness with the prefigure runtime overrides in place, so the
+ * Visit the harness with every prefigure CDN dependency stubbed out: the
  * renderer imports `modulePath` (see {@link installMockPrefigureModule})
- * instead of the CDN build and passes no pyodide index URL.
+ * instead of the published pyodide build, gets no pyodide index URL, and gets
+ * an empty diagcess bundle.
+ *
+ * Because `window.diagcess` is never defined, the diagcess re-init is skipped.
+ * Tests that exercise annotations should instead define `window.diagcess`
+ * themselves in an `onBeforeLoad` hook, and tests that need the real diagcess
+ * script should visit the harness directly.
  */
 export function visitWithMockPrefigureModule(modulePath) {
+    installDiagcessScriptStub();
+
     cy.visit("/", {
         onBeforeLoad(win) {
             win.__DOENET_PREFIGURE_MODULE_URL__ = new URL(

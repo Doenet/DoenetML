@@ -1,5 +1,4 @@
 import {
-    installDiagcessScriptStub,
     installMockPrefigureModule,
     installPrefigureBuildIntercept,
     visitWithMockPrefigureModule,
@@ -40,14 +39,12 @@ describe(
             if (prefigure) {
                 // These tests only check that graph controls behave the same
                 // next to a prefigure graph; they never inspect the rendered
-                // diagram. So stub every prefigure network dependency — the
-                // WASM module, the diagcess script, and the build service —
-                // and the page never reaches the CDN. Downloading the pyodide
-                // runtime and its wheels, and then initializing pyodide on the
-                // main thread, can otherwise starve the main thread long enough
-                // for control interactions to time out.
+                // diagram. So serve a stub prefigure runtime and stub the build
+                // service, and the page never reaches the CDN. Downloading the
+                // real pyodide runtime and its wheels, and then initializing
+                // pyodide on the main thread, can otherwise starve the main
+                // thread long enough for control interactions to time out.
                 const modulePath = installMockPrefigureModule();
-                installDiagcessScriptStub();
                 installPrefigureBuildIntercept();
                 visitWithMockPrefigureModule(modulePath);
             } else {
@@ -1707,40 +1704,34 @@ describe(
                 keyboardStepRangeRight(xSlider);
             }
 
-            // The slider is React-controlled, so each keyboard step is only
-            // reflected in the DOM once the transient state update round-trips.
-            // Retry until the accumulated transient value is in range before
-            // reading its exact value below, which `.invoke("val")` would
-            // otherwise sample without retrying.
+            // Before blur the slider holds the accumulated, unconstrained
+            // transient value, and the number input mirrors it. The slider is
+            // React-controlled and each keyboard step round-trips through the
+            // worker, so assert both facts in one retried callback: sampling
+            // the two elements in separate, non-retrying commands could catch
+            // them mid-update, disagreeing with each other.
             cy.get(xSlider).should(($slider) => {
-                const transientNumber = Number($slider.val());
+                const transientValue = $slider.val();
+                const transientNumber = Number(transientValue);
                 expect(transientNumber).to.be.greaterThan(0.5);
                 expect(transientNumber).to.be.lessThan(0.9);
+                expect(
+                    Cypress.$('input[aria-label="x value input for P"]').val(),
+                ).to.equal(transientValue);
             });
 
             // Actual point snaps to 1 even during the transient
-
             cy.get("#Px").should("have.text", "1");
-            cy.get(xSlider)
-                .invoke("val")
-                .then((transientValue) => {
-                    // Before blur: number input should show transient value
-                    cy.get('input[aria-label="x value input for P"]').should(
-                        "have.value",
-                        transientValue,
-                    );
 
-                    cy.get(xSlider).blur();
+            cy.get(xSlider).blur();
 
-                    // After blur: slider and input both snap to constrained value
-                    cy.get(xSlider).should("have.value", "1");
-                    cy.get('input[aria-label="x value input for P"]').should(
-                        "have.value",
-                        "1",
-                    );
-                    cy.get("#Px").should("have.text", "1");
-                });
+            // After blur: slider and input both snap to constrained value
             cy.get(xSlider).should("have.value", "1");
+            cy.get('input[aria-label="x value input for P"]').should(
+                "have.value",
+                "1",
+            );
+            cy.get("#Px").should("have.text", "1");
         });
 
         it("keyboard blur on constrained point does not send another movePoint", () => {
