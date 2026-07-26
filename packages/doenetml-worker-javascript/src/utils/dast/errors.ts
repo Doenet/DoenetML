@@ -4,7 +4,18 @@ import { UnflattenedComponent } from "./intermediateTypes";
 import { SerializedAttribute, SerializedComponent } from "./types";
 
 /**
- * The `state` an `_error` component carries its diagnostic in.
+ * The `state` an `_error` component carries its diagnostic in: the message it
+ * has always held, plus the code naming the situation and the arguments
+ * filling that code's message in, when the source was carrying them.
+ */
+export type ErrorComponentState = {
+    message: string;
+    code?: DiagnosticCode;
+    args?: DiagnosticArgs;
+};
+
+/**
+ * Build the {@link ErrorComponentState} for an `_error` component.
  *
  * The one definition of that shape, because three places build an `_error` —
  * {@link convertToErrorComponent}, the parser-error branch of
@@ -28,7 +39,7 @@ import { SerializedAttribute, SerializedComponent } from "./types";
 export function errorComponentState(
     message: string,
     source: unknown,
-): { message: string; code?: DiagnosticCode; args?: DiagnosticArgs } {
+): ErrorComponentState {
     // Already omits the keys it has nothing for, so nothing here has to.
     const codeAndArgs = diagnosticCodeFrom(source);
     return { message, ...codeAndArgs };
@@ -64,12 +75,7 @@ export function errorComponentState(
 export function convertToErrorComponent(
     component: UnflattenedComponent | SerializedComponent,
     eOrMessage: unknown,
-): {
-    component: SerializedComponent;
-    message: string;
-    code?: DiagnosticCode;
-    args?: DiagnosticArgs;
-} {
+): { component: SerializedComponent } & ErrorComponentState {
     const message =
         typeof eOrMessage === "string"
             ? eOrMessage

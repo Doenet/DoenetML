@@ -283,10 +283,10 @@ A code is a permanent name — what a bug report cites, what a host reading
 will hang off (#1548). It rides on the record, and on the LSP `code` field for
 a positioned diagnostic — with the arguments alongside it in `data.args`, since
 a code names a message *template* and it takes both to say which occurrence of
-it this is, which is how the editor's `dedupeLspDiagnostics` recognizes two
-renderings of one diagnostic without comparing their text. Nothing renders the
-code itself yet, so the codes earn their keep as an identifier rather than as
-UI.
+it this is. That pair is how the language server's `dedupeLspDiagnostics`
+recognizes two renderings of one diagnostic without comparing their text.
+Nothing renders the code itself yet, so the codes earn their keep as an
+identifier rather than as UI.
 
 `DIAGNOSTIC_CODES` in `src/diagnostics.ts` maps each to a message id, and
 `diagnostic-codes.lock.json` records every code ever issued, so `lint:i18n`

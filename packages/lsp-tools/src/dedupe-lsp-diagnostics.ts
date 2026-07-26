@@ -55,13 +55,12 @@ import type { Diagnostic } from "vscode-languageserver-protocol";
  * span, twice".
  *
  * Keeps the first occurrence; later duplicates are folded in.  Optional
- * metadata fields not part of the dedupe key (`code`, `codeDescription`,
- * `source`, `tags`, `relatedInformation`, `data`) are copied from the
- * later duplicate into the keeper when the keeper has them undefined,
- * so a quick-fix payload added by only one of the merge paths isn't
- * silently dropped.  When the keeper already has every mergeable field
- * defined, the original object is returned unchanged (identity is
- * preserved, which the existing UX assumes).
+ * metadata the keeper is missing (see {@link MERGEABLE_FIELDS}) is
+ * copied from the later duplicate, so a code the parser copy doesn't
+ * carry yet, or a quick-fix payload added by only one of the merge
+ * paths, isn't silently dropped.  When the keeper already has every
+ * mergeable field defined, the original object is returned unchanged
+ * (identity is preserved, which the existing UX assumes).
  */
 export function dedupeLspDiagnostics(
     diagnostics: readonly Diagnostic[],
@@ -70,30 +69,24 @@ export function dedupeLspDiagnostics(
     const out: Diagnostic[] = [];
     for (const d of diagnostics) {
         const keys = diagnosticKeys(d);
-        let existing: number | undefined;
+        let index = keys
+            .map((key) => indexByKey.get(key))
+            .find((found) => found !== undefined);
+        if (index === undefined) {
+            index = out.length;
+            out.push(d);
+        } else {
+            out[index] = mergeMissingFields(out[index], d);
+        }
+        // The keeper takes over every key this record claims, so a third
+        // copy matching any one of them folds into the same entry rather
+        // than starting a second.  Existing claims are left alone: the
+        // first record to claim a key owns it.
         for (const key of keys) {
-            existing = indexByKey.get(key);
-            if (existing !== undefined) {
-                break;
+            if (!indexByKey.has(key)) {
+                indexByKey.set(key, index);
             }
         }
-        if (existing !== undefined) {
-            out[existing] = mergeMissingFields(out[existing], d);
-            // The keeper takes over the duplicate's keys as well, so a
-            // third copy matching either one folds into the same entry
-            // rather than starting a second.  Existing claims are left
-            // alone: the first record to claim a key owns it.
-            for (const key of keys) {
-                if (!indexByKey.has(key)) {
-                    indexByKey.set(key, existing);
-                }
-            }
-            continue;
-        }
-        for (const key of keys) {
-            indexByKey.set(key, out.length);
-        }
-        out.push(d);
     }
     return out;
 }
@@ -155,18 +148,26 @@ function diagnosticKeys(d: Diagnostic): string[] {
     const s = d.range.start;
     const e = d.range.end;
     const location = `${sev}|${s.line}:${s.character}-${e.line}:${e.character}`;
-    const keys = [`${location}|m:${d.message}`];
+    // The `m:` / `c:` tags keep a message that happens to read like a
+    // code from colliding with a code key.
+    const messageKey = `${location}|m:${d.message}`;
     if (typeof d.code === "string" && DOENET_DIAGNOSTIC_CODE.test(d.code)) {
-        keys.unshift(`${location}|c:${d.code}|${argsFingerprint(d)}`);
+        return [`${location}|c:${d.code}|${argsFingerprint(d)}`, messageKey];
     }
-    return keys;
+    return [messageKey];
 }
 
 /**
- * Optional `Diagnostic` fields that aren't part of the dedupe key.  If
- * the keeper is missing one and a later duplicate carries it, fill it
- * in so distinct-source duplicates don't silently lose metadata (e.g.
- * a quick-fix `data` payload on only the worker echo).
+ * Optional `Diagnostic` fields filled in on the keeper from a later
+ * duplicate that carries them, so distinct-source duplicates don't
+ * silently lose metadata (e.g. the stable `code` and its `data.args`,
+ * which only the worker echo has while the parser copy is still
+ * uncoded).
+ *
+ * These are merged, not compared: a keeper that gains a `code` here
+ * did not dedupe on it — it matched on the message — and it inherits
+ * the duplicate's keys separately, in {@link dedupeLspDiagnostics}, so
+ * a third copy carrying only the code still finds it.
  */
 const MERGEABLE_FIELDS = [
     "code",
