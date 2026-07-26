@@ -3,7 +3,7 @@ import {
     escapeXml,
     formatNumber,
     pushWarning,
-    warningMessageForDescendant,
+    warningSubjectForDescendant,
 } from "./common";
 import { labelMarkup } from "./label";
 import { convertGraphicalDescendantToPrefigure } from "./descendant";
@@ -187,7 +187,8 @@ export function createPrefigureXML({
     for (const descendant of unsupported ?? []) {
         pushWarning({
             diagnostics,
-            message: `${warningMessageForDescendant(descendant)}: unsupported in graph prefigure renderer; descendant skipped.`,
+            code: "doenet-w0084",
+            args: { subject: warningSubjectForDescendant(descendant) },
             position: descendant?.position,
         });
     }

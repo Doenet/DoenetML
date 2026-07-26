@@ -333,11 +333,18 @@ still agrees, and retiring becomes a line in a diff rather than a silent
 consequence of deleting the last call site. Putting a code back to work means
 dropping it from that list, which the lint also insists on.
 
-Two things `lint:i18n` counts wherever they appear, **comments included**: a
-`code` property naming a diagnostic code, and a `type` property naming a
-severity. An example call written in a doc comment lands in the migration
-burn-down as though it were real — the same trap as writing a `t("key")` call
-in a comment.
+Three things `lint:i18n` counts by scanning source text, wherever they appear
+and **comments included**: a `type` property naming a severity, a
+`codedDiagnostic(` call, and a `code` property naming a diagnostic code. The
+first two are the two halves of the migration burn-down — every construction,
+and the ones taking their message from the catalog. The third is separate: it
+is what proves every registered code is raised somewhere.
+
+So an example written in a doc comment is read as real, and which way it lands
+depends on what the example contains: a lone `type: "warning"` adds to the work
+remaining, a lone `codedDiagnostic(` subtracts from it, and a `code:` makes a
+code nothing raises look raised. The same trap as writing a `t("key")` call in
+a comment.
 
 ### Lists and agreement
 

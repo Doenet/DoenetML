@@ -5,7 +5,7 @@ import type {
     PushDiagnosticArgs,
     UsedHandles,
 } from "./types";
-import type { DiagnosticRecord } from "@doenet/utils";
+import { codedDiagnostic } from "@doenet/utils";
 
 /**
  * Escapes user-provided text for safe insertion into XML attributes/text nodes.
@@ -120,33 +120,45 @@ export function createStableHandle(
 }
 
 /**
- * Builds a readable warning prefix for a descendant component.
+ * Builds the subject a PreFigure conversion warning names: the component it is
+ * about, as `<tag>` or `<tag> (name)`.
+ *
+ * This is handed to the catalog as an argument, so it deliberately contains no
+ * words — only a tag name, a component name, and punctuation, all of which
+ * stay as they are in every language. The catalog places it in the sentence
+ * (`packages/i18n/locales/en/diagnostics.ftl`, "PreFigure conversion").
+ *
+ * Hence `<?>` rather than `<unknown>` for a descendant with no type: it is the
+ * one place this function could put an English word into an argument that no
+ * translation can reach. The case needs a malformed descendant to arise at
+ * all, which is why it is a placeholder rather than a sentence of its own.
  */
-export function warningMessageForDescendant(
+export function warningSubjectForDescendant(
     descendant: Descendant | null | undefined,
 ): string {
     if (descendant?.componentName) {
         return `<${descendant.componentType}> (${descendant.componentName})`;
     }
-    return `<${descendant?.componentType ?? "unknown"}>`;
+    return `<${descendant?.componentType ?? "?"}>`;
 }
 
 /**
  * Pushes a warning record and attaches position when available.
+ *
+ * Takes a code and its arguments rather than a finished sentence: the dozen
+ * call sites behind this helper each held a literal English string, and the
+ * migration burn-down could not see them, because it counts diagnostic
+ * constructions and this is one construction for all of them (#1518).
  */
 export function pushWarning({
     diagnostics,
-    message,
+    code,
+    args,
     position,
 }: PushDiagnosticArgs): void {
-    const warning: DiagnosticRecord = {
-        type: "warning",
-        message,
-    };
-    if (position) {
-        warning.position = position;
-    }
-    diagnostics.push(warning);
+    diagnostics.push(
+        codedDiagnostic({ type: "warning", code, args, position }),
+    );
 }
 
 /**

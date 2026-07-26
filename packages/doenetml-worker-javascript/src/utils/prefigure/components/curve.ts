@@ -914,13 +914,27 @@ function parsedFormulaPiecesFromDefinition({
             const message = SUPPORTED_CURVE_FUNCTION_TYPES.has(typeLabel)
                 ? `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} failed to build curve pieces (type '${typeLabel}'); child skipped.`
                 : `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} has unsupported function definition type '${typeLabel}'; child skipped.`;
-            pushWarning({ diagnostics, message, position: warningPosition });
+            // Not coded yet, and deliberately built here rather than through
+            // `pushWarning`, so the burn-down still counts it. `pieceRole` is
+            // an English fragment composed recursively — each level of
+            // piecewise nesting appends "piecewise child" to the level above —
+            // so coding this message means first turning that fragment into
+            // structured data (a base role plus a nesting depth). That is a
+            // change to how curve conversion tracks its recursion, not to the
+            // message, so it is left for its own change (#1518).
+            diagnostics.push({
+                type: "warning",
+                message,
+                position: warningPosition,
+            });
             continue;
         }
 
         if (childPiecesResult.pieces.length === 0) {
-            pushWarning({
-                diagnostics,
+            // Same recursively-composed `pieceRole` as above; see the note
+            // there for why this one is not coded yet either.
+            diagnostics.push({
+                type: "warning",
                 message: `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} has no pieces overlapping the active domain/bounds; child skipped.`,
                 position: warningPosition,
             });
@@ -1000,7 +1014,8 @@ function warnCurveLabelOmitted({
     ) {
         pushWarning({
             diagnostics,
-            message: `${warningPrefix}: labels are not supported on converted curve elements; label omitted.`,
+            code: "doenet-w0086",
+            args: { subject: warningPrefix },
             position: warningPosition,
         });
     }
@@ -1034,7 +1049,11 @@ function validatePiecesResult(
         if (hasUnsupportedType) {
             pushWarning({
                 diagnostics,
-                message: `${warningPrefix}: unsupported curve function definition type '${definitionTypeLabel}'; descendant skipped.`,
+                code: "doenet-w0087",
+                args: {
+                    subject: warningPrefix,
+                    definitionType: definitionTypeLabel,
+                },
                 position: warningPosition,
             });
         }

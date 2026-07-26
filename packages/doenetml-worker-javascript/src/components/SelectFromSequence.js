@@ -408,8 +408,8 @@ export default class SelectFromSequence extends Sequence {
         serializedComponent,
         infoDiagnostics,
     }) {
-        const info = (message) =>
-            pushVariantInfo(infoDiagnostics, message, serializedComponent);
+        const info = (diagnostic) =>
+            pushVariantInfo(infoDiagnostics, diagnostic, serializedComponent);
         let numToSelect = 1,
             withReplacement = false;
 
@@ -427,15 +427,14 @@ export default class SelectFromSequence extends Sequence {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
-                    info(
-                        `cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer.`,
-                    );
+                    info({
+                        code: "doenet-i0022",
+                        component: "selectFromSequence",
+                    });
                     return { success: false };
                 }
             } else {
-                info(
-                    `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`,
-                );
+                info({ code: "doenet-i0023", component: "selectFromSequence" });
                 return { success: false };
             }
         }
@@ -453,9 +452,7 @@ export default class SelectFromSequence extends Sequence {
                     .trim()
                     .toLowerCase() === "false"
             )) {
-                info(
-                    `cannot determine unique variants of selectFromSequence as cannot determine coprime is always false.`,
-                );
+                info({ code: "doenet-i0026", component: "selectFromSequence" });
                 return { success: false };
             }
         }
@@ -479,15 +476,14 @@ export default class SelectFromSequence extends Sequence {
                 ) {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
-                    info(
-                        `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
-                    );
+                    info({
+                        code: "doenet-i0024",
+                        component: "selectFromSequence",
+                    });
                     return { success: false };
                 }
             } else {
-                info(
-                    `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
-                );
+                info({ code: "doenet-i0024", component: "selectFromSequence" });
                 return { success: false };
             }
         }
@@ -513,17 +509,29 @@ export default class SelectFromSequence extends Sequence {
                 if (sequenceType === "number") {
                     from = Number(fromComponent2.children[0]);
                     if (!Number.isFinite(from)) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of number type as from isn't a number.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "number",
+                                attribute: "from",
+                                expected: "number",
+                            },
+                        });
                         return { success: false };
                     }
                 } else if (sequenceType === "letters") {
                     from = lettersToNumber(fromComponent2.children[0]);
                     if (!Number.isFinite(from)) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of letters type as from isn't a combination of letters.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "letters",
+                                attribute: "from",
+                                expected: "letters-combination",
+                            },
+                        });
                         return { success: false };
                     }
                 } else {
@@ -533,17 +541,25 @@ export default class SelectFromSequence extends Sequence {
                     try {
                         from = fromText(fromComponent2.children[0]);
                     } catch (e) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of math type as from isn't a valid math expression.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "math",
+                                attribute: "from",
+                                expected: "math-expression",
+                            },
+                        });
                         return { success: false };
                     }
                 }
                 sequencePars.from = from;
             } else {
-                info(
-                    `cannot determine unique variants of selectFromSequence as from isn't a constant.`,
-                );
+                info({
+                    code: "doenet-i0027",
+                    component: "selectFromSequence",
+                    args: { attribute: "from" },
+                });
                 return { success: false };
             }
         }
@@ -562,17 +578,29 @@ export default class SelectFromSequence extends Sequence {
                 if (sequenceType === "number") {
                     to = Number(toComponent2.children[0]);
                     if (!Number.isFinite(to)) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of number type as to isn't a number.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "number",
+                                attribute: "to",
+                                expected: "number",
+                            },
+                        });
                         return { success: false };
                     }
                 } else if (sequenceType === "letters") {
                     to = lettersToNumber(toComponent2.children[0]);
                     if (!Number.isFinite(to)) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of letters type as to isn't a combination of letters.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "letters",
+                                attribute: "to",
+                                expected: "letters-combination",
+                            },
+                        });
                         return { success: false };
                     }
                 } else {
@@ -582,17 +610,25 @@ export default class SelectFromSequence extends Sequence {
                     try {
                         to = fromText(toComponent2.children[0]);
                     } catch (e) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of math type as to isn't a valid math expression.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "math",
+                                attribute: "to",
+                                expected: "math-expression",
+                            },
+                        });
                         return { success: false };
                     }
                 }
                 sequencePars.to = to;
             } else {
-                info(
-                    `cannot determine unique variants of selectFromSequence as to isn't a constant.`,
-                );
+                info({
+                    code: "doenet-i0027",
+                    component: "selectFromSequence",
+                    args: { attribute: "to" },
+                });
                 return { success: false };
             }
         }
@@ -609,17 +645,29 @@ export default class SelectFromSequence extends Sequence {
                 if (sequenceType === "number") {
                     step = Number(stepComponent.children[0]);
                     if (!Number.isFinite(step)) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of number type as step isn't a number.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "number",
+                                attribute: "step",
+                                expected: "number",
+                            },
+                        });
                         return { success: false };
                     }
                 } else if (sequenceType === "letters") {
                     step = Number(stepComponent.children[0]);
                     if (!Number.isInteger(step)) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of letters type as step isn't an integer.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "letters",
+                                attribute: "step",
+                                expected: "integer",
+                            },
+                        });
                         return { success: false };
                     }
                 } else {
@@ -629,17 +677,25 @@ export default class SelectFromSequence extends Sequence {
                     try {
                         step = fromText(stepComponent.children[0]);
                     } catch (e) {
-                        info(
-                            `cannot determine unique variants of selectFromSequence of math type as step isn't a valid math expression.`,
-                        );
+                        info({
+                            code: "doenet-i0029",
+                            component: "selectFromSequence",
+                            args: {
+                                type: "math",
+                                attribute: "step",
+                                expected: "math-expression",
+                            },
+                        });
                         return { success: false };
                     }
                 }
                 sequencePars.step = step;
             } else {
-                info(
-                    `cannot determine unique variants of selectFromSequence as step isn't a constant.`,
-                );
+                info({
+                    code: "doenet-i0027",
+                    component: "selectFromSequence",
+                    args: { attribute: "step" },
+                });
                 return { success: false };
             }
         }
@@ -653,24 +709,25 @@ export default class SelectFromSequence extends Sequence {
             ) {
                 let length = Number(lengthComponent.children[0]);
                 if (!Number.isInteger(length)) {
-                    info(
-                        `cannot determine unique variants of selectFromSequence as length isn't an integer.`,
-                    );
+                    info({
+                        code: "doenet-i0030",
+                        component: "selectFromSequence",
+                    });
                     return { success: false };
                 }
                 sequencePars.length = length;
             } else {
-                info(
-                    `cannot determine unique variants of selectFromSequence as length isn't a constant.`,
-                );
+                info({
+                    code: "doenet-i0027",
+                    component: "selectFromSequence",
+                    args: { attribute: "length" },
+                });
                 return { success: false };
             }
         }
 
         if (serializedComponent.attributes.excludeCombinations) {
-            info(
-                "have not implemented unique variants of a selectFromSequence with excludeCombinations",
-            );
+            info({ code: "doenet-i0032", component: "selectFromSequence" });
             return { success: false };
         }
 
@@ -680,9 +737,7 @@ export default class SelectFromSequence extends Sequence {
             serializedComponent.attributes.exclude?.component;
         if (excludeComponent) {
             if (sequenceType === "math") {
-                info(
-                    "have not implemented unique variants of a selectFromSequence of type math with exclude",
-                );
+                info({ code: "doenet-i0033", component: "selectFromSequence" });
                 return { success: false };
             }
             if (
@@ -692,9 +747,7 @@ export default class SelectFromSequence extends Sequence {
                         typeof x.children[0] === "string",
                 )
             ) {
-                info(
-                    "have not implemented unique variants of a selectFromSequence with non-constant exclude",
-                );
+                info({ code: "doenet-i0034", component: "selectFromSequence" });
                 return { success: false };
             }
             if (sequenceType === "letters") {
@@ -708,9 +761,7 @@ export default class SelectFromSequence extends Sequence {
             }
 
             if (!excludes.every(Number.isFinite)) {
-                info(
-                    "have not implemented unique variants of a selectFromSequence with non-constant exclude",
-                );
+                info({ code: "doenet-i0034", component: "selectFromSequence" });
                 return { success: false };
             }
         }

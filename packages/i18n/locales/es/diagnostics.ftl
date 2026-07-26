@@ -375,3 +375,77 @@ style-definition-dark-mode-text-canvas-contrast =
     }
 
 section-multiple-style-palettes = Una sección solo puede seleccionar un <stylePalette>; se usará el último.
+
+## Variantes únicas
+
+variant-num-to-select-not-non-negative-integer = no se pueden determinar las variantes únicas de { $component } porque numToSelect no es un entero no negativo.
+
+variant-num-to-select-not-constant-number = no se pueden determinar las variantes únicas de { $component } porque numToSelect no es un número constante.
+
+variant-with-replacement-not-constant-boolean = no se pueden determinar las variantes únicas de { $component } porque withReplacement no es un booleano constante.
+
+variant-select-weight-disables-unique = Las variantes únicas quedan desactivadas en select si alguna opción especifica selectWeight o selectForVariants
+
+variant-coprime-undetermined = no se pueden determinar las variantes únicas de { $component } porque no se puede determinar si coprime es siempre falso.
+
+variant-attribute-not-constant = no se pueden determinar las variantes únicas de { $component } porque { $attribute } no es constante.
+
+variant-attribute-not-number = no se pueden determinar las variantes únicas de { $component } porque { $attribute } no es un número.
+
+variant-attribute-wrong-type-for-sequence =
+    no se pueden determinar las variantes únicas de { $component } de tipo { $type } porque { $attribute } no es { $expected ->
+        [letters-combination] una combinación de letras
+        [math-expression] una expresión matemática válida
+        [integer] un entero
+       *[number] un número
+    }.
+
+variant-length-not-integer = no se pueden determinar las variantes únicas de { $component } porque length no es un entero.
+
+variant-sort-not-implemented = no se han implementado las variantes únicas de un { $component } con sort
+
+variant-exclude-combinations-not-implemented = no se han implementado las variantes únicas de un { $component } con excludeCombinations
+
+variant-math-exclude-not-implemented = no se han implementado las variantes únicas de un { $component } de tipo math con exclude
+
+variant-non-constant-exclude-not-implemented = no se han implementado las variantes únicas de un { $component } con exclude no constante
+
+## Conversión a PreFigure
+
+prefigure-descendant-unsupported = { $subject }: no se admite en el renderizador prefigure de gráficos; se omite el descendiente.
+
+prefigure-descendant-invalid-geometry = { $subject }: geometría no finita o incompleta; se omite el descendiente.
+
+prefigure-curve-label-omitted = { $subject }: las etiquetas no se admiten en los elementos de curva convertidos; se omite la etiqueta.
+
+prefigure-curve-unsupported-definition-type = { $subject }: tipo de definición de función de curva no admitido '{ $definitionType }'; se omite el descendiente.
+
+prefigure-region-flip-functions-unsupported = { $subject }: atributo flipFunctions no admitido en regionBetweenCurves; se omite el descendiente.
+
+prefigure-region-non-formula-child = { $subject }: en regionBetweenCurves solo se admiten funciones hijas de tipo fórmula; se omite el descendiente.
+
+prefigure-label-position-unsupported =
+    { $subject }: labelPosition '{ $labelPosition }' no admitido para { $labelKind ->
+        [line-family] una etiqueta de la familia de líneas
+       *[point] una etiqueta de punto
+    }; se usa la alineación predeterminada de PreFigure.
+
+prefigure-fill-style-unsupported = { $subject }: PreFigure no admite el estilo de relleno '{ $fillStyle }'; se usa un relleno sólido.
+
+prefigure-line-style-unknown = { $subject }: estilo de línea desconocido '{ $lineStyle }'; se omite de la salida de PreFigure.
+
+prefigure-marker-style-mapped-to-diamond = { $subject }: el estilo de marcador '{ $markerStyle }' se asigna al estilo 'diamond' de PreFigure.
+
+prefigure-marker-style-unsupported = { $subject }: PreFigure no admite el estilo de marcador '{ $markerStyle }'; se usa el estilo predeterminado.
+
+## Anotaciones de PreFigure
+
+annotation-ref-unresolvable = `<annotation>`: `ref` no válido; no se puede resolver el destino. Se omite la anotación.
+
+annotation-ref-multiple-targets = `<annotation>`: `ref` se resolvió a varios destinos; se usa el primero.
+
+annotation-ref-outside-graph = `<annotation>`: `ref` no válido; el destino está fuera del gráfico que lo contiene. Se omite la anotación.
+
+annotation-ref-unsupported-target = `<annotation>`: `ref` no válido; el destino no es un objeto gráfico admitido en la conversión a prefigure. Se omite la anotación.
+
+annotation-text-missing = `<annotation>`: falta `text` o está vacío; se emite texto vacío.

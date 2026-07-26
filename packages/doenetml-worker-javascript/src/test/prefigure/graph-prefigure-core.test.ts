@@ -214,6 +214,17 @@ describe("Graph prefigure renderer core @group4", () => {
         expect(triangleWarning?.position).toBeDefined();
         expect(triangleWarning?.position?.start?.line).eq(7);
         expect(triangleWarning?.position?.start?.column).eq(1);
+
+        // `pushWarning` builds every PreFigure conversion warning on its
+        // callers' behalf, so the code and arguments are the only evidence
+        // that the sentence came from the catalog — and the half the main
+        // thread re-renders from. `subject` is precomposed because it holds
+        // only a tag name and punctuation, nothing a translation would touch.
+        expect(triangleWarning?.code).eq("doenet-w0093");
+        expect(triangleWarning?.args?.subject).eq("<point>");
+        // Lower-cased upstream of the warning, which is why the message quotes
+        // it rather than echoing what the author typed.
+        expect(triangleWarning?.args?.markerStyle).eq("triangleright");
     });
 
     it("renderer=prefigure maps graph axis labels with latex to m tags", async () => {

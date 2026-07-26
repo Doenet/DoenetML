@@ -808,7 +808,12 @@ export function pointLabelAttributes({
         } else {
             pushWarning({
                 diagnostics,
-                message: `${warningPrefix}: unsupported labelPosition '${rawPosition}' for point label; default PreFigure alignment used.`,
+                code: "doenet-w0090",
+                args: {
+                    subject: warningPrefix,
+                    labelPosition: rawPosition,
+                    labelKind: "point",
+                },
                 position: warningPosition,
             });
         }
@@ -1076,7 +1081,12 @@ export function getLabelForLine({
         } else if (!KNOWN_LINE_POSITIONS.has(normalizedPosition)) {
             pushWarning({
                 diagnostics,
-                message: `${warningPrefix}: unsupported labelPosition '${rawPosition}' for line-family label; default PreFigure alignment used.`,
+                code: "doenet-w0090",
+                args: {
+                    subject: warningPrefix,
+                    labelPosition: rawPosition,
+                    labelKind: "line-family",
+                },
                 position: warningPosition,
             });
         }

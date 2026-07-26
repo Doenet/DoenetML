@@ -136,7 +136,8 @@ export function styleAttributes({
             if (fillStyle && fillStyle !== "solid") {
                 pushWarning({
                     diagnostics,
-                    message: `${warningPrefix}: fill style '${fillStyle}' is unsupported by PreFigure; falling back to a solid fill.`,
+                    code: "doenet-w0091",
+                    args: { subject: warningPrefix, fillStyle },
                     position: warningPosition,
                 });
             }
@@ -156,7 +157,8 @@ export function styleAttributes({
         } else if (!(lineStyle in prefigureDashByLineStyle)) {
             pushWarning({
                 diagnostics,
-                message: `${warningPrefix}: unknown line style '${lineStyle}' omitted from PreFigure output.`,
+                code: "doenet-w0092",
+                args: { subject: warningPrefix, lineStyle },
                 position: warningPosition,
             });
         }
@@ -197,13 +199,21 @@ export function pointStyleAttributes({
             attrs.push('style="diamond"');
             pushWarning({
                 diagnostics,
-                message: `${warningPrefix}: marker style '${markerStyleString}' mapped to PreFigure style 'diamond'.`,
+                code: "doenet-w0093",
+                args: {
+                    subject: warningPrefix,
+                    markerStyle: markerStyleString,
+                },
                 position: warningPosition,
             });
         } else {
             pushWarning({
                 diagnostics,
-                message: `${warningPrefix}: marker style '${markerStyleString}' is unsupported by PreFigure; default style used.`,
+                code: "doenet-w0094",
+                args: {
+                    subject: warningPrefix,
+                    markerStyle: markerStyleString,
+                },
                 position: warningPosition,
             });
         }

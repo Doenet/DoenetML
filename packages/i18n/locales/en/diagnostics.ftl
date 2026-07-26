@@ -454,3 +454,96 @@ style-definition-dark-mode-text-canvas-contrast =
     }
 
 section-multiple-style-palettes = A section can select only one <stylePalette>; using the last one.
+
+## Unique variants
+
+# Explanations of why a component's unique variants could not be worked out.
+# $component is the tag that could not be analyzed and stays as written; the
+# reason is a separate message per situation, so a host can tell them apart by
+# code and a translator sees a whole sentence rather than a fragment.
+
+variant-num-to-select-not-non-negative-integer = cannot determine unique variants of { $component } as numToSelect isn't a non-negative integer.
+
+variant-num-to-select-not-constant-number = cannot determine unique variants of { $component } as numToSelect isn't constant number.
+
+variant-with-replacement-not-constant-boolean = cannot determine unique variants of { $component } as withReplacement isn't constant boolean.
+
+variant-select-weight-disables-unique = Unique variants for select disabled if have an option with selectWeight or selectForVariants specified
+
+variant-coprime-undetermined = cannot determine unique variants of { $component } as cannot determine coprime is always false.
+
+# $attribute is an attribute name (`from`, `to`, `step`, `sort`, `length`) and
+# stays as written.
+variant-attribute-not-constant = cannot determine unique variants of { $component } as { $attribute } isn't a constant.
+
+variant-attribute-not-number = cannot determine unique variants of { $component } as { $attribute } isn't a number.
+
+# $type is the sequence type the component was declared with. $expected names
+# what the value had to be, symbolically, because which one applies depends on
+# both the type and the attribute.
+variant-attribute-wrong-type-for-sequence =
+    cannot determine unique variants of { $component } of { $type } type as { $attribute } isn't { $expected ->
+        [letters-combination] a combination of letters
+        [math-expression] a valid math expression
+        [integer] an integer
+       *[number] a number
+    }.
+
+variant-length-not-integer = cannot determine unique variants of { $component } as length isn't an integer.
+
+variant-sort-not-implemented = have not implemented unique variants of a { $component } with sort
+
+variant-exclude-combinations-not-implemented = have not implemented unique variants of a { $component } with excludeCombinations
+
+variant-math-exclude-not-implemented = have not implemented unique variants of a { $component } of type math with exclude
+
+variant-non-constant-exclude-not-implemented = have not implemented unique variants of a { $component } with non-constant exclude
+
+## PreFigure conversion
+
+# $subject identifies the component the warning is about, already written as
+# `<tag>` or `<tag> (name)`. It is composed in code rather than here because
+# Fluent terms cannot take a variable as an argument, so a shared subject
+# fragment cannot be parameterized from the catalog. It holds only a tag name,
+# a component name and punctuation — never a word — which is why a descendant
+# with no type reads `<?>` rather than `<unknown>`.
+
+prefigure-descendant-unsupported = { $subject }: unsupported in graph prefigure renderer; descendant skipped.
+
+prefigure-descendant-invalid-geometry = { $subject }: non-finite or incomplete geometry; descendant skipped.
+
+prefigure-curve-label-omitted = { $subject }: labels are not supported on converted curve elements; label omitted.
+
+prefigure-curve-unsupported-definition-type = { $subject }: unsupported curve function definition type '{ $definitionType }'; descendant skipped.
+
+prefigure-region-flip-functions-unsupported = { $subject }: unsupported flipFunctions attribute on regionBetweenCurves; descendant skipped.
+
+prefigure-region-non-formula-child = { $subject }: only formula-typed child functions are supported on regionBetweenCurves; descendant skipped.
+
+# $labelKind says which family of object carried the label, since the advice
+# is the same but the object is not.
+prefigure-label-position-unsupported =
+    { $subject }: unsupported labelPosition '{ $labelPosition }' for { $labelKind ->
+        [line-family] line-family label
+       *[point] point label
+    }; default PreFigure alignment used.
+
+prefigure-fill-style-unsupported = { $subject }: fill style '{ $fillStyle }' is unsupported by PreFigure; falling back to a solid fill.
+
+prefigure-line-style-unknown = { $subject }: unknown line style '{ $lineStyle }' omitted from PreFigure output.
+
+prefigure-marker-style-mapped-to-diamond = { $subject }: marker style '{ $markerStyle }' mapped to PreFigure style 'diamond'.
+
+prefigure-marker-style-unsupported = { $subject }: marker style '{ $markerStyle }' is unsupported by PreFigure; default style used.
+
+## PreFigure annotations
+
+annotation-ref-unresolvable = `<annotation>`: invalid `ref`; cannot resolve target. Annotation omitted.
+
+annotation-ref-multiple-targets = `<annotation>`: `ref` resolved to multiple targets; using the first target.
+
+annotation-ref-outside-graph = `<annotation>`: invalid `ref`; target is outside the containing graph. Annotation omitted.
+
+annotation-ref-unsupported-target = `<annotation>`: invalid `ref`; target is not a supported graphical object in prefigure conversion. Annotation omitted.
+
+annotation-text-missing = `<annotation>`: missing or empty `text`; emitting empty text.
