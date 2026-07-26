@@ -263,3 +263,79 @@ solve-equations-cannot-evaluate = No se puede resolver la ecuación porque no se
 math-operators-operand-number-required = Se debe especificar operandNumber al extraer un operando matemático.
 
 eigen-decomposition-failed = No se pudieron calcular los valores propios de la matriz
+
+## Renderizador PreFigure
+
+prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" no es compatible con el renderizador prefigure; se usa el comportamiento de posición derecha.
+
+prefigure-y-label-position-unsupported = `<graph>`: yLabelPosition="bottom" no es compatible con el renderizador prefigure; se usa el comportamiento de posición superior.
+
+prefigure-invalid-axis-bounds = `<graph>`: los límites de los ejes no son válidos para la conversión a prefigure; se usa el bbox predeterminado (-10,-10,10,10).
+
+prefigure-invalid-width = `<graph>`: el ancho no es válido para la conversión a prefigure; se usa el ancho de diagrama predeterminado 425.
+
+prefigure-invalid-aspect-ratio = `<graph>`: aspectRatio no es válido para la conversión a prefigure; se usa la relación de aspecto predeterminada 1.
+
+prefigure-annotations-not-rendered = `<graph>`: las anotaciones no se representan si no se usa el renderizador PreFigure.
+
+multiple-annotations-children = Se encontraron varios hijos `<annotations>` en `<graph>`; se ignoran todos menos el último.
+
+## Referencias a otros componentes
+
+copy-unrecognized-component-type = No se puede extender ni copiar un tipo de componente desconocido: { $type }.
+
+copy-prop-not-found = No se encontró la propiedad { $property } en un componente de tipo { $component }
+
+collect-no-source = No se encontró ninguna fuente para collect.
+
+collect-invalid-component-type = No se pueden recolectar componentes de tipo `<{ $component }>` porque no es un tipo de componente válido.
+
+## `<dataFrame>`
+
+data-frame-inconsistent-row-lengths = Los datos tienen una forma no válida.  Las filas tienen longitudes distintas. Encontrado en componentIdx :{ $componentIdx }
+
+data-frame-duplicate-column-names = Los datos tienen nombres de columna repetidos.  Encontrado en componentIdx :{ $componentIdx }
+
+data-frame-missing-column-name = A los datos les falta el nombre de una columna.  Encontrado en componentIdx :{ $componentIdx }
+
+## `<answer>` y puntuación
+
+answer-award-depends-on-own-response = Un award de esta respuesta depende de la respuesta enviada por el propio answer, lo que provocará un comportamiento inesperado.
+
+answer-max-num-attempts-in-section-wide-check-work = Establecer `maxNumAttempts` en un `<answer>` dentro de un contenedor con `sectionWideCheckWork` no tiene efecto, porque el número de intentos lo controla el contenedor. Establece `maxNumAttempts` en el contenedor.
+
+nested-section-wide-check-work-max-num-attempts = Establecer `maxNumAttempts` en un contenedor con `sectionWideCheckWork` que está dentro de otro contenedor con `sectionWideCheckWork` no tiene efecto, porque el número de intentos lo controla el contenedor exterior. Establece `maxNumAttempts` en el contenedor exterior.
+
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] El atributo { $attributes } no tendrá efecto si no se establece symbolicEquality.
+       *[other] Los atributos { $attributes } no tendrán efecto si no se establece symbolicEquality.
+    }
+
+answer-invalid-type = Tipo no válido para answer: { $type }
+
+## `<module>`, `<conditionalContent>`, `<slider>` y pretzel
+
+module-attribute-child-needs-name = Como el componente `<{ $component }>` no tiene nombre, no se puede usar como atributo de módulo
+
+module-attribute-name-already-defined = El componente `<{ $component } name="{ $name }">` no se puede usar como atributo de un módulo porque el tipo de componente `<module>` ya tiene definido un atributo "{ $name }".
+
+conditional-content-condition-ignored = Se ignora el atributo `condition` en un `<conditionalContent>` que tiene hijos case o else.
+
+slider-markers-type-mismatch = El tipo de los marcadores no coincide con el tipo del slider.
+
+pretzel-problem-needs-statement-and-answer = Pretzel no válido: cada `<problem>` debe contener un `<statement>` y un `<answer>`.
+
+pretzel-circuit-first-problem-distractor = Pretzel no válido: en mode="circuit", el primer `<problem>` no puede ser un distractor.
+
+## Valores de atributos
+
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] Valor no válido { $values } para el atributo `{ $attribute }`; se ignora.
+       *[other] Valores no válidos { $values } para el atributo `{ $attribute }`; se ignoran.
+    }
+
+attribute-must-be-references = Valor no válido `{ $value }` para el atributo `{ $attribute }`. El atributo debe estar compuesto de referencias que empiecen por `$`.
+
+math-input-invalid-function-names = <mathInput>: se ignoran nombres de función no válidos en { $attribute }: { $names }. El segmento visible de cada nombre debe tener al menos 2 caracteres (letras o guiones); puede añadirse un sufijo opcional `|<alternativa de mathspeak>`.

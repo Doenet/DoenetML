@@ -443,22 +443,24 @@ export default class PretzelArranger extends CompositeComponent {
                     // can normalize `<answer>` into internal `givenAnswer`
                     // nodes, we avoid mentioning `givenAnswer` in diagnostics so
                     // we don't advertise a legacy form planned for deprecation.
-                    diagnostics.push({
-                        message:
-                            "Invalid pretzel: each `<problem>` must contain one `<statement>` and one `<answer>`.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0076",
+                        }),
+                    );
                 }
 
                 if (
                     dependencyValues.mode === "circuit" &&
                     distractors.includes(0)
                 ) {
-                    diagnostics.push({
-                        message:
-                            'Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.',
-                        type: "error",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "error",
+                            code: "doenet-e0001",
+                        }),
+                    );
                 }
 
                 return {

@@ -194,7 +194,35 @@ export type MessageKey =
     | "ionic-compound-needs-cation-and-anion"
     | "solve-equations-cannot-evaluate"
     | "math-operators-operand-number-required"
-    | "eigen-decomposition-failed";
+    | "eigen-decomposition-failed"
+    | "prefigure-x-label-position-unsupported"
+    | "prefigure-y-label-position-unsupported"
+    | "prefigure-invalid-axis-bounds"
+    | "prefigure-invalid-width"
+    | "prefigure-invalid-aspect-ratio"
+    | "prefigure-annotations-not-rendered"
+    | "multiple-annotations-children"
+    | "copy-unrecognized-component-type"
+    | "copy-prop-not-found"
+    | "collect-no-source"
+    | "collect-invalid-component-type"
+    | "data-frame-inconsistent-row-lengths"
+    | "data-frame-duplicate-column-names"
+    | "data-frame-missing-column-name"
+    | "answer-award-depends-on-own-response"
+    | "answer-max-num-attempts-in-section-wide-check-work"
+    | "nested-section-wide-check-work-max-num-attempts"
+    | "answer-attributes-need-symbolic-equality"
+    | "answer-invalid-type"
+    | "module-attribute-child-needs-name"
+    | "module-attribute-name-already-defined"
+    | "conditional-content-condition-ignored"
+    | "slider-markers-type-mismatch"
+    | "pretzel-problem-needs-statement-and-answer"
+    | "pretzel-circuit-first-problem-distractor"
+    | "attribute-invalid-values"
+    | "attribute-must-be-references"
+    | "math-input-invalid-function-names";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -386,4 +414,32 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "solve-equations-cannot-evaluate",
     "math-operators-operand-number-required",
     "eigen-decomposition-failed",
+    "prefigure-x-label-position-unsupported",
+    "prefigure-y-label-position-unsupported",
+    "prefigure-invalid-axis-bounds",
+    "prefigure-invalid-width",
+    "prefigure-invalid-aspect-ratio",
+    "prefigure-annotations-not-rendered",
+    "multiple-annotations-children",
+    "copy-unrecognized-component-type",
+    "copy-prop-not-found",
+    "collect-no-source",
+    "collect-invalid-component-type",
+    "data-frame-inconsistent-row-lengths",
+    "data-frame-duplicate-column-names",
+    "data-frame-missing-column-name",
+    "answer-award-depends-on-own-response",
+    "answer-max-num-attempts-in-section-wide-check-work",
+    "nested-section-wide-check-work-max-num-attempts",
+    "answer-attributes-need-symbolic-equality",
+    "answer-invalid-type",
+    "module-attribute-child-needs-name",
+    "module-attribute-name-already-defined",
+    "conditional-content-condition-ignored",
+    "slider-markers-type-mismatch",
+    "pretzel-problem-needs-statement-and-answer",
+    "pretzel-circuit-first-problem-distractor",
+    "attribute-invalid-values",
+    "attribute-must-be-references",
+    "math-input-invalid-function-names",
 ];

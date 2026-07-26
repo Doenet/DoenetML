@@ -585,6 +585,26 @@ describe("the target-resolution warnings", () => {
         );
     });
 
+    // The point of the pair: a second component reuses both codes and only
+    // the tag changes. Splitting them per component would have given a host
+    // two codes to filter for one situation, permanently.
+    it("serves a second component from the same two codes", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-w0043", {
+                source: "updateValue",
+            }),
+        ).toBe("Invalid target for `<updateValue>`: cannot find target.");
+        expect(
+            formatEnglishDiagnostic("doenet-w0044", {
+                source: "updateValue",
+                property: "invalid",
+                component: "number",
+            }),
+        ).toBe(
+            'Invalid target for `<updateValue>`: cannot find a state variable named "invalid" on a `<number>`.',
+        );
+    });
+
     // Both tags are DoenetML, so both survive translation untouched while the
     // sentence around them changes.
     it("keeps both tags in English when the sentence is Spanish", () => {
@@ -601,6 +621,75 @@ describe("the target-resolution warnings", () => {
             }),
         ).toBe(
             'Destino no válido para `<animateFromSequence>`: no se encuentra una variable de estado llamada "value" en un `<point>`.',
+        );
+    });
+});
+
+/**
+ * The shapes this batch introduces: a list joined once the reader's language
+ * is known, and a count that agrees the noun beside it.
+ */
+describe("messages built from a list", () => {
+    it('joins invalid attribute values without adding an "and"', () => {
+        const invalid = (values: string[]) =>
+            formatEnglishDiagnostic("doenet-i0021", {
+                values: { list: values, type: "unit" },
+                attribute: "displayDigits",
+            });
+
+        expect(invalid(["`a`"])).toBe(
+            "Invalid value `a` for attribute `displayDigits`; ignoring.",
+        );
+        expect(invalid(["`a`", "`b`"])).toBe(
+            "Invalid values `a`, `b` for attribute `displayDigits`; ignoring.",
+        );
+        expect(invalid(["`a`", "`b`", "`c`"])).toBe(
+            "Invalid values `a`, `b`, `c` for attribute `displayDigits`; ignoring.",
+        );
+    });
+
+    // At most `expandOnCompare` and `simplifyOnCompare` reach this message,
+    // where the "and" of a conjunction is exactly what the concatenated
+    // version produced.
+    it("agrees the noun with how many attributes were named", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-w0071", {
+                attributes: ["expandOnCompare"],
+            }),
+        ).toBe(
+            "The expandOnCompare attribute will have no effect without symbolicEquality set.",
+        );
+        expect(
+            formatEnglishDiagnostic("doenet-w0071", {
+                attributes: ["expandOnCompare", "simplifyOnCompare"],
+            }),
+        ).toBe(
+            "The expandOnCompare and simplifyOnCompare attributes will have no effect without symbolicEquality set.",
+        );
+    });
+
+    it("keeps the quotes the function-name list was built with", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-w0082", {
+                attribute: "resetFunctionNames",
+                names: { list: ["'f'", "'gg'"], type: "unit" },
+            }),
+        ).toBe(
+            "<mathInput>: ignored invalid function name(s) in resetFunctionNames: 'f', 'gg'. Each name's display segment must be at least 2 characters (letters or dashes); an optional `|<mathspeak alternative>` suffix may follow.",
+        );
+    });
+});
+
+describe("the dataFrame warnings", () => {
+    // A component index is a name, not a quantity: grouped as a number it
+    // would read "componentIdx :1,234".
+    it("prints the component index ungrouped", () => {
+        expect(
+            formatEnglishDiagnostic("doenet-w0066", {
+                componentIdx: String(1234),
+            }),
+        ).toBe(
+            "Data has invalid shape.  Rows has inconsistent lengths. Found in componentIdx :1234",
         );
     });
 });

@@ -276,6 +276,15 @@ reached by code rather than by a literal `t("key")`, which the call-site scan
 cannot see, so `lint:i18n` reads the registry as a call site of its own. A
 message with no code registered for it fails as an orphan.
 
+The reverse direction is checked too: a registered code that nothing raises
+fails. That is the shape a consolidation leaves behind — the last site using a
+number moves to another one and the registry entry stays, naming a situation
+nothing can produce. When a code genuinely stops being raised, list it in
+`RETIRED_DIAGNOSTIC_CODES` beside the registry; it keeps its entry, so the lock
+still agrees, and retiring becomes a line in a diff rather than a silent
+consequence of deleting the last call site. Putting a code back to work means
+dropping it from that list, which the lint also insists on.
+
 Two things `lint:i18n` counts wherever they appear, **comments included**: a
 `code` property naming a diagnostic code, and a `type` property naming a
 severity. An example call written in a doc comment lands in the migration
@@ -327,7 +336,8 @@ translated locale defining a key English lacks, a stale `messageKeys.ts` or
 `diagnostic-codes.lock.json`, a call site referencing a key that doesn't exist,
 an English key no source file references, a malformed diagnostic code, a code
 naming a message English lacks, a code used in source that the registry doesn't
-define, and any change to a code already issued. Keys *missing* from a
+define, a registered code that nothing raises and that is not listed as
+retired, and any change to a code already issued. Keys *missing* from a
 translation are reported as coverage, not failure — a partial translation is
 legitimate and falls back.
 

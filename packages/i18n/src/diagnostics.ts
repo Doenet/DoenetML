@@ -67,6 +67,10 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0015": "sequence-invalid-endpoint-letters",
     "doenet-i0016": "sequence-invalid-endpoint",
     "doenet-i0017": "angle-too-many-lines",
+    "doenet-i0018": "copy-prop-not-found",
+    "doenet-i0019": "prefigure-annotations-not-rendered",
+    "doenet-i0020": "multiple-annotations-children",
+    "doenet-i0021": "attribute-invalid-values",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -127,6 +131,31 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0057": "solve-equations-cannot-evaluate",
     "doenet-w0058": "math-operators-operand-number-required",
     "doenet-w0059": "eigen-decomposition-failed",
+    "doenet-w0060": "prefigure-x-label-position-unsupported",
+    "doenet-w0061": "prefigure-y-label-position-unsupported",
+    "doenet-w0062": "prefigure-invalid-axis-bounds",
+    "doenet-w0063": "prefigure-invalid-width",
+    "doenet-w0064": "prefigure-invalid-aspect-ratio",
+    "doenet-w0065": "copy-unrecognized-component-type",
+    "doenet-w0066": "data-frame-inconsistent-row-lengths",
+    "doenet-w0067": "data-frame-duplicate-column-names",
+    "doenet-w0068": "data-frame-missing-column-name",
+    "doenet-w0069": "answer-award-depends-on-own-response",
+    "doenet-w0070": "answer-max-num-attempts-in-section-wide-check-work",
+    "doenet-w0071": "answer-attributes-need-symbolic-equality",
+    "doenet-w0072": "collect-no-source",
+    "doenet-w0073": "collect-invalid-component-type",
+    "doenet-w0074": "module-attribute-child-needs-name",
+    "doenet-w0075": "module-attribute-name-already-defined",
+    "doenet-w0076": "pretzel-problem-needs-statement-and-answer",
+    "doenet-w0077": "attribute-must-be-references",
+    "doenet-w0078": "answer-invalid-type",
+    "doenet-w0079": "conditional-content-condition-ignored",
+    "doenet-w0080": "slider-markers-type-mismatch",
+    "doenet-w0081": "nested-section-wide-check-work-max-num-attempts",
+    "doenet-w0082": "math-input-invalid-function-names",
+
+    "doenet-e0001": "pretzel-circuit-first-problem-distractor",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",
@@ -137,6 +166,26 @@ export const DIAGNOSTIC_CODES = {
 } as const satisfies Record<string, MessageKey>;
 
 export type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;
+
+/**
+ * Codes that are still reserved but no longer raised anywhere.
+ *
+ * A code outlives the call site that raised it: retiring one means the
+ * situation stopped arising, not that the name became free. It stays in
+ * {@link DIAGNOSTIC_CODES} so the lock keeps agreeing with the registry, and
+ * it is listed here so `lint:i18n` knows the missing call site is deliberate.
+ *
+ * That check is the point of the list. Every other registered code must be
+ * raised somewhere, so a consolidation that strands one — the renumbering
+ * hazard, where a code survives in the registry after the last site that used
+ * it moved to another number — fails the lint instead of shipping a name
+ * nothing can ever produce. Retiring becomes an explicit line in a diff rather
+ * than a silent consequence of deleting the last call site.
+ *
+ * Empty today: no code has been retired yet.
+ */
+export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
+    new Set<DiagnosticCode>([]);
 
 /**
  * The shape every code has to match: `doenet-` + severity letter + 4 digits.

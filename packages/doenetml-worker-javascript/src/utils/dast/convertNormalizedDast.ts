@@ -30,6 +30,7 @@ import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
 import { DiagnosticRecord } from "@doenet/utils";
+import { codedDiagnostic } from "../diagnostics";
 
 /**
  * Transform the normalized dast into the serialized components used
@@ -851,12 +852,18 @@ export function expandAttribute({
                 if (child.trim() !== "") {
                     stringChildren.push(child);
                     if (!attrDef.allowStrings) {
-                        diagnostics.push({
-                            type: "warning",
-                            message: `Invalid value \`${child.trim()}\` for attribute \`${attribute.name}\`. Attribute must be composed of references that begin with a \`$\`.`,
-                            position: attribute.position,
-                            sourceDoc: attribute.sourceDoc,
-                        });
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0077",
+                                args: {
+                                    value: child.trim(),
+                                    attribute: attribute.name,
+                                },
+                                position: attribute.position,
+                                sourceDoc: attribute.sourceDoc,
+                            }),
+                        );
                     }
                 }
             }

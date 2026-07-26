@@ -2,6 +2,7 @@ import { deepClone } from "@doenet/utils";
 import { expandUnflattenedToSerializedComponents } from "../utils/dast/convertNormalizedDast";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { applySugar } from "../utils/dast/sugar";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class ModuleAttributes extends CompositeComponent {
     static componentType = "moduleAttributes";
@@ -126,11 +127,14 @@ export default class ModuleAttributes extends CompositeComponent {
                 // If the child does not have a name, we can't do anything with it.
                 // Add it to the replacements untouched with a warning
                 componentsForModuleAttributes.push(child);
-                diagnostics.push({
-                    type: "warning",
-                    message: `Since the component \`<${child.componentType}>\` does not have a name, it cannot be used for a module attribute`,
-                    position: child.position,
-                });
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0074",
+                        args: { component: child.componentType },
+                        position: child.position,
+                    }),
+                );
 
                 continue;
             }
@@ -149,11 +153,17 @@ export default class ModuleAttributes extends CompositeComponent {
             // check if the attribute name is already defined in a module
             // in which case it won't work to use it as a custom module attribute
             if (existingModuleAttrNames.includes(attributeName)) {
-                diagnostics.push({
-                    type: "warning",
-                    message: `The component \`<${child.componentType} name="${childName}">\` cannot be used as an attribute for a module because the \`<module>\` component type already has a "${childName}" attribute defined.`,
-                    position: child.position,
-                });
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0075",
+                        args: {
+                            component: child.componentType,
+                            name: childName,
+                        },
+                        position: child.position,
+                    }),
+                );
                 componentsForModuleAttributes.push(child);
                 continue;
             }

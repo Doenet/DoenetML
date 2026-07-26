@@ -10,6 +10,7 @@ import {
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Slider extends BaseComponent {
     constructor(args) {
@@ -663,15 +664,15 @@ export default class Slider extends BaseComponent {
                         markers = [...dependencyValues.items];
                     } else if (markerType !== dependencyValues.type) {
                         //Note: no markers when they don't match and not init
-                        const warning = {
-                            type: "warning",
-                            message: "Markers type doesn't match slider type.",
-                        };
-                        if (dependencyValues.markersChild[0].position) {
-                            warning.position =
-                                dependencyValues.markersChild[0].position;
-                        }
-                        diagnostics.push(warning);
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0080",
+                                position:
+                                    dependencyValues.markersChild[0].position ||
+                                    undefined,
+                            }),
+                        );
                         markers = [];
                     } else {
                         markers =

@@ -1,6 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { deepClone } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
+import { codedDiagnostic } from "../utils/diagnostics";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
 
@@ -60,17 +61,15 @@ export default class ConditionalContent extends CompositeComponent {
                     // If the condition attribute was not moved to a case child via sugar,
                     // then warn that it is not used on conditionalContent
 
-                    const warning = {
-                        type: "warning",
-                        message:
-                            "Attribute `condition` is ignored on a `<conditionalContent>` component with case or else children.",
-                    };
-                    if (dependencyValues.conditionAttribute.position) {
-                        warning.position =
-                            dependencyValues.conditionAttribute.position;
-                    }
-
-                    diagnostics.push(warning);
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0079",
+                            position:
+                                dependencyValues.conditionAttribute.position ||
+                                undefined,
+                        }),
+                    );
                 }
 
                 return {

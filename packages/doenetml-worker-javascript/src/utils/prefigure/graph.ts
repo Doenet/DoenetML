@@ -16,6 +16,7 @@ import type {
     GraphDimensions,
 } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
+import { codedDiagnostic } from "../diagnostics";
 
 function axisModeFromVisibility({
     displayXAxis,
@@ -44,19 +45,21 @@ function pushUnsupportedAxisPositionWarnings({
     diagnostics: DiagnosticRecord[];
 }): void {
     if (dependencyValues.xLabelPosition === "left") {
-        diagnostics.push({
-            type: "warning",
-            message:
-                '`<graph>`: xLabelPosition="left" is not supported in prefigure renderer; using right-position behavior.',
-        });
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0060",
+            }),
+        );
     }
 
     if (dependencyValues.yLabelPosition === "bottom") {
-        diagnostics.push({
-            type: "warning",
-            message:
-                '`<graph>`: yLabelPosition="bottom" is not supported in prefigure renderer; using top-position behavior.',
-        });
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0061",
+            }),
+        );
     }
 }
 
@@ -140,11 +143,12 @@ export function createPrefigureXML({
     const rawYMax = asFiniteNumber(dependencyValues.yMax);
 
     if ([rawXMin, rawYMin, rawXMax, rawYMax].some((x) => x === null)) {
-        diagnostics.push({
-            type: "warning",
-            message:
-                "`<graph>`: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).",
-        });
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0062",
+            }),
+        );
     }
 
     const graphBounds: GraphBounds =
@@ -157,21 +161,23 @@ export function createPrefigureXML({
 
     let dimensionWidth = asFiniteNumber(dependencyValues.width?.size);
     if (dimensionWidth === null || dimensionWidth <= 0) {
-        diagnostics.push({
-            type: "warning",
-            message:
-                "`<graph>`: invalid width for prefigure conversion; using default diagram width 425.",
-        });
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0063",
+            }),
+        );
         dimensionWidth = 425;
     }
 
     let diagramAspectRatio = asFiniteNumber(dependencyValues.aspectRatio);
     if (diagramAspectRatio === null || diagramAspectRatio <= 0) {
-        diagnostics.push({
-            type: "warning",
-            message:
-                "`<graph>`: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.",
-        });
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0064",
+            }),
+        );
         diagramAspectRatio = 1;
     }
 
