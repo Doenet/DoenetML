@@ -222,7 +222,10 @@ export type MessageKey =
     | "pretzel-circuit-first-problem-distractor"
     | "attribute-invalid-values"
     | "attribute-must-be-references"
-    | "math-input-invalid-function-names";
+    | "math-input-invalid-function-names"
+    | "component-type-invalid"
+    | "attribute-repeated"
+    | "attribute-invalid-for-component";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -442,4 +445,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "attribute-invalid-values",
     "attribute-must-be-references",
     "math-input-invalid-function-names",
+    "component-type-invalid",
+    "attribute-repeated",
+    "attribute-invalid-for-component",
 ];

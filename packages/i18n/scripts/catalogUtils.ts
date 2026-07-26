@@ -308,6 +308,22 @@ const DIAGNOSTIC_CODE_USE_PATTERN = /code:\s*["'`](doenet-[a-z]\d+)["'`]/g;
 const DIAGNOSTIC_LITERAL_PATTERN =
     /(?<![\w$])type:\s*["'`](?:warning|error|info|accessibility)["'`](?!\s*;)/g;
 
+/**
+ * A diagnostic raised by *throwing* rather than by building a record.
+ *
+ * These have no `type:` property to be counted by
+ * {@link DIAGNOSTIC_LITERAL_PATTERN}, so without this they would be pure
+ * credit: the site's code lands in `codes` and nothing offsets it, and the
+ * burn-down would fall by one for a message that was never in its
+ * denominator. Every `DiagnosticError` is coded by construction, so counting
+ * each one as a literal makes the pair cancel exactly, the way a migrated
+ * record's surviving `type:` cancels its new `code:`.
+ *
+ * The uncoded throws it replaces were never counted either, which is why the
+ * burn-down has only ever measured the record-shaped half of #1518.
+ */
+const THROWN_DIAGNOSTIC_PATTERN = /new DiagnosticError\(/g;
+
 export type DiagnosticUsage = {
     codes: CallSite[];
     literalCount: number;
@@ -322,6 +338,8 @@ export function collectDiagnosticUsage(): DiagnosticUsage {
             codes.push({ key: match[1], file });
         }
         literalCount += [...contents.matchAll(DIAGNOSTIC_LITERAL_PATTERN)]
+            .length;
+        literalCount += [...contents.matchAll(THROWN_DIAGNOSTIC_PATTERN)]
             .length;
     }
     return { codes, literalCount };

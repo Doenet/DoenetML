@@ -241,6 +241,34 @@ nothing else, which is what lets the ~200 messages still holding a literal
 string migrate a few at a time (#1518). `lint:i18n` reports the remaining count
 on every run.
 
+### Errors that are thrown, not built
+
+Errors raised while the source is being turned into components don't build a
+record at all — they `throw`, the caller catches, and the component becomes an
+`_error` whose message `ComponentBuilder` re-raises as the diagnostic. The
+record built at the `catch` is discarded on purpose (`DiagnosticsManager`
+gathers errors from the dast pass instead), so the `_error` component is the
+only thing carrying the diagnostic across, and a bare `Error` arrives with
+nothing but an English sentence on it.
+
+```js
+// before
+throw Error(`Cannot repeat attribute ${attrName}.`);
+
+// after
+throw new DiagnosticError({
+    code: "doenet-e0003",
+    args: { attribute: attrName },
+});
+```
+
+`DiagnosticError` (alongside `codedDiagnostic`) is an `Error` subclass whose
+`message` comes from the same English catalog, so it drops straight into a
+`throw` site: `instanceof Error` still holds and a `catch` reading `e.message`
+sees what it saw before. `convertToErrorComponent` copies the code and
+arguments onto the `_error`'s `state`, and the builder reads them back off
+when it raises the diagnostic.
+
 ### Codes
 
 A code is a permanent name — what a bug report cites, what a host reading

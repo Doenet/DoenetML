@@ -8,6 +8,7 @@ function mk(opts: {
     msg: string;
     start: [number, number];
     end: [number, number];
+    code?: string;
 }) {
     return {
         severity: opts.sev,
@@ -16,6 +17,7 @@ function mk(opts: {
             start: { line: opts.start[0], character: opts.start[1] },
             end: { line: opts.end[0], character: opts.end[1] },
         },
+        ...(opts.code === undefined ? {} : { code: opts.code }),
     };
 }
 
@@ -157,6 +159,121 @@ describe("dedupeLspDiagnostics", () => {
         })[];
         expect(result).toBe(keeper);
         expect(result.source).toBe("parser");
+    });
+
+    it("collapses two renderings of one coded diagnostic", () => {
+        // The case the message key cannot see.  A worker diagnostic that
+        // has migrated to the catalogs is re-rendered in the reader's
+        // `uiLocale` before `additionalDiagnostics` forwards it, while
+        // `extractDastErrors` hands over whatever the parser wrote.  Same
+        // problem, same span, two languages — one squiggle, so the hover
+        // must not stack two messages on it.
+        const fromParser = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Invalid attribute `h`.",
+            start: [0, 14],
+            end: [0, 17],
+            code: "doenet-e0042",
+        });
+        const fromWorker = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Atributo no válido `h`.",
+            start: [0, 14],
+            end: [0, 17],
+            code: "doenet-e0042",
+        });
+        const result = dedupeLspDiagnostics([fromParser, fromWorker]);
+        expect(result).toHaveLength(1);
+        expect(result[0]).toBe(fromParser);
+    });
+
+    it("collapses a coded copy against a not-yet-coded one", () => {
+        // What carries the migration: a diagnostic gains its code on one
+        // side before the other, and while they still agree on the
+        // English the message key holds them together.
+        const uncoded = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Invalid attribute `h`.",
+            start: [0, 14],
+            end: [0, 17],
+        });
+        const coded = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Invalid attribute `h`.",
+            start: [0, 14],
+            end: [0, 17],
+            code: "doenet-e0042",
+        });
+        const [merged] = dedupeLspDiagnostics([uncoded, coded]);
+        // The keeper picks up the code it was missing, so a later copy
+        // that has only the code still finds it.
+        expect(merged.code).toBe("doenet-e0042");
+        expect(
+            dedupeLspDiagnostics([
+                uncoded,
+                coded,
+                mk({
+                    sev: DiagnosticSeverity.Error,
+                    msg: "Atributo no válido `h`.",
+                    start: [0, 14],
+                    end: [0, 17],
+                    code: "doenet-e0042",
+                }),
+            ]),
+        ).toHaveLength(1);
+    });
+
+    it("keeps same-code diagnostics apart when they differ in span or severity", () => {
+        // The code is only ever compared within a severity+range pair, so
+        // one situation reported at two places stays two diagnostics.
+        const first = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Invalid attribute `h`.",
+            start: [0, 14],
+            end: [0, 17],
+            code: "doenet-e0042",
+        });
+        const elsewhere = mk({
+            sev: DiagnosticSeverity.Error,
+            msg: "Invalid attribute `q`.",
+            start: [3, 2],
+            end: [3, 5],
+            code: "doenet-e0042",
+        });
+        const asWarning = mk({
+            sev: DiagnosticSeverity.Warning,
+            msg: "Invalid attribute `h`.",
+            start: [0, 14],
+            end: [0, 17],
+            code: "doenet-e0042",
+        });
+        expect(
+            dedupeLspDiagnostics([first, elsewhere, asWarning]),
+        ).toHaveLength(3);
+    });
+
+    it("ignores a `code` that names a category rather than a situation", () => {
+        // `toAdditionalDiagnosticsForLsp` labels accessibility records
+        // `accessibility-level-1`/`-2`.  That is a severity band shared by
+        // every level-1 violation, not an identity, so two different
+        // accessibility problems reported on one element must survive.
+        const missingDescription = mk({
+            sev: DiagnosticSeverity.Warning,
+            msg: "Missing a short description.",
+            start: [0, 0],
+            end: [0, 20],
+            code: "accessibility-level-1",
+        });
+        const lowContrast = mk({
+            sev: DiagnosticSeverity.Warning,
+            msg: "Title does not have sufficient contrast.",
+            start: [0, 0],
+            end: [0, 20],
+            code: "accessibility-level-1",
+        });
+        expect(
+            dedupeLspDiagnostics([missingDescription, lowContrast]),
+        ).toHaveLength(2);
     });
 
     it("preserves order and is a no-op on an empty input", () => {
