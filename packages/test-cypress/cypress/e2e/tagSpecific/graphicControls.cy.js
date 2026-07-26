@@ -1,4 +1,9 @@
-import { installPrefigureBuildIntercept } from "../../support/prefigure";
+import {
+    installDiagcessScriptStub,
+    installMockPrefigureModule,
+    installPrefigureBuildIntercept,
+    visitWithMockPrefigureModule,
+} from "../../support/prefigure";
 
 describe(
     "Graph controls renderer-agnostic behavior @group4",
@@ -32,10 +37,20 @@ describe(
                 cy.viewport(viewport[0], viewport[1]);
             }
 
-            cy.visit("/");
-
             if (prefigure) {
+                // These tests only care that graph controls behave the same next
+                // to a prefigure graph; they never inspect the rendered diagram.
+                // Point the renderer at a stubbed prefigure module so the page
+                // does not download the pyodide runtime and its wheels from the
+                // CDN. That download, and the main-thread work of initializing
+                // it, can stall the page long enough for control interactions to
+                // time out.
+                const modulePath = installMockPrefigureModule();
+                installDiagcessScriptStub();
                 installPrefigureBuildIntercept();
+                visitWithMockPrefigureModule(modulePath);
+            } else {
+                cy.visit("/");
             }
 
             postDoenetML(doenetML);
@@ -1691,16 +1706,20 @@ describe(
                 keyboardStepRangeRight(xSlider);
             }
 
+            // Retry until every step has landed in the slider's local state, so
+            // the value read below cannot be a partially accumulated one.
+            cy.get(xSlider).should(($slider) => {
+                const transientNumber = Number($slider.val());
+                expect(transientNumber).to.be.greaterThan(0.5);
+                expect(transientNumber).to.be.lessThan(0.9);
+            });
+
             // Actual point snaps to 1 even during the transient
 
             cy.get("#Px").should("have.text", "1");
             cy.get(xSlider)
                 .invoke("val")
                 .then((transientValue) => {
-                    const transientNumber = Number(transientValue);
-                    expect(transientNumber).to.be.greaterThan(0.5);
-                    expect(transientNumber).to.be.lessThan(0.9);
-
                     // Before blur: number input should show transient value
                     cy.get('input[aria-label="x value input for P"]').should(
                         "have.value",

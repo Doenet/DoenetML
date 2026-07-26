@@ -97,6 +97,19 @@ export async function compilePrefigure(_diagramXML, _options) {
     return modulePath;
 }
 
+/**
+ * Serve an empty diagcess bundle instead of letting the page pull it from the
+ * CDN. Tests that do not exercise annotations get the same behavior either way:
+ * `diagcessApi()` stays undefined, so the renderer skips its diagcess reinit.
+ */
+export function installDiagcessScriptStub() {
+    cy.intercept("GET", "**/diagcess*.js*", {
+        statusCode: 200,
+        headers: { "content-type": "application/javascript" },
+        body: "",
+    });
+}
+
 export function visitWithMockPrefigureModule(modulePath) {
     cy.visit("/", {
         onBeforeLoad(win) {
