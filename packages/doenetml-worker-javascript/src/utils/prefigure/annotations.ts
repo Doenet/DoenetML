@@ -1,7 +1,6 @@
 import { escapeXml } from "./common";
 import type { AnnotationNode } from "./types";
-import type { DiagnosticRecord } from "@doenet/utils";
-import { codedDiagnostic } from "@doenet/utils";
+import { codedDiagnostic, type DiagnosticRecord } from "@doenet/utils";
 import type { DiagnosticCode } from "@doenet/i18n";
 
 /**

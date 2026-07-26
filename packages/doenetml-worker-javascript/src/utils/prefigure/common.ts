@@ -5,7 +5,6 @@ import type {
     PushDiagnosticArgs,
     UsedHandles,
 } from "./types";
-import type { DiagnosticRecord } from "@doenet/utils";
 import { codedDiagnostic } from "@doenet/utils";
 
 /**

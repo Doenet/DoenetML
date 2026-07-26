@@ -324,8 +324,13 @@ const DIAGNOSTIC_CONSTRUCTION_PATTERN =
  * That the helper's own sites are invisible here is not a gap: the English
  * they used to hold has genuinely moved to the catalog, and the construction
  * they share is counted once on each side.
+ *
+ * The lookbehind skips the *declaration* in `@doenet/utils`. A call carries a
+ * `type: "…"` of its own for the denominator to count, so the two cancel; the
+ * declaration has only a shorthand `type,` and would be pure credit, taking
+ * the remainder one below the truth.
  */
-const CODED_CONSTRUCTION_PATTERN = /codedDiagnostic\(/g;
+const CODED_CONSTRUCTION_PATTERN = /(?<!function\s)codedDiagnostic\(/g;
 
 /**
  * A construction that *forwards* whatever code its source carried.
@@ -371,6 +376,32 @@ export function remainingLiteralDiagnostics(usage: DiagnosticUsage): number {
     );
 }
 
+/**
+ * The three counts one file's source text contributes to the burn-down.
+ *
+ * Split out from {@link collectDiagnosticUsage} so the patterns can be tested
+ * against source text directly — the counts are the number the migration is
+ * tracked by, and each pattern has an edge it has to get right (a declaration
+ * that is not a call, a type declaration that is not an object literal, a
+ * property whose name merely ends in `type`).
+ */
+export function countDiagnosticConstructions(contents: string): {
+    constructionCount: number;
+    codedConstructionCount: number;
+    forwardedCount: number;
+} {
+    return {
+        constructionCount: [
+            ...contents.matchAll(DIAGNOSTIC_CONSTRUCTION_PATTERN),
+        ].length,
+        codedConstructionCount: [
+            ...contents.matchAll(CODED_CONSTRUCTION_PATTERN),
+        ].length,
+        forwardedCount: [...contents.matchAll(FORWARDED_DIAGNOSTIC_PATTERN)]
+            .length,
+    };
+}
+
 /** Diagnostic call sites under `packages/<name>/src`. */
 export function collectDiagnosticUsage(): DiagnosticUsage {
     const codes: CallSite[] = [];
@@ -381,14 +412,10 @@ export function collectDiagnosticUsage(): DiagnosticUsage {
         for (const match of contents.matchAll(DIAGNOSTIC_CODE_USE_PATTERN)) {
             codes.push({ key: match[1], file });
         }
-        constructionCount += [
-            ...contents.matchAll(DIAGNOSTIC_CONSTRUCTION_PATTERN),
-        ].length;
-        codedConstructionCount += [
-            ...contents.matchAll(CODED_CONSTRUCTION_PATTERN),
-        ].length;
-        forwardedCount += [...contents.matchAll(FORWARDED_DIAGNOSTIC_PATTERN)]
-            .length;
+        const counts = countDiagnosticConstructions(contents);
+        constructionCount += counts.constructionCount;
+        codedConstructionCount += counts.codedConstructionCount;
+        forwardedCount += counts.forwardedCount;
     }
     return {
         codes,
