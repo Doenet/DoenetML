@@ -84,6 +84,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0032": "variant-exclude-combinations-not-implemented",
     "doenet-i0033": "variant-math-exclude-not-implemented",
     "doenet-i0034": "variant-non-constant-exclude-not-implemented",
+    "doenet-i0048": "attribute-value-invalid-using-default",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -186,11 +187,17 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0099": "annotation-text-missing",
     "doenet-w0100": "reference-index-unavailable",
     "doenet-w0102": "component-action-unavailable",
+    "doenet-w0104": "reference-no-referent",
+    "doenet-w0105": "reference-multiple-referents",
+    "doenet-w0106": "children-invalid-attribute-format",
+    "doenet-w0107": "children-invalid",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
     "doenet-e0003": "attribute-repeated",
     "doenet-e0004": "attribute-invalid-for-component",
+    "doenet-e0005": "composite-circular-dependency",
+    "doenet-e0006": "doenetml-version-not-found",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

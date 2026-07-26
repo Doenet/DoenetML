@@ -17,21 +17,20 @@ export type ErrorComponentState = {
 /**
  * Build the {@link ErrorComponentState} for an `_error` component.
  *
- * The one definition of that shape, for the three places that build an
- * `_error` out of something that might be carrying a code —
+ * The one definition of that shape, for every place that builds an `_error`
+ * out of something that might be carrying a code —
  * {@link convertToErrorComponent}, the parser-error branch of
- * `convertNormalizedDast`, and the state-variable queue that
- * `addQueuedErrorComponentsFromStateVariables` drains. The component is the
- * only thing carrying the diagnostic to where the builder re-raises it, so a
- * place that forgets the code silently un-translates its error.
+ * `convertNormalizedDast`, the state-variable queue that
+ * `addQueuedErrorComponentsFromStateVariables` drains, the circular-dependency
+ * reports in `Copy` and `CompositeExpander`, and `setErrorReplacements`. The
+ * component is the only thing carrying the diagnostic to where the builder
+ * re-raises it, so a place that forgets the code silently un-translates its
+ * error.
  *
- * Half a dozen other sites build an `_error` too — the `<select>` family's
- * `errorMessage`, the circular-dependency reports in `Copy`,
- * `CompositeExpander` and `CompositeReplacementUpdater` — but each composes
- * its own English string and has no code to lose, so they still write
- * `state: { message }` directly. They belong here once those messages migrate
- * to the catalogs (#1518); until then routing them through this would only
- * add a call that could not do anything.
+ * What is left outside is the `<select>` family's `errorMessage`, a state
+ * variable holding a finished English string with no code behind it: routing
+ * it through this would add a call that could not do anything. It belongs here
+ * once that message migrates to the catalogs (#1518).
  *
  * `source` is whatever the message came from: a caught value (a thrown
  * `DiagnosticError`, a bare `Error`, or a string), a parser `DastError` node,

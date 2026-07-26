@@ -14,6 +14,7 @@ import {
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { errorComponentState } from "../../utils/dast/errors";
 
 export default class Copy extends CompositeComponent {
     static componentType = "_copy";
@@ -1537,27 +1538,29 @@ export default class Copy extends CompositeComponent {
             }
 
             console.error("we're calling this circular", e);
-            let message = "Circular dependency detected";
-            if (component.attributes.createComponentOfType?.primitive) {
-                message += ` involving \`<${component.attributes.createComponentOfType.primitive.value}>\` component`;
-            }
-            message += ".";
+            // Same situation the composite expander reports, so the same code.
+            const circular = codedDiagnostic({
+                type: "error",
+                code: "doenet-e0005",
+                args: {
+                    componentType:
+                        component.attributes.createComponentOfType?.primitive
+                            ?.value ?? "none",
+                },
+            });
             serializedReplacements = [
                 {
                     type: "serialized",
                     componentType: "_error",
                     componentIdx: nComponents++,
                     stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                    state: { message },
+                    state: errorComponentState(circular.message, circular),
                     attributes: {},
                     doenetAttributes: {},
                     children: [],
                 },
             ];
-            diagnostics.push({
-                message,
-                type: "error",
-            });
+            diagnostics.push(circular);
             return { serializedReplacements, diagnostics, nComponents };
         }
 

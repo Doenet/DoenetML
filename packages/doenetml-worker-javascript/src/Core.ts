@@ -1,4 +1,5 @@
 import ParameterStack from "./ParameterStack";
+import { codedDiagnostic } from "./utils/diagnostics";
 // `Numerics.js` is still JavaScript; cast at the import site once.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import Numerics from "./Numerics";
@@ -14,6 +15,8 @@ import {
 import {
     createTranslatorFromLocaleData,
     DEFAULT_LOCALE_DATA,
+    type DiagnosticArgs,
+    type DiagnosticCode,
     type LocaleData,
     type Translator,
 } from "@doenet/i18n";
@@ -43,6 +46,9 @@ import { UpdateExecutor } from "./core/UpdateExecutor";
 import { VisibilityTracker } from "./core/VisibilityTracker";
 import * as nameResolver from "./StateVariableNameResolver";
 import { numberAnswers } from "./utils/answer";
+
+/** A coded diagnostic `ChildMatcher` recorded for `Core` to raise later. */
+type UnmatchedChildren = { code: DiagnosticCode; args: DiagnosticArgs };
 
 /**
  * Constructor arguments passed in from `CoreWorker`. The resolver callbacks
@@ -222,7 +228,12 @@ export default class Core {
     errorComponentsToAdd!: any[];
     essentialValuesSavedInDefinition!: Record<string, any>;
     rendererVariablesByComponentType!: Record<string, any>;
-    unmatchedChildren!: Record<number, any>;
+    /**
+     * The diagnostic to raise for each parent whose children did not match,
+     * keyed by parent index. `ChildMatcher` writes it and `Core` raises it a
+     * pass later, so the two are typed rather than left to agree by hand.
+     */
+    unmatchedChildren!: Record<number, UnmatchedChildren>;
     updateInfo: UpdateInfo;
     /** Set by `ComponentBuilder` once the document renderer tree exists. */
     documentRendererInstructions?: any;
@@ -651,13 +662,17 @@ export default class Core {
         if (Object.keys(this.unmatchedChildren).length > 0) {
             for (const componentIdxStr in this.unmatchedChildren) {
                 let parent = this._components[Number(componentIdxStr)];
-                this.addDiagnostic({
-                    type: "warning",
-                    message:
-                        this.unmatchedChildren[Number(componentIdxStr)].message,
-                    position: parent.position,
-                    sourceDoc: parent.sourceDoc,
-                });
+                const unmatched =
+                    this.unmatchedChildren[Number(componentIdxStr)];
+                this.addDiagnostic(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: unmatched.code,
+                        args: unmatched.args,
+                        position: parent.position,
+                        sourceDoc: parent.sourceDoc,
+                    }),
+                );
             }
         }
 

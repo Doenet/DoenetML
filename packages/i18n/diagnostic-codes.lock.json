@@ -12,6 +12,8 @@
     "doenet-e0002": "component-type-invalid",
     "doenet-e0003": "attribute-repeated",
     "doenet-e0004": "attribute-invalid-for-component",
+    "doenet-e0005": "composite-circular-dependency",
+    "doenet-e0006": "doenetml-version-not-found",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",
@@ -46,6 +48,7 @@
     "doenet-i0032": "variant-exclude-combinations-not-implemented",
     "doenet-i0033": "variant-math-exclude-not-implemented",
     "doenet-i0034": "variant-non-constant-exclude-not-implemented",
+    "doenet-i0048": "attribute-value-invalid-using-default",
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
     "doenet-w0003": "line-points-depend-on-variables",
@@ -146,5 +149,9 @@
     "doenet-w0098": "annotation-ref-unsupported-target",
     "doenet-w0099": "annotation-text-missing",
     "doenet-w0100": "reference-index-unavailable",
-    "doenet-w0102": "component-action-unavailable"
+    "doenet-w0102": "component-action-unavailable",
+    "doenet-w0104": "reference-no-referent",
+    "doenet-w0105": "reference-multiple-referents",
+    "doenet-w0106": "children-invalid-attribute-format",
+    "doenet-w0107": "children-invalid"
 }
