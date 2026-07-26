@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { styleAttributes } from "../../utils/prefigure/style";
 import type { DiagnosticRecord } from "@doenet/utils";
 
-describe("PreFigure style attributes", () => {
+describe("PreFigure style attributes @group4", () => {
     it.each([
         ["horizontal", "horizontal"],
         ["vertical", "vertical"],

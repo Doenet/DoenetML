@@ -5,7 +5,7 @@ import {
 } from "../../utils/attributes";
 import type { AttributeDefinition } from "../../utils/dast/types";
 
-describe("preprocessAttributesObject", () => {
+describe("preprocessAttributesObject @group4", () => {
     it("lower-cases each validValues entry's value when toLowerCase is set, without touching descriptions", () => {
         const attrs: Record<string, AttributeDefinition<unknown>> = {
             mode: {
@@ -98,7 +98,7 @@ describe("preprocessAttributesObject", () => {
     });
 });
 
-describe("validateListItemsAgainstValidValues", () => {
+describe("validateListItemsAgainstValidValues @group4", () => {
     const validValues = [
         { value: "top", description: "Align to the top." },
         { value: "middle", description: "Center." },
