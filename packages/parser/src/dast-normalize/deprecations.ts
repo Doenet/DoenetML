@@ -8,7 +8,7 @@ import { isDastElement } from "../types-util";
  * A rule names the attributes it is about rather than carrying a finished
  * sentence.
  *
- * The registry used to hold twenty-one hand-written strings that differed only
+ * The registry used to hold seventeen hand-written strings that differed only
  * in two identifiers, which no translation could reach and which had to be
  * kept in step by hand. Now each rule carries the pieces, one code covers each
  * shape of message, and the English is assembled in one place beside the code
@@ -48,11 +48,12 @@ type DeprecationRegistry = {
  * attributes case-insensitively. Without this, `<description WeIgHt="2">`
  * would slip past the deprecation pass and hard-error once `weight` is no
  * longer a valid attribute on `<description>`.
+ *
+ * Same shape as the registry — only the keys differ — so it is an alias
+ * rather than a second declaration to keep in step. The distinct name is what
+ * makes a signature say which of the two it wants.
  */
-type DeprecationIndex = {
-    attributeRenames: Record<string, Record<string, AttributeRenameRule>>;
-    attributeRemovals: Record<string, Record<string, AttributeRemovalRule>>;
-};
+type DeprecationIndex = DeprecationRegistry;
 
 /**
  * All component types that accept scored-section attributes (returnScoredSectionAttributes).
@@ -278,11 +279,8 @@ export const pluginApplyDeprecations: Plugin<[], DastRoot, DastRoot> = () => {
                 return;
             }
 
-            const nodeWarnings: DastError[] = [];
-
-            applyAttributeRenames(node, nodeWarnings);
-            applyAttributeRemovals(node, nodeWarnings);
-            warnings.push(...nodeWarnings);
+            applyAttributeRenames(node, warnings);
+            applyAttributeRemovals(node, warnings);
         });
 
         if (warnings.length > 0) {
@@ -305,7 +303,41 @@ function applyAttributeRenames(node: DastElement, warnings: DastError[]) {
         return;
     }
 
-    applyRenames(node, renameRules, warnings);
+    // `new` attribute names take precedence over deprecated names when both are
+    // present; in that conflict case, deprecated attributes are dropped. Rule
+    // keys are lower-cased (see DEPRECATION_INDEX) and matched against the
+    // actual attribute keys on the node case-insensitively.
+    for (const [oldLowerName, renameRule] of Object.entries(renameRules)) {
+        const oldActualKey = findAttributeKey(node, oldLowerName);
+        if (!oldActualKey) {
+            continue;
+        }
+
+        const oldAttribute = node.attributes[oldActualKey];
+        const position = oldAttribute.position ?? node.position;
+        const source_doc = oldAttribute.source_doc ?? node.source_doc;
+
+        delete node.attributes[oldActualKey];
+
+        const conflictKey = findAttributeKey(node, renameRule.to.toLowerCase());
+        if (conflictKey) {
+            warnings.push(
+                renamedAttributeConflictWarning(
+                    renameRule,
+                    position,
+                    source_doc,
+                ),
+            );
+        } else {
+            node.attributes[renameRule.to] = {
+                ...oldAttribute,
+                name: renameRule.to,
+            };
+            warnings.push(
+                renamedAttributeWarning(renameRule, position, source_doc),
+            );
+        }
+    }
 }
 
 function applyAttributeRemovals(node: DastElement, warnings: DastError[]) {
@@ -341,48 +373,6 @@ function applyAttributeRemovals(node: DastElement, warnings: DastError[]) {
                 source_doc,
             }),
         );
-    }
-}
-
-function applyRenames(
-    node: DastElement,
-    renameRules: Record<string, AttributeRenameRule>,
-    warnings: DastError[],
-) {
-    // `new` attribute names take precedence over deprecated names when both are
-    // present; in that conflict case, deprecated attributes are dropped. Rule
-    // keys are lower-cased (see DEPRECATION_INDEX) and matched against the
-    // actual attribute keys on the node case-insensitively.
-    for (const [oldLowerName, renameRule] of Object.entries(renameRules)) {
-        const oldActualKey = findAttributeKey(node, oldLowerName);
-        if (!oldActualKey) {
-            continue;
-        }
-
-        const oldAttribute = node.attributes[oldActualKey];
-        const position = oldAttribute.position ?? node.position;
-        const source_doc = oldAttribute.source_doc ?? node.source_doc;
-
-        delete node.attributes[oldActualKey];
-
-        const conflictKey = findAttributeKey(node, renameRule.to.toLowerCase());
-        if (conflictKey) {
-            warnings.push(
-                renamedAttributeConflictWarning(
-                    renameRule,
-                    position,
-                    source_doc,
-                ),
-            );
-        } else {
-            node.attributes[renameRule.to] = {
-                ...oldAttribute,
-                name: renameRule.to,
-            };
-            warnings.push(
-                renamedAttributeWarning(renameRule, position, source_doc),
-            );
-        }
     }
 }
 

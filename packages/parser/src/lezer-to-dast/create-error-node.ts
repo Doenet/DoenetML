@@ -72,9 +72,6 @@ export function createErrorNode(
                 ? extractContent(tagNameTag, source)
                 : "";
             if (openTag && !closeTag) {
-                const openTagName = tagNameTag
-                    ? extractContent(tagNameTag, source)
-                    : "";
                 const tag = extractContent(openTag, source);
                 return errorNode(
                     {

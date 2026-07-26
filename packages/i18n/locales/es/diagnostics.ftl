@@ -486,6 +486,6 @@ doenetml-version-not-found =
        *[other] No se encontró la versión { $version } de DoenetML. Se recurrirá a la versión { $fallback }
     }
 
-## Reading the DoenetML
+## Lectura del DoenetML
 
 parser-node-unconvertible = No se pudo convertir el nodo { $node } en un nodo Dast.

@@ -615,7 +615,7 @@ doenetml-version-not-found =
 # $tag, $value, $attribute and their relatives quote the author's own source
 # back at them and stay exactly as written. The `Invalid DoenetML: ` opening is
 # repeated in each message instead of being a shared term: a term a locale
-# forgets to define renders as its own name, and a prefix on thirteen messages
+# forgets to define renders as its own name, and a prefix on fifteen messages
 # is not worth that failure mode.
 
 parse-invalid-doenetml = Invalid DoenetML: { $content }
@@ -653,6 +653,15 @@ parse-close-tag-without-open-tag = Invalid DoenetML: Found closing tag `{ $tag }
 
 parse-close-tag-mismatched = Invalid DoenetML: Mismatched closing tag. Expected `</{ $expected }>`. Found `{ $found }`
 
+# The conversion's fall-through: the syntax tree held a node shape it has no
+# case for. Reaching an author means the grammar and the conversion have gone
+# out of step, which is a bug in Doenet rather than in their document — hence
+# `parser-` rather than the `parse-` of every message above, which is about
+# what the author wrote. They are still the one looking at it, so it is
+# translated like any other error. $node is the node's own name and stays as
+# it is.
+parser-node-unconvertible = Could not convert node { $node } to Dast node.
+
 ## Names
 
 # $reason says which rule the name broke, as a key rather than a phrase, so the
@@ -675,8 +684,9 @@ answer-name-not-single-text = Answer name attribute must have a single text chil
 
 ## Referencing another document
 
-# $attribute is the attribute the URI was written in (`copyFrom`, `extend`, …)
-# and stays as written; $uri is the author's own value.
+## $attribute is the attribute the URI was written in (`copyFrom`, `extend`, …)
+## and stays as written; $uri is the author's own value.
+
 external-doenetml-recursion-limit = Unable to retrieve external DoenetML due to too many levels of recursion. Is there a circular reference?
 
 external-doenetml-unavailable = Unable to retrieve DoenetML from { $attribute }="{ $uri }"
@@ -704,12 +714,3 @@ deprecated-attribute-renamed-conflict =
     }
 
 deprecated-attribute-ignored = [deprecation] Attribute `{ $attribute }` on `<{ $component }>` is deprecated and ignored.
-
-## Reading the DoenetML
-
-# The parser's fall-through: the syntax tree held a node shape the DAST
-# conversion has no case for. Reaching an author means the grammar and the
-# conversion have gone out of step, which is a bug in Doenet rather than in
-# their document — but they are the one looking at it, so it is translated
-# like any other error. $node is the node's own name and stays as it is.
-parser-node-unconvertible = Could not convert node { $node } to Dast node.

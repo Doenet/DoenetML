@@ -284,6 +284,7 @@ export type MessageKey =
     | "parse-attribute-value-unquoted"
     | "parse-close-tag-without-open-tag"
     | "parse-close-tag-mismatched"
+    | "parser-node-unconvertible"
     | "name-attribute-invalid"
     | "component-name-invalid-start"
     | "answer-video-watched-missing-video"
@@ -294,8 +295,7 @@ export type MessageKey =
     | "external-doenetml-type-mismatch"
     | "deprecated-attribute-renamed"
     | "deprecated-attribute-renamed-conflict"
-    | "deprecated-attribute-ignored"
-    | "parser-node-unconvertible";
+    | "deprecated-attribute-ignored";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -576,6 +576,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "parse-attribute-value-unquoted",
     "parse-close-tag-without-open-tag",
     "parse-close-tag-mismatched",
+    "parser-node-unconvertible",
     "name-attribute-invalid",
     "component-name-invalid-start",
     "answer-video-watched-missing-video",
@@ -587,5 +588,4 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "deprecated-attribute-renamed",
     "deprecated-attribute-renamed-conflict",
     "deprecated-attribute-ignored",
-    "parser-node-unconvertible",
 ];

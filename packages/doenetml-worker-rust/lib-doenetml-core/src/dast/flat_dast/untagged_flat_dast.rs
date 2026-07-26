@@ -217,6 +217,8 @@ pub struct FlatError {
     /// was flattened from, and untouched by anything in the core.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
+    /// The values filling [`Self::code`]'s message in. See
+    /// [`crate::dast::DiagnosticArgs`].
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "web", tsify(type = "Record<string, unknown>"))]
     pub args: Option<DiagnosticArgs>,
