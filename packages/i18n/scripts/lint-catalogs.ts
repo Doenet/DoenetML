@@ -21,7 +21,9 @@ import { DEFAULT_LOCALE } from "../src/catalogs";
 import {
     DIAGNOSTIC_CODES,
     DIAGNOSTIC_CODE_PATTERN,
+    RETIRED_DIAGNOSTIC_CODES,
     isDiagnosticCode,
+    type DiagnosticCode,
 } from "../src/diagnostics";
 import {
     DIAGNOSTIC_CODES_LOCK_FILE,
@@ -197,8 +199,33 @@ for (const use of diagnosticUsage.codes) {
 }
 
 const codedCallSites = new Set(diagnosticUsage.codes.map((use) => use.key));
+
+// 8: every registered code is actually raised, unless it says it is retired.
+//
+// A code with no call site is a name nothing can produce. That happens by
+// accident when codes are consolidated or renumbered: the last site using a
+// number moves to another one and the registry entry is left behind. The lint
+// used to report coverage as a note, so a stranded code shipped quietly;
+// making it fatal is what keeps the next renumbering honest.
+for (const code of Object.keys(DIAGNOSTIC_CODES) as DiagnosticCode[]) {
+    const raised = codedCallSites.has(code);
+    const retired = RETIRED_DIAGNOSTIC_CODES.has(code);
+    if (!raised && !retired) {
+        problems.push(
+            `src/diagnostics.ts: "${code}" is registered but never raised — retire it in RETIRED_DIAGNOSTIC_CODES if that is deliberate`,
+        );
+    }
+    // Keeps the retirement list from rotting: a situation that starts arising
+    // again takes its code back, and the list has to say so.
+    if (raised && retired) {
+        problems.push(
+            `src/diagnostics.ts: "${code}" is listed as retired but is raised again — drop it from RETIRED_DIAGNOSTIC_CODES`,
+        );
+    }
+}
+
 notes.push(
-    `diagnostics: ${diagnosticUsage.codes.length} coded call site(s) covering ${codedCallSites.size}/${Object.keys(DIAGNOSTIC_CODES).length} code(s); ${diagnosticUsage.literalCount - diagnosticUsage.codes.length} raw diagnostic literal(s) still to migrate (#1518)`,
+    `diagnostics: ${diagnosticUsage.codes.length} coded call site(s) covering ${codedCallSites.size}/${Object.keys(DIAGNOSTIC_CODES).length} code(s)${RETIRED_DIAGNOSTIC_CODES.size > 0 ? `, ${RETIRED_DIAGNOSTIC_CODES.size} retired` : ""}; ${diagnosticUsage.literalCount - diagnosticUsage.codes.length} raw diagnostic literal(s) still to migrate (#1518)`,
 );
 
 for (const note of notes) {

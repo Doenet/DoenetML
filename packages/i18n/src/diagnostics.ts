@@ -168,6 +168,26 @@ export const DIAGNOSTIC_CODES = {
 export type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;
 
 /**
+ * Codes that are still reserved but no longer raised anywhere.
+ *
+ * A code outlives the call site that raised it: retiring one means the
+ * situation stopped arising, not that the name became free. It stays in
+ * {@link DIAGNOSTIC_CODES} so the lock keeps agreeing with the registry, and
+ * it is listed here so `lint:i18n` knows the missing call site is deliberate.
+ *
+ * That check is the point of the list. Every other registered code must be
+ * raised somewhere, so a consolidation that strands one — the renumbering
+ * hazard, where a code survives in the registry after the last site that used
+ * it moved to another number — fails the lint instead of shipping a name
+ * nothing can ever produce. Retiring becomes an explicit line in a diff rather
+ * than a silent consequence of deleting the last call site.
+ *
+ * Empty today: no code has been retired yet.
+ */
+export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
+    new Set<DiagnosticCode>([]);
+
+/**
  * The shape every code has to match: `doenet-` + severity letter + 4 digits.
  *
  * The rule `lint:i18n` holds a newly registered code to. Not re-exported from
