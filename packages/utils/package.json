@@ -59,6 +59,7 @@
         }
     },
     "dependencies": {
+        "@doenet/i18n": "*",
         "color-name": "^1.1.4",
         "colord": "^2.9.3",
         "math-expressions": "^2.0.0-alpha93",

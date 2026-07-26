@@ -1,0 +1,15 @@
+{
+    "_comment": [
+        "Size ceiling for the built language server (dist/index.js), checked by",
+        "scripts/check-server-bundle.mjs. The bundle is embedded verbatim in",
+        "@doenet/codemirror and starts as a blob worker, so this is download and",
+        "parse cost on the editor's critical path, not just the VS Code",
+        "extension's.",
+        "",
+        "Set with roughly 8% headroom over the build at the time, so ordinary",
+        "drift does not trip it and a new heavy dependency does. Raising it is",
+        "fine when the growth is intended; the point is that raising it lands in",
+        "the diff and someone has to say why."
+    ],
+    "maxBytes": 1155000
+}

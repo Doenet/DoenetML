@@ -225,7 +225,11 @@ export type MessageKey =
     | "math-input-invalid-function-names"
     | "component-type-invalid"
     | "attribute-repeated"
-    | "attribute-invalid-for-component";
+    | "attribute-invalid-for-component"
+    | "style-definition-insufficient-contrast"
+    | "style-definition-dark-mode-text-background-contrast"
+    | "style-definition-dark-mode-text-canvas-contrast"
+    | "section-multiple-style-palettes";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -448,4 +452,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "component-type-invalid",
     "attribute-repeated",
     "attribute-invalid-for-component",
+    "style-definition-insufficient-contrast",
+    "style-definition-dark-mode-text-background-contrast",
+    "style-definition-dark-mode-text-canvas-contrast",
+    "section-multiple-style-palettes",
 ];

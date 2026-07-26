@@ -227,7 +227,12 @@ sendDiagnostics.push(
 );
 ```
 
-`codedDiagnostic` (in `@doenet/doenetml-worker-javascript/src/utils`) fills
+`codedDiagnostic` lives in `@doenet/utils`, beside the `DiagnosticRecord` it
+builds, because the worker is no longer the only place that raises one — the
+style-contrast checks in that package do too, and a record assembled two
+different ways in two packages is a record whose shape can drift.
+`@doenet/doenetml-worker-javascript/src/utils/diagnostics.ts` re-exports it, so
+the worker's call sites import it from where they always did. It fills
 `message` in from the English catalog, so the English and the catalog cannot
 drift and everything that reads `message` inside the worker — the dedupe in
 `DiagnosticsManager`, the tests that assert exact strings — sees what it saw
@@ -262,7 +267,8 @@ throw new DiagnosticError({
 });
 ```
 
-`DiagnosticError` (alongside `codedDiagnostic`) is an `Error` subclass whose
+`DiagnosticError` (in the worker's `utils/diagnostics.ts`, alongside its
+re-export of `codedDiagnostic`) is an `Error` subclass whose
 `message` comes from the same English catalog, so it drops straight into a
 `throw` site: `instanceof Error` still holds and a `catch` reading `e.message`
 sees what it saw before. `errorComponentState` puts the code and arguments on
@@ -363,6 +369,27 @@ A count the catalog derives itself can never disagree with the list beside it.
 Pass `{ list, type: "unit" }` instead of a bare array for a bare enumeration
 ("x, y, z") rather than a conjunction ("x, y, and z") — English distinguishes
 them and other languages distinguish them differently.
+
+## Bundling
+
+`package.json` declares `"sideEffects": false`, and that is load-bearing rather
+than tidiness. The English catalogs are `?raw` imports assembled by a
+module-level call in `catalogs.ts`; without the declaration a bundler has to
+assume that call might do something observable, so it keeps it — and keeping it
+keeps all four FTL files — in **any** bundle that reaches this package for any
+reason, even one where every function has already been tree-shaken away.
+
+That is not hypothetical — it was measured. When `@doenet/utils` took its
+runtime dependency on this package (#1557), the DoenetML language server grew
+by 20 KB gzipped of catalog text without gaining a single line of code that
+reads it: it imports `@doenet/utils/style` for something unrelated, and the
+strings came along. The declaration is what kept that off `main`, and
+`packages/lsp/scripts/check-server-bundle.mjs` fails the build if it comes
+back.
+
+Nothing here registers globals, patches prototypes, or imports for effect, so
+the claim is true today. Anything added that breaks it has to remove the
+declaration and pay the cost everywhere.
 
 ## Commands
 
