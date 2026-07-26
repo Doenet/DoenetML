@@ -486,9 +486,7 @@ export class Dependency {
                 // cannot be applied is reported in those terms. The upstream
                 // component is the one that carries the reference; its
                 // resolution remembers where in the document it was read
-                // from. Reconstructing it here rather than inside
-                // `arrayEntryNamesFromPropIndex` keeps that lookup on the one
-                // path that has an authored reference behind it.
+                // from, which is why the lookup belongs here.
                 const referringComponent =
                     this.dependencyHandler.core._components[
                         this.upstreamComponentIdx
@@ -505,8 +503,7 @@ export class Dependency {
                     reference: referenceText
                         ? {
                               text: `$${referenceText}`,
-                              // The referring component, not `downComponent`:
-                              // the mistake is where the index was written.
+                              // Marked where the index was written.
                               position: referringComponent.position,
                               sourceDoc: referringComponent.sourceDoc,
                           }

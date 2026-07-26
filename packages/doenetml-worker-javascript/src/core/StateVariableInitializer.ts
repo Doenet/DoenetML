@@ -1966,12 +1966,8 @@ export async function arrayEntryNamesFromPropIndex({
     /**
      * The reference the author wrote and where they wrote it, so a failure
      * here can be reported in terms of the document rather than in terms of
-     * the state variable it resolved to.
-     *
-     * `component` is the wrong place to attribute that failure to: it is what
-     * the reference *resolved to*, so two references to the same target would
-     * both be marked on the target and neither on itself. `position` here is
-     * the referring component's instead.
+     * the state variable it resolved to. `position` is the referring
+     * component's, so each reference is marked where it was written.
      *
      * Absent when the source text isn't available — a reference a composite
      * built rather than a document supplied — in which case nothing is
