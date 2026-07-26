@@ -15,6 +15,10 @@ export default defineConfig({
                     "./src/diagnostics/renderDiagnosticMarkdownHtml.ts",
                 parseInlineMarkdown: "./src/markdown/parseInlineMarkdown.ts",
                 style: "./src/style/index.ts",
+                // Its own entry so the language server can reach it without
+                // the root barrel. See the `exports` note in package.json.
+                mathInputFunctionNames:
+                    "./src/components/mathInputFunctionNames.ts",
                 mathjax: "./src/math/MathJaxContext.tsx",
             },
             formats: ["es"],

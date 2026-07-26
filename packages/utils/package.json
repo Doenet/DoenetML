@@ -23,6 +23,9 @@
         "./style": {
             "import": "./dist/style.js"
         },
+        "./components/mathInputFunctionNames": {
+            "import": "./dist/mathInputFunctionNames.js"
+        },
         "./mathjax": {
             "import": "./dist/mathjax.js"
         }

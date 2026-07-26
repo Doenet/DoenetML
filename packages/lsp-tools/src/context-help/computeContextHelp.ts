@@ -1,5 +1,10 @@
 import type { DastElement } from "@doenet/parser";
-import { buildEffectiveMathInputFunctionNames } from "@doenet/utils";
+// Its own subpath rather than the root export, for the reason
+// `resolve-active-style.ts` already documents: the root barrel drags in
+// math-expressions, the AST helpers and the URL utilities, and this worker
+// loads on the critical path before the editor can answer a cursor-help
+// request. `noRootUtilsImport.test.ts` keeps it that way.
+import { buildEffectiveMathInputFunctionNames } from "@doenet/utils/components/mathInputFunctionNames";
 import {
     AutoCompleter,
     type AliasedElementSchema,
