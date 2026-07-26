@@ -6,28 +6,26 @@
         "the same commit that causes it is the whole point: it puts the increase",
         "in the diff where a reviewer can see it and ask about it.",
         "",
-        "The budgets carry roughly 8% headroom over the sizes at the time they",
-        "were set, so ordinary feature work does not trip them and a duplicated",
-        "dependency does.",
-        "",
-        "`observedBytes` records the size at the moment `maxBytes` was chosen. It",
-        "is documentation, not a second threshold — nothing enforces it — and it",
-        "is what makes the headroom in a raised `maxBytes` reviewable. Update it",
-        "alongside `maxBytes`.",
+        "The budgets sit 7–8% above the sizes recorded in `observedBytes`, so",
+        "ordinary feature work does not trip them and a duplicated dependency",
+        "does. `observedBytes` is the size at the moment `maxBytes` was chosen:",
+        "documentation, not a second threshold — nothing enforces it — and what",
+        "makes the headroom in a raised `maxBytes` reviewable. Update the two",
+        "together.",
         "",
         "Only these files have ceilings. The separate check that the Rust core is",
-        "inlined exactly once scans every script under `dist/`, budgeted or not,",
-        "so a copy landing in a newly emitted chunk is still caught."
+        "inlined exactly once, and only in the worker, scans every script under",
+        "`dist/`, budgeted or not — see `scripts/check-bundle-size.mjs`."
     ],
     "files": {
         "dist/doenet-standalone.js": {
             "maxBytes": 15650000,
-            "observedBytes": 14487097,
+            "observedBytes": 14489401,
             "note": "No WebAssembly belongs in this bundle; the worker owns it."
         },
         "dist/doenetml-worker/index.js": {
             "maxBytes": 15950000,
-            "observedBytes": 14761863,
+            "observedBytes": 14889393,
             "note": "Carries the Rust core as a single inlined base64 wasm blob (~8.6 MB)."
         }
     }

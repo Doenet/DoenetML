@@ -3,16 +3,16 @@
  * specific way they have grown before: a second copy of the Rust core.
  *
  * The core ships as a single base64 `data:application/wasm` URI inlined into
- * the worker bundle — roughly 8.6 MB of the worker's 14.8 MB. When a build or
+ * the worker bundle — roughly 8.6 MB of the worker's 14.2 MB. When a build or
  * dependency change causes that blob to be emitted twice, or to be pulled into
  * `doenet-standalone.js` as well, the bundle grows by megabytes and nothing
  * fails. That has happened more than once.
  *
  * Two checks, doing different jobs:
  *
- *  - The duplication check needs no threshold and never needs adjusting. The
- *    wasm blob is meant to exist exactly once, in the worker, and any other
- *    arrangement is a bug rather than a judgement call. It scans *every*
+ *  - The placement check needs no threshold and never needs adjusting. The
+ *    core is meant to sit in {@link WASM_CORE_SCRIPT} and nowhere else, and any
+ *    other arrangement is a bug rather than a judgement call. It scans *every*
  *    emitted script under `dist/`, not just the budgeted ones, so a copy that
  *    lands in a newly emitted chunk is still caught.
  *  - The size budgets in `bundle-budgets.json` catch the general case the
@@ -23,7 +23,10 @@
  * Run via `npm run check:size -w packages/standalone`. Exits non-zero, and
  * prints every problem it found rather than just the first, when a bundle is
  * over budget, when a budgeted file is missing, when `bundle-budgets.json` is
- * unusable, or when the wasm blob is not inlined exactly once.
+ * unusable, or when the core is not inlined exactly once in the right script.
+ *
+ * The exported helpers exist so `check-bundle-size.test.mjs` can exercise the
+ * decision logic against synthetic bundles; only `main()` touches `dist/`.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -36,9 +39,19 @@ const PACKAGE_ROOT = path.resolve(
 const BUDGETS_FILE = path.join(PACKAGE_ROOT, "bundle-budgets.json");
 const DIST_DIR = path.join(PACKAGE_ROOT, "dist");
 
+/**
+ * The one emitted script that is supposed to carry the inlined core. It is
+ * copied here from `@doenet/doenetml-worker` by `viteStaticCopy` in
+ * `vite.config.ts`; if that destination changes, change this key and the
+ * matching one in `bundle-budgets.json` together.
+ */
+export const WASM_CORE_SCRIPT = "dist/doenetml-worker/index.js";
+
 /** A base64 run long enough that nothing but an embedded binary explains it. */
 const BIG_BLOB_MIN = 1_000_000;
 const WASM_URI = /data:application\/wasm;base64/g;
+/** Emitted JavaScript, in any extension a bundler might choose. */
+const SCRIPT_EXTENSION = /\.[cm]?js$/;
 
 /**
  * Count maximal base64 runs of at least {@link BIG_BLOB_MIN} characters.
@@ -48,7 +61,7 @@ const WASM_URI = /data:application\/wasm;base64/g;
  * bundles are ~15 MB and the engine backtracks itself to death. A single pass
  * costs nothing and cannot blow up.
  */
-function countBigBlobs(text) {
+export function countBigBlobs(text) {
     let count = 0;
     let run = 0;
     for (let i = 0; i < text.length; i++) {
@@ -76,16 +89,16 @@ function mib(bytes) {
 }
 
 /**
- * Every `.js` file under `dist/`, keyed by its path relative to the package
- * root (matching the keys in `bundle-budgets.json`).
+ * Every emitted script under `dist/`, keyed by its path relative to the
+ * package root (matching the keys in `bundle-budgets.json`).
  *
  * Deliberately limited to scripts. Source maps (`*.js.map`) embed the very
  * blob they map, so counting them would report the core twice for a correct
  * build, and `dist/style.css` legitimately carries a ~1 MB base64 run of its
  * own (an inlined SVG webfont) that the blob heuristic cannot tell apart from
- * wasm. Only scripts can actually ship a duplicated Rust core.
+ * wasm. Only a script can actually execute a duplicated Rust core.
  */
-function collectEmittedScripts(dir) {
+export function collectEmittedScripts(dir = DIST_DIR) {
     const scripts = new Map();
     if (!fs.existsSync(dir)) {
         return scripts;
@@ -94,11 +107,12 @@ function collectEmittedScripts(dir) {
         withFileTypes: true,
         recursive: true,
     })) {
-        if (!entry.isFile() || !entry.name.endsWith(".js")) {
+        if (!entry.isFile() || !SCRIPT_EXTENSION.test(entry.name)) {
             continue;
         }
         const file = path.join(entry.parentPath, entry.name);
-        const contents = fs.readFileSync(file, "utf-8");
+        const buffer = fs.readFileSync(file);
+        const contents = buffer.toString("utf-8");
         // Keyed with forward slashes on every platform, so the keys in
         // `bundle-budgets.json` match on Windows too.
         const relative = path
@@ -106,7 +120,7 @@ function collectEmittedScripts(dir) {
             .split(path.sep)
             .join("/");
         scripts.set(relative, {
-            size: fs.statSync(file).size,
+            size: buffer.length,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
             bigBlobs: countBigBlobs(contents),
         });
@@ -121,14 +135,16 @@ function collectEmittedScripts(dir) {
  * which is `false` — the file would be reported as within a `NaN MiB` budget
  * and the check would pass. A budget that silently stops guarding is worse
  * than no budget at all.
+ *
+ * @returns the `files` entries, as `[relativePath, budget]` pairs.
  */
-function loadBudgets() {
+export function loadBudgets(budgetsFile = BUDGETS_FILE) {
     let parsed;
     try {
-        parsed = JSON.parse(fs.readFileSync(BUDGETS_FILE, "utf-8"));
+        parsed = JSON.parse(fs.readFileSync(budgetsFile, "utf-8"));
     } catch (e) {
         throw new Error(
-            `Could not read ${path.relative(PACKAGE_ROOT, BUDGETS_FILE)}: ${e.message}`,
+            `Could not read ${path.relative(PACKAGE_ROOT, budgetsFile)}: ${e.message}`,
         );
     }
     const files = parsed?.files;
@@ -155,17 +171,51 @@ function loadBudgets() {
     return entries;
 }
 
-function main() {
-    const budgets = loadBudgets();
-    const scripts = collectEmittedScripts(DIST_DIR);
+/**
+ * Describe a script whose inlined-blob count is not what it should be.
+ *
+ * `expected` is 1 for {@link WASM_CORE_SCRIPT} and 0 for everything else, so
+ * the two wordings cover every script.
+ */
+function blobPlacementProblem(relative, emitted, expected) {
+    const observed =
+        `${emitted.wasmUris} wasm data-URI(s) and ` +
+        `${emitted.bigBlobs} large inlined blob(s)`;
+    if (expected === 1) {
+        return (
+            `${relative} should carry the Rust core exactly once, but has ${observed}.\n` +
+            `    Zero means the core stopped being inlined — the worker would then have to\n` +
+            `    fetch it at runtime, which standalone hosting cannot do. More than one\n` +
+            `    means it was bundled twice, which adds megabytes.`
+        );
+    }
+    return (
+        `${relative} should carry no inlined binary — the Rust core belongs to\n` +
+        `    ${WASM_CORE_SCRIPT} alone — but has ${observed}.\n` +
+        `    A wasm URI here means the core leaked out of the worker or was bundled\n` +
+        `    twice. A large blob without one means some other multi-megabyte asset is\n` +
+        `    now inlined into JavaScript. Either way it should be a deliberate change.`
+    );
+}
+
+/**
+ * Compare the emitted scripts against the budgets, without touching the disk
+ * or the process.
+ *
+ * @param budgets `[relativePath, budget]` pairs, as returned by
+ *   {@link loadBudgets}.
+ * @param scripts the emitted scripts, as returned by
+ *   {@link collectEmittedScripts}.
+ * @returns `report` lines describing every emitted script, and `problems`
+ *   describing everything that should fail the build.
+ */
+export function findProblems(budgets, scripts) {
     const problems = [];
     const report = [];
-    let anyBudgetedFileMissing = false;
 
     for (const [relative, budget] of budgets) {
         const emitted = scripts.get(relative);
         if (!emitted) {
-            anyBudgetedFileMissing = true;
             problems.push(
                 `${relative} does not exist — build the package before checking its size ` +
                     `(\`npm run build -w packages/standalone\`).`,
@@ -182,8 +232,8 @@ function main() {
 
         if (emitted.size > budget.maxBytes) {
             problems.push(
-                `${relative} is ${mib(emitted.size)}, over its ${mib(budget.maxBytes)} budget by ` +
-                    `${mib(emitted.size - budget.maxBytes)}.\n` +
+                `${relative} is ${mib(emitted.size)} (${emitted.size} bytes), over its ` +
+                    `${mib(budget.maxBytes)} budget by ${mib(emitted.size - budget.maxBytes)}.\n` +
                     `    If the growth is intended, raise "maxBytes" for this file in\n` +
                     `    packages/standalone/bundle-budgets.json in the same commit, so the\n` +
                     `    increase is visible in review. If it is not intended, something was\n` +
@@ -207,30 +257,33 @@ function main() {
         }
     }
 
-    let totalWasmUris = 0;
-    let totalBigBlobs = 0;
-    for (const emitted of scripts.values()) {
-        totalWasmUris += emitted.wasmUris;
-        totalBigBlobs += emitted.bigBlobs;
+    // Where the core sits, not just how many copies exist: a single copy in
+    // the wrong script is as much a bug as two copies, and a total-only count
+    // cannot tell them apart.
+    for (const [relative, emitted] of scripts) {
+        const expected = relative === WASM_CORE_SCRIPT ? 1 : 0;
+        if (emitted.wasmUris !== expected || emitted.bigBlobs !== expected) {
+            problems.push(blobPlacementProblem(relative, emitted, expected));
+        }
     }
-
-    // The core belongs to the worker, exactly once. `doenet-standalone.js`
-    // should carry no copy of it at all. Only meaningful once the build has
-    // actually produced its bundles: on a half-built `dist/` the counts would
-    // be zero and the message would blame duplication for a missing build.
-    if (
-        !anyBudgetedFileMissing &&
-        (totalWasmUris !== 1 || totalBigBlobs !== 1)
-    ) {
+    // An unbuilt `dist/` has no scripts to check, and the budget loop above has
+    // already said to build; only complain about the core going missing once
+    // there is a build to complain about.
+    if (scripts.size > 0 && !scripts.has(WASM_CORE_SCRIPT)) {
         problems.push(
-            `Expected exactly one inlined wasm blob across the standalone scripts, in\n` +
-                `    the worker bundle. Found ${totalWasmUris} wasm data-URI(s) and ${totalBigBlobs} large inlined\n` +
-                `    blob(s). More than one means the Rust core was bundled twice, which adds\n` +
-                `    megabytes; one in doenet-standalone.js means it leaked out of the worker.\n` +
-                `    Zero means the core stopped being inlined at all — the worker would\n` +
-                `    then have to fetch it at runtime, which standalone hosting cannot do.`,
+            `${WASM_CORE_SCRIPT} was not emitted, so nothing carries the Rust core.\n` +
+                `    The worker bundle is copied into \`dist/\` by vite.config.ts; if it moved,\n` +
+                `    update WASM_CORE_SCRIPT in this script and the key in bundle-budgets.json.`,
         );
     }
+
+    return { report, problems };
+}
+
+function main() {
+    const budgets = loadBudgets();
+    const scripts = collectEmittedScripts();
+    const { report, problems } = findProblems(budgets, scripts);
 
     console.log("standalone bundle sizes:");
     console.log(report.join("\n"));
@@ -246,11 +299,20 @@ function main() {
     console.log("\nwithin budget, and the core is inlined exactly once.");
 }
 
-try {
-    main();
-} catch (e) {
-    // A configuration error is a failure of the check, not a stack trace to
-    // decipher in a CI log.
-    console.error(`\nbundle size check could not run:\n\n  - ${e.message}\n`);
-    process.exit(1);
+// Only when run as a command; importing this module (from its test) must not
+// check the real `dist/` or exit the process.
+if (
+    process.argv[1] &&
+    path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+    try {
+        main();
+    } catch (e) {
+        // A configuration error is a failure of the check, not a stack trace to
+        // decipher in a CI log.
+        console.error(
+            `\nbundle size check could not run:\n\n  - ${e.message}\n`,
+        );
+        process.exit(1);
+    }
 }
