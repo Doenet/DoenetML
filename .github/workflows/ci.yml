@@ -48,15 +48,15 @@ jobs:
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
                   npm run build:all-no-docs
+              # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
+              env:
+                  WIREIT_CACHE: "local"
 
             # The standalone bundles have grown by megabytes before, when the
             # Rust core ended up inlined twice, and nothing failed. Checked here
             # rather than in a test job because this is where the bundles exist.
             - name: Check standalone bundle size
-              run: npm run check:size --workspace packages/standalone
-              # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
-              env:
-                  WIREIT_CACHE: "local"
+              run: npm run check:size -w packages/standalone
 
             - name: Debug Build Artifacts
               run: |

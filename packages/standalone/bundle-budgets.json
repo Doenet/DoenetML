@@ -1,14 +1,23 @@
 {
     "comment": [
         "Size ceilings for the built standalone bundles, in bytes, checked by",
-        "`npm run check:size -w @doenet/standalone` and by CI right after the",
+        "`npm run check:size -w packages/standalone` and by CI right after the",
         "build. Growth is fine — silent growth is not. Raising a number here in",
         "the same commit that causes it is the whole point: it puts the increase",
         "in the diff where a reviewer can see it and ask about it.",
         "",
         "The budgets carry roughly 8% headroom over the sizes at the time they",
         "were set, so ordinary feature work does not trip them and a duplicated",
-        "dependency does."
+        "dependency does.",
+        "",
+        "`observedBytes` records the size at the moment `maxBytes` was chosen. It",
+        "is documentation, not a second threshold — nothing enforces it — and it",
+        "is what makes the headroom in a raised `maxBytes` reviewable. Update it",
+        "alongside `maxBytes`.",
+        "",
+        "Only these files have ceilings. The separate check that the Rust core is",
+        "inlined exactly once scans every script under `dist/`, budgeted or not,",
+        "so a copy landing in a newly emitted chunk is still caught."
     ],
     "files": {
         "dist/doenet-standalone.js": {
