@@ -292,7 +292,11 @@ export async function renderDiagnosticCodesLock(
 const DIAGNOSTIC_CODE_USE_PATTERN = /code:\s*["'`](doenet-[a-z]\d+)["'`]/g;
 
 /**
- * A raw diagnostic literal: `type: "warning"` and its siblings.
+ * A diagnostic *construction*: an object literal with a severity on it.
+ *
+ * This is the denominator. Every diagnostic in the codebase is ultimately one
+ * of these, whether the message beside it is a literal English string or comes
+ * from the catalog via `codedDiagnostic`.
  *
  * Counted, not validated — a regex over source text can only approximate the
  * real number. The two guards keep it from over-reporting in the ways that
@@ -301,28 +305,27 @@ const DIAGNOSTIC_CODE_USE_PATTERN = /code:\s*["'`](doenet-[a-z]\d+)["'`]/g;
  * lookahead rules out a *type declaration* rather than an object literal
  * (`type: "error";` in the `DiagnosticRecord` union), neither of which is a
  * message anyone has to translate.
- *
- * The ratio of these to coded call sites is the burn-down `lint:i18n` reports
- * while the legacy messages migrate.
  */
-const DIAGNOSTIC_LITERAL_PATTERN =
+const DIAGNOSTIC_CONSTRUCTION_PATTERN =
     /(?<![\w$])type:\s*["'`](?:warning|error|info|accessibility)["'`](?!\s*;)/g;
 
 /**
- * A diagnostic raised by *throwing* rather than by building a record.
+ * A construction whose message comes from the catalog.
  *
- * These have no `type:` property to be counted by
- * {@link DIAGNOSTIC_LITERAL_PATTERN}, so without this they would be pure
- * credit: the site's code lands in `codes` and nothing offsets it, and the
- * burn-down would fall by one for a message that was never in its
- * denominator. Every `DiagnosticError` is coded by construction, so counting
- * each one as a literal makes the pair cancel exactly, the way a migrated
- * record's surviving `type:` cancels its new `code:`.
+ * Subtracted from the constructions rather than counting `code:` uses,
+ * because those are not the same number and the difference is the whole
+ * point. A *helper* that raises diagnostics on its callers' behalf is one
+ * construction with many call sites — `pushVariantInfo` alone stands in front
+ * of about forty — and each of those sites names a code. Counting codes would
+ * credit forty migrations against one construction and drive the burn-down
+ * below zero; counting `codedDiagnostic` calls credits exactly the
+ * constructions that no longer hold English.
  *
- * The uncoded throws it replaces were never counted either, which is why the
- * burn-down has only ever measured the record-shaped half of #1518.
+ * That the helper's own sites are invisible here is not a gap: the English
+ * they used to hold has genuinely moved to the catalog, and the construction
+ * they share is counted once on each side.
  */
-const THROWN_DIAGNOSTIC_PATTERN = /new DiagnosticError\(/g;
+const CODED_CONSTRUCTION_PATTERN = /codedDiagnostic\(/g;
 
 /**
  * A construction that *forwards* whatever code its source carried.
@@ -331,51 +334,68 @@ const THROWN_DIAGNOSTIC_PATTERN = /new DiagnosticError\(/g;
  * of their own — the message came from the thrower — so there is no literal
  * for them to migrate and no code for them to name. They are as migrated as
  * they can be: spreading `diagnosticCodeFrom` is precisely what makes the
- * record coded whenever the thing it forwards is.
- *
- * Counted as migrated rather than deducted from the denominator, because the
- * site is real — it is one of the constructions #1518 is about, it just
- * carries its code instead of writing one. Without this the burn-down could
- * never reach zero: these sites would sit in the remainder forever, with
- * nothing left to do to them.
+ * record coded whenever the thing it forwards is. Without counting them the
+ * burn-down could never reach zero, because these sites would sit in the
+ * remainder forever with nothing left to do to them.
  */
 const FORWARDED_DIAGNOSTIC_PATTERN = /\.\.\.diagnosticCodeFrom\(/g;
 
 export type DiagnosticUsage = {
     /**
-     * Sites naming a code literally. The key is validated against the
-     * registry, so these are the only ones that can answer "is every
-     * registered code actually raised?".
+     * Sites naming a code literally, including the ones that hand it to a
+     * helper. The key is validated against the registry, so these are the only
+     * ones that can answer "is every registered code actually raised?" — which
+     * is why they are collected even though the burn-down does not use them.
      */
     codes: CallSite[];
-    /** Sites that pass a code through from their source without naming one. */
+    /** Diagnostic constructions, migrated or not. */
+    constructionCount: number;
+    /** Constructions taking their message from the catalog. */
+    codedConstructionCount: number;
+    /** Constructions passing a code through from their source. */
     forwardedCount: number;
-    /**
-     * The denominator: every construction that raises a diagnostic, coded or
-     * not — a record's `type:` literal ({@link DIAGNOSTIC_LITERAL_PATTERN})
-     * and a throw's `new DiagnosticError(` ({@link THROWN_DIAGNOSTIC_PATTERN}).
-     * Subtracting the migrated sites from this is the burn-down.
-     */
-    literalCount: number;
 };
+
+/**
+ * How much of #1518 is left, in constructions.
+ *
+ * A construction is migrated when its message comes from the catalog, either
+ * because it names a code or because it forwards one. Everything else still
+ * holds an English string that no translation can reach.
+ */
+export function remainingLiteralDiagnostics(usage: DiagnosticUsage): number {
+    return (
+        usage.constructionCount -
+        usage.codedConstructionCount -
+        usage.forwardedCount
+    );
+}
 
 /** Diagnostic call sites under `packages/<name>/src`. */
 export function collectDiagnosticUsage(): DiagnosticUsage {
     const codes: CallSite[] = [];
+    let constructionCount = 0;
+    let codedConstructionCount = 0;
     let forwardedCount = 0;
-    let literalCount = 0;
     for (const { file, contents } of scannedSources()) {
         for (const match of contents.matchAll(DIAGNOSTIC_CODE_USE_PATTERN)) {
             codes.push({ key: match[1], file });
         }
+        constructionCount += [
+            ...contents.matchAll(DIAGNOSTIC_CONSTRUCTION_PATTERN),
+        ].length;
+        codedConstructionCount += [
+            ...contents.matchAll(CODED_CONSTRUCTION_PATTERN),
+        ].length;
         forwardedCount += [...contents.matchAll(FORWARDED_DIAGNOSTIC_PATTERN)]
             .length;
-        literalCount += [...contents.matchAll(DIAGNOSTIC_LITERAL_PATTERN)]
-            .length;
-        literalCount += [...contents.matchAll(THROWN_DIAGNOSTIC_PATTERN)]
-            .length;
     }
-    return { codes, forwardedCount, literalCount };
+    return {
+        codes,
+        constructionCount,
+        codedConstructionCount,
+        forwardedCount,
+    };
 }
 
 function renderMessageKeysModuleRaw(keys: string[]): string {

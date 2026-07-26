@@ -700,7 +700,7 @@ export default class Select extends CompositeComponent {
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
                     pushVariantInfo(
                         infoDiagnostics,
-                        `cannot determine unique variants of select as numToSelect isn't a non-negative integer.`,
+                        { code: "doenet-i0022", component: "select" },
                         serializedComponent,
                     );
                     return { success: false };
@@ -708,7 +708,7 @@ export default class Select extends CompositeComponent {
             } else {
                 pushVariantInfo(
                     infoDiagnostics,
-                    `cannot determine unique variants of select as numToSelect isn't constant number.`,
+                    { code: "doenet-i0023", component: "select" },
                     serializedComponent,
                 );
                 return { success: false };
@@ -736,7 +736,7 @@ export default class Select extends CompositeComponent {
                 } else {
                     pushVariantInfo(
                         infoDiagnostics,
-                        `cannot determine unique variants of select as withReplacement isn't constant boolean.`,
+                        { code: "doenet-i0024", component: "select" },
                         serializedComponent,
                     );
                     return { success: false };
@@ -744,7 +744,7 @@ export default class Select extends CompositeComponent {
             } else {
                 pushVariantInfo(
                     infoDiagnostics,
-                    `cannot determine unique variants of select as withReplacement isn't constant boolean.`,
+                    { code: "doenet-i0024", component: "select" },
                     serializedComponent,
                 );
                 return { success: false };
@@ -759,7 +759,7 @@ export default class Select extends CompositeComponent {
                 // uniqueVariants disabled if have a child with selectWeight or selectForVariants specified
                 pushVariantInfo(
                     infoDiagnostics,
-                    `Unique variants for select disabled if have an option with selectWeight or selectForVariants specified`,
+                    { code: "doenet-i0025" },
                     serializedComponent,
                 );
                 return { success: false };

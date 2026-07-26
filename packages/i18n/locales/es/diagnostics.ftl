@@ -375,3 +375,37 @@ style-definition-dark-mode-text-canvas-contrast =
     }
 
 section-multiple-style-palettes = Una sección solo puede seleccionar un <stylePalette>; se usará el último.
+
+## Variantes únicas
+
+variant-num-to-select-not-non-negative-integer = no se pueden determinar las variantes únicas de { $component } porque numToSelect no es un entero no negativo.
+
+variant-num-to-select-not-constant-number = no se pueden determinar las variantes únicas de { $component } porque numToSelect no es un número constante.
+
+variant-with-replacement-not-constant-boolean = no se pueden determinar las variantes únicas de { $component } porque withReplacement no es un booleano constante.
+
+variant-select-weight-disables-unique = Las variantes únicas quedan desactivadas en select si alguna opción especifica selectWeight o selectForVariants
+
+variant-coprime-undetermined = no se pueden determinar las variantes únicas de { $component } porque no se puede determinar si coprime es siempre falso.
+
+variant-attribute-not-constant = no se pueden determinar las variantes únicas de { $component } porque { $attribute } no es constante.
+
+variant-attribute-not-number = no se pueden determinar las variantes únicas de { $component } porque { $attribute } no es un número.
+
+variant-attribute-wrong-type-for-sequence =
+    no se pueden determinar las variantes únicas de { $component } de tipo { $type } porque { $attribute } no es { $expected ->
+        [letters-combination] una combinación de letras
+        [math-expression] una expresión matemática válida
+        [integer] un entero
+       *[number] un número
+    }.
+
+variant-length-not-integer = no se pueden determinar las variantes únicas de { $component } porque length no es un entero.
+
+variant-sort-not-implemented = no se han implementado las variantes únicas de un { $component } con sort
+
+variant-exclude-combinations-not-implemented = no se han implementado las variantes únicas de un { $component } con excludeCombinations
+
+variant-math-exclude-not-implemented = no se han implementado las variantes únicas de un { $component } de tipo math con exclude
+
+variant-non-constant-exclude-not-implemented = no se han implementado las variantes únicas de un { $component } con exclude no constante

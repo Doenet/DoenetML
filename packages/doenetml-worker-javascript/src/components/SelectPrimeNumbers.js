@@ -347,8 +347,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         serializedComponent,
         infoDiagnostics,
     }) {
-        const info = (message) =>
-            pushVariantInfo(infoDiagnostics, message, serializedComponent);
+        const info = (diagnostic) =>
+            pushVariantInfo(infoDiagnostics, diagnostic, serializedComponent);
         let numToSelect = 1,
             withReplacement = false;
 
@@ -364,15 +364,14 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 numToSelect = Number(numToSelectComponent.children[0]);
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
-                    info(
-                        `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't a non-negative integer.`,
-                    );
+                    info({
+                        code: "doenet-i0022",
+                        component: "selectPrimeNumbers",
+                    });
                     return { success: false };
                 }
             } else {
-                info(
-                    `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't constant number.`,
-                );
+                info({ code: "doenet-i0023", component: "selectPrimeNumbers" });
                 return { success: false };
             }
         }
@@ -396,15 +395,14 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 ) {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
-                    info(
-                        `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`,
-                    );
+                    info({
+                        code: "doenet-i0024",
+                        component: "selectPrimeNumbers",
+                    });
                     return { success: false };
                 }
             } else {
-                info(
-                    `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`,
-                );
+                info({ code: "doenet-i0024", component: "selectPrimeNumbers" });
                 return { success: false };
             }
         }
@@ -420,16 +418,20 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             ) {
                 let from = Number(fromComponent.children[0]);
                 if (!Number.isFinite(from)) {
-                    info(
-                        `cannot determine unique variants of selectPrimeNumbers as from isn't a number.`,
-                    );
+                    info({
+                        code: "doenet-i0028",
+                        component: "selectPrimeNumbers",
+                        args: { attribute: "from" },
+                    });
                     return { success: false };
                 }
                 primePars.from = from;
             } else {
-                info(
-                    `cannot determine unique variants of selectPrimeNumbers as from isn't a constant.`,
-                );
+                info({
+                    code: "doenet-i0027",
+                    component: "selectPrimeNumbers",
+                    args: { attribute: "from" },
+                });
                 return { success: false };
             }
         }
@@ -443,24 +445,26 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             ) {
                 let to = Number(toComponent.children[0]);
                 if (!Number.isFinite(to)) {
-                    info(
-                        `cannot determine unique variants of selectPrimeNumbers as to isn't a number.`,
-                    );
+                    info({
+                        code: "doenet-i0028",
+                        component: "selectPrimeNumbers",
+                        args: { attribute: "to" },
+                    });
                     return { success: false };
                 }
                 primePars.to = to;
             } else {
-                info(
-                    `cannot determine unique variants of selectPrimeNumbers as to isn't a constant.`,
-                );
+                info({
+                    code: "doenet-i0027",
+                    component: "selectPrimeNumbers",
+                    args: { attribute: "to" },
+                });
                 return { success: false };
             }
         }
 
         if (serializedComponent.attributes.excludeCombinations) {
-            info(
-                "have not implemented unique variants of a selectPrimeNumbers with excludeCombinations",
-            );
+            info({ code: "doenet-i0032", component: "selectPrimeNumbers" });
             return { success: false };
         }
 
@@ -474,9 +478,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                         typeof x.children[0] === "string",
                 )
             ) {
-                info(
-                    "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude",
-                );
+                info({ code: "doenet-i0034", component: "selectPrimeNumbers" });
                 return { success: false };
             }
             let exclude = excludeComponent.children.map((x) =>
@@ -484,9 +486,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             );
 
             if (!exclude.every(Number.isFinite)) {
-                info(
-                    "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude",
-                );
+                info({ code: "doenet-i0034", component: "selectPrimeNumbers" });
                 return { success: false };
             }
             primePars.exclude = exclude;

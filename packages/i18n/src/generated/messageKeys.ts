@@ -229,7 +229,20 @@ export type MessageKey =
     | "style-definition-insufficient-contrast"
     | "style-definition-dark-mode-text-background-contrast"
     | "style-definition-dark-mode-text-canvas-contrast"
-    | "section-multiple-style-palettes";
+    | "section-multiple-style-palettes"
+    | "variant-num-to-select-not-non-negative-integer"
+    | "variant-num-to-select-not-constant-number"
+    | "variant-with-replacement-not-constant-boolean"
+    | "variant-select-weight-disables-unique"
+    | "variant-coprime-undetermined"
+    | "variant-attribute-not-constant"
+    | "variant-attribute-not-number"
+    | "variant-attribute-wrong-type-for-sequence"
+    | "variant-length-not-integer"
+    | "variant-sort-not-implemented"
+    | "variant-exclude-combinations-not-implemented"
+    | "variant-math-exclude-not-implemented"
+    | "variant-non-constant-exclude-not-implemented";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -456,4 +469,17 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "style-definition-dark-mode-text-background-contrast",
     "style-definition-dark-mode-text-canvas-contrast",
     "section-multiple-style-palettes",
+    "variant-num-to-select-not-non-negative-integer",
+    "variant-num-to-select-not-constant-number",
+    "variant-with-replacement-not-constant-boolean",
+    "variant-select-weight-disables-unique",
+    "variant-coprime-undetermined",
+    "variant-attribute-not-constant",
+    "variant-attribute-not-number",
+    "variant-attribute-wrong-type-for-sequence",
+    "variant-length-not-integer",
+    "variant-sort-not-implemented",
+    "variant-exclude-combinations-not-implemented",
+    "variant-math-exclude-not-implemented",
+    "variant-non-constant-exclude-not-implemented",
 ];

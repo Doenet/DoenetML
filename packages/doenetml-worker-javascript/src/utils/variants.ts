@@ -1,5 +1,10 @@
-import { numberToLetters, enumerateCombinations } from "@doenet/utils";
+import {
+    numberToLetters,
+    enumerateCombinations,
+    codedDiagnostic,
+} from "@doenet/utils";
 import type { DiagnosticRecord } from "@doenet/utils";
+import type { DiagnosticArgs, DiagnosticCode } from "@doenet/i18n";
 import seedrandom from "seedrandom";
 
 // getVariantsForDescendantsForUniqueVariants: only needed in worker
@@ -604,7 +609,11 @@ export function extractConstantSortAttribute(
         } else {
             pushVariantInfo(
                 infoDiagnostics,
-                `cannot determine unique variants of ${componentName} as sort isn't a constant.`,
+                {
+                    code: "doenet-i0027",
+                    component: componentName,
+                    args: { attribute: "sort" },
+                },
                 serializedComponent,
             );
             return { success: false };
@@ -616,7 +625,7 @@ export function extractConstantSortAttribute(
     if (sort !== "unsorted" && numToSelect > 1) {
         pushVariantInfo(
             infoDiagnostics,
-            `have not implemented unique variants of a ${componentName} with sort`,
+            { code: "doenet-i0031", component: componentName },
             serializedComponent,
         );
         return { success: false };
@@ -630,19 +639,42 @@ export function extractConstantSortAttribute(
  * variant determination failed. Variant code runs during DAST serialization,
  * before Core exists, so the caller chains pass this buffer down and Core
  * drains it into `preliminaryDiagnostics` when it's constructed.
+ *
+ * Takes a code and its arguments rather than a finished sentence. Before, the
+ * ~40 call sites behind this helper each held a literal English string, and
+ * the migration burn-down could not see any of them: it counts diagnostic
+ * *constructions*, and there is only one here (#1518).
+ *
+ * `component` is the one argument every one of these messages takes, so it is
+ * a parameter rather than something each site remembers to pass. It is a tag
+ * name and stays as written in every language, which is what makes it an
+ * argument at all — the reasons differ in prose, so each is its own code.
  */
 export function pushVariantInfo(
     infoDiagnostics: DiagnosticRecord[] | undefined,
-    message: string,
+    {
+        code,
+        component,
+        args,
+    }: {
+        code: DiagnosticCode;
+        /** The tag being analyzed, for messages that name it. */
+        component?: string;
+        args?: DiagnosticArgs;
+    },
     serializedComponent: any,
 ) {
     if (!infoDiagnostics) {
         return;
     }
-    infoDiagnostics.push({
-        type: "info",
-        message,
-        position: serializedComponent?.position,
-        sourceDoc: serializedComponent?.sourceDoc,
-    });
+    infoDiagnostics.push(
+        codedDiagnostic({
+            type: "info",
+            code,
+            args:
+                component === undefined ? args : { component, ...(args ?? {}) },
+            position: serializedComponent?.position,
+            sourceDoc: serializedComponent?.sourceDoc,
+        }),
+    );
 }

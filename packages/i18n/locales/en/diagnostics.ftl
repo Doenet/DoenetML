@@ -454,3 +454,47 @@ style-definition-dark-mode-text-canvas-contrast =
     }
 
 section-multiple-style-palettes = A section can select only one <stylePalette>; using the last one.
+
+## Unique variants
+
+# Explanations of why a component's unique variants could not be worked out.
+# $component is the tag that could not be analyzed and stays as written; the
+# reason is a separate message per situation, so a host can tell them apart by
+# code and a translator sees a whole sentence rather than a fragment.
+
+variant-num-to-select-not-non-negative-integer = cannot determine unique variants of { $component } as numToSelect isn't a non-negative integer.
+
+variant-num-to-select-not-constant-number = cannot determine unique variants of { $component } as numToSelect isn't constant number.
+
+variant-with-replacement-not-constant-boolean = cannot determine unique variants of { $component } as withReplacement isn't constant boolean.
+
+variant-select-weight-disables-unique = Unique variants for select disabled if have an option with selectWeight or selectForVariants specified
+
+variant-coprime-undetermined = cannot determine unique variants of { $component } as cannot determine coprime is always false.
+
+# $attribute is an attribute name (`from`, `to`, `step`, `sort`, `length`) and
+# stays as written.
+variant-attribute-not-constant = cannot determine unique variants of { $component } as { $attribute } isn't a constant.
+
+variant-attribute-not-number = cannot determine unique variants of { $component } as { $attribute } isn't a number.
+
+# $type is the sequence type the component was declared with. $expected names
+# what the value had to be, symbolically, because which one applies depends on
+# both the type and the attribute.
+variant-attribute-wrong-type-for-sequence =
+    cannot determine unique variants of { $component } of { $type } type as { $attribute } isn't { $expected ->
+        [letters-combination] a combination of letters
+        [math-expression] a valid math expression
+        [integer] an integer
+       *[number] a number
+    }.
+
+variant-length-not-integer = cannot determine unique variants of { $component } as length isn't an integer.
+
+variant-sort-not-implemented = have not implemented unique variants of a { $component } with sort
+
+variant-exclude-combinations-not-implemented = have not implemented unique variants of a { $component } with excludeCombinations
+
+variant-math-exclude-not-implemented = have not implemented unique variants of a { $component } of type math with exclude
+
+variant-non-constant-exclude-not-implemented = have not implemented unique variants of a { $component } with non-constant exclude
