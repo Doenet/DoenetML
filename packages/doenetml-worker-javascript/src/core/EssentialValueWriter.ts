@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
 import me from "math-expressions";
@@ -318,22 +319,16 @@ export class EssentialValueWriter {
                         }
                     }
 
-                    this.core.addDiagnostic({
-                        type: "info",
-                        message: `can't update state variable ${vName} of component ${cIdx}, as it doesn't exist.`,
-                        position: this.core._components[cIdx].position,
-                        sourceDoc: this.core._components[cIdx].sourceDoc,
-                    });
+                    reportInternalError(
+                        `can't update state variable ${vName} of component ${cIdx}, as it doesn't exist.`,
+                    );
                     continue;
                 }
 
                 if (!compStateObj.hasEssential) {
-                    this.core.addDiagnostic({
-                        type: "info",
-                        message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
-                        position: this.core._components[cIdx].position,
-                        sourceDoc: this.core._components[cIdx].sourceDoc,
-                    });
+                    reportInternalError(
+                        `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
+                    );
                     continue;
                 }
 
@@ -648,12 +643,9 @@ export class EssentialValueWriter {
                         varName2,
                     )
                 ) {
-                    this.core.addDiagnostic({
-                        type: "info",
-                        message: `Can't invert ${varName2} at the same time as ${stateVariable}, as not an additional state variable defined`,
-                        position: component.position,
-                        sourceDoc: component.sourceDoc,
-                    });
+                    reportInternalError(
+                        `Can't invert ${varName2} at the same time as ${stateVariable}, as not an additional state variable defined`,
+                    );
                     continue;
                 }
                 // Note: don't check if varName2 is an array
@@ -664,12 +656,9 @@ export class EssentialValueWriter {
         }
 
         if (!stateVarObj.inverseDefinition) {
-            this.core.addDiagnostic({
-                type: "info",
-                message: `Cannot change state variable ${stateVariable} of ${component.componentIdx} as it doesn't have an inverse definition`,
-                position: component.position,
-                sourceDoc: component.sourceDoc,
-            });
+            reportInternalError(
+                `Cannot change state variable ${stateVariable} of ${component.componentIdx} as it doesn't have an inverse definition`,
+            );
             return;
         }
 
@@ -678,12 +667,9 @@ export class EssentialValueWriter {
             !stateVarObj.ignoreFixed &&
             (await component.stateValues.fixed)
         ) {
-            this.core.addDiagnostic({
-                type: "info",
-                message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixed is true.`,
-                position: component.position,
-                sourceDoc: component.sourceDoc,
-            });
+            reportInternalError(
+                `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixed is true.`,
+            );
             return;
         }
 
@@ -692,12 +678,9 @@ export class EssentialValueWriter {
             stateVarObj.isLocation &&
             (await component.stateValues.fixLocation)
         ) {
-            this.core.addDiagnostic({
-                type: "info",
-                message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation is true.`,
-                position: component.position,
-                sourceDoc: component.sourceDoc,
-            });
+            reportInternalError(
+                `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation is true.`,
+            );
             return;
         }
 
@@ -705,12 +688,9 @@ export class EssentialValueWriter {
             initialChange ||
             (await component.stateValues.modifyIndirectly) !== false
         )) {
-            this.core.addDiagnostic({
-                type: "info",
-                message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because modifyIndirectly is false.`,
-                position: component.position,
-                sourceDoc: component.sourceDoc,
-            });
+            reportInternalError(
+                `Changing ${stateVariable} of ${component.componentIdx} did not succeed because modifyIndirectly is false.`,
+            );
             return;
         }
 
@@ -1031,12 +1011,9 @@ export class EssentialValueWriter {
                             !stateVarObj.ignoreFixed &&
                             (await baseComponent.stateValues.fixed)
                         ) {
-                            this.core.addDiagnostic({
-                                type: "info",
-                                message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixed is true.`,
-                                position: baseComponent.position,
-                                sourceDoc: baseComponent.sourceDoc,
-                            });
+                            reportInternalError(
+                                `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixed is true.`,
+                            );
                             return;
                         }
 
@@ -1046,12 +1023,9 @@ export class EssentialValueWriter {
                             !stateVarObj.isLocation &&
                             (await baseComponent.stateValues.fixLocation)
                         ) {
-                            this.core.addDiagnostic({
-                                type: "info",
-                                message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixLocation is true.`,
-                                position: baseComponent.position,
-                                sourceDoc: baseComponent.sourceDoc,
-                            });
+                            reportInternalError(
+                                `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixLocation is true.`,
+                            );
                             return;
                         }
                     }
@@ -1259,16 +1233,9 @@ export class EssentialValueWriter {
                                 ].includes(dep2.dependencyType) &&
                                 dep2.downstreamComponentIndices.length === 1
                             )) {
-                                this.core.addDiagnostic({
-                                    type: "info",
-                                    message: `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,
-                                    position:
-                                        this.core._components[dComponentIdx]
-                                            .position,
-                                    sourceDoc:
-                                        this.core._components[dComponentIdx]
-                                            .sourceDoc,
-                                });
+                                reportInternalError(
+                                    `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,
+                                );
                                 continue;
                             }
 
@@ -1282,16 +1249,9 @@ export class EssentialValueWriter {
                                     varName2,
                                 )
                             ) {
-                                this.core.addDiagnostic({
-                                    type: "info",
-                                    message: `Can't simultaneously set additional dependency value ${dependencyName2} if it doesn't correspond to additional state variable defined of ${dependencyName}'s state variable`,
-                                    position:
-                                        this.core._components[dComponentIdx]
-                                            .position,
-                                    sourceDoc:
-                                        this.core._components[dComponentIdx]
-                                            .sourceDoc,
-                                });
+                                reportInternalError(
+                                    `Can't simultaneously set additional dependency value ${dependencyName2} if it doesn't correspond to additional state variable defined of ${dependencyName}'s state variable`,
+                                );
                                 continue;
                             }
                             if (!inst.additionalStateVariableValues) {

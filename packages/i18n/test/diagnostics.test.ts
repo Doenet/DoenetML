@@ -43,9 +43,26 @@ describe("the diagnostic code registry", () => {
     });
 
     it("points every code at a message English defines", () => {
+        // `diagnostics` specifically, not every catalog: a coded message
+        // belongs in the namespace the main thread loads to render one
+        // (`CHROME_NAMESPACES`). A key that drifted into `content` or
+        // `editor` would still resolve in English — the built-in English
+        // catalogs are appended whole — and then silently fall back to
+        // English in every other locale, because those namespaces are not
+        // shipped to the surface that renders diagnostics.
         const englishKeys = new Set(extractKeys(EN_CATALOGS.diagnostics));
         for (const [code, key] of Object.entries(DIAGNOSTIC_CODES)) {
             expect(englishKeys.has(key), `${code} → ${key}`).toBe(true);
+        }
+    });
+
+    it("renders every registered code as a message, not as its own name", () => {
+        // `formatEnglishDiagnostic` returns the code itself when it cannot
+        // resolve one, so a code whose key the runtime translator does not
+        // carry would pass the check above and still surface as
+        // "doenet-w0100" on screen.
+        for (const code of Object.keys(DIAGNOSTIC_CODES) as DiagnosticCode[]) {
+            expect(formatEnglishDiagnostic(code), code).not.toBe(code);
         }
     });
 

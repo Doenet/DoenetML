@@ -6,6 +6,7 @@ import {
 } from "@doenet/i18n";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { callAction } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -197,5 +198,70 @@ describe("coded diagnostics reach the record @group4", () => {
                 ).toContain(diagnostic.code);
             }
         }
+    });
+
+    // The two warnings that survived the core's invariant diagnostics becoming
+    // developer logs (#1518). What separates them from the fourteen that did
+    // not is that an author wrote something these can name: an index in a
+    // reference, an `actionName` on a `target`. Everything the core knows and
+    // the author doesn't — the state variable, the component index — went to
+    // the console instead, so what is checked here is that the argument that
+    // reaches the record is the source text and nothing else.
+    it("names the reference an index cannot be applied to", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<point name="p" /><text extend="$p.styleDescription[1]" />`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({
+            reference: "$p.styleDescription[1]",
+        });
+        expect(warnings[0].message).eq(
+            "Cannot reference index `$p.styleDescription[1]`",
+        );
+    });
+
+    // The same warning from the other branch of `arrayEntryNamesFromPropIndex`
+    // — here `value` is a plain state variable rather than an array — which is
+    // why one code covers both: the author's mistake is the same one, and the
+    // difference between the two is a fact about the core that only the
+    // console line carries.
+    it("names the reference for a non-array state variable too", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<text name="t">hi</text><text extend="$t.value[1]" />`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({ reference: "$t.value[1]" });
+        expect(warnings[0].message).eq("Cannot reference index `$t.value[1]`");
+    });
+
+    it("names the target a missing action was asked of", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="p" />
+<callAction name="ca" target="$p" actionName="notAnAction" />`,
+        });
+        // The warning is raised when the action is invoked, not when the
+        // document is built: until then nothing has asked the point for an
+        // action it doesn't have.
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("ca"),
+            core,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0102");
+        expect(warnings[0].args).eqls({
+            action: "notAnAction",
+            reference: "$p",
+        });
+        expect(warnings[0].message).eq(
+            "Cannot call notAnAction on component `$p`",
+        );
     });
 });

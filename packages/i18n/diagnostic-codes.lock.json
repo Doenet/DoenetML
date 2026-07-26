@@ -144,5 +144,7 @@
     "doenet-w0096": "annotation-ref-multiple-targets",
     "doenet-w0097": "annotation-ref-outside-graph",
     "doenet-w0098": "annotation-ref-unsupported-target",
-    "doenet-w0099": "annotation-text-missing"
+    "doenet-w0099": "annotation-text-missing",
+    "doenet-w0100": "reference-index-unavailable",
+    "doenet-w0102": "component-action-unavailable"
 }

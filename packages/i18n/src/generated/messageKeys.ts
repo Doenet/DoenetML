@@ -206,6 +206,8 @@ export type MessageKey =
     | "copy-prop-not-found"
     | "collect-no-source"
     | "collect-invalid-component-type"
+    | "reference-index-unavailable"
+    | "component-action-unavailable"
     | "data-frame-inconsistent-row-lengths"
     | "data-frame-duplicate-column-names"
     | "data-frame-missing-column-name"
@@ -461,6 +463,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-prop-not-found",
     "collect-no-source",
     "collect-invalid-component-type",
+    "reference-index-unavailable",
+    "component-action-unavailable",
     "data-frame-inconsistent-row-lengths",
     "data-frame-duplicate-column-names",
     "data-frame-missing-column-name",

@@ -6,6 +6,7 @@ import {
     arrayEntryNamesFromPropIndex,
     ensureStateVariableMaterialized,
 } from "../StateVariableInitializer";
+import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
 /**
  * Base class shared by every concrete dependency type. Concrete subclasses
@@ -480,11 +481,26 @@ export class Dependency {
             }
 
             if (this.propIndex !== undefined) {
+                // The reference the author wrote — `$p.styleDescription[1]` —
+                // reconstructed from the source so that a propIndex that
+                // cannot be applied is reported in those terms. The upstream
+                // component is the one that carries the reference; its
+                // resolution remembers where in the document it was read
+                // from. Reconstructing it here rather than inside
+                // `arrayEntryNamesFromPropIndex` keeps that lookup on the one
+                // path that has an authored reference behind it.
+                const referenceText = doenetMLStringForReference(
+                    this.dependencyHandler.core._components[
+                        this.upstreamComponentIdx
+                    ]?.refResolution?.originalPath,
+                    this.dependencyHandler.core.allDoenetMLs,
+                );
                 mappedVarNames = await arrayEntryNamesFromPropIndex({
                     core: this.dependencyHandler.core,
                     stateVariables: mappedVarNames,
                     component: downComponent,
                     propIndex: this.propIndex,
+                    reference: referenceText ? `$${referenceText}` : "",
                 });
             }
 

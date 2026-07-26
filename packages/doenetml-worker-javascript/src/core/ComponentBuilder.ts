@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentIdx } from "@doenet/utils";
 import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
 import {
@@ -94,10 +95,9 @@ export async function addComponents({
     if (!initialAdd) {
         parent = core._components[parentIdx!];
         if (!parent) {
-            core.addDiagnostic({
-                type: "warning",
-                message: `Cannot add children to parent ${parentIdx} as ${parentIdx} does not exist`,
-            });
+            reportInternalError(
+                `Cannot add children to parent ${parentIdx} as ${parentIdx} does not exist`,
+            );
             return [];
         }
 

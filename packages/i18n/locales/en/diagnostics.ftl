@@ -351,6 +351,21 @@ collect-no-source = No source found for collect.
 
 collect-invalid-component-type = Cannot collect components of type `<{ $component }>` as it is an invalid component type.
 
+# $reference is the reference exactly as the author wrote it, `$` and all —
+# the `$p.styleDescription[1]` of `<text extend="$p.styleDescription[1]" />`.
+# An index only means something applied to an array, and the thing named here
+# is not one. The reference is quoted back rather than explained because the
+# text in front of the author is the only part of this they can act on: the
+# state variable and component index the core knows about are its own business
+# and go to the console instead.
+reference-index-unavailable = Cannot reference index `{ $reference }`
+
+## `<callAction>`
+
+# $action is the `actionName` the author asked for, part of the DoenetML
+# language, so it stays in English. $reference is the `target` as written.
+component-action-unavailable = Cannot call { $action } on component `{ $reference }`
+
 ## `<dataFrame>`
 
 # $componentIdx is an internal index, passed as a string so it is not grouped

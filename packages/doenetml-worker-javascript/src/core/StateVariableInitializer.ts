@@ -1,4 +1,6 @@
 import type Core from "../Core";
+import { codedDiagnostic } from "../utils/diagnostics";
+import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
 import { applyPendingShadowModification } from "./StateVariableDefinitionFactory";
@@ -179,8 +181,6 @@ function multiDimSetArrayValue(
     this: any,
     { value, arrayKey, arraySize, arrayValues = this.arrayValues }: any,
 ) {
-    const component = this.svComponent;
-    const addDiagnostic = component.coreFunctions.addDiagnostic;
     const numDimensions = this.numDimensions;
 
     let index = this.keyToIndex(arrayKey);
@@ -190,13 +190,9 @@ function multiDimSetArrayValue(
     // evaluates to `false > number === false` for any positive
     // integer, so the diagnostic was unreachable.
     if (numDimensionsInArrayKey > numDimensions) {
-        addDiagnostic({
-            type: "info",
-            message:
-                "Cannot set array value.  Number of dimensions is too large.",
-            position: component.position,
-            sourceDoc: component.sourceDoc,
-        });
+        reportInternalError(
+            "Cannot set array value.  Number of dimensions is too large.",
+        );
         return { nFailures: 1 };
     }
     let arrayValuesDrillDown = arrayValues;
@@ -209,12 +205,7 @@ function multiDimSetArrayValue(
             arrayValuesDrillDown = arrayValuesDrillDown[indComponent];
             arraySizeDrillDown = arraySizeDrillDown.slice(1);
         } else {
-            addDiagnostic({
-                type: "info",
-                message: "ignore setting array value out of bounds",
-                position: component.position,
-                sourceDoc: component.sourceDoc,
-            });
+            reportInternalError("ignore setting array value out of bounds");
             return { nFailures: 1 };
         }
     }
@@ -235,13 +226,9 @@ function multiDimSetArrayValue(
             // given that size of arrayValuesPieces is arraySizePiece
 
             if (!Array.isArray(desiredValue)) {
-                addDiagnostic({
-                    type: "info",
-                    message:
-                        "ignoring array values with insufficient dimensions",
-                    position: component.position,
-                    sourceDoc: component.sourceDoc,
-                });
+                reportInternalError(
+                    "ignoring array values with insufficient dimensions",
+                );
                 return { nFailures: 1 };
             }
 
@@ -249,12 +236,7 @@ function multiDimSetArrayValue(
 
             let currentSize = arraySizePiece[0];
             if (desiredValue.length > currentSize) {
-                addDiagnostic({
-                    type: "info",
-                    message: "ignoring array values out of bounds",
-                    position: component.position,
-                    sourceDoc: component.sourceDoc,
-                });
+                reportInternalError("ignoring array values out of bounds");
                 nFailuresSub += desiredValue.length - currentSize;
                 desiredValue = desiredValue.slice(0, currentSize);
             }
@@ -307,13 +289,9 @@ function oneDimSetArrayValue(
         arrayValues[ind] = value;
         return { nFailures: 0 };
     } else {
-        const component = this.svComponent;
-        component.coreFunctions.addDiagnostic({
-            type: "info",
-            message: `Ignoring setting array values out of bounds: ${arrayKey} of ${this.svVarName}`,
-            position: component.position,
-            sourceDoc: component.sourceDoc,
-        });
+        reportInternalError(
+            `Ignoring setting array values out of bounds: ${arrayKey} of ${this.svVarName}`,
+        );
         return { nFailures: 1 };
     }
 }
@@ -1972,19 +1950,54 @@ async function createArraySizeStateVariable({
 // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
 // It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
 // first creating any missing array entry state variables,
-// logs diagnostics,
+// reports the ones it cannot map,
 // and returns an array of the resulting state variables.
 export async function arrayEntryNamesFromPropIndex({
     core,
     stateVariables,
     component,
     propIndex,
+    reference,
 }: {
     core: Core;
     stateVariables: string[];
     component: ComponentInstance;
     propIndex: number[];
+    /**
+     * The reference the author wrote, `$` and all — `$p.styleDescription[1]`
+     * — so a failure here can be reported in terms of the document rather
+     * than in terms of the state variable it resolved to. Empty when the
+     * source offsets aren't available, in which case nothing is raised: a
+     * warning naming an empty reference tells an author less than silence.
+     */
+    reference: string;
 }) {
+    /**
+     * Report that the index the author wrote cannot be applied.
+     *
+     * Two things are said, to two audiences. The author gets a translated
+     * warning naming the reference they wrote, which is the only part of this
+     * they can act on. We get the state variable and the component index on
+     * the console, which is what a bug report needs and what an author can do
+     * nothing with.
+     */
+    function reportPropIndexFailure(varName: string, detail: string) {
+        reportInternalError(
+            `Cannot get propIndex from ${varName} of ${component.componentIdx}${detail}`,
+        );
+        if (reference) {
+            core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0100",
+                    args: { reference },
+                    position: component.position,
+                    sourceDoc: component.sourceDoc,
+                }),
+            );
+        }
+    }
+
     let newVarNames = [];
     for (let varName of stateVariables) {
         let stateVarObj = component.state[varName];
@@ -2017,23 +2030,16 @@ export async function arrayEntryNamesFromPropIndex({
                 varName,
             );
         } else {
-            core.addDiagnostic({
-                type: "warning",
-                message: `Cannot get propIndex from ${varName} of ${component.componentIdx} as it is not an array or array entry state variable`,
-                position: component.position,
-                sourceDoc: component.sourceDoc,
-            });
+            reportPropIndexFailure(
+                varName,
+                " as it is not an array or array entry state variable",
+            );
             newName = varName;
         }
         if (newName) {
             newVarNames.push(newName);
         } else {
-            core.addDiagnostic({
-                type: "warning",
-                message: `Cannot get propIndex from ${varName} of ${component.componentIdx}`,
-                position: component.position,
-                sourceDoc: component.sourceDoc,
-            });
+            reportPropIndexFailure(varName, "");
             newVarNames.push(varName);
         }
     }
