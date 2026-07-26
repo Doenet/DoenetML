@@ -373,11 +373,12 @@ assume that call might do something observable, so it keeps it — and keeping i
 keeps all four FTL files — in **any** bundle that reaches this package for any
 reason, even one where every function has already been tree-shaken away.
 
-That is not hypothetical. When `@doenet/utils` took its runtime dependency on
-this package (#1518), the DoenetML language server gained 20 KB gzipped of
-catalog text without gaining a single line of code that reads it: it imports
-`@doenet/utils/style` for something unrelated, and the strings came along.
-`packages/lsp/scripts/check-server-bundle.mjs` fails the build if they come
+That is not hypothetical — it was measured. When `@doenet/utils` took its
+runtime dependency on this package (#1557), the DoenetML language server grew
+by 20 KB gzipped of catalog text without gaining a single line of code that
+reads it: it imports `@doenet/utils/style` for something unrelated, and the
+strings came along. The declaration is what kept that off `main`, and
+`packages/lsp/scripts/check-server-bundle.mjs` fails the build if it comes
 back.
 
 Nothing here registers globals, patches prototypes, or imports for effect, so

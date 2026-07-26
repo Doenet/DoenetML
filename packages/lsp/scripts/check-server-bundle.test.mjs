@@ -70,6 +70,20 @@ describe("the size budget", () => {
         expect(problems[0]).toContain("over its");
     });
 
+    it("still checks the catalogs when there is no usable budget", () => {
+        // A typo in `server-budget.json` is not a reason to stop looking for
+        // a leak: the catalog check does not need a threshold, and skipping
+        // it here would surface the leak only on the run after the budget is
+        // fixed — the same masking the previous case rules out.
+        const problems = checkBundle({
+            contents: `${CLEAN}FluentBundle`,
+            size: 5000,
+            maxBytes: undefined,
+        });
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("the Fluent runtime");
+    });
+
     it("reports a size problem and a leak together", () => {
         // Both checks run; the first failure must not mask the second, or
         // fixing one turns up the other only on the next CI run.

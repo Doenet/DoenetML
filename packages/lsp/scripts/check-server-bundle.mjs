@@ -15,16 +15,17 @@
  *    Nothing it does needs a translation, so a catalog in this bundle is
  *    always a leak rather than a judgement call, and needs no threshold.
  *
- *    It leaked once already. `@doenet/utils` took a runtime dependency on
+ *    One nearly arrived. `@doenet/utils` took a runtime dependency on
  *    `@doenet/i18n` so its style-contrast checks could raise coded diagnostics
- *    (#1518), and the server imports `@doenet/utils/style` for something else
+ *    (#1557), and the server imports `@doenet/utils/style` for something else
  *    entirely. Tree-shaking removed the *code* — `formatEnglishDiagnostic` was
  *    nowhere in the output — and left 20 KB gzipped of FTL text behind,
  *    because `@doenet/i18n` had not declared itself side-effect-free and a
  *    bundler must therefore keep every module-level statement in any module it
  *    reaches. Declaring `"sideEffects": false` there took the bundle back to
- *    the byte. Nothing about that is obvious from either package, and the next
- *    dependency to reach the server will not announce itself either.
+ *    the byte, so nothing shipped — but nothing about any of it is obvious
+ *    from either package, and the next dependency to reach the server will not
+ *    announce itself either.
  *
  *  - **A size budget**, in `server-budget.json`. The catalog check only knows
  *    about one payload; the budget catches the general case, including a
@@ -127,14 +128,21 @@ function kib(bytes) {
     return `${(bytes / 1024).toFixed(0)} KiB`;
 }
 
-/** Every problem with `contents` against `maxBytes`, as printable lines. */
+/**
+ * Every problem with `contents` against `maxBytes`, as printable lines.
+ *
+ * `maxBytes` may be `undefined` when the budget file could not be read. Only
+ * the size comparison depends on it: the catalog check does not, and skipping
+ * it because of an unrelated typo would mean a leak only turns up on the run
+ * after the budget is fixed.
+ */
 export function checkBundle({ contents, size, maxBytes }) {
     const problems = catalogLeaksIn(contents).map(
         (leak) =>
             `${leak}. The language server renders no messages; see the header` +
-            ` of this script for how the catalogs got in last time.`,
+            ` of this script for how the catalogs nearly got in last time.`,
     );
-    if (size > maxBytes) {
+    if (maxBytes !== undefined && size > maxBytes) {
         problems.push(
             `dist/index.js is ${kib(size)}, over its ${kib(maxBytes)} budget.` +
                 ` Raising the budget is fine when the growth is intended —` +
@@ -162,15 +170,13 @@ function main() {
     problems.push(...budget.problems);
 
     const buffer = fs.readFileSync(BUNDLE_FILE);
-    if (budget.maxBytes !== undefined) {
-        problems.push(
-            ...checkBundle({
-                contents: buffer.toString("utf-8"),
-                size: buffer.length,
-                maxBytes: budget.maxBytes,
-            }),
-        );
-    }
+    problems.push(
+        ...checkBundle({
+            contents: buffer.toString("utf-8"),
+            size: buffer.length,
+            maxBytes: budget.maxBytes,
+        }),
+    );
 
     if (problems.length > 0) {
         console.error(

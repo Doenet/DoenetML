@@ -62,7 +62,7 @@ jobs:
             # The language server ships embedded in the code editor as well as
             # in the VS Code extension, so its size is editor startup cost. It
             # also has no locale, so a message catalog reaching it is always a
-            # tree-shaking leak — one arrived this way in #1518.
+            # tree-shaking leak — one nearly arrived this way in #1557.
             - name: Check language server bundle
               run: npm run check:size -w packages/lsp
 
