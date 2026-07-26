@@ -16,18 +16,20 @@
  * single self-contained function, more than doubled the built server:
  * 1.1 MB minified against 2.3 MB with it (317 KB gzipped against 640 KB).
  *
- * That reasoning lived only in a code comment, and the second import reached
- * the root barrel anyway. A comment cannot fail; this can.
+ * That reasoning lived only in a code comment, and a second import reached the
+ * root barrel anyway. A comment cannot fail; this can.
  *
- * A bundle-size assertion would catch more, but it would have to build the
- * server to do it. This costs nothing and catches the mistake at the point it
- * is made — someone typing the import they are used to.
+ * A bundle-size assertion would catch more — including a subpath that itself
+ * grows heavy — but it would have to build the server to do it. This costs
+ * nothing and catches the mistake at the point it is made: someone typing the
+ * import they are used to.
  */
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 /** The `packages/` directory, which the scanned roots are relative to. */
@@ -47,19 +49,8 @@ const SCANNED_ROOTS = ["lsp-tools/src", "lsp/src"].map((dir) =>
     path.join(PACKAGES, dir),
 );
 
-/**
- * A specifier of exactly `@doenet/utils` — no subpath — reached by any form
- * that survives to runtime: `import`/`export … from`, a bare side-effect
- * `import`, and a dynamic `import(…)`.
- */
-const ROOT_IMPORT = /(?:from|import)\s*\(?\s*["']@doenet\/utils["']/g;
-
-/**
- * The `import`/`export` opening a statement, searched for backwards. Anchored
- * to the start of a line so that the same word in a trailing comment or in a
- * braced specifier list cannot be mistaken for the head of the statement.
- */
-const STATEMENT_START = /^[ \t]*(?:import|export)\b/gm;
+/** The root barrel: the specifier with no subpath after it. */
+const ROOT_BARREL = "@doenet/utils";
 
 function* sourceFiles(dir: string): Generator<string> {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -72,183 +63,143 @@ function* sourceFiles(dir: string): Generator<string> {
     }
 }
 
-/**
- * Report every root-barrel import in `contents` as `line: statement`, the
- * statement collapsed onto one line so that a wrapped import still reads.
- *
- * Statements are located from the specifier backwards — to the nearest
- * {@link STATEMENT_START} — rather than line by line, so a prettier-wrapped
- * `import type { … } from "@doenet/utils"` is still recognized as type-only
- * instead of failing on its closing `} from "@doenet/utils";` line. Type-only
- * imports are allowed through: they cost nothing at runtime, being erased
- * before the bundler ever sees them. An inline `import { type Foo }` is not —
- * that statement is still emitted.
- */
-function rootImportsIn(contents: string): string[] {
-    const found: string[] = [];
-    for (const match of contents.matchAll(ROOT_IMPORT)) {
-        // A bare or dynamic `import` is matched from its own keyword, so it
-        // opens its own statement; a `from` has the keyword somewhere behind
-        // it, possibly several lines back.
-        const heads = match[0].startsWith("import")
-            ? []
-            : [...contents.slice(0, match.index).matchAll(STATEMENT_START)];
-        const start = heads[heads.length - 1]?.index ?? match.index;
-        const statement = contents
-            .slice(start, match.index + match[0].length)
-            .replace(/\s+/g, " ")
-            .trim();
-        if (/^(?:import|export)\s+type\b/.test(statement)) {
-            continue;
-        }
-        const line = contents.slice(0, start).split("\n").length;
-        found.push(`${line}: ${statement}`);
-    }
-    return found;
+/** The literal text of `node` if it is a string literal, else `undefined`. */
+function literalText(node: ts.Node): string | undefined {
+    return ts.isStringLiteralLike(node) ? node.text : undefined;
 }
 
 /**
- * Every import form {@link rootImportsIn} claims a verdict on, so those
- * verdicts are checked by the suite rather than re-derived by hand each time
- * the matching is touched. Anything that survives to runtime must be reported;
- * type-only statements and subpath specifiers must not be.
+ * The module `node` pulls in *at runtime*, or `undefined` if it pulls in
+ * nothing — either because it is not an import at all, or because TypeScript
+ * erases it before a bundler ever sees it.
  *
- * The comment cases are the ones that rule out the obvious one-regex
- * formulations: scanning line by line mistakes the closing
- * `} from "@doenet/utils";` of a wrapped type-only import for a statement of
- * its own, matching `import`/`export` anywhere behind the specifier picks up
- * the word from a trailing comment, and bounding a forward match at the
- * nearest `;` stops early on a comment that contains one.
+ * Type-only statements are erased and so cost no bytes; they are deliberately
+ * allowed through. An inline `import { type Foo }` is not erased — the
+ * statement is still emitted — so it counts as a runtime import.
  */
-const MATCHER_CASES: { form: string; source: string; flagged: boolean }[] = [
-    {
-        form: "a named import",
-        source: `import { cesc } from "@doenet/utils";`,
-        flagged: true,
-    },
-    {
-        form: "a single-quoted specifier",
-        source: `import { cesc } from '@doenet/utils';`,
-        flagged: true,
-    },
-    {
-        form: "a re-export",
-        source: `export { deepClone } from "@doenet/utils";`,
-        flagged: true,
-    },
-    {
-        form: "a star re-export",
-        source: `export * from "@doenet/utils";`,
-        flagged: true,
-    },
-    {
-        form: "a side-effect import",
-        source: `import "@doenet/utils";`,
-        flagged: true,
-    },
-    {
-        form: "a dynamic import",
-        source: `const utils = await import("@doenet/utils");`,
-        flagged: true,
-    },
-    {
-        form: "an inline type modifier, whose statement is still emitted",
-        source: `import { type Foo } from "@doenet/utils";`,
-        flagged: true,
-    },
-    {
-        form: "a wrapped import whose body comment says export",
-        source: `import {\n    isMacPlatform, // re-export below\n} from "@doenet/utils";`,
-        flagged: true,
-    },
-    {
-        form: "a wrapped import whose body comment contains a semicolon",
-        source: `import {\n    cesc, // escapes foo(x); bar\n} from "@doenet/utils";`,
-        flagged: true,
-    },
-    {
-        form: "a type-only import",
-        source: `import type { Foo } from "@doenet/utils";`,
-        flagged: false,
-    },
-    {
-        form: "a wrapped type-only import",
-        source: `import type {\n    Foo,\n} from "@doenet/utils";`,
-        flagged: false,
-    },
-    {
-        form: "a wrapped type-only import whose body comment says export",
-        source: `import type {\n    Foo, // re-export below\n} from "@doenet/utils";`,
-        flagged: false,
-    },
-    {
-        form: "a wrapped type-only import whose body comment contains a semicolon",
-        source: `import type {\n    Foo, // as in foo(x); bar\n} from "@doenet/utils";`,
-        flagged: false,
-    },
-    {
-        form: "a type-only re-export",
-        source: `export type { Foo } from "@doenet/utils";`,
-        flagged: false,
-    },
-    {
-        form: "a wrapped type-only re-export",
-        source: `export type {\n    Foo,\n} from "@doenet/utils";`,
-        flagged: false,
-    },
-    {
-        form: "a subpath import",
-        source: `import { STYLE_PALETTES } from "@doenet/utils/style";`,
-        flagged: false,
-    },
-    {
-        form: "a dynamic subpath import",
-        source: `const style = await import("@doenet/utils/style");`,
-        flagged: false,
-    },
-    {
-        form: "another package entirely",
-        source: `import { toXml } from "@doenet/parser";`,
-        flagged: false,
-    },
-];
+function runtimeImportOf(node: ts.Node): string | undefined {
+    if (ts.isImportDeclaration(node)) {
+        // A side-effect `import "…"` has no clause at all, and is emitted.
+        return node.importClause?.isTypeOnly
+            ? undefined
+            : literalText(node.moduleSpecifier);
+    }
+    if (ts.isExportDeclaration(node)) {
+        // A local `export { x }` has no module specifier to reach through.
+        return node.isTypeOnly || !node.moduleSpecifier
+            ? undefined
+            : literalText(node.moduleSpecifier);
+    }
+    if (
+        ts.isCallExpression(node) &&
+        node.expression.kind === ts.SyntaxKind.ImportKeyword
+    ) {
+        return node.arguments[0] && literalText(node.arguments[0]);
+    }
+    return undefined;
+}
 
-describe("the guard's matcher", () => {
-    it.each(MATCHER_CASES.filter((matcherCase) => matcherCase.flagged))(
-        "reports $form",
-        ({ source }) => {
-            expect(rootImportsIn(source)).toHaveLength(1);
-        },
+/**
+ * Report every runtime import of the root barrel in `source` as
+ * `line: statement`, the statement collapsed onto one line so that a
+ * prettier-wrapped import still reads in the failure message.
+ *
+ * The source is parsed rather than pattern-matched. A regex over the raw text
+ * looks tempting and is a trap: it fires on a specifier that merely appears in
+ * a comment or a string — no small thing in files whose subject matter *is*
+ * this import — and it has to guess at the type-only, wrapped and dynamic
+ * forms that the parser simply knows.
+ */
+function rootImportsIn(source: string, fileName = "scan.ts"): string[] {
+    const parsed = ts.createSourceFile(
+        fileName,
+        source,
+        ts.ScriptTarget.Latest,
+        /* setParentNodes */ true,
     );
+    const found: string[] = [];
 
-    it.each(MATCHER_CASES.filter((matcherCase) => !matcherCase.flagged))(
-        "allows $form",
-        ({ source }) => {
-            expect(rootImportsIn(source)).toEqual([]);
-        },
-    );
+    ts.forEachChild(parsed, function visit(node: ts.Node) {
+        if (runtimeImportOf(node) === ROOT_BARREL) {
+            const { line } = parsed.getLineAndCharacterOfPosition(
+                node.getStart(parsed),
+            );
+            const statement = node.getText(parsed).replace(/\s+/g, " ");
+            found.push(`${line + 1}: ${statement}`);
+        }
+        ts.forEachChild(node, visit);
+    });
+
+    return found;
+}
+
+// The two tables below hold one case per distinction the guard draws, so the
+// policy is pinned by the suite rather than re-derived by hand whenever the
+// scan is touched.
+
+/** Forms that survive to runtime, and so must be reported. */
+const REPORTED = {
+    "a named import": `import { cesc } from "@doenet/utils";`,
+    "a re-export": `export { deepClone } from "@doenet/utils";`,
+    "a star re-export": `export * from "@doenet/utils";`,
+    "a side-effect import": `import "@doenet/utils";`,
+    "a dynamic import": `const utils = await import("@doenet/utils");`,
+    "an inline type modifier, still emitted": `import { type Foo } from "@doenet/utils";`,
+};
+
+/**
+ * Forms that cost nothing, and so must not be reported: type-only statements
+ * are erased before a bundler sees them, a subpath is the whole point, and a
+ * specifier sitting in a comment or a string is not an import at all.
+ */
+const ALLOWED = {
+    "a type-only import": `import type { Foo } from "@doenet/utils";`,
+    "a type-only re-export": `export type { Foo } from "@doenet/utils";`,
+    "a subpath import": `import { STYLE_PALETTES } from "@doenet/utils/style";`,
+    "a dynamic subpath import": `const s = await import("@doenet/utils/style");`,
+    "another package entirely": `import { toXml } from "@doenet/parser";`,
+    "a commented-out import": `// import { cesc } from "@doenet/utils";`,
+    "a doc comment naming the barrel": `/** Never import "@doenet/utils". */\nexport const a = 1;`,
+    "the specifier inside a string": `const barrel = "@doenet/utils";`,
+};
+
+describe("the guard's scan", () => {
+    it.each(Object.entries(REPORTED))("reports %s", (_form, source) => {
+        expect(rootImportsIn(source)).toHaveLength(1);
+    });
+
+    it.each(Object.entries(ALLOWED))("allows %s", (_form, source) => {
+        expect(rootImportsIn(source)).toEqual([]);
+    });
 
     it("points at the head of a wrapped statement, collapsed onto one line", () => {
         expect(
             rootImportsIn(
                 `const x = 1;\nimport {\n    cesc,\n} from "@doenet/utils";\n`,
             ),
-        ).toEqual([`2: import { cesc, } from "@doenet/utils"`]);
+        ).toEqual([`2: import { cesc, } from "@doenet/utils";`]);
     });
 });
 
 describe("the language server's dependency on @doenet/utils", () => {
     it("goes through a subpath, never the root barrel", () => {
         const offenders: string[] = [];
+        let scanned = 0;
+
         for (const root of SCANNED_ROOTS) {
             for (const file of sourceFiles(root)) {
+                scanned++;
                 const relative = path.relative(PACKAGES, file);
                 const contents = fs.readFileSync(file, "utf-8");
-                for (const found of rootImportsIn(contents)) {
+                for (const found of rootImportsIn(contents, file)) {
                     offenders.push(`${relative}:${found}`);
                 }
             }
         }
+
+        // Without this the guard would pass silently if the scanned roots
+        // were ever moved or renamed out from under it.
+        expect(scanned, "no source files were scanned").toBeGreaterThan(0);
 
         expect(
             offenders,
