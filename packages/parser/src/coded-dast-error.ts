@@ -14,10 +14,12 @@ import type { DastError, Position } from "./types";
  * carrying `@doenet/i18n`. `@doenet/parser` cannot: `@doenet/lsp` imports it,
  * and the built language server is embedded verbatim in `@doenet/codemirror`
  * and started as a blob worker, so every byte is on the editor's critical path
- * before the first cursor-help request can be answered. A catalog there would
- * be about 30 KB of text plus the Fluent runtime to read it, for a bundle that
- * renders no messages — which is why `scripts/check-server-bundle.mjs` in that
- * package fails outright if one arrives, rather than budgeting for it.
+ * before the first cursor-help request can be answered. Rendering from the
+ * catalog reaches `EN_CATALOG_SOURCE` — every English namespace joined, about
+ * 50 KB of text, 16 KB gzipped — plus the Fluent runtime to read it, all for a
+ * bundle that renders no messages, which is why
+ * `scripts/check-server-bundle.mjs` in that package fails outright if one
+ * arrives rather than budgeting for it.
  *
  * So the English lives in two places, and the risk that they drift is real. It
  * is held down by `test/coded-dast-errors.test.ts`, which parses a corpus of

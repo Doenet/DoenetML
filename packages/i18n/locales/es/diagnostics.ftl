@@ -488,8 +488,8 @@ doenetml-version-not-found =
 
 ## Lectura del DoenetML
 
-# Estos mensajes citan el propio texto del autor —`{ $tag }`, `{ $value }`,
-# `{ $attribute }`…—, que se reproduce tal cual.
+# Estos mensajes citan el propio texto del autor —`$tag`, `$value`,
+# `$attribute`…—, que se reproduce tal cual.
 
 parse-invalid-doenetml = DoenetML no válido: { $content }
 
