@@ -1,4 +1,5 @@
 import { codedDiagnostic } from "./diagnostics";
+import { returnSubmitLabelStateVariableDefinitions } from "./answer";
 
 /**
  * Attributes implementing a "scored section": score aggregation plus the
@@ -83,20 +84,21 @@ export function returnScoredSectionAttributes() {
         },
         submitLabel: {
             createComponentOfType: "text",
-            createStateVariable: "submitLabel",
+            createStateVariable: "submitLabelPreLocalize",
+            // See the note in `returnStandardAnswerAttributes`: this default
+            // is shown to authors, but an unspecified attribute resolves to
+            // the label in the document's own language rather than to this
+            // English.
             defaultValue: "Check Work",
-            public: true,
-            forRenderer: true,
             groupName: "scoring",
             description:
                 "Label for the section-wide submit button when correctness is shown.",
         },
         submitLabelNoCorrectness: {
             createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectness",
+            createStateVariable: "submitLabelNoCorrectnessPreLocalize",
+            // See the note on `submitLabel`.
             defaultValue: "Submit Response",
-            public: true,
-            forRenderer: true,
             groupName: "scoring",
             description:
                 "Label for the section-wide submit button when correctness is not shown.",
@@ -131,6 +133,15 @@ export function returnScoredSectionAttributes() {
  */
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};
+
+    // The section-wide button carries the same two labels an `<answer>` does,
+    // and resolves them the same way.
+    Object.assign(
+        stateVariableDefinitions,
+        returnSubmitLabelStateVariableDefinitions({
+            button: "the section-wide submit button",
+        }),
+    );
 
     stateVariableDefinitions.scoredDescendants = {
         returnDependencies: () => ({
@@ -332,6 +343,12 @@ export function returnScoredSectionStateVariableDefinition() {
     };
 
     stateVariableDefinitions.showCorrectness = {
+        description:
+            "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag.",
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
         forRenderer: true,
         returnDependencies: () => ({
             showCorrectnessPreliminary: {
@@ -364,6 +381,12 @@ export function returnScoredSectionStateVariableDefinition() {
     };
 
     stateVariableDefinitions.colorCorrectness = {
+        description:
+            "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all.",
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
         forRenderer: true,
         returnDependencies: () => ({
             colorCorrectnessPreliminary: {

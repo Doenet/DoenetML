@@ -10,6 +10,12 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<intComma>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types) 
 component which inserts commas into a large integer when rendering. 
 
+The grouping follows the language the document is written in, not always a
+comma: a document with `lang="es"{:dn}` or `lang="de"{:dn}` renders
+`25236501.35` as `25.236.501,35`, and one with `lang="hi"{:dn}` groups in twos
+above the first thousand (`12,34,567`). Digits are only regrouped, never
+rounded or dropped, so `1000.50` keeps its trailing zero.
+
 <AttrPropDisplay name='intComma'/>
 
 ## Examples

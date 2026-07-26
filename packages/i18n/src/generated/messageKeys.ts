@@ -113,6 +113,13 @@ export type MessageKey =
     | "style-unfilled"
     | "style-text"
     | "style-background-none"
+    | "boolean-true"
+    | "boolean-false"
+    | "answer-submit-label"
+    | "answer-submit-label-no-correctness"
+    | "piecewise-condition-or"
+    | "piecewise-condition-if"
+    | "piecewise-condition-otherwise"
     | "line-segment-attributes-ignored-with-endpoints"
     | "line-segment-attributes-ignored-with-endpoint-and-midpoint"
     | "line-segment-midpoint-offset-without-midpoint"
@@ -295,7 +302,8 @@ export type MessageKey =
     | "external-doenetml-type-mismatch"
     | "deprecated-attribute-renamed"
     | "deprecated-attribute-renamed-conflict"
-    | "deprecated-attribute-ignored";
+    | "deprecated-attribute-ignored"
+    | "pluralize-english-only";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -405,6 +413,13 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "style-unfilled",
     "style-text",
     "style-background-none",
+    "boolean-true",
+    "boolean-false",
+    "answer-submit-label",
+    "answer-submit-label-no-correctness",
+    "piecewise-condition-or",
+    "piecewise-condition-if",
+    "piecewise-condition-otherwise",
     "line-segment-attributes-ignored-with-endpoints",
     "line-segment-attributes-ignored-with-endpoint-and-midpoint",
     "line-segment-midpoint-offset-without-midpoint",
@@ -588,4 +603,5 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "deprecated-attribute-renamed",
     "deprecated-attribute-renamed-conflict",
     "deprecated-attribute-ignored",
+    "pluralize-english-only",
 ];

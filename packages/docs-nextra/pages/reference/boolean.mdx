@@ -312,7 +312,10 @@ The `value` property of a named `<boolean>{:dn}` returns its value of `true` or 
 
 
 
-The `text` property of a named `<boolean>{:dn}` returns the text value of `true` or `false`.
+The `text` property of a named `<boolean>{:dn}` returns the text value of `true` or `false`,
+written in the language the document is in — `verdadero` or `falso` under `lang="es"{:dn}`.
+The `value` property does not change: `true` and `false` are DoenetML syntax, so an
+`<award>{:dn}` comparing against them behaves the same in every language.
 
 
 

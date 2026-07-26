@@ -9,6 +9,11 @@ import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
 } from "../utils/input";
+import { booleanWord } from "../utils/booleanWords";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../utils/contentLocale";
 
 export default class BooleanInput extends Input {
     constructor(args) {
@@ -232,7 +237,7 @@ export default class BooleanInput extends Input {
 
         stateVariableDefinitions.text = {
             description:
-                'The current value rendered as a text string ("true" or "false").',
+                'The current value rendered as a text string ("true" or "false", in the document\'s language).',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -242,11 +247,15 @@ export default class BooleanInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "value",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition: function ({ dependencyValues }) {
                 return {
                     setValue: {
-                        text: dependencyValues.value ? "true" : "false",
+                        text: booleanWord(
+                            dependencyValues.value,
+                            contentTranslator(dependencyValues),
+                        ),
                     },
                 };
             },

@@ -3,6 +3,10 @@ import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
 import { codedDiagnostic } from "./diagnostics";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "./contentLocale";
 
 function returnScoredContainerAncestorDependency(...variableNames) {
     return {
@@ -61,15 +65,13 @@ export function returnStandardAnswerAttributes() {
             createComponentOfType: "boolean",
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: true,
-            public: true,
             groupName: "answer-grading",
             // The runtime stores the raw attribute value under
             // `colorCorrectnessPreliminary` so a derived `colorCorrectness`
-            // state def can combine it with the ancestor's setting. Authors
-            // should see only the derived `colorCorrectness` property, so
-            // hide the plumbing-named state var from the schema while
-            // keeping the attribute itself author-facing. See #1089.
-            stateVarExcludeFromSchema: true,
+            // state def can combine it with the ancestor's setting. That raw
+            // variable is plumbing, so it is not public: the attribute stays
+            // author-facing, and `$a.colorCorrectnessPreliminary` is not a
+            // reference anyone can write. See #1089.
             description:
                 "Whether to color-code the response based on its correctness.",
         },
@@ -86,10 +88,13 @@ export function returnStandardAnswerAttributes() {
 
         submitLabel: {
             createComponentOfType: "text",
-            createStateVariable: "submitLabel",
+            createStateVariable: "submitLabelPreLocalize",
+            // The default is English here only so that authors see the words
+            // in the schema; `returnSubmitLabelStateVariableDefinitions`
+            // ignores this value when the attribute is unspecified and takes
+            // the label from the document's own language instead. An authored
+            // value is never translated — see the note there.
             defaultValue: "Check Work",
-            public: true,
-            forRenderer: true,
             groupName: "answer-grading",
             description:
                 "Label for the submit button when correctness is shown.",
@@ -97,10 +102,9 @@ export function returnStandardAnswerAttributes() {
 
         submitLabelNoCorrectness: {
             createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectness",
+            createStateVariable: "submitLabelNoCorrectnessPreLocalize",
+            // See the note on `submitLabel`.
             defaultValue: "Submit Response",
-            public: true,
-            forRenderer: true,
             groupName: "answer-grading",
             description:
                 "Label for the submit button when correctness is not shown.",
@@ -128,12 +132,105 @@ export function returnStandardAnswerAttributes() {
     };
 }
 
+/**
+ * `submitLabel` and `submitLabelNoCorrectness`, with their defaults in the
+ * document's language.
+ *
+ * Only the *default* is translated. An author who writes
+ * `submitLabel="Ready?"` gets "Ready?" in every locale: those are their words,
+ * chosen for their document, and Doenet translating them would be a surprise
+ * at best and wrong at worst. So the attribute value passes through verbatim
+ * and only an unspecified one — which `usedDefault` is the only way to
+ * distinguish from an author who typed the English default on purpose —
+ * reaches the catalog.
+ *
+ * Shared by `<answer>` and by every container with a section-wide check-work
+ * button, which declare the same two attributes from different tables
+ * (`returnStandardAnswerAttributes` and `returnScoredSectionAttributes`) but
+ * resolve them identically.
+ *
+ * @param button How the schema should name the button these label — a section
+ *   labels a section-wide one, an `<answer>` its own.
+ * @param ownLocale Read the component's *own* `locale` as well as the
+ *   enclosing document's. Only `<document>` has one; see
+ *   `returnContentLocaleDependencies`.
+ */
+export function returnSubmitLabelStateVariableDefinitions({
+    ownLocale = false,
+    button = "the submit button",
+} = {}) {
+    return {
+        submitLabel: submitLabelDefinition({
+            name: "submitLabel",
+            translatedDefault: (t) => t("answer-submit-label"),
+            description: `Label for ${button} when correctness is shown.`,
+            ownLocale,
+        }),
+        submitLabelNoCorrectness: submitLabelDefinition({
+            name: "submitLabelNoCorrectness",
+            translatedDefault: (t) => t("answer-submit-label-no-correctness"),
+            description: `Label for ${button} when correctness is not shown.`,
+            ownLocale,
+        }),
+    };
+}
+
+/**
+ * One submit label: the authored value if there is one, otherwise
+ * `translatedDefault`.
+ *
+ * The default arrives as a function of the translator rather than as a key,
+ * because `lint:i18n` reads call sites literally — `t(key)` is invisible to
+ * it, so the catalog entry would read as an orphan and a typo would surface
+ * only at runtime.
+ */
+function submitLabelDefinition({
+    name,
+    translatedDefault,
+    description,
+    ownLocale,
+}) {
+    const authored = `${name}PreLocalize`;
+    return {
+        description,
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "text",
+        },
+        forRenderer: true,
+        returnDependencies: () => ({
+            [authored]: {
+                dependencyType: "stateVariable",
+                variableName: authored,
+            },
+            ...returnContentLocaleDependencies({ ownLocale }),
+        }),
+        definition({ dependencyValues, usedDefault }) {
+            const label = usedDefault[authored]
+                ? translatedDefault(contentTranslator(dependencyValues))
+                : dependencyValues[authored];
+            return { setValue: { [name]: label } };
+        },
+    };
+}
+
 // Note: depends on `creditAchievedIfSubmit` state variable
 // and having the original `disabled` attribute be renamed to `disabledOriginal`.
 export function returnStandardAnswerStateVariableDefinition() {
     const stateVariableDefinitions = {};
 
+    Object.assign(
+        stateVariableDefinitions,
+        returnSubmitLabelStateVariableDefinitions(),
+    );
+
     stateVariableDefinitions.showCorrectness = {
+        description:
+            "Whether correctness is shown for the submitted response, after combining the attribute with hand-grading, any enclosing section's setting, and the activity-wide flag.",
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
         forRenderer: true,
         returnDependencies: () => ({
             showCorrectnessPreliminary: {
@@ -172,6 +269,12 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.colorCorrectness = {
+        description:
+            "Whether the response is color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all.",
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
         forRenderer: true,
         returnDependencies: () => ({
             colorCorrectnessPreliminary: {
