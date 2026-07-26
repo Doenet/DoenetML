@@ -229,21 +229,24 @@ describe("coded diagnostics reach the record @group4", () => {
         );
     });
 
-    // The same warning from the other branch of `arrayEntryNamesFromPropIndex`
-    // — here `value` is a plain state variable rather than an array — which is
-    // why one code covers both: the author's mistake is the same one, and the
-    // difference between the two is a fact about the core that only the
-    // console line carries.
-    it("names the reference for a non-array state variable too", async () => {
+    // The same warning from the other site in `arrayEntryNamesFromPropIndex`.
+    // Above, `styleDescription` is not an array at all; here `vertexX1_1` is
+    // an entry of one, and it is `arrayVarNameFromPropIndex` that can make no
+    // name out of the index. One code covers both because the author's
+    // mistake is the same one — the difference is a fact about the core, and
+    // only the console line carries it (`… of 1`, with no trailing clause).
+    it("names the reference when the array can make no name for the index", async () => {
         const { core } = await createTestCore({
-            doenetML: `<text name="t">hi</text><text extend="$t.value[1]" />`,
+            doenetML: `<polyline name="pg" vertices="(1,2) (3,4)" /><math extend="$pg.vertexX1_1[1]" />`,
         });
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0100");
-        expect(warnings[0].args).eqls({ reference: "$t.value[1]" });
-        expect(warnings[0].message).eq("Cannot reference index `$t.value[1]`");
+        expect(warnings[0].args).eqls({ reference: "$pg.vertexX1_1[1]" });
+        expect(warnings[0].message).eq(
+            "Cannot reference index `$pg.vertexX1_1[1]`",
+        );
     });
 
     it("names the target a missing action was asked of", async () => {
