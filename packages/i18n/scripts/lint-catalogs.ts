@@ -224,8 +224,14 @@ for (const code of Object.keys(DIAGNOSTIC_CODES) as DiagnosticCode[]) {
     }
 }
 
+// A site is migrated either by naming a code or by forwarding one it was
+// handed; both are counted against the literals so the burn-down can reach
+// zero.
+const migratedCallSites =
+    diagnosticUsage.codes.length + diagnosticUsage.forwardedCount;
+
 notes.push(
-    `diagnostics: ${diagnosticUsage.codes.length} coded call site(s) covering ${codedCallSites.size}/${Object.keys(DIAGNOSTIC_CODES).length} code(s)${RETIRED_DIAGNOSTIC_CODES.size > 0 ? `, ${RETIRED_DIAGNOSTIC_CODES.size} retired` : ""}; ${diagnosticUsage.literalCount - diagnosticUsage.codes.length} raw diagnostic literal(s) still to migrate (#1518)`,
+    `diagnostics: ${diagnosticUsage.codes.length} coded call site(s) covering ${codedCallSites.size}/${Object.keys(DIAGNOSTIC_CODES).length} code(s)${diagnosticUsage.forwardedCount > 0 ? `, ${diagnosticUsage.forwardedCount} forwarding a code` : ""}${RETIRED_DIAGNOSTIC_CODES.size > 0 ? `, ${RETIRED_DIAGNOSTIC_CODES.size} retired` : ""}; ${diagnosticUsage.literalCount - migratedCallSites} raw diagnostic literal(s) still to migrate (#1518)`,
 );
 
 for (const note of notes) {

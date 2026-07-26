@@ -23,7 +23,7 @@ vi.mock("hyperformula");
  * the code and arguments survive to the record, and that the English is
  * byte-for-byte what the concatenated version produced.
  */
-describe("coded diagnostics reach the record", () => {
+describe("coded diagnostics reach the record @group4", () => {
     it("attaches a code to a message with no arguments", async () => {
         const { core } = await createTestCore({
             doenetML: `

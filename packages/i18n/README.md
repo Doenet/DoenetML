@@ -241,13 +241,55 @@ nothing else, which is what lets the ~200 messages still holding a literal
 string migrate a few at a time (#1518). `lint:i18n` reports the remaining count
 on every run.
 
+### Errors that are thrown, not built
+
+Errors raised while the source is being turned into components don't build a
+record at all — they `throw`, the caller catches, and the component becomes an
+`_error` whose message `ComponentBuilder` re-raises as the diagnostic. The
+record built at the `catch` is discarded on purpose (`DiagnosticsManager`
+gathers errors from the dast pass instead), so the `_error` component is the
+only thing carrying the diagnostic across, and a bare `Error` arrives with
+nothing but an English sentence on it.
+
+```js
+// before
+throw Error(`Cannot repeat attribute ${attrName}.`);
+
+// after
+throw new DiagnosticError({
+    code: "doenet-e0003",
+    args: { attribute: attrName },
+});
+```
+
+`DiagnosticError` (alongside `codedDiagnostic`) is an `Error` subclass whose
+`message` comes from the same English catalog, so it drops straight into a
+`throw` site: `instanceof Error` still holds and a `catch` reading `e.message`
+sees what it saw before. `errorComponentState` puts the code and arguments on
+the `_error`'s `state` — every place that builds one of those components out
+of something that could be carrying a code uses it — and the builder reads
+them back off when it raises the diagnostic. The other places that build an
+`_error` compose their own English string, so there is no code for them to
+lose; they join this path when those messages migrate.
+
+The sites in between — the two `catch` blocks that build a record from a
+caught error, and the `ComponentBuilder` branch that raises one from an
+`_error` component — hold no English of their own, so they have nothing to
+migrate and no code to name; they spread `diagnosticCodeFrom` to pass along
+whatever their source carried. `lint:i18n` counts those as migrated too, since
+there is nothing further to do to them.
+
 ### Codes
 
 A code is a permanent name — what a bug report cites, what a host reading
 `setDiagnosticsCallback` can filter on, and the anchor a documentation page
 will hang off (#1548). It rides on the record, and on the LSP `code` field for
-a positioned diagnostic; nothing renders it as text yet, so the codes earn
-their keep as an identifier rather than as UI.
+a positioned diagnostic — with the arguments alongside it in `data.args`, since
+a code names a message *template* and it takes both to say which occurrence of
+it this is. That pair is how the language server's `dedupeLspDiagnostics`
+recognizes two renderings of one diagnostic without comparing their text.
+Nothing renders the code itself yet, so the codes earn their keep as an
+identifier rather than as UI.
 
 `DIAGNOSTIC_CODES` in `src/diagnostics.ts` maps each to a message id, and
 `diagnostic-codes.lock.json` records every code ever issued, so `lint:i18n`

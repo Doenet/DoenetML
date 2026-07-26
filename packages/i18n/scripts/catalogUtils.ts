@@ -308,23 +308,74 @@ const DIAGNOSTIC_CODE_USE_PATTERN = /code:\s*["'`](doenet-[a-z]\d+)["'`]/g;
 const DIAGNOSTIC_LITERAL_PATTERN =
     /(?<![\w$])type:\s*["'`](?:warning|error|info|accessibility)["'`](?!\s*;)/g;
 
+/**
+ * A diagnostic raised by *throwing* rather than by building a record.
+ *
+ * These have no `type:` property to be counted by
+ * {@link DIAGNOSTIC_LITERAL_PATTERN}, so without this they would be pure
+ * credit: the site's code lands in `codes` and nothing offsets it, and the
+ * burn-down would fall by one for a message that was never in its
+ * denominator. Every `DiagnosticError` is coded by construction, so counting
+ * each one as a literal makes the pair cancel exactly, the way a migrated
+ * record's surviving `type:` cancels its new `code:`.
+ *
+ * The uncoded throws it replaces were never counted either, which is why the
+ * burn-down has only ever measured the record-shaped half of #1518.
+ */
+const THROWN_DIAGNOSTIC_PATTERN = /new DiagnosticError\(/g;
+
+/**
+ * A construction that *forwards* whatever code its source carried.
+ *
+ * The `catch` blocks that turn a caught error into a record hold no English
+ * of their own — the message came from the thrower — so there is no literal
+ * for them to migrate and no code for them to name. They are as migrated as
+ * they can be: spreading `diagnosticCodeFrom` is precisely what makes the
+ * record coded whenever the thing it forwards is.
+ *
+ * Counted as migrated rather than deducted from the denominator, because the
+ * site is real — it is one of the constructions #1518 is about, it just
+ * carries its code instead of writing one. Without this the burn-down could
+ * never reach zero: these sites would sit in the remainder forever, with
+ * nothing left to do to them.
+ */
+const FORWARDED_DIAGNOSTIC_PATTERN = /\.\.\.diagnosticCodeFrom\(/g;
+
 export type DiagnosticUsage = {
+    /**
+     * Sites naming a code literally. The key is validated against the
+     * registry, so these are the only ones that can answer "is every
+     * registered code actually raised?".
+     */
     codes: CallSite[];
+    /** Sites that pass a code through from their source without naming one. */
+    forwardedCount: number;
+    /**
+     * The denominator: every construction that raises a diagnostic, coded or
+     * not — a record's `type:` literal ({@link DIAGNOSTIC_LITERAL_PATTERN})
+     * and a throw's `new DiagnosticError(` ({@link THROWN_DIAGNOSTIC_PATTERN}).
+     * Subtracting the migrated sites from this is the burn-down.
+     */
     literalCount: number;
 };
 
 /** Diagnostic call sites under `packages/<name>/src`. */
 export function collectDiagnosticUsage(): DiagnosticUsage {
     const codes: CallSite[] = [];
+    let forwardedCount = 0;
     let literalCount = 0;
     for (const { file, contents } of scannedSources()) {
         for (const match of contents.matchAll(DIAGNOSTIC_CODE_USE_PATTERN)) {
             codes.push({ key: match[1], file });
         }
+        forwardedCount += [...contents.matchAll(FORWARDED_DIAGNOSTIC_PATTERN)]
+            .length;
         literalCount += [...contents.matchAll(DIAGNOSTIC_LITERAL_PATTERN)]
             .length;
+        literalCount += [...contents.matchAll(THROWN_DIAGNOSTIC_PATTERN)]
+            .length;
     }
-    return { codes, literalCount };
+    return { codes, forwardedCount, literalCount };
 }
 
 function renderMessageKeysModuleRaw(keys: string[]): string {

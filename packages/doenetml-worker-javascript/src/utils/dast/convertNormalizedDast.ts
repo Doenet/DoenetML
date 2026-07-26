@@ -25,12 +25,16 @@ import {
     UnflattenedPathPart,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
-import { convertToErrorComponent } from "./errors";
+import { convertToErrorComponent, errorComponentState } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
 import { DiagnosticRecord } from "@doenet/utils";
-import { codedDiagnostic } from "../diagnostics";
+import {
+    codedDiagnostic,
+    diagnosticCodeFrom,
+    DiagnosticError,
+} from "../diagnostics";
 
 /**
  * Transform the normalized dast into the serialized components used
@@ -160,7 +164,12 @@ export async function normalizedDastToSerializedComponents(
                             position: node.position,
                             sourceDoc: node.sourceDoc,
                             state: {
-                                message: node.message,
+                                // A `DastError` carries no code yet, so this
+                                // is the bare message today. It is the line
+                                // #1549 needs: once the parser names its
+                                // diagnostics, they reach the record through
+                                // here without this file changing again.
+                                ...errorComponentState(node.message, node),
                                 unresolvedPath: node.unresolvedPath,
                             },
                             children: [],
@@ -362,9 +371,10 @@ export function expandUnflattenedToSerializedComponents({
 
         try {
             if (componentClass === undefined) {
-                throw Error(
-                    `Invalid component type: \`<${component.componentType}>\``,
-                );
+                throw new DiagnosticError({
+                    code: "doenet-e0002",
+                    args: { componentType: component.componentType },
+                });
             }
 
             const expandResult = expandAllUnflattenedAttributes({
@@ -429,6 +439,10 @@ export function expandUnflattenedToSerializedComponents({
                 diagnostics.push({
                     type: "error",
                     message: convertResult.message,
+                    // Empty unless the caught error named its diagnostic by
+                    // code, which `convertToErrorComponent` has already read
+                    // off it and put on the `_error` component.
+                    ...diagnosticCodeFrom(convertResult),
                     position: component.position,
                     sourceDoc: component.sourceDoc,
                 });
@@ -617,7 +631,10 @@ export function expandAllUnflattenedAttributes({
         let attrDef = classAttributes[attrName];
         if (attrDef) {
             if (attrName in attributes) {
-                throw Error(`Cannot repeat attribute ${attrName}.`);
+                throw new DiagnosticError({
+                    code: "doenet-e0003",
+                    args: { attribute: attrName },
+                });
             }
 
             let res = expandAttribute({
@@ -643,9 +660,13 @@ export function expandAllUnflattenedAttributes({
             diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
         } else {
-            throw Error(
-                `Invalid attribute "${attr}" for a component of type \`<${componentClass.componentType}>\`.`,
-            );
+            throw new DiagnosticError({
+                code: "doenet-e0004",
+                args: {
+                    attribute: attr,
+                    componentType: componentClass.componentType,
+                },
+            });
         }
     }
     return { attributes, diagnostics, nComponents };

@@ -72,7 +72,7 @@ const makeAncestors = (...types: { type: string; transparent?: boolean }[]) =>
         },
     }));
 
-describe("getSelfReferentialFallbackPropName", () => {
+describe("getSelfReferentialFallbackPropName @group4", () => {
     it("returns 'value' for point inside label context (coords inherits math)", () => {
         expect(
             getSelfReferentialFallbackPropName({

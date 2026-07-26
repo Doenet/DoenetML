@@ -15,6 +15,7 @@ import {
     expandUnflattenedToSerializedComponents,
 } from "./convertNormalizedDast";
 import { convertToErrorComponent } from "./errors";
+import { diagnosticCodeFrom } from "../diagnostics";
 
 /**
  * If a component class has specified sugar instructions,
@@ -324,6 +325,8 @@ export function applySugar({
             diagnostics.push({
                 type: "error",
                 message: convertResult.message,
+                // Empty unless the caught error named its diagnostic by code.
+                ...diagnosticCodeFrom(convertResult),
                 position: component.position,
                 sourceDoc: component.sourceDoc,
             });

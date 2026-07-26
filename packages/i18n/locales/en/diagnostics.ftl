@@ -408,3 +408,15 @@ attribute-must-be-references = Invalid value `{ $value }` for attribute `{ $attr
 
 # $names is a list of the rejected names, each already in single quotes.
 math-input-invalid-function-names = <mathInput>: ignored invalid function name(s) in { $attribute }: { $names }. Each name's display segment must be at least 2 characters (letters or dashes); an optional `|<mathspeak alternative>` suffix may follow.
+
+## Building components from the source
+
+# Raised while the source is being turned into components, by throwing rather
+# than by building a record: the thrower is caught, the component becomes an
+# `_error`, and the diagnostic is re-raised from it.
+
+component-type-invalid = Invalid component type: `<{ $componentType }>`
+
+attribute-repeated = Cannot repeat attribute { $attribute }.
+
+attribute-invalid-for-component = Invalid attribute "{ $attribute }" for a component of type `<{ $componentType }>`.

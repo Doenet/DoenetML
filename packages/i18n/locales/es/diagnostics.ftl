@@ -339,3 +339,11 @@ attribute-invalid-values =
 attribute-must-be-references = Valor no válido `{ $value }` para el atributo `{ $attribute }`. El atributo debe estar compuesto de referencias que empiecen por `$`.
 
 math-input-invalid-function-names = <mathInput>: se ignoran nombres de función no válidos en { $attribute }: { $names }. El segmento visible de cada nombre debe tener al menos 2 caracteres (letras o guiones); puede añadirse un sufijo opcional `|<alternativa de mathspeak>`.
+
+## Construcción de componentes a partir del código fuente
+
+component-type-invalid = Tipo de componente no válido: `<{ $componentType }>`
+
+attribute-repeated = No se puede repetir el atributo { $attribute }.
+
+attribute-invalid-for-component = Atributo "{ $attribute }" no válido para un componente de tipo `<{ $componentType }>`.

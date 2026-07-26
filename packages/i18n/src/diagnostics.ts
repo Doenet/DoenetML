@@ -156,6 +156,9 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0082": "math-input-invalid-function-names",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
+    "doenet-e0002": "component-type-invalid",
+    "doenet-e0003": "attribute-repeated",
+    "doenet-e0004": "attribute-invalid-for-component",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

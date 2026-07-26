@@ -12,7 +12,11 @@ import {
 import { addComponentsToResolver } from "./ResolverAdapter";
 import { createStateVariableDefinitions } from "./StateVariableDefinitionFactory";
 import { initializeComponentStateVariables } from "./StateVariableInitializer";
-import { convertToErrorComponent } from "../utils/dast/errors";
+import {
+    convertToErrorComponent,
+    errorComponentState,
+} from "../utils/dast/errors";
+import { diagnosticCodeFrom } from "../utils/diagnostics";
 import { gatherVariantComponents } from "../utils/variants";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 import { extractCreateComponentIdxMapping } from "../utils/componentIndices";
@@ -590,9 +594,16 @@ export async function createChildrenThenComponent({
     if (serializedComponent.componentType === "_error") {
         lastErrorMessage = serializedComponent.state.message;
 
+        // This is where an `_error` component becomes an error *diagnostic* —
+        // the one place the two representations meet. Anything the component
+        // isn't carrying is lost to the main thread, which is why the code and
+        // its arguments are read back off `state` here: an `_error` built from
+        // a coded error (`convertToErrorComponent`) stays coded, and one built
+        // from a bare string stays a bare string.
         core.addDiagnostic({
             type: "error",
             message: serializedComponent.state.message,
+            ...diagnosticCodeFrom(serializedComponent.state),
             position: serializedComponent.position,
             sourceDoc: serializedComponent.sourceDoc,
         });
@@ -947,7 +958,14 @@ export async function addQueuedErrorComponentsFromStateVariables({
                 type: "serialized",
                 componentType: "_error",
                 componentIdx: core._components.length,
-                state: { message: errorInfo.message },
+                // `errorInfo` is the diagnostic record itself, spread by
+                // `StateVariableEvaluator`, so a coded one arrives here with
+                // its code. This record has already reached `addDiagnostic`,
+                // so nothing downstream depends on the copy — it is kept so
+                // that an `_error` built here holds the same thing one built
+                // by `convertToErrorComponent` does, and so that making these
+                // keys `forRenderer` later needs no second pass.
+                state: errorComponentState(errorInfo.message, errorInfo),
                 position: errorInfo.position,
                 sourceDoc: errorInfo.sourceDoc,
                 children: [],

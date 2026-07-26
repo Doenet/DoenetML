@@ -229,9 +229,14 @@ export function addValidationSupport(
 
         diagnostics.push(...info.additionalDiagnostics);
 
-        // Dedupe by severity+range+message before sending: the worker's
-        // `_error`-component pipeline re-surfaces every parser DAST
-        // error as a runtime diagnostic and pushes it back through
+        // Dedupe within each severity+range pair before sending. Two
+        // records collapse when they agree on their message, or — for
+        // a diagnostic that carries a stable code — when they agree on
+        // that code and the arguments filling it in, which is how two
+        // renderings of one diagnostic in different languages still
+        // recognize each other. The worker's `_error`-component
+        // pipeline re-surfaces every parser DAST error as a runtime
+        // diagnostic and pushes it back through
         // `additionalDiagnostics`, so without this pass the editor's
         // hover renders the same record twice (the Diagnostics tab
         // already dedupes via Core's `DiagnosticsManager`).

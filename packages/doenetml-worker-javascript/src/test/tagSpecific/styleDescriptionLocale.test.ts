@@ -13,7 +13,7 @@ vi.mock("hyperformula");
  * that the locale reaches the definitions at all, and that it is the document's
  * locale rather than the host's when the two disagree.
  */
-describe("style descriptions follow the document locale", () => {
+describe("style descriptions follow the document locale @group4", () => {
     async function descriptions(
         doenetML: string,
         names: string[],

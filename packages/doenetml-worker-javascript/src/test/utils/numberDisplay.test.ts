@@ -5,7 +5,7 @@ import {
     gatherRawNumberDisplayFixedResponseAttributes,
 } from "../../utils/numberDisplay";
 
-describe("numberDisplay utility", () => {
+describe("numberDisplay utility @group4", () => {
     it("returns expected formatter params", () => {
         expect(
             buildNumberDisplayParameters({

@@ -32,7 +32,7 @@ function copy(opts: ReplOpts): any {
     return repl({ ...opts, componentType: "_copy" });
 }
 
-describe("calcStartEndIdx utility", () => {
+describe("calcStartEndIdx utility @group4", () => {
     it("returns no match when copy is absent", async () => {
         const result = await calcStartEndIdx({
             replacements: [

@@ -97,6 +97,16 @@ function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
         // carry one (#1518); `code` is optional in LSP, so the rest are
         // unchanged.
         ...(diagnostic.code === undefined ? {} : { code: diagnostic.code }),
+        // `data` is the LSP's slot for payload a client hands back later; the
+        // one consumer today is `dedupeLspDiagnostics`, which needs the
+        // arguments to tell two occurrences of one code apart. A code names a
+        // message template, so the same code raised twice on one component
+        // with different arguments — `doenet-w0040` for a bad maximum and
+        // again for a bad minimum — is two diagnostics at one span, and
+        // without the arguments the dedupe would collapse them.
+        ...(diagnostic.args === undefined
+            ? {}
+            : { data: { args: diagnostic.args } }),
     };
 }
 
