@@ -26,7 +26,8 @@
  * unusable, or when the core is not inlined exactly once in the right script.
  *
  * The exported helpers exist so `check-bundle-size.test.mjs` can exercise the
- * decision logic against synthetic bundles; only `main()` touches `dist/`.
+ * decision logic without a build, against synthetic bundles and throwaway
+ * budgets files; only `main()` reads the real `dist/`.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -98,12 +99,12 @@ function mib(bytes) {
  * own (an inlined SVG webfont) that the blob heuristic cannot tell apart from
  * wasm. Only a script can actually execute a duplicated Rust core.
  */
-export function collectEmittedScripts(dir = DIST_DIR) {
+function collectEmittedScripts() {
     const scripts = new Map();
-    if (!fs.existsSync(dir)) {
+    if (!fs.existsSync(DIST_DIR)) {
         return scripts;
     }
-    for (const entry of fs.readdirSync(dir, {
+    for (const entry of fs.readdirSync(DIST_DIR, {
         withFileTypes: true,
         recursive: true,
     })) {
@@ -216,10 +217,16 @@ export function findProblems(budgets, scripts) {
     for (const [relative, budget] of budgets) {
         const emitted = scripts.get(relative);
         if (!emitted) {
-            problems.push(
-                `${relative} does not exist — build the package before checking its size ` +
-                    `(\`npm run build -w packages/standalone\`).`,
-            );
+            // "Build the package" is the right advice only when there is no
+            // build. If other scripts were emitted and the core-carrying one
+            // was not, the build ran and the file moved — say that once, in
+            // the more specific message below, instead of twice and wrongly.
+            if (relative !== WASM_CORE_SCRIPT || scripts.size === 0) {
+                problems.push(
+                    `${relative} does not exist — build the package before checking its size ` +
+                        `(\`npm run build -w packages/standalone\`).`,
+                );
+            }
             continue;
         }
 

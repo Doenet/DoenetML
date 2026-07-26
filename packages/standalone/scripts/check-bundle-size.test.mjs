@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterAll, describe, expect, it } from "vitest";
 import {
     WASM_CORE_SCRIPT,
     countBigBlobs,
     findProblems,
+    loadBudgets,
 } from "./check-bundle-size.mjs";
 
 const STANDALONE = "dist/doenet-standalone.js";
@@ -119,6 +123,36 @@ describe("findProblems", () => {
         ]);
     });
 
+    // The scenario a version bump could produce: the build ran, but the core
+    // landed under a name nobody budgeted. Saying "build the package" here
+    // would send the reader after a build they already have.
+    it("blames a moved core on the move, not on a missing build", () => {
+        const scripts = new Map([
+            [STANDALONE, script(500)],
+            ["dist/doenetml-worker/index.mjs", script(900, 1)],
+        ]);
+        const problems = problemsFor(scripts);
+        expect(problems).toEqual(
+            expect.arrayContaining([
+                expect.stringContaining("nothing carries the Rust core"),
+                expect.stringContaining("dist/doenetml-worker/index.mjs"),
+            ]),
+        );
+        for (const problem of problems) {
+            expect(problem).not.toContain("build the package");
+        }
+    });
+
+    // Unlike every other case here, the two counts disagree — which is the
+    // only way to tell the `wasmUris || bigBlobs` check from an `&&`.
+    it("rejects a large inlined blob that is not wasm", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, { size: 500, wasmUris: 0, bigBlobs: 1 });
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining("should carry no inlined binary"),
+        ]);
+    });
+
     it("lists an unbudgeted chunk without failing on it", () => {
         const scripts = healthyBuild();
         scripts.set("dist/coordinator.js", script(11_000));
@@ -126,5 +160,59 @@ describe("findProblems", () => {
         expect(problems).toEqual([]);
         expect(report.join("\n")).toContain("dist/coordinator.js");
         expect(report.join("\n")).toContain("no budget");
+    });
+});
+
+describe("loadBudgets", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "bundle-budgets-"));
+    afterAll(() => fs.rmSync(tmpDir, { recursive: true, force: true }));
+
+    /** Write `contents` to a throwaway budgets file and load it. */
+    function load(contents, name) {
+        const file = path.join(tmpDir, `${name}.json`);
+        fs.writeFileSync(file, contents);
+        return () => loadBudgets(file);
+    }
+
+    it("rejects a budgets file that is absent or not JSON", () => {
+        expect(() => loadBudgets(path.join(tmpDir, "absent.json"))).toThrow(
+            /Could not read/,
+        );
+        expect(load("{ not json", "malformed")).toThrow(/Could not read/);
+    });
+
+    it("rejects a budgets file with no usable `files` object", () => {
+        expect(load('{"files": []}', "array")).toThrow(/"files" object/);
+        expect(load("{}", "absent-files")).toThrow(/"files" object/);
+        expect(load('{"files": {}}', "empty")).toThrow(/lists no files/);
+    });
+
+    // The branch that matters most: `size > undefined` is `false`, so without
+    // this the entry would report as within a `NaN MiB` budget and pass.
+    it("rejects an entry whose `maxBytes` could not act as a ceiling", () => {
+        expect(load('{"files":{"a.js":{"maxBytse":1}}}', "typo")).toThrow(
+            /needs a positive numeric "maxBytes"; got undefined/,
+        );
+        expect(load('{"files":{"a.js":{"maxBytes":"1"}}}', "string")).toThrow(
+            /needs a positive numeric "maxBytes"/,
+        );
+        expect(load('{"files":{"a.js":{"maxBytes":0}}}', "zero")).toThrow(
+            /needs a positive numeric "maxBytes"/,
+        );
+    });
+});
+
+describe("the committed bundle-budgets.json", () => {
+    // Everything above runs against synthetic budgets. This is the one check
+    // of the real file, and of the one way its contents can drift out of step
+    // with the script: `WASM_CORE_SCRIPT` and the budget keys are two records
+    // of the same path. Move the worker output and update only one of them and
+    // the placement check still passes while the largest bundle in the package
+    // quietly loses its ceiling — the exact silence this script exists to end.
+    it("puts a ceiling on the script that carries the core", () => {
+        const budgets = loadBudgets();
+        expect(budgets.map(([relative]) => relative)).toContain(
+            WASM_CORE_SCRIPT,
+        );
     });
 });
