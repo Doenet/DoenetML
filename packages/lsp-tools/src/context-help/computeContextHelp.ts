@@ -1,5 +1,9 @@
 import type { DastElement } from "@doenet/parser";
-import { buildEffectiveMathInputFunctionNames } from "@doenet/utils";
+// Its own subpath rather than the root export, which would drag
+// math-expressions and the AST and URL helpers onto the boot path of a worker
+// the editor waits on. `test/no-root-utils-import.test.ts` explains it in full
+// and keeps it that way.
+import { buildEffectiveMathInputFunctionNames } from "@doenet/utils/components/mathInputFunctionNames";
 import {
     AutoCompleter,
     type AliasedElementSchema,
