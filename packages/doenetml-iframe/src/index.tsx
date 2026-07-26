@@ -1768,10 +1768,19 @@ export const DoenetEditor = React.forwardRef<
             setIgnoreDetectedVersion(true);
             setInErrorState("");
             // Reached through `@doenet/utils`, which already depends on
-            // `@doenet/i18n`, so this costs no new dependency. The fallback
-            // clause is a variant of the message rather than a sentence
-            // appended to it: whether there is a fallback is data, and a
-            // translator has to be able to place it.
+            // `@doenet/i18n`, so this costs no new dependency — but it is not
+            // free: this is the embed's only coded diagnostic, and it pulls
+            // the English catalogs and `@fluent/bundle` into a bundle that
+            // held neither (3641 kB → 3769 kB, 811 kB → 845 kB gzipped).
+            // Worth it only because the alternative is a hand-written English
+            // string that the catalog cannot hold to, and because the record
+            // has to carry a `message` whichever way it is built.
+            //
+            // The fallback clause is a variant of the message rather than a
+            // sentence appended to it: whether there is a fallback is data,
+            // and a translator has to be able to place it. `message` here is
+            // the English fallback only — the viewer inside the iframe
+            // re-renders the record from its code and arguments in `uiLocale`.
             const versionDiagnostic = codedDiagnostic({
                 type: "error",
                 code: "doenet-e0006",

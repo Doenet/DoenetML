@@ -334,4 +334,50 @@ describe("coded diagnostics reach the record @group4", () => {
             "No referent found for reference: `$g[1]`",
         );
     });
+
+    // The other branch of the same `catch`. Both codes have to sit next to
+    // `code:` as literals for `lint:i18n` to see them raised, which is why
+    // that site spreads a ternary of objects rather than choosing the value —
+    // and a workaround that only one branch exercises is a workaround nobody
+    // would notice breaking.
+    it("codes the other resolution failure the same catch reports", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<repeat name="r" for="1 2" valueName="v">
+  <p><text name="z">$v</text><text name="z">$v</text></p>
+</repeat>
+<text extend="$r[1].z" />
+`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0105");
+        expect(warnings[0].args).eqls({ reference: "$r[1].z" });
+        expect(warnings[0].message).eq(
+            "Multiple referents found for reference: `$r[1].z`",
+        );
+    });
+
+    // Built in `validateAttributeValue` and pushed onto a list its caller
+    // raises, so this too is gathered somewhere other than where the record is
+    // made. The value the author wrote is echoed back as a string: the
+    // attribute's own text, not a quantity to be formatted.
+    it("codes an attribute value that fell back to its default", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<math name="m" format="new1">x</math>`,
+        });
+
+        const { infos } = getDiagnosticsByType(core);
+        expect(infos.length).eq(1);
+        expect(infos[0].code).eq("doenet-i0048");
+        expect(infos[0].args).eqls({
+            value: "new1",
+            attribute: "format",
+            default: "text",
+        });
+        expect(infos[0].message).eq(
+            "Invalid value `new1` for attribute `format`, using value `text`",
+        );
+    });
 });

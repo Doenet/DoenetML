@@ -1,5 +1,6 @@
 import type Core from "../Core";
 import { diagnosticCodeFrom } from "../utils/diagnostics";
+import { errorComponentState } from "../utils/dast/errors";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
 import { createIsolatedComponents } from "./ComponentBuilder";
@@ -622,7 +623,10 @@ export class CompositeReplacementUpdater {
                 type: "serialized",
                 componentType: "_error",
                 componentIdx: this.core._components.length,
-                state: { message },
+                // The same code the record above forwards. Coding one and not
+                // the other would leave the error on screen in English while
+                // the diagnostics panel showed it translated.
+                state: errorComponentState(message, source),
                 position: composite.position,
                 sourceDoc: composite.sourceDoc,
                 children: [],
