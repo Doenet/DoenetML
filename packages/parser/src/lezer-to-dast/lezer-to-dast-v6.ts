@@ -299,19 +299,10 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRootV6 {
                 const openTag = parent?.getChild(OpenTag);
                 const closeTag = parent?.getChild(CloseTag);
                 const tag = extractContent(node, source);
-                if (!parent || !openTag) {
-                    return [
-                        codedDastError({
-                            code: "doenet-e0021",
-                            message: `Invalid DoenetML: Found closing tag \`${tag}\`, but no corresponding opening tag`,
-                            args: { tag },
-                            position: lezerNodeToPosition(node, offsetMap),
-                        }),
-                    ];
-                }
-                // If we have a parent, check to see if we also have a close tag.
-                // This could arise in code like `<foo></bar></foo>`
-                if (closeTag) {
+                // Nothing this could be closing: either there is no open tag
+                // at all, or the element already has its own close tag and
+                // this one is a stray. E.g. `<foo></bar></foo>`.
+                if (!parent || !openTag || closeTag) {
                     return [
                         codedDastError({
                             code: "doenet-e0021",

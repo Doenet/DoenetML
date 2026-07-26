@@ -8,7 +8,8 @@
 
 Translate the parser's diagnostics — the unclosed tags, mismatched quotes,
 invalid names and deprecation notices an author sees before anything runs, and
-usually the first Doenet message a beginner ever reads.
+usually the first Doenet message a beginner ever reads. Spanish included, so a
+`uiLocale="es"` reader now gets them in Spanish rather than in English.
 
 A parser error reaches the editor twice: once from the language server and once
 as the worker's echo of it. Both copies now carry the same stable code, so the

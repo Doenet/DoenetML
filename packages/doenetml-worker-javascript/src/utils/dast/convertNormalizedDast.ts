@@ -130,12 +130,11 @@ export async function normalizedDastToSerializedComponents(
                         // `DocViewer` re-renders it in the reader's language
                         // on the way out.
                         //
-                        // Bound to a name rather than spread inline, which is
-                        // load-bearing for the `lint:i18n` burn-down: this
+                        // Bound to a local rather than spread in place, for
+                        // the reason given in `errorComponentState`: this
                         // construction's severity is a variable, so the
-                        // denominator never counted it, and a spread the
-                        // forwarding scan can see would be pure credit and
-                        // take the remainder one below the truth.
+                        // burn-down never counted it, and a visible spread
+                        // would be credit against nothing.
                         const codeAndArgs = diagnosticCodeFrom(node);
                         diagnostics.push({
                             type: node.errorType,

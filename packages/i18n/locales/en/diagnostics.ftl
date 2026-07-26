@@ -684,8 +684,8 @@ answer-name-not-single-text = Answer name attribute must have a single text chil
 
 ## Referencing another document
 
-## $attribute is the attribute the URI was written in (`copyFrom`, `extend`, …)
-## and stays as written; $uri is the author's own value.
+# $attribute is the attribute the URI was written in (`copyFrom`, `extend`, …)
+# and stays as written; $uri is the author's own value.
 
 external-doenetml-recursion-limit = Unable to retrieve external DoenetML due to too many levels of recursion. Is there a circular reference?
 
@@ -699,8 +699,9 @@ external-doenetml-type-mismatch = Invalid DoenetML retrieved from { $attribute }
 # as written. $component is `none` for a rename that applies to every component
 # accepting the attribute, where naming one would be wrong.
 #
-# The `[deprecation]` opening is a marker the editor and the documentation both
-# key on. Leave it as it is.
+# The `[deprecation]` opening is a literal marker shared by all three messages,
+# not a word: leave it as it is.
+
 deprecated-attribute-renamed =
     { $component ->
         [none] [deprecation] Attribute `{ $from }` is deprecated; use `{ $to }` instead.
