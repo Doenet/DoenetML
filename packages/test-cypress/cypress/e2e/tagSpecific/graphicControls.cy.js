@@ -1714,10 +1714,15 @@ describe(
             // captured string can pin a value the slider has already moved
             // past. `cy.$$` queries the application under test, so both reads
             // see the same document as `cy.get`.
+            //
+            // The slider step is (xMax - xMin) / 100 = 0.2 on the default
+            // -10..10 graph, so all four steps accumulating gives 0.8. The
+            // bounds bracket only that value: three steps (0.6) or five (1.0)
+            // fail, as does snapping to the constrained 1.
             cy.get(xSlider).should(($slider) => {
                 const transientValue = $slider.val();
                 const transientNumber = Number(transientValue);
-                expect(transientNumber).to.be.greaterThan(0.5);
+                expect(transientNumber).to.be.greaterThan(0.7);
                 expect(transientNumber).to.be.lessThan(0.9);
                 expect(
                     cy.$$(xNumberInput).val(),
