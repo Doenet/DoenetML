@@ -1,9 +1,17 @@
 ---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
 "@doenet/vscode-extension": patch
 "doenet-vscode-extension": patch
 ---
 
-Stop the language server from pulling `@doenet/utils`' root barrel in for a
-single function. The math-input function-name helpers now have their own entry
-point, which shrinks that import from 65 KB to under 1 KB and keeps the
-extension's startup path clear of math-expressions and the AST helpers.
+Editor: cut the bundled DoenetML language server roughly in half.
+
+The server reached `@doenet/utils` through its root barrel for a single
+function, dragging math-expressions, the AST helpers and the URL utilities into
+the bundle alongside it. Those math-input function-name helpers now have an
+entry point of their own, taking the built server from 2.2 MB to 1.0 MB
+minified (642 KB to 316 KB gzipped). The server ships inline inside the code
+editor, so every package that embeds the editor downloads and parses that much
+less before the first cursor-help request can be answered.

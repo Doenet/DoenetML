@@ -8,21 +8,26 @@ import { describe, expect, it } from "vitest";
  * The language server must reach `@doenet/utils` through a subpath, never
  * through its root export.
  *
- * The root barrel pulls in math-expressions, the AST helpers and the URL
- * utilities. This worker loads on the critical path before the editor can
- * answer a cursor-help request, and boot lag here has surfaced before as a
- * flaky "no help on first cursor change" in CI — which is why
- * `resolve-active-style.ts` imports `@doenet/utils/style` rather than the
- * root.
+ * The root barrel re-exports math-expressions, the AST helpers and the URL
+ * utilities, and nothing externalizes them on the way into the server bundle.
+ * That bundle is not only the VS Code extension's server: `@doenet/codemirror`
+ * embeds the built IIFE verbatim (`@doenet/lsp/language-server.js?raw`) to
+ * start it as a blob worker, so every byte rides along into the editor too —
+ * where it sits on the critical path before the editor can answer a
+ * cursor-help request. Boot lag here has surfaced before as a flaky "no help
+ * on first cursor change" in CI, which is why `resolve-active-style.ts`
+ * imports `@doenet/utils/style` rather than the root.
  *
- * That reasoning lived only in a code comment, and a second import reached the
- * root barrel anyway: `computeContextHelp.ts` pulled the whole thing in for a
- * single self-contained function, which now has its own entry. A comment
- * cannot fail; this can.
+ * The cost is not marginal. One root import in `computeContextHelp.ts`, for a
+ * single self-contained function, more than doubled the built server:
+ * 1.0 MB minified against 2.2 MB with it (316 KB gzipped against 642 KB).
+ *
+ * That reasoning lived only in a code comment, and the second import reached
+ * the root barrel anyway. A comment cannot fail; this can.
  *
  * A bundle-size assertion would catch more, but it would have to build the
- * extension to do it. This costs nothing and catches the mistake at the point
- * it is made — someone typing the import they are used to.
+ * server to do it. This costs nothing and catches the mistake at the point it
+ * is made — someone typing the import they are used to.
  */
 const PACKAGES = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -47,16 +52,15 @@ const SCANNED_ROOTS = ["lsp-tools/src", "lsp/src"].map((dir) =>
  */
 const ROOT_IMPORT = /(?:from|import)\s*\(?\s*["']@doenet\/utils["']/g;
 
-/** The `import`/`export` opening a statement, searched for backwards. */
-const STATEMENT_KEYWORD = /\b(?:import|export)\b/g;
+/**
+ * The `import`/`export` opening a statement, searched for backwards. Anchored
+ * to the start of a line so that the same word in a trailing comment or in a
+ * braced specifier list cannot be mistaken for the head of the statement.
+ */
+const STATEMENT_START = /^[ \t]*(?:import|export)\b/gm;
 
 function* sourceFiles(dir: string): Generator<string> {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-        // The Lezer parser the `compile_grammar` script writes here is
-        // machine-generated, and not ours to hold to this rule.
-        if (entry.name === "generated-assets") {
-            continue;
-        }
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
             yield* sourceFiles(full);
@@ -70,11 +74,13 @@ function* sourceFiles(dir: string): Generator<string> {
  * Report every root-barrel import in `contents` as `line: statement`, the
  * statement collapsed onto one line so that a wrapped import still reads.
  *
- * Statements are located from the specifier backwards rather than line by
- * line, so a multi-line `import type { … } from "@doenet/utils"` is still
- * recognized as type-only. Type-only imports are allowed through: they cost
- * nothing at runtime, being erased before the bundler ever sees them. An
- * inline `import { type Foo }` is not — that statement is still emitted.
+ * Statements are located from the specifier backwards — to the nearest
+ * {@link STATEMENT_START} — rather than line by line, so a prettier-wrapped
+ * `import type { … } from "@doenet/utils"` is still recognized as type-only
+ * instead of failing on its closing `} from "@doenet/utils";` line. Type-only
+ * imports are allowed through: they cost nothing at runtime, being erased
+ * before the bundler ever sees them. An inline `import { type Foo }` is not —
+ * that statement is still emitted.
  */
 function rootImportsIn(contents: string): string[] {
     const found: string[] = [];
@@ -82,17 +88,19 @@ function rootImportsIn(contents: string): string[] {
         // A bare or dynamic `import` is matched from its own keyword, so it
         // opens its own statement; a `from` has the keyword somewhere behind
         // it, possibly several lines back.
-        const head = contents.slice(0, match.index);
-        const start = match[0].startsWith("import")
-            ? match.index
-            : ([...head.matchAll(STATEMENT_KEYWORD)].at(-1)?.index ??
-              match.index);
-        const statement = contents.slice(start, match.index + match[0].length);
+        const heads = match[0].startsWith("import")
+            ? []
+            : [...contents.slice(0, match.index).matchAll(STATEMENT_START)];
+        const start = heads[heads.length - 1]?.index ?? match.index;
+        const statement = contents
+            .slice(start, match.index + match[0].length)
+            .replace(/\s+/g, " ")
+            .trim();
         if (/^(?:import|export)\s+type\b/.test(statement)) {
             continue;
         }
         const line = contents.slice(0, start).split("\n").length;
-        found.push(`${line}: ${statement.replace(/\s+/g, " ")}`);
+        found.push(`${line}: ${statement}`);
     }
     return found;
 }
