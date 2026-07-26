@@ -1,6 +1,6 @@
-import { escapeXml } from "./common";
+import { escapeXml, pushWarning } from "./common";
 import type { AnnotationNode } from "./types";
-import { codedDiagnostic, type DiagnosticRecord } from "@doenet/utils";
+import type { DiagnosticRecord } from "@doenet/utils";
 import type { DiagnosticCode } from "@doenet/i18n";
 
 /**
@@ -125,13 +125,11 @@ function pushAnnotationWarning({
 }) {
     // TODO: populate annotation node positions so non-ref warnings can point
     // to the authored <annotation> node instead of falling back to ref data.
-    diagnostics.push(
-        codedDiagnostic({
-            type: "warning",
-            code,
-            position: annotation?.refResolutions?.[0]?.position,
-        }),
-    );
+    pushWarning({
+        diagnostics,
+        code,
+        position: annotation?.refResolutions?.[0]?.position,
+    });
 }
 
 function pushInvalidRefWarning(
