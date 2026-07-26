@@ -1,0 +1,26 @@
+{
+    "comment": [
+        "Size ceilings in bytes for the built standalone bundles, enforced by",
+        "`npm run check:size -w packages/standalone`. See",
+        "`scripts/check-bundle-size.mjs` for what else that check does and why.",
+        "",
+        "Growth is fine; silent growth is not. Raising a `maxBytes` in the same",
+        "commit that causes the growth is the point — it puts the increase in",
+        "the diff where a reviewer can ask about it. Update `observedBytes` in",
+        "the same edit so the new headroom is visible: it records the size when",
+        "`maxBytes` was chosen and is documentation only, enforced by nothing.",
+        "Today's budgets sit 7–8% above it."
+    ],
+    "files": {
+        "dist/doenet-standalone.js": {
+            "maxBytes": 15650000,
+            "observedBytes": 14489401,
+            "note": "No WebAssembly belongs in this bundle; the worker owns it."
+        },
+        "dist/doenetml-worker/index.js": {
+            "maxBytes": 15950000,
+            "observedBytes": 14889393,
+            "note": "Carries the Rust core as a single inlined base64 wasm blob (~8.3 MiB)."
+        }
+    }
+}

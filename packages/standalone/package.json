@@ -24,7 +24,8 @@
     "scripts": {
         "dev": "vite",
         "build": "wireit",
-        "test": "echo \"No tests \"",
+        "check:size": "node scripts/check-bundle-size.mjs",
+        "test": "vitest",
         "preview": "vite preview",
         "publish": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist"
     },
