@@ -2,6 +2,7 @@ import { serializedComponentsReplacer } from "@doenet/utils";
 import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
+import { codedDiagnostic } from "./diagnostics";
 
 function returnScoredContainerAncestorDependency(...variableNames) {
     return {
@@ -338,11 +339,12 @@ export function returnStandardAnswerStateVariableDefinition() {
                         (x) => x.substring(0, 17) === "submittedResponse",
                     )
                 ) {
-                    diagnostics.push({
-                        message:
-                            "An award for this answer is based on the answer tag's own submitted response, which will lead to unexpected behavior.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0069",
+                        }),
+                    );
                 }
             }
 
@@ -542,12 +544,13 @@ export function returnStandardAnswerStateVariableDefinition() {
                     ?.stateValues.suppressAnswerSubmitButtons;
 
             if (!usedDefault.maxNumAttempts && insideSectionWideCheckWork) {
-                sendDiagnostics.push({
-                    type: "warning",
-                    message:
-                        "Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the container. Set `maxNumAttempts` on the container instead.",
-                    position: dependencyValues.maxNumAttemptsAttr?.position,
-                });
+                sendDiagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0070",
+                        position: dependencyValues.maxNumAttemptsAttr?.position,
+                    }),
+                );
             }
 
             // Inside a section-wide check work, the answer's own
@@ -707,14 +710,13 @@ export function returnSimplifyExpandOnCompareWarning() {
                 }
 
                 if (attributesSpecified.length > 0) {
-                    sendDiagnostics.push({
-                        message: `The ${attributesSpecified.join(
-                            " and ",
-                        )} attribute${
-                            attributesSpecified.length > 1 ? "s" : ""
-                        } will have no effect without symbolicEquality set.`,
-                        type: "warning",
-                    });
+                    sendDiagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0071",
+                            args: { attributes: attributesSpecified },
+                        }),
+                    );
                 }
             }
 

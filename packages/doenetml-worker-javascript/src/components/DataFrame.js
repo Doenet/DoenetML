@@ -1,4 +1,5 @@
 import BaseComponent from "./abstract/BaseComponent";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class DataFrame extends BaseComponent {
     static componentType = "dataFrame";
@@ -155,10 +156,14 @@ export default class DataFrame extends BaseComponent {
                 }
 
                 if (foundInconsistentRow) {
-                    let warning = {
-                        message: `Data has invalid shape.  Rows has inconsistent lengths. Found in componentIdx :${componentIdx}`,
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0066",
+                        // A string, not a number: an internal index is a
+                        // name, and formatting it as a quantity would print
+                        // componentIdx 1234 as "1,234".
+                        args: { componentIdx: String(componentIdx) },
+                    });
                     return {
                         setValue: {
                             dataFrame: null,
@@ -198,10 +203,14 @@ export default class DataFrame extends BaseComponent {
                     [...new Set(dataFrame.columnNames)].length <
                     dataFrame.columnNames
                 ) {
-                    let warning = {
-                        message: `Data has duplicate column names.  Found in componentIdx :${componentIdx}`,
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0067",
+                        // A string, not a number: an internal index is a
+                        // name, and formatting it as a quantity would print
+                        // componentIdx 1234 as "1,234".
+                        args: { componentIdx: String(componentIdx) },
+                    });
                     return {
                         setValue: {
                             dataFrame: null,
@@ -215,10 +224,14 @@ export default class DataFrame extends BaseComponent {
                 }
 
                 if (dataFrame.columnNames.includes("")) {
-                    let warning = {
-                        message: `Data is missing a column name.  Found in componentIdx :${componentIdx}`,
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0068",
+                        // A string, not a number: an internal index is a
+                        // name, and formatting it as a quantity would print
+                        // componentIdx 1234 as "1,234".
+                        args: { componentIdx: String(componentIdx) },
+                    });
                     return {
                         setValue: {
                             dataFrame: null,

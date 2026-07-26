@@ -1,4 +1,7 @@
+import type { DiagnosticRecord } from "@doenet/utils";
+
 import type { AttributeDefinition } from "./dast/types";
+import { codedDiagnostic } from "./diagnostics";
 
 export type AttributesObject = Record<string, AttributeDefinition<unknown>>;
 
@@ -103,7 +106,7 @@ export function validateListItemsAgainstValidValues({
     validValues: { value: string }[];
     toLowerCase?: boolean;
     attribute: string;
-}): { value: string[]; diagnostics: { message: string; type: string }[] } {
+}): { value: string[]; diagnostics: DiagnosticRecord[] } {
     const allowed = validValues.map((v) => v.value);
     // Membership is checked once per item; a `Set` keeps that O(1).
     const allowedSet = new Set(allowed);
@@ -124,13 +127,24 @@ export function validateListItemsAgainstValidValues({
         }
     }
 
-    const diagnostics: { message: string; type: string }[] = [];
+    const diagnostics: DiagnosticRecord[] = [];
     if (invalidItems.length > 0) {
-        const invalidList = invalidItems.map((v) => `\`${v}\``).join(", ");
-        diagnostics.push({
-            message: `Invalid value${invalidItems.length > 1 ? "s" : ""} ${invalidList} for attribute \`${attribute}\`; ignoring.`,
-            type: "info",
-        });
+        diagnostics.push(
+            codedDiagnostic({
+                type: "info",
+                code: "doenet-i0021",
+                args: {
+                    // Each value keeps the backticks it was rendered with; the
+                    // join is `unit` so the list reads "`a`, `b`" rather than
+                    // gaining an "and" the original never had.
+                    values: {
+                        list: invalidItems.map((v) => `\`${v}\``),
+                        type: "unit",
+                    },
+                    attribute,
+                },
+            }),
+        );
     }
 
     return { value: validItems, diagnostics };

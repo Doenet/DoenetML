@@ -13,6 +13,7 @@ import {
     convertUnresolvedAttributesForComponentType,
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
+import { codedDiagnostic } from "../../utils/diagnostics";
 
 export default class Copy extends CompositeComponent {
     static componentType = "_copy";
@@ -723,10 +724,11 @@ export default class Copy extends CompositeComponent {
                         return {
                             setValue: { numComponentsSpecified: null },
                             sendDiagnostics: [
-                                {
+                                codedDiagnostic({
                                     type: "warning",
-                                    message: `Cannot extend or copy an unrecognized component type: ${dependencyValues.typeAttr}.`,
-                                },
+                                    code: "doenet-w0065",
+                                    args: { type: dependencyValues.typeAttr },
+                                }),
                             ],
                         };
                     }
@@ -2456,15 +2458,27 @@ export async function replacementFromProp({
                     endOffset,
                 );
             }
-            diagnostics.push({
-                message: `Could not find prop ${unresolvedPropName} on a component of type ${replacementSource.componentType}`,
-                type: "info",
-            });
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "info",
+                    code: "doenet-i0018",
+                    args: {
+                        property: unresolvedPropName,
+                        component: replacementSource.componentType,
+                    },
+                }),
+            );
         } else if (propName !== "__prop_name_not_found") {
-            diagnostics.push({
-                message: `Could not find prop ${propName} on a component of type ${replacementSource.componentType}`,
-                type: "info",
-            });
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "info",
+                    code: "doenet-i0018",
+                    args: {
+                        property: propName,
+                        component: replacementSource.componentType,
+                    },
+                }),
+            );
         }
         return {
             serializedReplacements: [],

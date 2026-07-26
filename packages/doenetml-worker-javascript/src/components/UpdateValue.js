@@ -14,6 +14,7 @@ import {
 } from "../utils/triggering";
 import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class UpdateValue extends InlineComponent {
     constructor(args) {
@@ -268,11 +269,13 @@ export default class UpdateValue extends InlineComponent {
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
-                    diagnostics.push({
-                        message:
-                            "Invalid target for `<updateValue>`: cannot find target.",
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0043",
+                            args: { source: "updateValue" },
+                        }),
+                    );
                 }
 
                 return {
@@ -352,13 +355,13 @@ export default class UpdateValue extends InlineComponent {
                     for (let ind in dependencyValues.targetIdentities) {
                         let target = dependencyValues["target" + ind];
                         if (target == null) {
-                            let message =
-                                "Invalid target for `<updateValue>`: cannot find target.";
-
-                            diagnostics.push({
-                                message,
-                                type: "warning",
-                            });
+                            diagnostics.push(
+                                codedDiagnostic({
+                                    type: "warning",
+                                    code: "doenet-w0043",
+                                    args: { source: "updateValue" },
+                                }),
+                            );
                             continue;
                         }
                         targets.push(target);
@@ -375,17 +378,29 @@ export default class UpdateValue extends InlineComponent {
                                         prop += `[idx]`;
                                     }
                                 }
-                                let message = `Invalid target for \`<updateValue>\`: cannot find a state variable named "${prop}" on a \`<${target.componentType}>\`.`;
-                                diagnostics.push({
-                                    message,
-                                    type: "warning",
-                                });
+                                diagnostics.push(
+                                    codedDiagnostic({
+                                        type: "warning",
+                                        code: "doenet-w0044",
+                                        args: {
+                                            source: "updateValue",
+                                            property: prop,
+                                            component: target.componentType,
+                                        },
+                                    }),
+                                );
                             } else {
-                                let message = `Invalid target for \`<updateValue>\`: cannot find a state variable named "value" on a \`<${target.componentType}>\`.`;
-                                diagnostics.push({
-                                    message,
-                                    type: "warning",
-                                });
+                                diagnostics.push(
+                                    codedDiagnostic({
+                                        type: "warning",
+                                        code: "doenet-w0044",
+                                        args: {
+                                            source: "updateValue",
+                                            property: "value",
+                                            component: target.componentType,
+                                        },
+                                    }),
+                                );
                             }
                         }
                     }

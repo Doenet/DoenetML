@@ -10,6 +10,7 @@ import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
 } from "../utils/label";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -765,10 +766,13 @@ export default class Answer extends InlineComponent {
                     if (type.toLowerCase() === "videowatched") {
                         return { success: false };
                     }
-                    diagnostics.push({
-                        message: `Invalid type for answer: ${type}`,
-                        type: "warning",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0078",
+                            args: { type },
+                        }),
+                    );
                     type = "math";
                 }
             } else {

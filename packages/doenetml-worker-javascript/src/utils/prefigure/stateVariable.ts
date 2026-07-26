@@ -1,6 +1,7 @@
 import { createPrefigureXML } from "./graph";
 import { sortDescendantsByOrder } from "./common";
 import type { Descendant, GraphDependencyValues } from "./types";
+import { codedDiagnostic } from "../diagnostics";
 
 interface DescendantDependency {
     dependencyType: "descendant";
@@ -528,11 +529,12 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                     dependencyValues.annotationsChildren &&
                     dependencyValues.annotationsChildren.length > 0
                 ) {
-                    diagnostics.push({
-                        type: "info",
-                        message:
-                            "`<graph>`: annotations will not be rendered when not using the PreFigure renderer.",
-                    });
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "info",
+                            code: "doenet-i0019",
+                        }),
+                    );
                 }
                 return {
                     setValue: { prefigureXML: null },
@@ -593,12 +595,13 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                         dependencyValues.annotationsChildren.length - 2
                     ];
 
-                diagnostics.push({
-                    type: "info",
-                    message:
-                        "Multiple `<annotations>` children found in `<graph>`; all but the last one are ignored.",
-                    position: secondToLastAnnotationsChild?.position,
-                });
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "info",
+                        code: "doenet-i0020",
+                        position: secondToLastAnnotationsChild?.position,
+                    }),
+                );
             }
 
             return {

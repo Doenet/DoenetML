@@ -28,6 +28,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class MathInput extends Input {
     constructor(args) {
@@ -306,12 +307,21 @@ export default class MathInput extends Input {
                     });
                 const result = { setValue: { effectiveFunctionNames: names } };
                 const diagnostics = [];
-                const buildMessage = (attr, list) =>
-                    `<mathInput>: ignored invalid function name(s) in ` +
-                    `${attr}: ${list.map((n) => `'${n}'`).join(", ")}. ` +
-                    `Each name's display segment must be at least 2 ` +
-                    `characters (letters or dashes); an optional ` +
-                    "`|<mathspeak alternative>` suffix may follow.";
+                const invalidNames = (attr, list, position) =>
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0082",
+                        args: {
+                            attribute: attr,
+                            // Quoted here and joined at format time, so the
+                            // separator follows the reader's language.
+                            names: {
+                                list: list.map((n) => `'${n}'`),
+                                type: "unit",
+                            },
+                        },
+                        position,
+                    });
                 // One diagnostic per *contributing* attribute. The
                 // helper already enforces precedence (`reset` wins
                 // over `additional`), so when both are authored only
@@ -319,27 +329,23 @@ export default class MathInput extends Input {
                 // inactive in that case, and warning about its
                 // contents would be misleading.
                 if (droppedFromAdditional.length > 0) {
-                    diagnostics.push({
-                        type: "warning",
-                        message: buildMessage(
+                    diagnostics.push(
+                        invalidNames(
                             "additionalFunctionNames",
                             droppedFromAdditional,
-                        ),
-                        position:
                             dependencyValues.additionalFunctionNamesAttr
                                 ?.position,
-                    });
+                        ),
+                    );
                 }
                 if (droppedFromReset.length > 0) {
-                    diagnostics.push({
-                        type: "warning",
-                        message: buildMessage(
+                    diagnostics.push(
+                        invalidNames(
                             "resetFunctionNames",
                             droppedFromReset,
-                        ),
-                        position:
                             dependencyValues.resetFunctionNamesAttr?.position,
-                    });
+                        ),
+                    );
                 }
                 if (diagnostics.length > 0)
                     result.sendDiagnostics = diagnostics;

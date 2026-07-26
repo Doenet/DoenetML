@@ -317,3 +317,94 @@ solve-equations-cannot-evaluate = Cannot solve equation as could not evaluate eq
 math-operators-operand-number-required = Must specify a operandNumber when extracting a math operand.
 
 eigen-decomposition-failed = Could not calculate eigenvalues of matrix
+
+## PreFigure renderer
+
+# Translators: xLabelPosition, yLabelPosition and their values are attribute
+# names and stay in English, as does the renderer's name.
+prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" is not supported in prefigure renderer; using right-position behavior.
+
+prefigure-y-label-position-unsupported = `<graph>`: yLabelPosition="bottom" is not supported in prefigure renderer; using top-position behavior.
+
+prefigure-invalid-axis-bounds = `<graph>`: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).
+
+prefigure-invalid-width = `<graph>`: invalid width for prefigure conversion; using default diagram width 425.
+
+prefigure-invalid-aspect-ratio = `<graph>`: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.
+
+prefigure-annotations-not-rendered = `<graph>`: annotations will not be rendered when not using the PreFigure renderer.
+
+multiple-annotations-children = Multiple `<annotations>` children found in `<graph>`; all but the last one are ignored.
+
+## Referring to other components
+##
+## `<updateValue>`'s own "cannot find target" messages are not here: it
+## resolves a target the same way `<animateFromSequence>` does and fails the
+## same ways, so the two share `target-not-found` and
+## `target-state-variable-not-found` above.
+
+copy-unrecognized-component-type = Cannot extend or copy an unrecognized component type: { $type }.
+
+copy-prop-not-found = Could not find prop { $property } on a component of type { $component }
+
+collect-no-source = No source found for collect.
+
+collect-invalid-component-type = Cannot collect components of type `<{ $component }>` as it is an invalid component type.
+
+## `<dataFrame>`
+
+# $componentIdx is an internal index, passed as a string so it is not grouped
+# like a quantity; the odd spacing before the colon is reproduced from the
+# original message.
+data-frame-inconsistent-row-lengths = Data has invalid shape.  Rows has inconsistent lengths. Found in componentIdx :{ $componentIdx }
+
+data-frame-duplicate-column-names = Data has duplicate column names.  Found in componentIdx :{ $componentIdx }
+
+data-frame-missing-column-name = Data is missing a column name.  Found in componentIdx :{ $componentIdx }
+
+## `<answer>` and scoring
+
+answer-award-depends-on-own-response = An award for this answer is based on the answer tag's own submitted response, which will lead to unexpected behavior.
+
+# Translators: maxNumAttempts and sectionWideCheckWork are attribute names.
+answer-max-num-attempts-in-section-wide-check-work = Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the container. Set `maxNumAttempts` on the container instead.
+
+nested-section-wide-check-work-max-num-attempts = Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the outer container. Set `maxNumAttempts` on the outer container instead.
+
+# $attributes is a list of attribute names; $attributesCount is its length.
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] The { $attributes } attribute will have no effect without symbolicEquality set.
+       *[other] The { $attributes } attributes will have no effect without symbolicEquality set.
+    }
+
+answer-invalid-type = Invalid type for answer: { $type }
+
+## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
+
+module-attribute-child-needs-name = Since the component `<{ $component }>` does not have a name, it cannot be used for a module attribute
+
+module-attribute-name-already-defined = The component `<{ $component } name="{ $name }">` cannot be used as an attribute for a module because the `<module>` component type already has a "{ $name }" attribute defined.
+
+conditional-content-condition-ignored = Attribute `condition` is ignored on a `<conditionalContent>` component with case or else children.
+
+slider-markers-type-mismatch = Markers type doesn't match slider type.
+
+pretzel-problem-needs-statement-and-answer = Invalid pretzel: each `<problem>` must contain one `<statement>` and one `<answer>`.
+
+pretzel-circuit-first-problem-distractor = Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.
+
+## Attribute values
+
+# $values is a list of the values that were rejected, each already in
+# backticks; $valuesCount is how many there were.
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] Invalid value { $values } for attribute `{ $attribute }`; ignoring.
+       *[other] Invalid values { $values } for attribute `{ $attribute }`; ignoring.
+    }
+
+attribute-must-be-references = Invalid value `{ $value }` for attribute `{ $attribute }`. Attribute must be composed of references that begin with a `$`.
+
+# $names is a list of the rejected names, each already in single quotes.
+math-input-invalid-function-names = <mathInput>: ignored invalid function name(s) in { $attribute }: { $names }. Each name's display segment must be at least 2 characters (letters or dashes); an optional `|<mathspeak alternative>` suffix may follow.

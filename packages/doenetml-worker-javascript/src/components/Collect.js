@@ -2,6 +2,7 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
+import { codedDiagnostic } from "../utils/diagnostics";
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
@@ -158,10 +159,10 @@ export default class Collect extends CompositeComponent {
             }),
             definition: function ({ dependencyValues }) {
                 if (dependencyValues.sourceComponent === null) {
-                    let warning = {
-                        message: "No source found for collect.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0072",
+                    });
                     return {
                         setValue: { sourceName: "" },
                         sendDiagnostics: [warning],
@@ -202,16 +203,16 @@ export default class Collect extends CompositeComponent {
                     if (cClass) {
                         componentTypeToCollect = componentType;
                     } else {
-                        const warning = {
-                            type: "warning",
-                            message: `Cannot collect components of type \`<${cType}>\` as it is an invalid component type.`,
-                        };
-                        if (dependencyValues.componentTypeAttr.position) {
-                            warning.position =
-                                dependencyValues.componentTypeAttr.position;
-                        }
-
-                        diagnostics.push(warning);
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0073",
+                                args: { component: cType },
+                                position:
+                                    dependencyValues.componentTypeAttr
+                                        .position || undefined,
+                            }),
+                        );
                     }
                 }
 
