@@ -960,10 +960,11 @@ export async function addQueuedErrorComponentsFromStateVariables({
                 componentIdx: core._components.length,
                 // `errorInfo` is the diagnostic record itself, spread by
                 // `StateVariableEvaluator`, so a coded one arrives here with
-                // its code. Keeping it means every `_error` in the tree
-                // carries the same slot, whichever of the three places built
-                // it. (The record has already reached `addDiagnostic`; what
-                // this preserves is the component's own knowledge of it.)
+                // its code. This record has already reached `addDiagnostic`,
+                // so nothing downstream depends on the copy — it is kept so
+                // that an `_error` built here holds the same thing one built
+                // by `convertToErrorComponent` does, and so that making these
+                // keys `forRenderer` later needs no second pass.
                 state: errorComponentState(errorInfo.message, errorInfo),
                 position: errorInfo.position,
                 sourceDoc: errorInfo.sourceDoc,

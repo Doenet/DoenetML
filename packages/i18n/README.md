@@ -269,18 +269,24 @@ sees what it saw before. `errorComponentState` puts the code and arguments on
 the `_error`'s `state` — every place that builds one of those components uses
 it — and the builder reads them back off when it raises the diagnostic.
 
-The `catch` blocks in between hold no English of their own, so they have
-nothing to migrate and no code to name; they spread `diagnosticCodeFrom` to
-pass along whatever their source carried. `lint:i18n` counts those as migrated
-too, since there is nothing further to do to them.
+The sites in between — the two `catch` blocks that build a record from a
+caught error, and the `ComponentBuilder` branch that raises one from an
+`_error` component — hold no English of their own, so they have nothing to
+migrate and no code to name; they spread `diagnosticCodeFrom` to pass along
+whatever their source carried. `lint:i18n` counts those as migrated too, since
+there is nothing further to do to them.
 
 ### Codes
 
 A code is a permanent name — what a bug report cites, what a host reading
 `setDiagnosticsCallback` can filter on, and the anchor a documentation page
 will hang off (#1548). It rides on the record, and on the LSP `code` field for
-a positioned diagnostic; nothing renders it as text yet, so the codes earn
-their keep as an identifier rather than as UI.
+a positioned diagnostic — with the arguments alongside it in `data.args`, since
+a code names a message *template* and it takes both to say which occurrence of
+it this is, which is how the editor's `dedupeLspDiagnostics` recognizes two
+renderings of one diagnostic without comparing their text. Nothing renders the
+code itself yet, so the codes earn their keep as an identifier rather than as
+UI.
 
 `DIAGNOSTIC_CODES` in `src/diagnostics.ts` maps each to a message id, and
 `diagnostic-codes.lock.json` records every code ever issued, so `lint:i18n`

@@ -13,25 +13,25 @@ import { SerializedAttribute, SerializedComponent } from "./types";
  * the only thing carrying the diagnostic to where the builder re-raises it.
  * A place that forgets the code silently un-translates its error.
  *
- * `source` is whatever the message came from: a thrown `DiagnosticError`, a
- * diagnostic record, or an earlier `_error`'s own state. Anything that isn't
+ * `source` is whatever the message came from: a caught value (a thrown
+ * `DiagnosticError`, a bare `Error`, or a string), a parser `DastError` node,
+ * or the diagnostic record the state-variable queue holds. Anything that isn't
  * carrying a registered code contributes nothing, so the result is the bare
  * `{ message }` that these components have always held.
  *
- * Deliberately not the same expression as the one the diagnostic-record sites
- * spread: this builds *component state*, and `lint:i18n` counts the record
- * form as a migrated call site.
+ * The result of `diagnosticCodeFrom` is bound to a local before it is spread
+ * rather than spread in place. `lint:i18n` counts a spread of that call, in
+ * source text, as a diagnostic-record site that has finished migrating — and
+ * this builds *component state*, which is not one. (Same reason
+ * `codedDiagnostic` forbids an example call in its own doc comment.)
  */
 export function errorComponentState(
     message: string,
     source: unknown,
 ): { message: string; code?: DiagnosticCode; args?: DiagnosticArgs } {
-    const { code, args } = diagnosticCodeFrom(source);
-    return {
-        message,
-        ...(code === undefined ? {} : { code }),
-        ...(args === undefined ? {} : { args }),
-    };
+    // Already omits the keys it has nothing for, so nothing here has to.
+    const codeAndArgs = diagnosticCodeFrom(source);
+    return { message, ...codeAndArgs };
 }
 
 /**
@@ -40,13 +40,18 @@ export function errorComponentState(
  * and also return the error `message` for possible inclusion
  * in error reporting.
  *
- * When the caught value names its diagnostic by code — a `DiagnosticError`,
- * or an earlier `_error`'s state being converted a second time — the code and
- * its arguments are carried onto the new component's `state` and returned
- * alongside the message, so the diagnostic the builder re-raises from it is
- * still coded. Without that, an error is the one diagnostic family that
- * cannot survive the trip to the main thread as anything but English: the
- * conversion is lossy, and the code dies here (#1518).
+ * When the caught value names its diagnostic by code — a `DiagnosticError` —
+ * the code and its arguments are carried onto the new component's `state` and
+ * returned alongside the message, so the diagnostic the builder re-raises
+ * from it is still coded. Without that, an error is the one diagnostic family
+ * that cannot survive the trip to the main thread as anything but English:
+ * the conversion is lossy, and the code dies here (#1518).
+ *
+ * A caller that has only a string left to hand over — `ComponentBuilder`
+ * re-wrapping a component around a child's `lastErrorMessage`, say — produces
+ * an uncoded `_error`, as it always has. Those re-wraps raise no diagnostic of
+ * their own (the `_error` they wrap already did), so nothing is lost today
+ * beyond the rendered text, which is English either way.
  *
  * The extra `state` keys are inert. Serialized `state` becomes the created
  * component's `essentialState` wholesale, and only keys naming a state

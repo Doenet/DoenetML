@@ -103,8 +103,10 @@ export class DiagnosticError extends Error {
         args?: DiagnosticArgs;
     }) {
         super(formatEnglishDiagnostic(code, args));
-        // `Error` sets `name` from the constructor it ran, so a subclass has
-        // to say its own; some consumers key off it when formatting.
+        // A subclass inherits `Error.prototype.name`, so without this it
+        // would present itself as a plain `Error` in a stack trace or a
+        // `console.error` — and this codebase does narrow on `e.name`
+        // elsewhere (`MathInput`'s `"ParseError"` check).
         this.name = "DiagnosticError";
         this.code = code;
         if (args !== undefined) {
@@ -118,10 +120,12 @@ export class DiagnosticError extends Error {
  *
  * Structural rather than an `instanceof DiagnosticError` test, because the
  * shape arrives from more than one place: a thrown {@link DiagnosticError},
- * and the `state` of an `_error` component that was built from one earlier
- * and is being converted again. Both should keep the code, and neither is
- * reliably the class — `state` is a plain object, and an `instanceof` across
- * a bundle boundary is not something to depend on.
+ * the `{message, code?, args?}` result `convertToErrorComponent` returns, the
+ * `state` of an already-built `_error` component being read back in
+ * `ComponentBuilder`, and a diagnostic record off the state-variable queue.
+ * All of them should keep the code, and only the first is ever the class —
+ * the rest are plain objects, and an `instanceof` across a bundle boundary is
+ * not something to depend on anyway.
  *
  * An unregistered code is treated as no code at all, so a `code` property on
  * some unrelated thrown object can't smuggle itself onto a diagnostic record

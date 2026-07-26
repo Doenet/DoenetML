@@ -19,5 +19,8 @@ are translatable.
 That also fixes what would have surfaced as duplicate squiggle text: the LSP
 merges the parser's copy of a diagnostic with the worker's echo of it, and once
 the echo is rendered in the reader's language the two are no longer the same
-string. They are now matched by their code, falling back to the message for
-diagnostics that don't have one yet.
+string. They are now matched by their code and the arguments filling it in,
+falling back to the message for diagnostics that don't have a code yet. The
+arguments are part of the match because a code names a message template rather
+than one occurrence of it: a single component can report the same code twice
+with different values, and both still reach the author.

@@ -109,6 +109,38 @@ describe("toAdditionalDiagnosticsForLsp", () => {
         });
         expect(out[0].code).toBe("doenet-w0006");
         expect(out[1]).not.toHaveProperty("code");
+        // A code with no blanks to fill carries no arguments, so nothing is
+        // put in `data` for it either.
+        expect(out[0]).not.toHaveProperty("data");
+    });
+
+    // `dedupeLspDiagnostics` keys a coded record on its code *and* its
+    // arguments: one component can raise the same code twice with different
+    // arguments, and every diagnostic its state variables raise is stamped
+    // with the component's span, so the code alone would collapse two real
+    // problems into one. `data` is where the arguments ride along.
+    it("forwards a coded record's arguments in `data` so the dedupe can tell occurrences apart", () => {
+        const badMaximum: WarningRecord = {
+            type: "warning",
+            message: "Ignoring non-numerical maximum of function.",
+            code: "doenet-w0040",
+            args: { type: "maximum" },
+            position: dastPos(1, 8, 1, 66),
+        };
+        const badMinimum: WarningRecord = {
+            type: "warning",
+            message: "Ignoring non-numerical minimum of function.",
+            code: "doenet-w0040",
+            args: { type: "minimum" },
+            position: dastPos(1, 8, 1, 66),
+        };
+        const out = toAdditionalDiagnosticsForLsp({
+            diagnostics: [badMaximum, badMinimum],
+            showInfoAnnotations: true,
+            showAccessibilityAnnotations: true,
+        });
+        expect(out[0].data).toEqual({ args: { type: "maximum" } });
+        expect(out[1].data).toEqual({ args: { type: "minimum" } });
     });
 
     it("drops diagnostics without a position", () => {

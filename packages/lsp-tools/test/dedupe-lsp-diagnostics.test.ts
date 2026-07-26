@@ -9,6 +9,8 @@ function mk(opts: {
     start: [number, number];
     end: [number, number];
     code?: string;
+    /** Mirrors what `toAdditionalDiagnosticsForLsp` puts in `data`. */
+    args?: Record<string, string | number>;
 }) {
     return {
         severity: opts.sev,
@@ -18,6 +20,7 @@ function mk(opts: {
             end: { line: opts.end[0], character: opts.end[1] },
         },
         ...(opts.code === undefined ? {} : { code: opts.code }),
+        ...(opts.args === undefined ? {} : { data: { args: opts.args } }),
     };
 }
 
@@ -174,6 +177,7 @@ describe("dedupeLspDiagnostics", () => {
             start: [0, 14],
             end: [0, 17],
             code: "doenet-e0042",
+            args: { attribute: "h", componentType: "p" },
         });
         const fromWorker = mk({
             sev: DiagnosticSeverity.Error,
@@ -181,10 +185,54 @@ describe("dedupeLspDiagnostics", () => {
             start: [0, 14],
             end: [0, 17],
             code: "doenet-e0042",
+            // Same arguments, written in the other order: the fingerprint
+            // is over the sorted entries, so property order can't split a
+            // pair that agrees on the values.
+            args: { componentType: "p", attribute: "h" },
         });
         const result = dedupeLspDiagnostics([fromParser, fromWorker]);
         expect(result).toHaveLength(1);
         expect(result[0]).toBe(fromParser);
+    });
+
+    it("keeps two occurrences of one code apart when their arguments differ", () => {
+        // A code names a message *template*, not an occurrence of it, and
+        // every diagnostic a component's state variables raise is stamped
+        // with that component's span.  `<function maxima="(a,1)"
+        // minima="(b,2)" />` raises `doenet-w0040` twice at one span with
+        // two different messages; both have to reach the author.
+        const badMaximum = mk({
+            sev: DiagnosticSeverity.Warning,
+            msg: "Ignoring non-numerical maximum of function.",
+            start: [0, 7],
+            end: [0, 65],
+            code: "doenet-w0040",
+            args: { type: "maximum" },
+        });
+        const badMinimum = mk({
+            sev: DiagnosticSeverity.Warning,
+            msg: "Ignoring non-numerical minimum of function.",
+            start: [0, 7],
+            end: [0, 65],
+            code: "doenet-w0040",
+            args: { type: "minimum" },
+        });
+        expect(dedupeLspDiagnostics([badMaximum, badMinimum])).toHaveLength(2);
+        // ...and the genuine echo of one of them still collapses.
+        expect(
+            dedupeLspDiagnostics([
+                badMaximum,
+                badMinimum,
+                mk({
+                    sev: DiagnosticSeverity.Warning,
+                    msg: "Se ignora el máximo no numérico de la función.",
+                    start: [0, 7],
+                    end: [0, 65],
+                    code: "doenet-w0040",
+                    args: { type: "maximum" },
+                }),
+            ]),
+        ).toHaveLength(2);
     });
 
     it("collapses a coded copy against a not-yet-coded one", () => {
