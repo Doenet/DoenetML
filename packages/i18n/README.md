@@ -38,6 +38,16 @@ All three normalize what they return (`ES-mx` → `es-MX`) and treat a blank tag
 as unset, so a hand-typed `lang` and a hand-configured prop negotiate the same
 way a canonical tag does.
 
+A tag they cannot parse is left alone rather than rejected — `en_US`, the POSIX
+spelling, is the usual way a host mis-keys a catalog, and rewriting it would
+stop that catalog from being found. So such a tag keys and negotiates like any
+other; what it must not do is reach `Intl`, which refuses it outright.
+`createTranslator` therefore builds the bundle's formatter under English
+whenever the tag is one `Intl` can't parse — otherwise Fluent's
+`Intl.PluralRules` throws and the whole message resolves to `{???}` — and
+`createDiagnosticFormatter` joins its lists the same way. The host's own words
+are kept; only the counting and number conventions fall back.
+
 ## Catalog layout
 
 ```
@@ -62,10 +72,15 @@ them (the host's copy wins for a locale that exists in both). Inlining does not
 scale, and additional locales are still meant to arrive as modules the host
 loads and passes in; revisit when the count reaches a handful.
 
-Note that the two namespaces the worker loads answer to *different* settings:
-`content` to `documentLocale`, `diagnostics` to `uiLocale`. `LocaleData` carries
-only the content locale today, so the phase that moves diagnostics into the
-worker has to start sending both tags.
+Note that `content` and `diagnostics` answer to *different* settings —
+`documentLocale` and `uiLocale` respectively — which is why `WORKER_NAMESPACES`
+is `content` alone. The worker knows only the content locale, and needs only
+that: it renders `content` itself, but for a diagnostic it emits a code and the
+values that fill the message in and lets the main thread render it. The English
+it writes onto each record on the way past comes from the built-in English,
+which `createTranslator` appends whole regardless of namespace, so a translated
+diagnostics catalog inside the worker would never be read. See
+[Diagnostics](#diagnostics) below.
 
 ## Keys
 
@@ -187,6 +202,117 @@ hard way:
   nested *within* that line is fine, and is how a message would sub-divide one
   of its variants.
 
+## Diagnostics
+
+Warnings, errors, info notices and accessibility alerts take a different route
+from every other string, because they are produced in one place and read in
+another. The worker knows what went wrong; it does not know what language the
+person looking at the screen reads, and it shouldn't — a diagnostic follows
+`uiLocale`, which a nested `<document lang>` has no say over.
+
+So a diagnostic is not translated where it is raised. It carries a **stable
+code** naming the situation, the **arguments** that fill its message in, and
+the **English**, and the main thread renders it:
+
+```js
+// before
+sendDiagnostics.push({
+    type: "warning",
+    message: "numDimensions mismatch in ray.",
+});
+
+// after
+sendDiagnostics.push(
+    codedDiagnostic({ type: "warning", code: "doenet-w0006" }),
+);
+```
+
+`codedDiagnostic` (in `@doenet/doenetml-worker-javascript/src/utils`) fills
+`message` in from the English catalog, so the English and the catalog cannot
+drift and everything that reads `message` inside the worker — the dedupe in
+`DiagnosticsManager`, the tests that assert exact strings — sees what it saw
+before. `DocViewer` then re-renders `message` through
+`createDiagnosticFormatter` before handing the records on, so the editor's
+panel, the LSP squiggles and a host's `setDiagnosticsCallback` all show one
+consistent set, in the reader's language.
+
+Both shapes are valid records. A record with no code renders its English and
+nothing else, which is what lets the ~200 messages still holding a literal
+string migrate a few at a time (#1518). `lint:i18n` reports the remaining count
+on every run.
+
+### Codes
+
+A code is a permanent name — what a bug report cites, what a host reading
+`setDiagnosticsCallback` can filter on, and the anchor a documentation page
+will hang off (#1548). It rides on the record, and on the LSP `code` field for
+a positioned diagnostic; nothing renders it as text yet, so the codes earn
+their keep as an identifier rather than as UI.
+
+`DIAGNOSTIC_CODES` in `src/diagnostics.ts` maps each to a message id, and
+`diagnostic-codes.lock.json` records every code ever issued, so `lint:i18n`
+fails if one is renumbered, reused, or dropped from the registry. Retire a code
+in place; never recycle it.
+
+The lock is a committed file, not a service, so it enforces the contract only
+against the registry — deleting a code's line from *both* files in one change
+passes the lint, exactly as deleting a `package-lock.json` entry does. That is
+what makes the lock worth reviewing: a diff that removes or edits an existing
+line, rather than only adding one at the end, is the thing to refuse.
+
+The letter is part of the name (`w` warning, `e` error, `i` info, `a`
+accessibility), recording what the diagnostic was born as. It is not a live
+severity — the emitting call site chooses the record's `type`.
+
+Two branches that each claim the next number collide in both the registry and
+the lock, which is the intended outcome: neither file can be auto-merged, so
+the conflict is resolved by hand. Give the later branch the next free number in
+*both* files — the lock is sorted by code, so its entry moves with it, and the
+lint passes once the two agree again. Never resolve it by editing a code that
+is already on `main`.
+
+The registry is also what makes these messages visible to the lint. They are
+reached by code rather than by a literal `t("key")`, which the call-site scan
+cannot see, so `lint:i18n` reads the registry as a call site of its own. A
+message with no code registered for it fails as an orphan.
+
+Two things `lint:i18n` counts wherever they appear, **comments included**: a
+`code` property naming a diagnostic code, and a `type` property naming a
+severity. An example call written in a doc comment lands in the migration
+burn-down as though it were real — the same trap as writing a `t("key")` call
+in a comment.
+
+### Lists and agreement
+
+Fluent has no list type, and a list is exactly where hand-written English
+grammar hides — the serial comma, the "and", the verb that has to agree with
+how many things there are. So a list argument stays a list all the way to
+format time:
+
+```js
+codedDiagnostic({
+    type: "info",
+    code: "doenet-i0001",
+    args: { attributes: ["slope", "length"] },
+});
+```
+
+`Intl.ListFormat` joins it in the reader's language, and the message also
+receives `attributesCount`, so the catalog can select on it:
+
+```ftl
+line-segment-attributes-ignored-with-endpoints =
+    { $attributesCount ->
+        [one] { $attributes } is ignored when two endpoints are specified
+       *[other] { $attributes } are ignored when two endpoints are specified
+    }
+```
+
+A count the catalog derives itself can never disagree with the list beside it.
+Pass `{ list, type: "unit" }` instead of a bare array for a bare enumeration
+("x, y, z") rather than a conjunction ("x, y, and z") — English distinguishes
+them and other languages distinguish them differently.
+
 ## Commands
 
 ```bash
@@ -197,13 +323,16 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
-translated locale defining a key English lacks, a stale `messageKeys.ts`, a call
-site referencing a key that doesn't exist, and an English key no source file
-references. Keys *missing* from a translation are reported as coverage, not
-failure — a partial translation is legitimate and falls back.
+translated locale defining a key English lacks, a stale `messageKeys.ts` or
+`diagnostic-codes.lock.json`, a call site referencing a key that doesn't exist,
+an English key no source file references, a malformed diagnostic code, a code
+naming a message English lacks, a code used in source that the registry doesn't
+define, and any change to a code already issued. Keys *missing* from a
+translation are reported as coverage, not failure — a partial translation is
+legitimate and falls back.
 
-Run `codegen` after editing any English catalog; the generated `MessageKey`
-union is committed.
+Run `codegen` after editing any English catalog or adding a diagnostic code;
+both the generated `MessageKey` union and the code lock are committed.
 
 ## Pseudo-localization
 

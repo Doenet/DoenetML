@@ -49,6 +49,10 @@ import {
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
 import { I18nProvider, useChromeTranslator } from "../utils/i18n";
+import {
+    localizeDiagnostics,
+    useDiagnosticFormatter,
+} from "../utils/diagnostics";
 
 // Re-export for back-compat: `renderersLoadComponent` was previously defined
 // here, and external consumers may deep-import it from
@@ -476,6 +480,11 @@ export function DocViewer({
     const coreCreationInProgress = useRef(false);
     const coreId = useRef<string>("");
     const diagnostics = useRef<DiagnosticRecord[]>([]);
+    // The same records as they arrived from the core, before their messages
+    // were rendered in `uiLocale`. Kept so a locale change can re-render them:
+    // localizing is not reversible, and the code and arguments a record still
+    // carries describe the message, not the English already substituted in.
+    const rawDiagnostics = useRef<DiagnosticRecord[]>([]);
     const [hasInitialError, setHasInitialError] = useState(false);
 
     type DeferredCoreAction = {
@@ -547,6 +556,44 @@ export function DocViewer({
     // `translate`, so a key reached from here would otherwise read as an
     // orphan.
     const translate = useChromeTranslator(effectiveUiLocale, localeResources);
+    const formatDiagnostic = useDiagnosticFormatter(
+        translate,
+        effectiveUiLocale,
+    );
+    // Read through a ref rather than captured: `updateRenderers` is handed to
+    // the core once, as a Comlink proxy, so the closure the worker calls is
+    // whichever one existed when the core was created. `uiLocale` can change
+    // after that without rebuilding the core, and a diagnostic arriving later
+    // has to be rendered in the language in effect now.
+    const formatDiagnosticRef = useRef(formatDiagnostic);
+    formatDiagnosticRef.current = formatDiagnostic;
+
+    /**
+     * Store a batch of diagnostics, rendered in the chrome's language, and
+     * hand them on.
+     *
+     * The single place diagnostics enter the viewer, so everything downstream
+     * — the editor's panel, the LSP squiggles, a host's callback — sees one
+     * consistent set of already-localized records.
+     */
+    function publishDiagnostics(newDiagnostics: DiagnosticRecord[]) {
+        rawDiagnostics.current = newDiagnostics;
+        diagnostics.current = localizeDiagnostics(
+            newDiagnostics,
+            formatDiagnosticRef.current,
+        );
+        setDiagnosticsCallback?.(diagnostics.current, doenetML);
+    }
+
+    // Re-render the diagnostics already on screen when the chrome's language
+    // changes. `uiLocale` is main-thread only and deliberately doesn't rebuild
+    // the core, so nothing else would resend them and the panel would keep
+    // showing a batch in the previous language.
+    useEffect(() => {
+        if (rawDiagnostics.current.length > 0) {
+            publishDiagnostics(rawDiagnostics.current);
+        }
+    }, [formatDiagnostic]);
 
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
@@ -1312,8 +1359,7 @@ export function DocViewer({
         init?: boolean;
     }) {
         if (newDiagnostics) {
-            diagnostics.current = newDiagnostics;
-            setDiagnosticsCallback?.(diagnostics.current, doenetML);
+            publishDiagnostics(newDiagnostics);
             if (
                 init &&
                 newDiagnostics.some((diagnostic) => diagnostic.type === "error")
@@ -1780,7 +1826,7 @@ export function DocViewer({
             }
 
             if (dastResult.diagnostics) {
-                diagnostics.current = dastResult.diagnostics;
+                publishDiagnostics(dastResult.diagnostics);
                 if (
                     diagnostics.current.some(
                         (diagnostic) => diagnostic.type === "error",
@@ -1788,7 +1834,6 @@ export function DocViewer({
                 ) {
                     setHasInitialError(true);
                 }
-                setDiagnosticsCallback?.(diagnostics.current, doenetML);
             }
         } else {
             setIsInErrorState?.(true);

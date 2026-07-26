@@ -19,6 +19,7 @@ import {
 } from "../utils/numberDisplay";
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Vector extends GraphicalComponent {
     constructor(args) {
@@ -640,16 +641,15 @@ export default class Vector extends GraphicalComponent {
                     if (dependencyValues.headAttr !== null) {
                         // if overprescribed by specifying head, tail, and displacement
                         // we ignore head
-                        const warning = {
-                            type: "warning",
-                            message:
-                                "Vector is prescribed by head, tail, and displacement.  Ignoring specified head.",
-                        };
-                        if (dependencyValues.headAttr.position) {
-                            warning.position =
-                                dependencyValues.headAttr.position;
-                        }
-                        diagnostics.push(warning);
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0007",
+                                position:
+                                    dependencyValues.headAttr.position ??
+                                    undefined,
+                            }),
+                        );
                     }
                     return {
                         setValue: { basedOnHead: false },
@@ -1121,10 +1121,10 @@ export default class Vector extends GraphicalComponent {
                             dependencyValues.numDimDisplacement !==
                             dependencyValues.numDimTail
                         ) {
-                            let warning = {
-                                message: "numDimensions mismatch in vector.",
+                            let warning = codedDiagnostic({
                                 type: "warning",
-                            };
+                                code: "doenet-w0008",
+                            });
                             return {
                                 setValue: { numDimensions: NaN },
                                 sendDiagnostics: [warning],
@@ -1135,10 +1135,10 @@ export default class Vector extends GraphicalComponent {
                             dependencyValues.numDimDisplacement !==
                             dependencyValues.numDimHead
                         ) {
-                            let warning = {
-                                message: "numDimensions mismatch in vector.",
+                            let warning = codedDiagnostic({
                                 type: "warning",
-                            };
+                                code: "doenet-w0008",
+                            });
                             return {
                                 setValue: { numDimensions: NaN },
                                 sendDiagnostics: [warning],
@@ -1152,10 +1152,10 @@ export default class Vector extends GraphicalComponent {
                             dependencyValues.numDimTail !==
                             dependencyValues.numDimHead
                         ) {
-                            let warning = {
-                                message: "numDimensions mismatch in vector.",
+                            let warning = codedDiagnostic({
                                 type: "warning",
-                            };
+                                code: "doenet-w0008",
+                            });
                             return {
                                 setValue: { numDimensions: NaN },
                                 sendDiagnostics: [warning],

@@ -11,6 +11,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Ray extends GraphicalComponent {
     constructor(args) {
@@ -192,16 +193,15 @@ export default class Ray extends GraphicalComponent {
                     if (dependencyValues.throughAttr !== null) {
                         // if overprescribed by specifying through, endpoint, and direction
                         // we ignore through
-                        const warning = {
-                            type: "warning",
-                            message:
-                                "Ray is prescribed by through, endpoint, and direction.  Ignoring specified through.",
-                        };
-                        if (dependencyValues.throughAttr.position) {
-                            warning.position =
-                                dependencyValues.throughAttr.position;
-                        }
-                        diagnostics.push(warning);
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0005",
+                                position:
+                                    dependencyValues.throughAttr.position ??
+                                    undefined,
+                            }),
+                        );
                     }
                     return {
                         setValue: { basedOnThrough: false },
@@ -613,10 +613,10 @@ export default class Ray extends GraphicalComponent {
                             dependencyValues.numDimDirection !==
                             dependencyValues.numDimEndpoint
                         ) {
-                            let warning = {
-                                message: "numDimensions mismatch in ray.",
+                            let warning = codedDiagnostic({
                                 type: "warning",
-                            };
+                                code: "doenet-w0006",
+                            });
                             return {
                                 setValue: { numDimensions: NaN },
                                 sendDiagnostics: [warning],
@@ -627,10 +627,10 @@ export default class Ray extends GraphicalComponent {
                             dependencyValues.numDimDirection !==
                             dependencyValues.numDimThrough
                         ) {
-                            let warning = {
-                                message: "numDimensions mismatch in ray.",
+                            let warning = codedDiagnostic({
                                 type: "warning",
-                            };
+                                code: "doenet-w0006",
+                            });
                             return {
                                 setValue: { numDimensions: NaN },
                                 sendDiagnostics: [warning],
@@ -644,10 +644,10 @@ export default class Ray extends GraphicalComponent {
                             dependencyValues.numDimEndpoint !==
                             dependencyValues.numDimThrough
                         ) {
-                            let warning = {
-                                message: "numDimensions mismatch in ray.",
+                            let warning = codedDiagnostic({
                                 type: "warning",
-                            };
+                                code: "doenet-w0006",
+                            });
                             return {
                                 setValue: { numDimensions: NaN },
                                 sendDiagnostics: [warning],

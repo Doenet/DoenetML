@@ -112,7 +112,18 @@ export type MessageKey =
     | "style-fill"
     | "style-unfilled"
     | "style-text"
-    | "style-background-none";
+    | "style-background-none"
+    | "line-segment-attributes-ignored-with-endpoints"
+    | "line-segment-attributes-ignored-with-endpoint-and-midpoint"
+    | "line-segment-midpoint-offset-without-midpoint"
+    | "line-points-undetermined-dimensions"
+    | "line-points-too-few-dimensions"
+    | "line-points-depend-on-variables"
+    | "line-equation-invalid-format"
+    | "ray-overprescribed-through"
+    | "ray-dimension-mismatch"
+    | "vector-overprescribed-head"
+    | "vector-dimension-mismatch";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -222,4 +233,15 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "style-unfilled",
     "style-text",
     "style-background-none",
+    "line-segment-attributes-ignored-with-endpoints",
+    "line-segment-attributes-ignored-with-endpoint-and-midpoint",
+    "line-segment-midpoint-offset-without-midpoint",
+    "line-points-undetermined-dimensions",
+    "line-points-too-few-dimensions",
+    "line-points-depend-on-variables",
+    "line-equation-invalid-format",
+    "ray-overprescribed-through",
+    "ray-dimension-mismatch",
+    "vector-overprescribed-head",
+    "vector-dimension-mismatch",
 ];

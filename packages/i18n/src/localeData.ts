@@ -16,11 +16,12 @@ export type LocaleData = {
     /**
      * The requested content locale, e.g. `"es-MX"`.
      *
-     * One tag, not two: the worker only needs `documentLocale` while the
-     * strings it computes are content. The phase that moves diagnostics into
-     * the worker will have to carry `uiLocale` alongside it — diagnostics are
-     * produced by the worker but addressed to the reader, so they follow the
-     * chrome's language (see `WORKER_NAMESPACES`).
+     * One tag, not two, and it stays that way. Diagnostics are produced here
+     * but addressed to the reader, so they follow `uiLocale` — and that is
+     * exactly why the worker never renders them: it emits a stable code plus
+     * the arguments that fill the message in, and the main thread formats it
+     * (#1518). So the worker never needs the chrome's language, and this
+     * payload never needed to grow a second tag.
      */
     locale: string;
     /**

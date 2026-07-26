@@ -21,6 +21,18 @@ export const GENERATED_KEYS_FILE = path.join(
     "generated",
     "messageKeys.ts",
 );
+/**
+ * Every diagnostic code ever issued.
+ *
+ * Committed, and only ever appended to. The registry in `src/diagnostics.ts`
+ * is what the code reads; this file is what makes the registry's promise
+ * checkable — a renumbered or reused code shows up as a lock entry the
+ * registry no longer agrees with, and `lint:i18n` fails on it.
+ */
+export const DIAGNOSTIC_CODES_LOCK_FILE = path.join(
+    PACKAGE_ROOT,
+    "diagnostic-codes.lock.json",
+);
 
 export type CatalogKey = {
     key: string;
@@ -181,23 +193,33 @@ function* walkSourceFiles(directory: string): Generator<string> {
 
 export type CallSite = { key: string; file: string };
 
-/** Every translator call site under `packages/<name>/src`. */
-export function collectCallSites(): CallSite[] {
+/**
+ * Every scanned source file under `packages/<name>/src`, with its contents and
+ * its repo-relative path — the corpus both the call-site scan and the
+ * diagnostic-code scan run over.
+ */
+function* scannedSources(): Generator<{ file: string; contents: string }> {
     const packagesDir = path.join(REPO_ROOT, "packages");
-    const sites: CallSite[] = [];
     for (const entry of fs.readdirSync(packagesDir, { withFileTypes: true })) {
         if (!entry.isDirectory()) {
             continue;
         }
         const srcDir = path.join(packagesDir, entry.name, "src");
         for (const file of walkSourceFiles(srcDir)) {
-            const contents = fs.readFileSync(file, "utf-8");
-            for (const match of contents.matchAll(CALL_SITE_PATTERN)) {
-                sites.push({
-                    key: match[1],
-                    file: path.relative(REPO_ROOT, file),
-                });
-            }
+            yield {
+                file: path.relative(REPO_ROOT, file),
+                contents: fs.readFileSync(file, "utf-8"),
+            };
+        }
+    }
+}
+
+/** Every translator call site under `packages/<name>/src`. */
+export function collectCallSites(): CallSite[] {
+    const sites: CallSite[] = [];
+    for (const { file, contents } of scannedSources()) {
+        for (const match of contents.matchAll(CALL_SITE_PATTERN)) {
+            sites.push({ key: match[1], file });
         }
     }
     return sites;
@@ -217,6 +239,92 @@ export async function renderMessageKeysModule(keys: string[]): Promise<string> {
         filepath: GENERATED_KEYS_FILE,
         parser: "typescript",
     });
+}
+
+/** The lock as committed, or an empty lock if it doesn't exist yet. */
+export function readDiagnosticCodesLock(): Record<string, string> {
+    if (!fs.existsSync(DIAGNOSTIC_CODES_LOCK_FILE)) {
+        return {};
+    }
+    return JSON.parse(fs.readFileSync(DIAGNOSTIC_CODES_LOCK_FILE, "utf-8"));
+}
+
+/**
+ * The lock these codes imply: every entry already locked, plus every code the
+ * registry has added since.
+ *
+ * Locked entries are never rewritten from the registry — that is the whole
+ * point. A registry that disagrees with the lock is reported, not absorbed.
+ */
+export function mergeDiagnosticCodesLock(
+    lock: Record<string, string>,
+    registry: Record<string, string>,
+): Record<string, string> {
+    const merged: Record<string, string> = { ...lock };
+    for (const [code, key] of Object.entries(registry)) {
+        merged[code] ??= key;
+    }
+    return Object.fromEntries(
+        Object.entries(merged).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+    );
+}
+
+export async function renderDiagnosticCodesLock(
+    lock: Record<string, string>,
+): Promise<string> {
+    const prettierConfig = await prettier.resolveConfig(
+        DIAGNOSTIC_CODES_LOCK_FILE,
+    );
+    return prettier.format(JSON.stringify(lock, null, 4), {
+        ...prettierConfig,
+        filepath: DIAGNOSTIC_CODES_LOCK_FILE,
+        parser: "json",
+    });
+}
+
+/**
+ * Diagnostic codes named in source: `code: "doenet-w0001"` and nothing else.
+ *
+ * The worker's components are JavaScript, so the registry's types cannot catch
+ * a typo'd code there. This is the check that does — a code no registry entry
+ * defines would otherwise emit a diagnostic that silently never translates.
+ */
+const DIAGNOSTIC_CODE_USE_PATTERN = /code:\s*["'`](doenet-[a-z]\d+)["'`]/g;
+
+/**
+ * A raw diagnostic literal: `type: "warning"` and its siblings.
+ *
+ * Counted, not validated — a regex over source text can only approximate the
+ * real number. The two guards keep it from over-reporting in the ways that
+ * actually occur here: the lookbehind rules out a longer property name ending
+ * in `type` (`error_type: "warning"`, in the parser and the LSP), and the
+ * lookahead rules out a *type declaration* rather than an object literal
+ * (`type: "error";` in the `DiagnosticRecord` union), neither of which is a
+ * message anyone has to translate.
+ *
+ * The ratio of these to coded call sites is the burn-down `lint:i18n` reports
+ * while the legacy messages migrate.
+ */
+const DIAGNOSTIC_LITERAL_PATTERN =
+    /(?<![\w$])type:\s*["'`](?:warning|error|info|accessibility)["'`](?!\s*;)/g;
+
+export type DiagnosticUsage = {
+    codes: CallSite[];
+    literalCount: number;
+};
+
+/** Diagnostic call sites under `packages/<name>/src`. */
+export function collectDiagnosticUsage(): DiagnosticUsage {
+    const codes: CallSite[] = [];
+    let literalCount = 0;
+    for (const { file, contents } of scannedSources()) {
+        for (const match of contents.matchAll(DIAGNOSTIC_CODE_USE_PATTERN)) {
+            codes.push({ key: match[1], file });
+        }
+        literalCount += [...contents.matchAll(DIAGNOSTIC_LITERAL_PATTERN)]
+            .length;
+    }
+    return { codes, literalCount };
 }
 
 function renderMessageKeysModuleRaw(keys: string[]): string {

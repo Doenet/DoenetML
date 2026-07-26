@@ -47,4 +47,20 @@ export {
     type LocaleData,
 } from "./localeData";
 
+// `DIAGNOSTIC_CODE_PATTERN` is deliberately not here: it is the rule
+// `lint:i18n` holds new codes to, not something anything at runtime should be
+// parsing a code with. The lint imports it from `./diagnostics` directly.
+export {
+    DIAGNOSTIC_CODES,
+    createDiagnosticFormatter,
+    formatEnglishDiagnostic,
+    isDiagnosticCode,
+    type DiagnosticArgs,
+    type DiagnosticArgValue,
+    type DiagnosticCode,
+    type DiagnosticFormatter,
+    type DiagnosticListArg,
+    type FormattableDiagnostic,
+} from "./diagnostics";
+
 export { MESSAGE_KEYS, type MessageKey } from "./generated/messageKeys";

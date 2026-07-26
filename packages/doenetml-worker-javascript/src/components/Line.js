@@ -14,6 +14,7 @@ import {
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnNVariables, roundForDisplay } from "../utils/math";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Line extends GraphicalComponent {
     constructor(args) {
@@ -1413,11 +1414,10 @@ export default class Line extends GraphicalComponent {
                 let numDimens = dependencyValues.numDimensions;
 
                 if (Number.isNaN(numDimens)) {
-                    let warning = {
-                        message:
-                            "Line through points of undetermined dimensions.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0001",
+                    });
                     return {
                         setValue: {
                             equation: blankMath,
@@ -1430,11 +1430,10 @@ export default class Line extends GraphicalComponent {
                 }
 
                 if (numDimens < 2) {
-                    let warning = {
-                        message:
-                            "Line must be through points of at least two dimensions.",
+                    let warning = codedDiagnostic({
                         type: "warning",
-                    };
+                        code: "doenet-w0002",
+                    });
                     return {
                         setValue: {
                             equation: blankMath,
@@ -1460,13 +1459,19 @@ export default class Line extends GraphicalComponent {
                         point2x.variables().indexOf(varStrings[i]) !== -1 ||
                         point2y.variables().indexOf(varStrings[i]) !== -1
                     ) {
-                        let warning = {
-                            message:
-                                "Line is through points that depend on variables: " +
-                                varStrings.join(", ") +
-                                ".",
+                        let warning = codedDiagnostic({
                             type: "warning",
-                        };
+                            code: "doenet-w0003",
+                            // A bare enumeration, not an "and" list: the
+                            // message names which variables were seen, it
+                            // doesn't conjoin them.
+                            args: {
+                                variables: {
+                                    list: varStrings,
+                                    type: "unit",
+                                },
+                            },
+                        });
                         return {
                             setValue: {
                                 equation: blankMath,
@@ -2286,6 +2291,22 @@ export default class Line extends GraphicalComponent {
     }
 }
 
+/**
+ * The diagnostic raised wherever an `equation` turns out not to be linear in
+ * the line's two variables.
+ *
+ * Four call sites detect that in four different ways but report the same
+ * thing, so they share one constructor and cannot drift in what they
+ * interpolate.
+ */
+function invalidEquationFormatDiagnostic(var1String, var2String) {
+    return codedDiagnostic({
+        type: "warning",
+        code: "doenet-w0004",
+        args: { variable1: var1String, variable2: var2String },
+    });
+}
+
 function calculateCoeffsFromEquation({ equation, variables }) {
     // determine if equation is a linear equation in the variables
 
@@ -2352,16 +2373,12 @@ function calculateCoeffsFromEquation({ equation, variables }) {
         } else if (typeof term === "number") {
             c0 = term;
         } else if (!Array.isArray(term)) {
-            let warning = {
-                message:
-                    "Invalid format for equation of line in variables " +
-                    var1 +
-                    " and " +
-                    var2 +
-                    ".",
-                type: "warning",
+            return {
+                success: false,
+                sendDiagnostics: [
+                    invalidEquationFormatDiagnostic(var1String, var2String),
+                ],
             };
-            return { success: false, sendDiagnostics: [warning] };
         } else {
             let operator = term[0];
             let operands = term.slice(1);
@@ -2374,16 +2391,12 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                 cv2 = ["-", coeffs.coeffvar2.tree];
                 c0 = ["-", coeffs.coeff0.tree];
             } else if (operator === "+") {
-                let warning = {
-                    message:
-                        "Invalid format for equation of line in variables " +
-                        var1 +
-                        " and " +
-                        var2 +
-                        ".",
-                    type: "warning",
+                return {
+                    success: false,
+                    sendDiagnostics: [
+                        invalidEquationFormatDiagnostic(var1String, var2String),
+                    ],
                 };
-                return { success: false, sendDiagnostics: [warning] };
             } else if (operator === "*") {
                 let var1ind = -1,
                     var2ind = -1;
@@ -2463,29 +2476,21 @@ function calculatePointsFromCoeffs({
         coeff0.variables(true).indexOf(var1String) !== -1 ||
         coeff0.variables(true).indexOf(var2String) !== -1
     ) {
-        let warning = {
-            message:
-                "Invalid format for equation of line in variables " +
-                var1String +
-                " and " +
-                var2String +
-                ".",
-            type: "warning",
+        return {
+            success: false,
+            sendDiagnostics: [
+                invalidEquationFormatDiagnostic(var1String, var2String),
+            ],
         };
-        return { success: false, sendDiagnostics: [warning] };
     }
     let zero = me.fromAst(0);
     if (coeffvar1.equals(zero) && coeffvar2.equals(zero)) {
-        let warning = {
-            message:
-                "Invalid format for equation of line in variables " +
-                var1String +
-                " and " +
-                var2String +
-                ".",
-            type: "warning",
+        return {
+            success: false,
+            sendDiagnostics: [
+                invalidEquationFormatDiagnostic(var1String, var2String),
+            ],
         };
-        return { success: false, sendDiagnostics: [warning] };
     }
 
     // console.log("coefficient of " + var1 + " is " + coeffvar1);

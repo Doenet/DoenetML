@@ -1,20 +1,5 @@
 import me from "math-expressions";
 
-/**
- * Given a list of attribute names that are being ignored, builds a
- * human-readable phrase like "slope is" or "slope and length are" or
- * "slope, length, and midpointOffset are".
- */
-export function buildIgnoredPhrase(ignored) {
-    if (ignored.length === 1) {
-        return `${ignored[0]} is`;
-    } else if (ignored.length === 2) {
-        return `${ignored[0]} and ${ignored[1]} are`;
-    } else {
-        return `${ignored.slice(0, -1).join(", ")}, and ${ignored.slice(-1)} are`;
-    }
-}
-
 export function directionFromSlope(slope) {
     if (slope === Infinity || slope === -Infinity) {
         return [0, Math.sign(slope)];

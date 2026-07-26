@@ -1,5 +1,6 @@
 import esChrome from "../locales/es/chrome.ftl?raw";
 import esContent from "../locales/es/content.ftl?raw";
+import esDiagnostics from "../locales/es/diagnostics.ftl?raw";
 
 import { DEFAULT_LOCALE, EN_CATALOGS } from "./catalogs";
 import {
@@ -25,7 +26,11 @@ import {
  * {@link createTranslator} appends it unconditionally.
  */
 const BUNDLED_TRANSLATIONS: Record<string, Catalogs> = {
-    es: { chrome: esChrome, content: esContent },
+    es: {
+        chrome: esChrome,
+        content: esContent,
+        diagnostics: esDiagnostics,
+    },
 };
 
 /**

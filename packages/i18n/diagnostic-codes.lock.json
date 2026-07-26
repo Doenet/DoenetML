@@ -1,0 +1,13 @@
+{
+    "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
+    "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
+    "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",
+    "doenet-w0001": "line-points-undetermined-dimensions",
+    "doenet-w0002": "line-points-too-few-dimensions",
+    "doenet-w0003": "line-points-depend-on-variables",
+    "doenet-w0004": "line-equation-invalid-format",
+    "doenet-w0005": "ray-overprescribed-through",
+    "doenet-w0006": "ray-dimension-mismatch",
+    "doenet-w0007": "vector-overprescribed-head",
+    "doenet-w0008": "vector-dimension-mismatch"
+}

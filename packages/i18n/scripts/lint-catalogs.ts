@@ -8,7 +8,8 @@
  *     a translation is invisible at runtime — it just never resolves);
  *  4. `src/generated/messageKeys.ts` matches the English catalogs;
  *  5. every key referenced from source exists in English;
- *  6. every English key is referenced from source (no orphans).
+ *  6. every English key is referenced from source (no orphans);
+ *  7. diagnostic codes are well-formed, resolvable, and append-only.
  *
  * Missing keys in a *translated* locale are reported as coverage, not failure:
  * a partial translation is legitimate and falls back to English.
@@ -18,12 +19,22 @@ import fs from "node:fs";
 import { CATALOG_NAMESPACES } from "../src/namespaces";
 import { DEFAULT_LOCALE } from "../src/catalogs";
 import {
+    DIAGNOSTIC_CODES,
+    DIAGNOSTIC_CODE_PATTERN,
+    isDiagnosticCode,
+} from "../src/diagnostics";
+import {
+    DIAGNOSTIC_CODES_LOCK_FILE,
     GENERATED_KEYS_FILE,
     catalogParseErrors,
     collectCallSites,
+    collectDiagnosticUsage,
     collectLocaleKeys,
     listLocales,
+    mergeDiagnosticCodesLock,
     readCatalog,
+    readDiagnosticCodesLock,
+    renderDiagnosticCodesLock,
     renderMessageKeysModule,
 } from "./catalogUtils";
 
@@ -104,8 +115,16 @@ if (actualGenerated !== expectedGenerated) {
 }
 
 // 5 & 6: source and catalogs agree in both directions.
+//
+// The diagnostic registry counts as a call site. Its keys are reached by code
+// rather than by a literal `t("key")`, which the call-site scan cannot see, so
+// without this every diagnostic message would read as an orphan.
 const callSites = collectCallSites();
-const referenced = new Set(callSites.map((site) => site.key));
+const registryKeys = Object.values(DIAGNOSTIC_CODES);
+const referenced = new Set([
+    ...callSites.map((site) => site.key),
+    ...registryKeys,
+]);
 
 for (const site of callSites) {
     if (!englishKeySet.has(site.key)) {
@@ -122,6 +141,65 @@ for (const key of englishKeys) {
         );
     }
 }
+
+// 7: diagnostic codes. Well-formed, resolvable, used only where defined, and
+// never renumbered.
+const lockedCodes = readDiagnosticCodesLock();
+const diagnosticUsage = collectDiagnosticUsage();
+
+for (const [code, key] of Object.entries(DIAGNOSTIC_CODES)) {
+    if (!DIAGNOSTIC_CODE_PATTERN.test(code)) {
+        problems.push(
+            `src/diagnostics.ts: "${code}" is not a well-formed diagnostic code (doenet-[weia]NNNN)`,
+        );
+    }
+    if (!englishKeySet.has(key)) {
+        problems.push(
+            `src/diagnostics.ts: "${code}" maps to "${key}", which is not defined in locales/${DEFAULT_LOCALE}`,
+        );
+    }
+}
+
+for (const [code, key] of Object.entries(lockedCodes)) {
+    const current = DIAGNOSTIC_CODES[code as keyof typeof DIAGNOSTIC_CODES];
+    if (current === undefined) {
+        problems.push(
+            `diagnostic-codes.lock.json: "${code}" was issued but src/diagnostics.ts no longer defines it — codes are append-only, so retire it in place rather than removing it`,
+        );
+    } else if (current !== key) {
+        problems.push(
+            `diagnostic-codes.lock.json: "${code}" was issued for "${key}" but src/diagnostics.ts now maps it to "${current}" — a code names one situation forever`,
+        );
+    }
+}
+
+const expectedLock = await renderDiagnosticCodesLock(
+    mergeDiagnosticCodesLock(lockedCodes, DIAGNOSTIC_CODES),
+);
+const actualLock = fs.existsSync(DIAGNOSTIC_CODES_LOCK_FILE)
+    ? fs.readFileSync(DIAGNOSTIC_CODES_LOCK_FILE, "utf-8")
+    : "";
+if (actualLock !== expectedLock) {
+    problems.push(
+        "diagnostic-codes.lock.json is out of date — run `npm run codegen -w @doenet/i18n`",
+    );
+}
+
+for (const use of diagnosticUsage.codes) {
+    // The same own-property test the runtime lookup uses, so "is this a
+    // registered code?" has one answer everywhere: `in` would accept a code
+    // that happens to name something on `Object.prototype`.
+    if (!isDiagnosticCode(use.key)) {
+        problems.push(
+            `${use.file}: "${use.key}" is not defined in src/diagnostics.ts`,
+        );
+    }
+}
+
+const codedCallSites = new Set(diagnosticUsage.codes.map((use) => use.key));
+notes.push(
+    `diagnostics: ${diagnosticUsage.codes.length} coded call site(s) covering ${codedCallSites.size}/${Object.keys(DIAGNOSTIC_CODES).length} code(s); ${diagnosticUsage.literalCount - diagnosticUsage.codes.length} raw diagnostic literal(s) still to migrate (#1518)`,
+);
 
 for (const note of notes) {
     console.log(note);

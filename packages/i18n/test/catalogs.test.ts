@@ -42,12 +42,20 @@ describe("bundled English catalogs", () => {
         expect(contentKeys).toContain("style-stroke");
     });
 
+    it("defines the diagnostics Phase 3 extracted", () => {
+        const diagnosticKeys = extractKeys(EN_CATALOGS.diagnostics);
+        expect(diagnosticKeys).toContain("ray-dimension-mismatch");
+        expect(diagnosticKeys).toContain(
+            "line-segment-attributes-ignored-with-endpoints",
+        );
+    });
+
     it("still defines no keys in the namespaces later phases populate", () => {
         // The orphan check in `lint:i18n` is only meaningful while every key
         // that exists is one some call site actually uses. A key appearing
         // here before its phase moves the strings would be a key nothing
         // references.
-        for (const namespace of ["diagnostics", "editor"] as const) {
+        for (const namespace of ["editor"] as const) {
             expect(extractKeys(EN_CATALOGS[namespace]), namespace).toEqual([]);
         }
     });

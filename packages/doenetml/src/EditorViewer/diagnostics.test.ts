@@ -86,6 +86,31 @@ describe("toAdditionalDiagnosticsForLsp", () => {
         });
     });
 
+    // `code` is the LSP field a stable diagnostic name belongs in, and where a
+    // `codeDescription` link will attach (#1548). Only migrated records carry
+    // one (#1518), and `code` is optional in LSP, so a legacy record must come
+    // out without the key at all rather than with an explicit `undefined`.
+    it("passes a migrated record's stable code through to LSP", () => {
+        const coded: WarningRecord = {
+            type: "warning",
+            message: "numDimensions mismatch in ray.",
+            code: "doenet-w0006",
+            position: dastPos(2, 3, 2, 7),
+        };
+        const legacy: WarningRecord = {
+            type: "warning",
+            message: "not migrated yet",
+            position: dastPos(3, 1, 3, 4),
+        };
+        const out = toAdditionalDiagnosticsForLsp({
+            diagnostics: [coded, legacy],
+            showInfoAnnotations: true,
+            showAccessibilityAnnotations: true,
+        });
+        expect(out[0].code).toBe("doenet-w0006");
+        expect(out[1]).not.toHaveProperty("code");
+    });
+
     it("drops diagnostics without a position", () => {
         // The filter in `toAdditionalDiagnosticsForLsp` skips
         // position-less records — `dastPositionToLspRange` would
