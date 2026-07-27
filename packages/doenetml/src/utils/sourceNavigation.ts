@@ -6,19 +6,15 @@
  * Windows/Linux, the same convention as an editor's go-to-definition — so
  * that plain clicks interact with the document without moving either pane.
  * Cmd/Ctrl+Enter is the keyboard equivalent on a focused graph element.
+ * Touch devices have no modifier key, so the gesture is unavailable there.
  *
  * Either modifier is accepted on every platform rather than picking one
  * from the user agent: the "wrong" combination has no competing meaning
- * here, and accepting both keeps the gesture reachable from any keyboard
- * layout (and from headless test browsers, which run on Linux while
- * synthesizing `metaKey`).
+ * here, and accepting both keeps the gesture reachable from any keyboard.
  *
- * The parameter is structural so every event shape in play qualifies:
+ * The parameter is structural so it accepts every event shape in play:
  * native `MouseEvent`s, React synthetic events, and the native events
  * JSXGraph forwards to its own handlers.
- *
- * Note that touch devices have no modifier key, so click-to-navigate is
- * unavailable there.
  */
 export function hasNavigationModifier(event: {
     metaKey?: boolean;

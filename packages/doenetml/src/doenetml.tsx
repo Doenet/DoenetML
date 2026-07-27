@@ -210,11 +210,10 @@ export function DoenetViewer({
     /**
      * Set to a character offset into `doenetML` (e.g. the editor's cursor
      * position) to scroll the corresponding rendered element into view.
-     * Only re-scrolls when this value changes, so a host that repeats the
-     * same request (e.g. one driven by a deliberate gesture rather than a
-     * continuously moving cursor) should set it back to `null` in between —
-     * `null` both means "nothing requested" and clears the de-duplication,
-     * so the next request scrolls even if its offset is unchanged.
+     * Only re-scrolls when this value changes, so a host that can repeat
+     * the same request (e.g. one driven by a deliberate gesture rather than
+     * a continuously moving cursor) should set it back to `null` in
+     * between.
      */
     scrollToSourceOffset?: number | null;
     /**

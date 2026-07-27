@@ -77,39 +77,40 @@ describe(
 
             cy.get("#p60").should("have.text", "Paragraph number 60.");
 
+            function expectP40OffScreen() {
+                cy.get("#p40").should(($el) => {
+                    const rect = $el[0].getBoundingClientRect();
+                    expect(
+                        rect.bottom < 0 ||
+                            rect.top > Cypress.config("viewportHeight"),
+                    ).to.be.true;
+                });
+            }
+
+            function expectP40OnScreen() {
+                cy.get("#p40", { timeout: 8000 }).should(($el) => {
+                    const rect = $el[0].getBoundingClientRect();
+                    expect(rect.top).to.be.within(
+                        0,
+                        Cypress.config("viewportHeight"),
+                    );
+                    expect(rect.bottom).to.be.greaterThan(0);
+                });
+            }
+
             // The viewer should still be scrolled to the top at this point.
-            cy.get("#p40").then(($el) => {
-                const rect = $el[0].getBoundingClientRect();
-                expect(
-                    rect.bottom < 0 ||
-                        rect.top > Cypress.config("viewportHeight"),
-                ).to.be.true;
-            });
+            expectP40OffScreen();
 
             // A plain click in the editor moves the cursor but must NOT
             // scroll the viewer.
             cy.contains(".cm-line", `name="p40"`).click();
             cy.wait(400);
-            cy.get("#p40").then(($el) => {
-                const rect = $el[0].getBoundingClientRect();
-                expect(
-                    rect.bottom < 0 ||
-                        rect.top > Cypress.config("viewportHeight"),
-                ).to.be.true;
-            });
+            expectP40OffScreen();
 
             // Cmd+click on the same line scrolls the viewer to the
             // corresponding rendered element.
             cy.contains(".cm-line", `name="p40"`).click({ metaKey: true });
-
-            cy.get("#p40", { timeout: 8000 }).should(($el) => {
-                const rect = $el[0].getBoundingClientRect();
-                expect(rect.top).to.be.within(
-                    0,
-                    Cypress.config("viewportHeight"),
-                );
-                expect(rect.bottom).to.be.greaterThan(0);
-            });
+            expectP40OnScreen();
 
             // Repeating the gesture on the very same spot works: scroll the
             // viewer away by hand, then Cmd+click that line again. (The
@@ -117,24 +118,10 @@ describe(
             // repeat that resolved to an unchanged value would be silently
             // dropped.)
             cy.get("#p1").scrollIntoView();
-            cy.get("#p40").should(($el) => {
-                const rect = $el[0].getBoundingClientRect();
-                expect(
-                    rect.bottom < 0 ||
-                        rect.top > Cypress.config("viewportHeight"),
-                ).to.be.true;
-            });
+            expectP40OffScreen();
 
             cy.contains(".cm-line", `name="p40"`).click({ metaKey: true });
-
-            cy.get("#p40", { timeout: 8000 }).should(($el) => {
-                const rect = $el[0].getBoundingClientRect();
-                expect(rect.top).to.be.within(
-                    0,
-                    Cypress.config("viewportHeight"),
-                );
-                expect(rect.bottom).to.be.greaterThan(0);
-            });
+            expectP40OnScreen();
         });
 
         it("cmd+clicking a rendered element centers the matching line in the editor, not just at an edge", () => {

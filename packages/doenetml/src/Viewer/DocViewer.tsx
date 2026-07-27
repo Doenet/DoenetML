@@ -221,7 +221,6 @@ export function DocViewer({
     // doesn't need to trigger re-renders.
     const positionByDomId = useRef<Map<string, SourcePosition>>(new Map());
     const viewerContainerRef = useRef<HTMLDivElement>(null);
-    const lastScrolledSourceOffset = useRef<number | null>(null);
 
     // Whenever the host asks for a specific source offset (a Cmd/Ctrl+click
     // in the editor, or — in the VS Code preview — a cursor move), scroll a
@@ -236,23 +235,18 @@ export function DocViewer({
     // the container is a component like <section> or the document itself —
     // rather than centering a possibly-huge container.
     //
+    // Runs only when the requested offset changes, so a host repeating the
+    // same request must pass `null` in between (see the
+    // `scrollToSourceOffset` prop docs).
+    //
     // Placed here, before this component's several early `return null`
     // paths further down, so it's called unconditionally on every render
     // (skipping it on some renders but not others would violate the Rules
     // of Hooks).
     useEffect(() => {
         if (scrollToSourceOffset == null) {
-            // Clearing the request also clears the de-dupe below, so a host
-            // that treats the prop as a one-shot signal (`EditorViewer`, on
-            // Cmd/Ctrl+click) can ask for the same offset twice in a row and
-            // have it scroll both times.
-            lastScrolledSourceOffset.current = null;
             return;
         }
-        if (lastScrolledSourceOffset.current === scrollToSourceOffset) {
-            return;
-        }
-        lastScrolledSourceOffset.current = scrollToSourceOffset;
 
         // Resolve a candidate id to its element, scoped to this viewer.
         // Within a document's lifetime `positionByDomId` is only ever added
@@ -2218,10 +2212,9 @@ export function DocViewer({
     function handleViewerClick(event: MouseEvent) {
         // Navigation only happens on the explicit Cmd/Ctrl+click gesture,
         // so plain clicks interact with the document without moving the
-        // editor. Checked before the skip flag: an unmodified click ending
-        // a drag leaves that flag set (drag releases report
-        // unconditionally), but every pointerdown clears it, so it can't
-        // latch across interactions.
+        // editor. Checked before the skip flag below: an unmodified click
+        // ending a drag returns here with that flag still set, but every
+        // pointerdown clears it, so it can't latch across interactions.
         if (!hasNavigationModifier(event)) {
             return;
         }

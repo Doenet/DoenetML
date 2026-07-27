@@ -1031,10 +1031,10 @@ export const EditorViewer = React.forwardRef<
     }, []);
 
     // `scrollToSourceOffset` is a one-shot request, not a lasting position:
-    // clear it once the viewer has acted on it (a child's effects flush
-    // before its parent's, so `DocViewer` has already seen this value) so
-    // that repeating the gesture on the same spot — after scrolling the
-    // viewer away by hand, say — scrolls back instead of being swallowed as
+    // clear it once the viewer has acted on it — a child's effects flush
+    // before its parent's, so `DocViewer` has already seen this value — so
+    // that repeating the gesture on the same spot (after scrolling the
+    // viewer away by hand, say) scrolls back instead of being swallowed as
     // an unchanged state value.
     useEffect(() => {
         if (scrollToSourceOffset != null) {
@@ -1058,14 +1058,9 @@ export const EditorViewer = React.forwardRef<
      * phase keeps the click visible even if something inside CodeMirror
      * stops its propagation; the offset comes from the pointer
      * coordinates, so it doesn't matter whether CodeMirror has already
-     * moved the cursor.
-     *
-     * `posAtCoords` clips coordinates to the content area before resolving
-     * them, so clicks past the end of a line, in the gutter, or below the
-     * last line all still land on a position — its `null` return is
-     * reserved for cases a click can't produce (a document of nothing but
-     * replaced widgets, or a line outside the rendered viewport), so the
-     * guard below is just belt and braces.
+     * moved the cursor. `posAtCoords` clips to the content area, so clicks
+     * past the end of a line or in the gutter still resolve; its `null`
+     * return is reserved for cases a click can't produce.
      */
     function handleEditorClickCapture(e: React.MouseEvent) {
         if (!hasNavigationModifier(e)) {

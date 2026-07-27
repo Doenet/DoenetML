@@ -66,12 +66,10 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         cy.get("#p2").should("have.text", "Second paragraph.");
 
         cy.get("#p2").click();
-        // Positive control on a *different* element, so the assertion below
-        // can tell the two clicks apart. Reports arrive asynchronously (via
-        // postMessage), so simply waiting for one to show up and then
-        // counting would race: the count could be sampled after a wrongly
-        // reported p2 but before p3. Demanding that the one and only report
-        // be p3's cannot pass if p2 reported at all.
+        // Positive control on a *different* element. Reports arrive
+        // asynchronously, so counting alone would race (the count could be
+        // sampled after a wrongly reported p2 but before p3); demanding
+        // that the one and only report be p3's cannot pass if p2 reported.
         cy.get("#p3").click({ metaKey: true });
 
         const p3Start = threeParagraphs.indexOf(`<p name="p3">`);
@@ -173,12 +171,11 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
      * Holds the Cmd modifier (so the click navigates) unless
      * `{ metaKey: false }` is passed.
      *
-     * Every caller aims at a point, so first wait for one to be drawn.
-     * A point inside a graph renders no DOM element of its own — it is
-     * drawn onto the board's shared SVG (as an `ellipse`) by JSXGraph from
-     * an effect — so the board existing does not mean there is anything
-     * there to hit yet. Clicking too early lands on bare board and reports
-     * the enclosing graph instead of the point.
+     * Every caller aims at a point, so first wait for one to be drawn: a
+     * point renders no DOM element of its own — JSXGraph draws it onto the
+     * board's shared SVG (as an `ellipse`) from an effect — so the board
+     * existing does not mean there is anything there to hit yet, and an
+     * early click lands on bare board and reports the enclosing graph.
      */
     function clickBoardAtGraphCoords(
         boardSelector,
@@ -232,9 +229,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         // neither the element-level report from the JSXGraph drag handlers
         // nor the graph-level fallback may fire. Two points, so the plain
         // click and the Cmd+click positive control land on different
-        // elements and the assertion below can tell their reports apart
-        // (see the paragraph version of this test for why counting alone
-        // would race).
+        // elements (see the paragraph version of this test for why).
         const doenetML = [
             `<graph name="g"><point name="P">(3,4)</point><point name="Q">(-5,-6)</point></graph>`,
             `<p name="p1">A paragraph.</p>`,
@@ -248,6 +243,9 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         cy.get("#g").should("exist");
 
         const qStart = doenetML.indexOf(`<point name="Q">`);
+
+        // Both points drawn before either click (see clickBoardAtGraphCoords).
+        cy.get("#g").find("ellipse").should("have.length.at.least", 2);
 
         clickBoardAtGraphCoords("#g", 3, 4, { metaKey: false });
         clickBoardAtGraphCoords("#g", -5, -6);

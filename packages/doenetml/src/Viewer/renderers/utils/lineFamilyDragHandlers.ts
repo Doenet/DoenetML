@@ -226,7 +226,15 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
     const focusArgs = { componentIdx };
     let currentSnapshot: TSnapshot | null = null;
 
-    function reportNavigationClick() {
+    /**
+     * Report a click-to-navigate gesture. Only the modified form navigates
+     * (Cmd/Ctrl+click, or Cmd/Ctrl+Enter from the keyboard); an unmodified
+     * click just interacts with the document.
+     */
+    function reportNavigationClick(e: JXGEvent) {
+        if (!hasNavigationModifier(e)) {
+            return;
+        }
         sourceNavigation?.report(
             sourceNavigation.domId,
             (jxg as any).board?.container,
@@ -331,9 +339,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
                 coordination.downOnTag.current !== tag
             )
         ) {
-            if (hasNavigationModifier(e)) {
-                reportNavigationClick();
-            }
+            reportNavigationClick(e);
             if (!fixedRef.current) {
                 dispatchClick();
             }
@@ -362,13 +368,9 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
             dispatchCommit("keyEnter");
             coordination.draggedTag.current = null;
         }
-        // Cmd/Ctrl+Enter is the keyboard equivalent of the Cmd/Ctrl+click
-        // navigation gesture. No native click follows a keyboard Enter, so
-        // the report can't be double-consumed; the next pointerdown clears
-        // the skip flag anyway.
-        if (hasNavigationModifier(e)) {
-            reportNavigationClick();
-        }
+        // No native click follows a keyboard Enter, so the report can't be
+        // double-consumed; the next pointerdown clears the skip flag anyway.
+        reportNavigationClick(e);
         dispatchClick();
     });
 }
