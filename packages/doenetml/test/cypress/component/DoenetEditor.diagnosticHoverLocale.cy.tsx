@@ -58,6 +58,42 @@ function hoverFirstSquiggle() {
     return cy.get(".cm-lint-tooltip", { timeout: EDITOR_TIMEOUT });
 }
 
+/**
+ * Move the pointer off the squiggle, so the next `hoverFirstSquiggle` is a
+ * fresh arrival there rather than a move to where the pointer already is.
+ */
+function unhover() {
+    cy.get(".cm-content").trigger("mousemove", {
+        clientX: 0,
+        clientY: 0,
+        force: true,
+    });
+    cy.get(".cm-lint-tooltip").should("not.exist");
+}
+
+/** An editor whose reader picks a language after it is already up. */
+function EditorWithLanguageSwitch() {
+    const [uiLocale, setUiLocale] = React.useState<string | undefined>(
+        undefined,
+    );
+    return (
+        <div style={{ height: "500px", width: "900px" }}>
+            <button
+                data-cy="switch-to-spanish"
+                onClick={() => setUiLocale("es")}
+            >
+                español
+            </button>
+            <DoenetEditor
+                doenetML="<abc></abc>"
+                addVirtualKeyboard={false}
+                initialOpenTab={null}
+                {...(uiLocale === undefined ? {} : { uiLocale })}
+            />
+        </div>
+    );
+}
+
 describe("the editor's diagnostic tooltip follows the reader's language", () => {
     it("renders a schema violation and its heading in Spanish", () => {
         cy.mount(<Editor uiLocale="es" />);
@@ -114,5 +150,36 @@ describe("the editor's diagnostic tooltip follows the reader's language", () => 
             "is not a recognized Doenet element",
         );
         cy.get(".cm-lint-tooltip .heading").should("contain.text", "Warning");
+    });
+
+    it("follows a language chosen after the editor is already up", () => {
+        // A tooltip's words are built when its batch of diagnostics arrives,
+        // not when it is drawn, so a squiggle that has already been checked
+        // would keep reading in the old language until the next edit unless
+        // something says otherwise. What says so is `EditorViewer` handing
+        // `CodeMirror` a presentation built from the new translator, which
+        // redraws the diagnostics on screen without reconfiguring the editor.
+        cy.mount(<EditorWithLanguageSwitch />);
+
+        hoverFirstSquiggle().should(
+            "contain.text",
+            "is not a recognized Doenet element",
+        );
+        unhover();
+
+        cy.get("[data-cy=switch-to-spanish]").click();
+
+        hoverFirstSquiggle().should(
+            "contain.text",
+            "no es un elemento de Doenet reconocido",
+        );
+        cy.get(".cm-lint-tooltip .heading").should(
+            "contain.text",
+            "Advertencia",
+        );
+        cy.get(".cm-lint-tooltip").should(
+            "not.contain.text",
+            "is not a recognized Doenet element",
+        );
     });
 });

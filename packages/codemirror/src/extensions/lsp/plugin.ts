@@ -118,14 +118,11 @@ function escapeHtml(str: string): string {
  * Both are optional, and omitting them leaves the tooltip exactly as it was:
  * the English the producer wrote, under an English severity heading.
  *
- * Both are *functions*, and neither is called before there is something to
- * say: `formatMessage` as a batch of diagnostics is turned into CodeMirror's
- * own, `severityHeading` as a tooltip is drawn. That lets a host whose
- * language can change keep handing over one object for the life of the
- * editor — this value is part of the extension set, and replacing it
- * reconfigures the editor and reopens the document on the language server.
- * Messages already on screen were rendered when their batch arrived, so a
- * host that changes language republishes its diagnostics to redraw them.
+ * A host whose reader's language changes hands over a new one. `CodeMirror`
+ * keeps this out of the extension set and reads it through a ref, so a
+ * replacement neither reconfigures the editor nor reopens the document on the
+ * language server; it redraws the diagnostics already on screen through the
+ * new answers ({@link redrawDiagnostics}).
  */
 export type DiagnosticPresentation = {
     /**
@@ -239,6 +236,27 @@ type ExtendedCompletion = Completion & {
 // One language server is shared across all plugin instances
 export const uniqueLanguageServerInstance = new LSP();
 
+/**
+ * The plugin drawing diagnostics in a given editor, so
+ * {@link redrawDiagnostics} can reach it. An editor with no language server
+ * (a read-only one) has no entry, and an entry drops with its view.
+ */
+const lspPluginsByView = new WeakMap<EditorView, LSPPlugin>();
+
+/**
+ * Render the diagnostics already on screen again, through whatever the
+ * editor's {@link DiagnosticPresentation} now answers.
+ *
+ * Nothing is re-fetched: the last batch the language server published is
+ * still held, and only the words are built from it again. This is what makes
+ * a language change reach messages and headings that were drawn in the
+ * previous one — they were rendered when their batch arrived, so without it
+ * they would keep reading in that language until the next edit.
+ */
+export function redrawDiagnostics(view: EditorView) {
+    lspPluginsByView.get(view)?.redrawDiagnostics();
+}
+
 export class LSPPlugin implements PluginValue {
     documentId: string;
     uri: string = "";
@@ -310,8 +328,26 @@ export class LSPPlugin implements PluginValue {
     }
 
     destroy() {
+        // Only if this plugin is still the one registered: a reconfigured
+        // editor creates the replacement before destroying this, and the
+        // registration for that view now belongs to it.
+        if (this.view && lspPluginsByView.get(this.view) === this) {
+            lspPluginsByView.delete(this.view);
+        }
         this.unsubscribeDiagnostics?.();
         uniqueLanguageServerInstance.closeDocument(this.uri).catch(() => {});
+    }
+
+    /**
+     * Say the last published batch again. A no-op before one has arrived,
+     * so a host that hands over its presentation at mount doesn't clear the
+     * (empty) diagnostic set for nothing.
+     */
+    redrawDiagnostics() {
+        if (this.diagnostics.length === 0) {
+            return;
+        }
+        this.processDiagnostics();
     }
 
     processDiagnostics() {
@@ -823,6 +859,7 @@ export const lspPlugin = (
     return [
         ViewPlugin.define((view) => {
             plugin.view = view;
+            lspPluginsByView.set(view, plugin);
             plugin.unsubscribeDiagnostics =
                 uniqueLanguageServerInstance.onDiagnostics(
                     plugin.uri,

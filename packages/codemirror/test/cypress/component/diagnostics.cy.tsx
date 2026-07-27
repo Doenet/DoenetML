@@ -58,6 +58,33 @@ const DiagnosticsTestHarness = ({
     );
 };
 
+/**
+ * Harness for a host whose answers change while the editor is up — the reader
+ * picked another language. The presentation is a fresh object on every render,
+ * as it is for a host building it from a rebuilt translator.
+ */
+const SwitchablePresentationHarness = () => {
+    const [word, setWord] = React.useState("first");
+
+    return (
+        <div style={{ height: "400px", width: "600px" }}>
+            <button
+                data-cy="switch-presentation"
+                onClick={() => setWord("second")}
+            >
+                switch
+            </button>
+            <CodeMirror
+                value="<graph invalid-attr='x' />"
+                diagnosticPresentation={{
+                    formatMessage: ({ message }) => `${word}: ${message}`,
+                    severityHeading: () => word,
+                }}
+            />
+        </div>
+    );
+};
+
 describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
     const mountEditor = (initialValue: string) => {
         cy.mount(<DiagnosticsTestHarness initialValue={initialValue} />);
@@ -218,6 +245,35 @@ describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
         cy.get(".cm-lint-tooltip .cm-lint-body").should(
             "contain.text",
             '[doenet-w0115] {"tag":"graph","attribute":"invalid-attr"}',
+        );
+    });
+
+    it("says a diagnostic again when the presentation starts answering differently", () => {
+        // The reader changed language while the editor was up. The message and
+        // the heading were built when the batch arrived, so nothing about the
+        // document has changed and the language server will not publish again
+        // on its own — replacing the presentation is what has to redraw them.
+        //
+        // The harness deliberately passes a *new object every render*, which
+        // is what a host formatting through a rebuilt translator hands over.
+        cy.mount(<SwitchablePresentationHarness />);
+        cy.get(".cm-line").should("exist");
+        waitForDiagnosticDom();
+
+        hoverLintRange(".cm-lintRange-warning");
+        cy.get(".cm-lint-tooltip .heading").should("have.text", "first");
+        cy.get(".cm-lint-tooltip .cm-lint-body").should(
+            "contain.text",
+            "first: Element",
+        );
+
+        cy.get("[data-cy=switch-presentation]").click();
+
+        hoverLintRange(".cm-lintRange-warning");
+        cy.get(".cm-lint-tooltip .heading").should("have.text", "second");
+        cy.get(".cm-lint-tooltip .cm-lint-body").should(
+            "contain.text",
+            "second: Element",
         );
     });
 

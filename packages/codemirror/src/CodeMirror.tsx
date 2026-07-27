@@ -7,6 +7,7 @@ import { tabExtension } from "./extensions/tab";
 import { autoCloseTagExtension } from "./extensions/auto-close-tag";
 import {
     lspPlugin,
+    redrawDiagnostics,
     uniqueLanguageServerInstance,
     type DiagnosticPresentation,
 } from "./extensions/lsp/plugin";
@@ -94,11 +95,10 @@ const CodeMirror = React.memo(function CodeMirror({
      * why it deliberately doesn't. Omit it and the tooltip shows the English
      * the producer wrote, exactly as before.
      *
-     * Hand over one object for the life of the editor: a new one rebuilds the
-     * extensions, which reopens the document on the language server. Both
-     * members are called lazily — the message as a batch of diagnostics
-     * arrives, the heading as a tooltip is drawn — so a host whose language
-     * can change answers differently rather than replacing this.
+     * Replace it whenever its answers change — when the reader's language
+     * does. That neither reconfigures the editor nor reopens the document on
+     * the language server; the diagnostics already on screen are simply drawn
+     * again through the new answers.
      */
     diagnosticPresentation?: DiagnosticPresentation;
 }) {
@@ -129,6 +129,38 @@ const CodeMirror = React.memo(function CodeMirror({
         };
     }, [languageServerRef]);
 
+    // The editor view, kept here as well as mirrored into the caller's
+    // `editorViewRef`, so the redraw below has something to aim at whether or
+    // not the caller asked for one.
+    const viewRef = React.useRef<EditorView | null>(null);
+
+    // The presentation the host most recently supplied, read through a ref so
+    // the extension set never sees it. A new extension set reconfigures the
+    // editor and reopens the document on the language server, discarding any
+    // tooltip open at the time — far too much to pay for the reader changing
+    // language. This indirection is what lets that be a plain prop.
+    const presentationRef = React.useRef(diagnosticPresentation);
+    presentationRef.current = diagnosticPresentation;
+    const stablePresentation = React.useMemo<DiagnosticPresentation>(
+        () => ({
+            formatMessage: (diagnostic) =>
+                presentationRef.current?.formatMessage?.(diagnostic) ??
+                diagnostic.message,
+            severityHeading: (severity) =>
+                presentationRef.current?.severityHeading?.(severity),
+        }),
+        [],
+    );
+
+    // Messages and headings are built when their batch of diagnostics
+    // arrives, so a host that starts answering differently has to say so for
+    // what is already drawn to follow.
+    React.useEffect(() => {
+        if (viewRef.current) {
+            redrawDiagnostics(viewRef.current);
+        }
+    }, [diagnosticPresentation]);
+
     const extensions: Extension[] = React.useMemo(() => {
         const extensions: Extension[] = [
             syntaxHighlightingExtension(darkMode),
@@ -141,7 +173,7 @@ const CodeMirror = React.memo(function CodeMirror({
             extensions.push(tabExtension);
             extensions.push(autoCloseTagExtension);
             extensions.push(
-                lspPlugin(documentId, doenetWorkerUrl, diagnosticPresentation),
+                lspPlugin(documentId, doenetWorkerUrl, stablePresentation),
             );
             extensions.push(completionIconTheme(darkMode));
         } else {
@@ -154,7 +186,7 @@ const CodeMirror = React.memo(function CodeMirror({
         ariaLabel,
         doenetWorkerUrl,
         darkMode,
-        diagnosticPresentation,
+        stablePresentation,
     ]);
 
     return (
@@ -198,6 +230,7 @@ const CodeMirror = React.memo(function CodeMirror({
                 onBlur={onBlur}
                 onFocus={onFocus}
                 onCreateEditor={(view) => {
+                    viewRef.current = view;
                     if (editorViewRef) {
                         editorViewRef.current = view;
                     }

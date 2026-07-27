@@ -547,22 +547,16 @@ export const EditorViewer = React.forwardRef<
         [translate],
     );
 
-    // Read through a ref so the object handed to the editor never changes
-    // identity: it is part of the extension set, and replacing it reconfigures
-    // the editor and reopens the document on the language server — which
-    // discards any tooltip open at the time. The language can change while the
-    // editor is up (the viewer resolves it once it has parsed the source), and
-    // both members below are called lazily — the heading as a tooltip is
-    // drawn, the message as a batch of diagnostics is turned into
-    // CodeMirror's own — so each answers in whichever language is in effect
-    // by then.
-    const presentationRef = useRef({ formatDiagnostic, severityHeadings });
-    presentationRef.current = { formatDiagnostic, severityHeadings };
-
+    // What the editor says about a diagnostic: the message and, above it, the
+    // severity word. Rebuilt whenever the translator behind it is, which is
+    // how a language settled after the editor was already up reaches the
+    // tooltips — `CodeMirror` reads this through a ref and redraws the
+    // diagnostics on screen rather than reconfiguring the editor, so a new
+    // object costs nothing beyond that redraw.
     const diagnosticPresentation = useMemo<DiagnosticPresentation>(
         () => ({
             formatMessage: ({ message, code, args }) =>
-                presentationRef.current.formatDiagnostic({
+                formatDiagnostic({
                     message,
                     // The LSP allows a numeric `code`; a Doenet diagnostic
                     // code is always a string, and anything else names no
@@ -571,17 +565,15 @@ export const EditorViewer = React.forwardRef<
                     code: typeof code === "string" ? code : undefined,
                     args: args as DiagnosticArgs | undefined,
                 }),
-            severityHeading: (severity) =>
-                presentationRef.current.severityHeadings[severity],
+            severityHeading: (severity) => severityHeadings[severity],
         }),
-        [],
+        [formatDiagnostic, severityHeadings],
     );
 
-    // Sending these is also what carries a language change out to the
-    // squiggles: the server republishes on receiving them, and the plugin
-    // renders every message again through `diagnosticPresentation`. That
-    // happens without asking, because `accessibilityHeadings` is rebuilt
-    // whenever the translator behind it is.
+    // The accessibility headings travel to the language server rather than
+    // being asked for at draw time, because they arrive as each diagnostic's
+    // `source`. So a language change has to resend them, which the dependency
+    // on `accessibilityHeadings` below does.
     useEffect(() => {
         const additionalDiagnostics = toAdditionalDiagnosticsForLsp({
             diagnostics: [...initialDiagnostics, ...diagnostics],
