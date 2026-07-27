@@ -1,4 +1,8 @@
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../utils/contentLocale";
 
 export default class Table extends BlockComponent {
     constructor(args) {
@@ -75,7 +79,7 @@ export default class Table extends BlockComponent {
             ],
             mustEvaluate: true, // must evaluate to make sure all counters are accounted for
             returnDependencies({ stateValues }) {
-                let dependencies = {};
+                let dependencies = { ...returnContentLocaleDependencies() };
 
                 if (stateValues.number) {
                     dependencies.tableCounter = {
@@ -86,16 +90,26 @@ export default class Table extends BlockComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
+                const t = contentTranslator(dependencyValues);
+
                 if (dependencyValues.tableCounter === undefined) {
                     return {
                         setValue: {
                             tableEnumeration: null,
-                            tableName: "Table",
+                            tableName: t(
+                                "table-name",
+                                { parts: "unnumbered" },
+                                "Table",
+                            ),
                         },
                     };
                 }
                 let tableEnumeration = String(dependencyValues.tableCounter);
-                let tableName = "Table " + tableEnumeration;
+                let tableName = t(
+                    "table-name",
+                    { parts: "numbered", enumeration: tableEnumeration },
+                    `Table ${tableEnumeration}`,
+                );
                 return {
                     setValue: { tableEnumeration, tableName },
                 };
