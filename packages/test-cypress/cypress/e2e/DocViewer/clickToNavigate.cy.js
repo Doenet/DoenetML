@@ -167,15 +167,22 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
     });
 
     /**
-     * Cmd+click the board `boardSelector` at the pixel corresponding to
-     * graph coordinates (x, y), assuming the default [-10, 10] bounding box.
+     * Click the board `boardSelector` at the pixel corresponding to graph
+     * coordinates (x, y), assuming the default [-10, 10] bounding box.
+     * Holds the Cmd modifier (so the click navigates) unless
+     * `{ metaKey: false }` is passed.
      */
-    function clickBoardAtGraphCoords(boardSelector, x, y) {
+    function clickBoardAtGraphCoords(
+        boardSelector,
+        x,
+        y,
+        { metaKey = true } = {},
+    ) {
         cy.get(boardSelector).then(($el) => {
             const rect = $el[0].getBoundingClientRect();
             const px = ((x + 10) / 20) * rect.width;
             const py = ((10 - y) / 20) * rect.height;
-            cy.wrap($el).click(px, py, { force: true, metaKey: true });
+            cy.wrap($el).click(px, py, { force: true, metaKey });
         });
     }
 
@@ -208,6 +215,37 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
                 const { start, end } = clickMessages[0];
                 expect(start.offset).to.equal(expectedStart);
                 expect(end.offset).to.equal(expectedEnd);
+            });
+    });
+
+    it("a plain click on a point inside a graph does not navigate", () => {
+        // Covers the in-graph path specifically: without the modifier
+        // neither the element-level report from the JSXGraph drag handlers
+        // nor the graph-level fallback may fire.
+        const doenetML = [
+            `<graph name="g"><point name="P">(3,4)</point></graph>`,
+            `<p name="p1">A paragraph.</p>`,
+        ].join("\n");
+
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#p1").should("have.text", "A paragraph.");
+        cy.get("#g").should("exist");
+
+        clickBoardAtGraphCoords("#g", 3, 4, { metaKey: false });
+        // Follow with a Cmd+click so we have a positive signal that the
+        // pipeline works — the plain click must not have reported anything
+        // before it.
+        clickBoardAtGraphCoords("#g", 3, 4);
+
+        cy.wrap(null)
+            .should(() => {
+                expect(clickMessages.length).to.be.gte(1);
+            })
+            .then(() => {
+                expect(clickMessages.length).to.equal(1);
             });
     });
 

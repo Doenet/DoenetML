@@ -30,6 +30,7 @@ import "./editor-viewer.css";
 import { useTabStore } from "@ariakit/react";
 import type { ResolvedTheme } from "../utils/theme";
 import { setVariantsFromCallback, type VariantsState } from "../utils/variants";
+import { hasNavigationModifier } from "../utils/sourceNavigation";
 import type { DiagnosticsSummary } from "./diagnostics";
 import {
     mergeDiagnosticsByType,
@@ -1029,17 +1030,38 @@ export const EditorViewer = React.forwardRef<
         };
     }, []);
 
-    // Editor→viewer navigation: Cmd/Ctrl+click on a spot in the editor
-    // scrolls the viewer to the element rendered from that source offset —
-    // the same explicit go-to-definition-style gesture the viewer uses in
-    // the other direction, so plain clicks and typing never move the
-    // viewer. The wrapper div is `display: contents` so it stays out of
-    // layout and exists only to observe the click (in the capture phase,
-    // before CodeMirror handles it). CodeMirror's own Cmd/Ctrl+click
-    // behavior (adding a selection range) is deliberately left alone —
-    // navigation runs alongside it, not instead of it.
-    const handleEditorClickCapture = (e: React.MouseEvent) => {
-        if (!e.metaKey && !e.ctrlKey) {
+    // `scrollToSourceOffset` is a one-shot request, not a lasting position:
+    // clear it once the viewer has acted on it (a child's effects flush
+    // before its parent's, so `DocViewer` has already seen this value) so
+    // that repeating the gesture on the same spot — after scrolling the
+    // viewer away by hand, say — scrolls back instead of being swallowed as
+    // an unchanged state value.
+    useEffect(() => {
+        if (scrollToSourceOffset != null) {
+            setScrollToSourceOffset(null);
+        }
+    }, [scrollToSourceOffset]);
+
+    /**
+     * Editor→viewer navigation: Cmd/Ctrl+click on a spot in the editor
+     * scrolls the viewer to the element rendered from that source offset —
+     * the same explicit go-to-definition-style gesture the viewer uses in
+     * the other direction, so plain clicks and typing never move the
+     * viewer. CodeMirror's own Cmd/Ctrl+click behavior (adding a selection
+     * range) is deliberately left alone — navigation runs alongside it,
+     * not instead of it.
+     *
+     * Bound to a `display: contents` wrapper (so it stays out of layout)
+     * rather than to the `EditorView`'s DOM: the view is only available
+     * through a ref that CodeMirror fills in imperatively, with no render
+     * to hang a listener-attaching effect off. Listening in the capture
+     * phase keeps the click visible even if something inside CodeMirror
+     * stops its propagation; the offset comes from the pointer
+     * coordinates, so it doesn't matter whether CodeMirror has already
+     * moved the cursor.
+     */
+    function handleEditorClickCapture(e: React.MouseEvent) {
+        if (!hasNavigationModifier(e)) {
             return;
         }
         const view = editorViewRef.current;
@@ -1050,7 +1072,7 @@ export const EditorViewer = React.forwardRef<
         if (pos != null) {
             setScrollToSourceOffset(pos);
         }
-    };
+    }
 
     const codeMirror = (
         <div

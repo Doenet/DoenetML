@@ -110,6 +110,31 @@ describe(
                 );
                 expect(rect.bottom).to.be.greaterThan(0);
             });
+
+            // Repeating the gesture on the very same spot works: scroll the
+            // viewer away by hand, then Cmd+click that line again. (The
+            // request is a one-shot signal, not a sticky position — a
+            // repeat that resolved to an unchanged value would be silently
+            // dropped.)
+            cy.get("#p1").scrollIntoView();
+            cy.get("#p40").should(($el) => {
+                const rect = $el[0].getBoundingClientRect();
+                expect(
+                    rect.bottom < 0 ||
+                        rect.top > Cypress.config("viewportHeight"),
+                ).to.be.true;
+            });
+
+            cy.contains(".cm-line", `name="p40"`).click({ metaKey: true });
+
+            cy.get("#p40", { timeout: 8000 }).should(($el) => {
+                const rect = $el[0].getBoundingClientRect();
+                expect(rect.top).to.be.within(
+                    0,
+                    Cypress.config("viewportHeight"),
+                );
+                expect(rect.bottom).to.be.greaterThan(0);
+            });
         });
 
         it("cmd+clicking a rendered element centers the matching line in the editor, not just at an edge", () => {

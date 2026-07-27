@@ -21,8 +21,10 @@ export type JXGEvent = {
     y: number;
     type: string;
     key: string;
-    // Present at runtime (JSXGraph forwards the native DOM event); optional
-    // because synthetic callers in tests may omit them.
+    // JSXGraph hands its handlers the native DOM event, so the modifier
+    // flags are always there at runtime (click-to-navigate reads them).
+    // Optional because this type is a hand-written subset of that event and
+    // the hand-built event objects in unit tests only fill in what they use.
     metaKey?: boolean;
     ctrlKey?: boolean;
 };

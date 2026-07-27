@@ -28,6 +28,7 @@ import {
     resolveUiLocale,
     type Translator,
 } from "@doenet/i18n";
+import { hasNavigationModifier } from "../utils/sourceNavigation";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
@@ -222,8 +223,9 @@ export function DocViewer({
     const viewerContainerRef = useRef<HTMLDivElement>(null);
     const lastScrolledSourceOffset = useRef<number | null>(null);
 
-    // Whenever the host asks for a specific source offset (e.g. the
-    // editor's cursor moved), scroll a matching rendered element into
+    // Whenever the host asks for a specific source offset (a Cmd/Ctrl+click
+    // in the editor, or — in the VS Code preview — a cursor move), scroll a
+    // matching rendered element into
     // view. The rule: find the innermost mapped element containing the
     // offset (the "container" — implicitly the whole document when none
     // does), then prefer the nearest mapped element inside the container
@@ -241,6 +243,11 @@ export function DocViewer({
     // of Hooks).
     useEffect(() => {
         if (scrollToSourceOffset == null) {
+            // Clearing the request also clears the de-dupe below, so a host
+            // that treats the prop as a one-shot signal (`EditorViewer`, on
+            // Cmd/Ctrl+click) can ask for the same offset twice in a row and
+            // have it scroll both times.
+            lastScrolledSourceOffset.current = null;
             return;
         }
         if (lastScrolledSourceOffset.current === scrollToSourceOffset) {
@@ -2210,13 +2217,13 @@ export function DocViewer({
     }
 
     function handleViewerClick(event: MouseEvent) {
-        // Navigation is an explicit gesture — Cmd+click (macOS) or
-        // Ctrl+click (Windows/Linux), like go-to-definition — so plain
-        // clicks interact with the document without moving the editor.
-        // Checked before the skip flag: a plain click after an
-        // element-level report leaves the flag set, but every pointerdown
-        // clears it, so it can't latch across interactions.
-        if (!event.metaKey && !event.ctrlKey) {
+        // Navigation only happens on the explicit Cmd/Ctrl+click gesture,
+        // so plain clicks interact with the document without moving the
+        // editor. Checked before the skip flag: an unmodified click ending
+        // a drag leaves that flag set (drag releases report
+        // unconditionally), but every pointerdown clears it, so it can't
+        // latch across interactions.
+        if (!hasNavigationModifier(event)) {
             return;
         }
         if (skipNextClickNavigation.current) {

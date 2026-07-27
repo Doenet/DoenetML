@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import { JXGElement, JXGEvent } from "../jsxgraph-distrib/types";
 import { exceededDragThreshold } from "./dragThreshold";
+import { hasNavigationModifier } from "../../../utils/sourceNavigation";
 import { PointerDragState } from "./pointerDragState";
 
 export type CallActionFn = (params: {
@@ -156,17 +157,16 @@ export interface AttachDragHandlersConfig<TTag, TSnapshot> {
     participatesInDownTag?: boolean;
 
     /**
-     * Click-to-navigate wiring. On a click-like `up` (and keyboard Enter)
-     * with the Cmd/Ctrl modifier held — navigation is an explicit
-     * go-to-definition-style gesture, so unmodified clicks only interact
-     * with the document — `report` is called with `domId`, plus the
-     * enclosing board's DOM id so the viewer can attribute copy-produced
-     * components to the copy that authored them, and the viewer navigates
-     * to the component's source; on a drag release it's called with `null`
-     * (regardless of modifiers) so the viewer suppresses the native click
-     * that follows without navigating. Deliberately not gated on
-     * `fixedRef`: navigation is an authoring aid and applies to fixed
-     * components too.
+     * Click-to-navigate wiring. On a click-like `up` or keyboard Enter that
+     * carries the navigation modifier (see `hasNavigationModifier` —
+     * unmodified clicks only interact with the document), `report` is
+     * called with `domId` — plus the enclosing board's DOM id, so the
+     * viewer can attribute copy-produced components to the copy that
+     * authored them — and the viewer navigates to the component's source.
+     * On a drag release it's called with `null` regardless of modifiers, so
+     * the viewer suppresses the native click that follows without
+     * navigating. Deliberately not gated on `fixedRef`: navigation is an
+     * authoring aid and applies to fixed components too.
      */
     sourceNavigation?: SourceNavigationConfig;
 
@@ -331,7 +331,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
                 coordination.downOnTag.current !== tag
             )
         ) {
-            if (e.metaKey || e.ctrlKey) {
+            if (hasNavigationModifier(e)) {
                 reportNavigationClick();
             }
             if (!fixedRef.current) {
@@ -366,7 +366,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         // navigation gesture. No native click follows a keyboard Enter, so
         // the report can't be double-consumed; the next pointerdown clears
         // the skip flag anyway.
-        if (e.metaKey || e.ctrlKey) {
+        if (hasNavigationModifier(e)) {
             reportNavigationClick();
         }
         dispatchClick();
