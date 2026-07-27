@@ -10,6 +10,11 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../../utils/numberDisplay";
 import { getDataForAtom } from "../../utils/chemistry";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../../utils/contentLocale";
+import { elementName, periodicGroupName } from "../../utils/chemistryWords";
 
 export default class Atom extends InlineComponent {
     static componentType = "atom";
@@ -186,12 +191,17 @@ export default class Atom extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "dataForAtom",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let name;
 
                 if (dependencyValues.dataForAtom) {
-                    name = dependencyValues.dataForAtom.Name;
+                    name = elementName(
+                        contentTranslator(dependencyValues),
+                        dependencyValues.dataForAtom.Symbol,
+                        dependencyValues.dataForAtom.Name,
+                    );
                 } else {
                     name = null;
                 }
@@ -346,12 +356,16 @@ export default class Atom extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "dataForAtom",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let groupName;
 
                 if (dependencyValues.dataForAtom) {
-                    groupName = dependencyValues.dataForAtom["Group Name"];
+                    groupName = periodicGroupName(
+                        contentTranslator(dependencyValues),
+                        dependencyValues.dataForAtom["Group Name"],
+                    );
                 } else {
                     groupName = null;
                 }
@@ -645,13 +659,15 @@ export default class Atom extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "symbol",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let latex;
                 if (dependencyValues.symbol) {
                     latex = `\\text{${dependencyValues.symbol}}`;
                 } else {
-                    latex = "[\\text{Invalid Chemical Symbol}]";
+                    const t = contentTranslator(dependencyValues);
+                    latex = `[\\text{${t("chemistry-invalid-symbol")}}]`;
                 }
                 return {
                     setValue: { latex },
@@ -670,13 +686,15 @@ export default class Atom extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "symbol",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let text;
                 if (dependencyValues.symbol) {
                     text = dependencyValues.symbol;
                 } else {
-                    text = "[Invalid Chemical Symbol]";
+                    const t = contentTranslator(dependencyValues);
+                    text = `[${t("chemistry-invalid-symbol")}]`;
                 }
                 return {
                     setValue: { text },
