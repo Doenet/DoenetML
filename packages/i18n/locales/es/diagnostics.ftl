@@ -485,3 +485,89 @@ doenetml-version-not-found =
         [none] No se encontró la versión { $version } de DoenetML.
        *[other] No se encontró la versión { $version } de DoenetML. Se recurrirá a la versión { $fallback }
     }
+
+## Lectura del DoenetML
+
+# Estos mensajes citan el propio texto del autor —`$tag`, `$value`,
+# `$attribute`…—, que se reproduce tal cual.
+
+parse-invalid-doenetml = DoenetML no válido: { $content }
+
+parse-tag-missing-close-tag = DoenetML no válido: la etiqueta `{ $tag }` no tiene etiqueta de cierre. Se esperaba una etiqueta autocerrada o una etiqueta `</{ $tagName }>`.
+
+parse-tag-error = DoenetML no válido: error en la etiqueta `<{ $tagName }>`
+
+parse-attribute-missing-value = DoenetML no válido: parece que al atributo `{ $attribute }` le falta un valor.
+
+parse-attribute-invalid = DoenetML no válido: atributo no válido `{ $attribute }`
+
+parse-attribute-value-invalid = DoenetML no válido: valor de atributo no válido `{ $value }`
+
+# $quote es la comilla que cerraría el par: `"` o `'`.
+parse-attribute-value-quote-mismatch = DoenetML no válido: valor de atributo no válido `{ $value }`. Las comillas no coinciden. Parece que falta una `{ $quote }`
+
+parse-open-tag-name-missing = DoenetML no válido: se encontró una etiqueta sin nombre, por ejemplo `<`
+
+parse-tag-not-closed = DoenetML no válido: la etiqueta `{ $tag }` no se cerró (parece que falta un `>`).
+
+parse-self-closing-tag-name-missing = DoenetML no válido: se encontró una etiqueta sin nombre `<{ $content }>`
+
+parse-self-closing-tag-not-closed = DoenetML no válido: la etiqueta `{ $tag }` no se cerró (parece que falta `/>`).
+
+parse-tag-invalid-attributes = DoenetML no válido: la etiqueta `{ $tag }` no es válida. Puede que tenga atributos incorrectos.
+
+parse-close-tag-name-missing = DoenetML no válido: se encontró una etiqueta de cierre sin nombre, por ejemplo `</`
+
+parse-attribute-value-unquoted = Los valores de los atributos deben ir entre comillas: `{ $attribute }="{ $value }"`
+
+parse-close-tag-without-open-tag = DoenetML no válido: se encontró la etiqueta de cierre `{ $tag }`, pero no hay ninguna etiqueta de apertura que le corresponda
+
+parse-close-tag-mismatched = DoenetML no válido: la etiqueta de cierre no coincide. Se esperaba `</{ $expected }>`. Se encontró `{ $found }`
+
+parser-node-unconvertible = No se pudo convertir el nodo { $node } en un nodo Dast.
+
+## Nombres
+
+name-attribute-invalid =
+    Atributo name='{ $name }' no válido. { $reason ->
+        [characters] Los nombres solo pueden contener letras, números, guiones bajos o guiones.
+       *[start] Los nombres deben empezar por una letra.
+    }
+
+component-name-invalid-start = Nombre de componente "{ $name }" no válido. Los nombres deben empezar por una letra.
+
+## Azúcar sintáctico de `<answer>`
+
+answer-video-watched-missing-video = Un `<answer>` de tipo videoWatched debe tener un atributo video
+
+answer-video-watched-video-not-reference = Un `<answer>` de tipo videoWatched debe tener un atributo video que sea una referencia
+
+answer-name-not-single-text = El atributo name de `<answer>` debe tener un único hijo de texto
+
+## Referencias a otro documento
+
+external-doenetml-recursion-limit = No se pudo obtener el DoenetML externo por exceso de niveles de recursión. ¿Hay alguna referencia circular?
+
+external-doenetml-unavailable = No se pudo obtener el DoenetML de { $attribute }="{ $uri }"
+
+external-doenetml-type-mismatch = El DoenetML obtenido de { $attribute }="{ $uri }" no es válido: no coincide con el tipo de componente "{ $componentType }"
+
+## Sintaxis obsoleta
+
+# `[deprecation]` es una marca literal que abre los tres mensajes; se deja
+# igual. $component es `none` cuando el cambio de nombre vale para todos los
+# componentes que aceptan el atributo y nombrar uno sería engañoso.
+
+deprecated-attribute-renamed =
+    { $component ->
+        [none] [deprecation] El atributo `{ $from }` está obsoleto; usa `{ $to }` en su lugar.
+       *[other] [deprecation] El atributo `{ $from }` de `<{ $component }>` está obsoleto; usa `{ $to }` en su lugar.
+    }
+
+deprecated-attribute-renamed-conflict =
+    { $component ->
+        [none] [deprecation] El atributo `{ $from }` está obsoleto y se ignora porque también se especificó `{ $to }`.
+       *[other] [deprecation] El atributo `{ $from }` de `<{ $component }>` está obsoleto y se ignora porque también se especificó `{ $to }`.
+    }
+
+deprecated-attribute-ignored = [deprecation] El atributo `{ $attribute }` de `<{ $component }>` está obsoleto y se ignora.

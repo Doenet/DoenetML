@@ -1,4 +1,5 @@
 import { DastElement, DastError } from "../../types";
+import { codedDastError } from "../../coded-dast-error";
 
 export function answerSugar(node: DastElement) {
     if (node.name !== "answer") {
@@ -34,12 +35,12 @@ export function answerSugar(node: DastElement) {
 
         const videoAttr = node.attributes.video;
         if (!videoAttr) {
-            const dastError: DastError = {
-                type: "error",
+            const dastError: DastError = codedDastError({
+                code: "doenet-e0026",
                 message:
                     "Answer with type videoWatched must have a video attribute",
                 position: node.position,
-            };
+            });
 
             node.children.unshift(dastError);
 
@@ -48,12 +49,12 @@ export function answerSugar(node: DastElement) {
 
         const videoChildren = videoAttr.children;
         if (videoChildren.length !== 1 || videoChildren[0].type !== "macro") {
-            const dastError: DastError = {
-                type: "error",
+            const dastError: DastError = codedDastError({
+                code: "doenet-e0027",
                 message:
                     "Answer with type videoWatched must have video attribute that is a reference",
                 position: videoAttr.position,
-            };
+            });
             node.children.unshift(dastError);
 
             return;
@@ -119,11 +120,11 @@ export function answerSugar(node: DastElement) {
             answerNameAttr.children.length !== 1 ||
             answerNameAttr.children[0].type !== "text"
         ) {
-            const dastError: DastError = {
-                type: "error",
+            const dastError: DastError = codedDastError({
+                code: "doenet-e0028",
                 message: "Answer name attribute must have a single text child",
                 position: answerNameAttr.position,
-            };
+            });
             node.children.unshift(dastError);
             return;
         }

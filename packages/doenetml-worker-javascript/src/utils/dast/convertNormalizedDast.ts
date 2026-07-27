@@ -123,9 +123,23 @@ export async function normalizedDastToSerializedComponents(
                         node.errorType === "warning" ||
                         node.errorType === "info"
                     ) {
+                        // Empty unless the parser named this diagnostic by
+                        // code; the code and its arguments have ridden
+                        // through the Rust flattening on the DAST error node
+                        // (#1549). The English stays the parser's —
+                        // `DocViewer` re-renders it in the reader's language
+                        // on the way out.
+                        //
+                        // Bound to a local rather than spread in place, for
+                        // the reason given in `errorComponentState`: this
+                        // construction's severity is a variable, so the
+                        // burn-down never counted it, and a visible spread
+                        // would be credit against nothing.
+                        const codeAndArgs = diagnosticCodeFrom(node);
                         diagnostics.push({
                             type: node.errorType,
                             message: node.message,
+                            ...codeAndArgs,
                             position: node.position,
                             sourceDoc: node.sourceDoc,
                         });
@@ -164,11 +178,11 @@ export async function normalizedDastToSerializedComponents(
                             position: node.position,
                             sourceDoc: node.sourceDoc,
                             state: {
-                                // A `DastError` carries no code yet, so this
-                                // is the bare message today. It is the line
-                                // #1549 needs: once the parser names its
-                                // diagnostics, they reach the record through
-                                // here without this file changing again.
+                                // Reads the code and arguments off the DAST
+                                // error when the parser named one (#1549),
+                                // so the diagnostic the `_error` component
+                                // raises from this state is coded and can be
+                                // re-rendered in the reader's language.
                                 ...errorComponentState(node.message, node),
                                 unresolvedPath: node.unresolvedPath,
                             },

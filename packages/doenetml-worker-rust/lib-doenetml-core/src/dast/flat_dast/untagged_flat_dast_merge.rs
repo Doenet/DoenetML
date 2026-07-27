@@ -203,6 +203,11 @@ impl FlatRoot {
             message: node.message.clone(),
             unresolved_path: None,
             error_type: node.error_type.unwrap_or_default(),
+            // Carried straight through: the core reads neither, but the
+            // worker on the far side needs both to re-render the message
+            // in the reader's language (#1518).
+            code: node.code.clone(),
+            args: node.args.clone(),
             position: node.position.clone(),
             source_doc: node.source_doc,
             parent,

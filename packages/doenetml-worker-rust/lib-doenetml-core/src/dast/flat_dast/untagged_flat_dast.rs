@@ -7,7 +7,7 @@ use std::{collections::HashMap, fmt::Display, num::ParseIntError};
 use serde::{Deserialize, Serialize};
 use tsify_next::{Tsify, declare};
 
-use crate::dast::DastRoot;
+use crate::dast::{DastRoot, DiagnosticArgs};
 
 use super::{
     super::{Position, ref_resolve::RefResolution},
@@ -213,6 +213,15 @@ pub struct FlatError {
     pub parent: Option<Index>,
     pub message: String,
     pub error_type: ErrorType,
+    /// See [`crate::dast::DastError::code`]. Carried from the DAST node this
+    /// was flattened from, and untouched by anything in the core.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// The values filling [`Self::code`]'s message in. See
+    /// [`crate::dast::DiagnosticArgs`].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "web", tsify(type = "Record<string, unknown>"))]
+    pub args: Option<DiagnosticArgs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unresolved_path: Option<Vec<FlatPathPart>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -228,6 +237,8 @@ impl FlatError {
             parent: None,
             message,
             error_type: ErrorType::Error,
+            code: None,
+            args: None,
             unresolved_path: None,
             position: None,
             source_doc: None,
@@ -318,6 +329,8 @@ impl Default for FlatNode {
             parent: None,
             message: "DEFAULT NODE".to_string(),
             error_type: ErrorType::Error,
+            code: None,
+            args: None,
             unresolved_path: None,
             position: None,
             source_doc: None,

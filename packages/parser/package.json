@@ -49,10 +49,13 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
-                "../static-assets:build"
+                "../static-assets:build",
+                "../i18n:build"
             ]
         }
     },
     "dependencies": {},
-    "devDependencies": {}
+    "devDependencies": {
+        "@doenet/i18n": "*"
+    }
 }

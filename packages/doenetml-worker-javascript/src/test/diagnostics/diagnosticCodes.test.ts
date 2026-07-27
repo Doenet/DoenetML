@@ -380,4 +380,54 @@ describe("coded diagnostics reach the record @group4", () => {
             "Invalid value `new1` for attribute `format`, using value `text`",
         );
     });
+
+    // The two tests below are the only ones here whose diagnostic is not
+    // raised in this package at all. `@doenet/parser` names it, writes the
+    // English itself (it cannot render from the catalogs — see
+    // `packages/parser/src/coded-dast-error.ts`), and hangs both on a DAST
+    // error node; the code and arguments then travel through the Rust
+    // flattening as `FlatError.code`/`.args` and are picked back up in
+    // `convertNormalizedDast`. Nothing in the core reads either, which is
+    // exactly why the trip needs a test at each end: Rust has one for the
+    // flattening, and these are the far side of it (#1549).
+
+    it("keeps a parser warning's code across the flattening", async () => {
+        // A deprecation notice: a DAST error node with `errorType: "warning"`,
+        // which becomes a diagnostic record directly rather than an `_error`
+        // component.
+        const { core } = await createTestCore({
+            doenetML: `<selectFromSequence from="1" to="3" sortResults="true" />`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0108");
+        // `component` is `"selectFromSequence"` rather than absent because the
+        // catalog selects on it; a rename that names no component passes
+        // `"none"`, the select's other branch.
+        expect(warnings[0].args).eqls({
+            component: "selectFromSequence",
+            from: "sortResults",
+            to: "sort",
+        });
+        expect(warnings[0].message).eq(
+            "[deprecation] Attribute `sortResults` on `<selectFromSequence>` is deprecated; use `sort` instead.",
+        );
+    });
+
+    it("keeps a parser error's code across the flattening", async () => {
+        // The longer path: a DAST error node becomes an `_error` component,
+        // and `ComponentBuilder` raises the diagnostic from its `state` — so
+        // this also checks that `errorComponentState` carried the code onto
+        // the component rather than dropping it there.
+        const { core } = await createTestCore({ doenetML: `<p>hello` });
+
+        const { errors } = getDiagnosticsByType(core);
+        expect(errors.length).eq(1);
+        expect(errors[0].code).eq("doenet-e0008");
+        expect(errors[0].args).eqls({ tag: "<p>", tagName: "p" });
+        expect(errors[0].message).eq(
+            "Invalid DoenetML: The tag `<p>` has no closing tag. Expected a self-closing tag or a `</p>` tag.",
+        );
+    });
 });

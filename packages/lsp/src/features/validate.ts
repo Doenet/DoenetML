@@ -217,6 +217,18 @@ export function addValidationSupport(
                         error.position?.end?.offset || 0,
                     ),
                 },
+                // The stable name of the situation, when the parser gave it
+                // one (#1549), and the arguments that fill the message in.
+                // The server renders nothing — `message` above is the English
+                // the parser wrote — so these are here for what reads them
+                // downstream: `dedupeLspDiagnostics` needs both to recognize
+                // this record and the worker's re-rendered echo of it as one
+                // diagnostic, and `code` is where a client looks for the name
+                // to show or to link (#1548).
+                ...(error.code === undefined ? {} : { code: error.code }),
+                ...(error.args === undefined
+                    ? {}
+                    : { data: { args: error.args } }),
             };
             if (config.hasDiagnosticRelatedInformationCapability) {
                 diagnostic.relatedInformation = [];
@@ -226,8 +238,6 @@ export function addValidationSupport(
 
         const schemaErrors = await info.autoCompleter.getSchemaViolations();
         diagnostics.push(...schemaErrors);
-
-        diagnostics.push(...info.additionalDiagnostics);
 
         // Dedupe within each severity+range pair before sending. Two
         // records collapse when they agree on their message, or — for
@@ -240,7 +250,19 @@ export function addValidationSupport(
         // `additionalDiagnostics`, so without this pass the editor's
         // hover renders the same record twice (the Diagnostics tab
         // already dedupes via Core's `DiagnosticsManager`).
-        const deduped = dedupeLspDiagnostics(diagnostics);
+        //
+        // The worker's copies go first because the dedupe keeps the first of
+        // each pair, and of the two copies of a parser error only the worker's
+        // has been through `DocViewer` and rendered in the reader's language.
+        // Keeping the server's copy instead would leave the hover in English
+        // while the Diagnostics tab beside it showed the same error
+        // translated. Nothing downstream depends on the order — clients sort
+        // diagnostics by position — so this decides only which of two
+        // renderings of one error survives.
+        const deduped = dedupeLspDiagnostics([
+            ...info.additionalDiagnostics,
+            ...diagnostics,
+        ]);
 
         // Send the computed diagnostics to VSCode.
         connection.sendDiagnostics({

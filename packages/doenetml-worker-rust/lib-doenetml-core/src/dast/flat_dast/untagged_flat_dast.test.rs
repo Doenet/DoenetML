@@ -162,3 +162,39 @@ fn calculate_children_position() {
         )
     );
 }
+
+/// The wire format for a coded parser diagnostic, end to end: `@doenet/parser`
+/// writes `code`/`args` on the DAST error node, that JSON is deserialized into
+/// a `DastError` here, and flattening has to hand both to the `FlatError` the
+/// worker reads on the far side (#1549). The core never looks at either — this
+/// is the test that says so, because a field nothing reads is exactly the kind
+/// that gets dropped by a refactor and missed.
+#[test]
+fn flattening_carries_a_parser_diagnostic_code() {
+    // An unclosed `<p>`, which the parser reports as `doenet-e0008` with the
+    // tag and the tag name filling the message in.
+    let dast_root = dast_root_no_position("<p>hello");
+    let flat_root = FlatRoot::from_dast(&dast_root);
+
+    let error = flat_root
+        .nodes
+        .iter()
+        .find_map(|node| match node {
+            FlatNode::Error(error) => Some(error),
+            _ => None,
+        })
+        .expect("an unclosed tag should have flattened to an error node");
+
+    assert_eq!(error.code.as_deref(), Some("doenet-e0008"));
+    assert_eq!(
+        error
+            .args
+            .as_ref()
+            .and_then(|args| args.get("tagName"))
+            .and_then(|value| value.as_str()),
+        Some("p")
+    );
+    // The English the parser wrote rides along unchanged, so anything without
+    // the message catalogs still has something to show.
+    assert!(error.message.starts_with("Invalid DoenetML: The tag `<p>`"));
+}

@@ -22,6 +22,12 @@ import type {
     Node as UnistNode,
     Parent as UnistParent,
 } from "unist";
+// Types only, and deliberately so: `@doenet/i18n` is a devDependency here
+// because `@doenet/parser` is inside the language-server bundle, where a
+// message catalog is dead weight (`packages/lsp/scripts/check-server-bundle.mjs`).
+// `import type` is erased before bundling, so this costs nothing at runtime
+// while still checking every code the parser names against the registry.
+import type { DiagnosticArgs, DiagnosticCode } from "@doenet/i18n";
 import type {
     FunctionMacro as _FunctionMacro,
     Macro as _Macro,
@@ -402,6 +408,21 @@ export interface DastError extends DastAbstractNode {
     message: string;
     error_type?: "error" | "warning" | "info";
     data?: ErrorData;
+    /**
+     * The stable name of what went wrong, when the producing site named it.
+     *
+     * `message` stays the English the parser wrote; this is what lets it be
+     * re-rendered in the reader's language somewhere that has the catalogs.
+     * Both halves travel: through the Rust flattening into the worker's
+     * `_error` pipeline, and — via `extractDastErrors` — into the language
+     * server's LSP diagnostics. See {@link codedDastError} for why the parser
+     * writes the English itself rather than rendering it from a catalog.
+     *
+     * Optional, and absent on an error that has not been given a code.
+     */
+    code?: DiagnosticCode;
+    /** The values filling `code`'s blanks, absent when it has none. */
+    args?: DiagnosticArgs;
 }
 
 export interface ErrorData extends Data {}

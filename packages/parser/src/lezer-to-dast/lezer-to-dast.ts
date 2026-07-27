@@ -22,6 +22,7 @@ import {
     findBareAttributeValuePairs,
     unquotedAttributeValueMessage,
 } from "../detect-bare-attribute-pairs";
+import { codedDastError } from "../coded-dast-error";
 import { createErrorNode } from "./create-error-node";
 import {
     OffsetToPositionMap,
@@ -244,14 +245,20 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         // that filter trips here instead of silently
                         // emitting a 0-length error at the document
                         // start.
-                        children.push({
-                            type: "error",
-                            message: unquotedAttributeValueMessage(
-                                pair.assignAttr.name,
-                                pair.valueAttr.name,
-                            ),
-                            position: pair.valueAttr.position!,
-                        });
+                        children.push(
+                            codedDastError({
+                                code: "doenet-e0020",
+                                message: unquotedAttributeValueMessage(
+                                    pair.assignAttr.name,
+                                    pair.valueAttr.name,
+                                ),
+                                args: {
+                                    attribute: pair.assignAttr.name,
+                                    value: pair.valueAttr.name,
+                                },
+                                position: pair.valueAttr.position!,
+                            }),
+                        );
                         continue;
                     }
                     if (pairedAssignAttrs.has(dastAttr)) {
@@ -400,33 +407,18 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 const parent = node.parent;
                 const openTag = parent?.getChild(OpenTag);
                 const closeTag = parent?.getChild(CloseTag);
-                if (!parent || !openTag) {
-                    const message = `Invalid DoenetML: Found closing tag \`${extractContent(
-                        node,
-                        source,
-                    )}\`, but no corresponding opening tag`;
+                const tag = extractContent(node, source);
+                // Nothing this could be closing: either there is no open tag
+                // at all, or the element already has its own close tag and
+                // this one is a stray. E.g. `<foo></bar></foo>`.
+                if (!parent || !openTag || closeTag) {
                     return [
-                        {
-                            type: "error",
-                            message,
+                        codedDastError({
+                            code: "doenet-e0021",
+                            message: `Invalid DoenetML: Found closing tag \`${tag}\`, but no corresponding opening tag`,
+                            args: { tag },
                             position: lezerNodeToPosition(node, offsetMap),
-                        },
-                    ];
-                }
-                // If we have a parent, check to see if we also have a close tag.
-                // This could arise in code like `<foo></bar></foo>`
-                if (closeTag) {
-                    const message = `Invalid DoenetML: Found closing tag \`${extractContent(
-                        node,
-                        source,
-                    )}\`, but no corresponding opening tag`;
-
-                    return [
-                        {
-                            type: "error",
-                            message,
-                            position: lezerNodeToPosition(node, offsetMap),
-                        },
+                        }),
                     ];
                 }
                 // In this case, there was an open tag, a mismatched close tag, but no actual close tag.
@@ -435,17 +427,14 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 const openTagName = tagNameTag
                     ? extractContent(tagNameTag, source)
                     : "";
-                const message = `Invalid DoenetML: Mismatched closing tag. Expected \`</${openTagName}>\`. Found \`${extractContent(
-                    node,
-                    source,
-                )}\``;
 
                 return [
-                    {
-                        type: "error",
-                        message,
+                    codedDastError({
+                        code: "doenet-e0022",
+                        message: `Invalid DoenetML: Mismatched closing tag. Expected \`</${openTagName}>\`. Found \`${tag}\``,
+                        args: { expected: openTagName, found: tag },
                         position: lezerNodeToPosition(node, offsetMap),
-                    },
+                    }),
                 ];
             }
             case "MissingCloseTag":

@@ -1,5 +1,6 @@
 import { Plugin } from "unified";
 import { DastElement, DastError, DastRoot } from "../types";
+import { codedDastError } from "../coded-dast-error";
 import { visit } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 import { toXml } from "..";
@@ -30,11 +31,12 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
             if (startsWithNonLetter(node.name) && node.name !== "_error") {
                 const name = node.name;
                 // Convert this element into an error element
-                const dastError: DastError = {
-                    type: "error",
+                const dastError: DastError = codedDastError({
+                    code: "doenet-e0024",
                     message: `Invalid component name "${name}". Names must start with a letter.`,
+                    args: { name },
                     position: node.position,
-                };
+                });
 
                 // Replace this element with an `_error` element
                 if (info.index !== undefined && info.parents[0]) {
@@ -58,12 +60,18 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                 const invalidChar = containsInvalidNameCharacters(name);
 
                 if (nonLetter || invalidChar) {
+                    // The reason travels as a key, not as the English half-
+                    // sentence it used to be pasted from: a translation has to
+                    // be free to reorder the whole sentence, which it cannot do
+                    // if half of it arrives as an argument.
+                    const reason = nonLetter ? "start" : "characters";
                     const message = `Invalid attribute name='${name}'. ${nonLetter ? "Names must start with a letter." : "Names can contain only letters, numbers, underscores or hyphens."}`;
-                    const dastError: DastError = {
-                        type: "error",
+                    const dastError: DastError = codedDastError({
+                        code: "doenet-e0025",
                         message,
+                        args: { name, reason },
                         position: node.attributes.name?.position,
-                    };
+                    });
 
                     // Remove the `name` attribute and insert an `_error` element right after this element
                     delete node.attributes.name;
