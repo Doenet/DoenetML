@@ -208,3 +208,55 @@ style-text =
 
 # What `backgroundColor` answers when nothing is drawn behind the text.
 style-background-none = none
+
+
+## Boolean words
+##
+## What a `<boolean>` or `<booleanInput>` *displays*.
+##
+## Not what it parses or serializes. `true` and `false` are DoenetML syntax —
+## an author writes them in the source, `<award>` compares against them, and
+## saved state stores them — so they stay English everywhere, in every
+## language, exactly as `<` stays `<`. Only the word the reader sees moves.
+##
+## The consequence is that a value has two spellings in a translated document,
+## and both have to be accepted where one is read back in: see
+## `booleanFromWord` in the worker.
+
+boolean-true = true
+boolean-false = false
+
+
+## Answer buttons
+##
+## The default text on an answer's submit button. Only the *default* is
+## translated: an author who writes `submitLabel="Ready?"` gets "Ready?" in
+## every locale, because they chose those words for their document and a
+## translation of it is not Doenet's to make.
+
+# Shown when the answer will report whether the response was right.
+answer-submit-label = Check Work
+
+# Shown when it will not — the reader submits, and is told nothing more.
+answer-submit-label-no-correctness = Submit Response
+
+
+## Piecewise functions
+##
+## `<piecewiseFunction>` renders each branch's domain as mathematics and writes
+## these three words around it: "if 1 < x < 2 or 4 < x < 5", and "otherwise"
+## for the branch that catches what the others leave. The inequalities are
+## notation and stay as they are; these are prose, and are read aloud as prose.
+##
+## `or` is the only conjunction the core composes into content. Everything else
+## that reads as "a, b, and c" is a diagnostic, and those are joined by
+## `Intl.ListFormat` at the moment the reader's language is known rather than
+## by a catalog word (see `DiagnosticListArg`).
+
+piecewise-condition-or = or
+
+# Introduces the domain a branch applies on; the mathematics follows it.
+piecewise-condition-if = if
+
+# The last branch, which applies wherever none of the earlier ones do.
+piecewise-condition-otherwise = otherwise

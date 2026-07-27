@@ -18,6 +18,12 @@ displayed anywhere a text value is accepted. Pluralization uses the
 [`compromise`](https://compromise.cool/) NLP library and handles common
 English irregulars (`mouse → mice`, `goose → geese`, `pony → ponies`).
 
+**English only.** That model has no equivalent for an arbitrary language, so in
+a document written in another language automatic pluralization is skipped and a
+warning is raised. The [`pluralForm`](#attribute-example-pluralform) attribute
+still works in every language — supply the plural yourself and
+`basedOnNumber` will choose between the two forms.
+
 
 <AttrPropDisplay name='pluralize'/>
 

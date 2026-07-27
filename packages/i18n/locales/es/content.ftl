@@ -197,3 +197,25 @@ style-text =
     }
 
 style-background-none = ninguno
+
+
+## Palabras booleanas
+##
+## `true` y `false` siguen siendo sintaxis de DoenetML y no se traducen; aquí
+## solo se traduce la palabra que lee quien usa el documento.
+
+boolean-true = verdadero
+boolean-false = falso
+
+
+## Botones de respuesta
+
+answer-submit-label = Revisar
+answer-submit-label-no-correctness = Enviar respuesta
+
+
+## Funciones definidas a trozos
+
+piecewise-condition-or = o
+piecewise-condition-if = si
+piecewise-condition-otherwise = en otro caso

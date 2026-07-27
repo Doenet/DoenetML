@@ -7883,6 +7883,31 @@ What is the derivative of <function name="f">x^2</function>?
         ).eqls(["description", "label", "award"]);
     });
 
+    it("exposes the resolved correctness settings, not the raw attribute values", async () => {
+        // Each attribute writes a `…Preliminary` variable so the resolved
+        // definition can tell an unspecified attribute from a specified one
+        // and fall back to the ancestor. Those raw variables are plumbing;
+        // the resolved names are the properties an author references.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans" colorCorrectness="false" showCorrectness="false">x</answer>
+    <text name="colorResolved" extend="$ans.colorCorrectness" />
+    <text name="colorRaw" extend="$ans.colorCorrectnessPreliminary" />
+    <text name="showResolved" extend="$ans.showCorrectness" />
+    <text name="showRaw" extend="$ans.showCorrectnessPreliminary" />
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const value = async (name) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.value;
+
+        expect(await value("colorResolved")).eq("false");
+        expect(await value("showResolved")).eq("false");
+        expect(await value("colorRaw")).eq("");
+        expect(await value("showRaw")).eq("");
+    });
+
     it("color correctness set on sugared inputs", async () => {
         const doenetML = `
     <answer name="ans1">x</answer>

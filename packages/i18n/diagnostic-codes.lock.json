@@ -181,5 +181,6 @@
     "doenet-w0107": "children-invalid",
     "doenet-w0108": "deprecated-attribute-renamed",
     "doenet-w0109": "deprecated-attribute-renamed-conflict",
-    "doenet-w0110": "deprecated-attribute-ignored"
+    "doenet-w0110": "deprecated-attribute-ignored",
+    "doenet-w0111": "pluralize-english-only"
 }

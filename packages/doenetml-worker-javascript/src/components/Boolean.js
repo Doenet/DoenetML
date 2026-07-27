@@ -5,6 +5,11 @@ import {
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
 import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
+import { booleanFromWord, booleanWord } from "../utils/booleanWords";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../utils/contentLocale";
 
 export default class BooleanComponent extends InlineComponent {
     static componentType = "boolean";
@@ -411,7 +416,7 @@ export default class BooleanComponent extends InlineComponent {
 
         stateVariableDefinitions.text = {
             description:
-                'The boolean rendered as a text string ("true" or "false").',
+                'The boolean rendered as a text string ("true" or "false", in the document\'s language).',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -422,25 +427,28 @@ export default class BooleanComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "value",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition: function ({ dependencyValues }) {
                 return {
                     setValue: {
-                        text: dependencyValues.value ? "true" : "false",
+                        text: booleanWord(
+                            dependencyValues.value,
+                            contentTranslator(dependencyValues),
+                        ),
                     },
                 };
             },
-            inverseDefinition({ desiredStateVariableValues }) {
-                let desiredText = String(
+            inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                // Either spelling: the reader hands back the word they were
+                // shown, an author's own DoenetML hands back the syntax.
+                let desiredBoolean = booleanFromWord(
                     desiredStateVariableValues.text,
-                ).toLowerCase();
-
-                let desiredBoolean;
-                if (desiredText === "true") {
-                    desiredBoolean = true;
-                } else if (desiredText === "false") {
-                    desiredBoolean = false;
-                }
+                    contentTranslator(dependencyValues),
+                );
 
                 if (desiredBoolean !== undefined) {
                     return {

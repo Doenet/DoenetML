@@ -2,6 +2,21 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { LoremIpsum } from "lorem-ipsum";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 
+/**
+ * Latin in every language, deliberately.
+ *
+ * `<lorem>` is placeholder text: its job is to have the shape of prose and
+ * none of its meaning, so that whoever is looking at the page reads the
+ * layout instead of the words. Lorem ipsum does that in every language,
+ * which is why typesetters in every language use it — a "translated" one
+ * would be text a Spanish reader could almost read, which is the one thing
+ * placeholder text must not be.
+ *
+ * So this component is left out of the content localization (#1519), and no
+ * warning goes with it: nothing was asked for that wasn't delivered. That is
+ * the difference from `<pluralize>`, which is also English-only but silently
+ * *fails* to do its job outside English, and says so.
+ */
 export default class Lorem extends CompositeComponent {
     static componentType = "lorem";
 

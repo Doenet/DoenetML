@@ -12,6 +12,7 @@ import {
     submitAllAnswers,
 } from "../utils/scoredSection";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { returnSubmitLabelStateVariableDefinitions } from "../utils/answer";
 
 export default class Document extends BaseComponent {
     constructor(args) {
@@ -137,6 +138,20 @@ export default class Document extends BaseComponent {
         // the scores of its children, so it drops the opt-in `aggregateScores`
         // state variable.
         delete stateVariableDefinitions.aggregateScores;
+
+        // The shared submit labels read the *enclosing* document's language,
+        // which is right for everything inside a document and wrong for the
+        // document itself: an ancestor dependency skips the component it runs
+        // on, so a root `<document lang="es">` would label its own
+        // section-wide check-work button against the host's locale rather than
+        // the one it declares. Re-take them, reading its own `locale`.
+        Object.assign(
+            stateVariableDefinitions,
+            returnSubmitLabelStateVariableDefinitions({
+                ownLocale: true,
+                button: "the section-wide submit button",
+            }),
+        );
 
         stateVariableDefinitions.titleChildName = {
             forRenderer: true,

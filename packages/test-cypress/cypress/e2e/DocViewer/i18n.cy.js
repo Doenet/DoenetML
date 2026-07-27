@@ -414,9 +414,13 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             // Phase 1 miss and should be extracted instead of listed.
             const KNOWN_UNTRANSLATED = [
                 // `submitLabel` / `submitLabelNoCorrectness` — the check-work
-                // button's resting label. Public authorable attributes, so
-                // translating the default also needs a rule for not
-                // overwriting a label the author wrote.
+                // button's resting label. These *are* translated as of #1519,
+                // but against `documentLocale`, and this sweep only
+                // pseudo-localizes `uiLocale`: the pseudo-locale is derived
+                // from the English chrome catalog and the content side has no
+                // equivalent, so a `documentLocale` of `en-XA` negotiates
+                // straight back to English. Deleting these two entries needs a
+                // pseudo content catalog first, not another extraction.
                 // (doenetml-worker-javascript/src/utils/answer.js)
                 /Check Work/g,
                 /Submit Response/g,

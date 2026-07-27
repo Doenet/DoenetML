@@ -34,6 +34,7 @@
  */
 import { DEFAULT_LOCALE } from "./catalogs";
 import type { MessageKey } from "./generated/messageKeys";
+import { listFormatFor } from "./intl";
 import { createTranslator, type Translator } from "./translator";
 
 /**
@@ -194,6 +195,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0108": "deprecated-attribute-renamed",
     "doenet-w0109": "deprecated-attribute-renamed-conflict",
     "doenet-w0110": "deprecated-attribute-ignored",
+    "doenet-w0111": "pluralize-english-only",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -325,37 +327,6 @@ function asListArg(value: unknown): DiagnosticListArg | undefined {
         return Array.isArray(candidate.list) ? candidate : undefined;
     }
     return undefined;
-}
-
-const LIST_TYPES: readonly string[] = ["conjunction", "disjunction", "unit"];
-
-/**
- * An `Intl.ListFormat` for `locale`, falling back to English for a tag `Intl`
- * refuses.
- *
- * Nothing upstream promises a well-formed tag. `normalizeLocaleTag` leaves an
- * unparseable one alone on purpose, and negotiation keeps it so the host's own
- * catalog can still be found, so a host that supplies its catalogs under
- * `en_US` — the POSIX spelling, and the usual way to get this wrong — reaches
- * a constructor that throws `RangeError`. Joining that list in English is a
- * cosmetic loss; throwing would take the diagnostic down, and with it the core
- * result it arrived on.
- *
- * The `type` is checked rather than passed on for the same reason: an
- * unrecognized one throws too, and would throw again out of the fallback.
- */
-function listFormatFor(locale: string, type: unknown): Intl.ListFormat {
-    const options: Intl.ListFormatOptions = {
-        style: "long",
-        type: LIST_TYPES.includes(type as string)
-            ? (type as DiagnosticListArg["type"])
-            : "conjunction",
-    };
-    try {
-        return new Intl.ListFormat(locale, options);
-    } catch {
-        return new Intl.ListFormat(DEFAULT_LOCALE, options);
-    }
 }
 
 /**

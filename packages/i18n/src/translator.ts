@@ -1,6 +1,7 @@
 import { FluentBundle, FluentResource } from "@fluent/bundle";
 
 import { DEFAULT_LOCALE, EN_CATALOG_SOURCE } from "./catalogs";
+import { intlLocale } from "./intl";
 
 /**
  * Arguments substituted into a message's placeables (`{ $count }`).
@@ -81,41 +82,21 @@ function lookupPattern(bundle: FluentBundle, key: string) {
     return message.attributes[attribute] ?? null;
 }
 
-/**
- * The tag a bundle should hand to `Intl`, which is not always the tag its
- * catalog is filed under.
- *
- * A locale tag does two jobs here: it keys the catalog, and it names the
- * language `Intl` counts and formats in. They come apart for a tag `Intl`
- * refuses — `en_US`, the POSIX spelling, is the usual way a host gets one
- * wrong, and `normalizeLocaleTag` passes it through untouched because
- * rewriting it would stop the host's own catalog from being found.
- *
- * Fluent builds its `Intl.PluralRules` from `bundle.locales`, and unlike its
- * number formatting it does not degrade when that constructor throws: the
- * `RangeError` is recorded as a formatting error and the whole message
- * resolves to `{???}`. So a bundle formats under English whenever its tag is
- * one `Intl` cannot parse. That loses the locale's counting and number
- * conventions — which were never available for such a tag anyway — and keeps
- * the host's own words, which are the part that was really asked for.
- */
-function intlFormattingLocale(locale: string): string {
-    try {
-        // Throws `RangeError` for a structurally invalid tag — the same tags,
-        // and the same error, every `Intl` constructor rejects.
-        Intl.getCanonicalLocales(locale);
-        return locale;
-    } catch {
-        return DEFAULT_LOCALE;
-    }
-}
-
 /** A locale's catalog, with the tag it was filed under. */
 type ChainLink = {
     /**
      * The tag as the caller wrote it, which is what {@link Translator.localeOf}
      * reports and what an error is attributed to — not necessarily the tag the
-     * bundle formats under. See {@link intlFormattingLocale}.
+     * bundle formats under. See {@link intlLocale}.
+     *
+     * Fluent builds its `Intl.PluralRules` from `bundle.locales`, and unlike
+     * its number formatting it does not degrade when that constructor throws:
+     * the `RangeError` is recorded as a formatting error and the whole message
+     * resolves to `{???}`. So a bundle formats under English whenever its tag
+     * is one `Intl` cannot parse. That loses the locale's counting and number
+     * conventions — which were never available for such a tag anyway — and
+     * keeps the host's own words, which are the part that was really asked
+     * for.
      */
     locale: string;
     bundle: FluentBundle;
@@ -127,7 +108,7 @@ function createChainLink(
     useIsolating: boolean,
     onError: CreateTranslatorOptions["onError"],
 ): ChainLink {
-    const bundle = new FluentBundle(intlFormattingLocale(locale), {
+    const bundle = new FluentBundle(intlLocale(locale), {
         useIsolating,
     });
     const errors = bundle.addResource(new FluentResource(source));

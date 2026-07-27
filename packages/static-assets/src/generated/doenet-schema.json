@@ -2503,22 +2503,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -2557,6 +2541,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -2567,6 +2563,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -3039,22 +3047,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -3093,6 +3085,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -3103,6 +3107,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -3575,22 +3591,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -3629,6 +3629,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -3639,6 +3651,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -4312,22 +4336,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -4366,6 +4374,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -4376,6 +4396,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -7565,7 +7597,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 },
                 {
                     "name": "value",
@@ -7960,7 +7992,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -8349,7 +8381,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -8738,7 +8770,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -9127,7 +9159,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -9516,7 +9548,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -9969,7 +10001,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -10422,7 +10454,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -10905,7 +10937,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -37735,22 +37767,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -37845,6 +37861,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -37855,6 +37883,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -38498,22 +38538,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -38608,6 +38632,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -38618,6 +38654,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -39261,22 +39309,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -39371,6 +39403,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -39381,6 +39425,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -40024,22 +40080,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -40134,6 +40174,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -40144,6 +40196,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -40796,22 +40860,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -40906,6 +40954,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -40916,6 +40976,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -41559,22 +41631,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -41669,6 +41725,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -41679,6 +41747,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -42331,22 +42411,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -42441,6 +42505,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -42451,6 +42527,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -43103,22 +43191,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -43213,6 +43285,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -43223,6 +43307,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -43875,22 +43971,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -43985,6 +44065,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -43995,6 +44087,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -44647,22 +44751,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -44757,6 +44845,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -44767,6 +44867,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -45410,22 +45522,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -45520,6 +45616,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -45530,6 +45638,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -46173,22 +46293,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -46283,6 +46387,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -46293,6 +46409,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -46936,22 +47064,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -47046,6 +47158,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -47056,6 +47180,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -47699,22 +47835,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -47809,6 +47929,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -47819,6 +47951,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -48462,22 +48606,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -48572,6 +48700,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -48582,6 +48722,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -49225,22 +49377,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -49335,6 +49471,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -49345,6 +49493,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -49992,22 +50152,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -50095,6 +50239,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -50105,6 +50261,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -50742,22 +50910,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -50845,6 +50997,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -50855,6 +51019,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -51492,22 +51668,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -51595,6 +51755,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -51605,6 +51777,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -51888,22 +52072,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -51942,6 +52110,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -51952,6 +52132,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -52211,22 +52403,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -52265,6 +52441,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -52275,6 +52463,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -52746,22 +52946,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -52800,6 +52984,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -52810,6 +53006,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -60647,22 +60855,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -60701,6 +60893,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -60711,6 +60915,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -61183,22 +61399,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -61237,6 +61437,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -61247,6 +61459,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -64758,22 +64982,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -64812,6 +65020,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -64822,6 +65042,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "creditAchieved",
@@ -65913,22 +66145,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -65967,6 +66183,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -65977,6 +66205,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",
@@ -66470,7 +66710,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -80808,22 +81048,6 @@
                     "groupName": "answer-grading"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "answer-grading"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "answer-grading"
-                },
-                {
                     "name": "displayDigitsForResponses",
                     "type": "integer",
                     "isArray": false,
@@ -81054,6 +81278,30 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the submit button when correctness is not shown."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the submitted response, after combining the attribute with hand-grading, any enclosing section's setting, and the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the response is color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "creditAchieved",
@@ -82276,7 +82524,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": false,
@@ -84136,7 +84384,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The current value rendered as a text string (\"true\" or \"false\")."
+                    "description": "The current value rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -103462,14 +103710,14 @@
                     "name": "value",
                     "type": "intComma",
                     "isArray": false,
-                    "description": "The numeric value with thousands separators."
+                    "description": "The numeric value, grouped as the document's language groups digits."
                 }
             ],
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "intComma",
-            "summary": "Renders a numeric value with thousands separators (e.g. 1,000,000)",
+            "summary": "Renders a numeric value with the thousands separators of the document's language (e.g. 1,000,000)",
             "layoutCategory": "inline"
         },
         {
@@ -103961,7 +104209,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "pluralize",
-            "summary": "Renders a word in its singular or plural form based on a count",
+            "summary": "Renders a word in its singular or plural form based on a count (English only)",
             "layoutCategory": "inline"
         },
         {
@@ -114418,7 +114666,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 }
             ],
             "top": true,
@@ -115711,7 +115959,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The boolean rendered as a text string (\"true\" or \"false\")."
+                    "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
                 },
                 {
                     "name": "numMatches",
@@ -118701,22 +118949,6 @@
                     "groupName": "answer-grading"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "answer-grading"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "answer-grading"
-                },
-                {
                     "name": "displayDigitsForResponses",
                     "type": "integer",
                     "isArray": false,
@@ -118769,6 +119001,30 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the submit button when correctness is not shown."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the submitted response, after combining the attribute with hand-grading, any enclosing section's setting, and the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the response is color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "creditAchieved",
@@ -119470,22 +119726,6 @@
                     "groupName": "scoring"
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -119573,6 +119813,18 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the section-wide submit button when correctness is not shown."
+                },
+                {
                     "name": "numSubmissions",
                     "type": "integer",
                     "isArray": false,
@@ -119583,6 +119835,18 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Remaining number of section-wide submissions before the maximum is reached."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
                 },
                 {
                     "name": "aggregateScores",

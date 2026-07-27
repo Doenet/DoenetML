@@ -163,6 +163,25 @@ factory for the matching translator.
 Those state variables stay **computed, never essential**, so a locale change
 recomputes them and no English is written into saved state.
 
+The wiring is packaged as `returnContentLocaleDependencies` /
+`contentTranslator` in the worker's `utils/contentLocale.js`. Bind the
+translator to `t` and pass a literal key, or `lint:i18n` cannot see the use:
+
+```js
+returnDependencies: () => ({
+    value: { dependencyType: "stateVariable", variableName: "value" },
+    ...returnContentLocaleDependencies(),
+}),
+definition({ dependencyValues }) {
+    const t = contentTranslator(dependencyValues);
+    return { setValue: { text: t("some-key") } };
+},
+```
+
+An ancestor dependency skips the component it runs on, which is what lets a
+nested `<document>` detect that it is nested — so `<document>` itself passes
+`{ ownLocale: true }` to read the language it declares rather than the host's.
+
 ### Composition, not substitution
 
 `@doenet/utils/style/styleDescriptions.ts` is the worked example of a phrase
@@ -438,9 +457,17 @@ select expressions are left untouched, so the output is a working catalog.
 
 Math-context numbers keep `.` as the decimal separator regardless of locale,
 until the deferred math-notation phase decides otherwise; changing it would
-alter answers, not just their presentation. Only prose counts localize, via
-Fluent's `Intl.NumberFormat` integration — which is why `TranslationArgs`
-accepts a real `number` rather than a pre-formatted string.
+alter answers, not just their presentation. `MATH_NOTATION_LOCALE` in
+`src/intl.ts` is where that policy is written down, so a number formatted in
+English is a decision with a name rather than an omission.
+
+Prose numbers do localize. Inside a message, that happens for free: Fluent
+formats a placeable with `Intl.NumberFormat`, which is why `TranslationArgs`
+accepts a real `number` rather than a pre-formatted string. Outside one —
+`<intComma>`, whose whole output is a number and which has no sentence around
+it — use `formatDecimalString`, which re-punctuates an already-rendered decimal
+under the locale's grouping and separator without adding, removing, or rounding
+a digit.
 
 ## Bidi isolation
 

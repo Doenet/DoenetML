@@ -715,3 +715,19 @@ deprecated-attribute-renamed-conflict =
     }
 
 deprecated-attribute-ignored = [deprecation] Attribute `{ $attribute }` on `<{ $component }>` is deprecated and ignored.
+
+
+## Language coverage
+
+# `<pluralize>` runs an English part-of-speech model over its text and puts the
+# nouns in the plural. There is no equivalent for an arbitrary language — a
+# correct plural needs that language's own morphology, and often its
+# dictionary — so in a document written in anything else the word is left as
+# the author typed it, and this says so rather than silently doing nothing.
+#
+# Raised only when there is nothing else to fall back on: a `pluralForm` is the
+# author supplying their own language's plural, and that is honored in every
+# language, which is why this can recommend it.
+#
+# $locale is the document's language tag, as declared.
+pluralize-english-only = `<pluralize>` can only pluralize English, so its text is left unchanged in a document written in { $locale }. Write the plural form directly, or set it with the `pluralForm` attribute.

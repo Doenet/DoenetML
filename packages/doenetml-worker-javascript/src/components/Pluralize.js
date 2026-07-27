@@ -3,15 +3,41 @@ import nlp from "compromise";
 import compromise_numbers from "compromise-numbers";
 
 import { renameStateVariable } from "../utils/stateVariables";
+import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    contentLocale,
+    isEnglishContent,
+    returnContentLocaleDependencies,
+} from "../utils/contentLocale";
 
 nlp.extend(compromise_numbers);
 
+/**
+ * `<pluralize>` is English-only, and stays that way.
+ *
+ * It works by running an English part-of-speech model (`compromise`) over the
+ * text, finding the nouns, and inflecting them. Nothing about that generalizes:
+ * a correct plural in another language needs that language's own morphology,
+ * usually its gender system, and often a dictionary — Spanish alone needs to
+ * know that "lápiz" pluralizes to "lápices" — and shipping a model per language
+ * is not a thing this component can grow into.
+ *
+ * So in a document written in anything else the model does not run. What still
+ * can is `pluralForm`, where the author has supplied their language's plural
+ * themselves — see {@link pluralizeWithoutTheModel}. With no `pluralForm` the
+ * text passes through unchanged and a warning says so; silence would be worse,
+ * since the author would see their singular in the output and have no way to
+ * tell that a component they asked for had declined to do anything. `<lorem>`
+ * is the neighbouring case that needs no warning — its output is Latin by
+ * design, in every locale, and a translated lorem ipsum is not a thing anyone
+ * wants.
+ */
 export default class Pluralize extends Text {
     static componentType = "pluralize";
 
     static componentDocs = {
         summary:
-            "Renders a word in its singular or plural form based on a count",
+            "Renders a word in its singular or plural form based on a count (English only)",
     };
     static rendererType = "text";
 
@@ -65,8 +91,13 @@ export default class Pluralize extends Text {
                     dependencyType: "stateVariable",
                     variableName: "basedOnNumber",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition: function ({ dependencyValues }) {
+                if (!isEnglishContent(dependencyValues)) {
+                    return pluralizeWithoutTheModel(dependencyValues);
+                }
+
                 let text = nlp(dependencyValues.valuePrePluralize);
 
                 let allwords = text.values().toNumber().all().terms().json();
@@ -230,4 +261,45 @@ export default class Pluralize extends Text {
 
 function numberDesignatesPlural(num) {
     return num !== 1;
+}
+
+/**
+ * `<pluralize>` in a document that is not written in English.
+ *
+ * The part-of-speech model cannot run, but the one path through this component
+ * that never needed it still can: an author who wrote `pluralForm` has
+ * supplied their language's plural themselves, and `basedOnNumber` chooses
+ * between the two forms by arithmetic. That is the single-word English path
+ * with the model taken out of it, and it is exactly the remedy the warning
+ * recommends — so ignoring it while recommending it would be worse than not
+ * warning at all.
+ *
+ * Unlike the English path it does not require the text to be a single word:
+ * without a tokenizer for the language there is nothing to count, and an
+ * author who names the plural of a phrase means the phrase.
+ *
+ * Only a `<pluralize>` with no plural to fall back on is left as it was
+ * written, and only that one warns.
+ */
+function pluralizeWithoutTheModel(dependencyValues) {
+    const { valuePrePluralize, pluralForm, basedOnNumber } = dependencyValues;
+
+    if (pluralForm !== null) {
+        const makePlural =
+            basedOnNumber === null || numberDesignatesPlural(basedOnNumber);
+        return {
+            setValue: { value: makePlural ? pluralForm : valuePrePluralize },
+        };
+    }
+
+    return {
+        setValue: { value: valuePrePluralize },
+        sendDiagnostics: [
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0111",
+                args: { locale: contentLocale(dependencyValues) },
+            }),
+        ],
+    };
 }

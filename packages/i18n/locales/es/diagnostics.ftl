@@ -571,3 +571,9 @@ deprecated-attribute-renamed-conflict =
     }
 
 deprecated-attribute-ignored = [deprecation] El atributo `{ $attribute }` de `<{ $component }>` está obsoleto y se ignora.
+
+
+## Cobertura de idiomas
+
+# $locale es la etiqueta de idioma del documento, tal como se declaró.
+pluralize-english-only = `<pluralize>` solo puede pluralizar en inglés, así que su texto queda sin cambios en un documento escrito en { $locale }. Escribe el plural directamente o indícalo con el atributo `pluralForm`.
