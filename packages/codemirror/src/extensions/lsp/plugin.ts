@@ -118,10 +118,14 @@ function escapeHtml(str: string): string {
  * Both are optional, and omitting them leaves the tooltip exactly as it was:
  * the English the producer wrote, under an English severity heading.
  *
- * Both are also *functions*, called at the moment a tooltip is drawn. That
- * lets a host whose language can change keep handing over one object for the
- * life of the editor: this value is part of the extension set, and replacing
- * it reconfigures the editor and reopens the document on the language server.
+ * Both are *functions*, and neither is called before there is something to
+ * say: `formatMessage` as a batch of diagnostics is turned into CodeMirror's
+ * own, `severityHeading` as a tooltip is drawn. That lets a host whose
+ * language can change keep handing over one object for the life of the
+ * editor — this value is part of the extension set, and replacing it
+ * reconfigures the editor and reopens the document on the language server.
+ * Messages already on screen were rendered when their batch arrived, so a
+ * host that changes language republishes its diagnostics to redraw them.
  */
 export type DiagnosticPresentation = {
     /**
@@ -338,11 +342,8 @@ export class LSPPlugin implements PluginValue {
             const shownMessage =
                 this.presentation.formatMessage?.({
                     message,
-                    ...(code === undefined ? {} : { code }),
-                    ...((data as { args?: unknown } | undefined)?.args ===
-                    undefined
-                        ? {}
-                        : { args: (data as { args?: unknown }).args }),
+                    code,
+                    args: (data as { args?: unknown } | undefined)?.args,
                 }) ?? message;
 
             diagnostics.push({

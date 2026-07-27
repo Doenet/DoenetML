@@ -96,8 +96,9 @@ const CodeMirror = React.memo(function CodeMirror({
      *
      * Hand over one object for the life of the editor: a new one rebuilds the
      * extensions, which reopens the document on the language server. Both
-     * members are called as a tooltip is drawn, so a host whose language can
-     * change answers differently rather than replacing this.
+     * members are called lazily — the message as a batch of diagnostics
+     * arrives, the heading as a tooltip is drawn — so a host whose language
+     * can change answers differently rather than replacing this.
      */
     diagnosticPresentation?: DiagnosticPresentation;
 }) {
