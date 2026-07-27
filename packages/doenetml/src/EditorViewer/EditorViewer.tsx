@@ -37,7 +37,7 @@ import {
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
 import type { HelpContent } from "@doenet/lsp-tools";
-import { EditorSelection } from "@codemirror/state";
+import { EditorSelection, type Extension } from "@codemirror/state";
 import type { Completion } from "@codemirror/autocomplete";
 import { doenetGlobalConfig } from "../global-config";
 import type { DiagnosticArgs } from "@doenet/i18n";
@@ -54,6 +54,21 @@ const HELP_NONE: HelpContent = { kind: "none" };
 // stable across renders. A parameter default `= []` would create a fresh array
 // each render, refiring every effect/memo that depends on `initialDiagnostics`.
 const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
+
+// Click-to-navigate takes over the editor's Mod+click: CodeMirror's default
+// reading of that chord — Cmd on macOS, Ctrl elsewhere — is "add another
+// selection range", which would leave a stray second cursor behind after
+// every navigation gesture, so the next keystroke would type in two places
+// at once. Turning the chord's selection meaning off here (rather than
+// undoing the extra range afterwards) keeps CodeMirror the single owner of
+// the selection. The trade-off: multiple selections can no longer be made
+// with the mouse; `Mod-d` (`selectNextOccurrence`) still adds them from the
+// keyboard. Nothing else configures this facet, so appending it is enough;
+// module-level so the array identity is stable (see the `extraExtensions`
+// prop docs).
+const NO_MOUSE_MULTIPLE_SELECTIONS: Extension[] = [
+    EditorView.clickAddsSelectionRange.of(() => false),
+];
 
 /**
  * Imperative handle exposed on the ref of `<DoenetEditor>`. Provides
@@ -1059,6 +1074,10 @@ export const EditorViewer = React.forwardRef<
      * moved the cursor. `posAtCoords` clips to the content area, so clicks
      * past the end of a line or in the gutter still resolve; its `null`
      * return is reserved for cases a click can't produce.
+     *
+     * The click's effect on the editor's own selection is left entirely to
+     * CodeMirror — `NO_MOUSE_MULTIPLE_SELECTIONS` is what makes that a
+     * plain cursor move rather than an added range.
      */
     function handleEditorClickCapture(e: React.MouseEvent) {
         if (!hasNavigationModifier(e)) {
@@ -1072,24 +1091,6 @@ export const EditorViewer = React.forwardRef<
         if (pos == null) {
             return;
         }
-
-        // CodeMirror reads this very modifier — Cmd on macOS, Ctrl
-        // elsewhere — as "add another cursor", so by the time the click
-        // arrives it has already left a stray extra selection range
-        // behind, and the next keystroke would type in two places at
-        // once. Collapse back to a single cursor where the user clicked,
-        // so the gesture behaves like a plain click that also moves the
-        // viewer. (Mouse-driven multiple selections are given up for
-        // this; `Mod-d` still adds them from the keyboard.) Only when the
-        // new main range is empty, so a modifier-held drag — which also
-        // ends in a click — keeps whatever it selected.
-        const { selection } = view.state;
-        if (selection.ranges.length > 1 && selection.main.empty) {
-            view.dispatch({
-                selection: EditorSelection.cursor(selection.main.head),
-            });
-        }
-
         setScrollToSourceOffset(pos);
     }
 
@@ -1110,6 +1111,7 @@ export const EditorViewer = React.forwardRef<
                 doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
                 darkMode={darkMode}
                 diagnosticPresentation={diagnosticPresentation}
+                extraExtensions={NO_MOUSE_MULTIPLE_SELECTIONS}
             />
         </div>
     );

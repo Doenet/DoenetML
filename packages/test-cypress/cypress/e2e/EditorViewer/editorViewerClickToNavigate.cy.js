@@ -126,10 +126,11 @@ describe(
 
         it("ctrl+clicking a line in the editor navigates without leaving a second cursor", () => {
             // Ctrl is the modifier a Windows/Linux user actually presses
-            // (the other tests use Cmd, which those platforms ignore), and
-            // it is also the one CodeMirror itself reads as "add another
-            // cursor". The gesture has to collapse that extra range, or the
-            // next keystroke would type in two places at once.
+            // (the other tests use Cmd, which CodeMirror ignores off
+            // macOS), and it is also the one CodeMirror reads by default as
+            // "add another selection range". The editor turns that reading
+            // off, or the navigation gesture would leave a stray second
+            // cursor and the next keystroke would type in two places.
             const paragraphs = [];
             for (let i = 1; i <= 60; i++) {
                 paragraphs.push(`<p name="p${i}">Paragraph number ${i}.</p>`);
