@@ -42,9 +42,8 @@ import { codedDiagnostic } from "../../utils/diagnostics";
  *
  * `configurationChildren` are the children that configure the section — its
  * styles and its answer feedback — rather than render inside it. They keep
- * their slot in `allChildren`, so the positions stay aligned, but are filtered
- * out of the rendered and hidden sets by
- * `configurationChildComponentIndices()`.
+ * their slot in `allChildren` so the positions stay aligned, and
+ * `nonConfigurationChildEntries()` filters them back out.
  */
 function returnSectionChildDependencies() {
     return {
@@ -64,16 +63,26 @@ function returnSectionChildDependencies() {
 }
 
 /**
- * The `componentIdx` of each child returned by the `configurationChildren`
- * dependency of `returnSectionChildDependencies()`, as a set for filtering
- * those children out of `allChildren`. String children have no `componentIdx`,
- * so they can never match.
+ * The `[position, child]` entries of a section's children that are not
+ * configuration children, where `position` is the child's index in
+ * `activeChildren`. Takes the `dependencyValues` produced by
+ * `returnSectionChildDependencies()`.
+ *
+ * Configuration children are neither rendered nor hidden: they are not content,
+ * and a section's styles and feedback stay in effect even when its content is
+ * hidden. Their positions are still consumed from `allChildren`, so the
+ * positions of the children around them stay aligned with `activeChildren`.
+ * String children have no `componentIdx`, so they are never dropped.
  */
-function configurationChildComponentIndices(dependencyValues) {
-    return new Set(
+function nonConfigurationChildEntries(dependencyValues) {
+    const configurationChildIndices = new Set(
         dependencyValues.configurationChildren.map(
             (child) => child.componentIdx,
         ),
+    );
+
+    return [...dependencyValues.allChildren.entries()].filter(
+        ([, child]) => !configurationChildIndices.has(child.componentIdx),
     );
 }
 
@@ -517,20 +526,9 @@ export class SectioningComponent extends BlockComponent {
                     (x) => x.componentIdx,
                 );
 
-                const configurationChildIndices =
-                    configurationChildComponentIndices(dependencyValues);
-
-                for (let [
-                    ind,
-                    child,
-                ] of dependencyValues.allChildren.entries()) {
-                    // The configuration children are never rendered, but their
-                    // slots must still be counted so that `ind` remains a
-                    // position in `activeChildren`.
-                    if (configurationChildIndices.has(child.componentIdx)) {
-                        continue;
-                    }
-
+                for (let [ind, child] of nonConfigurationChildEntries(
+                    dependencyValues,
+                )) {
                     // If `hideChildren` is set, string children should also be hidden.
                     // However, string children cannot be hidden via the `childrenToHide`
                     // state variable as it is based on component indices.
@@ -601,16 +599,9 @@ export class SectioningComponent extends BlockComponent {
             definition({ dependencyValues }) {
                 const childrenToHide = [];
 
-                const configurationChildIndices =
-                    configurationChildComponentIndices(dependencyValues);
-
-                for (let child of dependencyValues.allChildren) {
-                    // A section's styles and feedback stay in effect even when
-                    // its content is hidden.
-                    if (configurationChildIndices.has(child.componentIdx)) {
-                        continue;
-                    }
-
+                for (let [, child] of nonConfigurationChildEntries(
+                    dependencyValues,
+                )) {
                     if (child.componentType === "cascadeMessage") {
                         // For <cascadeMessage>, the logic is inverted.
                         // It is hidden when `hideChildren` is `false`!

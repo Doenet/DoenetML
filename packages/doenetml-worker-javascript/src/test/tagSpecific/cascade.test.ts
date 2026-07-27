@@ -1530,12 +1530,13 @@ describe("Cascade tag tests @group4", async () => {
 
         // `childIndicesToRender` holds positions in `activeChildren`, so resolve
         // it back to components rather than assert on the positions themselves.
-        const renderedChildIndices = section2.stateValues.childIndicesToRender
-            .map((ind: number) => section2.activeChildren[ind])
-            .filter((child: any) => typeof child === "object")
-            .map((child: any) => child.componentIdx);
+        const renderedChildComponentIndices =
+            section2.stateValues.childIndicesToRender
+                .map((ind: number) => section2.activeChildren[ind])
+                .filter((child: any) => typeof child === "object")
+                .map((child: any) => child.componentIdx);
 
-        expect(renderedChildIndices).eqls([
+        expect(renderedChildComponentIndices).eqls([
             await resolvePathToNodeIdx("title2"),
             await resolvePathToNodeIdx("p2"),
             await resolvePathToNodeIdx("section2.ans"),
