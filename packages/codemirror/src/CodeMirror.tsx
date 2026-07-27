@@ -96,9 +96,9 @@ const CodeMirror = React.memo(function CodeMirror({
      * the producer wrote, exactly as before.
      *
      * Replace it whenever its answers change — when the reader's language
-     * does. That neither reconfigures the editor nor reopens the document on
-     * the language server; the diagnostics already on screen are simply drawn
-     * again through the new answers.
+     * does. A new one leaves the extension set alone, so the document stays
+     * open on the language server; the diagnostics already on screen are
+     * simply drawn again through the new answers.
      */
     diagnosticPresentation?: DiagnosticPresentation;
 }) {
@@ -135,10 +135,10 @@ const CodeMirror = React.memo(function CodeMirror({
     const viewRef = React.useRef<EditorView | null>(null);
 
     // The presentation the host most recently supplied, read through a ref so
-    // the extension set never sees it. A new extension set reconfigures the
-    // editor and reopens the document on the language server, discarding any
-    // tooltip open at the time — far too much to pay for the reader changing
-    // language. This indirection is what lets that be a plain prop.
+    // the extension set never sees it. A new extension set builds a new LSP
+    // plugin, which closes the document on the language server and reopens it
+    // — far too much to pay for the reader changing language. This
+    // indirection is what lets that be a plain prop.
     const presentationRef = React.useRef(diagnosticPresentation);
     presentationRef.current = diagnosticPresentation;
     const stablePresentation = React.useMemo<DiagnosticPresentation>(

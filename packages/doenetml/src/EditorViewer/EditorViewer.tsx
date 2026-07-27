@@ -551,8 +551,8 @@ export const EditorViewer = React.forwardRef<
     // severity word. Rebuilt whenever the translator behind it is, which is
     // how a language settled after the editor was already up reaches the
     // tooltips — `CodeMirror` reads this through a ref and redraws the
-    // diagnostics on screen rather than reconfiguring the editor, so a new
-    // object costs nothing beyond that redraw.
+    // diagnostics on screen rather than rebuilding its extension set, so a
+    // new object costs nothing beyond that redraw.
     const diagnosticPresentation = useMemo<DiagnosticPresentation>(
         () => ({
             formatMessage: ({ message, code, args }) =>

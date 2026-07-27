@@ -85,6 +85,25 @@ const SwitchablePresentationHarness = () => {
     );
 };
 
+/**
+ * Harness for a host that re-renders the editor for a reason of its own,
+ * without changing anything the editor is configured from. The inline
+ * `onFocus` is a fresh identity each render, which is what gets the re-render
+ * past `React.memo`.
+ */
+const RerenderingHarness = () => {
+    const [count, setCount] = React.useState(0);
+
+    return (
+        <div style={{ height: "400px", width: "600px" }}>
+            <button data-cy="rerender" onClick={() => setCount(count + 1)}>
+                re-render ({count})
+            </button>
+            <CodeMirror value="<graph invalid-attr='x' />" onFocus={() => {}} />
+        </div>
+    );
+};
+
 describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
     const mountEditor = (initialValue: string) => {
         cy.mount(<DiagnosticsTestHarness initialValue={initialValue} />);
@@ -274,6 +293,25 @@ describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
         cy.get(".cm-lint-tooltip .cm-lint-body").should(
             "contain.text",
             "second: Element",
+        );
+    });
+
+    it("keeps the squiggles when the host re-renders the editor", () => {
+        // `@uiw/react-codemirror` reconfigures the editor whenever
+        // `<CodeMirror>` re-renders, and a reconfigure discards appended
+        // configuration — which is how `setDiagnostics` installs the lint
+        // state unless the editor already carries it. The LSP extension set
+        // carries it, so what is marked stays marked.
+        cy.mount(<RerenderingHarness />);
+        cy.get(".cm-line").should("exist");
+        waitForDiagnosticDom();
+
+        cy.get("[data-cy=rerender]").click();
+
+        hoverLintRange(".cm-lintRange-warning");
+        cy.get(".cm-lint-tooltip .cm-lint-body").should(
+            "contain.text",
+            "doesn't have an attribute called invalid-attr",
         );
     });
 

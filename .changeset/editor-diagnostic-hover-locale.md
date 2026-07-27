@@ -14,4 +14,6 @@ The lint panel and what a screen reader announces follow the same text, so no su
 
 A language that arrives after the editor is already up — a host switching it, or a `<document lang>` the viewer has only just parsed — redraws the squiggles that are already marked, rather than leaving them in the previous language until the next edit.
 
+Also fixes squiggles disappearing when the editor re-renders. Re-rendering `<DoenetEditor>` reconfigures the CodeMirror instance behind it, which used to discard every diagnostic on screen — and nothing brought them back until the language server next published. The editor now carries the lint state in its own configuration, so what is marked stays marked.
+
 With no locale configured anywhere, every tooltip reads exactly as it did before.

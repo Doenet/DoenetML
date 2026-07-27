@@ -43,6 +43,7 @@ import {
 } from "vscode-languageserver-protocol/browser";
 import { Text, Transaction } from "@codemirror/state";
 import {
+    linter,
     setDiagnostics,
     Diagnostic as CodeMirrorDiagnostic,
 } from "@codemirror/lint";
@@ -120,9 +121,9 @@ function escapeHtml(str: string): string {
  *
  * A host whose reader's language changes hands over a new one. `CodeMirror`
  * keeps this out of the extension set and reads it through a ref, so a
- * replacement neither reconfigures the editor nor reopens the document on the
- * language server; it redraws the diagnostics already on screen through the
- * new answers ({@link redrawDiagnostics}).
+ * replacement leaves the language server's copy of the document open and
+ * redraws the diagnostics already on screen through the new answers
+ * ({@link redrawDiagnostics}).
  */
 export type DiagnosticPresentation = {
     /**
@@ -328,9 +329,9 @@ export class LSPPlugin implements PluginValue {
     }
 
     destroy() {
-        // Only if this plugin is still the one registered: a reconfigured
-        // editor creates the replacement before destroying this, and the
-        // registration for that view now belongs to it.
+        // Only if this plugin is still the one registered, so that a
+        // replacement which has already claimed the view keeps its
+        // registration.
         if (this.view && lspPluginsByView.get(this.view) === this) {
             lspPluginsByView.delete(this.view);
         }
@@ -857,6 +858,18 @@ export const lspPlugin = (
     uniqueLanguageServerInstance.setDoenetWorkerUrl(doenetWorkerUrl);
     const plugin = new LSPPlugin(documentId, presentation);
     return [
+        // Hold the lint state — the squiggles, the panel and the tooltip over
+        // them — in the editor's own configuration. `setDiagnostics` will
+        // otherwise append it the first time it is called, and appended
+        // configuration is discarded by the next `StateEffect.reconfigure`,
+        // which `@uiw/react-codemirror` dispatches whenever `<CodeMirror>`
+        // re-renders. Every diagnostic on screen would vanish there, with
+        // nothing to bring it back until the language server next published.
+        //
+        // `null` as the source is how `@codemirror/lint` spells "configure
+        // linting, but I supply the diagnostics myself" — which the LSP
+        // plugin below does, out of what the server publishes.
+        linter(null),
         ViewPlugin.define((view) => {
             plugin.view = view;
             lspPluginsByView.set(view, plugin);
