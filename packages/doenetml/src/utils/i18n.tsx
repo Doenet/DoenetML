@@ -73,7 +73,8 @@ export function useHostChromeTranslator(
         uiLocale,
         resolveDocumentLocale(undefined, documentLocale),
     );
-    return { translate: useChromeTranslator(locale, localeResources), locale };
+    const translate = useChromeTranslator(locale, localeResources);
+    return { translate, locale };
 }
 
 /**
