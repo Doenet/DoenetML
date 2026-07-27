@@ -39,6 +39,9 @@ import type { HelpContent } from "@doenet/lsp-tools";
 import { EditorSelection } from "@codemirror/state";
 import type { Completion } from "@codemirror/autocomplete";
 import { doenetGlobalConfig } from "../global-config";
+import { useT, useUiLocale } from "../utils/i18n";
+import { useDiagnosticFormatter } from "../utils/diagnostics";
+import type { DiagnosticPresentation } from "@doenet/codemirror";
 
 const HELP_NONE: HelpContent = { kind: "none" };
 
@@ -485,11 +488,73 @@ export const EditorViewer = React.forwardRef<
         setReceivedDiagnosticsFromViewer(true);
     }
 
+    // Everything the editor says about a diagnostic — the tooltip over a
+    // squiggle and the lint panel behind it — in the reader's language. The
+    // editor's chrome answers to `uiLocale` alone, so this is the same
+    // translator the Diagnostics tab beside it renders with; the squiggles and
+    // the tab cannot disagree.
+    const translate = useT();
+    const editorUiLocale = useUiLocale();
+    const formatDiagnostic = useDiagnosticFormatter(translate, editorUiLocale);
+
+    const accessibilityHeadings = useMemo(
+        () => ({
+            level1: translate(
+                "accessibility-heading-level-1",
+                undefined,
+                "WCAG AA Accessibility Violation",
+            ),
+            level2: translate(
+                "accessibility-heading-level-2",
+                undefined,
+                "Accessibility alert",
+            ),
+        }),
+        [translate],
+    );
+
+    // Memoized because a new object here rebuilds the editor's extensions,
+    // which closes and reopens the document on the language server.
+    const diagnosticPresentation: DiagnosticPresentation = useMemo(
+        () => ({
+            formatMessage: ({ message, code, args }) =>
+                formatDiagnostic({
+                    message,
+                    // The LSP allows a numeric `code`; a Doenet diagnostic
+                    // code is always a string, and anything else names no
+                    // catalog message, so it is dropped rather than coerced
+                    // into a lookup that cannot succeed.
+                    ...(typeof code === "string" ? { code } : {}),
+                    ...(args === undefined ? {} : { args: args as never }),
+                }),
+            severityHeadings: {
+                error: translate(
+                    "diagnostic-heading-error",
+                    undefined,
+                    "Error",
+                ),
+                warning: translate(
+                    "diagnostic-heading-warning",
+                    undefined,
+                    "Warning",
+                ),
+                information: translate(
+                    "diagnostic-heading-information",
+                    undefined,
+                    "Info",
+                ),
+                hint: translate("diagnostic-heading-hint", undefined, "Hint"),
+            },
+        }),
+        [formatDiagnostic, translate],
+    );
+
     useEffect(() => {
         const additionalDiagnostics = toAdditionalDiagnosticsForLsp({
             diagnostics: [...initialDiagnostics, ...diagnostics],
             showInfoAnnotations,
             showAccessibilityAnnotations,
+            accessibilityHeadings,
         });
 
         lspRef.current?.lsp.sendAdditionalDiagnostics(
@@ -501,6 +566,7 @@ export const EditorViewer = React.forwardRef<
         diagnostics,
         showInfoAnnotations,
         showAccessibilityAnnotations,
+        accessibilityHeadings,
     ]);
 
     const {
@@ -974,6 +1040,7 @@ export const EditorViewer = React.forwardRef<
             editorViewRef={editorViewRef}
             doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
             darkMode={darkMode}
+            diagnosticPresentation={diagnosticPresentation}
         />
     );
 

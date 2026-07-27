@@ -8,6 +8,7 @@ import { autoCloseTagExtension } from "./extensions/auto-close-tag";
 import {
     lspPlugin,
     uniqueLanguageServerInstance,
+    type DiagnosticPresentation,
 } from "./extensions/lsp/plugin";
 import {
     colorTheme,
@@ -32,6 +33,7 @@ const CodeMirror = React.memo(function CodeMirror({
     ariaLabel = "DoenetML code editor",
     doenetWorkerUrl,
     darkMode = "light",
+    diagnosticPresentation,
 }: {
     value: string;
     onChange?: (str: string) => void;
@@ -83,6 +85,19 @@ const CodeMirror = React.memo(function CodeMirror({
      * autocomplete icon colors all switch to dark-mode-verified variants.
      */
     darkMode?: ThemeMode;
+    /**
+     * How the reader wants a diagnostic said: a message formatter and the
+     * severity headings, both already in their language.
+     *
+     * This package renders the squiggles and their tooltips but has no
+     * catalogs to render them *from* — see {@link DiagnosticPresentation} for
+     * why it deliberately doesn't. Omit it and the tooltip shows the English
+     * the producer wrote, exactly as before.
+     *
+     * Memoize it: a new object each render rebuilds the editor's extensions,
+     * which reopens the document on the language server.
+     */
+    diagnosticPresentation?: DiagnosticPresentation;
 }) {
     // Only one language server runs for all documents, so we specify a document id to keep different instances different.
     const [documentId, _] = React.useState(() =>
@@ -122,13 +137,22 @@ const CodeMirror = React.memo(function CodeMirror({
         if (!readOnly) {
             extensions.push(tabExtension);
             extensions.push(autoCloseTagExtension);
-            extensions.push(lspPlugin(documentId, doenetWorkerUrl));
+            extensions.push(
+                lspPlugin(documentId, doenetWorkerUrl, diagnosticPresentation),
+            );
             extensions.push(completionIconTheme(darkMode));
         } else {
             extensions.push(EditorState.readOnly.of(true));
         }
         return extensions;
-    }, [documentId, readOnly, ariaLabel, doenetWorkerUrl, darkMode]);
+    }, [
+        documentId,
+        readOnly,
+        ariaLabel,
+        doenetWorkerUrl,
+        darkMode,
+        diagnosticPresentation,
+    ]);
 
     return (
         <div

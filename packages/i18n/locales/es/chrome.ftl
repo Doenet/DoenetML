@@ -121,6 +121,16 @@ error-found-at =
 
 document-contains-errors = ¡Este documento contiene errores!
 
+# Encabezados del globo que muestra el editor sobre un subrayado.
+diagnostic-heading-error = Error
+diagnostic-heading-warning = Advertencia
+diagnostic-heading-information = Información
+diagnostic-heading-hint = Sugerencia
+
+# «WCAG AA» es el nombre propio de la norma y no se traduce.
+accessibility-heading-level-1 = Incumplimiento de accesibilidad WCAG AA
+accessibility-heading-level-2 = Aviso de accesibilidad
+
 something-went-wrong = Algo salió mal.
 
 # Follows `error-heading` and a colon, so it begins in lower case, as in

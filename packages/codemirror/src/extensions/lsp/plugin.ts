@@ -108,6 +108,56 @@ const lspDiagnosticToName = {
     [LSPDiagnosticSeverity.Information]: "Info",
     [LSPDiagnosticSeverity.Hint]: "Hint",
 };
+
+/**
+ * How the host wants a diagnostic said, for the tooltip this plugin draws.
+ *
+ * Everything the reader sees in that tooltip arrives already in their
+ * language, or not at all: this package renders it and does not translate it.
+ * That is deliberate. `@doenet/codemirror` embeds the built language server as
+ * a string and starts it as a blob worker, and pulling a message catalog and
+ * the Fluent runtime in here to answer a question the viewer has already
+ * answered would put both on the editor's critical path — the growth
+ * `packages/lsp/scripts/check-server-bundle.mjs` exists to catch. So the seam
+ * is two plain values, and `@doenet/doenetml` supplies them from the same
+ * translator its Diagnostics panel renders with.
+ *
+ * Both are optional, and omitting them leaves the tooltip exactly as it was:
+ * the English the producer wrote, under an English severity heading.
+ */
+export type DiagnosticPresentation = {
+    /**
+     * Render a diagnostic's message.
+     *
+     * A diagnostic that has migrated to the catalogs carries a stable `code`
+     * and the arguments filling its message in; `message` is the producer's
+     * English, which is the fallback and what an unmigrated diagnostic has
+     * instead. Returning `message` unchanged is always valid.
+     */
+    formatMessage?: (diagnostic: {
+        message: string;
+        code?: string | number;
+        args?: unknown;
+    }) => string;
+    /**
+     * The tooltip heading for a diagnostic that names no `source` of its own.
+     *
+     * Keyed by LSP severity rather than by the CodeMirror severity the
+     * tooltip is styled with, because those are not the same set — `Hint` and
+     * `Information` both style as `info` and are two different words.
+     */
+    severityHeadings?: Partial<
+        Record<"error" | "warning" | "information" | "hint", string>
+    >;
+};
+
+/** The `severityHeadings` key an LSP severity is looked up under. */
+const lspSeverityToHeadingKey = {
+    [LSPDiagnosticSeverity.Error]: "error",
+    [LSPDiagnosticSeverity.Warning]: "warning",
+    [LSPDiagnosticSeverity.Information]: "information",
+    [LSPDiagnosticSeverity.Hint]: "hint",
+} as const;
 const lspSeverityToCmSeverity = {
     [LSPDiagnosticSeverity.Error]: "error",
     [LSPDiagnosticSeverity.Warning]: "warning",
@@ -175,10 +225,12 @@ export class LSPPlugin implements PluginValue {
     reopenLatch: ReopenLatch | null = null;
     view?: EditorView;
     unsubscribeDiagnostics?: () => void;
+    presentation: DiagnosticPresentation;
 
-    constructor(documentId: string) {
+    constructor(documentId: string, presentation: DiagnosticPresentation = {}) {
         this.documentId = documentId;
         this.uri = `file:///${documentId}.doenet`;
+        this.presentation = presentation;
     }
 
     update(update: ViewUpdate): void {
@@ -247,7 +299,7 @@ export class LSPPlugin implements PluginValue {
         for (const diagnostic of this.diagnostics as Array<
             LSPDiagnostic & { markClass?: string }
         >) {
-            const { range, message, severity, source, markClass, code } =
+            const { range, message, severity, source, markClass, code, data } =
                 diagnostic;
             const cmSeverity = lspSeverityToCmSeverity[severity!] ?? "info";
             const offsets = getValidDiagnosticOffsets(
@@ -259,16 +311,41 @@ export class LSPPlugin implements PluginValue {
             }
             const { from, to } = offsets;
 
+            // Rendered once here rather than inside `renderMessage`, because
+            // the same text is also the `message` CodeMirror puts in the lint
+            // panel and reads out to a screen reader. The tooltip and the
+            // panel showing one diagnostic in two languages would be the same
+            // bug in a smaller place.
+            const shownMessage =
+                this.presentation.formatMessage?.({
+                    message,
+                    ...(code === undefined ? {} : { code }),
+                    ...((data as { args?: unknown } | undefined)?.args ===
+                    undefined
+                        ? {}
+                        : { args: (data as { args?: unknown }).args }),
+                }) ?? message;
+
             diagnostics.push({
                 from,
                 to,
                 severity: cmSeverity,
-                message,
+                message: shownMessage,
                 ...(markClass ? { markClass } : {}),
                 renderMessage: () => {
                     const div = document.createElement("div");
+                    // A `source` is the producer's own label for the kind of
+                    // diagnostic — the accessibility levels use it — and wins
+                    // over the severity word, as it always has. It arrives
+                    // already translated, because the host that set it is the
+                    // one that knows the reader's language.
                     const heading =
-                        source ?? lspDiagnosticToName[severity!] ?? "Info";
+                        source ??
+                        this.presentation.severityHeadings?.[
+                            lspSeverityToHeadingKey[severity!]
+                        ] ??
+                        lspDiagnosticToName[severity!] ??
+                        "Info";
                     const headingClass = getDiagnosticHeadingClass({
                         code,
                         source,
@@ -281,7 +358,7 @@ export class LSPPlugin implements PluginValue {
                         "heading " + headingClass
                     }">${escapeHtml(
                         heading,
-                    )}</h4><div class="cm-lint-body">${renderDiagnosticMarkdownHtml(message)}</div>
+                    )}</h4><div class="cm-lint-body">${renderDiagnosticMarkdownHtml(shownMessage)}</div>
                             </div>`;
                     return div.firstChild as HTMLElement;
                 },
@@ -713,13 +790,17 @@ export class LSPPlugin implements PluginValue {
     };
 }
 
-export const lspPlugin = (documentId: string, doenetWorkerUrl?: string) => {
+export const lspPlugin = (
+    documentId: string,
+    doenetWorkerUrl?: string,
+    presentation?: DiagnosticPresentation,
+) => {
     // The LSP is a process-wide singleton.  The first plugin instance to fire
     // the worker locks in `doenetWorkerUrl`; later instances pass theirs but
     // the singleton ignores subsequent values.  In practice every editor on a
     // page reads the URL from the same `doenetGlobalConfig`, so this is fine.
     uniqueLanguageServerInstance.setDoenetWorkerUrl(doenetWorkerUrl);
-    const plugin = new LSPPlugin(documentId);
+    const plugin = new LSPPlugin(documentId, presentation);
     return [
         ViewPlugin.define((view) => {
             plugin.view = view;
