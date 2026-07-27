@@ -1072,6 +1072,35 @@ export const EditorViewer = React.forwardRef<
     }, [scrollToSourceOffset]);
 
     /**
+     * The two pieces of the editor→viewer gesture that have to reach inside
+     * CodeMirror: the keyboard equivalent of the Cmd/Ctrl+click, and the
+     * suppression of CodeMirror's own reading of that modifier as "add
+     * another selection range".
+     *
+     * Built once: `extraExtensions` feeds a `React.memo`'d component, so a
+     * fresh array each render would rebuild the editor's extensions every
+     * time. The empty dep list is honest — the only value captured is
+     * `setScrollToSourceOffset`, whose identity React guarantees.
+     */
+    const editorExtensions = useMemo<Extension[]>(
+        () => [
+            ...NO_MOUSE_MULTIPLE_SELECTIONS,
+            keymap.of([
+                {
+                    key: REVEAL_IN_VIEWER_KEY,
+                    run: (view) => {
+                        setScrollToSourceOffset(view.state.selection.main.head);
+                        // Handled, so CodeMirror stops here and the chord
+                        // never reaches the browser.
+                        return true;
+                    },
+                },
+            ]),
+        ],
+        [],
+    );
+
+    /**
      * Editor→viewer navigation: Cmd/Ctrl+click on a spot in the editor
      * scrolls the viewer to the element rendered from that source offset —
      * the same explicit go-to-definition-style gesture the viewer uses in
@@ -1093,29 +1122,6 @@ export const EditorViewer = React.forwardRef<
      * CodeMirror — `NO_MOUSE_MULTIPLE_SELECTIONS` is what makes that a
      * plain cursor move rather than an added range.
      */
-    // Both halves of the editor→viewer gesture that need to reach into
-    // CodeMirror. Built once: `extraExtensions` feeds a `React.memo`'d
-    // component, so a fresh array each render would rebuild the editor's
-    // extensions every time. The empty dep list is honest — the only value
-    // captured is `setScrollToSourceOffset`, whose identity React guarantees.
-    const editorExtensions = useMemo<Extension[]>(
-        () => [
-            ...NO_MOUSE_MULTIPLE_SELECTIONS,
-            keymap.of([
-                {
-                    key: REVEAL_IN_VIEWER_KEY,
-                    run: (view) => {
-                        setScrollToSourceOffset(view.state.selection.main.head);
-                        // Handled, so CodeMirror stops here and the chord
-                        // never reaches the browser.
-                        return true;
-                    },
-                },
-            ]),
-        ],
-        [],
-    );
-
     function handleEditorClickCapture(e: React.MouseEvent) {
         if (!hasNavigationModifier(e)) {
             return;

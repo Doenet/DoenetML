@@ -164,6 +164,13 @@ describe(
 
             cy.get(".cm-content").type("{ctrl}{alt}p");
             expectP40OnScreen();
+
+            // The chord is consumed by the keymap, not typed: the line the
+            // cursor sits on is byte-for-byte what it was.
+            cy.get(".cm-activeLine").should(
+                "have.text",
+                `<p name="p40">Paragraph number 40.</p>`,
+            );
         });
 
         it("ctrl+clicking a line in the editor navigates without leaving a second cursor", () => {

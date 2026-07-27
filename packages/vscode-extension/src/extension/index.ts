@@ -222,6 +222,14 @@ function setupPreviewWindow(context: ExtensionContext) {
     // equivalent VS Code offers, and it has the advantage of being rebindable
     // through the standard Keyboard Shortcuts UI. The same chord works in the
     // web editor, so the two agree on at least one way to ask.
+    //
+    // That chord (`ctrl+alt+p`, `cmd+alt+p` on macOS — see the `keybindings`
+    // contribution) is unclaimed by VS Code's defaults on Windows and Linux.
+    // On macOS it shadows the find widget's `togglePreserveCase`, whose
+    // `when` is the broader `editorFocus`; ours is narrowed to
+    // `editorTextFocus && editorLangId == doenet`, so the built-in still
+    // fires from the find/replace inputs, and anyone who wants it back in
+    // the text area of a Doenet file can rebind either one.
     const revealCursorInPreview = commands.registerCommand(
         "doenet.revealCursorInPreview",
         () => {
@@ -269,6 +277,10 @@ function setupPreviewWindow(context: ExtensionContext) {
         // cursor move after someone turns it on.
         if (suppressNextSelectionEcho) {
             suppressNextSelectionEcho = false;
+            // Drop a send still queued from a cursor move just before the
+            // preview click: it carries a stale offset that would scroll the
+            // preview back off the element the click just revealed.
+            clearTimeout(cursorMoveTimer);
             return;
         }
         // Read per event rather than cached: a settings change then takes
