@@ -444,10 +444,11 @@ export class SectioningComponent extends BlockComponent {
                     childGroups: ["titles"],
                 },
                 // `childIndicesToRender` is consumed as indices into
-                // `activeChildren`, so this dependency has to cover *every*
-                // child group. Listing groups individually would silently
-                // shift every index past a child in an omitted group (e.g. a
-                // `<styleDefinition>`), dropping rendered children off the end.
+                // `activeChildren` (see `returnActiveChildrenIndicesToRender`),
+                // so it must be computed from the complete child list.
+                // Enumerating child groups here would silently drop any group
+                // left off the list (e.g. `styleDefinitions`), shifting every
+                // later index down and pushing rendered children off the end.
                 allChildren: {
                     dependencyType: "child",
                     includeAllChildren: true,
@@ -496,10 +497,9 @@ export class SectioningComponent extends BlockComponent {
                     ind,
                     child,
                 ] of dependencyValues.allChildren.entries()) {
-                    if (
-                        typeof child === "object" &&
-                        definitionChildIndices.has(child.componentIdx)
-                    ) {
+                    // Skip the configuration children. (String children have no
+                    // `componentIdx`, so they can never match.)
+                    if (definitionChildIndices.has(child.componentIdx)) {
                         continue;
                     }
 
@@ -560,6 +560,10 @@ export class SectioningComponent extends BlockComponent {
 
         stateVariableDefinitions.childrenToHide = {
             returnDependencies: () => ({
+                // Unlike `childIndicesToRender`, this variable reports component
+                // indices rather than positions, so omitting a child group here
+                // cannot shift anything. The style/feedback definition groups
+                // are left out because they are never rendered to begin with.
                 allChildren: {
                     dependencyType: "child",
                     childGroups: [
@@ -783,7 +787,9 @@ export class SectioningComponent extends BlockComponent {
             ],
             forRenderer: true,
             returnDependencies: () => ({
-                // Must match the child list `childIndicesToRender` indexes into.
+                // `childIndicesToRender` holds indices into `activeChildren`,
+                // and is used below to index into this list, so this dependency
+                // must cover every child too.
                 allChildren: {
                     dependencyType: "child",
                     includeAllChildren: true,
