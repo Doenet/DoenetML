@@ -57,6 +57,7 @@ export type MessageKey =
     | "math-input-invalid-expression"
     | "viewer-initializing"
     | "error-heading"
+    | "error-found-at"
     | "document-contains-errors"
     | "something-went-wrong"
     | "renderer-load-failed"
@@ -362,6 +363,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "math-input-invalid-expression",
     "viewer-initializing",
     "error-heading",
+    "error-found-at",
     "document-contains-errors",
     "something-went-wrong",
     "renderer-load-failed",

@@ -154,6 +154,18 @@ viewer-initializing = Initializing...
 # placeholder left where a renderer chunk failed to load.
 error-heading = Error
 
+# Follows the error's own message inside that box, saying where in the source
+# the error was found. $span selects the sentence — one line or a range of
+# them — as a key rather than a phrase, so a translation is free to reorder the
+# whole of it. $startLine and $endLine are line numbers, and arrive as text
+# rather than as numbers so that line 1234 is not grouped as "1,234": a line
+# number is an identifier, not a quantity.
+error-found-at =
+    { $span ->
+        [line] Found on line { $startLine }.
+       *[lines] Found on lines { $startLine }–{ $endLine }.
+    }
+
 # Banner above a document that compiled with at least one error in it.
 document-contains-errors = This document contains errors!
 

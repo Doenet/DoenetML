@@ -246,11 +246,8 @@ export function DoenetViewer({
     // Chrome outside the document — the virtual keyboard, the variant
     // selector — has only the props to go on. `DocViewer` mounts a nested
     // provider that also accounts for an authored `<document lang>`.
-    const translateChrome = useHostChromeTranslator(
-        uiLocale,
-        documentLocale,
-        localeResources,
-    );
+    const { translate: translateChrome, locale: hostUiLocale } =
+        useHostChromeTranslator(uiLocale, documentLocale, localeResources);
 
     // Start off hidden and then unhide once the viewer is visible.
     // This is needed to delay the initialization of JSXgraph
@@ -399,7 +396,10 @@ export function DoenetViewer({
                         }
                     }}
                 >
-                    <I18nProvider translate={translateChrome}>
+                    <I18nProvider
+                        translate={translateChrome}
+                        locale={hostUiLocale}
+                    >
                         <WrapWithKeyboard
                             addVirtualKeyboard={addVirtualKeyboard}
                             externalVirtualKeyboardProvided={
@@ -566,11 +566,8 @@ export const DoenetEditor = React.forwardRef<
     const resolvedTheme = useResolvedTheme(darkMode);
     // As in `DoenetViewer`: props only here, authored `<document lang>` in the
     // nested provider `DocViewer` mounts.
-    const translateChrome = useHostChromeTranslator(
-        uiLocale,
-        documentLocale,
-        localeResources,
-    );
+    const { translate: translateChrome, locale: hostUiLocale } =
+        useHostChromeTranslator(uiLocale, documentLocale, localeResources);
 
     const normalizedShowDiagnostics =
         showDiagnostics ?? showErrorsWarnings ?? true;
@@ -656,7 +653,10 @@ export const DoenetEditor = React.forwardRef<
                 useExistingMathJax={useExistingMathjax}
             >
                 <div data-theme={resolvedTheme} style={{ display: "contents" }}>
-                    <I18nProvider translate={translateChrome}>
+                    <I18nProvider
+                        translate={translateChrome}
+                        locale={hostUiLocale}
+                    >
                         <WrapWithKeyboard
                             addVirtualKeyboard={addVirtualKeyboard}
                             externalVirtualKeyboardProvided={

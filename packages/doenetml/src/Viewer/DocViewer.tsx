@@ -2287,7 +2287,10 @@ export function DocViewer({
                         the props alone: only here is the authored
                         `<document lang>` known, so only here can the chrome
                         follow the language the content was written in. */}
-                    <I18nProvider translate={translate}>
+                    <I18nProvider
+                        translate={translate}
+                        locale={effectiveUiLocale}
+                    >
                         {documentRenderer}
                     </I18nProvider>
                 </DocContext.Provider>

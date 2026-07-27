@@ -4,19 +4,28 @@ import {
     localeResourceKey,
     resolveDocumentLocale,
     resolveUiLocale,
+    DEFAULT_LOCALE,
     EN_CHROME_TRANSLATOR,
     type Translator,
 } from "@doenet/i18n";
 
 /**
- * The translator the viewer chrome renders with.
+ * The language the chrome renders in, and the translator that does it.
+ *
+ * The tag travels beside the translator because a renderer that has to format
+ * something *outside* Fluent — `Intl.ListFormat`, in the diagnostic formatter
+ * `_error.tsx` builds — needs to know which language to format it in, and a
+ * `Translator` alone cannot say.
  *
  * Defaults to English rather than to a throwing or empty translator:
  * `@doenet/doenetml` exports its renderers individually, so one can be mounted
  * by a host that never set up a locale. Those hosts should keep seeing exactly
  * what they see today.
  */
-const I18nContext = createContext<Translator>(EN_CHROME_TRANSLATOR);
+const I18nContext = createContext<{ translate: Translator; locale: string }>({
+    translate: EN_CHROME_TRANSLATOR,
+    locale: DEFAULT_LOCALE,
+});
 
 /**
  * Build the chrome translator for a resolved UI locale.
@@ -47,6 +56,10 @@ export function useChromeTranslator(
  * resolves the same pair of rules again against the language it parsed out of
  * the source, and mounts a nested provider with the result.
  *
+ * Returns the resolved tag alongside the translator, because that is what
+ * {@link I18nProvider} publishes and the caller has no other way to recover it
+ * — the resolution happens in here.
+ *
  * @param uiLocale The `uiLocale` prop, if the host set one.
  * @param documentLocale The `documentLocale` prop, if the host set one.
  * @param localeResources Host-supplied catalogs as locale → FTL source.
@@ -55,14 +68,12 @@ export function useHostChromeTranslator(
     uiLocale: string | null | undefined,
     documentLocale: string | null | undefined,
     localeResources?: Record<string, string> | null,
-): Translator {
-    return useChromeTranslator(
-        resolveUiLocale(
-            uiLocale,
-            resolveDocumentLocale(undefined, documentLocale),
-        ),
-        localeResources,
+): { translate: Translator; locale: string } {
+    const locale = resolveUiLocale(
+        uiLocale,
+        resolveDocumentLocale(undefined, documentLocale),
     );
+    return { translate: useChromeTranslator(locale, localeResources), locale };
 }
 
 /**
@@ -76,15 +87,19 @@ export function useHostChromeTranslator(
  */
 export function I18nProvider({
     translate,
+    locale,
     children,
 }: {
     translate: Translator;
+    /** The resolved `uiLocale` `translate` was built for. */
+    locale: string;
     children: React.ReactNode;
 }) {
+    // Memoized so a re-render of the provider's parent doesn't hand every
+    // consumer a new object and re-render the whole document with it.
+    const value = useMemo(() => ({ translate, locale }), [translate, locale]);
     return (
-        <I18nContext.Provider value={translate}>
-            {children}
-        </I18nContext.Provider>
+        <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
     );
 }
 
@@ -97,5 +112,16 @@ export function I18nProvider({
  * fallback is what renders if a catalog is somehow missing it.
  */
 export function useT(): Translator {
-    return useContext(I18nContext);
+    return useContext(I18nContext).translate;
+}
+
+/**
+ * The language the chrome is rendering in.
+ *
+ * For a renderer that has to format something `Fluent` isn't formatting —
+ * today, the diagnostic formatter `_error.tsx` builds, which joins list
+ * arguments with `Intl.ListFormat`.
+ */
+export function useUiLocale(): string {
+    return useContext(I18nContext).locale;
 }
