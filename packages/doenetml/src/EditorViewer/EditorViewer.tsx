@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { flushSync } from "react-dom";
 import { ResizablePanelPair } from "@doenet/ui-components";
-import { CodeMirror, LSP, EditorView } from "@doenet/codemirror";
+import { CodeMirror, LSP, EditorView, keymap } from "@doenet/codemirror";
 import "@doenet/codemirror/style.css";
 import { DocViewer, type SourcePosition } from "../Viewer/DocViewer";
 import { DiagnosticsResponseTabContents } from "./DiagnosticsResponseTabs";
@@ -69,6 +69,20 @@ const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
 const NO_MOUSE_MULTIPLE_SELECTIONS: Extension[] = [
     EditorView.clickAddsSelectionRange.of(() => false),
 ];
+
+/**
+ * Keyboard equivalent of the editor→viewer Cmd/Ctrl+click gesture, scrolling
+ * the viewer to whatever the cursor is on.
+ *
+ * Without it that direction would be mouse-only, unreachable to anyone
+ * navigating by keyboard — the viewer→editor direction has had a keyboard
+ * path (Cmd/Ctrl+Enter on a focused element) all along. `Mod-Enter` would be
+ * the symmetric chord but CodeMirror's default keymap binds it to
+ * `insertBlankLine`; `Mod-Alt-p` is unbound there and matches the VS Code
+ * extension's default keybinding for the same action, so the two editors
+ * agree on at least one way to ask.
+ */
+const REVEAL_IN_VIEWER_KEY = "Mod-Alt-p";
 
 /**
  * Imperative handle exposed on the ref of `<DoenetEditor>`. Provides
@@ -1079,6 +1093,29 @@ export const EditorViewer = React.forwardRef<
      * CodeMirror — `NO_MOUSE_MULTIPLE_SELECTIONS` is what makes that a
      * plain cursor move rather than an added range.
      */
+    // Both halves of the editor→viewer gesture that need to reach into
+    // CodeMirror. Built once: `extraExtensions` feeds a `React.memo`'d
+    // component, so a fresh array each render would rebuild the editor's
+    // extensions every time. The empty dep list is honest — the only value
+    // captured is `setScrollToSourceOffset`, whose identity React guarantees.
+    const editorExtensions = useMemo<Extension[]>(
+        () => [
+            ...NO_MOUSE_MULTIPLE_SELECTIONS,
+            keymap.of([
+                {
+                    key: REVEAL_IN_VIEWER_KEY,
+                    run: (view) => {
+                        setScrollToSourceOffset(view.state.selection.main.head);
+                        // Handled, so CodeMirror stops here and the chord
+                        // never reaches the browser.
+                        return true;
+                    },
+                },
+            ]),
+        ],
+        [],
+    );
+
     function handleEditorClickCapture(e: React.MouseEvent) {
         if (!hasNavigationModifier(e)) {
             return;
@@ -1111,7 +1148,7 @@ export const EditorViewer = React.forwardRef<
                 doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
                 darkMode={darkMode}
                 diagnosticPresentation={diagnosticPresentation}
-                extraExtensions={NO_MOUSE_MULTIPLE_SELECTIONS}
+                extraExtensions={editorExtensions}
             />
         </div>
     );

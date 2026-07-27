@@ -213,7 +213,35 @@ function setupPreviewWindow(context: ExtensionContext) {
         DoenetPreviewPanel.triggerRefresh();
     });
 
-    // Editor -> preview: scroll the preview to whatever the cursor is on.
+    // Editor -> preview: scroll the preview to the cursor, on request.
+    //
+    // The web editor spells this gesture Cmd/Ctrl+click, but the VS Code API
+    // exposes no modifier information for text-editor clicks (and Cmd+click is
+    // reserved for Go to Definition), so there is nothing to hang a modified
+    // click on here. A command with a default keybinding is the closest
+    // equivalent VS Code offers, and it has the advantage of being rebindable
+    // through the standard Keyboard Shortcuts UI. The same chord works in the
+    // web editor, so the two agree on at least one way to ask.
+    const revealCursorInPreview = commands.registerCommand(
+        "doenet.revealCursorInPreview",
+        () => {
+            const editor = vscode.window.activeTextEditor;
+            if (editor?.document.languageId !== "doenet") {
+                return;
+            }
+            DoenetPreviewPanel.sendCursorPosition(
+                editor.document.offsetAt(editor.selection.active),
+            );
+        },
+    );
+    context.subscriptions.push(revealCursorInPreview);
+
+    // Opt-in continuous version of the above: scroll the preview to whatever
+    // the cursor is on, on every cursor move. Off by default so the preview
+    // doesn't move on its own, matching the web editor; VS Code's built-in
+    // Markdown preview offers the same choice via
+    // `markdown.preview.scrollPreviewWithEditor`.
+    //
     // Debounced since selection-change fires on every arrow key / click.
     //
     // `suppressNextSelectionEcho` guards against feedback: `onRevealPosition`
@@ -231,8 +259,20 @@ function setupPreviewWindow(context: ExtensionContext) {
         if (e.textEditor.document.languageId !== "doenet") {
             return;
         }
+        // Consumed before the setting is consulted, so an echo can't stay
+        // latched while the setting is off and then swallow the first real
+        // cursor move after someone turns it on.
         if (suppressNextSelectionEcho) {
             suppressNextSelectionEcho = false;
+            return;
+        }
+        // Read per event rather than cached: a settings change then takes
+        // effect immediately, with no reload and nothing to unsubscribe.
+        if (
+            !workspace
+                .getConfiguration("doenet")
+                .get<boolean>("preview.scrollPreviewWithEditor", false)
+        ) {
             return;
         }
         const offset = e.textEditor.document.offsetAt(e.selections[0].active);

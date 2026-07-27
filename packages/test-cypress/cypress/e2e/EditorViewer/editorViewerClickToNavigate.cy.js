@@ -19,6 +19,41 @@ describe(
         ].join("\n");
 
         /**
+         * Source with `count` numbered paragraphs, one per line — long
+         * enough that the viewer has to scroll to reach the middle of it.
+         */
+        function manyParagraphs(count) {
+            const paragraphs = [];
+            for (let i = 1; i <= count; i++) {
+                paragraphs.push(`<p name="p${i}">Paragraph number ${i}.</p>`);
+            }
+            return paragraphs.join("\n");
+        }
+
+        /** Assert the rendered `#p40` is outside the viewer's viewport. */
+        function expectP40OffScreen() {
+            cy.get("#p40").should(($el) => {
+                const rect = $el[0].getBoundingClientRect();
+                expect(
+                    rect.bottom < 0 ||
+                        rect.top > Cypress.config("viewportHeight"),
+                ).to.be.true;
+            });
+        }
+
+        /** Assert the rendered `#p40` is inside the viewer's viewport. */
+        function expectP40OnScreen() {
+            cy.get("#p40", { timeout: 8000 }).should(($el) => {
+                const rect = $el[0].getBoundingClientRect();
+                expect(rect.top).to.be.within(
+                    0,
+                    Cypress.config("viewportHeight"),
+                );
+                expect(rect.bottom).to.be.greaterThan(0);
+            });
+        }
+
+        /**
          * Load `threeParagraphs`, cmd+click the rendered `#name` element
          * (whose text is `text`), and assert the code editor's cursor
          * landed on that paragraph's source line. (Navigation only fires
@@ -65,38 +100,13 @@ describe(
         });
 
         it("cmd+clicking a line in the editor scrolls the viewer to the matching element", () => {
-            const paragraphs = [];
-            for (let i = 1; i <= 60; i++) {
-                paragraphs.push(`<p name="p${i}">Paragraph number ${i}.</p>`);
-            }
-            const doenetML = paragraphs.join("\n");
+            const doenetML = manyParagraphs(60);
 
             cy.window().then((win) => {
                 win.postMessage({ doenetML }, "*");
             });
 
             cy.get("#p60").should("have.text", "Paragraph number 60.");
-
-            function expectP40OffScreen() {
-                cy.get("#p40").should(($el) => {
-                    const rect = $el[0].getBoundingClientRect();
-                    expect(
-                        rect.bottom < 0 ||
-                            rect.top > Cypress.config("viewportHeight"),
-                    ).to.be.true;
-                });
-            }
-
-            function expectP40OnScreen() {
-                cy.get("#p40", { timeout: 8000 }).should(($el) => {
-                    const rect = $el[0].getBoundingClientRect();
-                    expect(rect.top).to.be.within(
-                        0,
-                        Cypress.config("viewportHeight"),
-                    );
-                    expect(rect.bottom).to.be.greaterThan(0);
-                });
-            }
 
             // The viewer should still be scrolled to the top at this point.
             expectP40OffScreen();
@@ -124,6 +134,38 @@ describe(
             expectP40OnScreen();
         });
 
+        it("the keyboard shortcut scrolls the viewer to the cursor's line", () => {
+            // The mouse gesture is Cmd/Ctrl+click, which leaves anyone
+            // navigating by keyboard with no way to drive this direction at
+            // all. Mod+Alt+P is the keyboard equivalent, and it matches the
+            // VS Code extension's default keybinding for the same action.
+            const doenetML = manyParagraphs(60);
+
+            cy.window().then((win) => {
+                win.postMessage({ doenetML }, "*");
+            });
+
+            cy.get("#p60").should("have.text", "Paragraph number 60.");
+
+            expectP40OffScreen();
+
+            // Reach the line by keyboard alone: click is only used to put
+            // focus in the editor, on a line far from the target, so the
+            // scroll can't be credited to the click.
+            cy.contains(".cm-line", `name="p1"`).click();
+            cy.wait(400);
+            expectP40OffScreen();
+
+            cy.get(".cm-content").type("{downArrow}".repeat(39));
+            cy.get(".cm-activeLine").should("contain.text", `name="p40"`);
+            // Moving the cursor alone must not scroll the viewer.
+            cy.wait(400);
+            expectP40OffScreen();
+
+            cy.get(".cm-content").type("{ctrl}{alt}p");
+            expectP40OnScreen();
+        });
+
         it("ctrl+clicking a line in the editor navigates without leaving a second cursor", () => {
             // Ctrl is the modifier a Windows/Linux user actually presses
             // (the other tests use Cmd, which CodeMirror ignores off
@@ -131,11 +173,7 @@ describe(
             // "add another selection range". The editor turns that reading
             // off, or the navigation gesture would leave a stray second
             // cursor and the next keystroke would type in two places.
-            const paragraphs = [];
-            for (let i = 1; i <= 60; i++) {
-                paragraphs.push(`<p name="p${i}">Paragraph number ${i}.</p>`);
-            }
-            const doenetML = paragraphs.join("\n");
+            const doenetML = manyParagraphs(60);
 
             cy.window().then((win) => {
                 win.postMessage({ doenetML }, "*");
@@ -157,22 +195,11 @@ describe(
             cy.get(".cm-activeLine").should("contain.text", `name="p40"`);
 
             // ...and the gesture still did its job.
-            cy.get("#p40", { timeout: 8000 }).should(($el) => {
-                const rect = $el[0].getBoundingClientRect();
-                expect(rect.top).to.be.within(
-                    0,
-                    Cypress.config("viewportHeight"),
-                );
-                expect(rect.bottom).to.be.greaterThan(0);
-            });
+            expectP40OnScreen();
         });
 
         it("cmd+clicking a rendered element centers the matching line in the editor, not just at an edge", () => {
-            const paragraphs = [];
-            for (let i = 1; i <= 100; i++) {
-                paragraphs.push(`<p name="p${i}">Paragraph number ${i}.</p>`);
-            }
-            const doenetML = paragraphs.join("\n");
+            const doenetML = manyParagraphs(100);
 
             cy.window().then((win) => {
                 win.postMessage({ doenetML }, "*");
