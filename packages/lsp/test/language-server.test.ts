@@ -68,6 +68,13 @@ describe("Doenet Language Server", async () => {
           {
             "diagnostics": [
               {
+                "code": "doenet-w0115",
+                "data": {
+                  "args": {
+                    "attribute": "xxx",
+                    "tag": "graph",
+                  },
+                },
                 "message": "Element \`<graph>\` doesn't have an attribute called \`xxx\`.",
                 "range": {
                   "end": {

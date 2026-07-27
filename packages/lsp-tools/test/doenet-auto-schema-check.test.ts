@@ -101,6 +101,12 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0113",
+              "data": {
+                "args": {
+                  "tag": "c",
+                },
+              },
               "message": "Element \`<c>\` is not allowed at the root of the document.",
               "range": {
                 "end": {
@@ -123,6 +129,12 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0113",
+              "data": {
+                "args": {
+                  "tag": "c",
+                },
+              },
               "message": "Element \`<c>\` is not allowed at the root of the document.",
               "range": {
                 "end": {
@@ -145,6 +157,13 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0114",
+              "data": {
+                "args": {
+                  "parent": "b",
+                  "tag": "c",
+                },
+              },
               "message": "Element \`<c>\` is not allowed inside of \`<b>\`.",
               "range": {
                 "end": {
@@ -172,6 +191,12 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0112",
+              "data": {
+                "args": {
+                  "tag": "e",
+                },
+              },
               "message": "Element \`<e>\` is not a recognized Doenet element.",
               "range": {
                 "end": {
@@ -207,6 +232,12 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0113",
+              "data": {
+                "args": {
+                  "tag": "c",
+                },
+              },
               "message": "Element \`<c>\` is not allowed at the root of the document.",
               "range": {
                 "end": {
@@ -229,6 +260,13 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0114",
+              "data": {
+                "args": {
+                  "parent": "b",
+                  "tag": "c",
+                },
+              },
               "message": "Element \`<c>\` is not allowed inside of \`<b>\`.",
               "range": {
                 "end": {
@@ -260,6 +298,13 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0115",
+              "data": {
+                "args": {
+                  "attribute": "food",
+                  "tag": "b",
+                },
+              },
               "message": "Element \`<b>\` doesn't have an attribute called \`food\`.",
               "range": {
                 "end": {
@@ -286,6 +331,13 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0115",
+              "data": {
+                "args": {
+                  "attribute": "foo",
+                  "tag": "a",
+                },
+              },
               "message": "Element \`<a>\` doesn't have an attribute called \`foo\`.",
               "range": {
                 "end": {
@@ -353,6 +405,21 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
+              "code": "doenet-w0116",
+              "data": {
+                "args": {
+                  "allowed": {
+                    "list": [
+                      ""true"",
+                      ""false"",
+                    ],
+                    "type": "unit",
+                  },
+                  "attribute": "foo",
+                  "isList": false,
+                  "tag": "b",
+                },
+              },
               "message": "Attribute \`foo\` of element \`<b>\` must be one of: "true", "false"",
               "range": {
                 "end": {
@@ -393,23 +460,38 @@ describe("AutoCompleter", () => {
             autoCompleter = new AutoCompleter(source, schema.elements);
             expect(await autoCompleter.getSchemaViolations())
                 .toMatchInlineSnapshot(`
-              [
-                {
-                  "message": "Attribute \`xyx\` of element \`<a>\` must be one of: "a", "B"",
-                  "range": {
-                    "end": {
-                      "character": 10,
-                      "line": 0,
-                    },
-                    "start": {
-                      "character": 7,
-                      "line": 0,
-                    },
+          [
+            {
+              "code": "doenet-w0116",
+              "data": {
+                "args": {
+                  "allowed": {
+                    "list": [
+                      ""a"",
+                      ""B"",
+                    ],
+                    "type": "unit",
                   },
-                  "severity": 2,
+                  "attribute": "xyx",
+                  "isList": false,
+                  "tag": "a",
                 },
-              ]
-            `);
+              },
+              "message": "Attribute \`xyx\` of element \`<a>\` must be one of: "a", "B"",
+              "range": {
+                "end": {
+                  "character": 10,
+                  "line": 0,
+                },
+                "start": {
+                  "character": 7,
+                  "line": 0,
+                },
+              },
+              "severity": 2,
+            },
+          ]
+        `);
         },
     );
 
@@ -489,7 +571,23 @@ describe("AutoCompleter", () => {
             .toMatchInlineSnapshot(`
           [
             {
-              "message": "Attribute \`modeOneSided\` of element \`<b>\` must be one of: \"none\", \"full\", \"true\"",
+              "code": "doenet-w0116",
+              "data": {
+                "args": {
+                  "allowed": {
+                    "list": [
+                      ""none"",
+                      ""full"",
+                      ""true"",
+                    ],
+                    "type": "unit",
+                  },
+                  "attribute": "modeOneSided",
+                  "isList": false,
+                  "tag": "b",
+                },
+              },
+              "message": "Attribute \`modeOneSided\` of element \`<b>\` must be one of: "none", "full", "true"",
               "range": {
                 "end": {
                   "character": 23,

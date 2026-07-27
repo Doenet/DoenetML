@@ -731,3 +731,44 @@ deprecated-attribute-ignored = [deprecation] Attribute `{ $attribute }` on `<{ $
 #
 # $locale is the document's language tag, as declared.
 pluralize-english-only = `<pluralize>` can only pluralize English, so its text is left unchanged in a document written in { $locale }. Write the plural form directly, or set it with the `pluralForm` attribute.
+
+
+## Checking against the schema
+
+# What the editor draws a squiggle under: the language server's own check of
+# the document against the DoenetML schema, run on every keystroke and
+# answered before anything is evaluated. A beginner meets these first, and
+# usually only these, because a document that does not pass them rarely gets
+# as far as producing a diagnostic from the core.
+#
+# `@doenet/lsp-tools` writes its English beside the code rather than rendering
+# it from here, for the same reason `@doenet/parser` does: it is inside the
+# language-server bundle, which `@doenet/codemirror` embeds verbatim and
+# starts as a blob worker, and a catalog on the editor's critical path is what
+# `packages/lsp/scripts/check-server-bundle.mjs` exists to reject. The two
+# copies are held together by a test in that package, which runs the checker
+# over a corpus and asserts every coded violation renders to exactly what the
+# checker wrote — so a message edited here without its counterpart fails
+# there.
+#
+# $tag, $parent and $attribute quote the author's own source back at them and
+# stay exactly as written; the angle brackets and backticks around them are
+# punctuation this catalog supplies, not part of the name.
+
+schema-element-unrecognized = Element `<{ $tag }>` is not a recognized Doenet element.
+
+schema-element-not-allowed-at-root = Element `<{ $tag }>` is not allowed at the root of the document.
+
+schema-element-not-allowed-inside = Element `<{ $tag }>` is not allowed inside of `<{ $parent }>`.
+
+schema-attribute-unrecognized = Element `<{ $tag }>` doesn't have an attribute called `{ $attribute }`.
+
+# $allowed is the attribute's permitted values, each already in double quotes
+# and joined for the reader's language. $isList says whether the attribute
+# takes several of them at once: one situation, two sentences, because the
+# reader has to be told they are choosing a whole list rather than a value.
+schema-attribute-value-not-allowed =
+    { $isList ->
+        [true] Attribute `{ $attribute }` of element `<{ $tag }>` must be a list whose items are each one of: { $allowed }
+       *[other] Attribute `{ $attribute }` of element `<{ $tag }>` must be one of: { $allowed }
+    }

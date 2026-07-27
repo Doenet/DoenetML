@@ -304,6 +304,34 @@ migrate and no code to name; they spread `diagnosticCodeFrom` to pass along
 whatever their source carried. `lint:i18n` counts those as migrated too, since
 there is nothing further to do to them.
 
+### Producers that cannot read the catalog
+
+`@doenet/parser` and `@doenet/lsp-tools` raise author-facing diagnostics and
+neither can render one. Both are bundled into the DoenetML language server,
+which `@doenet/codemirror` embeds verbatim and starts as a blob worker, so
+every byte sits on the editor's critical path before the first cursor-help
+request can be answered — and the server has no locale to render in anyway.
+Reaching the catalog from there pulls in `EN_CATALOG_SOURCE`, every English
+namespace joined, plus the Fluent runtime to read it;
+`packages/lsp/scripts/check-server-bundle.mjs` fails outright if either
+arrives, rather than budgeting for it (see [Bundling](#bundling)).
+
+So these two pass the English **alongside** the code instead of rendering it —
+`codedDastError` in `packages/parser/src/coded-dast-error.ts`,
+`codedLspDiagnostic` in `packages/lsp-tools/src/coded-lsp-diagnostic.ts`. The
+message lives in two places, and each package holds the two together with a
+test: `test/coded-dast-errors.test.ts` and `test/coded-schema-violations.test.ts`
+run their producer over a corpus of broken DoenetML and assert every coded
+diagnostic renders, through the catalog, to exactly the string the producer
+wrote. A message edited on one side and not the other fails there, as does a
+missing or misnamed argument — one the catalog reads and the producer doesn't
+pass renders as `{$name}`, which no hand-written English will match.
+
+`@doenet/i18n` is a **devDependency** in both: `import type` in `src/`, so
+every code is still checked against the registry at compile time, and the real
+package only in that test. Their `dependencies` stay free of it and the bundle
+guard stays green.
+
 ### Codes
 
 A code is a permanent name — what a bug report cites, what a host reading

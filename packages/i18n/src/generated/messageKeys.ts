@@ -303,7 +303,12 @@ export type MessageKey =
     | "deprecated-attribute-renamed"
     | "deprecated-attribute-renamed-conflict"
     | "deprecated-attribute-ignored"
-    | "pluralize-english-only";
+    | "pluralize-english-only"
+    | "schema-element-unrecognized"
+    | "schema-element-not-allowed-at-root"
+    | "schema-element-not-allowed-inside"
+    | "schema-attribute-unrecognized"
+    | "schema-attribute-value-not-allowed";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -604,4 +609,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "deprecated-attribute-renamed-conflict",
     "deprecated-attribute-ignored",
     "pluralize-english-only",
+    "schema-element-unrecognized",
+    "schema-element-not-allowed-at-root",
+    "schema-element-not-allowed-inside",
+    "schema-attribute-unrecognized",
+    "schema-attribute-value-not-allowed",
 ];

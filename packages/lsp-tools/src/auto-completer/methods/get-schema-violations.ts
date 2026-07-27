@@ -14,6 +14,7 @@ import {
     visit,
 } from "@doenet/parser";
 import { AutoCompleter } from "..";
+import { codedLspDiagnostic } from "../../coded-lsp-diagnostic";
 
 /**
  * Get a list of places where the schema is violated.
@@ -60,16 +61,18 @@ export async function getSchemaViolations(
             if (name === "UNKNOWN_NAME") {
                 // No further checking for unknown elements.
                 const range = this.sourceObj.getElementTagRanges(node);
-                return {
+                return codedLspDiagnostic({
+                    code: "doenet-w0112",
+                    message: `Element \`<${node.name}>\` is not a recognized Doenet element.`,
+                    args: { tag: node.name },
                     range: {
                         start: this.sourceObj.offsetToLSPPosition(
                             range[0].start,
                         ),
                         end: this.sourceObj.offsetToLSPPosition(range[0].end),
                     },
-                    message: `Element \`<${node.name}>\` is not a recognized Doenet element.`,
                     severity: DiagnosticSeverity.Warning,
-                };
+                });
             }
 
             const schema = this.schemaElementsByName[name];
@@ -82,18 +85,22 @@ export async function getSchemaViolations(
                 }
                 if (!schema.top) {
                     const range = this.sourceObj.getElementTagRanges(node);
-                    ret.push({
-                        range: {
-                            start: this.sourceObj.offsetToLSPPosition(
-                                range[0].start,
-                            ),
-                            end: this.sourceObj.offsetToLSPPosition(
-                                range[0].end,
-                            ),
-                        },
-                        message: `Element \`<${name}>\` is not allowed at the root of the document.`,
-                        severity: DiagnosticSeverity.Warning,
-                    });
+                    ret.push(
+                        codedLspDiagnostic({
+                            code: "doenet-w0113",
+                            message: `Element \`<${name}>\` is not allowed at the root of the document.`,
+                            args: { tag: name },
+                            range: {
+                                start: this.sourceObj.offsetToLSPPosition(
+                                    range[0].start,
+                                ),
+                                end: this.sourceObj.offsetToLSPPosition(
+                                    range[0].end,
+                                ),
+                            },
+                            severity: DiagnosticSeverity.Warning,
+                        }),
+                    );
                 }
             } else {
                 const parentName = this.normalizeElementName(parent.name);
@@ -110,18 +117,22 @@ export async function getSchemaViolations(
                     !this.isAllowedChild(parentName, name, grandparentName)
                 ) {
                     const range = this.sourceObj.getElementTagRanges(node);
-                    ret.push({
-                        range: {
-                            start: this.sourceObj.offsetToLSPPosition(
-                                range[0].start,
-                            ),
-                            end: this.sourceObj.offsetToLSPPosition(
-                                range[0].end,
-                            ),
-                        },
-                        message: `Element \`<${name}>\` is not allowed inside of \`<${parentName}>\`.`,
-                        severity: DiagnosticSeverity.Warning,
-                    });
+                    ret.push(
+                        codedLspDiagnostic({
+                            code: "doenet-w0114",
+                            message: `Element \`<${name}>\` is not allowed inside of \`<${parentName}>\`.`,
+                            args: { tag: name, parent: parentName },
+                            range: {
+                                start: this.sourceObj.offsetToLSPPosition(
+                                    range[0].start,
+                                ),
+                                end: this.sourceObj.offsetToLSPPosition(
+                                    range[0].end,
+                                ),
+                            },
+                            severity: DiagnosticSeverity.Warning,
+                        }),
+                    );
                 }
             }
 
@@ -157,18 +168,32 @@ export async function getSchemaViolations(
                 if (attrName === "name") {
                     const value = toXml(attr.children);
                     if (!value.charAt(0).match(/[a-zA-Z]/)) {
-                        ret.push({
-                            range: {
-                                start: this.sourceObj.offsetToLSPPosition(
-                                    attr.position?.start.offset || 0,
-                                ),
-                                end: this.sourceObj.offsetToLSPPosition(
-                                    attr.position?.end.offset || 0,
-                                ),
-                            },
-                            message: `Invalid attribute name='${value}'. Names must start with a letter.`,
-                            severity: DiagnosticSeverity.Error,
-                        });
+                        // The parser's own name check raises this same
+                        // sentence, from `enforce-valid-names.ts`, and a code
+                        // names a situation rather than the producer that
+                        // spotted it — so this is `doenet-e0025` and not a
+                        // second name for it. Sharing it is also what lets
+                        // `dedupeLspDiagnostics` collapse the two reports of
+                        // one mistake once they stop being the same string.
+                        // The parser's message branches on which rule the name
+                        // broke; this check only looks at the first character,
+                        // so it always takes the `start` branch.
+                        ret.push(
+                            codedLspDiagnostic({
+                                code: "doenet-e0025",
+                                message: `Invalid attribute name='${value}'. Names must start with a letter.`,
+                                args: { name: value, reason: "start" },
+                                range: {
+                                    start: this.sourceObj.offsetToLSPPosition(
+                                        attr.position?.start.offset || 0,
+                                    ),
+                                    end: this.sourceObj.offsetToLSPPosition(
+                                        attr.position?.end.offset || 0,
+                                    ),
+                                },
+                                severity: DiagnosticSeverity.Error,
+                            }),
+                        );
                     }
                 }
 
@@ -186,18 +211,22 @@ export async function getSchemaViolations(
                 }
 
                 if (attrName === "UNKNOWN_NAME") {
-                    ret.push({
-                        range: {
-                            start: this.sourceObj.offsetToLSPPosition(
-                                attr.position?.start.offset || 0,
-                            ),
-                            end: this.sourceObj.offsetToLSPPosition(
-                                attr.position?.end.offset || 0,
-                            ),
-                        },
-                        message: `Element \`<${name}>\` doesn't have an attribute called \`${attr.name}\`.`,
-                        severity: DiagnosticSeverity.Warning,
-                    });
+                    ret.push(
+                        codedLspDiagnostic({
+                            code: "doenet-w0115",
+                            message: `Element \`<${name}>\` doesn't have an attribute called \`${attr.name}\`.`,
+                            args: { tag: name, attribute: attr.name },
+                            range: {
+                                start: this.sourceObj.offsetToLSPPosition(
+                                    attr.position?.start.offset || 0,
+                                ),
+                                end: this.sourceObj.offsetToLSPPosition(
+                                    attr.position?.end.offset || 0,
+                                ),
+                            },
+                            severity: DiagnosticSeverity.Warning,
+                        }),
+                    );
                 } else if (
                     !this.isAllowedAttribute(
                         name,
@@ -206,18 +235,22 @@ export async function getSchemaViolations(
                         perInstanceAllowlist ?? undefined,
                     )
                 ) {
-                    ret.push({
-                        range: {
-                            start: this.sourceObj.offsetToLSPPosition(
-                                attr.position?.start.offset || 0,
-                            ),
-                            end: this.sourceObj.offsetToLSPPosition(
-                                attr.position?.end.offset || 0,
-                            ),
-                        },
-                        message: `Element \`<${name}>\` doesn't have an attribute called \`${attrName}\`.`,
-                        severity: DiagnosticSeverity.Warning,
-                    });
+                    ret.push(
+                        codedLspDiagnostic({
+                            code: "doenet-w0115",
+                            message: `Element \`<${name}>\` doesn't have an attribute called \`${attrName}\`.`,
+                            args: { tag: name, attribute: attrName },
+                            range: {
+                                start: this.sourceObj.offsetToLSPPosition(
+                                    attr.position?.start.offset || 0,
+                                ),
+                                end: this.sourceObj.offsetToLSPPosition(
+                                    attr.position?.end.offset || 0,
+                                ),
+                            },
+                            severity: DiagnosticSeverity.Warning,
+                        }),
+                    );
                 } else {
                     // If there are no macros/functions in the attribute value and the list of allowed values is non-empty,
                     // check that the value is in the list of allowed values.
@@ -252,23 +285,48 @@ export async function getSchemaViolations(
                                 ),
                         );
                         if (invalidTokens.length > 0) {
-                            const allowedList = [...allowedValues.correctCase]
-                                .map((v) => `"${v}"`)
-                                .join(", ");
-                            ret.push({
-                                range: {
-                                    start: this.sourceObj.offsetToLSPPosition(
-                                        range.start,
-                                    ),
-                                    end: this.sourceObj.offsetToLSPPosition(
-                                        range.end,
-                                    ),
-                                },
-                                message: allowedValues.isList
-                                    ? `Attribute \`${attrName}\` of element \`<${name}>\` must be a list whose items are each one of: ${allowedList}`
-                                    : `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${allowedList}`,
-                                severity: DiagnosticSeverity.Warning,
-                            });
+                            // Quoted here, joined here, and *also* handed over
+                            // as a list. The English below has to be the
+                            // finished sentence, but the catalog joins the
+                            // same values itself with `Intl.ListFormat`, so
+                            // that a language which does not enumerate with a
+                            // bare comma is not stuck with English
+                            // punctuation. `type: "unit"` is the bare
+                            // enumeration rather than an "a, b, and c"
+                            // conjunction, which is what `", "` already means
+                            // here — the two agree in English, which is what
+                            // the round-trip test checks.
+                            const allowed = [...allowedValues.correctCase].map(
+                                (v) => `"${v}"`,
+                            );
+                            const allowedList = allowed.join(", ");
+                            const isList = Boolean(allowedValues.isList);
+                            ret.push(
+                                codedLspDiagnostic({
+                                    code: "doenet-w0116",
+                                    message: isList
+                                        ? `Attribute \`${attrName}\` of element \`<${name}>\` must be a list whose items are each one of: ${allowedList}`
+                                        : `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${allowedList}`,
+                                    args: {
+                                        tag: name,
+                                        attribute: attrName,
+                                        isList,
+                                        allowed: {
+                                            list: allowed,
+                                            type: "unit",
+                                        },
+                                    },
+                                    range: {
+                                        start: this.sourceObj.offsetToLSPPosition(
+                                            range.start,
+                                        ),
+                                        end: this.sourceObj.offsetToLSPPosition(
+                                            range.end,
+                                        ),
+                                    },
+                                    severity: DiagnosticSeverity.Warning,
+                                }),
+                            );
                         }
                     }
                 }
