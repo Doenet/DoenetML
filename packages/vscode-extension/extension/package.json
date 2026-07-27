@@ -104,8 +104,8 @@
                 },
                 "doenet.preview.scrollPreviewWithEditor": {
                     "type": "boolean",
-                    "default": false,
-                    "markdownDescription": "Scroll the Doenet preview to follow the editor's cursor as it moves.\n\nWhen off (the default), the preview only scrolls when you ask it to, with the `Scroll Doenet Preview to Cursor` command (`ctrl+alt+p`, `cmd+alt+p` on macOS)."
+                    "default": true,
+                    "markdownDescription": "Scroll the Doenet preview to follow the editor's cursor as it moves.\n\nWhen off, the preview only scrolls when you ask it to, with the `Scroll Doenet Preview to Cursor` command (`ctrl+alt+p`, `cmd+alt+p` on macOS). That command works either way."
                 }
             }
         }

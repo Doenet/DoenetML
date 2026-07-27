@@ -236,11 +236,16 @@ function setupPreviewWindow(context: ExtensionContext) {
     );
     context.subscriptions.push(revealCursorInPreview);
 
-    // Opt-in continuous version of the above: scroll the preview to whatever
-    // the cursor is on, on every cursor move. Off by default so the preview
-    // doesn't move on its own, matching the web editor; VS Code's built-in
-    // Markdown preview offers the same choice via
-    // `markdown.preview.scrollPreviewWithEditor`.
+    // Continuous version of the above: scroll the preview to whatever the
+    // cursor is on, on every cursor move.
+    //
+    // On by default, unlike the web editor, which scrolls its preview only
+    // when asked. The difference is deliberate: scroll-sync is what a VS Code
+    // preview conventionally does — the built-in Markdown preview ships it on
+    // via `markdown.preview.scrollPreviewWithEditor` — and the web editor's
+    // Cmd/Ctrl+click gesture has no counterpart here to replace it with. Turn
+    // it off to get the web editor's behavior, where only the command moves
+    // the preview.
     //
     // Debounced since selection-change fires on every arrow key / click.
     //
@@ -267,11 +272,12 @@ function setupPreviewWindow(context: ExtensionContext) {
             return;
         }
         // Read per event rather than cached: a settings change then takes
-        // effect immediately, with no reload and nothing to unsubscribe.
+        // effect immediately, with no reload and nothing to unsubscribe. The
+        // fallback matches the manifest's default, so the two can't disagree.
         if (
             !workspace
                 .getConfiguration("doenet")
-                .get<boolean>("preview.scrollPreviewWithEditor", false)
+                .get<boolean>("preview.scrollPreviewWithEditor", true)
         ) {
             return;
         }
