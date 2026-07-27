@@ -29,6 +29,30 @@ export async function getSchemaViolations(
     this: AutoCompleter,
 ): Promise<Diagnostic[]> {
     await this._refreshModuleInstanceAttributes();
+
+    /** An LSP range from a pair of source offsets. */
+    const offsetRange = (start: number, end: number) => ({
+        start: this.sourceObj.offsetToLSPPosition(start),
+        end: this.sourceObj.offsetToLSPPosition(end),
+    });
+
+    /** The opening tag, which is what an element-level violation points at. */
+    const elementTagRange = (node: DastElement) => {
+        const [openTag] = this.sourceObj.getElementTagRanges(node);
+        return offsetRange(openTag.start, openTag.end);
+    };
+
+    /**
+     * The whole `name="value"` pair, which is what an attribute-level
+     * violation points at. A pair the parser gave no position falls back to
+     * the top of the document rather than dropping the violation.
+     */
+    const attributeRange = (attr: DastAttribute) =>
+        offsetRange(
+            attr.position?.start.offset || 0,
+            attr.position?.end.offset || 0,
+        );
+
     /**
      * Get all pairs of elements and their parent.
      */
@@ -60,17 +84,11 @@ export async function getSchemaViolations(
 
             if (name === "UNKNOWN_NAME") {
                 // No further checking for unknown elements.
-                const range = this.sourceObj.getElementTagRanges(node);
                 return codedLspDiagnostic({
                     code: "doenet-w0112",
                     message: `Element \`<${node.name}>\` is not a recognized Doenet element.`,
                     args: { tag: node.name },
-                    range: {
-                        start: this.sourceObj.offsetToLSPPosition(
-                            range[0].start,
-                        ),
-                        end: this.sourceObj.offsetToLSPPosition(range[0].end),
-                    },
+                    range: elementTagRange(node),
                     severity: DiagnosticSeverity.Warning,
                 });
             }
@@ -84,20 +102,12 @@ export async function getSchemaViolations(
                     return [];
                 }
                 if (!schema.top) {
-                    const range = this.sourceObj.getElementTagRanges(node);
                     ret.push(
                         codedLspDiagnostic({
                             code: "doenet-w0113",
                             message: `Element \`<${name}>\` is not allowed at the root of the document.`,
                             args: { tag: name },
-                            range: {
-                                start: this.sourceObj.offsetToLSPPosition(
-                                    range[0].start,
-                                ),
-                                end: this.sourceObj.offsetToLSPPosition(
-                                    range[0].end,
-                                ),
-                            },
+                            range: elementTagRange(node),
                             severity: DiagnosticSeverity.Warning,
                         }),
                     );
@@ -116,20 +126,12 @@ export async function getSchemaViolations(
                     parentName !== "UNKNOWN_NAME" &&
                     !this.isAllowedChild(parentName, name, grandparentName)
                 ) {
-                    const range = this.sourceObj.getElementTagRanges(node);
                     ret.push(
                         codedLspDiagnostic({
                             code: "doenet-w0114",
                             message: `Element \`<${name}>\` is not allowed inside of \`<${parentName}>\`.`,
                             args: { tag: name, parent: parentName },
-                            range: {
-                                start: this.sourceObj.offsetToLSPPosition(
-                                    range[0].start,
-                                ),
-                                end: this.sourceObj.offsetToLSPPosition(
-                                    range[0].end,
-                                ),
-                            },
+                            range: elementTagRange(node),
                             severity: DiagnosticSeverity.Warning,
                         }),
                     );
@@ -168,29 +170,21 @@ export async function getSchemaViolations(
                 if (attrName === "name") {
                     const value = toXml(attr.children);
                     if (!value.charAt(0).match(/[a-zA-Z]/)) {
-                        // The parser's own name check raises this same
-                        // sentence, from `enforce-valid-names.ts`, and a code
-                        // names a situation rather than the producer that
-                        // spotted it — so this is `doenet-e0025` and not a
-                        // second name for it. Sharing it is also what lets
-                        // `dedupeLspDiagnostics` collapse the two reports of
-                        // one mistake once they stop being the same string.
-                        // The parser's message branches on which rule the name
-                        // broke; this check only looks at the first character,
-                        // so it always takes the `start` branch.
+                        // `doenet-e0025` is the parser's own name check, in
+                        // `enforce-valid-names.ts`, raising this same
+                        // sentence. A code names a situation, so both reports
+                        // of one mistake share it, which is what lets
+                        // `dedupeLspDiagnostics` collapse them into a single
+                        // hover entry once they stop being the same string.
+                        // That message branches on which rule the name broke;
+                        // this check reads only the first character, so it is
+                        // always the `start` branch.
                         ret.push(
                             codedLspDiagnostic({
                                 code: "doenet-e0025",
                                 message: `Invalid attribute name='${value}'. Names must start with a letter.`,
                                 args: { name: value, reason: "start" },
-                                range: {
-                                    start: this.sourceObj.offsetToLSPPosition(
-                                        attr.position?.start.offset || 0,
-                                    ),
-                                    end: this.sourceObj.offsetToLSPPosition(
-                                        attr.position?.end.offset || 0,
-                                    ),
-                                },
+                                range: attributeRange(attr),
                                 severity: DiagnosticSeverity.Error,
                             }),
                         );
@@ -210,24 +204,8 @@ export async function getSchemaViolations(
                     continue;
                 }
 
-                if (attrName === "UNKNOWN_NAME") {
-                    ret.push(
-                        codedLspDiagnostic({
-                            code: "doenet-w0115",
-                            message: `Element \`<${name}>\` doesn't have an attribute called \`${attr.name}\`.`,
-                            args: { tag: name, attribute: attr.name },
-                            range: {
-                                start: this.sourceObj.offsetToLSPPosition(
-                                    attr.position?.start.offset || 0,
-                                ),
-                                end: this.sourceObj.offsetToLSPPosition(
-                                    attr.position?.end.offset || 0,
-                                ),
-                            },
-                            severity: DiagnosticSeverity.Warning,
-                        }),
-                    );
-                } else if (
+                if (
+                    attrName === "UNKNOWN_NAME" ||
                     !this.isAllowedAttribute(
                         name,
                         attrName,
@@ -235,99 +213,83 @@ export async function getSchemaViolations(
                         perInstanceAllowlist ?? undefined,
                     )
                 ) {
+                    // A name no element anywhere declares normalizes to
+                    // `UNKNOWN_NAME`, so the author's own spelling is what
+                    // gets quoted back; one that exists on some other element
+                    // is quoted in the schema's casing.
+                    const attribute =
+                        attrName === "UNKNOWN_NAME" ? attr.name : attrName;
                     ret.push(
                         codedLspDiagnostic({
                             code: "doenet-w0115",
-                            message: `Element \`<${name}>\` doesn't have an attribute called \`${attrName}\`.`,
-                            args: { tag: name, attribute: attrName },
-                            range: {
-                                start: this.sourceObj.offsetToLSPPosition(
-                                    attr.position?.start.offset || 0,
-                                ),
-                                end: this.sourceObj.offsetToLSPPosition(
-                                    attr.position?.end.offset || 0,
-                                ),
-                            },
+                            message: `Element \`<${name}>\` doesn't have an attribute called \`${attribute}\`.`,
+                            args: { tag: name, attribute },
+                            range: attributeRange(attr),
                             severity: DiagnosticSeverity.Warning,
                         }),
                     );
-                } else {
-                    // If there are no macros/functions in the attribute value and the list of allowed values is non-empty,
-                    // check that the value is in the list of allowed values.
-                    // Pass the direct parent so the alias-aware path picks
-                    // up alias-specific enumerations (#1092).
-                    const allowedValues = this.getAttributeAllowedValues(
-                        name,
-                        attrName,
-                        directParentName,
+                    continue;
+                }
+
+                // If there are no macros/functions in the attribute value and the list of allowed values is non-empty,
+                // check that the value is in the list of allowed values.
+                // Pass the direct parent so the alias-aware path picks
+                // up alias-specific enumerations (#1092).
+                const allowedValues = this.getAttributeAllowedValues(
+                    name,
+                    attrName,
+                    directParentName,
+                );
+                if (!hasMacroOrFunctionChild(attr.children) && allowedValues) {
+                    // Attributes specified without a value are considered to have a value of "true".
+                    const attrValue =
+                        attr.children.length === 0
+                            ? "true"
+                            : toXml(attr.children);
+                    const valueRange = getAttributeValueRange(attr);
+                    // List-valued attributes constrain each item, so split
+                    // the authored value on whitespace and flag any token
+                    // that isn't allowed. Scalar attributes validate the
+                    // whole value as before.
+                    const tokensToCheck = allowedValues.isList
+                        ? attrValue.split(/\s+/).filter((t) => t.length > 0)
+                        : [attrValue];
+                    const invalidTokens = tokensToCheck.filter(
+                        (token) =>
+                            !allowedValues.lowerCase.has(token.toLowerCase()),
                     );
-                    if (
-                        !hasMacroOrFunctionChild(attr.children) &&
-                        allowedValues
-                    ) {
-                        // Attributes specified without a value are considered to have a value of "true".
-                        const attrValue =
-                            attr.children.length === 0
-                                ? "true"
-                                : toXml(attr.children);
-                        const range = getAttributeValueRange(attr);
-                        // List-valued attributes constrain each item, so split
-                        // the authored value on whitespace and flag any token
-                        // that isn't allowed. Scalar attributes validate the
-                        // whole value as before.
-                        const tokensToCheck = allowedValues.isList
-                            ? attrValue.split(/\s+/).filter((t) => t.length > 0)
-                            : [attrValue];
-                        const invalidTokens = tokensToCheck.filter(
-                            (token) =>
-                                !allowedValues.lowerCase.has(
-                                    token.toLowerCase(),
-                                ),
+                    if (invalidTokens.length > 0) {
+                        // The permitted values go over quoted and unjoined as
+                        // well as spelled into the English sentence, so the
+                        // catalog can enumerate them with `Intl.ListFormat` in
+                        // a language that does not separate a list with a bare
+                        // comma. `type: "unit"` is that bare enumeration,
+                        // which in English is the `", "` used just below — the
+                        // agreement the round-trip test checks.
+                        const allowed = [...allowedValues.correctCase].map(
+                            (v) => `"${v}"`,
                         );
-                        if (invalidTokens.length > 0) {
-                            // Quoted here, joined here, and *also* handed over
-                            // as a list. The English below has to be the
-                            // finished sentence, but the catalog joins the
-                            // same values itself with `Intl.ListFormat`, so
-                            // that a language which does not enumerate with a
-                            // bare comma is not stuck with English
-                            // punctuation. `type: "unit"` is the bare
-                            // enumeration rather than an "a, b, and c"
-                            // conjunction, which is what `", "` already means
-                            // here — the two agree in English, which is what
-                            // the round-trip test checks.
-                            const allowed = [...allowedValues.correctCase].map(
-                                (v) => `"${v}"`,
-                            );
-                            const allowedList = allowed.join(", ");
-                            const isList = Boolean(allowedValues.isList);
-                            ret.push(
-                                codedLspDiagnostic({
-                                    code: "doenet-w0116",
-                                    message: isList
-                                        ? `Attribute \`${attrName}\` of element \`<${name}>\` must be a list whose items are each one of: ${allowedList}`
-                                        : `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${allowedList}`,
-                                    args: {
-                                        tag: name,
-                                        attribute: attrName,
-                                        isList,
-                                        allowed: {
-                                            list: allowed,
-                                            type: "unit",
-                                        },
-                                    },
-                                    range: {
-                                        start: this.sourceObj.offsetToLSPPosition(
-                                            range.start,
-                                        ),
-                                        end: this.sourceObj.offsetToLSPPosition(
-                                            range.end,
-                                        ),
-                                    },
-                                    severity: DiagnosticSeverity.Warning,
-                                }),
-                            );
-                        }
+                        const allowedList = allowed.join(", ");
+                        const isList = Boolean(allowedValues.isList);
+                        ret.push(
+                            codedLspDiagnostic({
+                                code: "doenet-w0116",
+                                message: isList
+                                    ? `Attribute \`${attrName}\` of element \`<${name}>\` must be a list whose items are each one of: ${allowedList}`
+                                    : `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${allowedList}`,
+                                args: {
+                                    tag: name,
+                                    attribute: attrName,
+                                    isList,
+                                    allowed: { list: allowed, type: "unit" },
+                                },
+                                range: offsetRange(
+                                    valueRange.start,
+                                    valueRange.end,
+                                ),
+                                severity: DiagnosticSeverity.Warning,
+                            }),
+                        );
                     }
                 }
             }
