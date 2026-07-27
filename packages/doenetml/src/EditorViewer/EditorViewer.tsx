@@ -63,12 +63,10 @@ const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
 // undoing the extra range afterwards) keeps CodeMirror the single owner of
 // the selection. The trade-off: multiple selections can no longer be made
 // with the mouse; `Mod-d` (`selectNextOccurrence`) still adds them from the
-// keyboard. Nothing else configures this facet, so appending it is enough;
-// module-level so the array identity is stable (see the `extraExtensions`
-// prop docs).
-const NO_MOUSE_MULTIPLE_SELECTIONS: Extension[] = [
-    EditorView.clickAddsSelectionRange.of(() => false),
-];
+// keyboard. CodeMirror reads only the highest-precedence input to this
+// facet and nothing else configures it, so appending this one is enough.
+const NO_MOUSE_MULTIPLE_SELECTIONS: Extension =
+    EditorView.clickAddsSelectionRange.of(() => false);
 
 /**
  * Keyboard equivalent of the editor→viewer Cmd/Ctrl+click gesture, scrolling
@@ -1084,7 +1082,7 @@ export const EditorViewer = React.forwardRef<
      */
     const editorExtensions = useMemo<Extension[]>(
         () => [
-            ...NO_MOUSE_MULTIPLE_SELECTIONS,
+            NO_MOUSE_MULTIPLE_SELECTIONS,
             keymap.of([
                 {
                     key: REVEAL_IN_VIEWER_KEY,
