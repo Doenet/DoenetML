@@ -1699,6 +1699,84 @@ describe("Sectioning tag tests @group3", async () => {
             await resolvePathToNodeIdx("p3"),
         ]);
     });
+
+    // A list item delegates its inline first-line rendering to `firstVisibleChild`.
+    // A `<setup>` renders nothing, so it must not be picked as that child; if it
+    // is, the actually-first child keeps its top margin and never reports the
+    // alignment the section uses to place the hanging number.
+    it("does not delegate list-item rendering to a leading <setup>", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problem>
+  <part name="pa">
+    <setup><number name="n">5</number></setup>
+    <graph name="ga" size="small"><point>(1,2)</point></graph>
+  </part>
+  <part name="pb">
+    <graph name="gb" size="small"><point>(1,2)</point></graph>
+  </part>
+</problem>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const withSetup =
+            stateVariables[await resolvePathToNodeIdx("pa")].stateValues;
+        const withoutSetup =
+            stateVariables[await resolvePathToNodeIdx("pb")].stateValues;
+
+        expect(withSetup.firstVisibleChild.componentType).eq("graph");
+
+        // A graph opts out of baseline alignment; the `<setup>` must not mask
+        // that and drop the number to the bottom of the graph.
+        expect(withoutSetup.firstChildListItemAlignment).eq("flex-start");
+        expect(withSetup.firstChildListItemAlignment).eq(
+            withoutSetup.firstChildListItemAlignment,
+        );
+
+        const graphWithSetup =
+            stateVariables[await resolvePathToNodeIdx("ga")].stateValues;
+        const graphWithoutSetup =
+            stateVariables[await resolvePathToNodeIdx("gb")].stateValues;
+
+        expect(graphWithoutSetup.renderInlineForListItem).eq(true);
+        expect(graphWithSetup.renderInlineForListItem).eq(
+            graphWithoutSetup.renderInlineForListItem,
+        );
+        expect(graphWithSetup.listItemInlineAlignment).eq(
+            graphWithoutSetup.listItemInlineAlignment,
+        );
+    });
+
+    it("does not delegate list-item rendering to a leading <variantControl>", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problem>
+  <part name="pa">
+    <variantControl numVariants="2" />
+    <p name="pap">First</p>
+  </part>
+  <part name="pb">
+    <p name="pbp">Second</p>
+  </part>
+</problem>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pa")].stateValues
+                .firstVisibleChild.componentType,
+        ).eq("p");
+
+        const withVariantControl =
+            stateVariables[await resolvePathToNodeIdx("pap")].stateValues;
+        const without =
+            stateVariables[await resolvePathToNodeIdx("pbp")].stateValues;
+
+        expect(without.renderInlineForListItem).eq(true);
+        expect(withVariantControl.renderInlineForListItem).eq(
+            without.renderInlineForListItem,
+        );
+    });
 });
 
 describe("Section heading color accessibility diagnostics @group3", async () => {

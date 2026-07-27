@@ -41,9 +41,10 @@ import { codedDiagnostic } from "../../utils/diagnostics";
  * rendered children off the end of the section.
  *
  * `configurationChildren` are the children that configure the section — its
- * styles and its answer feedback — rather than render inside it. They keep
- * their slot in `allChildren` so the positions stay aligned, and
- * `nonConfigurationChildEntries()` filters them back out.
+ * styles, its answer feedback, its variants, and its non-rendered setup —
+ * rather than render inside it. None of these component types has a
+ * `rendererType`. They keep their slot in `allChildren` so the positions stay
+ * aligned, and `nonConfigurationChildEntries()` filters them back out.
  */
 function returnSectionChildDependencies() {
     return {
@@ -57,6 +58,8 @@ function returnSectionChildDependencies() {
                 "styleDefinitions",
                 "stylePalettes",
                 "feedbackDefinitions",
+                "setups",
+                "variantControls",
             ],
         },
     };
@@ -69,10 +72,14 @@ function returnSectionChildDependencies() {
  * `returnSectionChildDependencies()`.
  *
  * Configuration children are neither rendered nor hidden: they are not content,
- * and a section's styles and feedback stay in effect even when its content is
- * hidden. Their positions are still consumed from `allChildren`, so the
- * positions of the children around them stay aligned with `activeChildren`.
- * String children have no `componentIdx`, so they are never dropped.
+ * and a section's styles, feedback, and variants stay in effect even when its
+ * content is hidden. Filtering them here also keeps them out of
+ * `firstVisibleChild` — a list item delegates its inline first-line rendering
+ * and its number's alignment to that child, so choosing one that renders
+ * nothing strands the child that actually renders first. Their positions are
+ * still consumed from `allChildren`, so the positions of the children around
+ * them stay aligned with `activeChildren`. String children have no
+ * `componentIdx`, so they are never dropped.
  */
 function nonConfigurationChildEntries(dependencyValues) {
     const configurationChildIndices = new Set(
