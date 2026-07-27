@@ -1,4 +1,9 @@
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../utils/contentLocale";
+import { sectionNameWord } from "../utils/sectionWords";
 
 export class Solution extends BlockComponent {
     constructor(args) {
@@ -40,6 +45,10 @@ export class Solution extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // `<givenAnswer>` inherits this whole set, and its own component type
+        // is what picks its word out of the catalog — so it needs no override.
+        let componentClass = this;
 
         stateVariableDefinitions.hide = {
             description: "Whether the solution is currently hidden.",
@@ -232,8 +241,16 @@ export class Solution extends BlockComponent {
 
         stateVariableDefinitions.sectionName = {
             forRenderer: true,
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { sectionName: "Solution" } }),
+            returnDependencies: () => returnContentLocaleDependencies(),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    sectionName: sectionNameWord(
+                        contentTranslator(dependencyValues),
+                        componentClass.componentType,
+                        componentClass.name,
+                    ),
+                },
+            }),
         };
 
         return stateVariableDefinitions;
@@ -353,14 +370,4 @@ export class GivenAnswer extends Solution {
         summary:
             'A sectional component that renders an expandable block labeled "Answer"',
     };
-
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.sectionName.definition = () => ({
-            setValue: { sectionName: "Answer" },
-        });
-
-        return stateVariableDefinitions;
-    }
 }

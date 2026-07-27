@@ -241,6 +241,66 @@ answer-submit-label = Check Work
 answer-submit-label-no-correctness = Submit Response
 
 
+## Sectional blocks
+##
+## The word a sectional block calls itself, which the reader sees as its
+## heading and an author can read back as `$section.sectionName`. Keyed by the
+## element the author writes, so `<subsection>` and `<subsubsection>` share
+## `.section` — they are all called a section.
+##
+## An author who writes `renameTo` has named the block themselves, and that
+## name passes through in every language.
+
+section-name =
+    .activity = Activity
+    .aside = Aside
+    .cascade = Cascade
+    .definition = Definition
+    .example = Example
+    .exercise = Exercise
+    .exercises = Exercises
+    .given-answer = Answer
+    .note = Note
+    .objectives = Objectives
+    .paragraphs = Paragraphs
+    .part = Part
+    .problem = Problem
+    .problems = Problems
+    .proof = Proof
+    .question = Question
+    .section = Section
+    .solution = Solution
+    .task = Task
+    .theorem = Theorem
+
+# The heading a section builds for itself: "Example 2", "Section 1.3: Limits".
+#
+# `$parts` names which pieces are present and whether a `<title>` follows, so
+# that a translation orders and punctuates each combination on its own terms
+# rather than substituting into an English frame. English puts the word first
+# and separates a title with a colon — or with a period when the heading is a
+# bare number — and none of that is a given.
+#
+# The `-title` variants end in the separator, because what follows them is the
+# title child, rendered separately. Fluent trims trailing whitespace, so the
+# separator is written as a string literal to keep its space.
+#
+# `$sectionNumber` is already text ("2", "1.3"), never a number: it is an
+# identifier made of counters, and it is not the catalog's to reformat.
+section-title-prefix =
+    { $parts ->
+        [name] { $sectionName }
+        [number] { $sectionNumber }
+        [name-title] { $sectionName }{ ": " }
+        [number-title] { $sectionNumber }{ ". " }
+        [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
+       *[name-number] { $sectionName } { $sectionNumber }
+    }
+
+# The heading a `<hint>` shows when the author gave it no `<title>`.
+hint-title = Hint
+
+
 ## Tables and figures
 ##
 ## The name a `<table>` or `<figure>` gives itself, which the renderer sets in

@@ -26,6 +26,11 @@ import {
     addSectionTitleColorContrastDiagnostic,
 } from "../../utils/sectionTitleColors";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../../utils/contentLocale";
+import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 
 /**
  * The `child` dependencies shared by the state variables that split a section's
@@ -480,18 +485,28 @@ export class SectioningComponent extends BlockComponent {
                     attributeName: "renameTo",
                     variableNames: ["value"],
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition: ({ dependencyValues }) => {
                 if (dependencyValues.renameToAttr) {
+                    // The author named this block themselves. Their word
+                    // passes through in every language.
                     return {
                         setValue: {
                             sectionName:
                                 dependencyValues.renameToAttr.stateValues.value,
                         },
                     };
-                } else {
-                    return { setValue: { sectionName: componentClass.name } };
                 }
+                return {
+                    setValue: {
+                        sectionName: sectionNameWord(
+                            contentTranslator(dependencyValues),
+                            componentClass.componentType,
+                            componentClass.name,
+                        ),
+                    },
+                };
             },
         };
 
@@ -940,9 +955,9 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "noAutoTitle",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
-                let titlePrefix = "";
                 let title = "";
 
                 const haveTitleChild = dependencyValues.titleChild.length > 0;
@@ -960,28 +975,18 @@ export class SectioningComponent extends BlockComponent {
                         dependencyValues.includeAutoNameIfNoTitle &&
                         !dependencyValues.noAutoTitle);
 
-                if (includeAutoNumber) {
-                    if (includeAutoName) {
-                        titlePrefix = dependencyValues.sectionName + " ";
-                    }
-                    titlePrefix += dependencyValues.sectionNumber;
-                } else {
-                    if (includeAutoName) {
-                        titlePrefix = dependencyValues.sectionName;
-                    }
-                }
+                const titlePrefix = composeTitlePrefix({
+                    t: contentTranslator(dependencyValues),
+                    includeAutoName,
+                    includeAutoNumber,
+                    haveTitleChild,
+                    sectionName: dependencyValues.sectionName,
+                    sectionNumber: dependencyValues.sectionNumber,
+                });
 
                 if (!haveTitleChild) {
                     title = titlePrefix;
                 } else {
-                    if (titlePrefix) {
-                        if (dependencyValues.includeAutoName) {
-                            titlePrefix += ": ";
-                        } else {
-                            titlePrefix += ". ";
-                        }
-                    }
-
                     title =
                         dependencyValues.titleChild[
                             dependencyValues.titleChild.length - 1

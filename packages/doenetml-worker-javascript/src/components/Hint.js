@@ -1,4 +1,8 @@
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../utils/contentLocale";
 
 export default class Hint extends BlockComponent {
     constructor(args) {
@@ -165,10 +169,14 @@ export default class Hint extends BlockComponent {
                     childGroups: ["titles"],
                     variableNames: ["text"],
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 if (dependencyValues.titleChild.length === 0) {
-                    return { setValue: { title: "Hint" } };
+                    // Only the default is translated: an authored `<title>` is
+                    // the author's own words, in every language.
+                    const t = contentTranslator(dependencyValues);
+                    return { setValue: { title: t("hint-title") } };
                 } else {
                     return {
                         setValue: {
