@@ -27,6 +27,56 @@ import {
 } from "../../utils/sectionTitleColors";
 import { codedDiagnostic } from "../../utils/diagnostics";
 
+/**
+ * The `child` dependencies shared by the state variables that split a section's
+ * children into the ones it renders (or hides) and the ones that merely
+ * configure it.
+ *
+ * `allChildren` deliberately uses `includeAllChildren` rather than a list of
+ * child groups. `childIndicesToRender` is consumed as *positions* in
+ * `activeChildren` (see `returnActiveChildrenIndicesToRender`), and
+ * `includeAllChildren` is the only form whose indices are by construction those
+ * positions. Enumerating child groups instead would silently drop any group
+ * left off the list, shifting every later position down and pushing that many
+ * rendered children off the end of the section.
+ *
+ * `configurationChildren` are the children that configure the section — its
+ * styles and its answer feedback — rather than render inside it. They keep
+ * their slot in `allChildren`, so the positions stay aligned, but are filtered
+ * out of the rendered and hidden sets by
+ * `configurationChildComponentIndices()`.
+ */
+function returnSectionChildDependencies() {
+    return {
+        allChildren: {
+            dependencyType: "child",
+            includeAllChildren: true,
+        },
+        configurationChildren: {
+            dependencyType: "child",
+            childGroups: [
+                "styleDefinitions",
+                "stylePalettes",
+                "feedbackDefinitions",
+            ],
+        },
+    };
+}
+
+/**
+ * The `componentIdx` of each child returned by the `configurationChildren`
+ * dependency of `returnSectionChildDependencies()`, as a set for filtering
+ * those children out of `allChildren`. String children have no `componentIdx`,
+ * so they can never match.
+ */
+function configurationChildComponentIndices(dependencyValues) {
+    return new Set(
+        dependencyValues.configurationChildren.map(
+            (child) => child.componentIdx,
+        ),
+    );
+}
+
 export class SectioningComponent extends BlockComponent {
     constructor(args) {
         super(args);
@@ -443,27 +493,7 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "child",
                     childGroups: ["titles"],
                 },
-                // `childIndicesToRender` is consumed as indices into
-                // `activeChildren` (see `returnActiveChildrenIndicesToRender`),
-                // so it must be computed from the complete child list.
-                // Enumerating child groups here would silently drop any group
-                // left off the list (e.g. `styleDefinitions`), shifting every
-                // later index down and pushing rendered children off the end.
-                allChildren: {
-                    dependencyType: "child",
-                    includeAllChildren: true,
-                },
-                // Children that configure the section rather than render in
-                // it. They keep their place in `allChildren` (so the indices
-                // stay aligned) but are never rendered themselves.
-                definitionChildren: {
-                    dependencyType: "child",
-                    childGroups: [
-                        "styleDefinitions",
-                        "stylePalettes",
-                        "feedbackDefinitions",
-                    ],
-                },
+                ...returnSectionChildDependencies(),
                 titleChildName: {
                     dependencyType: "stateVariable",
                     variableName: "titleChildName",
@@ -487,19 +517,17 @@ export class SectioningComponent extends BlockComponent {
                     (x) => x.componentIdx,
                 );
 
-                const definitionChildIndices = new Set(
-                    dependencyValues.definitionChildren.map(
-                        (x) => x.componentIdx,
-                    ),
-                );
+                const configurationChildIndices =
+                    configurationChildComponentIndices(dependencyValues);
 
                 for (let [
                     ind,
                     child,
                 ] of dependencyValues.allChildren.entries()) {
-                    // Skip the configuration children. (String children have no
-                    // `componentIdx`, so they can never match.)
-                    if (definitionChildIndices.has(child.componentIdx)) {
+                    // The configuration children are never rendered, but their
+                    // slots must still be counted so that `ind` remains a
+                    // position in `activeChildren`.
+                    if (configurationChildIndices.has(child.componentIdx)) {
                         continue;
                     }
 
@@ -560,20 +588,7 @@ export class SectioningComponent extends BlockComponent {
 
         stateVariableDefinitions.childrenToHide = {
             returnDependencies: () => ({
-                // Unlike `childIndicesToRender`, this variable reports component
-                // indices rather than positions, so omitting a child group here
-                // cannot shift anything. The style/feedback definition groups
-                // are left out because they are never rendered to begin with.
-                allChildren: {
-                    dependencyType: "child",
-                    childGroups: [
-                        "anything",
-                        "variantControls",
-                        "titles",
-                        "setups",
-                        "cascadeMessages",
-                    ],
-                },
+                ...returnSectionChildDependencies(),
                 titleChildName: {
                     dependencyType: "stateVariable",
                     variableName: "titleChildName",
@@ -586,7 +601,16 @@ export class SectioningComponent extends BlockComponent {
             definition({ dependencyValues }) {
                 const childrenToHide = [];
 
+                const configurationChildIndices =
+                    configurationChildComponentIndices(dependencyValues);
+
                 for (let child of dependencyValues.allChildren) {
+                    // A section's styles and feedback stay in effect even when
+                    // its content is hidden.
+                    if (configurationChildIndices.has(child.componentIdx)) {
+                        continue;
+                    }
+
                     if (child.componentType === "cascadeMessage") {
                         // For <cascadeMessage>, the logic is inverted.
                         // It is hidden when `hideChildren` is `false`!
@@ -787,9 +811,11 @@ export class SectioningComponent extends BlockComponent {
             ],
             forRenderer: true,
             returnDependencies: () => ({
-                // `childIndicesToRender` holds indices into `activeChildren`,
-                // and is used below to index into this list, so this dependency
-                // must cover every child too.
+                // `childIndicesToRender` is looked up in this list below, so it
+                // must be the same complete child list that produced those
+                // positions (see `returnSectionChildDependencies`). The
+                // configuration children are already excluded from
+                // `childIndicesToRender`, so they need not be identified here.
                 allChildren: {
                     dependencyType: "child",
                     includeAllChildren: true,

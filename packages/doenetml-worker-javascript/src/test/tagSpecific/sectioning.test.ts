@@ -1622,12 +1622,14 @@ describe("Sectioning tag tests @group3", async () => {
         ).eq(true);
     });
 
-    // `childIndicesToRender` is consumed as indices into `activeChildren`, so it
-    // must be computed from a child list that includes *every* child. When it
-    // was built from a partial list of child groups, each configuration child
-    // (`<stylePalette>`, `<styleDefinition>`, `<feedbackDefinition>`) shifted
-    // the indices by one and silently dropped that many children off the end.
-    function renderedChildrenOfSection(
+    /**
+     * The component indices of the children a section actually handed to the
+     * renderer. Read from the renderer instructions rather than from
+     * `childIndicesToRender` so that the tests below assert the outcome the
+     * reader sees. Instruction slots that are strings (whitespace between the
+     * children) or `null` (a child that was not rendered) are dropped.
+     */
+    function renderedChildComponentIndices(
         core: PublicDoenetMLCore,
         sectionIdx: number,
     ) {
@@ -1637,6 +1639,12 @@ describe("Sectioning tag tests @group3", async () => {
             )
             .map((child: any) => child.componentIdx);
     }
+
+    // The two tests below cover the bug where `childIndicesToRender`, which is
+    // consumed as positions in `activeChildren`, was computed from a child list
+    // that left out the `<stylePalette>`, `<styleDefinition>`, and
+    // `<feedbackDefinition>` groups. Each such child shifted the positions down
+    // by one and silently dropped a child off the end of the section.
 
     it("renders all children of a section that configures its own style", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -1656,7 +1664,10 @@ describe("Sectioning tag tests @group3", async () => {
         });
 
         expect(
-            renderedChildrenOfSection(core, await resolvePathToNodeIdx("sec")),
+            renderedChildComponentIndices(
+                core,
+                await resolvePathToNodeIdx("sec"),
+            ),
         ).eqls([
             await resolvePathToNodeIdx("g1"),
             await resolvePathToNodeIdx("g2"),
@@ -1678,7 +1689,10 @@ describe("Sectioning tag tests @group3", async () => {
         });
 
         expect(
-            renderedChildrenOfSection(core, await resolvePathToNodeIdx("sec")),
+            renderedChildComponentIndices(
+                core,
+                await resolvePathToNodeIdx("sec"),
+            ),
         ).eqls([
             await resolvePathToNodeIdx("p1"),
             await resolvePathToNodeIdx("p2"),
