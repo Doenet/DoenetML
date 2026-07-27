@@ -49,8 +49,8 @@ export default React.memo(function Error(props: UseDoenetRendererProps) {
         // for: the English travels on the record as the fallback.
         const message = formatDiagnostic({
             message: SVs.message,
-            ...(SVs.code == null ? {} : { code: SVs.code }),
-            ...(SVs.args == null ? {} : { args: SVs.args }),
+            code: SVs.code,
+            args: SVs.args,
         });
         let rangeMessage = null;
         if (SVs.rangeMessage) {

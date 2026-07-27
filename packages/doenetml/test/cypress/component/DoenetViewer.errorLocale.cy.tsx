@@ -12,7 +12,8 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 // "found on line" line under it does too, and that an error with no code
 // still shows the English it arrived with.
 
-const VIEWER_TIMEOUT = 30_000;
+/** Long enough for the inline worker to boot and compile the document. */
+const VIEWER_TIMEOUT = 15_000;
 
 /** The box `_error.tsx` draws, identified by the border color it alone uses. */
 const ERROR_BOX = "[style*='mainRed']";
