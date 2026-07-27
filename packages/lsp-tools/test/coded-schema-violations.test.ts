@@ -115,8 +115,8 @@ describe("Coded schema violations render to the English the checker wrote", () =
         // The other half of `schema-attribute-unrecognized`: a name that is
         // not an attribute of *any* element takes the `UNKNOWN_NAME` branch
         // and reports the author's own spelling, where a name that exists
-        // elsewhere is reported normalized. One code, two call sites, and the
-        // arguments differ — so both are exercised.
+        // elsewhere is reported normalized. One code, one call site, two
+        // spellings of `$attribute` — so both are exercised.
         expectRoundTrip(
             await violations(`<p thisIsNotAnAttributeAnywhere="1">hi</p>`),
         );
