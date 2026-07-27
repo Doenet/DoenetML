@@ -102,13 +102,6 @@ function escapeHtml(str: string): string {
         .replace(/'/g, "&#39;");
 }
 
-const lspDiagnosticToName = {
-    [LSPDiagnosticSeverity.Error]: "Error",
-    [LSPDiagnosticSeverity.Warning]: "Warning",
-    [LSPDiagnosticSeverity.Information]: "Info",
-    [LSPDiagnosticSeverity.Hint]: "Hint",
-};
-
 /**
  * How the host wants a diagnostic said, for the tooltip this plugin draws.
  *
@@ -119,11 +112,16 @@ const lspDiagnosticToName = {
  * the Fluent runtime in here to answer a question the viewer has already
  * answered would put both on the editor's critical path — the growth
  * `packages/lsp/scripts/check-server-bundle.mjs` exists to catch. So the seam
- * is two plain values, and `@doenet/doenetml` supplies them from the same
- * translator its Diagnostics panel renders with.
+ * is two questions the host answers, and `@doenet/doenetml` answers them from
+ * the same translator its Diagnostics panel renders with.
  *
  * Both are optional, and omitting them leaves the tooltip exactly as it was:
  * the English the producer wrote, under an English severity heading.
+ *
+ * Both are also *functions*, called at the moment a tooltip is drawn. That
+ * lets a host whose language can change keep handing over one object for the
+ * life of the editor: this value is part of the extension set, and replacing
+ * it reconfigures the editor and reopens the document on the language server.
  */
 export type DiagnosticPresentation = {
     /**
@@ -140,24 +138,35 @@ export type DiagnosticPresentation = {
         args?: unknown;
     }) => string;
     /**
-     * The tooltip heading for a diagnostic that names no `source` of its own.
+     * The tooltip heading for a diagnostic that names no `source` of its own,
+     * or `undefined` to keep the English one.
      *
-     * Keyed by LSP severity rather than by the CodeMirror severity the
-     * tooltip is styled with, because those are not the same set — `Hint` and
+     * Asked by LSP severity rather than by the CodeMirror severity the tooltip
+     * is styled with, because those are not the same set — `Hint` and
      * `Information` both style as `info` and are two different words.
      */
-    severityHeadings?: Partial<
-        Record<"error" | "warning" | "information" | "hint", string>
-    >;
+    severityHeading?: (severity: SeverityHeadingKey) => string | undefined;
 };
 
-/** The `severityHeadings` key an LSP severity is looked up under. */
+/** The heading a diagnostic is filed under when it names no `source`. */
+export type SeverityHeadingKey = "error" | "warning" | "information" | "hint";
+
+/** The {@link SeverityHeadingKey} an LSP severity is asked for under. */
 const lspSeverityToHeadingKey = {
     [LSPDiagnosticSeverity.Error]: "error",
     [LSPDiagnosticSeverity.Warning]: "warning",
     [LSPDiagnosticSeverity.Information]: "information",
     [LSPDiagnosticSeverity.Hint]: "hint",
-} as const;
+} as const satisfies Record<LSPDiagnosticSeverity, SeverityHeadingKey>;
+
+/** Shown when the host offers no translation of a heading. */
+const EN_SEVERITY_HEADINGS: Record<SeverityHeadingKey, string> = {
+    error: "Error",
+    warning: "Warning",
+    information: "Info",
+    hint: "Hint",
+};
+
 const lspSeverityToCmSeverity = {
     [LSPDiagnosticSeverity.Error]: "error",
     [LSPDiagnosticSeverity.Warning]: "warning",
@@ -165,6 +174,16 @@ const lspSeverityToCmSeverity = {
     [LSPDiagnosticSeverity.Hint]: "info",
 } as const;
 
+/**
+ * Which style the tooltip heading takes: an accessibility level, or the
+ * diagnostic's severity.
+ *
+ * `code` and `markClass` are what actually classify a diagnostic, and
+ * `toAdditionalDiagnosticsForLsp` in `@doenet/doenetml` sets both at the call
+ * site that sets `source`. Matching the English `source` as well is what
+ * classifies a diagnostic from a host that sets only that; a translated
+ * heading no longer matches there and does not need to.
+ */
 function getDiagnosticHeadingClass({
     code,
     source,
@@ -339,13 +358,12 @@ export class LSPPlugin implements PluginValue {
                     // over the severity word, as it always has. It arrives
                     // already translated, because the host that set it is the
                     // one that knows the reader's language.
+                    const headingKey =
+                        lspSeverityToHeadingKey[severity!] ?? "information";
                     const heading =
                         source ??
-                        this.presentation.severityHeadings?.[
-                            lspSeverityToHeadingKey[severity!]
-                        ] ??
-                        lspDiagnosticToName[severity!] ??
-                        "Info";
+                        this.presentation.severityHeading?.(headingKey) ??
+                        EN_SEVERITY_HEADINGS[headingKey];
                     const headingClass = getDiagnosticHeadingClass({
                         code,
                         source,

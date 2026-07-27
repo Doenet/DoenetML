@@ -86,16 +86,18 @@ const CodeMirror = React.memo(function CodeMirror({
      */
     darkMode?: ThemeMode;
     /**
-     * How the reader wants a diagnostic said: a message formatter and the
-     * severity headings, both already in their language.
+     * How the reader wants a diagnostic said: a message formatter and a
+     * source of severity headings, both answering in their language.
      *
      * This package renders the squiggles and their tooltips but has no
      * catalogs to render them *from* — see {@link DiagnosticPresentation} for
      * why it deliberately doesn't. Omit it and the tooltip shows the English
      * the producer wrote, exactly as before.
      *
-     * Memoize it: a new object each render rebuilds the editor's extensions,
-     * which reopens the document on the language server.
+     * Hand over one object for the life of the editor: a new one rebuilds the
+     * extensions, which reopens the document on the language server. Both
+     * members are called as a tooltip is drawn, so a host whose language can
+     * change answers differently rather than replacing this.
      */
     diagnosticPresentation?: DiagnosticPresentation;
 }) {

@@ -39,9 +39,12 @@ import type { HelpContent } from "@doenet/lsp-tools";
 import { EditorSelection } from "@codemirror/state";
 import type { Completion } from "@codemirror/autocomplete";
 import { doenetGlobalConfig } from "../global-config";
-import { useT, useUiLocale } from "../utils/i18n";
+import { useChromeTranslator, useUiLocale } from "../utils/i18n";
 import { useDiagnosticFormatter } from "../utils/diagnostics";
-import type { DiagnosticPresentation } from "@doenet/codemirror";
+import type {
+    DiagnosticPresentation,
+    SeverityHeadingKey,
+} from "@doenet/codemirror";
 
 const HELP_NONE: HelpContent = { kind: "none" };
 
@@ -489,13 +492,25 @@ export const EditorViewer = React.forwardRef<
     }
 
     // Everything the editor says about a diagnostic — the tooltip over a
-    // squiggle and the lint panel behind it — in the reader's language. The
-    // editor's chrome answers to `uiLocale` alone, so this is the same
-    // translator the Diagnostics tab beside it renders with; the squiggles and
-    // the tab cannot disagree.
-    const translate = useT();
-    const editorUiLocale = useUiLocale();
-    const formatDiagnostic = useDiagnosticFormatter(translate, editorUiLocale);
+    // squiggle and the lint panel behind it — in the reader's language.
+    //
+    // That language is whichever one the viewer below resolved, not the one
+    // the editor's own chrome uses: the records in the Diagnostics tab were
+    // rendered down there, where an authored `<document lang>` is known, and
+    // the hover renders the same diagnostics a second time. Until the source
+    // has been parsed there is nothing to report, so the props-only answer the
+    // surrounding chrome uses stands in.
+    const [viewerUiLocale, setViewerUiLocale] = useState<string | null>(null);
+    const hostUiLocale = useUiLocale();
+    const diagnosticLocale = viewerUiLocale ?? hostUiLocale;
+    // Bound to `translate` on purpose: `lint:i18n` only recognizes call sites
+    // through a translator named `t` or `translate`, so the keys reached below
+    // would otherwise read as orphans.
+    const translate = useChromeTranslator(diagnosticLocale, localeResources);
+    const formatDiagnostic = useDiagnosticFormatter(
+        translate,
+        diagnosticLocale,
+    );
 
     const accessibilityHeadings = useMemo(
         () => ({
@@ -513,12 +528,38 @@ export const EditorViewer = React.forwardRef<
         [translate],
     );
 
-    // Memoized because a new object here rebuilds the editor's extensions,
-    // which closes and reopens the document on the language server.
-    const diagnosticPresentation: DiagnosticPresentation = useMemo(
+    const severityHeadings = useMemo<Record<SeverityHeadingKey, string>>(
+        () => ({
+            error: translate("diagnostic-heading-error", undefined, "Error"),
+            warning: translate(
+                "diagnostic-heading-warning",
+                undefined,
+                "Warning",
+            ),
+            information: translate(
+                "diagnostic-heading-information",
+                undefined,
+                "Info",
+            ),
+            hint: translate("diagnostic-heading-hint", undefined, "Hint"),
+        }),
+        [translate],
+    );
+
+    // Read through a ref so the object handed to the editor never changes
+    // identity: it is part of the extension set, and replacing it reconfigures
+    // the editor and reopens the document on the language server — which
+    // discards any tooltip open at the time. The language can change while the
+    // editor is up (the viewer resolves it once it has parsed the source), and
+    // both members below are called at the moment a tooltip is drawn, so they
+    // see whichever language is in effect then.
+    const presentationRef = useRef({ formatDiagnostic, severityHeadings });
+    presentationRef.current = { formatDiagnostic, severityHeadings };
+
+    const diagnosticPresentation = useMemo<DiagnosticPresentation>(
         () => ({
             formatMessage: ({ message, code, args }) =>
-                formatDiagnostic({
+                presentationRef.current.formatDiagnostic({
                     message,
                     // The LSP allows a numeric `code`; a Doenet diagnostic
                     // code is always a string, and anything else names no
@@ -527,26 +568,10 @@ export const EditorViewer = React.forwardRef<
                     ...(typeof code === "string" ? { code } : {}),
                     ...(args === undefined ? {} : { args: args as never }),
                 }),
-            severityHeadings: {
-                error: translate(
-                    "diagnostic-heading-error",
-                    undefined,
-                    "Error",
-                ),
-                warning: translate(
-                    "diagnostic-heading-warning",
-                    undefined,
-                    "Warning",
-                ),
-                information: translate(
-                    "diagnostic-heading-information",
-                    undefined,
-                    "Info",
-                ),
-                hint: translate("diagnostic-heading-hint", undefined, "Hint"),
-            },
+            severityHeading: (severity) =>
+                presentationRef.current.severityHeadings[severity],
         }),
-        [formatDiagnostic, translate],
+        [],
     );
 
     useEffect(() => {
@@ -1257,6 +1282,7 @@ export const EditorViewer = React.forwardRef<
                     documentLocale={documentLocale}
                     uiLocale={uiLocale}
                     localeResources={localeResources}
+                    resolvedUiLocaleCallback={setViewerUiLocale}
                     styleOverrides={styleOverrides}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}

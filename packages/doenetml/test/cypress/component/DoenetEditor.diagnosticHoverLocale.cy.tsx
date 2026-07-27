@@ -12,13 +12,20 @@ import { DoenetEditor } from "../../../src/doenetml-inline-worker";
 // no worker counterpart to be translated on its behalf, so before this it
 // stayed English no matter what.
 
-const EDITOR_TIMEOUT = 30_000;
+/** Long enough for the language server to start and answer the first check. */
+const EDITOR_TIMEOUT = 15_000;
 
-function Editor({ uiLocale }: { uiLocale?: string }) {
+function Editor({
+    uiLocale,
+    doenetML = "<abc></abc>",
+}: {
+    uiLocale?: string;
+    doenetML?: string;
+}) {
     return (
         <div style={{ height: "500px", width: "900px" }}>
             <DoenetEditor
-                doenetML={"<abc></abc>"}
+                doenetML={doenetML}
                 addVirtualKeyboard={false}
                 initialOpenTab={null}
                 {...(uiLocale === undefined ? {} : { uiLocale })}
@@ -66,6 +73,36 @@ describe("the editor's diagnostic tooltip follows the reader's language", () => 
         cy.get(".cm-lint-tooltip").should(
             "not.contain.text",
             "is not a recognized Doenet element",
+        );
+    });
+
+    it("follows an authored `<document lang>` when the host sets no locale", () => {
+        // The language the tooltip needs is the one the *viewer* resolved:
+        // `uiLocale` falls back to the content's language, and only the viewer
+        // has parsed the source far enough to know it. Getting this from the
+        // editor's own props instead would put the hover in English while the
+        // Diagnostics tab beside it, whose records the viewer rendered, is in
+        // Spanish.
+        cy.viewport(1000, 600);
+        cy.mount(
+            <Editor doenetML={'<document lang="es"><abc></abc></document>'} />,
+        );
+
+        // Wait for the viewer to render before hovering. It is what parses the
+        // source, and replacing the diagnostics with their Spanish rendering
+        // closes any tooltip open at the time — the same as any other edit
+        // does. Its red error box is the signal that it has resolved Spanish.
+        cy.contains("[style*='mainRed']", "Tipo de componente no válido", {
+            timeout: EDITOR_TIMEOUT,
+        });
+
+        hoverFirstSquiggle().should(
+            "contain.text",
+            "no es un elemento de Doenet reconocido",
+        );
+        cy.get(".cm-lint-tooltip .heading").should(
+            "contain.text",
+            "Advertencia",
         );
     });
 

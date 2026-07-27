@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { CodeMirror } from "../../../src/CodeMirror";
+import type { DiagnosticPresentation } from "../../../src/extensions/lsp/plugin";
 import type { Diagnostic } from "vscode-languageserver-protocol/browser";
 
 type LspInstance =
@@ -26,7 +27,13 @@ type WindowWithLspRef = Window & {
 /**
  * Test harness component that exposes languageServerRef for test control
  */
-const DiagnosticsTestHarness = ({ initialValue }: { initialValue: string }) => {
+const DiagnosticsTestHarness = ({
+    initialValue,
+    diagnosticPresentation,
+}: {
+    initialValue: string;
+    diagnosticPresentation?: DiagnosticPresentation;
+}) => {
     const lspRef = useRef<LspRef | null>(null);
 
     React.useEffect(() => {
@@ -42,7 +49,11 @@ const DiagnosticsTestHarness = ({ initialValue }: { initialValue: string }) => {
 
     return (
         <div style={{ height: "400px", width: "600px" }}>
-            <CodeMirror value={initialValue} languageServerRef={lspRef} />
+            <CodeMirror
+                value={initialValue}
+                languageServerRef={lspRef}
+                diagnosticPresentation={diagnosticPresentation}
+            />
         </div>
     );
 };
@@ -179,6 +190,51 @@ describe("CodeMirror LSP Diagnostics DOM Rendering", () => {
             ".cm-lintRange-error",
             "The tag <math> has no closing tag",
         );
+    });
+
+    it("says a diagnostic the way `diagnosticPresentation` asks for", () => {
+        // This package draws the tooltip and holds no catalogs, so a host that
+        // knows the reader's language supplies the words: the message through
+        // `formatMessage`, given the diagnostic's code and arguments, and the
+        // heading through `severityHeading`, asked by LSP severity.
+        cy.mount(
+            <DiagnosticsTestHarness
+                initialValue="<graph invalid-attr='x' />"
+                diagnosticPresentation={{
+                    formatMessage: ({ code, args }) =>
+                        `[${code}] ${JSON.stringify(args)}`,
+                    severityHeading: (severity) => `heading:${severity}`,
+                }}
+            />,
+        );
+        cy.get(".cm-line").should("exist");
+        waitForDiagnosticDom();
+
+        hoverLintRange(".cm-lintRange-warning");
+        cy.get(".cm-lint-tooltip .heading").should(
+            "have.text",
+            "heading:warning",
+        );
+        cy.get(".cm-lint-tooltip .cm-lint-body").should(
+            "contain.text",
+            '[doenet-w0115] {"tag":"graph","attribute":"invalid-attr"}',
+        );
+    });
+
+    it("keeps the English heading when the presentation offers none", () => {
+        cy.mount(
+            <DiagnosticsTestHarness
+                initialValue="<graph invalid-attr='x' />"
+                diagnosticPresentation={{
+                    formatMessage: ({ message }) => message,
+                }}
+            />,
+        );
+        cy.get(".cm-line").should("exist");
+        waitForDiagnosticDom();
+
+        hoverLintRange(".cm-lintRange-warning");
+        cy.get(".cm-lint-tooltip .heading").should("have.text", "Warning");
     });
 
     it("displays additional diagnostics sent via sendAdditionalDiagnostics", () => {
