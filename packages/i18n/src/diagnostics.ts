@@ -196,6 +196,11 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0109": "deprecated-attribute-renamed-conflict",
     "doenet-w0110": "deprecated-attribute-ignored",
     "doenet-w0111": "pluralize-english-only",
+    "doenet-w0112": "schema-element-unrecognized",
+    "doenet-w0113": "schema-element-not-allowed-at-root",
+    "doenet-w0114": "schema-element-not-allowed-inside",
+    "doenet-w0115": "schema-attribute-unrecognized",
+    "doenet-w0116": "schema-attribute-value-not-allowed",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

@@ -577,3 +577,27 @@ deprecated-attribute-ignored = [deprecation] El atributo `{ $attribute }` de `<{
 
 # $locale es la etiqueta de idioma del documento, tal como se declaró.
 pluralize-english-only = `<pluralize>` solo puede pluralizar en inglés, así que su texto queda sin cambios en un documento escrito en { $locale }. Escribe el plural directamente o indícalo con el atributo `pluralForm`.
+
+
+## Comprobación del esquema
+
+# $tag, $parent y $attribute reproducen lo que escribió quien redacta el
+# documento y se dejan tal cual; los signos `<`, `>` y las comillas invertidas
+# que los rodean son puntuación de este catálogo, no parte del nombre.
+
+schema-element-unrecognized = El elemento `<{ $tag }>` no es un elemento de Doenet reconocido.
+
+schema-element-not-allowed-at-root = El elemento `<{ $tag }>` no se permite en la raíz del documento.
+
+schema-element-not-allowed-inside = El elemento `<{ $tag }>` no se permite dentro de `<{ $parent }>`.
+
+schema-attribute-unrecognized = El elemento `<{ $tag }>` no tiene ningún atributo llamado `{ $attribute }`.
+
+# $allowed son los valores admitidos, cada uno ya entre comillas dobles y
+# enumerados según el idioma de quien lee. $isList indica si el atributo acepta
+# varios a la vez.
+schema-attribute-value-not-allowed =
+    { $isList ->
+        [true] El atributo `{ $attribute }` del elemento `<{ $tag }>` debe ser una lista en la que cada elemento sea uno de: { $allowed }
+       *[other] El atributo `{ $attribute }` del elemento `<{ $tag }>` debe ser uno de: { $allowed }
+    }

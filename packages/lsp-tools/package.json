@@ -39,11 +39,14 @@
             "dependencies": [
                 "../static-assets:build",
                 "../parser:build",
-                "../utils:build"
+                "../utils:build",
+                "../i18n:build"
             ]
         }
     },
-    "devDependencies": {},
+    "devDependencies": {
+        "@doenet/i18n": "*"
+    },
     "dependencies": {
         "@doenet/utils": "*",
         "mdast-util-to-markdown": "^2.1.2",
