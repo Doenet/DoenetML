@@ -1,15 +1,10 @@
-import { RowCol } from "../../doenet-source-object";
-import type { CompletionItem, Diagnostic } from "vscode-languageserver/browser";
-import {
-    CompletionItemKind,
-    DiagnosticSeverity,
-} from "vscode-languageserver/browser";
+import type { Diagnostic } from "vscode-languageserver/browser";
+import { DiagnosticSeverity } from "vscode-languageserver/browser";
 import {
     DastAttribute,
     DastElement,
     DastNodes,
     DastRoot,
-    showCursor,
     toXml,
     visit,
 } from "@doenet/parser";

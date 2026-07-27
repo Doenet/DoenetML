@@ -41,8 +41,8 @@ import type {
  * the rendered message, so it is how two renderings of one diagnostic
  * recognize each other once they stop being the same string.
  *
- * `args` is omitted rather than set to `undefined` when there is nothing to
- * fill in, so a coded diagnostic serializes across the LSP connection as the
+ * A diagnostic with nothing to fill in gets no `data` at all, rather than one
+ * holding an absent `args`, so it serializes across the LSP connection as the
  * same JSON an uncoded one does apart from what it is actually carrying.
  */
 export function codedLspDiagnostic({
