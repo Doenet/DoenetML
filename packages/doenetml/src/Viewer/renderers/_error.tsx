@@ -26,11 +26,12 @@ export default React.memo(function Error(props: UseDoenetRendererProps) {
     let { id, SVs, children } = useDoenetRenderer<ErrorSVs>(props);
 
     const t = useT();
+    const uiLocale = useUiLocale();
     // The same formatter the Diagnostics panel renders with, over the same
     // translator: one diagnostic now reads the same in both places, where this
     // box used to show the English the worker wrote beside a panel showing the
     // reader's language.
-    const formatDiagnostic = useDiagnosticFormatter(t, useUiLocale());
+    const formatDiagnostic = useDiagnosticFormatter(t, uiLocale);
 
     let displayedMessage = null;
 
@@ -52,9 +53,11 @@ export default React.memo(function Error(props: UseDoenetRendererProps) {
             code: SVs.code,
             args: SVs.args,
         });
-        let rangeMessage = null;
+        // Named apart from `SVs.rangeMessage`, which is the English sentence
+        // this falls back to.
+        let locationLine = null;
         if (SVs.rangeMessage) {
-            rangeMessage = (
+            locationLine = (
                 <>
                     <br />
                     <em>
@@ -72,7 +75,7 @@ export default React.memo(function Error(props: UseDoenetRendererProps) {
         displayedMessage = (
             <div style={errorStyle}>
                 <b>{t("error-heading", undefined, "Error")}</b>: {message}
-                {rangeMessage}
+                {locationLine}
             </div>
         );
     }
