@@ -1719,32 +1719,26 @@ describe("Sectioning tag tests @group3", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const withSetup =
-            stateVariables[await resolvePathToNodeIdx("pa")].stateValues;
-        const withoutSetup =
-            stateVariables[await resolvePathToNodeIdx("pb")].stateValues;
 
-        expect(withSetup.firstVisibleChild.componentType).eq("graph");
+        // `pb` is the control: the part with the `<setup>` must resolve to the
+        // same first visible child and the same alignment as the part without
+        // one. A graph opts out of baseline alignment, so the number sits at
+        // the top of the graph rather than at its bottom.
+        for (const [partName, graphName] of [
+            ["pa", "ga"],
+            ["pb", "gb"],
+        ]) {
+            const part =
+                stateVariables[await resolvePathToNodeIdx(partName)]
+                    .stateValues;
+            const graph =
+                stateVariables[await resolvePathToNodeIdx(graphName)]
+                    .stateValues;
 
-        // A graph opts out of baseline alignment; the `<setup>` must not mask
-        // that and drop the number to the bottom of the graph.
-        expect(withoutSetup.firstChildListItemAlignment).eq("flex-start");
-        expect(withSetup.firstChildListItemAlignment).eq(
-            withoutSetup.firstChildListItemAlignment,
-        );
-
-        const graphWithSetup =
-            stateVariables[await resolvePathToNodeIdx("ga")].stateValues;
-        const graphWithoutSetup =
-            stateVariables[await resolvePathToNodeIdx("gb")].stateValues;
-
-        expect(graphWithoutSetup.renderInlineForListItem).eq(true);
-        expect(graphWithSetup.renderInlineForListItem).eq(
-            graphWithoutSetup.renderInlineForListItem,
-        );
-        expect(graphWithSetup.listItemInlineAlignment).eq(
-            graphWithoutSetup.listItemInlineAlignment,
-        );
+            expect(part.firstVisibleChild.componentType, partName).eq("graph");
+            expect(part.firstChildListItemAlignment, partName).eq("flex-start");
+            expect(graph.renderInlineForListItem, graphName).eq(true);
+        }
     });
 
     it("does not delegate list-item rendering to a leading <variantControl>", async () => {
@@ -1762,20 +1756,23 @@ describe("Sectioning tag tests @group3", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pa")].stateValues
-                .firstVisibleChild.componentType,
-        ).eq("p");
 
-        const withVariantControl =
-            stateVariables[await resolvePathToNodeIdx("pap")].stateValues;
-        const without =
-            stateVariables[await resolvePathToNodeIdx("pbp")].stateValues;
+        // A `<p>` and a `<variantControl>` would both report `baseline`
+        // alignment, so the alignment cannot tell them apart here. What does is
+        // whether the `<p>` is the child asked to render inline.
+        for (const [partName, pName] of [
+            ["pa", "pap"],
+            ["pb", "pbp"],
+        ]) {
+            const part =
+                stateVariables[await resolvePathToNodeIdx(partName)]
+                    .stateValues;
+            const p =
+                stateVariables[await resolvePathToNodeIdx(pName)].stateValues;
 
-        expect(without.renderInlineForListItem).eq(true);
-        expect(withVariantControl.renderInlineForListItem).eq(
-            without.renderInlineForListItem,
-        );
+            expect(part.firstVisibleChild.componentType, partName).eq("p");
+            expect(p.renderInlineForListItem, pName).eq(true);
+        }
     });
 });
 

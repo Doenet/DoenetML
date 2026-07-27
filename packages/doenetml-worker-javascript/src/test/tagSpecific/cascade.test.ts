@@ -1550,6 +1550,47 @@ describe("Cascade tag tests @group4", async () => {
         ]);
     });
 
+    it("do not hide the setup or variant control of a hidden section", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <section boxed name="section1">
+    <title>First part</title>
+    What is 1+1? <answer name="ans">2</answer>
+  </section>
+
+  <section boxed name="section2">
+    <title name="title2">Second part</title>
+    <variantControl name="vc2" numVariants="2" />
+    <setup name="setup2"><number name="n2">7</number></setup>
+    <p name="p2">What is 3+4?</p>
+    <answer name="ans">7</answer>
+  </section>
+</cascade>
+  `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const section2 = stateVariables[await resolvePathToNodeIdx("section2")];
+
+        // `<setup>` and `<variantControl>` are configuration children, so
+        // `section2` leaves them out of `childrenToHide` even though it is
+        // hidden until `section1` is answered. Neither renders, so not hiding
+        // them changes nothing on screen; it just keeps the definitions inside
+        // a `<setup>` independent of whether the section has been revealed.
+        expect(section2.stateValues.childrenToHide).eqls([
+            await resolvePathToNodeIdx("p2"),
+            await resolvePathToNodeIdx("section2.ans"),
+        ]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("setup2")].stateValues
+                .hidden,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.hidden,
+        ).eq(false);
+    });
+
     it("boxAll boxes only immediate section children", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
