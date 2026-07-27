@@ -443,14 +443,24 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "child",
                     childGroups: ["titles"],
                 },
+                // `childIndicesToRender` is consumed as indices into
+                // `activeChildren`, so this dependency has to cover *every*
+                // child group. Listing groups individually would silently
+                // shift every index past a child in an omitted group (e.g. a
+                // `<styleDefinition>`), dropping rendered children off the end.
                 allChildren: {
                     dependencyType: "child",
+                    includeAllChildren: true,
+                },
+                // Children that configure the section rather than render in
+                // it. They keep their place in `allChildren` (so the indices
+                // stay aligned) but are never rendered themselves.
+                definitionChildren: {
+                    dependencyType: "child",
                     childGroups: [
-                        "anything",
-                        "variantControls",
-                        "titles",
-                        "setups",
-                        "cascadeMessages",
+                        "styleDefinitions",
+                        "stylePalettes",
+                        "feedbackDefinitions",
                     ],
                 },
                 titleChildName: {
@@ -476,10 +486,23 @@ export class SectioningComponent extends BlockComponent {
                     (x) => x.componentIdx,
                 );
 
+                const definitionChildIndices = new Set(
+                    dependencyValues.definitionChildren.map(
+                        (x) => x.componentIdx,
+                    ),
+                );
+
                 for (let [
                     ind,
                     child,
                 ] of dependencyValues.allChildren.entries()) {
+                    if (
+                        typeof child === "object" &&
+                        definitionChildIndices.has(child.componentIdx)
+                    ) {
+                        continue;
+                    }
+
                     // If `hideChildren` is set, string children should also be hidden.
                     // However, string children cannot be hidden via the `childrenToHide`
                     // state variable as it is based on component indices.
@@ -760,15 +783,10 @@ export class SectioningComponent extends BlockComponent {
             ],
             forRenderer: true,
             returnDependencies: () => ({
+                // Must match the child list `childIndicesToRender` indexes into.
                 allChildren: {
                     dependencyType: "child",
-                    childGroups: [
-                        "anything",
-                        "variantControls",
-                        "titles",
-                        "setups",
-                        "cascadeMessages",
-                    ],
+                    includeAllChildren: true,
                 },
                 asList: {
                     dependencyType: "stateVariable",

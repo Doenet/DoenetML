@@ -1807,6 +1807,76 @@ describe("Section heading color accessibility diagnostics @group3", async () => 
         expect(sectionState.titleColorDarkMode).eq("#3a3a3a");
     });
 
+    // The section's `childIndicesToRender` indexes into `activeChildren`, so it
+    // must be computed from a child list that includes *every* child. When it
+    // was built from a partial list of child groups, each configuration child
+    // (`<stylePalette>`, `<styleDefinition>`, `<feedbackDefinition>`) shifted
+    // the indices by one and silently dropped that many children off the end.
+    async function renderedChildrenOfSection(
+        core: PublicDoenetMLCore,
+        sectionIdx: number,
+    ) {
+        return core
+            .core!.rendererState[sectionIdx].childrenInstructions.filter(
+                (child: any) => child !== null && typeof child === "object",
+            )
+            .map((child: any) => child.componentIdx);
+    }
+
+    it("renders all children of a section that configures its own style", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="sec">
+  <stylePalette palette="grumpynarwhal" />
+  <styleDefinition styleNumber="2" lineOpacity="1" />
+
+  <graph name="g1">
+    <vector name="v">(3,4)</vector>
+  </graph>
+
+  <graph name="g2" copy="$g1">
+    <circle filled center="(5,2)" />
+  </graph>
+</section>`,
+        });
+
+        expect(
+            await renderedChildrenOfSection(
+                core,
+                await resolvePathToNodeIdx("sec"),
+            ),
+        ).eqls([
+            await resolvePathToNodeIdx("g1"),
+            await resolvePathToNodeIdx("g2"),
+        ]);
+    });
+
+    it("renders all children of a section that defines feedback and styles", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="sec">
+  <stylePalette palette="okabeito" />
+  <styleDefinition styleNumber="2" lineOpacity="1" />
+  <feedbackDefinition code="lostPI" text="You lost pi" />
+
+  <p name="p1">First</p>
+  <p name="p2">Second</p>
+  <p name="p3">Third</p>
+</section>`,
+        });
+
+        expect(
+            await renderedChildrenOfSection(
+                core,
+                await resolvePathToNodeIdx("sec"),
+            ),
+        ).eqls([
+            await resolvePathToNodeIdx("p1"),
+            await resolvePathToNodeIdx("p2"),
+            await resolvePathToNodeIdx("p3"),
+        ]);
+    });
+
     it("does not emit diagnostics for translucent heading colors that remain accessible after compositing", async () => {
         const { core } = await createTestCore({
             doenetML: `<section name="sec" boxed notStartedColor="rgba(0,0,0,0.5)">
