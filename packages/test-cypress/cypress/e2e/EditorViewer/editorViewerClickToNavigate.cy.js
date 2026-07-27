@@ -124,6 +124,48 @@ describe(
             expectP40OnScreen();
         });
 
+        it("ctrl+clicking a line in the editor navigates without leaving a second cursor", () => {
+            // Ctrl is the modifier a Windows/Linux user actually presses
+            // (the other tests use Cmd, which those platforms ignore), and
+            // it is also the one CodeMirror itself reads as "add another
+            // cursor". The gesture has to collapse that extra range, or the
+            // next keystroke would type in two places at once.
+            const paragraphs = [];
+            for (let i = 1; i <= 60; i++) {
+                paragraphs.push(`<p name="p${i}">Paragraph number ${i}.</p>`);
+            }
+            const doenetML = paragraphs.join("\n");
+
+            cy.window().then((win) => {
+                win.postMessage({ doenetML }, "*");
+            });
+
+            cy.get("#p60").should("have.text", "Paragraph number 60.");
+
+            // Put the cursor on a neighboring line first, so a stray extra
+            // cursor would show up as a second highlighted line. Neighboring
+            // (rather than far away) so both lines stay rendered — CodeMirror
+            // only draws the lines near the viewport.
+            cy.contains(".cm-line", `name="p41"`).click();
+            cy.get(".cm-activeLine").should("have.length", 1);
+
+            cy.contains(".cm-line", `name="p40"`).click({ ctrlKey: true });
+
+            // Exactly one cursor, on the line just clicked.
+            cy.get(".cm-activeLine").should("have.length", 1);
+            cy.get(".cm-activeLine").should("contain.text", `name="p40"`);
+
+            // ...and the gesture still did its job.
+            cy.get("#p40", { timeout: 8000 }).should(($el) => {
+                const rect = $el[0].getBoundingClientRect();
+                expect(rect.top).to.be.within(
+                    0,
+                    Cypress.config("viewportHeight"),
+                );
+                expect(rect.bottom).to.be.greaterThan(0);
+            });
+        });
+
         it("cmd+clicking a rendered element centers the matching line in the editor, not just at an edge", () => {
             const paragraphs = [];
             for (let i = 1; i <= 100; i++) {

@@ -1047,9 +1047,7 @@ export const EditorViewer = React.forwardRef<
      * scrolls the viewer to the element rendered from that source offset —
      * the same explicit go-to-definition-style gesture the viewer uses in
      * the other direction, so plain clicks and typing never move the
-     * viewer. CodeMirror's own Cmd/Ctrl+click behavior (adding a selection
-     * range) is deliberately left alone — navigation runs alongside it,
-     * not instead of it.
+     * viewer.
      *
      * Bound to a `display: contents` wrapper (so it stays out of layout)
      * rather than to the `EditorView`'s DOM: the view is only available
@@ -1071,9 +1069,28 @@ export const EditorViewer = React.forwardRef<
             return;
         }
         const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-        if (pos != null) {
-            setScrollToSourceOffset(pos);
+        if (pos == null) {
+            return;
         }
+
+        // CodeMirror reads this very modifier — Cmd on macOS, Ctrl
+        // elsewhere — as "add another cursor", so by the time the click
+        // arrives it has already left a stray extra selection range
+        // behind, and the next keystroke would type in two places at
+        // once. Collapse back to a single cursor where the user clicked,
+        // so the gesture behaves like a plain click that also moves the
+        // viewer. (Mouse-driven multiple selections are given up for
+        // this; `Mod-d` still adds them from the keyboard.) Only when the
+        // new main range is empty, so a modifier-held drag — which also
+        // ends in a click — keeps whatever it selected.
+        const { selection } = view.state;
+        if (selection.ranges.length > 1 && selection.main.empty) {
+            view.dispatch({
+                selection: EditorSelection.cursor(selection.main.head),
+            });
+        }
+
+        setScrollToSourceOffset(pos);
     }
 
     const codeMirror = (
