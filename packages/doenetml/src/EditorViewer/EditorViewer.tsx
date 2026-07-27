@@ -1059,6 +1059,13 @@ export const EditorViewer = React.forwardRef<
      * stops its propagation; the offset comes from the pointer
      * coordinates, so it doesn't matter whether CodeMirror has already
      * moved the cursor.
+     *
+     * `posAtCoords` clips coordinates to the content area before resolving
+     * them, so clicks past the end of a line, in the gutter, or below the
+     * last line all still land on a position — its `null` return is
+     * reserved for cases a click can't produce (a document of nothing but
+     * replaced widgets, or a line outside the rendered viewport), so the
+     * guard below is just belt and braces.
      */
     function handleEditorClickCapture(e: React.MouseEvent) {
         if (!hasNavigationModifier(e)) {

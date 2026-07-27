@@ -225,17 +225,16 @@ export function DocViewer({
 
     // Whenever the host asks for a specific source offset (a Cmd/Ctrl+click
     // in the editor, or — in the VS Code preview — a cursor move), scroll a
-    // matching rendered element into
-    // view. The rule: find the innermost mapped element containing the
-    // offset (the "container" — implicitly the whole document when none
-    // does), then prefer the nearest mapped element inside the container
-    // that starts after the offset, then the nearest one ending before
-    // it, then the container itself. Offsets with no mapped element of
-    // their own (whitespace between siblings, or inside a composite like
-    // <group> that produces no renderer instruction) thus resolve to a
-    // nearby sibling — the same way whether the container is a component
-    // like <section> or the document itself — rather than centering a
-    // possibly-huge container.
+    // matching rendered element into view. The rule: find the innermost
+    // mapped element containing the offset (the "container" — implicitly
+    // the whole document when none does), then prefer the nearest mapped
+    // element inside the container that starts after the offset, then the
+    // nearest one ending before it, then the container itself. Offsets with
+    // no mapped element of their own (whitespace between siblings, or
+    // inside a composite like <group> that produces no renderer
+    // instruction) thus resolve to a nearby sibling — the same way whether
+    // the container is a component like <section> or the document itself —
+    // rather than centering a possibly-huge container.
     //
     // Placed here, before this component's several early `return null`
     // paths further down, so it's called unconditionally on every render

@@ -66,18 +66,19 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         cy.get("#p2").should("have.text", "Second paragraph.");
 
         cy.get("#p2").click();
-        // Follow with a Cmd+click so we have a positive signal that the
-        // pipeline works — the plain click must not have reported anything
-        // before it.
-        cy.get("#p2").click({ metaKey: true });
+        // Positive control on a *different* element, so the assertion below
+        // can tell the two clicks apart. Reports arrive asynchronously (via
+        // postMessage), so simply waiting for one to show up and then
+        // counting would race: the count could be sampled after a wrongly
+        // reported p2 but before p3. Demanding that the one and only report
+        // be p3's cannot pass if p2 reported at all.
+        cy.get("#p3").click({ metaKey: true });
 
-        cy.wrap(null)
-            .should(() => {
-                expect(clickMessages.length).to.be.gte(1);
-            })
-            .then(() => {
-                expect(clickMessages.length).to.equal(1);
-            });
+        const p3Start = threeParagraphs.indexOf(`<p name="p3">`);
+        cy.wrap(null).should(() => {
+            expect(clickMessages.length).to.equal(1);
+            expect(clickMessages[0].start.offset).to.equal(p3Start);
+        });
     });
 
     it("cmd+clicking a different element reports a different, correct range", () => {
@@ -171,6 +172,13 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
      * coordinates (x, y), assuming the default [-10, 10] bounding box.
      * Holds the Cmd modifier (so the click navigates) unless
      * `{ metaKey: false }` is passed.
+     *
+     * Every caller aims at a point, so first wait for one to be drawn.
+     * A point inside a graph renders no DOM element of its own — it is
+     * drawn onto the board's shared SVG (as an `ellipse`) by JSXGraph from
+     * an effect — so the board existing does not mean there is anything
+     * there to hit yet. Clicking too early lands on bare board and reports
+     * the enclosing graph instead of the point.
      */
     function clickBoardAtGraphCoords(
         boardSelector,
@@ -178,6 +186,7 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         y,
         { metaKey = true } = {},
     ) {
+        cy.get(boardSelector).find("ellipse").should("exist");
         cy.get(boardSelector).then(($el) => {
             const rect = $el[0].getBoundingClientRect();
             const px = ((x + 10) / 20) * rect.width;
@@ -221,9 +230,13 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
     it("a plain click on a point inside a graph does not navigate", () => {
         // Covers the in-graph path specifically: without the modifier
         // neither the element-level report from the JSXGraph drag handlers
-        // nor the graph-level fallback may fire.
+        // nor the graph-level fallback may fire. Two points, so the plain
+        // click and the Cmd+click positive control land on different
+        // elements and the assertion below can tell their reports apart
+        // (see the paragraph version of this test for why counting alone
+        // would race).
         const doenetML = [
-            `<graph name="g"><point name="P">(3,4)</point></graph>`,
+            `<graph name="g"><point name="P">(3,4)</point><point name="Q">(-5,-6)</point></graph>`,
             `<p name="p1">A paragraph.</p>`,
         ].join("\n");
 
@@ -234,19 +247,15 @@ describe("Click-to-navigate Tests", { tags: ["@group5"] }, function () {
         cy.get("#p1").should("have.text", "A paragraph.");
         cy.get("#g").should("exist");
 
-        clickBoardAtGraphCoords("#g", 3, 4, { metaKey: false });
-        // Follow with a Cmd+click so we have a positive signal that the
-        // pipeline works — the plain click must not have reported anything
-        // before it.
-        clickBoardAtGraphCoords("#g", 3, 4);
+        const qStart = doenetML.indexOf(`<point name="Q">`);
 
-        cy.wrap(null)
-            .should(() => {
-                expect(clickMessages.length).to.be.gte(1);
-            })
-            .then(() => {
-                expect(clickMessages.length).to.equal(1);
-            });
+        clickBoardAtGraphCoords("#g", 3, 4, { metaKey: false });
+        clickBoardAtGraphCoords("#g", -5, -6);
+
+        cy.wrap(null).should(() => {
+            expect(clickMessages.length).to.equal(1);
+            expect(clickMessages[0].start.offset).to.equal(qStart);
+        });
     });
 
     it("cmd+clicking a copied point navigates to the copy source, not the original", () => {

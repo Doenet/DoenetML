@@ -199,15 +199,22 @@ export function DoenetViewer({
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
     /**
-     * Called when the user clicks a rendered element that has a known
-     * source location, e.g. so a host app can move an editor's cursor to
-     * the corresponding DoenetML.
+     * Called when the user Cmd/Ctrl+clicks a rendered element that has a
+     * known source location, e.g. so a host app can move an editor's cursor
+     * to the corresponding DoenetML. The modifier is required — plain
+     * clicks just interact with the document — so a host does not have to
+     * filter them out itself. Cmd/Ctrl+Enter on a focused graph element is
+     * the keyboard equivalent.
      */
     onSourcePositionClick?: (position: SourcePosition) => void;
     /**
      * Set to a character offset into `doenetML` (e.g. the editor's cursor
      * position) to scroll the corresponding rendered element into view.
-     * Only re-scrolls when this value changes.
+     * Only re-scrolls when this value changes, so a host that repeats the
+     * same request (e.g. one driven by a deliberate gesture rather than a
+     * continuously moving cursor) should set it back to `null` in between —
+     * `null` both means "nothing requested" and clears the de-duplication,
+     * so the next request scrolls even if its offset is unchanged.
      */
     scrollToSourceOffset?: number | null;
     /**
