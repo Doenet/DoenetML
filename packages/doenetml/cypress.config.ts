@@ -68,7 +68,10 @@ export default defineConfig({
                                 // turns every multi-byte character in the
                                 // bundle — the Spanish message catalogs, among
                                 // others — into mojibake before it reaches the
-                                // Blob the worker is built from.
+                                // Blob the worker is built from. The same
+                                // plugin in ../doenetml-iframe/cypress.config.ts
+                                // decodes its bundle this way; keep the two in
+                                // step.
                                 return `
                                     const __bin = atob(${JSON.stringify(b64)});
                                     const __bytes = new Uint8Array(__bin.length);
