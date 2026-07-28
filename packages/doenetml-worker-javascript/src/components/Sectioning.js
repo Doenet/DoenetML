@@ -26,6 +26,8 @@ export class Section extends SectioningComponentNumberWithSiblings {
     }
 }
 
+// A subsection is called a section, at every depth: all three element names
+// map onto one catalog key in `utils/sectionWords.js`.
 export class Subsection extends Section {
     static componentType = "subsection";
 
@@ -33,15 +35,6 @@ export class Subsection extends Section {
         summary:
             "A sectional component nested one heading level deeper than `<section>`",
     };
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.sectionName.definition = () => ({
-            setValue: { sectionName: "Section" },
-        });
-
-        return stateVariableDefinitions;
-    }
 }
 export class Subsubsection extends Section {
     static componentType = "subsubsection";
@@ -50,15 +43,6 @@ export class Subsubsection extends Section {
         summary:
             "A sectional component nested one heading level deeper than `<subsection>`",
     };
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.sectionName.definition = () => ({
-            setValue: { sectionName: "Section" },
-        });
-
-        return stateVariableDefinitions;
-    }
 }
 
 export class Paragraphs extends SectioningComponentNumberWithSiblings {

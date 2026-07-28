@@ -124,6 +124,28 @@ export type MessageKey =
     | "boolean-false"
     | "answer-submit-label"
     | "answer-submit-label-no-correctness"
+    | "section-name.activity"
+    | "section-name.aside"
+    | "section-name.cascade"
+    | "section-name.definition"
+    | "section-name.example"
+    | "section-name.exercise"
+    | "section-name.exercises"
+    | "section-name.given-answer"
+    | "section-name.note"
+    | "section-name.objectives"
+    | "section-name.paragraphs"
+    | "section-name.part"
+    | "section-name.problem"
+    | "section-name.problems"
+    | "section-name.proof"
+    | "section-name.question"
+    | "section-name.section"
+    | "section-name.solution"
+    | "section-name.task"
+    | "section-name.theorem"
+    | "section-title-prefix"
+    | "hint-title"
     | "table-name"
     | "figure-name"
     | "paginator-previous"
@@ -442,6 +464,28 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "boolean-false",
     "answer-submit-label",
     "answer-submit-label-no-correctness",
+    "section-name.activity",
+    "section-name.aside",
+    "section-name.cascade",
+    "section-name.definition",
+    "section-name.example",
+    "section-name.exercise",
+    "section-name.exercises",
+    "section-name.given-answer",
+    "section-name.note",
+    "section-name.objectives",
+    "section-name.paragraphs",
+    "section-name.part",
+    "section-name.problem",
+    "section-name.problems",
+    "section-name.proof",
+    "section-name.question",
+    "section-name.section",
+    "section-name.solution",
+    "section-name.task",
+    "section-name.theorem",
+    "section-title-prefix",
+    "hint-title",
     "table-name",
     "figure-name",
     "paginator-previous",

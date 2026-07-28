@@ -214,6 +214,45 @@ answer-submit-label = Revisar
 answer-submit-label-no-correctness = Enviar respuesta
 
 
+## Bloques seccionales
+
+section-name =
+    .activity = Actividad
+    .aside = Nota al margen
+    .cascade = Cascada
+    .definition = Definición
+    .example = Ejemplo
+    .exercise = Ejercicio
+    .exercises = Ejercicios
+    .given-answer = Respuesta
+    .note = Nota
+    .objectives = Objetivos
+    .paragraphs = Párrafos
+    .part = Parte
+    .problem = Problema
+    .problems = Problemas
+    .proof = Demostración
+    .question = Pregunta
+    .section = Sección
+    .solution = Solución
+    .task = Tarea
+    .theorem = Teorema
+
+# El español separa el título con un punto tras un número solo, igual que el
+# inglés, y con dos puntos cuando la palabra encabeza.
+section-title-prefix =
+    { $parts ->
+        [name] { $sectionName }
+        [number] { $sectionNumber }
+        [name-title] { $sectionName }{ ": " }
+        [number-title] { $sectionNumber }{ ". " }
+        [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
+       *[name-number] { $sectionName } { $sectionNumber }
+    }
+
+hint-title = Pista
+
+
 ## Tablas y figuras
 
 table-name =
