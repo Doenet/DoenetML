@@ -197,9 +197,15 @@ describe("container words follow the document locale @group4", () => {
             const doc = `
             <paginatorControls name="pc" paginator="$pgn" nextLabel="Onward" />
             <paginator name="pgn"><section name="s1"><p>one</p></section></paginator>
+            <text name="label" extend="$pc.nextLabel" />
             <text name="raw" extend="$pc.nextLabelPreLocalize" />
             `;
-            expect(await values(doc, ["raw"], "value")).toEqual({ raw: "" });
+            // `label` is the control: an empty `raw` says something about
+            // reachability only if a reference that should resolve does.
+            expect(await values(doc, ["label", "raw"], "value")).toEqual({
+                label: "Onward",
+                raw: "",
+            });
         });
     });
 
