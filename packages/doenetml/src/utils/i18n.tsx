@@ -126,3 +126,82 @@ export function useT(): Translator {
 export function useUiLocale(): string {
     return useContext(I18nContext).locale;
 }
+
+/**
+ * The translator for the *document's* language, as opposed to the reader's.
+ *
+ * Defaults to English for the same reason {@link I18nContext} does: a renderer
+ * mounted outside any provider should keep rendering what it renders today.
+ */
+const ContentI18nContext = createContext<Translator>(EN_CHROME_TRANSLATOR);
+
+/**
+ * Publish the document-language translator to every {@link useContentT} below.
+ *
+ * Mounted by `DocViewer` beside {@link I18nProvider}, from the same
+ * `effectiveDocumentLocale` the core was handed — so a word this renders and a
+ * word the worker computed cannot disagree.
+ *
+ * Needs no `useMemo` where {@link I18nProvider} does: what it publishes is the
+ * translator itself, which `useChromeTranslator` already memoizes, rather than
+ * an object rebuilt on every render.
+ */
+export function ContentI18nProvider({
+    translate,
+    children,
+}: {
+    translate: Translator;
+    children: React.ReactNode;
+}) {
+    return (
+        <ContentI18nContext.Provider value={translate}>
+            {children}
+        </ContentI18nContext.Provider>
+    );
+}
+
+/**
+ * A translator bound to the document's language — usually *not* the one to
+ * reach for. Almost everything a renderer draws is chrome and belongs on
+ * {@link useT}; this is for a control the core already writes part of, where
+ * following the reader would put one widget in two languages.
+ *
+ * The check-work button is the case it exists for, and the reason is a chain
+ * of two links rather than taste. Its resting label is `submitLabel`, a
+ * *content* state variable: an author can write `submitLabel="Comprueba"`, and
+ * can interpolate `$ans.submitLabel` into their own prose — "Pulsa el botón
+ * $ans.submitLabel" — so its value cannot depend on who is reading, and the
+ * worker that computes it is never told `uiLocale`. Everything the button says
+ * afterwards ("Correct", "37% Credit", "no attempts remaining") therefore has
+ * to answer to the same tag, or the sentence pointing at the button stops
+ * naming what the button says.
+ *
+ * What answers to it is the whole control, not each string weighed alone. The
+ * button's visually hidden span carries `submitLabel` verbatim beside the
+ * status only a screen reader hears ("Checking answer"), so putting that
+ * announcement in the reader's language would leave one span bilingual; the
+ * `Max credit available: 80%; 1 attempt remaining` line renders as a single
+ * joined sentence immediately after the button and splits no better.
+ *
+ * This is deliberately *not* the rule for everything drawn inside the
+ * document. What a *neighbouring* element says is weighed on its own, and
+ * mostly comes out the other way: the in-document error box follows the reader
+ * (#1570), and so does the validation state appended to an input's accessible
+ * description, because both are addressed to whoever is looking at the screen
+ * and no authored prose ever refers to them. The test is whether the author's
+ * own document talks about the words — not where they appear.
+ *
+ * The catalogs are the same ones {@link useT} resolves against; only the
+ * negotiated locale differs. The keys stay in `chrome.ftl` because namespaces
+ * split by *load context*, and these are drawn on the main thread — moving
+ * them to `content` would ship them to the worker, which never draws them.
+ *
+ * Bind it as `tContent`, and reach its keys through a helper whose own
+ * parameter is named `t` (`createCheckWorkComponent`). `lint:i18n` only sees
+ * call sites through a translator named `t` or `translate`, so a key called
+ * straight off `tContent` would read as an orphan; the name also keeps `t`
+ * meaning the reader's translator in every renderer.
+ */
+export function useContentT(): Translator {
+    return useContext(ContentI18nContext);
+}

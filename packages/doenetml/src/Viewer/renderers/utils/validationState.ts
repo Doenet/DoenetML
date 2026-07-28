@@ -5,7 +5,13 @@ import type { Translator } from "@doenet/i18n";
  *
  * @param validationState - one of "correct", "incorrect", "partialcorrect", or "unvalidated"
  * @param shortDescription - the existing short description
- * @param t - chrome translator from `useT()`
+ * @param t - translator for the *document's* language, from `useContentT()`.
+ *   This suffix and the check-work button beside it announce the same verdict
+ *   about the same response, so they are one control and answer to one tag
+ *   (see `useContentT`). Being addressed to a screen reader does not put it on
+ *   `uiLocale`: the button's own `aria-live` region is addressed there too and
+ *   follows the document. Splitting them would land only on screen-reader
+ *   users, who are the only ones who hear both.
  * @returns updated short description with validation state appended if applicable
  */
 export function addValidationStateToShortDescription(
