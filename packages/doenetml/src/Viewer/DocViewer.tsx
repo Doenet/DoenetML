@@ -129,6 +129,7 @@ export function DocViewer({
     documentLocale,
     uiLocale,
     localeResources,
+    resolvedUiLocaleCallback,
     styleOverrides,
     showAnswerResponseButton = false,
     answerResponseCounts = {},
@@ -184,6 +185,17 @@ export function DocViewer({
      * are handed to it at creation.
      */
     localeResources?: Record<string, string> | null;
+    /**
+     * Report the language this viewer renders its chrome and its diagnostics
+     * in, whenever it changes.
+     *
+     * Only here is an authored `<document lang>` known, and it is what
+     * `uiLocale` falls back to — so a host that wraps this viewer cannot
+     * resolve the same tag from its own props. The editor needs it: it renders
+     * the same diagnostics again in its hover tooltips, and the two must not
+     * come out in different languages.
+     */
+    resolvedUiLocaleCallback?: (uiLocale: string) => void;
     styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;
     answerResponseCounts?: Record<string, number>;
@@ -567,6 +579,10 @@ export function DocViewer({
     // has to be rendered in the language in effect now.
     const formatDiagnosticRef = useRef(formatDiagnostic);
     formatDiagnosticRef.current = formatDiagnostic;
+
+    useEffect(() => {
+        resolvedUiLocaleCallback?.(effectiveUiLocale);
+    }, [effectiveUiLocale, resolvedUiLocaleCallback]);
 
     /**
      * Store a batch of diagnostics, rendered in the chrome's language, and

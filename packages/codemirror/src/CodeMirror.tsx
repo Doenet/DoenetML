@@ -7,7 +7,9 @@ import { tabExtension } from "./extensions/tab";
 import { autoCloseTagExtension } from "./extensions/auto-close-tag";
 import {
     lspPlugin,
+    redrawDiagnostics,
     uniqueLanguageServerInstance,
+    type DiagnosticPresentation,
 } from "./extensions/lsp/plugin";
 import {
     colorTheme,
@@ -32,6 +34,7 @@ const CodeMirror = React.memo(function CodeMirror({
     ariaLabel = "DoenetML code editor",
     doenetWorkerUrl,
     darkMode = "light",
+    diagnosticPresentation,
 }: {
     value: string;
     onChange?: (str: string) => void;
@@ -83,6 +86,21 @@ const CodeMirror = React.memo(function CodeMirror({
      * autocomplete icon colors all switch to dark-mode-verified variants.
      */
     darkMode?: ThemeMode;
+    /**
+     * How the reader wants a diagnostic said: a message formatter and a
+     * source of severity headings, both answering in their language.
+     *
+     * This package renders the squiggles and their tooltips but has no
+     * catalogs to render them *from* — see {@link DiagnosticPresentation} for
+     * why it deliberately doesn't. Omit it and the tooltip shows the English
+     * the producer wrote, exactly as before.
+     *
+     * Replace it whenever its answers change — when the reader's language
+     * does. A new one leaves the extension set alone, so the document stays
+     * open on the language server; the diagnostics already on screen are
+     * simply drawn again through the new answers.
+     */
+    diagnosticPresentation?: DiagnosticPresentation;
 }) {
     // Only one language server runs for all documents, so we specify a document id to keep different instances different.
     const [documentId, _] = React.useState(() =>
@@ -111,6 +129,38 @@ const CodeMirror = React.memo(function CodeMirror({
         };
     }, [languageServerRef]);
 
+    // The editor view, kept here as well as mirrored into the caller's
+    // `editorViewRef`, so the redraw below has something to aim at whether or
+    // not the caller asked for one.
+    const viewRef = React.useRef<EditorView | null>(null);
+
+    // The presentation the host most recently supplied, read through a ref so
+    // the extension set never sees it. A new extension set builds a new LSP
+    // plugin, which closes the document on the language server and reopens it
+    // — far too much to pay for the reader changing language. This
+    // indirection is what lets that be a plain prop.
+    const presentationRef = React.useRef(diagnosticPresentation);
+    presentationRef.current = diagnosticPresentation;
+    const stablePresentation = React.useMemo<DiagnosticPresentation>(
+        () => ({
+            formatMessage: (diagnostic) =>
+                presentationRef.current?.formatMessage?.(diagnostic) ??
+                diagnostic.message,
+            severityHeading: (severity) =>
+                presentationRef.current?.severityHeading?.(severity),
+        }),
+        [],
+    );
+
+    // Messages and headings are built when their batch of diagnostics
+    // arrives, so a host that starts answering differently has to say so for
+    // what is already drawn to follow.
+    React.useEffect(() => {
+        if (viewRef.current) {
+            redrawDiagnostics(viewRef.current);
+        }
+    }, [diagnosticPresentation]);
+
     const extensions: Extension[] = React.useMemo(() => {
         const extensions: Extension[] = [
             syntaxHighlightingExtension(darkMode),
@@ -122,13 +172,22 @@ const CodeMirror = React.memo(function CodeMirror({
         if (!readOnly) {
             extensions.push(tabExtension);
             extensions.push(autoCloseTagExtension);
-            extensions.push(lspPlugin(documentId, doenetWorkerUrl));
+            extensions.push(
+                lspPlugin(documentId, doenetWorkerUrl, stablePresentation),
+            );
             extensions.push(completionIconTheme(darkMode));
         } else {
             extensions.push(EditorState.readOnly.of(true));
         }
         return extensions;
-    }, [documentId, readOnly, ariaLabel, doenetWorkerUrl, darkMode]);
+    }, [
+        documentId,
+        readOnly,
+        ariaLabel,
+        doenetWorkerUrl,
+        darkMode,
+        stablePresentation,
+    ]);
 
     return (
         <div
@@ -171,6 +230,7 @@ const CodeMirror = React.memo(function CodeMirror({
                 onBlur={onBlur}
                 onFocus={onFocus}
                 onCreateEditor={(view) => {
+                    viewRef.current = view;
                     if (editorViewRef) {
                         editorViewRef.current = view;
                     }

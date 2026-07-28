@@ -169,6 +169,22 @@ error-found-at =
 # Banner above a document that compiled with at least one error in it.
 document-contains-errors = This document contains errors!
 
+# Headings of the tooltip the editor shows over a squiggle, naming what kind
+# of diagnostic it is. `-information` and `-hint` are styled identically but
+# are two different words; `-hint` is unreachable today, since nothing Doenet
+# raises is an LSP hint, and is here so the set is complete.
+diagnostic-heading-error = Error
+diagnostic-heading-warning = Warning
+diagnostic-heading-information = Info
+diagnostic-heading-hint = Hint
+
+# Headings of the same tooltip over an accessibility diagnostic, which says
+# what kind of problem it is rather than how severe. Level 1 is a failure
+# against the WCAG AA success criteria; level 2 is Doenet's own advice, which
+# no standard requires.
+accessibility-heading-level-1 = WCAG AA Accessibility Violation
+accessibility-heading-level-2 = Accessibility alert
+
 # Shown in place of the document when a renderer threw and the error boundary
 # caught it.
 something-went-wrong = Something went wrong.

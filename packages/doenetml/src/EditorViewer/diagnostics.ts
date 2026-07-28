@@ -64,10 +64,32 @@ const DIAGNOSTIC_TYPE_TO_LSP_SEVERITY: Record<
 };
 
 /**
+ * The heading the editor's tooltip shows over an accessibility diagnostic.
+ *
+ * `source` is the LSP's slot for the producer's own label for a *kind* of
+ * diagnostic, and the CodeMirror tooltip shows it in place of the severity
+ * word. It is therefore reader-facing text, and the viewer is where the
+ * reader's language is known — the language server has no locale.
+ *
+ * Defaulted to the English these have always been, so a caller that has no
+ * translator to offer (the unit tests, and any host embedding this directly)
+ * gets exactly what it got before.
+ */
+export type AccessibilityHeadings = { level1: string; level2: string };
+
+const EN_ACCESSIBILITY_HEADINGS: AccessibilityHeadings = {
+    level1: "WCAG AA Accessibility Violation",
+    level2: "Accessibility alert",
+};
+
+/**
  * Converts a single editor diagnostic into an LSP-compatible diagnostic.
  * Accessibility diagnostics are surfaced as warnings with custom source/markClass.
  */
-function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
+function toLspDiagnostic(
+    diagnostic: DiagnosticRecord,
+    accessibilityHeadings: AccessibilityHeadings,
+): EditorLspDiagnostic {
     const range = dastPositionToLspRange(diagnostic.position!);
 
     if (isAccessibilityRecord(diagnostic)) {
@@ -76,10 +98,14 @@ function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
             severity: DiagnosticSeverity.Warning,
             range,
             code: `accessibility-level-${diagnostic.level}`,
+            // Translated, which is why `getDiagnosticHeadingClass` in
+            // `@doenet/codemirror` must not be the only thing keying on the
+            // English: it matches `code` and `markClass` first, and both are
+            // set right here.
             source:
                 diagnostic.level === 1
-                    ? "WCAG AA Accessibility Violation"
-                    : "Accessibility alert",
+                    ? accessibilityHeadings.level1
+                    : accessibilityHeadings.level2,
             markClass: `cm-doenet-accessibility-diagnostic cm-doenet-accessibility-diagnostic-level-${diagnostic.level}`,
         };
     }
@@ -117,10 +143,12 @@ export function toAdditionalDiagnosticsForLsp({
     diagnostics,
     showInfoAnnotations,
     showAccessibilityAnnotations,
+    accessibilityHeadings = EN_ACCESSIBILITY_HEADINGS,
 }: {
     diagnostics: DiagnosticRecord[];
     showInfoAnnotations: boolean;
     showAccessibilityAnnotations: boolean;
+    accessibilityHeadings?: AccessibilityHeadings;
 }): EditorLspDiagnostic[] {
     return diagnostics
         .filter((diagnostic) => {
@@ -146,7 +174,9 @@ export function toAdditionalDiagnosticsForLsp({
 
             return false;
         })
-        .map(toLspDiagnostic);
+        .map((diagnostic) =>
+            toLspDiagnostic(diagnostic, accessibilityHeadings),
+        );
 }
 
 /**

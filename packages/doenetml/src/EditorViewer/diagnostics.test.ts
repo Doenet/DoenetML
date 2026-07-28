@@ -188,4 +188,45 @@ describe("toAdditionalDiagnosticsForLsp", () => {
         expect(out).toHaveLength(1);
         expect(out[0].message).toBe("W");
     });
+    it("shows the accessibility heading in the reader's language, keeping the keys that classify it", () => {
+        // `source` is reader-facing text, so it follows `uiLocale`. Nothing
+        // may key on the English of it: `getDiagnosticHeadingClass` in
+        // `@doenet/codemirror` also matches `code` and `markClass`, and those
+        // are what still say which level this is once the words change.
+        const accessibility: DiagnosticRecord = {
+            type: "accessibility",
+            level: 1,
+            message: "A",
+            position: dastPos(1, 1, 1, 2),
+        };
+        const [lsp] = toAdditionalDiagnosticsForLsp({
+            diagnostics: [accessibility],
+            showInfoAnnotations: false,
+            showAccessibilityAnnotations: true,
+            accessibilityHeadings: {
+                level1: "Incumplimiento de accesibilidad WCAG AA",
+                level2: "Aviso de accesibilidad",
+            },
+        });
+        expect(lsp.source).toBe("Incumplimiento de accesibilidad WCAG AA");
+        expect(lsp.code).toBe("accessibility-level-1");
+        expect(lsp.markClass).toContain(
+            "cm-doenet-accessibility-diagnostic-level-1",
+        );
+    });
+
+    it("keeps the English headings for a caller that offers no translation", () => {
+        const accessibility: DiagnosticRecord = {
+            type: "accessibility",
+            level: 2,
+            message: "A",
+            position: dastPos(1, 1, 1, 2),
+        };
+        const [lsp] = toAdditionalDiagnosticsForLsp({
+            diagnostics: [accessibility],
+            showInfoAnnotations: false,
+            showAccessibilityAnnotations: true,
+        });
+        expect(lsp.source).toBe("Accessibility alert");
+    });
 });

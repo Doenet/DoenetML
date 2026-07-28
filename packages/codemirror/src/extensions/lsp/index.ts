@@ -1,1 +1,6 @@
-export { lspPlugin, uniqueLanguageServerInstance } from "./plugin";
+export {
+    lspPlugin,
+    uniqueLanguageServerInstance,
+    type DiagnosticPresentation,
+    type SeverityHeadingKey,
+} from "./plugin";

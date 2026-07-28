@@ -39,6 +39,13 @@ import type { HelpContent } from "@doenet/lsp-tools";
 import { EditorSelection } from "@codemirror/state";
 import type { Completion } from "@codemirror/autocomplete";
 import { doenetGlobalConfig } from "../global-config";
+import type { DiagnosticArgs } from "@doenet/i18n";
+import { useChromeTranslator, useUiLocale } from "../utils/i18n";
+import { useDiagnosticFormatter } from "../utils/diagnostics";
+import type {
+    DiagnosticPresentation,
+    SeverityHeadingKey,
+} from "@doenet/codemirror";
 
 const HELP_NONE: HelpContent = { kind: "none" };
 
@@ -485,11 +492,94 @@ export const EditorViewer = React.forwardRef<
         setReceivedDiagnosticsFromViewer(true);
     }
 
+    // Everything the editor says about a diagnostic — the tooltip over a
+    // squiggle and the lint panel behind it — in the reader's language.
+    //
+    // That language is whichever one the viewer below resolved, not the one
+    // the editor's own chrome uses: the records in the Diagnostics tab were
+    // rendered down there, where an authored `<document lang>` is known, and
+    // the hover renders the same diagnostics a second time. Until the source
+    // has been parsed there is nothing to report, so the props-only answer the
+    // surrounding chrome uses stands in.
+    const [viewerUiLocale, setViewerUiLocale] = useState<string | null>(null);
+    const hostUiLocale = useUiLocale();
+    const diagnosticLocale = viewerUiLocale ?? hostUiLocale;
+    // Bound to `translate` on purpose: `lint:i18n` only recognizes call sites
+    // through a translator named `t` or `translate`, so the keys reached below
+    // would otherwise read as orphans.
+    const translate = useChromeTranslator(diagnosticLocale, localeResources);
+    const formatDiagnostic = useDiagnosticFormatter(
+        translate,
+        diagnosticLocale,
+    );
+
+    const accessibilityHeadings = useMemo(
+        () => ({
+            level1: translate(
+                "accessibility-heading-level-1",
+                undefined,
+                "WCAG AA Accessibility Violation",
+            ),
+            level2: translate(
+                "accessibility-heading-level-2",
+                undefined,
+                "Accessibility alert",
+            ),
+        }),
+        [translate],
+    );
+
+    const severityHeadings = useMemo<Record<SeverityHeadingKey, string>>(
+        () => ({
+            error: translate("diagnostic-heading-error", undefined, "Error"),
+            warning: translate(
+                "diagnostic-heading-warning",
+                undefined,
+                "Warning",
+            ),
+            information: translate(
+                "diagnostic-heading-information",
+                undefined,
+                "Info",
+            ),
+            hint: translate("diagnostic-heading-hint", undefined, "Hint"),
+        }),
+        [translate],
+    );
+
+    // What the editor says about a diagnostic: the message and, above it, the
+    // severity word. Rebuilt whenever the translator behind it is, which is
+    // how a language settled after the editor was already up reaches the
+    // tooltips — `CodeMirror` reads this through a ref and redraws the
+    // diagnostics on screen rather than rebuilding its extension set, so a
+    // new object costs nothing beyond that redraw.
+    const diagnosticPresentation = useMemo<DiagnosticPresentation>(
+        () => ({
+            formatMessage: ({ message, code, args }) =>
+                formatDiagnostic({
+                    message,
+                    // The LSP allows a numeric `code`; a Doenet diagnostic
+                    // code is always a string, and anything else names no
+                    // catalog message, so it is dropped rather than coerced
+                    // into a lookup that cannot succeed.
+                    code: typeof code === "string" ? code : undefined,
+                    args: args as DiagnosticArgs | undefined,
+                }),
+            severityHeading: (severity) => severityHeadings[severity],
+        }),
+        [formatDiagnostic, severityHeadings],
+    );
+
+    // The accessibility headings travel to the language server rather than
+    // being asked for at draw time, because they arrive as each diagnostic's
+    // `source`. So a language change has to resend them, which the dependency
+    // on `accessibilityHeadings` below does.
     useEffect(() => {
         const additionalDiagnostics = toAdditionalDiagnosticsForLsp({
             diagnostics: [...initialDiagnostics, ...diagnostics],
             showInfoAnnotations,
             showAccessibilityAnnotations,
+            accessibilityHeadings,
         });
 
         lspRef.current?.lsp.sendAdditionalDiagnostics(
@@ -501,6 +591,7 @@ export const EditorViewer = React.forwardRef<
         diagnostics,
         showInfoAnnotations,
         showAccessibilityAnnotations,
+        accessibilityHeadings,
     ]);
 
     const {
@@ -974,6 +1065,7 @@ export const EditorViewer = React.forwardRef<
             editorViewRef={editorViewRef}
             doenetWorkerUrl={doenetGlobalConfig.doenetWorkerUrl}
             darkMode={darkMode}
+            diagnosticPresentation={diagnosticPresentation}
         />
     );
 
@@ -1190,6 +1282,7 @@ export const EditorViewer = React.forwardRef<
                     documentLocale={documentLocale}
                     uiLocale={uiLocale}
                     localeResources={localeResources}
+                    resolvedUiLocaleCallback={setViewerUiLocale}
                     styleOverrides={styleOverrides}
                     showAnswerResponseButton={showAnswerResponseButton}
                     answerResponseCounts={answerResponseCounts}

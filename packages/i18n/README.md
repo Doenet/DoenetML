@@ -332,6 +332,14 @@ every code is still checked against the registry at compile time, and the real
 package only in that test. Their `dependencies` stay free of it and the bundle
 guard stays green.
 
+The same boundary runs through `@doenet/codemirror`, which draws the tooltip
+over a squiggle: it embeds that server and so carries no catalogs either. It
+takes a `diagnosticPresentation` instead — a message formatter and a source of
+severity headings, supplied by `EditorViewer` from the translator the
+Diagnostics tab renders with. The language is the one the **viewer** resolved,
+since only there is an authored `<document lang>` known, and the hover and the
+tab are showing the same records.
+
 ### Codes
 
 A code is a permanent name — what a bug report cites, what a host reading

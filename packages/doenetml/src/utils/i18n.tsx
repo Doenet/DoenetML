@@ -12,10 +12,10 @@ import {
 /**
  * The language the chrome renders in, and the translator that does it.
  *
- * The tag travels beside the translator because a renderer that has to format
- * something *outside* Fluent — `Intl.ListFormat`, in the diagnostic formatter
- * `_error.tsx` builds — needs to know which language to format it in, and a
- * `Translator` alone cannot say.
+ * The tag travels beside the translator because a consumer that has to format
+ * something *outside* Fluent — `Intl.ListFormat`, in the diagnostic formatters
+ * the error box and the editor's hover tooltips build — needs to know which
+ * language to format it in, and a `Translator` alone cannot say.
  *
  * Defaults to English rather than to a throwing or empty translator:
  * `@doenet/doenetml` exports its renderers individually, so one can be mounted
@@ -119,9 +119,9 @@ export function useT(): Translator {
 /**
  * The language the chrome is rendering in.
  *
- * For a renderer that has to format something `Fluent` isn't formatting —
- * today, the diagnostic formatter `_error.tsx` builds, which joins list
- * arguments with `Intl.ListFormat`.
+ * For a consumer that has to format something Fluent isn't formatting — today,
+ * the diagnostic formatters in `_error.tsx` and `EditorViewer`, which join
+ * list arguments with `Intl.ListFormat`.
  */
 export function useUiLocale(): string {
     return useContext(I18nContext).locale;

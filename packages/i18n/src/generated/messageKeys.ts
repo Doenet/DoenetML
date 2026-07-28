@@ -59,6 +59,12 @@ export type MessageKey =
     | "error-heading"
     | "error-found-at"
     | "document-contains-errors"
+    | "diagnostic-heading-error"
+    | "diagnostic-heading-warning"
+    | "diagnostic-heading-information"
+    | "diagnostic-heading-hint"
+    | "accessibility-heading-level-1"
+    | "accessibility-heading-level-2"
     | "something-went-wrong"
     | "renderer-load-failed"
     | "core-start-failed"
@@ -365,6 +371,12 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "error-heading",
     "error-found-at",
     "document-contains-errors",
+    "diagnostic-heading-error",
+    "diagnostic-heading-warning",
+    "diagnostic-heading-information",
+    "diagnostic-heading-hint",
+    "accessibility-heading-level-1",
+    "accessibility-heading-level-2",
     "something-went-wrong",
     "renderer-load-failed",
     "core-start-failed",
