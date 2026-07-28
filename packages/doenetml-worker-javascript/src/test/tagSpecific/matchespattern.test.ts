@@ -1248,4 +1248,161 @@ describe("MatchesPattern tag tests @group3", async () => {
         expect(warnings[0].code).eq("doenet-w0117");
         expect(warnings[0].args).eqls({ parameters: ["＿"] });
     });
+
+    it("the same rejected parameter listed twice is reported once", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+  <matchesPattern name="m" pattern="ax" parameters="2 2 x^2 x^2">3x</matchesPattern>
+  `,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].args).eqls({ parameters: ["2", "x^2"] });
+    });
+
+    it("a parameter is renamed away from a variable already in the pattern", async () => {
+        // A placeholder must not be spelled like something the pattern
+        // matches literally, so the generated name skips `AAA`.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <math name="pat" splitSymbols="false">AAA b + b</math>
+  <p>Expression: <mathInput name="expr" splitSymbols="false" /></p>
+  <p><matchesPattern name="m" pattern="$pat" parameters="b">$expr</matchesPattern></p>
+  <p>Matches: <mathList extend="$m.patternMatches" name="mm" /></p>
+  `,
+        });
+
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "AAA 3 + 3": ["3"], "AAA 3 + 4": false },
+        });
+    });
+
+    it("changing parameters at runtime recomputes the match", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p>Parameters: <mathInput name="params" prefill="a" /></p>
+  <p>Expression: <mathInput name="expr" /></p>
+  <p><matchesPattern name="m" pattern="ax+a" parameters="$params">$expr</matchesPattern></p>
+  <p>Matches: <mathList extend="$m.patternMatches" name="mm" /></p>
+  `,
+        });
+
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "3x+3": ["3"], "3x+4": false },
+        });
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        // `b` does not occur in the pattern, so nothing is a placeholder any
+        // more and only the literal `ax+a` matches.
+        await updateMathInputValue({
+            latex: "b",
+            componentIdx: await resolvePathToNodeIdx("params"),
+            core,
+        });
+
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "3x+3": false, "ax+a": ["＿"] },
+        });
+
+        let warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0118");
+
+        // Returning to `a` and back to `b` recomputes both ways without
+        // raising the same warning a second time.
+        await updateMathInputValue({
+            latex: "a",
+            componentIdx: await resolvePathToNodeIdx("params"),
+            core,
+        });
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "3x+3": ["3"] },
+        });
+
+        await updateMathInputValue({
+            latex: "b",
+            componentIdx: await resolvePathToNodeIdx("params"),
+            core,
+        });
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "3x+3": false },
+        });
+        expect(getDiagnosticsByType(core).warnings.length).eq(1);
+    });
+
+    it("changing the pattern at runtime recomputes the match", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p>Pattern: <mathInput name="pat" prefill="ax+a" /></p>
+  <p>Expression: <mathInput name="expr" /></p>
+  <p><matchesPattern name="m" pattern="$pat" parameters="a">$expr</matchesPattern></p>
+  <p>Matches: <mathList extend="$m.patternMatches" name="mm" /></p>
+  `,
+        });
+
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "3x+3": ["3"], "3x+4": false },
+        });
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        await updateMathInputValue({
+            latex: "ax^2+a",
+            componentIdx: await resolvePathToNodeIdx("pat"),
+            core,
+        });
+
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "3x+3": false, "3x^2+3": ["3"] },
+        });
+
+        // A pattern that no longer mentions `a` warns; going back clears the
+        // way for a match again.
+        await updateMathInputValue({
+            latex: "bx+b",
+            componentIdx: await resolvePathToNodeIdx("pat"),
+            core,
+        });
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "3x+3": false },
+        });
+        expect(getDiagnosticsByType(core).warnings.length).eq(1);
+        expect(getDiagnosticsByType(core).warnings[0].code).eq("doenet-w0118");
+
+        await updateMathInputValue({
+            latex: "ax+a",
+            componentIdx: await resolvePathToNodeIdx("pat"),
+            core,
+        });
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 1,
+            expected: { "3x+3": ["3"] },
+        });
+    });
 });

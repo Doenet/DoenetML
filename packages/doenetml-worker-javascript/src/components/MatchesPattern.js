@@ -6,9 +6,13 @@ import me from "math-expressions";
 const BLANK = "\uff3f";
 
 /**
- * Whether `tree` names a variable: a bare symbol, or one dressed with a
- * subscript (`x_1` → `["_", "x", 1]`) or a prime (`f'` → `["prime", "f"]`).
+ * A string key standing for `tree` as a parameter, or `undefined` if `tree`
+ * cannot be one. Both the list of parameters and every node of the pattern are
+ * keyed this way, so recognizing a parameter in the pattern is a map lookup
+ * rather than a deep comparison at every node.
  *
+ * A parameter has to name a variable: a bare symbol, or one dressed with a
+ * subscript (`x_1` → `["_", "x", 1]`) or a prime (`f'` → `["prime", "f"]`).
  * A parameter is found in the pattern by syntactic equality, so only names
  * qualify. A number such as `2` occurs in a pattern as an exponent or an index
  * as readily as it does as a coefficient, and turning all of them into one
@@ -19,37 +23,22 @@ const BLANK = "\uff3f";
  * A blank is a string, so it has to be turned away by name: accepting one
  * would make every blank in the pattern a single shared placeholder, which is
  * the opposite of what blanks mean when `parameters` is absent.
- */
-function isVariableTree(tree) {
-    if (typeof tree === "string") {
-        return tree !== BLANK;
-    }
-    if (Array.isArray(tree)) {
-        if (tree[0] === "_" && tree.length === 3) {
-            return isVariableTree(tree[1]);
-        }
-        if (tree[0] === "prime") {
-            return isVariableTree(tree[1]);
-        }
-    }
-    return false;
-}
-
-/**
- * A string key for a parameter subtree, so that recognizing one in the pattern
- * is a map lookup rather than a deep comparison at every node.
  *
  * The prefixes keep a subscripted parameter from colliding with a symbol whose
  * name happens to be that subtree's JSON.
  */
 function parameterKey(tree) {
     if (typeof tree === "string") {
-        return "s" + tree;
+        return tree === BLANK ? undefined : "s" + tree;
     }
-    if (Array.isArray(tree)) {
+    if (
+        Array.isArray(tree) &&
+        ((tree[0] === "_" && tree.length === 3) || tree[0] === "prime") &&
+        parameterKey(tree[1]) !== undefined
+    ) {
         return "t" + JSON.stringify(tree);
     }
-    return null;
+    return undefined;
 }
 
 /**
@@ -242,10 +231,9 @@ export default class MatchesPattern extends BooleanComponent {
 
                 let ind = 26 * 27 + 1; // starts with variable AAA
 
-                // A placeholder is given a name the pattern cannot already
-                // contain, so a parameter called `e` or `pi`, or one that
-                // collides with math-expressions' own bookkeeping keys, can
-                // never be confused with a literal in the pattern.
+                // A placeholder is given a name the pattern does not already
+                // use, so that a parameter — `e` or `pi` as readily as `a` —
+                // can never be confused with a literal the pattern matches.
                 function nextPatternVariable() {
                     let newVar = numberToLetters(ind);
                     ind++;
@@ -285,17 +273,18 @@ export default class MatchesPattern extends BooleanComponent {
                     dependencyValues.parametersAttr.position || undefined;
                 let sendDiagnostics = [];
 
-                let rejected = [];
+                // A set, so that a parameter listed twice is reported once.
+                let rejected = new Set();
                 let substitutions = new Map(); // parameter key -> placeholder
                 let parametersByPlaceholder = new Map(); // placeholder -> text
 
                 for (let parameter of dependencyValues.parametersAttr
                     .stateValues.maths) {
-                    if (!isVariableTree(parameter.tree)) {
-                        rejected.push(parameter.toString());
+                    let key = parameterKey(parameter.tree);
+                    if (key === undefined) {
+                        rejected.add(parameter.toString());
                         continue;
                     }
-                    let key = parameterKey(parameter.tree);
                     if (substitutions.has(key)) {
                         // the same parameter listed twice is one placeholder
                         continue;
@@ -309,12 +298,12 @@ export default class MatchesPattern extends BooleanComponent {
                     patternVariables.push(placeholder);
                 }
 
-                if (rejected.length > 0) {
+                if (rejected.size > 0) {
                     sendDiagnostics.push(
                         codedDiagnostic({
                             type: "warning",
                             code: "doenet-w0117",
-                            args: { parameters: rejected },
+                            args: { parameters: [...rejected] },
                             position,
                         }),
                     );
