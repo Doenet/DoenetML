@@ -241,6 +241,52 @@ answer-submit-label = Check Work
 answer-submit-label-no-correctness = Submit Response
 
 
+## Tables and figures
+##
+## The name a `<table>` or `<figure>` gives itself, which the renderer sets in
+## bold at the head of the title or caption: "Table 2", "Figure 3". An
+## unnumbered one is named by the bare word.
+##
+## The word and the number are one message rather than a word the code
+## concatenates a number onto, so that a language which orders or punctuates
+## them differently can say so.
+##
+## `$enumeration` arrives as text rather than as a number: it identifies the
+## table, so the thousandth one is "Table 1000" and not "Table 1,000".
+
+table-name =
+    { $parts ->
+        [numbered] Table { $enumeration }
+       *[unnumbered] Table
+    }
+
+figure-name =
+    { $parts ->
+        [numbered] Figure { $enumeration }
+       *[unnumbered] Figure
+    }
+
+
+## Paginator controls
+##
+## The strip of controls that steps through a `<paginator>`'s pages. All three
+## words are author-overridable attributes, so only the default is translated.
+
+paginator-previous = Previous
+paginator-next = Next
+paginator-page = Page
+
+# The status between the two buttons: "Page 3 of 5".
+#
+# Composed in the worker rather than in the renderer so that the whole of it is
+# in one language: `$pageLabel` is the `pageLabel` attribute, which an author
+# may have written themselves, and the words joining it to the counts have to
+# sit beside it in the same tongue.
+#
+# The two counts arrive as text, for the same reason `$enumeration` does above.
+paginator-page-status = { $pageLabel } { $currentPage } of { $numPages }
+
+
 ## Piecewise functions
 ##
 ## `<piecewiseFunction>` renders each branch's domain as mathematics and writes

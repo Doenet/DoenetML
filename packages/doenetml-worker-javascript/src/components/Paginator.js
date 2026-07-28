@@ -1,4 +1,9 @@
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+    returnLocalizedDefaultStateVariableDefinition,
+} from "../utils/contentLocale";
 
 export class Paginator extends BlockComponent {
     constructor(args) {
@@ -248,29 +253,27 @@ export class PaginatorControls extends BlockComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // The three labels land on `…PreLocalize` state variables and are
+        // re-taken below, where an unspecified attribute is replaced by the
+        // default in the document's language. The English `defaultValue`s here
+        // are what authors see in the schema; they are never read.
         attributes.previousLabel = {
             description: 'Label for the "previous page" button.',
             createComponentOfType: "text",
-            createStateVariable: "previousLabel",
+            createStateVariable: "previousLabelPreLocalize",
             defaultValue: "Previous",
-            forRenderer: true,
-            public: true,
         };
         attributes.nextLabel = {
             description: 'Label for the "next page" button.',
             createComponentOfType: "text",
-            createStateVariable: "nextLabel",
+            createStateVariable: "nextLabelPreLocalize",
             defaultValue: "Next",
-            forRenderer: true,
-            public: true,
         };
         attributes.pageLabel = {
             description: "Label format for the current page indicator.",
             createComponentOfType: "text",
-            createStateVariable: "pageLabel",
+            createStateVariable: "pageLabelPreLocalize",
             defaultValue: "Page",
-            forRenderer: true,
-            public: true,
         };
         attributes.paginator = {
             createReferences: true,
@@ -283,6 +286,24 @@ export class PaginatorControls extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(stateVariableDefinitions, {
+            previousLabel: returnLocalizedDefaultStateVariableDefinition({
+                name: "previousLabel",
+                translatedDefault: (t) => t("paginator-previous"),
+                description: 'Label for the "previous page" button.',
+            }),
+            nextLabel: returnLocalizedDefaultStateVariableDefinition({
+                name: "nextLabel",
+                translatedDefault: (t) => t("paginator-next"),
+                description: 'Label for the "next page" button.',
+            }),
+            pageLabel: returnLocalizedDefaultStateVariableDefinition({
+                name: "pageLabel",
+                translatedDefault: (t) => t("paginator-page"),
+                description: "Label format for the current page indicator.",
+            }),
+        });
 
         stateVariableDefinitions.paginatorComponentIdx = {
             additionalStateVariablesDefined: ["unresolvedPath"],
@@ -377,6 +398,50 @@ export class PaginatorControls extends BlockComponent {
                 } else {
                     return { setValue: { numPages: 1 } };
                 }
+            },
+        };
+
+        // The whole status line between the two buttons — "Page 3 of 5" —
+        // rather than the renderer setting the word joining the counts. It
+        // belongs here because `pageLabel` does: the label may be the author's
+        // own wording, in the document's language, and a renderer composing
+        // around it would join it with a word in the reader's instead.
+        //
+        // The counts are stringified so that page 1000 is not grouped as
+        // "1,000": a page number identifies a page rather than counting.
+        stateVariableDefinitions.pageStatus = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                pageLabel: {
+                    dependencyType: "stateVariable",
+                    variableName: "pageLabel",
+                },
+                currentPage: {
+                    dependencyType: "stateVariable",
+                    variableName: "currentPage",
+                },
+                numPages: {
+                    dependencyType: "stateVariable",
+                    variableName: "numPages",
+                },
+                ...returnContentLocaleDependencies(),
+            }),
+            definition({ dependencyValues }) {
+                const t = contentTranslator(dependencyValues);
+                const args = {
+                    pageLabel: dependencyValues.pageLabel,
+                    currentPage: String(dependencyValues.currentPage),
+                    numPages: String(dependencyValues.numPages),
+                };
+                return {
+                    setValue: {
+                        pageStatus: t(
+                            "paginator-page-status",
+                            args,
+                            `${args.pageLabel} ${args.currentPage} of ${args.numPages}`,
+                        ),
+                    },
+                };
             },
         };
 

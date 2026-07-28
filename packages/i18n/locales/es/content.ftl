@@ -214,6 +214,30 @@ answer-submit-label = Revisar
 answer-submit-label-no-correctness = Enviar respuesta
 
 
+## Tablas y figuras
+
+table-name =
+    { $parts ->
+        [numbered] Tabla { $enumeration }
+       *[unnumbered] Tabla
+    }
+
+figure-name =
+    { $parts ->
+        [numbered] Figura { $enumeration }
+       *[unnumbered] Figura
+    }
+
+
+## Controles de paginación
+
+paginator-previous = Anterior
+paginator-next = Siguiente
+paginator-page = Página
+
+paginator-page-status = { $pageLabel } { $currentPage } de { $numPages }
+
+
 ## Funciones definidas a trozos
 
 piecewise-condition-or = o

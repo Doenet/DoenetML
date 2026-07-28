@@ -11,7 +11,7 @@ interface PaginatorControlsSVs {
     disabledDirectly: boolean;
     nextLabel: string;
     numPages: number;
-    pageLabel: string;
+    pageStatus: string;
     previousLabel: string;
 }
 
@@ -40,7 +40,10 @@ export default React.memo(function PaginatorControls(
                     value={SVs.previousLabel}
                 />
             </div>
-            {" " + SVs.pageLabel} {SVs.currentPage} of {SVs.numPages + " "}
+            {/* The whole status is composed in the worker, in the document's
+                language, so that the author's own `pageLabel` and the words
+                around it are never in two different languages. */}
+            {" " + SVs.pageStatus + " "}
             <div id={id} style={{ display: "inline-block", margin: "12px 0" }}>
                 <Button
                     id={id + "_next"}

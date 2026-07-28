@@ -124,6 +124,12 @@ export type MessageKey =
     | "boolean-false"
     | "answer-submit-label"
     | "answer-submit-label-no-correctness"
+    | "table-name"
+    | "figure-name"
+    | "paginator-previous"
+    | "paginator-next"
+    | "paginator-page"
+    | "paginator-page-status"
     | "piecewise-condition-or"
     | "piecewise-condition-if"
     | "piecewise-condition-otherwise"
@@ -436,6 +442,12 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "boolean-false",
     "answer-submit-label",
     "answer-submit-label-no-correctness",
+    "table-name",
+    "figure-name",
+    "paginator-previous",
+    "paginator-next",
+    "paginator-page",
+    "paginator-page-status",
     "piecewise-condition-or",
     "piecewise-condition-if",
     "piecewise-condition-otherwise",

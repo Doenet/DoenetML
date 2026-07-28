@@ -3,10 +3,7 @@ import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
 import { codedDiagnostic } from "./diagnostics";
-import {
-    contentTranslator,
-    returnContentLocaleDependencies,
-} from "./contentLocale";
+import { returnLocalizedDefaultStateVariableDefinition } from "./contentLocale";
 
 function returnScoredContainerAncestorDependency(...variableNames) {
     return {
@@ -136,13 +133,9 @@ export function returnStandardAnswerAttributes() {
  * `submitLabel` and `submitLabelNoCorrectness`, with their defaults in the
  * document's language.
  *
- * Only the *default* is translated. An author who writes
- * `submitLabel="Ready?"` gets "Ready?" in every locale: those are their words,
- * chosen for their document, and Doenet translating them would be a surprise
- * at best and wrong at worst. So the attribute value passes through verbatim
- * and only an unspecified one — which `usedDefault` is the only way to
- * distinguish from an author who typed the English default on purpose —
- * reaches the catalog.
+ * Only the *default* is translated; see
+ * `returnLocalizedDefaultStateVariableDefinition`, which every
+ * author-overridable label in the worker resolves through.
  *
  * Shared by `<answer>` and by every container with a section-wide check-work
  * button, which declare the same two attributes from different tables
@@ -160,57 +153,21 @@ export function returnSubmitLabelStateVariableDefinitions({
     button = "the submit button",
 } = {}) {
     return {
-        submitLabel: submitLabelDefinition({
+        submitLabel: returnLocalizedDefaultStateVariableDefinition({
             name: "submitLabel",
             translatedDefault: (t) => t("answer-submit-label"),
             description: `Label for ${button} when correctness is shown.`,
             ownLocale,
         }),
-        submitLabelNoCorrectness: submitLabelDefinition({
-            name: "submitLabelNoCorrectness",
-            translatedDefault: (t) => t("answer-submit-label-no-correctness"),
-            description: `Label for ${button} when correctness is not shown.`,
-            ownLocale,
-        }),
-    };
-}
-
-/**
- * One submit label: the authored value if there is one, otherwise
- * `translatedDefault`.
- *
- * The default arrives as a function of the translator rather than as a key,
- * because `lint:i18n` reads call sites literally — `t(key)` is invisible to
- * it, so the catalog entry would read as an orphan and a typo would surface
- * only at runtime.
- */
-function submitLabelDefinition({
-    name,
-    translatedDefault,
-    description,
-    ownLocale,
-}) {
-    const authored = `${name}PreLocalize`;
-    return {
-        description,
-        public: true,
-        shadowingInstructions: {
-            createComponentOfType: "text",
-        },
-        forRenderer: true,
-        returnDependencies: () => ({
-            [authored]: {
-                dependencyType: "stateVariable",
-                variableName: authored,
+        submitLabelNoCorrectness: returnLocalizedDefaultStateVariableDefinition(
+            {
+                name: "submitLabelNoCorrectness",
+                translatedDefault: (t) =>
+                    t("answer-submit-label-no-correctness"),
+                description: `Label for ${button} when correctness is not shown.`,
+                ownLocale,
             },
-            ...returnContentLocaleDependencies({ ownLocale }),
-        }),
-        definition({ dependencyValues, usedDefault }) {
-            const label = usedDefault[authored]
-                ? translatedDefault(contentTranslator(dependencyValues))
-                : dependencyValues[authored];
-            return { setValue: { [name]: label } };
-        },
+        ),
     };
 }
 

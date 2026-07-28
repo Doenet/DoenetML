@@ -100,3 +100,55 @@ export function contentTranslator(dependencyValues) {
         contentLocale(dependencyValues),
     );
 }
+
+/**
+ * A state variable holding an author-overridable label: the attribute's value
+ * if the author wrote one, otherwise the default in the document's language.
+ *
+ * Only the *default* is translated. An author who writes `nextLabel="Onward"`
+ * gets "Onward" in every locale — those are their words, chosen for their
+ * document — so the attribute value passes through verbatim, and only an
+ * unspecified one reaches the catalog. `usedDefault` is the only thing that
+ * tells an unspecified attribute apart from an author who typed the English
+ * default on purpose, which is why the attribute has to land on a separate
+ * `…PreLocalize` state variable and be re-taken here.
+ *
+ * The attribute declaration keeps its English `defaultValue` so that authors
+ * see the words in the schema; the value is never read, because this
+ * definition replaces it whenever `usedDefault` is set.
+ *
+ * @param name The state variable authors and renderers see.
+ * @param translatedDefault The default, as a function of the translator rather
+ *   than as a key: `lint:i18n` reads call sites literally, so a key passed as
+ *   data would read as an orphan in the catalog and a typo would surface only
+ *   at runtime.
+ * @param ownLocale Read the component's *own* `locale` as well as the
+ *   enclosing document's; see {@link returnContentLocaleDependencies}.
+ */
+export function returnLocalizedDefaultStateVariableDefinition({
+    name,
+    translatedDefault,
+    description,
+    ownLocale = false,
+}) {
+    const authored = `${name}PreLocalize`;
+    return {
+        description,
+        public: true,
+        shadowingInstructions: { createComponentOfType: "text" },
+        forRenderer: true,
+        returnDependencies: () => ({
+            [authored]: {
+                dependencyType: "stateVariable",
+                variableName: authored,
+            },
+            ...returnContentLocaleDependencies({ ownLocale }),
+        }),
+        definition({ dependencyValues, usedDefault }) {
+            const value = usedDefault[authored]
+                ? translatedDefault(contentTranslator(dependencyValues))
+                : dependencyValues[authored];
+            return { setValue: { [name]: value } };
+        },
+    };
+}

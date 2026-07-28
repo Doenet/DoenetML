@@ -79055,27 +79055,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "previousLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the \"previous page\" button.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "nextLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the \"next page\" button.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "pageLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label format for the current page indicator.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -79104,6 +79083,24 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "previousLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the \"previous page\" button."
+                },
+                {
+                    "name": "nextLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the \"next page\" button."
+                },
+                {
+                    "name": "pageLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label format for the current page indicator."
                 },
                 {
                     "name": "disabledDirectly",

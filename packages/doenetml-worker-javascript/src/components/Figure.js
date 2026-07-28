@@ -1,4 +1,8 @@
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../utils/contentLocale";
 
 export default class Figure extends BlockComponent {
     constructor(args) {
@@ -80,7 +84,7 @@ export default class Figure extends BlockComponent {
             ],
             mustEvaluate: true, // must evaluate to make sure all counters are accounted for
             returnDependencies({ stateValues }) {
-                let dependencies = {};
+                let dependencies = { ...returnContentLocaleDependencies() };
 
                 if (stateValues.number) {
                     dependencies.figureCounter = {
@@ -91,16 +95,26 @@ export default class Figure extends BlockComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
+                const t = contentTranslator(dependencyValues);
+
                 if (dependencyValues.figureCounter === undefined) {
                     return {
                         setValue: {
                             figureEnumeration: null,
-                            figureName: "Figure",
+                            figureName: t(
+                                "figure-name",
+                                { parts: "unnumbered" },
+                                "Figure",
+                            ),
                         },
                     };
                 }
                 let figureEnumeration = String(dependencyValues.figureCounter);
-                let figureName = "Figure " + figureEnumeration;
+                let figureName = t(
+                    "figure-name",
+                    { parts: "numbered", enumeration: figureEnumeration },
+                    `Figure ${figureEnumeration}`,
+                );
                 return {
                     setValue: { figureEnumeration, figureName },
                 };
