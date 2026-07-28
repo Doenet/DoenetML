@@ -251,20 +251,30 @@ describe("section words follow the document locale @group4", () => {
         });
 
         it("renders no name for a section renamed to blank space", async () => {
-            // A name of nothing but spaces shows the reader no word either,
-            // and the punctuation around one would read as the same mistake.
-            // The name the author wrote still reaches `sectionName` as they
-            // wrote it; it is the heading that leaves the piece out.
+            // A name of nothing but blank space shows the reader no word
+            // either, and the punctuation around one would read as the same
+            // mistake. The name the author wrote still reaches `sectionName`
+            // as they wrote it; it is the heading that leaves the piece out.
+            //
+            // A tab and a non-breaking space are as blank to a reader as a
+            // space is, and are what a copy-and-paste tends to leave behind,
+            // so all three are read the same way.
             const doenetML = `
             <problems name="bare" renameTo="   " includeAutoName><p>a</p></problems>
             <problems name="titled" renameTo="   " includeAutoName includeAutoNumber="false"><title>Limits</title><p>b</p></problems>
+            <problems name="tab" renameTo="\t" includeAutoName><p>c</p></problems>
+            <problems name="nbsp" renameTo="\u00a0" includeAutoName><p>d</p></problems>
             `;
             expect(
-                await values(doenetML, ["bare", "titled"], "titlePrefix"),
-            ).toEqual({ bare: "1", titled: "" });
+                await values(
+                    doenetML,
+                    ["bare", "titled", "tab", "nbsp"],
+                    "titlePrefix",
+                ),
+            ).toEqual({ bare: "1", titled: "", tab: "3", nbsp: "4" });
             expect(
-                (await values(doenetML, ["bare"], "sectionName")).bare,
-            ).toEqual("   ");
+                await values(doenetML, ["bare", "nbsp"], "sectionName"),
+            ).toEqual({ bare: "   ", nbsp: "\u00a0" });
         });
 
         it("numbers a list item by counting, which arrives as a number", async () => {

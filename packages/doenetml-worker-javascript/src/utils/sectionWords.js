@@ -52,9 +52,8 @@ const SECTION_NAME_WORDS = {
     question: (t) => t("section-name.question", undefined, "Question"),
     section: (t) => t("section-name.section", undefined, "Section"),
     solution: (t) => t("section-name.solution", undefined, "Solution"),
-    // A subsection is called a section, at every depth. Three element names,
-    // one word — so they share a key rather than asking a translator to
-    // translate "Section" three times and keep the three in step.
+    // A subsection is called a section, at every depth: three element names,
+    // one word, one key for a translator to keep.
     subsection: (t) => t("section-name.section", undefined, "Section"),
     subsubsection: (t) => t("section-name.section", undefined, "Section"),
     task: (t) => t("section-name.task", undefined, "Task"),
