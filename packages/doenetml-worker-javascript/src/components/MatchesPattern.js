@@ -1,6 +1,56 @@
 import BooleanComponent from "./Boolean";
 import { numberToLetters } from "@doenet/utils";
+import { codedDiagnostic } from "../utils/diagnostics";
 import me from "math-expressions";
+
+const BLANK = "\uff3f";
+
+/**
+ * Whether `tree` names a variable: a bare symbol, or one dressed with a
+ * subscript (`x_1` → `["_", "x", 1]`) or a prime (`f'` → `["prime", "f"]`).
+ *
+ * A parameter is found in the pattern by syntactic equality, so only names
+ * qualify. A number such as `2` occurs in a pattern as an exponent or an index
+ * as readily as it does as a coefficient, and turning all of them into one
+ * placeholder is nothing the author asked for; a compound expression such as
+ * `x+1` would go unrecognized in a pattern that spells it `1+x`, even though
+ * `allowPermutations` makes those interchangeable everywhere else here.
+ *
+ * A blank is a string, so it has to be turned away by name: accepting one
+ * would make every blank in the pattern a single shared placeholder, which is
+ * the opposite of what blanks mean when `parameters` is absent.
+ */
+function isVariableTree(tree) {
+    if (typeof tree === "string") {
+        return tree !== BLANK;
+    }
+    if (Array.isArray(tree)) {
+        if (tree[0] === "_" && tree.length === 3) {
+            return isVariableTree(tree[1]);
+        }
+        if (tree[0] === "prime") {
+            return isVariableTree(tree[1]);
+        }
+    }
+    return false;
+}
+
+/**
+ * A string key for a parameter subtree, so that recognizing one in the pattern
+ * is a map lookup rather than a deep comparison at every node.
+ *
+ * The prefixes keep a subscripted parameter from colliding with a symbol whose
+ * name happens to be that subtree's JSON.
+ */
+function parameterKey(tree) {
+    if (typeof tree === "string") {
+        return "s" + tree;
+    }
+    if (Array.isArray(tree)) {
+        return "t" + JSON.stringify(tree);
+    }
+    return null;
+}
 
 export default class MatchesPattern extends BooleanComponent {
     static componentType = "matchesPattern";
@@ -17,6 +67,11 @@ export default class MatchesPattern extends BooleanComponent {
         attributes.pattern = {
             createComponentOfType: "math",
             description: "Math expression pattern to match against.",
+        };
+        attributes.parameters = {
+            createComponentOfType: "mathList",
+            description:
+                "Variables in the pattern that act as placeholders. Repeating one in the pattern requires the same subexpression at each occurrence. When specified, blanks in the pattern are matched literally.",
         };
         attributes.allowImplicitIdentities = {
             description:
@@ -140,47 +195,150 @@ export default class MatchesPattern extends BooleanComponent {
                     attributeName: "pattern",
                     variableNames: ["value"],
                 },
+                parametersAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "parameters",
+                    variableNames: ["maths"],
+                },
             }),
             definition({ dependencyValues }) {
                 let patternVariables = [];
                 if (!dependencyValues.patternAttr) {
                     return {
-                        setValue: { pattern: "\uff3f", patternVariables },
+                        setValue: { pattern: BLANK, patternVariables },
                     };
                 }
 
-                let originalVariablesInPattern =
-                    dependencyValues.patternAttr.stateValues.value.variables();
+                let patternExpression =
+                    dependencyValues.patternAttr.stateValues.value;
+                let originalVariablesInPattern = patternExpression.variables();
 
                 let ind = 26 * 27 + 1; // starts with variable AAA
 
-                function replacePatternVariables(tree) {
-                    if (tree === "\uff3f") {
-                        let newVar = numberToLetters(ind);
+                // A placeholder is given a name the pattern cannot already
+                // contain, so a parameter called `e` or `pi`, or one that
+                // collides with math-expressions' own bookkeeping keys, can
+                // never be confused with a literal in the pattern.
+                function nextPatternVariable() {
+                    let newVar = numberToLetters(ind);
+                    ind++;
+                    while (originalVariablesInPattern.includes(newVar)) {
+                        newVar = numberToLetters(ind);
                         ind++;
-                        while (originalVariablesInPattern.includes(newVar)) {
-                            newVar = numberToLetters(ind);
-                            ind++;
-                        }
+                    }
+                    return newVar;
+                }
 
-                        patternVariables.push(newVar);
-                        return newVar;
+                if (!dependencyValues.parametersAttr) {
+                    // Without `parameters`, the blanks are the placeholders,
+                    // and each one matches independently of the others.
+                    function replaceBlanks(tree) {
+                        if (tree === BLANK) {
+                            let newVar = nextPatternVariable();
+                            patternVariables.push(newVar);
+                            return newVar;
+                        } else if (Array.isArray(tree)) {
+                            return [
+                                tree[0],
+                                ...tree.slice(1).map(replaceBlanks),
+                            ];
+                        } else {
+                            return tree;
+                        }
+                    }
+
+                    return {
+                        setValue: {
+                            pattern: replaceBlanks(patternExpression.tree),
+                            patternVariables,
+                        },
+                    };
+                }
+
+                // With `parameters`, the named parameters are the
+                // placeholders and blanks stay literal. An empty list is still
+                // a list: it says the pattern has no placeholders at all,
+                // which is the reading that holds steady when the list comes
+                // from a reference that happens to be empty.
+                let position =
+                    dependencyValues.parametersAttr.position || undefined;
+                let sendDiagnostics = [];
+
+                let rejected = [];
+                let substitutions = new Map(); // parameter key -> placeholder
+                let parametersByPlaceholder = new Map(); // placeholder -> text
+
+                for (let parameter of dependencyValues.parametersAttr
+                    .stateValues.maths) {
+                    if (!isVariableTree(parameter.tree)) {
+                        rejected.push(parameter.toString());
+                        continue;
+                    }
+                    let key = parameterKey(parameter.tree);
+                    if (substitutions.has(key)) {
+                        // the same parameter listed twice is one placeholder
+                        continue;
+                    }
+                    let placeholder = nextPatternVariable();
+                    substitutions.set(key, placeholder);
+                    parametersByPlaceholder.set(
+                        placeholder,
+                        parameter.toString(),
+                    );
+                    patternVariables.push(placeholder);
+                }
+
+                if (rejected.length > 0) {
+                    sendDiagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0117",
+                            args: { parameters: rejected },
+                            position,
+                        }),
+                    );
+                }
+
+                let substituted = new Set();
+
+                function replaceParameters(tree) {
+                    // The node is checked before its children, so that a
+                    // parameter such as `x_1` is replaced whole rather than
+                    // through the `x` inside it.
+                    let placeholder = substitutions.get(parameterKey(tree));
+                    if (placeholder !== undefined) {
+                        substituted.add(placeholder);
+                        return placeholder;
                     } else if (Array.isArray(tree)) {
                         return [
                             tree[0],
-                            ...tree.slice(1).map(replacePatternVariables),
+                            ...tree.slice(1).map(replaceParameters),
                         ];
                     } else {
                         return tree;
                     }
                 }
 
-                let pattern = replacePatternVariables(
-                    dependencyValues.patternAttr.stateValues.value.tree,
-                );
+                let pattern = replaceParameters(patternExpression.tree);
+
+                let absent = [...parametersByPlaceholder]
+                    .filter(([placeholder]) => !substituted.has(placeholder))
+                    .map(([_, text]) => text);
+
+                if (absent.length > 0) {
+                    sendDiagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0118",
+                            args: { parameters: absent },
+                            position,
+                        }),
+                    );
+                }
 
                 return {
                     setValue: { pattern, patternVariables },
+                    sendDiagnostics,
                 };
             },
         };
@@ -247,7 +405,7 @@ export default class MatchesPattern extends BooleanComponent {
                     dependencyValues.mathChildren[0].stateValues.value;
 
                 if (
-                    mathValue.variables().includes("\uff3f") &&
+                    mathValue.variables().includes(BLANK) &&
                     !dependencyValues.matchExpressionWithBlanks
                 ) {
                     // don't match a math value with a blank
@@ -307,9 +465,15 @@ export default class MatchesPattern extends BooleanComponent {
                             )
                     ) {
                         value = true;
+                        // A parameter that does not occur in the pattern is
+                        // never bound. It keeps its place in the list so that
+                        // `patternMatches` always lines up with the order the
+                        // parameters were named in, and reports a blank.
+                        // `??`, as a placeholder can legitimately be bound to
+                        // `0` via `allowImplicitIdentities`.
                         allPatternMatches =
                             dependencyValues.patternVariables.map((v) =>
-                                me.fromAst(matchResult[v]),
+                                me.fromAst(matchResult[v] ?? BLANK),
                             );
                     }
                 }

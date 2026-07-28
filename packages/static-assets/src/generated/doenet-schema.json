@@ -115712,6 +115712,11 @@
                     "type": "math"
                 },
                 {
+                    "name": "parameters",
+                    "description": "Variables in the pattern that act as placeholders. Repeating one in the pattern requires the same subexpression at each occurrence. When specified, blanks in the pattern are matched literally.",
+                    "type": "mathList"
+                },
+                {
                     "name": "allowImplicitIdentities",
                     "description": "Whether to allow implicit identity transformations when matching.",
                     "defaultValue": false,

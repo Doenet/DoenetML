@@ -318,6 +318,26 @@ math-operators-operand-number-required = Must specify a operandNumber when extra
 
 eigen-decomposition-failed = Could not calculate eigenvalues of matrix
 
+## `<matchesPattern>`
+
+# Translators: `parameters` is an attribute name and stays in English.
+# $parameters lists the rejected entries as the author wrote them;
+# $parametersCount is how many there were.
+matches-pattern-parameter-not-variable =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: ignoring { $parameters } in `parameters`, as a parameter must be a variable.
+       *[other] `<matchesPattern>`: ignoring { $parameters } in `parameters`, as a parameter must be a variable.
+    }
+
+# Translators: `parameters` is an attribute name and stays in English.
+# $parameters lists the parameters as the author wrote them;
+# $parametersCount is how many there were.
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: the parameter { $parameters } does not occur in the pattern, so it will always match a blank.
+       *[other] `<matchesPattern>`: the parameters { $parameters } do not occur in the pattern, so they will always match a blank.
+    }
+
 ## PreFigure renderer
 
 # Translators: xLabelPosition, yLabelPosition and their values are attribute
