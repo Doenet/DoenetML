@@ -52,7 +52,7 @@ attributes to `<matchesPattern>{:dn}`.
 
 ```doenet-editor-horiz
 <answer name="ans1">
-<mathInput name="mi"><label>Enter an equation in slope-intercept form, <m>y = mx + b</m>, where <m>b \neq 0</m></label></mathInput>
+<mathInput name="mi"><label>Enter an equation in slope-intercept form, <m>y = mx + b</m>, where <m>b</m> must not be omitted</label></mathInput>
   <award>
       <when>
         <matchesPattern 
@@ -79,6 +79,7 @@ In this example, the following conditions must be met:
 
 * a $y$ by itself on one side, and an $x$ on the other, and no other variables can be present
 * the $x$ value must have a numerical coefficient, or no coefficient
+* a constant term must be written, even if it is $0$ — `y = 3x + 0` is accepted but `y = 3x` is not
 * switching the order of terms on the right-hand side is acceptable
 
 The attribute `requireNumericMatches` ensures that the user only enters numerical values for the
