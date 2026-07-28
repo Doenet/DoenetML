@@ -129,14 +129,13 @@ export function returnLocalizedDefaultStateVariableDefinition({
     name,
     translatedDefault,
     description,
-    createComponentOfType = "text",
     ownLocale = false,
 }) {
     const authored = `${name}PreLocalize`;
     return {
         description,
         public: true,
-        shadowingInstructions: { createComponentOfType },
+        shadowingInstructions: { createComponentOfType: "text" },
         forRenderer: true,
         returnDependencies: () => ({
             [authored]: {

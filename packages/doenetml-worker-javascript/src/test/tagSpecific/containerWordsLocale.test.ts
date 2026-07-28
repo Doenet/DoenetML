@@ -202,4 +202,46 @@ describe("container words follow the document locale @group4", () => {
             expect(await values(doc, ["raw"], "value")).toEqual({ raw: "" });
         });
     });
+
+    describe("a `<document lang>` written by the author", () => {
+        // Everything above reaches the language through the host. `lang` on
+        // the document is the author's own route to it, and it is answered by
+        // an ancestor lookup that excludes the component it runs on — so a
+        // word a `<document>` computes about *itself* needs `ownLocale`. None
+        // of these three is ever a document, and these pin that each reads the
+        // language the root declares rather than the host's English.
+        const inDocument = (body: string) =>
+            `<document lang="es">${body}</document>`;
+
+        it("names a table in the language the root declares", async () => {
+            const doenetML = inDocument(
+                `<table name="t"><tabular><row><cell>1</cell></row></tabular></table>`,
+            );
+            expect((await values(doenetML, ["t"], "tableName")).t).eq(
+                "Tabla 1",
+            );
+        });
+
+        it("names a figure in the language the root declares", async () => {
+            const doenetML = inDocument(
+                `<figure name="f"><image source="doenet:a" /></figure>`,
+            );
+            expect((await values(doenetML, ["f"], "figureName")).f).eq(
+                "Figura 1",
+            );
+        });
+
+        it("writes the paginator's status in the language the root declares", async () => {
+            const doenetML = inDocument(`
+            <paginatorControls name="pc" paginator="$pgn" />
+            <paginator name="pgn"><section name="s1"><p>one</p></section></paginator>
+            `);
+            expect((await values(doenetML, ["pc"], "pageStatus")).pc).eq(
+                "Página 1 de 1",
+            );
+            expect((await values(doenetML, ["pc"], "previousLabel")).pc).eq(
+                "Anterior",
+            );
+        });
+    });
 });

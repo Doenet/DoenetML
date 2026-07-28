@@ -8,7 +8,7 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 // half a worker test cannot see — that the sentence the reader actually gets
 // is in one language from end to end.
 
-const VIEWER_TIMEOUT = 30_000;
+const VIEWER_TIMEOUT = 15_000;
 
 // Non-ASCII from the worker cannot be asserted here. Cypress serves this spec
 // through a Vite dev server, and the dev server's `?raw` import of the worker
