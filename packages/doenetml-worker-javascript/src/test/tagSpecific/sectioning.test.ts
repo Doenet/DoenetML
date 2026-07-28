@@ -1700,79 +1700,109 @@ describe("Sectioning tag tests @group3", async () => {
         ]);
     });
 
-    // A list item delegates its inline first-line rendering to `firstVisibleChild`.
-    // A `<setup>` renders nothing, so it must not be picked as that child; if it
-    // is, the actually-first child keeps its top margin and never reports the
-    // alignment the section uses to place the hanging number.
-    it("does not delegate list-item rendering to a leading <setup>", async () => {
+    /**
+     * A list item delegates its inline first-line rendering, and the alignment
+     * of its hanging number, to its first visible child. A child that renders
+     * nothing must never be picked as that child; if it is, the child that
+     * actually renders first keeps its top margin and never reports the
+     * alignment the section uses to place the number.
+     *
+     * `doenetML` must define two `<part>`s: `pa`, which opens with the
+     * non-rendering child under test, and the control `pb`, which does not.
+     * The child that should be picked in each is named `ca` and `cb`
+     * respectively; both parts must reach the same result.
+     */
+    async function test_first_visible_child_skips_non_rendering_child({
+        doenetML,
+        componentType,
+        alignment,
+    }: {
+        doenetML: string;
+        componentType: string;
+        alignment: string;
+    }) {
         const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        for (const [partName, childName] of [
+            ["pa", "ca"],
+            ["pb", "cb"],
+        ]) {
+            const part =
+                stateVariables[await resolvePathToNodeIdx(partName)]
+                    .stateValues;
+            const child =
+                stateVariables[await resolvePathToNodeIdx(childName)]
+                    .stateValues;
+
+            expect(part.firstVisibleChild.componentType, partName).eq(
+                componentType,
+            );
+            expect(part.firstChildListItemAlignment, partName).eq(alignment);
+            // Checked separately from the alignment because a non-rendering
+            // child can report the same alignment by coincidence: only this
+            // tells the two apart when the expected alignment is `baseline`.
+            expect(child.renderInlineForListItem, childName).eq(true);
+        }
+    }
+
+    // A `<graph>` declares `flex-start` to opt out of baseline alignment, so
+    // the number sits at the top of the graph rather than at its bottom.
+    it("does not delegate list-item rendering to a leading <setup>", async () => {
+        await test_first_visible_child_skips_non_rendering_child({
             doenetML: `
 <problem>
   <part name="pa">
     <setup><number name="n">5</number></setup>
-    <graph name="ga" size="small"><point>(1,2)</point></graph>
+    <graph name="ca" size="small"><point>(1,2)</point></graph>
   </part>
   <part name="pb">
-    <graph name="gb" size="small"><point>(1,2)</point></graph>
+    <graph name="cb" size="small"><point>(1,2)</point></graph>
   </part>
 </problem>`,
+            componentType: "graph",
+            alignment: "flex-start",
         });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        // `pb` is the control: the part with the `<setup>` must resolve to the
-        // same first visible child and the same alignment as the part without
-        // one. A graph opts out of baseline alignment, so the number sits at
-        // the top of the graph rather than at its bottom.
-        for (const [partName, graphName] of [
-            ["pa", "ga"],
-            ["pb", "gb"],
-        ]) {
-            const part =
-                stateVariables[await resolvePathToNodeIdx(partName)]
-                    .stateValues;
-            const graph =
-                stateVariables[await resolvePathToNodeIdx(graphName)]
-                    .stateValues;
-
-            expect(part.firstVisibleChild.componentType, partName).eq("graph");
-            expect(part.firstChildListItemAlignment, partName).eq("flex-start");
-            expect(graph.renderInlineForListItem, graphName).eq(true);
-        }
     });
 
     it("does not delegate list-item rendering to a leading <variantControl>", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
+        await test_first_visible_child_skips_non_rendering_child({
             doenetML: `
 <problem>
   <part name="pa">
     <variantControl numVariants="2" />
-    <p name="pap">First</p>
+    <p name="ca">First</p>
   </part>
   <part name="pb">
-    <p name="pbp">Second</p>
+    <p name="cb">Second</p>
   </part>
 </problem>`,
+            componentType: "p",
+            alignment: "baseline",
         });
+    });
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        // A `<p>` and a `<variantControl>` would both report `baseline`
-        // alignment, so the alignment cannot tell them apart here. What does is
-        // whether the `<p>` is the child asked to render inline.
-        for (const [partName, pName] of [
-            ["pa", "pap"],
-            ["pb", "pbp"],
-        ]) {
-            const part =
-                stateVariables[await resolvePathToNodeIdx(partName)]
-                    .stateValues;
-            const p =
-                stateVariables[await resolvePathToNodeIdx(pName)].stateValues;
-
-            expect(part.firstVisibleChild.componentType, partName).eq("p");
-            expect(p.renderInlineForListItem, pName).eq(true);
-        }
+    // `<setup>` and `<variantControl>` are excluded as configuration children;
+    // every other component with no `rendererType` is caught by the general
+    // check, for which `<animateFromSequence>` stands in here.
+    it("does not delegate list-item rendering to any leading child that renders nothing", async () => {
+        await test_first_visible_child_skips_non_rendering_child({
+            doenetML: `
+<problem>
+  <part name="pa">
+    <animateFromSequence target="$Pa.x" from="1" to="5" />
+    <graph name="ca" size="small"><point name="Pa">(1,2)</point></graph>
+  </part>
+  <part name="pb">
+    <graph name="cb" size="small"><point name="Pb">(1,2)</point></graph>
+  </part>
+</problem>`,
+            componentType: "graph",
+            alignment: "flex-start",
+        });
     });
 });
 
