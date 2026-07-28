@@ -201,12 +201,24 @@ describe("section words follow the document locale @group4", () => {
             ).toEqual({ bare: "Proof", titled: "" });
         });
 
+        it("numbers a list item by counting, which arrives as a number", async () => {
+            // The premise of the test below: a section rendered as a list item
+            // takes its number from `countAmongSiblings`, and that reaches
+            // `composeTitlePrefix` as a real number rather than as text.
+            const listed = `<problems asList>
+              <problems name="a" includeAutoName includeAutoNumber><p>x</p></problems>
+              <problems name="b" includeAutoName includeAutoNumber><p>y</p></problems>
+            </problems>`;
+            const svs = await stateValuesOf(listed, ["b"]);
+            expect(typeof svs.b.sectionNumber).eq("number");
+            expect(svs.b.titlePrefix).eq("Problems 2");
+        });
+
         it("hands the catalog its number as text", () => {
-            // A section rendered as a list item numbers itself by counting its
-            // siblings, so `sectionNumber` reaches this as a number. Fluent
-            // formats a numeric argument through `Intl`, which would group the
-            // thousandth item as "1,000" in English and "1.000" in Spanish —
-            // an identifier reformatted as though it were a quantity.
+            // Fluent formats a numeric argument through `Intl`, which would
+            // group the thousandth list item as "1,000" in English — and the
+            // ten-thousandth as "10.000" in Spanish — reformatting an
+            // identifier as though it were a quantity.
             let passed: Record<string, unknown> | undefined;
             composeTitlePrefix({
                 t: (

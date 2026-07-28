@@ -243,10 +243,10 @@ answer-submit-label-no-correctness = Submit Response
 
 ## Sectional blocks
 ##
-## The word a sectional block calls itself, which the reader sees as its
-## heading and an author can read back as `$section.sectionName`. Keyed by the
-## element the author writes, so `<subsection>` and `<subsubsection>` share
-## `.section` — they are all called a section.
+## The word a sectional block calls itself, which the reader sees in its
+## heading and on a `<solution>`'s reveal control. Keyed by the element the
+## author writes, so `<subsection>` and `<subsubsection>` share `.section` —
+## they are all called a section.
 ##
 ## An author who writes `renameTo` has named the block themselves, and that
 ## name passes through in every language.

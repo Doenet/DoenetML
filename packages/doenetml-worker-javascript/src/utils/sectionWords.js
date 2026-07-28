@@ -1,9 +1,10 @@
 /**
  * The word a sectional block calls itself: "Section", "Example", "Solution".
  *
- * These reach the reader in two ways — as `$section.sectionName`, and inside
- * the heading `titlePrefix` composes — so they are *content*, translated
- * against the document's language rather than the reader's UI language.
+ * These reach the reader inside the heading `titlePrefix` composes, and — for
+ * `<solution>` and `<givenAnswer>` — as the word on the block's own control,
+ * so they are *content*, translated against the document's language rather
+ * than the reader's UI language.
  *
  * ## Keyed by component type, not by class name
  *
@@ -29,8 +30,8 @@
  * runtime, in one language, in one element. So each entry names its key, the
  * way `@doenet/utils`' style vocabulary does.
  *
- * The English beside each key is the fallback a locale that lacks the message
- * degrades to, and is also the word this replaced.
+ * The English beside each key is the last-resort fallback the vocabularies all
+ * carry, and is the word this replaced.
  */
 const SECTION_NAME_WORDS = {
     activity: (t) => t("section-name.activity", undefined, "Activity"),
@@ -135,8 +136,9 @@ export function composeTitlePrefix({
             // As text, because Fluent hands a numeric argument to `Intl` — and
             // a section rendered as a list item numbers itself by counting its
             // siblings, so this arrives as a number there. The number
-            // identifies the section; the thousandth item is "1000", not
-            // "1,000" in English or "1.000" in Spanish.
+            // identifies the section, so it is not grouped: the thousandth
+            // item is "1000" rather than English's "1,000", and the
+            // ten-thousandth "10000" rather than Spanish's "10.000".
             sectionNumber: withNumber ? String(sectionNumber) : "",
         },
         english,

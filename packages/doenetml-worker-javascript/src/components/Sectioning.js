@@ -26,9 +26,8 @@ export class Section extends SectioningComponentNumberWithSiblings {
     }
 }
 
-// A subsection is called a section, at every depth. That used to be an
-// override here; it is now an entry in `utils/sectionWords.js`, alongside every
-// other block's word, mapping all three element names onto one catalog key.
+// A subsection is called a section, at every depth: all three element names
+// map onto one catalog key in `utils/sectionWords.js`.
 export class Subsection extends Section {
     static componentType = "subsection";
 
