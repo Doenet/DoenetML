@@ -155,6 +155,146 @@ export type MessageKey =
     | "piecewise-condition-or"
     | "piecewise-condition-if"
     | "piecewise-condition-otherwise"
+    | "element-name.h"
+    | "element-name.he"
+    | "element-name.li"
+    | "element-name.be"
+    | "element-name.b"
+    | "element-name.c"
+    | "element-name.n"
+    | "element-name.o"
+    | "element-name.f"
+    | "element-name.ne"
+    | "element-name.na"
+    | "element-name.mg"
+    | "element-name.al"
+    | "element-name.si"
+    | "element-name.p"
+    | "element-name.s"
+    | "element-name.cl"
+    | "element-name.ar"
+    | "element-name.k"
+    | "element-name.ca"
+    | "element-name.sc"
+    | "element-name.ti"
+    | "element-name.v"
+    | "element-name.cr"
+    | "element-name.mn"
+    | "element-name.fe"
+    | "element-name.co"
+    | "element-name.ni"
+    | "element-name.cu"
+    | "element-name.zn"
+    | "element-name.ga"
+    | "element-name.ge"
+    | "element-name.as"
+    | "element-name.se"
+    | "element-name.br"
+    | "element-name.kr"
+    | "element-name.rb"
+    | "element-name.sr"
+    | "element-name.y"
+    | "element-name.zr"
+    | "element-name.nb"
+    | "element-name.mo"
+    | "element-name.tc"
+    | "element-name.ru"
+    | "element-name.rh"
+    | "element-name.pd"
+    | "element-name.ag"
+    | "element-name.cd"
+    | "element-name.in"
+    | "element-name.sn"
+    | "element-name.sb"
+    | "element-name.te"
+    | "element-name.i"
+    | "element-name.xe"
+    | "element-name.cs"
+    | "element-name.ba"
+    | "element-name.la"
+    | "element-name.ce"
+    | "element-name.pr"
+    | "element-name.nd"
+    | "element-name.pm"
+    | "element-name.sm"
+    | "element-name.eu"
+    | "element-name.gd"
+    | "element-name.tb"
+    | "element-name.dy"
+    | "element-name.ho"
+    | "element-name.er"
+    | "element-name.tm"
+    | "element-name.yb"
+    | "element-name.lu"
+    | "element-name.hf"
+    | "element-name.ta"
+    | "element-name.w"
+    | "element-name.re"
+    | "element-name.os"
+    | "element-name.ir"
+    | "element-name.pt"
+    | "element-name.au"
+    | "element-name.hg"
+    | "element-name.tl"
+    | "element-name.pb"
+    | "element-name.bi"
+    | "element-name.po"
+    | "element-name.at"
+    | "element-name.rn"
+    | "element-name.fr"
+    | "element-name.ra"
+    | "element-name.ac"
+    | "element-name.th"
+    | "element-name.pa"
+    | "element-name.u"
+    | "element-name.np"
+    | "element-name.pu"
+    | "element-name.am"
+    | "element-name.cm"
+    | "element-name.bk"
+    | "element-name.cf"
+    | "element-name.es"
+    | "element-name.fm"
+    | "element-name.md"
+    | "element-name.no"
+    | "element-name.lr"
+    | "element-name.rf"
+    | "element-name.db"
+    | "element-name.sg"
+    | "element-name.bh"
+    | "element-name.hs"
+    | "element-name.mt"
+    | "element-name.ds"
+    | "element-name.rg"
+    | "element-name.cn"
+    | "element-name.nh"
+    | "element-name.fl"
+    | "element-name.mc"
+    | "element-name.lv"
+    | "element-name.ts"
+    | "element-name.og"
+    | "element-anion-name.h"
+    | "element-anion-name.c"
+    | "element-anion-name.n"
+    | "element-anion-name.o"
+    | "element-anion-name.f"
+    | "element-anion-name.p"
+    | "element-anion-name.s"
+    | "element-anion-name.cl"
+    | "element-anion-name.br"
+    | "element-anion-name.i"
+    | "element-anion-name.at"
+    | "element-anion-name.ts"
+    | "ion-name-oxidation-state"
+    | "periodic-group-name.alkali-metal"
+    | "periodic-group-name.alkaline-earth-metal"
+    | "periodic-group-name.chalcogen"
+    | "periodic-group-name.halogen"
+    | "periodic-group-name.noble-gas"
+    | "periodic-group-name.rare-earth-metal"
+    | "periodic-group-name.transition-metal"
+    | "chemistry-invalid-symbol"
+    | "chemistry-invalid-ionic-compound"
     | "line-segment-attributes-ignored-with-endpoints"
     | "line-segment-attributes-ignored-with-endpoint-and-midpoint"
     | "line-segment-midpoint-offset-without-midpoint"
@@ -495,6 +635,146 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "piecewise-condition-or",
     "piecewise-condition-if",
     "piecewise-condition-otherwise",
+    "element-name.h",
+    "element-name.he",
+    "element-name.li",
+    "element-name.be",
+    "element-name.b",
+    "element-name.c",
+    "element-name.n",
+    "element-name.o",
+    "element-name.f",
+    "element-name.ne",
+    "element-name.na",
+    "element-name.mg",
+    "element-name.al",
+    "element-name.si",
+    "element-name.p",
+    "element-name.s",
+    "element-name.cl",
+    "element-name.ar",
+    "element-name.k",
+    "element-name.ca",
+    "element-name.sc",
+    "element-name.ti",
+    "element-name.v",
+    "element-name.cr",
+    "element-name.mn",
+    "element-name.fe",
+    "element-name.co",
+    "element-name.ni",
+    "element-name.cu",
+    "element-name.zn",
+    "element-name.ga",
+    "element-name.ge",
+    "element-name.as",
+    "element-name.se",
+    "element-name.br",
+    "element-name.kr",
+    "element-name.rb",
+    "element-name.sr",
+    "element-name.y",
+    "element-name.zr",
+    "element-name.nb",
+    "element-name.mo",
+    "element-name.tc",
+    "element-name.ru",
+    "element-name.rh",
+    "element-name.pd",
+    "element-name.ag",
+    "element-name.cd",
+    "element-name.in",
+    "element-name.sn",
+    "element-name.sb",
+    "element-name.te",
+    "element-name.i",
+    "element-name.xe",
+    "element-name.cs",
+    "element-name.ba",
+    "element-name.la",
+    "element-name.ce",
+    "element-name.pr",
+    "element-name.nd",
+    "element-name.pm",
+    "element-name.sm",
+    "element-name.eu",
+    "element-name.gd",
+    "element-name.tb",
+    "element-name.dy",
+    "element-name.ho",
+    "element-name.er",
+    "element-name.tm",
+    "element-name.yb",
+    "element-name.lu",
+    "element-name.hf",
+    "element-name.ta",
+    "element-name.w",
+    "element-name.re",
+    "element-name.os",
+    "element-name.ir",
+    "element-name.pt",
+    "element-name.au",
+    "element-name.hg",
+    "element-name.tl",
+    "element-name.pb",
+    "element-name.bi",
+    "element-name.po",
+    "element-name.at",
+    "element-name.rn",
+    "element-name.fr",
+    "element-name.ra",
+    "element-name.ac",
+    "element-name.th",
+    "element-name.pa",
+    "element-name.u",
+    "element-name.np",
+    "element-name.pu",
+    "element-name.am",
+    "element-name.cm",
+    "element-name.bk",
+    "element-name.cf",
+    "element-name.es",
+    "element-name.fm",
+    "element-name.md",
+    "element-name.no",
+    "element-name.lr",
+    "element-name.rf",
+    "element-name.db",
+    "element-name.sg",
+    "element-name.bh",
+    "element-name.hs",
+    "element-name.mt",
+    "element-name.ds",
+    "element-name.rg",
+    "element-name.cn",
+    "element-name.nh",
+    "element-name.fl",
+    "element-name.mc",
+    "element-name.lv",
+    "element-name.ts",
+    "element-name.og",
+    "element-anion-name.h",
+    "element-anion-name.c",
+    "element-anion-name.n",
+    "element-anion-name.o",
+    "element-anion-name.f",
+    "element-anion-name.p",
+    "element-anion-name.s",
+    "element-anion-name.cl",
+    "element-anion-name.br",
+    "element-anion-name.i",
+    "element-anion-name.at",
+    "element-anion-name.ts",
+    "ion-name-oxidation-state",
+    "periodic-group-name.alkali-metal",
+    "periodic-group-name.alkaline-earth-metal",
+    "periodic-group-name.chalcogen",
+    "periodic-group-name.halogen",
+    "periodic-group-name.noble-gas",
+    "periodic-group-name.rare-earth-metal",
+    "periodic-group-name.transition-metal",
+    "chemistry-invalid-symbol",
+    "chemistry-invalid-ionic-compound",
     "line-segment-attributes-ignored-with-endpoints",
     "line-segment-attributes-ignored-with-endpoint-and-midpoint",
     "line-segment-midpoint-offset-without-midpoint",

@@ -5,6 +5,17 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import { getDataForAtom } from "../../utils/chemistry";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../../utils/contentLocale";
+import {
+    anionName,
+    elementName,
+    englishAnionName,
+    periodicGroupName,
+    withOxidationState,
+} from "../../utils/chemistryWords";
 
 export default class Ion extends InlineComponent {
     static componentType = "ion";
@@ -245,65 +256,43 @@ export default class Ion extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "atomicNumber",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let name;
 
                 if (dependencyValues.dataForAtom) {
-                    name = dependencyValues.dataForAtom.Name;
+                    const t = contentTranslator(dependencyValues);
+                    const { Name: englishName, Symbol: symbol } =
+                        dependencyValues.dataForAtom;
+
                     if (dependencyValues.charge < 0) {
-                        let mapping = {
-                            Hydrogen: "Hydride",
-                            Oxygen: "Oxide",
-                            Sulfur: "Sulfide",
-                            Nitrogen: "Nitride",
-                            Phosphorus: "Phosphide",
-                            Carbon: "Carbide",
-                        };
-                        let len = name.length;
-                        if (name.substring(len - 3, len) === "ine") {
-                            name = name.substring(0, len - 3) + "ide";
-                        } else if (name in mapping) {
-                            name = mapping[name];
+                        // An anion is named as data rather than derived: the
+                        // "-ine" → "-ide" rule that produced this in English
+                        // is English morphology, not a fact about anions.
+                        name = anionName(
+                            t,
+                            symbol,
+                            englishAnionName(englishName),
+                        );
+                    } else {
+                        name = elementName(t, symbol, englishName);
+                        if (
+                            dependencyValues.charge > 0 &&
+                            ((dependencyValues.group >= 3 &&
+                                dependencyValues.group <= 12) ||
+                                dependencyValues.group === 101 ||
+                                dependencyValues.group === 102 ||
+                                [13, 31, 49, 50, 81, 82, 83, 84].includes(
+                                    dependencyValues.atomicNumber,
+                                ))
+                        ) {
+                            name = withOxidationState(
+                                t,
+                                name,
+                                dependencyValues.charge,
+                            );
                         }
-                    } else if (
-                        dependencyValues.charge > 0 &&
-                        ((dependencyValues.group >= 3 &&
-                            dependencyValues.group <= 12) ||
-                            dependencyValues.group === 101 ||
-                            dependencyValues.group === 102 ||
-                            [13, 31, 49, 50, 81, 82, 83, 84].includes(
-                                dependencyValues.atomicNumber,
-                            ))
-                    ) {
-                        let suffix = "";
-                        switch (dependencyValues.charge) {
-                            case 1:
-                                suffix = " (I)";
-                                break;
-                            case 2:
-                                suffix = " (II)";
-                                break;
-                            case 3:
-                                suffix = " (III)";
-                                break;
-                            case 4:
-                                suffix = " (IV)";
-                                break;
-                            case 5:
-                                suffix = " (V)";
-                                break;
-                            case 6:
-                                suffix = " (VI)";
-                                break;
-                            case 7:
-                                suffix = " (VII)";
-                                break;
-                            case 8:
-                                suffix = " (VIII)";
-                                break;
-                        }
-                        name += suffix;
                     }
                 } else {
                     name = null;
@@ -380,12 +369,16 @@ export default class Ion extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "dataForAtom",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let groupName;
 
                 if (dependencyValues.dataForAtom) {
-                    groupName = dependencyValues.dataForAtom["Group Name"];
+                    groupName = periodicGroupName(
+                        contentTranslator(dependencyValues),
+                        dependencyValues.dataForAtom["Group Name"],
+                    );
                 } else {
                     groupName = null;
                 }
@@ -486,6 +479,7 @@ export default class Ion extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "charge",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let latex;
@@ -503,7 +497,8 @@ export default class Ion extends InlineComponent {
                             latex + `^{${Math.abs(dependencyValues.charge)}+}`;
                     }
                 } else {
-                    latex = "[\\text{Invalid Chemical Symbol}]";
+                    const t = contentTranslator(dependencyValues);
+                    latex = `[\\text{${t("chemistry-invalid-symbol")}}]`;
                 }
                 return {
                     setValue: { latex },
@@ -526,6 +521,7 @@ export default class Ion extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "charge",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let text;
@@ -543,7 +539,8 @@ export default class Ion extends InlineComponent {
                             text + `^(${Math.abs(dependencyValues.charge)}+)`;
                     }
                 } else {
-                    text = "[Invalid Chemical Symbol]";
+                    const t = contentTranslator(dependencyValues);
+                    text = `[${t("chemistry-invalid-symbol")}]`;
                 }
                 return {
                     setValue: { text },

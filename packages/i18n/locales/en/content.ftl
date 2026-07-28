@@ -366,3 +366,180 @@ piecewise-condition-if = if
 
 # The last branch, which applies wherever none of the earlier ones do.
 piecewise-condition-otherwise = otherwise
+
+
+## Chemistry
+##
+## The names the chemistry components generate. Symbols (`H`, `Fe`), formulas,
+## and anything an author's `<award>` compares against by value stay as they
+## are; only what is displayed as prose is here.
+##
+## Element names are keyed by symbol, which is the identifier the atom database
+## is read through and is itself never translated.
+
+element-name =
+    .h = Hydrogen
+    .he = Helium
+    .li = Lithium
+    .be = Beryllium
+    .b = Boron
+    .c = Carbon
+    .n = Nitrogen
+    .o = Oxygen
+    .f = Fluorine
+    .ne = Neon
+    .na = Sodium
+    .mg = Magnesium
+    .al = Aluminum
+    .si = Silicon
+    .p = Phosphorus
+    .s = Sulfur
+    .cl = Chlorine
+    .ar = Argon
+    .k = Potassium
+    .ca = Calcium
+    .sc = Scandium
+    .ti = Titanium
+    .v = Vanadium
+    .cr = Chromium
+    .mn = Manganese
+    .fe = Iron
+    .co = Cobalt
+    .ni = Nickel
+    .cu = Copper
+    .zn = Zinc
+    .ga = Gallium
+    .ge = Germanium
+    .as = Arsenic
+    .se = Selenium
+    .br = Bromine
+    .kr = Krypton
+    .rb = Rubidium
+    .sr = Strontium
+    .y = Yttrium
+    .zr = Zirconium
+    .nb = Niobium
+    .mo = Molybdenum
+    .tc = Technetium
+    .ru = Ruthenium
+    .rh = Rhodium
+    .pd = Palladium
+    .ag = Silver
+    .cd = Cadmium
+    .in = Indium
+    .sn = Tin
+    .sb = Antimony
+    .te = Tellurium
+    .i = Iodine
+    .xe = Xenon
+    .cs = Cesium
+    .ba = Barium
+    .la = Lanthanum
+    .ce = Cerium
+    .pr = Praseodymium
+    .nd = Neodymium
+    .pm = Promethium
+    .sm = Samarium
+    .eu = Europium
+    .gd = Gadolinium
+    .tb = Terbium
+    .dy = Dysprosium
+    .ho = Holmium
+    .er = Erbium
+    .tm = Thulium
+    .yb = Ytterbium
+    .lu = Lutetium
+    .hf = Hafnium
+    .ta = Tantalum
+    .w = Tungsten
+    .re = Rhenium
+    .os = Osmium
+    .ir = Iridium
+    .pt = Platinum
+    .au = Gold
+    .hg = Mercury
+    .tl = Thallium
+    .pb = Lead
+    .bi = Bismuth
+    .po = Polonium
+    .at = Astatine
+    .rn = Radon
+    .fr = Francium
+    .ra = Radium
+    .ac = Actinium
+    .th = Thorium
+    .pa = Protactinium
+    .u = Uranium
+    .np = Neptunium
+    .pu = Plutonium
+    .am = Americium
+    .cm = Curium
+    .bk = Berkelium
+    .cf = Californium
+    .es = Einsteinium
+    .fm = Fermium
+    .md = Mendelevium
+    .no = Nobelium
+    .lr = Lawrencium
+    .rf = Rutherfordium
+    .db = Dubnium
+    .sg = Seaborgium
+    .bh = Bohrium
+    .hs = Hassium
+    .mt = Meitnerium
+    .ds = Darmstadtium
+    .rg = Roentgenium
+    .cn = Copernicium
+    .nh = Nihonium
+    .fl = Flerovium
+    .mc = Moscovium
+    .lv = Livermorium
+    .ts = Tennessine
+    .og = Oganesson
+
+# The name an anion takes, for the elements that have one.
+#
+# English derives these — strip a trailing "ine", add "ide", with a small table
+# for the words that rule does not fit — but that is English morphology, not a
+# fact about anions. So each language supplies the names it uses. An element
+# with no entry here is called by its own name, which is also what the English
+# rule does for everything it does not match.
+element-anion-name =
+    .h = Hydride
+    .c = Carbide
+    .n = Nitride
+    .o = Oxide
+    .f = Fluoride
+    .p = Phosphide
+    .s = Sulfide
+    .cl = Chloride
+    .br = Bromide
+    .i = Iodide
+    .at = Astatide
+    .ts = Tennesside
+
+# A transition metal's ion, named with its oxidation state: "Iron (II)".
+#
+# The Roman numeral is IUPAC notation and is the same in every language. Where
+# it sits and how it is punctuated is not, which is why this is a message and
+# not a suffix the code appends.
+ion-name-oxidation-state = { $name } ({ $numeral })
+
+# The descriptive names of the periodic groups, as `$atom.groupName` reports
+# them. An element belonging to no named group reports an empty value, which
+# is not a word and has no entry.
+periodic-group-name =
+    .alkali-metal = Alkali Metal
+    .alkaline-earth-metal = Alkaline Earth Metal
+    .chalcogen = Chalcogen
+    .halogen = Halogen
+    .noble-gas = Noble Gas
+    .rare-earth-metal = Rare Earth Metal
+    .transition-metal = Transition Metal
+
+# Shown in place of a chemical symbol or formula that names nothing. Rendered
+# into mathematics as well as into text, so the brackets around it are added by
+# the code — inside `\text{}` for the LaTeX form — and are not part of the
+# message.
+chemistry-invalid-symbol = Invalid Chemical Symbol
+chemistry-invalid-ionic-compound = Invalid Ionic Compound

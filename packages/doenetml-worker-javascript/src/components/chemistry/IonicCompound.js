@@ -1,5 +1,9 @@
 import InlineComponent from "../abstract/InlineComponent";
 import me from "math-expressions";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../../utils/contentLocale";
 const { gcd } = me.math;
 import {
     returnSelectedStyleStateVariableDefinition,
@@ -183,6 +187,7 @@ export default class IonicCompound extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "ionicCompound",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let latex;
@@ -198,7 +203,8 @@ export default class IonicCompound extends InlineComponent {
                     }
                     latex = parts.join(" ");
                 } else {
-                    latex = "[\\text{Invalid Ionic Compound}]";
+                    const t = contentTranslator(dependencyValues);
+                    latex = `[\\text{${t("chemistry-invalid-ionic-compound")}}]`;
                 }
                 return {
                     setValue: { latex },
@@ -218,6 +224,7 @@ export default class IonicCompound extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "ionicCompound",
                 },
+                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let text;
@@ -233,7 +240,8 @@ export default class IonicCompound extends InlineComponent {
                     }
                     text = parts.join(" ");
                 } else {
-                    text = "[Invalid Ionic Compound]";
+                    const t = contentTranslator(dependencyValues);
+                    text = `[${t("chemistry-invalid-ionic-compound")}]`;
                 }
                 return {
                     setValue: { text },
