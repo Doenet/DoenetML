@@ -8,21 +8,12 @@ const BLANK = "\uff3f";
 /**
  * A string key standing for `tree` as a parameter, or `undefined` if `tree`
  * cannot be one. Both the list of parameters and every node of the pattern are
- * keyed this way, so recognizing a parameter in the pattern is a map lookup
- * rather than a deep comparison at every node.
+ * keyed this way, so recognizing a parameter in the pattern is a map lookup.
  *
- * A parameter has to name a variable: a bare symbol, or one dressed with a
- * subscript (`x_1` → `["_", "x", 1]`) or a prime (`f'` → `["prime", "f"]`).
- * A parameter is found in the pattern by syntactic equality, so only names
- * qualify. A number such as `2` occurs in a pattern as an exponent or an index
- * as readily as it does as a coefficient, and turning all of them into one
- * placeholder is nothing the author asked for; a compound expression such as
- * `x+1` would go unrecognized in a pattern that spells it `1+x`, even though
- * `allowPermutations` makes those interchangeable everywhere else here.
- *
- * A blank is a string, so it has to be turned away by name: accepting one
- * would make every blank in the pattern a single shared placeholder, which is
- * the opposite of what blanks mean when `parameters` is absent.
+ * A parameter names a variable: a bare symbol, or one dressed with a subscript
+ * (`x_1` → `["_", "x", 1]`) or a prime (`f'` → `["prime", "f"]`). A blank is a
+ * string as well, and is keyed out by name so that it stays literal once
+ * `parameters` is given. Numbers and compound expressions have no key.
  *
  * The prefixes keep a subscripted parameter from colliding with a symbol whose
  * name happens to be that subtree's JSON.
@@ -232,8 +223,8 @@ export default class MatchesPattern extends BooleanComponent {
                 let ind = 26 * 27 + 1; // starts with variable AAA
 
                 // A placeholder is given a name the pattern does not already
-                // use, so that a parameter — `e` or `pi` as readily as `a` —
-                // can never be confused with a literal the pattern matches.
+                // use, so that a variable the pattern matches literally is
+                // never mistaken for a placeholder.
                 function nextPatternVariable() {
                     let newVar = numberToLetters(ind);
                     ind++;
@@ -265,10 +256,9 @@ export default class MatchesPattern extends BooleanComponent {
                 }
 
                 // With `parameters`, the named parameters are the
-                // placeholders and blanks stay literal. An empty list is still
-                // a list: it says the pattern has no placeholders at all,
-                // which is the reading that holds steady when the list comes
-                // from a reference that happens to be empty.
+                // placeholders and blanks stay literal. An empty list still
+                // counts as specified: it says the pattern has no
+                // placeholders at all.
                 let position =
                     dependencyValues.parametersAttr.position || undefined;
                 let sendDiagnostics = [];
@@ -470,9 +460,9 @@ export default class MatchesPattern extends BooleanComponent {
                         // never bound. It keeps its place in the list so that
                         // `patternMatches` always lines up with the order the
                         // parameters were named in, and reports a blank. Only
-                        // an absent binding becomes that blank: a placeholder
-                        // that `allowImplicitIdentities` bound to `0` is a
-                        // match like any other.
+                        // an absent binding becomes that blank:
+                        // `allowImplicitIdentities` can bind a placeholder to
+                        // `0`, which is a match like any other.
                         allPatternMatches =
                             dependencyValues.patternVariables.map((v) =>
                                 me.fromAst(matchResult[v] ?? BLANK),

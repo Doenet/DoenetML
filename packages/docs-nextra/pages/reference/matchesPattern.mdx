@@ -109,12 +109,13 @@ A few things to know when using `parameters`:
 
 * The matches come back in the order the parameters were named, so the first entry of
   `patternMatches` is always what the first name in `parameters` matched. A parameter that does
-  not occur in the pattern keeps its place in that list and reports a blank.
+  not occur in the pattern keeps its place in that list and reports a blank, with a warning.
 * A name listed in `parameters` is a placeholder at *every* place it occurs in the pattern, so it
   cannot also be matched literally there. Choose names that are not the ones you want matched
   exactly.
 * A parameter must be a variable — a plain symbol such as `u`, a subscripted or primed one such as
-  `x_1` or `f'`, or a function name. A function name is a useful case in its own right:
+  `x_1` or `f'`, or a function name. Anything else, such as a number or a compound expression, is
+  ignored with a warning. A function name is a useful case in its own right:
   `pattern="f(x) + f(y)" parameters="f"` matches `sin(x) + sin(y)` but not `sin(x) + cos(y)`.
 
 

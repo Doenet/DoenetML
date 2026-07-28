@@ -1017,7 +1017,7 @@ describe("MatchesPattern tag tests @group3", async () => {
         ).eq(0);
     });
 
-    it("subscripted parameters are replaced whole", async () => {
+    it("distinct subscripted parameters are separate placeholders", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Expression: <mathInput name="expr" /></p>
@@ -1108,6 +1108,8 @@ describe("MatchesPattern tag tests @group3", async () => {
             expected: { "3x+3": ["3"], "ax+a": false },
         });
 
+        // `mv` takes the opposite view of the `ax+a` left in the input above:
+        // a variable is what it requires.
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("mv")].stateValues.value,
@@ -1126,6 +1128,8 @@ describe("MatchesPattern tag tests @group3", async () => {
   <p>Expression: <mathInput name="expr" /></p>
   <p><matchesPattern name="m" pattern="ax+a" parameters="a" allowImplicitIdentities>$expr</matchesPattern></p>
   <p>Matches: <mathList extend="$m.patternMatches" name="mm" /></p>
+  <p><matchesPattern name="m2" pattern="ax+b" parameters="a b" allowImplicitIdentities>$expr</matchesPattern></p>
+  <p>Matches: <mathList extend="$m2.patternMatches" name="mm2" /></p>
   `,
         });
 
@@ -1133,8 +1137,27 @@ describe("MatchesPattern tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             numMatches: 1,
-            expected: { "x+1": ["1"], "3x+3": ["3"], "3x+4": false },
+            expected: {
+                "x+1": ["1"],
+                "3x+3": ["3"],
+                "3x+4": false,
+                "3x": false,
+            },
         });
+
+        // `m2` still matches the `3x` left in the input above, with `b` bound
+        // to the missing constant term. A binding of `0` is a match, not the
+        // blank an unbound parameter reports.
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value,
+        ).to.be.true;
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mm2[2]")].stateValues
+                    .latex,
+            ),
+        ).eq("0");
     });
 
     it("parameters honor allowPermutations", async () => {
