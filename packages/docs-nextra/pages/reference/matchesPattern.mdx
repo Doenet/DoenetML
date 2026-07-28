@@ -98,7 +98,7 @@ ensure that the case where $x$ does not have a coefficient are allowed.
   $mi
 </matchesPattern>
 
-<p>Matched <m>u = <math extend="$mp.patternMatch1" /></m></p>
+<p>Matched <m>u = $mp.patternMatch1</m></p>
 ```
 
 Naming `u` once and using it twice is what makes this work: a parameter that occurs more than once
@@ -118,7 +118,7 @@ A few things to know when using `parameters`:
   `pattern="f(x) + f(y)" parameters="f"` matches `sin(x) + sin(y)` but not `sin(x) + cos(y)`.
 
 
-### Blanks as placeholders
+## Blanks as placeholders
 
 If `parameters` is left off, then blanks — written `( )` — are the placeholders instead:
 `pattern="y = () + () + ()"` behaves like the first example above. Each blank matches

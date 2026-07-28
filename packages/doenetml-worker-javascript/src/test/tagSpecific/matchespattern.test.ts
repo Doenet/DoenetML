@@ -934,6 +934,32 @@ describe("MatchesPattern tag tests @group3", async () => {
         });
     });
 
+    it("a parameter named twice is a single placeholder", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p>Expression: <mathInput name="expr" /></p>
+  <p><matchesPattern name="m" pattern="ax+b" parameters="a b a">$expr</matchesPattern></p>
+  <p>Matches: <mathList extend="$m.patternMatches" name="mm" /></p>
+  `,
+        });
+
+        // Listing `a` again adds no entry to `patternMatches`, so `b` stays
+        // the second match.
+        await checkMatches({
+            core,
+            resolvePathToNodeIdx,
+            numMatches: 2,
+            expected: { "3x+5": ["3", "5"] },
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .numMatches,
+        ).eq(2);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
     it("blanks are matched literally when parameters are specified", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

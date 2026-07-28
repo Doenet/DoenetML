@@ -322,12 +322,9 @@ eigen-decomposition-failed = Could not calculate eigenvalues of matrix
 
 # Translators: `parameters` is an attribute name and stays in English.
 # $parameters lists the rejected entries as the author wrote them;
-# $parametersCount is how many there were.
-matches-pattern-parameter-not-variable =
-    { $parametersCount ->
-        [one] `<matchesPattern>`: ignoring { $parameters } in `parameters`, as a parameter must be a variable.
-       *[other] `<matchesPattern>`: ignoring { $parameters } in `parameters`, as a parameter must be a variable.
-    }
+# $parametersCount is how many there were, for languages that need it (the
+# English wording reads the same either way).
+matches-pattern-parameter-not-variable = `<matchesPattern>`: ignoring { $parameters } in `parameters`, as a parameter must be a variable.
 
 # Translators: `parameters` is an attribute name and stays in English.
 # $parameters lists the parameters as the author wrote them;

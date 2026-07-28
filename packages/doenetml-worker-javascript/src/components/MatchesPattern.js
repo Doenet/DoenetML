@@ -52,6 +52,33 @@ function parameterKey(tree) {
     return null;
 }
 
+/**
+ * Rebuild `tree` with every node that `placeholderFor` names replaced by the
+ * placeholder it returns, leaving the nodes it returns `undefined` for as they
+ * were.
+ *
+ * A node is offered before its children, so a parameter such as `x_1` is
+ * replaced whole rather than through the `x` inside it. The head of an operator
+ * node is left alone, since it names the operation rather than an operand — the
+ * function of an `["apply", "f", "x"]` is its second entry, so a function name
+ * is still reached.
+ */
+function replacePlaceholders(tree, placeholderFor) {
+    let placeholder = placeholderFor(tree);
+    if (placeholder !== undefined) {
+        return placeholder;
+    }
+    if (Array.isArray(tree)) {
+        return [
+            tree[0],
+            ...tree
+                .slice(1)
+                .map((subTree) => replacePlaceholders(subTree, placeholderFor)),
+        ];
+    }
+    return tree;
+}
+
 export default class MatchesPattern extends BooleanComponent {
     static componentType = "matchesPattern";
 
@@ -232,26 +259,20 @@ export default class MatchesPattern extends BooleanComponent {
                 if (!dependencyValues.parametersAttr) {
                     // Without `parameters`, the blanks are the placeholders,
                     // and each one matches independently of the others.
-                    function replaceBlanks(tree) {
-                        if (tree === BLANK) {
-                            let newVar = nextPatternVariable();
-                            patternVariables.push(newVar);
-                            return newVar;
-                        } else if (Array.isArray(tree)) {
-                            return [
-                                tree[0],
-                                ...tree.slice(1).map(replaceBlanks),
-                            ];
-                        } else {
-                            return tree;
-                        }
-                    }
+                    let pattern = replacePlaceholders(
+                        patternExpression.tree,
+                        (node) => {
+                            if (node !== BLANK) {
+                                return undefined;
+                            }
+                            let placeholder = nextPatternVariable();
+                            patternVariables.push(placeholder);
+                            return placeholder;
+                        },
+                    );
 
                     return {
-                        setValue: {
-                            pattern: replaceBlanks(patternExpression.tree),
-                            patternVariables,
-                        },
+                        setValue: { pattern, patternVariables },
                     };
                 }
 
@@ -301,25 +322,16 @@ export default class MatchesPattern extends BooleanComponent {
 
                 let substituted = new Set();
 
-                function replaceParameters(tree) {
-                    // The node is checked before its children, so that a
-                    // parameter such as `x_1` is replaced whole rather than
-                    // through the `x` inside it.
-                    let placeholder = substitutions.get(parameterKey(tree));
-                    if (placeholder !== undefined) {
-                        substituted.add(placeholder);
+                let pattern = replacePlaceholders(
+                    patternExpression.tree,
+                    (node) => {
+                        let placeholder = substitutions.get(parameterKey(node));
+                        if (placeholder !== undefined) {
+                            substituted.add(placeholder);
+                        }
                         return placeholder;
-                    } else if (Array.isArray(tree)) {
-                        return [
-                            tree[0],
-                            ...tree.slice(1).map(replaceParameters),
-                        ];
-                    } else {
-                        return tree;
-                    }
-                }
-
-                let pattern = replaceParameters(patternExpression.tree);
+                    },
+                );
 
                 let absent = [...parametersByPlaceholder]
                     .filter(([placeholder]) => !substituted.has(placeholder))
@@ -468,9 +480,10 @@ export default class MatchesPattern extends BooleanComponent {
                         // A parameter that does not occur in the pattern is
                         // never bound. It keeps its place in the list so that
                         // `patternMatches` always lines up with the order the
-                        // parameters were named in, and reports a blank.
-                        // `??`, as a placeholder can legitimately be bound to
-                        // `0` via `allowImplicitIdentities`.
+                        // parameters were named in, and reports a blank. Only
+                        // an absent binding becomes that blank: a placeholder
+                        // that `allowImplicitIdentities` bound to `0` is a
+                        // match like any other.
                         allPatternMatches =
                             dependencyValues.patternVariables.map((v) =>
                                 me.fromAst(matchResult[v] ?? BLANK),
