@@ -41,9 +41,10 @@ import { codedDiagnostic } from "../../utils/diagnostics";
  * rendered children off the end of the section.
  *
  * `configurationChildren` are the children that configure the section — its
- * styles and its answer feedback — rather than render inside it. They keep
- * their slot in `allChildren` so the positions stay aligned, and
- * `nonConfigurationChildEntries()` filters them back out.
+ * styles, its answer feedback, its variants, and its `<setup>` definitions —
+ * rather than render inside it. None of these component types has a
+ * `rendererType`. They keep their slot in `allChildren` so the positions stay
+ * aligned, and `nonConfigurationChildEntries()` filters them back out.
  */
 function returnSectionChildDependencies() {
     return {
@@ -57,6 +58,8 @@ function returnSectionChildDependencies() {
                 "styleDefinitions",
                 "stylePalettes",
                 "feedbackDefinitions",
+                "setups",
+                "variantControls",
             ],
         },
     };
@@ -68,11 +71,19 @@ function returnSectionChildDependencies() {
  * `activeChildren`. Takes the `dependencyValues` produced by
  * `returnSectionChildDependencies()`.
  *
- * Configuration children are neither rendered nor hidden: they are not content,
- * and a section's styles and feedback stay in effect even when its content is
- * hidden. Their positions are still consumed from `allChildren`, so the
- * positions of the children around them stay aligned with `activeChildren`.
- * String children have no `componentIdx`, so they are never dropped.
+ * Configuration children are neither rendered nor hidden. Leaving them out of
+ * `childIndicesToRender` costs nothing, and shifts nothing: a child with no
+ * `rendererType` is dropped again when the renderer's child list is built, so
+ * it never occupied a position in that list to begin with. Leaving them out of
+ * `childrenToHide` is what keeps a section's styles, feedback, variants, and
+ * `<setup>` definitions usable while its content is hidden: `hidden` is
+ * inherited by every descendant, and a hidden child is dropped from its
+ * parent's `text`, so hiding a `<setup>` used to hollow out the text of what it
+ * defined for as long as the section stayed unrevealed.
+ *
+ * Their positions are still consumed from `allChildren`, so the positions of
+ * the children around them stay aligned with `activeChildren`. String children
+ * have no `componentIdx`, so they are never dropped.
  */
 function nonConfigurationChildEntries(dependencyValues) {
     const configurationChildIndices = new Set(
@@ -83,6 +94,35 @@ function nonConfigurationChildEntries(dependencyValues) {
 
     return [...dependencyValues.allChildren.entries()].filter(
         ([, child]) => !configurationChildIndices.has(child.componentIdx),
+    );
+}
+
+/**
+ * Whether a child puts anything on the screen: a non-blank string always does,
+ * a component only if its class declares a `rendererType`.
+ *
+ * A list item delegates its inline first-line rendering, and the alignment of
+ * its hanging number, to `firstVisibleChild`, so a child that renders nothing
+ * must never be picked as that child — doing so strands the child that
+ * actually renders first, which then keeps its top margin and never gets to
+ * report the alignment it needs. `<setup>` and `<variantControl>` are the
+ * common offenders and are already excluded as configuration children; this
+ * covers the rest (`<animateFromSequence>`, `<solveEquations>`, …).
+ *
+ * Composites are not a loophole even though none of them declares a
+ * `rendererType`: a composite is replaced by its replacements in
+ * `activeChildren` unless the parent names its component type in a child group
+ * (see `findChildGroup()`), and `<setup>` — which really does render nothing —
+ * is the only composite a section names.
+ */
+function childRendersSomething(child, componentInfoObjects) {
+    if (typeof child !== "object") {
+        return child.trim() !== "";
+    }
+
+    return Boolean(
+        componentInfoObjects.allComponentClasses[child.componentType]
+            ?.rendererType,
     );
 }
 
@@ -518,8 +558,9 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
-                // Tracks first non-hidden rendered child (including non-blank strings)
-                // so list-item sections can delegate alignment behavior to that child.
+                // Tracks the first non-hidden child that actually puts something
+                // on the screen (see `childRendersSomething()`), so list-item
+                // sections can delegate alignment behavior to that child.
                 let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
@@ -540,40 +581,36 @@ export class SectioningComponent extends BlockComponent {
                         continue;
                     }
 
-                    if (dependencyValues.asList) {
-                        // if asList, then only include titleChild, sections, introduction, and conclusion
-                        if (
-                            child.componentIdx ===
-                                dependencyValues.titleChildName ||
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "_sectioningComponent",
-                            }) ||
-                            ["introduction", "conclusion"].includes(
-                                child.componentType,
-                            )
-                        ) {
-                            childIndicesToRender.push(ind);
-                            if (
-                                firstVisibleChild === null &&
-                                !dependencyValues.hideChildren
-                            ) {
-                                firstVisibleChild = child;
-                            }
-                        }
-                    } else if (
-                        typeof child !== "object" ||
-                        !allTitleChildNames.includes(child.componentIdx) ||
-                        child.componentIdx === dependencyValues.titleChildName
+                    const renderChild = dependencyValues.asList
+                        ? // if asList, then only include titleChild, sections, introduction, and conclusion
+                          child.componentIdx ===
+                              dependencyValues.titleChildName ||
+                          componentInfoObjects.isInheritedComponentType({
+                              inheritedComponentType: child.componentType,
+                              baseComponentType: "_sectioningComponent",
+                          }) ||
+                          ["introduction", "conclusion"].includes(
+                              child.componentType,
+                          )
+                        : // otherwise, include everything but the title children
+                          // that lost out to `titleChildName`
+                          typeof child !== "object" ||
+                          !allTitleChildNames.includes(child.componentIdx) ||
+                          child.componentIdx ===
+                              dependencyValues.titleChildName;
+
+                    if (!renderChild) {
+                        continue;
+                    }
+
+                    childIndicesToRender.push(ind);
+
+                    if (
+                        firstVisibleChild === null &&
+                        !dependencyValues.hideChildren &&
+                        childRendersSomething(child, componentInfoObjects)
                     ) {
-                        childIndicesToRender.push(ind);
-                        if (
-                            firstVisibleChild === null &&
-                            !dependencyValues.hideChildren &&
-                            (typeof child === "object" || child.trim() !== "")
-                        ) {
-                            firstVisibleChild = child;
-                        }
+                        firstVisibleChild = child;
                     }
                 }
 

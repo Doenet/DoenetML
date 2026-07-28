@@ -1550,6 +1550,55 @@ describe("Cascade tag tests @group4", async () => {
         ]);
     });
 
+    it("do not hide the setup or variant control of a hidden section", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <section boxed name="section1">
+    <title>First part</title>
+    What is 1+1? <answer name="ans">2</answer>
+  </section>
+
+  <section boxed name="section2">
+    <title name="title2">Second part</title>
+    <variantControl name="vc2" numVariants="2" />
+    <setup name="setup2">
+      <p name="prompt2">Add <number name="n2">7</number></p>
+    </setup>
+    <p name="p2">What is 3+4?</p>
+    <answer name="ans">7</answer>
+  </section>
+</cascade>
+  `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const section2 = stateVariables[await resolvePathToNodeIdx("section2")];
+
+        // `<setup>` and `<variantControl>` are configuration children, so
+        // `section2` leaves them out of `childrenToHide` even though it is
+        // hidden until `section1` is answered. Neither renders, so this changes
+        // nothing on screen; what it does is keep the definitions inside a
+        // `<setup>` usable while the section is unrevealed. Hiding the `<setup>`
+        // hid everything under it, and a hidden child drops out of its parent's
+        // `text`, so `prompt2.text` was missing its `<number>`.
+        expect(section2.stateValues.childrenToHide).eqls([
+            await resolvePathToNodeIdx("p2"),
+            await resolvePathToNodeIdx("section2.ans"),
+        ]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("setup2")].stateValues
+                .hidden,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.hidden,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("prompt2")].stateValues
+                .text,
+        ).eq("Add 7");
+    });
+
     it("boxAll boxes only immediate section children", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
