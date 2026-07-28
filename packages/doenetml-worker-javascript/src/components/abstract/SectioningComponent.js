@@ -72,8 +72,9 @@ function returnSectionChildDependencies() {
  * `returnSectionChildDependencies()`.
  *
  * Configuration children are neither rendered nor hidden. Leaving them out of
- * `childIndicesToRender` costs nothing, since a child with no `rendererType`
- * only ever reached the renderer as an empty slot. Leaving them out of
+ * `childIndicesToRender` costs nothing, and shifts nothing: a child with no
+ * `rendererType` is dropped again when the renderer's child list is built, so
+ * it never occupied a position in that list to begin with. Leaving them out of
  * `childrenToHide` is what keeps a section's styles, feedback, variants, and
  * `<setup>` definitions usable while its content is hidden: `hidden` is
  * inherited by every descendant, and a hidden child is dropped from its
