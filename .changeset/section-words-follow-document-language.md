@@ -12,4 +12,6 @@ The heading a section builds around that word moves with it. "Section 2: Limits"
 
 The word is keyed by the element an author writes rather than by an internal class name, so `<subsection>` and `<subsubsection>` share the word for section, and a block whose name the author set with `renameTo` keeps their word in every language.
 
-A document that declares no language reads exactly as it did before.
+An unnumbered block such as `<proof>`, asked to include its number, used to render the word "null" where the number would have gone. It now renders no number, which is what it has.
+
+Apart from that, a document that declares no language reads exactly as it did before.

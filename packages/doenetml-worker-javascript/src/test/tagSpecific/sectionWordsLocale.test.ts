@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import * as ComponentTypes from "../../ComponentTypes";
-import { sectionWordsCoverage } from "../../utils/sectionWords";
+import {
+    composeTitlePrefix,
+    sectionWordsCoverage,
+} from "../../utils/sectionWords";
 
 vi.mock("hyperformula");
 
@@ -184,6 +187,59 @@ describe("section words follow the document locale @group4", () => {
                 both: "Sección 2: ",
                 numbered: "3. ",
             });
+        });
+
+        it("renders no number for a section that has none", async () => {
+            // `<proof>` is unnumbered. Asked for its number anyway, the
+            // concatenation that built this used to render the string "null".
+            const doenetML = `
+            <proof name="bare" includeAutoNumber><p>a</p></proof>
+            <proof name="titled" includeAutoNumber><title>Limits</title><p>b</p></proof>
+            `;
+            expect(
+                await values(doenetML, ["bare", "titled"], "titlePrefix"),
+            ).toEqual({ bare: "Proof", titled: "" });
+        });
+
+        it("hands the catalog its number as text", () => {
+            // A section rendered as a list item numbers itself by counting its
+            // siblings, so `sectionNumber` reaches this as a number. Fluent
+            // formats a numeric argument through `Intl`, which would group the
+            // thousandth item as "1,000" in English and "1.000" in Spanish —
+            // an identifier reformatted as though it were a quantity.
+            let passed: Record<string, unknown> | undefined;
+            composeTitlePrefix({
+                t: (
+                    _key: string,
+                    args: Record<string, unknown>,
+                    english: string,
+                ) => {
+                    passed = args;
+                    return english;
+                },
+                includeAutoName: true,
+                includeAutoNumber: true,
+                haveTitleChild: false,
+                sectionName: "Problems",
+                sectionNumber: 1000,
+            });
+            expect(passed?.sectionNumber).eq("1000");
+        });
+
+        it("takes the language from a `<document lang>` on the root", async () => {
+            // Everything else here declares the language through the host.
+            // `lang` on the document is the author's own route to it, and it
+            // is answered by an ancestor lookup that excludes the component it
+            // runs on — a `<section>` is never that document, so the lookup
+            // reaches it.
+            const doenetML = `<document lang="es">
+              <section name="s"><p>a</p></section>
+              <hint name="h"><p>b</p></hint>
+            </document>`;
+            const svs = await stateValuesOf(doenetML, ["s", "h"]);
+            expect(svs.s.sectionName).eq("Sección");
+            expect(svs.s.titlePrefix).eq("Sección 1");
+            expect(svs.h.title).eq("Pista");
         });
 
         it("gives a nested <document> its own language, and its sections with it", async () => {

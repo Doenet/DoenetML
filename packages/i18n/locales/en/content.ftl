@@ -285,8 +285,8 @@ section-name =
 # title child, rendered separately. Fluent trims trailing whitespace, so the
 # separator is written as a string literal to keep its space.
 #
-# `$sectionNumber` is already text ("2", "1.3"), never a number: it is an
-# identifier made of counters, and it is not the catalog's to reformat.
+# `$sectionNumber` arrives as text ("2", "1.3") rather than as a number: it is
+# an identifier made of counters, and it is not the catalog's to reformat.
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }

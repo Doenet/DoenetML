@@ -132,7 +132,12 @@ export function composeTitlePrefix({
         {
             parts,
             sectionName: sectionName ?? "",
-            sectionNumber: sectionNumber ?? "",
+            // As text, because Fluent hands a numeric argument to `Intl` — and
+            // a section rendered as a list item numbers itself by counting its
+            // siblings, so this arrives as a number there. The number
+            // identifies the section; the thousandth item is "1000", not
+            // "1,000" in English or "1.000" in Spanish.
+            sectionNumber: withNumber ? String(sectionNumber) : "",
         },
         english,
     );
