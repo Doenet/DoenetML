@@ -27,6 +27,65 @@ import {
 } from "../../utils/sectionTitleColors";
 import { codedDiagnostic } from "../../utils/diagnostics";
 
+/**
+ * The `child` dependencies shared by the state variables that split a section's
+ * children into the ones it renders (or hides) and the ones that merely
+ * configure it.
+ *
+ * `allChildren` deliberately uses `includeAllChildren` rather than a list of
+ * child groups. `childIndicesToRender` is consumed as *positions* in
+ * `activeChildren` (see `returnActiveChildrenIndicesToRender`), and
+ * `includeAllChildren` is the only form whose indices are by construction those
+ * positions. Enumerating child groups instead would silently drop any group
+ * left off the list, shifting every later position down and pushing that many
+ * rendered children off the end of the section.
+ *
+ * `configurationChildren` are the children that configure the section — its
+ * styles and its answer feedback — rather than render inside it. They keep
+ * their slot in `allChildren` so the positions stay aligned, and
+ * `nonConfigurationChildEntries()` filters them back out.
+ */
+function returnSectionChildDependencies() {
+    return {
+        allChildren: {
+            dependencyType: "child",
+            includeAllChildren: true,
+        },
+        configurationChildren: {
+            dependencyType: "child",
+            childGroups: [
+                "styleDefinitions",
+                "stylePalettes",
+                "feedbackDefinitions",
+            ],
+        },
+    };
+}
+
+/**
+ * The `[position, child]` entries of a section's children that are not
+ * configuration children, where `position` is the child's index in
+ * `activeChildren`. Takes the `dependencyValues` produced by
+ * `returnSectionChildDependencies()`.
+ *
+ * Configuration children are neither rendered nor hidden: they are not content,
+ * and a section's styles and feedback stay in effect even when its content is
+ * hidden. Their positions are still consumed from `allChildren`, so the
+ * positions of the children around them stay aligned with `activeChildren`.
+ * String children have no `componentIdx`, so they are never dropped.
+ */
+function nonConfigurationChildEntries(dependencyValues) {
+    const configurationChildIndices = new Set(
+        dependencyValues.configurationChildren.map(
+            (child) => child.componentIdx,
+        ),
+    );
+
+    return [...dependencyValues.allChildren.entries()].filter(
+        ([, child]) => !configurationChildIndices.has(child.componentIdx),
+    );
+}
+
 export class SectioningComponent extends BlockComponent {
     constructor(args) {
         super(args);
@@ -443,16 +502,7 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "child",
                     childGroups: ["titles"],
                 },
-                allChildren: {
-                    dependencyType: "child",
-                    childGroups: [
-                        "anything",
-                        "variantControls",
-                        "titles",
-                        "setups",
-                        "cascadeMessages",
-                    ],
-                },
+                ...returnSectionChildDependencies(),
                 titleChildName: {
                     dependencyType: "stateVariable",
                     variableName: "titleChildName",
@@ -476,10 +526,9 @@ export class SectioningComponent extends BlockComponent {
                     (x) => x.componentIdx,
                 );
 
-                for (let [
-                    ind,
-                    child,
-                ] of dependencyValues.allChildren.entries()) {
+                for (let [ind, child] of nonConfigurationChildEntries(
+                    dependencyValues,
+                )) {
                     // If `hideChildren` is set, string children should also be hidden.
                     // However, string children cannot be hidden via the `childrenToHide`
                     // state variable as it is based on component indices.
@@ -537,16 +586,7 @@ export class SectioningComponent extends BlockComponent {
 
         stateVariableDefinitions.childrenToHide = {
             returnDependencies: () => ({
-                allChildren: {
-                    dependencyType: "child",
-                    childGroups: [
-                        "anything",
-                        "variantControls",
-                        "titles",
-                        "setups",
-                        "cascadeMessages",
-                    ],
-                },
+                ...returnSectionChildDependencies(),
                 titleChildName: {
                     dependencyType: "stateVariable",
                     variableName: "titleChildName",
@@ -559,7 +599,9 @@ export class SectioningComponent extends BlockComponent {
             definition({ dependencyValues }) {
                 const childrenToHide = [];
 
-                for (let child of dependencyValues.allChildren) {
+                for (let [, child] of nonConfigurationChildEntries(
+                    dependencyValues,
+                )) {
                     if (child.componentType === "cascadeMessage") {
                         // For <cascadeMessage>, the logic is inverted.
                         // It is hidden when `hideChildren` is `false`!
@@ -760,15 +802,14 @@ export class SectioningComponent extends BlockComponent {
             ],
             forRenderer: true,
             returnDependencies: () => ({
+                // `childIndicesToRender` is looked up in this list below, so it
+                // must be the same complete child list that produced those
+                // positions (see `returnSectionChildDependencies`). The
+                // configuration children are already excluded from
+                // `childIndicesToRender`, so they need not be identified here.
                 allChildren: {
                     dependencyType: "child",
-                    childGroups: [
-                        "anything",
-                        "variantControls",
-                        "titles",
-                        "setups",
-                        "cascadeMessages",
-                    ],
+                    includeAllChildren: true,
                 },
                 asList: {
                     dependencyType: "stateVariable",

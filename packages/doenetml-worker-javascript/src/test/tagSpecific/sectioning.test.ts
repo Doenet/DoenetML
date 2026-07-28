@@ -1555,6 +1555,18 @@ describe("Sectioning tag tests @group3", async () => {
             <p>Welcome to section 4</p>
         </introduction>
     </section>
+
+    <section name="sec5">
+      <stylePalette palette="okabeito" />
+      <styleDefinition styleNumber="2" lineOpacity="1" />
+      <introduction name="intro5">
+        <p>Welcome to section 5</p>
+      </introduction>
+      <p>Some content</p>
+      <conclusion name="concl5">
+        <p>Thanks for reading section 5</p>
+      </conclusion>
+    </section>
     `,
         });
 
@@ -1595,6 +1607,97 @@ describe("Sectioning tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("sec4")].stateValues
                 .endsWithConclusion,
         ).eq(false);
+
+        // `startsWithIntroduction`/`endsWithConclusion` look up
+        // `childIndicesToRender` in their own child list, so the two must be
+        // derived from the same (complete) list of children. The unrendered
+        // configuration children of `sec5` occupy slots in that list.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec5")].stateValues
+                .startsWithIntroduction,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sec5")].stateValues
+                .endsWithConclusion,
+        ).eq(true);
+    });
+
+    /**
+     * The component indices of the children a section actually handed to the
+     * renderer. Read from the renderer instructions rather than from
+     * `childIndicesToRender` so that the tests below assert the outcome the
+     * reader sees. Instruction slots that are strings (whitespace between the
+     * children) or `null` (a child that was not rendered) are dropped.
+     */
+    function renderedChildComponentIndices(
+        core: PublicDoenetMLCore,
+        sectionIdx: number,
+    ) {
+        return core
+            .core!.rendererState[sectionIdx].childrenInstructions.filter(
+                (child: any) => child !== null && typeof child === "object",
+            )
+            .map((child: any) => child.componentIdx);
+    }
+
+    // The two tests below cover the bug where `childIndicesToRender`, which is
+    // consumed as positions in `activeChildren`, was computed from a child list
+    // that left out the `<stylePalette>`, `<styleDefinition>`, and
+    // `<feedbackDefinition>` groups. Each such child shifted the positions down
+    // by one and silently dropped a child off the end of the section.
+
+    it("renders all children of a section that configures its own style", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="sec">
+  <stylePalette palette="grumpynarwhal" />
+  <styleDefinition styleNumber="2" lineOpacity="1" />
+
+  <graph name="g1">
+    <vector name="v">(3,4)</vector>
+  </graph>
+
+  <graph name="g2" copy="$g1">
+    <circle filled center="(5,2)" />
+  </graph>
+</section>`,
+        });
+
+        expect(
+            renderedChildComponentIndices(
+                core,
+                await resolvePathToNodeIdx("sec"),
+            ),
+        ).eqls([
+            await resolvePathToNodeIdx("g1"),
+            await resolvePathToNodeIdx("g2"),
+        ]);
+    });
+
+    it("renders all children of a section that defines feedback and styles", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="sec">
+  <stylePalette palette="okabeito" />
+  <styleDefinition styleNumber="2" lineOpacity="1" />
+  <feedbackDefinition code="lostPI" text="You lost pi" />
+
+  <p name="p1">First</p>
+  <p name="p2">Second</p>
+  <p name="p3">Third</p>
+</section>`,
+        });
+
+        expect(
+            renderedChildComponentIndices(
+                core,
+                await resolvePathToNodeIdx("sec"),
+            ),
+        ).eqls([
+            await resolvePathToNodeIdx("p1"),
+            await resolvePathToNodeIdx("p2"),
+            await resolvePathToNodeIdx("p3"),
+        ]);
     });
 });
 
