@@ -6,6 +6,9 @@ import type {
     FunctionNamesBreakdownPayload,
     HelpContent,
 } from "@doenet/lsp-tools";
+import type { Translator } from "@doenet/i18n";
+import { useT } from "../../utils/i18n";
+import { fillSlots, slot } from "../slots";
 import "./context-help-panel.css";
 
 /**
@@ -71,6 +74,7 @@ function renderElementName(
 const REFERENCES_DOC_PATH = "concepts/references";
 
 function ReferencesDocLink({ docsBase }: { docsBase: string }) {
+    const t = useT();
     return (
         <a
             className="help-docs-link"
@@ -78,9 +82,38 @@ function ReferencesDocLink({ docsBase }: { docsBase: string }) {
             target="_blank"
             rel="noreferrer noopener"
         >
-            Learn about references →
+            {t(
+                "help-learn-about-references",
+                undefined,
+                "Learn about references \u2192",
+            )}
         </a>
     );
+}
+
+/** The footer link to an element's or attribute's own reference page. */
+function ReferencePageLink({ href }: { href: string }) {
+    const t = useT();
+    return (
+        <a
+            className="help-docs-link"
+            href={href}
+            target="_blank"
+            rel="noreferrer noopener"
+        >
+            {t("help-reference-page", undefined, "Reference page \u2192")}
+        </a>
+    );
+}
+
+/**
+ * A line number as the catalog wants it: text, so Fluent hands it to no
+ * `Intl.NumberFormat` and line 1234 stays "1234"; and `"none"` when there is
+ * no position, so a sentence without one is a branch rather than an empty
+ * parenthesis.
+ */
+function lineArg(line: number | undefined): string {
+    return line === undefined ? "none" : String(line);
 }
 
 export function ContextHelpPanel({
@@ -90,6 +123,7 @@ export function ContextHelpPanel({
     content: HelpContent;
     docsURL: string;
 }) {
+    const t = useT();
     // Tolerate a trailing slash on the consumer-supplied `docsURL` so that
     // e.g. "https://docs.doenet.org/" doesn't produce "//reference/..." URLs.
     const docsBase = docsURL.replace(/\/+$/, "");
@@ -99,8 +133,14 @@ export function ContextHelpPanel({
             return (
                 <div className="help-panel help-panel-empty">
                     <p className="help-placeholder">
-                        Place cursor on a tag name, attribute, or{" "}
-                        <code>$ref.property</code> for documentation.
+                        {fillSlots(
+                            t(
+                                "help-placeholder",
+                                { ref: slot(0) },
+                                `Place cursor on a tag name, attribute, or ${slot(0)} for documentation.`,
+                            ),
+                            [<code>$ref.property</code>],
+                        )}
                     </p>
                 </div>
             );
@@ -109,8 +149,14 @@ export function ContextHelpPanel({
             return (
                 <div className="help-panel help-panel-empty">
                     <p className="help-placeholder">
-                        Help for multi-part references like <code>$a.b.c</code>{" "}
-                        is not yet supported.
+                        {fillSlots(
+                            t(
+                                "help-unsupported-ref-chain",
+                                { example: slot(0) },
+                                `Help for multi-part references like ${slot(0)} is not yet supported.`,
+                            ),
+                            [<code>$a.b.c</code>],
+                        )}
                     </p>
                 </div>
             );
@@ -120,15 +166,18 @@ export function ContextHelpPanel({
             const ref = <code>{`$${displayPath}`}</code>;
             // `notFound`/`multiple` are authoritative resolver verdicts;
             // `indeterminate` hedges so an incomplete-view miss is never
-            // presented as a definite "no referent".
-            const sentence =
-                reason === "notFound" ? (
-                    <>No referent found for reference: {ref}.</>
-                ) : reason === "multiple" ? (
-                    <>Multiple referents found for reference: {ref}.</>
-                ) : (
-                    <>A referent for {ref} could not be determined.</>
-                );
+            // presented as a definite "no referent". Which one it is selects
+            // the sentence in the catalog rather than in the JSX.
+            const english =
+                reason === "notFound"
+                    ? `No referent found for reference: ${slot(0)}.`
+                    : reason === "multiple"
+                      ? `Multiple referents found for reference: ${slot(0)}.`
+                      : `A referent for ${slot(0)} could not be determined.`;
+            const sentence = fillSlots(
+                t("help-unresolved-ref", { reason, ref: slot(0) }, english),
+                [ref],
+            );
             return (
                 <div className="help-panel">
                     <p className="help-ref-sentence">{sentence}</p>
@@ -140,32 +189,53 @@ export function ContextHelpPanel({
         case "suggestions": {
             const { context, suggested, totalAllowed, acceptsStringChildren } =
                 content;
-            const location =
-                "elementName" in context ? (
-                    <>
-                        Inside <code>{`<${context.elementName}>`}</code>
-                    </>
-                ) : (
-                    "At the top level"
-                );
+            // Narrowed here rather than re-tested below, so the element name
+            // never needs a cast to be read.
+            const containerName =
+                "elementName" in context ? context.elementName : null;
             // Four cases the header line discriminates:
             //   - nothing allowed at all → "<x> — nothing goes here."
             //   - text only             → "<x> — type text here."
             //   - components only       → "<x> — things to try:" (today)
             //   - text + components     → "<x> — type text here, or try:"
-            const headerSuffix =
+            const allowed =
                 totalAllowed === 0
                     ? acceptsStringChildren
-                        ? " — type text here."
-                        : " — nothing goes here."
+                        ? "text"
+                        : "none"
                     : acceptsStringChildren
-                      ? " — type text here, or try:"
-                      : " — things to try:";
+                      ? "text-and-components"
+                      : "components";
+            const englishSuffix = {
+                text: " — type text here.",
+                none: " — nothing goes here.",
+                "text-and-components": " — type text here, or try:",
+                components: " — things to try:",
+            }[allowed];
             return (
                 <div className="help-panel">
                     <p className="help-suggestions-header">
-                        {location}
-                        {headerSuffix}
+                        {fillSlots(
+                            t(
+                                "help-suggestions-header",
+                                {
+                                    location:
+                                        containerName === null
+                                            ? "top"
+                                            : "inside",
+                                    element: slot(0),
+                                    allowed,
+                                },
+                                (containerName === null
+                                    ? "At the top level"
+                                    : `Inside ${slot(0)}`) + englishSuffix,
+                            ),
+                            [
+                                containerName === null ? null : (
+                                    <code>{`<${containerName}>`}</code>
+                                ),
+                            ],
+                        )}
                     </p>
                     {suggested.length > 0 && (
                         <ul className="help-suggestions-list">
@@ -181,8 +251,26 @@ export function ContextHelpPanel({
                                     )}
                                     {s.summary && (
                                         <span className="help-suggestion-summary">
-                                            {" — "}
-                                            {renderInlineMarkdown(s.summary)}
+                                            {/* The name is already rendered
+                                                beside this, so it is empty
+                                                here: what is wanted is the
+                                                separator the same message puts
+                                                between the two. */}
+                                            {fillSlots(
+                                                t(
+                                                    "help-name-summary",
+                                                    {
+                                                        name: "",
+                                                        summary: slot(0),
+                                                    },
+                                                    ` — ${slot(0)}`,
+                                                ),
+                                                [
+                                                    renderInlineMarkdown(
+                                                        s.summary,
+                                                    ),
+                                                ],
+                                            )}
                                         </span>
                                     )}
                                 </li>
@@ -191,8 +279,17 @@ export function ContextHelpPanel({
                     )}
                     {totalAllowed > 0 && (
                         <p className="help-suggestions-footer">
-                            Press <code>Ctrl+Space</code> to see all{" "}
-                            {totalAllowed} components.
+                            {fillSlots(
+                                t(
+                                    "help-suggestions-footer",
+                                    {
+                                        shortcut: slot(0),
+                                        total: totalAllowed,
+                                    },
+                                    `Press ${slot(0)} to see all ${totalAllowed} components.`,
+                                ),
+                                [<code>Ctrl+Space</code>],
+                            )}
                         </p>
                     )}
                 </div>
@@ -206,25 +303,28 @@ export function ContextHelpPanel({
             return (
                 <div className="help-panel">
                     <p className="help-element-title">
-                        {renderElementName(
-                            content.elementName,
-                            content.docsSlug,
-                            docsBase,
+                        {fillSlots(
+                            t(
+                                "help-name-summary",
+                                { name: slot(0), summary: slot(1) },
+                                `${slot(0)} — ${slot(1)}`,
+                            ),
+                            [
+                                renderElementName(
+                                    content.elementName,
+                                    content.docsSlug,
+                                    docsBase,
+                                ),
+                                renderInlineMarkdown(content.summary),
+                            ],
                         )}
-                        {" — "}
-                        {renderInlineMarkdown(content.summary)}
                     </p>
                     {content.styleBreakdown &&
-                        renderStyleBreakdown(content.styleBreakdown)}
+                        renderStyleBreakdown(t, content.styleBreakdown)}
                     {content.docsSlug && (
-                        <a
-                            className="help-docs-link"
+                        <ReferencePageLink
                             href={`${docsBase}/reference/${content.docsSlug}`}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                        >
-                            Reference page →
-                        </a>
+                        />
                     )}
                 </div>
             );
@@ -238,18 +338,43 @@ export function ContextHelpPanel({
             return (
                 <div className="help-panel">
                     <p className="help-ref-sentence">
-                        <code>{`$${displayPath}`}</code> is a reference to{" "}
-                        <code>{`<${targetElementName}>`}</code>
-                        {line !== undefined ? ` (line ${line})` : ""}.
+                        {fillSlots(
+                            t(
+                                "help-ref-is-reference",
+                                {
+                                    ref: slot(0),
+                                    target: slot(1),
+                                    line: lineArg(line),
+                                },
+                                line === undefined
+                                    ? `${slot(0)} is a reference to ${slot(1)}.`
+                                    : `${slot(0)} is a reference to ${slot(1)} (line ${line}).`,
+                            ),
+                            [
+                                <code>{`$${displayPath}`}</code>,
+                                <code>{`<${targetElementName}>`}</code>,
+                            ],
+                        )}
                     </p>
                     {derivedFrom && (
                         <p className="help-ref-derived">
-                            Introduced by{" "}
-                            <code>{`<${derivedFrom.ownerElementName}>`}</code>
-                            {derivedFrom.ownerLine !== undefined
-                                ? ` on line ${derivedFrom.ownerLine}`
-                                : ""}{" "}
-                            as <code>{derivedFrom.role}</code>.
+                            {fillSlots(
+                                t(
+                                    "help-ref-derived-from",
+                                    {
+                                        owner: slot(0),
+                                        role: slot(1),
+                                        line: lineArg(derivedFrom.ownerLine),
+                                    },
+                                    derivedFrom.ownerLine === undefined
+                                        ? `Introduced by ${slot(0)} as ${slot(1)}.`
+                                        : `Introduced by ${slot(0)} on line ${derivedFrom.ownerLine} as ${slot(1)}.`,
+                                ),
+                                [
+                                    <code>{`<${derivedFrom.ownerElementName}>`}</code>,
+                                    <code>{derivedFrom.role}</code>,
+                                ],
+                            )}
                         </p>
                     )}
                     <ReferencesDocLink docsBase={docsBase} />
@@ -274,7 +399,9 @@ export function ContextHelpPanel({
                 <div className="help-panel">
                     <div className="help-title">
                         {renderElementName(elementName, docsSlug, docsBase)}
-                        <span className="help-kind-label">attribute</span>
+                        <span className="help-kind-label">
+                            {t("help-kind-attribute", undefined, "attribute")}
+                        </span>
                         <span className="help-attribute-name">
                             {attributeName}
                         </span>
@@ -294,7 +421,7 @@ export function ContextHelpPanel({
                         ) && (
                             <div className="help-detail">
                                 <span className="help-detail-label">
-                                    Default:
+                                    {t("help-default", undefined, "Default:")}
                                 </span>
                                 <div className="help-values-list">
                                     <span className="help-value-item">
@@ -309,25 +436,45 @@ export function ContextHelpPanel({
                         // value (#1198).
                         <div className="help-detail">
                             <span className="help-detail-label">
-                                Active default:
+                                {t(
+                                    "help-active-default",
+                                    undefined,
+                                    "Active default:",
+                                )}
                             </span>
                             <div className="help-values-list">
                                 {renderActiveDefaultValue(activeDefault)}
                                 <span className="help-detail-annotation">
-                                    {` (styleNumber ${activeDefault.styleNumber})`}
+                                    {t(
+                                        "help-style-number-annotation",
+                                        {
+                                            styleNumber: String(
+                                                activeDefault.styleNumber,
+                                            ),
+                                        },
+                                        ` (styleNumber ${activeDefault.styleNumber})`,
+                                    )}
                                 </span>
                             </div>
                         </div>
                     )}
-                    {styleBreakdown && renderStyleBreakdown(styleBreakdown)}
+                    {styleBreakdown && renderStyleBreakdown(t, styleBreakdown)}
                     {functionNamesBreakdown &&
-                        renderFunctionNamesBreakdown(functionNamesBreakdown)}
+                        renderFunctionNamesBreakdown(t, functionNamesBreakdown)}
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
-                                {allowedValuesArePerItem
-                                    ? "Allowed values (one per item):"
-                                    : "Allowed values:"}
+                                {t(
+                                    "help-allowed-values",
+                                    {
+                                        perItem: allowedValuesArePerItem
+                                            ? "true"
+                                            : "false",
+                                    },
+                                    allowedValuesArePerItem
+                                        ? "Allowed values (one per item):"
+                                        : "Allowed values:",
+                                )}
                             </span>
                             <dl className="help-allowed-values-list">
                                 {allowedValues.map(
@@ -348,14 +495,9 @@ export function ContextHelpPanel({
                         </div>
                     )}
                     {docsSlug && (
-                        <a
-                            className="help-docs-link"
+                        <ReferencePageLink
                             href={`${docsBase}/reference/${docsSlug}`}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                        >
-                            Reference page →
-                        </a>
+                        />
                     )}
                 </div>
             );
@@ -367,12 +509,16 @@ export function ContextHelpPanel({
             return (
                 <div className="help-panel">
                     <div className="help-title">
-                        <span className="help-kind-label">snippet</span>
+                        <span className="help-kind-label">
+                            {t("help-kind-snippet", undefined, "snippet")}
+                        </span>
                         <span className="help-snippet-name">{snippetKey}</span>
                     </div>
                     <p className="help-description">{description}</p>
                     <div className="help-detail">
-                        <span className="help-detail-label">Inserts:</span>
+                        <span className="help-detail-label">
+                            {t("help-inserts", undefined, "Inserts:")}
+                        </span>
                         <span className="help-detail-value">{`<${elementName}>`}</span>
                     </div>
                     <pre className="help-snippet-preview">
@@ -399,7 +545,13 @@ export function ContextHelpPanel({
                 <div className="help-panel">
                     <div className="help-title">
                         {renderElementName(elementName, docsSlug, docsBase)}
-                        <span className="help-kind-label">array entry</span>
+                        <span className="help-kind-label">
+                            {t(
+                                "help-kind-array-entry",
+                                undefined,
+                                "array entry",
+                            )}
+                        </span>
                         <span className="help-property-name">
                             {displayTail}
                         </span>
@@ -410,9 +562,13 @@ export function ContextHelpPanel({
                     {aliasPath.length > 0 && (
                         <div className="help-detail">
                             <span className="help-detail-label">
-                                {aliasPath.length === 1
-                                    ? "Coordinate:"
-                                    : "Coordinates:"}
+                                {t(
+                                    "help-coordinates",
+                                    { count: aliasPath.length },
+                                    aliasPath.length === 1
+                                        ? "Coordinate:"
+                                        : "Coordinates:",
+                                )}
                             </span>
                             <span className="help-detail-value">
                                 {aliasPath.join(", ")}
@@ -421,21 +577,18 @@ export function ContextHelpPanel({
                     )}
                     {leafType && (
                         <div className="help-detail">
-                            <span className="help-detail-label">Type:</span>
+                            <span className="help-detail-label">
+                                {t("help-type", undefined, "Type:")}
+                            </span>
                             <span className="help-detail-value">
                                 {`<${leafType}>`}
                             </span>
                         </div>
                     )}
                     {docsSlug && (
-                        <a
-                            className="help-docs-link"
+                        <ReferencePageLink
                             href={`${docsBase}/reference/${docsSlug}`}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                        >
-                            Reference page →
-                        </a>
+                        />
                     )}
                 </div>
             );
@@ -458,17 +611,34 @@ export function ContextHelpPanel({
             return (
                 <div className="help-panel">
                     <p className="help-ref-sentence">
-                        <code>{`$${displayPath}`}</code> is a reference to the{" "}
-                        <code>{propertyName}</code> property of{" "}
-                        <code>{`<${elementName}>`}</code>
-                        {line !== undefined ? ` (line ${line})` : ""}.
+                        {fillSlots(
+                            t(
+                                "help-property-is-reference",
+                                {
+                                    ref: slot(0),
+                                    property: slot(1),
+                                    element: slot(2),
+                                    line: lineArg(line),
+                                },
+                                line === undefined
+                                    ? `${slot(0)} is a reference to the ${slot(1)} property of ${slot(2)}.`
+                                    : `${slot(0)} is a reference to the ${slot(1)} property of ${slot(2)} (line ${line}).`,
+                            ),
+                            [
+                                <code>{`$${displayPath}`}</code>,
+                                <code>{propertyName}</code>,
+                                <code>{`<${elementName}>`}</code>,
+                            ],
+                        )}
                     </p>
                     <p className="help-description">
                         {renderInlineMarkdown(description)}
                     </p>
                     {type !== undefined && (
                         <div className="help-detail">
-                            <span className="help-detail-label">Type:</span>
+                            <span className="help-detail-label">
+                                {t("help-type", undefined, "Type:")}
+                            </span>
                             <span className="help-detail-value">
                                 {`<${type}>`}
                                 {isArray ? "[]" : ""}
@@ -539,18 +709,25 @@ function renderBreakdownValue(entry: {
  * when to mount it; this helper just keeps the markup in one place so the
  * two trigger sites can't drift in layout or class names.
  */
-function renderStyleBreakdown(breakdown: {
-    styleNumber: number;
-    entries: Array<{
-        key: string;
-        value: string | number | boolean;
-        colorWord?: string;
-    }>;
-}): React.ReactNode {
+function renderStyleBreakdown(
+    t: Translator,
+    breakdown: {
+        styleNumber: number;
+        entries: Array<{
+            key: string;
+            value: string | number | boolean;
+            colorWord?: string;
+        }>;
+    },
+): React.ReactNode {
     return (
         <div className="help-detail help-style-breakdown">
             <span className="help-detail-label">
-                {`Resolved style (styleNumber ${breakdown.styleNumber}):`}
+                {t(
+                    "help-resolved-style",
+                    { styleNumber: String(breakdown.styleNumber) },
+                    `Resolved style (styleNumber ${breakdown.styleNumber}):`,
+                )}
             </span>
             <dl className="help-style-breakdown-list">
                 {breakdown.entries.map((entry) => (
@@ -600,34 +777,62 @@ function renderLabeledChipList(
  * author that the other two attributes are inactive.
  */
 function renderFunctionNamesBreakdown(
+    t: Translator,
     breakdown: FunctionNamesBreakdownPayload,
 ): React.ReactNode {
     const isReset = breakdown.reset !== undefined;
     return (
         <div className="help-detail help-function-names-breakdown">
-            {renderLabeledChipList("Resolved function names:", breakdown.names)}
+            {renderLabeledChipList(
+                t(
+                    "help-resolved-function-names",
+                    undefined,
+                    "Resolved function names:",
+                ),
+                breakdown.names,
+            )}
             {isReset ? (
                 <>
                     {renderLabeledChipList(
-                        "Reset list on this input:",
+                        t(
+                            "help-reset-list",
+                            undefined,
+                            "Reset list on this input:",
+                        ),
                         breakdown.reset!,
                     )}
                     <span className="help-detail-annotation">
-                        {
-                            "resetFunctionNames overrides additionalFunctionNames and removedFunctionNames."
-                        }
+                        {/* The three attribute names are identifiers, so they
+                            are arguments rather than words in the sentence. */}
+                        {t(
+                            "help-reset-overrides",
+                            {
+                                reset: "resetFunctionNames",
+                                additional: "additionalFunctionNames",
+                                removed: "removedFunctionNames",
+                            },
+                            "resetFunctionNames overrides additionalFunctionNames and removedFunctionNames.",
+                        )}
                     </span>
                 </>
             ) : (
                 <>
                     {breakdown.added.length > 0 &&
                         renderLabeledChipList(
-                            "Added on this input:",
+                            t(
+                                "help-added-on-input",
+                                undefined,
+                                "Added on this input:",
+                            ),
                             breakdown.added,
                         )}
                     {breakdown.removed.length > 0 &&
                         renderLabeledChipList(
-                            "Removed on this input:",
+                            t(
+                                "help-removed-on-input",
+                                undefined,
+                                "Removed on this input:",
+                            ),
                             breakdown.removed,
                         )}
                 </>

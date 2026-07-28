@@ -1,5 +1,6 @@
 # Superficies del editor: el pie, el panel de diagnósticos, el selector de
-# variantes y el botón de accesibilidad. Se selecciona con `uiLocale`.
+# variantes, el botón de accesibilidad y el panel de ayuda contextual.
+# Se selecciona con `uiLocale`.
 #
 # `WCAG AA` es el nombre de la norma y no se traduce.
 
@@ -115,3 +116,91 @@ editor-response-answer-id = Id. de respuesta
 editor-response-response = Respuesta
 editor-response-credit = Puntuación
 editor-response-submitted = Enviada
+
+
+## El panel de ayuda contextual
+##
+## Los fragmentos con formato — un nombre de elemento en `<code>`, un enlace —
+## llegan como argumentos y se vuelven a insertar después de formatear el
+## mensaje, de modo que la traducción decide dónde va cada uno.
+
+help-placeholder = Coloque el cursor sobre el nombre de una etiqueta, un atributo o { $ref } para ver la documentación.
+
+help-unsupported-ref-chain = Todavía no hay ayuda para las referencias de varias partes como { $example }.
+
+help-unresolved-ref =
+    { $reason ->
+        [notFound] No se encontró ningún referente para la referencia: { $ref }.
+        [multiple] Se encontraron varios referentes para la referencia: { $ref }.
+       *[indeterminate] No se pudo determinar un referente para { $ref }.
+    }
+
+help-learn-about-references = Más información sobre las referencias →
+help-reference-page = Página de referencia →
+
+help-suggestions-header =
+    { $location ->
+        [inside] Dentro de { $element }
+       *[top] En el nivel superior
+    }{ $allowed ->
+        [none] { " — aquí no va nada." }
+        [text] { " — escriba texto aquí." }
+        [text-and-components] { " — escriba texto aquí o pruebe con:" }
+       *[components] { " — puede probar con:" }
+    }
+
+help-suggestions-footer = Pulse { $shortcut } para ver los { $total } componentes.
+
+help-name-summary = { $name } — { $summary }
+
+help-ref-is-reference =
+    { $line ->
+        [none] { $ref } es una referencia a { $target }.
+       *[other] { $ref } es una referencia a { $target } (línea { $line }).
+    }
+
+help-ref-derived-from =
+    { $line ->
+        [none] Introducida por { $owner } como { $role }.
+       *[other] Introducida por { $owner } en la línea { $line } como { $role }.
+    }
+
+help-property-is-reference =
+    { $line ->
+        [none] { $ref } es una referencia a la propiedad { $property } de { $element }.
+       *[other] { $ref } es una referencia a la propiedad { $property } de { $element } (línea { $line }).
+    }
+
+help-kind-attribute = atributo
+help-kind-snippet = fragmento
+help-kind-array-entry = entrada de arreglo
+
+help-default = Valor predeterminado:
+help-active-default = Valor predeterminado activo:
+
+help-style-number-annotation = { " " }(styleNumber { $styleNumber })
+
+help-allowed-values =
+    { $perItem ->
+        [true] Valores admitidos (uno por elemento):
+       *[other] Valores admitidos:
+    }
+
+help-inserts = Inserta:
+
+help-coordinates =
+    { $count ->
+        [one] Coordenada:
+       *[other] Coordenadas:
+    }
+
+help-type = Tipo:
+
+help-resolved-style = Estilo resuelto (styleNumber { $styleNumber }):
+
+help-resolved-function-names = Nombres de función resueltos:
+help-reset-list = Lista restablecida en esta entrada:
+help-added-on-input = Añadidos en esta entrada:
+help-removed-on-input = Eliminados en esta entrada:
+
+help-reset-overrides = { $reset } prevalece sobre { $additional } y { $removed }.

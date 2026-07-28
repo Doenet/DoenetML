@@ -534,7 +534,34 @@ export type MessageKey =
     | "editor-response-answer-id"
     | "editor-response-response"
     | "editor-response-credit"
-    | "editor-response-submitted";
+    | "editor-response-submitted"
+    | "help-placeholder"
+    | "help-unsupported-ref-chain"
+    | "help-unresolved-ref"
+    | "help-learn-about-references"
+    | "help-reference-page"
+    | "help-suggestions-header"
+    | "help-suggestions-footer"
+    | "help-name-summary"
+    | "help-ref-is-reference"
+    | "help-ref-derived-from"
+    | "help-property-is-reference"
+    | "help-kind-attribute"
+    | "help-kind-snippet"
+    | "help-kind-array-entry"
+    | "help-default"
+    | "help-active-default"
+    | "help-style-number-annotation"
+    | "help-allowed-values"
+    | "help-inserts"
+    | "help-coordinates"
+    | "help-type"
+    | "help-resolved-style"
+    | "help-resolved-function-names"
+    | "help-reset-list"
+    | "help-added-on-input"
+    | "help-removed-on-input"
+    | "help-reset-overrides";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -1066,4 +1093,31 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "editor-response-response",
     "editor-response-credit",
     "editor-response-submitted",
+    "help-placeholder",
+    "help-unsupported-ref-chain",
+    "help-unresolved-ref",
+    "help-learn-about-references",
+    "help-reference-page",
+    "help-suggestions-header",
+    "help-suggestions-footer",
+    "help-name-summary",
+    "help-ref-is-reference",
+    "help-ref-derived-from",
+    "help-property-is-reference",
+    "help-kind-attribute",
+    "help-kind-snippet",
+    "help-kind-array-entry",
+    "help-default",
+    "help-active-default",
+    "help-style-number-annotation",
+    "help-allowed-values",
+    "help-inserts",
+    "help-coordinates",
+    "help-type",
+    "help-resolved-style",
+    "help-resolved-function-names",
+    "help-reset-list",
+    "help-added-on-input",
+    "help-removed-on-input",
+    "help-reset-overrides",
 ];

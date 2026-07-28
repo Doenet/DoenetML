@@ -1,5 +1,6 @@
 # Editor and language-server surfaces: the footer, the diagnostics panel, the
-# variant picker and the accessibility button. Selected by `uiLocale`.
+# variant picker, the accessibility button, and the context-help panel beside
+# them. Selected by `uiLocale`.
 #
 # The editor binds to *one* language, and it is the one the viewer below it
 # resolved rather than the one the surrounding host chrome uses: the panel
@@ -164,3 +165,122 @@ editor-response-answer-id = Answer Id
 editor-response-response = Response
 editor-response-credit = Credit
 editor-response-submitted = Submitted
+
+
+## The context-help panel
+##
+## The panel beside the diagnostics, which explains whatever the cursor is on.
+## It is the last of the surfaces the header above names.
+##
+## Several of these sentences have marked-up fragments in them — an element
+## name in `<code>`, a link, a rendered piece of inline markdown. Those arrive
+## as arguments and are put back as React nodes after the message is formatted,
+## so a translation owns the whole sentence including where each fragment sits
+## and the punctuation around it. A translation that drops one simply renders
+## without it rather than losing the sentence.
+##
+## Element names, attribute names and `styleNumber` are DoenetML identifiers
+## and stay as written. The descriptions and summaries the panel shows come
+## from the schema, which is generated from the documentation and is not
+## translated, and the values it resolves — a color's derived word, a
+## function name, a type — come from the language server in the same state.
+## What is here is the panel's own prose around them (#1580).
+
+help-placeholder = Place cursor on a tag name, attribute, or { $ref } for documentation.
+
+help-unsupported-ref-chain = Help for multi-part references like { $example } is not yet supported.
+
+help-unresolved-ref =
+    { $reason ->
+        [notFound] No referent found for reference: { $ref }.
+        [multiple] Multiple referents found for reference: { $ref }.
+       *[indeterminate] A referent for { $ref } could not be determined.
+    }
+
+# Both links end in an arrow, which is direction rather than punctuation and is
+# the same in every language this ships in — but it is inside the message, so a
+# language written right to left can turn it around.
+help-learn-about-references = Learn about references →
+help-reference-page = Reference page →
+
+# What can go where the cursor is. Two selectors joined: where the cursor sits,
+# and what the schema allows there.
+help-suggestions-header =
+    { $location ->
+        [inside] Inside { $element }
+       *[top] At the top level
+    }{ $allowed ->
+        [none] { " — nothing goes here." }
+        [text] { " — type text here." }
+        [text-and-components] { " — type text here, or try:" }
+       *[components] { " — things to try:" }
+    }
+
+# `$shortcut` is a key combination and stays as written. `$total` is a real
+# count, so a language that agrees a noun with it can select on it.
+help-suggestions-footer = Press { $shortcut } to see all { $total } components.
+
+# An element's name joined to its one-line summary. `$name` is empty where the
+# panel has already printed the name beside this — a suggestion in the list —
+# and only the separator is wanted, so the message has to read as punctuation
+# on its own.
+help-name-summary = { $name } — { $summary }
+
+# `$line` is text, not a number: it identifies a line, so line 1234 is "1234"
+# and not "1,234". `none` is how a position that is not known selects a
+# sentence without one rather than substituting an empty parenthesis.
+help-ref-is-reference =
+    { $line ->
+        [none] { $ref } is a reference to { $target }.
+       *[other] { $ref } is a reference to { $target } (line { $line }).
+    }
+
+help-ref-derived-from =
+    { $line ->
+        [none] Introduced by { $owner } as { $role }.
+       *[other] Introduced by { $owner } on line { $line } as { $role }.
+    }
+
+help-property-is-reference =
+    { $line ->
+        [none] { $ref } is a reference to the { $property } property of { $element }.
+       *[other] { $ref } is a reference to the { $property } property of { $element } (line { $line }).
+    }
+
+# The badge on the title row saying what kind of thing the panel is explaining.
+help-kind-attribute = attribute
+help-kind-snippet = snippet
+help-kind-array-entry = array entry
+
+help-default = Default:
+help-active-default = Active default:
+
+# Appended after the active default's value. `styleNumber` is the attribute's
+# own name and stays as written; the space and brackets around it do not.
+help-style-number-annotation = { " " }(styleNumber { $styleNumber })
+
+help-allowed-values =
+    { $perItem ->
+        [true] Allowed values (one per item):
+       *[other] Allowed values:
+    }
+
+help-inserts = Inserts:
+
+help-coordinates =
+    { $count ->
+        [one] Coordinate:
+       *[other] Coordinates:
+    }
+
+help-type = Type:
+
+help-resolved-style = Resolved style (styleNumber { $styleNumber }):
+
+help-resolved-function-names = Resolved function names:
+help-reset-list = Reset list on this input:
+help-added-on-input = Added on this input:
+help-removed-on-input = Removed on this input:
+
+# The three names are attributes an author writes, so they stay as written.
+help-reset-overrides = { $reset } overrides { $additional } and { $removed }.
