@@ -286,13 +286,6 @@ export type MessageKey =
     | "element-anion-name.at"
     | "element-anion-name.ts"
     | "ion-name-oxidation-state"
-    | "periodic-group-name.alkali-metal"
-    | "periodic-group-name.alkaline-earth-metal"
-    | "periodic-group-name.chalcogen"
-    | "periodic-group-name.halogen"
-    | "periodic-group-name.noble-gas"
-    | "periodic-group-name.rare-earth-metal"
-    | "periodic-group-name.transition-metal"
     | "chemistry-invalid-symbol"
     | "chemistry-invalid-ionic-compound"
     | "line-segment-attributes-ignored-with-endpoints"
@@ -766,13 +759,6 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "element-anion-name.at",
     "element-anion-name.ts",
     "ion-name-oxidation-state",
-    "periodic-group-name.alkali-metal",
-    "periodic-group-name.alkaline-earth-metal",
-    "periodic-group-name.chalcogen",
-    "periodic-group-name.halogen",
-    "periodic-group-name.noble-gas",
-    "periodic-group-name.rare-earth-metal",
-    "periodic-group-name.transition-metal",
     "chemistry-invalid-symbol",
     "chemistry-invalid-ionic-compound",
     "line-segment-attributes-ignored-with-endpoints",
