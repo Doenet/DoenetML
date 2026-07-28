@@ -425,14 +425,5 @@ element-anion-name =
 
 ion-name-oxidation-state = { $name } ({ $numeral })
 
-periodic-group-name =
-    .alkali-metal = Metal alcalino
-    .alkaline-earth-metal = Metal alcalinotérreo
-    .chalcogen = Calcógeno
-    .halogen = Halógeno
-    .noble-gas = Gas noble
-    .rare-earth-metal = Metal de tierras raras
-    .transition-metal = Metal de transición
-
 chemistry-invalid-symbol = Símbolo químico no válido
 chemistry-invalid-ionic-compound = Compuesto iónico no válido

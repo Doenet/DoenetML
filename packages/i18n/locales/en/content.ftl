@@ -376,6 +376,11 @@ piecewise-condition-otherwise = otherwise
 ##
 ## Element names are keyed by symbol, which is the identifier the atom database
 ## is read through and is itself never translated.
+##
+## An element's periodic group, its phase at STP and its metal category are not
+## here. They are enumerated values an author's `<award>` compares against —
+## `$atom.groupName = Noble Gas` — and translating one would break that
+## comparison the moment a document declared a language (#1577).
 
 element-name =
     .h = Hydrogen
@@ -524,18 +529,6 @@ element-anion-name =
 # it sits and how it is punctuated is not, which is why this is a message and
 # not a suffix the code appends.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
-# The descriptive names of the periodic groups, as `$atom.groupName` reports
-# them. An element belonging to no named group reports an empty value, which
-# is not a word and has no entry.
-periodic-group-name =
-    .alkali-metal = Alkali Metal
-    .alkaline-earth-metal = Alkaline Earth Metal
-    .chalcogen = Chalcogen
-    .halogen = Halogen
-    .noble-gas = Noble Gas
-    .rare-earth-metal = Rare Earth Metal
-    .transition-metal = Transition Metal
 
 # Shown in place of a chemical symbol or formula that names nothing. Rendered
 # into mathematics as well as into text, so the brackets around it are added by

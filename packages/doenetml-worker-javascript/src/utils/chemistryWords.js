@@ -1,18 +1,26 @@
 /**
- * The words the chemistry components generate: element names, periodic group
- * names, and the name an ion derives from its element's.
+ * The words the chemistry components generate: element names and the name an
+ * ion derives from its element's.
  *
- * These reach the reader as `$atom.name`, `$ion.name` and `$atom.groupName`,
- * so they are *content* and follow the document's language rather than the
- * reader's UI language.
+ * These reach the reader as `$atom.name` and `$ion.name`, so they are
+ * *content* and follow the document's language rather than the reader's UI
+ * language.
  *
- * ## Symbols are not words
+ * ## Symbols are not words, and neither are categories
  *
  * `H`, `He`, `Fe` are international and are never translated, and neither is
  * anything else an author's `<award>` compares against by value. Only what is
  * *displayed as prose* is here. Element names are keyed **by symbol**, which
  * is both the stable identifier and the key the atom database is already read
  * through.
+ *
+ * An element's periodic group, its phase at STP and its metal category are
+ * deliberately absent. They read as words, but an author writes
+ * `<award><when>$atom.groupName = Noble Gas</when></award>`, and a name that
+ * changed with the document's language would break that award silently, at the
+ * moment the document declared a language. The line is drawn at what is
+ * compared rather than at what looks like prose, so all three stay as the atom
+ * database spells them (#1577).
  *
  * ## Ion names are data, not a rule
  *
@@ -175,39 +183,6 @@ const ELEMENT_ANION_NAME_WORDS = {
 };
 
 /**
- * The periodic group names the atom database uses, keyed by the English value
- * in the `Group Name` column. An element with no group has an empty value,
- * which is not a word and passes through as it is.
- */
-const GROUP_NAME_WORDS = {
-    "Alkali Metal": (t) =>
-        t("periodic-group-name.alkali-metal", undefined, "Alkali Metal"),
-    "Alkaline Earth Metal": (t) =>
-        t(
-            "periodic-group-name.alkaline-earth-metal",
-            undefined,
-            "Alkaline Earth Metal",
-        ),
-    Chalcogen: (t) =>
-        t("periodic-group-name.chalcogen", undefined, "Chalcogen"),
-    Halogen: (t) => t("periodic-group-name.halogen", undefined, "Halogen"),
-    "Noble Gas": (t) =>
-        t("periodic-group-name.noble-gas", undefined, "Noble Gas"),
-    "Rare Earth Metal": (t) =>
-        t(
-            "periodic-group-name.rare-earth-metal",
-            undefined,
-            "Rare Earth Metal",
-        ),
-    "Transition Metal": (t) =>
-        t(
-            "periodic-group-name.transition-metal",
-            undefined,
-            "Transition Metal",
-        ),
-};
-
-/**
  * The oxidation state a transition metal's ion name carries, as a Roman
  * numeral. IUPAC notation, so the numerals themselves are international.
  */
@@ -283,12 +258,6 @@ export function withOxidationState(t, name, charge) {
         { name, numeral },
         `${name} (${numeral})`,
     );
-}
-
-/** The name of the periodic group `group`, in `t`'s language. */
-export function periodicGroupName(t, group) {
-    const word = GROUP_NAME_WORDS[group];
-    return word === undefined ? group : word(t);
 }
 
 /** Which symbols {@link elementName} can name. For tests. */

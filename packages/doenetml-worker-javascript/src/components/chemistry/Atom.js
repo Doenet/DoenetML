@@ -14,7 +14,7 @@ import {
     contentTranslator,
     returnContentLocaleDependencies,
 } from "../../utils/contentLocale";
-import { elementName, periodicGroupName } from "../../utils/chemistryWords";
+import { elementName } from "../../utils/chemistryWords";
 
 export default class Atom extends InlineComponent {
     static componentType = "atom";
@@ -344,6 +344,12 @@ export default class Atom extends InlineComponent {
             },
         };
 
+        // Not translated, unlike `name` above, and for the same reason
+        // `phaseAtSTP` and `metalCategory` are not: this is an enumerated
+        // category an author compares against — `$atom.groupName = Noble Gas`
+        // — rather than prose the reader is meant to read as a sentence. A
+        // name that changed with the document's language would break that
+        // award silently (#1577).
         stateVariableDefinitions.groupName = {
             description:
                 'The descriptive name of the element\'s periodic group (e.g. "Alkali metals").',
@@ -356,16 +362,12 @@ export default class Atom extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "dataForAtom",
                 },
-                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let groupName;
 
                 if (dependencyValues.dataForAtom) {
-                    groupName = periodicGroupName(
-                        contentTranslator(dependencyValues),
-                        dependencyValues.dataForAtom["Group Name"],
-                    );
+                    groupName = dependencyValues.dataForAtom["Group Name"];
                 } else {
                     groupName = null;
                 }

@@ -13,7 +13,6 @@ import {
     anionName,
     elementName,
     englishAnionName,
-    periodicGroupName,
     withOxidationState,
 } from "../../utils/chemistryWords";
 
@@ -357,6 +356,8 @@ export default class Ion extends InlineComponent {
             },
         };
 
+        // English in every language, as `<atom>`'s copy is: an enumerated
+        // category an author compares against, not prose (#1577).
         stateVariableDefinitions.groupName = {
             description:
                 "The descriptive name of the underlying element's periodic group.",
@@ -369,16 +370,12 @@ export default class Ion extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "dataForAtom",
                 },
-                ...returnContentLocaleDependencies(),
             }),
             definition({ dependencyValues }) {
                 let groupName;
 
                 if (dependencyValues.dataForAtom) {
-                    groupName = periodicGroupName(
-                        contentTranslator(dependencyValues),
-                        dependencyValues.dataForAtom["Group Name"],
-                    );
+                    groupName = dependencyValues.dataForAtom["Group Name"];
                 } else {
                     groupName = null;
                 }

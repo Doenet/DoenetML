@@ -6,7 +6,6 @@ import {
     elementName,
     elementWordsCoverage,
     englishAnionName,
-    periodicGroupName,
 } from "../../utils/chemistryWords";
 import { atomDatabase } from "@doenet/static-assets/atom-database";
 
@@ -14,14 +13,19 @@ vi.mock("hyperformula");
 
 /**
  * i18n Phase 4 (#1573): the names the chemistry components generate — the 118
- * element names, the periodic group names, the name an ion derives from its
- * element's, and the message shown where a symbol names nothing.
+ * element names, the name an ion derives from its element's, and the message
+ * shown where a symbol names nothing.
  *
  * Two things are checked throughout, and the second matters as much as the
  * first: that the document's language reaches these definitions at all, and
  * that English comes out character-for-character as it did before, so that
  * every other assertion in this repo stays true of a document that declares no
  * language.
+ *
+ * The other half of the line is checked here too (#1577): the values an author
+ * compares against — an element's periodic group, its phase at STP and its
+ * metal category — stay as the atom database spells them no matter what
+ * language the document declares.
  */
 describe("chemistry words follow the document locale @group4", () => {
     async function values(
@@ -89,8 +93,7 @@ describe("chemistry words follow the document locale @group4", () => {
             // word anywhere in the vocabulary would silently change what a
             // document that declares no language renders. Only a handful of
             // these are spelled out above, so the rest are pinned here against
-            // the database column, the group column, and the derivation the
-            // anion names replaced.
+            // the database column and the derivation the anion names replaced.
             const covered = new Set(elementWordsCoverage());
             const rows = atomDatabase as Record<string, string>[];
             expect(rows.length).eq(118);
@@ -106,18 +109,16 @@ describe("chemistry words follow the document locale @group4", () => {
                 .map((row) => {
                     const symbol = unquoted(row.Symbol);
                     const name = unquoted(row.Name);
-                    const group = unquoted(row["Group Name"] ?? "");
                     return {
                         symbol,
                         got: [
                             elementName(t, symbol, "no fallback"),
                             anionName(t, symbol, englishAnionName(name)),
-                            periodicGroupName(t, group),
                         ],
                         // What each printed before the words moved: the
-                        // database's own name, the English "-ine" → "-ide"
-                        // derivation over it, and the database's own group.
-                        expected: [name, englishAnionName(name), group],
+                        // database's own name, and the English "-ine" → "-ide"
+                        // derivation over it.
+                        expected: [name, englishAnionName(name)],
                     };
                 })
                 .filter(({ got, expected }) =>
@@ -127,7 +128,14 @@ describe("chemistry words follow the document locale @group4", () => {
         });
     });
 
-    describe("periodic group names", () => {
+    // #1577. These three read as words, and were the ones held back when the
+    // element names moved. They are what an author's `<award>` compares
+    // against — `$atom.groupName = Noble Gas` — so a name that changed with
+    // the document's language would break that award at the moment the
+    // document declared one. The line is drawn at what is compared, and these
+    // tests are what says where it is: the same value in every language, and
+    // the same value from an `<ion>` as from an `<atom>`.
+    describe("the values an award compares against", () => {
         const doenetML = `
         <atom name="na" symbol="Na" />
         <atom name="cl" symbol="Cl" />
@@ -136,37 +144,59 @@ describe("chemistry words follow the document locale @group4", () => {
         `;
         const names = ["na", "cl", "he", "h"];
 
-        it("renders English by default", async () => {
-            expect(await values(doenetML, names, "groupName")).toEqual({
-                na: "Alkali Metal",
-                cl: "Halogen",
-                he: "Noble Gas",
-                // Hydrogen belongs to no named group.
-                h: "",
-            });
+        const groups = {
+            na: "Alkali Metal",
+            cl: "Halogen",
+            he: "Noble Gas",
+            // Hydrogen belongs to no named group.
+            h: "",
+        };
+
+        it("names a periodic group the same in every language", async () => {
+            expect(await values(doenetML, names, "groupName")).toEqual(groups);
+            expect(await values(doenetML, names, "groupName", "es")).toEqual(
+                groups,
+            );
         });
 
-        it("renders the document's names when it declares a language", async () => {
-            expect(await values(doenetML, names, "groupName", "es")).toEqual({
-                na: "Metal alcalino",
-                cl: "Halógeno",
-                he: "Gas noble",
-                h: "",
-            });
-        });
-
-        it("names an ion's group too, and not only an atom's", async () => {
-            // `<ion>` carries its own copy of this definition. A document
-            // showing both would otherwise report the same group in two
-            // languages at once.
+        it("gives an ion the same group as an atom, in every language", async () => {
+            // `<ion>` carries its own copy of this definition, so it can drift
+            // from `<atom>`'s on its own.
             const both = `
             <atom name="a" symbol="Fe" />
             <ion name="i" symbol="Fe" charge="2" />
             `;
-            expect(await values(both, ["a", "i"], "groupName", "es")).toEqual({
-                a: "Metal de transición",
-                i: "Metal de transición",
-            });
+            for (const locale of [undefined, "es"]) {
+                expect(
+                    await values(both, ["a", "i"], "groupName", locale),
+                ).toEqual({
+                    a: "Transition Metal",
+                    i: "Transition Metal",
+                });
+            }
+        });
+
+        it("reports a phase at STP the same in every language", async () => {
+            const phases = { na: "Solid", cl: "Gas", he: "Gas", h: "Gas" };
+            expect(await values(doenetML, names, "phaseAtSTP")).toEqual(phases);
+            expect(await values(doenetML, names, "phaseAtSTP", "es")).toEqual(
+                phases,
+            );
+        });
+
+        it("reports a metal category the same in every language", async () => {
+            const both = `
+            <atom name="na" symbol="Na" />
+            <atom name="cl" symbol="Cl" />
+            <ion name="i" symbol="Na" charge="1" />
+            `;
+            const categories = { na: "Metal", cl: "Non Metal", i: "Metal" };
+            expect(
+                await values(both, ["na", "cl", "i"], "metalCategory"),
+            ).toEqual(categories);
+            expect(
+                await values(both, ["na", "cl", "i"], "metalCategory", "es"),
+            ).toEqual(categories);
         });
     });
 
@@ -265,11 +295,14 @@ describe("chemistry words follow the document locale @group4", () => {
             fe: "Hierro",
             cl: "Cloruro",
         });
-        expect((await values(doenetML, ["fe"], "groupName")).fe).eq(
-            "Metal de transición",
-        );
         expect((await values(doenetML, ["bad"], "text")).bad).eq(
             "[Símbolo químico no válido]",
+        );
+        // And the author's own route to a language does not reach the values
+        // either, which is the half of #1577 a host-declared locale cannot
+        // check on its own.
+        expect((await values(doenetML, ["fe"], "groupName")).fe).eq(
+            "Transition Metal",
         );
     });
 });
