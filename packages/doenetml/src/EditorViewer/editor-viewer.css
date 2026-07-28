@@ -333,12 +333,18 @@
 }
 
 .viewer-panel .accessibility-status-button.has-level-1-issues {
-    background: #f5f3ff;
-    color: #5b21b6;
-    box-shadow: inset 0 0 0 1px #8b5cf6;
+    background: #fff6f3;
+    color: #e68938;
+    box-shadow: inset 0 0 0 1px #ba6520;
 }
 
-.viewer-panel .accessibility-status-button.no-level-1-issues {
+.viewer-panel .accessibility-status-button.has-level-2-issues {
+    background: #fefff3;
+    color: #e6e338;
+    box-shadow: inset 0 0 0 1px #bab220;
+}
+
+.viewer-panel .accessibility-status-button.no-accessibility-issues {
     background: #ecfdf3;
     color: #027a48;
     box-shadow: inset 0 0 0 1px #6ce9a6;
