@@ -21,6 +21,13 @@ import {
 } from "../utils/excludeCombinations";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    NO_SELECT_ERROR,
+    selectError,
+    selectionResult,
+    takeSelectError,
+} from "../utils/selectErrors";
+import { errorComponentState } from "../utils/dast/errors";
 const { gcd } = me.math;
 
 export default class SelectFromSequence extends Sequence {
@@ -206,6 +213,14 @@ export default class SelectFromSequence extends Sequence {
                     shadowVariable: true,
                     immutable: true,
                 },
+                {
+                    // Set with `errorMessage` and never without it; see
+                    // `SelectErrorState`.
+                    variableName: "errorDiagnostic",
+                    hasEssential: true,
+                    shadowVariable: true,
+                    immutable: true,
+                },
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 numToSelect: {
@@ -331,7 +346,10 @@ export default class SelectFromSequence extends Sequence {
                         componentType: "_error",
                         componentIdx: nComponents++,
                         stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                        state: { message: errorMessage },
+                        state: errorComponentState(
+                            errorMessage,
+                            await component.stateValues.errorDiagnostic,
+                        ),
                         attributes: {},
                         doenetAttributes: {},
                         children: [],
@@ -892,18 +910,10 @@ function makeSelection({ dependencyValues }) {
     // console.log(dependencyValues)
 
     if (dependencyValues.numToSelect < 1) {
-        return {
-            setEssentialValue: {
-                errorMessage: "",
-                selectedValues: [],
-                selectedIndices: [],
-            },
-            setValue: {
-                errorMessage: "",
-                selectedValues: [],
-                selectedIndices: [],
-            },
-        };
+        return selectionResult(NO_SELECT_ERROR, {
+            selectedValues: [],
+            selectedIndices: [],
+        });
     }
 
     let numUniqueRequired = 1;
@@ -912,24 +922,17 @@ function makeSelection({ dependencyValues }) {
     }
 
     if (numUniqueRequired > dependencyValues.length) {
-        let errorMessage =
-            "Cannot select " +
-            numUniqueRequired +
-            " values from a sequence of length " +
-            dependencyValues.length +
-            ".";
-        return {
-            setEssentialValue: {
-                errorMessage,
-                selectedValues: null,
-                selectedIndices: null,
+        const error = selectError({
+            code: "doenet-e0036",
+            args: {
+                numToSelect: numUniqueRequired,
+                length: dependencyValues.length,
             },
-            setValue: {
-                errorMessage,
-                selectedValues: null,
-                selectedIndices: null,
-            },
-        };
+        });
+        return selectionResult(error, {
+            selectedValues: null,
+            selectedIndices: null,
+        });
     }
 
     // if desiredIndices is specified, use those
@@ -940,37 +943,19 @@ function makeSelection({ dependencyValues }) {
         let desiredIndices = dependencyValues.variants.desiredVariant.indices;
         if (desiredIndices !== undefined) {
             if (desiredIndices.length !== dependencyValues.numToSelect) {
-                let errorMessage =
-                    "Number of indices specified for select must match number to select";
-                return {
-                    setEssentialValue: {
-                        errorMessage,
-                        selectedValues: null,
-                        selectedIndices: null,
-                    },
-                    setValue: {
-                        errorMessage,
-                        selectedValues: null,
-                        selectedIndices: null,
-                    },
-                };
+                const error = selectError({ code: "doenet-e0037" });
+                return selectionResult(error, {
+                    selectedValues: null,
+                    selectedIndices: null,
+                });
             }
             desiredIndices = desiredIndices.map(Number);
             if (!desiredIndices.every(Number.isInteger)) {
-                let errorMessage =
-                    "All indices specified for select must be integers";
-                return {
-                    setEssentialValue: {
-                        errorMessage,
-                        selectedValues: null,
-                        selectedIndices: null,
-                    },
-                    setValue: {
-                        errorMessage,
-                        selectedValues: null,
-                        selectedIndices: null,
-                    },
-                };
+                const error = selectError({ code: "doenet-e0038" });
+                return selectionResult(error, {
+                    selectedValues: null,
+                    selectedIndices: null,
+                });
             }
             let n = dependencyValues.length;
             desiredIndices = desiredIndices.map(
@@ -990,20 +975,11 @@ function makeSelection({ dependencyValues }) {
                 });
 
                 if (componentValue === null) {
-                    let errorMessage =
-                        "Specified index of selectfromsequence that was excluded";
-                    return {
-                        setEssentialValue: {
-                            errorMessage,
-                            selectedValues: null,
-                            selectedIndices: null,
-                        },
-                        setValue: {
-                            errorMessage,
-                            selectedValues: null,
-                            selectedIndices: null,
-                        },
-                    };
+                    const error = selectError({ code: "doenet-e0039" });
+                    return selectionResult(error, {
+                        selectedValues: null,
+                        selectedIndices: null,
+                    });
                 }
 
                 selectedValues.push(componentValue);
@@ -1016,34 +992,17 @@ function makeSelection({ dependencyValues }) {
                     values: selectedValues,
                 })
             ) {
-                let errorMessage =
-                    "Specified indices of selectfromsequence that was an excluded combination";
-                return {
-                    setEssentialValue: {
-                        errorMessage,
-                        selectedValues: null,
-                        selectedIndices: null,
-                    },
-                    setValue: {
-                        errorMessage,
-                        selectedValues: null,
-                        selectedIndices: null,
-                    },
-                };
+                const error = selectError({ code: "doenet-e0040" });
+                return selectionResult(error, {
+                    selectedValues: null,
+                    selectedIndices: null,
+                });
             }
 
-            return {
-                setEssentialValue: {
-                    errorMessage: "",
-                    selectedValues,
-                    selectedIndices: desiredIndices,
-                },
-                setValue: {
-                    errorMessage: "",
-                    selectedValues,
-                    selectedIndices: desiredIndices,
-                },
-            };
+            return selectionResult(NO_SELECT_ERROR, {
+                selectedValues,
+                selectedIndices: desiredIndices,
+            });
         }
     }
 
@@ -1052,7 +1011,7 @@ function makeSelection({ dependencyValues }) {
     let coprime = dependencyValues.coprime;
 
     if (dependencyValues.type === "number") {
-        let errorMessage = null;
+        let error = null;
         numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
             excludedCombinations: dependencyValues.excludedCombinations,
             numValues:
@@ -1075,12 +1034,11 @@ function makeSelection({ dependencyValues }) {
                 dependencyValues.from <= 0 ||
                 lastNumber <= 0
             ) {
-                errorMessage =
-                    "Cannot select coprime combinations as not selecting positive integers.";
+                error = selectError({ code: "doenet-e0041" });
             } else if (
                 gcd(dependencyValues.from, dependencyValues.step) !== 1
             ) {
-                errorMessage = `Cannot select coprime numbers. All possible values share a common factor. (Specified values of "from" or "to" must be coprime with "step".)`;
+                error = selectError({ code: "doenet-e0042" });
             } else if (dependencyValues.numToSelect === 1) {
                 coprime = false;
             } else if (
@@ -1094,35 +1052,26 @@ function makeSelection({ dependencyValues }) {
                     dependencyValues.from > 1 ||
                     dependencyValues.exclude.includes(1)
                 ) {
-                    if (dependencyValues.length <= 1) {
-                        errorMessage =
-                            "Cannot select coprime combinations from a single number that is not 1.";
-                    } else {
-                        const possibleValues =
-                            returnSequenceValues(dependencyValues);
-
-                        if (possibleValues.length <= 1) {
-                            errorMessage =
-                                "Cannot select coprime combinations from a single number that is not 1.";
-                        }
+                    // One situation and so one code, reached two ways: a
+                    // sequence short enough to tell from `length` alone, and
+                    // one whose values have to be generated to tell. The
+                    // short-circuit is what keeps the second from being
+                    // generated when the first already answered.
+                    if (
+                        dependencyValues.length <= 1 ||
+                        returnSequenceValues(dependencyValues).length <= 1
+                    ) {
+                        error = selectError({ code: "doenet-e0043" });
                     }
                 }
             }
         }
 
-        if (errorMessage) {
-            return {
-                setEssentialValue: {
-                    errorMessage: errorMessage,
-                    selectedValues: null,
-                    selectedIndices: null,
-                },
-                setValue: {
-                    errorMessage: errorMessage,
-                    selectedValues: null,
-                    selectedIndices: null,
-                },
-            };
+        if (error) {
+            return selectionResult(error, {
+                selectedValues: null,
+                selectedIndices: null,
+            });
         }
     } else {
         // No need to send warning since already sent
@@ -1142,18 +1091,10 @@ function makeSelection({ dependencyValues }) {
         });
 
         if (selectedObj.errorMessage) {
-            return {
-                setEssentialValue: {
-                    errorMessage: selectedObj.errorMessage,
-                    selectedValues: null,
-                    selectedIndices: null,
-                },
-                setValue: {
-                    errorMessage: selectedObj.errorMessage,
-                    selectedValues: null,
-                    selectedIndices: null,
-                },
-            };
+            return selectionResult(takeSelectError(selectedObj), {
+                selectedValues: null,
+                selectedIndices: null,
+            });
         }
 
         selectedValues = selectedObj.selectedValues;
@@ -1208,52 +1149,32 @@ function makeSelection({ dependencyValues }) {
             }
 
             if (numCombinationsExcluded > 0.7 * numPossibilities) {
+                // A combination naming NaN can name the same one twice, so the
+                // estimate is revised down before the threshold is believed.
+                // Nothing else can revise it, so a count that survives — or
+                // one there was nothing to revise — is the same failure and
+                // the same code.
                 if (
                     dependencyValues.type === "number" &&
                     dependencyValues.excludedCombinations.some((x) =>
                         x.some(Number.isNaN),
                     )
                 ) {
-                    let numDuplicated = estimateNumberOfDuplicateCombinations(
-                        dependencyValues.excludedCombinations,
-                        dependencyValues.length -
-                            dependencyValues.exclude.length,
-                        dependencyValues.withReplacement,
-                    );
+                    numCombinationsExcluded -=
+                        estimateNumberOfDuplicateCombinations(
+                            dependencyValues.excludedCombinations,
+                            dependencyValues.length -
+                                dependencyValues.exclude.length,
+                            dependencyValues.withReplacement,
+                        );
+                }
 
-                    numCombinationsExcluded -= numDuplicated;
-
-                    if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                        let errorMessage =
-                            "Excluded over 70% of combinations in selectFromSequence";
-                        return {
-                            setEssentialValue: {
-                                errorMessage,
-                                selectedValues: null,
-                                selectedIndices: null,
-                            },
-                            setValue: {
-                                errorMessage,
-                                selectedValues: null,
-                                selectedIndices: null,
-                            },
-                        };
-                    }
-                } else {
-                    let errorMessage =
-                        "Excluded over 70% of combinations in selectFromSequence";
-                    return {
-                        setEssentialValue: {
-                            errorMessage,
-                            selectedValues: null,
-                            selectedIndices: null,
-                        },
-                        setValue: {
-                            errorMessage,
-                            selectedValues: null,
-                            selectedIndices: null,
-                        },
-                    };
+                if (numCombinationsExcluded > 0.7 * numPossibilities) {
+                    const error = selectError({ code: "doenet-e0044" });
+                    return selectionResult(error, {
+                        selectedValues: null,
+                        selectedIndices: null,
+                    });
                 }
             }
         }
@@ -1271,18 +1192,10 @@ function makeSelection({ dependencyValues }) {
             });
 
             if (selectedObj.errorMessage) {
-                return {
-                    setEssentialValue: {
-                        errorMessage: selectedObj.errorMessage,
-                        selectedValues: null,
-                        selectedIndices: null,
-                    },
-                    setValue: {
-                        errorMessage: selectedObj.errorMessage,
-                        selectedValues: null,
-                        selectedIndices: null,
-                    },
-                };
+                return selectionResult(takeSelectError(selectedObj), {
+                    selectedValues: null,
+                    selectedIndices: null,
+                });
             }
 
             selectedValues = selectedObj.selectedValues;
@@ -1308,27 +1221,16 @@ function makeSelection({ dependencyValues }) {
         }
 
         if (!foundValidCombination) {
-            let errorMessage;
-            if (coprime) {
-                errorMessage =
-                    "Could not select coprime numbers. All possible values share a common factor.";
-            } else {
-                // this won't happen, as occurs with prob < 10^(-30)
-                errorMessage =
-                    "By extremely unlikely fluke, couldn't select combination of random values";
-            }
-            return {
-                setEssentialValue: {
-                    errorMessage,
-                    selectedValues: null,
-                    selectedIndices: null,
-                },
-                setValue: {
-                    errorMessage,
-                    selectedValues: null,
-                    selectedIndices: null,
-                },
-            };
+            // Without `coprime` this is the extremely unlikely fluke rather
+            // than a sequence that could never have supplied a pair: it
+            // won't happen, as it occurs with prob < 10^(-30).
+            const error = coprime
+                ? selectError({ code: "doenet-e0045" })
+                : selectError({ code: "doenet-e0052" });
+            return selectionResult(error, {
+                selectedValues: null,
+                selectedIndices: null,
+            });
         }
     }
 
@@ -1366,14 +1268,10 @@ function makeSelection({ dependencyValues }) {
         // don't sort type math
     }
 
-    return {
-        setEssentialValue: {
-            errorMessage: "",
-            selectedValues,
-            selectedIndices,
-        },
-        setValue: { errorMessage: "", selectedValues, selectedIndices },
-    };
+    return selectionResult(NO_SELECT_ERROR, {
+        selectedValues,
+        selectedIndices,
+    });
 }
 
 function selectValuesAndIndices({
@@ -1434,10 +1332,8 @@ function selectValuesAndIndices({
 
             if (!foundValid) {
                 // this won't happen, as occurs with prob < 10^(-30)
-                let errorMessage =
-                    "By extremely unlikely fluke, couldn't select random value";
                 return {
-                    errorMessage,
+                    ...selectError({ code: "doenet-e0053" }),
                     selectedValues: null,
                     selectedIndices: null,
                 };
@@ -1458,13 +1354,11 @@ function selectValuesAndIndices({
     let numPossibleValues = possibleValuesAndIndices.length;
 
     if (numUniqueRequired > numPossibleValues) {
-        let errorMessage =
-            "Cannot select " +
-            numUniqueRequired +
-            " unique values from sequence of length " +
-            numPossibleValues;
         return {
-            errorMessage,
+            ...selectError({
+                code: "doenet-e0046",
+                args: { numToSelect: numUniqueRequired, numPossibleValues },
+            }),
             selectedValues: null,
             selectedIndices: null,
         };

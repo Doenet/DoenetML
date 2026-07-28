@@ -43,12 +43,13 @@ describe("the error component carries its diagnostic to the renderer @group4", (
         );
     });
 
-    it("leaves an uncoded error with nothing but its English", async () => {
-        // `<select>`'s `errorMessage` is the family `utils/dast/errors.ts`
-        // names as still holding a finished English string with no code behind
-        // it (#1518). Both slots have to stay empty rather than take some
-        // invented value the formatter would then try to resolve — the
-        // renderer shows this English, exactly as it does today.
+    it("codes the box a `<select>` replaces itself with", async () => {
+        // This was the last `_error` that arrived with nothing but English:
+        // `<select>`'s `errorMessage` was a state variable holding a finished
+        // sentence, so a Spanish reader got one English box on an otherwise
+        // Spanish page. It carries its code now, like every other error
+        // (#1581). The English stays as the fallback, and is what the existing
+        // `<select>` suite asserts on.
         const { core } = await createTestCore({
             doenetML: `
 <variantControl variantNames="uno dos" />
@@ -63,8 +64,8 @@ describe("the error component carries its diagnostic to the renderer @group4", (
         ) as any[];
 
         expect(errors.length).eq(1);
-        expect(errors[0].stateValues.code).eq(null);
-        expect(errors[0].stateValues.args).eq(null);
+        expect(errors[0].stateValues.code).eq("doenet-e0033");
+        expect(errors[0].stateValues.args).eqls({ variantName: "dos" });
         expect(errors[0].stateValues.showMessage).eq(true);
         expect(errors[0].stateValues.message).eq(
             "Some variants are specified for select but no options are specified for possible variant name: dos.",

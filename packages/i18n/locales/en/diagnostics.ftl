@@ -772,3 +772,82 @@ schema-attribute-value-not-allowed =
         [true] Attribute `{ $attribute }` of element `<{ $tag }>` must be a list whose items are each one of: { $allowed }
        *[other] Attribute `{ $attribute }` of element `<{ $tag }>` must be one of: { $allowed }
     }
+
+
+## The `<select>` family's error boxes
+##
+## The messages that replace the whole component with a red box rather than
+## warning beside it: nothing can be selected, so there is nothing to render.
+## They were the last uncoded `_error` path in the worker (#1581).
+##
+## Counts arrive as numbers rather than as text, so a language that agrees a
+## noun with them can select on them. English does not agree here — it says
+## "1 options" today and these messages reproduce it exactly, because the box's
+## text is what the existing suites pin.
+##
+## Being numbers, they are grouped: a count of 1500 renders as "1,500" in
+## English where the concatenated sentence these replaced wrote "1500". That is
+## the one way the English moved, and it moved in the right direction — these
+## are quantities, not identifiers like a line or a section number, which is
+## the distinction that decides between a number and a string everywhere in
+## these catalogs.
+##
+## Translators: component and attribute names — `selectFromSequence`,
+## `selectPrimeNumbers`, `from`, `to`, `step` — are DoenetML identifiers, not
+## words. They are written into these messages as they stand and must be left
+## in English exactly as written.
+
+select-variant-name-option-count-mismatch = Invalid variant name for select.  Variant name { $variantName } appears in { $numOptions } options but number to select is { $numToSelect }.
+
+select-variant-name-without-options = Some variants are specified for select but no options are specified for possible variant name: { $variantName }.
+
+select-variant-name-not-possible = Variant name { $variantName } that is specified for select is not a possible variant name.
+
+select-too-few-options = Cannot select { $numToSelect } components from only { $numOptions }.
+
+select-from-sequence-too-few-values = Cannot select { $numToSelect } values from a sequence of length { $length }.
+
+select-from-sequence-indices-count-mismatch = Number of indices specified for select must match number to select
+
+select-from-sequence-indices-not-integers = All indices specified for select must be integers
+
+select-from-sequence-index-excluded = Specified index of selectfromsequence that was excluded
+
+select-from-sequence-indices-excluded-combination = Specified indices of selectfromsequence that was an excluded combination
+
+select-from-sequence-coprime-not-positive-integers = Cannot select coprime combinations as not selecting positive integers.
+
+# Translators: from, to and step are attribute names. They are written into
+# the message rather than passed in because these three never vary — an
+# argument is for a name that changes from one call to the next.
+select-from-sequence-coprime-common-factor = Cannot select coprime numbers. All possible values share a common factor. (Specified values of "from" or "to" must be coprime with "step".)
+
+select-from-sequence-coprime-single-number = Cannot select coprime combinations from a single number that is not 1.
+
+select-from-sequence-excluded-too-many-combinations = Excluded over 70% of combinations in selectFromSequence
+
+# The sibling of `select-from-sequence-coprime-common-factor`, and a different
+# situation rather than a rewording of it: that one is decided up front, from
+# the sequence's own arithmetic. This one is what is left after two hundred
+# draws found no coprime combination among values that could have supplied one.
+select-from-sequence-coprime-none-found = Could not select coprime numbers. All possible values share a common factor.
+
+select-from-sequence-too-few-unique-values = Cannot select { $numToSelect } unique values from sequence of length { $numPossibleValues }
+
+select-prime-numbers-too-few-values = Cannot select { $numToSelect } values from a list of primes of length { $numValues }
+
+select-prime-numbers-values-count-mismatch = Number of values specified for select must match number to select
+
+select-prime-numbers-values-not-prime = All values specified for select prime number must be in the list of primes
+
+select-prime-numbers-values-excluded-combination = Specified values of selectPrimeNumbers was an excluded combination
+
+select-prime-numbers-excluded-too-many-combinations = Excluded over 70% of combinations in selectPrimeNumbers
+
+# Both flukes are shared by `<selectFromSequence>` and `<selectPrimeNumbers>`,
+# which say the same thing in the same words. Neither is reachable in practice
+# — each follows two hundred independent draws — but an unreachable box is
+# still a box, and it renders in whatever language the rest of the page does.
+select-random-combination-fluke = By extremely unlikely fluke, couldn't select combination of random values
+
+select-random-value-fluke = By extremely unlikely fluke, couldn't select random value

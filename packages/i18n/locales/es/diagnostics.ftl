@@ -601,3 +601,55 @@ schema-attribute-value-not-allowed =
         [true] El atributo `{ $attribute }` del elemento `<{ $tag }>` debe ser una lista en la que cada elemento sea uno de: { $allowed }
        *[other] El atributo `{ $attribute }` del elemento `<{ $tag }>` debe ser uno de: { $allowed }
     }
+
+
+## Los cuadros de error de la familia `<select>`
+##
+## Los recuentos llegan como números, de modo que una lengua que concuerde con
+## ellos puede seleccionar sobre ellos. Los nombres de componentes y atributos
+## (`selectFromSequence`, `selectPrimeNumbers`, `from`, `to`, `step`) son
+## identificadores de DoenetML y se dejan tal cual.
+
+select-variant-name-option-count-mismatch = Nombre de variante no válido para select.  El nombre de variante { $variantName } aparece en { $numOptions } opciones, pero el número a seleccionar es { $numToSelect }.
+
+select-variant-name-without-options = Se especifican variantes para select, pero no se especifica ninguna opción para el posible nombre de variante: { $variantName }.
+
+select-variant-name-not-possible = El nombre de variante { $variantName } especificado para select no es un nombre de variante posible.
+
+select-too-few-options = No se pueden seleccionar { $numToSelect } componentes de solo { $numOptions }.
+
+select-from-sequence-too-few-values = No se pueden seleccionar { $numToSelect } valores de una secuencia de longitud { $length }.
+
+select-from-sequence-indices-count-mismatch = El número de índices especificados para select debe coincidir con el número a seleccionar
+
+select-from-sequence-indices-not-integers = Todos los índices especificados para select deben ser enteros
+
+select-from-sequence-index-excluded = Se especificó un índice de selectfromsequence que estaba excluido
+
+select-from-sequence-indices-excluded-combination = Se especificaron índices de selectfromsequence que formaban una combinación excluida
+
+select-from-sequence-coprime-not-positive-integers = No se pueden seleccionar combinaciones coprimas porque no se están seleccionando enteros positivos.
+
+select-from-sequence-coprime-common-factor = No se pueden seleccionar números coprimos. Todos los valores posibles comparten un factor común. (Los valores especificados de "from" o "to" deben ser coprimos con "step".)
+
+select-from-sequence-coprime-single-number = No se pueden seleccionar combinaciones coprimas a partir de un único número que no sea 1.
+
+select-from-sequence-excluded-too-many-combinations = Se excluyó más del 70 % de las combinaciones en selectFromSequence
+
+select-from-sequence-coprime-none-found = No se pudieron seleccionar números coprimos. Todos los valores posibles comparten un factor común.
+
+select-from-sequence-too-few-unique-values = No se pueden seleccionar { $numToSelect } valores únicos de una secuencia de longitud { $numPossibleValues }
+
+select-prime-numbers-too-few-values = No se pueden seleccionar { $numToSelect } valores de una lista de primos de longitud { $numValues }
+
+select-prime-numbers-values-count-mismatch = El número de valores especificados para select debe coincidir con el número a seleccionar
+
+select-prime-numbers-values-not-prime = Todos los valores especificados para select prime number deben estar en la lista de primos
+
+select-prime-numbers-values-excluded-combination = Se especificaron valores de selectPrimeNumbers que formaban una combinación excluida
+
+select-prime-numbers-excluded-too-many-combinations = Se excluyó más del 70 % de las combinaciones en selectPrimeNumbers
+
+select-random-combination-fluke = Por una casualidad extremadamente improbable, no se pudo seleccionar una combinación de valores aleatorios
+
+select-random-value-fluke = Por una casualidad extremadamente improbable, no se pudo seleccionar un valor aleatorio

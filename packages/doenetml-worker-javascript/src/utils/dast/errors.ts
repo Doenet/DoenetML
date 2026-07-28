@@ -22,15 +22,16 @@ export type ErrorComponentState = {
  * {@link convertToErrorComponent}, the parser-error branch of
  * `convertNormalizedDast`, the state-variable queue that
  * `addQueuedErrorComponentsFromStateVariables` drains, the circular-dependency
- * reports in `Copy` and `CompositeExpander`, and `setErrorReplacements`. The
- * component is the only thing carrying the diagnostic to where the builder
- * re-raises it, so a place that forgets the code silently un-translates its
- * error.
+ * reports in `Copy` and `CompositeExpander`, `setErrorReplacements`, and the
+ * `<select>` family's replacements. The component is the only thing carrying
+ * the diagnostic to where the builder re-raises it, so a place that forgets
+ * the code silently un-translates its error.
  *
- * What is left outside is the `<select>` family's `errorMessage`, a state
- * variable holding a finished English string with no code behind it: routing
- * it through this would add a call that could not do anything. It belongs here
- * once that message migrates to the catalogs (#1518).
+ * Nothing is left outside. The `<select>` family used to be: its `errorMessage`
+ * was a state variable holding a finished English string with no code behind
+ * it, and it was the one `_error` a Spanish reader still got in English.
+ * `utils/selectErrors.ts` carries the code beside that message now, and those
+ * three components pass it in here like everything else (#1581).
  *
  * `source` is whatever the message came from: a caught value (a thrown
  * `DiagnosticError`, a bare `Error`, or a string), a parser `DastError` node,
