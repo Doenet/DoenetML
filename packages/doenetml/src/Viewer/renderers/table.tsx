@@ -9,6 +9,7 @@ interface TableSVs {
     hidden: boolean;
     suppressTableNameInTitle: boolean;
     tableName: string;
+    tableNamePrefix: string;
     title: string;
     titleChildName: string;
 }
@@ -60,16 +61,25 @@ export default React.memo(function Table(props: UseDoenetRendererProps) {
     }
 
     if (!SVs.suppressTableNameInTitle) {
-        let tableName = <strong>{SVs.tableName}</strong>;
-        if (title) {
-            title = (
-                <>
-                    {tableName}: {title}
-                </>
-            );
-        } else {
-            title = tableName;
-        }
+        // The separator between the name and the title is part of the name the
+        // worker composed, not a `": "` written here: it is a translation
+        // decision, and it used to be unreachable from any catalog (#1582).
+        // It falls inside the `<strong>` as a result, which is the trade the
+        // issue named and settled. Which of the two names to print is decided
+        // here rather than taken from the worker's answer alone, because a
+        // title child can exist without this renderer finding a node for it,
+        // and a dangling ": " would show.
+        const tableName = (
+            <strong>{title ? SVs.tableNamePrefix : SVs.tableName}</strong>
+        );
+        title = title ? (
+            <>
+                {tableName}
+                {title}
+            </>
+        ) : (
+            tableName
+        );
     }
 
     heading = <div id={id + "_title"}>{title}</div>;

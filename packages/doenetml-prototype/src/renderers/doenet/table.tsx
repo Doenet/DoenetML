@@ -42,16 +42,12 @@ export const Table: BasicComponentWithPassthroughChildren<TableData> = ({
             id={htmlId}
         >
             <Header depth={node.data.props.divisionDepth}>
-                <span className="title-prefix">
-                    {displayName ? (
-                        <>
-                            {displayName}
-                            {title ? ":" : ""}{" "}
-                        </>
-                    ) : (
-                        ""
-                    )}
-                </span>
+                {/* `titlePrefix` already ends in whatever separates it from
+                    the title, in the document's language, so nothing is added
+                    here (#1582). An untitled table therefore no longer trails
+                    the space this used to print unconditionally, which nothing
+                    followed. */}
+                <span className="title-prefix">{displayName}</span>
                 <span className="title">{title}</span>
             </Header>
             <div className="content">{children}</div>

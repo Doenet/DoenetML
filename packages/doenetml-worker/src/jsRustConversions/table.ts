@@ -11,6 +11,13 @@ import type { FlatDastElement } from "../CoreWorker";
  * the same role as `titlePrefix` does for sections.  `tableEnumeration` (the
  * bare number, e.g. "2") becomes both `codeNumber` and the ident fields for
  * cross-reference resolution.
+ *
+ * `titlePrefix` takes the *other* name the core composes, `tableNamePrefix`,
+ * which carries the separator joining it to an authored title ("Table 2: ").
+ * That is what makes it a title prefix rather than a label: the renderer
+ * prints it and the title after it and adds no punctuation of its own, so the
+ * separator is the catalog's to choose (#1582). A cross-reference label wants
+ * the bare name, which is why the two are different values.
  */
 export function tableJsToRust(
     props: Record<string, any>,
@@ -25,7 +32,7 @@ export function tableJsToRust(
     props.codeNumber = props.tableEnumeration ?? "";
     props.titlePrefix = props.suppressTableNameInTitle
         ? ""
-        : (props.tableName ?? "");
+        : (props.tableNamePrefix ?? "");
     props.divisionType = "table";
     // XXX: this is wrong; should be an actual depth to get the headings correct for accessibility.
     props.divisionDepth = 3;
@@ -51,4 +58,5 @@ export function tableJsToRust(
     delete props.tableEnumeration;
     delete props.titleChildName;
     delete props.tableName;
+    delete props.tableNamePrefix;
 }

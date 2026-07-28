@@ -258,12 +258,16 @@ hint-title = Pista
 table-name =
     { $parts ->
         [numbered] Tabla { $enumeration }
+        [numbered-title] Tabla { $enumeration }{ ": " }
+        [unnumbered-title] Tabla{ ": " }
        *[unnumbered] Tabla
     }
 
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
+        [numbered-caption] Figura { $enumeration }{ ": " }
+        [unnumbered-caption] Figura{ ": " }
        *[unnumbered] Figura
     }
 
