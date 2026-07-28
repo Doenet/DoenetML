@@ -498,7 +498,43 @@ export type MessageKey =
     | "select-prime-numbers-values-excluded-combination"
     | "select-prime-numbers-excluded-too-many-combinations"
     | "select-random-combination-fluke"
-    | "select-random-value-fluke";
+    | "select-random-value-fluke"
+    | "editor-update-viewer"
+    | "editor-update-viewer-title"
+    | "editor-variant"
+    | "editor-variant-filter"
+    | "editor-variant-next"
+    | "editor-variant-previous"
+    | "editor-accessibility-title"
+    | "editor-accessibility-label"
+    | "editor-accessibility-badge"
+    | "editor-version-title"
+    | "editor-tab-help"
+    | "editor-tab-help-short"
+    | "editor-tab-errors"
+    | "editor-tab-warnings"
+    | "editor-tab-info"
+    | "editor-tab-accessibility"
+    | "editor-tab-responses"
+    | "editor-tab-with-count"
+    | "editor-options"
+    | "editor-format-as-doenetml"
+    | "editor-format-as-xml"
+    | "editor-diagnostic-line"
+    | "editor-no-errors"
+    | "editor-no-warnings"
+    | "editor-no-info"
+    | "editor-show-info-annotations"
+    | "editor-show-accessibility-annotations"
+    | "editor-accessibility-learn-more"
+    | "editor-accessibility-violations-heading"
+    | "editor-accessibility-other-heading"
+    | "editor-none-found"
+    | "editor-no-responses"
+    | "editor-response-answer-id"
+    | "editor-response-response"
+    | "editor-response-credit"
+    | "editor-response-submitted";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -994,4 +1030,40 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "select-prime-numbers-excluded-too-many-combinations",
     "select-random-combination-fluke",
     "select-random-value-fluke",
+    "editor-update-viewer",
+    "editor-update-viewer-title",
+    "editor-variant",
+    "editor-variant-filter",
+    "editor-variant-next",
+    "editor-variant-previous",
+    "editor-accessibility-title",
+    "editor-accessibility-label",
+    "editor-accessibility-badge",
+    "editor-version-title",
+    "editor-tab-help",
+    "editor-tab-help-short",
+    "editor-tab-errors",
+    "editor-tab-warnings",
+    "editor-tab-info",
+    "editor-tab-accessibility",
+    "editor-tab-responses",
+    "editor-tab-with-count",
+    "editor-options",
+    "editor-format-as-doenetml",
+    "editor-format-as-xml",
+    "editor-diagnostic-line",
+    "editor-no-errors",
+    "editor-no-warnings",
+    "editor-no-info",
+    "editor-show-info-annotations",
+    "editor-show-accessibility-annotations",
+    "editor-accessibility-learn-more",
+    "editor-accessibility-violations-heading",
+    "editor-accessibility-other-heading",
+    "editor-none-found",
+    "editor-no-responses",
+    "editor-response-answer-id",
+    "editor-response-response",
+    "editor-response-credit",
+    "editor-response-submitted",
 ];

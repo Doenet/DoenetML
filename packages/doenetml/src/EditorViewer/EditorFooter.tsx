@@ -25,6 +25,7 @@ import { IoAccessibility, IoAccessibilityOutline } from "react-icons/io5";
 import classNames from "classnames";
 import type { DiagnosticsTabId } from "./DiagnosticsResponseTabs";
 import type { DiagnosticsSummary } from "./diagnostics";
+import { useT } from "../utils/i18n";
 
 /**
  * Tab trigger with icon + optional count badge used by the editor footer to
@@ -32,6 +33,10 @@ import type { DiagnosticsSummary } from "./diagnostics";
  * footer so an active+selected click can close the panel rather than re-select.
  * Pass `inlineLabel` to render a short text label next to the icon (used by
  * the help tab); otherwise pass `count` to render a numeric badge.
+ *
+ * The accessible name joins the label to its count through the catalog rather
+ * than through a template literal: the separator is punctuation, and which
+ * punctuation is a translation decision (#1580).
  */
 function TabTrigger({
     id,
@@ -50,11 +55,20 @@ function TabTrigger({
     iconClassName?: string;
     onActivate: (tabId: DiagnosticsTabId) => void;
 }) {
+    const t = useT();
     return (
         <Tab
             id={id}
             title={label}
-            aria-label={count === undefined ? label : `${label}: ${count}`}
+            aria-label={
+                count === undefined
+                    ? label
+                    : t(
+                          "editor-tab-with-count",
+                          { label, count },
+                          `${label}: ${count}`,
+                      )
+            }
             className="diagnostic-tab-trigger"
             data-test={`footer-tab-${id}`}
             onClick={() => onActivate(id)}
@@ -122,8 +136,12 @@ export function EditorFooter({
     } = diagnosticsSummary;
     const accessibilityCount =
         accessibilityLevel1Count + accessibilityLevel2Count;
-
     const anyTabs = showDiagnostics || showResponses || showHelp;
+
+    const t = useT();
+    // The menu button's tooltip and its accessible name are the same words, so
+    // they are the same message resolved once.
+    const editorOptions = t("editor-options", undefined, "Editor options");
 
     return (
         <div
@@ -133,7 +151,11 @@ export function EditorFooter({
         >
             <div
                 className="doenetml-version"
-                title={`DoenetML version ${DOENETML_VERSION}`}
+                title={t(
+                    "editor-version-title",
+                    { version: DOENETML_VERSION },
+                    `DoenetML version ${DOENETML_VERSION}`,
+                )}
             >
                 v{DOENETML_VERSION}
             </div>
@@ -150,8 +172,16 @@ export function EditorFooter({
                                 id="help"
                                 icon={<BsCodeSlash />}
                                 iconClassName="is-help"
-                                label="Context-sensitive help"
-                                inlineLabel="Context"
+                                label={t(
+                                    "editor-tab-help",
+                                    undefined,
+                                    "Context-sensitive help",
+                                )}
+                                inlineLabel={t(
+                                    "editor-tab-help-short",
+                                    undefined,
+                                    "Context",
+                                )}
                                 onActivate={activateTab}
                             />
                         )}
@@ -174,7 +204,11 @@ export function EditorFooter({
                                 iconClassName={
                                     errorsCount > 0 ? "is-error" : undefined
                                 }
-                                label="Errors"
+                                label={t(
+                                    "editor-tab-errors",
+                                    undefined,
+                                    "Errors",
+                                )}
                                 count={errorsCount}
                                 onActivate={activateTab}
                             />
@@ -192,7 +226,11 @@ export function EditorFooter({
                                 iconClassName={
                                     warningsCount > 0 ? "is-warning" : undefined
                                 }
-                                label="Warnings"
+                                label={t(
+                                    "editor-tab-warnings",
+                                    undefined,
+                                    "Warnings",
+                                )}
                                 count={warningsCount}
                                 onActivate={activateTab}
                             />
@@ -210,7 +248,7 @@ export function EditorFooter({
                                 iconClassName={
                                     infosCount > 0 ? "is-info" : undefined
                                 }
-                                label="Info"
+                                label={t("editor-tab-info", undefined, "Info")}
                                 count={infosCount}
                                 onActivate={activateTab}
                             />
@@ -232,7 +270,11 @@ export function EditorFooter({
                                           ? "is-accessibility-advisory"
                                           : undefined
                                 }
-                                label="Accessibility"
+                                label={t(
+                                    "editor-tab-accessibility",
+                                    undefined,
+                                    "Accessibility",
+                                )}
                                 count={accessibilityCount}
                                 onActivate={activateTab}
                             />
@@ -258,7 +300,11 @@ export function EditorFooter({
                                         ? "is-responses"
                                         : undefined
                                 }
-                                label="Submitted responses"
+                                label={t(
+                                    "editor-tab-responses",
+                                    undefined,
+                                    "Submitted responses",
+                                )}
                                 count={submittedResponsesCount}
                                 onActivate={activateTab}
                             />
@@ -270,8 +316,8 @@ export function EditorFooter({
                 <MenuProvider>
                     <MenuButton
                         className="footer-menu-button"
-                        title="Editor options"
-                        aria-label="Editor options"
+                        title={editorOptions}
+                        aria-label={editorOptions}
                         data-test="footer-menu-button"
                     >
                         <BsThreeDotsVertical />
@@ -289,7 +335,11 @@ export function EditorFooter({
                             }}
                             data-test="footer-menu-format-doenetml"
                         >
-                            Format as DoenetML
+                            {t(
+                                "editor-format-as-doenetml",
+                                undefined,
+                                "Format as DoenetML",
+                            )}
                         </MenuItem>
                         <MenuItem
                             className="footer-menu-item"
@@ -303,7 +353,11 @@ export function EditorFooter({
                             }}
                             data-test="footer-menu-format-xml"
                         >
-                            Format as XML
+                            {t(
+                                "editor-format-as-xml",
+                                undefined,
+                                "Format as XML",
+                            )}
                         </MenuItem>
                     </Menu>
                 </MenuProvider>

@@ -27,10 +27,20 @@ export type CatalogNamespace = (typeof CATALOG_NAMESPACES)[number];
  */
 export const WORKER_NAMESPACES: readonly CatalogNamespace[] = ["content"];
 
-/** Namespaces the main-thread viewer/editor chrome needs. */
+/**
+ * Namespaces the main-thread viewer/editor chrome needs.
+ *
+ * `editor` is here rather than in a list of its own because the editor chrome
+ * has no load context separate from the viewer's: `DoenetEditor` and
+ * `DoenetViewer` are two exports of one main-thread bundle, and the editor's
+ * strings would ride along in it whichever list named them. A namespace earns
+ * its own list by being *droppable* — `content` is, because the worker is a
+ * separate bundle that draws nothing — and this one is not.
+ */
 export const CHROME_NAMESPACES: readonly CatalogNamespace[] = [
     "chrome",
     "diagnostics",
+    "editor",
 ];
 
 export type Catalogs = Partial<Record<CatalogNamespace, string>>;

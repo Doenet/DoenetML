@@ -2,6 +2,7 @@ import * as Ariakit from "@ariakit/react";
 import React, { useEffect, useState } from "react";
 import { BsCaretDownFill, BsCaretUpFill } from "react-icons/bs";
 import type { ResolvedTheme } from "../utils/theme";
+import { useT } from "../utils/i18n";
 import "./variant-select.css";
 
 export default function VariantSelect({
@@ -15,6 +16,7 @@ export default function VariantSelect({
     onChange: (index: number) => void;
     syncIndex?: number;
 }) {
+    const t = useT();
     const [index, setIndex] = useState(0);
     const [inputValue, setInputValue] = useState("");
     const value = array[index] ?? "";
@@ -58,7 +60,7 @@ export default function VariantSelect({
                     >
                         <Ariakit.Select
                             className="doenet-ui-button button select-button"
-                            title="Variant"
+                            title={t("editor-variant", undefined, "Variant")}
                         />
                         <Ariakit.SelectPopover
                             gutter={4}
@@ -69,7 +71,11 @@ export default function VariantSelect({
                             <div className="combobox-wrapper">
                                 <Ariakit.Combobox
                                     autoSelect
-                                    placeholder="Filter..."
+                                    placeholder={t(
+                                        "editor-variant-filter",
+                                        undefined,
+                                        "Filter...",
+                                    )}
                                     className="combobox"
                                 />
                             </div>
@@ -88,7 +94,11 @@ export default function VariantSelect({
                 </Ariakit.ComboboxProvider>
             </div>
             <Ariakit.Button
-                title="Select next variant"
+                title={t(
+                    "editor-variant-next",
+                    undefined,
+                    "Select next variant",
+                )}
                 data-test="Next Variant"
                 className="doenet-ui-button button prev-next-button"
                 disabled={index == array.length - 1}
@@ -102,7 +112,11 @@ export default function VariantSelect({
                 <BsCaretDownFill />
             </Ariakit.Button>
             <Ariakit.Button
-                title="Select previous variant"
+                title={t(
+                    "editor-variant-previous",
+                    undefined,
+                    "Select previous variant",
+                )}
                 data-test="Previous Variant"
                 className="doenet-ui-button button prev-next-button"
                 disabled={index < 1}

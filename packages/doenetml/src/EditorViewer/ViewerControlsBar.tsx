@@ -8,6 +8,7 @@ import VariantSelect from "./VariantSelect";
 import type { ResolvedTheme } from "../utils/theme";
 import { setVariantIndex } from "../utils/variants";
 import type { VariantsState } from "../utils/variants";
+import { useT } from "../utils/i18n";
 
 /**
  * Header controls above the viewer: update/reset, variant selection, and accessibility status.
@@ -17,7 +18,7 @@ export function ViewerControlsBar({
     readOnly,
     codeChanged,
     documentInteracted,
-    updateWord,
+    updateAction,
     onUpdateViewer,
     variants,
     setVariants,
@@ -32,7 +33,8 @@ export function ViewerControlsBar({
     readOnly: boolean;
     codeChanged: boolean;
     documentInteracted: boolean;
-    updateWord: string;
+    /** Which of the two things the button does, not the word it shows. */
+    updateAction: "reset" | "update";
     onUpdateViewer: () => void;
     variants: VariantsState;
     setVariants: React.Dispatch<React.SetStateAction<VariantsState>>;
@@ -43,19 +45,37 @@ export function ViewerControlsBar({
     onToggleAccessibilityReport: () => void;
     darkMode: ResolvedTheme;
 }) {
+    const t = useT();
+    // Translated at render rather than carried in state, so that a language
+    // change mid-session cannot leave the previous language's word on the
+    // button (#1580).
+    const updateWord = t(
+        "editor-update-viewer",
+        { action: updateAction },
+        updateAction === "reset" ? "Reset" : "Update",
+    );
+    // The shortcut is a branch of the tooltip rather than text appended to it:
+    // where a key combination sits in a sentence is not the same in every
+    // language.
+    const shortcut = !codeChanged
+        ? "none"
+        : isMacPlatform()
+          ? "cmd+s"
+          : "ctrl+s";
+
     return (
         <div className="viewer-controls" id={`${id}-viewer-controls`}>
             {!readOnly && (
                 <UiButton
                     data-test="Viewer Update Button"
                     disabled={!codeChanged && !documentInteracted}
-                    title={
-                        codeChanged
-                            ? isMacPlatform()
-                                ? `${updateWord} Viewer cmd+s`
-                                : `${updateWord} Viewer ctrl+s`
-                            : `${updateWord} Viewer`
-                    }
+                    title={t(
+                        "editor-update-viewer-title",
+                        { word: updateWord, shortcut },
+                        shortcut === "none"
+                            ? `${updateWord} Viewer`
+                            : `${updateWord} Viewer ${shortcut}`,
+                    )}
                     onClick={onUpdateViewer}
                 >
                     <RxUpdate /> {updateWord}{" "}
