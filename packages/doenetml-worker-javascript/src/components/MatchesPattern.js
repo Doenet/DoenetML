@@ -6,17 +6,20 @@ import me from "math-expressions";
 const BLANK = "\uff3f";
 
 /**
- * A string key standing for `tree` as a parameter, or `undefined` if `tree`
- * cannot be one. Both the list of parameters and every node of the pattern are
- * keyed this way, so recognizing a parameter in the pattern is a map lookup.
+ * A string key for `tree` when `tree` is something a parameter is allowed to
+ * be, and `undefined` when it is not. Two trees get the same key exactly when
+ * they are the same parameter.
+ *
+ * Both the parameter list and every node of the pattern are keyed this way, so
+ * recognizing a parameter in the pattern is a map lookup.
  *
  * A parameter names a variable: a bare symbol, or one dressed with a subscript
  * (`x_1` → `["_", "x", 1]`) or a prime (`f'` → `["prime", "f"]`). A blank is a
- * string as well, and is keyed out by name so that it stays literal once
- * `parameters` is given. Numbers and compound expressions have no key.
+ * string too, and is refused so that it stays literal once `parameters` is
+ * given. Numbers and compound expressions get no key.
  *
- * The prefixes keep a subscripted parameter from colliding with a symbol whose
- * name happens to be that subtree's JSON.
+ * The `s`/`t` prefixes keep a subscripted parameter from colliding with a
+ * symbol whose name happens to be that subtree's JSON.
  */
 function parameterKey(tree) {
     if (typeof tree === "string") {
