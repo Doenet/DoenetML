@@ -63,7 +63,18 @@ export default defineConfig({
                                 );
                                 const b64 =
                                     Buffer.from(content).toString("base64");
-                                return `export default atob(${JSON.stringify(b64)});`;
+                                // Decode base64 → bytes → UTF-8 at runtime.
+                                // `atob` alone yields a Latin-1 string, which
+                                // turns every multi-byte character in the
+                                // bundle — the Spanish message catalogs, among
+                                // others — into mojibake before it reaches the
+                                // Blob the worker is built from.
+                                return `
+                                    const __bin = atob(${JSON.stringify(b64)});
+                                    const __bytes = new Uint8Array(__bin.length);
+                                    for (let i = 0; i < __bin.length; i++) __bytes[i] = __bin.charCodeAt(i);
+                                    export default new TextDecoder("utf-8").decode(__bytes);
+                                `;
                             }
                         },
                     },

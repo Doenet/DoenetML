@@ -10,14 +10,6 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 
 const VIEWER_TIMEOUT = 15_000;
 
-// Non-ASCII from the worker cannot be asserted here. Cypress serves this spec
-// through a Vite dev server, and the dev server's `?raw` import of the worker
-// bundle — which is where the message catalogs live — hands back Latin-1, so
-// "Página" arrives as "PÃ¡gina". The shipped bundles are UTF-8 and correct;
-// it is the harness that mis-decodes. So the assertions below turn on the
-// ASCII parts of the Spanish ("de", "Anterior", "Hoja"), and the exact
-// accented output is pinned by the worker's own tests, which run in Node.
-
 const DOENETML = `
 <paginatorControls name="pc" paginator="$pgn" />
 <paginator name="pgn">
@@ -37,7 +29,7 @@ describe("the paginator's controls follow the document's language", () => {
             />,
         );
 
-        cy.contains("1 de 3", { timeout: VIEWER_TIMEOUT });
+        cy.contains("Página 1 de 3", { timeout: VIEWER_TIMEOUT });
         cy.get("#pc_previous").should("have.text", "Anterior");
         cy.get("#pc_next").should("have.text", "Siguiente");
         // The English half-sentence is gone rather than shown beside it.
