@@ -313,16 +313,27 @@ hint-title = Hint
 ##
 ## `$enumeration` arrives as text rather than as a number: it identifies the
 ## table, so the thousandth one is "Table 1000" and not "Table 1,000".
+##
+## The `-title` and `-caption` branches end in the separator joining the name
+## to the authored title or caption, which the renderer used to write as a
+## literal `": "` of its own. That child is arbitrary marked-up content
+## rendered after this string rather than an argument passed into it, so where
+## it sits is the one thing a translation cannot reorder — the same shape
+## `section-title-prefix` has.
 
 table-name =
     { $parts ->
         [numbered] Table { $enumeration }
+        [numbered-title] Table { $enumeration }{ ": " }
+        [unnumbered-title] Table{ ": " }
        *[unnumbered] Table
     }
 
 figure-name =
     { $parts ->
         [numbered] Figure { $enumeration }
+        [numbered-caption] Figure { $enumeration }{ ": " }
+        [unnumbered-caption] Figure{ ": " }
        *[unnumbered] Figure
     }
 

@@ -3,6 +3,7 @@ import {
     contentTranslator,
     returnContentLocaleDependencies,
 } from "../utils/contentLocale";
+import { composeTableName } from "../utils/containerWords";
 
 export default class Table extends BlockComponent {
     constructor(args) {
@@ -76,10 +77,27 @@ export default class Table extends BlockComponent {
                     description:
                         "The full display name of the table (e.g., 'Table 2').",
                 },
+                {
+                    // The same name with the separator that joins it to an
+                    // authored `<title>` — "Table 2: ". Not public and not a
+                    // cross-reference label: `tableName` above is what an
+                    // author references and what an `<xref>` shows, and
+                    // neither wants punctuation. This exists so that the
+                    // separator is the catalog's to choose rather than a
+                    // literal in the renderer (#1582).
+                    variableName: "tableNamePrefix",
+                    forRenderer: true,
+                },
             ],
             mustEvaluate: true, // must evaluate to make sure all counters are accounted for
             returnDependencies({ stateValues }) {
-                let dependencies = { ...returnContentLocaleDependencies() };
+                let dependencies = {
+                    titleChild: {
+                        dependencyType: "child",
+                        childGroups: ["titles"],
+                    },
+                    ...returnContentLocaleDependencies(),
+                };
 
                 if (stateValues.number) {
                     dependencies.tableCounter = {
@@ -90,28 +108,19 @@ export default class Table extends BlockComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                const t = contentTranslator(dependencyValues);
+                const tableEnumeration =
+                    dependencyValues.tableCounter === undefined
+                        ? null
+                        : String(dependencyValues.tableCounter);
 
-                if (dependencyValues.tableCounter === undefined) {
-                    return {
-                        setValue: {
-                            tableEnumeration: null,
-                            tableName: t(
-                                "table-name",
-                                { parts: "unnumbered" },
-                                "Table",
-                            ),
-                        },
-                    };
-                }
-                let tableEnumeration = String(dependencyValues.tableCounter);
-                let tableName = t(
-                    "table-name",
-                    { parts: "numbered", enumeration: tableEnumeration },
-                    `Table ${tableEnumeration}`,
-                );
+                const { tableName, tableNamePrefix } = composeTableName({
+                    t: contentTranslator(dependencyValues),
+                    enumeration: tableEnumeration,
+                    haveTitleChild: dependencyValues.titleChild.length > 0,
+                });
+
                 return {
-                    setValue: { tableEnumeration, tableName },
+                    setValue: { tableEnumeration, tableName, tableNamePrefix },
                 };
             },
         };

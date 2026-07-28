@@ -3,6 +3,7 @@ import {
     contentTranslator,
     returnContentLocaleDependencies,
 } from "../utils/contentLocale";
+import { composeFigureName } from "../utils/containerWords";
 
 export default class Figure extends BlockComponent {
     constructor(args) {
@@ -81,10 +82,23 @@ export default class Figure extends BlockComponent {
                     description:
                         "The full display name of the figure (e.g., 'Figure 3').",
                 },
+                {
+                    // The name with the separator joining it to an authored
+                    // `<caption>` — "Figure 3: ". See `tableNamePrefix` in
+                    // `Table.js`; same reason, same shape (#1582).
+                    variableName: "figureNamePrefix",
+                    forRenderer: true,
+                },
             ],
             mustEvaluate: true, // must evaluate to make sure all counters are accounted for
             returnDependencies({ stateValues }) {
-                let dependencies = { ...returnContentLocaleDependencies() };
+                let dependencies = {
+                    captionChild: {
+                        dependencyType: "child",
+                        childGroups: ["captions"],
+                    },
+                    ...returnContentLocaleDependencies(),
+                };
 
                 if (stateValues.number) {
                     dependencies.figureCounter = {
@@ -95,28 +109,23 @@ export default class Figure extends BlockComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                const t = contentTranslator(dependencyValues);
+                const figureEnumeration =
+                    dependencyValues.figureCounter === undefined
+                        ? null
+                        : String(dependencyValues.figureCounter);
 
-                if (dependencyValues.figureCounter === undefined) {
-                    return {
-                        setValue: {
-                            figureEnumeration: null,
-                            figureName: t(
-                                "figure-name",
-                                { parts: "unnumbered" },
-                                "Figure",
-                            ),
-                        },
-                    };
-                }
-                let figureEnumeration = String(dependencyValues.figureCounter);
-                let figureName = t(
-                    "figure-name",
-                    { parts: "numbered", enumeration: figureEnumeration },
-                    `Figure ${figureEnumeration}`,
-                );
+                const { figureName, figureNamePrefix } = composeFigureName({
+                    t: contentTranslator(dependencyValues),
+                    enumeration: figureEnumeration,
+                    haveCaptionChild: dependencyValues.captionChild.length > 0,
+                });
+
                 return {
-                    setValue: { figureEnumeration, figureName },
+                    setValue: {
+                        figureEnumeration,
+                        figureName,
+                        figureNamePrefix,
+                    },
                 };
             },
         };

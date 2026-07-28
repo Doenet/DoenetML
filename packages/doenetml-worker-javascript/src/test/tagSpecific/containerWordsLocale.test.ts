@@ -64,6 +64,44 @@ describe("container words follow the document locale @group4", () => {
                 await values(doenetML, ["second"], "tableEnumeration", "es"),
             ).toEqual({ second: "2" });
         });
+
+        // #1582. The separator joining the name to an authored `<title>` was a
+        // `": "` in the renderer's JSX, so a Spanish document rendered a
+        // Spanish name with English punctuation and no locale could reach it.
+        // It is part of the name the worker composes now.
+        describe("the separator before an authored title", () => {
+            const titled = `
+            <table name="t"><title>Results</title><tabular><row><cell>1</cell></row></tabular></table>
+            <table name="untitled"><tabular><row><cell>2</cell></row></tabular></table>
+            <table name="bare" number="false"><title>Results</title><tabular><row><cell>3</cell></row></tabular></table>
+            `;
+
+            it("ends the renderer's prefix with it when a title follows", async () => {
+                expect(
+                    await values(titled, ["t", "bare"], "tableNamePrefix"),
+                ).toEqual({ t: "Table 1: ", bare: "Table: " });
+            });
+
+            it("leaves the prefix bare when nothing follows", async () => {
+                expect(
+                    await values(titled, ["untitled"], "tableNamePrefix"),
+                ).toEqual({ untitled: "Table 2" });
+            });
+
+            it("comes from the document's catalog, not from the renderer", async () => {
+                expect(
+                    await values(titled, ["t"], "tableNamePrefix", "es"),
+                ).toEqual({ t: "Tabla 1: " });
+            });
+
+            it("stays out of the name an author and a cross-reference read", async () => {
+                // `$table.tableName` and an `<xref>`'s label want the name
+                // alone; punctuation there would show up in both.
+                expect(await values(titled, ["t"], "tableName", "es")).toEqual({
+                    t: "Tabla 1",
+                });
+            });
+        });
     });
 
     describe("<figure>", () => {
@@ -87,6 +125,36 @@ describe("container words follow the document locale @group4", () => {
                 first: "Figura 1",
                 second: "Figura 2",
                 unnumbered: "Figura",
+            });
+        });
+
+        // The caption's half of #1582; see `<table>` above.
+        describe("the separator before an authored caption", () => {
+            const captioned = `
+            <figure name="f"><image source="doenet:a" /><caption>A picture</caption></figure>
+            <figure name="uncaptioned"><image source="doenet:b" /></figure>
+            `;
+
+            it("ends the renderer's prefix with it when a caption follows", async () => {
+                expect(
+                    await values(
+                        captioned,
+                        ["f", "uncaptioned"],
+                        "figureNamePrefix",
+                    ),
+                ).toEqual({ f: "Figure 1: ", uncaptioned: "Figure 2" });
+            });
+
+            it("comes from the document's catalog, not from the renderer", async () => {
+                expect(
+                    await values(captioned, ["f"], "figureNamePrefix", "es"),
+                ).toEqual({ f: "Figura 1: " });
+            });
+
+            it("stays out of the name an author and a cross-reference read", async () => {
+                expect(
+                    await values(captioned, ["f"], "figureName", "es"),
+                ).toEqual({ f: "Figura 1" });
             });
         });
     });
