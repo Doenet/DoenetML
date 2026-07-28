@@ -476,7 +476,29 @@ export type MessageKey =
     | "schema-element-not-allowed-at-root"
     | "schema-element-not-allowed-inside"
     | "schema-attribute-unrecognized"
-    | "schema-attribute-value-not-allowed";
+    | "schema-attribute-value-not-allowed"
+    | "select-variant-name-option-count-mismatch"
+    | "select-variant-name-without-options"
+    | "select-variant-name-not-possible"
+    | "select-too-few-options"
+    | "select-from-sequence-too-few-values"
+    | "select-from-sequence-indices-count-mismatch"
+    | "select-from-sequence-indices-not-integers"
+    | "select-from-sequence-index-excluded"
+    | "select-from-sequence-indices-excluded-combination"
+    | "select-from-sequence-coprime-not-positive-integers"
+    | "select-from-sequence-coprime-common-factor"
+    | "select-from-sequence-coprime-single-number"
+    | "select-from-sequence-excluded-too-many-combinations"
+    | "select-from-sequence-coprime-none-found"
+    | "select-from-sequence-too-few-unique-values"
+    | "select-prime-numbers-too-few-values"
+    | "select-prime-numbers-values-count-mismatch"
+    | "select-prime-numbers-values-not-prime"
+    | "select-prime-numbers-values-excluded-combination"
+    | "select-prime-numbers-excluded-too-many-combinations"
+    | "select-random-combination-fluke"
+    | "select-random-value-fluke";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -950,4 +972,26 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "schema-element-not-allowed-inside",
     "schema-attribute-unrecognized",
     "schema-attribute-value-not-allowed",
+    "select-variant-name-option-count-mismatch",
+    "select-variant-name-without-options",
+    "select-variant-name-not-possible",
+    "select-too-few-options",
+    "select-from-sequence-too-few-values",
+    "select-from-sequence-indices-count-mismatch",
+    "select-from-sequence-indices-not-integers",
+    "select-from-sequence-index-excluded",
+    "select-from-sequence-indices-excluded-combination",
+    "select-from-sequence-coprime-not-positive-integers",
+    "select-from-sequence-coprime-common-factor",
+    "select-from-sequence-coprime-single-number",
+    "select-from-sequence-excluded-too-many-combinations",
+    "select-from-sequence-coprime-none-found",
+    "select-from-sequence-too-few-unique-values",
+    "select-prime-numbers-too-few-values",
+    "select-prime-numbers-values-count-mismatch",
+    "select-prime-numbers-values-not-prime",
+    "select-prime-numbers-values-excluded-combination",
+    "select-prime-numbers-excluded-too-many-combinations",
+    "select-random-combination-fluke",
+    "select-random-value-fluke",
 ];

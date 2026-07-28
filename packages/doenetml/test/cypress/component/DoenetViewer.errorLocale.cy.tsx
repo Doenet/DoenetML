@@ -9,8 +9,8 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 //
 // What is asserted here is the rendering itself, which is the half a worker
 // test cannot see: that the box reads in the reader's language, that the
-// "found on line" line under it does too, and that an error with no code
-// still shows the English it arrived with.
+// "found on line" line under it does too, and that a box whose code the
+// reader's catalogs cannot resolve still shows the English on the record.
 
 /** Long enough for the inline worker to boot and compile the document. */
 const VIEWER_TIMEOUT = 15_000;
@@ -22,6 +22,13 @@ const ERROR_BOX = "[style*='mainRed']";
 function errorBoxContains(text: string) {
     return cy.contains(ERROR_BOX, text, { timeout: VIEWER_TIMEOUT });
 }
+
+/**
+ * A `<select>` that names a variant no `<option>` claims, so it replaces
+ * itself with an error box rather than warning beside one.
+ */
+const SELECT_WITH_MISSING_VARIANT =
+    '\n<variantControl variantNames="uno dos" />\n<select numToSelect="1">\n  <option selectForVariants="uno"><p>x</p></option>\n</select>';
 
 describe("the in-document error box follows the reader's language", () => {
     it("renders a coded error in Spanish, location line and all", () => {
@@ -67,22 +74,41 @@ describe("the in-document error box follows the reader's language", () => {
         errorBoxContains("Encontrado en las líneas 2 a 3");
     });
 
-    it("falls back to the English an uncoded error arrived with", () => {
-        // `<select>`'s `errorMessage` still holds a finished English string
-        // with no code behind it (#1518). It has to keep rendering exactly as
-        // it does today; only the heading and the location line, which the
-        // viewer owns, follow the reader.
+    it("renders the box a `<select>` replaces itself with in Spanish too", () => {
+        // This box was the exception: `<select>`'s `errorMessage` was a
+        // finished English string with no code behind it, so a Spanish page
+        // showed one English box with a Spanish heading over it. It carries a
+        // code now, like every other error (#1581).
         cy.mount(
             <DoenetViewer
-                doenetML={
-                    '\n<variantControl variantNames="uno dos" />\n<select numToSelect="1">\n  <option selectForVariants="uno"><p>x</p></option>\n</select>'
-                }
+                doenetML={SELECT_WITH_MISSING_VARIANT}
                 uiLocale="es"
                 addVirtualKeyboard={false}
             />,
         );
 
-        errorBoxContains("Some variants are specified for select");
+        errorBoxContains("Se especifican variantes para select");
         errorBoxContains("Encontrado en");
+        cy.get("body").should(
+            "not.contain.text",
+            "Some variants are specified for select",
+        );
+    });
+
+    it("falls back to the English on the record when the catalog has no answer", () => {
+        // The renderer treats an error whose code the negotiated catalogs
+        // cannot resolve exactly as it treats one with no code at all: the
+        // formatter hands the record's own `message` straight back. French
+        // has no catalog, so this is that path — and it is the path every
+        // locale takes for a diagnostic nobody has translated yet.
+        cy.mount(
+            <DoenetViewer
+                doenetML={SELECT_WITH_MISSING_VARIANT}
+                uiLocale="fr"
+                addVirtualKeyboard={false}
+            />,
+        );
+
+        errorBoxContains("Some variants are specified for select");
     });
 });

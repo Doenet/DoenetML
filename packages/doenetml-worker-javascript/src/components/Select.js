@@ -6,6 +6,30 @@ import {
 } from "@doenet/utils";
 import { gatherVariantComponents, pushVariantInfo } from "../utils/variants";
 import { createNewComponentIndices } from "../utils/componentIndices";
+import {
+    NO_SELECT_ERROR,
+    selectError,
+    selectionResult,
+} from "../utils/selectErrors";
+import { errorComponentState } from "../utils/dast/errors";
+
+/**
+ * A {@link SelectErrorState} under the names the `availableVariants` group
+ * defines it by.
+ *
+ * `<select>` decides twice: once about the variant names its `<option>`
+ * children claim, and once about the selection itself. The first writes to
+ * `errorMessageVariants` and the second reads it, so the pair travels under
+ * two names — but it is the same pair, and it has to stay a pair. Renaming it
+ * here rather than spelling both properties at each of the four return sites
+ * keeps a message from ever being set without its code.
+ */
+function variantsError({ errorMessage, errorDiagnostic }) {
+    return {
+        errorMessageVariants: errorMessage,
+        errorDiagnosticVariants: errorDiagnostic,
+    };
+}
 
 export default class Select extends CompositeComponent {
     static componentType = "select";
@@ -126,7 +150,13 @@ export default class Select extends CompositeComponent {
         };
 
         stateVariableDefinitions.availableVariants = {
-            additionalStateVariablesDefined: ["errorMessageVariants"],
+            additionalStateVariablesDefined: [
+                "errorMessageVariants",
+                // The code behind `errorMessageVariants`, carried so the box
+                // this eventually becomes can be rendered in the reader's
+                // language rather than in the English written here (#1581).
+                "errorDiagnosticVariants",
+            ],
             returnDependencies: () => ({
                 optionChildren: {
                     dependencyType: "stateVariable",
@@ -162,18 +192,19 @@ export default class Select extends CompositeComponent {
                         availableVariants[variantName].length !==
                         dependencyValues.numToSelect
                     ) {
-                        let errorMessageVariants =
-                            "Invalid variant name for select.  Variant name " +
-                            variantName +
-                            " appears in " +
-                            availableVariants[variantName].length +
-                            " options but number to select is " +
-                            dependencyValues.numToSelect +
-                            ".";
+                        const error = selectError({
+                            code: "doenet-e0032",
+                            args: {
+                                variantName,
+                                numOptions:
+                                    availableVariants[variantName].length,
+                                numToSelect: dependencyValues.numToSelect,
+                            },
+                        });
 
                         return {
                             setValue: {
-                                errorMessageVariants,
+                                ...variantsError(error),
                                 availableVariants: [],
                             },
                         };
@@ -185,14 +216,14 @@ export default class Select extends CompositeComponent {
                     // then require that all possible variants have a variant specified
                     for (let variantName of dependencyValues.allVariantNames) {
                         if (!(variantName in availableVariants)) {
-                            let errorMessageVariants =
-                                "Some variants are specified for select but no options are specified for possible variant name: " +
-                                variantName +
-                                ".";
+                            const error = selectError({
+                                code: "doenet-e0033",
+                                args: { variantName },
+                            });
 
                             return {
                                 setValue: {
-                                    errorMessageVariants,
+                                    ...variantsError(error),
                                     availableVariants: [],
                                 },
                             };
@@ -204,14 +235,14 @@ export default class Select extends CompositeComponent {
                                 variantName,
                             )
                         ) {
-                            let errorMessageVariants =
-                                "Variant name " +
-                                variantName +
-                                " that is specified for select is not a possible variant name.";
+                            const error = selectError({
+                                code: "doenet-e0034",
+                                args: { variantName },
+                            });
 
                             return {
                                 setValue: {
-                                    errorMessageVariants,
+                                    ...variantsError(error),
                                     availableVariants: [],
                                 },
                             };
@@ -220,7 +251,10 @@ export default class Select extends CompositeComponent {
                 }
 
                 return {
-                    setValue: { errorMessageVariants: "", availableVariants },
+                    setValue: {
+                        ...variantsError(NO_SELECT_ERROR),
+                        availableVariants,
+                    },
                 };
             },
         };
@@ -232,6 +266,14 @@ export default class Select extends CompositeComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "errorMessage",
+                    hasEssential: true,
+                    shadowVariable: true,
+                    immutable: true,
+                },
+                {
+                    // Set with `errorMessage` and never without it; see
+                    // `SelectErrorState`.
+                    variableName: "errorDiagnostic",
                     hasEssential: true,
                     shadowVariable: true,
                     immutable: true,
@@ -270,6 +312,10 @@ export default class Select extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "errorMessageVariants",
                 },
+                errorDiagnosticVariants: {
+                    dependencyType: "stateVariable",
+                    variableName: "errorDiagnosticVariants",
+                },
                 variantRng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -281,27 +327,21 @@ export default class Select extends CompositeComponent {
                 // console.log(dependencyValues);
 
                 if (dependencyValues.errorMessageVariants) {
-                    let errorMessage = dependencyValues.errorMessageVariants;
-                    return {
-                        setEssentialValue: {
-                            errorMessage,
-                            selectedIndices: [],
-                        },
-                        setValue: { errorMessage, selectedIndices: [] },
+                    const error = {
+                        errorMessage: dependencyValues.errorMessageVariants,
+                        errorDiagnostic:
+                            dependencyValues.errorDiagnosticVariants,
                     };
+                    return selectionResult(error, { selectedIndices: [] });
                 }
 
                 if (
                     !(dependencyValues.numToSelect >= 1) ||
                     dependencyValues.nOptions === 0
                 ) {
-                    return {
-                        setEssentialValue: {
-                            errorMessage: "",
-                            selectedIndices: [],
-                        },
-                        setValue: { errorMessage: "", selectedIndices: [] },
-                    };
+                    return selectionResult(NO_SELECT_ERROR, {
+                        selectedIndices: [],
+                    });
                 }
 
                 // if desiredIndices is specified, use those
@@ -331,16 +371,9 @@ export default class Select extends CompositeComponent {
                             (x) => ((((x - 1) % n) + n) % n) + 1,
                         );
 
-                        return {
-                            setEssentialValue: {
-                                errorMessage: "",
-                                selectedIndices: desiredIndices,
-                            },
-                            setValue: {
-                                errorMessage: "",
-                                selectedIndices: desiredIndices,
-                            },
-                        };
+                        return selectionResult(NO_SELECT_ERROR, {
+                            selectedIndices: desiredIndices,
+                        });
                     }
                 }
 
@@ -370,16 +403,9 @@ export default class Select extends CompositeComponent {
                             ];
                         }
                     }
-                    return {
-                        setEssentialValue: {
-                            errorMessage: "",
-                            selectedIndices: variantOptions,
-                        },
-                        setValue: {
-                            errorMessage: "",
-                            selectedIndices: variantOptions,
-                        },
-                    };
+                    return selectionResult(NO_SELECT_ERROR, {
+                        selectedIndices: variantOptions,
+                    });
                 }
 
                 let selectedIndices = [];
@@ -390,19 +416,14 @@ export default class Select extends CompositeComponent {
                 }
 
                 if (numUniqueRequired > dependencyValues.nOptions) {
-                    let errorMessage =
-                        "Cannot select " +
-                        numUniqueRequired +
-                        " components from only " +
-                        dependencyValues.nOptions +
-                        ".";
-                    return {
-                        setEssentialValue: {
-                            errorMessage,
-                            selectedIndices: [],
+                    const error = selectError({
+                        code: "doenet-e0035",
+                        args: {
+                            numToSelect: numUniqueRequired,
+                            numOptions: dependencyValues.nOptions,
                         },
-                        setValue: { errorMessage, selectedIndices: [] },
-                    };
+                    });
+                    return selectionResult(error, { selectedIndices: [] });
                 }
 
                 // normalize selectWeights to sum to 1
@@ -463,10 +484,7 @@ export default class Select extends CompositeComponent {
                     }
                 }
 
-                return {
-                    setEssentialValue: { errorMessage: "", selectedIndices },
-                    setValue: { errorMessage: "", selectedIndices },
-                };
+                return selectionResult(NO_SELECT_ERROR, { selectedIndices });
             },
         };
 
@@ -587,7 +605,10 @@ export default class Select extends CompositeComponent {
                         type: "serialized",
                         componentType: "_error",
                         componentIdx: nComponents++,
-                        state: { message: errorMessage },
+                        state: errorComponentState(
+                            errorMessage,
+                            await component.stateValues.errorDiagnostic,
+                        ),
                         attributes: {},
                         doenetAttributes: {},
                         children: [],
