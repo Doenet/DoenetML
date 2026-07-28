@@ -28,6 +28,7 @@ import {
     resolveUiLocale,
     type Translator,
 } from "@doenet/i18n";
+import { hasNavigationModifier } from "../utils/sourceNavigation";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
@@ -220,20 +221,23 @@ export function DocViewer({
     // doesn't need to trigger re-renders.
     const positionByDomId = useRef<Map<string, SourcePosition>>(new Map());
     const viewerContainerRef = useRef<HTMLDivElement>(null);
-    const lastScrolledSourceOffset = useRef<number | null>(null);
 
-    // Whenever the host asks for a specific source offset (e.g. the
-    // editor's cursor moved), scroll a matching rendered element into
-    // view. The rule: find the innermost mapped element containing the
-    // offset (the "container" — implicitly the whole document when none
-    // does), then prefer the nearest mapped element inside the container
-    // that starts after the offset, then the nearest one ending before
-    // it, then the container itself. Offsets with no mapped element of
-    // their own (whitespace between siblings, or inside a composite like
-    // <group> that produces no renderer instruction) thus resolve to a
-    // nearby sibling — the same way whether the container is a component
-    // like <section> or the document itself — rather than centering a
-    // possibly-huge container.
+    // Whenever the host asks for a specific source offset (a Cmd/Ctrl+click
+    // in the editor, or — in the VS Code preview — a cursor move), scroll a
+    // matching rendered element into view. The rule: find the innermost
+    // mapped element containing the offset (the "container" — implicitly
+    // the whole document when none does), then prefer the nearest mapped
+    // element inside the container that starts after the offset, then the
+    // nearest one ending before it, then the container itself. Offsets with
+    // no mapped element of their own (whitespace between siblings, or
+    // inside a composite like <group> that produces no renderer
+    // instruction) thus resolve to a nearby sibling — the same way whether
+    // the container is a component like <section> or the document itself —
+    // rather than centering a possibly-huge container.
+    //
+    // Runs only when the requested offset changes, so a host repeating the
+    // same request must pass `null` in between (see the
+    // `scrollToSourceOffset` prop docs).
     //
     // Placed here, before this component's several early `return null`
     // paths further down, so it's called unconditionally on every render
@@ -243,10 +247,6 @@ export function DocViewer({
         if (scrollToSourceOffset == null) {
             return;
         }
-        if (lastScrolledSourceOffset.current === scrollToSourceOffset) {
-            return;
-        }
-        lastScrolledSourceOffset.current = scrollToSourceOffset;
 
         // Resolve a candidate id to its element, scoped to this viewer.
         // Within a document's lifetime `positionByDomId` is only ever added
@@ -2210,6 +2210,14 @@ export function DocViewer({
     }
 
     function handleViewerClick(event: MouseEvent) {
+        // Navigation only happens on the explicit Cmd/Ctrl+click gesture,
+        // so plain clicks interact with the document without moving the
+        // editor. Checked before the skip flag below: an unmodified click
+        // ending a drag returns here with that flag still set, but every
+        // pointerdown clears it, so it can't latch across interactions.
+        if (!hasNavigationModifier(event)) {
+            return;
+        }
         if (skipNextClickNavigation.current) {
             skipNextClickNavigation.current = false;
             return;

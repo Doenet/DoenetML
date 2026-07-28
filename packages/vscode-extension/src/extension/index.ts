@@ -213,7 +213,48 @@ function setupPreviewWindow(context: ExtensionContext) {
         DoenetPreviewPanel.triggerRefresh();
     });
 
-    // Editor -> preview: scroll the preview to whatever the cursor is on.
+    // Editor -> preview: scroll the preview to the cursor, on request.
+    //
+    // The web editor spells this gesture Cmd/Ctrl+click, but the VS Code API
+    // exposes no modifier information for text-editor clicks (and Cmd+click is
+    // reserved for Go to Definition), so there is nothing to hang a modified
+    // click on here. A command with a default keybinding is the closest
+    // equivalent VS Code offers, and it has the advantage of being rebindable
+    // through the standard Keyboard Shortcuts UI. The same chord works in the
+    // web editor, so the two agree on at least one way to ask.
+    //
+    // That chord (`ctrl+alt+p`, `cmd+alt+p` on macOS — see the `keybindings`
+    // contribution) is unclaimed by VS Code's defaults on Windows and Linux.
+    // On macOS it shadows the find widget's `togglePreserveCase`, whose
+    // `when` is the broader `editorFocus`; ours is narrowed to
+    // `editorTextFocus && editorLangId == doenet`, so the built-in still
+    // fires from the find/replace inputs, and anyone who wants it back in
+    // the text area of a Doenet file can rebind either one.
+    const revealCursorInPreview = commands.registerCommand(
+        "doenet.revealCursorInPreview",
+        () => {
+            const editor = vscode.window.activeTextEditor;
+            if (editor?.document.languageId !== "doenet") {
+                return;
+            }
+            DoenetPreviewPanel.sendCursorPosition(
+                editor.document.offsetAt(editor.selection.active),
+            );
+        },
+    );
+    context.subscriptions.push(revealCursorInPreview);
+
+    // Continuous version of the above: scroll the preview to whatever the
+    // cursor is on, on every cursor move.
+    //
+    // On by default, unlike the web editor, which scrolls its preview only
+    // when asked. The difference is deliberate: scroll-sync is what a VS Code
+    // preview conventionally does — the built-in Markdown preview ships it on
+    // via `markdown.preview.scrollPreviewWithEditor` — and the web editor's
+    // Cmd/Ctrl+click gesture has no counterpart here to replace it with. Turn
+    // it off to get the web editor's behavior, where only the command moves
+    // the preview.
+    //
     // Debounced since selection-change fires on every arrow key / click.
     //
     // `suppressNextSelectionEcho` guards against feedback: `onRevealPosition`
@@ -231,8 +272,25 @@ function setupPreviewWindow(context: ExtensionContext) {
         if (e.textEditor.document.languageId !== "doenet") {
             return;
         }
+        // Consumed before the setting is consulted, so an echo can't stay
+        // latched while the setting is off and then swallow the first real
+        // cursor move after someone turns it on.
         if (suppressNextSelectionEcho) {
             suppressNextSelectionEcho = false;
+            // Drop a send still queued from a cursor move just before the
+            // preview click: it carries a stale offset that would scroll the
+            // preview back off the element the click just revealed.
+            clearTimeout(cursorMoveTimer);
+            return;
+        }
+        // Read per event rather than cached: a settings change then takes
+        // effect immediately, with no reload and nothing to unsubscribe. The
+        // fallback matches the manifest's default, so the two can't disagree.
+        if (
+            !workspace
+                .getConfiguration("doenet")
+                .get<boolean>("preview.scrollPreviewWithEditor", true)
+        ) {
             return;
         }
         const offset = e.textEditor.document.offsetAt(e.selections[0].active);

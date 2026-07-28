@@ -10,6 +10,7 @@ A Visual Studio Code extension to make writing [Doenet](https://doenet.org) docu
 -   Syntax highlighting and auto-completion for `.doenet` files
 -   Highlights invalid doenet attributes
 -   Previewing of doenet documents. To access, open the command pallet (Ctrl+Shift+P) and select the `Preview Doenet` action.
+-   Navigating between the source and the preview. Cmd+click (macOS) / Ctrl+click (Windows/Linux) a rendered element in the preview to put the editor's cursor on the DoenetML that produced it. In the other direction the preview follows the editor's cursor as you move it; turn that off with the `doenet.preview.scrollPreviewWithEditor` setting and scroll the preview when you ask instead, with the `Scroll Doenet Preview to Cursor` command (Ctrl+Alt+P, Cmd+Alt+P on macOS), which works either way.
 -   Pretty-printing of Doenet source code.
 
 ![Screencast of Doenet VSCode Features](https://github.com/doenet/DoenetML/raw/main/packages/vscode-extension/assets/extension-demo.gif)

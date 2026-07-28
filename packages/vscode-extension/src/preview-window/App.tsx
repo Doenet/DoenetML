@@ -124,6 +124,19 @@ function App() {
         };
     });
 
+    // `scrollToSourceOffset` is a one-shot request, not a lasting position:
+    // clear it once the viewer has acted on it — a child's effects flush
+    // before its parent's, so `DoenetViewer` has already seen this value — so
+    // that asking again for the same offset scrolls again instead of being
+    // swallowed as an unchanged state value. The `Scroll Doenet Preview to
+    // Cursor` command can repeat with the cursor sitting still, which is
+    // exactly that case.
+    React.useEffect(() => {
+        if (scrollToSourceOffset != null) {
+            setScrollToSourceOffset(null);
+        }
+    }, [scrollToSourceOffset]);
+
     React.useEffect(() => {
         setColorStyle(darkMode ? "dark" : "light");
     }, [darkMode]);

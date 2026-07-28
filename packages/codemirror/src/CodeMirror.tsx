@@ -35,6 +35,7 @@ const CodeMirror = React.memo(function CodeMirror({
     doenetWorkerUrl,
     darkMode = "light",
     diagnosticPresentation,
+    extraExtensions,
 }: {
     value: string;
     onChange?: (str: string) => void;
@@ -101,6 +102,17 @@ const CodeMirror = React.memo(function CodeMirror({
      * simply drawn again through the new answers.
      */
     diagnosticPresentation?: DiagnosticPresentation;
+    /**
+     * Extra CodeMirror extensions, appended after this component's own.
+     * Being appended, they sit at *lower* default precedence than the
+     * built-ins — wrap in `Prec.high(...)` (`@codemirror/state`) to
+     * override a facet value or keybinding this component already sets.
+     *
+     * Must be referentially stable — a fresh array on every render defeats
+     * this component's `React.memo` and reconfigures the editor each time.
+     * Hoist it to a module constant or memoize it.
+     */
+    extraExtensions?: Extension[];
 }) {
     // Only one language server runs for all documents, so we specify a document id to keep different instances different.
     const [documentId, _] = React.useState(() =>
@@ -179,6 +191,9 @@ const CodeMirror = React.memo(function CodeMirror({
         } else {
             extensions.push(EditorState.readOnly.of(true));
         }
+        if (extraExtensions) {
+            extensions.push(...extraExtensions);
+        }
         return extensions;
     }, [
         documentId,
@@ -187,6 +202,7 @@ const CodeMirror = React.memo(function CodeMirror({
         doenetWorkerUrl,
         darkMode,
         stablePresentation,
+        extraExtensions,
     ]);
 
     return (
