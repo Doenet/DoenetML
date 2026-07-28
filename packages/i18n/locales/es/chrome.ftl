@@ -111,6 +111,14 @@ viewer-initializing = Inicializando...
 
 error-heading = Error
 
+# $startLine y $endLine son números de línea y llegan como texto, no como
+# números, para que no se agrupen los millares.
+error-found-at =
+    { $span ->
+        [line] Encontrado en la línea { $startLine }.
+       *[lines] Encontrado en las líneas { $startLine } a { $endLine }.
+    }
+
 document-contains-errors = ¡Este documento contiene errores!
 
 something-went-wrong = Algo salió mal.

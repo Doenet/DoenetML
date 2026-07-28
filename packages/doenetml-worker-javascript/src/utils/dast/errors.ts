@@ -74,12 +74,11 @@ export function errorComponentState(
  * their own (the `_error` they wrap already did), so nothing is lost today
  * beyond the rendered text, which is English either way.
  *
- * The extra `state` keys are inert. Serialized `state` becomes the created
- * component's `essentialState` wholesale, and only keys naming a state
- * variable that asked for an essential value are ever read back — `_error`
- * has neither a `code` nor an `args` variable. Making them `forRenderer`
- * later is what would let the rendered error text be localized too; today
- * only the diagnostic is.
+ * Serialized `state` becomes the created component's `essentialState`
+ * wholesale, and `_error` declares `code` and `args` as `forRenderer` state
+ * variables that take their essential value from it. That is how the red box
+ * in the document reads in the same language as the Diagnostics panel beside
+ * it (#1568).
  */
 export function convertToErrorComponent(
     component: UnflattenedComponent | SerializedComponent,

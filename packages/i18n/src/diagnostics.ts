@@ -307,11 +307,18 @@ export type DiagnosticArgValue =
  */
 export type DiagnosticArgs = Record<string, DiagnosticArgValue>;
 
-/** The parts of a diagnostic record this module needs. */
+/**
+ * The parts of a diagnostic record this module needs.
+ *
+ * `null` is accepted beside `undefined` for both optional halves, because some
+ * of what gets formatted arrives as component state rather than as a record a
+ * caller assembled — a state variable defaults to `null`, not to absent — and
+ * either way it means "nothing to render from, use the English".
+ */
 export type FormattableDiagnostic = {
     message: string;
-    code?: string;
-    args?: DiagnosticArgs;
+    code?: string | null;
+    args?: DiagnosticArgs | null;
 };
 
 /**
@@ -353,12 +360,12 @@ function asListArg(value: unknown): DiagnosticListArg | undefined {
  * `"false"`, which is the form a Fluent selector would compare against anyway.
  */
 function lowerArgs(
-    args: DiagnosticArgs | undefined,
+    args: DiagnosticArgs | null | undefined,
     locale: string,
 ): Record<string, string | number> | undefined {
     // `null` as well as `undefined`: an untyped call site can pass one as
     // easily as leave the property off, and `Object.entries(null)` throws.
-    if (args === undefined || args === null) {
+    if (args == null) {
         return undefined;
     }
     const lowered: Record<string, string | number> = {};
@@ -408,7 +415,7 @@ export function createDiagnosticFormatter(
 ): DiagnosticFormatter {
     return (diagnostic) => {
         const { code } = diagnostic;
-        if (code === undefined || !isDiagnosticCode(code)) {
+        if (code == null || !isDiagnosticCode(code)) {
             return diagnostic.message;
         }
         const key = DIAGNOSTIC_CODES[code];
