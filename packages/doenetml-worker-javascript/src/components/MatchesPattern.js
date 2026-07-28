@@ -74,11 +74,13 @@ export default class MatchesPattern extends BooleanComponent {
         attributes.pattern = {
             createComponentOfType: "math",
             description: "Math expression pattern to match against.",
+            highlighted: true,
         };
         attributes.parameters = {
             createComponentOfType: "mathList",
             description:
                 "Variables in the pattern that act as placeholders. Repeating one in the pattern requires the same subexpression at each occurrence. When specified, blanks in the pattern are matched literally.",
+            highlighted: true,
         };
         attributes.allowImplicitIdentities = {
             description:
@@ -87,6 +89,7 @@ export default class MatchesPattern extends BooleanComponent {
             createStateVariable: "allowImplicitIdentities",
             defaultValue: false,
             public: true,
+            highlighted: true,
         };
         attributes.allowPermutations = {
             description:
@@ -95,6 +98,7 @@ export default class MatchesPattern extends BooleanComponent {
             createStateVariable: "allowPermutations",
             defaultValue: true,
             public: true,
+            highlighted: true,
         };
         attributes.requireNumericMatches = {
             description: "Whether numeric placeholders must match numbers.",
@@ -102,6 +106,7 @@ export default class MatchesPattern extends BooleanComponent {
             createStateVariable: "requireNumericMatches",
             defaultValue: false,
             public: true,
+            highlighted: true,
         };
         attributes.requireVariableMatches = {
             description: "Whether variable placeholders must match variables.",
@@ -109,6 +114,7 @@ export default class MatchesPattern extends BooleanComponent {
             createStateVariable: "requireVariableMatches",
             defaultValue: false,
             public: true,
+            highlighted: true,
         };
         attributes.excludeMatches = {
             description: "Patterns whose matches are excluded.",
@@ -116,6 +122,7 @@ export default class MatchesPattern extends BooleanComponent {
             createStateVariable: "excludeMatches",
             defaultValue: [],
             public: true,
+            highlighted: true,
         };
         attributes.matchExpressionWithBlanks = {
             description: "Whether to allow expressions with blanks to match.",
@@ -123,6 +130,7 @@ export default class MatchesPattern extends BooleanComponent {
             createStateVariable: "matchExpressionWithBlanks",
             defaultValue: false,
             public: true,
+            highlighted: true,
         };
 
         return attributes;
@@ -342,6 +350,7 @@ export default class MatchesPattern extends BooleanComponent {
                 },
             ],
             public: true,
+            highlighted: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },
@@ -482,6 +491,7 @@ export default class MatchesPattern extends BooleanComponent {
         stateVariableDefinitions.numMatches = {
             description: "The number of matches found.",
             public: true,
+            highlighted: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
             },
@@ -504,6 +514,7 @@ export default class MatchesPattern extends BooleanComponent {
         stateVariableDefinitions.patternMatches = {
             description: "The list of matched sub-expressions.",
             public: true,
+            highlighted: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
             },
