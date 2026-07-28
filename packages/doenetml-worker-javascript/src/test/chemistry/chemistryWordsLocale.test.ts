@@ -214,4 +214,26 @@ describe("chemistry words follow the document locale @group4", () => {
             });
         });
     });
+
+    it("takes the language from a `<document lang>` on the root", async () => {
+        // Everything above declares the language through the host. `lang` on
+        // the document is the author's own route to it, and it is answered by
+        // an ancestor lookup that excludes the component it runs on — an
+        // `<atom>` is never that document, so the lookup reaches it.
+        const doenetML = `<document lang="es">
+          <atom name="fe" symbol="Fe" />
+          <ion name="cl" symbol="Cl" charge="-1" />
+          <atom name="bad" symbol="Xx" />
+        </document>`;
+        expect(await values(doenetML, ["fe", "cl"], "name")).toEqual({
+            fe: "Hierro",
+            cl: "Cloruro",
+        });
+        expect((await values(doenetML, ["fe"], "groupName")).fe).eq(
+            "Metal de transición",
+        );
+        expect((await values(doenetML, ["bad"], "text")).bad).eq(
+            "[Símbolo químico no válido]",
+        );
+    });
 });
