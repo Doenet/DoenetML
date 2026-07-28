@@ -1,6 +1,7 @@
 import esChrome from "../locales/es/chrome.ftl?raw";
 import esContent from "../locales/es/content.ftl?raw";
 import esDiagnostics from "../locales/es/diagnostics.ftl?raw";
+import esEditor from "../locales/es/editor.ftl?raw";
 
 import { DEFAULT_LOCALE, EN_CATALOGS } from "./catalogs";
 import {
@@ -30,6 +31,7 @@ const BUNDLED_TRANSLATIONS: Record<string, Catalogs> = {
         chrome: esChrome,
         content: esContent,
         diagnostics: esDiagnostics,
+        editor: esEditor,
     },
 };
 

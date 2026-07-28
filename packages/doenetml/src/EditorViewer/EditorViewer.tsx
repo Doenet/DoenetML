@@ -41,7 +41,7 @@ import { EditorSelection, type Extension } from "@codemirror/state";
 import type { Completion } from "@codemirror/autocomplete";
 import { doenetGlobalConfig } from "../global-config";
 import type { DiagnosticArgs } from "@doenet/i18n";
-import { useChromeTranslator, useUiLocale } from "../utils/i18n";
+import { I18nProvider, useChromeTranslator, useUiLocale } from "../utils/i18n";
 import { useDiagnosticFormatter } from "../utils/diagnostics";
 import type {
     DiagnosticPresentation,
@@ -263,7 +263,12 @@ export const EditorViewer = React.forwardRef<
 
     const [codeChanged, setCodeChanged] = useState(false);
     const [documentInteracted, setDocumentInteracted] = useState(false);
-    const [updateWord, setUpdateWord] = useState("Reset");
+    // Which of the two states the button is in, not the word it shows. The
+    // word is translated at render, so a language change mid-session cannot
+    // leave the previous language's word sitting in state (#1580).
+    const [updateAction, setUpdateAction] = useState<"reset" | "update">(
+        "reset",
+    );
 
     const codeChangedRef = useRef(false); //To keep value up to date in the code mirror function
     codeChangedRef.current = codeChanged;
@@ -513,26 +518,27 @@ export const EditorViewer = React.forwardRef<
         setReceivedDiagnosticsFromViewer(true);
     }
 
-    // Everything the editor says about a diagnostic — the tooltip over a
-    // squiggle and the lint panel behind it — in the reader's language.
+    // The language the whole editor speaks — the footer, the diagnostics
+    // panel, the variant picker, the hover over a squiggle, all of it.
     //
     // That language is whichever one the viewer below resolved, not the one
-    // the editor's own chrome uses: the records in the Diagnostics tab were
+    // the surrounding host chrome uses. The panel lists diagnostics that were
     // rendered down there, where an authored `<document lang>` is known, and
-    // the hover renders the same diagnostics a second time. Until the source
-    // has been parsed there is nothing to report, so the props-only answer the
-    // surrounding chrome uses stands in.
+    // the hover renders the same diagnostics a second time — so binding only
+    // those to it would leave "Line #2" in English beside a Spanish message.
+    // One scope for the editor, decided once (#1580): a footer in one language
+    // above a panel in another reads worse than either choice on its own.
+    //
+    // Until the source has been parsed there is nothing to report, so the
+    // props-only answer the surrounding chrome uses stands in.
     const [viewerUiLocale, setViewerUiLocale] = useState<string | null>(null);
     const hostUiLocale = useUiLocale();
-    const diagnosticLocale = viewerUiLocale ?? hostUiLocale;
+    const editorLocale = viewerUiLocale ?? hostUiLocale;
     // Bound to `translate` on purpose: `lint:i18n` only recognizes call sites
     // through a translator named `t` or `translate`, so the keys reached below
     // would otherwise read as orphans.
-    const translate = useChromeTranslator(diagnosticLocale, localeResources);
-    const formatDiagnostic = useDiagnosticFormatter(
-        translate,
-        diagnosticLocale,
-    );
+    const translate = useChromeTranslator(editorLocale, localeResources);
+    const formatDiagnostic = useDiagnosticFormatter(translate, editorLocale);
 
     const accessibilityHeadings = useMemo(
         () => ({
@@ -704,7 +710,7 @@ export const EditorViewer = React.forwardRef<
                 if (data.verb !== "experienced" && data.verb !== "isVisible") {
                     setDocumentInteracted(true);
                     if (!codeChangedRef.current) {
-                        setUpdateWord("Reset");
+                        setUpdateAction("reset");
                     }
                 }
                 if (data.verb === "submitted") {
@@ -790,7 +796,7 @@ export const EditorViewer = React.forwardRef<
 
             if (!codeChangedRef.current) {
                 setCodeChanged(true);
-                setUpdateWord("Update");
+                setUpdateAction("update");
             }
 
             immediateDoenetmlChangeCallbackRef.current?.(value);
@@ -1309,7 +1315,7 @@ export const EditorViewer = React.forwardRef<
                 readOnly={readOnly}
                 codeChanged={codeChanged}
                 documentInteracted={documentInteracted}
-                updateWord={updateWord}
+                updateAction={updateAction}
                 onUpdateViewer={updateViewer}
                 variants={variants}
                 setVariants={setVariants}
@@ -1376,19 +1382,27 @@ export const EditorViewer = React.forwardRef<
     const viewerFirst = viewerLocation === "left" || viewerLocation === "top";
 
     return (
-        <div data-theme={darkMode} style={{ display: "contents" }}>
-            <ResizablePanelPair
-                panelA={viewerFirst ? viewerPanel : editorPanel}
-                panelB={viewerFirst ? editorPanel : viewerPanel}
-                preferredDirection={
-                    viewerLocation === "bottom" || viewerLocation === "top"
-                        ? "vertical"
-                        : "horizontal"
-                }
-                width={width}
-                height={height}
-                border={border}
-            />
-        </div>
+        // A third provider, between the one `doenetml.tsx` mounts from the
+        // props and the one `DocViewer` mounts once it has parsed the source.
+        // Everything the editor draws reads `editorLocale` from here; the
+        // viewer nests its own inside and wins for the document itself, which
+        // is the same split as before — the two only ever differ while the
+        // first parse is still in flight.
+        <I18nProvider translate={translate} locale={editorLocale}>
+            <div data-theme={darkMode} style={{ display: "contents" }}>
+                <ResizablePanelPair
+                    panelA={viewerFirst ? viewerPanel : editorPanel}
+                    panelB={viewerFirst ? editorPanel : viewerPanel}
+                    preferredDirection={
+                        viewerLocation === "bottom" || viewerLocation === "top"
+                            ? "vertical"
+                            : "horizontal"
+                    }
+                    width={width}
+                    height={height}
+                    border={border}
+                />
+            </div>
+        </I18nProvider>
     );
 });

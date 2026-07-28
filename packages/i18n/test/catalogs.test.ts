@@ -50,14 +50,13 @@ describe("bundled English catalogs", () => {
         );
     });
 
-    it("still defines no keys in the namespaces later phases populate", () => {
-        // The orphan check in `lint:i18n` is only meaningful while every key
-        // that exists is one some call site actually uses. A key appearing
-        // here before its phase moves the strings would be a key nothing
-        // references.
-        for (const namespace of ["editor"] as const) {
-            expect(extractKeys(EN_CATALOGS[namespace]), namespace).toEqual([]);
-        }
+    it("defines the editor chrome Phase 4 extracted", () => {
+        // The last namespace to be populated: `editor.ftl` sat empty from
+        // Phase 0 until the editor's own chrome moved into it (#1580).
+        const editorKeys = extractKeys(EN_CATALOGS.editor);
+        expect(editorKeys).toContain("editor-tab-errors");
+        expect(editorKeys).toContain("editor-diagnostic-line");
+        expect(editorKeys).toContain("editor-accessibility-label");
     });
 });
 

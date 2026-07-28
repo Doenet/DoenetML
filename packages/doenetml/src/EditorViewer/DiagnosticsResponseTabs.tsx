@@ -16,6 +16,9 @@ import {
 import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
 import type { HelpContent } from "@doenet/lsp-tools";
 import { ContextHelpPanel } from "./contextHelp/ContextHelpPanel";
+import { useT } from "../utils/i18n";
+import { fillSlots, slot } from "./slots";
+import type { Translator } from "@doenet/i18n";
 
 type SubmittedResponse = {
     answerId: string;
@@ -28,13 +31,24 @@ type SubmittedResponse = {
 export type DiagnosticsTabId =
     "errors" | "warnings" | "info" | "accessibility" | "responses" | "help";
 
-/** Human-readable label for diagnostic source line, when position exists. */
-function diagnosticLocationLabel(diagnostic: {
-    position?: { start: { line: number } };
-}) {
-    return diagnostic.position
-        ? `Line #${diagnostic.position.start.line}`
-        : null;
+/**
+ * Human-readable label for diagnostic source line, when position exists.
+ *
+ * The line arrives as text rather than as a number, so Fluent hands it to no
+ * `Intl.NumberFormat`: it identifies the line, and line 1234 is "#1234" rather
+ * than "#1,234". Same rule `rangeArgs` follows for the error box.
+ */
+function diagnosticLocationLabel(
+    t: Translator,
+    diagnostic: {
+        position?: { start: { line: number } };
+    },
+) {
+    if (!diagnostic.position) {
+        return null;
+    }
+    const line = String(diagnostic.position.start.line);
+    return t("editor-diagnostic-line", { line }, `Line #${line}`);
 }
 
 /** Stable identity for diagnostic list rendering keys. */
@@ -93,6 +107,7 @@ function DiagnosticList({
     icon: ReactElement;
     iconClassName: string;
 }) {
+    const t = useT();
     if (diagnostics.length === 0) {
         return <>{emptyMessage}</>;
     }
@@ -102,7 +117,7 @@ function DiagnosticList({
     return (
         <ul className="diagnostic-list">
             {diagnostics.map((diagnostic, i) => {
-                const location = diagnosticLocationLabel(diagnostic);
+                const location = diagnosticLocationLabel(t, diagnostic);
                 const identity = diagnosticIdentityKey(diagnostic);
                 const currentCount =
                     diagnosticIdentityCounts.get(identity) ?? 0;
@@ -140,6 +155,35 @@ function DiagnosticList({
                 );
             })}
         </ul>
+    );
+}
+
+/** The name of the standard, which no locale translates. */
+const WCAG_AA = "WCAG AA";
+
+const WCAG_URL = "https://www.w3.org/WAI/standards-guidelines/wcag/";
+
+/**
+ * "Accessibility violations (WCAG AA)", with the standard's name linked.
+ *
+ * The heading is one message rather than two halves with a link between them,
+ * so its wording and the brackets around the name are the catalog's while the
+ * link stays the code's — see {@link fillSlots} for the mechanism and why the
+ * argument is a marker rather than the name itself.
+ */
+function AccessibilityViolationsHeading() {
+    const t = useT();
+    return fillSlots(
+        t(
+            "editor-accessibility-violations-heading",
+            { standard: slot(0) },
+            `Accessibility violations (${slot(0)})`,
+        ),
+        [
+            <a href={WCAG_URL} target="_blank">
+                {WCAG_AA}
+            </a>,
+        ],
     );
 }
 
@@ -204,6 +248,7 @@ export function DiagnosticsResponseTabContents({
     helpContent: HelpContent;
     docsURL: string;
 }) {
+    const t = useT();
     const panels = useRef<HTMLDivElement>(null);
     const lastScrolledToBottom = useRef(true);
 
@@ -290,7 +335,15 @@ export function DiagnosticsResponseTabContents({
                             >
                                 <DiagnosticList
                                     diagnostics={errors}
-                                    emptyMessage={<h3>No Errors</h3>}
+                                    emptyMessage={
+                                        <h3>
+                                            {t(
+                                                "editor-no-errors",
+                                                undefined,
+                                                "No Errors",
+                                            )}
+                                        </h3>
+                                    }
                                     testPrefix="Error"
                                     icon={<BsXOctagonFill />}
                                     iconClassName="is-error"
@@ -305,7 +358,15 @@ export function DiagnosticsResponseTabContents({
                             >
                                 <DiagnosticList
                                     diagnostics={warnings}
-                                    emptyMessage={<h3>No Warnings</h3>}
+                                    emptyMessage={
+                                        <h3>
+                                            {t(
+                                                "editor-no-warnings",
+                                                undefined,
+                                                "No Warnings",
+                                            )}
+                                        </h3>
+                                    }
                                     testPrefix="Warning"
                                     icon={<BsExclamationTriangleFill />}
                                     iconClassName="is-warning"
@@ -320,12 +381,24 @@ export function DiagnosticsResponseTabContents({
                             >
                                 <AnnotationToggle
                                     checked={showInfoAnnotations}
-                                    label="Show info diagnostics in editor"
+                                    label={t(
+                                        "editor-show-info-annotations",
+                                        undefined,
+                                        "Show info diagnostics in editor",
+                                    )}
                                     onChange={setShowInfoAnnotations}
                                 />
                                 <DiagnosticList
                                     diagnostics={infos}
-                                    emptyMessage={<h3>No Info Diagnostics</h3>}
+                                    emptyMessage={
+                                        <h3>
+                                            {t(
+                                                "editor-no-info",
+                                                undefined,
+                                                "No Info Diagnostics",
+                                            )}
+                                        </h3>
+                                    }
                                     testPrefix="Info"
                                     icon={<BsInfoCircleFill />}
                                     iconClassName="is-info"
@@ -340,7 +413,11 @@ export function DiagnosticsResponseTabContents({
                             >
                                 <AnnotationToggle
                                     checked={showAccessibilityAnnotations}
-                                    label="Show accessibility diagnostics in editor"
+                                    label={t(
+                                        "editor-show-accessibility-annotations",
+                                        undefined,
+                                        "Show accessibility diagnostics in editor",
+                                    )}
                                     onChange={setShowAccessibilityAnnotations}
                                 />
                                 <p className="accessibility-report-intro">
@@ -349,26 +426,30 @@ export function DiagnosticsResponseTabContents({
                                         target="_blank"
                                         rel="noreferrer"
                                     >
-                                        Learn how Doenet approaches
-                                        accessibility
+                                        {t(
+                                            "editor-accessibility-learn-more",
+                                            undefined,
+                                            "Learn how Doenet approaches accessibility",
+                                        )}
                                     </a>
                                 </p>
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading critical">
                                         <h3>
-                                            Accessibility violations (
-                                            <a
-                                                href="https://www.w3.org/WAI/standards-guidelines/wcag/"
-                                                target="_blank"
-                                            >
-                                                WCAG AA
-                                            </a>
-                                            )
+                                            <AccessibilityViolationsHeading />
                                         </h3>
                                     </div>
                                     <DiagnosticList
                                         diagnostics={level1Accessibility}
-                                        emptyMessage={<p>None found</p>}
+                                        emptyMessage={
+                                            <p>
+                                                {t(
+                                                    "editor-none-found",
+                                                    undefined,
+                                                    "None found",
+                                                )}
+                                            </p>
+                                        }
                                         testPrefix="WCAG AA Accessibility Violation"
                                         icon={<IoAccessibility />}
                                         iconClassName="is-accessibility-critical"
@@ -376,11 +457,25 @@ export function DiagnosticsResponseTabContents({
                                 </section>
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading advisory">
-                                        <h3>Other accessibility issues</h3>
+                                        <h3>
+                                            {t(
+                                                "editor-accessibility-other-heading",
+                                                undefined,
+                                                "Other accessibility issues",
+                                            )}
+                                        </h3>
                                     </div>
                                     <DiagnosticList
                                         diagnostics={level2Accessibility}
-                                        emptyMessage={<p>None found</p>}
+                                        emptyMessage={
+                                            <p>
+                                                {t(
+                                                    "editor-none-found",
+                                                    undefined,
+                                                    "None found",
+                                                )}
+                                            </p>
+                                        }
                                         testPrefix="Accessibility alert"
                                         icon={<IoAccessibility />}
                                         iconClassName="is-accessibility-advisory"
@@ -395,21 +490,45 @@ export function DiagnosticsResponseTabContents({
                                 className="diagnostic-panel"
                             >
                                 {submittedResponses.length == 0 ? (
-                                    <h3>No submitted responses yet</h3>
+                                    <h3>
+                                        {t(
+                                            "editor-no-responses",
+                                            undefined,
+                                            "No submitted responses yet",
+                                        )}
+                                    </h3>
                                 ) : (
                                     <div style={{ minWidth: "fit-content" }}>
                                         <table>
                                             <thead>
                                                 <tr>
                                                     <th scope="col">
-                                                        Answer Id
+                                                        {t(
+                                                            "editor-response-answer-id",
+                                                            undefined,
+                                                            "Answer Id",
+                                                        )}
                                                     </th>
                                                     <th scope="col">
-                                                        Response
+                                                        {t(
+                                                            "editor-response-response",
+                                                            undefined,
+                                                            "Response",
+                                                        )}
                                                     </th>
-                                                    <th scope="col">Credit</th>
                                                     <th scope="col">
-                                                        Submitted
+                                                        {t(
+                                                            "editor-response-credit",
+                                                            undefined,
+                                                            "Credit",
+                                                        )}
+                                                    </th>
+                                                    <th scope="col">
+                                                        {t(
+                                                            "editor-response-submitted",
+                                                            undefined,
+                                                            "Submitted",
+                                                        )}
                                                     </th>
                                                 </tr>
                                             </thead>
