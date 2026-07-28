@@ -1562,7 +1562,9 @@ describe("Cascade tag tests @group4", async () => {
   <section boxed name="section2">
     <title name="title2">Second part</title>
     <variantControl name="vc2" numVariants="2" />
-    <setup name="setup2"><number name="n2">7</number></setup>
+    <setup name="setup2">
+      <p name="prompt2">Add <number name="n2">7</number></p>
+    </setup>
     <p name="p2">What is 3+4?</p>
     <answer name="ans">7</answer>
   </section>
@@ -1575,9 +1577,11 @@ describe("Cascade tag tests @group4", async () => {
 
         // `<setup>` and `<variantControl>` are configuration children, so
         // `section2` leaves them out of `childrenToHide` even though it is
-        // hidden until `section1` is answered. Neither renders, so not hiding
-        // them changes nothing on screen; it just keeps the definitions inside
-        // a `<setup>` independent of whether the section has been revealed.
+        // hidden until `section1` is answered. Neither renders, so this changes
+        // nothing on screen; what it does is keep the definitions inside a
+        // `<setup>` usable while the section is unrevealed. Hiding the `<setup>`
+        // hid everything under it, and a hidden child drops out of its parent's
+        // `text`, so `prompt2.text` was missing its `<number>`.
         expect(section2.stateValues.childrenToHide).eqls([
             await resolvePathToNodeIdx("p2"),
             await resolvePathToNodeIdx("section2.ans"),
@@ -1589,6 +1593,10 @@ describe("Cascade tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("n2")].stateValues.hidden,
         ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("prompt2")].stateValues
+                .text,
+        ).eq("Add 7");
     });
 
     it("boxAll boxes only immediate section children", async () => {

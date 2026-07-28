@@ -74,11 +74,11 @@ function returnSectionChildDependencies() {
  * Configuration children are neither rendered nor hidden. Leaving them out of
  * `childIndicesToRender` costs nothing, since a child with no `rendererType`
  * only ever reached the renderer as an empty slot. Leaving them out of
- * `childrenToHide` is likewise inert on screen — nothing reads the `hidden` of
- * a component that never renders, nor of anything nested inside one — and it
- * has the benefit of keeping a section's styles, feedback, variants, and
- * `<setup>` definitions independent of whether its content is currently
- * revealed.
+ * `childrenToHide` is what keeps a section's styles, feedback, variants, and
+ * `<setup>` definitions usable while its content is hidden: `hidden` is
+ * inherited by every descendant, and a hidden child is dropped from its
+ * parent's `text`, so hiding a `<setup>` used to hollow out the text of what it
+ * defined for as long as the section stayed unrevealed.
  *
  * Their positions are still consumed from `allChildren`, so the positions of
  * the children around them stay aligned with `activeChildren`. String children
@@ -107,6 +107,12 @@ function nonConfigurationChildEntries(dependencyValues) {
  * report the alignment it needs. `<setup>` and `<variantControl>` are the
  * common offenders and are already excluded as configuration children; this
  * covers the rest (`<animateFromSequence>`, `<solveEquations>`, …).
+ *
+ * Composites are not a loophole even though none of them declares a
+ * `rendererType`: a composite is replaced by its replacements in
+ * `activeChildren` unless the parent names its component type in a child group
+ * (see `findChildGroup()`), and `<setup>` — which really does render nothing —
+ * is the only composite a section names.
  */
 function childRendersSomething(child, componentInfoObjects) {
     if (typeof child !== "object") {
