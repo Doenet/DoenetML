@@ -176,7 +176,11 @@ export default class Hint extends BlockComponent {
                     // Only the default is translated: an authored `<title>` is
                     // the author's own words, in every language.
                     const t = contentTranslator(dependencyValues);
-                    return { setValue: { title: t("hint-title") } };
+                    return {
+                        setValue: {
+                            title: t("hint-title", undefined, "Hint"),
+                        },
+                    };
                 } else {
                     return {
                         setValue: {

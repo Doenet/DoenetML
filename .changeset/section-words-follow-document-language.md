@@ -14,4 +14,6 @@ The word is keyed by the element an author writes rather than by an internal cla
 
 An unnumbered block such as `<proof>`, asked to include its number, used to render the word "null" where the number would have gone. It now renders no number, which is what it has.
 
-Apart from that, a document that declares no language reads exactly as it did before.
+A block whose `renameTo` is empty likewise renders no name, rather than the space and colon that used to be written around the word that isn't there.
+
+Apart from those, a document that declares no language reads exactly as it did before.

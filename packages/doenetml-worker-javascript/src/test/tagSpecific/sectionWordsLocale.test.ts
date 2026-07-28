@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import { createTranslator } from "@doenet/i18n";
 import { createTestCore } from "../utils/test-core";
 import * as ComponentTypes from "../../ComponentTypes";
 import {
     composeTitlePrefix,
+    sectionNameWord,
     sectionWordsCoverage,
 } from "../../utils/sectionWords";
 
@@ -97,15 +99,19 @@ describe("section words follow the document locale @group4", () => {
             }
         });
 
-        it("names every authorable sectional block", async () => {
-            // A new sectional component that nobody adds to the vocabulary
-            // would silently keep its JavaScript class name, in every
-            // language, and nothing else would notice.
+        it("names every authorable sectional block, with the word it had", async () => {
+            // Two failures at once. A new sectional component that nobody adds
+            // to the vocabulary would silently keep its JavaScript class name,
+            // in every language; and a wrong English word anywhere in the
+            // vocabulary would silently change what a document that declares
+            // no language renders. Only six of these types are spelled out
+            // above, so the rest are pinned here against the class name the
+            // word replaced.
             const all = ComponentTypes.allComponentClasses() as Record<
                 string,
                 any
             >;
-            const namesItself: string[] = [];
+            const namesItself: [string, string][] = [];
             for (const [componentType, componentClass] of Object.entries(all)) {
                 if (
                     componentType.startsWith("_") ||
@@ -117,20 +123,37 @@ describe("section words follow the document locale @group4", () => {
                     componentClass.returnStateVariableDefinitions?.()
                         ?.sectionName !== undefined
                 ) {
-                    namesItself.push(componentType);
+                    namesItself.push([componentType, componentClass.name]);
                 }
             }
+            const types = namesItself.map(([type]) => type);
 
             // The scan is the load-bearing half, so check it found something
             // before trusting that it found nothing missing.
-            expect(namesItself).toContain("section");
-            expect(namesItself).toContain("solution");
-            expect(namesItself).toContain("givenAnswer");
+            expect(types).toContain("section");
+            expect(types).toContain("solution");
+            expect(types).toContain("givenAnswer");
 
             const covered = new Set(sectionWordsCoverage());
-            expect(namesItself.filter((type) => !covered.has(type))).toEqual(
-                [],
-            );
+            expect(types.filter((type) => !covered.has(type))).toEqual([]);
+
+            // The three element names whose word was never their class name:
+            // a subsection at either depth is called a section, and
+            // `<givenAnswer>` is called an answer.
+            const renamed: Record<string, string> = {
+                subsection: "Section",
+                subsubsection: "Section",
+                givenAnswer: "Answer",
+            };
+            const t = createTranslator([], {});
+            const wrongInEnglish = namesItself
+                .map(([type, className]) => ({
+                    type,
+                    word: sectionNameWord(t, type, className),
+                    expected: renamed[type] ?? className,
+                }))
+                .filter(({ word, expected }) => word !== expected);
+            expect(wrongInEnglish).toEqual([]);
         });
     });
 
@@ -199,6 +222,32 @@ describe("section words follow the document locale @group4", () => {
             expect(
                 await values(doenetML, ["bare", "titled"], "titlePrefix"),
             ).toEqual({ bare: "Proof", titled: "" });
+        });
+
+        it("renders no name for a section renamed to nothing", async () => {
+            // `renameTo=""` leaves the block with no word, so the heading is
+            // built as though no name had been asked for — without the space
+            // and punctuation that would sit around one. The concatenation
+            // that built this wrote them anyway: " 1", and a bare ": " where
+            // the heading was the name alone.
+            const doenetML = `
+            <problems name="bare" renameTo="" includeAutoName><p>a</p></problems>
+            <problems name="titled" renameTo="" includeAutoName includeAutoNumber="false"><title>Limits</title><p>b</p></problems>
+            <problems name="numbered" renameTo="" includeAutoName includeAutoNumber><title>Limits</title><p>c</p></problems>
+            `;
+            expect(
+                await values(
+                    doenetML,
+                    ["bare", "titled", "numbered"],
+                    "titlePrefix",
+                ),
+            ).toEqual({
+                bare: "1",
+                titled: "",
+                // Only the number is left, and it is punctuated the way a
+                // bare number is.
+                numbered: "3. ",
+            });
         });
 
         it("numbers a list item by counting, which arrives as a number", async () => {

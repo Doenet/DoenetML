@@ -106,25 +106,29 @@ export function composeTitlePrefix({
     sectionName,
     sectionNumber,
 }) {
-    // An unnumbered section has no number to include, whatever was asked for.
+    // An unnumbered section has no number to include, whatever was asked for,
+    // and a block the author renamed to nothing has no name — either way the
+    // piece is absent rather than empty, so it selects a branch that leaves
+    // out the space and punctuation around it.
     const withNumber = includeAutoNumber && sectionNumber != null;
+    const withName = Boolean(includeAutoName && sectionName);
 
-    if (!includeAutoName && !withNumber) {
+    if (!withName && !withNumber) {
         return "";
     }
 
     const parts = [
-        ...(includeAutoName ? ["name"] : []),
+        ...(withName ? ["name"] : []),
         ...(withNumber ? ["number"] : []),
         ...(haveTitleChild ? ["title"] : []),
     ].join("-");
 
     // English, for a locale whose catalog has never seen this message. Built
     // the same way the branches above are, so the two cannot drift.
-    const separator = haveTitleChild ? (includeAutoName ? ": " : ". ") : "";
+    const separator = haveTitleChild ? (withName ? ": " : ". ") : "";
     const english =
-        (includeAutoName ? sectionName : "") +
-        (includeAutoName && withNumber ? " " : "") +
+        (withName ? sectionName : "") +
+        (withName && withNumber ? " " : "") +
         (withNumber ? sectionNumber : "") +
         separator;
 
