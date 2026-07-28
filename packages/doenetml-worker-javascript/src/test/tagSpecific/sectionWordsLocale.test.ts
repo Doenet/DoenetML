@@ -250,6 +250,23 @@ describe("section words follow the document locale @group4", () => {
             });
         });
 
+        it("renders no name for a section renamed to blank space", async () => {
+            // A name of nothing but spaces shows the reader no word either,
+            // and the punctuation around one would read as the same mistake.
+            // The name the author wrote still reaches `sectionName` as they
+            // wrote it; it is the heading that leaves the piece out.
+            const doenetML = `
+            <problems name="bare" renameTo="   " includeAutoName><p>a</p></problems>
+            <problems name="titled" renameTo="   " includeAutoName includeAutoNumber="false"><title>Limits</title><p>b</p></problems>
+            `;
+            expect(
+                await values(doenetML, ["bare", "titled"], "titlePrefix"),
+            ).toEqual({ bare: "1", titled: "" });
+            expect(
+                (await values(doenetML, ["bare"], "sectionName")).bare,
+            ).toEqual("   ");
+        });
+
         it("numbers a list item by counting, which arrives as a number", async () => {
             // The premise of the test below: a section rendered as a list item
             // takes its number from `countAmongSiblings`, and that reaches
@@ -285,37 +302,6 @@ describe("section words follow the document locale @group4", () => {
                 sectionNumber: 1000,
             });
             expect(passed?.sectionNumber).eq("1000");
-        });
-
-        it("takes the language from a `<document lang>` on the root", async () => {
-            // Everything else here declares the language through the host.
-            // `lang` on the document is the author's own route to it, and it
-            // is answered by an ancestor lookup that excludes the component it
-            // runs on — a `<section>` is never that document, so the lookup
-            // reaches it.
-            const doenetML = `<document lang="es">
-              <section name="s"><p>a</p></section>
-              <hint name="h"><p>b</p></hint>
-            </document>`;
-            const svs = await stateValuesOf(doenetML, ["s", "h"]);
-            expect(svs.s.sectionName).eq("Sección");
-            expect(svs.s.titlePrefix).eq("Sección 1");
-            expect(svs.h.title).eq("Pista");
-        });
-
-        it("gives a nested <document> its own language, and its sections with it", async () => {
-            // The ancestor lookup finds the *nearest* document, so a section
-            // inside the inner one is named in the inner one's language while
-            // one outside keeps the outer's.
-            const nested = `<document>
-              <section name="outer"><p>a</p></section>
-              <document name="inner" lang="es">
-                <section name="innerSection"><p>b</p></section>
-              </document>
-            </document>`;
-            const svs = await stateValuesOf(nested, ["outer", "innerSection"]);
-            expect(svs.outer.sectionName).eq("Section");
-            expect(svs.innerSection.sectionName).eq("Sección");
         });
 
         it("keeps the section number out of the catalog's hands", async () => {
@@ -382,6 +368,41 @@ describe("section words follow the document locale @group4", () => {
                     "Try this",
                 );
             }
+        });
+    });
+
+    describe("a `<document lang>` written by the author", () => {
+        // Everything above reaches the language through the host. `lang` on
+        // the document is the author's own route to it, and it is answered by
+        // an ancestor lookup that excludes the component it runs on — so a
+        // word a `<document>` computes about *itself* needs `ownLocale`.
+        // Neither a `<section>` nor a `<hint>` is ever that document, and
+        // these pin that the lookup reaches them.
+
+        it("names a section and a hint in the language the root declares", async () => {
+            const doenetML = `<document lang="es">
+              <section name="s"><p>a</p></section>
+              <hint name="h"><p>b</p></hint>
+            </document>`;
+            const svs = await stateValuesOf(doenetML, ["s", "h"]);
+            expect(svs.s.sectionName).eq("Sección");
+            expect(svs.s.titlePrefix).eq("Sección 1");
+            expect(svs.h.title).eq("Pista");
+        });
+
+        it("gives a nested <document> its own language, and its sections with it", async () => {
+            // The ancestor lookup finds the *nearest* document, so a section
+            // inside the inner one is named in the inner one's language while
+            // one outside keeps the outer's.
+            const nested = `<document>
+              <section name="outer"><p>a</p></section>
+              <document name="inner" lang="es">
+                <section name="innerSection"><p>b</p></section>
+              </document>
+            </document>`;
+            const svs = await stateValuesOf(nested, ["outer", "innerSection"]);
+            expect(svs.outer.sectionName).eq("Section");
+            expect(svs.innerSection.sectionName).eq("Sección");
         });
     });
 });

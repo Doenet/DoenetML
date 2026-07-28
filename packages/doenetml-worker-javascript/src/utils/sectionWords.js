@@ -107,11 +107,11 @@ export function composeTitlePrefix({
     sectionNumber,
 }) {
     // An unnumbered section has no number to include, whatever was asked for,
-    // and a block the author renamed to nothing has no name — either way the
-    // piece is absent rather than empty, so it selects a branch that leaves
-    // out the space and punctuation around it.
+    // and a block the author renamed to nothing — or to blank space — has no
+    // word to show. Either way the piece is absent rather than empty, so it
+    // selects a branch that leaves out the space and punctuation around it.
     const withNumber = includeAutoNumber && sectionNumber != null;
-    const withName = Boolean(includeAutoName && sectionName);
+    const withName = Boolean(includeAutoName && sectionName?.trim());
 
     if (!withName && !withNumber) {
         return "";
