@@ -19,5 +19,7 @@ a document in a language nobody has translated the interface into is not a
 mistake: its tag reaches the rendered `lang` attribute, where a screen reader
 picks a voice and the browser hyphenates, with only the prose the core computes
 falling back to English. So the editor draws no squiggle under a tag it does
-not recognize, and the help panel says "Suggested values" rather than "Allowed
-values" so it does not claim a rule nothing enforces.
+not recognize, the help panel says "Suggested values" rather than "Allowed
+values" so it does not claim a rule nothing enforces, and typing an unlisted
+tag unquoted still gets the same offer to quote it that any free-text attribute
+gets.

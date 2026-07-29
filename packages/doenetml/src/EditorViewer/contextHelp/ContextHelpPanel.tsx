@@ -124,7 +124,7 @@ function lineArg(line: number | undefined): string {
  * than a third branch of `help-allowed-values`, whose selector splits
  * whole-value from per-item within one sentence.
  */
-function valueListLabel(
+export function valueListLabel(
     t: Translator,
     {
         areSuggestions,

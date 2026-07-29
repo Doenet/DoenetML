@@ -48,8 +48,11 @@ export type SchemaAttribute = {
     autocompleteValues?: ValidValueEntry[];
     /**
      * `true` when `autocompleteValues` are suggestions rather than the
-     * permitted set, so surfaces can label the list honestly. Always
-     * accompanied by an absent `values`.
+     * permitted set. Always accompanied by an absent `values`. Author-facing
+     * surfaces read it to stay honest about the list: the help panel labels it
+     * "Suggested values", and autocomplete keeps the free-text "wrap in
+     * quotes" hint for a bare value the list doesn't contain instead of going
+     * silent as it does for an enum.
      */
     suggestedValuesOnly?: boolean;
     /**

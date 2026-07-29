@@ -417,8 +417,10 @@ type SchemaAttribute = {
      * `true` when the entries in `autocompleteValues` are suggestions rather
      * than the permitted set — the attribute declared `suggestedValues`, so
      * there is no companion `values` list and an unlisted value is not an
-     * error. Author-facing surfaces use it to label the list honestly
-     * ("Suggested values" rather than "Allowed values").
+     * error. Author-facing surfaces use it to stay honest about the list: the
+     * help panel labels it "Suggested values" rather than "Allowed values",
+     * and autocomplete keeps its free-text behavior for a value the list
+     * doesn't contain.
      */
     suggestedValuesOnly?: boolean;
     /**

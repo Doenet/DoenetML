@@ -3192,5 +3192,25 @@ describe("AutoCompleter", () => {
                     : (documentation?.value ?? "");
             expect(text).toContain("Spanish");
         });
+
+        it("Still offers to quote a bare tag that isn't on the list", async () => {
+            // An attribute whose values are only suggestions keeps the
+            // free-text affordance: typing `lang=de` unquoted matches no
+            // suggestion, and the author would otherwise lose the "wrap in
+            // quotes" hint that `lang` had before it carried a list at all.
+            const source = `<document lang=de`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            expect(items.map((i) => i.displayLabel)).toEqual(['"de"']);
+        });
+
+        it("Offers nothing for a bare value a closed enum rejects", async () => {
+            // The contrast that scopes the fallback: `simplify` enumerates its
+            // values, so `zzz` is a mistake and offering to quote it would
+            // only make the wrong value look blessed.
+            const source = `<math simplify=zzz`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            expect(await ac.getCompletionItems(source.length)).toEqual([]);
+        });
     });
 });
