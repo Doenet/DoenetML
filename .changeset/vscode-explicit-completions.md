@@ -21,6 +21,10 @@ them inline instead left element suggestions working while attribute
 suggestions appeared to be missing entirely. Doenet documents now ask for the
 widget by default.
 
+Both defaults are contributed under `[doenet]`, which raises the extension's
+minimum VS Code version to 1.85 — the release where
+`editor.wordBasedSuggestions` became an enum.
+
 The language server also attaches to Doenet documents on any filesystem rather
 than only `file:` and `untitled:` ones, so completions, diagnostics, hovers and
 formatting work on vscode.dev, github.dev, and in virtual workspaces.

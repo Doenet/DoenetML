@@ -470,6 +470,25 @@ describe("explicit completion invocation", () => {
         expect(next).toHaveBeenCalledTimes(2);
     });
 
+    it("keeps Ctrl+Space bound when the language server fails to start", async () => {
+        hoisted.readFile.mockResolvedValue(
+            makeSubarrayBytes('console.log("worker");'),
+        );
+        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+        hoisted.start.mockRejectedValue(new Error("start failed"));
+
+        const { activate } = await import("../src/extension/index");
+        await expect(activate(createContext() as any)).rejects.toThrow(
+            "start failed",
+        );
+
+        // Without the command the keybinding resolves to nothing and
+        // Ctrl+Space reports an unknown command.
+        expect(
+            hoisted.registerCommand.mock.calls.map((call) => call[0]),
+        ).toContain("doenet.triggerSuggest");
+    });
+
     it("expires a flag whose keystroke never produced a request", async () => {
         const { provideCompletionItem, triggerSuggest } =
             await activateForCompletion();

@@ -15,6 +15,7 @@ import {
     CompletionRequest,
     LanguageClient,
     LanguageClientOptions,
+    ProvideCompletionItemsSignature,
     TextEdit,
 } from "vscode-languageclient/browser";
 import { DoenetPreviewPanel } from "./preview-panel/doenet-preview-panel";
@@ -42,6 +43,12 @@ export async function deactivate(): Promise<void> {
  * Setup the language server.
  */
 async function setupLanguageServer(context: ExtensionContext) {
+    // Ctrl+Space is bound to `doenet.triggerSuggest` in every Doenet document,
+    // so the command has to exist even when the server below fails to start:
+    // an unregistered command turns the keystroke into an "unknown command"
+    // error instead of the suggestion widget.
+    context.subscriptions.push(registerTriggerSuggestCommand());
+
     // Read the bundled doenetml-worker file and create a blob URL from it.
     // The language server (running as a web worker) needs to spawn its own
     // rust-backed core sub-worker for path resolution — that's how it
@@ -99,8 +106,6 @@ async function setupLanguageServer(context: ExtensionContext) {
         // Start the client. This will also launch the server.
         await client.start();
 
-        const triggerSuggest = registerTriggerSuggestCommand();
-
         const formatAsDoenet = registerFormatCommand(
             "doenet.formatAsDoenetML",
             "doenet.formatAsDoenetML",
@@ -115,7 +120,6 @@ async function setupLanguageServer(context: ExtensionContext) {
         );
 
         context.subscriptions.push(
-            triggerSuggest,
             formatAsDoenet,
             formatAsXML,
             formatAsMarkdown,
@@ -212,12 +216,7 @@ async function provideCompletionItemWithExplicitFlag(
     position: vscode.Position,
     context: vscode.CompletionContext,
     token: vscode.CancellationToken,
-    next: (
-        document: vscode.TextDocument,
-        position: vscode.Position,
-        context: vscode.CompletionContext,
-        token: vscode.CancellationToken,
-    ) => vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList>,
+    next: ProvideCompletionItemsSignature,
 ) {
     if (!isExplicitCompletion(document, context)) {
         return next(document, position, context, token);
