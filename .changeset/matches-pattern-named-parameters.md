@@ -10,7 +10,7 @@
 
 `patternMatches` comes back in the order the parameters were named, and a parameter that does not occur in the pattern holds its place there as a blank and warns, so an author's `$m.patternMatches[2]` keeps meaning the second name they wrote. A name listed twice is one placeholder and takes one place in that list.
 
-Specifying `parameters` also makes `()` a literal blank rather than a placeholder — a pattern cannot ask for both kinds at once, and a pattern that wants a literal blank matched needs `matchExpressionWithBlanks` as before. A parameter must be a variable: a plain symbol, a subscripted or primed one, or a function name. Anything else is ignored with a warning.
+Specifying `parameters` also makes `()` a literal blank rather than a placeholder — a pattern cannot ask for both kinds at once, and a pattern that wants a literal blank matched needs `matchExpressionWithBlanks` as before. `parameters` is a list of variable names, the same kind `<function variables>` and `<solveEquations variables>` take, so a plain symbol or a subscripted one is a parameter and anything else is ignored with a warning. A function name counts, which makes `pattern="f(x)+f(y)" parameters="f"` match `sin(x)+sin(y)` and not `sin(x)+cos(y)`.
 
 Leaving `parameters` off changes nothing.
 

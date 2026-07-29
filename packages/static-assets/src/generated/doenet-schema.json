@@ -115716,7 +115716,7 @@
                     "name": "parameters",
                     "description": "Variables in the pattern that act as placeholders. Repeating one in the pattern requires the same subexpression at each occurrence. When specified, blanks in the pattern are matched literally.",
                     "highlighted": true,
-                    "type": "mathList"
+                    "type": "_variableNameList"
                 },
                 {
                     "name": "allowImplicitIdentities",

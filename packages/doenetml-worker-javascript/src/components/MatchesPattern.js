@@ -1,38 +1,29 @@
 import BooleanComponent from "./Boolean";
 import { numberToLetters } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { isValidVariable } from "../utils/math";
 import me from "math-expressions";
 
 const BLANK = "\uff3f";
 
 /**
- * A string key for `tree` when `tree` is something a parameter is allowed to
- * be, and `undefined` when it is not. Two trees get the same key exactly when
- * they are the same parameter.
+ * A string key for `tree` when `tree` names a variable, and `undefined` when it
+ * does not. Two trees get the same key exactly when they are the same variable.
  *
  * Both the parameter list and every node of the pattern are keyed this way, so
- * recognizing a parameter in the pattern is a map lookup.
- *
- * A parameter names a variable: a bare symbol, or one dressed with a subscript
- * (`x_1` → `["_", "x", 1]`) or a prime (`f'` → `["prime", "f"]`). A blank is a
- * string too, and is refused so that it stays literal once `parameters` is
- * given. Numbers and compound expressions get no key.
+ * recognizing a parameter in the pattern is a map lookup. The test is
+ * `isValidVariable`, the one `<_variableNameList>` already applied to the
+ * `parameters` attribute, so a pattern node is measured against the rule that
+ * decided which parameters were accepted.
  *
  * The `s`/`t` prefixes keep a subscripted parameter from colliding with a
  * symbol whose name happens to be that subtree's JSON.
  */
 function parameterKey(tree) {
-    if (typeof tree === "string") {
-        return tree === BLANK ? undefined : "s" + tree;
+    if (!isValidVariable({ tree })) {
+        return undefined;
     }
-    if (
-        Array.isArray(tree) &&
-        ((tree[0] === "_" && tree.length === 3) || tree[0] === "prime") &&
-        parameterKey(tree[1]) !== undefined
-    ) {
-        return "t" + JSON.stringify(tree);
-    }
-    return undefined;
+    return typeof tree === "string" ? "s" + tree : "t" + JSON.stringify(tree);
 }
 
 /**
@@ -80,7 +71,7 @@ export default class MatchesPattern extends BooleanComponent {
             highlighted: true,
         };
         attributes.parameters = {
-            createComponentOfType: "mathList",
+            createComponentOfType: "_variableNameList",
             description:
                 "Variables in the pattern that act as placeholders. Repeating one in the pattern requires the same subexpression at each occurrence. When specified, blanks in the pattern are matched literally.",
             highlighted: true,
@@ -216,7 +207,7 @@ export default class MatchesPattern extends BooleanComponent {
                 parametersAttr: {
                     dependencyType: "attributeComponent",
                     attributeName: "parameters",
-                    variableNames: ["maths"],
+                    variableNames: ["variables"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -274,16 +265,14 @@ export default class MatchesPattern extends BooleanComponent {
                     dependencyValues.parametersAttr.position || undefined;
                 let sendDiagnostics = [];
 
-                // A set, so that a parameter listed twice is reported once.
-                let rejected = new Set();
                 let substitutions = new Map(); // parameter key -> placeholder
                 let parametersByPlaceholder = new Map(); // placeholder -> text
 
                 for (let parameter of dependencyValues.parametersAttr
-                    .stateValues.maths) {
+                    .stateValues.variables) {
                     let key = parameterKey(parameter.tree);
                     if (key === undefined) {
-                        rejected.add(parameter.toString());
+                        // not a variable; `<_variableNameList>` said so
                         continue;
                     }
                     if (substitutions.has(key)) {
@@ -297,17 +286,6 @@ export default class MatchesPattern extends BooleanComponent {
                         parameter.toString(),
                     );
                     patternVariables.push(placeholder);
-                }
-
-                if (rejected.size > 0) {
-                    sendDiagnostics.push(
-                        codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0117",
-                            args: { parameters: [...rejected] },
-                            position,
-                        }),
-                    );
                 }
 
                 let substituted = new Set();
@@ -331,7 +309,7 @@ export default class MatchesPattern extends BooleanComponent {
                     sendDiagnostics.push(
                         codedDiagnostic({
                             type: "warning",
-                            code: "doenet-w0118",
+                            code: "doenet-w0117",
                             args: { parameters: absent },
                             position,
                         }),

@@ -1073,7 +1073,10 @@ describe("MatchesPattern tag tests @group3", async () => {
         });
     });
 
-    it("a primed parameter can be a placeholder", async () => {
+    it("a primed symbol is not a variable, so it is not a parameter", async () => {
+        // `parameters` is a `<_variableNameList>`, which takes a bare symbol
+        // or a subscripted one. A prime is neither, here as everywhere else
+        // a list of variable names is accepted.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>Expression: <mathInput name="expr" /></p>
@@ -1082,12 +1085,19 @@ describe("MatchesPattern tag tests @group3", async () => {
   `,
         });
 
+        // With the one parameter refused, the pattern has no placeholders and
+        // is matched exactly.
         await checkMatches({
             core,
             resolvePathToNodeIdx,
-            numMatches: 1,
-            expected: { "g(x)+g(y)": ["g"], "g(x)+h(y)": false },
+            numMatches: 0,
+            expected: { "g(x)+g(y)": false, "f'(x)+f'(y)": [] },
         });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0017");
+        expect(warnings[0].args).eqls({ value: "f'" });
     });
 
     it("parameters honor requireNumericMatches and requireVariableMatches", async () => {
@@ -1227,7 +1237,7 @@ describe("MatchesPattern tag tests @group3", async () => {
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0118");
+        expect(warnings[0].code).eq("doenet-w0117");
         expect(warnings[0].args).eqls({ parameters: ["b"] });
         expect(warnings[0].message).eq(
             "`<matchesPattern>`: the parameter b does not occur in the pattern, so it will always match a blank.",
@@ -1250,13 +1260,13 @@ describe("MatchesPattern tag tests @group3", async () => {
             expected: { "3x": ["3"], "3z": false },
         });
 
+        // `<_variableNameList>` reports each entry it refused.
         const { warnings } = getDiagnosticsByType(core);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0117");
-        expect(warnings[0].args).eqls({ parameters: ["2", "x^2"] });
-        expect(warnings[0].message).eq(
-            "`<matchesPattern>`: ignoring 2 and x^2 in `parameters`, as a parameter must be a variable.",
-        );
+        expect(warnings.map((w) => [w.code, w.args])).eqls([
+            ["doenet-w0017", { value: "2" }],
+            ["doenet-w0017", { value: "x^2" }],
+        ]);
+        expect(warnings[0].message).eq("Invalid value of a variable: `2`");
     });
 
     it("a blank listed as a parameter is ignored with a warning", async () => {
@@ -1268,20 +1278,8 @@ describe("MatchesPattern tag tests @group3", async () => {
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0117");
-        expect(warnings[0].args).eqls({ parameters: ["＿"] });
-    });
-
-    it("the same rejected parameter listed twice is reported once", async () => {
-        const { core } = await createTestCore({
-            doenetML: `
-  <matchesPattern name="m" pattern="ax" parameters="2 2 x^2 x^2">3x</matchesPattern>
-  `,
-        });
-
-        const { warnings } = getDiagnosticsByType(core);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].args).eqls({ parameters: ["2", "x^2"] });
+        expect(warnings[0].code).eq("doenet-w0017");
+        expect(warnings[0].args).eqls({ value: "＿" });
     });
 
     it("a parameter is renamed away from a variable already in the pattern", async () => {
@@ -1339,7 +1337,7 @@ describe("MatchesPattern tag tests @group3", async () => {
 
         let warnings = getDiagnosticsByType(core).warnings;
         expect(warnings.length).eq(1);
-        expect(warnings[0].code).eq("doenet-w0118");
+        expect(warnings[0].code).eq("doenet-w0117");
 
         // Returning to `a` and back to `b` recomputes both ways without
         // raising the same warning a second time.
@@ -1414,7 +1412,7 @@ describe("MatchesPattern tag tests @group3", async () => {
             expected: { "3x+3": false },
         });
         expect(getDiagnosticsByType(core).warnings.length).eq(1);
-        expect(getDiagnosticsByType(core).warnings[0].code).eq("doenet-w0118");
+        expect(getDiagnosticsByType(core).warnings[0].code).eq("doenet-w0117");
 
         await updateMathInputValue({
             latex: "ax+a",
