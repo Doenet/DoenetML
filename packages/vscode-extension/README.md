@@ -47,7 +47,7 @@ Extension packaging and publishing is automated as part of the production releas
 
 #### Publishing the extension
 
-The production release workflow automatically publishes to the VS Code Marketplace after npm packages are published.
+The production release workflow automatically publishes to the VS Code Marketplace after npm packages are published, then publishes the same extension to the [Open VSX registry](https://open-vsx.org), where VS Code-compatible editors such as VSCodium find it. Open VSX publishing needs an `OVSX_PAT` repository secret; without it that step warns and the rest of the release proceeds. To publish it by hand, run `npm run publish:openvsx -w packages/vscode-extension` with `OVSX_PAT` set to an [open-vsx.org](https://open-vsx.org) access token for the `doenet` namespace.
 
 If the extension publish step fails (e.g., token expiration, transient network issues):
 
