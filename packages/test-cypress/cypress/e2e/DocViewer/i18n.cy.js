@@ -256,6 +256,47 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    describe("nested documents", () => {
+        // A nested `<document lang>` resolves in the core and translates the
+        // prose the core computes; this is the other half — the DOM has to say
+        // so too, or a screen reader pronounces Spanish content with an
+        // English voice.
+        const nested = (innerLang) => `
+        <document lang="en">
+          <p name="outer">Read the description below.</p>
+          <document name="inner" ${innerLang}>
+            <setup>
+              <styleDefinition styleNumber="1" lineColor="red" lineWidth="6"
+                lineStyle="dashed" />
+            </setup>
+            <graph><line through="(0,0) (1,1)" name="l" /></graph>
+            <p name="desc">$l.styleDescriptionWithNoun</p>
+          </document>
+        </document>`;
+
+        it("labels a nested document with its own language", () => {
+            render({ doenetML: nested(`lang="es"`) });
+
+            cy.get("#desc").should(
+                "have.text",
+                "línea discontinua gruesa roja",
+            );
+            // The wrapper still speaks for the activity as a whole; the inner
+            // document declares the difference on its own subtree.
+            cy.get(".doenet-viewer").should("have.attr", "lang", "en");
+            cy.get("#inner").should("have.attr", "lang", "es");
+        });
+
+        it("says nothing where a nested document inherits", () => {
+            // Re-asserting the surrounding language would pin the subtree to a
+            // tag it should simply be inheriting.
+            render({ doenetML: nested("") });
+
+            cy.get("#desc").should("have.text", "thick dashed red line");
+            cy.get("#inner").should("not.have.attr", "lang");
+        });
+    });
+
     describe("diagnostics", () => {
         // Neither chrome nor content: raised in the worker, read by whoever is
         // looking at the screen. So they follow `uiLocale` even though the

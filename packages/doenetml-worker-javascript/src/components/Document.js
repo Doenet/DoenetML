@@ -276,14 +276,9 @@ export default class Document extends BaseComponent {
         // The author knows what language they wrote in; the host only knows
         // what language it would prefer.
         //
-        // Known gap (#1546): only the *outer* document's language reaches the
-        // DOM. The viewer puts `lang` on the wrapper it renders around the
-        // whole activity; a nested `<document lang="de">` resolves this state
-        // variable correctly — and since Phase 2 (#1517) describes its
-        // graphics in that language — but renders through the section
-        // renderer, which emits no `lang`, so a screen reader keeps the outer
-        // document's voice. Closing it needs `forRenderer` here plus renderer
-        // changes.
+        // A nested document's language reaches the DOM through `renderedLang`
+        // below, not through this variable: the `lang` attribute has to say
+        // nothing where nothing was declared, and this one always has a tag.
         stateVariableDefinitions.locale = {
             description:
                 "The BCP-47 language tag in effect for the document's content.",
@@ -326,6 +321,52 @@ export default class Document extends BaseComponent {
                             lang,
                             dependencyValues.hostLocale,
                         ),
+                    },
+                };
+            },
+        };
+
+        // The tag the section renderer puts in a `lang` attribute for this
+        // document, or null for no attribute at all (#1546).
+        //
+        // Only a nested document ever needs one — the viewer labels the whole
+        // activity from the outermost document's language, on the wrapper it
+        // renders around it — and only when this document's language differs
+        // from the one already in effect around it. Re-asserting a language on
+        // every nested section would be worse than saying nothing: an activity
+        // that declared none should keep inheriting the embedding page's
+        // language rather than being pinned to English.
+        //
+        // The ancestor's `locale` is the language in effect: every enclosing
+        // document either declared its own or inherited one the same way, so
+        // the chain is already resolved by the time it gets here. The one thing
+        // it cannot see is that the viewer omits `lang` entirely when nobody
+        // declared a language — the core is always handed a tag, English at
+        // worst — so a nested document that declares English inside an
+        // undeclared activity stays silent and inherits the page's language,
+        // exactly as the activity around it does.
+        stateVariableDefinitions.renderedLang = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                locale: {
+                    dependencyType: "stateVariable",
+                    variableName: "locale",
+                },
+                documentAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "document",
+                    variableNames: ["locale"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const inherited =
+                    dependencyValues.documentAncestor?.stateValues.locale;
+                return {
+                    setValue: {
+                        renderedLang:
+                            inherited && dependencyValues.locale !== inherited
+                                ? dependencyValues.locale
+                                : null,
                     },
                 };
             },
