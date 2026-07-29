@@ -465,13 +465,12 @@ export function ContextHelpPanel({
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
-                                {/* "Suggested" rather than "Allowed" when the
-                                list is an open one: the attribute takes other
-                                values too, and nothing warns about them. Its
-                                own key rather than a third branch of
-                                `help-allowed-values` — that message's selector
-                                distinguishes whole-value from per-item within
-                                one sentence, and this is a different
+                                {/* "Suggested" rather than "Allowed" for an
+                                open list: the attribute takes other values
+                                too, and nothing warns about them. Its own key
+                                rather than a third branch of
+                                `help-allowed-values`, whose selector splits
+                                whole-value from per-item within one
                                 sentence. */}
                                 {allowedValuesAreSuggestions
                                     ? t(

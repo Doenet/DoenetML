@@ -27,12 +27,10 @@ export type SupportedLocaleInfo = {
 /**
  * Every locale with a catalog in this repository, `en` first.
  *
- * This is the *roster*, not the delivery mechanism. It is generated from the
+ * The *roster*, not the delivery mechanism: it is generated from the
  * `locales/` directory, so it stays correct when a locale stops being inlined
- * into the bundle and starts arriving as a lazily-loaded module or as
- * host-supplied `localeResources` — which is expected once there are more
- * than a handful. Read it for "which languages does DoenetML have"; read
- * `bundledResources` for "which catalogs are in this JS bundle".
+ * into the bundle. Read `bundledResources` for "which catalogs are in this JS
+ * bundle" instead.
  *
  * A deployment can always supply a catalog of its own that is not listed here.
  * That is why the surfaces built on this list suggest rather than enforce: an
