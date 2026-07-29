@@ -4,6 +4,15 @@ const hoisted = vi.hoisted(() => ({
     readFile: vi.fn(),
     joinPath: vi.fn(),
     registerCommand: vi.fn(() => ({ dispose: vi.fn() })),
+    executeCommand: vi.fn(async () => {}),
+    asCompletionParams: vi.fn(
+        (_document: unknown, _position: unknown, context: unknown) => ({
+            textDocument: { uri: "file:///test.doenet" },
+            position: { line: 0, character: 0 },
+            context,
+        }),
+    ),
+    asCompletionResult: vi.fn(async (result: unknown) => result),
     onDidChangeTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     onDidSaveTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
@@ -27,6 +36,12 @@ vi.mock("vscode", () => ({
     },
     commands: {
         registerCommand: hoisted.registerCommand,
+        executeCommand: hoisted.executeCommand,
+    },
+    CompletionTriggerKind: {
+        Invoke: 0,
+        TriggerCharacter: 1,
+        TriggerForIncompleteCompletions: 2,
     },
     Uri: {
         joinPath: hoisted.joinPath,
@@ -66,9 +81,18 @@ vi.mock("vscode-languageclient/browser", () => {
         start = hoisted.start;
         stop = hoisted.stop;
         sendRequest = hoisted.sendRequest;
+        code2ProtocolConverter = {
+            asCompletionParams: hoisted.asCompletionParams,
+        };
+        protocol2CodeConverter = {
+            asCompletionResult: hoisted.asCompletionResult,
+        };
     }
 
-    return { LanguageClient: MockLanguageClient };
+    return {
+        LanguageClient: MockLanguageClient,
+        CompletionRequest: { type: "textDocument/completion" },
+    };
 });
 
 class FakeWorker {
@@ -112,43 +136,46 @@ function stubUrlStatics(
     vi.stubGlobal("URL", UrlWithBlobStatics);
 }
 
+beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    vi.resetModules();
+    FakeWorker.instances = [];
+    hoisted.readFile.mockReset();
+    hoisted.joinPath.mockReset();
+    hoisted.registerCommand.mockClear();
+    hoisted.executeCommand.mockClear();
+    hoisted.asCompletionParams.mockClear();
+    hoisted.asCompletionResult.mockClear();
+    hoisted.onDidChangeTextDocument.mockClear();
+    hoisted.onDidSaveTextDocument.mockClear();
+    hoisted.onDidChangeActiveTextEditor.mockClear();
+    hoisted.onDidChangeTextEditorSelection.mockClear();
+    hoisted.start.mockReset();
+    hoisted.stop.mockClear();
+    hoisted.sendRequest.mockClear();
+    hoisted.languageClientCalls.length = 0;
+    hoisted.joinPath.mockImplementation(
+        (...parts: Array<{ path?: string } | string>) =>
+            makeUri(
+                parts
+                    .map((part) =>
+                        typeof part === "string"
+                            ? part
+                            : (part.path ?? String(part)),
+                    )
+                    .join("/"),
+            ),
+    );
+    vi.stubGlobal("Worker", FakeWorker);
+});
+
+afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+});
+
 describe("Doenet vscode extension", () => {
-    beforeEach(() => {
-        vi.restoreAllMocks();
-        vi.unstubAllGlobals();
-        vi.resetModules();
-        FakeWorker.instances = [];
-        hoisted.readFile.mockReset();
-        hoisted.joinPath.mockReset();
-        hoisted.registerCommand.mockClear();
-        hoisted.onDidChangeTextDocument.mockClear();
-        hoisted.onDidSaveTextDocument.mockClear();
-        hoisted.onDidChangeActiveTextEditor.mockClear();
-        hoisted.onDidChangeTextEditorSelection.mockClear();
-        hoisted.start.mockReset();
-        hoisted.stop.mockClear();
-        hoisted.sendRequest.mockClear();
-        hoisted.languageClientCalls.length = 0;
-        hoisted.joinPath.mockImplementation(
-            (...parts: Array<{ path?: string } | string>) =>
-                makeUri(
-                    parts
-                        .map((part) =>
-                            typeof part === "string"
-                                ? part
-                                : (part.path ?? String(part)),
-                        )
-                        .join("/"),
-                ),
-        );
-        vi.stubGlobal("Worker", FakeWorker);
-    });
-
-    afterEach(() => {
-        vi.restoreAllMocks();
-        vi.unstubAllGlobals();
-    });
-
     it("passes the bundled worker to the language server and revokes the blob URL on deactivate", async () => {
         const expectedSource = 'console.log("worker");';
         hoisted.readFile.mockResolvedValue(makeSubarrayBytes(expectedSource));
@@ -255,5 +282,211 @@ describe("Doenet vscode extension", () => {
 
         await deactivate();
         expect(revokeObjectURL).not.toHaveBeenCalled();
+    });
+
+    it("registers the language server for Doenet documents on every filesystem", async () => {
+        hoisted.readFile.mockResolvedValue(
+            makeSubarrayBytes('console.log("worker");'),
+        );
+        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+
+        const { activate } = await import("../src/extension/index");
+        await activate(createContext() as any);
+
+        const options = hoisted.languageClientCalls[0]?.options as {
+            documentSelector: unknown;
+        };
+        // A `scheme` here would leave the server silent on vscode.dev and
+        // github.dev, whose files arrive as `vscode-vfs:`.
+        expect(options.documentSelector).toEqual([{ language: "doenet" }]);
+    });
+
+    it("survives the active editor going away", async () => {
+        hoisted.readFile.mockResolvedValue(
+            makeSubarrayBytes('console.log("worker");'),
+        );
+        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+
+        const { activate } = await import("../src/extension/index");
+        await activate(createContext() as any);
+
+        const onActiveEditorChanged = hoisted.onDidChangeActiveTextEditor.mock
+            .calls[0][0] as (editor: unknown) => void;
+        expect(() => onActiveEditorChanged(undefined)).not.toThrow();
+    });
+});
+
+describe("explicit completion invocation", () => {
+    const DOC = {
+        uri: { toString: () => "file:///test.doenet" },
+        languageId: "doenet",
+        version: 3,
+    };
+    const AUTO = { triggerKind: 0 };
+    const TYPED_CHARACTER = { triggerKind: 1, triggerCharacter: "<" };
+    const INCOMPLETE_REFRESH = { triggerKind: 2 };
+
+    /**
+     * Activate the extension and return the pieces the completion path is
+     * built from: the middleware the language client was configured with, and
+     * the command Ctrl+Space is bound to.
+     */
+    async function activateForCompletion() {
+        hoisted.readFile.mockResolvedValue(
+            makeSubarrayBytes('console.log("worker");'),
+        );
+        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+
+        const vscode = (await import("vscode")) as any;
+        vscode.window.activeTextEditor = { document: DOC };
+
+        const { activate } = await import("../src/extension/index");
+        await activate(createContext() as any);
+
+        const options = hoisted.languageClientCalls[0]?.options as {
+            middleware: { provideCompletionItem: Function };
+        };
+        const triggerSuggest = hoisted.registerCommand.mock.calls.find(
+            (call) => call[0] === "doenet.triggerSuggest",
+        )?.[1] as () => Promise<void>;
+
+        return {
+            provideCompletionItem: options.middleware.provideCompletionItem,
+            triggerSuggest,
+        };
+    }
+
+    /** The `context` of the completion request the middleware sent. */
+    function sentContext() {
+        return (hoisted.sendRequest.mock.calls[0]?.[1] as { context: unknown })
+            ?.context;
+    }
+
+    it("marks the request Ctrl+Space produced as explicit", async () => {
+        const { provideCompletionItem, triggerSuggest } =
+            await activateForCompletion();
+        const next = vi.fn();
+        hoisted.sendRequest.mockResolvedValue([{ label: "point" }]);
+
+        await triggerSuggest();
+        // The command hands the actual widget over to VS Code's own.
+        expect(hoisted.executeCommand).toHaveBeenCalledWith(
+            "editor.action.triggerSuggest",
+        );
+
+        const result = await provideCompletionItem(
+            DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            { isCancellationRequested: false },
+            next,
+        );
+
+        expect(next).not.toHaveBeenCalled();
+        expect(sentContext()).toMatchObject({ explicit: true });
+        expect(result).toEqual([{ label: "point" }]);
+    });
+
+    it("leaves a request the user did not ask for to the default handler", async () => {
+        const { provideCompletionItem } = await activateForCompletion();
+        const next = vi.fn(async () => [{ label: "graph" }]);
+
+        const result = await provideCompletionItem(
+            DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            { isCancellationRequested: false },
+            next,
+        );
+
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(hoisted.sendRequest).not.toHaveBeenCalled();
+        expect(result).toEqual([{ label: "graph" }]);
+    });
+
+    it("keeps the refreshes of an explicit list explicit", async () => {
+        const { provideCompletionItem, triggerSuggest } =
+            await activateForCompletion();
+        const next = vi.fn();
+        hoisted.sendRequest.mockResolvedValue([]);
+
+        await triggerSuggest();
+        await provideCompletionItem(
+            DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            { isCancellationRequested: false },
+            next,
+        );
+        // An `isIncomplete` list makes VS Code re-ask as the user types. The
+        // element menu would empty out on the first keystroke if these
+        // follow-ups lost the flag.
+        await provideCompletionItem(
+            DOC,
+            { line: 0, character: 1 },
+            INCOMPLETE_REFRESH,
+            { isCancellationRequested: false },
+            next,
+        );
+
+        expect(next).not.toHaveBeenCalled();
+        expect(hoisted.sendRequest).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not carry explicitness into the next completion session", async () => {
+        const { provideCompletionItem, triggerSuggest } =
+            await activateForCompletion();
+        const next = vi.fn();
+        hoisted.sendRequest.mockResolvedValue([]);
+
+        await triggerSuggest();
+        await provideCompletionItem(
+            DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            { isCancellationRequested: false },
+            next,
+        );
+        hoisted.sendRequest.mockClear();
+
+        // Typing `<` starts a session of its own, and so does the quick
+        // suggestion that follows it.
+        await provideCompletionItem(
+            DOC,
+            { line: 0, character: 1 },
+            TYPED_CHARACTER,
+            { isCancellationRequested: false },
+            next,
+        );
+        await provideCompletionItem(
+            DOC,
+            { line: 0, character: 2 },
+            INCOMPLETE_REFRESH,
+            { isCancellationRequested: false },
+            next,
+        );
+
+        expect(hoisted.sendRequest).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(2);
+    });
+
+    it("expires a flag whose keystroke never produced a request", async () => {
+        const { provideCompletionItem, triggerSuggest } =
+            await activateForCompletion();
+        const next = vi.fn();
+
+        await triggerSuggest();
+        // The user typed instead, so the request that eventually arrives is a
+        // quick suggestion against a document that has moved on.
+        await provideCompletionItem(
+            { ...DOC, version: DOC.version + 1 },
+            { line: 0, character: 0 },
+            AUTO,
+            { isCancellationRequested: false },
+            next,
+        );
+
+        expect(hoisted.sendRequest).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(1);
     });
 });

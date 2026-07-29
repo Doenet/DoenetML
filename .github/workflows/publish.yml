@@ -113,6 +113,10 @@ jobs:
     # Secret requirement: `VSCE_PAT` must be configured as a **repository-level**
     # secret (not only in the `production` environment) for this job to publish.
     # If the secret is absent the publish step emits a warning and exits cleanly.
+    # `OVSX_PAT` does the same for the Open VSX mirror, which is what puts the
+    # extension within reach of VS Code-compatible editors such as VSCodium
+    # (#1317).  Each registry is published independently: a missing token for
+    # one leaves the other's publish untouched.
     dev-vscode-extension:
         name: Dev VS Code Extension Pre-release
         runs-on: ubuntu-latest
@@ -201,6 +205,18 @@ jobs:
                   npm run publish:prerelease -w @doenet/vscode-extension
               env:
                   VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+            - name: Publish Open VSX pre-release
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: |
+                  if [ -z "${OVSX_PAT}" ]; then
+                      echo "::warning::OVSX_PAT repository secret is not set — Open VSX pre-release was not published."
+                      echo "Add OVSX_PAT as a repository-level secret (Settings → Secrets → Actions) to enable Open VSX pre-release publishing."
+                      exit 0
+                  fi
+                  npm run publish:openvsx:prerelease -w @doenet/vscode-extension
+              env:
+                  OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
     production-release:
         name: Production Release
@@ -298,3 +314,14 @@ jobs:
               run: npm run publish -w @doenet/vscode-extension
               env:
                   VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+            - name: Publish extension to Open VSX
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: |
+                  if [ -z "${OVSX_PAT}" ]; then
+                      echo "::warning::OVSX_PAT secret is not set — the Open VSX release was not published."
+                      exit 0
+                  fi
+                  npm run publish:openvsx -w @doenet/vscode-extension
+              env:
+                  OVSX_PAT: ${{ secrets.OVSX_PAT }}

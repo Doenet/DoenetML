@@ -3,7 +3,7 @@
     "displayName": "DoenetML support",
     "description": "A language server for DoenetML",
     "author": "Jason Siefken",
-    "license": "AGPL",
+    "license": "AGPL-3.0-or-later",
     "version": "0.7.21",
     "repository": {
         "type": "git",
@@ -14,7 +14,7 @@
         "Doenet DoenetML"
     ],
     "engines": {
-        "vscode": "^1.76.0"
+        "vscode": "^1.85.0"
     },
     "exports": {
         "./language-server": {
@@ -35,6 +35,8 @@
         "package": "cd ./extension && vsce package --no-dependencies --out ../",
         "publish": "cd ./extension && vsce publish --no-dependencies",
         "publish:prerelease": "cd ./extension && vsce publish --pre-release --no-dependencies",
+        "publish:openvsx": "cd ./extension && ovsx publish --no-dependencies",
+        "publish:openvsx:prerelease": "cd ./extension && ovsx publish --pre-release --no-dependencies",
         "run-in-browser:firefox": "vscode-test-web --browserType=firefox --extensionDevelopmentPath=./extension .",
         "run-in-browser:chrome": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=./extension .",
         "run-in-browser": "npm run run-in-browser:firefox"
@@ -93,6 +95,7 @@
     },
     "devDependencies": {
         "@vscode/vsce": "^3.9.1",
+        "ovsx": "^1.0.2",
         "@types/vscode": "^1.99.0",
         "@types/vscode-webview": "^1.57.5",
         "@vscode/webview-ui-toolkit": "^1.4.0",

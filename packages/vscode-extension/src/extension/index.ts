@@ -10,6 +10,9 @@ import {
 import * as vscode from "vscode";
 
 import {
+    CompletionContext,
+    CompletionParams,
+    CompletionRequest,
     LanguageClient,
     LanguageClientOptions,
     TextEdit,
@@ -61,14 +64,18 @@ async function setupLanguageServer(context: ExtensionContext) {
 
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
-        // Register the server for plain text documents
-        documentSelector: [
-            { scheme: "file", language: "doenet" },
-            { scheme: "untitled", language: "doenet" },
-        ],
+        // Every Doenet document, whatever filesystem it came from. Naming
+        // schemes here would limit the server to `file:` and `untitled:`,
+        // which leaves it silent in exactly the places a web extension is
+        // meant to work: vscode.dev and github.dev serve their files as
+        // `vscode-vfs:`, and a virtual workspace can use any scheme at all.
+        documentSelector: [{ language: "doenet" }],
         initializationOptions: doenetWorkerBlobUrl
             ? { doenetWorkerUrl: doenetWorkerBlobUrl }
             : undefined,
+        middleware: {
+            provideCompletionItem: provideCompletionItemWithExplicitFlag,
+        },
     };
 
     // Create a worker. The worker main file implements the language server.
@@ -92,6 +99,8 @@ async function setupLanguageServer(context: ExtensionContext) {
         // Start the client. This will also launch the server.
         await client.start();
 
+        const triggerSuggest = registerTriggerSuggestCommand();
+
         const formatAsDoenet = registerFormatCommand(
             "doenet.formatAsDoenetML",
             "doenet.formatAsDoenetML",
@@ -106,6 +115,7 @@ async function setupLanguageServer(context: ExtensionContext) {
         );
 
         context.subscriptions.push(
+            triggerSuggest,
             formatAsDoenet,
             formatAsXML,
             formatAsMarkdown,
@@ -114,6 +124,126 @@ async function setupLanguageServer(context: ExtensionContext) {
         revokeDoenetWorkerBlobUrl();
         throw e;
     }
+}
+
+// The language server opens its element menu on an explicit completion
+// invocation even where no `<` has been typed — the same Ctrl+Space that
+// offers `<point>`, `<graph>`, … in the web editor. LSP has no field for "the
+// user asked for this": VS Code reports `Invoked` both for Ctrl+Space and for
+// the quick suggestions that fire on a typed letter, so a server keying off
+// `triggerKind` alone would dump the element menu into the middle of a
+// sentence. `doenet.triggerSuggest` records the keystroke and
+// `provideCompletionItemWithExplicitFlag` marks the request it produces,
+// which is what the web editor's CodeMirror client sends as
+// `context.explicit`.
+let pendingExplicitCompletion: { uri: string; version: number } | undefined;
+let inExplicitCompletionSession = false;
+
+/**
+ * Completion params carrying the `explicit` flag `@doenet/lsp` reads. It is an
+ * extension to the protocol's own `CompletionContext`, so it has to be spelled
+ * out here for the request to type-check.
+ */
+type ExplicitCompletionParams = CompletionParams & {
+    context: CompletionContext & { explicit: true };
+};
+
+/**
+ * Take over Ctrl+Space for Doenet documents so the completion request it
+ * produces can be marked explicit, then hand off to the built-in command that
+ * actually opens the widget.
+ */
+function registerTriggerSuggestCommand() {
+    return commands.registerCommand("doenet.triggerSuggest", async () => {
+        const document = vscode.window.activeTextEditor?.document;
+        if (document?.languageId === "doenet") {
+            pendingExplicitCompletion = {
+                uri: String(document.uri),
+                version: document.version,
+            };
+        }
+        await commands.executeCommand("editor.action.triggerSuggest");
+    });
+}
+
+/**
+ * True when this completion request is the one `doenet.triggerSuggest` just
+ * asked for. Consumes the pending flag, so a request VS Code raises on its own
+ * is never mistaken for one the user asked for.
+ */
+function isExplicitCompletion(
+    document: vscode.TextDocument,
+    context: vscode.CompletionContext,
+): boolean {
+    // A list marked `isIncomplete` makes VS Code re-ask as the user keeps
+    // typing. Those follow-ups belong to the session Ctrl+Space opened, so
+    // they inherit its explicitness — otherwise the element menu would empty
+    // out on the first keystroke after it appeared.
+    if (
+        context.triggerKind ===
+        vscode.CompletionTriggerKind.TriggerForIncompleteCompletions
+    ) {
+        return inExplicitCompletionSession;
+    }
+    // Any other request begins a new session. Matching the document version
+    // as well as the URI expires a flag whose keystroke never produced a
+    // request: by the time quick suggestions fire again the user has typed,
+    // and the version has moved on.
+    const pending = pendingExplicitCompletion;
+    pendingExplicitCompletion = undefined;
+    inExplicitCompletionSession =
+        pending !== undefined &&
+        pending.uri === String(document.uri) &&
+        pending.version === document.version;
+    return inExplicitCompletionSession;
+}
+
+/**
+ * Completion middleware that adds `explicit: true` to the request context for
+ * a Ctrl+Space invocation.
+ *
+ * The request has to be issued by hand rather than through `next`:
+ * `asCompletionParams` rebuilds the context from `triggerKind` and
+ * `triggerCharacter` alone, so an extra field set on the way in is dropped
+ * before the request goes out.
+ */
+async function provideCompletionItemWithExplicitFlag(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    context: vscode.CompletionContext,
+    token: vscode.CancellationToken,
+    next: (
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        context: vscode.CompletionContext,
+        token: vscode.CancellationToken,
+    ) => vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList>,
+) {
+    if (!isExplicitCompletion(document, context)) {
+        return next(document, position, context, token);
+    }
+    const params = client.code2ProtocolConverter.asCompletionParams(
+        document,
+        position,
+        context,
+    );
+    const explicitParams: ExplicitCompletionParams = {
+        ...params,
+        context: { ...params.context, explicit: true },
+    };
+    const result = await client.sendRequest(
+        CompletionRequest.type,
+        explicitParams,
+        token,
+    );
+    if (token.isCancellationRequested) {
+        return null;
+    }
+    return client.protocol2CodeConverter.asCompletionResult(
+        result,
+        undefined,
+        token,
+    );
 }
 
 function registerFormatCommand(commandName: string, requestName: string) {
@@ -206,7 +336,9 @@ function setupPreviewWindow(context: ExtensionContext) {
     });
 
     vscode.window.onDidChangeActiveTextEditor((e) => {
-        if (e.document.languageId !== "doenet") {
+        // No editor is active whenever the last one closes, or focus lands
+        // somewhere that isn't a text editor at all.
+        if (e?.document.languageId !== "doenet") {
             return;
         }
         DoenetPreviewPanel.setSource(e.document.getText());
