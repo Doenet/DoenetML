@@ -19,7 +19,7 @@ import {
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useT } from "../../utils/i18n";
+import { useContentT } from "../../utils/i18n";
 
 interface BooleanInputSVs {
     [key: string]: any;
@@ -44,7 +44,9 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<BooleanInputSVs>(props);
 
-    const t = useT();
+    // The check-work button follows the document's language, not the
+    // reader's — see `useContentT`.
+    const tContent = useContentT();
 
     // @ts-ignore
     BooleanInput.baseStateVariable = "value";
@@ -501,7 +503,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
-        t,
+        tContent,
     );
 
     let input;

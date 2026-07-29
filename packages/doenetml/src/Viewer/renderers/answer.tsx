@@ -11,7 +11,7 @@ import {
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DynamicMath } from "./utils/DynamicMath";
 import { DescriptionPopover } from "./utils/Description";
-import { useT } from "../../utils/i18n";
+import { useContentT } from "../../utils/i18n";
 
 interface AnswerSVs {
     [key: string]: any;
@@ -40,7 +40,9 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         callAction,
     } = useDoenetRenderer<AnswerSVs>(props);
 
-    const t = useT();
+    // The check-work button follows the document's language, not the
+    // reader's — see `useContentT`.
+    const tContent = useContentT();
 
     const { showAnswerResponseButton, answerResponseCounts } =
         useContext(DocContext) || {};
@@ -104,7 +106,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         submitActionWithPending,
         SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton,
         isPending,
-        t,
+        tContent,
     );
 
     if (checkWorkComponent) {

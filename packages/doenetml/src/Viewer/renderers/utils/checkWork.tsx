@@ -48,8 +48,15 @@ export function calculateValidationState(
  * - showText: if true, then the button includes text like "Submit" or "Correct"
  *   in addition to the symbols
  * - isPending: if true, shows pending/checking state with spinner
- * - t: chrome translator from `useT()`. Passed in rather than read from
- *   context here because this is a plain function that several renderers call
+ * - t: translator for the *document's* language, from `useContentT()` — not
+ *   the reader's. The resting label is `SVs.submitLabel`, which the core
+ *   computed against `documentLocale` because authored prose can name it
+ *   ("Pulsa el botón $ans.submitLabel"), so everything else written here has
+ *   to answer to the same tag: the verdict, the status only a screen reader
+ *   hears, and the message line beside the button, which sits next to
+ *   `submitLabel` in one hidden span or one joined sentence. See `useContentT`
+ *   for the whole argument. Passed in rather than read from context here
+ *   because this is a plain function that several renderers call
  *   conditionally, so it cannot itself use a hook.
  */
 export function createCheckWorkComponent(

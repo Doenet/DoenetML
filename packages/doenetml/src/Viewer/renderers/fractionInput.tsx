@@ -13,7 +13,7 @@ import {
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { DescriptionPopover } from "./utils/Description";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useT } from "../../utils/i18n";
+import { useContentT } from "../../utils/i18n";
 
 interface FractionInputSVs {
     [key: string]: any;
@@ -36,7 +36,10 @@ export default React.memo(function FractionInput(
     let { id, SVs, actions, children, callAction } =
         useDoenetRenderer<FractionInputSVs>(props);
 
-    const t = useT();
+    // The check-work button and the validation state announced on the input
+    // both follow the document's language, not the reader's — see
+    // `useContentT`.
+    const tContent = useContentT();
 
     // need to use a ref for validation state as handlePressEnter
     // does not update to current values
@@ -65,7 +68,7 @@ export default React.memo(function FractionInput(
         submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
-        t,
+        tContent,
     );
 
     let label: React.ReactNode = SVs.label;
@@ -93,7 +96,7 @@ export default React.memo(function FractionInput(
         shortDescription = addValidationStateToShortDescription(
             validationState.current,
             shortDescription,
-            t,
+            tContent,
         );
     }
 

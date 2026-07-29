@@ -20,7 +20,7 @@ import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useT } from "../../utils/i18n";
+import { useContentT } from "../../utils/i18n";
 
 interface TextInputSVs {
     [key: string]: any;
@@ -49,7 +49,10 @@ export default function TextInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<TextInputSVs>(props);
 
-    const t = useT();
+    // The check-work button and the validation state announced on the input
+    // both follow the document's language, not the reader's — see
+    // `useContentT`.
+    const tContent = useContentT();
 
     let width = sizeToCSS(SVs.width);
     let height = sizeToCSS(SVs.height); // only for TextArea
@@ -617,7 +620,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
-        t,
+        tContent,
     );
 
     let input;
@@ -658,7 +661,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         shortDescription = addValidationStateToShortDescription(
             validationState,
             shortDescription,
-            t,
+            tContent,
         );
     }
 

@@ -49,7 +49,11 @@ import {
     CORE_START_FAILED_MESSAGE,
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
-import { I18nProvider, useChromeTranslator } from "../utils/i18n";
+import {
+    ContentI18nProvider,
+    I18nProvider,
+    useChromeTranslator,
+} from "../utils/i18n";
 import {
     localizeDiagnostics,
     useDiagnosticFormatter,
@@ -568,6 +572,14 @@ export function DocViewer({
     // `translate`, so a key reached from here would otherwise read as an
     // orphan.
     const translate = useChromeTranslator(effectiveUiLocale, localeResources);
+    // The same catalogs negotiated against the *content's* language, for a
+    // control the core already writes part of — see `useContentT`. Built from
+    // `effectiveDocumentLocale`, the tag the core itself was handed, so the
+    // words this renders and the words the worker computed cannot disagree.
+    const translateContent = useChromeTranslator(
+        effectiveDocumentLocale,
+        localeResources,
+    );
     const formatDiagnostic = useDiagnosticFormatter(
         translate,
         effectiveUiLocale,
@@ -2315,7 +2327,9 @@ export function DocViewer({
                         translate={translate}
                         locale={effectiveUiLocale}
                     >
-                        {documentRenderer}
+                        <ContentI18nProvider translate={translateContent}>
+                            {documentRenderer}
+                        </ContentI18nProvider>
                     </I18nProvider>
                 </DocContext.Provider>
             </div>

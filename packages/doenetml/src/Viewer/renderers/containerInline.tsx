@@ -8,7 +8,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useT } from "../../utils/i18n";
+import { useContentT } from "../../utils/i18n";
 
 interface ContainerInlineSVs {
     [key: string]: any;
@@ -23,7 +23,9 @@ export default React.memo(function ContainerInline(
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<ContainerInlineSVs>(props);
 
-    const t = useT();
+    // The check-work button follows the document's language, not the
+    // reader's — see `useContentT`.
+    const tContent = useContentT();
 
     if (SVs.hidden) {
         return null;
@@ -47,7 +49,7 @@ export default React.memo(function ContainerInline(
             submitActionWithPending,
             true,
             isPending,
-            t,
+            tContent,
         );
     }
 
