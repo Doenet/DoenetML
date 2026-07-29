@@ -53,9 +53,10 @@ Those rules all settle one language for the activity as a whole. A nested
 `renderedLang` state variable hands the section renderer a tag only when the
 nested document's language differs from the one already in effect around it,
 and the renderer emits `lang` only when it gets one. A nested document that
-merely restated the surrounding language would stay quiet for the same reason
-the wrapper does — an activity nobody declared a language for must keep
-inheriting the embedding page's rather than being pinned to English.
+merely restates the surrounding language stays silent — the tag would add
+nothing where an outer document declared that language, and would pin the
+subtree to English where nobody declared anything at all, which is exactly what
+the wrapper's `undefined` avoids.
 
 ## Catalog layout
 

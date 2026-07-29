@@ -469,6 +469,19 @@ describe("Document tag tests @group4", async () => {
                 );
             });
 
+            it("is null when a nested document restates English nobody declared", async () => {
+                // The known gap: the core is always handed a locale ("en" when
+                // the host names none), so it cannot tell a host that declared
+                // English from a host that said nothing — the distinction the
+                // viewer uses to leave the wrapper's `lang` off. An inner
+                // `lang="en"` therefore reads as a restatement, and the subtree
+                // keeps inheriting the embedding page's language.
+                const doenetML = `<document><document name="inner" lang="en"><p>hello</p></document></document>`;
+                expect(await renderedLangOf(doenetML, undefined, "inner")).eq(
+                    null,
+                );
+            });
+
             it("labels a nested document in a language other than the host's", async () => {
                 const doenetML = `<document><document name="inner" lang="es"><p>hola</p></document></document>`;
                 expect(await renderedLangOf(doenetML, "fr", "inner")).eq("es");

@@ -267,18 +267,14 @@ export default class Document extends BaseComponent {
         };
 
         // The content's language, as a BCP-47 tag. Drives translation of the
-        // prose the core computes (style descriptions and the like) and the
-        // `lang` attribute of the rendered document, which is what lets a
-        // screen reader pronounce the content correctly.
+        // prose the core computes (style descriptions and the like) and, via
+        // `renderedLang`, the `lang` attribute of the rendered document, which
+        // is what lets a screen reader pronounce the content correctly.
         //
         // Precedence: an authored `lang` attribute wins over the locale the
         // hosting page supplied via `setLocaleData`, which falls back to "en".
         // The author knows what language they wrote in; the host only knows
         // what language it would prefer.
-        //
-        // A nested document's language reaches the DOM through `renderedLang`
-        // below, not through this variable: the `lang` attribute has to say
-        // nothing where nothing was declared, and this one always has a tag.
         stateVariableDefinitions.locale = {
             description:
                 "The BCP-47 language tag in effect for the document's content.",
@@ -286,6 +282,24 @@ export default class Document extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
+            // `renderedLang` is the tag the section renderer puts in a `lang`
+            // attribute, or null for no attribute at all (#1546). Same
+            // language as `locale`, narrowed to where the DOM has something to
+            // add: only a nested document ever needs a tag — the viewer labels
+            // the whole activity from the outermost document's language, on
+            // the wrapper it renders around it — and only when this document's
+            // language differs from the one already in effect around it.
+            //
+            // The one thing the core cannot see is that the viewer omits the
+            // wrapper's `lang` entirely when nobody declared a language: the
+            // core is always handed a tag, English at worst. So a nested
+            // document that only restates the language around it stays silent —
+            // redundant where an outer document declared that language, and
+            // wrong where nobody did, since `lang="en"` there would claim
+            // English over an embedding page that said otherwise.
+            additionalStateVariablesDefined: [
+                { variableName: "renderedLang", forRenderer: true },
+            ],
             returnDependencies: () => ({
                 lang: {
                     dependencyType: "attributePrimitive",
@@ -304,67 +318,27 @@ export default class Document extends BaseComponent {
                 // A blank `lang` counts as absent, matching
                 // `resolveDocumentLocale`.
                 const lang = dependencyValues.lang?.trim();
-                if (!lang && dependencyValues.documentAncestor) {
-                    // Nested inside another document, and this one didn't
-                    // declare a language of its own: inherit rather than
-                    // jumping back to the host's locale.
-                    return {
-                        setValue: {
-                            locale: dependencyValues.documentAncestor
-                                .stateValues.locale,
-                        },
-                    };
-                }
-                return {
-                    setValue: {
-                        locale: resolveDocumentLocale(
-                            lang,
-                            dependencyValues.hostLocale,
-                        ),
-                    },
-                };
-            },
-        };
-
-        // The tag the section renderer puts in a `lang` attribute for this
-        // document, or null for no attribute at all (#1546).
-        //
-        // Only a nested document ever needs one — the viewer labels the whole
-        // activity from the outermost document's language, on the wrapper it
-        // renders around it — and only when this document's language differs
-        // from the one already in effect around it.
-        //
-        // The enclosing document's `locale` is that language: every document
-        // above this one either declared its own or inherited one the same way,
-        // so the chain is already resolved by the time it gets here. The one
-        // thing it cannot see is that the viewer omits the wrapper's `lang`
-        // entirely when nobody declared a language — the core is always handed
-        // a tag, English at worst. So a nested document that only restates the
-        // language around it stays silent: redundant where an outer document
-        // declared that language, and wrong where nobody did, since `lang="en"`
-        // there would claim English over an embedding page that said otherwise.
-        stateVariableDefinitions.renderedLang = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                locale: {
-                    dependencyType: "stateVariable",
-                    variableName: "locale",
-                },
-                documentAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "document",
-                    variableNames: ["locale"],
-                },
-            }),
-            definition({ dependencyValues }) {
+                // The language already in effect around this document, if it
+                // is nested in one: every document above it either declared its
+                // own or inherited one the same way, so that chain is resolved
+                // by the time it gets here.
                 const inherited =
                     dependencyValues.documentAncestor?.stateValues.locale;
+                // Nested inside another document without declaring a language
+                // of its own: inherit rather than jumping back to the host's
+                // locale.
+                const locale =
+                    !lang && inherited
+                        ? inherited
+                        : resolveDocumentLocale(
+                              lang,
+                              dependencyValues.hostLocale,
+                          );
                 return {
                     setValue: {
+                        locale,
                         renderedLang:
-                            inherited && dependencyValues.locale !== inherited
-                                ? dependencyValues.locale
-                                : null,
+                            inherited && locale !== inherited ? locale : null,
                     },
                 };
             },
