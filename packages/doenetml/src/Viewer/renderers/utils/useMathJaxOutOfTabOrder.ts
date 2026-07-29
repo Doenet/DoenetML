@@ -14,15 +14,16 @@ const MATHJAX_TAG_PREFIX = "MJX-";
  * Take MathJax's output inside `root` out of the tab order.
  *
  * MathJax 4 attaches its keyboard explorer to every expression it typesets,
- * which puts `tabindex="0"` on the `<mjx-container>` (and, once speech is
- * generated, on the `<mjx-speech>` node inside it). That is reasonable for math
- * in running text, but not for math drawn on a JSXGraph board, where a label is
+ * which puts `tabindex="0"` on the `<mjx-container>`. That is reasonable for
+ * math in running text — and MathJax's own way of turning it off,
+ * `a11y.inTabOrder`, is a setting for the whole document, so it is no help
+ * here. Math drawn on a JSXGraph board is a different thing: a label there is
  * decoration on a picture. It is the graph as a whole that carries the
  * accessible name — `role="img"` named by the `<shortDescription>`, or
  * `role="group"` when the graph has controls beside it — and when the author
  * writes `decorative` the graph is `aria-hidden` outright, so a tab stop inside
  * it leaves focus in a subtree screen readers are told to ignore. In every case
- * the stop lands on something with nothing to announce and nothing to do.
+ * the stop lands on decoration a keyboard user cannot act on.
  *
  * Only MathJax's own elements are touched: JSXGraph puts `tabindex` on the
  * elements it wants keyboard-navigable, and a `<mathInput>` or `<button>`
@@ -42,10 +43,11 @@ function removeMathJaxTabStops(root: Element): void {
  *
  * A `MutationObserver` is needed rather than a one-shot pass: nothing has been
  * typeset yet when this runs, JSXGraph typesets each label when it draws or
- * re-texts it, and MathJax sets the tab stop again whenever asynchronously
- * generated speech arrives. Rewriting the attribute to `-1` re-triggers the
- * observer once, which then finds nothing left to change, so this settles
- * rather than looping.
+ * re-texts it, and MathJax's explorer rewrites `tabindex` itself long after
+ * that — it hands the tab stop to an `<mjx-speech>` node while a reader is
+ * exploring an expression and puts it back on the container afterwards.
+ * Rewriting the attribute to `-1` re-triggers the observer once, which then
+ * finds nothing left to change, so this settles rather than looping.
  *
  * `rootRef` is read once, on mount, so it must be attached to an element that
  * the calling component renders unconditionally.
@@ -60,9 +62,6 @@ export function useMathJaxOutOfTabOrder(
         }
         removeMathJaxTabStops(root);
 
-        if (typeof MutationObserver === "undefined") {
-            return;
-        }
         const observer = new MutationObserver(() => {
             removeMathJaxTabStops(root);
         });

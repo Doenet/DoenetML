@@ -22,8 +22,8 @@ function isMathJaxElement(el) {
  * `-1` is positive evidence that we rewrote one; "no tabbable MathJax found"
  * would also hold in the moment before MathJax attached its explorer, and the
  * assertion would pass without having observed anything. The sweep that follows
- * then covers the rest of MathJax's output — the `<mjx-speech>` node that
- * arrives with generated speech, and anything else `mjx-*` it adds.
+ * then covers the rest of MathJax's output: any other `mjx-*` element it puts
+ * inside the board.
  */
 function verifyMathIsNotTabbable(selector) {
     cy.get(`${selector} mjx-container`).should(($containers) => {
