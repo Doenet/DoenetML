@@ -505,9 +505,11 @@ function renderUnionMembers(values: string[]): string {
  * ICU data of whatever Node ran `codegen`; if `lint:i18n` reports drift no
  * catalog change explains, that is where to look.
  *
- * `Intl.DisplayNames` throws on a structurally invalid tag and echoes the tag
- * back for one it simply doesn't know; both degrade to the tag itself, so a
- * newly added locale can never fail the build over its name.
+ * Neither outcome for a tag ICU has no name for can fail the build: a
+ * structurally invalid tag makes `Intl.DisplayNames` throw, and we fall back to
+ * the tag itself; a well-formed one it simply doesn't know comes back as its
+ * own rendering of the tag's subtags (`"zz-QQ"` → `"zz (QQ)"`). Either way the
+ * label is the tag, not a name — usable, and never blank.
  */
 function localeNames(locale: string): { englishName: string; endonym: string } {
     function nameIn(displayLocale: string): string {
