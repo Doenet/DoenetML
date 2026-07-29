@@ -292,14 +292,9 @@ export default class Document extends BaseComponent {
             // language differs from the one already in effect around it.
             //
             // A nested document that only restates the surrounding language
-            // therefore stays silent: the tag would add nothing where an outer
-            // document declared that language, and would be wrong where nobody
-            // declared one at all. That last case is the core's blind spot —
-            // it is always handed a tag, English at worst, so it cannot tell a
-            // host that asked for English from a host that said nothing — but
-            // the viewer can, and leaves the wrapper's `lang` off there, where
-            // an inner `lang="en"` would claim English over an embedding page
-            // that said otherwise.
+            // therefore stays silent: the DOM already says it. The wrapper
+            // always carries the outermost document's language, so "already in
+            // effect" is known here at every depth.
             additionalStateVariablesDefined: [
                 { variableName: "renderedLang", forRenderer: true },
             ],

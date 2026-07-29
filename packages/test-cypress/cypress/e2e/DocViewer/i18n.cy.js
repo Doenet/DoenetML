@@ -294,8 +294,8 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         });
 
         it("says nothing where a nested document inherits", () => {
-            // Re-asserting the surrounding language would pin the subtree to a
-            // tag it should simply be inheriting.
+            // The wrapper already declares this subtree's language; repeating
+            // it on every nested section would add nothing.
             render({ doenetML: nested() });
 
             cy.get("#desc").should("have.text", "thick dashed red line");

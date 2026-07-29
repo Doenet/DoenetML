@@ -38,9 +38,8 @@ That wrapper settles one language for the activity as a whole; a nested
 `renderedLang` state variable hands the section renderer a tag only when the
 nested document's language differs from the one already in effect around it,
 and the renderer emits `lang` only when it is given one. A nested document that
-merely restates the surrounding language stays silent, for the same reason the
-wrapper does: the tag would add nothing where an outer document declared that
-language, and would assert English where nobody declared anything.
+merely restates the surrounding language stays silent, because the DOM already
+says it.
 
 `resolveUiLocale` applies the chrome's rule — the configured `uiLocale`,
 otherwise the content's language. Both normalize what they return (`ES-mx` →
