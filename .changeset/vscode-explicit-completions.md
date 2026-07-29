@@ -13,13 +13,13 @@ the web editor, and keeps narrowing it as you type. Word-based suggestions are
 off by default in Doenet documents, where they only ever compete with the
 schema; `"[doenet]": { "editor.wordBasedSuggestions": ... }` turns them back on.
 
-Attribute suggestions no longer depend on how the editor is configured to
-auto-suggest. Typing `<math exp` reaches the language server only if quick
-suggestions open the suggestion widget — unlike `<`, which is a trigger
-character the server is always asked about — so an editor configured to render
-them inline instead left element suggestions working while attribute
-suggestions appeared to be missing entirely. Doenet documents now ask for the
-widget by default.
+Attribute suggestions no longer go missing. Typing `<math exp` reaches the
+language server only if quick suggestions open the suggestion widget — unlike
+`<`, which is a trigger character the server is always asked about — so an
+editor configured to render them inline instead left element suggestions
+working while attribute suggestions appeared to be missing entirely. Doenet
+documents now ask for the widget by default; an explicit
+`editor.quickSuggestions` setting still wins.
 
 Both defaults are contributed under `[doenet]`, which raises the extension's
 minimum VS Code version to 1.85 — the release where
