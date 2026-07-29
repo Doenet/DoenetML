@@ -266,11 +266,12 @@ export async function initializeCoreWorker({
     await coreWorker.setFlags({ flags });
     // Sent unconditionally, even with nothing configured: a reused worker
     // (the shared-core pool) would otherwise keep the previous document's
-    // locale. The host's half of the rule only: the core applies the authored
-    // `<document lang>` itself, once per document, so a nested one resolves
-    // against its own ancestor rather than against this. Run through the
-    // shared helper all the same, so the tag the core stores is canonical for
-    // everything that later negotiates against it.
+    // locale. Only the host's half of the rule is applied here: the core
+    // applies an authored `<document lang>` per `<document>` it finds, so a
+    // nested one resolves against its own ancestor rather than against this
+    // ambient fallback. It goes through the shared helper all the same, so the
+    // fallback to English is written in one place and the tag the core stores
+    // is canonical for everything that later negotiates against it.
     await coreWorker.setLocaleData({
         localeData: {
             locale: resolveDocumentLocale(undefined, documentLocale),
@@ -298,10 +299,10 @@ export async function initializeCoreWorker({
     // wrapper. Resolved from the DAST we already parsed rather than asked of
     // the core, so it is available before the first render — a screen reader
     // should not have to wait for evaluation to learn what language it is
-    // reading. The core resolves the same value from the same two inputs with
-    // the same helper, for its own `document.locale` state variable, so the
-    // attribute always reports the language the content was rendered in —
-    // English, for a document neither the author nor the host declared one for.
+    // reading. The core reaches the same tag for its own `document.locale`,
+    // running the same helper over the same authored `lang` and the locale
+    // sent above, so the attribute always reports the language the content was
+    // rendered in — English, for a document nobody declared one for.
     const resolvedLocale = resolveDocumentLocale(
         readDocumentLang(dast),
         documentLocale,

@@ -58,15 +58,12 @@ describe("readDocumentLang", () => {
 
 describe("effective document locale", () => {
     it("defaults to en", () => {
-        // Which is what the wrapper's `lang` then says. Not a guess about what
-        // the author wrote: English is what the core computes such a
-        // document's prose in and what its chrome renders in, so the attribute
-        // reports the language actually on screen rather than letting the
-        // subtree inherit the embedding page's.
+        // And so what the wrapper's `lang` says. Not a guess about what the
+        // author wrote: English is what the core computes such a document's
+        // prose in and what its chrome renders in, so the attribute reports
+        // the language actually on screen rather than letting the subtree
+        // inherit the embedding page's.
         expect(effectiveLocale(`<p>hello</p>`)).eq("en");
-        expect(effectiveLocale(`<document lang=" "><p>hi</p></document>`)).eq(
-            "en",
-        );
     });
 
     it("uses the host locale when the document declares none", () => {
@@ -92,5 +89,8 @@ describe("effective document locale", () => {
         expect(
             effectiveLocale(`<document lang=" "><p>hi</p></document>`, "de"),
         ).eq("de");
+        expect(effectiveLocale(`<document lang=" "><p>hi</p></document>`)).eq(
+            "en",
+        );
     });
 });
