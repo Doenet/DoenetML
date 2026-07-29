@@ -138,25 +138,27 @@ function stubUrlStatics(
     vi.stubGlobal("URL", UrlWithBlobStatics);
 }
 
+/**
+ * The bundled worker reads back cleanly and its blob URL is
+ * `blob:doenet-worker`, for tests that are not about either.
+ */
+function stubBundledWorker() {
+    hoisted.readFile.mockResolvedValue(
+        makeSubarrayBytes('console.log("worker");'),
+    );
+    stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+}
+
 beforeEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     vi.resetModules();
+    // The extension keeps module-level state (the blob URL, the pending
+    // Ctrl+Space flag), so every test imports it afresh against clean mocks.
+    // Resetting returns each `hoisted` mock to the implementation it was
+    // created with.
+    vi.resetAllMocks();
     FakeWorker.instances = [];
-    hoisted.readFile.mockReset();
-    hoisted.joinPath.mockReset();
-    hoisted.registerCommand.mockClear();
-    hoisted.executeCommand.mockClear();
-    hoisted.asCompletionParams.mockClear();
-    hoisted.asCompletionResult.mockClear();
-    hoisted.handleFailedRequest.mockClear();
-    hoisted.onDidChangeTextDocument.mockClear();
-    hoisted.onDidSaveTextDocument.mockClear();
-    hoisted.onDidChangeActiveTextEditor.mockClear();
-    hoisted.onDidChangeTextEditorSelection.mockClear();
-    hoisted.start.mockReset();
-    hoisted.stop.mockClear();
-    hoisted.sendRequest.mockClear();
     hoisted.languageClientCalls.length = 0;
     hoisted.joinPath.mockImplementation(
         (...parts: Array<{ path?: string } | string>) =>
@@ -218,10 +220,7 @@ describe("Doenet vscode extension", () => {
     });
 
     it("waits for the language client to finish starting before activate resolves", async () => {
-        hoisted.readFile.mockResolvedValue(
-            makeSubarrayBytes('console.log("worker");'),
-        );
-        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+        stubBundledWorker();
 
         let resolveStart: (() => void) | undefined;
         hoisted.start.mockImplementation(
@@ -288,10 +287,7 @@ describe("Doenet vscode extension", () => {
     });
 
     it("registers the language server for Doenet documents on every filesystem", async () => {
-        hoisted.readFile.mockResolvedValue(
-            makeSubarrayBytes('console.log("worker");'),
-        );
-        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+        stubBundledWorker();
 
         const { activate } = await import("../src/extension/index");
         await activate(createContext() as any);
@@ -305,10 +301,7 @@ describe("Doenet vscode extension", () => {
     });
 
     it("survives the active editor going away", async () => {
-        hoisted.readFile.mockResolvedValue(
-            makeSubarrayBytes('console.log("worker");'),
-        );
-        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+        stubBundledWorker();
 
         const { activate } = await import("../src/extension/index");
         await activate(createContext() as any);
@@ -326,25 +319,23 @@ describe("explicit completion invocation", () => {
         version: 3,
     };
     const OTHER_DOC = {
+        ...DOC,
         uri: { toString: () => "file:///other.doenet" },
-        languageId: "doenet",
-        version: 3,
     };
+    const POSITION = { line: 0, character: 0 };
     const AUTO = { triggerKind: 0 };
     const TYPED_CHARACTER = { triggerKind: 1, triggerCharacter: "<" };
     const INCOMPLETE_REFRESH = { triggerKind: 2 };
     const LIVE = { isCancellationRequested: false };
 
     /**
-     * Activate the extension and return the pieces the completion path is
-     * built from: the middleware the language client was configured with, and
-     * the command Ctrl+Space is bound to.
+     * Activate the extension and return the completion path's moving parts:
+     * `complete()` runs the middleware the language client was configured
+     * with, `next` is the default handler that middleware falls back to, and
+     * `triggerSuggest` is the command Ctrl+Space is bound to.
      */
     async function activateForCompletion() {
-        hoisted.readFile.mockResolvedValue(
-            makeSubarrayBytes('console.log("worker");'),
-        );
-        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+        stubBundledWorker();
 
         const vscode = (await import("vscode")) as any;
         vscode.window.activeTextEditor = { document: DOC };
@@ -352,18 +343,31 @@ describe("explicit completion invocation", () => {
         const { activate } = await import("../src/extension/index");
         await activate(createContext() as any);
 
-        const options = hoisted.languageClientCalls[0]?.options as {
+        const { middleware } = hoisted.languageClientCalls[0]?.options as {
             middleware: { provideCompletionItem: Function };
         };
         const triggerSuggest = hoisted.registerCommand.mock.calls.find(
             (call) => call[0] === "doenet.triggerSuggest",
         )?.[1] as () => Promise<void>;
+        const next = vi.fn();
 
-        return {
-            provideCompletionItem: options.middleware.provideCompletionItem,
-            triggerSuggest,
-            vscode,
-        };
+        function complete(
+            context: unknown,
+            {
+                document = DOC,
+                token = LIVE,
+            }: { document?: unknown; token?: unknown } = {},
+        ) {
+            return middleware.provideCompletionItem(
+                document,
+                POSITION,
+                context,
+                token,
+                next,
+            );
+        }
+
+        return { complete, next, triggerSuggest, vscode };
     }
 
     /** The `context` of the completion request the middleware sent. */
@@ -373,24 +377,17 @@ describe("explicit completion invocation", () => {
     }
 
     it("marks the request Ctrl+Space produced as explicit", async () => {
-        const { provideCompletionItem, triggerSuggest } =
+        const { complete, next, triggerSuggest } =
             await activateForCompletion();
-        const next = vi.fn();
         hoisted.sendRequest.mockResolvedValue([{ label: "point" }]);
 
         await triggerSuggest();
-        // The command hands the actual widget over to VS Code's own.
+        // The command hands the widget itself over to VS Code's own.
         expect(hoisted.executeCommand).toHaveBeenCalledWith(
             "editor.action.triggerSuggest",
         );
 
-        const result = await provideCompletionItem(
-            DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        const result = await complete(AUTO);
 
         expect(next).not.toHaveBeenCalled();
         expect(sentContext()).toMatchObject({ explicit: true });
@@ -398,16 +395,10 @@ describe("explicit completion invocation", () => {
     });
 
     it("leaves a request the user did not ask for to the default handler", async () => {
-        const { provideCompletionItem } = await activateForCompletion();
-        const next = vi.fn(async () => [{ label: "graph" }]);
+        const { complete, next } = await activateForCompletion();
+        next.mockResolvedValue([{ label: "graph" }]);
 
-        const result = await provideCompletionItem(
-            DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        const result = await complete(AUTO);
 
         expect(next).toHaveBeenCalledTimes(1);
         expect(hoisted.sendRequest).not.toHaveBeenCalled();
@@ -415,76 +406,41 @@ describe("explicit completion invocation", () => {
     });
 
     it("keeps the refreshes of an explicit list explicit", async () => {
-        const { provideCompletionItem, triggerSuggest } =
+        const { complete, next, triggerSuggest } =
             await activateForCompletion();
-        const next = vi.fn();
         hoisted.sendRequest.mockResolvedValue([]);
 
         await triggerSuggest();
-        await provideCompletionItem(
-            DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        await complete(AUTO);
         // An `isIncomplete` list makes VS Code re-ask as the user types. The
         // element menu would empty out on the first keystroke if these
         // follow-ups lost the flag.
-        await provideCompletionItem(
-            DOC,
-            { line: 0, character: 1 },
-            INCOMPLETE_REFRESH,
-            LIVE,
-            next,
-        );
+        await complete(INCOMPLETE_REFRESH);
 
         expect(next).not.toHaveBeenCalled();
         expect(hoisted.sendRequest).toHaveBeenCalledTimes(2);
     });
 
     it("does not carry explicitness into the next completion session", async () => {
-        const { provideCompletionItem, triggerSuggest } =
+        const { complete, next, triggerSuggest } =
             await activateForCompletion();
-        const next = vi.fn();
         hoisted.sendRequest.mockResolvedValue([]);
 
         await triggerSuggest();
-        await provideCompletionItem(
-            DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        await complete(AUTO);
         hoisted.sendRequest.mockClear();
 
         // Typing `<` starts a session of its own, and so does the quick
         // suggestion that follows it.
-        await provideCompletionItem(
-            DOC,
-            { line: 0, character: 1 },
-            TYPED_CHARACTER,
-            LIVE,
-            next,
-        );
-        await provideCompletionItem(
-            DOC,
-            { line: 0, character: 2 },
-            INCOMPLETE_REFRESH,
-            LIVE,
-            next,
-        );
+        await complete(TYPED_CHARACTER);
+        await complete(INCOMPLETE_REFRESH);
 
         expect(hoisted.sendRequest).not.toHaveBeenCalled();
         expect(next).toHaveBeenCalledTimes(2);
     });
 
     it("keeps Ctrl+Space bound when the language server fails to start", async () => {
-        hoisted.readFile.mockResolvedValue(
-            makeSubarrayBytes('console.log("worker");'),
-        );
-        stubUrlStatics(() => "blob:doenet-worker", vi.fn());
+        stubBundledWorker();
         hoisted.start.mockRejectedValue(new Error("start failed"));
 
         const { activate } = await import("../src/extension/index");
@@ -500,77 +456,51 @@ describe("explicit completion invocation", () => {
     });
 
     it("expires a flag whose keystroke never produced a request", async () => {
-        const { provideCompletionItem, triggerSuggest } =
+        const { complete, next, triggerSuggest } =
             await activateForCompletion();
-        const next = vi.fn();
 
         await triggerSuggest();
         // The user typed instead, so the request that eventually arrives is a
         // quick suggestion against a document that has moved on.
-        await provideCompletionItem(
-            { ...DOC, version: DOC.version + 1 },
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        await complete(AUTO, {
+            document: { ...DOC, version: DOC.version + 1 },
+        });
 
         expect(hoisted.sendRequest).not.toHaveBeenCalled();
         expect(next).toHaveBeenCalledTimes(1);
     });
 
     it("does not mark a request in another document explicit", async () => {
-        const { provideCompletionItem, triggerSuggest } =
+        const { complete, next, triggerSuggest } =
             await activateForCompletion();
-        const next = vi.fn();
 
         await triggerSuggest();
         // Same version, different file: a suggestion raised in a second editor
         // is not the one Ctrl+Space asked for.
-        await provideCompletionItem(
-            OTHER_DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        await complete(AUTO, { document: OTHER_DOC });
 
         expect(hoisted.sendRequest).not.toHaveBeenCalled();
         expect(next).toHaveBeenCalledTimes(1);
     });
 
     it("does not extend an explicit session into another document", async () => {
-        const { provideCompletionItem, triggerSuggest } =
+        const { complete, next, triggerSuggest } =
             await activateForCompletion();
-        const next = vi.fn();
         hoisted.sendRequest.mockResolvedValue([]);
 
         await triggerSuggest();
-        await provideCompletionItem(
-            DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        await complete(AUTO);
         // An `isIncomplete` refresh raised in a second editor belongs to that
         // editor's own session, whatever this document's session is doing.
-        await provideCompletionItem(
-            OTHER_DOC,
-            { line: 0, character: 1 },
-            INCOMPLETE_REFRESH,
-            LIVE,
-            next,
-        );
+        await complete(INCOMPLETE_REFRESH, { document: OTHER_DOC });
 
         expect(hoisted.sendRequest).toHaveBeenCalledTimes(1);
         expect(next).toHaveBeenCalledTimes(1);
     });
 
     it("drops a pending flag when the next keystroke lands outside a Doenet document", async () => {
-        const { provideCompletionItem, triggerSuggest, vscode } =
+        const { complete, next, triggerSuggest, vscode } =
             await activateForCompletion();
-        const next = vi.fn();
 
         await triggerSuggest();
         vscode.window.activeTextEditor = {
@@ -580,22 +510,14 @@ describe("explicit completion invocation", () => {
         await triggerSuggest();
         expect(hoisted.executeCommand).toHaveBeenCalledTimes(2);
 
-        await provideCompletionItem(
-            DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        await complete(AUTO);
 
         expect(hoisted.sendRequest).not.toHaveBeenCalled();
         expect(next).toHaveBeenCalledTimes(1);
     });
 
     it("hands a rejected request to the client's own error handling", async () => {
-        const { provideCompletionItem, triggerSuggest } =
-            await activateForCompletion();
-        const next = vi.fn();
+        const { complete, triggerSuggest } = await activateForCompletion();
         const failure = new Error("content modified");
         hoisted.sendRequest.mockRejectedValue(failure);
 
@@ -603,13 +525,7 @@ describe("explicit completion invocation", () => {
         // Going around `next` means going around the rejection handling it
         // carries: a request cancelled by the next keystroke must not surface
         // as an unhandled error.
-        const result = await provideCompletionItem(
-            DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            LIVE,
-            next,
-        );
+        const result = await complete(AUTO);
 
         expect(hoisted.handleFailedRequest).toHaveBeenCalledWith(
             "textDocument/completion",
@@ -621,9 +537,7 @@ describe("explicit completion invocation", () => {
     });
 
     it("answers a cancelled request with nothing", async () => {
-        const { provideCompletionItem, triggerSuggest } =
-            await activateForCompletion();
-        const next = vi.fn();
+        const { complete, triggerSuggest } = await activateForCompletion();
         const token = { isCancellationRequested: false };
         hoisted.sendRequest.mockImplementation(async () => {
             token.isCancellationRequested = true;
@@ -631,13 +545,7 @@ describe("explicit completion invocation", () => {
         });
 
         await triggerSuggest();
-        const result = await provideCompletionItem(
-            DOC,
-            { line: 0, character: 0 },
-            AUTO,
-            token,
-            next,
-        );
+        const result = await complete(AUTO, { token });
 
         expect(result).toBeNull();
         expect(hoisted.asCompletionResult).not.toHaveBeenCalled();

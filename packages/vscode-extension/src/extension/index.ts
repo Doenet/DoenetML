@@ -43,10 +43,9 @@ export async function deactivate(): Promise<void> {
  * Setup the language server.
  */
 async function setupLanguageServer(context: ExtensionContext) {
-    // Ctrl+Space is bound to `doenet.triggerSuggest` in every Doenet document,
-    // so the command has to exist even when the server below fails to start:
-    // an unregistered command turns the keystroke into an "unknown command"
-    // error instead of the suggestion widget.
+    // Registered before anything below that can throw: Ctrl+Space is bound to
+    // `doenet.triggerSuggest` in every Doenet document, and an unregistered
+    // command turns the keystroke into an "unknown command" error.
     context.subscriptions.push(registerTriggerSuggestCommand());
 
     // Read the bundled doenetml-worker file and create a blob URL from it.
@@ -71,11 +70,9 @@ async function setupLanguageServer(context: ExtensionContext) {
 
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
-        // Every Doenet document, whatever filesystem it came from. Naming
-        // schemes here would limit the server to `file:` and `untitled:`,
-        // which leaves it silent in exactly the places a web extension is
-        // meant to work: vscode.dev and github.dev serve their files as
-        // `vscode-vfs:`, and a virtual workspace can use any scheme at all.
+        // Doenet documents on every filesystem: vscode.dev and github.dev
+        // serve their files as `vscode-vfs:`, and a virtual workspace can use
+        // any scheme at all.
         documentSelector: [{ language: "doenet" }],
         initializationOptions: doenetWorkerBlobUrl
             ? { doenetWorkerUrl: doenetWorkerBlobUrl }
@@ -130,25 +127,18 @@ async function setupLanguageServer(context: ExtensionContext) {
     }
 }
 
-// The language server opens its element menu on an explicit completion
-// invocation even where no `<` has been typed — the same Ctrl+Space that
-// offers `<point>`, `<graph>`, … in the web editor. LSP has no field for "the
-// user asked for this": VS Code reports `Invoked` both for Ctrl+Space and for
-// the quick suggestions that fire on a typed letter, so a server keying off
-// `triggerKind` alone would dump the element menu into the middle of a
-// sentence. `doenet.triggerSuggest` records the keystroke and
-// `provideCompletionItemWithExplicitFlag` marks the request it produces,
-// which is what the web editor's CodeMirror client sends as
-// `context.explicit`.
+// `context.explicit` — a Doenet extension to the LSP completion context, sent
+// by the web editor's CodeMirror client — asks the language server for its
+// element menu even where no `<` has been typed, the same list Ctrl+Space
+// offers there. `triggerKind` can't stand in for it: VS Code reports `Invoked`
+// both for Ctrl+Space and for the quick suggestions that fire on a typed
+// letter. So `doenet.triggerSuggest` records the keystroke and
+// `provideCompletionItemWithExplicitFlag` marks the request it produces.
 let pendingExplicitCompletion: { uri: string; version: number } | undefined;
 /** Document whose in-flight completion session was opened by Ctrl+Space. */
 let explicitCompletionSessionUri: string | undefined;
 
-/**
- * Completion params carrying the `explicit` flag `@doenet/lsp` reads. It is an
- * extension to the protocol's own `CompletionContext`, so it has to be spelled
- * out here for the request to type-check.
- */
+/** Completion params carrying the `explicit` flag `@doenet/lsp` reads. */
 type ExplicitCompletionParams = CompletionParams & {
     context: CompletionContext & { explicit: true };
 };
@@ -162,8 +152,8 @@ function registerTriggerSuggestCommand() {
     return commands.registerCommand("doenet.triggerSuggest", async () => {
         const document = vscode.window.activeTextEditor?.document;
         // Assigned either way: this keystroke supersedes whatever an earlier
-        // one left pending, so landing somewhere without a Doenet document
-        // clears the flag rather than leaving the older one to be claimed.
+        // one left pending, so landing outside a Doenet document clears the
+        // flag.
         pendingExplicitCompletion =
             document?.languageId === "doenet"
                 ? { uri: String(document.uri), version: document.version }
@@ -173,9 +163,8 @@ function registerTriggerSuggestCommand() {
 }
 
 /**
- * True when this completion request belongs to a session `doenet.triggerSuggest`
- * opened. A request that starts a session consumes the pending flag, so one VS
- * Code raises on its own is never mistaken for one the user asked for.
+ * True when this completion request belongs to a session
+ * `doenet.triggerSuggest` opened.
  */
 function isExplicitCompletion(
     document: vscode.TextDocument,
@@ -183,20 +172,21 @@ function isExplicitCompletion(
 ): boolean {
     const uri = String(document.uri);
     // A list marked `isIncomplete` makes VS Code re-ask as the user keeps
-    // typing. Those follow-ups belong to the session Ctrl+Space opened, so
-    // they inherit its explicitness — otherwise the element menu would empty
-    // out on the first keystroke after it appeared. Only within that session's
-    // own document: a refresh anywhere else belongs to a different session.
+    // typing. Those follow-ups inherit the session's explicitness, so the
+    // element menu keeps narrowing instead of emptying out on the first
+    // keystroke — within the session's own document, since a refresh
+    // elsewhere belongs to a different session.
     if (
         context.triggerKind ===
         vscode.CompletionTriggerKind.TriggerForIncompleteCompletions
     ) {
         return explicitCompletionSessionUri === uri;
     }
-    // Any other request begins a new session. Matching the document version
-    // as well as the URI expires a flag whose keystroke never produced a
-    // request: by the time quick suggestions fire again the user has typed,
-    // and the version has moved on.
+    // Any other request begins a new session, and consumes the pending flag so
+    // that a request VS Code raises on its own can't claim it later. Matching
+    // the document version as well as the URI expires a flag whose keystroke
+    // never produced a request: by the time quick suggestions fire again the
+    // user has typed, and the version has moved on.
     const pending = pendingExplicitCompletion;
     pendingExplicitCompletion = undefined;
     explicitCompletionSessionUri =
@@ -210,12 +200,11 @@ function isExplicitCompletion(
  * Completion middleware that adds `explicit: true` to the request context for
  * a Ctrl+Space invocation.
  *
- * The request has to be issued by hand rather than through `next`:
+ * The request goes out by hand rather than through `next`: the client's
  * `asCompletionParams` rebuilds the context from `triggerKind` and
- * `triggerCharacter` alone, so an extra field set on the way in is dropped
- * before the request goes out. What `next` would otherwise have done around
- * the request — honoring cancellation, routing a rejection through the
- * client's own error handling — is reproduced below.
+ * `triggerCharacter` alone, dropping any other field set on the way in. The
+ * cancellation and error handling `next` would have wrapped it in is
+ * reproduced below.
  */
 async function provideCompletionItemWithExplicitFlag(
     document: vscode.TextDocument,

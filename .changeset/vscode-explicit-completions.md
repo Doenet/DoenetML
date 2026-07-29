@@ -30,6 +30,6 @@ than only `file:` and `untitled:` ones, so completions, diagnostics, hovers and
 formatting work on vscode.dev, github.dev, and in virtual workspaces.
 
 Two fixes alongside: the preview no longer throws when the last editor closes
-or focus leaves the editor area, and the extension declares a valid SPDX
-license so it can be mirrored to the Open VSX registry (#1317) — publishing
-there needs only an `OVSX_PAT` repository secret.
+or focus leaves the editor area, and the extension now publishes to the Open
+VSX registry as well as the VS Code Marketplace, putting it within reach of
+VS Code-compatible editors such as VSCodium (#1317).
