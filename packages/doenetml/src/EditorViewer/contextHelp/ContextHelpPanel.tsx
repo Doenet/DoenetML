@@ -116,6 +116,31 @@ function lineArg(line: number | undefined): string {
     return line === undefined ? "none" : String(line);
 }
 
+/**
+ * The heading over an attribute's value list.
+ *
+ * An open list says "Suggested" rather than "Allowed": the attribute takes
+ * other values too, and nothing warns about them. That gets its own key rather
+ * than a third branch of `help-allowed-values`, whose selector splits
+ * whole-value from per-item within one sentence.
+ */
+function allowedValuesLabel(
+    t: Translator,
+    {
+        areSuggestions,
+        arePerItem,
+    }: { areSuggestions?: boolean; arePerItem?: boolean },
+): string {
+    if (areSuggestions) {
+        return t("help-suggested-values", undefined, "Suggested values:");
+    }
+    return t(
+        "help-allowed-values",
+        { perItem: arePerItem ? "true" : "false" },
+        arePerItem ? "Allowed values (one per item):" : "Allowed values:",
+    );
+}
+
 export function ContextHelpPanel({
     content,
     docsURL,
@@ -465,30 +490,10 @@ export function ContextHelpPanel({
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
-                                {/* "Suggested" rather than "Allowed" for an
-                                open list: the attribute takes other values
-                                too, and nothing warns about them. Its own key
-                                rather than a third branch of
-                                `help-allowed-values`, whose selector splits
-                                whole-value from per-item within one
-                                sentence. */}
-                                {allowedValuesAreSuggestions
-                                    ? t(
-                                          "help-suggested-values",
-                                          undefined,
-                                          "Suggested values:",
-                                      )
-                                    : t(
-                                          "help-allowed-values",
-                                          {
-                                              perItem: allowedValuesArePerItem
-                                                  ? "true"
-                                                  : "false",
-                                          },
-                                          allowedValuesArePerItem
-                                              ? "Allowed values (one per item):"
-                                              : "Allowed values:",
-                                      )}
+                                {allowedValuesLabel(t, {
+                                    areSuggestions: allowedValuesAreSuggestions,
+                                    arePerItem: allowedValuesArePerItem,
+                                })}
                             </span>
                             <dl className="help-allowed-values-list">
                                 {allowedValues.map(

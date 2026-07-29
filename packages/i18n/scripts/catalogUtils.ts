@@ -240,69 +240,43 @@ export function collectCallSites(): CallSite[] {
 }
 
 /**
- * The contents `src/generated/messageKeys.ts` should have for these keys.
+ * Lay `source` out the way the committed copy of `file` is laid out.
  *
- * Formatted with the repo's Prettier config, so `lint:i18n` can compare the
- * generated text against the committed file byte for byte without
- * `prettier:check` and this script disagreeing about the result.
+ * Every generated module goes through here, so `lint:i18n` can compare what it
+ * renders against the committed file byte for byte without `prettier:check`
+ * and this script disagreeing about the result.
  */
-export async function renderMessageKeysModule(keys: string[]): Promise<string> {
-    const prettierConfig = await prettier.resolveConfig(GENERATED_KEYS_FILE);
-    return prettier.format(renderMessageKeysModuleRaw(keys), {
+async function formatGeneratedModule(
+    file: string,
+    source: string,
+): Promise<string> {
+    const prettierConfig = await prettier.resolveConfig(file);
+    return prettier.format(source, {
         ...prettierConfig,
-        filepath: GENERATED_KEYS_FILE,
+        filepath: file,
         parser: "typescript",
     });
 }
 
-/**
- * A locale's name in English and in itself, e.g. `["Spanish", "español"]`.
- *
- * Derived rather than hand-written, which is the point: a hand-maintained
- * description per locale is exactly the per-language work that would stop this
- * from scaling, and the schema generator hard-fails on an empty description.
- * Computing the names here rather than at runtime also keeps `Intl` off the
- * worker's path, where a tag it cannot parse is a live hazard (see the note on
- * unparseable tags in the package README). The names therefore come from the
- * ICU data of whatever Node ran `codegen`; if `lint:i18n` reports drift no
- * catalog change explains, that is where to look.
- *
- * `Intl.DisplayNames` throws on a structurally invalid tag and echoes the tag
- * back for one it simply doesn't know; both degrade to the tag itself, so a
- * newly added locale can never fail the build over its name.
- */
-function localeNames(locale: string): { englishName: string; endonym: string } {
-    function nameIn(displayLocale: string): string {
-        try {
-            return (
-                new Intl.DisplayNames([displayLocale], {
-                    type: "language",
-                }).of(locale) ?? locale
-            );
-        } catch {
-            return locale;
-        }
-    }
-    return { englishName: nameIn(DEFAULT_LOCALE), endonym: nameIn(locale) };
+/** The contents `src/generated/messageKeys.ts` should have for these keys. */
+export async function renderMessageKeysModule(keys: string[]): Promise<string> {
+    return formatGeneratedModule(
+        GENERATED_KEYS_FILE,
+        renderMessageKeysModuleRaw(keys),
+    );
 }
 
 /**
  * The contents `src/generated/supportedLocales.ts` should have for these
  * locales.
- *
- * Formatted with the repo's Prettier config for the same reason
- * {@link renderMessageKeysModule} is: `lint:i18n` compares the rendered text
- * against the committed file byte for byte.
  */
 export async function renderSupportedLocalesModule(
     locales: string[],
 ): Promise<string> {
-    const prettierConfig = await prettier.resolveConfig(SUPPORTED_LOCALES_FILE);
-    return prettier.format(renderSupportedLocalesModuleRaw(locales), {
-        ...prettierConfig,
-        filepath: SUPPORTED_LOCALES_FILE,
-        parser: "typescript",
-    });
+    return formatGeneratedModule(
+        SUPPORTED_LOCALES_FILE,
+        renderSupportedLocalesModuleRaw(locales),
+    );
 }
 
 /** The lock as committed, or an empty lock if it doesn't exist yet. */
@@ -516,6 +490,38 @@ function renderUnionMembers(values: string[]): string {
     return values.length === 0
         ? "never"
         : values.map((value) => `\n    | ${JSON.stringify(value)}`).join("");
+}
+
+/**
+ * A locale's name in English and in itself, e.g.
+ * `{ englishName: "Spanish", endonym: "español" }`.
+ *
+ * Derived rather than hand-written, which is the point: a hand-maintained
+ * description per locale is exactly the per-language work that would stop this
+ * from scaling, and the schema generator hard-fails on an empty description.
+ * Computing the names here rather than at runtime also keeps `Intl` off the
+ * worker's path, where a tag it cannot parse is a live hazard (see the note on
+ * unparseable tags in the package README). The names therefore come from the
+ * ICU data of whatever Node ran `codegen`; if `lint:i18n` reports drift no
+ * catalog change explains, that is where to look.
+ *
+ * `Intl.DisplayNames` throws on a structurally invalid tag and echoes the tag
+ * back for one it simply doesn't know; both degrade to the tag itself, so a
+ * newly added locale can never fail the build over its name.
+ */
+function localeNames(locale: string): { englishName: string; endonym: string } {
+    function nameIn(displayLocale: string): string {
+        try {
+            return (
+                new Intl.DisplayNames([displayLocale], {
+                    type: "language",
+                }).of(locale) ?? locale
+            );
+        } catch {
+            return locale;
+        }
+    }
+    return { englishName: nameIn(DEFAULT_LOCALE), endonym: nameIn(locale) };
 }
 
 function renderSupportedLocalesModuleRaw(locales: string[]): string {

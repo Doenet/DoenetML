@@ -71,13 +71,10 @@ export default class Document extends BaseComponent {
             description: "Document type identifier.",
         };
 
-        // `suggestedValues`, not `validValues` (see `AttributeDefinition` for
-        // the contract): the list is the languages DoenetML ships translations
-        // for, which is not the same as the tags an author may write. An
-        // unlisted tag is legitimate — it still reaches the rendered `lang`
-        // attribute, where a screen reader and the browser's hyphenation act
-        // on it, with only the prose the core computes falling back to
-        // English. So the editor offers these and warns about nothing.
+        // `suggestedValues`, not `validValues` — see the contract on
+        // `AttributeDefinition`. The roster of translated languages is not the
+        // set of tags an author may write, so these are offered and never
+        // enforced.
         attributes.lang = {
             createPrimitiveOfType: "string",
             description:
