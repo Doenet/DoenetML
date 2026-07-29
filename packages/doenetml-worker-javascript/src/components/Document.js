@@ -283,18 +283,17 @@ export default class Document extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
-            // `renderedLang` is the tag the section renderer puts in a `lang`
-            // attribute, or null for no attribute at all (#1546). Same
-            // language as `locale`, narrowed to where the DOM has something to
-            // add: only a nested document ever needs a tag — the viewer labels
-            // the whole activity from the outermost document's language, on
-            // the wrapper it renders around it — and only when this document's
+            // `renderedLang` is the tag the section renderer writes as a
+            // `lang` attribute, or null for no attribute at all (#1546). The
+            // same language as `locale`, narrowed to where the DOM has
+            // something to add: only a nested document, and only when its
             // language differs from the one already in effect around it.
             //
-            // A nested document that only restates the surrounding language
-            // therefore stays silent: the DOM already says it. The wrapper
-            // always carries the outermost document's language, so "already in
-            // effect" is known here at every depth.
+            // The viewer labels the whole activity from the outermost
+            // document's language, on the wrapper it renders around it. So the
+            // outermost document needs no tag of its own, a nested one that
+            // merely restates the surrounding language would say nothing new,
+            // and "already in effect" is known here at every depth.
             additionalStateVariablesDefined: [
                 { variableName: "renderedLang", forRenderer: true },
             ],
@@ -313,28 +312,26 @@ export default class Document extends BaseComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                // A blank `lang` counts as absent, matching
-                // `resolveDocumentLocale`.
-                const lang = dependencyValues.lang?.trim();
                 // The language already in effect around this document, if it
-                // is nested in one: every document above it either declared its
-                // own or inherited one the same way, so that chain is resolved
-                // by the time it gets here.
+                // is nested in one: every document above it either declared
+                // its own or inherited one the same way, so that chain is
+                // resolved by the time it gets here.
                 const inherited =
                     dependencyValues.documentAncestor?.stateValues.locale;
-                // Nested inside another document without declaring a language
-                // of its own: inherit rather than jumping back to the host's
-                // locale.
-                const locale =
-                    !lang && inherited
-                        ? inherited
-                        : resolveDocumentLocale(
-                              lang,
-                              dependencyValues.hostLocale,
-                          );
+                // An enclosing document stands in for the host's locale, so a
+                // nested document that declares no language of its own follows
+                // the one it sits in rather than jumping back to the host's.
+                // `resolveDocumentLocale` does the rest: it trims, so a blank
+                // `lang` counts as absent, and normalizes, so the comparison
+                // below is between canonical tags.
+                const locale = resolveDocumentLocale(
+                    dependencyValues.lang,
+                    inherited ?? dependencyValues.hostLocale,
+                );
                 return {
                     setValue: {
                         locale,
+                        // Silent wherever the DOM already says this language.
                         renderedLang:
                             inherited && locale !== inherited ? locale : null,
                     },

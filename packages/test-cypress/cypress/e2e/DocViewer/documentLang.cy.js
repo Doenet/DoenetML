@@ -1,3 +1,7 @@
+// The `lang` the viewer writes on the wrapper it renders around the whole
+// activity. A nested `<document lang>` labels its own subtree on top of that;
+// those cases live in `i18n.cy.js`, where the same activity also checks the
+// prose the core translated into that language.
 describe("Document language Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
