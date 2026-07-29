@@ -7,6 +7,7 @@ import {
     type AxisJXG,
 } from "./utils/jsxgraph";
 import useJSXGraphBoardSync from "./utils/useJSXGraphBoardSync";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 import { JXGBoard } from "./jsxgraph-distrib/types";
 import { GraphSVs } from "./graph";
 import { CallActionArgs, RendererAction } from "../useDoenetRenderer";
@@ -33,6 +34,10 @@ export default function JSXGraphRenderer({
     surfaceStyle,
 }: JSXGraphRendererProps) {
     const [board, setBoard] = useState<JXGBoard | null>(null);
+
+    // The board's container: JSXGraph appends the SVG surface and every
+    // HTML-rendered text (labels, and so the MathJax they typeset) to it.
+    const boardContainer = useRef<HTMLDivElement | null>(null);
 
     const previousBoundingbox = useRef<number[]>([0, 0, 0, 0]);
     const xaxis = useRef<AxisJXG | null | undefined>(null);
@@ -170,6 +175,11 @@ export default function JSXGraphRenderer({
         }
     }, [board]);
 
+    // The graph as a whole carries the accessible name (its
+    // `<shortDescription>`) and is exposed as a single image, so the math in
+    // its labels must not become a tab stop of its own.
+    useMathJaxOutOfTabOrder(boardContainer);
+
     useJSXGraphBoardSync({
         board,
         id,
@@ -188,7 +198,12 @@ export default function JSXGraphRenderer({
 
     return (
         <>
-            <div id={id} className="jxgbox" style={surfaceStyle} />
+            <div
+                id={id}
+                className="jxgbox"
+                style={surfaceStyle}
+                ref={boardContainer}
+            />
             {board ? (
                 <BoardContext.Provider value={board}>
                     {children}
