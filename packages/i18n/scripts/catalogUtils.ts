@@ -33,6 +33,20 @@ export const DIAGNOSTIC_CODES_LOCK_FILE = path.join(
     PACKAGE_ROOT,
     "diagnostic-codes.lock.json",
 );
+/**
+ * The committed roster of locales with a catalog directory, with each one's
+ * name in English and in itself.
+ *
+ * Derived from `locales/` rather than from `BUNDLED_TRANSLATIONS`, which
+ * answers a different question — see "The roster is not the bundle" in the
+ * package README.
+ */
+export const SUPPORTED_LOCALES_FILE = path.join(
+    PACKAGE_ROOT,
+    "src",
+    "generated",
+    "supportedLocales.ts",
+);
 
 export type CatalogKey = {
     key: string;
@@ -226,19 +240,43 @@ export function collectCallSites(): CallSite[] {
 }
 
 /**
- * The contents `src/generated/messageKeys.ts` should have for these keys.
+ * Lay `source` out the way the committed copy of `file` is laid out.
  *
- * Formatted with the repo's Prettier config, so `lint:i18n` can compare the
- * generated text against the committed file byte for byte without
- * `prettier:check` and this script disagreeing about the result.
+ * Every generated module goes through here, so `lint:i18n` can compare what it
+ * renders against the committed file byte for byte without `prettier:check`
+ * and this script disagreeing about the result.
  */
-export async function renderMessageKeysModule(keys: string[]): Promise<string> {
-    const prettierConfig = await prettier.resolveConfig(GENERATED_KEYS_FILE);
-    return prettier.format(renderMessageKeysModuleRaw(keys), {
+async function formatGeneratedModule(
+    file: string,
+    source: string,
+): Promise<string> {
+    const prettierConfig = await prettier.resolveConfig(file);
+    return prettier.format(source, {
         ...prettierConfig,
-        filepath: GENERATED_KEYS_FILE,
+        filepath: file,
         parser: "typescript",
     });
+}
+
+/** The contents `src/generated/messageKeys.ts` should have for these keys. */
+export async function renderMessageKeysModule(keys: string[]): Promise<string> {
+    return formatGeneratedModule(
+        GENERATED_KEYS_FILE,
+        renderMessageKeysModuleRaw(keys),
+    );
+}
+
+/**
+ * The contents `src/generated/supportedLocales.ts` should have for these
+ * locales.
+ */
+export async function renderSupportedLocalesModule(
+    locales: string[],
+): Promise<string> {
+    return formatGeneratedModule(
+        SUPPORTED_LOCALES_FILE,
+        renderSupportedLocalesModuleRaw(locales),
+    );
 }
 
 /** The lock as committed, or an empty lock if it doesn't exist yet. */
@@ -443,15 +481,113 @@ export function collectDiagnosticUsage(): DiagnosticUsage {
     };
 }
 
+/**
+ * The body of a string-literal union — one member per line, or `never` when
+ * there is nothing to union. Shared by the two generated modules; Prettier
+ * reflows it, so only the members themselves matter.
+ */
+function renderUnionMembers(values: string[]): string {
+    return values.length === 0
+        ? "never"
+        : values.map((value) => `\n    | ${JSON.stringify(value)}`).join("");
+}
+
+/**
+ * A locale's name in English and in itself, e.g.
+ * `{ englishName: "Spanish", endonym: "español" }`.
+ *
+ * Derived rather than hand-written, which is the point: a hand-maintained
+ * description per locale is exactly the per-language work that would stop this
+ * from scaling, and the schema generator hard-fails on an empty description.
+ * Computing the names here rather than at runtime also keeps `Intl` off the
+ * worker's path, where a tag it cannot parse is a live hazard (see the note on
+ * unparseable tags in the package README). The names therefore come from the
+ * ICU data of whatever Node ran `codegen`; if `lint:i18n` reports drift no
+ * catalog change explains, that is where to look.
+ *
+ * Neither outcome for a tag ICU has no name for can fail the build: a
+ * structurally invalid tag makes `Intl.DisplayNames` throw, and we fall back to
+ * the tag itself; a well-formed one it simply doesn't know comes back as its
+ * own rendering of the tag's subtags (`"zz-QQ"` → `"zz (QQ)"`). Either way the
+ * label is the tag, not a name — usable, and never blank.
+ */
+function localeNames(locale: string): { englishName: string; endonym: string } {
+    function nameIn(displayLocale: string): string {
+        try {
+            return (
+                new Intl.DisplayNames([displayLocale], {
+                    type: "language",
+                }).of(locale) ?? locale
+            );
+        } catch {
+            return locale;
+        }
+    }
+    return { englishName: nameIn(DEFAULT_LOCALE), endonym: nameIn(locale) };
+}
+
+function renderSupportedLocalesModuleRaw(locales: string[]): string {
+    const entries = locales.map((locale) => {
+        const { englishName, endonym } = localeNames(locale);
+        // English and the endonym coincide for English itself, and for any
+        // locale `Intl` doesn't know (both fall back to the tag). Repeating
+        // the same word in parentheses would read as a mistake.
+        const label =
+            englishName === endonym
+                ? englishName
+                : `${englishName} (${endonym})`;
+        return { locale, englishName, endonym, label };
+    });
+    // Emitted as JSON and handed to Prettier, which quotes only the values and
+    // lays the objects out exactly as this file's style demands.
+    const list = JSON.stringify(entries);
+
+    return `// AUTO-GENERATED by \`npm run codegen -w @doenet/i18n\`. Do not edit by hand.
+//
+// Every locale with a catalog directory under locales/, with its name in
+// English and in itself. \`lint:i18n\` fails if this file drifts from the
+// directory.
+
+/** A locale this repository ships a catalog for. */
+export type SupportedLocale = ${renderUnionMembers(locales)};
+
+/** A supported locale and the names to show an author. */
+export type SupportedLocaleInfo = {
+    /** The BCP-47 tag, matching the directory name under \`locales/\`. */
+    locale: SupportedLocale;
+    /** The language's name in English, e.g. \`"Spanish"\`. */
+    englishName: string;
+    /** The language's name in itself, e.g. \`"español"\`. */
+    endonym: string;
+    /**
+     * Both names in one string, e.g. \`"Spanish (español)"\` — collapsed to a
+     * single name when the two coincide. This is what author-facing surfaces
+     * (the editor's autocomplete and context help for \`<document lang>\`, the
+     * reference docs) show beside the tag.
+     */
+    label: string;
+};
+
+/**
+ * Every locale with a catalog in this repository, \`en\` first.
+ *
+ * The *roster*, not the delivery mechanism: it is generated from the
+ * \`locales/\` directory, so it stays correct when a locale stops being inlined
+ * into the bundle. Read \`bundledResources\` for "which catalogs are in this JS
+ * bundle" instead.
+ *
+ * A deployment can always supply a catalog of its own that is not listed here.
+ * That is why the surfaces built on this list suggest rather than enforce: an
+ * unlisted tag is not an error.
+ */
+export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = ${list};
+`;
+}
+
 function renderMessageKeysModuleRaw(keys: string[]): string {
-    const union =
-        keys.length === 0
-            ? "never"
-            : keys.map((key) => `\n    | ${JSON.stringify(key)}`).join("");
-    const list =
-        keys.length === 0
-            ? "[]"
-            : `[\n${keys.map((key) => `    ${JSON.stringify(key)},`).join("\n")}\n]`;
+    const union = renderUnionMembers(keys);
+    // As with the locale roster: emitted as JSON, laid out by Prettier.
+    const list = JSON.stringify(keys);
     const emptyNote =
         keys.length === 0
             ? `\n * \`never\` while the Phase 0 catalogs are empty (#1515) — no strings have moved\n * yet. It becomes a real union as soon as the first message lands, at which\n * point call sites can be typed \`MessageKey\` instead of \`string\`.`

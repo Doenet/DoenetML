@@ -4,7 +4,7 @@ import {
     getVariantsForDescendantsForUniqueVariants,
 } from "../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
-import { resolveDocumentLocale } from "@doenet/i18n";
+import { SUPPORTED_LOCALES, resolveDocumentLocale } from "@doenet/i18n";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 import {
     returnScoredSectionAttributes,
@@ -71,10 +71,22 @@ export default class Document extends BaseComponent {
             description: "Document type identifier.",
         };
 
+        // `suggestedValues`, not `validValues` — see the contract on
+        // `AttributeDefinition`. The roster of translated languages is not the
+        // set of tags an author may write, so these are offered and never
+        // enforced.
         attributes.lang = {
             createPrimitiveOfType: "string",
             description:
-                'BCP-47 language tag for the document\'s content, e.g. "es" or "es-MX". Overrides the locale supplied by the hosting page.',
+                'BCP-47 language tag for the document\'s content, e.g. "es" or "es-MX". ' +
+                "Overrides the locale supplied by the hosting page. Any language tag may " +
+                "be used; the suggested values are the languages DoenetML ships " +
+                "translations for, and content in any other language still renders with " +
+                "its computed prose in English.",
+            suggestedValues: SUPPORTED_LOCALES.map(({ locale, label }) => ({
+                value: locale,
+                description: label,
+            })),
         };
 
         return attributes;

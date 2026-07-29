@@ -758,6 +758,70 @@ function indexAliasCompletionItems(
 }
 
 /**
+ * The lone "wrap in quotes" option offered for a bare value typed after `=`
+ * (e.g. `name=foo` previews `name="foo"`, and accepting it replaces the bare
+ * run with the quoted version).
+ *
+ * Returns `[]` — no menu at all — when the cursor is already inside `"..."`,
+ * or sits at `=` with no value typed yet, so an expert who reflexively types
+ * `"` after `=` never sees a flicker and a bare `=` doesn't pop a useless menu.
+ */
+function createQuoteWrapCompletionItems({
+    sourceObj,
+    isInsideQuotes,
+    isBareValueAfterEquals,
+    equalsOffset,
+    typedValueStart,
+    typedValuePrefix,
+    endOffset,
+}: {
+    sourceObj: DoenetSourceObject;
+    isInsideQuotes: boolean;
+    isBareValueAfterEquals: boolean;
+    equalsOffset: number;
+    typedValueStart: number;
+    typedValuePrefix: string;
+    endOffset: number;
+}): DoenetCompletionItem[] {
+    if (
+        isInsideQuotes ||
+        !isBareValueAfterEquals ||
+        typedValuePrefix.length === 0
+    ) {
+        return [];
+    }
+    // The replacement range starts right after `=` so any whitespace between
+    // `=` and the bare value is swallowed by the edit.
+    const range = createTextEditRange(sourceObj, equalsOffset + 1, endOffset);
+    return [
+        {
+            label: typedValuePrefix,
+            displayLabel: `"${typedValuePrefix}"`,
+            kind: CompletionItemKind.Value,
+            filterText: typedValuePrefix,
+            textEdit: {
+                range,
+                newText: `"${typedValuePrefix}"`,
+            },
+            // Marker telling the CodeMirror plugin to treat this option as a
+            // live preview: it must set `filter: false` on the result, anchor
+            // `from` at `bareValueStartOffset`, and refresh the option's text
+            // from the live document on every keystroke. Without this, the
+            // cached `label`/`displayLabel` go stale (CodeMirror filters the
+            // option out the moment the typed prefix exceeds the cached label
+            // length) and the plugin's default `prefixMatch` anchors `from`
+            // past the first typed character (because the apply text starts
+            // with `"`, which the user has not actually typed).
+            data: {
+                livePreviewQuoteWrap: {
+                    bareValueStartOffset: typedValueStart,
+                },
+            } satisfies CompletionSnippetCompletionItemData,
+        },
+    ];
+}
+
+/**
  * Get a list of completion items at the given offset in the source document.
  *
  * This function analyzes the cursor context to determine what type of completions
@@ -1459,59 +1523,19 @@ export async function getCompletionItems(
         // shape for boolean primitives, but the consumer stays agnostic.
         const optionsWithDescriptions = allowedAttribute?.autocompleteValues;
         const plainValues = allowedAttribute?.values;
+        const quoteWrapArgs = {
+            sourceObj: this.sourceObj,
+            isInsideQuotes: cursorPosition === "attributeValue",
+            isBareValueAfterEquals,
+            equalsOffset: equalsScan,
+            typedValueStart,
+            typedValuePrefix,
+            endOffset: offset,
+        };
         if (!optionsWithDescriptions && !plainValues) {
-            // Free-text attribute: no enum to suggest. We still offer a single
-            // "wrap in quotes" hint *iff* the author has typed a bare value
-            // after `=` (e.g. `name=foo`). The hint's displayLabel previews
-            // the corrected form `"foo"`, and accepting the suggestion
-            // replaces the bare run with the quoted version. We deliberately
-            // skip the hint when:
-            //   * the cursor is right at `=` with no typed value yet
-            //     (`isBareValueAfterEquals` is false), and
-            //   * the cursor is already inside `"..."`
-            //     (`cursorPosition === "attributeValue"`),
-            // so an expert who reflexively types `"` after `=` never sees a
-            // flicker, and a bare `=` doesn't pop a useless menu.
-            if (
-                cursorPosition !== "attributeValue" &&
-                isBareValueAfterEquals &&
-                typedValuePrefix.length > 0
-            ) {
-                const range = createTextEditRange(
-                    this.sourceObj,
-                    equalsScan + 1,
-                    offset,
-                );
-                return [
-                    {
-                        label: typedValuePrefix,
-                        displayLabel: `"${typedValuePrefix}"`,
-                        kind: CompletionItemKind.Value,
-                        filterText: typedValuePrefix,
-                        textEdit: {
-                            range,
-                            newText: `"${typedValuePrefix}"`,
-                        },
-                        // Marker telling the CodeMirror plugin to treat this
-                        // option as a live preview: it must set `filter: false`
-                        // on the result, anchor `from` at `bareValueStartOffset`,
-                        // and refresh the option's text from the live document
-                        // on every keystroke. Without this, the cached
-                        // `label`/`displayLabel` go stale (CodeMirror filters
-                        // the option out the moment the typed prefix exceeds
-                        // the cached label length) and the plugin's default
-                        // `prefixMatch` anchors `from` past the first typed
-                        // character (because the apply text starts with `"`,
-                        // which the user has not actually typed).
-                        data: {
-                            livePreviewQuoteWrap: {
-                                bareValueStartOffset: typedValueStart,
-                            },
-                        } satisfies CompletionSnippetCompletionItemData,
-                    },
-                ];
-            }
-            return [];
+            // Free-text attribute: no enum to suggest, so the "wrap in quotes"
+            // hint for a bare value is the only help there is to offer.
+            return createQuoteWrapCompletionItems(quoteWrapArgs);
         }
         // Quotes get added via `textEdit.newText` when the cursor is anchored
         // to an `=` rather than already inside `"..."`. The display label and
@@ -1537,23 +1561,35 @@ export async function getCompletionItems(
         // typing `fu` still ranks `full` correctly. Inside `"..."` we omit
         // `displayLabel` so the dropdown matches what actually gets inserted.
         if (optionsWithDescriptions) {
-            return optionsWithDescriptions
-                .filter(({ value }) => matchesPrefix(value))
-                .map(({ value, description }) => ({
-                    label: value,
-                    kind: CompletionItemKind.Value,
-                    filterText: value,
-                    documentation: asMarkdown(description),
-                    ...(quotedRange
-                        ? {
-                              displayLabel: `"${value}"`,
-                              textEdit: {
-                                  range: quotedRange,
-                                  newText: `"${value}"`,
-                              },
-                          }
-                        : {}),
-                }));
+            const matching = optionsWithDescriptions.filter(({ value }) =>
+                matchesPrefix(value),
+            );
+            // A suggestion list doesn't constrain the attribute, so a bare
+            // value it doesn't contain is not a mistake — `<document lang=de`
+            // gets the free-text quote hint rather than an empty menu. For a
+            // closed enum an unmatched value *is* a mistake, and offering to
+            // quote it would only make the wrong value look blessed.
+            if (
+                matching.length === 0 &&
+                allowedAttribute?.suggestedValuesOnly
+            ) {
+                return createQuoteWrapCompletionItems(quoteWrapArgs);
+            }
+            return matching.map(({ value, description }) => ({
+                label: value,
+                kind: CompletionItemKind.Value,
+                filterText: value,
+                documentation: asMarkdown(description),
+                ...(quotedRange
+                    ? {
+                          displayLabel: `"${value}"`,
+                          textEdit: {
+                              range: quotedRange,
+                              newText: `"${value}"`,
+                          },
+                      }
+                    : {}),
+            }));
         }
         return (plainValues ?? [])
             .filter((value) => matchesPrefix(value))

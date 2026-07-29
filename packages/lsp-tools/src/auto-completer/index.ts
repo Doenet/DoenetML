@@ -35,12 +35,26 @@ export { type CompletionContext };
  * like `"true"`/`"false"` injected by `valueForTrue`/`valueForFalse`).
  * `autocompleteValues` is the author-facing list with per-value descriptions —
  * boolean aliases are intentionally omitted so they don't pollute suggestions.
+ *
+ * The two are independent. An attribute declaring `suggestedValues` has
+ * `autocompleteValues` and no `values` at all: it offers completions while
+ * accepting anything, so the schema-violation check (which reads only `values`)
+ * never fires for it.
  */
 export type SchemaAttribute = {
     name: string;
     description?: string;
     values?: string[];
     autocompleteValues?: ValidValueEntry[];
+    /**
+     * `true` when `autocompleteValues` are suggestions rather than the
+     * permitted set. Always accompanied by an absent `values`. Author-facing
+     * surfaces read it to stay honest about the list: the help panel labels it
+     * "Suggested values", and autocomplete keeps the free-text "wrap in
+     * quotes" hint for a bare value the list doesn't contain instead of going
+     * silent as it does for an enum.
+     */
+    suggestedValuesOnly?: boolean;
     /**
      * `true` when the attribute is list-valued and its `values` constrain each
      * item of the list (not the whole value). Schema-violation checks split the

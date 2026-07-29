@@ -112,4 +112,80 @@ describe("schema build enforcement", () => {
             ),
         );
     });
+
+    it("throws when an attribute declares both validValues and suggestedValues", () => {
+        // They are the enforcing and non-enforcing forms of the same list, so
+        // declaring both says nothing coherent about whether an unlisted value
+        // is an error.
+        const cls = infoObjects.allComponentClasses.point as any;
+        const originalCreate = cls.createAttributesObject;
+        cls.createAttributesObject = function () {
+            const attrs = originalCreate.call(this);
+            attrs.draggable = {
+                ...attrs.draggable,
+                validValues: [{ value: "a", description: "A." }],
+                suggestedValues: [{ value: "b", description: "B." }],
+            };
+            return attrs;
+        };
+        restore = () => {
+            cls.createAttributesObject = originalCreate;
+        };
+        expect(() => getSchema(infoObjects)).toThrow(
+            /declares both `validValues` and `suggestedValues`/,
+        );
+    });
+
+    it("throws when a suggestedValues entry has no description", () => {
+        // Suggestions reach the same autocomplete and help surfaces as
+        // enumerated values, so they are held to the same bar — an entry with
+        // no help text renders as a blank row.
+        const cls = infoObjects.allComponentClasses.point as any;
+        const originalCreate = cls.createAttributesObject;
+        cls.createAttributesObject = function () {
+            const attrs = originalCreate.call(this);
+            attrs.draggable = {
+                ...attrs.draggable,
+                suggestedValues: [{ value: "a", description: "  " }],
+            };
+            return attrs;
+        };
+        restore = () => {
+            cls.createAttributesObject = originalCreate;
+        };
+        expect(() => getSchema(infoObjects)).toThrow(
+            /Invalid suggestedValues entry for `\w+\.draggable`/,
+        );
+    });
+
+    it("emits suggestedValues as suggestions only, never as a constraint", () => {
+        // The shape the whole non-enforcing path depends on:
+        // `autocompleteValues` populated, `values` absent (so the language
+        // server's "must be one of" check has nothing to fire on), and the
+        // attribute's own type preserved rather than being recast as the
+        // closed-set `keyword`.
+        const cls = infoObjects.allComponentClasses.point as any;
+        const originalCreate = cls.createAttributesObject;
+        cls.createAttributesObject = function () {
+            const attrs = originalCreate.call(this);
+            attrs.labelPosition = {
+                ...attrs.labelPosition,
+                validValues: undefined,
+                suggestedValues: [{ value: "a", description: "A." }],
+            };
+            return attrs;
+        };
+        restore = () => {
+            cls.createAttributesObject = originalCreate;
+        };
+        const schema = getSchema(infoObjects);
+        const point = schema.elements.find((e) => e.name === "point")!;
+        const attr = point.attributes.find((a) => a.name === "labelPosition")!;
+        expect(attr.autocompleteValues).toEqual([
+            { value: "a", description: "A." },
+        ]);
+        expect(attr.values).toBeUndefined();
+        expect(attr.suggestedValuesOnly).toBe(true);
+        expect(attr.type).not.toBe("keyword");
+    });
 });

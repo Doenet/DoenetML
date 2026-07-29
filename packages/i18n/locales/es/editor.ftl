@@ -186,6 +186,8 @@ help-allowed-values =
        *[other] Valores admitidos:
     }
 
+help-suggested-values = Valores sugeridos:
+
 help-inserts = Inserta:
 
 help-coordinates =

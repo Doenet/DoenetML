@@ -390,6 +390,33 @@ describe("computeContextHelp — attribute help", () => {
         expect(allowedValueStrings).not.toContain("false");
     });
 
+    it("marks `<document lang>`'s values as suggestions, not a constraint", async () => {
+        // `lang` declares `suggestedValues`, so the panel gets the list plus
+        // the flag that makes it label the row "Suggested values". Asserting
+        // the flag is what keeps the panel from claiming a constraint the
+        // language server deliberately does not enforce.
+        const source = `<document lang="es"></document>`;
+        const offset = source.indexOf("lang") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.allowedValuesAreSuggestions).toBe(true);
+        expect(help.allowedValues?.map((v) => v.value)).toContain("es");
+    });
+
+    it("leaves allowedValuesAreSuggestions unset for a closed enum", async () => {
+        const source = `<math simplify="full"/>`;
+        const offset = source.indexOf("simplify") + 3;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.allowedValuesAreSuggestions).toBeFalsy();
+    });
+
     it("omits allowedValues for pure boolean primitives", async () => {
         // Boolean primitives have a synthesized `values: ["true","false"]`
         // but no `autocompleteValues`. The help panel intentionally drops

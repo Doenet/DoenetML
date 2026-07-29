@@ -64957,7 +64957,18 @@
                 },
                 {
                     "name": "lang",
-                    "description": "BCP-47 language tag for the document's content, e.g. \"es\" or \"es-MX\". Overrides the locale supplied by the hosting page.",
+                    "description": "BCP-47 language tag for the document's content, e.g. \"es\" or \"es-MX\". Overrides the locale supplied by the hosting page. Any language tag may be used; the suggested values are the languages DoenetML ships translations for, and content in any other language still renders with its computed prose in English.",
+                    "autocompleteValues": [
+                        {
+                            "value": "en",
+                            "description": "English"
+                        },
+                        {
+                            "value": "es",
+                            "description": "Spanish (español)"
+                        }
+                    ],
+                    "suggestedValuesOnly": true,
                     "type": "text"
                 }
             ],

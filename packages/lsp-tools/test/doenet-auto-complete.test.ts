@@ -5,6 +5,7 @@ import { CompletionItemKind } from "vscode-languageserver/browser";
 import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
 import { DoenetSourceObject } from "../src/doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
+import { SUPPORTED_LOCALES } from "@doenet/i18n";
 import { AutoCompleter, RustResolverAdapter } from "../src";
 import type { ResolverCore } from "../src";
 
@@ -3156,6 +3157,60 @@ describe("AutoCompleter", () => {
             const ac = new AutoCompleter(source, doenetSchema.elements);
             const items = await ac.getCompletionItems(source.length);
             expect(items.map((i) => i.label)).toContain("unordered");
+        });
+    });
+
+    describe("Bundled Doenet schema: `<document lang>` suggestions", () => {
+        // `lang` declares `suggestedValues`, generated from the locales this
+        // repo ships catalogs for. The list is offered but never enforced —
+        // see the schema-violation half of this contract in
+        // `doenet-auto-schema-check.test.ts`.
+        it("Offers every supported locale as a value for `lang`", async () => {
+            const source = `<document lang="`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            for (const { locale } of SUPPORTED_LOCALES) {
+                expect(labels).toContain(locale);
+            }
+        });
+
+        it("Documents each suggested locale with its name", async () => {
+            // The descriptions are derived at codegen time from
+            // `Intl.DisplayNames`, so a new locale carries help text without
+            // anyone writing any. An empty one would render as a blank
+            // autocomplete row.
+            const source = `<document lang="`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            const spanish = items.find((i) => i.label === "es");
+            expect(spanish?.documentation).toBeTruthy();
+            const documentation = spanish?.documentation;
+            const text =
+                typeof documentation === "string"
+                    ? documentation
+                    : (documentation?.value ?? "");
+            expect(text).toContain("Spanish");
+        });
+
+        it("Still offers to quote a bare tag that isn't on the list", async () => {
+            // An attribute whose values are only suggestions keeps the
+            // free-text affordance: typing `lang=de` unquoted matches no
+            // suggestion, and the author would otherwise lose the "wrap in
+            // quotes" hint that `lang` had before it carried a list at all.
+            const source = `<document lang=de`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            expect(items.map((i) => i.displayLabel)).toEqual(['"de"']);
+        });
+
+        it("Offers nothing for a bare value a closed enum rejects", async () => {
+            // The contrast that scopes the fallback: `simplify` enumerates its
+            // values, so `zzz` is a mistake and offering to quote it would
+            // only make the wrong value look blessed.
+            const source = `<math simplify=zzz`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            expect(await ac.getCompletionItems(source.length)).toEqual([]);
         });
     });
 });

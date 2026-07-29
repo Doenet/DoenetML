@@ -265,6 +265,11 @@ help-allowed-values =
        *[other] Allowed values:
     }
 
+# Heading for values the editor offers without requiring: the attribute accepts
+# others too, and nothing warns about them. Distinct from `help-allowed-values`
+# so a translation can pick a word that suggests rather than constrains.
+help-suggested-values = Suggested values:
+
 help-inserts = Inserts:
 
 help-coordinates =

@@ -72,3 +72,9 @@ export {
 } from "./diagnostics";
 
 export { MESSAGE_KEYS, type MessageKey } from "./generated/messageKeys";
+
+export {
+    SUPPORTED_LOCALES,
+    type SupportedLocale,
+    type SupportedLocaleInfo,
+} from "./generated/supportedLocales";

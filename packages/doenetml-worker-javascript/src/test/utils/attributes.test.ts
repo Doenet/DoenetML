@@ -96,6 +96,23 @@ describe("preprocessAttributesObject @group4", () => {
             /Invalid validValues entry for attribute `mode`/,
         );
     });
+
+    it("throws when a suggestedValues entry is a bare string", () => {
+        // The non-enforcing list is held to the same shape as the enforcing
+        // one, so neither can be the value list nothing checks.
+        const attrs: Record<string, AttributeDefinition<unknown>> = {
+            lang: {
+                suggestedValues: ["es"] as unknown as {
+                    value: string;
+                    description: string;
+                }[],
+            },
+        };
+
+        expect(() => preprocessAttributesObject(attrs)).toThrow(
+            /Invalid suggestedValues entry for attribute `lang`/,
+        );
+    });
 });
 
 describe("validateListItemsAgainstValidValues @group4", () => {
