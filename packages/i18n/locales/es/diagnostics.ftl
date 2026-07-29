@@ -264,6 +264,14 @@ math-operators-operand-number-required = Se debe especificar operandNumber al ex
 
 eigen-decomposition-failed = No se pudieron calcular los valores propios de la matriz
 
+## `<matchesPattern>`
+
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: el parámetro { $parameters } no aparece en el patrón, por lo que siempre coincidirá con un espacio en blanco.
+       *[other] `<matchesPattern>`: los parámetros { $parameters } no aparecen en el patrón, por lo que siempre coincidirán con un espacio en blanco.
+    }
+
 ## Renderizador PreFigure
 
 prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" no es compatible con el renderizador prefigure; se usa el comportamiento de posición derecha.
