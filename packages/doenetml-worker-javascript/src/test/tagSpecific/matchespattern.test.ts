@@ -1270,11 +1270,19 @@ describe("MatchesPattern tag tests @group3", async () => {
     });
 
     it("a blank listed as a parameter is ignored with a warning", async () => {
-        const { core } = await createTestCore({
+        const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <matchesPattern name="m" pattern="()x" parameters="()">3x</matchesPattern>
   `,
         });
+
+        // Had the blank been taken as a parameter, `3x` would have matched it.
+        // Refused, it leaves the pattern with no placeholders and a literal
+        // blank to match.
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const m = stateVariables[await resolvePathToNodeIdx("m")].stateValues;
+        expect(m.value).eq(false);
+        expect(m.numMatches).eq(0);
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
