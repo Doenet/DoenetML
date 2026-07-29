@@ -2,6 +2,8 @@
 "@doenet/doenetml": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
 ---
 
 Let a nested `<document lang>` reach the rendered page.

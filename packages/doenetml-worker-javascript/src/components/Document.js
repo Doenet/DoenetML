@@ -332,19 +332,17 @@ export default class Document extends BaseComponent {
         // Only a nested document ever needs one — the viewer labels the whole
         // activity from the outermost document's language, on the wrapper it
         // renders around it — and only when this document's language differs
-        // from the one already in effect around it. Re-asserting a language on
-        // every nested section would be worse than saying nothing: an activity
-        // that declared none should keep inheriting the embedding page's
-        // language rather than being pinned to English.
+        // from the one already in effect around it.
         //
-        // The ancestor's `locale` is the language in effect: every enclosing
-        // document either declared its own or inherited one the same way, so
-        // the chain is already resolved by the time it gets here. The one thing
-        // it cannot see is that the viewer omits `lang` entirely when nobody
-        // declared a language — the core is always handed a tag, English at
-        // worst — so a nested document that declares English inside an
-        // undeclared activity stays silent and inherits the page's language,
-        // exactly as the activity around it does.
+        // The enclosing document's `locale` is that language: every document
+        // above this one either declared its own or inherited one the same way,
+        // so the chain is already resolved by the time it gets here. The one
+        // thing it cannot see is that the viewer omits the wrapper's `lang`
+        // entirely when nobody declared a language — the core is always handed
+        // a tag, English at worst. So a nested document that only restates the
+        // language around it stays silent: redundant where an outer document
+        // declared that language, and wrong where nobody did, since `lang="en"`
+        // there would claim English over an embedding page that said otherwise.
         stateVariableDefinitions.renderedLang = {
             forRenderer: true,
             returnDependencies: () => ({

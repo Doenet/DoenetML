@@ -38,13 +38,6 @@ otherwise the content's language. Both normalize what they return (`ES-mx` →
 `es-MX`) and treat a blank tag as unset, so a hand-typed `lang` and a
 hand-configured prop negotiate the same way a canonical tag does.
 
-A nested `<document lang>` labels its own subtree on top of that: `<document>`'s
-`renderedLang` state variable hands the section renderer a tag only when the
-nested document's language differs from the one already in effect around it,
-and the renderer emits `lang` only when it gets one. Restating the surrounding
-language on every nested section would be worse than staying quiet, for the
-same reason the wrapper stays quiet.
-
 A tag they cannot parse is left alone rather than rejected — `en_US`, the POSIX
 spelling, is the usual way a host mis-keys a catalog, and rewriting it would
 stop that catalog from being found. So such a tag keys and negotiates like any
@@ -54,6 +47,15 @@ whenever the tag is one `Intl` can't parse — otherwise Fluent's
 `Intl.PluralRules` throws and the whole message resolves to `{???}` — and
 `createDiagnosticFormatter` joins its lists the same way. The host's own words
 are kept; only the counting and number conventions fall back.
+
+Those rules all settle one language for the activity as a whole. A nested
+`<document lang>` labels its own subtree on top of that: `<document>`'s
+`renderedLang` state variable hands the section renderer a tag only when the
+nested document's language differs from the one already in effect around it,
+and the renderer emits `lang` only when it gets one. A nested document that
+merely restated the surrounding language would stay quiet for the same reason
+the wrapper does — an activity nobody declared a language for must keep
+inheriting the embedding page's rather than being pinned to English.
 
 ## Catalog layout
 

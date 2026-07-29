@@ -320,11 +320,12 @@ describe("Document tag tests @group4", async () => {
     // `setLocaleData` > "en" — the author knows what language they wrote in,
     // the host only knows what it would prefer to receive.
     describe("document lang / locale", () => {
-        async function localeOf(
+        /** The state values of the document at `path`, from a fresh core. */
+        async function documentStateValues(
             doenetML: string,
             documentLocale?: string,
             path = "_document1",
-        ): Promise<string> {
+        ) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
                 documentLocale,
@@ -333,7 +334,15 @@ describe("Document tag tests @group4", async () => {
                 false,
                 true,
             );
-            return stateVariables[await resolvePathToNodeIdx(path)].stateValues
+            return stateVariables[await resolvePathToNodeIdx(path)].stateValues;
+        }
+
+        async function localeOf(
+            doenetML: string,
+            documentLocale?: string,
+            path = "_document1",
+        ): Promise<string> {
+            return (await documentStateValues(doenetML, documentLocale, path))
                 .locale;
         }
 
@@ -412,16 +421,9 @@ describe("Document tag tests @group4", async () => {
                 documentLocale?: string,
                 path = "_document1",
             ): Promise<string | null> {
-                const { core, resolvePathToNodeIdx } = await createTestCore({
-                    doenetML,
-                    documentLocale,
-                });
-                const stateVariables = await core.returnAllStateVariables(
-                    false,
-                    true,
-                );
-                return stateVariables[await resolvePathToNodeIdx(path)]
-                    .stateValues.renderedLang;
+                return (
+                    await documentStateValues(doenetML, documentLocale, path)
+                ).renderedLang;
             }
 
             it("is null on the outermost document", async () => {
@@ -467,7 +469,7 @@ describe("Document tag tests @group4", async () => {
                 );
             });
 
-            it("labels a nested document in a language the host's differs from", async () => {
+            it("labels a nested document in a language other than the host's", async () => {
                 const doenetML = `<document><document name="inner" lang="es"><p>hola</p></document></document>`;
                 expect(await renderedLangOf(doenetML, "fr", "inner")).eq("es");
             });

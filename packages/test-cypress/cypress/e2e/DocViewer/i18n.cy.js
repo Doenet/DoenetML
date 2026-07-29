@@ -261,10 +261,16 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         // prose the core computes; this is the other half — the DOM has to say
         // so too, or a screen reader pronounces Spanish content with an
         // English voice.
-        const nested = (innerLang) => `
+        //
+        // The inner document computes a style description, so one activity
+        // exercises both halves at once: the prose the core translated, and
+        // the language the DOM declares over it.
+        function nested(innerLang) {
+            const lang = innerLang ? ` lang="${innerLang}"` : "";
+            return `
         <document lang="en">
           <p name="outer">Read the description below.</p>
-          <document name="inner" ${innerLang}>
+          <document name="inner"${lang}>
             <setup>
               <styleDefinition styleNumber="1" lineColor="red" lineWidth="6"
                 lineStyle="dashed" />
@@ -273,9 +279,10 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             <p name="desc">$l.styleDescriptionWithNoun</p>
           </document>
         </document>`;
+        }
 
         it("labels a nested document with its own language", () => {
-            render({ doenetML: nested(`lang="es"`) });
+            render({ doenetML: nested("es") });
 
             cy.get("#desc").should(
                 "have.text",
@@ -290,7 +297,7 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         it("says nothing where a nested document inherits", () => {
             // Re-asserting the surrounding language would pin the subtree to a
             // tag it should simply be inheriting.
-            render({ doenetML: nested("") });
+            render({ doenetML: nested() });
 
             cy.get("#desc").should("have.text", "thick dashed red line");
             cy.get("#inner").should("not.have.attr", "lang");
