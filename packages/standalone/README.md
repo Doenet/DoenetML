@@ -117,11 +117,10 @@ An authored `<document lang="es-MX">` overrides `documentLocale`: the author
 knows what language they wrote in, the host only knows what it would prefer to
 receive.
 
-When a language is declared — by either route — the rendered container carries
-a matching `lang` attribute, so screen readers pronounce the content with the
-right voice and rules. When neither declares one, the container carries no
-`lang` at all and inherits the embedding page's, which is a better guess than
-asserting English over a page that said `<html lang="es">`.
+The rendered container always carries a `lang` attribute naming the language
+the content was rendered in, so screen readers pronounce it with the right
+voice and rules. When neither route declares one, that language is `en` — the
+language the core computes such an activity's prose in.
 
 Changing `documentLocale` rebuilds the document, since it changes every string
 the core computes; `uiLocale` updates in place.

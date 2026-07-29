@@ -4,9 +4,9 @@ describe("Document language Tests", { tags: ["@group5"] }, function () {
         cy.visit("/");
     });
 
-    function renderDoenetML(doenetML) {
+    function renderDoenetML(doenetML, documentLocale) {
         cy.window().then((win) => {
-            win.postMessage({ doenetML }, "*");
+            win.postMessage({ doenetML, documentLocale }, "*");
         });
     }
 
@@ -33,20 +33,26 @@ describe("Document language Tests", { tags: ["@group5"] }, function () {
         cy.get(".doenet-viewer").should("have.attr", "lang", "es-MX");
     });
 
-    it("leaves the container unlabeled when no language was declared", () => {
-        // Inheriting the embedding page's `lang` beats asserting English over
-        // a host that said `<html lang="es">`.
+    it("labels an undeclared document English", () => {
+        // The language the activity is actually rendered in: the core
+        // computes its prose in English when nobody declared otherwise, so the
+        // container says so rather than inheriting the page's `lang`.
         renderDoenetML(`<p name="p">hello</p>`);
 
         cy.get("#p").should("have.text", "hello");
-        cy.get(".doenet-viewer").should("not.have.attr", "lang");
+        cy.get(".doenet-viewer").should("have.attr", "lang", "en");
     });
 
-    it("treats a blank lang as absent", () => {
-        renderDoenetML(`<document lang="  "><p name="p">hello</p></document>`);
+    it("falls through a blank lang to the host's locale", () => {
+        // A blank `lang` counts as unset all the way to the DOM: the label is
+        // the host's tag, not the empty one the author typed.
+        renderDoenetML(
+            `<document lang="  "><p name="p">hallo</p></document>`,
+            "de",
+        );
 
-        cy.get("#p").should("have.text", "hello");
-        cy.get(".doenet-viewer").should("not.have.attr", "lang");
+        cy.get("#p").should("have.text", "hallo");
+        cy.get(".doenet-viewer").should("have.attr", "lang", "de");
     });
 
     it("exposes the language in effect as the document's locale property", () => {

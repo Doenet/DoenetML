@@ -27,16 +27,16 @@ should still say "thick red line" in French.
 fully Spanish without the host configuring anything.
 
 `resolveDocumentLocale` applies that rule and supplies `"en"` when nobody
-declared anything; `declaredDocumentLocale` applies the same rule but returns
-`undefined` in that case. The viewer uses the second for the `lang` attribute
-on the rendered wrapper: an activity whose language nobody stated inherits the
-embedding page's, rather than asserting English over a host that said
-`<html lang="es">`. `resolveUiLocale` applies the chrome's rule — the
-configured `uiLocale`, otherwise the content's language.
+declared anything. One tag, two consumers: the core translates into it, and the
+viewer puts it in the `lang` attribute on the rendered wrapper, so the DOM never
+claims a language the content was not rendered in. An undeclared activity is
+labeled `en` — not a guess about what its author wrote, but a report of the
+language the core computed its prose in.
 
-All three normalize what they return (`ES-mx` → `es-MX`) and treat a blank tag
-as unset, so a hand-typed `lang` and a hand-configured prop negotiate the same
-way a canonical tag does.
+`resolveUiLocale` applies the chrome's rule — the configured `uiLocale`,
+otherwise the content's language. Both normalize what they return (`ES-mx` →
+`es-MX`) and treat a blank tag as unset, so a hand-typed `lang` and a
+hand-configured prop negotiate the same way a canonical tag does.
 
 A tag they cannot parse is left alone rather than rejected — `en_US`, the POSIX
 spelling, is the usual way a host mis-keys a catalog, and rewriting it would

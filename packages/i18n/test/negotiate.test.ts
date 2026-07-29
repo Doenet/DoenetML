@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    declaredDocumentLocale,
     negotiateLocales,
     normalizeLocaleTag,
     resolveDocumentLocale,
@@ -55,21 +54,6 @@ describe("resolveDocumentLocale", () => {
     it("normalizes whatever it returns", () => {
         expect(resolveDocumentLocale("ES-mx", undefined)).toBe("es-MX");
         expect(resolveDocumentLocale(undefined, "PT-br")).toBe("pt-BR");
-    });
-});
-
-describe("declaredDocumentLocale", () => {
-    it("follows the same precedence as resolveDocumentLocale", () => {
-        expect(declaredDocumentLocale("fr", "es-MX")).toBe("fr");
-        expect(declaredDocumentLocale(undefined, "ES-mx")).toBe("es-MX");
-    });
-
-    it("is undefined when nobody declared a language", () => {
-        // The distinction `resolveDocumentLocale` erases: the viewer leaves
-        // `lang` off the wrapper here rather than asserting English over
-        // whatever the embedding page declared.
-        expect(declaredDocumentLocale(undefined, undefined)).toBe(undefined);
-        expect(declaredDocumentLocale("  ", null)).toBe(undefined);
     });
 });
 

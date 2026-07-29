@@ -7,11 +7,7 @@ import {
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
-import {
-    DEFAULT_LOCALE,
-    declaredDocumentLocale,
-    normalizeLocaleTag,
-} from "@doenet/i18n";
+import { resolveDocumentLocale } from "@doenet/i18n";
 import { readDocumentLang } from "./documentLang";
 
 export type CoreWorkerHandle = {
@@ -270,11 +266,16 @@ export async function initializeCoreWorker({
     await coreWorker.setFlags({ flags });
     // Sent unconditionally, even with nothing configured: a reused worker
     // (the shared-core pool) would otherwise keep the previous document's
-    // locale. Normalized here so the tag the core stores is canonical for
-    // everything that later negotiates against it.
+    // locale. Only the host's half of the rule is applied here — an authored
+    // `<document lang>` belongs to the `<document>` carrying it, and the core
+    // applies it there, once per `<document>`, so what it wants from the host
+    // is the ambient preference to fall back on. It goes through the shared
+    // helper all the same, so the fallback to English is written in one place
+    // and the tag the core stores is canonical for everything that later
+    // negotiates against it.
     await coreWorker.setLocaleData({
         localeData: {
-            locale: normalizeLocaleTag(documentLocale ?? "") || DEFAULT_LOCALE,
+            locale: resolveDocumentLocale(undefined, documentLocale),
             resources: localeResources ?? {},
         },
     });
@@ -295,22 +296,18 @@ export async function initializeCoreWorker({
         },
     });
 
-    // The content language somebody declared, for the `lang` attribute on the
-    // rendered wrapper. Resolved from the DAST we already parsed rather than
-    // asked of the core, so it is available before the first render — a screen
-    // reader should not have to wait for evaluation to learn what language it
-    // is reading. The core resolves the same value with the same helper for
-    // its own `document.locale` state variable.
-    //
-    // `undefined` when neither the document nor the host declared a language.
-    // The core still treats such content as English, but the wrapper stays
-    // silent rather than asserting `lang="en"` over an embedding page that
-    // said `<html lang="es">` — an unfounded guess is worse for a screen
-    // reader than inheriting the page's.
-    const declaredLocale = declaredDocumentLocale(
+    // The content's language, for the `lang` attribute on the rendered
+    // wrapper. Resolved from the DAST we already parsed rather than asked of
+    // the core, so it is available before the first render — a screen reader
+    // should not have to wait for evaluation to learn what language it is
+    // reading. The core reaches the same tag for its own `document.locale`,
+    // running the same helper over the same authored `lang` and the locale
+    // sent above, so the attribute always reports the language the content was
+    // rendered in — English, for a document nobody declared one for.
+    const resolvedLocale = resolveDocumentLocale(
         readDocumentLang(dast),
         documentLocale,
     );
 
-    return { ...result, declaredDocumentLocale: declaredLocale };
+    return { ...result, resolvedDocumentLocale: resolvedLocale };
 }

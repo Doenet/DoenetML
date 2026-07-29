@@ -22,9 +22,8 @@ import { MdError } from "react-icons/md";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
-    DEFAULT_LOCALE,
-    declaredDocumentLocale,
     localeResourceKey,
+    resolveDocumentLocale,
     resolveUiLocale,
     type Translator,
 } from "@doenet/i18n";
@@ -550,17 +549,14 @@ export function DocViewer({
 
     const [ignoreRendererError, setIgnoreRendererError] = useState(false);
 
-    // The content language somebody declared — the `documentLocale` prop,
-    // overridden by an authored `<document lang>` — or `undefined` when nobody
-    // did. Seeded from the prop so the wrapper is labeled correctly from the
-    // first paint, then corrected once the source is parsed.
-    const [declaredLocale, setDeclaredLocale] = useState(() =>
-        declaredDocumentLocale(undefined, documentLocale),
+    // The content's language — the `documentLocale` prop, overridden by an
+    // authored `<document lang>`, English when neither says anything. What the
+    // core translates into, and what the wrapper's `lang` reports. Seeded from
+    // the prop so the wrapper is labeled correctly from the first paint, then
+    // corrected once the source is parsed.
+    const [effectiveDocumentLocale, setEffectiveDocumentLocale] = useState(() =>
+        resolveDocumentLocale(undefined, documentLocale),
     );
-    // What the core will actually translate into: undeclared content is
-    // treated as English. (The wrapper's `lang` deliberately does *not* fall
-    // back this way — see `initializeCoreWorker`.)
-    const effectiveDocumentLocale = declaredLocale ?? DEFAULT_LOCALE;
     // The chrome's language: whatever the host configured, otherwise the
     // content's.
     const effectiveUiLocale = resolveUiLocale(
@@ -954,11 +950,11 @@ export function DocViewer({
 
     /**
      * Initialize a core worker for this document, recording the content
-     * language it declared.
+     * language it resolved to.
      *
-     * The declared locale depends on the DoenetML (an authored
-     * `<document lang>` overrides the prop), so it isn't known until the
-     * source has been parsed — which `initializeCoreWorker` does anyway.
+     * That language depends on the DoenetML (an authored `<document lang>`
+     * overrides the prop), so it isn't known until the source has been parsed
+     * — which `initializeCoreWorker` does anyway.
      */
     async function initializeCoreWorkerForDoc(worker: Remote<CoreWorker>) {
         const result = await initializeCoreWorker({
@@ -974,7 +970,7 @@ export function DocViewer({
             documentLocale,
             localeResources,
         });
-        setDeclaredLocale(result.declaredDocumentLocale);
+        setEffectiveDocumentLocale(result.resolvedDocumentLocale);
         return result;
     }
 
@@ -2312,9 +2308,9 @@ export function DocViewer({
             <div
                 style={viewerStyle}
                 className="doenet-viewer"
-                // Omitted when nobody declared a language, so the content
-                // inherits the embedding page's rather than claiming English.
-                lang={declaredLocale}
+                // Always the language the content is actually rendered in, so
+                // a screen reader pronounces it the way the core wrote it.
+                lang={effectiveDocumentLocale}
                 ref={viewerContainerRef}
             >
                 {errorOverview}

@@ -8,7 +8,7 @@
 
 Add a `lang` attribute to `<document>` and `documentLocale` / `uiLocale` settings to the viewer and editor, laying the groundwork for translated activities.
 
-`<document lang="es-MX">` declares what language the content is written in. The rendered activity then carries a matching `lang` attribute, so screen readers pronounce the content with the right voice and rules — an accessibility improvement that applies today, before any strings are translated. An activity that declares no language keeps carrying none, inheriting whatever the surrounding page declares.
+`<document lang="es-MX">` declares what language the content is written in. The rendered activity then carries a matching `lang` attribute, so screen readers pronounce the content with the right voice and rules — an accessibility improvement that applies today, before any strings are translated.
 
 `<document>` also gains a public `locale` property reporting the language tag actually in effect, whether that came from an authored `lang` or from the host.
 

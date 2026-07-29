@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
-import { declaredDocumentLocale, resolveDocumentLocale } from "@doenet/i18n";
+import { resolveDocumentLocale } from "@doenet/i18n";
 
 import { readDocumentLang } from "./documentLang";
 
@@ -9,18 +9,15 @@ function langOf(doenetML: string) {
 }
 
 /**
- * The content language the core will translate into. Mirrors what
- * `initializeCoreWorker` computes, and must match the `document.locale` state
- * variable the worker derives from the same source — see the "document lang /
- * locale" tests in `@doenet/doenetml-worker-javascript`.
+ * The content language the core will translate into, which is also the tag the
+ * viewer puts in the wrapper's `lang` attribute — one resolution for both, so
+ * the DOM never claims a language the content was not rendered in. Mirrors
+ * what `initializeCoreWorker` computes, and must match the `document.locale`
+ * state variable the worker derives from the same source — see the "document
+ * lang / locale" tests in `@doenet/doenetml-worker-javascript`.
  */
 function effectiveLocale(doenetML: string, documentLocale?: string) {
     return resolveDocumentLocale(langOf(doenetML), documentLocale);
-}
-
-/** The value the viewer puts in the wrapper's `lang` attribute, if any. */
-function wrapperLang(doenetML: string, documentLocale?: string) {
-    return declaredDocumentLocale(langOf(doenetML), documentLocale);
 }
 
 describe("readDocumentLang", () => {
@@ -61,6 +58,11 @@ describe("readDocumentLang", () => {
 
 describe("effective document locale", () => {
     it("defaults to en", () => {
+        // And so what the wrapper's `lang` says. Not a guess about what the
+        // author wrote: English is what the core computes such a document's
+        // prose in, so the attribute reports the language the content was
+        // rendered in rather than letting the subtree inherit the embedding
+        // page's.
         expect(effectiveLocale(`<p>hello</p>`)).eq("en");
     });
 
@@ -87,23 +89,8 @@ describe("effective document locale", () => {
         expect(
             effectiveLocale(`<document lang=" "><p>hi</p></document>`, "de"),
         ).eq("de");
-    });
-});
-
-describe("wrapper lang attribute", () => {
-    it("labels the wrapper whenever a language was declared", () => {
-        expect(wrapperLang(`<document lang="fr"><p>bonjour</p></document>`)).eq(
-            "fr",
-        );
-        expect(wrapperLang(`<p>hola</p>`, "es-MX")).eq("es-MX");
-    });
-
-    it("is omitted when neither the document nor the host declared one", () => {
-        // The embedding page's `lang` then applies, which is a better guess
-        // than asserting English over a host that said `<html lang="es">`.
-        expect(wrapperLang(`<p>hello</p>`)).eq(undefined);
-        expect(wrapperLang(`<document lang=" "><p>hi</p></document>`)).eq(
-            undefined,
+        expect(effectiveLocale(`<document lang=" "><p>hi</p></document>`)).eq(
+            "en",
         );
     });
 });

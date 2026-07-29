@@ -167,9 +167,9 @@ export function DoenetViewer({
      * would prefer. Selects the language of prose the core computes (style
      * descriptions and the like), and sets `lang` on the rendered wrapper — an
      * accessibility win for screen-reader pronunciation independent of any
-     * translation. Leave it unset and the wrapper carries no `lang` at all,
-     * inheriting the embedding page's rather than claiming English. Changing
-     * it rebuilds the document.
+     * translation. Leave it unset and both the core and the wrapper use `en`,
+     * which is the language such a document is rendered in. Changing it
+     * rebuilds the document.
      */
     documentLocale?: string | null;
     /**
@@ -445,9 +445,9 @@ type DoenetEditorProps = {
      * would prefer. Selects the language of prose the core computes (style
      * descriptions and the like), and sets `lang` on the rendered wrapper — an
      * accessibility win for screen-reader pronunciation independent of any
-     * translation. Leave it unset and the wrapper carries no `lang` at all,
-     * inheriting the embedding page's rather than claiming English. Changing
-     * it rebuilds the document.
+     * translation. Leave it unset and both the core and the wrapper use `en`,
+     * which is the language such a document is rendered in. Changing it
+     * rebuilds the document.
      */
     documentLocale?: string | null;
     /**

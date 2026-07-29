@@ -42,40 +42,32 @@ export function negotiateLocales(
 }
 
 /**
- * The content language somebody actually declared: an authored
- * `<document lang>` if there is one, otherwise the locale the hosting page
- * asked for, normalized. `undefined` when neither said anything.
+ * Apply the document-locale precedence rule: an authored `<document lang>`
+ * beats the locale the hosting page asked for, which beats English. A blank
+ * tag counts as unset, so a hand-typed `lang=" "` falls through to the host's.
  *
  * The author knows what language they wrote the content in; the host only
  * knows what language it would prefer to receive — hence the precedence.
- * Callers that need a language regardless want {@link resolveDocumentLocale},
- * which supplies English; this one preserves the difference between "English"
- * and "nobody said", which is what the rendered `lang` attribute turns on.
- */
-export function declaredDocumentLocale(
-    authoredLang: string | null | undefined,
-    hostLocale: string | null | undefined,
-): string | undefined {
-    const tag = (authoredLang ?? "").trim() || (hostLocale ?? "").trim();
-    if (tag === "") {
-        return undefined;
-    }
-    return normalizeLocaleTag(tag) || undefined;
-}
-
-/**
- * Apply the document-locale precedence rule: an authored `<document lang>`
- * beats the locale the hosting page asked for, which beats English.
  *
- * Shared by the main thread and the worker (whose `document.locale` state
- * variable drives translated content), so the language the viewer reports and
- * the language the core translates into can never drift apart.
+ * Shared by the main thread and the worker, so the language the core
+ * translates into, the `document.locale` an author reads, and the `lang`
+ * attribute the viewer renders all come out of one rule rather than three
+ * copies of it.
+ *
+ * Nothing needs to tell "English" apart from "nobody said so": English is the
+ * language the core computes an undeclared document's prose in, so it is the
+ * language such a document is in — which is what the viewer's `lang` attribute
+ * reports.
+ *
+ * @param authoredLang The `lang` on `<document>`, if the author wrote one.
+ * @param hostLocale The `documentLocale` the hosting page asked for, if any.
  */
 export function resolveDocumentLocale(
     authoredLang: string | null | undefined,
     hostLocale: string | null | undefined,
 ): string {
-    return declaredDocumentLocale(authoredLang, hostLocale) ?? DEFAULT_LOCALE;
+    const declared = (authoredLang ?? "").trim() || (hostLocale ?? "").trim();
+    return normalizeLocaleTag(declared) || DEFAULT_LOCALE;
 }
 
 /**
