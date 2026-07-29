@@ -493,14 +493,13 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
 translated locale defining a key English lacks, a stale `messageKeys.ts`,
-`supportedLocales.ts` or `diagnostic-codes.lock.json`, a call site referencing
-a key that doesn't exist,
-an English key no source file references, a malformed diagnostic code, a code
-naming a message English lacks, a code used in source that the registry doesn't
-define, a registered code that nothing raises and that is not listed as
-retired, and any change to a code already issued. Keys *missing* from a
-translation are reported as coverage, not failure — a partial translation is
-legitimate and falls back.
+`supportedLocales.ts`, or `diagnostic-codes.lock.json`, a call site referencing
+a key that doesn't exist, an English key no source file references, a malformed
+diagnostic code, a code naming a message English lacks, a code used in source
+that the registry doesn't define, a registered code that nothing raises and
+that is not listed as retired, and any change to a code already issued. Keys
+*missing* from a translation are reported as coverage, not failure — a partial
+translation is legitimate and falls back.
 
 Run `codegen` after editing any English catalog, adding a diagnostic code, or
 adding a locale directory; the generated `MessageKey` union, the locale roster

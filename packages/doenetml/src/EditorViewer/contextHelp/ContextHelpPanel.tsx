@@ -124,7 +124,7 @@ function lineArg(line: number | undefined): string {
  * than a third branch of `help-allowed-values`, whose selector splits
  * whole-value from per-item within one sentence.
  */
-function allowedValuesLabel(
+function valueListLabel(
     t: Translator,
     {
         areSuggestions,
@@ -490,7 +490,7 @@ export function ContextHelpPanel({
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
-                                {allowedValuesLabel(t, {
+                                {valueListLabel(t, {
                                     areSuggestions: allowedValuesAreSuggestions,
                                     arePerItem: allowedValuesArePerItem,
                                 })}

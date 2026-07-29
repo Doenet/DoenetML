@@ -23,12 +23,14 @@ export function preprocessAttributesObject<T extends AttributesObject>(
 
         // Belt-and-suspenders for plain-JS component declarations that
         // bypass the TS contract: `validateAttributeValue` reads `.value`
-        // directly and would silently reject every authored value if an
-        // entry slipped through as a bare string. `suggestedValues` never
-        // reaches validation, but a malformed entry there would still reach
-        // the author as a blank autocomplete row, so it is checked alongside.
-        // Mirrors the build-time check in
-        // `static-assets/scripts/get-schema.ts`.
+        // directly and would silently reject every authored value if a
+        // `validValues` entry slipped through as a bare string.
+        // `suggestedValues` has no runtime reader to break — what keeps a
+        // malformed one out of the author's autocomplete is the stricter
+        // build-time check in `static-assets/scripts/get-schema.ts`, which
+        // also demands a non-empty description — but it is the same kind of
+        // list, so it is held to the same shape here rather than being the
+        // one value list nothing checks.
         for (const field of ["validValues", "suggestedValues"] as const) {
             const entries = attrSpec[field];
             if (!Array.isArray(entries)) {
