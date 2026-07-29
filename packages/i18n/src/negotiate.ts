@@ -48,11 +48,14 @@ export function negotiateLocales(
  *
  * The author knows what language they wrote the content in; the host only
  * knows what language it would prefer to receive — hence the precedence.
- * Callers that need a language regardless want {@link resolveDocumentLocale},
- * which supplies English; this one preserves the difference between "English"
- * and "nobody said", which is what the rendered `lang` attribute turns on.
+ *
+ * Internal to {@link resolveDocumentLocale}, which supplies English for the
+ * undeclared case. Nothing outside acts on the difference: English is the
+ * language the core computes its prose in and the chrome renders in when
+ * nobody declares one, so it is the language such a document is in, and the
+ * rendered `lang` attribute says so.
  */
-export function declaredDocumentLocale(
+function declaredDocumentLocale(
     authoredLang: string | null | undefined,
     hostLocale: string | null | undefined,
 ): string | undefined {
@@ -68,8 +71,9 @@ export function declaredDocumentLocale(
  * beats the locale the hosting page asked for, which beats English.
  *
  * Shared by the main thread and the worker (whose `document.locale` state
- * variable drives translated content), so the language the viewer reports and
- * the language the core translates into can never drift apart.
+ * variable drives translated content), so the language the viewer reports, the
+ * language the core translates into, and the `lang` attribute the viewer
+ * renders can never drift apart.
  */
 export function resolveDocumentLocale(
     authoredLang: string | null | undefined,

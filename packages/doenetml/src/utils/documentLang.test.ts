@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
-import { declaredDocumentLocale, resolveDocumentLocale } from "@doenet/i18n";
+import { resolveDocumentLocale } from "@doenet/i18n";
 
 import { readDocumentLang } from "./documentLang";
 
@@ -18,10 +18,12 @@ function effectiveLocale(doenetML: string, documentLocale?: string) {
     return resolveDocumentLocale(langOf(doenetML), documentLocale);
 }
 
-/** The value the viewer puts in the wrapper's `lang` attribute, if any. */
-function wrapperLang(doenetML: string, documentLocale?: string) {
-    return declaredDocumentLocale(langOf(doenetML), documentLocale);
-}
+/**
+ * The value the viewer puts in the wrapper's `lang` attribute — the same tag
+ * the core is handed, so the DOM never claims a language the content was not
+ * rendered in.
+ */
+const wrapperLang = effectiveLocale;
 
 describe("readDocumentLang", () => {
     it("reads an authored lang", () => {
@@ -98,12 +100,12 @@ describe("wrapper lang attribute", () => {
         expect(wrapperLang(`<p>hola</p>`, "es-MX")).eq("es-MX");
     });
 
-    it("is omitted when neither the document nor the host declared one", () => {
-        // The embedding page's `lang` then applies, which is a better guess
-        // than asserting English over a host that said `<html lang="es">`.
-        expect(wrapperLang(`<p>hello</p>`)).eq(undefined);
-        expect(wrapperLang(`<document lang=" "><p>hi</p></document>`)).eq(
-            undefined,
-        );
+    it("labels an undeclared document English", () => {
+        // Not a guess about what the author wrote: English is what the core
+        // computes such a document's prose in and what its chrome renders in,
+        // so the attribute reports the language actually on screen rather than
+        // letting the subtree inherit the embedding page's.
+        expect(wrapperLang(`<p>hello</p>`)).eq("en");
+        expect(wrapperLang(`<document lang=" "><p>hi</p></document>`)).eq("en");
     });
 });

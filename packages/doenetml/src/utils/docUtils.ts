@@ -9,8 +9,8 @@ import {
 } from "@doenet/parser";
 import {
     DEFAULT_LOCALE,
-    declaredDocumentLocale,
     normalizeLocaleTag,
+    resolveDocumentLocale,
 } from "@doenet/i18n";
 import { readDocumentLang } from "./documentLang";
 
@@ -295,22 +295,23 @@ export async function initializeCoreWorker({
         },
     });
 
-    // The content language somebody declared, for the `lang` attribute on the
-    // rendered wrapper. Resolved from the DAST we already parsed rather than
-    // asked of the core, so it is available before the first render — a screen
-    // reader should not have to wait for evaluation to learn what language it
-    // is reading. The core resolves the same value with the same helper for
-    // its own `document.locale` state variable.
+    // The content's language, for the `lang` attribute on the rendered
+    // wrapper. Resolved from the DAST we already parsed rather than asked of
+    // the core, so it is available before the first render — a screen reader
+    // should not have to wait for evaluation to learn what language it is
+    // reading. The core resolves the same value with the same helper for its
+    // own `document.locale` state variable, from the same two inputs.
     //
-    // `undefined` when neither the document nor the host declared a language.
-    // The core still treats such content as English, but the wrapper stays
-    // silent rather than asserting `lang="en"` over an embedding page that
-    // said `<html lang="es">` — an unfounded guess is worse for a screen
-    // reader than inheriting the page's.
-    const declaredLocale = declaredDocumentLocale(
+    // English when neither the document nor the host declared a language.
+    // That is not a guess: it is the language the core computes its prose in
+    // and the chrome renders in for such a document, so the `lang` attribute
+    // reports what the activity is actually rendered in rather than letting
+    // the subtree inherit a claim from the embedding page that nothing else
+    // here honors.
+    const resolvedLocale = resolveDocumentLocale(
         readDocumentLang(dast),
         documentLocale,
     );
 
-    return { ...result, declaredDocumentLocale: declaredLocale };
+    return { ...result, resolvedDocumentLocale: resolvedLocale };
 }
