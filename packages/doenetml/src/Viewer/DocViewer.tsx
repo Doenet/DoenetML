@@ -950,11 +950,11 @@ export function DocViewer({
 
     /**
      * Initialize a core worker for this document, recording the content
-     * language it declared.
+     * language it resolved to.
      *
-     * The declared locale depends on the DoenetML (an authored
-     * `<document lang>` overrides the prop), so it isn't known until the
-     * source has been parsed — which `initializeCoreWorker` does anyway.
+     * That language depends on the DoenetML (an authored `<document lang>`
+     * overrides the prop), so it isn't known until the source has been parsed
+     * — which `initializeCoreWorker` does anyway.
      */
     async function initializeCoreWorkerForDoc(worker: Remote<CoreWorker>) {
         const result = await initializeCoreWorker({

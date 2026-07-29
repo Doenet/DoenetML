@@ -7,11 +7,7 @@ import {
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
-import {
-    DEFAULT_LOCALE,
-    normalizeLocaleTag,
-    resolveDocumentLocale,
-} from "@doenet/i18n";
+import { resolveDocumentLocale } from "@doenet/i18n";
 import { readDocumentLang } from "./documentLang";
 
 export type CoreWorkerHandle = {
@@ -270,11 +266,14 @@ export async function initializeCoreWorker({
     await coreWorker.setFlags({ flags });
     // Sent unconditionally, even with nothing configured: a reused worker
     // (the shared-core pool) would otherwise keep the previous document's
-    // locale. Normalized here so the tag the core stores is canonical for
+    // locale. The host's half of the rule only: the core applies the authored
+    // `<document lang>` itself, once per document, so a nested one resolves
+    // against its own ancestor rather than against this. Run through the
+    // shared helper all the same, so the tag the core stores is canonical for
     // everything that later negotiates against it.
     await coreWorker.setLocaleData({
         localeData: {
-            locale: normalizeLocaleTag(documentLocale ?? "") || DEFAULT_LOCALE,
+            locale: resolveDocumentLocale(undefined, documentLocale),
             resources: localeResources ?? {},
         },
     });

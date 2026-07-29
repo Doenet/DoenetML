@@ -119,8 +119,8 @@ receive.
 
 The rendered container always carries a `lang` attribute naming the language
 the content was rendered in, so screen readers pronounce it with the right
-voice and rules. When neither route declares one that is `en` — the language
-such an activity's computed prose and chrome are in.
+voice and rules. When neither route declares one, that language is `en` — what
+such an activity's computed prose and chrome are written in.
 
 Changing `documentLocale` rebuilds the document, since it changes every string
 the core computes; `uiLocale` updates in place.

@@ -49,13 +49,15 @@ export function negotiateLocales(
  * The author knows what language they wrote the content in; the host only
  * knows what language it would prefer to receive — hence the precedence.
  *
- * Shared by the main thread and the worker (whose `document.locale` state
- * variable drives translated content), so the language the viewer reports, the
- * language the core translates into, and the `lang` attribute the viewer
- * renders can never drift apart. Nothing needs to tell "English" apart from
- * "nobody said so": English is what the core computes its prose in and what
- * the chrome renders in when nobody declares a language, so it is the language
- * such a document is in.
+ * Shared by the main thread and the worker, so the language the core
+ * translates into, the `document.locale` an author reads, and the `lang`
+ * attribute the viewer renders can never drift apart. Nothing needs to tell
+ * "English" apart from "nobody said so": English is what the core computes its
+ * prose in and what the chrome renders in when nobody declares a language, so
+ * it is the language such a document is in.
+ *
+ * @param authoredLang The `lang` on `<document>`, if the author wrote one.
+ * @param hostLocale The `documentLocale` the hosting page asked for, if any.
  */
 export function resolveDocumentLocale(
     authoredLang: string | null | undefined,
