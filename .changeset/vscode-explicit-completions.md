@@ -13,6 +13,14 @@ the web editor, and keeps narrowing it as you type. Word-based suggestions are
 off by default in Doenet documents, where they only ever compete with the
 schema; `"[doenet]": { "editor.wordBasedSuggestions": ... }` turns them back on.
 
+Attribute suggestions no longer depend on how the editor is configured to
+auto-suggest. Typing `<math exp` reaches the language server only if quick
+suggestions open the suggestion widget — unlike `<`, which is a trigger
+character the server is always asked about — so an editor configured to render
+them inline instead left element suggestions working while attribute
+suggestions appeared to be missing entirely. Doenet documents now ask for the
+widget by default.
+
 The language server also attaches to Doenet documents on any filesystem rather
 than only `file:` and `untitled:` ones, so completions, diagnostics, hovers and
 formatting work on vscode.dev, github.dev, and in virtual workspaces.

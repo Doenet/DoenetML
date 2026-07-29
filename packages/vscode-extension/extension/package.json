@@ -115,6 +115,9 @@
         },
         "configurationDefaults": {
             "[doenet]": {
+                "editor.quickSuggestions": {
+                    "other": "on"
+                },
                 "editor.wordBasedSuggestions": "off"
             }
         },
