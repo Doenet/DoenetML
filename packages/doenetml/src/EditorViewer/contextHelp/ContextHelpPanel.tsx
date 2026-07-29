@@ -390,6 +390,7 @@ export function ContextHelpPanel({
                 docsSlug,
                 allowedValues,
                 allowedValuesArePerItem,
+                allowedValuesAreSuggestions,
                 defaultValue,
                 activeDefault,
                 styleBreakdown,
@@ -464,17 +465,31 @@ export function ContextHelpPanel({
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
-                                {t(
-                                    "help-allowed-values",
-                                    {
-                                        perItem: allowedValuesArePerItem
-                                            ? "true"
-                                            : "false",
-                                    },
-                                    allowedValuesArePerItem
-                                        ? "Allowed values (one per item):"
-                                        : "Allowed values:",
-                                )}
+                                {/* "Suggested" rather than "Allowed" when the
+                                list is an open one: the attribute takes other
+                                values too, and nothing warns about them. Its
+                                own key rather than a third branch of
+                                `help-allowed-values` — that message's selector
+                                distinguishes whole-value from per-item within
+                                one sentence, and this is a different
+                                sentence. */}
+                                {allowedValuesAreSuggestions
+                                    ? t(
+                                          "help-suggested-values",
+                                          undefined,
+                                          "Suggested values:",
+                                      )
+                                    : t(
+                                          "help-allowed-values",
+                                          {
+                                              perItem: allowedValuesArePerItem
+                                                  ? "true"
+                                                  : "false",
+                                          },
+                                          allowedValuesArePerItem
+                                              ? "Allowed values (one per item):"
+                                              : "Allowed values:",
+                                      )}
                             </span>
                             <dl className="help-allowed-values-list">
                                 {allowedValues.map(

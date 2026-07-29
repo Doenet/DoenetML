@@ -134,10 +134,45 @@ type AttributeObject = {
      */
     stateVarExcludeFromSchema?: boolean;
     validValues?: ValidValueEntry[];
+    /**
+     * The non-enforcing counterpart to `validValues` — values worth offering
+     * an author where the list is helpful but genuinely incomplete. See
+     * `AttributeDefinition.suggestedValues` in the worker for the contract.
+     */
+    suggestedValues?: ValidValueEntry[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
     description: string;
 };
+
+/**
+ * Reject a `{value, description}` list that bypassed the TypeScript contract.
+ *
+ * The worker's components are plain JavaScript, so a bare string in the list
+ * is caught here or not at all — and every offered value must ship with
+ * author-facing help text, since the autocomplete and help panel have nothing
+ * else to show beside it.
+ */
+function assertValueEntries(
+    entries: ValidValueEntry[],
+    field: "validValues" | "suggestedValues",
+    type: string,
+    attrName: string,
+): void {
+    for (const entry of entries) {
+        if (
+            typeof entry !== "object" ||
+            entry === null ||
+            typeof entry.value !== "string" ||
+            typeof entry.description !== "string" ||
+            entry.description.trim() === ""
+        ) {
+            throw new Error(
+                `Invalid ${field} entry for \`${type}.${attrName}\`: every entry must be a {value, description} object with a non-empty description. Got: ${JSON.stringify(entry)}`,
+            );
+        }
+    }
+}
 
 type ComponentClass = {
     componentType: string;
@@ -378,6 +413,14 @@ type SchemaAttribute = {
      * are intentionally kept out of this list and live only in `values`.
      */
     autocompleteValues?: ValidValueEntry[];
+    /**
+     * `true` when the entries in `autocompleteValues` are suggestions rather
+     * than the permitted set — the attribute declared `suggestedValues`, so
+     * there is no companion `values` list and an unlisted value is not an
+     * error. Author-facing surfaces use it to label the list honestly
+     * ("Suggested values" rather than "Allowed values").
+     */
+    suggestedValuesOnly?: boolean;
     /**
      * `true` when the attribute is list-valued (e.g. `createComponentOfType:
      * "textList"`) and declares `validValues`. In that case `validValues`
@@ -883,24 +926,19 @@ export function getSchema(
             if (attrDef.valueForFalse !== undefined)
                 booleanAliasValues.push("false");
 
+            if (attrDef.validValues && attrDef.suggestedValues) {
+                throw new Error(
+                    `Attribute \`${type}.${attrName}\` declares both \`validValues\` and \`suggestedValues\`. They are the enforcing and non-enforcing forms of the same list — pick one.`,
+                );
+            }
+
             if (attrDef.validValues) {
-                for (const entry of attrDef.validValues) {
-                    // Hard-fail if the type contract is bypassed (e.g. a bare
-                    // string sneaks through plain-JS component declarations).
-                    // Every enumerated value must ship with author-facing
-                    // help text.
-                    if (
-                        typeof entry !== "object" ||
-                        entry === null ||
-                        typeof entry.value !== "string" ||
-                        typeof entry.description !== "string" ||
-                        entry.description.trim() === ""
-                    ) {
-                        throw new Error(
-                            `Invalid validValues entry for \`${type}.${attrName}\`: every entry must be a {value, description} object with a non-empty description. Got: ${JSON.stringify(entry)}`,
-                        );
-                    }
-                }
+                assertValueEntries(
+                    attrDef.validValues,
+                    "validValues",
+                    type,
+                    attrName,
+                );
                 const validValueStrings = attrDef.validValues.map(
                     (v) => v.value,
                 );
@@ -929,6 +967,21 @@ export function getSchema(
                 if (isListType) {
                     attrSpec.isList = true;
                 }
+            } else if (attrDef.suggestedValues) {
+                assertValueEntries(
+                    attrDef.suggestedValues,
+                    "suggestedValues",
+                    type,
+                    attrName,
+                );
+                // Only `autocompleteValues` — deliberately not `values`. The
+                // two consumers of `values` are the language server's
+                // "must be one of" check and the RELAX NG schema, and neither
+                // should fire for a list that is a helpful subset rather than
+                // the permitted set. The autocomplete and context-help paths
+                // read `autocompleteValues` and are unaffected.
+                attrSpec.autocompleteValues = attrDef.suggestedValues;
+                attrSpec.suggestedValuesOnly = true;
             } else if (
                 attrDef.createPrimitiveOfType === "boolean" ||
                 attrDef.createComponentOfType === "boolean"
@@ -943,6 +996,11 @@ export function getSchema(
             // surfaced as `reference` — or `referenceOrText` when it also sets
             // `allowStrings` (e.g. `<ref to>`, which accepts a URL string in
             // addition to a component reference).
+            //
+            // `suggestedValues` is intentionally absent here: `keyword` says
+            // the value is drawn from a closed set, which is the one thing a
+            // suggestion list does not say. Such an attribute keeps the type
+            // its own declaration gives it (`text` for `<document lang>`).
             if (attrDef.validValues) {
                 attrSpec.type = "keyword";
             } else if (attrDef.createReferences) {

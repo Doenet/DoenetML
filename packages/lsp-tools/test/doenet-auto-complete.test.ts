@@ -5,6 +5,7 @@ import { CompletionItemKind } from "vscode-languageserver/browser";
 import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
 import { DoenetSourceObject } from "../src/doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
+import { SUPPORTED_LOCALES } from "@doenet/i18n";
 import { AutoCompleter, RustResolverAdapter } from "../src";
 import type { ResolverCore } from "../src";
 
@@ -3156,6 +3157,40 @@ describe("AutoCompleter", () => {
             const ac = new AutoCompleter(source, doenetSchema.elements);
             const items = await ac.getCompletionItems(source.length);
             expect(items.map((i) => i.label)).toContain("unordered");
+        });
+    });
+
+    describe("Bundled Doenet schema: `<document lang>` suggestions", () => {
+        // `lang` declares `suggestedValues`, generated from the locales this
+        // repo ships catalogs for. The list is offered but never enforced —
+        // see the schema-violation half of this contract in
+        // `doenet-auto-schema-check.test.ts`.
+        it("Offers every supported locale as a value for `lang`", async () => {
+            const source = `<document lang="`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            for (const { locale } of SUPPORTED_LOCALES) {
+                expect(labels).toContain(locale);
+            }
+        });
+
+        it("Documents each suggested locale with its name", async () => {
+            // The descriptions are derived at codegen time from
+            // `Intl.DisplayNames`, so a new locale carries help text without
+            // anyone writing any. An empty one would render as a blank
+            // autocomplete row.
+            const source = `<document lang="`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const items = await ac.getCompletionItems(source.length);
+            const spanish = items.find((i) => i.label === "es");
+            expect(spanish?.documentation).toBeTruthy();
+            const documentation = spanish?.documentation;
+            const text =
+                typeof documentation === "string"
+                    ? documentation
+                    : (documentation?.value ?? "");
+            expect(text).toContain("Spanish");
         });
     });
 });

@@ -6,7 +6,8 @@
  *  2. no key is defined twice within a locale (namespaces share one bundle);
  *  3. no translated locale defines a key English doesn't have (a typo'd key in
  *     a translation is invisible at runtime — it just never resolves);
- *  4. `src/generated/messageKeys.ts` matches the English catalogs;
+ *  4. `src/generated/messageKeys.ts` matches the English catalogs, and
+ *     `src/generated/supportedLocales.ts` matches the `locales/` directory;
  *  5. every key referenced from source exists in English;
  *  6. every English key is referenced from source (no orphans);
  *  7. diagnostic codes are well-formed, resolvable, and append-only.
@@ -28,6 +29,7 @@ import {
 import {
     DIAGNOSTIC_CODES_LOCK_FILE,
     GENERATED_KEYS_FILE,
+    SUPPORTED_LOCALES_FILE,
     catalogParseErrors,
     collectCallSites,
     collectDiagnosticUsage,
@@ -39,6 +41,7 @@ import {
     readDiagnosticCodesLock,
     renderDiagnosticCodesLock,
     renderMessageKeysModule,
+    renderSupportedLocalesModule,
 } from "./catalogUtils";
 
 const problems: string[] = [];
@@ -114,6 +117,19 @@ const actualGenerated = fs.existsSync(GENERATED_KEYS_FILE)
 if (actualGenerated !== expectedGenerated) {
     problems.push(
         "src/generated/messageKeys.ts is out of date — run `npm run codegen -w @doenet/i18n`",
+    );
+}
+
+// 4b: so does the locale roster. Adding `locales/de/` and stopping there would
+// otherwise leave German out of the editor's `<document lang>` autocomplete
+// with nothing to say so.
+const expectedLocales = await renderSupportedLocalesModule(locales);
+const actualLocales = fs.existsSync(SUPPORTED_LOCALES_FILE)
+    ? fs.readFileSync(SUPPORTED_LOCALES_FILE, "utf-8")
+    : "";
+if (actualLocales !== expectedLocales) {
+    problems.push(
+        "src/generated/supportedLocales.ts is out of date — run `npm run codegen -w @doenet/i18n`",
     );
 }
 

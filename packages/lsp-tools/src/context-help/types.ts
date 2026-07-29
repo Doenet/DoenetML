@@ -94,9 +94,9 @@ export type HelpContent =
           /**
            * Allowed values for this attribute, each with a per-value
            * description rendered alongside the value in the help panel.
-           * Only populated for attributes that declare `validValues`;
-           * pure boolean primitives intentionally omit this row since
-           * their attribute description already conveys true/false.
+           * Only populated for attributes that declare `validValues` or
+           * `suggestedValues`; pure boolean primitives intentionally omit this
+           * row since their attribute description already conveys true/false.
            */
           allowedValues?: ValidValueEntry[];
           /**
@@ -106,6 +106,16 @@ export type HelpContent =
            * values".
            */
           allowedValuesArePerItem?: boolean;
+          /**
+           * `true` when the attribute declared `suggestedValues` — the entries
+           * are values worth offering, not the permitted set, and anything
+           * else is accepted without complaint. The help panel labels the row
+           * "Suggested values" so it doesn't assert a constraint the language
+           * server will not enforce. Mutually exclusive with
+           * `allowedValuesArePerItem` in practice, since only `validValues`
+           * applies per-item.
+           */
+          allowedValuesAreSuggestions?: boolean;
           defaultValue?: unknown;
           /**
            * Resolved active value at the cursor's scope, distinct from the

@@ -857,13 +857,15 @@ function helpForAttribute(
         // matching `helpForElement`. (E.g. `<row functionSymbols>` inside
         // `<matrix>` shows `matrixRow`'s description and links to its page.)
         docsSlug: effectiveEntry.docsSlug ?? null,
-        // Only declared `validValues` flow into `autocompleteValues` (with
-        // per-value descriptions); boolean primitives intentionally omit
-        // this row since their attribute description already conveys
-        // true/false. Boolean aliases injected via valueForTrue/valueForFalse
-        // are kept out of `autocompleteValues` by the schema generator.
+        // Declared `validValues` and `suggestedValues` both flow into
+        // `autocompleteValues` (with per-value descriptions); boolean
+        // primitives intentionally omit this row since their attribute
+        // description already conveys true/false. Boolean aliases injected via
+        // valueForTrue/valueForFalse are kept out of `autocompleteValues` by
+        // the schema generator.
         allowedValues: schemaAttr.autocompleteValues,
         allowedValuesArePerItem: schemaAttr.isList,
+        allowedValuesAreSuggestions: schemaAttr.suggestedValuesOnly,
         defaultValue: schemaAttr.defaultValue,
         ...(activeDefault ? { activeDefault } : {}),
         ...(styleBreakdown ? { styleBreakdown } : {}),

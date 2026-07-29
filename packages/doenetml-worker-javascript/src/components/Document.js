@@ -4,7 +4,7 @@ import {
     getVariantsForDescendantsForUniqueVariants,
 } from "../utils/variants";
 import { returnStyleDefinitionStateVariables } from "@doenet/utils";
-import { resolveDocumentLocale } from "@doenet/i18n";
+import { SUPPORTED_LOCALES, resolveDocumentLocale } from "@doenet/i18n";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 import {
     returnScoredSectionAttributes,
@@ -71,10 +71,30 @@ export default class Document extends BaseComponent {
             description: "Document type identifier.",
         };
 
+        // `suggestedValues`, not `validValues`: the list is the languages
+        // DoenetML ships translations for, which is not the same as the tags an
+        // author may write. An unlisted tag is legitimate — it still reaches the
+        // rendered `lang` attribute, where a screen reader and the browser's
+        // hyphenation act on it, with only the prose the core computes falling
+        // back to English — and a deployment can hand over catalogs of its own
+        // via `localeResources` that no build-time list could know about. So
+        // the editor offers these and warns about nothing.
+        //
+        // Generated from the `locales/` directory rather than from the
+        // catalogs that happen to be inlined into the bundle, so the list
+        // survives the move to lazily-loaded locales.
         attributes.lang = {
             createPrimitiveOfType: "string",
             description:
-                'BCP-47 language tag for the document\'s content, e.g. "es" or "es-MX". Overrides the locale supplied by the hosting page.',
+                'BCP-47 language tag for the document\'s content, e.g. "es" or "es-MX". ' +
+                "Overrides the locale supplied by the hosting page. Any language tag may " +
+                "be used; the suggested values are the languages DoenetML ships " +
+                "translations for, and content in any other language still renders with " +
+                "its computed prose in English.",
+            suggestedValues: SUPPORTED_LOCALES.map(({ locale, label }) => ({
+                value: locale,
+                description: label,
+            })),
         };
 
         return attributes;

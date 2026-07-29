@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import {
+    SUPPORTED_LOCALES_FILE,
     catalogParseErrors,
     countDiagnosticConstructions,
     extractKeys,
+    listLocales,
     remainingLiteralDiagnostics,
     renderMessageKeysModule,
+    renderSupportedLocalesModule,
 } from "../scripts/catalogUtils";
+import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 describe("extractKeys", () => {
     it("reads message ids, attributes, and both together", () => {
@@ -83,6 +87,68 @@ describe("renderMessageKeysModule", () => {
         expect(await prettier.check(rendered, { parser: "typescript" })).toBe(
             true,
         );
+    });
+});
+
+describe("renderSupportedLocalesModule", () => {
+    it("derives each locale's name in English and in itself", async () => {
+        const rendered = await renderSupportedLocalesModule(["en", "es"]);
+        expect(rendered).toContain('englishName: "Spanish"');
+        expect(rendered).toContain('endonym: "español"');
+        expect(rendered).toContain('label: "Spanish (español)"');
+    });
+
+    it("collapses the label when both names coincide", async () => {
+        // English in English, and any tag `Intl` doesn't recognize, would
+        // otherwise read as `English (English)` — which looks like a bug.
+        const rendered = await renderSupportedLocalesModule(["en"]);
+        expect(rendered).toContain('label: "English"');
+        expect(rendered).not.toContain("English (English)");
+    });
+
+    it("names an unknown locale rather than throwing on it", async () => {
+        // A locale directory can be added long before `Intl` (or this Node)
+        // knows the tag. Codegen must not be what stops it landing: an
+        // unrecognized tag degrades to `Intl`'s rendering of the tag itself,
+        // which is still a usable label.
+        const rendered = await renderSupportedLocalesModule(["en", "zz-QQ"]);
+        expect(rendered).toContain('locale: "zz-QQ"');
+        expect(rendered).toMatch(/label: "zz[^"]*"/);
+    });
+
+    it("emits Prettier-formatted output so lint:i18n and prettier agree", async () => {
+        // Checked under the repo's own config, which is what `prettier:check`
+        // will hold the committed file to — the default 2-space width would
+        // disagree with every line of it.
+        const rendered = await renderSupportedLocalesModule(["en", "es"]);
+        const prettier = await import("prettier");
+        const config = await prettier.resolveConfig(SUPPORTED_LOCALES_FILE);
+        expect(
+            await prettier.check(rendered, {
+                ...config,
+                filepath: SUPPORTED_LOCALES_FILE,
+                parser: "typescript",
+            }),
+        ).toBe(true);
+    });
+});
+
+describe("SUPPORTED_LOCALES", () => {
+    it("lists every locale directory, English first", () => {
+        // The roster is generated from `locales/`, deliberately not from the
+        // catalogs inlined into the bundle — that is what keeps it correct
+        // once locales stop being bundled. `lint:i18n` enforces the same
+        // agreement; this pins it as a runtime fact too.
+        expect(SUPPORTED_LOCALES.map((l) => l.locale)).toEqual(listLocales());
+        expect(SUPPORTED_LOCALES[0]?.locale).toBe("en");
+    });
+
+    it("gives every locale a non-empty label", () => {
+        // The schema generator hard-fails on an empty description, so a blank
+        // label here would break the build of `<document lang>`'s suggestions.
+        for (const { label } of SUPPORTED_LOCALES) {
+            expect(label.trim()).not.toBe("");
+        }
     });
 });
 

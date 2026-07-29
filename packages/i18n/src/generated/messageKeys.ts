@@ -554,6 +554,7 @@ export type MessageKey =
     | "help-active-default"
     | "help-style-number-annotation"
     | "help-allowed-values"
+    | "help-suggested-values"
     | "help-inserts"
     | "help-coordinates"
     | "help-type"
@@ -1113,6 +1114,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "help-active-default",
     "help-style-number-annotation",
     "help-allowed-values",
+    "help-suggested-values",
     "help-inserts",
     "help-coordinates",
     "help-type",

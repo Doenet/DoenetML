@@ -1005,4 +1005,53 @@ describe("AutoCompleter", () => {
             ).toEqual([]);
         });
     });
+
+    describe("Suggested (non-enforcing) attribute values", () => {
+        // The other half of the `suggestedValues` contract: the editor offers
+        // the list (see `doenet-auto-complete.test.ts`) but must not warn
+        // about anything outside it. `autocompleteValues` without `values` is
+        // exactly the shape the schema generator emits for such an attribute.
+        const suggestOnlySchema = [
+            {
+                name: "a",
+                children: [],
+                attributes: [
+                    {
+                        name: "lang",
+                        autocompleteValues: [
+                            { value: "en", description: "English." },
+                            { value: "es", description: "Spanish." },
+                        ],
+                    },
+                ],
+                top: true,
+                acceptsStringChildren: false,
+            },
+        ];
+
+        it("Accepts a value outside the suggestion list", async () => {
+            const source = `<a lang="de" />`;
+            const ac = new AutoCompleter(source, suggestOnlySchema);
+            expect(await ac.getSchemaViolations()).toMatchInlineSnapshot("[]");
+        });
+
+        it("Accepts a suggested value too", async () => {
+            const source = `<a lang="es" />`;
+            const ac = new AutoCompleter(source, suggestOnlySchema);
+            expect(await ac.getSchemaViolations()).toMatchInlineSnapshot("[]");
+        });
+
+        it("Doesn't warn about an unlisted `<document lang>` in the real schema", async () => {
+            // End-to-end against the bundled schema: a language DoenetML
+            // ships no catalog for is still a legitimate document language —
+            // it reaches the rendered `lang` attribute, and only the prose the
+            // core computes falls back to English.
+            const source = `<document lang="de">hello</document>`;
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const messages = (await ac.getSchemaViolations()).map(
+                (d) => d.message,
+            );
+            expect(messages.filter((m) => m.includes("lang"))).toEqual([]);
+        });
+    });
 });

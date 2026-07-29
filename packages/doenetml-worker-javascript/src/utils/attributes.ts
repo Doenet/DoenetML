@@ -24,17 +24,24 @@ export function preprocessAttributesObject<T extends AttributesObject>(
         // Belt-and-suspenders for plain-JS component declarations that
         // bypass the TS contract: `validateAttributeValue` reads `.value`
         // directly and would silently reject every authored value if an
-        // entry slipped through as a bare string. Mirrors the build-time
-        // check in `static-assets/scripts/get-schema.ts`.
-        if (Array.isArray(attrSpec.validValues)) {
-            for (const entry of attrSpec.validValues) {
+        // entry slipped through as a bare string. `suggestedValues` never
+        // reaches validation, but a malformed entry there would still reach
+        // the author as a blank autocomplete row, so it is checked alongside.
+        // Mirrors the build-time check in
+        // `static-assets/scripts/get-schema.ts`.
+        for (const field of ["validValues", "suggestedValues"] as const) {
+            const entries = attrSpec[field];
+            if (!Array.isArray(entries)) {
+                continue;
+            }
+            for (const entry of entries) {
                 if (
                     typeof entry !== "object" ||
                     entry === null ||
                     typeof (entry as { value?: unknown }).value !== "string"
                 ) {
                     throw new Error(
-                        `Invalid validValues entry for attribute \`${attrName}\`: every entry must be a {value, description} object. Got: ${JSON.stringify(entry)}`,
+                        `Invalid ${field} entry for attribute \`${attrName}\`: every entry must be a {value, description} object. Got: ${JSON.stringify(entry)}`,
                     );
                 }
             }
