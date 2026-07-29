@@ -299,15 +299,10 @@ export async function initializeCoreWorker({
     // wrapper. Resolved from the DAST we already parsed rather than asked of
     // the core, so it is available before the first render — a screen reader
     // should not have to wait for evaluation to learn what language it is
-    // reading. The core resolves the same value with the same helper for its
-    // own `document.locale` state variable, from the same two inputs.
-    //
-    // English when neither the document nor the host declared a language.
-    // That is not a guess: it is the language the core computes its prose in
-    // and the chrome renders in for such a document, so the `lang` attribute
-    // reports what the activity is actually rendered in rather than letting
-    // the subtree inherit a claim from the embedding page that nothing else
-    // here honors.
+    // reading. The core resolves the same value from the same two inputs with
+    // the same helper, for its own `document.locale` state variable, so the
+    // attribute always reports the language the content was rendered in —
+    // English, for a document neither the author nor the host declared one for.
     const resolvedLocale = resolveDocumentLocale(
         readDocumentLang(dast),
         documentLocale,

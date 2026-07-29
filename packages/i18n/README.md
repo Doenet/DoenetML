@@ -35,9 +35,9 @@ on screen, since its computed prose and its chrome are English.
 `resolveUiLocale` applies the chrome's rule — the configured `uiLocale`,
 otherwise the content's language.
 
-All three normalize what they return (`ES-mx` → `es-MX`) and treat a blank tag
-as unset, so a hand-typed `lang` and a hand-configured prop negotiate the same
-way a canonical tag does.
+Both normalize what they return (`ES-mx` → `es-MX`) and treat a blank tag as
+unset, so a hand-typed `lang` and a hand-configured prop negotiate the same way
+a canonical tag does.
 
 A tag they cannot parse is left alone rather than rejected — `en_US`, the POSIX
 spelling, is the usual way a host mis-keys a catalog, and rewriting it would

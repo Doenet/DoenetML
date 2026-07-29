@@ -9,21 +9,16 @@ function langOf(doenetML: string) {
 }
 
 /**
- * The content language the core will translate into. Mirrors what
- * `initializeCoreWorker` computes, and must match the `document.locale` state
- * variable the worker derives from the same source — see the "document lang /
- * locale" tests in `@doenet/doenetml-worker-javascript`.
+ * The content language the core will translate into, which is also the tag the
+ * viewer puts in the wrapper's `lang` attribute — one resolution for both, so
+ * the DOM never claims a language the content was not rendered in. Mirrors
+ * what `initializeCoreWorker` computes, and must match the `document.locale`
+ * state variable the worker derives from the same source — see the "document
+ * lang / locale" tests in `@doenet/doenetml-worker-javascript`.
  */
 function effectiveLocale(doenetML: string, documentLocale?: string) {
     return resolveDocumentLocale(langOf(doenetML), documentLocale);
 }
-
-/**
- * The value the viewer puts in the wrapper's `lang` attribute — the same tag
- * the core is handed, so the DOM never claims a language the content was not
- * rendered in.
- */
-const wrapperLang = effectiveLocale;
 
 describe("readDocumentLang", () => {
     it("reads an authored lang", () => {
@@ -63,7 +58,15 @@ describe("readDocumentLang", () => {
 
 describe("effective document locale", () => {
     it("defaults to en", () => {
+        // Which is what the wrapper's `lang` then says. Not a guess about what
+        // the author wrote: English is what the core computes such a
+        // document's prose in and what its chrome renders in, so the attribute
+        // reports the language actually on screen rather than letting the
+        // subtree inherit the embedding page's.
         expect(effectiveLocale(`<p>hello</p>`)).eq("en");
+        expect(effectiveLocale(`<document lang=" "><p>hi</p></document>`)).eq(
+            "en",
+        );
     });
 
     it("uses the host locale when the document declares none", () => {
@@ -89,23 +92,5 @@ describe("effective document locale", () => {
         expect(
             effectiveLocale(`<document lang=" "><p>hi</p></document>`, "de"),
         ).eq("de");
-    });
-});
-
-describe("wrapper lang attribute", () => {
-    it("labels the wrapper whenever a language was declared", () => {
-        expect(wrapperLang(`<document lang="fr"><p>bonjour</p></document>`)).eq(
-            "fr",
-        );
-        expect(wrapperLang(`<p>hola</p>`, "es-MX")).eq("es-MX");
-    });
-
-    it("labels an undeclared document English", () => {
-        // Not a guess about what the author wrote: English is what the core
-        // computes such a document's prose in and what its chrome renders in,
-        // so the attribute reports the language actually on screen rather than
-        // letting the subtree inherit the embedding page's.
-        expect(wrapperLang(`<p>hello</p>`)).eq("en");
-        expect(wrapperLang(`<document lang=" "><p>hi</p></document>`)).eq("en");
     });
 });
