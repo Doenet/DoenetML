@@ -33,6 +33,14 @@ claims a language the content was not rendered in. An undeclared activity is
 labeled `en` — not a guess about what its author wrote, but a report of the
 language the core computed its prose in.
 
+That wrapper settles one language for the activity as a whole; a nested
+`<document lang>` labels its own subtree on top of it. `<document>`'s
+`renderedLang` state variable hands the section renderer a tag only when the
+nested document's language differs from the one already in effect around it,
+and the renderer emits `lang` only when it is given one. A nested document that
+merely restates the surrounding language stays silent, because the DOM already
+says it.
+
 `resolveUiLocale` applies the chrome's rule — the configured `uiLocale`,
 otherwise the content's language. Both normalize what they return (`ES-mx` →
 `es-MX`) and treat a blank tag as unset, so a hand-typed `lang` and a

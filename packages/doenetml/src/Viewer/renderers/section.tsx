@@ -40,6 +40,7 @@ interface SectionSVs {
     sectionNumber?: string;
     level: number;
     containerTag: string;
+    renderedLang?: string | null;
     justSubmitted: boolean;
     firstChildListItemAlignment?: string;
     firstVisibleChildAdjustedForListItem?: any;
@@ -170,7 +171,16 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         content: React.ReactNode,
         style: React.CSSProperties,
     ) => {
-        const props = { id, style, ref };
+        // Only a nested `<document>` in a language of its own supplies
+        // `renderedLang`; every other section leaves the attribute off so the
+        // subtree keeps whatever language is already in effect around it (the
+        // viewer labels the whole activity from the outermost document).
+        const props = {
+            id,
+            style,
+            ref,
+            lang: SVs.renderedLang ?? undefined,
+        };
 
         switch (SVs.containerTag) {
             case "aside":
