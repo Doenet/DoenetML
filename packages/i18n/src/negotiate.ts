@@ -51,11 +51,13 @@ export function negotiateLocales(
  *
  * Shared by the main thread and the worker, so the language the core
  * translates into, the `document.locale` an author reads, and the `lang`
- * attribute the viewer renders can never drift apart.
+ * attribute the viewer renders all come out of one rule rather than three
+ * copies of it.
  *
- * Nothing needs to tell "English" apart from "nobody said so": English is what
- * the core computes its prose in and what the chrome renders in when nobody
- * declares a language, so it is the language such a document is in.
+ * Nothing needs to tell "English" apart from "nobody said so": English is the
+ * language the core computes an undeclared document's prose in, so it is the
+ * language such a document is in — which is what the viewer's `lang` attribute
+ * reports.
  *
  * @param authoredLang The `lang` on `<document>`, if the author wrote one.
  * @param hostLocale The `documentLocale` the hosting page asked for, if any.

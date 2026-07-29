@@ -34,9 +34,9 @@ describe("Document language Tests", { tags: ["@group5"] }, function () {
     });
 
     it("labels an undeclared document English", () => {
-        // The language the activity is actually rendered in: its computed
-        // prose and its chrome are English when nobody declared otherwise, so
-        // the container says so rather than inheriting the page's `lang`.
+        // The language the activity is actually rendered in: the core
+        // computes its prose in English when nobody declared otherwise, so the
+        // container says so rather than inheriting the page's `lang`.
         renderDoenetML(`<p name="p">hello</p>`);
 
         cy.get("#p").should("have.text", "hello");

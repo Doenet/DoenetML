@@ -266,12 +266,13 @@ export async function initializeCoreWorker({
     await coreWorker.setFlags({ flags });
     // Sent unconditionally, even with nothing configured: a reused worker
     // (the shared-core pool) would otherwise keep the previous document's
-    // locale. Only the host's half of the rule is applied here: the core
-    // applies an authored `<document lang>` per `<document>` it finds, so a
-    // nested one resolves against its own ancestor rather than against this
-    // ambient fallback. It goes through the shared helper all the same, so the
-    // fallback to English is written in one place and the tag the core stores
-    // is canonical for everything that later negotiates against it.
+    // locale. Only the host's half of the rule is applied here — an authored
+    // `<document lang>` belongs to the `<document>` carrying it, and the core
+    // applies it there, once per `<document>`, so what it wants from the host
+    // is the ambient preference to fall back on. It goes through the shared
+    // helper all the same, so the fallback to English is written in one place
+    // and the tag the core stores is canonical for everything that later
+    // negotiates against it.
     await coreWorker.setLocaleData({
         localeData: {
             locale: resolveDocumentLocale(undefined, documentLocale),

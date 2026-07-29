@@ -30,8 +30,8 @@ fully Spanish without the host configuring anything.
 declared anything. One tag, two consumers: the core translates into it, and the
 viewer puts it in the `lang` attribute on the rendered wrapper, so the DOM never
 claims a language the content was not rendered in. An undeclared activity is
-labeled `en` — not a guess about what its author wrote, but a report of what is
-on screen, since its computed prose and its chrome are English.
+labeled `en` — not a guess about what its author wrote, but a report of the
+language the core computed its prose in.
 
 `resolveUiLocale` applies the chrome's rule — the configured `uiLocale`,
 otherwise the content's language. Both normalize what they return (`ES-mx` →
