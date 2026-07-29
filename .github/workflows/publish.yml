@@ -318,8 +318,14 @@ jobs:
             - name: Publish extension to Open VSX
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
               run: |
+                  # The Marketplace publish above is the release; the Open VSX
+                  # mirror is a second copy of the same VSIX.  Warn rather than
+                  # fail when the token is missing, so a release that has
+                  # already gone out to npm and the Marketplace is not left red
+                  # over a mirror that can be re-run on its own.
                   if [ -z "${OVSX_PAT}" ]; then
-                      echo "::warning::OVSX_PAT secret is not set — the Open VSX release was not published."
+                      echo "::warning::OVSX_PAT repository secret is not set — the Open VSX release was not published."
+                      echo "Add OVSX_PAT as a repository-level secret (Settings → Secrets → Actions) to enable Open VSX publishing."
                       exit 0
                   fi
                   npm run publish:openvsx -w @doenet/vscode-extension

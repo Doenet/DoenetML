@@ -13,6 +13,7 @@ const hoisted = vi.hoisted(() => ({
         }),
     ),
     asCompletionResult: vi.fn(async (result: unknown) => result),
+    handleFailedRequest: vi.fn(() => null),
     onDidChangeTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     onDidSaveTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
     onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
@@ -87,6 +88,7 @@ vi.mock("vscode-languageclient/browser", () => {
         protocol2CodeConverter = {
             asCompletionResult: hoisted.asCompletionResult,
         };
+        handleFailedRequest = hoisted.handleFailedRequest;
     }
 
     return {
@@ -147,6 +149,7 @@ beforeEach(() => {
     hoisted.executeCommand.mockClear();
     hoisted.asCompletionParams.mockClear();
     hoisted.asCompletionResult.mockClear();
+    hoisted.handleFailedRequest.mockClear();
     hoisted.onDidChangeTextDocument.mockClear();
     hoisted.onDidSaveTextDocument.mockClear();
     hoisted.onDidChangeActiveTextEditor.mockClear();
@@ -322,9 +325,15 @@ describe("explicit completion invocation", () => {
         languageId: "doenet",
         version: 3,
     };
+    const OTHER_DOC = {
+        uri: { toString: () => "file:///other.doenet" },
+        languageId: "doenet",
+        version: 3,
+    };
     const AUTO = { triggerKind: 0 };
     const TYPED_CHARACTER = { triggerKind: 1, triggerCharacter: "<" };
     const INCOMPLETE_REFRESH = { triggerKind: 2 };
+    const LIVE = { isCancellationRequested: false };
 
     /**
      * Activate the extension and return the pieces the completion path is
@@ -353,6 +362,7 @@ describe("explicit completion invocation", () => {
         return {
             provideCompletionItem: options.middleware.provideCompletionItem,
             triggerSuggest,
+            vscode,
         };
     }
 
@@ -378,7 +388,7 @@ describe("explicit completion invocation", () => {
             DOC,
             { line: 0, character: 0 },
             AUTO,
-            { isCancellationRequested: false },
+            LIVE,
             next,
         );
 
@@ -395,7 +405,7 @@ describe("explicit completion invocation", () => {
             DOC,
             { line: 0, character: 0 },
             AUTO,
-            { isCancellationRequested: false },
+            LIVE,
             next,
         );
 
@@ -415,7 +425,7 @@ describe("explicit completion invocation", () => {
             DOC,
             { line: 0, character: 0 },
             AUTO,
-            { isCancellationRequested: false },
+            LIVE,
             next,
         );
         // An `isIncomplete` list makes VS Code re-ask as the user types. The
@@ -425,7 +435,7 @@ describe("explicit completion invocation", () => {
             DOC,
             { line: 0, character: 1 },
             INCOMPLETE_REFRESH,
-            { isCancellationRequested: false },
+            LIVE,
             next,
         );
 
@@ -444,7 +454,7 @@ describe("explicit completion invocation", () => {
             DOC,
             { line: 0, character: 0 },
             AUTO,
-            { isCancellationRequested: false },
+            LIVE,
             next,
         );
         hoisted.sendRequest.mockClear();
@@ -455,14 +465,14 @@ describe("explicit completion invocation", () => {
             DOC,
             { line: 0, character: 1 },
             TYPED_CHARACTER,
-            { isCancellationRequested: false },
+            LIVE,
             next,
         );
         await provideCompletionItem(
             DOC,
             { line: 0, character: 2 },
             INCOMPLETE_REFRESH,
-            { isCancellationRequested: false },
+            LIVE,
             next,
         );
 
@@ -501,11 +511,135 @@ describe("explicit completion invocation", () => {
             { ...DOC, version: DOC.version + 1 },
             { line: 0, character: 0 },
             AUTO,
-            { isCancellationRequested: false },
+            LIVE,
             next,
         );
 
         expect(hoisted.sendRequest).not.toHaveBeenCalled();
         expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not mark a request in another document explicit", async () => {
+        const { provideCompletionItem, triggerSuggest } =
+            await activateForCompletion();
+        const next = vi.fn();
+
+        await triggerSuggest();
+        // Same version, different file: a suggestion raised in a second editor
+        // is not the one Ctrl+Space asked for.
+        await provideCompletionItem(
+            OTHER_DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            LIVE,
+            next,
+        );
+
+        expect(hoisted.sendRequest).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not extend an explicit session into another document", async () => {
+        const { provideCompletionItem, triggerSuggest } =
+            await activateForCompletion();
+        const next = vi.fn();
+        hoisted.sendRequest.mockResolvedValue([]);
+
+        await triggerSuggest();
+        await provideCompletionItem(
+            DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            LIVE,
+            next,
+        );
+        // An `isIncomplete` refresh raised in a second editor belongs to that
+        // editor's own session, whatever this document's session is doing.
+        await provideCompletionItem(
+            OTHER_DOC,
+            { line: 0, character: 1 },
+            INCOMPLETE_REFRESH,
+            LIVE,
+            next,
+        );
+
+        expect(hoisted.sendRequest).toHaveBeenCalledTimes(1);
+        expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it("drops a pending flag when the next keystroke lands outside a Doenet document", async () => {
+        const { provideCompletionItem, triggerSuggest, vscode } =
+            await activateForCompletion();
+        const next = vi.fn();
+
+        await triggerSuggest();
+        vscode.window.activeTextEditor = {
+            document: { ...DOC, languageId: "markdown" },
+        };
+        // The widget still opens; it is only the marking that is dropped.
+        await triggerSuggest();
+        expect(hoisted.executeCommand).toHaveBeenCalledTimes(2);
+
+        await provideCompletionItem(
+            DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            LIVE,
+            next,
+        );
+
+        expect(hoisted.sendRequest).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it("hands a rejected request to the client's own error handling", async () => {
+        const { provideCompletionItem, triggerSuggest } =
+            await activateForCompletion();
+        const next = vi.fn();
+        const failure = new Error("content modified");
+        hoisted.sendRequest.mockRejectedValue(failure);
+
+        await triggerSuggest();
+        // Going around `next` means going around the rejection handling it
+        // carries: a request cancelled by the next keystroke must not surface
+        // as an unhandled error.
+        const result = await provideCompletionItem(
+            DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            LIVE,
+            next,
+        );
+
+        expect(hoisted.handleFailedRequest).toHaveBeenCalledWith(
+            "textDocument/completion",
+            LIVE,
+            failure,
+            null,
+        );
+        expect(result).toBeNull();
+    });
+
+    it("answers a cancelled request with nothing", async () => {
+        const { provideCompletionItem, triggerSuggest } =
+            await activateForCompletion();
+        const next = vi.fn();
+        const token = { isCancellationRequested: false };
+        hoisted.sendRequest.mockImplementation(async () => {
+            token.isCancellationRequested = true;
+            return [{ label: "point" }];
+        });
+
+        await triggerSuggest();
+        const result = await provideCompletionItem(
+            DOC,
+            { line: 0, character: 0 },
+            AUTO,
+            token,
+            next,
+        );
+
+        expect(result).toBeNull();
+        expect(hoisted.asCompletionResult).not.toHaveBeenCalled();
     });
 });

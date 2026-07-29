@@ -141,7 +141,8 @@ async function setupLanguageServer(context: ExtensionContext) {
 // which is what the web editor's CodeMirror client sends as
 // `context.explicit`.
 let pendingExplicitCompletion: { uri: string; version: number } | undefined;
-let inExplicitCompletionSession = false;
+/** Document whose in-flight completion session was opened by Ctrl+Space. */
+let explicitCompletionSessionUri: string | undefined;
 
 /**
  * Completion params carrying the `explicit` flag `@doenet/lsp` reads. It is an
@@ -160,34 +161,37 @@ type ExplicitCompletionParams = CompletionParams & {
 function registerTriggerSuggestCommand() {
     return commands.registerCommand("doenet.triggerSuggest", async () => {
         const document = vscode.window.activeTextEditor?.document;
-        if (document?.languageId === "doenet") {
-            pendingExplicitCompletion = {
-                uri: String(document.uri),
-                version: document.version,
-            };
-        }
+        // Assigned either way: this keystroke supersedes whatever an earlier
+        // one left pending, so landing somewhere without a Doenet document
+        // clears the flag rather than leaving the older one to be claimed.
+        pendingExplicitCompletion =
+            document?.languageId === "doenet"
+                ? { uri: String(document.uri), version: document.version }
+                : undefined;
         await commands.executeCommand("editor.action.triggerSuggest");
     });
 }
 
 /**
- * True when this completion request is the one `doenet.triggerSuggest` just
- * asked for. Consumes the pending flag, so a request VS Code raises on its own
- * is never mistaken for one the user asked for.
+ * True when this completion request belongs to a session `doenet.triggerSuggest`
+ * opened. A request that starts a session consumes the pending flag, so one VS
+ * Code raises on its own is never mistaken for one the user asked for.
  */
 function isExplicitCompletion(
     document: vscode.TextDocument,
     context: vscode.CompletionContext,
 ): boolean {
+    const uri = String(document.uri);
     // A list marked `isIncomplete` makes VS Code re-ask as the user keeps
     // typing. Those follow-ups belong to the session Ctrl+Space opened, so
     // they inherit its explicitness — otherwise the element menu would empty
-    // out on the first keystroke after it appeared.
+    // out on the first keystroke after it appeared. Only within that session's
+    // own document: a refresh anywhere else belongs to a different session.
     if (
         context.triggerKind ===
         vscode.CompletionTriggerKind.TriggerForIncompleteCompletions
     ) {
-        return inExplicitCompletionSession;
+        return explicitCompletionSessionUri === uri;
     }
     // Any other request begins a new session. Matching the document version
     // as well as the URI expires a flag whose keystroke never produced a
@@ -195,11 +199,11 @@ function isExplicitCompletion(
     // and the version has moved on.
     const pending = pendingExplicitCompletion;
     pendingExplicitCompletion = undefined;
-    inExplicitCompletionSession =
-        pending !== undefined &&
-        pending.uri === String(document.uri) &&
-        pending.version === document.version;
-    return inExplicitCompletionSession;
+    explicitCompletionSessionUri =
+        pending?.uri === uri && pending.version === document.version
+            ? uri
+            : undefined;
+    return explicitCompletionSessionUri !== undefined;
 }
 
 /**
@@ -209,7 +213,9 @@ function isExplicitCompletion(
  * The request has to be issued by hand rather than through `next`:
  * `asCompletionParams` rebuilds the context from `triggerKind` and
  * `triggerCharacter` alone, so an extra field set on the way in is dropped
- * before the request goes out.
+ * before the request goes out. What `next` would otherwise have done around
+ * the request — honoring cancellation, routing a rejection through the
+ * client's own error handling — is reproduced below.
  */
 async function provideCompletionItemWithExplicitFlag(
     document: vscode.TextDocument,
@@ -230,19 +236,33 @@ async function provideCompletionItemWithExplicitFlag(
         ...params,
         context: { ...params.context, explicit: true },
     };
-    const result = await client.sendRequest(
-        CompletionRequest.type,
-        explicitParams,
-        token,
-    );
-    if (token.isCancellationRequested) {
-        return null;
+    try {
+        const result = await client.sendRequest(
+            CompletionRequest.type,
+            explicitParams,
+            token,
+        );
+        if (token.isCancellationRequested) {
+            return null;
+        }
+        // No commit characters to pass along: the server advertises
+        // `triggerCharacters` but no `allCommitCharacters`.
+        return await client.protocol2CodeConverter.asCompletionResult(
+            result,
+            undefined,
+            token,
+        );
+    } catch (error) {
+        // A request the next keystroke cancelled, or one that arrived while
+        // the server was restarting, rejects in the ordinary course of typing.
+        // The client knows which of those to swallow and which to surface.
+        return client.handleFailedRequest(
+            CompletionRequest.type,
+            token,
+            error,
+            null,
+        );
     }
-    return client.protocol2CodeConverter.asCompletionResult(
-        result,
-        undefined,
-        token,
-    );
 }
 
 function registerFormatCommand(commandName: string, requestName: string) {
