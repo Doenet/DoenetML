@@ -175,9 +175,9 @@ export default function JSXGraphRenderer({
         }
     }, [board]);
 
-    // The graph as a whole carries the accessible name (its
-    // `<shortDescription>`) and is exposed as a single image, so the math in
-    // its labels must not become a tab stop of its own.
+    // MathJax marks everything it typesets as a tab stop, but a label drawn on
+    // the board is decoration on a picture; see the hook for why it must not
+    // keep that tab stop.
     useMathJaxOutOfTabOrder(boardContainer);
 
     useJSXGraphBoardSync({

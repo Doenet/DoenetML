@@ -16,9 +16,26 @@ function isMathJaxElement(el) {
 /**
  * Assert that nothing MathJax rendered inside `selector` is in the sequential
  * tab order. Wrapped in `should` so it retries while MathJax typesets.
+ *
+ * Each container is required to read `tabindex="-1"` rather than merely to be
+ * free of a tab stop. MathJax hands every container it renders a `tabindex`, so
+ * `-1` is positive evidence that we rewrote one; "no tabbable MathJax found"
+ * would also hold in the moment before MathJax attached its explorer, and the
+ * assertion would pass without having observed anything. The sweep that follows
+ * then covers the rest of MathJax's output — the `<mjx-speech>` node that
+ * arrives with generated speech, and anything else `mjx-*` it adds.
  */
 function verifyMathIsNotTabbable(selector) {
-    cy.get(`${selector} mjx-container`).should("exist");
+    cy.get(`${selector} mjx-container`).should(($containers) => {
+        const notTakenOut = $containers
+            .toArray()
+            .map((el) => el.getAttribute("tabindex"))
+            .filter((tabindex) => tabindex !== "-1");
+        expect(
+            notTakenOut,
+            "tabindex of each MathJax container inside the graph still in the tab order",
+        ).to.deep.equal([]);
+    });
     cy.get(selector).should(($graph) => {
         const tabbableMath = $graph
             .find("[tabindex]")

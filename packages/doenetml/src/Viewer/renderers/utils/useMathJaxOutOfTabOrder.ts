@@ -16,11 +16,13 @@ const MATHJAX_TAG_PREFIX = "MJX-";
  * MathJax 4 attaches its keyboard explorer to every expression it typesets,
  * which puts `tabindex="0"` on the `<mjx-container>` (and, once speech is
  * generated, on the `<mjx-speech>` node inside it). That is reasonable for math
- * in running text, but not for math inside a JSXGraph board: the board is
- * exposed to assistive technology as a single image (or as a group whose
- * accessible content is the `<shortDescription>`), so a tab stop on a label
- * lands the user on something that is not in the accessibility tree and offers
- * nothing to interact with.
+ * in running text, but not for math drawn on a JSXGraph board, where a label is
+ * decoration on a picture. It is the graph as a whole that carries the
+ * accessible name — `role="img"` named by the `<shortDescription>`, or
+ * `role="group"` when the graph has controls beside it — and when the author
+ * writes `decorative` the graph is `aria-hidden` outright, so a tab stop inside
+ * it leaves focus in a subtree screen readers are told to ignore. In every case
+ * the stop lands on something with nothing to announce and nothing to do.
  *
  * Only MathJax's own elements are touched: JSXGraph puts `tabindex` on the
  * elements it wants keyboard-navigable, and a `<mathInput>` or `<button>`
