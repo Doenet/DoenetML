@@ -23,9 +23,10 @@ const MATHJAX_TAG_PREFIX = "MJX-";
  * nothing to interact with.
  *
  * Only MathJax's own elements are touched: JSXGraph puts `tabindex` on the
- * elements it wants keyboard-navigable, and those must keep it.
+ * elements it wants keyboard-navigable, and a `<mathInput>` or `<button>`
+ * anchored in the board keeps its own focusable controls.
  */
-export function removeMathJaxTabStops(root: Element): void {
+function removeMathJaxTabStops(root: Element): void {
     root.querySelectorAll(TAB_STOP_SELECTOR).forEach((node) => {
         if (node.tagName.startsWith(MATHJAX_TAG_PREFIX)) {
             node.setAttribute("tabindex", "-1");
@@ -37,11 +38,15 @@ export function removeMathJaxTabStops(root: Element): void {
  * Keep MathJax's output inside `rootRef` out of the tab order, including math
  * typeset after mount.
  *
- * A `MutationObserver` is needed rather than a one-shot pass: JSXGraph typesets
- * each label when it draws or re-texts it, and MathJax sets the tab stop again
- * whenever asynchronously generated speech arrives. Rewriting the attribute to
- * `-1` re-triggers the observer once, which then finds nothing left to change,
- * so this settles rather than looping.
+ * A `MutationObserver` is needed rather than a one-shot pass: nothing has been
+ * typeset yet when this runs, JSXGraph typesets each label when it draws or
+ * re-texts it, and MathJax sets the tab stop again whenever asynchronously
+ * generated speech arrives. Rewriting the attribute to `-1` re-triggers the
+ * observer once, which then finds nothing left to change, so this settles
+ * rather than looping.
+ *
+ * `rootRef` is read once, on mount, so it must be attached to an element that
+ * the calling component renders unconditionally.
  */
 export function useMathJaxOutOfTabOrder(
     rootRef: RefObject<Element | null>,
