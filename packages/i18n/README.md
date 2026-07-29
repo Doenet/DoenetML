@@ -33,6 +33,15 @@ claims a language the content was not rendered in. An undeclared activity is
 labeled `en` — not a guess about what its author wrote, but a report of the
 language the core computed its prose in.
 
+That wrapper settles one language for the activity as a whole; a nested
+`<document lang>` labels its own subtree on top of it. `<document>`'s
+`renderedLang` state variable hands the section renderer a tag only when the
+nested document's language differs from the one already in effect around it,
+and the renderer emits `lang` only when it is given one. A nested document that
+merely restates the surrounding language stays silent, for the same reason the
+wrapper does: the tag would add nothing where an outer document declared that
+language, and would assert English where nobody declared anything.
+
 `resolveUiLocale` applies the chrome's rule — the configured `uiLocale`,
 otherwise the content's language. Both normalize what they return (`ES-mx` →
 `es-MX`) and treat a blank tag as unset, so a hand-typed `lang` and a
@@ -47,16 +56,6 @@ whenever the tag is one `Intl` can't parse — otherwise Fluent's
 `Intl.PluralRules` throws and the whole message resolves to `{???}` — and
 `createDiagnosticFormatter` joins its lists the same way. The host's own words
 are kept; only the counting and number conventions fall back.
-
-Those rules all settle one language for the activity as a whole. A nested
-`<document lang>` labels its own subtree on top of that: `<document>`'s
-`renderedLang` state variable hands the section renderer a tag only when the
-nested document's language differs from the one already in effect around it,
-and the renderer emits `lang` only when it gets one. A nested document that
-merely restates the surrounding language stays silent — the tag would add
-nothing where an outer document declared that language, and would pin the
-subtree to English where nobody declared anything at all, which is exactly what
-the wrapper's `undefined` avoids.
 
 ## Catalog layout
 

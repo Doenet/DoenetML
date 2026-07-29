@@ -269,7 +269,6 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             const lang = innerLang ? ` lang="${innerLang}"` : "";
             return `
         <document lang="en">
-          <p name="outer">Read the description below.</p>
           <document name="inner"${lang}>
             <setup>
               <styleDefinition styleNumber="1" lineColor="red" lineWidth="6"

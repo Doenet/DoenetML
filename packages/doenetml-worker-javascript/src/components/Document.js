@@ -268,8 +268,9 @@ export default class Document extends BaseComponent {
 
         // The content's language, as a BCP-47 tag. Drives translation of the
         // prose the core computes (style descriptions and the like) and, via
-        // `renderedLang`, the `lang` attribute of the rendered document, which
-        // is what lets a screen reader pronounce the content correctly.
+        // `renderedLang` below, the `lang` attribute the DOM carries over a
+        // nested document's subtree — which is what lets a screen reader
+        // pronounce that content correctly.
         //
         // Precedence: an authored `lang` attribute wins over the locale the
         // hosting page supplied via `setLocaleData`, which falls back to "en".
@@ -290,13 +291,15 @@ export default class Document extends BaseComponent {
             // the wrapper it renders around it — and only when this document's
             // language differs from the one already in effect around it.
             //
-            // The one thing the core cannot see is that the viewer omits the
-            // wrapper's `lang` entirely when nobody declared a language: the
-            // core is always handed a tag, English at worst. So a nested
-            // document that only restates the language around it stays silent —
-            // redundant where an outer document declared that language, and
-            // wrong where nobody did, since `lang="en"` there would claim
-            // English over an embedding page that said otherwise.
+            // A nested document that only restates the surrounding language
+            // therefore stays silent: the tag would add nothing where an outer
+            // document declared that language, and would be wrong where nobody
+            // declared one at all. That last case is the core's blind spot —
+            // it is always handed a tag, English at worst, so it cannot tell a
+            // host that asked for English from a host that said nothing — but
+            // the viewer can, and leaves the wrapper's `lang` off there, where
+            // an inner `lang="en"` would claim English over an embedding page
+            // that said otherwise.
             additionalStateVariablesDefined: [
                 { variableName: "renderedLang", forRenderer: true },
             ],
