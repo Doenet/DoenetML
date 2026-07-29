@@ -209,5 +209,6 @@
     "doenet-w0113": "schema-element-not-allowed-at-root",
     "doenet-w0114": "schema-element-not-allowed-inside",
     "doenet-w0115": "schema-attribute-unrecognized",
-    "doenet-w0116": "schema-attribute-value-not-allowed"
+    "doenet-w0116": "schema-attribute-value-not-allowed",
+    "doenet-w0117": "matches-pattern-parameter-not-in-pattern"
 }

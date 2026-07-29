@@ -115709,11 +115709,19 @@
                 {
                     "name": "pattern",
                     "description": "Math expression pattern to match against.",
+                    "highlighted": true,
                     "type": "math"
+                },
+                {
+                    "name": "parameters",
+                    "description": "Variables in the pattern that act as placeholders. Repeating one in the pattern requires the same subexpression at each occurrence. When specified, blanks in the pattern are matched literally.",
+                    "highlighted": true,
+                    "type": "_variableNameList"
                 },
                 {
                     "name": "allowImplicitIdentities",
                     "description": "Whether to allow implicit identity transformations when matching.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -115724,6 +115732,7 @@
                 {
                     "name": "allowPermutations",
                     "description": "Whether to allow permutations of operands when matching.",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -115734,6 +115743,7 @@
                 {
                     "name": "requireNumericMatches",
                     "description": "Whether numeric placeholders must match numbers.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -115744,6 +115754,7 @@
                 {
                     "name": "requireVariableMatches",
                     "description": "Whether variable placeholders must match variables.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -115754,12 +115765,14 @@
                 {
                     "name": "excludeMatches",
                     "description": "Patterns whose matches are excluded.",
+                    "highlighted": true,
                     "defaultValue": [],
                     "type": "mathList"
                 },
                 {
                     "name": "matchExpressionWithBlanks",
                     "description": "Whether to allow expressions with blanks to match.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -115879,42 +115892,48 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to allow implicit identity transformations when matching.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "allowPermutations",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to allow permutations of operands when matching.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "requireNumericMatches",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether numeric placeholders must match numbers.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "requireVariableMatches",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether variable placeholders must match variables.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "excludeMatches",
                     "type": "mathList",
                     "isArray": false,
                     "description": "Patterns whose matches are excluded.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "matchExpressionWithBlanks",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to allow expressions with blanks to match.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "hidden",
@@ -115950,7 +115969,8 @@
                     "name": "value",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the input matches the pattern."
+                    "description": "Whether the input matches the pattern.",
+                    "highlighted": true
                 },
                 {
                     "name": "text",
@@ -115962,13 +115982,15 @@
                     "name": "numMatches",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of matches found."
+                    "description": "The number of matches found.",
+                    "highlighted": true
                 },
                 {
                     "name": "patternMatches",
                     "type": "math",
                     "isArray": true,
                     "description": "The list of matched sub-expressions.",
+                    "highlighted": true,
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {

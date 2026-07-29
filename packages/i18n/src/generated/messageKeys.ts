@@ -370,6 +370,7 @@ export type MessageKey =
     | "solve-equations-cannot-evaluate"
     | "math-operators-operand-number-required"
     | "eigen-decomposition-failed"
+    | "matches-pattern-parameter-not-in-pattern"
     | "prefigure-x-label-position-unsupported"
     | "prefigure-y-label-position-unsupported"
     | "prefigure-invalid-axis-bounds"
@@ -928,6 +929,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "solve-equations-cannot-evaluate",
     "math-operators-operand-number-required",
     "eigen-decomposition-failed",
+    "matches-pattern-parameter-not-in-pattern",
     "prefigure-x-label-position-unsupported",
     "prefigure-y-label-position-unsupported",
     "prefigure-invalid-axis-bounds",

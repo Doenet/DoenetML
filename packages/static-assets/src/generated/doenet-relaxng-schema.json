@@ -144179,6 +144179,12 @@
                         "string"
                     ]
                 },
+                "parameters": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "allowImplicitIdentities": {
                     "optional": true,
                     "type": [

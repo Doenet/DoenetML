@@ -201,6 +201,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0114": "schema-element-not-allowed-inside",
     "doenet-w0115": "schema-attribute-unrecognized",
     "doenet-w0116": "schema-attribute-value-not-allowed",
+    "doenet-w0117": "matches-pattern-parameter-not-in-pattern",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

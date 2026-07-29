@@ -11,11 +11,15 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 component that returns the boolean value of `true` or `false` depending on whether the enclosed 
 math (often a referenced `<mathInput/>{:dn}`) conforms to the specified `pattern` template.
 
+The `pattern` attribute is required. Write the pattern the way you would write the expression
+itself, and list in `parameters` the variables that stand in for whatever the student writes
+there. Everything in the pattern that is not named in `parameters` has to appear literally.
+
 <AttrPropDisplay name='matchesPattern'/>
 
 ## Examples
 
-### Example: Default case
+### Example: Check the form of an equation
 
 
 ```doenet-editor-horiz
@@ -24,22 +28,20 @@ math (often a referenced `<mathInput/>{:dn}`) conforms to the specified `pattern
   <m>y = ax^2 + bx + c</m>)</label></mathInput></p>
 
 <p>Format correct: </p>
-<matchesPattern pattern="y = () + () + ()" >
+<matchesPattern pattern="y = a + b + c" parameters="a b c">
   $mi
 </matchesPattern>    
 ```
 
 
-
 The `<matchesPattern>{:dn}` component is used to check that the user has supplied an 
-equation in the requested format. The `pattern` attribute is required. If used without 
-additional attributes as shown above, a rather liberal comparison occurs. 
+equation in the requested format. Here `a`, `b` and `c` are placeholders, each matching a term
+of whatever the student writes; only the `y` and the shape of the equation are fixed. Used
+without additional attributes as shown above, a rather liberal comparison occurs.
 
-* there must be two operands on one side, and none on the other
+* there must be three terms on one side, and none on the other
 * one side must contain only $y$ (RHS or LHS are acceptable)
-* the operands may be `+` or `-`
-
-
+* the terms may be added or subtracted
 
 These requirements may be tightened, if desired, by applying additional 
 attributes to `<matchesPattern>{:dn}`.
@@ -50,11 +52,12 @@ attributes to `<matchesPattern>{:dn}`.
 
 ```doenet-editor-horiz
 <answer name="ans1">
-<mathInput name="mi"><label>Enter an equation in slope-intercept form, <m>y = mx + b</m>, where <m>b \neq 0</m></label></mathInput>
+<mathInput name="mi"><label>Enter an equation in slope-intercept form, <m>y = mx + b</m>, where <m>b</m> must not be omitted</label></mathInput>
   <award>
       <when>
         <matchesPattern 
-          pattern="y = ()x + ()" 
+          pattern="y = m x + b" 
+          parameters="m b"
           requireNumericMatches>
             $mi
         </matchesPattern> 
@@ -63,7 +66,8 @@ attributes to `<matchesPattern>{:dn}`.
   <award>
     <when>
       <matchesPattern 
-        pattern="y = x + ()" 
+        pattern="y = x + b" 
+        parameters="b"
         requireNumericMatches>
           $mi
       </matchesPattern>  
@@ -75,8 +79,55 @@ In this example, the following conditions must be met:
 
 * a $y$ by itself on one side, and an $x$ on the other, and no other variables can be present
 * the $x$ value must have a numerical coefficient, or no coefficient
+* a constant term must be written, even if it is $0$ — `y = 3x + 0` is accepted but `y = 3x` is not
 * switching the order of terms on the right-hand side is acceptable
 
-The attribute `requireNumericMatches` ensures that the user only enters numerical coefficients
-into the `( )` spaces (rather than an `x`, for example.). Multiple `<award>` conditions are used to
+The attribute `requireNumericMatches` ensures that the user only enters numerical values for the
+parameters `m` and `b` (rather than an `x`, for example). Multiple `<award>` conditions are used to
 ensure that the case where $x$ does not have a coefficient are allowed.
+
+
+### Example: Require the same expression in more than one place
+
+
+```doenet-editor-horiz
+<p><mathInput name="mi"><label>Write the left-hand side of the Pythagorean identity,
+  <m>\sin(u)^2 + \cos(u)^2 = 1</m>, using any variable you like for <m>u</m>.</label></mathInput></p>
+
+<p>Format correct: </p>
+<matchesPattern name="mp" pattern="sin(u)^2 + cos(u)^2" parameters="u">
+  $mi
+</matchesPattern>
+
+<p>Matched <m>u = $mp.patternMatch1</m></p>
+```
+
+Naming `u` once and using it twice is what makes this work: a parameter that occurs more than once
+in the pattern has to match the *same* expression at every occurrence. So `sin(x)^2 + cos(x)^2`
+matches and `sin(x)^2 + cos(y)^2` does not.
+
+A few things to know when using `parameters`:
+
+* The matches come back in the order the parameters were named, so the first entry of
+  `patternMatches` is always what the first name in `parameters` matched. A parameter that does
+  not occur in the pattern keeps its place in that list and reports a blank, with a warning.
+* A name listed in `parameters` is a placeholder at *every* place it occurs in the pattern, so it
+  cannot also be matched literally there. Choose names that are not the ones you want matched
+  exactly.
+* A parameter must be a variable name — a plain symbol such as `u`, or a subscripted one such as
+  `x_1` — the same names every other attribute that takes a list of variables accepts. Anything
+  else, such as a number or a compound expression, is ignored with a warning. A function name
+  counts, and is a useful case in its own right: `pattern="f(x) + f(y)" parameters="f"` matches
+  `sin(x) + sin(y)` but not `sin(x) + cos(y)`.
+
+
+## Blanks as placeholders
+
+If `parameters` is left off, then blanks — written `( )` — are the placeholders instead:
+`pattern="y = () + () + ()"` behaves like the first example above. Each blank matches
+independently of the others, so there is no way to say "and the same expression here," which is
+what `parameters` is for.
+
+Specifying `parameters` turns this off: a `( )` is then matched as a literal blank, and a pattern
+containing one only matches an expression that has a blank of its own, which additionally requires
+`matchExpressionWithBlanks`.
