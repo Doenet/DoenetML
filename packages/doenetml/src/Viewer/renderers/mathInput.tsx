@@ -38,7 +38,7 @@ import {
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
-import { useT } from "../../utils/i18n";
+import { useContentT, useT } from "../../utils/i18n";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
@@ -418,7 +418,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<MathInputSVs>(props);
 
-    const t = useT();
+    // The check-work button and the validation state announced on the input
+    // both follow the document's language, not the reader's — see
+    // `useContentT`.
+    const tContent = useContentT();
 
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
@@ -1072,7 +1075,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
             shortDescription = addValidationStateToShortDescription(
                 validationState.current,
                 shortDescription,
-                t,
+                tContent,
             );
         }
     }
@@ -1297,7 +1300,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
-        t,
+        tContent,
     );
 
     const labelComponent = hasLabel ? (

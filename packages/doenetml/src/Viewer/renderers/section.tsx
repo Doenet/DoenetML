@@ -21,7 +21,7 @@ import {
 import { cesc } from "@doenet/utils";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DocContext } from "../DocViewer";
-import { useT } from "../../utils/i18n";
+import { useContentT, useT } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
 
 interface SectionSVs {
@@ -51,6 +51,10 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         useDoenetRenderer<SectionSVs>(props);
 
     const t = useT();
+
+    // The check-work button follows the document's language, not the
+    // reader's — see `useContentT`.
+    const tContent = useContentT();
 
     const { darkMode } = useContext(DocContext) || {};
 
@@ -452,7 +456,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         submitActionWithPending,
         true,
         isPending,
-        t,
+        tContent,
     );
 
     if (checkWorkComponent) {

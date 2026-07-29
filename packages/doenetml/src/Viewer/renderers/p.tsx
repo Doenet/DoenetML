@@ -10,7 +10,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useT } from "../../utils/i18n";
+import { useContentT } from "../../utils/i18n";
 
 interface PSVs {
     [key: string]: any;
@@ -24,7 +24,9 @@ export default React.memo(function P(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<PSVs>(props);
 
-    const t = useT();
+    // The check-work button follows the document's language, not the
+    // reader's — see `useContentT`.
+    const tContent = useContentT();
 
     const ref = useRef(null);
 
@@ -52,7 +54,7 @@ export default React.memo(function P(props: UseDoenetRendererProps) {
             submitActionWithPending,
             true,
             isPending,
-            t,
+            tContent,
         );
     }
 

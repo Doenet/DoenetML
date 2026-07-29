@@ -15,12 +15,22 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
     /**
      * A section-wide check-work button, which gives a stable `#prob_button`
      * to assert on without resolving the answer's input index, plus the
-     * attempts-remaining message.
+     * attempts-remaining message beside it.
+     *
+     * Both of those follow the *document's* language, not the reader's: an
+     * author can name the button from their own prose ("press
+     * $ans.submitLabel"), so the button, the sentence pointing at it and the
+     * status beside it are one language whatever the reader asked for.
+     * `uiLocale` is probed through `<solution>`'s disclosure label instead,
+     * which nothing in the document refers to.
      */
     const problem = `
     <problem sectionWideCheckWork maxNumAttempts="2" name="prob">
       <p><answer name="ans"><textInput name="ti" /><award>hello</award></answer></p>
     </problem>`;
+
+    /** A disclosure label, which does follow the reader. */
+    const solution = `<solution name="sol"><p>respuesta</p></solution>`;
 
     function submitWrongAnswer() {
         cy.get("#ti_input").type("wrong");
@@ -48,7 +58,17 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
     });
 
     it("translates chrome for a host-supplied uiLocale", () => {
-        render({ doenetML: problem, uiLocale: "es" });
+        render({ doenetML: solution, uiLocale: "es" });
+
+        cy.get("#sol_button").should("contain.text", "(clic para abrir)");
+    });
+
+    it("translates the check-work widget for the document's language", () => {
+        // The whole widget follows the document, so a `documentLocale` with no
+        // `uiLocale` moves it. The plural form is the target language's, not a
+        // translation of English's: Spanish puts the verb first and inflects
+        // it.
+        render({ doenetML: problem, documentLocale: "es" });
 
         cy.get("[data-test=attempts-remaining]").should(
             "contain.text",
@@ -58,8 +78,6 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         submitWrongAnswer();
 
         cy.get("#prob_button").should("contain.text", "Incorrecto");
-        // The plural form is the target language's, not a translation of
-        // English's: Spanish puts the verb first and inflects it.
         cy.get("[data-test=attempts-remaining]").should(
             "contain.text",
             "queda 1 intento",
@@ -82,49 +100,44 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         // A Spanish-speaking student may work a French problem: the chrome
         // answers to the reader, the content to the author.
         render({
-            doenetML: `<document lang="fr">${problem}</document>`,
+            doenetML: `<document lang="fr">${solution}</document>`,
             uiLocale: "es",
         });
 
         cy.get(".doenet-viewer").should("have.attr", "lang", "fr");
-        cy.get("[data-test=attempts-remaining]").should(
-            "contain.text",
-            "quedan 2 intentos",
-        );
+        cy.get("#sol_button").should("contain.text", "(clic para abrir)");
     });
 
     it("negotiates a regional tag down to the locale that exists", () => {
-        render({ doenetML: problem, uiLocale: "es-MX" });
+        render({ doenetML: solution, uiLocale: "es-MX" });
 
-        cy.get("[data-test=attempts-remaining]").should(
-            "contain.text",
-            "quedan 2 intentos",
-        );
+        cy.get("#sol_button").should("contain.text", "(clic para abrir)");
     });
 
     it("keeps English for a locale nothing is translated into", () => {
-        render({ doenetML: problem, uiLocale: "fr" });
+        render({ doenetML: solution, uiLocale: "fr" });
 
-        cy.get("[data-test=attempts-remaining]").should(
-            "contain.text",
-            "2 attempts remaining",
-        );
+        cy.get("#sol_button").should("contain.text", "(click to open)");
     });
 
     it("retranslates in place when uiLocale changes", () => {
-        // `uiLocale` is main-thread only: no core rebuild, so the submitted
-        // response survives the switch.
-        render({ doenetML: problem });
+        // `uiLocale` is main-thread only: no core rebuild, so whatever the
+        // reader had typed survives the switch. Probed on a disclosure label
+        // rather than the check-work button, which follows the document and so
+        // does not move when the reader's language does.
+        render({ doenetML: `${solution}${problem}` });
 
         submitWrongAnswer();
-        cy.get("#prob_button").should("contain.text", "Incorrect");
+        cy.get("#sol_button").should("contain.text", "(click to open)");
 
         cy.window().then((win) => {
             win.postMessage({ uiLocale: "es" }, "*");
         });
 
-        cy.get("#prob_button").should("contain.text", "Incorrecto");
+        cy.get("#sol_button").should("contain.text", "(clic para abrir)");
         cy.get("#ti_input").should("have.value", "wrong");
+        // The button did not follow: it answers to the document.
+        cy.get("#prob_button").should("contain.text", "Incorrect");
     });
 
     it("translates disclosure panels", () => {
@@ -313,7 +326,15 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         // Anything still plain ASCII is a string that was never extracted —
         // the class of bug no key-based lint can see.
         it("accents extracted chrome", () => {
-            render({ doenetML: problem, uiLocale: "en-XA" });
+            // Both locales: the viewer draws from two now. The check-work
+            // widget follows the document, and its renderer-side strings
+            // resolve through the same chrome catalog the pseudo-locale is
+            // derived from, so they accent when `documentLocale` does.
+            render({
+                doenetML: problem,
+                uiLocale: "en-XA",
+                documentLocale: "en-XA",
+            });
 
             cy.get("[data-test=attempts-remaining]")
                 .invoke("text")
@@ -407,20 +428,25 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             // into that string's guard, so the list is a deferral made
             // executable rather than a note in a PR description.
             //
-            // Every entry so far is a string the *worker* computes, which is
-            // the honest result of running this sweep: the renderers really
-            // are extracted, and what is left belongs to the content locale,
-            // a later phase. A renderer-side string appearing here would be a
-            // Phase 1 miss and should be extracted instead of listed.
+            // Every entry is a string the *worker* computes, which is the
+            // honest result of running this sweep: the renderers really are
+            // extracted, and what is left belongs to the content locale. A
+            // renderer-side string appearing here would be a miss and should
+            // be extracted instead of listed.
+            //
+            // The sweep drives both locales at `en-XA`, so a string is only
+            // left in English if the *worker* produced it: `createTranslator-
+            // FromLocaleData` has no pseudo-locale, and the content catalogs
+            // have no `en-XA`, so a content locale of `en-XA` negotiates
+            // straight back to English. Renderer-side strings accent either
+            // way, whichever locale they answer to.
             const KNOWN_UNTRANSLATED = [
                 // `submitLabel` / `submitLabelNoCorrectness` — the check-work
-                // button's resting label. These *are* translated as of #1519,
-                // but against `documentLocale`, and this sweep only
-                // pseudo-localizes `uiLocale`: the pseudo-locale is derived
-                // from the English chrome catalog and the content side has no
-                // equivalent, so a `documentLocale` of `en-XA` negotiates
-                // straight back to English. Deleting these two entries needs a
-                // pseudo content catalog first, not another extraction.
+                // button's resting label, computed by the worker. The rest of
+                // that widget follows the document too but is drawn by the
+                // renderer from the chrome catalog, so it accents and this
+                // sweep guards it. Deleting these two entries needs a pseudo
+                // content catalog, not another extraction.
                 // (doenetml-worker-javascript/src/utils/answer.js)
                 /Check Work/g,
                 /Submit Response/g,
@@ -543,7 +569,11 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             }
 
             it("finds no hard-coded English in the chrome as first rendered", () => {
-                render({ doenetML: chromeFixture, uiLocale: "en-XA" });
+                render({
+                    doenetML: chromeFixture,
+                    uiLocale: "en-XA",
+                    documentLocale: "en-XA",
+                });
 
                 // Wait for a string only the catalogs can produce, so the
                 // sweep cannot race the first paint.
@@ -558,7 +588,11 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
                 // Validation states, the attempts counter and the feedback a
                 // submission reveals are chrome that does not exist until the
                 // reader acts, so the first sweep cannot see them.
-                render({ doenetML: chromeFixture, uiLocale: "en-XA" });
+                render({
+                    doenetML: chromeFixture,
+                    uiLocale: "en-XA",
+                    documentLocale: "en-XA",
+                });
 
                 cy.get("[data-test=attempts-remaining]").should(
                     "contain.text",

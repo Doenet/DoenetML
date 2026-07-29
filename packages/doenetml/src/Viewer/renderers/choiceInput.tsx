@@ -21,7 +21,7 @@ import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useT } from "../../utils/i18n";
+import { useContentT } from "../../utils/i18n";
 
 // type guard
 const isMultiValue = <T,>(
@@ -77,7 +77,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
         useDoenetRenderer<ChoiceInputSVs>(props);
 
-    const t = useT();
+    // The check-work button and the validation state announced on the input
+    // both follow the document's language, not the reader's — see
+    // `useContentT`.
+    const tContent = useContentT();
 
     const { darkMode } = useContext(DocContext) || {};
 
@@ -239,7 +242,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         submitActionWithPending,
         fullCheckWork,
         isPending,
-        t,
+        tContent,
     );
 
     const inlineSelectComponents = useMemo(
@@ -281,7 +284,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             shortDescription = addValidationStateToShortDescription(
                 validationState,
                 shortDescription,
-                t,
+                tContent,
             );
         }
 

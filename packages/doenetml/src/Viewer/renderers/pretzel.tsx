@@ -11,7 +11,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useT } from "../../utils/i18n";
+import { useContentT, useT } from "../../utils/i18n";
 
 interface PretzelSVs {
     [key: string]: any;
@@ -35,6 +35,10 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     } = useDoenetRenderer<PretzelSVs>(props);
 
     const t = useT();
+
+    // The check-work button follows the document's language, not the
+    // reader's — see `useContentT`.
+    const tContent = useContentT();
 
     const ref = useRef(null);
 
@@ -140,7 +144,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         submitActionWithPending,
         true,
         isPending,
-        t,
+        tContent,
     );
 
     return (
