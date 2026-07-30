@@ -86844,7 +86844,7 @@
                 },
                 {
                     "name": "grid",
-                    "description": "Grid density to render on the graph (off, minor, medium, or major).",
+                    "description": "Grid line spacing on the graph: none, medium, dense, or two positive numbers giving the x and y spacing, such as grid=\"1 0.5\".",
                     "type": "text"
                 },
                 {

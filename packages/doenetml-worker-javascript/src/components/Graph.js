@@ -37,8 +37,12 @@ import { codedDiagnostic } from "../utils/diagnostics";
  * space into `(1,` and `2)`, neither of which parses — so every parse is
  * guarded. An unparseable piece makes its group unusable rather than taking
  * the whole document down with it.
+ *
+ * A non-string piece is read out of `dependencyValues`, which carries both the
+ * attribute's children (`gridAttrCompChildren`, whose order gives each piece
+ * its index) and one `childAdapter<index>` per child.
  */
-function gridSpacingFromGroup({ group, attrChildren, dependencyValues }) {
+function gridSpacingFromGroup(group, dependencyValues) {
     let spacing = 1;
 
     for (let piece of group) {
@@ -47,12 +51,12 @@ function gridSpacingFromGroup({ group, attrChildren, dependencyValues }) {
         if (typeof piece === "string") {
             try {
                 factor = me.fromText(piece).evaluate_to_constant();
-            } catch (e) {
+            } catch {
                 return null;
             }
         } else {
             // A non-string piece was adapted from a number or math component.
-            let childInd = attrChildren.indexOf(piece);
+            let childInd = dependencyValues.gridAttrCompChildren.indexOf(piece);
             factor = dependencyValues["childAdapter" + childInd];
             if (factor instanceof me.class) {
                 factor = factor.evaluate_to_constant();
@@ -434,7 +438,7 @@ export default class Graph extends BlockComponent {
             createComponentOfType: "text",
             valueForTrue: "medium",
             description:
-                "Grid density to render on the graph (off, minor, medium, or major).",
+                'Grid line spacing on the graph: none, medium, dense, or two positive numbers giving the x and y spacing, such as grid="1 0.5".',
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -2184,11 +2188,10 @@ export default class Graph extends BlockComponent {
 
                 for (let group of groupedChildren) {
                     // each of the grouped children must represent a positive number
-                    const spacing = gridSpacingFromGroup({
+                    const spacing = gridSpacingFromGroup(
                         group,
-                        attrChildren,
                         dependencyValues,
-                    });
+                    );
 
                     if (spacing === null) {
                         return noGrid();

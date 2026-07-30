@@ -1343,35 +1343,52 @@ describe("Graph tag tests @group2", async () => {
 
             const diagnostics = getDiagnosticsByType(core);
             expect(diagnostics.errors.length, `grid="${gridValue}"`).eq(0);
+            expect(diagnostics.warnings.length, `grid="${gridValue}"`).eq(1);
+            expect(diagnostics.warnings[0].code, `grid="${gridValue}"`).eq(
+                "doenet-w0119",
+            );
             expect(
-                diagnostics.warnings.filter((warning) =>
-                    warning.message.includes(
-                        `cannot interpret grid="${gridValue}"`,
-                    ),
-                ).length,
+                diagnostics.warnings[0].message,
                 `grid="${gridValue}"`,
-            ).eq(1);
+            ).contain(`cannot interpret grid="${gridValue}"`);
         }
     });
 
     it("a usable grid value warns about nothing", async () => {
-        const usableValues = ["none", "medium", "dense", "true", "false"];
+        // The value each of these resolves to is what the definition produced
+        // before it was refactored into a single product loop.
+        const usableValues: [string, string | number[]][] = [
+            ["none", "none"],
+            ["medium", "medium"],
+            ["dense", "dense"],
+            ["true", "medium"],
+            ["false", "none"],
+            ["MEDIUM", "medium"],
+            ["1 pi/2", [1, Math.PI / 2]],
+            ["  2   3  ", [2, 3]],
+            ["2/3 3/4", [2 / 3, 3 / 4]],
+        ];
 
-        for (const gridValue of usableValues) {
-            const { core } = await createTestCore({
+        for (const [gridValue, expectedGrid] of usableValues) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `<graph name="g" grid="${gridValue}" />`,
             });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                    .grid,
+                `grid="${gridValue}"`,
+            ).eqls(expectedGrid);
 
             expect(
                 getDiagnosticsByType(core).warnings.length,
                 `grid="${gridValue}"`,
             ).eq(0);
         }
-
-        const { core } = await createTestCore({
-            doenetML: `<graph name="g" grid="1 pi/2" />`,
-        });
-        expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
     it("an unfilled input in a grid value stays quiet", async () => {
