@@ -79,43 +79,37 @@ function gridSpacingFromGroup(group, dependencyValues) {
  * open around them.
  */
 function groupGridAttrChildren(attrChildren) {
-    let groupedChildren = [];
+    const groupedChildren = [];
     let pieces = [];
 
-    for (let child of attrChildren) {
+    // Closes the group being built, if anything is in it.
+    const endGroup = () => {
+        if (pieces.length > 0) {
+            groupedChildren.push(pieces);
+            pieces = [];
+        }
+    };
+
+    for (const child of attrChildren) {
         if (typeof child !== "string") {
             pieces.push(child);
             continue;
         }
 
-        let stringPieces = child.split(/\s+/);
-        let s0 = stringPieces[0];
-
-        if (s0 === "") {
-            // started with a space
-            if (pieces.length > 0) {
-                groupedChildren.push(pieces);
-                pieces = [];
+        for (const [ind, piece] of child.split(/\s+/).entries()) {
+            // Splitting on whitespace puts a space before every piece but the
+            // first, and an empty first piece means the child led with one.
+            // Either way the group that was open ends at that space.
+            if (ind > 0 || piece === "") {
+                endGroup();
             }
-        } else {
-            pieces.push(s0);
-        }
-
-        for (let s of stringPieces.slice(1)) {
-            // if have more than one piece, must have had a space in between pieces
-            if (pieces.length > 0) {
-                groupedChildren.push(pieces);
-                pieces = [];
-            }
-            if (s !== "") {
-                pieces.push(s);
+            if (piece !== "") {
+                pieces.push(piece);
             }
         }
     }
 
-    if (pieces.length > 0) {
-        groupedChildren.push(pieces);
-    }
+    endGroup();
 
     return groupedChildren;
 }
@@ -2111,10 +2105,17 @@ export default class Graph extends BlockComponent {
                             dependencyType: "stateVariable",
                             variableName: "gridAttrCompChildren",
                         },
-                        // Every child of the attribute, including any the text
-                        // attribute could not accept and so left out of
-                        // `gridAttrCompChildren`. Used only to tell an authored
-                        // value from one that came from elsewhere.
+                        // Every child of the attribute, used only to tell a
+                        // value the author spelled out from one that came from
+                        // elsewhere. It has to be every child rather than
+                        // `gridAttrCompChildren`, because a child a text
+                        // attribute cannot accept at all — `grid="$aPoint"` —
+                        // is missing from `gridAttrCompChildren` and from the
+                        // attribute's value alike. Judged on what survives, the
+                        // value would look authored, and the warning below
+                        // would quote the empty remnant the dropped child left
+                        // behind, on top of the "invalid format" warning that
+                        // child already raised.
                         allGridAttrChildren: {
                             dependencyType: "child",
                             parentIdx: stateValues.gridAttrCompName,
@@ -2162,15 +2163,6 @@ export default class Graph extends BlockComponent {
                 // is not the author's to fix. The cost is that a reference to a
                 // value the author got wrong, as in `grid="1 $negativeNumber"`,
                 // goes unreported.
-                //
-                // The test runs over every child rather than over
-                // `attrChildren`, because a child the text attribute could not
-                // accept at all — `grid="$aPoint"` — is missing from
-                // `attrChildren` and from `attrValue` alike. Left to
-                // `attrChildren` the value would look authored, and the warning
-                // would quote the empty remnant the dropped child left behind,
-                // on top of the "invalid format" warning the child already
-                // raised.
                 const authoredInFull =
                     dependencyValues.allGridAttrChildren.every(
                         (child) => typeof child === "string",

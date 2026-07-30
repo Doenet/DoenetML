@@ -1501,6 +1501,7 @@ describe("Graph tag tests @group2", async () => {
 
         const warnings = getDiagnosticsByType(core).warnings;
         expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0106");
         expect(warnings[0].message).contain(
             "Invalid format for attribute grid of `<graph>`",
         );
