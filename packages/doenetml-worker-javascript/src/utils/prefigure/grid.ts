@@ -144,8 +144,9 @@ type GridTriple = [number, number, number];
  * largest at or below `max`.
  *
  * Returns null when the grid would exceed {@link MAX_GRID_LINES_PER_AXIS}, or
- * when a spacing small enough to overflow the division leaves no usable
- * positions at all — both mean the same thing to the caller: too fine to draw.
+ * when a spacing so far off the range's own scale that the arithmetic
+ * overflows leaves no usable positions at all — both mean the same thing to
+ * the caller: no grid this spacing can draw.
  */
 function alignedGridTriple(
     min: number,
@@ -159,17 +160,27 @@ function alignedGridTriple(
         spacing * Math.floor(max / spacing + MULTIPLE_TOLERANCE),
     );
 
-    if (last < first) {
-        // No multiple of the spacing falls inside the range. `spacings` has to
-        // carry a triple for both axes, so give this one a single position
-        // below the bbox; PreFigure skips positions outside the bbox and draws
-        // nothing for this axis.
-        const belowRange = cleanNumber(min - spacing);
-        return [belowRange, spacing, belowRange];
+    // Either product overflows to an infinity once the spacing is many orders
+    // of magnitude away from the range — dividing by a subnormal spacing, or
+    // rounding a bound near the largest double up by a spacing of the same
+    // size. PreFigure evaluates `spacings` as a Python expression, where
+    // `Infinity` is not a literal, so neither may reach the XML. Such a
+    // spacing draws no grid either way, so it shares the caller's warning.
+    if (!Number.isFinite(first) || !Number.isFinite(last)) {
+        return null;
     }
 
-    // A non-finite endpoint means `min / spacing` overflowed, which leaves the
-    // line count Infinity or NaN; `Number.isFinite` rejects both.
+    if (last < first) {
+        // No multiple of the spacing falls inside the range, which makes
+        // `first` — the smallest multiple at or above `min` — a position above
+        // `max`. `spacings` has to carry a triple for both axes, so hand
+        // PreFigure that one out-of-range position: it skips positions outside
+        // the bbox and draws nothing for this axis.
+        return [first, spacing, first];
+    }
+
+    // The endpoints are finite, but a subnormal spacing can still send the
+    // quotient — and so the count — to Infinity.
     const lineCount = Math.round((last - first) / spacing) + 1;
     if (!Number.isFinite(lineCount) || lineCount > MAX_GRID_LINES_PER_AXIS) {
         return null;
@@ -178,6 +189,14 @@ function alignedGridTriple(
     return [first, spacing, last];
 }
 
+/**
+ * Reads one authored spacing, or null when it is not a positive finite number.
+ *
+ * The `grid` state variable already falls back to `"none"` for a spacing that
+ * is not positive, so the only values that reach here and fail are the ones it
+ * cannot rule out: an expression that overflows, such as `grid="10^400 1"`,
+ * which arrives as `Infinity`.
+ */
 function positiveSpacing(value: unknown): number | null {
     const spacing = asFiniteNumber(value);
     return spacing !== null && spacing > 0 ? spacing : null;
@@ -247,6 +266,8 @@ export function gridElementFromGrid({
     }
 
     if (xSpacing === null || ySpacing === null) {
+        // An unusable authored spacing. The JSXGraph renderer draws nothing for
+        // one either, so this stays as quiet as that renderer does.
         return "";
     }
 

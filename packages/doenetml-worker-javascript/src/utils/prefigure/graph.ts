@@ -113,8 +113,9 @@ function axesElementFromLabels({
  * 1. Convert unsupported descendants into warnings.
  * 2. Convert supported descendants to element XML in stable order.
  * 3. Compute bbox/dimensions with defensive defaults.
- * 4. Build axis metadata + labels (including unsupported-position warnings).
- * 5. Assemble and return final `<diagram>` XML + warnings.
+ * 4. Build the grid from the bbox.
+ * 5. Build axis metadata + labels (including unsupported-position warnings).
+ * 6. Assemble and return final `<diagram>` XML + warnings.
  *
  * SVG paints in document order, so the grid is emitted ahead of the axes and
  * the converted descendants to keep it behind everything it sits under.

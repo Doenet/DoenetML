@@ -158,8 +158,9 @@ describe("PreFigure grid @group4", () => {
 
     it("an axis with no multiple of its spacing in range contributes no lines", async () => {
         // A spacing wider than the axis range: PreFigure needs a triple for
-        // both axes, so the x axis gets a single position below the bbox,
-        // which PreFigure skips.
+        // both axes, so the x axis gets the single position 7 — the first
+        // multiple of the spacing at or above xMin, which lands above xMax —
+        // and PreFigure skips positions outside the bbox.
         const prefigureXML = await getPrefigureXML(
             prefigureGraph("", {
                 attrs: 'grid="7 1" xMin="1" xMax="6" yMin="-10" yMax="10"',
@@ -167,7 +168,7 @@ describe("PreFigure grid @group4", () => {
         );
 
         expect(gridElement(prefigureXML)).eq(
-            `<grid spacings="((-6,7,-6),(-10,1,10))" />`,
+            `<grid spacings="((7,7,7),(-10,1,10))" />`,
         );
     });
 
@@ -181,6 +182,20 @@ describe("PreFigure grid @group4", () => {
         expect(gridElement(prefigureXML)).eq(
             `<grid spacings="((-10,1,10),(-10,1,10))" stroke="#666666" />`,
         );
+    });
+
+    it("a spacing whose grid positions overflow emits no grid element", async () => {
+        // Rounding xMin up to the next multiple of a spacing this large
+        // overflows to Infinity. PreFigure reads `spacings` as a Python
+        // expression, where `Infinity` is not a literal, so the grid has to be
+        // dropped rather than written out.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", {
+                attrs: 'grid="10^308 1" xMin="1.7e308" xMax="1.75e308"',
+            }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(null);
     });
 
     it("a spacing too fine for the axis limits drops the grid with a warning", async () => {
