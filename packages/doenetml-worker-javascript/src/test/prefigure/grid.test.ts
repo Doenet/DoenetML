@@ -108,6 +108,30 @@ describe("PreFigure grid @group4", () => {
         expect(gridElement(prefigureXML)).eq(null);
     });
 
+    it("an axis range too wide to subtract emits no grid element", async () => {
+        // Both limits are finite, but their difference overflows to Infinity.
+        // PreFigure's automatic spacing divides the width by ten until it drops
+        // to ten, which never terminates on an infinite width, so this must not
+        // reach the spacing computation in either renderer.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", {
+                attrs: 'grid="dense" xMin="-1e308" xMax="1e308"',
+            }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(null);
+    });
+
+    it("a bare grid on an unusable axis range emits no grid element", async () => {
+        // The same guard has to cover "medium": a bare <grid /> would hand the
+        // range to PreFigure's own copy of that loop.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", { attrs: 'grid xMin="-1e308" xMax="1e308"' }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(null);
+    });
+
     it("two numbers set the x and y spacing explicitly", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph("", { attrs: 'grid="2 0.5"' }),

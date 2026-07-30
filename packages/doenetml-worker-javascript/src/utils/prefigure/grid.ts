@@ -36,10 +36,12 @@ const PREFIGURE_GRID_DELTA: Record<number, number | undefined> = {
 };
 
 // `grid="dense"` draws JSXGraph's minor tick lines as well as its major ones.
-// JSXGraph puts four minor ticks between major ones — one line every fifth of
-// the major spacing — for every spacing PreFigure's table can produce, so a
-// single factor covers the translation. PreFigure has no notion of minor
-// ticks, so we subdivide its automatic spacing by that same factor.
+// JSXGraph puts four minor ticks between major ones — cutting each major
+// interval into five — except when that interval is 2×10^k, where it puts three
+// (`setMinorTicks` in `doenetml/src/Viewer/renderers/utils/jsxgraph.ts`).
+// PreFigure has no notion of minor ticks, so we subdivide its automatic spacing
+// by the common factor of five rather than tracking which case JSXGraph's own
+// tick interval would have fallen into.
 const DENSE_SUBDIVISIONS = 5;
 
 // PreFigure emits one `<line>` per grid line, so a spacing far finer than the
@@ -78,13 +80,27 @@ function roundHalfToEven(value: number): number {
  *
  * Spacings are built by repeated multiplication and division by ten, so a
  * position that should read as `0.15` arrives as `0.15000000000000002` and
- * would be written into the XML that way. Fifteen significant digits is one
- * short of what a double carries, which is enough to absorb that noise while
- * leaving a genuinely irrational spacing such as `pi/4` intact to within
- * floating-point resolution.
+ * would be written into the XML that way. Fifteen significant digits is the
+ * most a double is guaranteed to carry exactly, so rounding there absorbs that
+ * noise. A genuinely irrational position such as `pi/2` moves by a relative
+ * `1e-15` instead — far below anything the rendered diagram resolves.
  */
 function cleanNumber(value: number): number {
     return Number(value.toPrecision(15));
+}
+
+/**
+ * Reports whether an axis range is one a grid can be drawn on.
+ *
+ * Both ends are finite by the time they reach here, but the width between them
+ * can still be zero, negative, or — for ends near the largest representable
+ * double — infinite. The normalizing loops in
+ * {@link prefigureAutomaticGridSpacing} divide the width by ten until it drops
+ * to ten and multiply it by ten until it passes one, so a width of zero or
+ * infinity spins forever, here and in PreFigure itself.
+ */
+function isDrawableRange(min: number, max: number): boolean {
+    return max > min && Number.isFinite(max - min);
 }
 
 /**
@@ -94,9 +110,8 @@ function cleanNumber(value: number): number {
  * step with it so `grid="dense"` is exactly a subdivision of the spacing that
  * `grid="medium"` gets from PreFigure itself.
  *
- * The caller guarantees a positive, finite range: PreFigure's normalizing loop
- * multiplies the width by ten until it exceeds one, which never terminates on a
- * range of zero.
+ * The caller guarantees a range {@link isDrawableRange} accepts, which is what
+ * makes the two loops below terminate.
  */
 function prefigureAutomaticGridSpacing(min: number, max: number): number {
     let distance = max - min;
@@ -163,16 +178,6 @@ function alignedGridTriple(
     return [first, spacing, last];
 }
 
-/**
- * Writes a triple as PreFigure's `(first, spacing, last)` literal.
- *
- * Every component is finite by construction — {@link alignedGridTriple} rejects
- * the triples that are not — so the default number formatting is enough.
- */
-function formatGridTriple(triple: GridTriple): string {
-    return `(${triple.join(",")})`;
-}
-
 function positiveSpacing(value: unknown): number | null {
     const spacing = asFiniteNumber(value);
     return spacing !== null && spacing > 0 ? spacing : null;
@@ -211,12 +216,12 @@ export function gridElementFromGrid({
 
     const [xMin, yMin, xMax, yMax] = graphBounds;
 
-    if (!(xMax > xMin) || !(yMax > yMin)) {
-        // An empty or inverted axis range has no grid to draw, and PreFigure's
-        // automatic spacing loops forever on a range of zero, so a bare
-        // `<grid />` must not reach it. Nothing else about such a graph renders
-        // either, and `doenet-w0062` already covers non-finite bounds, so this
-        // stays quiet.
+    if (!isDrawableRange(xMin, xMax) || !isDrawableRange(yMin, yMax)) {
+        // An empty, inverted, or overflowing axis range has no grid to draw,
+        // and PreFigure's automatic spacing loops forever on one, so a bare
+        // `<grid />` must not reach it either. Nothing else about such a graph
+        // renders, and `doenet-w0062` already covers non-finite bounds, so
+        // this stays quiet.
         return "";
     }
 
@@ -253,7 +258,10 @@ export function gridElementFromGrid({
         return "";
     }
 
-    const spacings = `(${formatGridTriple(xTriple)},${formatGridTriple(yTriple)})`;
+    // PreFigure reads `spacings` as a pair of `(first, spacing, last)` triples.
+    // Every component is finite by construction — `alignedGridTriple` rejects
+    // the triples that are not — so default number formatting is enough.
+    const spacings = `((${xTriple.join(",")}),(${yTriple.join(",")}))`;
 
     return `<grid spacings="${escapeXml(spacings)}"${strokeAttr} />`;
 }
