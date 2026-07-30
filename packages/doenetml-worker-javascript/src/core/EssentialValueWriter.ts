@@ -555,9 +555,11 @@ export class EssentialValueWriter {
             let arrayKeys: string[] = inverseDefinitionArgs.arrayKeys;
             let desiredValuesForArray: Record<string, any> = {};
             if (arrayKeys.length === 1) {
-                if (instructionCarriesDesiredValue(instruction)) {
+                if ("value" in instruction) {
+                    desiredValuesForArray[arrayKeys[0]] = instruction.value;
+                } else if ("valueOfStateVariable" in instruction) {
                     desiredValuesForArray[arrayKeys[0]] =
-                        await this._desiredValueFromInstruction(
+                        await this._resolveValueOfStateVariable(
                             instruction,
                             component,
                         );
@@ -575,11 +577,17 @@ export class EssentialValueWriter {
             inverseDefinitionArgs.desiredStateVariableValues = {
                 [arrayStateVariable]: desiredValuesForArray,
             };
-        } else if (instructionCarriesDesiredValue(instruction)) {
-            let desiredValue = await this._desiredValueFromInstruction(
-                instruction,
-                component,
-            );
+        } else if (
+            "value" in instruction ||
+            "valueOfStateVariable" in instruction
+        ) {
+            let desiredValue =
+                "value" in instruction
+                    ? instruction.value
+                    : await this._resolveValueOfStateVariable(
+                          instruction,
+                          component,
+                      );
 
             // An instruction targeting a whole array — e.g.
             // `<updateValue target="$v.tail" newValue="(7,8)" />` — carries one
@@ -1447,20 +1455,6 @@ export class EssentialValueWriter {
     }
 
     /**
-     * The value an update instruction asks for, whether it carries the value
-     * inline as `value` or by reference as `valueOfStateVariable`. Guard the
-     * call with `instructionCarriesDesiredValue`.
-     */
-    async _desiredValueFromInstruction(
-        instruction: any,
-        component: any,
-    ): Promise<any> {
-        return "value" in instruction
-            ? instruction.value
-            : await this._resolveValueOfStateVariable(instruction, component);
-    }
-
-    /**
      * Forward an inverse-definition recursion: invoke
      * `requestComponentChanges` with the prepared `inst` instruction,
      * propagating `treatAsInitialChange` from `newInstruction` and threading
@@ -1487,20 +1481,12 @@ export class EssentialValueWriter {
 }
 
 /**
- * Whether an update instruction names a value to change to, which it does
- * either inline (`value`) or by reference (`valueOfStateVariable`).
- */
-function instructionCarriesDesiredValue(instruction: Record<string, any>) {
-    return "value" in instruction || "valueOfStateVariable" in instruction;
-}
-
-/**
  * Distribute the math expression `value` over `arrayKeys`, producing the
  * array-key-keyed object an array state variable's inverse definition expects.
  *
- * A single key takes the expression whole, so that a size-one array and its
- * lone entry accept the same value; otherwise each key gets the corresponding
- * component of the expression.
+ * A single key takes the expression whole, so that a size-one array accepts
+ * the same value its lone entry would; otherwise each key gets the
+ * corresponding component of the expression.
  */
 function spreadMathOverArrayKeys(
     value: any,
