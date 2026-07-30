@@ -626,6 +626,144 @@ describe("Normalize dast", async () => {
         });
     });
 
+    // See `postponeRenderSugar` in component-sugar/postponeRender.ts. For
+    // `<solution>`/`<givenAnswer>` it always runs (unlike `<aside>`/`<proof>`
+    // below, where it's conditional on `postponeRendering`).
+    it("Sugars solution/givenAnswer into a _postponeRenderContainer", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        // content with no title gets wrapped
+        source = "<solution><p>hi</p></solution>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><solution><_postponeRenderContainer><p>hi</p></_postponeRenderContainer></solution></document>",
+        );
+
+        // a leading title is hoisted out of the container
+        source = "<solution><title>T</title><p>hi</p></solution>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><solution><title>T</title><_postponeRenderContainer><p>hi</p></_postponeRenderContainer></solution></document>",
+        );
+
+        // givenAnswer follows the same unconditional wrapping
+        source = "<givenAnswer><p>hi</p></givenAnswer>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><givenAnswer><_postponeRenderContainer><p>hi</p></_postponeRenderContainer></givenAnswer></document>",
+        );
+    });
+
+    // `<aside>`/`<proof>` both support dynamic children (see
+    // COMPONENTS_WITH_DYNAMIC_CHILDREN in component-sugar/dynamicChildren.ts),
+    // so a `<_dynamicChildren>` sibling is always appended regardless of
+    // `postponeRendering`. What's conditional is only the postpone-render
+    // wrapping, and whether `<_dynamicChildren>` gets a
+    // `deferUntilParentRendered="true"` attribute (it does exactly when the
+    // sibling `<_postponeRenderContainer>` is present, so the runtime knows
+    // to defer creating these children until the parent renders).
+    it("Sugars aside/proof into a _postponeRenderContainer only when postponeRendering is truthy", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        // no postponeRendering attribute: left untouched, no deferral flag
+        source = "<aside><title>Hint</title><p>Secret.</p></aside>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><aside><title>Hint</title><p>Secret.</p><_dynamicChildren /></aside></document>",
+        );
+
+        // bare postponeRendering (no value) counts as truthy: wrapped, and
+        // the attribute itself is normalized to postponeRendering="true"
+        source =
+            "<aside postponeRendering><title>Hint</title><p>Secret.</p></aside>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><aside postponeRendering="true"><title>Hint</title><_postponeRenderContainer><p>Secret.</p></_postponeRenderContainer><_dynamicChildren deferUntilParentRendered="true" /></aside></document>',
+        );
+
+        // postponeRendering="TRUE": still wrapped (case-insensitive)
+        source = '<aside postponeRendering="TRUE"><p>x</p></aside>';
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><aside postponeRendering="TRUE"><_postponeRenderContainer><p>x</p></_postponeRenderContainer><_dynamicChildren deferUntilParentRendered="true" /></aside></document>',
+        );
+
+        // postponeRendering="false": explicitly opted out, left untouched
+        source =
+            '<aside postponeRendering="false"><title>Hint</title><p>Secret.</p></aside>';
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><aside postponeRendering="false"><title>Hint</title><p>Secret.</p><_dynamicChildren /></aside></document>',
+        );
+
+        // proof follows the same conditional branch as aside
+        source = "<proof postponeRendering><p>Secret.</p></proof>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><proof postponeRendering="true"><_postponeRenderContainer><p>Secret.</p></_postponeRenderContainer><_dynamicChildren deferUntilParentRendered="true" /></proof></document>',
+        );
+    });
+
+    // See `pretzelSugar` in component-sugar/pretzel.ts. All of a <pretzel>'s
+    // children get wrapped in a single <_pretzelArranger>, and any <answer>
+    // that is a direct child of a direct <problem> child is renamed to
+    // <givenAnswer>.
+    it("Sugars pretzel into a _pretzelArranger and renames nested answers to givenAnswer", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
+
+        // an <answer> inside a direct <problem> child is renamed to <givenAnswer>.
+        // The tree walk in normalize-dast.ts is pre-order and re-reads a node's
+        // children after mutating them, so this renamed node is immediately
+        // revisited and picks up givenAnswer's own postpone-render sugar too -
+        // hence the (empty, since <answer/> had no children of its own) nested
+        // <_postponeRenderContainer />, and <problem>'s own <_dynamicChildren />
+        // (problem supports dynamic children independent of pretzel).
+        source = "<pretzel><problem><answer/></problem></pretzel>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><pretzel><_pretzelArranger><problem><givenAnswer><_postponeRenderContainer /></givenAnswer><_dynamicChildren /></problem></_pretzelArranger></pretzel></document>",
+        );
+
+        // an <answer> not nested in a <problem> is left alone - the rename is
+        // scoped to direct problem > answer pairs only, not all descendants
+        source = "<pretzel><answer/></pretzel>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><pretzel><_pretzelArranger><answer /></_pretzelArranger></pretzel></document>",
+        );
+
+        // a mode attribute is forwarded onto the arranger
+        source = '<pretzel mode="foo"><problem><answer/></problem></pretzel>';
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            '<document><pretzel mode="foo"><_pretzelArranger mode="foo"><problem><givenAnswer><_postponeRenderContainer /></givenAnswer><_dynamicChildren /></problem></_pretzelArranger></pretzel></document>',
+        );
+
+        // with no mode attribute, the arranger has none either
+        source = "<pretzel><p>hi</p></pretzel>";
+        dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><pretzel><_pretzelArranger><p>hi</p></_pretzelArranger></pretzel></document>",
+        );
+    });
+
+    // Regression guard: addDynamicChildrenSugar only checks a node's *direct*
+    // children for a <_postponeRenderContainer> before adding
+    // deferUntilParentRendered (see component-sugar/dynamicChildren.ts). A
+    // <solution> nested inside a <problem> produces its own container, but
+    // it's not a direct child of <problem>, so <problem>'s <_dynamicChildren>
+    // must stay unaffected (no deferUntilParentRendered attribute).
+    it("Does not let an inner solution's postpone-render sugar affect an outer problem's dynamicChildren sugar", () => {
+        const source = "<problem><solution><p>hi</p></solution></problem>";
+        const dast = lezerToDast(source);
+        expect(toXml(normalizeDocumentDast(dast))).toEqual(
+            "<document><problem><solution><_postponeRenderContainer><p>hi</p></_postponeRenderContainer></solution><_dynamicChildren /></problem></document>",
+        );
+    });
+
     it("Adds error when answer type=videoWatched has non-reference video attribute", () => {
         const source = `<answer type="videoWatched" video="myVideo" />`;
         const dast = lezerToDast(source);
