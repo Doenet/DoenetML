@@ -183,7 +183,8 @@ noun-regular-polygon =
 # mechanism allows; what it cannot do is carry two, and
 # `borderStyleDescription` — the state variable that renders a border's style
 # on its own, with no preposition — therefore also comes out instrumental.
-# Fixing that properly means the code passing a case alongside the gender.
+# Fixing that properly means the code passing a case alongside the gender
+# (#1606).
 #
 # `background` faces the same fork and is resolved the other way: it stays
 # nominative, so `backgroundColor` reads right on its own and the «на … фоне»

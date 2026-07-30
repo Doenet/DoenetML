@@ -119,7 +119,7 @@ style-filled-with-noun =
 # The code appends this clause to the description with a plain space, which is
 # the one join no catalog owns, so Chinese gets a space it would not write:
 # 带圆点的蓝色填充圆 和红色边框. Closing it means the code passing the join to
-# the catalog the way it passes every other one.
+# the catalog the way it passes every other one (#1605).
 style-border-clause =
     { $parts ->
         [with-article] 带{ $border }边框
