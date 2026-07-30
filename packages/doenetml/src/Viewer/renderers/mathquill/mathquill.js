@@ -10447,18 +10447,18 @@ var Bracket = /** @class */ (function (_super) {
         this.checkCursorContextClose(ctx);
     };
     // DOENET: local patch to this vendored bundle -- preserve it when updating
-    // MathQuill from upstream.
-    // Brackets that LaTeX writes as a control sequence (`\langle`,
-    // `\rangle`, `\lVert`, `\rVert`) reach the parser through LatexCmds rather
-    // than through LatexCmds.left, so they arrive without the `\left` / `\right`
-    // that supplies their contents. MathCommand's inherited parser reads one
-    // block -- a braced group, or a single token when there are no braces --
-    // which is wrong for a delimiter: `\langle 2,3 \rangle` gave the bracket
-    // just `2` and then had no block left for `\rangle`, so the whole parse
-    // failed and the field rendered empty. Parse them the way typing them
-    // behaves instead -- an opening delimiter takes everything up to its
-    // matching closing delimiter, and stays one-sided when that delimiter never
-    // comes. (Char-typed brackets such as `(` are unaffected: they have no
+    // MathQuill from upstream. See Doenet/DoenetML#1336.
+    //
+    // The delimiters LaTeX writes as control sequences (`\langle`, `\rangle`,
+    // `\lVert`, `\rVert`) reach the parser through LatexCmds rather than through
+    // LatexCmds.left, so nothing has supplied their contents, and MathCommand's
+    // inherited parser gives them the one block an ordinary command takes -- a
+    // braced group, or a single token when there are no braces. So
+    // `\langle 2,3 \rangle` gave the bracket just `2` and left no block for
+    // `\rangle`, failing the parse of the whole expression and so rendering the
+    // field empty. Parse them the way typing them behaves instead: an opening
+    // delimiter takes everything up to its matching close, and stays one-sided
+    // when that close never comes. (Char-typed brackets such as `(` have no
     // LatexCmds entry and still parse as plain symbols.)
     Bracket.prototype.parser = function () {
         var self = this;
@@ -10472,10 +10472,10 @@ var Bracket = /** @class */ (function (_super) {
         }
         var closeParser = Parser.string(closeCtrlSeq);
         if (/[a-zA-Z]$/.test(closeCtrlSeq)) {
-            // Don't accept a longer command name that merely starts with the
-            // closing sequence, so `\ranglex` stays the unknown command it is.
-            // This is the `(?![a-zA-Z])` guard LatexCmds.left applies to
-            // `\right\rangle`.
+            // The `(?![a-zA-Z])` guard LatexCmds.left applies to
+            // `\right\rangle`: don't accept a longer command name that merely
+            // starts with the closing sequence, so `\ranglex` stays the unknown
+            // command it is.
             closeParser = closeParser.skip(Parser.regex(/^(?![a-zA-Z])/));
         }
         return latexMathParser.then(function (block) {
