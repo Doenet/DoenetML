@@ -329,6 +329,14 @@ matches-pattern-parameter-not-in-pattern =
        *[other] `<matchesPattern>`: the parameters { $parameters } do not occur in the pattern, so they will always match a blank.
     }
 
+## `<graph>`
+
+# Translators: grid is an attribute name and none, medium and dense are its
+# values; all four stay in English, as does the example. $grid is the value the
+# author wrote, reproduced verbatim — it reached this message precisely because
+# it was not one of the forms listed.
+graph-grid-invalid = `<graph>`: cannot interpret grid="{ $grid }". It must be none, medium, dense, or two positive numbers separated by a space, such as grid="1 0.5". No grid is drawn.
+
 ## PreFigure renderer
 
 # Translators: xLabelPosition, yLabelPosition and their values are attribute

@@ -1309,6 +1309,204 @@ describe("Graph tag tests @group2", async () => {
         ).eqls([((3 * Math.PI) / 5) * 2, ((1.5 * Math.E) / 6) * 3]);
     });
 
+    it("an unusable grid value warns instead of crashing", async () => {
+        // `grid` takes two positive numbers separated by a space. Everything
+        // here is a way of getting that wrong, including values whose pieces
+        // `me.fromText` cannot parse at all: `grid="(1, 2)"` splits on its
+        // space into `(1,` and `2)`, which used to throw out of the state
+        // variable and take down the whole document.
+        const unusableValues = [
+            "(1, 2)",
+            "(1,2) (3,4)",
+            "1, 2",
+            "0 1",
+            "1 -2",
+            "foo bar",
+            "1",
+            "",
+        ];
+
+        for (const gridValue of unusableValues) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<graph name="g" grid="${gridValue}" />`,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                    .grid,
+                `grid="${gridValue}"`,
+            ).eq("none");
+
+            const diagnostics = getDiagnosticsByType(core);
+            expect(diagnostics.errors.length, `grid="${gridValue}"`).eq(0);
+            expect(diagnostics.warnings.length, `grid="${gridValue}"`).eq(1);
+            expect(diagnostics.warnings[0].code, `grid="${gridValue}"`).eq(
+                "doenet-w0119",
+            );
+            expect(
+                diagnostics.warnings[0].message,
+                `grid="${gridValue}"`,
+            ).contain(`cannot interpret grid="${gridValue}"`);
+        }
+    });
+
+    it("a usable grid value warns about nothing", async () => {
+        // The value each of these resolves to is what the definition produced
+        // before it was refactored into a single product loop.
+        const usableValues: [string, string | number[]][] = [
+            ["none", "none"],
+            ["medium", "medium"],
+            ["dense", "dense"],
+            ["true", "medium"],
+            ["false", "none"],
+            ["MEDIUM", "medium"],
+            ["1 pi/2", [1, Math.PI / 2]],
+            ["  2   3  ", [2, 3]],
+            ["2/3 3/4", [2 / 3, 3 / 4]],
+        ];
+
+        for (const [gridValue, expectedGrid] of usableValues) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<graph name="g" grid="${gridValue}" />`,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                    .grid,
+                `grid="${gridValue}"`,
+            ).eqls(expectedGrid);
+
+            expect(
+                getDiagnosticsByType(core).warnings.length,
+                `grid="${gridValue}"`,
+            ).eq(0);
+        }
+
+        // A bare `grid` carries no value of its own, so it never reaches the
+        // pieces the definition splits apart. It is still `medium`.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<graph name="g" grid />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
+        ).eq("medium");
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("a grid value from a reference stays quiet", async () => {
+        // An unusable value coming from a reference is normally an input the
+        // reader has not filled in yet, so it must not warn on load — only a
+        // value the author spelled out in full does. A reference is also how a
+        // graph gets a grid the reader chooses, so an unusable one is not even
+        // reliably a mistake: `$ti` below is unusable until the reader types
+        // `dense` into it.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="gx" />
+    <mathInput name="gy" />
+    <graph name="g" grid="$gx $gy" />
+    <graph name="g2" grid="2$gx 3$gy" />
+    <textInput name="ti" />
+    <graph name="g3" grid="$ti" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
+        ).eq("none");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.grid,
+        ).eq("none");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
+        ).eq("none");
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        // Filling the inputs in still produces the grid it always did.
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("gx"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "1.5",
+            componentIdx: await resolvePathToNodeIdx("gy"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
+        ).eqls([3, 1.5]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.grid,
+        ).eqls([6, 4.5]);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        // A reader who types a value the graph cannot use gets no grid and
+        // still no warning: the mistake is not the author's to fix.
+        await updateMathInputValue({
+            latex: "-1",
+            componentIdx: await resolvePathToNodeIdx("gx"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
+        ).eq("none");
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        // A single reference is the one way an author gets a reader-chosen
+        // `none`/`medium`/`dense`, so it must not be reported as unusable just
+        // because it cannot be split into two spacings.
+        await updateTextInputValue({
+            text: "dense",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
+        ).eq("dense");
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("a grid the attribute cannot hold is not quoted back at the author", async () => {
+        // A `<point>` is not something a text attribute can hold, so it never
+        // reaches the grid definition: it is dropped from the attribute's
+        // children and from its value alike, leaving an empty value behind.
+        // Core already reports the attribute's format; quoting the remnant of
+        // the dropped child back as if the author had typed it would be a
+        // second warning saying something that was never written.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="p" /><graph name="g" grid="$p" />`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
+        ).eq("none");
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0106");
+        expect(warnings[0].message).contain(
+            "Invalid format for attribute grid of `<graph>`",
+        );
+    });
+
     it("correctly shadow references to number list grid", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
