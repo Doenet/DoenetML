@@ -135,12 +135,22 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             "contain.text",
             "left angle-bracket, , right angle-bracket",
         );
-        cy.get("#e .mq-root-block").should("have.text", "");
 
-        // Both delimiters are real, not the ghost half of a one-sided bracket.
-        cy.get("#v .mq-ghost").should("not.exist");
-        cy.get("#e .mq-ghost").should("not.exist");
+        // Both delimiters are drawn, and neither is the greyed ghost half of a
+        // one-sided bracket. Assert they are present as well as ungreyed: the
+        // empty field the bug produced draws no delimiter to be a ghost either,
+        // so "no ghost" on its own would have held for it too.
+        for (const name of ["v", "e"]) {
+            cy.get(`#${name} .mq-bracket-l`)
+                .should("exist")
+                .and("not.have.class", "mq-ghost");
+            cy.get(`#${name} .mq-bracket-r`)
+                .should("exist")
+                .and("not.have.class", "mq-ghost");
+        }
 
+        // The value was never the broken part -- only the rendered field was
+        // blank -- so this checks that the field and the value now agree.
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(

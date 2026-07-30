@@ -106,7 +106,11 @@ describe("MathQuill parses bracket delimiters written without \\left and \\right
             .should("exist")
             .and("not.have.class", "mq-ghost");
 
+        // The old parser drew this same real-left-and-ghost-right pair, so the
+        // greying alone says nothing here -- it put the pair around the `2`
+        // alone and left `,3` outside it. Assert what the bracket holds too.
         mountField("\\langle 2, 3");
+        cy.get(".mq-bracket-middle").should("have.text", "2,3");
         cy.get(".mq-bracket-l")
             .should("exist")
             .and("not.have.class", "mq-ghost");
