@@ -1,0 +1,148 @@
+import { describe, expect, it } from "vitest";
+import { getPrefigureXML, getWarnings } from "./graph-prefigure.helpers";
+import { prefigureGraph } from "./graph-prefigure.fixtures";
+
+/**
+ * Extracts the `<grid ... />` element from a generated diagram, or null when
+ * the diagram has none.
+ */
+function gridElement(prefigureXML: string | null): string | null {
+    return prefigureXML?.match(/<grid\b[^>]*\/>/)?.[0] ?? null;
+}
+
+describe("PreFigure grid @group4", () => {
+    it("no grid attribute emits no grid element", async () => {
+        const prefigureXML = await getPrefigureXML(prefigureGraph(""));
+
+        expect(gridElement(prefigureXML)).eq(null);
+    });
+
+    it('grid="none" emits no grid element', async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", { attrs: 'grid="none"' }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(null);
+    });
+
+    it("bare grid attribute uses PreFigure's own bbox-derived spacing", async () => {
+        // `grid` with no value resolves to "medium", which becomes a bare
+        // <grid />: with no spacings attribute PreFigure derives the spacing
+        // from the bounding box, so the grid follows the axis limits.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", { attrs: "grid" }),
+        );
+
+        expect(gridElement(prefigureXML)).eq("<grid />");
+    });
+
+    it('grid="medium" matches the bare grid attribute', async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", { attrs: 'grid="medium"' }),
+        );
+
+        expect(gridElement(prefigureXML)).eq("<grid />");
+    });
+
+    it("the grid is drawn behind the axes and the graph contents", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph('<point name="P">(1,2)</point>', {
+                attrs: "grid",
+            }),
+        );
+
+        expect(prefigureXML).eq(
+            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><grid /><axes axes="all" /><point at="point_0" p="(1,2)" style="circle" size="5" fill="#1f5dff" stroke="#1f5dff" fill-opacity="0.7" stroke-opacity="0.7" thickness="4" /></coordinates><annotations></annotations></diagram>`,
+        );
+    });
+
+    it('grid="dense" subdivides the spacing PreFigure would pick on its own', async () => {
+        // PreFigure's automatic spacing on (-10,10) is 2.5; "dense" adds
+        // JSXGraph's minor-tick lines, one every fifth of that.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", { attrs: 'grid="dense"' }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(
+            `<grid spacings="((-10,0.5,10),(-10,0.5,10))" />`,
+        );
+    });
+
+    it('grid="dense" follows the axis limits', async () => {
+        // Automatic spacing on a range of 2 is 0.25, so dense lines land every
+        // 0.05; on a range of 200 it is 25, so they land every 5.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", {
+                attrs: 'grid="dense" xMin="-1" xMax="1" yMin="-100" yMax="100"',
+            }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(
+            `<grid spacings="((-1,0.05,1),(-100,5,100))" />`,
+        );
+    });
+
+    it("two numbers set the x and y spacing explicitly", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", { attrs: 'grid="2 0.5"' }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(
+            `<grid spacings="((-10,2,10),(-10,0.5,10))" />`,
+        );
+    });
+
+    it("explicit spacings run between multiples of the spacing, not the bounds", async () => {
+        // The issue's example: pi/4 by 1/2 on a box whose corners are not
+        // multiples of either spacing.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", {
+                attrs: 'grid="pi/4 .5" xMin="-0.5" xMax="2" yMin="-0.5" yMax="1.5"',
+            }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(
+            `<grid spacings="((0,0.7853981633974483,1.5707963267949),(-0.5,0.5,1.5))" />`,
+        );
+    });
+
+    it("an axis with no multiple of its spacing in range contributes no lines", async () => {
+        // A spacing wider than the axis range: PreFigure needs a triple for
+        // both axes, so the x axis gets a single position below the bbox,
+        // which PreFigure skips.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", {
+                attrs: 'grid="7 1" xMin="1" xMax="6" yMin="-10" yMax="10"',
+            }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(
+            `<grid spacings="((-6,7,-6),(-10,1,10))" />`,
+        );
+    });
+
+    it("dark mode dims the grid stroke", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", { attrs: 'grid="1 1"' }),
+            "g",
+            { theme: "dark" },
+        );
+
+        expect(gridElement(prefigureXML)).eq(
+            `<grid spacings="((-10,1,10),(-10,1,10))" stroke="#666666" />`,
+        );
+    });
+
+    it("a spacing too fine for the axis limits drops the grid with a warning", async () => {
+        const doenetML = prefigureGraph("", { attrs: 'grid="0.001 1"' });
+
+        expect(gridElement(await getPrefigureXML(doenetML))).eq(null);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes("grid spacing is too fine"),
+            ),
+        ).eq(true);
+    });
+});

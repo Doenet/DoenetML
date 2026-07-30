@@ -46,6 +46,28 @@ describe("Graph prefigure renderer live validation @group4", () => {
                     ),
                     expectText: "regionBetweenCurves",
                 },
+                {
+                    doenetML: prefigureGraph("", { attrs: "grid" }),
+                    expectText: "grid (automatic spacing)",
+                },
+                {
+                    doenetML: prefigureGraph("", { attrs: 'grid="dense"' }),
+                    expectText: "grid (dense)",
+                },
+                {
+                    doenetML: prefigureGraph("", {
+                        attrs: 'grid="pi/4 .5" xMin="-0.5" xMax="2" yMin="-0.5" yMax="1.5"',
+                    }),
+                    expectText: "grid (authored spacings)",
+                },
+                {
+                    // A spacing wider than the x range, so that axis lands
+                    // entirely outside the bounding box.
+                    doenetML: prefigureGraph("", {
+                        attrs: 'grid="7 1" xMin="1" xMax="6"',
+                    }),
+                    expectText: "grid (no x lines in range)",
+                },
             ];
 
             for (const c of cases) {

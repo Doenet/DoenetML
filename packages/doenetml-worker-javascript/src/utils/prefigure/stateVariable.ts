@@ -228,6 +228,10 @@ function prefigureBaseDependencies() {
             dependencyType: "stateVariable",
             variableName: "aspectRatio",
         },
+        grid: {
+            dependencyType: "stateVariable",
+            variableName: "grid",
+        },
         displayXAxis: {
             dependencyType: "stateVariable",
             variableName: "displayXAxis",

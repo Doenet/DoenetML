@@ -10,6 +10,8 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
   - Label rendering concerns: plain text vs latex, `\(...\)` delimiter replacement, line endpoint orientation, and line/vector label positioning helpers.
 - `style.js`
   - Style translation from Doenet selected styles to PreFigure attributes.
+- `grid.js`
+  - The `grid` attribute translated to PreFigure's `<grid>`, including a port of PreFigure's own automatic-spacing algorithm (`find_gridspacing()` in `prefig/core/grid_axes.py`) so `grid="dense"` subdivides the spacing PreFigure would have chosen. Keep it in step with that function.
 - `components/`
   - Component-specific geometry converters (point, line-like, vector, circle, polygon/polyline, angle).
 - `descendant.js`

@@ -343,6 +343,9 @@ prefigure-invalid-width = `<graph>`: invalid width for prefigure conversion; usi
 
 prefigure-invalid-aspect-ratio = `<graph>`: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.
 
+# Translators: grid is an attribute name and stays in English.
+prefigure-grid-spacing-too-fine = `<graph>`: the grid spacing is too fine for the axis limits to draw in the prefigure renderer; grid omitted.
+
 prefigure-annotations-not-rendered = `<graph>`: annotations will not be rendered when not using the PreFigure renderer.
 
 multiple-annotations-children = Multiple `<annotations>` children found in `<graph>`; all but the last one are ignored.
