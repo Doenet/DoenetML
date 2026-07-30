@@ -48,6 +48,28 @@ export const SUPPORTED_LOCALES_FILE = path.join(
     "supportedLocales.ts",
 );
 
+/** The module whose glob decides which catalogs are code-split. */
+export const LOAD_MODULE_FILE = path.join(PACKAGE_ROOT, "src", "load.ts");
+
+/** `!../locales/<locale>/*.ftl` inside the lazy-catalog glob. */
+const GLOB_EXCLUSION_PATTERN = /"!\.\.\/locales\/([^/"]+)\/\*\.ftl"/g;
+
+/**
+ * The locales `load.ts` excludes from its lazy-catalog glob.
+ *
+ * Read out of the source text because a glob pattern is resolved at build time
+ * and cannot be derived from a runtime list. That is the whole reason this
+ * needs checking: the exclusions have to be spelled out, and spelled-out lists
+ * drift. They are meant to be exactly the locales already inlined, so
+ * `lint:i18n` compares them against `BUNDLED_LOCALES`.
+ */
+export function lazyGlobExclusions(): string[] {
+    const source = fs.readFileSync(LOAD_MODULE_FILE, "utf8");
+    return [...source.matchAll(GLOB_EXCLUSION_PATTERN)]
+        .map((match) => match[1])
+        .sort();
+}
+
 export type CatalogKey = {
     key: string;
     namespace: string;

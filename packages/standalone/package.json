@@ -62,7 +62,8 @@
                 "dist/**/*.d.ts",
                 "dist/**/*.json",
                 "dist/**/*.css",
-                "dist/fonts/**/*"
+                "dist/fonts/**/*",
+                "dist/locales/**/*"
             ],
             "dependencies": [
                 "../doenetml:build"

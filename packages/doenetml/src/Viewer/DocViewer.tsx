@@ -52,6 +52,7 @@ import {
     ContentI18nProvider,
     I18nProvider,
     useChromeTranslator,
+    useLocaleCatalogs,
 } from "../utils/i18n";
 import {
     localizeDiagnostics,
@@ -563,18 +564,33 @@ export function DocViewer({
         uiLocale,
         effectiveDocumentLocale,
     );
+    // Catalogs for the two languages actually in play, which is knowable only
+    // here: an authored `<document lang>` is not in the props, so this is
+    // where a code-split catalog for it gets loaded. Everything below reads
+    // `availableCatalogs` rather than the prop — including the core, which is
+    // handed them as `LocaleData.resources`.
+    //
+    // A catalog that arrives after the first paint re-keys this map, and the
+    // core-rebuild check below treats that the same as a changed
+    // `documentLocale`. That rebuild is the price of a language nobody named
+    // until the source was parsed; a language named in the props is loaded
+    // before `DocViewer` ever mounts, by the hook in `doenetml.tsx`.
+    const availableCatalogs = useLocaleCatalogs(
+        [effectiveUiLocale, effectiveDocumentLocale],
+        localeResources,
+    );
     // Bound to `translate` rather than a more descriptive name on purpose:
     // `lint:i18n` only recognizes call sites through a translator named `t` or
     // `translate`, so a key reached from here would otherwise read as an
     // orphan.
-    const translate = useChromeTranslator(effectiveUiLocale, localeResources);
+    const translate = useChromeTranslator(effectiveUiLocale, availableCatalogs);
     // The same catalogs negotiated against the *content's* language, for a
     // control the core already writes part of — see `useContentT`. Built from
     // `effectiveDocumentLocale`, the tag the core itself was handed, so the
     // words this renders and the words the worker computed cannot disagree.
     const translateContent = useChromeTranslator(
         effectiveDocumentLocale,
-        localeResources,
+        availableCatalogs,
     );
     const formatDiagnostic = useDiagnosticFormatter(
         translate,
@@ -968,7 +984,7 @@ export function DocViewer({
             documentStructureCallback,
             fetchExternalDoenetML,
             documentLocale,
-            localeResources,
+            localeResources: availableCatalogs,
         });
         setEffectiveDocumentLocale(result.resolvedDocumentLocale);
         return result;
@@ -2110,8 +2126,10 @@ export function DocViewer({
     }
 
     // Compared by *which locales* arrived, not by their contents — see
-    // `localeResourceKey`.
-    const resourceKey = localeResourceKey(localeResources);
+    // `localeResourceKey`. Keyed off the merged map rather than the prop, so a
+    // catalog that finished loading after the core was created rebuilds it
+    // with that language on hand.
+    const resourceKey = localeResourceKey(availableCatalogs);
     if (lastLocaleResourceKey.current !== resourceKey) {
         lastLocaleResourceKey.current = resourceKey;
         changedState = true;

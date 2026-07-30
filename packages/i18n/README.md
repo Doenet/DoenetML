@@ -76,9 +76,14 @@ Spanish is inlined the same way, so `uiLocale="es"` and `documentLocale="es"`
 both work with no host configuration. `bundledResources(namespaces)` is what
 assembles those catalogs for a context, and both `createChromeTranslator` and
 `createTranslatorFromLocaleData` merge host-supplied `localeResources` over
-them (the host's copy wins for a locale that exists in both). Inlining does not
-scale, and additional locales are still meant to arrive as modules the host
-loads and passes in; revisit when the count reaches a handful.
+them (the host's copy wins for a locale that exists in both).
+
+Every other locale is **loaded on demand** — see [Delivery](#delivery). At
+roughly 17 KB gzipped per translation across the chrome namespaces, inlining
+does not scale past the two locales that earn it: English because every
+fallback chain ends there, Spanish because it is the one reviewed translation
+and because being inlined is what lets an authored `<document lang="es">`
+build the core exactly once.
 
 Note that `content` and `diagnostics` answer to *different* settings —
 `documentLocale` and `uiLocale` respectively — which is why `WORKER_NAMESPACES`
@@ -118,6 +123,61 @@ Neither list is exhaustive from an author's point of view: a deployment can
 hand over catalogs of its own as `localeResources`, which no build-time list
 can know about. So the roster *suggests* and never *enforces* — `lang` accepts
 any BCP-47 tag, and an unlisted one draws no diagnostic.
+
+## Delivery
+
+A locale that is not inlined still has to reach the browser. `load.ts` does
+that, and the viewer calls it for you: `useLocaleCatalogs` (in
+`@doenet/doenetml`'s `utils/i18n.tsx`) loads the catalogs for whatever tags are
+in play and merges them *under* the host's `localeResources`, so a deployment
+correcting a shipped translation still wins. Adding `locales/de/` is therefore
+the whole job — `documentLocale="de"` and `<document lang="de">` both work with
+nothing configured and nothing registered.
+
+```ts
+// What the viewer does. Returns {} for English, for a bundled locale, and for
+// a locale nothing offers a catalog for — never throws, never rejects.
+const resources = await loadLocaleResources("de-AT", CHROME_NAMESPACES);
+// → { de: "<chrome + diagnostics + editor, concatenated>" }
+```
+
+The tag is negotiated the usual way, so `de-AT` loads `de` and comes back keyed
+`de` — the key the fallback chain looks for. The namespaces are a parameter
+because the worker renders `content` alone and should not move four catalogs to
+get one. Requests are cached by what was asked for, so N viewers on a page
+share one fetch.
+
+Where the catalogs come from depends on the build, and the difference is real
+rather than cosmetic:
+
+| Build                              | Mechanism                                        |
+| ---------------------------------- | ------------------------------------------------ |
+| `@doenet/doenetml` (and the iframe component build) | `import.meta.glob` — one code-split chunk per catalog |
+| `@doenet/standalone`               | `fetch` from `dist/locales/`, served beside the bundle |
+| `@doenet/doenetml-worker`          | Neither: it is handed `LocaleData.resources`      |
+
+The glob is what makes adding a language cost a directory. It is also why the
+two single-file builds need a different answer: `inlineDynamicImports` folds
+every dynamic import back into the one output file, so code-splitting cannot
+keep catalogs out of them — and *being reachable is enough*, whether or not
+anything calls it. Both therefore define `__DOENET_CODE_SPLIT_CATALOGS__`
+false, which makes the glob dead code. The standalone build then copies
+`locales/` into `dist/` (`copyLocaleCatalogsPlugin`) and installs
+`fetchLocaleLoaders` against it in `src/index.tsx`; the worker needs no
+replacement at all, because the main thread loads its catalog and passes it
+across. `packages/standalone/scripts/check-bundle-size.mjs` fails the build if
+a served catalog turns up inside an emitted script, or if `dist/locales/` is
+missing one.
+
+Two lists have to agree for any of this to hold, and `lint:i18n` checks that
+they do: the locales excluded from the glob in `load.ts` are exactly
+`BUNDLED_LOCALES`. A bundled locale left in the glob is imported both
+statically and dynamically, never gets its own chunk, and makes Rollup warn on
+every build; an unbundled one excluded from it can never be loaded at all.
+
+A host with a translation of its own has two ways in, and they compose: pass it
+as `localeResources` (highest precedence, no loading involved), or serve it and
+call `setLocaleLoaders(fetchLocaleLoaders(url))`.
 
 ## Keys
 

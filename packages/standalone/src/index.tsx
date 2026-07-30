@@ -15,6 +15,7 @@ import type {
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import { getStylePalettes, getStylePalette } from "@doenet/utils";
 import type { StylePaletteInfo } from "@doenet/utils";
+import { fetchLocaleLoaders, setLocaleLoaders } from "@doenet/i18n";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { ResizeWatcher } from "./resize-watcher";
@@ -33,6 +34,23 @@ export { getStylePalettes, getStylePalette };
 export type { StylePaletteInfo };
 
 export const version: string = STANDALONE_VERSION;
+
+// Message catalogs beyond the bundled ones are served next to this file, not
+// inside it: a single-file bundle inlines every dynamic import, so the
+// code-splitting the library build relies on would put all of `locales/` in
+// here. The build copies `locales/` into `dist/` and switches the code-split
+// path off (`__DOENET_CODE_SPLIT_CATALOGS__`); this points the viewer at that
+// copy, resolved against the bundle's own URL the same way the core worker is.
+//
+// A host that serves this bundle without `locales/` beside it loses nothing it
+// has today: those fetches fail quietly and every locale falls back to English.
+//
+// The path is held in a constant rather than written inline because Vite reads
+// a literal `new URL(..., import.meta.url)` as an asset reference and warns
+// that the target does not exist at build time. It does not — the build copies
+// it in afterwards — so the reference has to stay unanalyzed.
+const LOCALES_PATH = "./locales/";
+setLocaleLoaders(fetchLocaleLoaders(new URL(LOCALES_PATH, import.meta.url)));
 
 // Parent-page coordinator support (see coordinated-mode.ts): when this
 // page's URL carries the coordinator's fragment token, viewers rendered

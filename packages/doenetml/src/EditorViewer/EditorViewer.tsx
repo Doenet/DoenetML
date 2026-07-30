@@ -41,7 +41,12 @@ import { EditorSelection, type Extension } from "@codemirror/state";
 import type { Completion } from "@codemirror/autocomplete";
 import { doenetGlobalConfig } from "../global-config";
 import type { DiagnosticArgs } from "@doenet/i18n";
-import { I18nProvider, useChromeTranslator, useUiLocale } from "../utils/i18n";
+import {
+    I18nProvider,
+    useChromeTranslator,
+    useLocaleCatalogs,
+    useUiLocale,
+} from "../utils/i18n";
 import { useDiagnosticFormatter } from "../utils/diagnostics";
 import type {
     DiagnosticPresentation,
@@ -534,10 +539,18 @@ export const EditorViewer = React.forwardRef<
     const [viewerUiLocale, setViewerUiLocale] = useState<string | null>(null);
     const hostUiLocale = useUiLocale();
     const editorLocale = viewerUiLocale ?? hostUiLocale;
+    // `editorLocale` can be a language the props never named — the viewer
+    // reports it back after parsing an authored `<document lang>` — so the
+    // catalog for it is loaded here rather than only at the props. The load is
+    // shared with the viewer's, which asked for the same tag.
+    const availableCatalogs = useLocaleCatalogs(
+        [editorLocale],
+        localeResources,
+    );
     // Bound to `translate` on purpose: `lint:i18n` only recognizes call sites
     // through a translator named `t` or `translate`, so the keys reached below
     // would otherwise read as orphans.
-    const translate = useChromeTranslator(editorLocale, localeResources);
+    const translate = useChromeTranslator(editorLocale, availableCatalogs);
     const formatDiagnostic = useDiagnosticFormatter(translate, editorLocale);
 
     const accessibilityHeadings = useMemo(

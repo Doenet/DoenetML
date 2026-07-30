@@ -1,9 +1,17 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import {
     createChromeTranslator,
+    loadLocaleResourcesFor,
     localeResourceKey,
     resolveDocumentLocale,
     resolveUiLocale,
+    CATALOG_NAMESPACES,
     DEFAULT_LOCALE,
     EN_CHROME_TRANSLATOR,
     type Translator,
@@ -26,6 +34,78 @@ const I18nContext = createContext<{ translate: Translator; locale: string }>({
     translate: EN_CHROME_TRANSLATOR,
     locale: DEFAULT_LOCALE,
 });
+
+/**
+ * The catalogs available for a set of locales: whatever the host supplied,
+ * plus whatever this build can code-split in for the tags actually asked for.
+ *
+ * Every locale beyond `BUNDLED_LOCALES` arrives this way, which is what lets
+ * `documentLocale="fr"` and `<document lang="fr">` work with nothing
+ * configured. A host that supplies a catalog of its own still wins: its map is
+ * merged last, so a deployment can correct a shipped translation.
+ *
+ * Returns the host's map *by identity* until something has actually loaded.
+ * Downstream compares catalogs by `localeResourceKey`, and `DocViewer` rebuilds
+ * the core when that key changes — so handing back a fresh object each render,
+ * or an empty one before the host's arrives, would rebuild the core for nothing.
+ *
+ * Loaded catalogs accumulate rather than being replaced. A viewer whose locale
+ * changes and changes back should not pay for the same catalog twice, and a
+ * stale entry costs only the negotiation passing it over.
+ *
+ * @param locales The tags in play — the content's and the reader's, which need
+ *   not agree. Blanks, repeats and English are ignored.
+ * @param hostResources Catalogs the embedding page supplied.
+ */
+export function useLocaleCatalogs(
+    locales: (string | null | undefined)[],
+    hostResources?: Record<string, string> | null,
+): Record<string, string> | null | undefined {
+    const [loaded, setLoaded] = useState<Record<string, string>>({});
+
+    const hostKey = localeResourceKey(hostResources);
+    // The locales as a scalar, so the effect re-runs when *which* languages
+    // are wanted changes rather than on every render that rebuilds the array.
+    const wantedKey = [...new Set(locales.filter(Boolean))].sort().join(",");
+
+    useEffect(() => {
+        let cancelled = false;
+        loadLocaleResourcesFor(locales, CATALOG_NAMESPACES, {
+            available: Object.keys(hostResources ?? {}),
+        })
+            .then((resources) => {
+                if (cancelled || Object.keys(resources).length === 0) {
+                    return;
+                }
+                setLoaded((previous) => {
+                    const next = { ...previous, ...resources };
+                    // Same locales as before means nothing downstream needs to
+                    // know, and re-keying would rebuild the core.
+                    return localeResourceKey(next) ===
+                        localeResourceKey(previous)
+                        ? previous
+                        : next;
+                });
+            })
+            .catch(() => {
+                // A catalog that cannot be fetched leaves the locale falling
+                // back to English, which is what an untranslated locale does
+                // anyway. Nothing here is worth failing a render over.
+            });
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [wantedKey, hostKey]);
+
+    return useMemo(() => {
+        if (Object.keys(loaded).length === 0) {
+            return hostResources;
+        }
+        return { ...loaded, ...hostResources };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loaded, hostKey]);
+}
 
 /**
  * Build the chrome translator for a resolved UI locale.

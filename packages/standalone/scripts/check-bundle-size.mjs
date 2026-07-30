@@ -51,6 +51,21 @@ const DIST_DIR = path.join(PACKAGE_ROOT, "dist");
  */
 export const WASM_CORE_SCRIPT = "dist/doenetml-worker/index.js";
 
+/** `@doenet/i18n`'s catalogs, which this bundle serves rather than carries. */
+const I18N_ROOT = path.resolve(PACKAGE_ROOT, "..", "i18n");
+const LOCALES_DIR = path.join(I18N_ROOT, "locales");
+const LOAD_MODULE_FILE = path.join(I18N_ROOT, "src", "load.ts");
+/** `!../locales/<locale>/*.ftl` — the locales that are inlined, not served. */
+const GLOB_EXCLUSION_PATTERN = /"!\.\.\/locales\/([^/"]+)\/\*\.ftl"/g;
+/** `key = value` at the top level of an FTL catalog. */
+const FTL_MESSAGE_PATTERN = /^([a-z0-9-]+) = (.+)$/gm;
+/**
+ * How long a translated string has to be before it is trusted to identify its
+ * catalog. Short ones ("Total", "OK") are shared across languages often enough
+ * to raise a false alarm.
+ */
+const PROBE_MIN_LENGTH = 16;
+
 /** A base64 run long enough that nothing but an embedded binary explains it. */
 const BIG_BLOB_MIN = 1_000_000;
 const WASM_URI = /data:application\/wasm;base64/g;
@@ -92,6 +107,80 @@ function mib(bytes) {
     return `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
 }
 
+function readMessages(file) {
+    if (!fs.existsSync(file)) {
+        return new Map();
+    }
+    const source = fs.readFileSync(file, "utf-8");
+    return new Map(
+        [...source.matchAll(FTL_MESSAGE_PATTERN)].map((m) => [m[1], m[2]]),
+    );
+}
+
+/**
+ * A distinctive string from each *served* locale's catalogs.
+ *
+ * The served locales are every catalog directory `@doenet/i18n` does not
+ * inline, read from the exclusion list in its lazy-catalog glob — the same
+ * list `lint:i18n` holds to the inlined set, so this cannot drift from it
+ * independently.
+ *
+ * A probe has to be long enough, and has to differ from the English it
+ * translates: a translation that happens to reuse the English word would
+ * otherwise match the English catalog, which is legitimately inlined here, and
+ * report a leak on every build.
+ *
+ * A locale that yields no such string simply gets no probe. That is the right
+ * failure mode for a catalog too close to English to fingerprint — better than
+ * a check that cries wolf, since the size budget still covers the general case.
+ *
+ * @returns `[locale, probe]` pairs.
+ */
+export function collectCatalogProbes(
+    localesDir = LOCALES_DIR,
+    loadModuleFile = LOAD_MODULE_FILE,
+) {
+    if (!fs.existsSync(localesDir) || !fs.existsSync(loadModuleFile)) {
+        return [];
+    }
+    const inlined = new Set(
+        [
+            ...fs
+                .readFileSync(loadModuleFile, "utf-8")
+                .matchAll(GLOB_EXCLUSION_PATTERN),
+        ].map((match) => match[1]),
+    );
+    const probes = [];
+    for (const entry of fs.readdirSync(localesDir, { withFileTypes: true })) {
+        if (!entry.isDirectory() || inlined.has(entry.name)) {
+            continue;
+        }
+        for (const namespace of [
+            "diagnostics",
+            "chrome",
+            "editor",
+            "content",
+        ]) {
+            const english = readMessages(
+                path.join(localesDir, "en", `${namespace}.ftl`),
+            );
+            const translated = readMessages(
+                path.join(localesDir, entry.name, `${namespace}.ftl`),
+            );
+            const probe = [...translated].find(
+                ([key, value]) =>
+                    value.length >= PROBE_MIN_LENGTH &&
+                    value !== english.get(key),
+            );
+            if (probe) {
+                probes.push([entry.name, probe[1]]);
+                break;
+            }
+        }
+    }
+    return probes;
+}
+
 /**
  * Every emitted script under `dist/`, keyed by its path relative to the
  * package root (matching the keys in `bundle-budgets.json`).
@@ -102,7 +191,7 @@ function mib(bytes) {
  * own (an inlined SVG webfont) that the blob heuristic cannot tell apart from
  * wasm. Only a script can actually execute a duplicated Rust core.
  */
-function collectEmittedScripts() {
+function collectEmittedScripts(probes = []) {
     const scripts = new Map();
     if (!fs.existsSync(DIST_DIR)) {
         return scripts;
@@ -127,6 +216,9 @@ function collectEmittedScripts() {
             size: buffer.length,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
             bigBlobs: countBigBlobs(contents),
+            inlinedCatalogs: probes
+                .filter(([, probe]) => contents.includes(probe))
+                .map(([locale]) => locale),
         });
     }
     return scripts;
@@ -277,6 +369,26 @@ export function findProblems(budgets, scripts) {
             problems.push(blobPlacementProblem(relative, emitted, expected));
         }
     }
+    // Catalogs this bundle is supposed to serve, not carry. Being one file, it
+    // cannot code-split them the way the library build does, so it switches
+    // `__DOENET_CODE_SPLIT_CATALOGS__` off and fetches `dist/locales/` at
+    // runtime instead. Anything that makes the glob reachable again — a define
+    // that stops being applied, a new eager import of a catalog — puts every
+    // translation back in here, and the size budget alone would absorb it for
+    // a long time.
+    for (const [relative, emitted] of scripts) {
+        const leaked = emitted.inlinedCatalogs ?? [];
+        if (leaked.length > 0) {
+            problems.push(
+                `${relative} carries the message catalogs for [${leaked.join(", ")}], which\n` +
+                    `    this bundle is supposed to serve from dist/locales/ rather than inline.\n` +
+                    `    Check that __DOENET_CODE_SPLIT_CATALOGS__ is still defined false in\n` +
+                    `    packages/standalone/vite.config.ts, and that nothing imports a catalog\n` +
+                    `    statically.`,
+            );
+        }
+    }
+
     // An unbuilt `dist/` has no scripts to check, and the budget loop above has
     // already said to build; only complain about the core going missing once
     // there is a build to complain about.
@@ -293,8 +405,22 @@ export function findProblems(budgets, scripts) {
 
 function main() {
     const budgets = loadBudgets();
-    const scripts = collectEmittedScripts();
+    const probes = collectCatalogProbes();
+    const scripts = collectEmittedScripts(probes);
     const { report, problems } = findProblems(budgets, scripts);
+
+    // The other half of the same arrangement: a served catalog nobody copied
+    // is a language that silently falls back to English, which no size check
+    // would ever notice.
+    for (const [locale] of probes) {
+        if (!fs.existsSync(path.join(DIST_DIR, "locales", locale))) {
+            problems.push(
+                `dist/locales/${locale}/ was not emitted, so that language cannot be\n` +
+                    `    fetched and would fall back to English. It is copied there by\n` +
+                    `    copyLocaleCatalogsPlugin in packages/standalone/vite.config.ts.`,
+            );
+        }
+    }
 
     console.log("standalone bundle sizes:");
     console.log(report.join("\n"));

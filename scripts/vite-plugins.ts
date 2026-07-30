@@ -2,6 +2,8 @@ import { PluginOption } from "vite";
 import { transform } from "esbuild";
 import remapping, { type SourceMapInput } from "@jridgewell/remapping";
 import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const PREFIGURE_DIST_ASSET_JS_RE =
     /(^|\/)packages\/prefigure\/dist\/assets\/.+\.js$/;
@@ -177,6 +179,38 @@ export function prefigureDynamicImportIgnorePlugin(): PluginOption {
                 code: rewrittenCode,
                 map: null,
             };
+        },
+    };
+}
+
+/**
+ * Copy the message catalogs into a build's output, for a bundle that serves
+ * them rather than carrying them.
+ *
+ * `@doenet/i18n` code-splits every non-inlined catalog into its own chunk, but
+ * a single-file build (`inlineDynamicImports`) folds those chunks straight back
+ * in. Such a build sets `__DOENET_CODE_SPLIT_CATALOGS__` false to make the
+ * splitting path dead code and calls `setLocaleLoaders(fetchLocaleLoaders(…))`
+ * against the copy this plugin leaves beside the bundle.
+ *
+ * `fs.cpSync` rather than a `viteStaticCopy` target: that plugin copies its
+ * targets concurrently and races itself creating the nested `locales/<tag>/`
+ * directories.
+ *
+ * @param outDir Build output directory. `locales/` is written inside it.
+ */
+export function copyLocaleCatalogsPlugin(outDir: string): PluginOption {
+    return {
+        name: "doenet-copy-locale-catalogs",
+        apply: "build",
+        closeBundle() {
+            const source = path.resolve(
+                path.dirname(fileURLToPath(import.meta.url)),
+                "../packages/i18n/locales",
+            );
+            fs.cpSync(source, path.join(outDir, "locales"), {
+                recursive: true,
+            });
         },
     };
 }

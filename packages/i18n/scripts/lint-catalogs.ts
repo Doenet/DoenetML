@@ -18,6 +18,7 @@
 import fs from "node:fs";
 
 import { CATALOG_NAMESPACES } from "../src/namespaces";
+import { BUNDLED_LOCALES } from "../src/bundled";
 import { DEFAULT_LOCALE } from "../src/catalogs";
 import {
     DIAGNOSTIC_CODES,
@@ -35,6 +36,7 @@ import {
     collectDiagnosticUsage,
     remainingLiteralDiagnostics,
     collectLocaleKeys,
+    lazyGlobExclusions,
     listLocales,
     mergeDiagnosticCodesLock,
     readCatalog,
@@ -130,6 +132,20 @@ const actualLocales = fs.existsSync(SUPPORTED_LOCALES_FILE)
 if (actualLocales !== expectedLocales) {
     problems.push(
         "src/generated/supportedLocales.ts is out of date — run `npm run codegen -w @doenet/i18n`",
+    );
+}
+
+// 4c: the lazy-catalog glob excludes exactly the locales that are inlined.
+//
+// Neither way round is harmless. A bundled locale left in the glob is imported
+// both statically and dynamically, so it never gets its own chunk and Rollup
+// warns on every build; an unbundled one excluded from it can never be loaded
+// at all, and would fall back to English with nothing to say why.
+const excludedFromGlob = lazyGlobExclusions();
+const inlinedLocales = [...BUNDLED_LOCALES].sort();
+if (excludedFromGlob.join(",") !== inlinedLocales.join(",")) {
+    problems.push(
+        `src/load.ts: the lazy-catalog glob excludes [${excludedFromGlob.join(", ")}] but the inlined locales are [${inlinedLocales.join(", ")}] — the two lists have to match`,
     );
 }
 

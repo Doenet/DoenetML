@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import {
     WASM_CORE_SCRIPT,
+    collectCatalogProbes,
     countBigBlobs,
     findProblems,
     loadBudgets,
@@ -216,5 +217,88 @@ describe("the committed bundle-budgets.json", () => {
         expect(budgets.map(([relative]) => relative)).toContain(
             WASM_CORE_SCRIPT,
         );
+    });
+});
+
+describe("collectCatalogProbes", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "catalog-probes-"));
+    afterAll(() => fs.rmSync(tmpDir, { recursive: true, force: true }));
+
+    /**
+     * Lay out a throwaway `locales/` beside a `load.ts` whose glob excludes
+     * `inlined`, and collect the probes for it.
+     */
+    function probesFor(catalogs, inlined, name) {
+        const root = path.join(tmpDir, name);
+        for (const [locale, namespaces] of Object.entries(catalogs)) {
+            const dir = path.join(root, "locales", locale);
+            fs.mkdirSync(dir, { recursive: true });
+            for (const [namespace, source] of Object.entries(namespaces)) {
+                fs.writeFileSync(path.join(dir, `${namespace}.ftl`), source);
+            }
+        }
+        const loadFile = path.join(root, "load.ts");
+        fs.writeFileSync(
+            loadFile,
+            inlined
+                .map((locale) => `"!../locales/${locale}/*.ftl",`)
+                .join("\n"),
+        );
+        return collectCatalogProbes(path.join(root, "locales"), loadFile);
+    }
+
+    const EN = { chrome: "greeting = Hello there, welcome along\n" };
+
+    it("fingerprints a locale that is served rather than inlined", () => {
+        expect(
+            probesFor(
+                { en: EN, fr: { chrome: "greeting = Bonjour et bienvenue\n" } },
+                ["en"],
+                "served",
+            ),
+        ).toEqual([["fr", "Bonjour et bienvenue"]]);
+    });
+
+    it("ignores a locale that is inlined, whose strings belong in the bundle", () => {
+        expect(
+            probesFor(
+                { en: EN, es: { chrome: "greeting = Hola y bienvenido\n" } },
+                ["en", "es"],
+                "inlined",
+            ),
+        ).toEqual([]);
+    });
+
+    it("skips a translation that reuses the English, which cannot be told apart", () => {
+        expect(probesFor({ en: EN, fr: EN }, ["en"], "identical")).toEqual([]);
+    });
+
+    it("skips a string too short to be a reliable fingerprint", () => {
+        expect(
+            probesFor(
+                {
+                    en: { chrome: "ok = Okay\n" },
+                    fr: { chrome: "ok = Bien\n" },
+                },
+                ["en"],
+                "short",
+            ),
+        ).toEqual([]);
+    });
+
+    it("falls back to another namespace when the first has nothing usable", () => {
+        expect(
+            probesFor(
+                {
+                    en: { chrome: "ok = Okay\n", ...EN },
+                    fr: {
+                        chrome: "ok = Bien\n",
+                        content: "note = Une note assez longue\n",
+                    },
+                },
+                ["en"],
+                "namespace-fallback",
+            ),
+        ).toEqual([["fr", "Une note assez longue"]]);
     });
 });
