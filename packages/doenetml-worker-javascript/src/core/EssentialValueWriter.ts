@@ -589,10 +589,22 @@ export class EssentialValueWriter {
                           component,
                       );
 
-            if (stateVarObj.isArray && desiredValue instanceof me.class) {
-                desiredValue = spreadMathOverWholeArray(
-                    inverseDefinitionArgs.arraySize,
+            // An instruction targeting a whole array — e.g.
+            // `<updateValue target="$v.tail" newValue="(7,8)" />` — carries a
+            // single math expression rather than one value per array key, so
+            // spread its components over the keys. Only one-dimensional arrays
+            // qualify: there, component `ind` of the expression is the value
+            // for array key `ind`.
+            if (
+                stateVarObj.isArray &&
+                stateVarObj.numDimensions === 1 &&
+                desiredValue instanceof me.class
+            ) {
+                desiredValue = spreadMathOverArrayKeys(
                     desiredValue,
+                    stateVarObj.getAllArrayKeys(
+                        inverseDefinitionArgs.arraySize,
+                    ),
                 );
             }
 
@@ -1496,27 +1508,6 @@ function spreadMathOverArrayKeys(
         }
     }
     return desiredValuesForArray;
-}
-
-/**
- * Spread a math expression across every array key of an array state variable
- * of size `arraySize`. Reached when an update instruction targets a whole
- * array — e.g. `<updateValue target="$v.tail" newValue="(7,8)" />` — so the
- * new value arrives as a single expression rather than one entry per array
- * key.
- *
- * Multidimensional arrays have no unambiguous component-to-key mapping, so
- * their value is passed through untouched.
- */
-function spreadMathOverWholeArray(arraySize: number[], value: any) {
-    if (arraySize.length !== 1) {
-        return value;
-    }
-
-    const arrayKeys = Array.from({ length: arraySize[0] }, (_, ind) =>
-        String(ind),
-    );
-    return spreadMathOverArrayKeys(value, arrayKeys);
 }
 
 /**

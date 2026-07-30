@@ -60,6 +60,28 @@ An `<updateValue>{:dn}` is used to change the value of a `<number>{:dn}` based o
 
 
 
+---
+
+### Example: Move the tail of a `<vector>{:dn}`
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>A graph of a vector</shortDescription>
+  <vector name="v" tail="(1,1)" head="(4,3)"/>
+</graph>
+
+<updateValue target="$v.tail" newValue="(-3,-2)">
+  <label>Move tail</label>
+</updateValue>
+```
+
+
+
+An `<updateValue>{:dn}` can also set a property that holds a whole list of coordinates, such as a vector's `tail`. The coordinates of `newValue` are distributed across the property, so a single `<updateValue>{:dn}` moves the whole tail at once.
+
+
+
 ## Attribute Examples
 
 ### Attribute Example: target
