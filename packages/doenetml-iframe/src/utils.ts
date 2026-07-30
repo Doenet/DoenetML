@@ -112,10 +112,13 @@ export function createHtmlForDoenetViewer(
             const doenetSharedCoreWorker = ${JSON.stringify(!!useSharedCoreWorker)};
             const doenetWindowedViewer = ${JSON.stringify(!!windowed)};
 
-            // Compiled by vite and inlined here verbatim. It reads the consts
-            // declared just above out of this module's scope, and carries its
-            // own bundled copy of Comlink — nothing it needs in order to boot
-            // is fetched from the network.
+            // The boot script, compiled by vite and inlined verbatim. It
+            // reads the consts declared just above out of this module's
+            // scope and carries its own compiled-in copy of Comlink, so
+            // nothing it needs in order to reach iframeReady is fetched from
+            // the network -- test/cypress/component/srcdocSelfContained.cy.ts
+            // guards that. (No backticks in this comment: it lives inside a
+            // template literal.)
             ${viewerIframeJsSource}
         </script>
         <div id="root" data-doenet-message-parent="true" data-doenet-send-resize-events="true">
@@ -159,10 +162,13 @@ export function createHtmlForDoenetEditor(
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
             const doenetEditorPropsSpecified = ${JSON.stringify(doenetEditorPropsSpecified)};
 
-            // Compiled by vite and inlined here verbatim. It reads the consts
-            // declared just above out of this module's scope, and carries its
-            // own bundled copy of Comlink — nothing it needs in order to boot
-            // is fetched from the network.
+            // The boot script, compiled by vite and inlined verbatim. It
+            // reads the consts declared just above out of this module's
+            // scope and carries its own compiled-in copy of Comlink, so
+            // nothing it needs in order to reach iframeReady is fetched from
+            // the network -- test/cypress/component/srcdocSelfContained.cy.ts
+            // guards that. (No backticks in this comment: it lives inside a
+            // template literal.)
             ${editorIframeJsSource}
         </script>
         <div id="root" data-doenet-message-parent="true">

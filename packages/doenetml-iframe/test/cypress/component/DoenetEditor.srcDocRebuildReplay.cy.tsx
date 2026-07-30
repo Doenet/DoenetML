@@ -50,16 +50,7 @@ import {
 //      a rebuilt iframe either runs the bundle fast or it hangs
 //      forever inside Chrome's module loader for that iframe document.
 //
-// One cause of that "hangs forever in the module loader" state has since
-// been found and removed (#1608): the srcDoc's inline module used to
-// `import` Comlink from unpkg, and an `import` declaration is resolved
-// before any of the module body runs — so a CDN fetch that never
-// resolved left the whole boot script unexecuted and `iframeReady`
-// unsent. Comlink is bundled into the boot script now. The retry loop
-// below is kept because the pathology was never fully characterised and
-// costs nothing on a healthy boot.
-//
-// Two complementary changes on this branch:
+// Two complementary changes were made at the time:
 //
 //   a) `iframe-{editor,viewer}-index.ts` now defers `iframeReady`
 //      until `window.renderDoenetEditorToContainer` (or Viewer) has
@@ -80,6 +71,17 @@ import {
 //      after the fact. But a fresh rebuild gives a fresh iframe with
 //      a fresh chance to run the bundle, and the bimodal pattern means
 //      a couple of retries cumulatively reach near-certain success.
+//
+// LATER (#1608): one cause of the "bundle never executes at all" state
+// in (b) turned out not to be a Chrome pathology after all. The srcDoc's
+// inline boot module used to `import` Comlink from unpkg, and an
+// `import` declaration is resolved before any of the module body runs —
+// so a CDN fetch that never resolved left the whole boot script
+// unexecuted and `iframeReady` unsent, which is exactly the
+// `hasCmContent=false` timeline captured above. Comlink is compiled into
+// the boot script now (see `srcdocSelfContained.cy.ts`). The retry loop
+// is kept because the pathology was never fully characterised and costs
+// nothing on a healthy boot.
 //
 // `CYPRESS_REPRO_REBUILDS=N` (default 1) lets a maintainer crank up the
 // outer iteration count locally to multiply rebuild attempts per cypress

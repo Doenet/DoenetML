@@ -61,16 +61,32 @@ describe("iframe srcdoc is self-contained", () => {
             const script = bootScriptOf(html);
             // An `import`/`export` of any kind puts module resolution back in
             // front of the handshake, which is exactly what hung before.
-            expect(script).to.not.match(/^\s*(import|export)\b/m);
-            expect(script).to.not.include("import(");
-            expect(script).to.not.match(/https?:\/\//);
-            expect(html).to.not.include("unpkg.com");
+            expect(
+                script,
+                "boot script has no import/export declaration",
+            ).to.not.match(/^\s*(import|export)\b/m);
+            expect(
+                script,
+                "boot script has no dynamic import()",
+            ).to.not.include("import(");
+            expect(script, "boot script names no URL").to.not.match(
+                /https?:\/\//,
+            );
+            expect(html, "srcdoc never reaches for unpkg").to.not.include(
+                "unpkg.com",
+            );
         });
 
         it(`${name}: boot script carries its own copy of Comlink`, () => {
             // Comlink's module-scope symbols are compiled in, rather than
             // arriving as a free `Comlink*` binding supplied by the srcdoc.
-            expect(bootScriptOf(html)).to.include('Symbol("Comlink.proxy")');
+            // If a Comlink upgrade ever renames this marker, re-point the
+            // assertion at whatever the new compiled-in equivalent is — do
+            // not drop it.
+            expect(
+                bootScriptOf(html),
+                "Comlink's own source is compiled into the boot script",
+            ).to.include('Symbol("Comlink.proxy")');
         });
     }
 });

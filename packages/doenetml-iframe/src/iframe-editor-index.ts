@@ -1,13 +1,14 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetEditor.
 import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
-// Comlink must be imported *here*, so the iife build bundles it into this
-// script — never from the srcdoc. The srcdoc used to `import` it from unpkg,
-// and an `import` declaration is resolved before any of the module body runs:
-// a CDN fetch that stalled left this whole script unexecuted, the `iframeReady`
-// handshake the parent waits for unsent, and the iframe stuck on its loading
-// placeholder with no timeout and no error.
-import * as ComlinkEditor from "comlink";
+// Comlink must be imported *here* so the iife build compiles it into this
+// script, never supplied as a free binding by the srcdoc. The srcdoc used to
+// `import` it from unpkg, and an `import` declaration is resolved before any
+// of the module body runs: a CDN fetch that stalled left this whole script
+// unexecuted, the `iframeReady` handshake the parent waits for unsent, and the
+// iframe stuck on its loading placeholder with no timeout and no error.
+// `test/cypress/component/srcdocSelfContained.cy.ts` guards the invariant.
+import * as Comlink from "comlink";
 
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
@@ -90,7 +91,7 @@ function functionPropArgsToMap(
 
 function releaseFunctionProxy(fn: Function) {
     try {
-        (fn as any)?.[ComlinkEditor.releaseProxy]?.();
+        (fn as any)?.[Comlink.releaseProxy]?.();
     } catch (e) {
         console.warn(
             "iframe DoenetEditor: failed to release stale Comlink proxy",
@@ -189,7 +190,7 @@ async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
     return false;
 }
 
-ComlinkEditor.expose(
+Comlink.expose(
     {
         renderEditorWithFunctionProps,
         updateEditorProps(updatedSerializableProps: Record<string, any>) {
@@ -271,7 +272,7 @@ ComlinkEditor.expose(
             editorControlHandle.updateRenderedView();
         },
     },
-    ComlinkEditor.windowEndpoint(globalThis.parent),
+    Comlink.windowEndpoint(globalThis.parent),
 );
 
 /**
@@ -323,7 +324,7 @@ function renderWithLastAugmentedProps() {
 
 // Defer `iframeReady` until the standalone bundle has defined
 // `renderDoenetEditorToContainer`. See `waitForStandaloneBundle` above
-// for why this gate is load-bearing. ComlinkEditor.expose above has
+// for why this gate is load-bearing. Comlink.expose above has
 // already run so the Comlink endpoint is wired and ready for the parent
 // to call as soon as we signal — there's just no point signalling
 // until the function the parent will eventually invoke is in place.

@@ -1,13 +1,10 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetViewer.
 
-// Comlink must be imported *here*, so the iife build bundles it into this
-// script — never from the srcdoc. The srcdoc used to `import` it from unpkg,
-// and an `import` declaration is resolved before any of the module body runs:
-// a CDN fetch that stalled left this whole script unexecuted, the `iframeReady`
-// handshake the parent waits for unsent, and the iframe stuck on its loading
-// placeholder with no timeout and no error.
-import * as ComlinkViewer from "comlink";
+// Comlink must be imported *here* so the iife build compiles it into this
+// script, never supplied as a free binding by the srcdoc. See the equivalent
+// import in iframe-editor-index.ts for the cold-boot hang that motivated it.
+import * as Comlink from "comlink";
 
 declare const viewerId: string;
 declare const doenetViewerProps: Record<string, any>;
@@ -118,7 +115,7 @@ function functionPropArgsToMap(
 
 function releaseFunctionProxy(fn: Function) {
     try {
-        (fn as any)?.[ComlinkViewer.releaseProxy]?.();
+        (fn as any)?.[Comlink.releaseProxy]?.();
     } catch (e) {
         console.warn(
             "iframe DoenetViewer: failed to release stale Comlink proxy",
@@ -216,7 +213,7 @@ async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
     return false;
 }
 
-ComlinkViewer.expose(
+Comlink.expose(
     {
         renderViewerWithFunctionProps,
         updateViewerProps(updatedSerializableProps: Record<string, any>) {
@@ -279,7 +276,7 @@ ComlinkViewer.expose(
             }
         },
     },
-    ComlinkViewer.windowEndpoint(globalThis.parent),
+    Comlink.windowEndpoint(globalThis.parent),
 );
 
 /**
