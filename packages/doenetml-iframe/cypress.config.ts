@@ -85,6 +85,15 @@ export default defineConfig({
                 ],
                 optimizeDeps: {
                     exclude: ["@doenet/standalone"],
+                    // Only `DoenetViewer.virtualKeyboard.cy.tsx` pulls these in
+                    // (it imports @doenet/virtual-keyboard's source by relative
+                    // path), so a `--spec`-narrowed run that skips it leaves a
+                    // partial `node_modules/.vite`; the next fuller run then
+                    // discovers them mid-flight, re-optimizes, and reloads the
+                    // page out from under whatever spec is mounting. Pre-include
+                    // them so every run starts from the same set. CI always
+                    // begins from a cold cache, so this is local-dev hygiene.
+                    include: ["@ariakit/react", "classnames"],
                 },
             },
         },

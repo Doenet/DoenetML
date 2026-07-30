@@ -76,6 +76,32 @@ function createIframeBodyOpenTag(darkMode: IframeDarkMode) {
 }
 
 /**
+ * Build the srcdoc's inline boot script: the `const` declarations the compiled
+ * entry point reads out of the surrounding module scope, followed by that entry
+ * point (`iframe-{viewer,editor}-index.iife.js`) inlined verbatim.
+ *
+ * The entry point carries its own compiled-in copy of Comlink, so nothing this
+ * script needs in order to reach `iframeReady` comes off the network. Keep it
+ * that way: an `import` declaration is resolved before any of a module's body
+ * runs, so a fetch that stalls leaves the whole boot script unexecuted, the
+ * handshake unsent, and the iframe parked on its loading placeholder with no
+ * timeout and no error. `test/cypress/component/srcdocSelfContained.cy.ts`
+ * guards the invariant.
+ */
+function createBootScript(
+    boundConsts: Record<string, unknown>,
+    compiledEntryPoint: string,
+) {
+    const declarations = Object.entries(boundConsts)
+        .map(([name, value]) => `const ${name} = ${JSON.stringify(value)};`)
+        .join("\n            ");
+    return `<script type="module">
+            ${declarations}
+            ${compiledEntryPoint}
+        </script>`;
+}
+
+/**
  * Create HTML for a single page document that renders the given DoenetML.
  */
 export function createHtmlForDoenetViewer(
@@ -100,24 +126,21 @@ export function createHtmlForDoenetViewer(
         doenetViewerPropsSpecified.push("initializedCallback");
     }
 
-    // XXX: rather than serving Comlink from the cdn, below, serve it directly
     // TODO: rather than load the Doenet logo from doenet.org, serve it directly
     return `
     <html style="overflow:hidden">
     ${createIframeHead(standaloneUrl, cssUrl)}
     ${createIframeBodyOpenTag(doenetViewerProps.darkMode)}
-        <script type="module">
-            const viewerId = "${id}";
-            const doenetViewerProps = ${JSON.stringify(doenetViewerProps)};
-            const doenetViewerPropsSpecified = ${JSON.stringify(doenetViewerPropsSpecified)};
-            const doenetSharedCoreWorker = ${JSON.stringify(!!useSharedCoreWorker)};
-            const doenetWindowedViewer = ${JSON.stringify(!!windowed)};
-            import * as ComlinkViewer from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
-
-            // This source code has been compiled by vite and should be directly included.
-            // It assumes that viewerId, doenetViewerProps, doenetViewerPropsSpecified, and ComlinkViewer are defined in the global scope.
-            ${viewerIframeJsSource}
-        </script>
+        ${createBootScript(
+            {
+                viewerId: id,
+                doenetViewerProps,
+                doenetViewerPropsSpecified,
+                doenetSharedCoreWorker: !!useSharedCoreWorker,
+                doenetWindowedViewer: !!windowed,
+            },
+            viewerIframeJsSource,
+        )}
         <div id="root" data-doenet-message-parent="true" data-doenet-send-resize-events="true">
             <div class="doenet-loading" style="text-align:center">
                 <p><img src="https://www.doenet.org/Doenet_Logo_Frontpage.png"/></p>
@@ -154,16 +177,14 @@ export function createHtmlForDoenetEditor(
     <html style="overflow:hidden">
     ${createIframeHead(standaloneUrl, cssUrl)}
     ${createIframeBodyOpenTag(doenetEditorProps.darkMode)}
-        <script type="module">
-            const editorId = "${id}";
-            const doenetEditorProps = ${JSON.stringify(augmentedProps)};
-            const doenetEditorPropsSpecified = ${JSON.stringify(doenetEditorPropsSpecified)};
-            import * as ComlinkEditor from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
-            
-            // This source code has been compiled by vite and should be directly included.
-            // It assumes that editorId, doenetEditorProps, doenetEditorPropsSpecified, and ComlinkEditor are defined in the global scope.
-            ${editorIframeJsSource}
-        </script>
+        ${createBootScript(
+            {
+                editorId: id,
+                doenetEditorProps: augmentedProps,
+                doenetEditorPropsSpecified,
+            },
+            editorIframeJsSource,
+        )}
         <div id="root" data-doenet-message-parent="true">
             <script type="text/doenetml">${doenetML}</script>
         </div>
