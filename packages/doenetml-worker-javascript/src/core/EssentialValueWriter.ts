@@ -555,11 +555,9 @@ export class EssentialValueWriter {
             let arrayKeys: string[] = inverseDefinitionArgs.arrayKeys;
             let desiredValuesForArray: Record<string, any> = {};
             if (arrayKeys.length === 1) {
-                if ("value" in instruction) {
-                    desiredValuesForArray[arrayKeys[0]] = instruction.value;
-                } else if ("valueOfStateVariable" in instruction) {
+                if (instructionCarriesDesiredValue(instruction)) {
                     desiredValuesForArray[arrayKeys[0]] =
-                        await this._resolveValueOfStateVariable(
+                        await this._desiredValueFromInstruction(
                             instruction,
                             component,
                         );
@@ -577,24 +575,19 @@ export class EssentialValueWriter {
             inverseDefinitionArgs.desiredStateVariableValues = {
                 [arrayStateVariable]: desiredValuesForArray,
             };
-        } else if (
-            "value" in instruction ||
-            "valueOfStateVariable" in instruction
-        ) {
-            let desiredValue =
-                "value" in instruction
-                    ? instruction.value
-                    : await this._resolveValueOfStateVariable(
-                          instruction,
-                          component,
-                      );
+        } else if (instructionCarriesDesiredValue(instruction)) {
+            let desiredValue = await this._desiredValueFromInstruction(
+                instruction,
+                component,
+            );
 
             // An instruction targeting a whole array — e.g.
-            // `<updateValue target="$v.tail" newValue="(7,8)" />` — carries a
-            // single math expression rather than one value per array key, so
-            // spread its components over the keys. Only one-dimensional arrays
-            // qualify: there, component `ind` of the expression is the value
-            // for array key `ind`.
+            // `<updateValue target="$v.tail" newValue="(7,8)" />` — carries one
+            // math expression for the entire array, while the inverse
+            // definition expects a value per array key. A one-dimensional
+            // array maps the two unambiguously (component `ind` of the
+            // expression belongs to array key `ind`), so spread the expression
+            // over the keys; a multidimensional array is passed through whole.
             if (
                 stateVarObj.isArray &&
                 stateVarObj.numDimensions === 1 &&
@@ -1454,6 +1447,20 @@ export class EssentialValueWriter {
     }
 
     /**
+     * The value an update instruction asks for, whether it carries the value
+     * inline as `value` or by reference as `valueOfStateVariable`. Guard the
+     * call with `instructionCarriesDesiredValue`.
+     */
+    async _desiredValueFromInstruction(
+        instruction: any,
+        component: any,
+    ): Promise<any> {
+        return "value" in instruction
+            ? instruction.value
+            : await this._resolveValueOfStateVariable(instruction, component);
+    }
+
+    /**
      * Forward an inverse-definition recursion: invoke
      * `requestComponentChanges` with the prepared `inst` instruction,
      * propagating `treatAsInitialChange` from `newInstruction` and threading
@@ -1480,11 +1487,20 @@ export class EssentialValueWriter {
 }
 
 /**
+ * Whether an update instruction names a value to change to, which it does
+ * either inline (`value`) or by reference (`valueOfStateVariable`).
+ */
+function instructionCarriesDesiredValue(instruction: Record<string, any>) {
+    return "value" in instruction || "valueOfStateVariable" in instruction;
+}
+
+/**
  * Distribute the math expression `value` over `arrayKeys`, producing the
  * array-key-keyed object an array state variable's inverse definition expects.
  *
- * A single key takes the expression whole; otherwise each key gets the
- * corresponding component of the expression.
+ * A single key takes the expression whole, so that a size-one array and its
+ * lone entry accept the same value; otherwise each key gets the corresponding
+ * component of the expression.
  */
 function spreadMathOverArrayKeys(
     value: any,

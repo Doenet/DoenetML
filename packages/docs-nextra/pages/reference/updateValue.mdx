@@ -78,7 +78,7 @@ An `<updateValue>{:dn}` is used to change the value of a `<number>{:dn}` based o
 
 
 
-An `<updateValue>{:dn}` can also set a property that holds a whole list of coordinates, such as a vector's `tail`. The coordinates of `newValue` are distributed across the property, so a single `<updateValue>{:dn}` moves the whole tail at once.
+An `<updateValue>{:dn}` is used to set the `tail` property of a `<vector>{:dn}`, which holds a whole list of coordinates. The coordinates of `newValue` are distributed across the property, so a single `<updateValue>{:dn}` moves the tail while leaving the head in place. Properties such as a `<vector>{:dn}`'s `head`, a `<point>{:dn}`'s `xs`, and a `<circle>{:dn}`'s `center` can be set the same way.
 
 
 

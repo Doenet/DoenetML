@@ -3273,12 +3273,18 @@ describe("UpdateValue tag tests @group1", async () => {
             doenetML: `
     <point name="P">(1,2)</point>
     <circle name="c" center="(3,4)" />
+    <point name="Q">9</point>
     <updateValue name="uvXs" target="$P.xs" newValue="(5,6)" />
     <updateValue name="uvCenter" target="$c.center" newValue="(7,8)" />
+    <updateValue name="uvOneDim" target="$Q.xs" newValue="10" />
     `,
         });
 
-        async function check_coords(xs: number[], center: number[]) {
+        async function check_coords(
+            xs: number[],
+            center: number[],
+            oneDimXs: number[],
+        ) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -3293,20 +3299,24 @@ describe("UpdateValue tag tests @group1", async () => {
                     await resolvePathToNodeIdx("c")
                 ].stateValues.center.map((v) => v.tree),
             ).eqls(center);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("Q")
+                ].stateValues.xs.map((v) => v.tree),
+            ).eqls(oneDimXs);
         }
 
-        await check_coords([1, 2], [3, 4]);
+        await check_coords([1, 2], [3, 4], [9]);
 
-        await updateValue({
-            componentIdx: await resolvePathToNodeIdx("uvXs"),
-            core,
-        });
-        await updateValue({
-            componentIdx: await resolvePathToNodeIdx("uvCenter"),
-            core,
-        });
+        for (const name of ["uvXs", "uvCenter", "uvOneDim"]) {
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
 
-        await check_coords([5, 6], [7, 8]);
+        // a one-entry coordinate property takes the new value whole
+        await check_coords([5, 6], [7, 8], [10]);
     });
 
     it("updateValue warnings with invalid targets", async () => {
