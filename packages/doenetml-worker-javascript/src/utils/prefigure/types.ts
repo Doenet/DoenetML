@@ -146,6 +146,8 @@ export interface GraphDependencyValues extends Record<string, unknown> {
     yMax?: unknown;
     width?: { size?: unknown } | null;
     aspectRatio?: unknown;
+    /** `"none"`, `"medium"`, `"dense"`, or `[dx, dy]`. */
+    grid?: unknown;
     displayXAxis?: unknown;
     displayYAxis?: unknown;
     xLabel?: unknown;

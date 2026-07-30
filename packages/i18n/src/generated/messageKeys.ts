@@ -376,6 +376,7 @@ export type MessageKey =
     | "prefigure-invalid-axis-bounds"
     | "prefigure-invalid-width"
     | "prefigure-invalid-aspect-ratio"
+    | "prefigure-grid-spacing-too-fine"
     | "prefigure-annotations-not-rendered"
     | "multiple-annotations-children"
     | "copy-unrecognized-component-type"
@@ -936,6 +937,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "prefigure-invalid-axis-bounds",
     "prefigure-invalid-width",
     "prefigure-invalid-aspect-ratio",
+    "prefigure-grid-spacing-too-fine",
     "prefigure-annotations-not-rendered",
     "multiple-annotations-children",
     "copy-unrecognized-component-type",

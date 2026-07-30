@@ -6,6 +6,7 @@ import {
     warningSubjectForDescendant,
 } from "./common";
 import { labelMarkup } from "./label";
+import { gridElementFromGrid } from "./grid";
 import { convertGraphicalDescendantToPrefigure } from "./descendant";
 import { convertDoenetMLAnnotationsToPreFigureXml } from "./annotations";
 import type {
@@ -112,8 +113,12 @@ function axesElementFromLabels({
  * 1. Convert unsupported descendants into warnings.
  * 2. Convert supported descendants to element XML in stable order.
  * 3. Compute bbox/dimensions with defensive defaults.
- * 4. Build axis metadata + labels (including unsupported-position warnings).
- * 5. Assemble and return final `<diagram>` XML + warnings.
+ * 4. Build the grid from the bbox.
+ * 5. Build axis metadata + labels (including unsupported-position warnings).
+ * 6. Assemble and return final `<diagram>` XML + warnings.
+ *
+ * SVG paints in document order, so the grid is emitted ahead of the axes and
+ * the converted descendants to keep it behind everything it sits under.
  */
 export function createPrefigureXML({
     dependencyValues,
@@ -231,6 +236,13 @@ export function createPrefigureXML({
     const heightText = formatNumber(dimensionHeight) ?? "425";
     const dimensions = `(${widthText},${heightText})`;
 
+    const gridElement = gridElementFromGrid({
+        grid: dependencyValues.grid,
+        graphBounds,
+        darkMode,
+        diagnostics,
+    });
+
     let axesElement = "";
     const axesMode = axisModeFromVisibility(dependencyValues);
 
@@ -252,7 +264,7 @@ export function createPrefigureXML({
         functionToCurveComponentIdx,
     });
 
-    const xml = `<diagram dimensions="${escapeXml(dimensions)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}</coordinates>${annotationsElement}</diagram>`;
+    const xml = `<diagram dimensions="${escapeXml(dimensions)}"><coordinates bbox="${escapeXml(bbox)}">${gridElement}${axesElement}${elements.join("")}</coordinates>${annotationsElement}</diagram>`;
 
     return { xml, diagnostics };
 }

@@ -4,30 +4,32 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
 
 ## Organization
 
-- `common.js`
+- `common.ts`
   - Shared low-level helpers: XML escaping, numeric/point formatting, handle generation, stable sorting.
-- `label.js`
+- `label.ts`
   - Label rendering concerns: plain text vs latex, `\(...\)` delimiter replacement, line endpoint orientation, and line/vector label positioning helpers.
-- `style.js`
+- `style.ts`
   - Style translation from Doenet selected styles to PreFigure attributes.
+- `grid.ts`
+  - The `grid` attribute translated to PreFigure's `<grid>`, including a port of PreFigure's own automatic-spacing algorithm (`find_gridspacing()` in `prefig/core/grid_axes.py`) so `grid="dense"` subdivides the spacing PreFigure would have chosen. Keep it in step with that function.
 - `components/`
   - Component-specific geometry converters (point, line-like, vector, circle, polygon/polyline, angle).
-- `descendant.js`
+- `descendant.ts`
   - Dispatcher that routes each graphical descendant to the correct component converter and normalizes warning behavior.
-- `graph.js`
+- `graph.ts`
   - Graph-level XML assembly: dimensions, bbox, axes mode, axis labels, and aggregation of converted descendants.
-- `stateVariable.js`
+- `stateVariable.ts`
   - `returnGraphPrefigureXMLStateVariableDefinition()` to keep state variable wiring out of `Graph.js`.
 
 ## Extension Workflow (Adding a New Component)
 
-1. Add a converter in `components/<component>.js`
+1. Add a converter in `components/<component>.ts`
    - Keep it geometry-focused and pure.
    - Return `null` for invalid/incomplete geometry.
-2. Register it in `descendant.js`
+2. Register it in `descendant.ts`
    - Route by `descendant.componentType`.
    - Reuse centralized warning behavior for unsupported or invalid elements.
-3. Update dependencies in `stateVariable.js`
+3. Update dependencies in `stateVariable.ts`
    - Add a new `*Descendants` dependency with required `variableNames`.
   - If a variable is only present on some inherited subtypes, set `variablesOptional: true` on that dependency config.
    - Include it in the merged `descendants` array.
