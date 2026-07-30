@@ -8,10 +8,13 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # The tag is `hnj` (Hmong Njua, Green Hmong) rather than the macrolanguage
-# `hmn`, and deliberately: `hnj` has CLDR data, so plural rules, number
-# formatting and list joining all resolve to something real, and `Intl` can
-# give the language its own name. `hmn` has none of that and would silently
-# count, punctuate and enumerate in English.
+# `hmn`, and deliberately: CLDR carries plural rules for `hnj` and none for
+# `hmn`, so `Intl.PluralRules("hnj")` answers with Hmong's single category
+# where `hmn` falls back to English and offers a `one` the language does not
+# have. `Intl.DisplayNames` is more precise too — "Hmong Njua" against plain
+# "Hmong". Number formatting and list joining fall back to English under
+# either tag, `Intl` having no data for the pair; that is a gap to fix in
+# CLDR rather than a reason to prefer the macrolanguage.
 #
 # Hmong does not inflect for number — CLDR gives `hnj` the single category
 # `other` — so a countable message needs no selection. `[0]` is still spelled

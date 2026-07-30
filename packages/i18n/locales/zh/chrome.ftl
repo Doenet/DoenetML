@@ -16,8 +16,9 @@
 # the English wording changes for zero, because that is a different sentence
 # rather than a different number.
 #
-# No spaces are inserted around Latin text or numbers: `{ $percent }%` renders
-# tight against the surrounding characters, as Chinese typography expects.
+# A run of Latin text or digits is set off from the Chinese around it with a
+# space — `还剩 { $count } 次尝试` — while a unit stays tight against the number
+# it measures: `{ $percent }%`, never `{ $percent } %`.
 
 
 ## Answer submission
