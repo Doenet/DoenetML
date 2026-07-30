@@ -6484,6 +6484,79 @@ describe("Vector Tag Tests @group4", function () {
         });
     });
 
+    it("updateValue on tail, head, or displacement matches dragging a point extending it", async () => {
+        // Setting one of these properties is the same change as dragging a
+        // point that extends it — not the same as dragging the vector's own
+        // handle, which additionally holds the opposite end in place.
+        // Each property, paired with the vector components it should leave
+        // the new value in.
+        const properties = [
+            { property: "tail", t: [7, 8], h: [10, 12], d: [3, 4] },
+            { property: "head", t: [0, 0], h: [7, 8], d: [7, 8] },
+            { property: "displacement", t: [0, 0], h: [7, 8], d: [7, 8] },
+        ];
+
+        // Applies one way of setting the property to a fresh document, then
+        // reports where the vector ended up.
+        async function resulting_htd(
+            property: string,
+            setProperty: (args: {
+                core: PublicDoenetMLCore;
+                resolvePathToNodeIdx: ResolvePathToNodeIdx;
+            }) => Promise<void>,
+        ) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+  <graph>
+    <vector name="v">(3,4)</vector>
+    <point extend="$v.${property}" name="p" />
+  </graph>
+
+  <updateValue name="uv" target="$v.${property}" newValue="(7,8)" />
+    `,
+            });
+
+            await setProperty({ core, resolvePathToNodeIdx });
+
+            const v = (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("v")
+            ].stateValues;
+            const components = (xs: any[]) => xs.map((x) => x.simplify().tree);
+            return {
+                t: components(v.tail),
+                h: components(v.head),
+                d: components(v.displacement),
+            };
+        }
+
+        for (const { property, ...expected } of properties) {
+            const viaUpdateValue = await resulting_htd(
+                property,
+                async ({ core, resolvePathToNodeIdx }) => {
+                    await updateValue({
+                        componentIdx: await resolvePathToNodeIdx("uv"),
+                        core,
+                    });
+                },
+            );
+            const viaDraggingPoint = await resulting_htd(
+                property,
+                async ({ core, resolvePathToNodeIdx }) => {
+                    await movePoint({
+                        componentIdx: await resolvePathToNodeIdx("p"),
+                        x: 7,
+                        y: 8,
+                        core,
+                    });
+                },
+            );
+
+            // spelled out, so neither path can pass by doing nothing
+            expect(viaUpdateValue, property).eqls(expected);
+            expect(viaDraggingPoint, property).eqls(expected);
+        }
+    });
+
     it("update the tail of an extended vector with updateValue", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
