@@ -591,16 +591,28 @@ export class EssentialValueWriter {
                 [arrayStateVariable]: desiredValuesForArray,
             };
         } else {
+            let desiredValue;
+            let haveDesiredValue = true;
             if ("value" in instruction) {
-                inverseDefinitionArgs.desiredStateVariableValues = {
-                    [stateVariable]: instruction.value,
-                };
+                desiredValue = instruction.value;
             } else if ("valueOfStateVariable" in instruction) {
+                desiredValue = await this._resolveValueOfStateVariable(
+                    instruction,
+                    component,
+                );
+            } else {
+                haveDesiredValue = false;
+            }
+
+            if (haveDesiredValue) {
+                if (stateVarObj.isArray && desiredValue instanceof me.class) {
+                    desiredValue = await spreadMathOverArrayKeys(
+                        stateVarObj,
+                        desiredValue,
+                    );
+                }
                 inverseDefinitionArgs.desiredStateVariableValues = {
-                    [stateVariable]: await this._resolveValueOfStateVariable(
-                        instruction,
-                        component,
-                    ),
+                    [stateVariable]: desiredValue,
                 };
             }
         }
@@ -1469,6 +1481,42 @@ export class EssentialValueWriter {
             newStateVariableValues,
         });
     }
+}
+
+/**
+ * Spread a math expression across the array keys of a one-dimensional array
+ * state variable, producing the array-key-keyed object its inverse definition
+ * expects. Reached when an update instruction targets a whole array — e.g.
+ * `<updateValue target="$v.tail" newValue="(7,8)" />` — so the new value
+ * arrives as one expression rather than one entry per component.
+ *
+ * A single-entry array takes the expression whole; otherwise each component is
+ * pulled out with `get_component`. Multidimensional arrays have no unambiguous
+ * component-to-key mapping, so their value is passed through untouched.
+ */
+async function spreadMathOverArrayKeys(stateVarObj: any, value: any) {
+    const arraySize = await stateVarObj.arraySize;
+
+    if (arraySize.length !== 1) {
+        return value;
+    }
+
+    if (arraySize[0] === 1) {
+        return { 0: value };
+    }
+
+    const desiredValuesForArray: Record<string, any> = {};
+    for (let ind = 0; ind < arraySize[0]; ind++) {
+        try {
+            desiredValuesForArray[ind] = value.get_component(ind);
+        } catch (e) {
+            // `get_component(ind)` throws when the expression has no such
+            // component (it is shorter than the array, or is not a vector at
+            // all); leave the slot unset so the inverse definition keeps the
+            // current value for that key.
+        }
+    }
+    return desiredValuesForArray;
 }
 
 /**
