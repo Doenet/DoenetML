@@ -3268,6 +3268,47 @@ describe("UpdateValue tag tests @group1", async () => {
         ).eq("");
     });
 
+    it("update a property that holds a whole list of coordinates", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <point name="P">(1,2)</point>
+    <circle name="c" center="(3,4)" />
+    <updateValue name="uvXs" target="$P.xs" newValue="(5,6)" />
+    <updateValue name="uvCenter" target="$c.center" newValue="(7,8)" />
+    `,
+        });
+
+        async function check_coords(xs: number[], center: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("P")
+                ].stateValues.xs.map((v) => v.tree),
+            ).eqls(xs);
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("c")
+                ].stateValues.center.map((v) => v.tree),
+            ).eqls(center);
+        }
+
+        await check_coords([1, 2], [3, 4]);
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvXs"),
+            core,
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvCenter"),
+            core,
+        });
+
+        await check_coords([5, 6], [7, 8]);
+    });
+
     it("updateValue warnings with invalid targets", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

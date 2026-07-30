@@ -552,69 +552,53 @@ export class EssentialValueWriter {
             let arrayStateVariable = stateVarObj.arrayStateVariable;
             stateVariableForWorkspace = arrayStateVariable;
 
+            let arrayKeys: string[] = inverseDefinitionArgs.arrayKeys;
             let desiredValuesForArray: Record<string, any> = {};
-            if (inverseDefinitionArgs.arrayKeys.length === 1) {
+            if (arrayKeys.length === 1) {
                 if ("value" in instruction) {
-                    desiredValuesForArray[inverseDefinitionArgs.arrayKeys[0]] =
-                        instruction.value;
+                    desiredValuesForArray[arrayKeys[0]] = instruction.value;
                 } else if ("valueOfStateVariable" in instruction) {
-                    desiredValuesForArray[inverseDefinitionArgs.arrayKeys[0]] =
+                    desiredValuesForArray[arrayKeys[0]] =
                         await this._resolveValueOfStateVariable(
                             instruction,
                             component,
                         );
                 }
-            } else {
-                for (let [
-                    ind,
-                    arrayKey,
-                ] of inverseDefinitionArgs.arrayKeys.entries()) {
-                    if (Array.isArray(instruction.value)) {
-                        desiredValuesForArray[arrayKey] =
-                            instruction.value[ind];
-                    } else if (instruction.value instanceof me.class) {
-                        try {
-                            desiredValuesForArray[arrayKey] =
-                                instruction.value.get_component(ind);
-                        } catch (e) {
-                            // `get_component(ind)` throws when `ind` is out of
-                            // range for this math expression; treat it as "no
-                            // desired value for this arrayKey" and leave the
-                            // slot unset. Any other exception shape would also
-                            // be swallowed here — narrow if a concrete error
-                            // type from math-expressions becomes available.
-                        }
-                    }
+            } else if (Array.isArray(instruction.value)) {
+                for (let [ind, arrayKey] of arrayKeys.entries()) {
+                    desiredValuesForArray[arrayKey] = instruction.value[ind];
                 }
+            } else if (instruction.value instanceof me.class) {
+                desiredValuesForArray = spreadMathOverArrayKeys(
+                    instruction.value,
+                    arrayKeys,
+                );
             }
             inverseDefinitionArgs.desiredStateVariableValues = {
                 [arrayStateVariable]: desiredValuesForArray,
             };
-        } else {
-            let desiredValue;
-            let haveDesiredValue = true;
-            if ("value" in instruction) {
-                desiredValue = instruction.value;
-            } else if ("valueOfStateVariable" in instruction) {
-                desiredValue = await this._resolveValueOfStateVariable(
-                    instruction,
-                    component,
+        } else if (
+            "value" in instruction ||
+            "valueOfStateVariable" in instruction
+        ) {
+            let desiredValue =
+                "value" in instruction
+                    ? instruction.value
+                    : await this._resolveValueOfStateVariable(
+                          instruction,
+                          component,
+                      );
+
+            if (stateVarObj.isArray && desiredValue instanceof me.class) {
+                desiredValue = spreadMathOverWholeArray(
+                    inverseDefinitionArgs.arraySize,
+                    desiredValue,
                 );
-            } else {
-                haveDesiredValue = false;
             }
 
-            if (haveDesiredValue) {
-                if (stateVarObj.isArray && desiredValue instanceof me.class) {
-                    desiredValue = await spreadMathOverArrayKeys(
-                        stateVarObj,
-                        desiredValue,
-                    );
-                }
-                inverseDefinitionArgs.desiredStateVariableValues = {
-                    [stateVariable]: desiredValue,
-                };
-            }
+            inverseDefinitionArgs.desiredStateVariableValues = {
+                [stateVariable]: desiredValue,
+            };
         }
 
         let stateVariableWorkspace =
@@ -1484,39 +1468,55 @@ export class EssentialValueWriter {
 }
 
 /**
- * Spread a math expression across the array keys of a one-dimensional array
- * state variable, producing the array-key-keyed object its inverse definition
- * expects. Reached when an update instruction targets a whole array — e.g.
- * `<updateValue target="$v.tail" newValue="(7,8)" />` — so the new value
- * arrives as one expression rather than one entry per component.
+ * Distribute the math expression `value` over `arrayKeys`, producing the
+ * array-key-keyed object an array state variable's inverse definition expects.
  *
- * A single-entry array takes the expression whole; otherwise each component is
- * pulled out with `get_component`. Multidimensional arrays have no unambiguous
- * component-to-key mapping, so their value is passed through untouched.
+ * A single key takes the expression whole; otherwise each key gets the
+ * corresponding component of the expression.
  */
-async function spreadMathOverArrayKeys(stateVarObj: any, value: any) {
-    const arraySize = await stateVarObj.arraySize;
-
-    if (arraySize.length !== 1) {
-        return value;
-    }
-
-    if (arraySize[0] === 1) {
-        return { 0: value };
+function spreadMathOverArrayKeys(
+    value: any,
+    arrayKeys: string[],
+): Record<string, any> {
+    if (arrayKeys.length === 1) {
+        return { [arrayKeys[0]]: value };
     }
 
     const desiredValuesForArray: Record<string, any> = {};
-    for (let ind = 0; ind < arraySize[0]; ind++) {
+    for (let [ind, arrayKey] of arrayKeys.entries()) {
         try {
-            desiredValuesForArray[ind] = value.get_component(ind);
+            desiredValuesForArray[arrayKey] = value.get_component(ind);
         } catch (e) {
             // `get_component(ind)` throws when the expression has no such
             // component (it is shorter than the array, or is not a vector at
             // all); leave the slot unset so the inverse definition keeps the
-            // current value for that key.
+            // current value for that key. Any other exception shape would also
+            // be swallowed here — narrow if a concrete error type from
+            // math-expressions becomes available.
         }
     }
     return desiredValuesForArray;
+}
+
+/**
+ * Spread a math expression across every array key of an array state variable
+ * of size `arraySize`. Reached when an update instruction targets a whole
+ * array — e.g. `<updateValue target="$v.tail" newValue="(7,8)" />` — so the
+ * new value arrives as a single expression rather than one entry per array
+ * key.
+ *
+ * Multidimensional arrays have no unambiguous component-to-key mapping, so
+ * their value is passed through untouched.
+ */
+function spreadMathOverWholeArray(arraySize: number[], value: any) {
+    if (arraySize.length !== 1) {
+        return value;
+    }
+
+    const arrayKeys = Array.from({ length: arraySize[0] }, (_, ind) =>
+        String(ind),
+    );
+    return spreadMathOverArrayKeys(value, arrayKeys);
 }
 
 /**
