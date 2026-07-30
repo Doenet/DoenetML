@@ -186,6 +186,12 @@ export function fetchLocaleLoaders(
     const base = baseUrl.toString().replace(/\/?$/, "/");
     const loaders: LocaleLoaders = {};
     for (const locale of locales) {
+        // English is inlined in every variant and ends every fallback chain,
+        // so there is no arrangement in which fetching it is the right thing
+        // to do. The other inlined locales stay on the list: which of those
+        // are worth a request is a judgement about *this* build, and
+        // {@link loadLocaleResources} makes it against {@link BUNDLED_LOCALES}
+        // before it ever reaches a loader.
         if (locale === DEFAULT_LOCALE) {
             continue;
         }
@@ -329,9 +335,13 @@ export async function loadLocaleResources(
     if (!pending) {
         // Cached even when it rejects would strand every later caller on one
         // bad network moment, so a failure drops out of the map and the next
-        // caller retries.
+        // caller retries — but only if the map still holds this attempt.
+        // `setLocaleLoaders` can have cleared it and a newer request taken the
+        // same key, and that one is answering for different loaders.
         pending = load().catch((error) => {
-            inFlight.delete(key);
+            if (inFlight.get(key) === pending) {
+                inFlight.delete(key);
+            }
             throw error;
         });
         inFlight.set(key, pending);

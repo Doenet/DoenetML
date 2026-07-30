@@ -7,6 +7,7 @@ import {
     fetchLocaleLoaders,
     loadLocaleResources,
     loadLocaleResourcesFor,
+    setLocaleLoaders,
     type LocaleLoaders,
 } from "../src/load";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
@@ -167,6 +168,92 @@ describe("loadLocaleResources", () => {
         await loadLocaleResources("fr", CATALOG_NAMESPACES, { loaders });
         await loadLocaleResources("fr", CATALOG_NAMESPACES, { loaders });
         expect(calls).toBe(2);
+    });
+});
+
+describe("the installed loaders", () => {
+    afterEach(() => {
+        // Also empties the request cache, so each test starts cold.
+        setLocaleLoaders(null);
+    });
+
+    it("answer a caller that brought no loaders of its own", async () => {
+        const loaded: string[] = [];
+        setLocaleLoaders(stubLoaders(["fr"], (locale) => loaded.push(locale)));
+        await expect(loadLocaleResources("fr")).resolves.toEqual({
+            fr: expect.stringContaining("fr/chrome"),
+        });
+        expect(loaded).toEqual(["fr"]);
+    });
+
+    it("are asked once for a locale several callers want", async () => {
+        // What lets `useLocaleCatalogs` run unconditionally: every viewer on
+        // the page resolves the same tag, and they share one load rather than
+        // each starting their own.
+        let calls = 0;
+        setLocaleLoaders(
+            stubLoaders(["fr"], () => {
+                calls += 1;
+            }),
+        );
+        await Promise.all([
+            loadLocaleResources("fr"),
+            loadLocaleResources("fr-CA"),
+        ]);
+        await loadLocaleResources("fr");
+        expect(calls).toBe(1);
+    });
+
+    it("are asked again for the same locale in different namespaces", async () => {
+        // The cache is keyed by what was asked for, not by locale: a caller
+        // wanting all four catalogs must not be served the worker's one.
+        const asked: string[][] = [];
+        setLocaleLoaders(
+            stubLoaders(["fr"], (_locale, namespaces) => {
+                asked.push([...namespaces]);
+            }),
+        );
+        await loadLocaleResources("fr", WORKER_NAMESPACES);
+        await loadLocaleResources("fr", CATALOG_NAMESPACES);
+        expect(asked).toEqual([
+            [...WORKER_NAMESPACES],
+            [...CATALOG_NAMESPACES],
+        ]);
+    });
+
+    it("are asked again after a failure, which is not cached", async () => {
+        // A code-split chunk that fails to load is the one thing that rejects
+        // rather than degrading to English. Holding the rejection would strand
+        // every later caller on one bad network moment.
+        let calls = 0;
+        setLocaleLoaders({
+            fr: async () => {
+                calls += 1;
+                throw new Error("chunk failed to load");
+            },
+        });
+        await expect(loadLocaleResources("fr")).rejects.toThrow("chunk failed");
+        await expect(loadLocaleResources("fr")).rejects.toThrow("chunk failed");
+        expect(calls).toBe(2);
+    });
+
+    it("invalidate the cache when they are replaced", async () => {
+        setLocaleLoaders(stubLoaders(["fr"]));
+        const first = await loadLocaleResources("fr");
+        setLocaleLoaders({
+            fr: async () => ({ chrome: "stub-fr-chrome = replaced\n" }),
+        });
+        const second = await loadLocaleResources("fr");
+        expect(first["fr"]).not.toContain("replaced");
+        expect(second["fr"]).toContain("replaced");
+    });
+
+    it("give way to this build's own when cleared", async () => {
+        // `qq` names no catalog directory, so once the stub is gone there is
+        // nothing left to load it with.
+        setLocaleLoaders(stubLoaders(["qq"]));
+        setLocaleLoaders(null);
+        await expect(loadLocaleResources("qq")).resolves.toEqual({});
     });
 });
 

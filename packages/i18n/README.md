@@ -79,11 +79,10 @@ assembles those catalogs for a context, and both `createChromeTranslator` and
 them (the host's copy wins for a locale that exists in both).
 
 Every other locale is **loaded on demand** — see [Delivery](#delivery). At
-roughly 16 KB gzipped for a complete translation, inlining
-does not scale past the two locales that earn it: English because every
-fallback chain ends there, Spanish because it is the one reviewed translation
-and because being inlined is what lets an authored `<document lang="es">`
-build the core exactly once.
+roughly 16 KB gzipped for a complete translation, inlining does not scale past
+the two locales that earn it: English because every fallback chain ends there,
+Spanish because it is the one reviewed translation and because being inlined is
+what lets an authored `<document lang="es">` build the core exactly once.
 
 Note that `content` and `diagnostics` answer to *different* settings —
 `documentLocale` and `uiLocale` respectively — which is why `WORKER_NAMESPACES`

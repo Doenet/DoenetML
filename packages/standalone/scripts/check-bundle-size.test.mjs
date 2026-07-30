@@ -289,6 +289,21 @@ describe("collectCatalogProbes", () => {
         ).toEqual([]);
     });
 
+    it("reads a catalog checked out with CRLF line endings", () => {
+        // A carriage return on the end of the probe matches nothing in an
+        // emitted script, so the leak check would pass whatever it was shown.
+        expect(
+            probesFor(
+                {
+                    en: { chrome: "greeting = Hello there, welcome along\r\n" },
+                    fr: { chrome: "greeting = Bonjour et bienvenue\r\n" },
+                },
+                ["en"],
+                "crlf",
+            ),
+        ).toEqual([["fr", "Bonjour et bienvenue"]]);
+    });
+
     it("skips a string too short to be a reliable fingerprint", () => {
         expect(
             probesFor(

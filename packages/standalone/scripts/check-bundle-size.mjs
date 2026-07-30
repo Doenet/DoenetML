@@ -72,8 +72,15 @@ const LOAD_MODULE_FILE = path.join(I18N_ROOT, "src", "load.ts");
  * no inlined locales, probe English, and fail on the very next build.
  */
 const GLOB_EXCLUSION_PATTERN = /"!\.\.\/locales\/([^/"]+)\/\*\.ftl"/g;
-/** `key = value` at the top level of an FTL catalog. */
-const FTL_MESSAGE_PATTERN = /^([a-z0-9-]+) = (.+)$/gm;
+/**
+ * `key = value` at the top level of an FTL catalog.
+ *
+ * The value stops at the line ending rather than running to `$`, which on a
+ * CRLF checkout would put a carriage return on the end of every probe. That
+ * probe matches nothing in an emitted script, so the leak check would pass
+ * whatever it was shown.
+ */
+const FTL_MESSAGE_PATTERN = /^([a-z0-9-]+) = ([^\r\n]+)/gm;
 /**
  * `\xNN`, `\uNNNN` or `\u{N…}` — how a minifier spells a character it will not
  * write literally.
