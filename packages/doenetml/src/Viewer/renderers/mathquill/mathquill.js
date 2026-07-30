@@ -10446,7 +10446,9 @@ var Bracket = /** @class */ (function (_super) {
         ctx.uncleanedLatex += "\\right" + this.sides[R].ctrlSeq;
         this.checkCursorContextClose(ctx);
     };
-    // DOENET: brackets that LaTeX writes as a control sequence (`\langle`,
+    // DOENET: local patch to this vendored bundle -- preserve it when updating
+    // MathQuill from upstream.
+    // Brackets that LaTeX writes as a control sequence (`\langle`,
     // `\rangle`, `\lVert`, `\rVert`) reach the parser through LatexCmds rather
     // than through LatexCmds.left, so they arrive without the `\left` / `\right`
     // that supplies their contents. MathCommand's inherited parser reads one
