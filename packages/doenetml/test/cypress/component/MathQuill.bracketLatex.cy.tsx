@@ -1,13 +1,15 @@
 import React from "react";
 import { EditableMathField } from "../../../src/Viewer/renderers/mathquill/EditableMathField";
+import type { MathField } from "../../../src/Viewer/renderers/mathquill/types";
 
 // MathQuill's LaTeX parser and the delimiters it writes as control sequences
 // (Doenet/DoenetML#1336): `\langle`, `\rangle`, `\lVert` and `\rVert` reach the
 // parser as commands rather than through `\left` / `\right`, and it used to read
-// the single braced group an ordinary command takes. So `\langle 2, 3 \rangle`
-// gave the bracket just the `2` and had nothing left for `\rangle`, failing the
-// parse of the whole expression -- and a field whose LaTeX will not parse
-// renders empty, which is what `prefillLatex="\langle 2, 3 \rangle"` showed.
+// the one block an ordinary command takes -- a braced group, or a single token
+// when there are no braces. So `\langle 2, 3 \rangle` gave the bracket just the
+// `2` and had nothing left for `\rangle`, failing the parse of the whole
+// expression -- and a field whose LaTeX will not parse renders empty, which is
+// what `prefillLatex="\langle 2, 3 \rangle"` showed.
 //
 // A field re-serializes what it parsed, always in `\left…\right` form, so its
 // exported LaTeX is the parse result: `""` means the parse failed and the field
@@ -50,11 +52,11 @@ const CASES: Record<string, string> = {
  * loudly instead of reusing the previous case's field.
  */
 function exportedLatex(latex: string): Cypress.Chainable<string> {
-    let field: any = null;
+    let field: MathField | null = null;
     cy.mount(
         <EditableMathField
             latex={latex}
-            mathquillDidMount={(mf: any) => {
+            mathquillDidMount={(mf: MathField) => {
                 field = mf;
             }}
         />,
@@ -65,7 +67,7 @@ function exportedLatex(latex: string): Cypress.Chainable<string> {
             field,
             `field mounted for ${JSON.stringify(latex)}`,
         ).to.not.equal(null);
-        return field.latex();
+        return field!.latex();
     });
 }
 
