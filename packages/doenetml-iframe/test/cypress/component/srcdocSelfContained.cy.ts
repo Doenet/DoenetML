@@ -14,9 +14,10 @@ import {
 // `iframeReady` is already in the srcdoc. Two things are deliberately exempt.
 // The standalone bundle at `standaloneUrl` is fetched over the network by
 // design (the host picks its DoenetML version), but the boot script polls for
-// it instead of blocking on it, so a slow fetch only delays mounting rather
-// than suppressing the handshake. The loading-placeholder logo is an `<img>`,
-// so it blocks nothing at all.
+// it rather than importing it. The module body runs either way, so a fetch
+// that never lands ends in a bounded timeout and an explicit error posted to
+// the parent instead of permanent silence. The loading-placeholder logo is an
+// `<img>`, so it blocks nothing at all.
 
 // The inline boot script is the only `<script type="module">` with nothing
 // after `module` — the standalone bundle's tag carries a `src=` attribute.
