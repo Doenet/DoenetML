@@ -1,5 +1,13 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetViewer.
+//
+// Comlink is imported here so the iife build bundles it into this script.
+// The srcdoc used to `import` it from unpkg instead, which put a public-CDN
+// round trip on the critical path of every single iframe boot: until that
+// module resolved, this script — and with it the `iframeReady` handshake the
+// parent waits for — did not run at all.
+import * as ComlinkViewer from "comlink";
+
 declare const viewerId: string;
 declare const doenetViewerProps: Record<string, any>;
 declare const doenetViewerPropsSpecified: string[];
@@ -10,24 +18,22 @@ declare const doenetSharedCoreWorker: boolean | undefined;
 // Baked into the srcdoc for windowed (mountPolicy) viewers. Guarded with
 // `typeof` at the use site like doenetSharedCoreWorker.
 declare const doenetWindowedViewer: boolean | undefined;
-declare const ComlinkViewer: {
-    expose: Function;
-    windowEndpoint: Function;
-    releaseProxy: symbol;
-};
-interface Window {
-    renderDoenetViewerToContainer: (
-        container: Element,
-        doenetMLSource?: string,
-        config?: object,
-    ) => void;
-    doenetGlobalConfig: Record<string, any>;
-    /**
-     * Style-palette discovery, defined by standalone bundles new enough to
-     * ship it. Feature-detected (not version-gated) so an older bundle
-     * simply reports no palettes.
-     */
-    getDoenetStylePalettes?: () => unknown[];
+
+declare global {
+    interface Window {
+        renderDoenetViewerToContainer: (
+            container: Element,
+            doenetMLSource?: string,
+            config?: object,
+        ) => void;
+        doenetGlobalConfig: Record<string, any>;
+        /**
+         * Style-palette discovery, defined by standalone bundles new enough to
+         * ship it. Feature-detected (not version-gated) so an older bundle
+         * simply reports no palettes.
+         */
+        getDoenetStylePalettes?: () => unknown[];
+    }
 }
 
 // Module-scope state below is per-iframe-document: each `<DoenetViewer>` lives

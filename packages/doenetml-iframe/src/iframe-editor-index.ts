@@ -1,15 +1,16 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetEditor.
 import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
+// Comlink is imported here so the iife build bundles it into this script.
+// The srcdoc used to `import` it from unpkg instead, which put a public-CDN
+// round trip on the critical path of every single iframe boot: until that
+// module resolved, this script — and with it the `iframeReady` handshake the
+// parent waits for — did not run at all.
+import * as ComlinkEditor from "comlink";
 
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
 declare const doenetEditorPropsSpecified: string[];
-declare const ComlinkEditor: {
-    expose: Function;
-    windowEndpoint: Function;
-    releaseProxy: symbol;
-};
 declare global {
     interface Window {
         renderDoenetEditorToContainer: (

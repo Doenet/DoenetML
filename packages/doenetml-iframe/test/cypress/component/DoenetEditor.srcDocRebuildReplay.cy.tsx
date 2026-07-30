@@ -50,6 +50,15 @@ import {
 //      a rebuilt iframe either runs the bundle fast or it hangs
 //      forever inside Chrome's module loader for that iframe document.
 //
+// One cause of that "hangs forever in the module loader" state has since
+// been found and removed (#1608): the srcDoc's inline module used to
+// `import` Comlink from unpkg, and an `import` declaration is resolved
+// before any of the module body runs — so a CDN fetch that never
+// resolved left the whole boot script unexecuted and `iframeReady`
+// unsent. Comlink is bundled into the boot script now. The retry loop
+// below is kept because the pathology was never fully characterised and
+// costs nothing on a healthy boot.
+//
 // Two complementary changes on this branch:
 //
 //   a) `iframe-{editor,viewer}-index.ts` now defers `iframeReady`

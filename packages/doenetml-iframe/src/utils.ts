@@ -100,7 +100,6 @@ export function createHtmlForDoenetViewer(
         doenetViewerPropsSpecified.push("initializedCallback");
     }
 
-    // XXX: rather than serving Comlink from the cdn, below, serve it directly
     // TODO: rather than load the Doenet logo from doenet.org, serve it directly
     return `
     <html style="overflow:hidden">
@@ -112,10 +111,10 @@ export function createHtmlForDoenetViewer(
             const doenetViewerPropsSpecified = ${JSON.stringify(doenetViewerPropsSpecified)};
             const doenetSharedCoreWorker = ${JSON.stringify(!!useSharedCoreWorker)};
             const doenetWindowedViewer = ${JSON.stringify(!!windowed)};
-            import * as ComlinkViewer from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
 
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that viewerId, doenetViewerProps, doenetViewerPropsSpecified, and ComlinkViewer are defined in the global scope.
+            // It assumes that viewerId, doenetViewerProps, and doenetViewerPropsSpecified
+            // are defined in the enclosing scope. It carries its own copy of Comlink.
             ${viewerIframeJsSource}
         </script>
         <div id="root" data-doenet-message-parent="true" data-doenet-send-resize-events="true">
@@ -158,10 +157,10 @@ export function createHtmlForDoenetEditor(
             const editorId = "${id}";
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
             const doenetEditorPropsSpecified = ${JSON.stringify(doenetEditorPropsSpecified)};
-            import * as ComlinkEditor from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
-            
+
             // This source code has been compiled by vite and should be directly included.
-            // It assumes that editorId, doenetEditorProps, doenetEditorPropsSpecified, and ComlinkEditor are defined in the global scope.
+            // It assumes that editorId, doenetEditorProps, and doenetEditorPropsSpecified
+            // are defined in the enclosing scope. It carries its own copy of Comlink.
             ${editorIframeJsSource}
         </script>
         <div id="root" data-doenet-message-parent="true">
