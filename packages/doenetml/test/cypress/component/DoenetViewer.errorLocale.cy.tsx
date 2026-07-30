@@ -98,13 +98,18 @@ describe("the in-document error box follows the reader's language", () => {
     it("falls back to the English on the record when the catalog has no answer", () => {
         // The renderer treats an error whose code the negotiated catalogs
         // cannot resolve exactly as it treats one with no code at all: the
-        // formatter hands the record's own `message` straight back. French
-        // has no catalog, so this is that path — and it is the path every
-        // locale takes for a diagnostic nobody has translated yet.
+        // formatter hands the record's own `message` straight back. It is the
+        // path every locale takes for a diagnostic nobody has translated yet.
+        //
+        // `qaa` is from the ISO 639-3 range reserved for local use (qaa–qtz),
+        // so no catalog can ever claim it. This test used to say `fr` and
+        // meant the same thing, until French became a real catalog and
+        // started answering — a reserved tag is the version of the assertion
+        // that cannot rot.
         cy.mount(
             <DoenetViewer
                 doenetML={SELECT_WITH_MISSING_VARIANT}
-                uiLocale="fr"
+                uiLocale="qaa"
                 addVirtualKeyboard={false}
             />,
         );
