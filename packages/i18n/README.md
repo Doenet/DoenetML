@@ -66,6 +66,16 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
+English and Spanish are the two written by hand. The other eight — `de`, `fr`,
+`hnj`, `it`, `nl`, `ru`, `so`, `zh` — are **unreviewed machine-generated seeds**,
+which each file's own header says at the top, and which is what #1521's
+translation platform is for. Correcting one needs no permission and no
+coordination: a wrong string is just wrong, and the English is one key away.
+Two of them are deliberately partial — Somali and Hmong Njua leave
+`element-name` and `element-anion-name` out rather than invent a chemical
+nomenclature, so those fall back to English, which is what `lint:i18n` reports
+as coverage.
+
 The split is by **load context**, not topic: the worker never draws chrome, so
 it ships only `content` + `diagnostics` (`WORKER_NAMESPACES`). English is
 inlined into every build via `?raw` imports — the worker cannot reliably fetch
@@ -108,8 +118,9 @@ two different places:
 `codegen` and guarded by `lint:i18n`) is the roster: every locale with a
 catalog directory, each with its name in English and in itself, derived at
 codegen time from `Intl.DisplayNames` so that adding a language costs no
-hand-written prose. The second answer is a delivery decision that is expected
-to change — Spanish is inlined today only because it is the one reviewed
+hand-written prose. The second answer is a delivery decision, and the two lists
+have long since diverged: ten languages are on the roster and two of them are
+inlined. Spanish is one of those two only because it is the one reviewed
 translation and because being inlined is what lets an authored
 `<document lang="es">` build the core once (see [Delivery](#delivery)).
 

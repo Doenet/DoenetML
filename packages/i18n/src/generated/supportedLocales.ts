@@ -5,7 +5,8 @@
 // directory.
 
 /** A locale this repository ships a catalog for. */
-export type SupportedLocale = "en" | "es";
+export type SupportedLocale =
+    "en" | "de" | "es" | "fr" | "hnj" | "it" | "nl" | "ru" | "so" | "zh";
 
 /** A supported locale and the names to show an author. */
 export type SupportedLocaleInfo = {
@@ -44,9 +45,57 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "English",
     },
     {
+        locale: "de",
+        englishName: "German",
+        endonym: "Deutsch",
+        label: "German (Deutsch)",
+    },
+    {
         locale: "es",
         englishName: "Spanish",
         endonym: "español",
         label: "Spanish (español)",
+    },
+    {
+        locale: "fr",
+        englishName: "French",
+        endonym: "français",
+        label: "French (français)",
+    },
+    {
+        locale: "hnj",
+        englishName: "Hmong Njua",
+        endonym: "Hmong Njua",
+        label: "Hmong Njua",
+    },
+    {
+        locale: "it",
+        englishName: "Italian",
+        endonym: "italiano",
+        label: "Italian (italiano)",
+    },
+    {
+        locale: "nl",
+        englishName: "Dutch",
+        endonym: "Nederlands",
+        label: "Dutch (Nederlands)",
+    },
+    {
+        locale: "ru",
+        englishName: "Russian",
+        endonym: "русский",
+        label: "Russian (русский)",
+    },
+    {
+        locale: "so",
+        englishName: "Somali",
+        endonym: "Soomaali",
+        label: "Somali (Soomaali)",
+    },
+    {
+        locale: "zh",
+        englishName: "Chinese",
+        endonym: "中文",
+        label: "Chinese (中文)",
     },
 ];
