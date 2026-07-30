@@ -13,10 +13,15 @@ import { negotiateLocales, normalizeLocaleTag } from "./negotiate";
  * Fetch one locale's catalogs, for the namespaces the asking context can
  * actually render.
  *
- * The namespaces are a parameter rather than a fixed set because the worker
- * renders only `content`: handing it a loader that also pulled `diagnostics`,
- * `chrome` and `editor` would move four times the bytes for three catalogs it
- * never reads.
+ * The namespaces are a parameter rather than a fixed set because each one costs
+ * separately: {@link fetchLocaleLoaders} makes a request per namespace, and the
+ * code-split loaders pull a chunk per namespace. A context that renders a
+ * subset — `WORKER_NAMESPACES`, which is `content` alone — should not move four
+ * catalogs to get one.
+ *
+ * The viewer asks for all four, because the map it builds serves both jobs: its
+ * own chrome reads three of them, and the core it hands `LocaleData.resources`
+ * to reads the fourth.
  *
  * A namespace the locale has no catalog for is simply absent from the result.
  * A partial translation is legitimate — the missing keys fall through to
@@ -84,44 +89,44 @@ const LAZY_CATALOG_MODULES = CODE_SPLIT_CATALOGS
 /** `../locales/<locale>/<namespace>.ftl` */
 const CATALOG_PATH_PATTERN = /\/locales\/([^/]+)\/([^/]+)\.ftl$/;
 
-function groupModulesByLocale(
-    modules: Record<string, () => Promise<string>>,
-): Record<string, Partial<Record<CatalogNamespace, () => Promise<string>>>> {
-    const byLocale: Record<
-        string,
-        Partial<Record<CatalogNamespace, () => Promise<string>>>
-    > = {};
-    for (const [modulePath, importModule] of Object.entries(modules)) {
-        const match = CATALOG_PATH_PATTERN.exec(modulePath);
-        if (!match) {
-            continue;
-        }
-        const [, locale, namespace] = match;
-        if (!isCatalogNamespace(namespace)) {
-            continue;
-        }
-        (byLocale[locale] ??= {})[namespace] = importModule;
-    }
-    return byLocale;
-}
+/** One locale's catalogs, as a dynamic import per namespace it translates. */
+type CatalogImporters = Partial<
+    Record<CatalogNamespace, () => Promise<string>>
+>;
 
 function isCatalogNamespace(name: string): name is CatalogNamespace {
     return (CATALOG_NAMESPACES as readonly string[]).includes(name);
 }
 
+/**
+ * Turn the glob's flat `path → import()` map into one loader per locale.
+ *
+ * A path that does not name a locale and a known namespace is skipped rather
+ * than rejected: the glob is a filesystem pattern, and a stray file under
+ * `locales/` should not stop the catalogs beside it from loading.
+ */
 function loadersFromModules(
     modules: Record<string, () => Promise<string>>,
 ): LocaleLoaders {
+    const byLocale: Record<string, CatalogImporters> = {};
+    for (const [modulePath, importModule] of Object.entries(modules)) {
+        const match = CATALOG_PATH_PATTERN.exec(modulePath);
+        if (!match || !isCatalogNamespace(match[2])) {
+            continue;
+        }
+        (byLocale[match[1]] ??= {})[match[2]] = importModule;
+    }
+
     const loaders: LocaleLoaders = {};
-    for (const [locale, byNamespace] of Object.entries(
-        groupModulesByLocale(modules),
-    )) {
+    for (const [locale, importers] of Object.entries(byLocale)) {
         loaders[locale] = async (namespaces) => {
-            const wanted = namespaces.filter(
-                (namespace) => byNamespace[namespace] !== undefined,
+            // Only the namespaces this locale actually translates; the rest
+            // are simply absent from the result and fall back to English.
+            const wanted = namespaces.filter((namespace) =>
+                Boolean(importers[namespace]),
             );
             const sources = await Promise.all(
-                wanted.map((namespace) => byNamespace[namespace]!()),
+                wanted.map((namespace) => importers[namespace]!()),
             );
             const catalogs: Catalogs = {};
             wanted.forEach((namespace, index) => {
@@ -227,7 +232,7 @@ export function setLocaleLoaders(loaders: LocaleLoaders | null): void {
 }
 
 /** The loaders in effect: whatever was installed, else this build's own. */
-export function currentLocaleLoaders(): LocaleLoaders {
+function currentLocaleLoaders(): LocaleLoaders {
     return installedLoaders ?? LAZY_LOCALE_LOADERS;
 }
 
@@ -289,7 +294,8 @@ export async function loadLocaleResources(
     namespaces: readonly CatalogNamespace[] = CATALOG_NAMESPACES,
     options: LoadLocaleResourcesOptions = {},
 ): Promise<Record<string, string>> {
-    const { loaders = currentLocaleLoaders(), available = [] } = options;
+    const installed = currentLocaleLoaders();
+    const { loaders = installed, available = [] } = options;
     const normalized = normalizeLocaleTag(locale);
     if (!normalized || normalized === DEFAULT_LOCALE) {
         return {};
@@ -300,18 +306,21 @@ export async function loadLocaleResources(
     // Negotiate against both, so a tag that matches something already on hand
     // resolves to that rather than to a catalog we would have to go and get.
     const chain = negotiateLocales([normalized], [...onHand, ...loadable]);
-    const target = chain.find((tag) => tag !== DEFAULT_LOCALE);
-    if (!target || onHand.includes(target) || !loaders[target]) {
+    const negotiated = chain.find((tag) => tag !== DEFAULT_LOCALE);
+    if (!negotiated || onHand.includes(negotiated) || !loaders[negotiated]) {
         return {};
     }
+    // Rebound past the guard, so `load` below sees a tag and a loader rather
+    // than the optionals the search returned.
+    const target = negotiated;
+    const loader = loaders[target];
 
-    const load = async () => {
-        const catalogs = await loaders[target](namespaces);
-        const source = combineCatalogs(catalogs);
+    async function load(): Promise<Record<string, string>> {
+        const source = combineCatalogs(await loader(namespaces));
         return source ? { [target]: source } : {};
-    };
+    }
 
-    if (loaders !== currentLocaleLoaders()) {
+    if (loaders !== installed) {
         return load();
     }
     const key = requestKey(target, namespaces, onHand);

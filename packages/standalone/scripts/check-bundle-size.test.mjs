@@ -8,6 +8,7 @@ import {
     countBigBlobs,
     findProblems,
     loadBudgets,
+    servedCatalogProblems,
 } from "./check-bundle-size.mjs";
 
 const STANDALONE = "dist/doenet-standalone.js";
@@ -273,6 +274,20 @@ describe("collectCatalogProbes", () => {
         expect(probesFor({ en: EN, fr: EN }, ["en"], "identical")).toEqual([]);
     });
 
+    it("skips a translation that reuses any other inlined locale, not just English", () => {
+        // Spanish is inlined too, and neighbouring languages share plenty of
+        // wording. A probe matching one of its strings would report a leak over
+        // a catalog that is legitimately in the bundle.
+        const shared = { chrome: "greeting = Hola y bienvenido a todos\n" };
+        expect(
+            probesFor(
+                { en: EN, es: shared, fr: shared },
+                ["en", "es"],
+                "inlined-sibling",
+            ),
+        ).toEqual([]);
+    });
+
     it("skips a string too short to be a reliable fingerprint", () => {
         expect(
             probesFor(
@@ -300,5 +315,33 @@ describe("collectCatalogProbes", () => {
                 "namespace-fallback",
             ),
         ).toEqual([["fr", "Une note assez longue"]]);
+    });
+});
+
+describe("servedCatalogProblems", () => {
+    const PROBES = [
+        ["fr", "Bonjour et bienvenue"],
+        ["de", "Guten Tag und willkommen"],
+    ];
+
+    it("accepts a build that copied every served locale", () => {
+        expect(servedCatalogProblems(PROBES, ["en", "es", "fr", "de"])).toEqual(
+            [],
+        );
+    });
+
+    it("reports each served locale that was not copied", () => {
+        const problems = servedCatalogProblems(PROBES, ["en", "es", "fr"]);
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("dist/locales/de/");
+    });
+
+    it("reports the whole directory going missing, even with nothing served yet", () => {
+        // The state this catches today: while every translation is still
+        // inlined there are no probes, so a copy step that silently stopped
+        // running would otherwise go unnoticed until the first one is not.
+        const problems = servedCatalogProblems([], null);
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("dist/locales/ was not emitted");
     });
 });

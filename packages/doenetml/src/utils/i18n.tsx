@@ -70,28 +70,29 @@ export function useLocaleCatalogs(
 
     useEffect(() => {
         let cancelled = false;
-        loadLocaleResourcesFor(locales, CATALOG_NAMESPACES, {
-            available: Object.keys(hostResources ?? {}),
-        })
-            .then((resources) => {
-                if (cancelled || Object.keys(resources).length === 0) {
-                    return;
-                }
-                setLoaded((previous) => {
-                    const next = { ...previous, ...resources };
-                    // Same locales as before means nothing downstream needs to
-                    // know, and re-keying would rebuild the core.
-                    return localeResourceKey(next) ===
-                        localeResourceKey(previous)
-                        ? previous
-                        : next;
-                });
-            })
-            .catch(() => {
-                // A catalog that cannot be fetched leaves the locale falling
-                // back to English, which is what an untranslated locale does
-                // anyway. Nothing here is worth failing a render over.
+        async function load() {
+            const resources = await loadLocaleResourcesFor(
+                locales,
+                CATALOG_NAMESPACES,
+                { available: Object.keys(hostResources ?? {}) },
+            );
+            if (cancelled || Object.keys(resources).length === 0) {
+                return;
+            }
+            setLoaded((previous) => {
+                const next = { ...previous, ...resources };
+                // Same locales as before means nothing downstream needs to
+                // know, and re-keying would rebuild the core.
+                return localeResourceKey(next) === localeResourceKey(previous)
+                    ? previous
+                    : next;
             });
+        }
+        load().catch(() => {
+            // A catalog that cannot be fetched leaves the locale falling back
+            // to English, which is what an untranslated locale does anyway.
+            // Nothing here is worth failing a render over.
+        });
         return () => {
             cancelled = true;
         };

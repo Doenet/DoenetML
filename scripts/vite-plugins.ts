@@ -197,12 +197,17 @@ export function prefigureDynamicImportIgnorePlugin(): PluginOption {
  * targets concurrently and races itself creating the nested `locales/<tag>/`
  * directories.
  *
- * @param outDir Build output directory. `locales/` is written inside it.
+ * The destination comes from the resolved config rather than the call site, so
+ * `locales/` cannot end up somewhere other than where the bundle itself lands.
  */
-export function copyLocaleCatalogsPlugin(outDir: string): PluginOption {
+export function copyLocaleCatalogsPlugin(): PluginOption {
+    let outDir = "";
     return {
         name: "doenet-copy-locale-catalogs",
         apply: "build",
+        configResolved(config) {
+            outDir = path.resolve(config.root, config.build.outDir);
+        },
         closeBundle() {
             const source = path.resolve(
                 path.dirname(fileURLToPath(import.meta.url)),

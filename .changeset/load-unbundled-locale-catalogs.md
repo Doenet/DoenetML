@@ -12,4 +12,6 @@ Only English and Spanish are carried inside the JavaScript. Every other language
 
 Adding a language is now a directory under `packages/i18n/locales/` and nothing else. At roughly 17 KB gzipped per translation, inlining every language would have put the cost of all of them on everyone who uses one, or none.
 
-The catalogs are also no longer bundled into the core worker, which never reads them — it is handed the one catalog it needs by the main thread. The standalone bundle check fails the build if a served catalog turns up inside an emitted script or if a language is missing from `dist/locales/`, and `lint:i18n` fails if the set of inlined locales and the set the loader code-splits ever disagree.
+`@doenet/standalone` therefore ships a new `dist/locales/` directory, which should be served alongside `doenet-standalone.js`. Nothing breaks if it is not: those fetches fail quietly and the language falls back to English, which is what it does today.
+
+The catalogs are also no longer bundled into the core worker, which never reads them — it is handed the one catalog it needs by the main thread.

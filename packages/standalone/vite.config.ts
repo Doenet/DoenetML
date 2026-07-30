@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import * as path from "node:path";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
 import dts from "vite-plugin-dts";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
@@ -13,7 +12,6 @@ import {
 } from "../../scripts/vite-plugins";
 
 const require = createRequire(import.meta.url);
-const PACKAGE_ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -60,7 +58,7 @@ export default defineConfig({
         // off below, and `index.tsx` points the viewer's loaders at this copy
         // instead. Same arrangement as the core worker above, for the same
         // reason.
-        copyLocaleCatalogsPlugin(path.resolve(PACKAGE_ROOT, "dist")),
+        copyLocaleCatalogsPlugin(),
         suppressLogPlugin(),
         // Vite's built-in `minify` does not actually minify this lib-mode
         // bundle (see plugin doc). Do it explicitly instead.
