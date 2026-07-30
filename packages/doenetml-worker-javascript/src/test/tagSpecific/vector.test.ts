@@ -6440,7 +6440,8 @@ describe("Vector Tag Tests @group4", function () {
             stateVariables,
         });
 
-        // moving the tail carries the head along, leaving the displacement alone
+        // this vector is specified by its displacement, so moving the tail
+        // carries the head along, leaving the displacement alone
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("uvTail"),
             core,
@@ -6481,5 +6482,41 @@ describe("Vector Tag Tests @group4", function () {
             d: [9, 1],
             stateVariables,
         });
+    });
+
+    it("update the tail of an extended vector with updateValue", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <vector name="v">(3,4)</vector>
+  <vector extend="$v" name="v2" />
+
+  <updateValue name="uvTail" target="$v2.tail" newValue="(7,8)" />
+    `,
+        });
+
+        async function check_both(t: number[], h: number[], d: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["v", "v2"]) {
+                check_vec_htd({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    t,
+                    h,
+                    d,
+                    stateVariables,
+                });
+            }
+        }
+
+        await check_both([0, 0], [3, 4], [3, 4]);
+
+        // the extension passes the whole tail through to the original vector
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvTail"),
+            core,
+        });
+        await check_both([7, 8], [10, 12], [3, 4]);
     });
 });
