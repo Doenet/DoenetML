@@ -115,6 +115,40 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         //     });
     });
 
+    it("prefillLatex renders angle brackets written without \\left and \\right", () => {
+        // MathQuill used to require `\left\langle ... \right\rangle`; given the
+        // bare `\langle ... \rangle` that authors write, its parser failed and
+        // the field rendered empty (#1336).
+        postDoenetML(`
+    <p>vector: <mathInput name="v" prefillLatex="\\langle 2, 3 \\rangle" /></p>
+    <p>empty: <mathInput name="e" prefillLatex="\\langle  \\rangle" /></p>
+    `);
+
+        // The delimiters themselves are drawn as SVG, so the field's mathspeak
+        // (what a screen reader announces) is where they show up as text.
+        cy.get("#v .mq-mathspeak").should(
+            "contain.text",
+            "left angle-bracket, 2 , 3 , right angle-bracket",
+        );
+        cy.get("#v .mq-root-block").should("have.text", "2,3");
+        cy.get("#e .mq-mathspeak").should(
+            "contain.text",
+            "left angle-bracket, , right angle-bracket",
+        );
+        cy.get("#e .mq-root-block").should("have.text", "");
+
+        // Both delimiters are real, not the ghost half of a one-sided bracket.
+        cy.get("#v .mq-ghost").should("not.exist");
+        cy.get("#e .mq-ghost").should("not.exist");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("v")].stateValues.value,
+            ).eqls(["altvector", 2, 3]);
+        });
+    });
+
     it("check ignoreUpdate bug 1", () => {
         // if set core to delay 1 second on updates
         // then the refresh on blur (from the focus field recoil atoms changing)
