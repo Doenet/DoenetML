@@ -123,9 +123,11 @@ style-border-clause =
        *[with] oo leh xuduud { $border }
     }
 
+# Noun then colour, as everywhere else here. The colour words carry their own
+# `ah` where they need one (`casaan khafiif ah`), so this message adds none.
 style-fill =
     { $parts ->
-        [pattern] { $pattern } midab { $color } ah
+        [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
 

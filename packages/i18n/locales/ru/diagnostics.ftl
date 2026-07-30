@@ -11,8 +11,13 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Russian counts in four plural categories, so every countable message selects
-# on all of `one`, `few`, `many` and `other`.
+# Russian counts in four plural categories, and which of them a message needs
+# depends on what the count does in it. A message that prints the number next
+# to a noun has to agree that noun with it, so it spells out `one`, `few` and
+# `many` and lets `*[other]` carry whichever form is left. A message where the
+# number never appears — the list messages, whose count only decides whether a
+# verb is singular or plural — has just the two forms Russian offers there, so
+# `one` and `*[other]` are the whole selection.
 
 ## `<lineSegment>`
 

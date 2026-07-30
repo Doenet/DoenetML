@@ -182,6 +182,12 @@ noun-regular-polygon =
 # `borderStyleDescription` — the state variable that renders a border's style
 # on its own, with no preposition — therefore also comes out instrumental.
 # Fixing that properly means the code passing a case alongside the gender.
+#
+# `background` faces the same fork and is resolved the other way: it stays
+# nominative, so `backgroundColor` reads right on its own and the «на … фоне»
+# clause in `style-text` carries the nominative with it. The two nouns split
+# because a border is named by a clause far more often than alone, and a
+# background the reverse.
 noun-gender =
     { $noun ->
         [line] f
@@ -250,11 +256,15 @@ style-border-clause =
        *[with] с { $border } границей
     }
 
-# «цвета» avoids having to agree the colour with a plural pattern noun.
+# The fill-pattern words are instrumental plurals, because their other use is
+# the «с { $pattern }» clause in `style-filled`. So this message supplies a
+# noun for them to hang off — «заливка», feminine, which is the gender
+# `noun-gender` already answers for `fill`, so the colour agrees with it in
+# both variants.
 style-fill =
     { $parts ->
-        [pattern] { $pattern } цвета { $color }
-       *[plain] { $color }
+        [pattern] { $color } заливка с { $pattern }
+       *[plain] { $color } заливка
     }
 
 style-unfilled = незакрашенный

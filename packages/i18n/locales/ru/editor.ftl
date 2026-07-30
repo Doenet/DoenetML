@@ -11,8 +11,10 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Russian counts in four plural categories, so every countable message selects
-# on all of `one`, `few`, `many` and `other`.
+# Russian counts in four plural categories, but only a message that prints the
+# number beside a noun needs all four. `help-coordinates` never shows its
+# count — it decides a heading's singular against its plural, and Russian has
+# just the two forms there — so `one` and `*[other]` are the whole selection.
 
 
 ## The viewer's controls
