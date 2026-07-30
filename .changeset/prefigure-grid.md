@@ -12,8 +12,6 @@ Graph: draw the grid in the prefigure renderer.
 
 - `grid` (or `grid="medium"`) lets PreFigure pick the spacing from the axis limits, so the grid follows the graph's bounds.
 - `grid="dense"` subdivides that spacing to add the finer lines.
-- `grid="dx dy"` places lines on multiples of `dx` and `dy`, as the doenet renderer does.
+- `grid="dx dy"` places lines on multiples of `dx` and `dy`, as the Doenet renderer does.
 
-The grid is drawn behind the axes and the graph's contents, and takes a dimmer stroke in dark mode.
-
-Closes #1242.
+The grid is drawn behind the axes and the graph's contents, and takes a dimmer stroke in dark mode. A spacing so fine that it would fill the graph with thousands of lines is dropped with a warning.

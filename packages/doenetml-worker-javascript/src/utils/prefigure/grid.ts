@@ -1,4 +1,4 @@
-import { asFiniteNumber, escapeXml, formatNumber, pushWarning } from "./common";
+import { asFiniteNumber, escapeXml, pushWarning } from "./common";
 import type { GraphBounds } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
 
@@ -11,8 +11,9 @@ const PREFIGURE_DARK_GRID_COLOR = "#666666";
 
 // PreFigure's own spacing table (`grid_delta` in `prefig/core/grid_axes.py`),
 // reproduced so `grid="dense"` can be expressed as a subdivision of the
-// spacing PreFigure would have chosen on its own.
-const PREFIGURE_GRID_DELTA: Record<number, number> = {
+// spacing PreFigure would have chosen on its own. Typed as possibly undefined
+// so the lookup below has to answer for an index outside the table.
+const PREFIGURE_GRID_DELTA: Record<number, number | undefined> = {
     2: 0.1,
     3: 0.25,
     4: 0.25,
@@ -34,9 +35,11 @@ const PREFIGURE_GRID_DELTA: Record<number, number> = {
     20: 1,
 };
 
-// `grid="dense"` draws JSXGraph's minor tick lines as well as its major ones,
-// which is one line every fifth of the major spacing. PreFigure has no notion
-// of minor ticks, so we subdivide its automatic spacing by the same factor.
+// `grid="dense"` draws JSXGraph's minor tick lines as well as its major ones.
+// JSXGraph puts four minor ticks between major ones — one line every fifth of
+// the major spacing — for every spacing PreFigure's table can produce, so a
+// single factor covers the translation. PreFigure has no notion of minor
+// ticks, so we subdivide its automatic spacing by that same factor.
 const DENSE_SUBDIVISIONS = 5;
 
 // PreFigure emits one `<line>` per grid line, so a spacing far finer than the
@@ -91,19 +94,12 @@ function cleanNumber(value: number): number {
  * step with it so `grid="dense"` is exactly a subdivision of the spacing that
  * `grid="medium"` gets from PreFigure itself.
  *
- * Returns null for a degenerate range (PreFigure would spin forever on a range
- * of zero, since its normalizing loop multiplies the width by ten until it
- * exceeds one).
+ * The caller guarantees a positive, finite range: PreFigure's normalizing loop
+ * multiplies the width by ten until it exceeds one, which never terminates on a
+ * range of zero.
  */
-export function prefigureAutomaticGridSpacing(
-    min: number,
-    max: number,
-): number | null {
-    let distance = Math.abs(max - min);
-
-    if (!Number.isFinite(distance) || distance === 0) {
-        return null;
-    }
+function prefigureAutomaticGridSpacing(min: number, max: number): number {
+    let distance = max - min;
 
     let spacing = 1;
     while (distance > 10) {
@@ -115,10 +111,10 @@ export function prefigureAutomaticGridSpacing(
         spacing /= 10;
     }
 
-    const delta = PREFIGURE_GRID_DELTA[roundHalfToEven(2 * distance)];
-    if (delta === undefined) {
-        return null;
-    }
+    // `distance` now sits in (1, 10], so the index lands in (2, 20] and the
+    // table always answers; the fallback only guards against a rounding
+    // surprise at the ends of that interval.
+    const delta = PREFIGURE_GRID_DELTA[roundHalfToEven(2 * distance)] ?? 1;
 
     return spacing * delta;
 }
@@ -132,7 +128,9 @@ type GridTriple = [number, number, number];
  * so the triple runs from the smallest multiple at or above `min` to the
  * largest at or below `max`.
  *
- * Returns null when the grid would exceed {@link MAX_GRID_LINES_PER_AXIS}.
+ * Returns null when the grid would exceed {@link MAX_GRID_LINES_PER_AXIS}, or
+ * when a spacing small enough to overflow the division leaves no usable
+ * positions at all — both mean the same thing to the caller: too fine to draw.
  */
 function alignedGridTriple(
     min: number,
@@ -155,19 +153,24 @@ function alignedGridTriple(
         return [belowRange, spacing, belowRange];
     }
 
-    if (Math.round((last - first) / spacing) + 1 > MAX_GRID_LINES_PER_AXIS) {
+    // A non-finite endpoint means `min / spacing` overflowed, which leaves the
+    // line count Infinity or NaN; `Number.isFinite` rejects both.
+    const lineCount = Math.round((last - first) / spacing) + 1;
+    if (!Number.isFinite(lineCount) || lineCount > MAX_GRID_LINES_PER_AXIS) {
         return null;
     }
 
     return [first, spacing, last];
 }
 
-function formatGridTriple(triple: GridTriple): string | null {
-    const parts = triple.map(formatNumber);
-    if (parts.some((part) => part === null)) {
-        return null;
-    }
-    return `(${parts.join(",")})`;
+/**
+ * Writes a triple as PreFigure's `(first, spacing, last)` literal.
+ *
+ * Every component is finite by construction — {@link alignedGridTriple} rejects
+ * the triples that are not — so the default number formatting is enough.
+ */
+function formatGridTriple(triple: GridTriple): string {
+    return `(${triple.join(",")})`;
 }
 
 function positiveSpacing(value: unknown): number | null {
@@ -201,34 +204,41 @@ export function gridElementFromGrid({
     darkMode: boolean;
     diagnostics: DiagnosticRecord[];
 }): string {
+    if (grid !== "medium" && grid !== "dense" && !Array.isArray(grid)) {
+        // "none", or anything the grid state variable could not resolve.
+        return "";
+    }
+
+    const [xMin, yMin, xMax, yMax] = graphBounds;
+
+    if (!(xMax > xMin) || !(yMax > yMin)) {
+        // An empty or inverted axis range has no grid to draw, and PreFigure's
+        // automatic spacing loops forever on a range of zero, so a bare
+        // `<grid />` must not reach it. Nothing else about such a graph renders
+        // either, and `doenet-w0062` already covers non-finite bounds, so this
+        // stays quiet.
+        return "";
+    }
+
     const strokeAttr = darkMode ? ` stroke="${PREFIGURE_DARK_GRID_COLOR}"` : "";
 
     if (grid === "medium") {
         return `<grid${strokeAttr} />`;
     }
 
-    const [xMin, yMin, xMax, yMax] = graphBounds;
-
     let xSpacing: number | null;
     let ySpacing: number | null;
 
     if (grid === "dense") {
-        const xAutomatic = prefigureAutomaticGridSpacing(xMin, xMax);
-        const yAutomatic = prefigureAutomaticGridSpacing(yMin, yMax);
-        xSpacing =
-            xAutomatic === null
-                ? null
-                : cleanNumber(xAutomatic / DENSE_SUBDIVISIONS);
-        ySpacing =
-            yAutomatic === null
-                ? null
-                : cleanNumber(yAutomatic / DENSE_SUBDIVISIONS);
-    } else if (Array.isArray(grid)) {
+        xSpacing = cleanNumber(
+            prefigureAutomaticGridSpacing(xMin, xMax) / DENSE_SUBDIVISIONS,
+        );
+        ySpacing = cleanNumber(
+            prefigureAutomaticGridSpacing(yMin, yMax) / DENSE_SUBDIVISIONS,
+        );
+    } else {
         xSpacing = positiveSpacing(grid[0]);
         ySpacing = positiveSpacing(grid[1]);
-    } else {
-        // "none", or anything the grid state variable could not resolve.
-        return "";
     }
 
     if (xSpacing === null || ySpacing === null) {
@@ -243,14 +253,7 @@ export function gridElementFromGrid({
         return "";
     }
 
-    const xText = formatGridTriple(xTriple);
-    const yText = formatGridTriple(yTriple);
-
-    if (xText === null || yText === null) {
-        return "";
-    }
-
-    const spacings = `(${xText},${yText})`;
+    const spacings = `(${formatGridTriple(xTriple)},${formatGridTriple(yTriple)})`;
 
     return `<grid spacings="${escapeXml(spacings)}"${strokeAttr} />`;
 }

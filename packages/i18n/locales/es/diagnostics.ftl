@@ -284,6 +284,8 @@ prefigure-invalid-width = `<graph>`: el ancho no es válido para la conversión 
 
 prefigure-invalid-aspect-ratio = `<graph>`: aspectRatio no es válido para la conversión a prefigure; se usa la relación de aspecto predeterminada 1.
 
+prefigure-grid-spacing-too-fine = `<graph>`: el espaciado de la cuadrícula es demasiado fino para los límites de los ejes; se omite la cuadrícula en el renderizador prefigure.
+
 prefigure-annotations-not-rendered = `<graph>`: las anotaciones no se representan si no se usa el renderizador PreFigure.
 
 multiple-annotations-children = Se encontraron varios hijos `<annotations>` en `<graph>`; se ignoran todos menos el último.

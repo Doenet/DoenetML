@@ -82,6 +82,32 @@ describe("PreFigure grid @group4", () => {
         );
     });
 
+    it('grid="dense" breaks a spacing tie the way PreFigure does', async () => {
+        // A range of 12.5 normalizes to 1.25, and PreFigure indexes its
+        // spacing table by `round(2 * 1.25)`. Python rounds that tie down to
+        // 2 (spacing 1), where rounding half up would give 3 (spacing 2.5), so
+        // dense lines land every 0.2 rather than every 0.5.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", {
+                attrs: 'grid="dense" xMin="0" xMax="12.5"',
+            }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(
+            `<grid spacings="((0,0.2,12.4),(-10,0.5,10))" />`,
+        );
+    });
+
+    it("an empty axis range emits no grid element", async () => {
+        // PreFigure's automatic spacing never terminates on a range of zero,
+        // so a degenerate graph must not get a bare <grid /> to work from.
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("", { attrs: 'grid xMin="3" xMax="3"' }),
+        );
+
+        expect(gridElement(prefigureXML)).eq(null);
+    });
+
     it("two numbers set the x and y spacing explicitly", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph("", { attrs: 'grid="2 0.5"' }),
