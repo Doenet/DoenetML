@@ -8,8 +8,10 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Register: impersonal throughout — infinitives and bare nouns, never a `je`
-# or `u` verb form, except in the two "reload the page" messages where an
-# instruction to the reader is unavoidable.
+# or `u` verb form. Where the reader is asked to act — the click-to-open pair
+# and the two "reload the page" messages — the bare imperative does it
+# (`klik`, `laad`), which Dutch leaves unmarked for `je` against `u`, so even
+# there the file picks neither.
 
 
 ## Answer submission

@@ -7,9 +7,10 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Register: impersonal throughout — verbal nouns and bare nouns rather than an
-# imperative addressed to the reader, except in the two "reload the page"
-# messages where an instruction is unavoidable.
+# Register: a control takes the bare singular imperative — `Fur`, `Ku dar`,
+# `Muuji` — which is how Somali names an action, and a status takes a verbal
+# noun or the impersonal `waa la` construction (`Waa la hubinayaa`), which
+# reports without naming who is doing it.
 
 
 ## Answer submission

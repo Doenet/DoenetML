@@ -7,9 +7,11 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Register: impersonal throughout — infinitives and bare nouns, never a `tu`
-# or `Lei` verb form, except in the two "reload the page" messages where an
-# instruction to the reader is unavoidable.
+# Register: the bare imperative, which is what Italian puts on a control —
+# `Mostra`, `Apri`, `Ricarica`. That is the `tu` form: Italian has no verb
+# form neutral between `tu` and `Lei`, and every Italian interface resolves
+# it the same way. Statuses stay nominal (`Verifica in corso`), so the
+# imperative appears only where the reader is being asked to act.
 
 
 ## Answer submission
@@ -42,8 +44,6 @@ validation-correct = (Corretto)
 validation-incorrect = (Errato)
 validation-partially-correct = (Parzialmente corretto)
 
-# `Mostrare` reduced to `Mostra`, which is how Italian interfaces label an
-# action without addressing the reader.
 answer-show-responses =
     { $count ->
         [one] Mostra { $count } risposta a { $answerId }

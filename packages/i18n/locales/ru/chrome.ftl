@@ -7,9 +7,11 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Register: impersonal throughout — verbal nouns and infinitives, never a `ты`
-# or `вы` verb form, except in the two "reload the page" messages where an
-# instruction to the reader is unavoidable.
+# Register: impersonal throughout — verbal nouns for statuses and infinitives
+# for controls, never a `ты` form. Where the reader is asked to act — the
+# click-to-open pair and the two "reload the page" messages — the `вы`
+# imperative does it, which is the polite default Russian software uses and
+# the only form those sentences have.
 #
 # Russian counts in four plural categories, so every countable message below
 # selects on all of `one`, `few`, `many` and `other`. `one` covers 21 and 101
@@ -60,7 +62,7 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Отзыв
+feedback-heading = Обратная связь
 
 collapsible-click-to-open = (нажмите, чтобы открыть)
 collapsible-click-to-close = (нажмите, чтобы закрыть)

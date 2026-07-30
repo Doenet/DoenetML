@@ -86,7 +86,7 @@ noun =
     .polygon = poligono
     .triangle = triangolo
     .rectangle = rettangolo
-    .circle = cerchio
+    .circle = circonferenza
     .region = regione
     .point = punto
     .square = quadrato
@@ -114,6 +114,7 @@ noun-gender =
         [function] f
         [parabola] f
         [polyline] f
+        [circle] f
         [region] f
         [cross] f
        *[other] m

@@ -175,14 +175,16 @@ section-name =
     .task = 任务
     .theorem = 定理
 
-# Chinese joins the word and its number with no space, and separates a title
-# with a full-width colon.
+# A space separates the word from its number, because the number is Latin
+# digits, and a title follows the full-width colon Chinese punctuates with. A
+# bare number keeps the ASCII period, which is the punctuation the number
+# itself is already written in.
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
         [number] { $sectionNumber }
         [name-title] { $sectionName }{ "：" }
-        [number-title] { $sectionNumber }{ "。" }
+        [number-title] { $sectionNumber }{ ". " }
         [name-number-title] { $sectionName } { $sectionNumber }{ "：" }
        *[name-number] { $sectionName } { $sectionNumber }
     }
@@ -215,7 +217,11 @@ paginator-previous = 上一页
 paginator-next = 下一页
 paginator-page = 页
 
-paginator-page-status = 第 { $currentPage } { $pageLabel }，共 { $numPages } 页
+# Chinese counts pages with the label on both halves — 第 3 页，共 5 页 — so
+# `$pageLabel` appears twice. It is the `pageLabel` attribute, which an author
+# may have written themselves, and a word they chose has to be the word in
+# both halves.
+paginator-page-status = 第 { $currentPage } { $pageLabel }，共 { $numPages } { $pageLabel }
 
 
 ## Piecewise functions

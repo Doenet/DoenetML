@@ -8,9 +8,10 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Register: impersonal throughout — infinitives and bare nouns, never a `du`
-# or `Sie` verb form, except in the two "reload the page" messages where an
-# instruction to the reader is unavoidable, which use the neutral imperative
-# with `bitte`.
+# or `Sie` verb form. The two "reload the page" messages are the only ones
+# that ask the reader to act, and they keep the infinitive too, softened with
+# `bitte`: „Bitte die Seite neu laden“. That is how German signage and
+# software give an instruction without choosing a pronoun.
 
 
 ## Answer submission
@@ -82,7 +83,7 @@ matrix-add-column = Spalte hinzufügen
 subset-add-remove-points = Punkte hinzufügen/entfernen
 subset-toggle-points-intervals = Zwischen Punkten und Intervallen wechseln
 subset-move-points = Punkte verschieben
-subset-clear = Zurücksetzen
+subset-clear = Leeren
 
 # A `box` here is one orbital, drawn as a square: `Kästchen`.
 orbital-add-row = Zeile hinzufügen

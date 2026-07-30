@@ -203,12 +203,14 @@ style-border-clause =
        *[with] met { $border } rand
     }
 
-# `in het` + colour avoids having to agree the colour with a plural pattern
-# noun.
+# The gender this message is handed is the one `noun-gender` answers for
+# `fill` — `c`, for the de-word `vulling` — so it names that noun and the
+# colour takes its `-e` against it in both variants. The pattern follows in
+# the `met` clause `style-filled` already uses.
 style-fill =
     { $parts ->
-        [pattern] { $pattern } in { $color }
-       *[plain] { $color }
+        [pattern] { $color } vulling met { $pattern }
+       *[plain] { $color } vulling
     }
 
 style-unfilled = niet gevuld

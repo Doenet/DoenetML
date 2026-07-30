@@ -186,11 +186,14 @@ style-border-clause =
        *[with] avec une bordure { $border }
     }
 
-# «de couleur» avoids having to agree the color with a plural pattern noun.
+# The gender this message is handed is the one `noun-gender` answers for
+# `fill` — masculine, for «remplissage» — so it names that noun and the colour
+# agrees with it in both variants. The pattern follows in the «avec des»
+# clause `style-filled` already uses.
 style-fill =
     { $parts ->
-        [pattern] { $pattern } de couleur { $color }
-       *[plain] { $color }
+        [pattern] remplissage { $color } avec des { $pattern }
+       *[plain] remplissage { $color }
     }
 
 style-unfilled = non rempli

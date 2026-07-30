@@ -80,7 +80,7 @@ matrix-remove-column = Tshem kem ncaj
 matrix-add-column = Ntxiv kem ncaj
 
 subset-add-remove-points = Ntxiv/tshem cov taw
-subset-toggle-points-intervals = Hloov ntawm cov taw thiab cov ceg
+subset-toggle-points-intervals = Hloov ntawm cov taw thiab cov ntu
 subset-move-points = Txav cov taw
 subset-clear = Ntxuav
 
