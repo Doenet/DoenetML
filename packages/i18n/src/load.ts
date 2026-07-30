@@ -156,8 +156,17 @@ export const LAZY_LOCALE_LOADERS: LocaleLoaders =
  * rather than failing the render: a missing translation is not an error, and
  * this runs during a paint.
  *
- * @param baseUrl Directory the catalogs are served from. Resolved against the
- *   page, so `new URL("./locales/", import.meta.url)` points at a copy shipped
+ * A base URL that cannot be resolved is treated the same way, and that is
+ * load-bearing rather than defensive habit. `blob:` and `about:srcdoc` are
+ * both opaque — `new URL("./x", blobUrl)` throws — and both are real bases
+ * here: `@doenet/doenetml-iframe` boots the standalone bundle from a Blob URL,
+ * which is exactly where `import.meta.url` is one. Resolving eagerly would
+ * throw while the caller is still evaluating its module, taking the whole
+ * bundle down over a missing translation. So each URL is built inside the
+ * fetch that uses it, where a failure already means English.
+ *
+ * @param baseUrl Directory the catalogs are served from, as a URL or a string
+ *   to resolve one from — typically `import.meta.url` for a copy shipped
  *   beside the bundle.
  * @param locales Tags to offer. Defaults to every locale this build knows of,
  *   which is what a host serving a copy of `locales/` has.
@@ -178,15 +187,18 @@ export function fetchLocaleLoaders(
             const catalogs: Catalogs = {};
             await Promise.all(
                 namespaces.map(async (namespace) => {
-                    const url = new URL(`${locale}/${namespace}.ftl`, base);
                     try {
+                        // Inside the `try`: an opaque base makes this throw,
+                        // and that has to degrade to English like any other
+                        // catalog that cannot be reached.
+                        const url = new URL(`${locale}/${namespace}.ftl`, base);
                         const response = await fetch(url);
                         if (response.ok) {
                             catalogs[namespace] = await response.text();
                         }
                     } catch {
-                        // Offline, blocked, or no such catalog. English covers
-                        // it.
+                        // Unresolvable base, offline, blocked, or no such
+                        // catalog. English covers it.
                     }
                 }),
             );

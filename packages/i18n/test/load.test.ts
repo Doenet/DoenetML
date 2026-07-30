@@ -256,6 +256,25 @@ describe("fetchLocaleLoaders", () => {
         });
     });
 
+    it("does not throw on a base no URL can be resolved against", async () => {
+        // `@doenet/doenetml-iframe` boots the standalone bundle from a Blob
+        // URL, so `import.meta.url` there is `blob:` — opaque, and `new URL`
+        // throws on it. Building the loaders happens at module scope, so a
+        // throw here leaves the whole bundle unevaluated and every viewer on
+        // the page blank. It has to degrade to English instead.
+        vi.stubGlobal("fetch", async () => {
+            throw new Error("should never be reached");
+        });
+
+        for (const base of [
+            "blob:http://example.test/8f1c-uuid",
+            "about:srcdoc",
+        ]) {
+            const loaders = fetchLocaleLoaders(base, ["fr"]);
+            await expect(loaders["fr"](["chrome"])).resolves.toEqual({});
+        }
+    });
+
     it("treats a network failure the same way, since this runs during a paint", async () => {
         vi.stubGlobal("fetch", async () => {
             throw new Error("offline");

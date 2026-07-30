@@ -45,12 +45,47 @@ export const version: string = STANDALONE_VERSION;
 // A host that serves this bundle without `locales/` beside it loses nothing it
 // has today: those fetches fail quietly and every locale falls back to English.
 //
-// The path is held in a constant rather than written inline because Vite reads
-// a literal `new URL(..., import.meta.url)` as an asset reference and warns
-// that the target does not exist at build time. It does not — the build copies
-// it in afterwards — so the reference has to stay unanalyzed.
-const LOCALES_PATH = "./locales/";
-setLocaleLoaders(fetchLocaleLoaders(new URL(LOCALES_PATH, import.meta.url)));
+// The paths are held in constants rather than written inline because Vite reads
+// a literal `new URL(..., import.meta.url)` as an asset reference and warns that
+// the target does not exist at build time. It does not — the build copies it in
+// afterwards — so the reference has to stay unanalyzed.
+const CATALOGS_BESIDE_BUNDLE = "./locales/";
+const CATALOGS_AT_ORIGIN = "/locales/";
+
+/**
+ * Where to fetch the message catalogs from, or `null` if nowhere can be worked
+ * out.
+ *
+ * Beside the bundle is the right answer and the one the build arranges. But
+ * `import.meta.url` is not always a base a URL can be resolved against:
+ * `@doenet/doenetml-iframe` boots this bundle from a Blob URL, and `blob:` is
+ * opaque, so `new URL` throws on it. Nothing is "beside" a blob, so that case
+ * falls back to the page's own origin — the same fallback `getWorkerUrl` in
+ * `@doenet/doenetml` makes when an iframe's location is `about:srcdoc`.
+ *
+ * Returning `null` is a normal outcome, not an error: every locale then falls
+ * back to English, exactly as it does when the catalogs are simply not served.
+ * What must not happen is a throw, which at module scope would leave the bundle
+ * unevaluated and every viewer on the page blank.
+ */
+function localeCatalogsUrl(): string | null {
+    for (const [path, base] of [
+        [CATALOGS_BESIDE_BUNDLE, import.meta.url],
+        [CATALOGS_AT_ORIGIN, globalThis.window?.location?.href],
+    ] as const) {
+        try {
+            return new URL(path, base).href;
+        } catch {
+            // Opaque or absent base — try the next candidate.
+        }
+    }
+    return null;
+}
+
+const localeCatalogsBase = localeCatalogsUrl();
+if (localeCatalogsBase) {
+    setLocaleLoaders(fetchLocaleLoaders(localeCatalogsBase));
+}
 
 // Parent-page coordinator support (see coordinated-mode.ts): when this
 // page's URL carries the coordinator's fragment token, viewers rendered
