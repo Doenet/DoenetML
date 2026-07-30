@@ -56,12 +56,14 @@ const CATALOGS_AT_ORIGIN = "/locales/";
  * Where to fetch the message catalogs from, or `null` if nowhere can be worked
  * out.
  *
- * Beside the bundle is the right answer and the one the build arranges. But
- * `import.meta.url` is not always a base a URL can be resolved against:
- * `@doenet/doenetml-iframe` boots this bundle from a Blob URL, and `blob:` is
- * opaque, so `new URL` throws on it. Nothing is "beside" a blob, so that case
- * falls back to the page's own origin — the same fallback `getWorkerUrl` in
- * `@doenet/doenetml` makes when an iframe's location is `about:srcdoc`.
+ * Beside the bundle is the right answer and the one the build arranges — an
+ * embed loading this file from the CDN gets the `locales/` published beside it.
+ * But `import.meta.url` is not always a base a URL can be resolved against:
+ * `@doenet/doenetml-iframe`'s dev harness and Cypress component tests boot a
+ * locally built copy of this bundle from a Blob URL, and `blob:` is opaque, so
+ * `new URL` throws on it. Nothing is "beside" a blob, so that case tries the
+ * page's own origin instead — where `getWorkerUrl` in `@doenet/doenetml` looks
+ * for the core worker.
  *
  * Returning `null` is a normal outcome, not an error: every locale then falls
  * back to English, exactly as it does when the catalogs are simply not served.

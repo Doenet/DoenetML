@@ -1378,6 +1378,11 @@ export const EditorViewer = React.forwardRef<
                     darkMode={darkMode}
                     documentLocale={documentLocale}
                     uiLocale={uiLocale}
+                    // The prop, not the merged `availableCatalogs`: the viewer
+                    // is where `editorLocale` came from, so feeding catalogs
+                    // loaded for it back in would be a loop. The viewer runs
+                    // `useLocaleCatalogs` itself, and both calls share one
+                    // request, so nothing is fetched twice.
                     localeResources={localeResources}
                     resolvedUiLocaleCallback={setViewerUiLocale}
                     styleOverrides={styleOverrides}

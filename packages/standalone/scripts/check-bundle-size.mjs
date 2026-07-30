@@ -75,6 +75,12 @@ const GLOB_EXCLUSION_PATTERN = /"!\.\.\/locales\/([^/"]+)\/\*\.ftl"/g;
 /** `key = value` at the top level of an FTL catalog. */
 const FTL_MESSAGE_PATTERN = /^([a-z0-9-]+) = (.+)$/gm;
 /**
+ * `\xNN`, `\uNNNN` or `\u{N…}` — how a minifier spells a character it will not
+ * write literally.
+ */
+const ESCAPED_CODE_POINT =
+    /\\(?:x([0-9A-Fa-f]{2})|u\{([0-9A-Fa-f]{1,6})\}|u([0-9A-Fa-f]{4}))/g;
+/**
  * Namespaces to look through for a probe, in the order they are tried. Any
  * one distinctive string identifies the catalog, so the order only decides
  * which is found first.
@@ -216,6 +222,35 @@ export function collectCatalogProbes(
 }
 
 /**
+ * The served locales whose catalog text is inside one emitted script.
+ *
+ * The comparison is made against the script with its character escapes
+ * decoded. `forceEsbuildMinifyPlugin` calls esbuild's `transform` without a
+ * `charset`, and esbuild then defaults to ASCII: every accented character in
+ * an inlined catalog is written back out as `\xNN` or `\uNNNN`, so
+ * `contribución` never appears literally in `doenet-standalone.js`. Matching
+ * the raw text would miss a leak for exactly the languages most likely to leak
+ * — outside English an accent is the rule rather than the exception.
+ *
+ * @param contents an emitted script's source.
+ * @param probes `[locale, probe]` pairs, from {@link collectCatalogProbes}.
+ * @returns the locales whose probe the script carries.
+ */
+export function catalogsInScript(contents, probes) {
+    if (probes.length === 0) {
+        return [];
+    }
+    const decoded = contents.replace(
+        ESCAPED_CODE_POINT,
+        (_whole, hex2, braced, hex4) =>
+            String.fromCodePoint(parseInt(hex2 ?? braced ?? hex4, 16)),
+    );
+    return probes
+        .filter(([, probe]) => decoded.includes(probe))
+        .map(([locale]) => locale);
+}
+
+/**
  * The locale directories the build emitted, or `null` if there is no
  * `dist/locales/` at all.
  *
@@ -300,9 +335,7 @@ function collectEmittedScripts(probes = []) {
             size: buffer.length,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
             bigBlobs: countBigBlobs(contents),
-            inlinedCatalogs: probes
-                .filter(([, probe]) => contents.includes(probe))
-                .map(([locale]) => locale),
+            inlinedCatalogs: catalogsInScript(contents, probes),
         });
     }
     return scripts;

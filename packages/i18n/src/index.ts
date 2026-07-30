@@ -40,9 +40,9 @@ export { createChromeTranslator, EN_CHROME_TRANSLATOR } from "./chrome";
 
 export { bundledResources, BUNDLED_LOCALES } from "./bundled";
 
-// `LAZY_LOCALE_LOADERS` and `currentLocaleLoaders` stay internal to `load.ts`:
-// they are what the default path already uses, and a consumer that wants
-// different catalogs installs them with `setLocaleLoaders`.
+// `LAZY_LOCALE_LOADERS` is deliberately not re-exported: it is what the
+// default path already uses, and a consumer that wants different catalogs
+// installs them with `setLocaleLoaders`.
 export {
     loadLocaleResources,
     loadLocaleResourcesFor,

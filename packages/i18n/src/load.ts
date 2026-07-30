@@ -164,8 +164,9 @@ export const LAZY_LOCALE_LOADERS: LocaleLoaders =
  * A base URL that cannot be resolved is treated the same way, and that is
  * load-bearing rather than defensive habit. `blob:` and `about:srcdoc` are
  * both opaque — `new URL("./x", blobUrl)` throws — and both are real bases
- * here: `@doenet/doenetml-iframe` boots the standalone bundle from a Blob URL,
- * which is exactly where `import.meta.url` is one. Resolving eagerly would
+ * here: `@doenet/doenetml-iframe`'s dev harness and component tests boot the
+ * standalone bundle from a Blob URL, which is exactly where `import.meta.url`
+ * is one, and an iframe written with `srcdoc` has the other. Resolving eagerly would
  * throw while the caller is still evaluating its module, taking the whole
  * bundle down over a missing translation. So each URL is built inside the
  * fetch that uses it, where a failure already means English.

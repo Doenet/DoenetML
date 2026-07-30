@@ -257,11 +257,12 @@ describe("fetchLocaleLoaders", () => {
     });
 
     it("does not throw on a base no URL can be resolved against", async () => {
-        // `@doenet/doenetml-iframe` boots the standalone bundle from a Blob
-        // URL, so `import.meta.url` there is `blob:` — opaque, and `new URL`
-        // throws on it. Building the loaders happens at module scope, so a
-        // throw here leaves the whole bundle unevaluated and every viewer on
-        // the page blank. It has to degrade to English instead.
+        // `@doenet/doenetml-iframe`'s dev harness and component tests boot the
+        // standalone bundle from a Blob URL, so `import.meta.url` there is
+        // `blob:` — opaque, and `new URL` throws on it. Building the loaders
+        // happens at module scope, so a throw here leaves the whole bundle
+        // unevaluated and every viewer on the page blank. It has to degrade to
+        // English instead.
         vi.stubGlobal("fetch", async () => {
             throw new Error("should never be reached");
         });

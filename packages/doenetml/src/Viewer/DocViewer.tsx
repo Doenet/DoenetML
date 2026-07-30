@@ -570,11 +570,12 @@ export function DocViewer({
     // `availableCatalogs` rather than the prop — including the core, which is
     // handed them as `LocaleData.resources`.
     //
-    // A catalog that arrives after the first paint re-keys this map, and the
-    // core-rebuild check below treats that the same as a changed
-    // `documentLocale`. That rebuild is the price of a language nobody named
-    // until the source was parsed; a language named in the props is loaded
-    // before `DocViewer` ever mounts, by the hook in `doenetml.tsx`.
+    // A catalog that lands after the core has been created re-keys this map,
+    // and the core-rebuild check below treats that the same as a changed
+    // `documentLocale`. Loading always starts in an effect, so that race is
+    // there for a language named in the props too — it is just usually won,
+    // since `doenetml.tsx` asks for those catalogs in the same commit that
+    // mounts this component while the core is still waiting on a worker.
     const availableCatalogs = useLocaleCatalogs(
         [effectiveUiLocale, effectiveDocumentLocale],
         localeResources,

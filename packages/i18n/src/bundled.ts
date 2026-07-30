@@ -15,8 +15,9 @@ import {
  *
  * Inlining is for the locales worth carrying whether or not anyone asks for
  * them; every other locale is code-split and loaded on demand by
- * {@link loadLocaleResources}. The whole of `locales/` is about 17 KB gzipped
- * per translation across the chrome namespaces, so the list has to stay short.
+ * {@link loadLocaleResources}. A complete translation — all four namespaces,
+ * which is what an inlined locale costs whichever of them a context reads — is
+ * about 16 KB gzipped, so the list has to stay short.
  *
  * Spanish is here because it is the one reviewed translation and because being
  * inlined is what lets `documentLocale="es"` render on the first paint and

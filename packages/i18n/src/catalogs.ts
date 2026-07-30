@@ -13,9 +13,9 @@ export const DEFAULT_LOCALE = "en";
  *
  * English is bundled so the fallback chain terminates in something that is
  * always present, in every bundling variant, with no network access. Locales
- * beyond {@link BUNDLED_LOCALES} are code-split and fetched on demand by
- * `loadLocaleResources`, on the main thread, and reach the worker as
- * `LocaleData.resources`.
+ * beyond `BUNDLED_LOCALES` are loaded on demand by `loadLocaleResources` —
+ * code-split in a build that can split, fetched in one that cannot — always on
+ * the main thread, and reach the worker as `LocaleData.resources`.
  */
 export const EN_CATALOGS: Required<Catalogs> = {
     chrome,

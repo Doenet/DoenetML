@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import {
     WASM_CORE_SCRIPT,
+    catalogsInScript,
     collectCatalogProbes,
     countBigBlobs,
     findProblems,
@@ -315,6 +316,40 @@ describe("collectCatalogProbes", () => {
                 "namespace-fallback",
             ),
         ).toEqual([["fr", "Une note assez longue"]]);
+    });
+});
+
+describe("catalogsInScript", () => {
+    const PROBES = [["fr", "Une note assez longue"]];
+
+    it("finds a catalog inlined literally", () => {
+        expect(
+            catalogsInScript(`const a="Une note assez longue";`, PROBES),
+        ).toEqual(["fr"]);
+    });
+
+    it("finds one the minifier escaped out of ASCII", () => {
+        // esbuild's default charset is ASCII, so an accent in an inlined
+        // catalog is written `\xNN` and the probe never matches the raw text.
+        // Every form it can choose has to be understood, or the check passes
+        // over the very languages it exists to catch.
+        for (const escaped of [
+            `const a="Une note assez longu\\x65";`,
+            `const a="Une note assez longu\\u0065";`,
+            `const a="Une note assez longu\\u{65}";`,
+        ]) {
+            expect(catalogsInScript(escaped, PROBES)).toEqual(["fr"]);
+        }
+    });
+
+    it("reports nothing for a script that carries no catalog", () => {
+        expect(catalogsInScript(`const a="Hello there";`, PROBES)).toEqual([]);
+    });
+
+    it("reports nothing when there is no probe to look for", () => {
+        expect(
+            catalogsInScript(`const a="Une note assez longue";`, []),
+        ).toEqual([]);
     });
 });
 

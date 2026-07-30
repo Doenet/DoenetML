@@ -79,7 +79,7 @@ assembles those catalogs for a context, and both `createChromeTranslator` and
 them (the host's copy wins for a locale that exists in both).
 
 Every other locale is **loaded on demand** — see [Delivery](#delivery). At
-roughly 17 KB gzipped per translation across the chrome namespaces, inlining
+roughly 16 KB gzipped for a complete translation, inlining
 does not scale past the two locales that earn it: English because every
 fallback chain ends there, Spanish because it is the one reviewed translation
 and because being inlined is what lets an authored `<document lang="es">`
@@ -137,7 +137,9 @@ nothing configured and nothing registered.
 
 ```ts
 // What the viewer does. Returns {} for English, for a bundled locale, and for
-// a locale nothing offers a catalog for — never throws, never rejects.
+// a locale nothing offers a catalog for. A served catalog that 404s or cannot
+// be reached is {} too; only a code-split chunk that fails to load rejects,
+// and `useLocaleCatalogs` catches that and leaves the locale on English.
 const resources = await loadLocaleResources("de-AT", CATALOG_NAMESPACES);
 // → { de: "<all four namespaces, concatenated>" }
 ```
@@ -156,11 +158,12 @@ catalogs to get one.
 Where the catalogs come from depends on the build, and the difference is real
 rather than cosmetic:
 
-| Build                              | Mechanism                                        |
-| ---------------------------------- | ------------------------------------------------ |
-| `@doenet/doenetml` (and the iframe component build) | `import.meta.glob` — one code-split chunk per catalog |
-| `@doenet/standalone`               | `fetch` from `dist/locales/`, served beside the bundle |
-| `@doenet/doenetml-worker`          | Neither: it is handed `LocaleData.resources`      |
+| Build                     | Mechanism                                              |
+| ------------------------- | ------------------------------------------------------ |
+| `@doenet/doenetml`        | `import.meta.glob` — one code-split chunk per catalog   |
+| `@doenet/standalone`      | `fetch` from `locales/`, served beside the bundle       |
+| `@doenet/doenetml-worker` | Neither: it is handed `LocaleData.resources`           |
+| `@doenet/doenetml-iframe` | Neither: what renders inside its iframe is a standalone bundle, which loads its own |
 
 The glob is what makes adding a language cost a directory. It is also why the
 two single-file builds need a different answer: `inlineDynamicImports` folds
@@ -567,7 +570,8 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
 translated locale defining a key English lacks, a stale `messageKeys.ts`,
-`supportedLocales.ts`, or `diagnostic-codes.lock.json`, a call site referencing
+`supportedLocales.ts`, or `diagnostic-codes.lock.json`, a lazy-catalog glob
+that no longer excludes exactly the inlined locales, a call site referencing
 a key that doesn't exist, an English key no source file references, a malformed
 diagnostic code, a code naming a message English lacks, a code used in source
 that the registry doesn't define, a registered code that nothing raises and

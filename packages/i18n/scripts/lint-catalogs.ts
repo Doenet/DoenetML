@@ -6,8 +6,10 @@
  *  2. no key is defined twice within a locale (namespaces share one bundle);
  *  3. no translated locale defines a key English doesn't have (a typo'd key in
  *     a translation is invisible at runtime — it just never resolves);
- *  4. `src/generated/messageKeys.ts` matches the English catalogs, and
- *     `src/generated/supportedLocales.ts` matches the `locales/` directory;
+ *  4. `src/generated/messageKeys.ts` matches the English catalogs,
+ *     `src/generated/supportedLocales.ts` matches the `locales/` directory,
+ *     and the lazy-catalog glob in `src/load.ts` excludes exactly the locales
+ *     that are inlined;
  *  5. every key referenced from source exists in English;
  *  6. every English key is referenced from source (no orphans);
  *  7. diagnostic codes are well-formed, resolvable, and append-only.
