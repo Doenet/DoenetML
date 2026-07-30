@@ -97,9 +97,9 @@ function groupGridAttrChildren(attrChildren) {
         }
 
         for (const [ind, piece] of child.split(/\s+/).entries()) {
-            // Splitting on whitespace puts a space before every piece but the
-            // first, and an empty first piece means the child led with one.
-            // Either way the group that was open ends at that space.
+            // A space preceded every piece but the first, and an empty first
+            // piece means the child led with one. Either way the group that
+            // was open ends at that space.
             if (ind > 0 || piece === "") {
                 endGroup();
             }
