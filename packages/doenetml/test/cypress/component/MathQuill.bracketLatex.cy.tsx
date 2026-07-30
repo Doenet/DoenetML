@@ -95,12 +95,21 @@ describe("MathQuill parses bracket delimiters written without \\left and \\right
     it("leaves an unmatched opening delimiter one-sided", () => {
         // A one-sided bracket draws its missing partner as the greyed
         // `mq-ghost` that typing an unmatched bracket produces, where a matched
-        // pair draws two real delimiters.
+        // pair draws two real delimiters. Assert each delimiter is present as
+        // well as ungreyed: a blank field draws neither, so "no ghost" alone
+        // would hold on the empty field the bug produced.
         mountField("\\langle 2, 3 \\rangle");
-        cy.get(".mq-ghost").should("not.exist");
+        cy.get(".mq-bracket-l")
+            .should("exist")
+            .and("not.have.class", "mq-ghost");
+        cy.get(".mq-bracket-r")
+            .should("exist")
+            .and("not.have.class", "mq-ghost");
 
         mountField("\\langle 2, 3");
-        cy.get(".mq-bracket-r.mq-ghost").should("exist");
-        cy.get(".mq-bracket-l.mq-ghost").should("not.exist");
+        cy.get(".mq-bracket-l")
+            .should("exist")
+            .and("not.have.class", "mq-ghost");
+        cy.get(".mq-bracket-r").should("have.class", "mq-ghost");
     });
 });
