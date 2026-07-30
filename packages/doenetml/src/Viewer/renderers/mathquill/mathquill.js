@@ -10446,6 +10446,52 @@ var Bracket = /** @class */ (function (_super) {
         ctx.uncleanedLatex += "\\right" + this.sides[R].ctrlSeq;
         this.checkCursorContextClose(ctx);
     };
+    // DOENET: local patch to this vendored bundle -- preserve it when updating
+    // MathQuill from upstream. See Doenet/DoenetML#1336.
+    //
+    // The delimiters LaTeX writes as control sequences (`\langle`, `\rangle`,
+    // `\lVert`, `\rVert`) reach the parser through LatexCmds rather than through
+    // LatexCmds.left, so nothing has supplied their contents, and MathCommand's
+    // inherited parser gives them the one block an ordinary command takes -- a
+    // braced group, or a single token when there are no braces. So
+    // `\langle 2,3 \rangle` gave the bracket just `2` and left no block for
+    // `\rangle`, failing the parse of the whole expression and so rendering the
+    // field empty. Parse them the way typing them behaves instead: an opening
+    // delimiter takes everything up to its matching close, and stays one-sided
+    // when that close never comes. (Char-typed brackets such as `(` have no
+    // LatexCmds entry and still parse as plain symbols.)
+    Bracket.prototype.parser = function () {
+        var self = this;
+        var closeCtrlSeq = this.sides[R].ctrlSeq.trim();
+        if (this.side === R) {
+            // A closing delimiter has no contents to its right, and the block
+            // to its left is already parsed and out of reach. Fail so that an
+            // enclosing opening delimiter gets to consume it, exactly as
+            // LatexCmds.right keeps `\right` available to LatexCmds.left.
+            return Parser.fail("unmatched " + closeCtrlSeq);
+        }
+        var closeParser = Parser.string(closeCtrlSeq);
+        if (/[a-zA-Z]$/.test(closeCtrlSeq)) {
+            // The `(?![a-zA-Z])` guard LatexCmds.left applies to
+            // `\right\rangle`: don't accept a longer command name that merely
+            // starts with the closing sequence, so `\ranglex` stays the unknown
+            // command it is.
+            closeParser = closeParser.skip(Parser.regex(/^(?![a-zA-Z])/));
+        }
+        return latexMathParser.then(function (block) {
+            // `latexMathParser` stops at the closing delimiter because of the
+            // failure above, leaving it for us to match here.
+            return closeParser
+                .result(0) // matched pair: a two-sided bracket
+                .or(Parser.succeed(L)) // unmatched: stay one-sided (open)
+                .map(function (side) {
+                    self.side = side;
+                    self.blocks = [block];
+                    block.adopt(self, 0, 0);
+                    return self;
+                });
+        });
+    };
     Bracket.prototype.mathspeak = function (opts) {
         var open = this.sides[L].ch,
             close = this.sides[R].ch;
