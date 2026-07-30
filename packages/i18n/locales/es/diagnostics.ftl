@@ -272,6 +272,10 @@ matches-pattern-parameter-not-in-pattern =
        *[other] `<matchesPattern>`: los parámetros { $parameters } no aparecen en el patrón, por lo que siempre coincidirán con un espacio en blanco.
     }
 
+## `<graph>`
+
+graph-grid-invalid = `<graph>`: no se puede interpretar grid="{ $grid }". Debe ser none, medium, dense o dos números positivos separados por un espacio, como grid="1 0.5". No se dibuja ninguna cuadrícula.
+
 ## Renderizador PreFigure
 
 prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" no es compatible con el renderizador prefigure; se usa el comportamiento de posición derecha.

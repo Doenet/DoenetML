@@ -26,6 +26,96 @@ import {
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
 import { codedDiagnostic } from "../utils/diagnostics";
 
+/**
+ * Evaluates one whitespace-separated group of the `grid` attribute to the
+ * positive spacing it stands for, or null when it does not stand for one.
+ *
+ * A group can hold more than one piece: `grid="2$a 3$b"` puts `2` and `$a` in
+ * the same group, and their product is the spacing.
+ *
+ * `me.fromText` throws on text it cannot parse — `grid="(1, 2)"` splits on the
+ * space into `(1,` and `2)`, neither of which parses — so every parse is
+ * guarded. An unparseable piece makes its group unusable rather than taking
+ * the whole document down with it.
+ */
+function gridSpacingFromGroup({ group, attrChildren, dependencyValues }) {
+    let spacing = 1;
+
+    for (let piece of group) {
+        let factor;
+
+        if (typeof piece === "string") {
+            try {
+                factor = me.fromText(piece).evaluate_to_constant();
+            } catch (e) {
+                return null;
+            }
+        } else {
+            // A non-string piece was adapted from a number or math component.
+            let childInd = attrChildren.indexOf(piece);
+            factor = dependencyValues["childAdapter" + childInd];
+            if (factor instanceof me.class) {
+                factor = factor.evaluate_to_constant();
+            }
+        }
+
+        spacing *= factor;
+    }
+
+    // Rejects zero and negatives, and the null or NaN that an expression
+    // without a constant value evaluates to.
+    return spacing > 0 ? spacing : null;
+}
+
+/**
+ * Splits the `grid` attribute's children into whitespace-separated groups.
+ *
+ * Whitespace only ever appears inside string children, so a group runs until a
+ * string child contributes a space. Non-string children join whatever group is
+ * open around them.
+ */
+function groupGridAttrChildren(attrChildren) {
+    let groupedChildren = [];
+    let pieces = [];
+
+    for (let child of attrChildren) {
+        if (typeof child !== "string") {
+            pieces.push(child);
+            continue;
+        }
+
+        let stringPieces = child.split(/\s+/);
+        let s0 = stringPieces[0];
+
+        if (s0 === "") {
+            // started with a space
+            if (pieces.length > 0) {
+                groupedChildren.push(pieces);
+                pieces = [];
+            }
+        } else {
+            pieces.push(s0);
+        }
+
+        for (let s of stringPieces.slice(1)) {
+            // if have more than one piece, must have had a space in between pieces
+            if (pieces.length > 0) {
+                groupedChildren.push(pieces);
+                pieces = [];
+            }
+            if (s !== "") {
+                pieces.push(s);
+            }
+        }
+    }
+
+    if (pieces.length > 0) {
+        groupedChildren.push(pieces);
+    }
+
+    return groupedChildren;
+}
+
 export default class Graph extends BlockComponent {
     constructor(args) {
         super(args);
@@ -2045,9 +2135,32 @@ export default class Graph extends BlockComponent {
                     };
                 }
 
-                let grid = dependencyValues.gridAttr.stateValues.value
-                    .toLowerCase()
-                    .trim();
+                const attrChildren = dependencyValues.gridAttrCompChildren;
+                const attrValue = dependencyValues.gridAttr.stateValues.value;
+
+                // Only a value the author spelled out can be reported as
+                // invalid. When the attribute contains a reference, an unusable
+                // value is usually a `<mathInput>` the reader has not filled in
+                // yet, and warning about it would fire on every load.
+                const authoredInFull = attrChildren.every(
+                    (child) => typeof child === "string",
+                );
+
+                const noGrid = () => ({
+                    setValue: { grid: "none" },
+                    setCreateComponentOfType: { grid: "text" },
+                    sendDiagnostics: authoredInFull
+                        ? [
+                              codedDiagnostic({
+                                  type: "warning",
+                                  code: "doenet-w0119",
+                                  args: { grid: attrValue },
+                              }),
+                          ]
+                        : [],
+                });
+
+                let grid = attrValue.toLowerCase().trim();
                 if (grid === "true") {
                     grid = "medium";
                 } else if (grid === "false") {
@@ -2060,124 +2173,28 @@ export default class Graph extends BlockComponent {
                     };
                 }
 
-                // group the children separated by spaces contained in string children
-
-                let groupedChildren = [];
-                let pieces = [];
-
-                for (let child of dependencyValues.gridAttrCompChildren) {
-                    if (typeof child !== "string") {
-                        pieces.push(child);
-                    } else {
-                        let stringPieces = child.split(/\s+/);
-                        let s0 = stringPieces[0];
-
-                        if (s0 === "") {
-                            // started with a space
-                            if (pieces.length > 0) {
-                                groupedChildren.push(pieces);
-                                pieces = [];
-                            }
-                        } else {
-                            pieces.push(s0);
-                        }
-
-                        for (let s of stringPieces.slice(1)) {
-                            // if have more than one piece, must have had a space in between pieces
-                            if (pieces.length > 0) {
-                                groupedChildren.push(pieces);
-                                pieces = [];
-                            }
-                            if (s !== "") {
-                                pieces.push(s);
-                            }
-                        }
-                    }
-                }
-
-                if (pieces.length > 0) {
-                    groupedChildren.push(pieces);
-                }
+                const groupedChildren = groupGridAttrChildren(attrChildren);
 
                 if (groupedChildren.length < 2) {
                     // if don't have at least two pieces separated by spaces, it isn't valid
-                    return {
-                        setValue: { grid: "none" },
-                        setCreateComponentOfType: { grid: "text" },
-                    };
+                    return noGrid();
                 }
 
                 grid = [];
 
                 for (let group of groupedChildren) {
-                    // each of the two grouped children must represent a positive number
-                    if (group.length === 1) {
-                        let child = group[0];
-                        if (typeof child === "string") {
-                            let num = me.fromText(child).evaluate_to_constant();
-                            if (num > 0) {
-                                grid.push(num);
-                            } else {
-                                return {
-                                    setValue: { grid: "none" },
-                                    setCreateComponentOfType: { grid: "text" },
-                                };
-                            }
-                        } else {
-                            // have a single non-string child.  See if it was adapted from number/math
-                            let childInd =
-                                dependencyValues.gridAttrCompChildren.indexOf(
-                                    child,
-                                );
+                    // each of the grouped children must represent a positive number
+                    const spacing = gridSpacingFromGroup({
+                        group,
+                        attrChildren,
+                        dependencyValues,
+                    });
 
-                            let num =
-                                dependencyValues["childAdapter" + childInd];
-                            if (num instanceof me.class) {
-                                num = num.evaluate_to_constant();
-                            }
-
-                            if (num > 0) {
-                                grid.push(num);
-                            } else {
-                                return {
-                                    setValue: { grid: "none" },
-                                    setCreateComponentOfType: { grid: "text" },
-                                };
-                            }
-                        }
-                    } else {
-                        // have a group of multiple children
-                        // multiply them together
-                        let num = 1;
-                        for (let piece of group) {
-                            if (typeof piece === "string") {
-                                num *= me
-                                    .fromText(piece)
-                                    .evaluate_to_constant();
-                            } else {
-                                let childInd =
-                                    dependencyValues.gridAttrCompChildren.indexOf(
-                                        piece,
-                                    );
-
-                                let factor =
-                                    dependencyValues["childAdapter" + childInd];
-                                if (factor instanceof me.class) {
-                                    factor = factor.evaluate_to_constant();
-                                }
-                                num *= factor;
-                            }
-                        }
-
-                        if (num > 0) {
-                            grid.push(num);
-                        } else {
-                            return {
-                                setValue: { grid: "none" },
-                                setCreateComponentOfType: { grid: "text" },
-                            };
-                        }
+                    if (spacing === null) {
+                        return noGrid();
                     }
+
+                    grid.push(spacing);
                 }
 
                 return {
