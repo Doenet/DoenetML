@@ -5,6 +5,7 @@ import {
     moveVector,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
@@ -6413,5 +6414,182 @@ describe("Vector Tag Tests @group4", function () {
         expect(v1Latex).match(/10\^{-12}|10\^\{21\}|10\^21/);
         expect(v2Latex).contain("0.000000000007");
         expect(v2Latex).contain("2000000000000000000000");
+    });
+
+    it("update tail, head, and displacement with updateValue", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <vector name="v">(3,4)</vector>
+  </graph>
+
+  <updateValue name="uvTail" target="$v.tail" newValue="(7,8)" />
+  <updateValue name="uvHead" target="$v.head" newValue="(8,9)" />
+  <updateValue name="uvDisplacement" target="$v.displacement" newValue="(9,1)" />
+    `,
+        });
+
+        const vIdx = await resolvePathToNodeIdx("v");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        check_vec_htd({
+            componentIdx: vIdx,
+            t: [0, 0],
+            h: [3, 4],
+            d: [3, 4],
+            stateVariables,
+        });
+
+        // this vector is specified by its displacement, so moving the tail
+        // carries the head along, leaving the displacement alone
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvTail"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        check_vec_htd({
+            componentIdx: vIdx,
+            t: [7, 8],
+            h: [10, 12],
+            d: [3, 4],
+            stateVariables,
+        });
+
+        // moving the head keeps the tail fixed, changing the displacement
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvHead"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        check_vec_htd({
+            componentIdx: vIdx,
+            t: [7, 8],
+            h: [8, 9],
+            d: [1, 1],
+            stateVariables,
+        });
+
+        // changing the displacement keeps the tail fixed, moving the head
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvDisplacement"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        check_vec_htd({
+            componentIdx: vIdx,
+            t: [7, 8],
+            h: [16, 9],
+            d: [9, 1],
+            stateVariables,
+        });
+    });
+
+    it("updateValue on tail, head, or displacement matches dragging a point extending it", async () => {
+        // Setting one of these properties is the same change as dragging a
+        // point that extends it — not the same as dragging the vector's own
+        // handle, which additionally holds the opposite end in place.
+        // Each property, paired with the vector components it should leave
+        // the new value in.
+        const properties = [
+            { property: "tail", t: [7, 8], h: [10, 12], d: [3, 4] },
+            { property: "head", t: [0, 0], h: [7, 8], d: [7, 8] },
+            { property: "displacement", t: [0, 0], h: [7, 8], d: [7, 8] },
+        ];
+
+        // Applies one way of setting the property to a fresh document, then
+        // reports where the vector ended up.
+        async function resulting_htd(
+            property: string,
+            setProperty: (args: {
+                core: PublicDoenetMLCore;
+                resolvePathToNodeIdx: ResolvePathToNodeIdx;
+            }) => Promise<void>,
+        ) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+  <graph>
+    <vector name="v">(3,4)</vector>
+    <point extend="$v.${property}" name="p" />
+  </graph>
+
+  <updateValue name="uv" target="$v.${property}" newValue="(7,8)" />
+    `,
+            });
+
+            await setProperty({ core, resolvePathToNodeIdx });
+
+            const v = (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("v")
+            ].stateValues;
+            const components = (xs: any[]) => xs.map((x) => x.simplify().tree);
+            return {
+                t: components(v.tail),
+                h: components(v.head),
+                d: components(v.displacement),
+            };
+        }
+
+        for (const { property, ...expected } of properties) {
+            const viaUpdateValue = await resulting_htd(
+                property,
+                async ({ core, resolvePathToNodeIdx }) => {
+                    await updateValue({
+                        componentIdx: await resolvePathToNodeIdx("uv"),
+                        core,
+                    });
+                },
+            );
+            const viaDraggingPoint = await resulting_htd(
+                property,
+                async ({ core, resolvePathToNodeIdx }) => {
+                    await movePoint({
+                        componentIdx: await resolvePathToNodeIdx("p"),
+                        x: 7,
+                        y: 8,
+                        core,
+                    });
+                },
+            );
+
+            // spelled out, so neither path can pass by doing nothing
+            expect(viaUpdateValue, property).eqls(expected);
+            expect(viaDraggingPoint, property).eqls(expected);
+        }
+    });
+
+    it("update the tail of an extended vector with updateValue", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <vector name="v">(3,4)</vector>
+  <vector extend="$v" name="v2" />
+
+  <updateValue name="uvTail" target="$v2.tail" newValue="(7,8)" />
+    `,
+        });
+
+        async function check_both(t: number[], h: number[], d: number[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["v", "v2"]) {
+                check_vec_htd({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    t,
+                    h,
+                    d,
+                    stateVariables,
+                });
+            }
+        }
+
+        await check_both([0, 0], [3, 4], [3, 4]);
+
+        // the extension passes the whole tail through to the original vector
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvTail"),
+            core,
+        });
+        await check_both([7, 8], [10, 12], [3, 4]);
     });
 });
