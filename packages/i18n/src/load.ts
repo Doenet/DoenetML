@@ -166,10 +166,10 @@ export const LAZY_LOCALE_LOADERS: LocaleLoaders =
  * both opaque — `new URL("./x", blobUrl)` throws — and both are real bases
  * here: `@doenet/doenetml-iframe`'s dev harness and component tests boot the
  * standalone bundle from a Blob URL, which is exactly where `import.meta.url`
- * is one, and an iframe written with `srcdoc` has the other. Resolving eagerly would
- * throw while the caller is still evaluating its module, taking the whole
- * bundle down over a missing translation. So each URL is built inside the
- * fetch that uses it, where a failure already means English.
+ * is one, and an iframe written with `srcdoc` has the other. Resolving eagerly
+ * would throw while the caller is still evaluating its module, taking the whole
+ * bundle down over a missing translation. So each URL is built inside the fetch
+ * that uses it, where a failure already means English.
  *
  * @param baseUrl Directory the catalogs are served from, as a URL or a string
  *   to resolve one from — typically `import.meta.url` for a copy shipped
