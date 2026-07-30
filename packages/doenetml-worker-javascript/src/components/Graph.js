@@ -2100,13 +2100,25 @@ export default class Graph extends BlockComponent {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
-            stateVariablesDeterminingDependencies: ["gridAttrCompChildren"],
+            stateVariablesDeterminingDependencies: [
+                "gridAttrCompName",
+                "gridAttrCompChildren",
+            ],
             returnDependencies({ stateValues }) {
                 if (stateValues.gridAttrCompChildren) {
                     let dependencies = {
                         gridAttrCompChildren: {
                             dependencyType: "stateVariable",
                             variableName: "gridAttrCompChildren",
+                        },
+                        // Every child of the attribute, including any the text
+                        // attribute could not accept and so left out of
+                        // `gridAttrCompChildren`. Used only to tell an authored
+                        // value from one that came from elsewhere.
+                        allGridAttrChildren: {
+                            dependencyType: "child",
+                            parentIdx: stateValues.gridAttrCompName,
+                            includeAllChildren: true,
                         },
                         gridAttr: {
                             dependencyType: "attributeComponent",
@@ -2150,9 +2162,19 @@ export default class Graph extends BlockComponent {
                 // is not the author's to fix. The cost is that a reference to a
                 // value the author got wrong, as in `grid="1 $negativeNumber"`,
                 // goes unreported.
-                const authoredInFull = attrChildren.every(
-                    (child) => typeof child === "string",
-                );
+                //
+                // The test runs over every child rather than over
+                // `attrChildren`, because a child the text attribute could not
+                // accept at all — `grid="$aPoint"` — is missing from
+                // `attrChildren` and from `attrValue` alike. Left to
+                // `attrChildren` the value would look authored, and the warning
+                // would quote the empty remnant the dropped child left behind,
+                // on top of the "invalid format" warning the child already
+                // raised.
+                const authoredInFull =
+                    dependencyValues.allGridAttrChildren.every(
+                        (child) => typeof child === "string",
+                    );
 
                 const noGrid = () => ({
                     setValue: { grid: "none" },

@@ -1483,6 +1483,29 @@ describe("Graph tag tests @group2", async () => {
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
+    it("a grid the attribute cannot hold is not quoted back at the author", async () => {
+        // A `<point>` is not something a text attribute can hold, so it never
+        // reaches the grid definition: it is dropped from the attribute's
+        // children and from its value alike, leaving an empty value behind.
+        // Core already reports the attribute's format; quoting the remnant of
+        // the dropped child back as if the author had typed it would be a
+        // second warning saying something that was never written.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="p" /><graph name="g" grid="$p" />`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
+        ).eq("none");
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).contain(
+            "Invalid format for attribute grid of `<graph>`",
+        );
+    });
+
     it("correctly shadow references to number list grid", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
