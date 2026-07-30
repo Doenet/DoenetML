@@ -2143,9 +2143,13 @@ export default class Graph extends BlockComponent {
                 const attrValue = dependencyValues.gridAttr.stateValues.value;
 
                 // Only a value the author spelled out can be reported as
-                // invalid. When the attribute contains a reference, an unusable
-                // value is usually a `<mathInput>` the reader has not filled in
-                // yet, and warning about it would fire on every load.
+                // invalid. Once the attribute contains a reference, an unusable
+                // value is not reliably a mistake: it is usually a `<mathInput>`
+                // the reader has not filled in yet — warning about that would
+                // fire on every load — or one they have filled in badly, which
+                // is not the author's to fix. The cost is that a reference to a
+                // value the author got wrong, as in `grid="1 $negativeNumber"`,
+                // goes unreported.
                 const authoredInFull = attrChildren.every(
                     (child) => typeof child === "string",
                 );

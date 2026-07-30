@@ -1389,12 +1389,26 @@ describe("Graph tag tests @group2", async () => {
                 `grid="${gridValue}"`,
             ).eq(0);
         }
+
+        // A bare `grid` carries no value of its own, so it never reaches the
+        // pieces the definition splits apart. It is still `medium`.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<graph name="g" grid />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
+        ).eq("medium");
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
-    it("an unfilled input in a grid value stays quiet", async () => {
+    it("a grid value from a reference stays quiet", async () => {
         // An unusable value coming from a reference is normally an input the
         // reader has not filled in yet, so it must not warn on load — only a
-        // value the author spelled out in full does.
+        // value the author spelled out in full does. A reference is also how a
+        // graph gets a grid the reader chooses, so an unusable one is not even
+        // reliably a mistake: `$ti` below is unusable until the reader types
+        // `dense` into it.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="gx" />
@@ -1437,6 +1451,35 @@ describe("Graph tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("g2")].stateValues.grid,
         ).eqls([6, 4.5]);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        // A reader who types a value the graph cannot use gets no grid and
+        // still no warning: the mistake is not the author's to fix.
+        await updateMathInputValue({
+            latex: "-1",
+            componentIdx: await resolvePathToNodeIdx("gx"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
+        ).eq("none");
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        // A single reference is the one way an author gets a reader-chosen
+        // `none`/`medium`/`dense`, so it must not be reported as unusable just
+        // because it cannot be split into two spacings.
+        await updateTextInputValue({
+            text: "dense",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
+        ).eq("dense");
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
