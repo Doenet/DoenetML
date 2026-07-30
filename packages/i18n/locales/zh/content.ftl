@@ -8,8 +8,10 @@
 # goes unused here exactly as it does in English, and every adjective is one
 # word. Modifiers precede the noun and are joined to it directly, with no
 # space: `{ $description }{ $noun }` rather than `{ $description } { $noun }`.
-# That is why the composition messages below differ from the English ones even
-# though the word order matches.
+# The composition messages below differ from the English ones in order as well:
+# a 带…的 clause has to precede what it modifies, so a fill pattern leads the
+# description it appears in, and a colour leads a stroke's rather than trailing
+# it.
 
 
 ## Style vocabulary
@@ -114,6 +116,10 @@ style-filled-with-noun =
        *[plain] { $color }{ $filled }{ $noun }
     }
 
+# The code appends this clause to the description with a plain space, which is
+# the one join no catalog owns, so Chinese gets a space it would not write:
+# 带圆点的蓝色填充圆 和红色边框. Closing it means the code passing the join to
+# the catalog the way it passes every other one.
 style-border-clause =
     { $parts ->
         [with-article] 带{ $border }边框

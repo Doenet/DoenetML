@@ -7,8 +7,10 @@
 # Russian inflects, and it has three genders. Adjectives precede their noun and
 # agree with it, so every adjective below selects on `$gender` with `m`, `f`
 # and `n`, and the composition messages keep the English adjective-then-noun
-# order. Every description is a standalone phrase in the nominative, which is
-# what lets one form per gender be enough.
+# order. A description is a standalone phrase in the nominative, which is what
+# lets one form per gender be enough — except after the preposition the border
+# clause uses, for which `$gender` carries a fourth token, `insf`. `noun-gender`
+# says which noun answers it and why.
 
 
 ## Style vocabulary

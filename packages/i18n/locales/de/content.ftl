@@ -6,9 +6,11 @@
 #
 # German inflects, and it inflects the other way round from Spanish: attributive
 # adjectives go *before* the noun and take an ending that depends on the noun's
-# gender. Every description here is a standalone phrase in the nominative with
-# no article, so the strong endings apply — `-er` masculine, `-e` feminine,
-# `-es` neuter — and `$gender` carries all three, since German has a neuter.
+# gender. A description is a standalone phrase with no article, so the strong
+# endings apply — `-er` masculine, `-e` feminine, `-es` neuter — and `$gender`
+# carries all three, since German has a neuter. It carries a fourth token,
+# `datm`, for the one phrase that is not nominative; `noun-gender` says which
+# and why.
 
 
 ## Style vocabulary
