@@ -709,8 +709,7 @@ describe("Normalize dast", async () => {
     // See `pretzelSugar` in component-sugar/pretzel.ts. All of a <pretzel>'s
     // children get wrapped in a single <_pretzelArranger>, and any <answer>
     // that is a direct child of a direct <problem> child is renamed to
-    // <givenAnswer> (this is how a pretzel problem's answer stays hidden
-    // until revealed, matching a real <solution>/<givenAnswer>).
+    // <givenAnswer>.
     it("Sugars pretzel into a _pretzelArranger and renames nested answers to givenAnswer", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;
