@@ -112,9 +112,10 @@ export function createHtmlForDoenetViewer(
             const doenetSharedCoreWorker = ${JSON.stringify(!!useSharedCoreWorker)};
             const doenetWindowedViewer = ${JSON.stringify(!!windowed)};
 
-            // This source code has been compiled by vite and should be directly included.
-            // It assumes that viewerId, doenetViewerProps, and doenetViewerPropsSpecified
-            // are defined in the enclosing scope. It carries its own copy of Comlink.
+            // Compiled by vite and inlined here verbatim. It reads the consts
+            // declared just above out of this module's scope, and carries its
+            // own bundled copy of Comlink — nothing it needs in order to boot
+            // is fetched from the network.
             ${viewerIframeJsSource}
         </script>
         <div id="root" data-doenet-message-parent="true" data-doenet-send-resize-events="true">
@@ -158,9 +159,10 @@ export function createHtmlForDoenetEditor(
             const doenetEditorProps = ${JSON.stringify(augmentedProps)};
             const doenetEditorPropsSpecified = ${JSON.stringify(doenetEditorPropsSpecified)};
 
-            // This source code has been compiled by vite and should be directly included.
-            // It assumes that editorId, doenetEditorProps, and doenetEditorPropsSpecified
-            // are defined in the enclosing scope. It carries its own copy of Comlink.
+            // Compiled by vite and inlined here verbatim. It reads the consts
+            // declared just above out of this module's scope, and carries its
+            // own bundled copy of Comlink — nothing it needs in order to boot
+            // is fetched from the network.
             ${editorIframeJsSource}
         </script>
         <div id="root" data-doenet-message-parent="true">
