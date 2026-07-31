@@ -123,8 +123,8 @@ if (actualGenerated !== expectedGenerated) {
     );
 }
 
-// 4b: so does the locale roster. Adding `locales/de/` and stopping there would
-// otherwise leave German out of the editor's `<document lang>` autocomplete
+// 4b: so does the locale roster. Adding `locales/pt/` and stopping there would
+// otherwise leave Portuguese out of the editor's `<document lang>` autocomplete
 // with nothing to say so.
 const expectedLocales = await renderSupportedLocalesModule(locales);
 const actualLocales = fs.existsSync(SUPPORTED_LOCALES_FILE)

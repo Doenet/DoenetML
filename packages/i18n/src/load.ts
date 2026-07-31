@@ -100,10 +100,10 @@ function isCatalogNamespace(name: string): name is CatalogNamespace {
  * than rejected: the glob is a filesystem pattern, and a stray file under
  * `locales/` should not stop the catalogs beside it from loading.
  *
- * Exported for its unit tests, which hand it a synthetic map rather than the
- * shipped catalogs: a test that named a real locale would start failing the
- * day that locale's namespaces changed, and one that named a stray file could
- * not be written at all.
+ * Exported for its unit tests, which hand it a map they wrote rather than the
+ * one the glob builds: a test reading the shipped catalogs would start failing
+ * the day a locale gained or lost a namespace, and the stray file below could
+ * not be covered at all.
  */
 export function loadersFromModules(
     modules: Record<string, () => Promise<string>>,

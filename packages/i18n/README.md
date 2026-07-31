@@ -149,10 +149,10 @@ A locale that is not inlined still has to reach the browser. `load.ts` does
 that, and the viewer calls it for you: `useLocaleCatalogs` (in
 `@doenet/doenetml`'s `utils/i18n.tsx`) loads the catalogs for whatever tags are
 in play and merges them *under* the host's `localeResources`, so a deployment
-correcting a shipped translation still wins. Adding `locales/de/` and running
+correcting a shipped translation still wins. Adding `locales/pt/` and running
 `npm run codegen` is therefore the whole job — no list of languages to register
-anywhere, and `documentLocale="de"` and `<document lang="de">` both work with
-nothing configured. (The codegen step is what puts `de` in `SUPPORTED_LOCALES`,
+anywhere, and `documentLocale="pt"` and `<document lang="pt">` both work with
+nothing configured. (The codegen step is what puts `pt` in `SUPPORTED_LOCALES`,
 which is the list `fetchLocaleLoaders` offers by default; `lint:i18n` fails if
 it is skipped.)
 

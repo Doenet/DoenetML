@@ -26,9 +26,9 @@ const LAZY_LOCALES = SUPPORTED_LOCALES.map((info) => info.locale)
     .sort();
 
 /**
- * A loader map standing in for catalogs this repository does not ship, so the
- * negotiation and caching rules can be tested without depending on which
- * translations happen to exist.
+ * A loader map standing in for the shipped one, returning marker text rather
+ * than a real catalog, so the negotiation and caching rules can be tested
+ * without depending on which translations happen to exist or what they say.
  */
 function stubLoaders(
     locales: readonly string[],
@@ -84,10 +84,11 @@ describe("the lazy loader registry", () => {
 });
 
 describe("building the registry from the glob", () => {
-    // The shape the glob hands over, written out rather than taken from the
-    // catalogs this repository ships: a fixture naming a real locale would
-    // start failing the day that locale's namespaces changed, and the stray
-    // file the case below covers could not be written at all.
+    // The shape the glob hands over, written out rather than read off disk:
+    // a fixture taking the shipped catalogs would start failing the day a
+    // locale gained or lost a namespace, and the stray file the case below
+    // covers could not be put there at all. The tags are real ones so the
+    // paths look like the glob's, but nothing here is the real German.
     const MODULES = {
         "../locales/de/chrome.ftl": async () => "de-chrome = Hallo\n",
         "../locales/de/content.ftl": async () => "de-content = Inhalt\n",
