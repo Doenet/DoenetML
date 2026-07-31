@@ -128,8 +128,8 @@ the core computes; `uiLocale` updates in place.
 English and Spanish are bundled, so `es` needs no catalogs from the host.
 Every other language is fetched on demand from the `locales/` directory
 published beside `doenet-standalone.js` — **serve that directory next to the
-bundle** and `data-doenet-document-locale="de"` works with nothing else
-configured. When the bundle's own URL cannot be resolved against (an embed
+bundle** and any language it holds works with nothing else configured, named
+by `data-doenet-document-locale` or by a `<document lang>` in the DoenetML. When the bundle's own URL cannot be resolved against (an embed
 that boots it from a blob URL), `/locales/` at the page's origin is tried
 instead. If neither is served, those fetches fail quietly and the language
 falls back to English.

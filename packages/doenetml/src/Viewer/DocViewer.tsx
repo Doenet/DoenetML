@@ -484,6 +484,12 @@ export function DocViewer({
     // state, not "not yet seen", so a host that never supplies any never
     // triggers a rebuild.
     const contentCatalogsBuilt = useRef<Set<string>>(new Set());
+    // What the worker primed by the `initialPass && !render` branch was last
+    // initialized with, so a re-render while `render` is still false does not
+    // repeat an initialization that would report the same thing again. Held as
+    // the values themselves rather than a joined key: `doenetML` is the whole
+    // source, and this is compared on every render in that window.
+    const lastNoRenderInit = useRef<unknown[] | null>(null);
 
     const [stage, setStage] = useState<
         | "initial"
@@ -646,6 +652,23 @@ export function DocViewer({
     const availableCatalogs = useLocaleCatalogs(
         [effectiveUiLocale, ...contentLocales],
         localeResources,
+    );
+    // Which of the catalogs on hand the *content's* languages can reach.
+    // Everything that decides whether the core has to be built again compares
+    // these rather than the whole map — the rebuild gate at the bottom of this
+    // component, and the initialization of the worker primed before `render`
+    // turns true.
+    //
+    // Scoped to the content's languages because those are the only catalogs the
+    // core reads. The chrome's live in the same map, and counting them would
+    // rebuild the core whenever a reader switched `uiLocale` — discarding
+    // whatever they had typed for a catalog the core never opens.
+    //
+    // Read off the loaded map rather than the prop, so a catalog that finished
+    // loading after the core was created counts as having arrived.
+    const contentCatalogsOnHand = useMemo(
+        () => reachableCatalogLocales(contentLocales, availableCatalogs),
+        [contentLocales, availableCatalogs],
     );
     // Bound to `translate` rather than a more descriptive name on purpose:
     // `lint:i18n` only recognizes call sites through a translator named `t` or
@@ -2147,16 +2170,46 @@ export function DocViewer({
     // then just initialize the core worker so that can return document structure
     // but core itself won't actually start
     if (initialPass && !render) {
-        const remote = attachNewCoreWorker();
-        // Fire-and-forget: this only primes the worker so it can report the
-        // document structure; core itself isn't started until `render` flips
-        // true. Surface failures rather than swallowing the promise.
-        initializeCoreWorkerForDoc(remote).catch((e) => {
-            console.warn(
-                "DocViewer: core worker initialization (no-render path) failed",
-                e,
-            );
-        });
+        // Nothing below this point runs, so `lastDoenetML` is never recorded
+        // and this branch repeats on every re-render until `render` turns
+        // true. Reuse the worker already attached rather than attaching a
+        // second one: `attachNewCoreWorker` overwrites the refs, which would
+        // leave its predecessor running with nothing pointing at it — never
+        // terminated, and still reporting document structure over the callback
+        // its replacement is also using. A catalog finishing loading is one of
+        // the things that re-renders a viewer sitting in this window.
+        const remote = coreWorker.current ?? attachNewCoreWorker();
+        // Initializing parses the source, expands its external references and
+        // makes a round trip, so repeat it only when one of its inputs has
+        // changed. The inputs are the ones a rebuild is gated on further down,
+        // this being the same initialization the core is later built from —
+        // compared for any change rather than for an arrival, since there is
+        // no core here yet whose work a needless rebuild would throw away.
+        const noRenderInit: unknown[] = [
+            doenetML,
+            docId,
+            activityId,
+            attemptNumber,
+            requestedVariantIndex,
+            documentLocale ?? null,
+            contentCatalogsOnHand.join(","),
+        ];
+        const previous = lastNoRenderInit.current;
+        if (
+            previous === null ||
+            noRenderInit.some((value, index) => value !== previous[index])
+        ) {
+            lastNoRenderInit.current = noRenderInit;
+            // Fire-and-forget: this only primes the worker so it can report the
+            // document structure; core itself isn't started until `render` flips
+            // true. Surface failures rather than swallowing the promise.
+            initializeCoreWorkerForDoc(remote).catch((e) => {
+                console.warn(
+                    "DocViewer: core worker initialization (no-render path) failed",
+                    e,
+                );
+            });
+        }
         return null;
     }
 
@@ -2194,25 +2247,16 @@ export function DocViewer({
         changedState = true;
     }
 
-    // Compared by *which locales* arrived, not by their contents — see
-    // `localeResourceKey`. Read off the loaded map rather than the prop, so a
-    // catalog that finished loading after the core was created rebuilds it
-    // with that language on hand.
-    //
-    // Scoped to the content's languages, because those are the only catalogs
-    // the core reads. The chrome's live in the same map, and counting them
-    // would rebuild the core whenever a reader switched `uiLocale` —
-    // discarding whatever they had typed for a catalog the core never opens.
+    // Compared by *which locales* the core can reach — see
+    // `contentCatalogsOnHand` — rather than by what the catalogs say, since the
+    // catalogs are handed to the core at creation.
     //
     // Only an *arrival* is a reason to rebuild. What is reachable can also
     // shrink: `effectiveDocumentLocale` names the previous language until the
     // core reports back, so a changed `documentLocale` puts the old language's
     // catalog out of reach a moment after the rebuild just above — and
     // rebuilding again there would build the core twice for one switch.
-    for (const locale of reachableCatalogLocales(
-        contentLocales,
-        availableCatalogs,
-    )) {
+    for (const locale of contentCatalogsOnHand) {
         if (!contentCatalogsBuilt.current.has(locale)) {
             contentCatalogsBuilt.current.add(locale);
             changedState = true;

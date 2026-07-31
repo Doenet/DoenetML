@@ -20,9 +20,12 @@
  *    lands in a newly emitted chunk is still caught.
  *  - The catalog check covers the same kind of mistake for `@doenet/i18n`'s
  *    message catalogs, which this bundle serves from `dist/locales/` rather
- *    than carrying (see {@link collectCatalogProbes}). Both halves are silent
- *    failures: a catalog inlined back into a script costs everyone the bytes,
- *    and a catalog nobody copied leaves that language falling back to English.
+ *    than carrying. Both halves are silent failures: a catalog inlined back
+ *    into a script costs everyone the bytes (see {@link collectCatalogProbes}),
+ *    and a catalog nobody copied leaves that language falling back to English
+ *    (see {@link servedCatalogProblems}). Only the second half has anything to
+ *    say while every locale that exists is also inlined, which is the state the
+ *    check was written in.
  *  - The size budgets in `bundle-budgets.json` catch the general case the
  *    first two cannot see — a heavy dependency, a duplicated copy of
  *    something that is not wasm. They are expected to be raised as the project
@@ -276,6 +279,17 @@ function collectEmittedLocales(distDir = DIST_DIR) {
         .map((entry) => entry.name);
 }
 
+/** The locale directories `@doenet/i18n` has, which the build copies whole. */
+function collectSourceLocales(localesDir = LOCALES_DIR) {
+    if (!fs.existsSync(localesDir)) {
+        return [];
+    }
+    return fs
+        .readdirSync(localesDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
+}
+
 /**
  * Problems with the catalogs the bundle is supposed to serve beside itself.
  *
@@ -284,12 +298,17 @@ function collectEmittedLocales(distDir = DIST_DIR) {
  * up nowhere. A language that is neither inlined nor served silently renders in
  * English, which no size budget would ever notice.
  *
- * @param probes `[locale, probe]` pairs for the served locales, from
- *   {@link collectCatalogProbes}.
+ * Held against every locale directory in `@doenet/i18n` rather than against the
+ * served ones alone, because `copyLocaleCatalogsPlugin` copies all of them —
+ * which keeps this check meaningful while every locale that exists happens to
+ * be inlined, and means a locale that stops being inlined is already covered.
+ *
+ * @param sourceLocales locale directories under `packages/i18n/locales/`, from
+ *   {@link collectSourceLocales}.
  * @param emittedLocales locale directories under `dist/locales/`, or `null` if
  *   the directory is missing, as {@link collectEmittedLocales} reports it.
  */
-export function servedCatalogProblems(probes, emittedLocales) {
+export function servedCatalogProblems(sourceLocales, emittedLocales) {
     if (emittedLocales === null) {
         return [
             `dist/locales/ was not emitted, so no language beyond the inlined ones could\n` +
@@ -297,13 +316,14 @@ export function servedCatalogProblems(probes, emittedLocales) {
                 `    packages/standalone/vite.config.ts.`,
         ];
     }
-    return probes
-        .filter(([locale]) => !emittedLocales.includes(locale))
+    return sourceLocales
+        .filter((locale) => !emittedLocales.includes(locale))
         .map(
-            ([locale]) =>
-                `dist/locales/${locale}/ was not emitted, so that language cannot be\n` +
-                `    fetched and would fall back to English. It is copied there by\n` +
-                `    copyLocaleCatalogsPlugin in packages/standalone/vite.config.ts.`,
+            (locale) =>
+                `dist/locales/${locale}/ was not emitted, so a language served rather than\n` +
+                `    inlined cannot be fetched and would fall back to English. It is copied\n` +
+                `    there by copyLocaleCatalogsPlugin in\n` +
+                `    packages/standalone/vite.config.ts.`,
         );
 }
 
@@ -501,7 +521,7 @@ export function findProblems(budgets, scripts) {
     // translation back in here, and the size budget alone would absorb it for
     // a long time.
     for (const [relative, emitted] of scripts) {
-        const leaked = emitted.inlinedCatalogs ?? [];
+        const leaked = emitted.inlinedCatalogs;
         if (leaked.length > 0) {
             problems.push(
                 `${relative} carries the message catalogs for [${leaked.join(", ")}], which\n` +
@@ -537,7 +557,10 @@ function main() {
     // served catalogs went once there is a build to ask about.
     if (scripts.size > 0) {
         problems.push(
-            ...servedCatalogProblems(probes, collectEmittedLocales()),
+            ...servedCatalogProblems(
+                collectSourceLocales(),
+                collectEmittedLocales(),
+            ),
         );
     }
 

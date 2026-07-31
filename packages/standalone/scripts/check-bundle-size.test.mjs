@@ -20,9 +20,17 @@ const BUDGETS = [
     [WASM_CORE_SCRIPT, { maxBytes: 1000 }],
 ];
 
-/** One emitted script. `blobs` is the count of inlined wasm copies it holds. */
-function script(size, blobs = 0) {
-    return { size, wasmUris: blobs, bigBlobs: blobs };
+/**
+ * One emitted script. `blobs` is the count of inlined wasm copies it holds,
+ * `catalogs` the locales whose served catalog turned up inside it.
+ */
+function script(size, blobs = 0, catalogs = []) {
+    return {
+        size,
+        wasmUris: blobs,
+        bigBlobs: blobs,
+        inlinedCatalogs: catalogs,
+    };
 }
 
 /** A healthy build: the core inlined once, in the worker, both within budget. */
@@ -150,9 +158,23 @@ describe("findProblems", () => {
     // only way to tell the `wasmUris || bigBlobs` check from an `&&`.
     it("rejects a large inlined blob that is not wasm", () => {
         const scripts = healthyBuild();
-        scripts.set(STANDALONE, { size: 500, wasmUris: 0, bigBlobs: 1 });
+        scripts.set(STANDALONE, {
+            ...script(500),
+            wasmUris: 0,
+            bigBlobs: 1,
+        });
         expect(problemsFor(scripts)).toEqual([
             expect.stringContaining("should carry no inlined binary"),
+        ]);
+    });
+
+    it("rejects a script carrying a catalog the bundle is meant to serve", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, script(500, 0, ["fr", "de"]));
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining(
+                "carries the message catalogs for [fr, de]",
+            ),
         ]);
     });
 
@@ -369,28 +391,32 @@ describe("catalogsInScript", () => {
 });
 
 describe("servedCatalogProblems", () => {
-    const PROBES = [
-        ["fr", "Bonjour et bienvenue"],
-        ["de", "Guten Tag und willkommen"],
-    ];
+    const SOURCE = ["en", "es", "fr", "de"];
 
-    it("accepts a build that copied every served locale", () => {
-        expect(servedCatalogProblems(PROBES, ["en", "es", "fr", "de"])).toEqual(
+    it("accepts a build that copied every locale directory", () => {
+        expect(servedCatalogProblems(SOURCE, ["en", "es", "fr", "de"])).toEqual(
             [],
         );
     });
 
-    it("reports each served locale that was not copied", () => {
-        const problems = servedCatalogProblems(PROBES, ["en", "es", "fr"]);
+    it("reports each locale that was not copied", () => {
+        const problems = servedCatalogProblems(SOURCE, ["en", "es", "fr"]);
         expect(problems).toHaveLength(1);
         expect(problems[0]).toContain("dist/locales/de/");
     });
 
-    it("reports the whole directory going missing, even with nothing served yet", () => {
-        // The state this catches today: while every translation is still
-        // inlined there are no probes, so a copy step that silently stopped
-        // running would otherwise go unnoticed until the first one is not.
-        const problems = servedCatalogProblems([], null);
+    it("checks the copy even while every locale is still inlined", () => {
+        // The state this runs in today. Judged against the locale directories
+        // that exist rather than the ones served, so a copy step that silently
+        // stopped running is caught now rather than the first time a language
+        // is not inlined.
+        const problems = servedCatalogProblems(["en", "es"], ["en"]);
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("dist/locales/es/");
+    });
+
+    it("reports the whole directory going missing", () => {
+        const problems = servedCatalogProblems(["en", "es"], null);
         expect(problems).toHaveLength(1);
         expect(problems[0]).toContain("dist/locales/ was not emitted");
     });

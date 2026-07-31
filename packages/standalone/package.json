@@ -52,7 +52,8 @@
                 "src/**/*.ts",
                 "src/**/*.tsx",
                 "tsconfig.json",
-                "vite.config.ts"
+                "vite.config.ts",
+                "../i18n/locales/**/*.ftl"
             ],
             "output": [
                 "dist/**/*.js",

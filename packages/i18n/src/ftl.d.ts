@@ -1,5 +1,5 @@
-// `import.meta.glob`, which `load.ts` uses to code-split the non-English
-// catalogs, is a Vite construct and is typed by `vite/client`.
+// `import.meta.glob`, which `load.ts` uses to code-split the catalogs that are
+// not inlined, is a Vite construct and is typed by `vite/client`.
 /// <reference types="vite/client" />
 
 // Fluent catalogs are imported as raw strings so the English bundle is

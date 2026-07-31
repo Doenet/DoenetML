@@ -14,4 +14,6 @@ Changing `uiLocale` rebuilt the core. The catalogs for the reader's chrome and f
 
 A nested `<document lang="es">` inside an activity written in another language never had its catalog requested, so its subtree rendered in English however long you waited. The languages a source declares are now read from the source itself, which is where an author wrote them — so the catalog is on its way before the core is built, rather than after the core has already computed that subtree's prose. `lang` takes a plain string and nothing else, so reading it this way finds every language the core could have rendered in. The exception is content that is not in the source yet: a *nested* `<document lang>` inside DoenetML pulled in by an external reference still renders in English. An activity that is itself pulled in that way is unaffected — its language is read from the expanded source.
 
-Both applied to every language that is not inlined, which today is every language but English.
+A viewer given `render={false}` — a document a host has asked about but is not showing — started a second core worker every time it re-rendered, and abandoned the one before it. A catalog finishing loading is one of the things that re-renders such a viewer, so the waste was easy to reach once catalogs load on demand. It now primes one worker and reuses it.
+
+All three applied to every language that is not inlined, which today is every language but English and Spanish.

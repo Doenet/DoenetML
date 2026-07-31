@@ -197,6 +197,13 @@ export function prefigureDynamicImportIgnorePlugin(): PluginOption {
  * targets concurrently and races itself creating the nested `locales/<tag>/`
  * directories.
  *
+ * All of `locales/` is copied, including the locales the bundle inlines —
+ * `loadLocaleResources` answers those from the bundle without consulting a
+ * loader, so their copies are never fetched. Filtering them out would save a
+ * few tens of kilobytes of published files and add a third place that has to
+ * know which locales are inlined; leaving the copy whole means a locale that
+ * stops being inlined is served with no build change at all.
+ *
  * The destination comes from the resolved config rather than the call site, so
  * `locales/` cannot end up somewhere other than where the bundle itself lands.
  */

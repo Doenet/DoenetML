@@ -130,9 +130,12 @@ A locale that is not inlined still has to reach the browser. `load.ts` does
 that, and the viewer calls it for you: `useLocaleCatalogs` (in
 `@doenet/doenetml`'s `utils/i18n.tsx`) loads the catalogs for whatever tags are
 in play and merges them *under* the host's `localeResources`, so a deployment
-correcting a shipped translation still wins. Adding `locales/de/` is therefore
-the whole job — `documentLocale="de"` and `<document lang="de">` both work with
-nothing configured and nothing registered.
+correcting a shipped translation still wins. Adding `locales/de/` and running
+`npm run codegen` is therefore the whole job — no list of languages to register
+anywhere, and `documentLocale="de"` and `<document lang="de">` both work with
+nothing configured. (The codegen step is what puts `de` in `SUPPORTED_LOCALES`,
+which is the list `fetchLocaleLoaders` offers by default; `lint:i18n` fails if
+it is skipped.)
 
 ```ts
 // What the viewer does. Returns {} for English, for a bundled locale, and for
@@ -174,8 +177,10 @@ false, which makes the glob dead code. The standalone build then copies
 `fetchLocaleLoaders` against it in `src/index.tsx`; the worker needs no
 replacement at all, because the main thread loads its catalog and passes it
 across. `packages/standalone/scripts/check-bundle-size.mjs` fails the build if
-a served catalog turns up inside an emitted script, and if `dist/locales/` is
-missing — either altogether, or a language nobody could then fetch.
+a served catalog turns up inside an emitted script, and if any locale directory
+did not reach `dist/locales/` — the copy is of the whole directory, inlined
+locales included, so that half of the check has something to say even while
+nothing is served yet.
 
 Two lists have to agree for any of this to hold, and `lint:i18n` checks that
 they do: the locales excluded from the glob in `load.ts` are exactly
@@ -183,9 +188,13 @@ they do: the locales excluded from the glob in `load.ts` are exactly
 statically and dynamically, never gets its own chunk, and makes Rollup warn on
 every build; an unbundled one excluded from it can never be loaded at all.
 
-A host with a translation of its own has two ways in, and they compose: pass it
-as `localeResources` (highest precedence, no loading involved), or serve it and
-call `setLocaleLoaders(fetchLocaleLoaders(url))`.
+A host with a translation of its own has two ways in: pass it as
+`localeResources` (highest precedence, no loading involved), or serve it and
+call `setLocaleLoaders(fetchLocaleLoaders(url, tags))`. The second replaces the
+loaders for the whole page rather than adding to them — a standalone bundle
+that calls it is no longer reading its own `locales/` — and `tags` is worth
+passing whenever the language is not one DoenetML ships, since the default list
+is `SUPPORTED_LOCALES`.
 
 ## Keys
 

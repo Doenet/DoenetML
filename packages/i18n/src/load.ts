@@ -104,8 +104,12 @@ function isCatalogNamespace(name: string): name is CatalogNamespace {
  * A path that does not name a locale and a known namespace is skipped rather
  * than rejected: the glob is a filesystem pattern, and a stray file under
  * `locales/` should not stop the catalogs beside it from loading.
+ *
+ * Exported for its unit tests, which hand it a synthetic map: while every
+ * locale that exists is also inlined the glob is empty, so nothing else here
+ * exercises it.
  */
-function loadersFromModules(
+export function loadersFromModules(
     modules: Record<string, () => Promise<string>>,
 ): LocaleLoaders {
     const byLocale: Record<string, CatalogImporters> = {};
@@ -161,15 +165,18 @@ export const LAZY_LOCALE_LOADERS: LocaleLoaders =
  * rather than failing the render: a missing translation is not an error, and
  * this runs during a paint.
  *
- * A base URL that cannot be resolved is treated the same way, and that is
- * load-bearing rather than defensive habit. `blob:` and `about:srcdoc` are
- * both opaque — `new URL("./x", blobUrl)` throws — and both are real bases
- * here: `@doenet/doenetml-iframe`'s dev harness and component tests boot the
- * standalone bundle from a Blob URL, which is exactly where `import.meta.url`
- * is one, and an iframe written with `srcdoc` has the other. Resolving eagerly
- * would throw while the caller is still evaluating its module, taking the whole
- * bundle down over a missing translation. So each URL is built inside the fetch
- * that uses it, where a failure already means English.
+ * A base URL that cannot be resolved is treated the same way. `blob:` and
+ * `about:srcdoc` are both opaque — `new URL("./x", blobUrl)` throws — and both
+ * are real bases here: `@doenet/doenetml-iframe`'s dev harness and component
+ * tests boot the standalone bundle from a Blob URL, which is exactly where
+ * `import.meta.url` is one, and an iframe written with `srcdoc` has the other.
+ * `@doenet/standalone` picks a resolvable base up front for that reason (see
+ * `localeCatalogsUrl`), so this is the second line rather than the first — but
+ * a caller is free to hand over `import.meta.url` and let it fall where it
+ * may, and installing the loaders happens at module scope, where a throw would
+ * leave the whole bundle unevaluated and every viewer on the page blank. So
+ * each URL is built inside the fetch that uses it, where a failure already
+ * means English.
  *
  * @param baseUrl Directory the catalogs are served from, as a URL or a string
  *   to resolve one from — typically `import.meta.url` for a copy shipped

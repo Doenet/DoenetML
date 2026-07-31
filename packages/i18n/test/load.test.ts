@@ -7,6 +7,7 @@ import {
     fetchLocaleLoaders,
     loadLocaleResources,
     loadLocaleResourcesFor,
+    loadersFromModules,
     setLocaleLoaders,
     type LocaleLoaders,
 } from "../src/load";
@@ -79,6 +80,53 @@ describe("the lazy loader registry", () => {
                 await LAZY_LOCALE_LOADERS[LAZY_LOCALES[0]](WORKER_NAMESPACES);
             expect(Object.keys(catalogs)).toEqual(["content"]);
         });
+    });
+});
+
+describe("building the registry from the glob", () => {
+    // What the glob would hand over once a locale that is not inlined exists.
+    // Driven synthetically because it holds nothing today, which is exactly
+    // when this code is easiest to break without noticing.
+    const MODULES = {
+        "../locales/de/chrome.ftl": async () => "de-chrome = Hallo\n",
+        "../locales/de/content.ftl": async () => "de-content = Inhalt\n",
+        "../locales/fr/chrome.ftl": async () => "fr-chrome = Bonjour\n",
+    };
+
+    it("groups the catalogs by locale", () => {
+        expect(Object.keys(loadersFromModules(MODULES)).sort()).toEqual([
+            "de",
+            "fr",
+        ]);
+    });
+
+    it("loads a locale's catalogs keyed by namespace", async () => {
+        await expect(
+            loadersFromModules(MODULES)["de"](CATALOG_NAMESPACES),
+        ).resolves.toEqual({
+            chrome: "de-chrome = Hallo\n",
+            content: "de-content = Inhalt\n",
+        });
+    });
+
+    it("asks only for the namespaces the locale translates", async () => {
+        // A partial translation is legitimate: the missing namespaces fall
+        // through to English rather than costing a request that finds nothing.
+        await expect(
+            loadersFromModules(MODULES)["fr"](CATALOG_NAMESPACES),
+        ).resolves.toEqual({ chrome: "fr-chrome = Bonjour\n" });
+    });
+
+    it("skips a file that names no locale or no known namespace", () => {
+        // The glob is a filesystem pattern, so a stray file under `locales/`
+        // must not stop the catalogs beside it from loading.
+        const loaders = loadersFromModules({
+            ...MODULES,
+            "../locales/README.md": async () => "not a catalog",
+            "../locales/de/notes.ftl": async () => "unknown = namespace\n",
+        });
+        expect(Object.keys(loaders).sort()).toEqual(["de", "fr"]);
+        expect(loaders["README.md"]).toBeUndefined();
     });
 });
 
@@ -346,8 +394,10 @@ describe("fetchLocaleLoaders", () => {
     it("does not throw on a base no URL can be resolved against", async () => {
         // `@doenet/doenetml-iframe`'s dev harness and component tests boot the
         // standalone bundle from a Blob URL, so `import.meta.url` there is
-        // `blob:` — opaque, and `new URL` throws on it. Building the loaders
-        // happens at module scope, so a throw here leaves the whole bundle
+        // `blob:` — opaque, and `new URL` throws on it. `@doenet/standalone`
+        // resolves a usable base before it gets here, but a caller that hands
+        // over `import.meta.url` directly must not fare worse: installing the
+        // loaders happens at module scope, so a throw leaves the whole bundle
         // unevaluated and every viewer on the page blank. It has to degrade to
         // English instead.
         vi.stubGlobal("fetch", async () => {
