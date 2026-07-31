@@ -16,9 +16,9 @@ import init, {
     NodeList,
 } from "lib-doenetml-worker";
 import {
+    declaredLangsInSource,
     expandExternalReferences,
     lezerToDast,
-    readDeclaredLangs,
     normalizeDocumentDast,
 } from "@doenet/parser";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
@@ -238,7 +238,9 @@ export async function createTestCore({
  * making every locale test carry the plumbing.
  *
  * `content` alone, which is `WORKER_NAMESPACES` — the worker computes prose and
- * never draws chrome.
+ * never draws chrome. The viewer hands over all four namespaces because the one
+ * map it builds also feeds its own chrome; the three the core never opens make
+ * no difference to what it computes.
  *
  * Negotiated by primary subtag, as `loadLocaleResources` negotiates: a document
  * in `es-MX` is served by the `es` catalog. A tag nothing answers gets nothing
@@ -251,8 +253,11 @@ function catalogsFor(
     const localesDir = path.resolve(__dirname, "../../../../i18n/locales");
     const resources: Record<string, string> = {};
     // The host's locale and every language the source declares — the same set
-    // the viewer loads, since a `<document lang>` names a language no prop did.
-    for (const tag of [locale, ...readDeclaredLangs(lezerToDast(doenetML))]) {
+    // the viewer loads, through the same helper, since a `<document lang>`
+    // names a language no prop did. Source that does not parse contributes
+    // nothing rather than throwing, which matters here: a great many of these
+    // tests feed the core DoenetML that is deliberately malformed.
+    for (const tag of [locale, ...declaredLangsInSource(doenetML)]) {
         if (tag === undefined || tag === "en") {
             continue;
         }

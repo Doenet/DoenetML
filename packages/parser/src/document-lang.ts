@@ -1,3 +1,4 @@
+import { lezerToDast } from "./lezer-to-dast/lezer-to-dast";
 import type { DastElement, DastRoot } from "./types";
 
 /**
@@ -74,4 +75,38 @@ export function readDeclaredLangs(dast: DastRoot): string[] {
 
     visit(dast);
     return langs;
+}
+
+/**
+ * Shared empty result, so a source that declares no language hands back the
+ * same array every time. Callers memoize on it and spread it into lists that
+ * feed dependency arrays, and a fresh `[]` per call would make those recompute
+ * for nothing. Handed out `readonly` so it stays shareable.
+ */
+const NO_DECLARED_LANGS: readonly string[] = [];
+
+/**
+ * {@link readDeclaredLangs} over unparsed source, cheaply and without throwing.
+ *
+ * For the callers that prefetch catalogs — they hold the author's text, not a
+ * DAST, and they run where neither a parse per keystroke nor a throw is
+ * acceptable. The viewer re-renders on every character the author types, and a
+ * source that does not parse is about to raise errors saying so far better
+ * than a throw from a prefetch would.
+ *
+ * The `lang=` test is deliberately loose — the attribute on any element, or
+ * the word written in prose, is enough to fall through to a parse — because a
+ * false positive costs one parse that finds nothing, while the overwhelmingly
+ * common case of a source that never mentions a language costs a scan of a
+ * string.
+ */
+export function declaredLangsInSource(source: string): readonly string[] {
+    if (!/\blang\s*=/i.test(source)) {
+        return NO_DECLARED_LANGS;
+    }
+    try {
+        return readDeclaredLangs(lezerToDast(source));
+    } catch {
+        return NO_DECLARED_LANGS;
+    }
 }

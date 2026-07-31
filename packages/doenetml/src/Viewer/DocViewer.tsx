@@ -28,8 +28,7 @@ import {
     resolveUiLocale,
     type Translator,
 } from "@doenet/i18n";
-import { lezerToDast } from "@doenet/parser";
-import { readDeclaredLangs } from "../utils/documentLang";
+import { declaredLangsInSource } from "@doenet/parser";
 import { hasNavigationModifier } from "../utils/sourceNavigation";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
@@ -71,14 +70,6 @@ export type SourcePosition = {
     start: { line: number; column: number; offset: number };
     end: { line: number; column: number; offset: number };
 };
-
-/**
- * Shared empty result, so a source that declares no language hands back the
- * same array every render. `contentLocales` spreads it and `useLocaleCatalogs`
- * keys off the tags rather than the identity, but a stable one keeps the memos
- * that read it from recomputing for nothing.
- */
-const NO_DECLARED_LOCALES: string[] = [];
 
 /** Whether `inner`'s source range lies entirely within `outer`'s. */
 function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
@@ -596,27 +587,10 @@ export function DocViewer({
     // a catalog asked for at all. Scanning the source is what gets both in
     // flight before the core exists, rather than after it has already computed
     // the subtree's prose in the wrong language.
-    const declaredLocales = useMemo(() => {
-        // Source with no `lang` written in it anywhere has none to find, and
-        // that is the overwhelmingly common case. Worth a scan of the string
-        // to skip a parse of it: the editor re-renders this component as its
-        // author types, and a document that declares no language should not
-        // pay for the feature on every keystroke. The test is deliberately
-        // loose — `lang` on any element, or the word written in prose, is
-        // enough to fall through — because a false positive costs only a parse
-        // that finds nothing.
-        if (!/\blang\s*=/i.test(doenetML)) {
-            return NO_DECLARED_LOCALES;
-        }
-        try {
-            return readDeclaredLangs(lezerToDast(doenetML));
-        } catch {
-            // Source that does not parse is about to raise errors saying so
-            // far better than a throw from a prefetch would. No languages
-            // found means English, which is where it was headed anyway.
-            return NO_DECLARED_LOCALES;
-        }
-    }, [doenetML]);
+    const declaredLocales = useMemo(
+        () => declaredLangsInSource(doenetML),
+        [doenetML],
+    );
     // The languages the *core* renders in: what it computes depends on these
     // catalogs and no others, which makes them both the set to have loaded and
     // the set to gate a rebuild on.

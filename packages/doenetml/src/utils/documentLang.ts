@@ -1,8 +1,6 @@
 import { readLangAttribute } from "@doenet/parser";
 import type { DastElement, DastRoot } from "@doenet/parser";
 
-export { readDeclaredLangs } from "@doenet/parser";
-
 /**
  * The `lang` attribute authored on `<document>`, if any.
  *
