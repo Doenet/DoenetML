@@ -60,8 +60,8 @@ export function localeResourceKey(
  * never read it — roughly 16 KB gzipped each, landing on all of them.
  *
  * Inlining one again means adding it here, excluding it from that glob, and
- * giving `chromeResources` and the worker a way to reach it. That is a
- * deliberate change with a case to make, not a seam left standing open.
+ * giving `chrome.ts`'s `BUNDLED_CHROME_CATALOGS` and the worker a way to reach
+ * it. That is a deliberate change with a case to make.
  */
 export const BUNDLED_LOCALES: readonly string[] = [DEFAULT_LOCALE];
 

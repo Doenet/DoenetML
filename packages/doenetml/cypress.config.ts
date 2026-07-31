@@ -66,9 +66,10 @@ export default defineConfig({
                                 // Decode base64 → bytes → UTF-8 at runtime.
                                 // `atob` alone yields a Latin-1 string, which
                                 // turns every multi-byte character in the
-                                // bundle — the Spanish message catalogs, among
-                                // others — into mojibake before it reaches the
-                                // Blob the worker is built from. The same
+                                // bundle — the English message catalogs and
+                                // the typography in them, among others — into
+                                // mojibake before it reaches the Blob the
+                                // worker is built from. The same
                                 // plugin in ../doenetml-iframe/cypress.config.ts
                                 // decodes its bundle this way; keep the two in
                                 // step.

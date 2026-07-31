@@ -37,9 +37,9 @@ export const DIAGNOSTIC_CODES_LOCK_FILE = path.join(
  * The committed roster of locales with a catalog directory, with each one's
  * name in English and in itself.
  *
- * Derived from `locales/` rather than from `BUNDLED_TRANSLATIONS`, which
- * answers a different question — see "The roster is not the bundle" in the
- * package README.
+ * Derived from `locales/` rather than from `BUNDLED_LOCALES`, which answers a
+ * different question — see "The roster is not the bundle" in the package
+ * README.
  */
 export const SUPPORTED_LOCALES_FILE = path.join(
     PACKAGE_ROOT,

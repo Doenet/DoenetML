@@ -71,7 +71,7 @@ const CODE_SPLIT_CATALOGS =
  * not get its own chunk anyway, and Rollup says so on every build. They have
  * to be spelled out because a glob pattern is resolved at build time and
  * cannot read a runtime list — so `lint:i18n` compares the two and fails if
- * they drift. Add a locale to `BUNDLED_TRANSLATIONS` and a `!` line here at
+ * they drift. Add a locale to {@link BUNDLED_LOCALES} and a `!` line here at
  * the same time.
  */
 const LAZY_CATALOG_MODULES = CODE_SPLIT_CATALOGS
@@ -100,9 +100,10 @@ function isCatalogNamespace(name: string): name is CatalogNamespace {
  * than rejected: the glob is a filesystem pattern, and a stray file under
  * `locales/` should not stop the catalogs beside it from loading.
  *
- * Exported for its unit tests, which hand it a synthetic map: while every
- * locale that exists is also inlined the glob is empty, so nothing else here
- * exercises it.
+ * Exported for its unit tests, which hand it a synthetic map rather than the
+ * shipped catalogs: a test that named a real locale would start failing the
+ * day that locale's namespaces changed, and one that named a stray file could
+ * not be written at all.
  */
 export function loadersFromModules(
     modules: Record<string, () => Promise<string>>,
@@ -190,8 +191,8 @@ export function fetchLocaleLoaders(
     for (const locale of locales) {
         // English is inlined in every variant and ends every fallback chain,
         // so there is no arrangement in which fetching it is the right thing
-        // to do. The other inlined locales stay on the list: which of those
-        // are worth a request is a judgement about *this* build, and
+        // to do. Any other locale that gets inlined stays on the list: which
+        // of those are worth a request is a judgement about *this* build, and
         // {@link loadLocaleResources} makes it against {@link BUNDLED_LOCALES}
         // before it ever reaches a loader.
         if (locale === DEFAULT_LOCALE) {
