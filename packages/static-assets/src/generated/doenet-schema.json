@@ -65000,6 +65000,10 @@
                             "description": "Dutch (Nederlands)"
                         },
                         {
+                            "value": "pt",
+                            "description": "Portuguese (português)"
+                        },
+                        {
                             "value": "ru",
                             "description": "Russian (русский)"
                         },

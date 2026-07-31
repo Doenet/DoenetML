@@ -67,11 +67,11 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `de`, `es`, `fr`, `hnj`,
-`id`, `it`, `ja`, `ko`, `nl`, `ru`, `so`, `vi`, `zh-Hans`, `zh-Hant` — is an
-**unreviewed machine-generated seed**, which each file's own header says at the
-top, and which is what #1521's translation platform is for. None has been read
-by a speaker. Correcting one needs no permission and no coordination: a wrong
-string is just wrong, and the English is one key away.
+`id`, `it`, `ja`, `ko`, `nl`, `pt`, `ru`, `so`, `vi`, `zh-Hans`, `zh-Hant` — is
+an **unreviewed machine-generated seed**, which each file's own header says at
+the top, and which is what #1521's translation platform is for. None has been
+read by a speaker. Correcting one needs no permission and no coordination: a
+wrong string is just wrong, and the English is one key away.
 
 Three of them are deliberately partial, all in the same place: Somali, Hmong
 Njua and Vietnamese leave `element-name` and `element-anion-name` out, so those

@@ -16,6 +16,7 @@ export type SupportedLocale =
     | "ja"
     | "ko"
     | "nl"
+    | "pt"
     | "ru"
     | "so"
     | "vi"
@@ -112,6 +113,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Dutch",
         endonym: "Nederlands",
         label: "Dutch (Nederlands)",
+    },
+    {
+        locale: "pt",
+        englishName: "Portuguese",
+        endonym: "português",
+        label: "Portuguese (português)",
     },
     {
         locale: "ru",
