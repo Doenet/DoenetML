@@ -6,131 +6,226 @@
 #
 # German inflects, and it inflects the other way round from Spanish: attributive
 # adjectives go *before* the noun and take an ending that depends on the noun's
-# gender. A description is a standalone phrase with no article, so the strong
-# endings apply — `-er` masculine, `-e` feminine, `-es` neuter — and `$gender`
-# carries all three, since German has a neuter. It carries a fourth token,
-# `datm`, for the one phrase that is not nominative; `noun-gender` says which
-# and why.
+# gender and on the case its position governs.
+#
+# Every adjective below therefore selects on `$role` first — which position the
+# words are going into — and only then, where it matters, on `$gender`:
+#
+#   standalone          a phrase with no article, so the strong nominative
+#                       endings apply: `-er` m, `-e` f, `-es` n
+#   border-clause       after `mit einem` / `und einem`, which govern the
+#                       dative: `-en`, the same for every gender
+#   background-clause   after a bare `auf`, dative with no article, so the
+#                       strong ending: `-em`
+#   text-clause         predicative, where German does not inflect at all: the
+#                       bare stem, `rot auf gelbem Hintergrund`
+#
+# The last three need no gender branch: each is only ever used of one noun, and
+# that noun's gender is fixed (der Rand, der Hintergrund, der Text).
+#
+# This replaces the `datm` token an earlier seed carried inside `$gender`. One
+# token could hold a gender or a case but not both, so whichever of the two
+# positions it was tuned for, the other came out wrong (#1606).
 
 
 ## Style vocabulary
 
 color =
     .black =
-        { $gender ->
-            [f] schwarze
-            [n] schwarzes
-            [datm] schwarzen
-           *[m] schwarzer
+        { $role ->
+            [border-clause] schwarzen
+            [background-clause] schwarzem
+            [text-clause] schwarz
+            *[standalone]
+                { $gender ->
+                    [f] schwarze
+                    [n] schwarzes
+                    *[m] schwarzer
+                }
         }
     .white =
-        { $gender ->
-            [f] weiße
-            [n] weißes
-            [datm] weißen
-           *[m] weißer
+        { $role ->
+            [border-clause] weißen
+            [background-clause] weißem
+            [text-clause] weiß
+            *[standalone]
+                { $gender ->
+                    [f] weiße
+                    [n] weißes
+                    *[m] weißer
+                }
         }
     .gray =
-        { $gender ->
-            [f] graue
-            [n] graues
-            [datm] grauen
-           *[m] grauer
+        { $role ->
+            [border-clause] grauen
+            [background-clause] grauem
+            [text-clause] grau
+            *[standalone]
+                { $gender ->
+                    [f] graue
+                    [n] graues
+                    *[m] grauer
+                }
         }
     .red =
-        { $gender ->
-            [f] rote
-            [n] rotes
-            [datm] roten
-           *[m] roter
+        { $role ->
+            [border-clause] roten
+            [background-clause] rotem
+            [text-clause] rot
+            *[standalone]
+                { $gender ->
+                    [f] rote
+                    [n] rotes
+                    *[m] roter
+                }
         }
     .orange =
-        { $gender ->
-            [f] orangefarbene
-            [n] orangefarbenes
-            [datm] orangefarbenen
-           *[m] orangefarbener
+        { $role ->
+            [border-clause] orangefarbenen
+            [background-clause] orangefarbenem
+            [text-clause] orangefarben
+            *[standalone]
+                { $gender ->
+                    [f] orangefarbene
+                    [n] orangefarbenes
+                    *[m] orangefarbener
+                }
         }
     .yellow =
-        { $gender ->
-            [f] gelbe
-            [n] gelbes
-            [datm] gelben
-           *[m] gelber
+        { $role ->
+            [border-clause] gelben
+            [background-clause] gelbem
+            [text-clause] gelb
+            *[standalone]
+                { $gender ->
+                    [f] gelbe
+                    [n] gelbes
+                    *[m] gelber
+                }
         }
     .green =
-        { $gender ->
-            [f] grüne
-            [n] grünes
-            [datm] grünen
-           *[m] grüner
+        { $role ->
+            [border-clause] grünen
+            [background-clause] grünem
+            [text-clause] grün
+            *[standalone]
+                { $gender ->
+                    [f] grüne
+                    [n] grünes
+                    *[m] grüner
+                }
         }
     .cyan =
-        { $gender ->
-            [f] cyanfarbene
-            [n] cyanfarbenes
-            [datm] cyanfarbenen
-           *[m] cyanfarbener
+        { $role ->
+            [border-clause] cyanfarbenen
+            [background-clause] cyanfarbenem
+            [text-clause] cyanfarben
+            *[standalone]
+                { $gender ->
+                    [f] cyanfarbene
+                    [n] cyanfarbenes
+                    *[m] cyanfarbener
+                }
         }
     .blue =
-        { $gender ->
-            [f] blaue
-            [n] blaues
-            [datm] blauen
-           *[m] blauer
+        { $role ->
+            [border-clause] blauen
+            [background-clause] blauem
+            [text-clause] blau
+            *[standalone]
+                { $gender ->
+                    [f] blaue
+                    [n] blaues
+                    *[m] blauer
+                }
         }
     .purple =
-        { $gender ->
-            [f] violette
-            [n] violettes
-            [datm] violetten
-           *[m] violetter
+        { $role ->
+            [border-clause] violetten
+            [background-clause] violettem
+            [text-clause] violett
+            *[standalone]
+                { $gender ->
+                    [f] violette
+                    [n] violettes
+                    *[m] violetter
+                }
         }
     .pink =
-        { $gender ->
-            [f] rosafarbene
-            [n] rosafarbenes
-            [datm] rosafarbenen
-           *[m] rosafarbener
+        { $role ->
+            [border-clause] rosafarbenen
+            [background-clause] rosafarbenem
+            [text-clause] rosafarben
+            *[standalone]
+                { $gender ->
+                    [f] rosafarbene
+                    [n] rosafarbenes
+                    *[m] rosafarbener
+                }
         }
     .brown =
-        { $gender ->
-            [f] braune
-            [n] braunes
-            [datm] braunen
-           *[m] brauner
+        { $role ->
+            [border-clause] braunen
+            [background-clause] braunem
+            [text-clause] braun
+            *[standalone]
+                { $gender ->
+                    [f] braune
+                    [n] braunes
+                    *[m] brauner
+                }
         }
 
 line-width =
     .thick =
-        { $gender ->
-            [f] dicke
-            [n] dickes
-            [datm] dicken
-           *[m] dicker
+        { $role ->
+            [border-clause] dicken
+            [background-clause] dickem
+            [text-clause] dick
+            *[standalone]
+                { $gender ->
+                    [f] dicke
+                    [n] dickes
+                    *[m] dicker
+                }
         }
     .thin =
-        { $gender ->
-            [f] dünne
-            [n] dünnes
-            [datm] dünnen
-           *[m] dünner
+        { $role ->
+            [border-clause] dünnen
+            [background-clause] dünnem
+            [text-clause] dünn
+            *[standalone]
+                { $gender ->
+                    [f] dünne
+                    [n] dünnes
+                    *[m] dünner
+                }
         }
 
 line-style =
     .dashed =
-        { $gender ->
-            [f] gestrichelte
-            [n] gestricheltes
-            [datm] gestrichelten
-           *[m] gestrichelter
+        { $role ->
+            [border-clause] gestrichelten
+            [background-clause] gestricheltem
+            [text-clause] gestrichelt
+            *[standalone]
+                { $gender ->
+                    [f] gestrichelte
+                    [n] gestricheltes
+                    *[m] gestrichelter
+                }
         }
     .dotted =
-        { $gender ->
-            [f] gepunktete
-            [n] gepunktetes
-            [datm] gepunkteten
-           *[m] gepunkteter
+        { $role ->
+            [border-clause] gepunkteten
+            [background-clause] gepunktetem
+            [text-clause] gepunktet
+            *[standalone]
+                { $gender ->
+                    [f] gepunktete
+                    [n] gepunktetes
+                    *[m] gepunkteter
+                }
         }
 
 # Noun phrases: they follow `mit` and agree with nothing.
@@ -175,24 +270,14 @@ noun-regular-polygon =
 # names: `border` (der Rand, m), `fill` (die Füllung, f), `text` (der Text, m),
 # `background` (der Hintergrund, m).
 #
-# `border` answers `datm` — masculine *dative* — rather than plain `m`, because
-# the only place its adjectives are rendered is after `mit einem` / `und einem`
-# in `style-border-clause`, and both govern the dative: „mit einem dicken
-# Rand“, not „mit einem dicker Rand“. `$gender` is a single token that this
-# catalog chooses the meaning of, so carrying a case in it is what the
-# mechanism allows; what it cannot do is carry two, and
-# `borderStyleDescription` — the state variable that renders a border's style
-# on its own, with no preposition — therefore also comes out dative. Fixing
-# that properly means the code passing a case alongside the gender (#1606).
-#
-# `background` faces the same fork and is resolved the other way: it stays
-# nominative, so `backgroundColor` reads right on its own and the „auf …
-# Hintergrund“ clause in `style-text` carries the nominative with it. The two
-# nouns split because a border is named by a clause far more often than alone,
-# and a background the reverse.
+# Every one of them answers a plain gender now. `border` and `background` used
+# to answer a case instead — `datm` — because each is rendered in two positions
+# and a single token could only suit one of them. `$role` carries that
+# distinction, so this message is back to answering the one question its name
+# asks (#1606).
 noun-gender =
     { $noun ->
-        [border] datm
+        [border] m
         [line] f
         [curve] f
         [function] f
@@ -234,11 +319,16 @@ style-with-noun =
     }
 
 style-filled-word =
-    { $gender ->
-        [f] gefüllte
-        [n] gefülltes
-        [datm] gefüllten
-       *[m] gefüllter
+    { $role ->
+        [border-clause] gefüllten
+        [background-clause] gefülltem
+        [text-clause] gefüllt
+        *[standalone]
+            { $gender ->
+                [f] gefüllte
+                [n] gefülltes
+                *[m] gefüllter
+            }
     }
 
 style-filled =
@@ -256,14 +346,15 @@ style-filled-with-noun =
     }
 
 # „Rand“ is masculine, so the border's adjectives agree with it and not with
-# the shape it surrounds — in the dative, which is what `noun-gender` gives it
-# the `datm` token for.
+# the shape it surrounds. `mit` and `und einem` govern the dative, which is
+# what the `border-clause` branch of every adjective supplies.
 #
 # Every branch takes the article, including the two English leaves it off. A
 # bare dative would want the strong ending („mit dickem Rand“) rather than the
-# weak one, which is a second form the one `$gender` token cannot also carry;
-# German is happy with the article in all four, so this collapses the
-# distinction rather than getting one of them wrong.
+# weak one, and that is a second form the `border-clause` branch would have to
+# split to carry. German is happy with the article in all four, so keeping it
+# collapses the distinction rather than getting one of them wrong — the one
+# thing here that `$role` did not have to fix.
 style-border-clause =
     { $parts ->
         [with-article] mit einem { $border } Rand
@@ -284,6 +375,11 @@ style-fill =
 
 style-unfilled = ungefüllt
 
+# „auf“ with no article governs the strong dative, which is the
+# `background-clause` ending; the text colour beside it is predicative, which
+# in German is the bare stem. So this reads „rot auf gelbem Hintergrund“, where
+# the `textColor` and `backgroundColor` variables — the standalone side of the
+# same two words — read „roter“ and „gelber“.
 style-text =
     { $parts ->
         [background] { $color } auf { $background } Hintergrund

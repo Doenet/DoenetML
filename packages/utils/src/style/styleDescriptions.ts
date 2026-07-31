@@ -198,12 +198,15 @@ function genderOf(t: Translator, noun: string): string {
 /**
  * Which syntactic position a description is being rendered into.
  *
- * Gender alone is enough while a phrase appears in exactly one position. Two of
- * them appear in two, and a language that inflects an attributive adjective for
- * case has to tell them apart: a border's adjectives are a standalone phrase in
- * `borderStyleDescription` and the object of a preposition inside
+ * Gender alone is enough while a phrase appears in exactly one position. Three
+ * of them appear in two, and a language that inflects an attributive adjective
+ * for case has to tell them apart: a border's adjectives are a standalone
+ * phrase in `borderStyleDescription` and the object of a preposition inside
  * `style-border-clause`, where German's `mit einem …` governs the dative and
- * Russian's «с …» the instrumental. The same fork runs through `background`.
+ * Russian's «с …» the instrumental. `background` forks the same way between
+ * `backgroundColor` and `style-text`. So does the text colour beside it, which
+ * German wants attributive in the `textColor` variable (`roter`) and
+ * predicative in the sentence (`rot auf gelbem Hintergrund`).
  *
  * The names are *positions*, not cases, because which case a position governs
  * is the catalog's business — exactly as `$gender`'s token set already is. The
@@ -211,7 +214,8 @@ function genderOf(t: Translator, noun: string): string {
  *
  * A language with no case ignores `$role`, as English ignores `$gender`.
  */
-export type PhraseRole = "standalone" | "border-clause" | "background-clause";
+export type PhraseRole =
+    "standalone" | "border-clause" | "background-clause" | "text-clause";
 
 /** Look a derived word up in a vocabulary; pass an authored one through. */
 function lookUp(

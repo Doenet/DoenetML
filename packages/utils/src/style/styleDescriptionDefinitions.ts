@@ -344,17 +344,19 @@ export function returnTextStyleDescriptionDefinitions(): StateVariableDefinition
             commonDependencies,
             (dependencyValues) => {
                 const t = translatorFor(dependencyValues);
+                // Both colours are looked up again rather than reusing what
+                // `textColor` and `backgroundColor` report. Those two are the
+                // standalone side of the fork; these are the embedded side,
+                // and a language that inflects needs the forms to differ —
+                // German wants `rot auf gelbem Hintergrund` here and `roter` /
+                // `gelber` there (#1606).
                 return describeText(t, {
                     color: describeColor(
                         t,
                         colorWord(dependencyValues, "text"),
                         "text",
+                        "text-clause",
                     ),
-                    // Looked up again rather than reusing what
-                    // `backgroundColor` reports: there the word stands alone,
-                    // here it sits behind `style-text`'s preposition, and a
-                    // language that inflects for case needs the two forms to
-                    // differ (#1606).
                     background: backgroundDescription(
                         t,
                         dependencyValues,

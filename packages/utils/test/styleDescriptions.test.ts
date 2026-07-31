@@ -528,3 +528,127 @@ noun-regular-polygon =
         );
     });
 });
+
+/**
+ * The two-position forks (#1606).
+ *
+ * Three sets of words are rendered in two syntactic positions each: a border's
+ * adjectives, the background colour, and the text colour beside it. A language
+ * that inflects for case needs a different form in each, and the bug this
+ * guards was that only one of the two was ever checked — the standalone side
+ * of the border and the embedded side of the background were both wrong for
+ * over a release without a test noticing.
+ *
+ * So every case below asserts *both* sides. German and Russian are read off
+ * disk rather than stubbed, because the point is that the shipped catalogs
+ * resolve the fork, not merely that the mechanism can.
+ */
+describe("a phrase rendered in two positions", () => {
+    const de: Translator = createTranslatorFromLocaleData(
+        { locale: "de", resources: { de: readCatalog("de", "content") } },
+        "de",
+    );
+    const ru: Translator = createTranslatorFromLocaleData(
+        { locale: "ru", resources: { ru: readCatalog("ru", "content") } },
+        "ru",
+    );
+
+    const borderWords = { lineColorWord: "black", lineWidthWord: "thick" };
+    const shapeWords = { ...borderWords, fillColorWord: "blue" };
+    const circle: NounSpec = { key: "circle" };
+
+    /** The border's adjectives, standalone and inside the clause. */
+    const bothBorderForms = (t: Translator) => ({
+        standalone: describeBorder(t, borderWords),
+        embedded: describeClosedShape(t, shapeWords, {
+            filled: true,
+            noun: circle,
+            withNoun: true,
+        }),
+    });
+
+    /** The text and background colours, standalone and inside the sentence. */
+    const bothTextForms = (t: Translator) => ({
+        textColor: describeColor(t, "red", "text"),
+        backgroundColor: describeColor(t, "yellow", "background"),
+        sentence: describeText(t, {
+            color: describeColor(t, "red", "text", "text-clause"),
+            background: describeColor(
+                t,
+                "yellow",
+                "background",
+                "background-clause",
+            ),
+        }),
+    });
+
+    it("leaves English alone, which has no case to inflect for", () => {
+        expect(bothBorderForms(en)).toEqual({
+            standalone: "thick",
+            embedded: "filled blue circle with a thick border",
+        });
+        expect(bothTextForms(en)).toEqual({
+            textColor: "red",
+            backgroundColor: "yellow",
+            sentence: "red with a yellow background",
+        });
+    });
+
+    it("leaves Spanish alone, which inflects for gender but not case", () => {
+        expect(bothTextForms(es)).toEqual({
+            textColor: "rojo",
+            backgroundColor: "amarillo",
+            sentence: "rojo con un fondo amarillo",
+        });
+    });
+
+    // Nominative standing alone, dative after `mit einem`. Before #1606 both
+    // came out `dicken`, because the catalog had to spend its one token on the
+    // clause.
+    it("gives German a nominative border alone and a dative one in the clause", () => {
+        expect(bothBorderForms(de)).toEqual({
+            standalone: "dicker",
+            embedded: "gefüllter blauer Kreis mit einem dicken Rand",
+        });
+    });
+
+    // Attributive in the two variables, predicative and dative in the
+    // sentence. Before #1606 the sentence read `roter auf gelber Hintergrund`,
+    // wrong in both halves.
+    it("gives German predicative text and a dative background in one sentence", () => {
+        expect(bothTextForms(de)).toEqual({
+            textColor: "roter",
+            backgroundColor: "gelber",
+            sentence: "rot auf gelbem Hintergrund",
+        });
+    });
+
+    // Nominative feminine agreeing with «граница» alone, instrumental after
+    // «с». Before #1606 the standalone form came out `толстой`.
+    it("gives Russian a nominative border alone and an instrumental one in the clause", () => {
+        expect(bothBorderForms(ru)).toEqual({
+            standalone: "толстая",
+            embedded: "закрашенная синяя окружность с толстой границей",
+        });
+    });
+
+    // Before #1606 the sentence read `красный на жёлтый фоне`, with the
+    // background left in the nominative behind a preposition governing the
+    // prepositional.
+    it("gives Russian a prepositional background inside the sentence", () => {
+        expect(bothTextForms(ru)).toEqual({
+            textColor: "красный",
+            backgroundColor: "жёлтый",
+            sentence: "красный на жёлтом фоне",
+        });
+    });
+
+    // The guard that keeps this from rotting: if a catalog ever collapses the
+    // two positions again, these differ where they should not.
+    it("keeps the two positions distinct wherever a language inflects", () => {
+        for (const t of [de, ru]) {
+            const border = bothBorderForms(t);
+            expect(border.embedded).not.toContain(border.standalone);
+        }
+    });
+});
