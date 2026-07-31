@@ -9,6 +9,16 @@ function langOf(doenetML: string) {
 }
 
 /**
+ * The raw parse, not the normalized one `langOf` uses: `DocViewer` runs
+ * `readDeclaredLangs` over `lezerToDast` alone, because it is prefetching
+ * catalogs on every render the source changes and normalization buys it
+ * nothing — no plugin in that pipeline invents or moves a `lang`.
+ */
+function declared(doenetML: string) {
+    return readDeclaredLangs(lezerToDast(doenetML));
+}
+
+/**
  * The content language the core will translate into, which is also the tag the
  * viewer puts in the wrapper's `lang` attribute — one resolution for both, so
  * the DOM never claims a language the content was not rendered in. Mirrors
@@ -96,12 +106,6 @@ describe("effective document locale", () => {
 });
 
 describe("readDeclaredLangs", () => {
-    function declared(doenetML: string) {
-        return readDeclaredLangs(
-            normalizeDocumentDast(lezerToDast(doenetML), true),
-        );
-    }
-
     it("finds the outermost document's language", () => {
         expect(declared(`<document lang="es"><p>hola</p></document>`)).toEqual([
             "es",
@@ -160,20 +164,9 @@ describe("readDeclaredLangs", () => {
 // `lang` is a primitive string attribute: the core builds it from exactly one
 // string child and raises "Invalid reference in a primitive attribute" for
 // anything else. Reading it any more liberally here would label a document
-// with a language its content is not rendered in.
+// with a language its content is not rendered in. Both readers share
+// `readLang`, so both are held to the rule.
 describe("readLang matches what the core accepts", () => {
-    it("reads a lone string child", () => {
-        expect(langOf(`<document lang="es"><p/></document>`)).toBe("es");
-        expect(
-            readDeclaredLangs(
-                normalizeDocumentDast(
-                    lezerToDast(`<document lang="es"><p/></document>`),
-                    true,
-                ),
-            ),
-        ).toEqual(["es"]);
-    });
-
     it("takes no language from an attribute the core would reject", () => {
         // A reference, and text split by one: neither is one string child.
         expect(langOf(`<document lang="$chosen"><p/></document>`)).toBe(
@@ -181,6 +174,9 @@ describe("readLang matches what the core accepts", () => {
         );
         expect(langOf(`<document lang="e$chosen"><p/></document>`)).toBe(
             undefined,
+        );
+        expect(declared(`<document lang="e$chosen"><p/></document>`)).toEqual(
+            [],
         );
     });
 });

@@ -30,14 +30,6 @@ import {
 } from "@doenet/i18n";
 import { lezerToDast } from "@doenet/parser";
 import { readDeclaredLangs } from "../utils/documentLang";
-
-/**
- * Shared empty result, so a source that declares no language hands back the
- * same array every render. `contentLocales` spreads it and `useLocaleCatalogs`
- * keys off the tags rather than the identity, but a stable one keeps the memo
- * below from recomputing for nothing.
- */
-const NO_DECLARED_LOCALES: string[] = [];
 import { hasNavigationModifier } from "../utils/sourceNavigation";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
@@ -79,6 +71,14 @@ export type SourcePosition = {
     start: { line: number; column: number; offset: number };
     end: { line: number; column: number; offset: number };
 };
+
+/**
+ * Shared empty result, so a source that declares no language hands back the
+ * same array every render. `contentLocales` spreads it and `useLocaleCatalogs`
+ * keys off the tags rather than the identity, but a stable one keeps the memos
+ * that read it from recomputing for nothing.
+ */
+const NO_DECLARED_LOCALES: string[] = [];
 
 /** Whether `inner`'s source range lies entirely within `outer`'s. */
 function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
@@ -587,8 +587,10 @@ export function DocViewer({
         // that is the overwhelmingly common case. Worth a scan of the string
         // to skip a parse of it: the editor re-renders this component as its
         // author types, and a document that declares no language should not
-        // pay for the feature on every keystroke. Matching "language" in prose
-        // costs only a parse that finds nothing.
+        // pay for the feature on every keystroke. The test is deliberately
+        // loose — `lang` on any element, or the word written in prose, is
+        // enough to fall through — because a false positive costs only a parse
+        // that finds nothing.
         if (!/\blang\s*=/i.test(doenetML)) {
             return NO_DECLARED_LOCALES;
         }
@@ -604,9 +606,22 @@ export function DocViewer({
     // The languages the *core* renders in. What it computes depends on these
     // catalogs and no others, which is what makes them the right thing to gate
     // a rebuild on.
+    //
+    // The prop's language is listed beside the source's rather than left to
+    // `effectiveDocumentLocale`, which starts as the prop's and is corrected to
+    // the authored one once the core has reported back. Dropping it at that
+    // point would shrink the set — and so move the gate — on the strength of
+    // the very build the gate guards, rebuilding the core once for nothing.
+    // `effectiveDocumentLocale` still belongs here, because it is the one thing
+    // that can name a language the source does not: content pulled in by an
+    // external reference joins the tree after this scan has run.
     const contentLocales = useMemo(
-        () => [effectiveDocumentLocale, ...declaredLocales],
-        [effectiveDocumentLocale, declaredLocales],
+        () => [
+            resolveDocumentLocale(undefined, documentLocale),
+            effectiveDocumentLocale,
+            ...declaredLocales,
+        ],
+        [documentLocale, effectiveDocumentLocale, declaredLocales],
     );
     // Catalogs for every language in play, which is knowable only here: an
     // authored `<document lang>` is not in the props, so this is where a
