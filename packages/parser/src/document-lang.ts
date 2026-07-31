@@ -1,3 +1,8 @@
+// Covered by `packages/doenetml/src/utils/documentLang.test.ts` rather than by
+// a spec in this package's own `test/`: what these read has to agree with what
+// `readDocumentLang` labels the rendered wrapper with, and holding both to one
+// rule in one file is what keeps them from drifting apart.
+
 import { lezerToDast } from "./lezer-to-dast/lezer-to-dast";
 import type { DastElement, DastRoot } from "./types";
 

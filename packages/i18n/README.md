@@ -76,16 +76,18 @@ Two of them are deliberately partial — Somali and Hmong Njua leave
 nomenclature, so those fall back to English, which is what `lint:i18n` reports
 as coverage.
 
-The split is by **load context**, not topic: the worker never draws chrome, so
-it ships only `content` + `diagnostics` (`WORKER_NAMESPACES`). English is
-inlined into every build via `?raw` imports — the worker cannot reliably fetch
-a relative URL across the standalone/iframe/dedicated-worker variants, so the
-fallback locale must not depend on the network.
+The split is by **load context**, not topic: the worker never draws chrome and
+never renders a diagnostic, so it ships only `content` (`WORKER_NAMESPACES`).
+English is inlined into every build via `?raw` imports — the worker cannot
+reliably fetch a relative URL across the standalone/iframe/dedicated-worker
+variants, so the fallback locale must not depend on the network.
 
-English is the only language inlined. `englishResources(namespaces)` assembles
-its catalogs for a context, and both `createChromeTranslator` and
-`createTranslatorFromLocaleData` merge host-supplied `localeResources` over
-them (the host's copy wins for a locale that exists in both).
+English is the only language inlined. `createChromeTranslator` builds its own
+English candidate with `englishResources(namespaces)` and merges host-supplied
+`localeResources` over it, the host's copy winning for a locale in both;
+`createTranslatorFromLocaleData` builds none, translating out of what reached
+the worker and nothing else. Neither has to carry English for the fallback:
+`createTranslator` appends the whole English catalog behind every chain.
 
 Every translation is **loaded on demand** — see [Delivery](#delivery). At
 roughly 16 KB gzipped for a complete one, inlining a language puts its weight on
@@ -147,10 +149,11 @@ which is the list `fetchLocaleLoaders` offers by default; `lint:i18n` fails if
 it is skipped.)
 
 ```ts
-// What the viewer does. Returns {} for English, for a bundled locale, and for
-// a locale nothing offers a catalog for. A served catalog that 404s or cannot
-// be reached is {} too; only a code-split chunk that fails to load rejects,
-// and `useLocaleCatalogs` catches that and leaves the locale on English.
+// What the viewer does. Returns {} for English, for a locale the caller says
+// it already has, and for one nothing offers a catalog for. A served catalog
+// that 404s or cannot be reached is {} too; only a code-split chunk that
+// fails to load rejects, and `useLocaleCatalogs` catches that and leaves the
+// locale on English.
 const resources = await loadLocaleResources("de-AT", CATALOG_NAMESPACES);
 // → { de: "<all four namespaces, concatenated>" }
 ```

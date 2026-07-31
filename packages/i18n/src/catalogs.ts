@@ -69,8 +69,12 @@ export const BUNDLED_LOCALES: readonly string[] = [DEFAULT_LOCALE];
  * The English catalogs for the namespaces one context renders, combined into
  * the single FTL source {@link createTranslator} consumes.
  *
- * Asking for only the namespaces a context can use is what keeps the worker
- * from carrying chrome strings it never draws.
+ * The namespaces are a parameter so a context's `en` entry holds what that
+ * context draws and no more: `chrome.ts` negotiates against a map keyed by
+ * locale and derives the pseudo-locale from that entry, which would otherwise
+ * accent messages the chrome never draws. Not a size saving —
+ * {@link EN_CATALOG_SOURCE}, all four namespaces, is appended behind every
+ * chain by `createTranslator`, so English rides into every bundle whole.
  *
  * @param namespaces The namespaces this context loads — `WORKER_NAMESPACES` or
  *   `CHROME_NAMESPACES`.

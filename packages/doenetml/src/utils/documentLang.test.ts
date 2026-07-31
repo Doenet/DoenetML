@@ -14,10 +14,11 @@ function langOf(doenetML: string) {
 }
 
 /**
- * The raw parse, not the normalized one `langOf` uses: `DocViewer` runs
- * `readDeclaredLangs` over `lezerToDast` alone, because it is prefetching
- * catalogs on every render the source changes and normalization buys it
- * nothing — no plugin in that pipeline invents or moves a `lang`.
+ * The raw parse, not the normalized one `langOf` uses: `declaredLangsInSource`
+ * — which is what `DocViewer` prefetches from — runs `readDeclaredLangs` over
+ * `lezerToDast` alone, because it runs on every render the source changes and
+ * normalization buys it nothing: no plugin in that pipeline invents or moves a
+ * `lang`.
  */
 function declared(doenetML: string) {
     return readDeclaredLangs(lezerToDast(doenetML));

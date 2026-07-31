@@ -237,10 +237,10 @@ export async function createTestCore({
  * wants the translation this repository ships, so read it off disk rather than
  * making every locale test carry the plumbing.
  *
- * `content` alone, which is `WORKER_NAMESPACES` — the worker computes prose and
- * never draws chrome. The viewer hands over all four namespaces because the one
- * map it builds also feeds its own chrome; the three the core never opens make
- * no difference to what it computes.
+ * Only `content` is read, which is `WORKER_NAMESPACES`: the worker computes
+ * prose and never draws chrome. The viewer hands over all four namespaces
+ * because the one map it builds also feeds its own chrome; the three the core
+ * never opens make no difference to what it computes.
  *
  * Negotiated by primary subtag, as `loadLocaleResources` negotiates: a document
  * in `es-MX` is served by the `es` catalog. A tag nothing answers gets nothing

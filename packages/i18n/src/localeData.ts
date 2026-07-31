@@ -54,7 +54,7 @@ export function createTranslatorFromLocaleData(
     localeData: LocaleData,
     locale: string = localeData.locale,
 ): Translator {
-    const resources = localeData.resources;
+    const { resources } = localeData;
     const chain = negotiateLocales([locale], Object.keys(resources));
     return createTranslator(chain, resources);
 }
