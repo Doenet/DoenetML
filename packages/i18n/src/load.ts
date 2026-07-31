@@ -1,5 +1,4 @@
-import { BUNDLED_LOCALES } from "./bundled";
-import { DEFAULT_LOCALE } from "./catalogs";
+import { BUNDLED_LOCALES, DEFAULT_LOCALE } from "./catalogs";
 import { SUPPORTED_LOCALES } from "./generated/supportedLocales";
 import {
     CATALOG_NAMESPACES,

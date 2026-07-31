@@ -1,6 +1,4 @@
-import { bundledResources } from "./bundled";
 import { DEFAULT_LOCALE } from "./catalogs";
-import { WORKER_NAMESPACES } from "./namespaces";
 import { negotiateLocales } from "./negotiate";
 import { createTranslator, type Translator } from "./translator";
 
@@ -39,25 +37,14 @@ export const DEFAULT_LOCALE_DATA: LocaleData = {
 };
 
 /**
- * The catalogs the worker carries, assembled once.
- *
- * A module constant, as `chrome.ts` also keeps one, rather than a call per
- * translator: `bundledResources` re-concatenates every namespace it is given,
- * and a core builds a translator for each locale its documents declare.
- */
-const BUNDLED_WORKER_RESOURCES: Record<string, string> =
-    bundledResources(WORKER_NAMESPACES);
-
-/**
  * Build the translator for a {@link LocaleData} payload, negotiating the
  * requested locale against the catalogs available inside the worker.
  *
- * Those are the bundled translations plus whatever reached the worker as
- * `LocaleData.resources`, the latter winning per locale — so a deployment can
- * correct a bundled translation, and a language the bundle does not carry
- * still renders once the main thread has loaded its catalog and sent it
- * through. `documentLocale="es"` therefore produces Spanish style
- * descriptions with nothing configured, one load after the first paint.
+ * Those are whatever reached the worker as `LocaleData.resources`. The worker
+ * carries no translation of its own — English is appended behind every chain by
+ * {@link createTranslator}, and every other language is loaded on the main
+ * thread and sent through. `documentLocale="es"` therefore produces Spanish
+ * style descriptions with nothing configured, one load after the first paint.
  *
  * @param locale The content locale to render in. Defaults to the one in
  *   `localeData`; the caller passes a different tag when an authored
@@ -67,10 +54,7 @@ export function createTranslatorFromLocaleData(
     localeData: LocaleData,
     locale: string = localeData.locale,
 ): Translator {
-    const resources = {
-        ...BUNDLED_WORKER_RESOURCES,
-        ...localeData.resources,
-    };
+    const resources = localeData.resources;
     const chain = negotiateLocales([locale], Object.keys(resources));
     return createTranslator(chain, resources);
 }

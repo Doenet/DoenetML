@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bundledResources } from "../src/bundled";
+import { englishResources } from "../src/catalogs";
 import {
     DEFAULT_LOCALE_DATA,
     createTranslatorFromLocaleData,
@@ -71,48 +71,39 @@ describe("createTranslatorFromLocaleData", () => {
     });
 });
 
-describe("bundledResources", () => {
-    // No translation is inlined, so the worker starts empty and falls back to
-    // the English `createTranslator` appends unconditionally.
-    it("gives the worker nothing while no translation is inlined", () => {
-        expect(bundledResources(WORKER_NAMESPACES)).toEqual({});
+describe("englishResources", () => {
+    // The worker is handed nothing at all: English is appended behind every
+    // chain by `createTranslator`, and no translation is inlined.
+    it("gives the chrome its namespaces and not the worker's", () => {
+        const chrome = englishResources(CHROME_NAMESPACES);
+        expect(chrome).toContain("keyboard-open");
+        expect(chrome).not.toContain("noun-regular-polygon");
     });
 
-    it("gives the chrome English as a negotiable candidate", () => {
-        const chrome = bundledResources(CHROME_NAMESPACES, {
-            includeEnglish: true,
-        });
-        expect(Object.keys(chrome)).toEqual(["en"]);
-        expect(chrome.en).toContain("keyboard-open");
-        expect(chrome.en).not.toContain("noun-regular-polygon");
+    it("gives the worker its namespace and not the chrome's", () => {
+        const worker = englishResources(WORKER_NAMESPACES);
+        expect(worker).toContain("noun-regular-polygon");
+        expect(worker).not.toContain("keyboard-open");
     });
 
-    // A locale is inlined namespace by namespace, so a new catalog file is
-    // easy to write and then forget to bundle — it would simply never load,
-    // silently, with everything falling back to English. Every namespace a
-    // context asks for has to arrive for every bundled locale.
-    //
-    // Dormant while `BUNDLED_TRANSLATIONS` is empty; it starts covering the
-    // first locale inlined back in without needing to be rewritten.
-    it("bundles every namespace a context asks for, for every locale", () => {
+    // A namespace silently missing from the combined source would fall back to
+    // English everywhere — which looks like nothing being wrong, because
+    // English is what it would have said anyway. Every key of every namespace a
+    // context asks for has to be in what it gets.
+    it("carries every key of every namespace a context asks for", () => {
         for (const namespaces of [CHROME_NAMESPACES, WORKER_NAMESPACES]) {
-            for (const [locale, source] of Object.entries(
-                bundledResources(namespaces),
-            )) {
-                // Compared as parsed keys, not as substrings: an attribute is
-                // addressed as `color.black` but written as a `.black` line
-                // under `color`, so searching the source text for the key
-                // would report every attribute as missing.
-                const bundled = new Set(extractKeys(source));
-                for (const namespace of namespaces) {
-                    for (const key of extractKeys(
-                        readCatalog(locale, namespace) ?? "",
-                    )) {
-                        expect(
-                            bundled.has(key),
-                            `${locale}/${namespace}: ${key}`,
-                        ).toBe(true);
-                    }
+            // Compared as parsed keys, not as substrings: an attribute is
+            // addressed as `color.black` but written as a `.black` line under
+            // `color`, so searching the source text for the key would report
+            // every attribute as missing.
+            const combined = new Set(extractKeys(englishResources(namespaces)));
+            for (const namespace of namespaces) {
+                for (const key of extractKeys(
+                    readCatalog("en", namespace) ?? "",
+                )) {
+                    expect(combined.has(key), `${namespace}: ${key}`).toBe(
+                        true,
+                    );
                 }
             }
         }

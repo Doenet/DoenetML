@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { BUNDLED_LOCALES } from "../src/bundled";
+import { BUNDLED_LOCALES } from "../src/catalogs";
 import { DEFAULT_LOCALE } from "../src/catalogs";
 import {
     LAZY_LOCALE_LOADERS,

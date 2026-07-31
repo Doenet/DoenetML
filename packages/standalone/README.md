@@ -125,7 +125,7 @@ language the core computes such an activity's prose in.
 Changing `documentLocale` rebuilds the document, since it changes every string
 the core computes; `uiLocale` updates in place.
 
-English and Spanish are bundled, so `es` needs no catalogs from the host.
+English is bundled; every translation is served from `locales/`.
 Every other language is fetched on demand from the `locales/` directory
 published beside `doenet-standalone.js` — **serve that directory next to the
 bundle** and any language it holds works with nothing else configured, named

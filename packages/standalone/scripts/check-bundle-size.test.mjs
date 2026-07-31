@@ -298,9 +298,10 @@ describe("collectCatalogProbes", () => {
     });
 
     it("skips a translation that reuses any other inlined locale, not just English", () => {
-        // Spanish is inlined too, and neighbouring languages share plenty of
-        // wording. A probe matching one of its strings would report a leak over
-        // a catalog that is legitimately in the bundle.
+        // English is the only inlined locale today, so this drives the rule
+        // with a second one supplied by hand: neighbouring languages share
+        // plenty of wording, and a probe matching a string that is legitimately
+        // in the bundle would report a leak on every build.
         const shared = { chrome: "greeting = Hola y bienvenido a todos\n" };
         expect(
             probesFor(

@@ -5,9 +5,11 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 // A language that is not inlined has to travel further than a bundled one: the
 // main thread loads its catalog while the document is already rendering, and
 // the core — which is where `<paginatorControls>`'s words are computed — has to
-// end up holding it. Only English and Spanish ship inside the bundle, so the
-// language here is a stub installed through `setLocaleLoaders`, the same seam
-// `@doenet/standalone` uses to point at the catalogs it serves.
+// end up holding it. Only English ships inside the bundle, and the language
+// here is a stub installed through `setLocaleLoaders` rather than one this
+// repository translates — so the test cannot pass by accident on a catalog
+// that happens to be present. That is the same seam `@doenet/standalone` uses
+// to point at the catalogs it serves.
 //
 // What that covers is the half the `@doenet/i18n` unit tests cannot see:
 // `useLocaleCatalogs` merging what it loaded into `localeResources`, and the

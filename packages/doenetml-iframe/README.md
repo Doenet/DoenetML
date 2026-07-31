@@ -197,11 +197,11 @@ differ — a Spanish-speaking student may work a French physics problem.
   `documentLocale`, so a fully Spanish activity is fully Spanish without the
   host configuring anything.
 - `localeResources` — FTL message catalogs keyed by locale, for a host with
-  translations of its own. English and Spanish are bundled and every other
-  language is fetched from the `locales/` directory published beside the
-  standalone bundle the iframe loads, so a host needing only the shipped
-  translations passes nothing; a catalog supplied here wins over either, which
-  is how a deployment corrects a translation.
+  translations of its own. English is bundled and every translation is fetched
+  from the `locales/` directory published beside the standalone bundle the
+  iframe loads, so a host needing only the shipped translations passes nothing;
+  a catalog supplied here wins over either, which is how a deployment corrects
+  a translation.
 
 The rendered container always carries a `lang` attribute naming the language
 the content was rendered in, so screen readers pronounce it with the right

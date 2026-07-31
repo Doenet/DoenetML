@@ -20,8 +20,7 @@
 import fs from "node:fs";
 
 import { CATALOG_NAMESPACES } from "../src/namespaces";
-import { BUNDLED_LOCALES } from "../src/bundled";
-import { DEFAULT_LOCALE } from "../src/catalogs";
+import { BUNDLED_LOCALES, DEFAULT_LOCALE } from "../src/catalogs";
 import {
     DIAGNOSTIC_CODES,
     DIAGNOSTIC_CODE_PATTERN,

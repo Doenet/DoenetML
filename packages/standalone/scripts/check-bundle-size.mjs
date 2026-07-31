@@ -166,8 +166,10 @@ function readMessages(file) {
  * locale says for the same key. Matching an inlined catalog is what makes a
  * probe useless: those strings are legitimately in the bundle, so a translation
  * that happens to reuse one would report a leak on every build. English is the
- * usual culprit — a term left untranslated — but not the only one, since
- * Spanish is inlined too and neighbouring languages share plenty of wording.
+ * culprit today, being the only inlined locale — a term left untranslated reads
+ * identically in both. The rule is written for the general case because
+ * inlining a second locale would add another, and neighbouring languages share
+ * plenty of wording.
  *
  * A locale that yields no such string simply gets no probe. That is the right
  * failure mode for a catalog too close to an inlined one to fingerprint —

@@ -82,17 +82,16 @@ inlined into every build via `?raw` imports — the worker cannot reliably fetch
 a relative URL across the standalone/iframe/dedicated-worker variants, so the
 fallback locale must not depend on the network.
 
-Spanish is inlined the same way, so `uiLocale="es"` and `documentLocale="es"`
-both work with no host configuration. `bundledResources(namespaces)` is what
-assembles those catalogs for a context, and both `createChromeTranslator` and
+English is the only language inlined. `englishResources(namespaces)` assembles
+its catalogs for a context, and both `createChromeTranslator` and
 `createTranslatorFromLocaleData` merge host-supplied `localeResources` over
 them (the host's copy wins for a locale that exists in both).
 
-Every other locale is **loaded on demand** — see [Delivery](#delivery). At
-roughly 16 KB gzipped for a complete translation, inlining does not scale past
-the two locales that earn it: English because every fallback chain ends there,
-Spanish because it is the one reviewed translation and because being inlined is
-what lets an authored `<document lang="es">` build the core exactly once.
+Every translation is **loaded on demand** — see [Delivery](#delivery). At
+roughly 16 KB gzipped for a complete one, inlining a language puts its weight on
+every consumer whether or not anyone reads it, and no single language earns
+that. English is exempt because every fallback chain ends there: it has to be
+present with no network, in every bundling variant.
 
 Note that `content` and `diagnostics` answer to *different* settings —
 `documentLocale` and `uiLocale` respectively — which is why `WORKER_NAMESPACES`
@@ -119,10 +118,9 @@ two different places:
 catalog directory, each with its name in English and in itself, derived at
 codegen time from `Intl.DisplayNames` so that adding a language costs no
 hand-written prose. The second answer is a delivery decision, and the two lists
-have long since diverged: ten languages are on the roster and two of them are
-inlined. Spanish is one of those two only because it is the one reviewed
-translation and because being inlined is what lets an authored
-`<document lang="es">` build the core once (see [Delivery](#delivery)).
+have long since diverged: ten languages are on the roster and one of them —
+English — is inlined. Every other catalog is fetched or code-split when a
+document or a reader asks for it (see [Delivery](#delivery)).
 
 Author-facing surfaces read the **roster**. That is what lets the editor offer
 the languages in `<document lang>`'s autocomplete and help panel (via the

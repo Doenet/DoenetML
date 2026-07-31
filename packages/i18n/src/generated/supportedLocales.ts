@@ -29,9 +29,10 @@ export type SupportedLocaleInfo = {
  * Every locale with a catalog in this repository, `en` first.
  *
  * The *roster*, not the delivery mechanism: it is generated from the
- * `locales/` directory, so it stays correct when a locale stops being inlined
- * into the bundle. Read `bundledResources` for "which catalogs are in this JS
- * bundle" instead.
+ * `locales/` directory, so it lists every language this repository ships a
+ * translation for, whether or not the bundle carries it. Read
+ * `BUNDLED_LOCALES` for "which catalogs are in this JS bundle" instead — today
+ * that is English alone.
  *
  * A deployment can always supply a catalog of its own that is not listed here.
  * That is why the surfaces built on this list suggest rather than enforce: an
