@@ -23,9 +23,9 @@ import { MdError } from "react-icons/md";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
+    reachableCatalogLocales,
     resolveDocumentLocale,
     resolveUiLocale,
-    resourceKeyForLocales,
     type Translator,
 } from "@doenet/i18n";
 import { lezerToDast } from "@doenet/parser";
@@ -473,9 +473,10 @@ export function DocViewer({
     const lastAttemptNumber = useRef<number | null>(null);
     const lastRequestedVariantIndex = useRef<number | null>(null);
     const lastDocumentLocale = useRef<string | null>(null);
-    // "" rather than null: no catalogs is the starting state, not "not yet
-    // seen", so a host that never passes any never triggers a rebuild.
-    const lastLocaleResourceKey = useRef("");
+    // The content catalogs the core has been built with. Empty is the starting
+    // state, not "not yet seen", so a host that never supplies any never
+    // triggers a rebuild.
+    const contentCatalogsBuilt = useRef<Set<string>>(new Set());
 
     const [stage, setStage] = useState<
         | "initial"
@@ -603,18 +604,18 @@ export function DocViewer({
             return NO_DECLARED_LOCALES;
         }
     }, [doenetML]);
-    // The languages the *core* renders in. What it computes depends on these
-    // catalogs and no others, which is what makes them the right thing to gate
-    // a rebuild on.
+    // The languages the *core* renders in: what it computes depends on these
+    // catalogs and no others, which makes them both the set to have loaded and
+    // the set to gate a rebuild on.
     //
-    // The prop's language is listed beside the source's rather than left to
-    // `effectiveDocumentLocale`, which starts as the prop's and is corrected to
-    // the authored one once the core has reported back. Dropping it at that
-    // point would shrink the set — and so move the gate — on the strength of
-    // the very build the gate guards, rebuilding the core once for nothing.
-    // `effectiveDocumentLocale` still belongs here, because it is the one thing
-    // that can name a language the source does not: content pulled in by an
-    // external reference joins the tree after this scan has run.
+    // `effectiveDocumentLocale` starts as the prop's language and is corrected
+    // to the authored `<document lang>` once the core has reported back, so it
+    // lags a changed `documentLocale` by a round trip. The prop is listed
+    // beside it so the new language starts loading at once rather than after
+    // that trip. `effectiveDocumentLocale` earns its place the other way round:
+    // it is the one thing that can name a language the source does not, since
+    // content pulled in by an external reference joins the tree after this scan
+    // has run.
     const contentLocales = useMemo(
         () => [
             resolveDocumentLocale(undefined, documentLocale),
@@ -2186,21 +2187,28 @@ export function DocViewer({
     }
 
     // Compared by *which locales* arrived, not by their contents — see
-    // `localeResourceKey`. Keyed off the loaded map rather than the prop, so a
+    // `localeResourceKey`. Read off the loaded map rather than the prop, so a
     // catalog that finished loading after the core was created rebuilds it
     // with that language on hand.
     //
     // Scoped to the content's languages, because those are the only catalogs
-    // the core reads. The chrome's live in the same map, and gating on all of
-    // them would rebuild the core whenever a reader switched `uiLocale` —
+    // the core reads. The chrome's live in the same map, and counting them
+    // would rebuild the core whenever a reader switched `uiLocale` —
     // discarding whatever they had typed for a catalog the core never opens.
-    const resourceKey = resourceKeyForLocales(
+    //
+    // Only an *arrival* is a reason to rebuild. What is reachable can also
+    // shrink: `effectiveDocumentLocale` names the previous language until the
+    // core reports back, so a changed `documentLocale` puts the old language's
+    // catalog out of reach a moment after the rebuild just above — and
+    // rebuilding again there would build the core twice for one switch.
+    for (const locale of reachableCatalogLocales(
         contentLocales,
         availableCatalogs,
-    );
-    if (lastLocaleResourceKey.current !== resourceKey) {
-        lastLocaleResourceKey.current = resourceKey;
-        changedState = true;
+    )) {
+        if (!contentCatalogsBuilt.current.has(locale)) {
+            contentCatalogsBuilt.current.add(locale);
+            changedState = true;
+        }
     }
 
     if (changedState) {
