@@ -11,7 +11,7 @@
 # catalog controls the order and not the code.
 
 
-## Vocabulario de estilos
+## Style vocabulary
 
 color =
     .black =
@@ -71,7 +71,7 @@ line-style =
            *[m] punteado
         }
 
-# Sintagmas nominales: van detrás de «con» y no concuerdan con nada.
+# Noun phrases: they follow «con» and agree with nothing.
 fill-style =
     .horizontal = líneas horizontales
     .vertical = líneas verticales
@@ -100,9 +100,9 @@ noun =
     .cross = cruz
     .plus = signo más
 
-# El nombre se parte: «polígono regular» lleva los adjetivos y «de 5 lados»
-# cierra el sintagma detrás de ellos. Si el complemento fuera delante, los
-# adjetivos quedarían separados del nombre con el que concuerdan («polígono
+# The noun splits: «polígono regular» takes the adjectives and «de 5 lados»
+# closes the phrase behind them. Were the complement to come first, the
+# adjectives would be stranded away from the noun they agree with («polígono
 # regular de 5 lados grueso rojo»).
 noun-regular-polygon =
     { $part ->
@@ -110,11 +110,11 @@ noun-regular-polygon =
        *[head] polígono regular
     }
 
-# Además de los nombres de arriba, `$noun` puede ser «regular-polygon» (el
-# nombre que compone `noun-regular-polygon`) o el núcleo de un sintagma que no
-# se nombra en la descripción: «border», «fill», «text» y «background». Todos
-# ellos son masculinos en español —polígono, borde, relleno, texto, fondo—, así
-# que caen en el caso por defecto.
+# Besides the nouns above, `$noun` can be `regular-polygon` (the noun
+# `noun-regular-polygon` composes) or the head of a phrase the description
+# never names: `border`, `fill`, `text`, `background`. All of those are
+# masculine in Spanish — polígono, borde, relleno, texto, fondo — so they fall
+# to the default case.
 noun-gender =
     { $noun ->
         [line] f
@@ -129,7 +129,7 @@ noun-gender =
     }
 
 
-## Composición de estilos
+## Style composition
 
 style-stroke =
     { $parts ->
@@ -142,9 +142,9 @@ style-stroke =
        *[color] { $color }
     }
 
-# El nombre va delante y los adjetivos detrás: «línea discontinua gruesa roja».
-# El complemento del nombre, si lo hay, cierra el sintagma: «polígono regular
-# grueso rojo de 5 lados».
+# The noun comes first and the adjectives after it: «línea discontinua gruesa
+# roja». The noun's complement, where there is one, closes the phrase:
+# «polígono regular grueso rojo de 5 lados».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
@@ -163,9 +163,9 @@ style-filled =
        *[plain] { $color } { $filled }
     }
 
-# Aquí el complemento va pegado al nombre, y no al final como en
-# `style-with-noun`: «relleno de …» se lee como «lleno de …», así que «relleno
-# de 5 lados» diría otra cosa. «Polígono regular de 5 lados azul relleno».
+# Here the complement sits against the noun rather than at the end, as it does
+# in `style-with-noun`: «relleno de …» reads as «lleno de …», so «relleno de 5
+# lados» would say something else. «Polígono regular de 5 lados azul relleno».
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } con { $pattern }
@@ -174,8 +174,8 @@ style-filled-with-noun =
        *[plain] { $noun } { $color } { $filled }
     }
 
-# «borde» es masculino, así que los adjetivos del borde concuerdan con él y no
-# con la figura que rodea.
+# «borde» is masculine, so the border's adjectives agree with it rather than
+# with the shape it surrounds.
 style-border-clause =
     { $parts ->
         [with-article] con un borde { $border }
@@ -184,7 +184,7 @@ style-border-clause =
        *[with] con borde { $border }
     }
 
-# «de color» evita tener que concordar el color con un patrón en plural.
+# «de color» avoids having to agree the color with a plural pattern.
 style-fill =
     { $parts ->
         [pattern] { $pattern } de color { $color }
@@ -202,22 +202,22 @@ style-text =
 style-background-none = ninguno
 
 
-## Palabras booleanas
+## Boolean words
 ##
-## `true` y `false` siguen siendo sintaxis de DoenetML y no se traducen; aquí
-## solo se traduce la palabra que lee quien usa el documento.
+## `true` and `false` are still DoenetML syntax and are not translated; only
+## the word the reader sees is translated here.
 
 boolean-true = verdadero
 boolean-false = falso
 
 
-## Botones de respuesta
+## Answer buttons
 
 answer-submit-label = Revisar
 answer-submit-label-no-correctness = Enviar respuesta
 
 
-## Bloques seccionales
+## Sectional blocks
 
 section-name =
     .activity = Actividad
@@ -241,8 +241,8 @@ section-name =
     .task = Tarea
     .theorem = Teorema
 
-# El español separa el título con un punto tras un número solo, igual que el
-# inglés, y con dos puntos cuando la palabra encabeza.
+# Spanish separates the title with a period after a bare number, as English
+# does, and with a colon when the word leads.
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -256,7 +256,7 @@ section-title-prefix =
 hint-title = Pista
 
 
-## Tablas y figuras
+## Tables and figures
 
 table-name =
     { $parts ->
@@ -275,7 +275,7 @@ figure-name =
     }
 
 
-## Controles de paginación
+## Paginator controls
 
 paginator-previous = Anterior
 paginator-next = Siguiente
@@ -284,17 +284,17 @@ paginator-page = Página
 paginator-page-status = { $pageLabel } { $currentPage } de { $numPages }
 
 
-## Funciones definidas a trozos
+## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = si
 piecewise-condition-otherwise = en otro caso
 
 
-## Química
+## Chemistry
 ##
-## Los símbolos, las fórmulas y todo aquello con lo que un `<award>` compara no
-## se traducen; aquí solo están las palabras que se leen.
+## Symbols, formulas, and anything an `<award>` compares against are not
+## translated; only the words a reader sees are here.
 
 element-name =
     .h = Hidrógeno

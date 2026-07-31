@@ -136,9 +136,9 @@ describe("renderSupportedLocalesModule", () => {
 describe("SUPPORTED_LOCALES", () => {
     it("lists every locale directory, English first", () => {
         // The roster is generated from `locales/`, deliberately not from the
-        // catalogs inlined into the bundle — that is what keeps it correct
-        // once locales stop being bundled. `lint:i18n` enforces the same
-        // agreement; this pins it as a runtime fact too.
+        // catalogs inlined into the bundle — which is what keeps it listing
+        // ten languages now that English is the only one inlined. `lint:i18n`
+        // enforces the same agreement; this pins it as a runtime fact too.
         expect(SUPPORTED_LOCALES.map((l) => l.locale)).toEqual(listLocales());
         expect(SUPPORTED_LOCALES[0]?.locale).toBe("en");
     });

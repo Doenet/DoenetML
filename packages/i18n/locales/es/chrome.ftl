@@ -114,8 +114,8 @@ viewer-initializing = Inicializando...
 
 error-heading = Error
 
-# $startLine y $endLine son números de línea y llegan como texto, no como
-# números, para que no se agrupen los millares.
+# $startLine and $endLine are line numbers, and arrive as text rather than as
+# numbers so that line 1234 is not grouped as "1.234".
 error-found-at =
     { $span ->
         [line] Encontrado en la línea { $startLine }.
@@ -124,13 +124,13 @@ error-found-at =
 
 document-contains-errors = ¡Este documento contiene errores!
 
-# Encabezados del globo que muestra el editor sobre un subrayado.
+# Headings of the tooltip the editor shows over a squiggle.
 diagnostic-heading-error = Error
 diagnostic-heading-warning = Advertencia
 diagnostic-heading-information = Información
 diagnostic-heading-hint = Sugerencia
 
-# «WCAG AA» es el nombre propio de la norma y no se traduce.
+# `WCAG AA` is the standard's own name and is not translated.
 accessibility-heading-level-1 = Incumplimiento de accesibilidad WCAG AA
 accessibility-heading-level-2 = Aviso de accesibilidad
 
