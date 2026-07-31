@@ -45,9 +45,10 @@ const I18nContext = createContext<{ translate: Translator; locale: string }>({
  * merged last, so a deployment can correct a shipped translation.
  *
  * Returns the host's map *by identity* until something has actually loaded.
- * Downstream compares catalogs by `localeResourceKey`, and `DocViewer` rebuilds
- * the core when that key changes — so handing back a fresh object each render,
- * or an empty one before the host's arrives, would rebuild the core for nothing.
+ * Catalogs are compared by which locales they hold rather than by their
+ * contents, and `DocViewer` rebuilds the core when one of the content's
+ * arrives — so handing back an empty map before the host's had arrived would
+ * build the core once without it and again with it, for nothing.
  *
  * Loaded catalogs accumulate rather than being replaced. A viewer whose locale
  * changes and changes back should not pay for the same catalog twice, and a
@@ -118,8 +119,8 @@ export function useChromeTranslator(
     uiLocale: string,
     localeResources?: Record<string, string> | null,
 ): Translator {
-    // Keyed by *which locales* arrived, not by their contents — the same
-    // comparison `DocViewer` uses to decide the core needs rebuilding.
+    // Keyed by *which locales* arrived, not by their contents, the way
+    // everything that compares catalogs does — see `localeResourceKey`.
     const resourceKey = localeResourceKey(localeResources);
 
     return useMemo(

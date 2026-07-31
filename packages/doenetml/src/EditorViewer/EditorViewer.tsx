@@ -134,7 +134,9 @@ type EditorViewerProps = {
     documentLocale?: string | null;
     /** BCP-47 tag for the chrome's language. Defaults to `documentLocale`. */
     uiLocale?: string | null;
-    /** FTL catalogs keyed by locale; English is bundled. */
+    /**
+     * FTL catalogs keyed by locale, overriding what ships. See `DoenetViewer`.
+     */
     localeResources?: Record<string, string> | null;
     styleOverrides?: ReaderStyleOverrides | null;
     showAnswerResponseButton?: boolean;

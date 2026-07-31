@@ -51,8 +51,10 @@ export function readDocumentLang(dast: DastRoot): string | undefined {
  *
  * The one thing this cannot see is DoenetML that is not in this source yet —
  * a `<document lang>` inside content pulled in by an external reference joins
- * the tree during `expandExternalReferences`, after this has run. That subtree
- * falls back to English until the core is rebuilt with its catalog on hand.
+ * the tree during `expandExternalReferences`, after this has run. The
+ * outermost one is still picked up, from the expanded tree, by
+ * {@link readDocumentLang} in `initializeCoreWorker`; a *nested* one is not,
+ * and nothing else asks for its catalog, so that subtree stays English.
  */
 export function readDeclaredLangs(dast: DastRoot): string[] {
     const langs: string[] = [];

@@ -196,9 +196,16 @@ export function DocViewer({
     /** BCP-47 tag for the chrome's language. Defaults to `documentLocale`. */
     uiLocale?: string | null;
     /**
-     * FTL catalogs keyed by locale. English is bundled and never needed here.
-     * A locale appearing or disappearing rebuilds the core, since the catalogs
-     * are handed to it at creation.
+     * FTL catalogs keyed by locale, for a host with translations of its own.
+     * Optional: this viewer loads a catalog for every language it resolves and
+     * merges what it loads *under* this map, so a catalog supplied here wins.
+     *
+     * A catalog for one of the *content's* languages arriving rebuilds the
+     * core, since the catalogs are handed to it at creation. One for the
+     * reader's chrome does not — the core never reads it, and rebuilding would
+     * discard whatever the reader had typed. Withdrawing a catalog rebuilds
+     * nothing either: the core goes on rendering what it was built with until
+     * something else rebuilds it.
      */
     localeResources?: Record<string, string> | null;
     /**
@@ -630,12 +637,12 @@ export function DocViewer({
     // `availableCatalogs` rather than the prop — including the core, which is
     // handed them as `LocaleData.resources`.
     //
-    // A content catalog that lands after the core has been created re-keys
-    // `resourceKey` below, and the rebuild check treats that the same as a
-    // changed `documentLocale`. Loading always starts in an effect, so that
-    // race is there for a language named in the props too — it is just usually
-    // won, since `doenetml.tsx` asks for those catalogs in the same commit
-    // that mounts this component while the core is still waiting on a worker.
+    // A content catalog that lands after the core has been created is an
+    // arrival the gate below rebuilds on, the same as a changed
+    // `documentLocale`. Loading always starts in an effect, so that race is
+    // there for a language named in the props too — it is just usually won,
+    // since `doenetml.tsx` asks for those catalogs in the same commit that
+    // mounts this component while the core is still waiting on a worker.
     const availableCatalogs = useLocaleCatalogs(
         [effectiveUiLocale, ...contentLocales],
         localeResources,
@@ -647,8 +654,9 @@ export function DocViewer({
     const translate = useChromeTranslator(effectiveUiLocale, availableCatalogs);
     // The same catalogs negotiated against the *content's* language, for a
     // control the core already writes part of — see `useContentT`. Built from
-    // `effectiveDocumentLocale`, the tag the core itself was handed, so the
-    // words this renders and the words the worker computed cannot disagree.
+    // `effectiveDocumentLocale`, which core initialization resolved by the same
+    // rule the worker applies to reach `document.locale`, so the words this
+    // renders and the words the worker computed cannot disagree.
     const translateContent = useChromeTranslator(
         effectiveDocumentLocale,
         availableCatalogs,

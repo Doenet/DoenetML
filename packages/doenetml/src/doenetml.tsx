@@ -185,8 +185,11 @@ export function DoenetViewer({
      */
     uiLocale?: string | null;
     /**
-     * FTL message catalogs keyed by locale, for locales other than English.
-     * English is bundled, so a host that only needs English passes nothing.
+     * FTL message catalogs keyed by locale, for a host with a translation of
+     * its own. Optional: the catalog for a language DoenetML ships is loaded
+     * on demand, so most hosts pass nothing. A catalog supplied here wins over
+     * both the bundled and the loaded one for the same locale, which is how a
+     * deployment corrects a translation.
      */
     localeResources?: Record<string, string> | null;
     /**
@@ -470,8 +473,11 @@ type DoenetEditorProps = {
      */
     uiLocale?: string | null;
     /**
-     * FTL message catalogs keyed by locale, for locales other than English.
-     * English is bundled, so a host that only needs English passes nothing.
+     * FTL message catalogs keyed by locale, for a host with a translation of
+     * its own. Optional: the catalog for a language DoenetML ships is loaded
+     * on demand, so most hosts pass nothing. A catalog supplied here wins over
+     * both the bundled and the loaded one for the same locale, which is how a
+     * deployment corrects a translation.
      */
     localeResources?: Record<string, string> | null;
     /**
