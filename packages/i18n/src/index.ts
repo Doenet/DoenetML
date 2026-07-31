@@ -46,6 +46,7 @@ export { bundledResources, BUNDLED_LOCALES } from "./bundled";
 export {
     loadLocaleResources,
     loadLocaleResourcesFor,
+    resourceKeyForLocales,
     fetchLocaleLoaders,
     setLocaleLoaders,
     type LocaleLoader,

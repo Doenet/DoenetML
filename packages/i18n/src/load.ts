@@ -372,3 +372,46 @@ export async function loadLocaleResourcesFor(
     );
     return Object.assign({}, ...loaded);
 }
+
+/**
+ * A stable identity for the catalogs a set of locales can actually reach.
+ *
+ * {@link localeResourceKey} over *every* catalog on hand answers "what has
+ * arrived", which is the wrong question for anything that only cares about
+ * some of them. The viewer holds catalogs for two independent languages — the
+ * reader's chrome and the document's content — in one map, and the core is
+ * rebuilt when the content ones change. Keyed off the whole map, a reader
+ * switching `uiLocale` would rebuild the core and take the answers they had
+ * typed with it, for a catalog the core never reads.
+ *
+ * Negotiated rather than filtered by tag equality, so the key moves when a
+ * catalog that would *serve* one of these locales arrives: asking for `es-MX`
+ * is answered by an `es` catalog, and that is a change the caller has to see.
+ *
+ * @param locales The tags whose catalogs matter to the caller.
+ * @param resources Every catalog on hand, as locale → FTL source.
+ */
+export function resourceKeyForLocales(
+    locales: readonly (string | null | undefined)[],
+    resources?: Record<string, string> | null,
+): string {
+    const available = Object.keys(resources ?? {});
+    if (available.length === 0) {
+        return "";
+    }
+    const reachable = new Set<string>();
+    for (const locale of locales) {
+        if (!locale) {
+            continue;
+        }
+        for (const tag of negotiateLocales([locale], available)) {
+            // `negotiateLocales` appends the default locale whether or not a
+            // catalog for it arrived; only what is actually on hand belongs in
+            // an identity for what is on hand.
+            if (available.includes(tag)) {
+                reachable.add(tag);
+            }
+        }
+    }
+    return [...reachable].sort().join(",");
+}

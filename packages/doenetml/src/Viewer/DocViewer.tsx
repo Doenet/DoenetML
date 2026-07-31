@@ -5,6 +5,7 @@ import React, {
     ReactNode,
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
 } from "react";
@@ -22,11 +23,21 @@ import { MdError } from "react-icons/md";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
-    localeResourceKey,
     resolveDocumentLocale,
     resolveUiLocale,
+    resourceKeyForLocales,
     type Translator,
 } from "@doenet/i18n";
+import { lezerToDast } from "@doenet/parser";
+import { readDeclaredLangs } from "../utils/documentLang";
+
+/**
+ * Shared empty result, so a source that declares no language hands back the
+ * same array every render. `contentLocales` spreads it and `useLocaleCatalogs`
+ * keys off the tags rather than the identity, but a stable one keeps the memo
+ * below from recomputing for nothing.
+ */
+const NO_DECLARED_LOCALES: string[] = [];
 import { hasNavigationModifier } from "../utils/sourceNavigation";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
@@ -564,20 +575,53 @@ export function DocViewer({
         uiLocale,
         effectiveDocumentLocale,
     );
-    // Catalogs for the two languages actually in play, which is knowable only
-    // here: an authored `<document lang>` is not in the props, so this is
-    // where a code-split catalog for it gets loaded. Everything below reads
+    // Every language the source declares, read straight out of the DoenetML.
+    // `effectiveDocumentLocale` only ever names the outermost document's, and
+    // it arrives from the worker after the core has been built; a *nested*
+    // `<document lang>` renders its own subtree and would otherwise never have
+    // a catalog asked for at all. Scanning the source is what gets both in
+    // flight before the core exists, rather than after it has already computed
+    // the subtree's prose in the wrong language.
+    const declaredLocales = useMemo(() => {
+        // Source with no `lang` written in it anywhere has none to find, and
+        // that is the overwhelmingly common case. Worth a scan of the string
+        // to skip a parse of it: the editor re-renders this component as its
+        // author types, and a document that declares no language should not
+        // pay for the feature on every keystroke. Matching "language" in prose
+        // costs only a parse that finds nothing.
+        if (!/\blang\s*=/i.test(doenetML)) {
+            return NO_DECLARED_LOCALES;
+        }
+        try {
+            return readDeclaredLangs(lezerToDast(doenetML));
+        } catch {
+            // Source that does not parse is about to raise errors saying so
+            // far better than a throw from a prefetch would. No languages
+            // found means English, which is where it was headed anyway.
+            return NO_DECLARED_LOCALES;
+        }
+    }, [doenetML]);
+    // The languages the *core* renders in. What it computes depends on these
+    // catalogs and no others, which is what makes them the right thing to gate
+    // a rebuild on.
+    const contentLocales = useMemo(
+        () => [effectiveDocumentLocale, ...declaredLocales],
+        [effectiveDocumentLocale, declaredLocales],
+    );
+    // Catalogs for every language in play, which is knowable only here: an
+    // authored `<document lang>` is not in the props, so this is where a
+    // code-split catalog for it gets loaded. Everything below reads
     // `availableCatalogs` rather than the prop — including the core, which is
     // handed them as `LocaleData.resources`.
     //
-    // A catalog that lands after the core has been created re-keys this map,
-    // and the core-rebuild check below treats that the same as a changed
-    // `documentLocale`. Loading always starts in an effect, so that race is
-    // there for a language named in the props too — it is just usually won,
-    // since `doenetml.tsx` asks for those catalogs in the same commit that
-    // mounts this component while the core is still waiting on a worker.
+    // A content catalog that lands after the core has been created re-keys
+    // `resourceKey` below, and the rebuild check treats that the same as a
+    // changed `documentLocale`. Loading always starts in an effect, so that
+    // race is there for a language named in the props too — it is just usually
+    // won, since `doenetml.tsx` asks for those catalogs in the same commit
+    // that mounts this component while the core is still waiting on a worker.
     const availableCatalogs = useLocaleCatalogs(
-        [effectiveUiLocale, effectiveDocumentLocale],
+        [effectiveUiLocale, ...contentLocales],
         localeResources,
     );
     // Bound to `translate` rather than a more descriptive name on purpose:
@@ -2127,10 +2171,18 @@ export function DocViewer({
     }
 
     // Compared by *which locales* arrived, not by their contents — see
-    // `localeResourceKey`. Keyed off the merged map rather than the prop, so a
+    // `localeResourceKey`. Keyed off the loaded map rather than the prop, so a
     // catalog that finished loading after the core was created rebuilds it
     // with that language on hand.
-    const resourceKey = localeResourceKey(availableCatalogs);
+    //
+    // Scoped to the content's languages, because those are the only catalogs
+    // the core reads. The chrome's live in the same map, and gating on all of
+    // them would rebuild the core whenever a reader switched `uiLocale` —
+    // discarding whatever they had typed for a catalog the core never opens.
+    const resourceKey = resourceKeyForLocales(
+        contentLocales,
+        availableCatalogs,
+    );
     if (lastLocaleResourceKey.current !== resourceKey) {
         lastLocaleResourceKey.current = resourceKey;
         changedState = true;
