@@ -129,7 +129,8 @@ describe("a language the bundle does not carry", () => {
             "have.text",
             "Zyxwv",
         );
-        // The outer document declared nothing and stays English.
+        // As above: the half this catalog does not translate falls back to
+        // English rather than rendering blank or as its key.
         cy.get("#pc_next").should("have.text", "Next");
     });
 

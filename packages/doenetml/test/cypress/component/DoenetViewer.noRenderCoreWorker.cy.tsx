@@ -15,6 +15,12 @@ import { doenetGlobalConfig } from "../../../src/global-config";
 // one still sitting in this window. Counted at `new Worker` rather than through
 // any DoenetML seam, because what leaks is a worker nothing in the component
 // refers to any more.
+//
+// Reusing the primed worker is only right if it is still the worker the viewer
+// goes on to render with, so the way out of this window is pinned too: `render`
+// turning true, and a source edited while it was still false.
+
+const RENDER_TIMEOUT = 15_000;
 
 /** A viewer that is not rendering, beside a button that re-renders it. */
 function RerenderHarness() {
@@ -32,6 +38,47 @@ function RerenderHarness() {
                 doenetML="<p>waiting to be rendered</p>"
                 render={false}
                 addVirtualKeyboard={false}
+            />
+        </div>
+    );
+}
+
+/**
+ * A viewer that starts out not rendering, whose source can be edited and whose
+ * `render` can be turned on — the two ways out of the priming window.
+ *
+ * It also counts the document structures reported, which is what priming the
+ * worker produces. Waiting on that count is how the tests below act on a
+ * settled worker: `initializeCoreWorker` sets the source and then initializes
+ * from it in separate round trips, so a second one started while the first is
+ * still in flight can find the source gone and fail the handshake, which
+ * discards the worker and boots a replacement. That is a pre-existing race
+ * these tests are not about, and it has nothing to do with which worker the
+ * priming window hands on.
+ */
+function RenderLaterHarness() {
+    const [rendering, setRendering] = React.useState(false);
+    const [doenetML, setDoenetML] = React.useState("<p>first source</p>");
+    const [structures, setStructures] = React.useState(0);
+    return (
+        <div>
+            <button
+                data-test="edit"
+                onClick={() => setDoenetML("<p>second source</p>")}
+            >
+                edit
+            </button>
+            <button data-test="render" onClick={() => setRendering(true)}>
+                render
+            </button>
+            <span data-test="structures">{structures}</span>
+            <DoenetViewer
+                doenetML={doenetML}
+                render={rendering}
+                addVirtualKeyboard={false}
+                documentStructureCallback={() =>
+                    setStructures((count) => count + 1)
+                }
             />
         </div>
     );
@@ -81,6 +128,57 @@ describe("a viewer that is not rendering yet", () => {
             expect(
                 coreWorkersCreated,
                 "core workers after three re-renders",
+            ).to.equal(1);
+        });
+    });
+
+    it("renders with the worker it primed once `render` turns true", () => {
+        cy.mount(<RenderLaterHarness />);
+        cy.get('[data-test="structures"]', { timeout: RENDER_TIMEOUT }).should(
+            "have.text",
+            "1",
+        );
+
+        cy.get('[data-test="render"]').click();
+
+        cy.contains("first source", { timeout: RENDER_TIMEOUT }).should(
+            "be.visible",
+        );
+        cy.then(() => {
+            // The primed worker has no core yet, so starting one reuses it
+            // rather than booting a replacement.
+            expect(coreWorkersCreated, "core workers after rendering").to.equal(
+                1,
+            );
+        });
+    });
+
+    it("renders a source edited while it was not rendering", () => {
+        cy.mount(<RenderLaterHarness />);
+        cy.get('[data-test="structures"]', { timeout: RENDER_TIMEOUT }).should(
+            "have.text",
+            "1",
+        );
+
+        // Editing re-initializes the primed worker in place, reporting the new
+        // source's structure. The source it was primed with must not be the one
+        // that ends up on screen.
+        cy.get('[data-test="edit"]').click();
+        cy.get('[data-test="structures"]', { timeout: RENDER_TIMEOUT }).should(
+            "have.text",
+            "2",
+        );
+
+        cy.get('[data-test="render"]').click();
+
+        cy.contains("second source", { timeout: RENDER_TIMEOUT }).should(
+            "be.visible",
+        );
+        cy.contains("first source").should("not.exist");
+        cy.then(() => {
+            expect(
+                coreWorkersCreated,
+                "core workers after an edit and a render",
             ).to.equal(1);
         });
     });
