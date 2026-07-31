@@ -66,23 +66,39 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every one of the nine translations — `de`,
-`es`, `fr`, `hnj`, `it`, `nl`, `ru`, `so`, `zh` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the top, and
-which is what #1521's translation platform is for. None has been read by a
-speaker. Correcting one needs no permission and no coordination: a wrong string
-is just wrong, and the English is one key away.
+English is the source of truth. Every one of the fourteen translations — `de`,
+`es`, `fr`, `hnj`, `id`, `it`, `ja`, `ko`, `nl`, `ru`, `so`, `vi`, `zh-Hans`,
+`zh-Hant` — is an **unreviewed machine-generated seed**, which each file's own
+header says at the top, and which is what #1521's translation platform is for.
+None has been read by a speaker. Correcting one needs no permission and no
+coordination: a wrong string is just wrong, and the English is one key away.
 
-Two of them are deliberately partial — Somali and Hmong Njua leave
-`element-name` and `element-anion-name` out rather than invent a chemical
-nomenclature, so those fall back to English, which is what `lint:i18n` reports
-as coverage.
+Three of them are deliberately partial, all in the same place: Somali, Hmong
+Njua and Vietnamese leave `element-name` and `element-anion-name` out, so those
+130 keys fall back to English and `lint:i18n` reports the gap. The first two
+have no settled chemical nomenclature to seed from. Vietnamese has two, and the
+current one is English — school chemistry has moved from the transliterated
+names to the IUPAC forms — so the fallback is already what the curriculum uses.
+
+A directory is named for a **script** rather than a language only where two
+scripts of one language are translated separately, which today is Chinese.
+Name that pair `zh-Hans` and `zh-Hant`, never `zh`: filtering negotiation tries
+the region-stripped tag before it consults likely-subtags, so a directory named
+`zh` answers `zh-TW`, `zh-HK` and `zh-MO` ahead of `zh-Hant` and serves a
+Traditional reader Simplified text. Named by script, every tag reaches the
+catalog it should, and bare `zh` reaches `zh-Hans` because that is what CLDR
+fills it in as. `negotiate.test.ts` holds this.
+
+The two are complete catalogs rather than one layered over the other. Neither
+script is in the other's fallback chain, so a key missing from `zh-Hant`
+renders in English — the right outcome, since the wrong script is not a partial
+translation but a different one.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
 They are addressed to whoever maintains the file, and no one maintaining it
-reads all nine languages — a note that cannot be read cannot be checked. Only
-the text to the right of `=` is translated.
+reads all fourteen languages — a note that cannot be read cannot be checked.
+Only the text to the right of `=` is translated.
 
 The split is by **load context**, not topic: the worker never draws chrome and
 never renders a diagnostic, so it ships only `content` (`WORKER_NAMESPACES`).

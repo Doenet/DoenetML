@@ -1,4 +1,5 @@
-# Chinese content catalog: the prose the core computes into the document.
+# Simplified Chinese content catalog: the prose the core computes into the
+# document.
 # Selected by `documentLocale` — the language the activity was written in.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).

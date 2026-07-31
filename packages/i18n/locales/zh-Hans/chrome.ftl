@@ -1,15 +1,24 @@
-# Chinese viewer chrome. Translated from `locales/en/chrome.ftl`, which is the
-# source of truth: `lint:i18n` rejects a key that does not exist there, and
-# reports a key that exists there but not here as missing coverage.
+# Simplified Chinese viewer chrome. Translated from `locales/en/chrome.ftl`,
+# which is the source of truth: `lint:i18n` rejects a key that does not exist
+# there, and reports a key that exists there but not here as missing coverage.
 #
 # Message ids are never translated — only the text to the right of `=`.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Written in Simplified Chinese under the generic `zh` tag, which is what a
-# reader asking for `zh-CN` or `zh-Hans` negotiates to. A Traditional catalog
-# would be a `zh-Hant` directory of its own; adding one would not disturb this.
+# Named for the script, `zh-Hans`, rather than the generic `zh`, because a
+# `zh-Hant` catalog sits beside it. That is not a cosmetic choice: filtering
+# negotiation tries the region-stripped tag before it consults likely-subtags,
+# so a directory named `zh` answers `zh-TW`, `zh-HK` and `zh-MO` ahead of
+# `zh-Hant` and hands a Traditional reader Simplified text. Named by script,
+# each tag reaches the catalog it should — `zh-CN` and `zh-SG` here, the
+# Traditional regions there, and bare `zh` here, `zh` being `zh-Hans-CN` once
+# CLDR fills in what it left out.
+#
+# The two catalogs are complete rather than layered. `zh-Hant` negotiates to
+# `["zh-Hant", "en"]` — `zh-Hans` is not in that chain — so a key missing here
+# falls back to English, never to the other script.
 #
 # Chinese has a single plural category, so a countable message needs no
 # selection — `[other]` covers every count. `[0]` is still spelled out where

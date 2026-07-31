@@ -33,6 +33,62 @@ describe("negotiateLocales", () => {
             negotiateLocales(["ja"], ["es", "fr"], { defaultLocale: "fr" }),
         ).toEqual(["fr"]);
     });
+
+    /**
+     * Chinese is the one language this repository translates twice, and the
+     * two catalogs are told apart by script rather than by region. Which
+     * catalog a reader reaches is decided here, so it is asserted here.
+     */
+    describe("Chinese, whose catalogs are named by script", () => {
+        const available = ["en", "zh-Hans", "zh-Hant"];
+
+        it.each([
+            ["zh-CN", "zh-Hans"],
+            ["zh-SG", "zh-Hans"],
+            ["zh-TW", "zh-Hant"],
+            ["zh-HK", "zh-Hant"],
+            ["zh-MO", "zh-Hant"],
+        ])("serves %s from %s", (requested, expected) => {
+            expect(negotiateLocales([requested], available)[0]).toBe(expected);
+        });
+
+        it("reads a bare zh as Simplified, which is what CLDR fills in", () => {
+            expect(negotiateLocales(["zh"], available)).toEqual([
+                "zh-Hans",
+                "en",
+            ]);
+        });
+
+        /**
+         * The reason the Simplified catalog is not simply named `zh`. Filtering
+         * negotiation tries the region-stripped tag before it consults
+         * likely-subtags, so a `zh` directory answers every Traditional region
+         * tag ahead of `zh-Hant` — a Taiwanese reader would be served
+         * Simplified. Renaming the directory back would turn this red.
+         */
+        it("does not let a script-less catalog shadow the other script", () => {
+            expect(
+                negotiateLocales(["zh-TW"], ["en", "zh", "zh-Hant"]),
+            ).toEqual(["zh", "zh-Hant", "en"]);
+            expect(negotiateLocales(["zh-TW"], available)).toEqual([
+                "zh-Hant",
+                "en",
+            ]);
+        });
+
+        /**
+         * Neither catalog falls back to the other: a key missing from one
+         * renders in English rather than in the wrong script.
+         */
+        it("never chains one script behind the other", () => {
+            expect(negotiateLocales(["zh-Hant"], available)).not.toContain(
+                "zh-Hans",
+            );
+            expect(negotiateLocales(["zh-Hans"], available)).not.toContain(
+                "zh-Hant",
+            );
+        });
+    });
 });
 
 describe("resolveDocumentLocale", () => {

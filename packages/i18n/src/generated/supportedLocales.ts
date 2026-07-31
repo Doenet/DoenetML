@@ -6,7 +6,21 @@
 
 /** A locale this repository ships a catalog for. */
 export type SupportedLocale =
-    "en" | "de" | "es" | "fr" | "hnj" | "it" | "nl" | "ru" | "so" | "zh";
+    | "en"
+    | "de"
+    | "es"
+    | "fr"
+    | "hnj"
+    | "id"
+    | "it"
+    | "ja"
+    | "ko"
+    | "nl"
+    | "ru"
+    | "so"
+    | "vi"
+    | "zh-Hans"
+    | "zh-Hant";
 
 /** A supported locale and the names to show an author. */
 export type SupportedLocaleInfo = {
@@ -70,10 +84,28 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Hmong Njua",
     },
     {
+        locale: "id",
+        englishName: "Indonesian",
+        endonym: "Indonesia",
+        label: "Indonesian (Indonesia)",
+    },
+    {
         locale: "it",
         englishName: "Italian",
         endonym: "italiano",
         label: "Italian (italiano)",
+    },
+    {
+        locale: "ja",
+        englishName: "Japanese",
+        endonym: "日本語",
+        label: "Japanese (日本語)",
+    },
+    {
+        locale: "ko",
+        englishName: "Korean",
+        endonym: "한국어",
+        label: "Korean (한국어)",
     },
     {
         locale: "nl",
@@ -94,9 +126,21 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Somali (Soomaali)",
     },
     {
-        locale: "zh",
-        englishName: "Chinese",
-        endonym: "中文",
-        label: "Chinese (中文)",
+        locale: "vi",
+        englishName: "Vietnamese",
+        endonym: "Tiếng Việt",
+        label: "Vietnamese (Tiếng Việt)",
+    },
+    {
+        locale: "zh-Hans",
+        englishName: "Simplified Chinese",
+        endonym: "简体中文",
+        label: "Simplified Chinese (简体中文)",
+    },
+    {
+        locale: "zh-Hant",
+        englishName: "Traditional Chinese",
+        endonym: "繁體中文",
+        label: "Traditional Chinese (繁體中文)",
     },
 ];

@@ -64980,8 +64980,20 @@
                             "description": "Hmong Njua"
                         },
                         {
+                            "value": "id",
+                            "description": "Indonesian (Indonesia)"
+                        },
+                        {
                             "value": "it",
                             "description": "Italian (italiano)"
+                        },
+                        {
+                            "value": "ja",
+                            "description": "Japanese (日本語)"
+                        },
+                        {
+                            "value": "ko",
+                            "description": "Korean (한국어)"
                         },
                         {
                             "value": "nl",
@@ -64996,8 +65008,16 @@
                             "description": "Somali (Soomaali)"
                         },
                         {
-                            "value": "zh",
-                            "description": "Chinese (中文)"
+                            "value": "vi",
+                            "description": "Vietnamese (Tiếng Việt)"
+                        },
+                        {
+                            "value": "zh-Hans",
+                            "description": "Simplified Chinese (简体中文)"
+                        },
+                        {
+                            "value": "zh-Hant",
+                            "description": "Traditional Chinese (繁體中文)"
                         }
                     ],
                     "suggestedValuesOnly": true,

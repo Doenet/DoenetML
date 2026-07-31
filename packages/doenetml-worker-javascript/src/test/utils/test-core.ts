@@ -21,6 +21,7 @@ import {
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
+import { negotiateLocales } from "@doenet/i18n";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 import { defaultFlags } from "../../../../doenetml/src/flags";
 import type { DoenetMLFlags } from "../../../../doenetml/src/flags";
@@ -242,15 +243,22 @@ export async function createTestCore({
  * because the one map it builds also feeds its own chrome; the three the core
  * never opens make no difference to what it computes.
  *
- * Negotiated by primary subtag, as `loadLocaleResources` negotiates: a document
- * in `es-MX` is served by the `es` catalog. A tag nothing answers gets nothing
- * and falls back to English, which is what an untranslated locale does anyway.
+ * Negotiated through `negotiateLocales`, which is what `loadLocaleResources`
+ * uses, rather than by trimming to the primary subtag: a document in `es-MX` is
+ * served by the `es` catalog either way, but `zh-TW` is served by `zh-Hant`
+ * only if the negotiation consults likely-subtags, and trimming to `zh` finds
+ * no directory of that name at all. A tag nothing answers gets nothing and
+ * falls back to English, which is what an untranslated locale does anyway.
  */
 function catalogsFor(
     locale: string | undefined,
     doenetML: string,
 ): Record<string, string> {
     const localesDir = path.resolve(__dirname, "../../../../i18n/locales");
+    const available = fs
+        .readdirSync(localesDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
     const resources: Record<string, string> = {};
     // The host's locale and every language the source declares — the same set
     // the viewer loads, through the same helper, since a `<document lang>`
@@ -261,7 +269,7 @@ function catalogsFor(
         if (tag === undefined || tag === "en") {
             continue;
         }
-        for (const candidate of [tag, tag.split("-")[0]]) {
+        for (const candidate of negotiateLocales([tag], available)) {
             if (candidate === "en" || candidate in resources) {
                 break;
             }
