@@ -2,10 +2,20 @@ import { describe, expect, it } from "vitest";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { resolveDocumentLocale } from "@doenet/i18n";
 
-import { readDocumentLang } from "./documentLang";
+import { readDeclaredLangs, readDocumentLang } from "./documentLang";
 
 function langOf(doenetML: string) {
     return readDocumentLang(normalizeDocumentDast(lezerToDast(doenetML), true));
+}
+
+/**
+ * The raw parse, not the normalized one `langOf` uses: `DocViewer` runs
+ * `readDeclaredLangs` over `lezerToDast` alone, because it is prefetching
+ * catalogs on every render the source changes and normalization buys it
+ * nothing — no plugin in that pipeline invents or moves a `lang`.
+ */
+function declared(doenetML: string) {
+    return readDeclaredLangs(lezerToDast(doenetML));
 }
 
 /**
@@ -91,6 +101,82 @@ describe("effective document locale", () => {
         ).eq("de");
         expect(effectiveLocale(`<document lang=" "><p>hi</p></document>`)).eq(
             "en",
+        );
+    });
+});
+
+describe("readDeclaredLangs", () => {
+    it("finds the outermost document's language", () => {
+        expect(declared(`<document lang="es"><p>hola</p></document>`)).toEqual([
+            "es",
+        ]);
+    });
+
+    // The reason this exists: the core settles a nested language while it
+    // computes, by which time it has already needed the catalog.
+    it("finds a nested document's language", () => {
+        expect(
+            declared(
+                `<document lang="en"><document lang="es"><p>hola</p></document></document>`,
+            ),
+        ).toEqual(["en", "es"]);
+    });
+
+    it("finds a language declared only by a nested document", () => {
+        expect(
+            declared(
+                `<document><document lang="de"><p>hallo</p></document></document>`,
+            ),
+        ).toEqual(["de"]);
+    });
+
+    it("keeps document order and reports each language once", () => {
+        expect(
+            declared(
+                `<document lang="de"><document lang="es"/><document lang="de"/></document>`,
+            ),
+        ).toEqual(["de", "es"]);
+    });
+
+    // Matched the same way `readDocumentLang` matches it, so a nested
+    // document is not held to a stricter rule than the outermost one.
+    it("matches the attribute name case-insensitively", () => {
+        expect(
+            declared(
+                `<document><document Lang="es"><p/></document></document>`,
+            ),
+        ).toEqual(["es"]);
+    });
+
+    it("reports nothing when no document declares a language", () => {
+        expect(declared(`<p>hi</p>`)).toEqual([]);
+    });
+
+    it("ignores lang on anything that is not a document", () => {
+        expect(declared(`<p lang="es">hola</p>`)).toEqual([]);
+    });
+
+    it("treats a blank lang as unset", () => {
+        expect(declared(`<document lang="   "><p/></document>`)).toEqual([]);
+    });
+});
+
+// `lang` is a primitive string attribute: the core builds it from exactly one
+// string child and raises "Invalid reference in a primitive attribute" for
+// anything else. Reading it any more liberally here would label a document
+// with a language its content is not rendered in. Both readers share
+// `readLang`, so both are held to the rule.
+describe("readLang matches what the core accepts", () => {
+    it("takes no language from an attribute the core would reject", () => {
+        // A reference, and text split by one: neither is one string child.
+        expect(langOf(`<document lang="$chosen"><p/></document>`)).toBe(
+            undefined,
+        );
+        expect(langOf(`<document lang="e$chosen"><p/></document>`)).toBe(
+            undefined,
+        );
+        expect(declared(`<document lang="e$chosen"><p/></document>`)).toEqual(
+            [],
         );
     });
 });

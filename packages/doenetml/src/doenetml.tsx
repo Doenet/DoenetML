@@ -39,7 +39,11 @@ import {
 import { useResolvedTheme } from "./utils/theme";
 import type { ThemeSetting } from "./utils/theme";
 export type { ThemeSetting, ResolvedTheme } from "./utils/theme";
-import { I18nProvider, useHostChromeTranslator } from "./utils/i18n";
+import {
+    I18nProvider,
+    useHostChromeTranslator,
+    useLocaleCatalogs,
+} from "./utils/i18n";
 import { type Translator } from "@doenet/i18n";
 import { defaultFlags } from "./flags";
 import type { DoenetMLFlags } from "./flags";
@@ -181,8 +185,11 @@ export function DoenetViewer({
      */
     uiLocale?: string | null;
     /**
-     * FTL message catalogs keyed by locale, for locales other than English.
-     * English is bundled, so a host that only needs English passes nothing.
+     * FTL message catalogs keyed by locale, for a host with a translation of
+     * its own. Optional: the catalog for a language DoenetML ships is loaded
+     * on demand, so most hosts pass nothing. A catalog supplied here wins over
+     * both the bundled and the loaded one for the same locale, which is how a
+     * deployment corrects a translation.
      */
     localeResources?: Record<string, string> | null;
     /**
@@ -249,11 +256,18 @@ export function DoenetViewer({
     const variantIndex = useRef(1);
 
     const resolvedTheme = useResolvedTheme(darkMode);
+    // Catalogs for the languages the props name, code-split in unless the host
+    // supplied them. `DocViewer` runs the same hook again over the languages
+    // it resolves, which is where an authored `<document lang>` is picked up.
+    const availableCatalogs = useLocaleCatalogs(
+        [uiLocale, documentLocale],
+        localeResources,
+    );
     // Chrome outside the document — the virtual keyboard, the variant
     // selector — has only the props to go on. `DocViewer` mounts a nested
     // provider that also accounts for an authored `<document lang>`.
     const { translate: translateChrome, locale: hostUiLocale } =
-        useHostChromeTranslator(uiLocale, documentLocale, localeResources);
+        useHostChromeTranslator(uiLocale, documentLocale, availableCatalogs);
 
     // Start off hidden and then unhide once the viewer is visible.
     // This is needed to delay the initialization of JSXgraph
@@ -373,7 +387,7 @@ export function DoenetViewer({
             darkMode={resolvedTheme}
             documentLocale={documentLocale}
             uiLocale={uiLocale}
-            localeResources={localeResources}
+            localeResources={availableCatalogs}
             styleOverrides={styleOverrides}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}
@@ -459,8 +473,11 @@ type DoenetEditorProps = {
      */
     uiLocale?: string | null;
     /**
-     * FTL message catalogs keyed by locale, for locales other than English.
-     * English is bundled, so a host that only needs English passes nothing.
+     * FTL message catalogs keyed by locale, for a host with a translation of
+     * its own. Optional: the catalog for a language DoenetML ships is loaded
+     * on demand, so most hosts pass nothing. A catalog supplied here wins over
+     * both the bundled and the loaded one for the same locale, which is how a
+     * deployment corrects a translation.
      */
     localeResources?: Record<string, string> | null;
     /**
@@ -572,8 +589,12 @@ export const DoenetEditor = React.forwardRef<
     const resolvedTheme = useResolvedTheme(darkMode);
     // As in `DoenetViewer`: props only here, authored `<document lang>` in the
     // nested provider `DocViewer` mounts.
+    const availableCatalogs = useLocaleCatalogs(
+        [uiLocale, documentLocale],
+        localeResources,
+    );
     const { translate: translateChrome, locale: hostUiLocale } =
-        useHostChromeTranslator(uiLocale, documentLocale, localeResources);
+        useHostChromeTranslator(uiLocale, documentLocale, availableCatalogs);
 
     const normalizedShowDiagnostics =
         showDiagnostics ?? showErrorsWarnings ?? true;
@@ -623,7 +644,7 @@ export const DoenetEditor = React.forwardRef<
             darkMode={resolvedTheme}
             documentLocale={documentLocale}
             uiLocale={uiLocale}
-            localeResources={localeResources}
+            localeResources={availableCatalogs}
             styleOverrides={styleOverrides}
             showAnswerResponseButton={showAnswerResponseButton}
             answerResponseCounts={answerResponseCounts}

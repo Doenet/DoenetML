@@ -6,8 +6,10 @@
  *  2. no key is defined twice within a locale (namespaces share one bundle);
  *  3. no translated locale defines a key English doesn't have (a typo'd key in
  *     a translation is invisible at runtime — it just never resolves);
- *  4. `src/generated/messageKeys.ts` matches the English catalogs, and
- *     `src/generated/supportedLocales.ts` matches the `locales/` directory;
+ *  4. `src/generated/messageKeys.ts` matches the English catalogs,
+ *     `src/generated/supportedLocales.ts` matches the `locales/` directory,
+ *     and the lazy-catalog glob in `src/load.ts` excludes exactly the locales
+ *     that are inlined;
  *  5. every key referenced from source exists in English;
  *  6. every English key is referenced from source (no orphans);
  *  7. diagnostic codes are well-formed, resolvable, and append-only.
@@ -18,6 +20,7 @@
 import fs from "node:fs";
 
 import { CATALOG_NAMESPACES } from "../src/namespaces";
+import { BUNDLED_LOCALES } from "../src/bundled";
 import { DEFAULT_LOCALE } from "../src/catalogs";
 import {
     DIAGNOSTIC_CODES,
@@ -35,6 +38,7 @@ import {
     collectDiagnosticUsage,
     remainingLiteralDiagnostics,
     collectLocaleKeys,
+    lazyGlobExclusions,
     listLocales,
     mergeDiagnosticCodesLock,
     readCatalog,
@@ -130,6 +134,20 @@ const actualLocales = fs.existsSync(SUPPORTED_LOCALES_FILE)
 if (actualLocales !== expectedLocales) {
     problems.push(
         "src/generated/supportedLocales.ts is out of date — run `npm run codegen -w @doenet/i18n`",
+    );
+}
+
+// 4c: the lazy-catalog glob excludes exactly the locales that are inlined.
+//
+// Neither way round is harmless. A bundled locale left in the glob is imported
+// both statically and dynamically, so it never gets its own chunk and Rollup
+// warns on every build; an unbundled one excluded from it can never be loaded
+// at all, and would fall back to English with nothing to say why.
+const excludedFromGlob = lazyGlobExclusions();
+const inlinedLocales = [...BUNDLED_LOCALES].sort();
+if (excludedFromGlob.join(",") !== inlinedLocales.join(",")) {
+    problems.push(
+        `src/load.ts: the lazy-catalog glob excludes [${excludedFromGlob.join(", ")}] but the inlined locales are [${inlinedLocales.join(", ")}] — the two lists have to match`,
     );
 }
 

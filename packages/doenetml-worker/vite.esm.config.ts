@@ -10,6 +10,12 @@ import { suppressLogPlugin } from "../../scripts/vite-plugins";
 export default defineConfig({
     plugins: [suppressLogPlugin()],
     base: "./",
+    define: {
+        // As in the IIFE build: `inlineDynamicImports` below would fold every
+        // message catalog into this file, and the worker is handed the one
+        // catalog it needs as `LocaleData.resources` anyway.
+        __DOENET_CODE_SPLIT_CATALOGS__: "false",
+    },
     build: {
         minify: true,
         sourcemap: true,

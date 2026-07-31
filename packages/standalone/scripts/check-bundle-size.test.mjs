@@ -4,9 +4,12 @@ import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import {
     WASM_CORE_SCRIPT,
+    catalogsInScript,
+    collectCatalogProbes,
     countBigBlobs,
     findProblems,
     loadBudgets,
+    servedCatalogProblems,
 } from "./check-bundle-size.mjs";
 
 const STANDALONE = "dist/doenet-standalone.js";
@@ -17,9 +20,17 @@ const BUDGETS = [
     [WASM_CORE_SCRIPT, { maxBytes: 1000 }],
 ];
 
-/** One emitted script. `blobs` is the count of inlined wasm copies it holds. */
-function script(size, blobs = 0) {
-    return { size, wasmUris: blobs, bigBlobs: blobs };
+/**
+ * One emitted script. `blobs` is the count of inlined wasm copies it holds,
+ * `catalogs` the locales whose served catalog turned up inside it.
+ */
+function script(size, blobs = 0, catalogs = []) {
+    return {
+        size,
+        wasmUris: blobs,
+        bigBlobs: blobs,
+        inlinedCatalogs: catalogs,
+    };
 }
 
 /** A healthy build: the core inlined once, in the worker, both within budget. */
@@ -147,9 +158,23 @@ describe("findProblems", () => {
     // only way to tell the `wasmUris || bigBlobs` check from an `&&`.
     it("rejects a large inlined blob that is not wasm", () => {
         const scripts = healthyBuild();
-        scripts.set(STANDALONE, { size: 500, wasmUris: 0, bigBlobs: 1 });
+        scripts.set(STANDALONE, {
+            ...script(500),
+            wasmUris: 0,
+            bigBlobs: 1,
+        });
         expect(problemsFor(scripts)).toEqual([
             expect.stringContaining("should carry no inlined binary"),
+        ]);
+    });
+
+    it("rejects a script carrying a catalog the bundle is meant to serve", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, script(500, 0, ["fr", "de"]));
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining(
+                "carries the message catalogs for [fr, de]",
+            ),
         ]);
     });
 
@@ -216,5 +241,183 @@ describe("the committed bundle-budgets.json", () => {
         expect(budgets.map(([relative]) => relative)).toContain(
             WASM_CORE_SCRIPT,
         );
+    });
+});
+
+describe("collectCatalogProbes", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "catalog-probes-"));
+    afterAll(() => fs.rmSync(tmpDir, { recursive: true, force: true }));
+
+    /**
+     * Lay out a throwaway `locales/` beside a `load.ts` whose glob excludes
+     * `inlined`, and collect the probes for it.
+     */
+    function probesFor(catalogs, inlined, name) {
+        const root = path.join(tmpDir, name);
+        for (const [locale, namespaces] of Object.entries(catalogs)) {
+            const dir = path.join(root, "locales", locale);
+            fs.mkdirSync(dir, { recursive: true });
+            for (const [namespace, source] of Object.entries(namespaces)) {
+                fs.writeFileSync(path.join(dir, `${namespace}.ftl`), source);
+            }
+        }
+        const loadFile = path.join(root, "load.ts");
+        fs.writeFileSync(
+            loadFile,
+            inlined
+                .map((locale) => `"!../locales/${locale}/*.ftl",`)
+                .join("\n"),
+        );
+        return collectCatalogProbes(path.join(root, "locales"), loadFile);
+    }
+
+    const EN = { chrome: "greeting = Hello there, welcome along\n" };
+
+    it("fingerprints a locale that is served rather than inlined", () => {
+        expect(
+            probesFor(
+                { en: EN, fr: { chrome: "greeting = Bonjour et bienvenue\n" } },
+                ["en"],
+                "served",
+            ),
+        ).toEqual([["fr", "Bonjour et bienvenue"]]);
+    });
+
+    it("ignores a locale that is inlined, whose strings belong in the bundle", () => {
+        expect(
+            probesFor(
+                { en: EN, es: { chrome: "greeting = Hola y bienvenido\n" } },
+                ["en", "es"],
+                "inlined",
+            ),
+        ).toEqual([]);
+    });
+
+    it("skips a translation that reuses the English, which cannot be told apart", () => {
+        expect(probesFor({ en: EN, fr: EN }, ["en"], "identical")).toEqual([]);
+    });
+
+    it("skips a translation that reuses any other inlined locale, not just English", () => {
+        // Spanish is inlined too, and neighbouring languages share plenty of
+        // wording. A probe matching one of its strings would report a leak over
+        // a catalog that is legitimately in the bundle.
+        const shared = { chrome: "greeting = Hola y bienvenido a todos\n" };
+        expect(
+            probesFor(
+                { en: EN, es: shared, fr: shared },
+                ["en", "es"],
+                "inlined-sibling",
+            ),
+        ).toEqual([]);
+    });
+
+    it("reads a catalog checked out with CRLF line endings", () => {
+        // A carriage return on the end of the probe matches nothing in an
+        // emitted script, so the leak check would pass whatever it was shown.
+        expect(
+            probesFor(
+                {
+                    en: { chrome: "greeting = Hello there, welcome along\r\n" },
+                    fr: { chrome: "greeting = Bonjour et bienvenue\r\n" },
+                },
+                ["en"],
+                "crlf",
+            ),
+        ).toEqual([["fr", "Bonjour et bienvenue"]]);
+    });
+
+    it("skips a string too short to be a reliable fingerprint", () => {
+        expect(
+            probesFor(
+                {
+                    en: { chrome: "ok = Okay\n" },
+                    fr: { chrome: "ok = Bien\n" },
+                },
+                ["en"],
+                "short",
+            ),
+        ).toEqual([]);
+    });
+
+    it("falls back to another namespace when the first has nothing usable", () => {
+        expect(
+            probesFor(
+                {
+                    en: { chrome: "ok = Okay\n", ...EN },
+                    fr: {
+                        chrome: "ok = Bien\n",
+                        content: "note = Une note assez longue\n",
+                    },
+                },
+                ["en"],
+                "namespace-fallback",
+            ),
+        ).toEqual([["fr", "Une note assez longue"]]);
+    });
+});
+
+describe("catalogsInScript", () => {
+    const PROBES = [["fr", "Une note assez longue"]];
+
+    it("finds a catalog inlined literally", () => {
+        expect(
+            catalogsInScript(`const a="Une note assez longue";`, PROBES),
+        ).toEqual(["fr"]);
+    });
+
+    it("finds one the minifier escaped out of ASCII", () => {
+        // esbuild's default charset is ASCII, so an accent in an inlined
+        // catalog is written `\xNN` and the probe never matches the raw text.
+        // Every form it can choose has to be understood, or the check passes
+        // over the very languages it exists to catch.
+        for (const escaped of [
+            `const a="Une note assez longu\\x65";`,
+            `const a="Une note assez longu\\u0065";`,
+            `const a="Une note assez longu\\u{65}";`,
+        ]) {
+            expect(catalogsInScript(escaped, PROBES)).toEqual(["fr"]);
+        }
+    });
+
+    it("reports nothing for a script that carries no catalog", () => {
+        expect(catalogsInScript(`const a="Hello there";`, PROBES)).toEqual([]);
+    });
+
+    it("reports nothing when there is no probe to look for", () => {
+        expect(
+            catalogsInScript(`const a="Une note assez longue";`, []),
+        ).toEqual([]);
+    });
+});
+
+describe("servedCatalogProblems", () => {
+    const SOURCE = ["en", "es", "fr", "de"];
+
+    it("accepts a build that copied every locale directory", () => {
+        expect(servedCatalogProblems(SOURCE, ["en", "es", "fr", "de"])).toEqual(
+            [],
+        );
+    });
+
+    it("reports each locale that was not copied", () => {
+        const problems = servedCatalogProblems(SOURCE, ["en", "es", "fr"]);
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("dist/locales/de/");
+    });
+
+    it("checks the copy even while every locale is still inlined", () => {
+        // The state this runs in today. Judged against the locale directories
+        // that exist rather than the ones served, so a copy step that silently
+        // stopped running is caught now rather than the first time a language
+        // is not inlined.
+        const problems = servedCatalogProblems(["en", "es"], ["en"]);
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("dist/locales/es/");
+    });
+
+    it("reports the whole directory going missing", () => {
+        const problems = servedCatalogProblems(["en", "es"], null);
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("dist/locales/ was not emitted");
     });
 });

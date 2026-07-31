@@ -11,10 +11,11 @@ export const DEFAULT_LOCALE = "en";
 /**
  * The English catalogs, inlined at build time.
  *
- * Every other locale is a code-split module the host loads on the main thread
- * and hands to {@link createTranslator}; English is bundled so the fallback
- * chain terminates in something that is always present, in every bundling
- * variant, with no network access.
+ * English is bundled so the fallback chain terminates in something that is
+ * always present, in every bundling variant, with no network access. Locales
+ * beyond `BUNDLED_LOCALES` are loaded on demand by `loadLocaleResources` —
+ * code-split in a build that can split, fetched in one that cannot — always on
+ * the main thread, and reach the worker as `LocaleData.resources`.
  */
 export const EN_CATALOGS: Required<Catalogs> = {
     chrome,

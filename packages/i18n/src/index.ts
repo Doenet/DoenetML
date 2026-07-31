@@ -38,7 +38,21 @@ export {
 
 export { createChromeTranslator, EN_CHROME_TRANSLATOR } from "./chrome";
 
-export { bundledResources } from "./bundled";
+export { bundledResources, BUNDLED_LOCALES } from "./bundled";
+
+// `LAZY_LOCALE_LOADERS` is deliberately not re-exported: it is what the
+// default path already uses, and a consumer that wants different catalogs
+// installs them with `setLocaleLoaders`.
+export {
+    loadLocaleResources,
+    loadLocaleResourcesFor,
+    reachableCatalogLocales,
+    fetchLocaleLoaders,
+    setLocaleLoaders,
+    type LocaleLoader,
+    type LocaleLoaders,
+    type LoadLocaleResourcesOptions,
+} from "./load";
 
 export {
     DEFAULT_LOCALE_DATA,

@@ -21,6 +21,15 @@ export default defineConfig({
         }),
     ],
     base: "./",
+    define: {
+        // The worker is one file — an IIFE started from a blob URL in some
+        // variants — so it can neither code-split nor fetch. It never needs
+        // to: the main thread negotiates the content locale, loads the
+        // catalog, and hands it over as `LocaleData.resources`. Switching
+        // `@doenet/i18n`'s lazy-catalog glob off makes that branch dead code,
+        // which is what keeps every translation out of this bundle.
+        __DOENET_CODE_SPLIT_CATALOGS__: "false",
+    },
     build: {
         minify: true,
         sourcemap: true,

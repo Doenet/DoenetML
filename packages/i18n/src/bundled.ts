@@ -13,15 +13,17 @@ import {
 /**
  * Catalogs shipped inside the bundle, by locale.
  *
- * Bundling every locale does not scale, and the plan is still that additional
- * locales arrive as modules the host loads and passes in as `localeResources`.
- * Spanish is inlined anyway because it is the only translation that exists
- * today and because a dynamic import would have to survive four bundling
- * variants — the library build, the single-file standalone bundle
- * (`inlineDynamicImports`), the iframe, and the dedicated worker host. At
- * roughly a kilobyte gzipped per context, paying for it unconditionally costs
- * less than the machinery to avoid it. Revisit when the count reaches a
- * handful.
+ * Inlining is for the locales worth carrying whether or not anyone asks for
+ * them; every other locale is code-split and loaded on demand by
+ * {@link loadLocaleResources}. A complete translation — all four namespaces,
+ * which is what an inlined locale costs whichever of them a context reads — is
+ * about 16 KB gzipped, so the list has to stay short.
+ *
+ * Spanish is here because it is the one reviewed translation and because being
+ * inlined is what lets `documentLocale="es"` render on the first paint and
+ * build the core once. Loading it instead would cost an authored
+ * `<document lang="es">` a core rebuild, since the content locale is fixed for
+ * a core's lifetime and is not known until the source has been parsed.
  *
  * English is not here: it is the fallback every chain terminates in, and
  * {@link createTranslator} appends it unconditionally.
@@ -34,6 +36,20 @@ const BUNDLED_TRANSLATIONS: Record<string, Catalogs> = {
         editor: esEditor,
     },
 };
+
+/**
+ * Locales this build can resolve with no network and no module graph.
+ *
+ * What {@link loadLocaleResources} checks before going to fetch anything, and
+ * the reason `documentLocale="es"` still costs no request: a locale in here is
+ * already in the entry chunk. English leads it because it is bundled by
+ * definition — it is the end of every fallback chain — even though it has no
+ * entry in {@link BUNDLED_TRANSLATIONS}, which holds only the translations.
+ */
+export const BUNDLED_LOCALES: readonly string[] = [
+    DEFAULT_LOCALE,
+    ...Object.keys(BUNDLED_TRANSLATIONS),
+];
 
 /**
  * The bundled catalogs a context can render, as locale → combined FTL source.
