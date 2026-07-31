@@ -195,18 +195,37 @@ function genderOf(t: Translator, noun: string): string {
     return t("noun-gender", { noun }, "neuter");
 }
 
+/**
+ * Which syntactic position a description is being rendered into.
+ *
+ * Gender alone is enough while a phrase appears in exactly one position. Two of
+ * them appear in two, and a language that inflects an attributive adjective for
+ * case has to tell them apart: a border's adjectives are a standalone phrase in
+ * `borderStyleDescription` and the object of a preposition inside
+ * `style-border-clause`, where German's `mit einem …` governs the dative and
+ * Russian's «с …» the instrumental. The same fork runs through `background`.
+ *
+ * The names are *positions*, not cases, because which case a position governs
+ * is the catalog's business — exactly as `$gender`'s token set already is. The
+ * code only has to say where the words are going.
+ *
+ * A language with no case ignores `$role`, as English ignores `$gender`.
+ */
+export type PhraseRole = "standalone" | "border-clause" | "background-clause";
+
 /** Look a derived word up in a vocabulary; pass an authored one through. */
 function lookUp(
     t: Translator,
     vocabulary: Vocabulary,
     word: string | undefined,
     gender: string,
+    role: PhraseRole,
 ): string {
     if (!word) {
         return "";
     }
     const entry = vocabulary[word];
-    return entry ? entry(t, { gender }) : word;
+    return entry ? entry(t, { gender, role }) : word;
 }
 
 /**
@@ -289,15 +308,30 @@ export type StrokeWords = {
  * rather than repeating the color it just used.
  *
  * @param gender The gender of whatever the stroke describes, for agreement.
+ * @param role Which position the phrase is going into, for the languages that
+ *   inflect for case. See {@link PhraseRole}.
  */
 function describeStroke(
     t: Translator,
     words: StrokeWords,
     gender: string,
+    role: PhraseRole,
 ): string {
-    const width = lookUp(t, LINE_WIDTH_WORDS, words.lineWidthWord, gender);
-    const lineStyle = lookUp(t, LINE_STYLE_WORDS, words.lineStyleWord, gender);
-    const color = lookUp(t, COLOR_WORDS, words.colorWord, gender);
+    const width = lookUp(
+        t,
+        LINE_WIDTH_WORDS,
+        words.lineWidthWord,
+        gender,
+        role,
+    );
+    const lineStyle = lookUp(
+        t,
+        LINE_STYLE_WORDS,
+        words.lineStyleWord,
+        gender,
+        role,
+    );
+    const color = lookUp(t, COLOR_WORDS, words.colorWord, gender, role);
 
     const parts = strokeParts(width, lineStyle, color);
     if (parts === null) {
@@ -305,7 +339,7 @@ function describeStroke(
     }
     return t(
         "style-stroke",
-        { parts, width, lineStyle, color, gender },
+        { parts, width, lineStyle, color, gender, role },
         joinPresent(width, lineStyle, color),
     );
 }
@@ -346,13 +380,23 @@ export function describeStrokedShape(
     words: StrokeWords,
     { noun, withNoun }: { noun: NounSpec; withNoun: boolean },
 ): string {
-    const stroke = describeStroke(t, words, genderOf(t, noun.key));
+    const stroke = describeStroke(
+        t,
+        words,
+        genderOf(t, noun.key),
+        "standalone",
+    );
     return withNoun ? attachNoun(t, stroke, nounPhrase(t, noun)) : stroke;
 }
 
-/** A shape's border on its own, as `borderStyleDescription` reports it. */
+/**
+ * A shape's border on its own, as `borderStyleDescription` reports it.
+ *
+ * Standalone, unlike the same words inside `style-border-clause`, which is the
+ * whole reason {@link PhraseRole} exists.
+ */
 export function describeBorder(t: Translator, words: StrokeWords): string {
-    return describeStroke(t, words, genderOf(t, "border"));
+    return describeStroke(t, words, genderOf(t, "border"), "standalone");
 }
 
 export type ClosedShapeWords = StrokeWords & {
@@ -388,8 +432,20 @@ export function describeClosedShape(
     const gender = genderOf(t, noun.key);
     const phrase = withNoun ? nounPhrase(t, noun) : undefined;
 
-    const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
-    const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
+    const color = lookUp(
+        t,
+        COLOR_WORDS,
+        words.fillColorWord,
+        gender,
+        "standalone",
+    );
+    const pattern = lookUp(
+        t,
+        FILL_STYLE_WORDS,
+        words.fillStyleWord,
+        gender,
+        "standalone",
+    );
     const fillParts = pattern ? "pattern" : "plain";
     // Looked up here and handed over as an argument rather than referenced
     // from the messages below: a language that inflects "filled" has to agree
@@ -433,10 +489,14 @@ export function describeClosedShape(
     // suppress the border's color there.
     const borderRepeatsFill = words.fillColorWord === words.colorWord;
     const borderGender = genderOf(t, "border");
+    // Not `"standalone"`: these words land inside `style-border-clause`, whose
+    // preposition governs a case in German and Russian. `describeBorder` builds
+    // the same words for the standalone state variable and says so.
     const border = describeStroke(
         t,
         borderRepeatsFill ? { ...words, colorWord: "" } : words,
         borderGender,
+        "border-clause",
     );
     if (!border) {
         return filledText;
@@ -453,7 +513,12 @@ export function describeClosedShape(
         " " +
         t(
             "style-border-clause",
-            { parts: borderParts, border, gender: borderGender },
+            {
+                parts: borderParts,
+                border,
+                gender: borderGender,
+                role: "border-clause",
+            },
             withNoun
                 ? `${connective} a ${border} border`
                 : `${connective} ${border} border`,
@@ -471,11 +536,29 @@ export function describeFill(
         return t("style-unfilled", undefined, "unfilled");
     }
     const gender = genderOf(t, "fill");
-    const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
-    const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
+    const color = lookUp(
+        t,
+        COLOR_WORDS,
+        words.fillColorWord,
+        gender,
+        "standalone",
+    );
+    const pattern = lookUp(
+        t,
+        FILL_STYLE_WORDS,
+        words.fillStyleWord,
+        gender,
+        "standalone",
+    );
     return t(
         "style-fill",
-        { parts: pattern ? "pattern" : "plain", color, pattern, gender },
+        {
+            parts: pattern ? "pattern" : "plain",
+            color,
+            pattern,
+            gender,
+            role: "standalone",
+        },
         joinPresent(color, pattern),
     );
 }
@@ -488,7 +571,13 @@ export function describeMarker(
 ): string {
     const noun = markerWord(t, words.markerStyleWord);
     const gender = genderOf(t, words.markerStyleWord || "point");
-    const color = lookUp(t, COLOR_WORDS, words.markerColorWord, gender);
+    const color = lookUp(
+        t,
+        COLOR_WORDS,
+        words.markerColorWord,
+        gender,
+        "standalone",
+    );
     return withNoun ? attachNoun(t, color, { noun, tail: "" }) : color;
 }
 
@@ -499,17 +588,32 @@ export function describeRegion(
     { noun, withNoun }: { noun: NounSpec; withNoun: boolean },
 ): string {
     const gender = genderOf(t, noun.key);
-    const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
+    const color = lookUp(
+        t,
+        COLOR_WORDS,
+        words.fillColorWord,
+        gender,
+        "standalone",
+    );
     return withNoun ? attachNoun(t, color, nounPhrase(t, noun)) : color;
 }
 
-/** A color word on its own, as `textColor` and `backgroundColor` report it. */
+/**
+ * A color word on its own, as `textColor` and `backgroundColor` report it.
+ *
+ * @param role Defaults to `"standalone"`, which is what the two state variables
+ *   want. `textStyleDescription` asks for the background in
+ *   `"background-clause"` instead, because there the word sits behind a
+ *   preposition — the same fork the border has, and the reason a caller has to
+ *   look the word up twice rather than reuse one string in both places.
+ */
 export function describeColor(
     t: Translator,
     colorWord: string | undefined,
     head: PhraseHead,
+    role: PhraseRole = "standalone",
 ): string {
-    return lookUp(t, COLOR_WORDS, colorWord, genderOf(t, head));
+    return lookUp(t, COLOR_WORDS, colorWord, genderOf(t, head), role);
 }
 
 /** What `backgroundColor` answers when nothing is drawn behind the text. */
@@ -530,11 +634,20 @@ export function describeText(
     { color, background }: { color: string; background?: string },
 ): string {
     if (background === undefined) {
-        return t("style-text", { parts: "plain", color }, color);
+        return t(
+            "style-text",
+            { parts: "plain", color, role: "standalone" },
+            color,
+        );
     }
     return t(
         "style-text",
-        { parts: "background", color, background },
+        {
+            parts: "background",
+            color,
+            background,
+            role: "background-clause",
+        },
         `${color} with a ${background} background`,
     );
 }

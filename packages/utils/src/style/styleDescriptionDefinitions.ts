@@ -12,6 +12,7 @@ import {
     noBackgroundWord,
     type NounKey,
     type NounSpec,
+    type PhraseRole,
 } from "./styleDescriptions";
 
 /**
@@ -136,9 +137,10 @@ function nounSpec(noun: StyleDescriptionNoun, dependencyValues: any): NounSpec {
 function backgroundDescription(
     t: Translator,
     dependencyValues: any,
+    role: PhraseRole = "standalone",
 ): string | undefined {
     const word = colorWord(dependencyValues, "background");
-    return word ? describeColor(t, word, "background") : undefined;
+    return word ? describeColor(t, word, "background", role) : undefined;
 }
 
 /**
@@ -348,7 +350,16 @@ export function returnTextStyleDescriptionDefinitions(): StateVariableDefinition
                         colorWord(dependencyValues, "text"),
                         "text",
                     ),
-                    background: backgroundDescription(t, dependencyValues),
+                    // Looked up again rather than reusing what
+                    // `backgroundColor` reports: there the word stands alone,
+                    // here it sits behind `style-text`'s preposition, and a
+                    // language that inflects for case needs the two forms to
+                    // differ (#1606).
+                    background: backgroundDescription(
+                        t,
+                        dependencyValues,
+                        "background-clause",
+                    ),
                 });
             },
         ),
