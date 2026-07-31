@@ -12,10 +12,20 @@ import {
 } from "../src/diagnostics";
 import { EN_CATALOGS } from "../src/catalogs";
 import { createChromeTranslator } from "../src/chrome";
+import esDiagnostics from "../locales/es/diagnostics.ftl?raw";
 import { createTranslator, type Translator } from "../src/translator";
 import { extractKeys } from "../scripts/catalogUtils";
 
 const LOCK_FILE = path.join(__dirname, "..", "diagnostic-codes.lock.json");
+
+/**
+ * Spanish diagnostics, handed over the way a host hands over a loaded catalog.
+ *
+ * No translation is inlined, so this is the route every language other than
+ * English takes to the chrome — `useLocaleCatalogs` supplies exactly this at
+ * runtime.
+ */
+const ES = { es: esDiagnostics };
 
 /** A translator over a locale supplied inline, English behind it. */
 function translatorFor(locale: string, source: string) {
@@ -204,13 +214,13 @@ describe("formatEnglishDiagnostic", () => {
 });
 
 describe("the path the viewer actually takes", () => {
-    // `DocViewer` builds its formatter over `createChromeTranslator`, not over
-    // a translator assembled in a test. That is what decides whether the
-    // Spanish diagnostics catalog is bundled at all — the tests above would
-    // pass just as well with it left out of `bundledResources`.
-    it("resolves a bundled locale's diagnostics through the chrome translator", () => {
+    // `DocViewer` builds its formatter over `createChromeTranslator`, fed by
+    // whatever `useLocaleCatalogs` has loaded — not over a translator
+    // assembled in a test. Handing the catalog over the same way is what makes
+    // this cover the route a reader actually takes.
+    it("resolves a loaded locale's diagnostics through the chrome translator", () => {
         const format = createDiagnosticFormatter(
-            createChromeTranslator("es"),
+            createChromeTranslator("es", ES),
             "es",
         );
         expect(
@@ -414,7 +424,7 @@ describe("one code, several components", () => {
     // translation untouched while the sentence around it changes.
     it("keeps the component name in English when the sentence is Spanish", () => {
         const formatEs = createDiagnosticFormatter(
-            createChromeTranslator("es"),
+            createChromeTranslator("es", ES),
             "es",
         );
         const message = formatEs({

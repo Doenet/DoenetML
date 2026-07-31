@@ -76,14 +76,10 @@ const CODE_SPLIT_CATALOGS =
  * the same time.
  */
 const LAZY_CATALOG_MODULES = CODE_SPLIT_CATALOGS
-    ? (import.meta.glob(
-          [
-              "../locales/*/*.ftl",
-              "!../locales/en/*.ftl",
-              "!../locales/es/*.ftl",
-          ],
-          { query: "?raw", import: "default" },
-      ) as Record<string, () => Promise<string>>)
+    ? (import.meta.glob(["../locales/*/*.ftl", "!../locales/en/*.ftl"], {
+          query: "?raw",
+          import: "default",
+      }) as Record<string, () => Promise<string>>)
     : {};
 
 /** `../locales/<locale>/<namespace>.ftl` */

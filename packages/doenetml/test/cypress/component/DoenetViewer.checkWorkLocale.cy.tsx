@@ -58,10 +58,16 @@ describe("the check-work button speaks the document's language", () => {
             />,
         );
 
-        cy.get("#prose", { timeout: VIEWER_TIMEOUT })
+        // Settle on the document's language before reading the prose: the
+        // catalog loads on demand, so the first paint is English and `.then`
+        // would capture that rather than what the reader ends up with.
+        cy.get("#prose", { timeout: VIEWER_TIMEOUT }).should(
+            "contain.text",
+            "Revisar",
+        );
+        cy.get("#prose")
             .invoke("text")
             .then((prose) => {
-                expect(prose.trim()).to.eq("Revisar");
                 cy.get(CHECK_WORK).should("contain.text", prose.trim());
             });
     });

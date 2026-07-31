@@ -1,8 +1,3 @@
-import esChrome from "../locales/es/chrome.ftl?raw";
-import esContent from "../locales/es/content.ftl?raw";
-import esDiagnostics from "../locales/es/diagnostics.ftl?raw";
-import esEditor from "../locales/es/editor.ftl?raw";
-
 import { DEFAULT_LOCALE, EN_CATALOGS } from "./catalogs";
 import {
     combineCatalogs,
@@ -13,38 +8,32 @@ import {
 /**
  * Catalogs shipped inside the bundle, by locale.
  *
- * Inlining is for the locales worth carrying whether or not anyone asks for
- * them; every other locale is code-split and loaded on demand by
+ * Empty: every translation is code-split and loaded on demand by
  * {@link loadLocaleResources}. A complete translation — all four namespaces,
  * which is what an inlined locale costs whichever of them a context reads — is
- * about 16 KB gzipped, so the list has to stay short.
+ * about 16 KB gzipped, and that weight lands on every consumer whether or not
+ * anyone reads that language, so a locale here has to earn its place against
+ * all of them.
  *
- * Spanish is here because it is the one reviewed translation and because being
- * inlined is what lets `documentLocale="es"` render on the first paint and
- * build the core once. Loading it instead would cost an authored
- * `<document lang="es">` a core rebuild, since the content locale is fixed for
- * a core's lifetime and is not known until the source has been parsed.
+ * What inlining buys is the first paint: an inlined locale renders immediately
+ * and builds the core once. A locale that loads on demand does neither, since
+ * the content locale is fixed for a core's lifetime and is not known until the
+ * source has been parsed — so an authored `<document lang>` whose catalog
+ * arrives later rebuilds the core with that language on hand.
  *
  * English is not here: it is the fallback every chain terminates in, and
  * {@link createTranslator} appends it unconditionally.
  */
-const BUNDLED_TRANSLATIONS: Record<string, Catalogs> = {
-    es: {
-        chrome: esChrome,
-        content: esContent,
-        diagnostics: esDiagnostics,
-        editor: esEditor,
-    },
-};
+const BUNDLED_TRANSLATIONS: Record<string, Catalogs> = {};
 
 /**
  * Locales this build can resolve with no network and no module graph.
  *
- * What {@link loadLocaleResources} checks before going to fetch anything, and
- * the reason `documentLocale="es"` still costs no request: a locale in here is
- * already in the entry chunk. English leads it because it is bundled by
- * definition — it is the end of every fallback chain — even though it has no
- * entry in {@link BUNDLED_TRANSLATIONS}, which holds only the translations.
+ * What {@link loadLocaleResources} checks before going to fetch anything: a
+ * locale in here is already in the entry chunk, so asking for it costs no
+ * request. English is its only member because it is bundled by definition — it
+ * is the end of every fallback chain — even though it has no entry in
+ * {@link BUNDLED_TRANSLATIONS}, which holds only the translations.
  */
 export const BUNDLED_LOCALES: readonly string[] = [
     DEFAULT_LOCALE,

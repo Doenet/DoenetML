@@ -7,6 +7,14 @@ import {
 } from "../src/localeData";
 import { CHROME_NAMESPACES, WORKER_NAMESPACES } from "../src/namespaces";
 import { extractKeys, readCatalog } from "../scripts/catalogUtils";
+import esContent from "../locales/es/content.ftl?raw";
+
+/**
+ * Spanish content, handed over the way `DocViewer` hands the worker a catalog
+ * it loaded. No translation is inlined, so `LocaleData.resources` is how every
+ * language other than English reaches the worker.
+ */
+const ES = { es: esContent };
 
 describe("createTranslatorFromLocaleData", () => {
     it("negotiates the requested locale against the catalogs that arrived", () => {
@@ -30,27 +38,30 @@ describe("createTranslatorFromLocaleData", () => {
         expect(t("greeting", undefined, "Hello")).toBe("Hello");
     });
 
-    it("resolves a bundled locale with no host catalogs at all", () => {
-        // What makes `documentLocale="es"` work without the embedding page
-        // shipping anything.
+    it("resolves a locale from the catalogs it was handed", () => {
+        // What makes `documentLocale="es"` work: the catalog reaches the
+        // worker as `resources`, loaded on the main thread.
         const t = createTranslatorFromLocaleData({
             locale: "es",
-            resources: {},
+            resources: ES,
         });
         expect(t("noun.line", undefined, "line")).toBe("línea");
     });
 
-    it("lets a host catalog win over the bundled one for the same locale", () => {
+    it("takes a handed catalog over the English fallback, key by key", () => {
         const t = createTranslatorFromLocaleData({
             locale: "es",
             resources: { es: "noun =\n    .line = recta" },
         });
         expect(t("noun.line", undefined, "line")).toBe("recta");
+        // A partial catalog is legitimate: keys it leaves out still resolve,
+        // through the English `createTranslator` appends behind every chain.
+        expect(t("noun.circle", undefined, "circle")).toBe("circle");
     });
 
     it("translates for a locale other than the one the payload asked for", () => {
         // A nested `<document lang>` differing from the host's request.
-        const localeData = { locale: "en", resources: {} };
+        const localeData = { locale: "en", resources: ES };
         expect(
             createTranslatorFromLocaleData(localeData, "es")("noun.circle"),
         ).toBe("círculo");
@@ -61,26 +72,28 @@ describe("createTranslatorFromLocaleData", () => {
 });
 
 describe("bundledResources", () => {
-    it("gives the worker content but not chrome", () => {
-        const worker = bundledResources(WORKER_NAMESPACES);
-        expect(Object.keys(worker)).toEqual(["es"]);
-        expect(worker.es).toContain("noun-regular-polygon");
-        expect(worker.es).not.toContain("keyboard-open");
+    // No translation is inlined, so the worker starts empty and falls back to
+    // the English `createTranslator` appends unconditionally.
+    it("gives the worker nothing while no translation is inlined", () => {
+        expect(bundledResources(WORKER_NAMESPACES)).toEqual({});
     });
 
-    it("gives the chrome its namespaces, English included as a candidate", () => {
+    it("gives the chrome English as a negotiable candidate", () => {
         const chrome = bundledResources(CHROME_NAMESPACES, {
             includeEnglish: true,
         });
-        expect(Object.keys(chrome).sort()).toEqual(["en", "es"]);
-        expect(chrome.es).toContain("keyboard-open");
-        expect(chrome.es).not.toContain("noun-regular-polygon");
+        expect(Object.keys(chrome)).toEqual(["en"]);
+        expect(chrome.en).toContain("keyboard-open");
+        expect(chrome.en).not.toContain("noun-regular-polygon");
     });
 
     // A locale is inlined namespace by namespace, so a new catalog file is
     // easy to write and then forget to bundle — it would simply never load,
     // silently, with everything falling back to English. Every namespace a
     // context asks for has to arrive for every bundled locale.
+    //
+    // Dormant while `BUNDLED_TRANSLATIONS` is empty; it starts covering the
+    // first locale inlined back in without needing to be rewritten.
     it("bundles every namespace a context asks for, for every locale", () => {
         for (const namespaces of [CHROME_NAMESPACES, WORKER_NAMESPACES]) {
             for (const [locale, source] of Object.entries(

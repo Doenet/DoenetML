@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import {
     createChromeTranslator,
     createDiagnosticFormatter,
@@ -28,7 +30,22 @@ const legacy: DiagnosticRecord = {
     message: "Invalid type for answer: nonsense",
 };
 
-const formatEs = createDiagnosticFormatter(createChromeTranslator("es"), "es");
+/**
+ * Spanish handed over the way `DocViewer` hands it over: only English is
+ * bundled, so every other language reaches the chrome through the catalogs
+ * `useLocaleCatalogs` has loaded.
+ */
+const ES = {
+    es: fs.readFileSync(
+        path.resolve(__dirname, "../../../i18n/locales/es/diagnostics.ftl"),
+        "utf-8",
+    ),
+};
+
+const formatEs = createDiagnosticFormatter(
+    createChromeTranslator("es", ES),
+    "es",
+);
 const formatEn = createDiagnosticFormatter(createChromeTranslator("en"), "en");
 
 describe("localizeDiagnostics", () => {

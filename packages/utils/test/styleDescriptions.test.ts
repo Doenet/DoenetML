@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import fs from "node:fs";
+import path from "node:path";
 import {
     createTranslator,
     createTranslatorFromLocaleData,
@@ -30,11 +32,28 @@ import {
  */
 const en: Translator = createTranslator([], {});
 
-/** Spanish comes from the bundled catalog, exactly as the worker gets it. */
+/**
+ * Spanish handed over exactly as the worker gets it: only English is bundled,
+ * so every other language reaches the core as `LocaleData.resources`, loaded on
+ * the main thread and sent through `setLocaleData`.
+ */
 const es: Translator = createTranslatorFromLocaleData(
-    { locale: "es", resources: {} },
+    { locale: "es", resources: { es: readCatalog("es", "content") } },
     "es",
 );
+
+/** One of this repository's catalogs, read the way a host would supply it. */
+function readCatalog(locale: string, namespace: string): string {
+    return fs.readFileSync(
+        path.resolve(
+            __dirname,
+            "../../i18n/locales",
+            locale,
+            `${namespace}.ftl`,
+        ),
+        "utf-8",
+    );
+}
 
 const line: NounSpec = { key: "line" };
 const circle: NounSpec = { key: "circle" };
