@@ -5,7 +5,8 @@
 // directory.
 
 /** A locale this repository ships a catalog for. */
-export type SupportedLocale = "en" | "es";
+export type SupportedLocale =
+    "en" | "de" | "es" | "fr" | "hnj" | "it" | "nl" | "ru" | "so" | "zh";
 
 /** A supported locale and the names to show an author. */
 export type SupportedLocaleInfo = {
@@ -28,9 +29,10 @@ export type SupportedLocaleInfo = {
  * Every locale with a catalog in this repository, `en` first.
  *
  * The *roster*, not the delivery mechanism: it is generated from the
- * `locales/` directory, so it stays correct when a locale stops being inlined
- * into the bundle. Read `bundledResources` for "which catalogs are in this JS
- * bundle" instead.
+ * `locales/` directory, so it lists every language this repository ships a
+ * translation for, whether or not the bundle carries it. Read
+ * `BUNDLED_LOCALES` for "which catalogs are in this JS bundle" instead — today
+ * that is English alone.
  *
  * A deployment can always supply a catalog of its own that is not listed here.
  * That is why the surfaces built on this list suggest rather than enforce: an
@@ -44,9 +46,57 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "English",
     },
     {
+        locale: "de",
+        englishName: "German",
+        endonym: "Deutsch",
+        label: "German (Deutsch)",
+    },
+    {
         locale: "es",
         englishName: "Spanish",
         endonym: "español",
         label: "Spanish (español)",
+    },
+    {
+        locale: "fr",
+        englishName: "French",
+        endonym: "français",
+        label: "French (français)",
+    },
+    {
+        locale: "hnj",
+        englishName: "Hmong Njua",
+        endonym: "Hmong Njua",
+        label: "Hmong Njua",
+    },
+    {
+        locale: "it",
+        englishName: "Italian",
+        endonym: "italiano",
+        label: "Italian (italiano)",
+    },
+    {
+        locale: "nl",
+        englishName: "Dutch",
+        endonym: "Nederlands",
+        label: "Dutch (Nederlands)",
+    },
+    {
+        locale: "ru",
+        englishName: "Russian",
+        endonym: "русский",
+        label: "Russian (русский)",
+    },
+    {
+        locale: "so",
+        englishName: "Somali",
+        endonym: "Soomaali",
+        label: "Somali (Soomaali)",
+    },
+    {
+        locale: "zh",
+        englishName: "Chinese",
+        endonym: "中文",
+        label: "Chinese (中文)",
     },
 ];

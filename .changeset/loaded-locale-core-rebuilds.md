@@ -16,4 +16,4 @@ A nested `<document lang="es">` inside an activity written in another language n
 
 A viewer given `render={false}` — a document a host has asked about but is not showing — started a second core worker every time it re-rendered, and abandoned the one before it. A catalog finishing loading is one of the things that re-renders such a viewer, so the waste was easy to reach once catalogs load on demand. It now primes one worker and reuses it.
 
-All three applied to every language that is not inlined, which today is every language but English and Spanish.
+All three applied to every language that is not inlined, which today is every language but English.

@@ -85,7 +85,10 @@ describe("style descriptions follow the document locale @group4", () => {
     });
 
     it("falls back to English for a locale with no catalog", async () => {
-        const values = await descriptions(styled, names, "fr");
+        // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
+        // catalog and this stays a test of the fallback rather than of which
+        // languages happen to be translated today.
+        const values = await descriptions(styled, names, "qaa");
         expect(values.stn).eq("thick dashed red line");
     });
 

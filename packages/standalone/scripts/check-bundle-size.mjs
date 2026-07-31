@@ -23,9 +23,9 @@
  *    than carrying. Both halves are silent failures: a catalog inlined back
  *    into a script costs everyone the bytes (see {@link collectCatalogProbes}),
  *    and a catalog nobody copied leaves that language falling back to English
- *    (see {@link servedCatalogProblems}). Only the second half has anything to
- *    say while every locale that exists is also inlined, which is the state the
- *    check was written in.
+ *    (see {@link servedCatalogProblems}). Both halves are live: English is the
+ *    only inlined locale, so every other catalog this repository ships is one
+ *    the first half probes for and the second half insists on finding.
  *  - The size budgets in `bundle-budgets.json` catch the general case the
  *    first two cannot see — a heavy dependency, a duplicated copy of
  *    something that is not wasm. They are expected to be raised as the project
@@ -166,8 +166,10 @@ function readMessages(file) {
  * locale says for the same key. Matching an inlined catalog is what makes a
  * probe useless: those strings are legitimately in the bundle, so a translation
  * that happens to reuse one would report a leak on every build. English is the
- * usual culprit — a term left untranslated — but not the only one, since
- * Spanish is inlined too and neighbouring languages share plenty of wording.
+ * culprit today, being the only inlined locale — a term left untranslated reads
+ * identically in both. The rule is written for the general case because
+ * inlining a second locale would add another, and neighbouring languages share
+ * plenty of wording.
  *
  * A locale that yields no such string simply gets no probe. That is the right
  * failure mode for a catalog too close to an inlined one to fingerprint —
@@ -300,8 +302,8 @@ function collectSourceLocales(localesDir = LOCALES_DIR) {
  *
  * Held against every locale directory in `@doenet/i18n` rather than against the
  * served ones alone, because `copyLocaleCatalogsPlugin` copies all of them —
- * which keeps this check meaningful while every locale that exists happens to
- * be inlined, and means a locale that stops being inlined is already covered.
+ * so a locale that starts or stops being inlined needs nothing changed here,
+ * and the check keeps its meaning whatever that decision turns out to be.
  *
  * @param sourceLocales locale directories under `packages/i18n/locales/`, from
  *   {@link collectSourceLocales}.

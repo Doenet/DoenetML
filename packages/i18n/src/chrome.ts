@@ -1,5 +1,4 @@
-import { bundledResources } from "./bundled";
-import { DEFAULT_LOCALE } from "./catalogs";
+import { DEFAULT_LOCALE, englishResources } from "./catalogs";
 import { CHROME_NAMESPACES } from "./namespaces";
 import { negotiateLocales, normalizeLocaleTag } from "./negotiate";
 import { PSEUDO_LOCALE, pseudoLocalize } from "./pseudo";
@@ -8,14 +7,13 @@ import { createTranslator, type Translator } from "./translator";
 /**
  * Chrome catalogs shipped inside the bundle, by locale.
  *
- * English is included under its own tag, unlike the worker's copy: the chrome
+ * English under its own tag, unlike the worker's translator: the chrome
  * negotiates the requested locale against these keys, so `en` has to be a
  * candidate and not only the built-in end of the fallback chain.
  */
-const BUNDLED_CHROME_CATALOGS: Record<string, string> = bundledResources(
-    CHROME_NAMESPACES,
-    { includeEnglish: true },
-);
+const BUNDLED_CHROME_CATALOGS: Record<string, string> = {
+    [DEFAULT_LOCALE]: englishResources(CHROME_NAMESPACES),
+};
 
 /**
  * The pseudo-locale catalog, derived from English on first use.

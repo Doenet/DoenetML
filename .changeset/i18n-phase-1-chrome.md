@@ -12,6 +12,6 @@ Buttons, panel headers, error messages, and screen-reader announcements — "Cor
 
 Counts are pluralized by the rules of the language being rendered rather than by English's, so Spanish says "queda 1 intento" and "quedan 2 intentos" where English says "1 attempt remaining" and "2 attempts remaining".
 
-Hosts can supply their own catalogs through `localeResources` to add a language or correct a bundled translation.
+Hosts can supply their own catalogs through `localeResources` to add a language or correct a translation DoenetML ships.
 
 With no locale configured the interface is unchanged, apart from the startup message, which now reads "Initializing..." rather than "Initializing....".

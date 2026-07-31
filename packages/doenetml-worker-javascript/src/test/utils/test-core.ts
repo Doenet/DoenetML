@@ -16,6 +16,7 @@ import init, {
     NodeList,
 } from "lib-doenetml-worker";
 import {
+    declaredLangsInSource,
     expandExternalReferences,
     lezerToDast,
     normalizeDocumentDast,
@@ -145,10 +146,16 @@ export async function createTestCore({
 
     core.setSource(doenetML);
     core.setFlags(flags);
-    if (documentLocale !== undefined || localeResources !== undefined) {
+    const sourceCatalogs =
+        localeResources ?? catalogsFor(documentLocale, doenetML);
+    if (
+        documentLocale !== undefined ||
+        localeResources !== undefined ||
+        Object.keys(sourceCatalogs).length > 0
+    ) {
         core.setLocaleData({
             locale: documentLocale ?? "en",
-            resources: localeResources ?? {},
+            resources: sourceCatalogs,
         });
     }
 
@@ -218,4 +225,52 @@ export async function createTestCore({
     }
 
     return { core, rustCore, resolvePathToNodeIdx, scoreState };
+}
+
+/**
+ * The repository's own catalogs for a locale, as the main thread would deliver
+ * them.
+ *
+ * Only English is bundled into the worker; every other language reaches it as
+ * `LocaleData.resources`, loaded on the main thread and sent through
+ * `setLocaleData`. A test that asks for a locale without supplying catalogs
+ * wants the translation this repository ships, so read it off disk rather than
+ * making every locale test carry the plumbing.
+ *
+ * Only `content` is read, which is `WORKER_NAMESPACES`: the worker computes
+ * prose and never draws chrome. The viewer hands over all four namespaces
+ * because the one map it builds also feeds its own chrome; the three the core
+ * never opens make no difference to what it computes.
+ *
+ * Negotiated by primary subtag, as `loadLocaleResources` negotiates: a document
+ * in `es-MX` is served by the `es` catalog. A tag nothing answers gets nothing
+ * and falls back to English, which is what an untranslated locale does anyway.
+ */
+function catalogsFor(
+    locale: string | undefined,
+    doenetML: string,
+): Record<string, string> {
+    const localesDir = path.resolve(__dirname, "../../../../i18n/locales");
+    const resources: Record<string, string> = {};
+    // The host's locale and every language the source declares — the same set
+    // the viewer loads, through the same helper, since a `<document lang>`
+    // names a language no prop did. Source that does not parse contributes
+    // nothing rather than throwing, which matters here: a great many of these
+    // tests feed the core DoenetML that is deliberately malformed.
+    for (const tag of [locale, ...declaredLangsInSource(doenetML)]) {
+        if (tag === undefined || tag === "en") {
+            continue;
+        }
+        for (const candidate of [tag, tag.split("-")[0]]) {
+            if (candidate === "en" || candidate in resources) {
+                break;
+            }
+            const catalog = path.join(localesDir, candidate, "content.ftl");
+            if (fs.existsSync(catalog)) {
+                resources[candidate] = fs.readFileSync(catalog, "utf-8");
+                break;
+            }
+        }
+    }
+    return resources;
 }

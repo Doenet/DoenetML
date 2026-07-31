@@ -115,7 +115,11 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
     });
 
     it("keeps English for a locale nothing is translated into", () => {
-        render({ doenetML: solution, uiLocale: "fr" });
+        // `qaa` is from the ISO 639-3 range reserved for local use (qaa-qtz),
+        // so no catalog can ever claim it. This said `fr` until French became
+        // a real catalog and started answering; a reserved tag is the version
+        // of the assertion that cannot rot.
+        render({ doenetML: solution, uiLocale: "qaa" });
 
         cy.get("#sol_button").should("contain.text", "(click to open)");
     });
@@ -244,15 +248,25 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
 
         it("follows the content's language, not the reader's", () => {
             // A Spanish-speaking student working a French activity reads the
-            // chrome in Spanish and the activity's own prose in French. Here
-            // there is no French catalog, so the description stays English
-            // rather than being dragged into the reader's language.
+            // chrome in Spanish and the activity's own prose in French. The
+            // description is content, so it answers to the document.
+            //
+            // This asserted English until French became a real catalog, when
+            // "not the reader's" was all it could show. It now pins the whole
+            // rule: French because the document is French, and *not* Spanish
+            // even though the reader is. It also covers the catalog reaching
+            // the worker for a language only an authored `<document lang>`
+            // named — the one path where nothing knows the locale until the
+            // source has been parsed.
             render({
                 doenetML: `<document lang="fr">${styled}</document>`,
                 uiLocale: "es",
             });
 
-            cy.get("#line").should("have.text", "thick dashed red line");
+            cy.get("#line").should(
+                "have.text",
+                "ligne épaisse discontinue rouge",
+            );
         });
     });
 

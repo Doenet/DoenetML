@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { BUNDLED_LOCALES } from "../src/bundled";
-import { DEFAULT_LOCALE } from "../src/catalogs";
+import { BUNDLED_LOCALES, DEFAULT_LOCALE } from "../src/catalogs";
 import {
     LAZY_LOCALE_LOADERS,
     fetchLocaleLoaders,
@@ -27,9 +26,9 @@ const LAZY_LOCALES = SUPPORTED_LOCALES.map((info) => info.locale)
     .sort();
 
 /**
- * A loader map standing in for catalogs this repository does not ship, so the
- * negotiation and caching rules can be tested without depending on which
- * translations happen to exist.
+ * A loader map standing in for the shipped one, returning marker text rather
+ * than a real catalog, so the negotiation and caching rules can be tested
+ * without depending on which translations happen to exist or what they say.
  */
 function stubLoaders(
     locales: readonly string[],
@@ -57,13 +56,14 @@ describe("the lazy loader registry", () => {
         // checks the same invariant against the glob's source text.
         expect(Object.keys(LAZY_LOCALE_LOADERS)).not.toContain(DEFAULT_LOCALE);
         expect(Object.keys(LAZY_LOCALE_LOADERS).sort()).toEqual(LAZY_LOCALES);
+        // Both lists being empty would satisfy the equality above and leave
+        // the two tests below with no locale to reach for. Nine translations
+        // are code-split today; one is enough for any of this to mean
+        // something.
+        expect(LAZY_LOCALES.length).toBeGreaterThan(0);
     });
 
-    // Nothing is code-split while every translation is still inlined. These
-    // start running on their own the first time a locale is added that isn't.
-    const withLazyLocale = describe.skipIf(LAZY_LOCALES.length === 0);
-
-    withLazyLocale("a code-split locale", () => {
+    describe("a code-split locale", () => {
         it("loads a catalog per namespace, each with something in it", async () => {
             const catalogs =
                 await LAZY_LOCALE_LOADERS[LAZY_LOCALES[0]](CATALOG_NAMESPACES);
@@ -84,9 +84,11 @@ describe("the lazy loader registry", () => {
 });
 
 describe("building the registry from the glob", () => {
-    // What the glob would hand over once a locale that is not inlined exists.
-    // Driven synthetically because it holds nothing today, which is exactly
-    // when this code is easiest to break without noticing.
+    // The shape the glob hands over, written out rather than read off disk:
+    // a fixture taking the shipped catalogs would start failing the day a
+    // locale gained or lost a namespace, and the stray file the case below
+    // covers could not be put there at all. The tags are real ones so the
+    // paths look like the glob's, but nothing here is the real German.
     const MODULES = {
         "../locales/de/chrome.ftl": async () => "de-chrome = Hallo\n",
         "../locales/de/content.ftl": async () => "de-content = Inhalt\n",

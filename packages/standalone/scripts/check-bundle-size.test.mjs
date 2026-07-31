@@ -298,9 +298,10 @@ describe("collectCatalogProbes", () => {
     });
 
     it("skips a translation that reuses any other inlined locale, not just English", () => {
-        // Spanish is inlined too, and neighbouring languages share plenty of
-        // wording. A probe matching one of its strings would report a leak over
-        // a catalog that is legitimately in the bundle.
+        // English is the only inlined locale today, so this drives the rule
+        // with a second one supplied by hand: neighbouring languages share
+        // plenty of wording, and a probe matching a string that is legitimately
+        // in the bundle would report a leak on every build.
         const shared = { chrome: "greeting = Hola y bienvenido a todos\n" };
         expect(
             probesFor(
@@ -405,14 +406,16 @@ describe("servedCatalogProblems", () => {
         expect(problems[0]).toContain("dist/locales/de/");
     });
 
-    it("checks the copy even while every locale is still inlined", () => {
-        // The state this runs in today. Judged against the locale directories
-        // that exist rather than the ones served, so a copy step that silently
-        // stopped running is caught now rather than the first time a language
-        // is not inlined.
-        const problems = servedCatalogProblems(["en", "es"], ["en"]);
+    it("checks a locale that is inlined rather than served", () => {
+        // Judged against the locale directories that exist rather than the
+        // ones anything fetches, so the check needs nothing changed when a
+        // locale starts or stops being inlined. English is the case in point:
+        // it is inlined and never fetched, and `copyLocaleCatalogsPlugin`
+        // copies it anyway, so a copy step that silently stopped running is
+        // caught here.
+        const problems = servedCatalogProblems(["en", "es"], ["es"]);
         expect(problems).toHaveLength(1);
-        expect(problems[0]).toContain("dist/locales/es/");
+        expect(problems[0]).toContain("dist/locales/en/");
     });
 
     it("reports the whole directory going missing", () => {

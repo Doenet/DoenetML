@@ -37,9 +37,9 @@ export const DIAGNOSTIC_CODES_LOCK_FILE = path.join(
  * The committed roster of locales with a catalog directory, with each one's
  * name in English and in itself.
  *
- * Derived from `locales/` rather than from `BUNDLED_TRANSLATIONS`, which
- * answers a different question — see "The roster is not the bundle" in the
- * package README.
+ * Derived from `locales/` rather than from `BUNDLED_LOCALES`, which answers a
+ * different question — see "The roster is not the bundle" in the package
+ * README.
  */
 export const SUPPORTED_LOCALES_FILE = path.join(
     PACKAGE_ROOT,
@@ -594,9 +594,10 @@ export type SupportedLocaleInfo = {
  * Every locale with a catalog in this repository, \`en\` first.
  *
  * The *roster*, not the delivery mechanism: it is generated from the
- * \`locales/\` directory, so it stays correct when a locale stops being inlined
- * into the bundle. Read \`bundledResources\` for "which catalogs are in this JS
- * bundle" instead.
+ * \`locales/\` directory, so it lists every language this repository ships a
+ * translation for, whether or not the bundle carries it. Read
+ * \`BUNDLED_LOCALES\` for "which catalogs are in this JS bundle" instead — today
+ * that is English alone.
  *
  * A deployment can always supply a catalog of its own that is not listed here.
  * That is why the surfaces built on this list suggest rather than enforce: an

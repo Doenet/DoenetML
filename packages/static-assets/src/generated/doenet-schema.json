@@ -64964,8 +64964,40 @@
                             "description": "English"
                         },
                         {
+                            "value": "de",
+                            "description": "German (Deutsch)"
+                        },
+                        {
                             "value": "es",
                             "description": "Spanish (español)"
+                        },
+                        {
+                            "value": "fr",
+                            "description": "French (français)"
+                        },
+                        {
+                            "value": "hnj",
+                            "description": "Hmong Njua"
+                        },
+                        {
+                            "value": "it",
+                            "description": "Italian (italiano)"
+                        },
+                        {
+                            "value": "nl",
+                            "description": "Dutch (Nederlands)"
+                        },
+                        {
+                            "value": "ru",
+                            "description": "Russian (русский)"
+                        },
+                        {
+                            "value": "so",
+                            "description": "Somali (Soomaali)"
+                        },
+                        {
+                            "value": "zh",
+                            "description": "Chinese (中文)"
                         }
                     ],
                     "suggestedValuesOnly": true,

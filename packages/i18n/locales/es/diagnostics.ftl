@@ -1,8 +1,15 @@
-# Advertencias y errores mostrados a quien lee o escribe el documento.
-# Seleccionados por `uiLocale`.
+# Spanish diagnostics. Translated from `locales/en/diagnostics.ftl`, which is
+# the source of truth: `lint:i18n` rejects a key that does not exist there, and
+# reports a key that exists there but not here as missing coverage.
 #
-# Los nombres de atributos y componentes de DoenetML (`through`, `endpoint`,
-# `numDimensions`, …) forman parte del lenguaje y se dejan en inglés.
+# UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
+# Correct anything here freely; nothing in it was written by a translator.
+#
+# Attribute names, element names and every other DoenetML identifier —
+# `through`, `endpoint`, `midpointOffset`, `numDimensions`, `<answer>`,
+# `selectFromSequence` — are part of the language, not prose, and stay in
+# English exactly as written. So does anything quoted back from the author's
+# own source.
 
 ## `<lineSegment>`
 
@@ -22,10 +29,10 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset no tiene efecto s
 
 ## `<line>`
 
-# «Recta», no «línea», aunque `noun.line` en content.ftl diga «línea»: no es
-# una incoherencia, sino la diferencia entre describir el trazo dibujado («una
-# línea azul gruesa») y hablar del objeto geométrico, que en matemáticas es
-# una recta —de ahí «la ecuación de la recta».
+# «Recta», not «línea», even though `noun.line` in content.ftl says «línea»:
+# not an inconsistency but the difference between describing the stroke that
+# was drawn («una línea azul gruesa») and naming the geometric object, which in
+# mathematics is a recta — hence «la ecuación de la recta».
 
 line-points-undetermined-dimensions = La recta pasa por puntos de dimensiones indeterminadas.
 
@@ -33,10 +40,10 @@ line-points-too-few-dimensions = La recta debe pasar por puntos de al menos dos 
 
 line-points-depend-on-variables = La recta pasa por puntos que dependen de las variables: { $variables }.
 
-# Enumeradas con coma en vez de «y»: las variables de <line> son `x` e `y` por
-# omisión, y «en las variables x y y» sería a la vez incorrecto (ante el sonido
-# /i/ la conjunción es «e») e ilegible. La coma es correcta sea cual sea el
-# nombre de la variable, que aquí no se conoce de antemano.
+# Enumerated with a comma rather than «y»: `<line>`'s variables default to `x`
+# and `y`, and «en las variables x y y» would be both wrong — before an /i/
+# sound the conjunction is «e» — and unreadable. A comma is correct whatever
+# the variables are named, which is not known here in advance.
 line-equation-invalid-format = Formato no válido para la ecuación de la recta en las variables { $variable1 }, { $variable2 }.
 
 ## `<ray>`
@@ -51,7 +58,7 @@ vector-overprescribed-head = El vector está determinado por head, tail y displa
 
 vector-dimension-mismatch = Discrepancia de numDimensions en el vector.
 
-## Atraer y restringir
+## Attracting and constraining
 
 attract-to-without-nearest-point = No se puede atraer a un `<{ $component }>` porque no tiene la variable de estado nearestPoint.
 
@@ -63,7 +70,7 @@ constrain-to-interior-without-nearest-point = No se puede restringir al interior
 
 choice-input-label-position-ignored = labelPosition se ignora en un choiceInput que no es inline
 
-## Ordenar hijos por índice
+## Ordering children by index
 
 choice-input-indices-count-mismatch = Se ignoran los índices especificados para choiceInput porque su cantidad no coincide con la cantidad de hijos choice.
 
@@ -77,7 +84,7 @@ pretzel-indices-repeated = Se ignoran los índices especificados para pretzel po
 
 pretzel-circuit-first-index = Se ignoran los índices especificados para pretzel en modo circuit porque el primer índice debe ser 1.
 
-## `<shuffle>` y `<sort>`
+## `<shuffle>` and `<sort>`
 
 string-children-need-type = Para que `<{ $component }>` funcione con hijos de texto, se debe especificar el atributo `type`.
 
@@ -85,13 +92,13 @@ invalid-type-defaulting-to-math = Tipo no válido { $type } para el componente {
 
 string-not-valid-component-to-arrange = La cadena "{ $value }" no es un componente válido para { $component }. Se ignora.
 
-## Tipos y variables
+## Types and variables
 
 invalid-type-defaulting-to-number = Tipo no válido { $type }, se establece el tipo en number.
 
 invalid-variable-value = Valor no válido de una variable: `{ $value }`
 
-## Variantes
+## Variants
 
 variant-index-must-be-number = El índice de variante { $index } debe ser un número
 
@@ -119,7 +126,7 @@ label-for-answer-without-input = El atributo `for` de `<label>` hace referencia 
 
 label-for-must-reference-input-or-answer = El atributo `for` de `<label>` debe hacer referencia a una entrada o a un `<answer>`.
 
-## Accesibilidad
+## Accessibility
 
 accessibility-short-description-or-decorative = Por accesibilidad, `<{ $component }>` debe tener una descripción breve o estar marcado como decorativo.
 
@@ -226,7 +233,7 @@ select-from-sequence-coprime-not-numbers = Se ignora coprime porque no se están
 
 select-from-sequence-coprime-with-exclude-combinations = Se ignora coprime porque se especificó excludeCombinations
 
-## Resolución de `target`
+## Resolving a `target`
 
 target-not-found = Destino no válido para `<{ $source }>`: no se encuentra el destino.
 
@@ -240,7 +247,7 @@ ode-system-duplicate-variable-names = No se pueden definir las funciones del lad
 
 ode-system-rhs-function-error = No se puede definir la función del lado derecho de la EDO. Error al crear la función de mathjs.
 
-## `<angle>`, `<parabola>` e `<intersection>`
+## `<angle>`, `<parabola>`, and `<intersection>`
 
 angle-too-many-lines = No se puede definir un ángulo entre { $count } rectas
 
@@ -252,7 +259,7 @@ parabola-too-many-points = No está implementada una parábola que pase por más
 
 intersection-too-many-items = No está implementada la intersección de más de dos objetos
 
-## Otros componentes matemáticos
+## Other math components
 
 ionic-compound-not-two-ions = No está implementado el compuesto iónico para algo distinto de dos iones.
 
@@ -276,7 +283,7 @@ matches-pattern-parameter-not-in-pattern =
 
 graph-grid-invalid = `<graph>`: no se puede interpretar grid="{ $grid }". Debe ser none, medium, dense o dos números positivos separados por un espacio, como grid="1 0.5". No se dibuja ninguna cuadrícula.
 
-## Renderizador PreFigure
+## PreFigure renderer
 
 prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" no es compatible con el renderizador prefigure; se usa el comportamiento de posición derecha.
 
@@ -294,7 +301,7 @@ prefigure-annotations-not-rendered = `<graph>`: las anotaciones no se representa
 
 multiple-annotations-children = Se encontraron varios hijos `<annotations>` en `<graph>`; se ignoran todos menos el último.
 
-## Referencias a otros componentes
+## Referring to other components
 
 copy-unrecognized-component-type = No se puede extender ni copiar un tipo de componente desconocido: { $type }.
 
@@ -318,7 +325,7 @@ data-frame-duplicate-column-names = Los datos tienen nombres de columna repetido
 
 data-frame-missing-column-name = A los datos les falta el nombre de una columna.  Encontrado en componentIdx :{ $componentIdx }
 
-## `<answer>` y puntuación
+## `<answer>` and scoring
 
 answer-award-depends-on-own-response = Un award de esta respuesta depende de la respuesta enviada por el propio answer, lo que provocará un comportamiento inesperado.
 
@@ -334,7 +341,7 @@ answer-attributes-need-symbolic-equality =
 
 answer-invalid-type = Tipo no válido para answer: { $type }
 
-## `<module>`, `<conditionalContent>`, `<slider>` y pretzel
+## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
 module-attribute-child-needs-name = Como el componente `<{ $component }>` no tiene nombre, no se puede usar como atributo de módulo
 
@@ -348,7 +355,7 @@ pretzel-problem-needs-statement-and-answer = Pretzel no válido: cada `<problem>
 
 pretzel-circuit-first-problem-distractor = Pretzel no válido: en mode="circuit", el primer `<problem>` no puede ser un distractor.
 
-## Valores de atributos
+## Attribute values
 
 attribute-invalid-values =
     { $valuesCount ->
@@ -360,7 +367,7 @@ attribute-must-be-references = Valor no válido `{ $value }` para el atributo `{
 
 math-input-invalid-function-names = <mathInput>: se ignoran nombres de función no válidos en { $attribute }: { $names }. El segmento visible de cada nombre debe tener al menos 2 caracteres (letras o guiones); puede añadirse un sufijo opcional `|<alternativa de mathspeak>`.
 
-## Construcción de componentes a partir del código fuente
+## Building components from the source
 
 component-type-invalid = Tipo de componente no válido: `<{ $componentType }>`
 
@@ -368,7 +375,7 @@ attribute-repeated = No se puede repetir el atributo { $attribute }.
 
 attribute-invalid-for-component = Atributo "{ $attribute }" no válido para un componente de tipo `<{ $componentType }>`.
 
-## Contraste de las definiciones de estilo
+## Style definition contrast
 
 style-definition-insufficient-contrast =
     La definición de estilo { $styleNumber } no tiene suficiente contraste para { $context ->
@@ -396,7 +403,7 @@ style-definition-dark-mode-text-canvas-contrast =
 
 section-multiple-style-palettes = Una sección solo puede seleccionar un <stylePalette>; se usará el último.
 
-## Variantes únicas
+## Unique variants
 
 variant-num-to-select-not-non-negative-integer = no se pueden determinar las variantes únicas de { $component } porque numToSelect no es un entero no negativo.
 
@@ -430,7 +437,7 @@ variant-math-exclude-not-implemented = no se han implementado las variantes úni
 
 variant-non-constant-exclude-not-implemented = no se han implementado las variantes únicas de un { $component } con exclude no constante
 
-## Conversión a PreFigure
+## PreFigure conversion
 
 prefigure-descendant-unsupported = { $subject }: no se admite en el renderizador prefigure de gráficos; se omite el descendiente.
 
@@ -458,7 +465,7 @@ prefigure-marker-style-mapped-to-diamond = { $subject }: el estilo de marcador '
 
 prefigure-marker-style-unsupported = { $subject }: PreFigure no admite el estilo de marcador '{ $markerStyle }'; se usa el estilo predeterminado.
 
-## Anotaciones de PreFigure
+## PreFigure annotations
 
 annotation-ref-unresolvable = `<annotation>`: `ref` no válido; no se puede resolver el destino. Se omite la anotación.
 
@@ -470,7 +477,7 @@ annotation-ref-unsupported-target = `<annotation>`: `ref` no válido; el destino
 
 annotation-text-missing = `<annotation>`: falta `text` o está vacío; se emite texto vacío.
 
-## Composites y referencias
+## Composites and references
 
 composite-circular-dependency =
     { $componentType ->
@@ -482,17 +489,17 @@ reference-no-referent = No se encontró ningún referente para la referencia: `{
 
 reference-multiple-referents = Se encontraron varios referentes para la referencia: `{ $reference }`
 
-## Hijos que no coinciden
+## Children that do not match
 
 children-invalid-attribute-format = Formato no válido para el atributo { $attribute } de `<{ $componentType }>`.
 
 children-invalid = Hijos no válidos para `<{ $componentType }>`: se encontraron hijos no válidos: { $children }
 
-## Se recurre a un valor predeterminado
+## Falling back to a default
 
 attribute-value-invalid-using-default = Valor no válido `{ $value }` para el atributo `{ $attribute }`; se usa el valor `{ $default }`
 
-## Carga de una versión de DoenetML
+## Loading a DoenetML version
 
 doenetml-version-not-found =
     { $fallback ->
@@ -500,10 +507,10 @@ doenetml-version-not-found =
        *[other] No se encontró la versión { $version } de DoenetML. Se recurrirá a la versión { $fallback }
     }
 
-## Lectura del DoenetML
+## Reading the DoenetML
 
-# Estos mensajes citan el propio texto del autor —`$tag`, `$value`,
-# `$attribute`…—, que se reproduce tal cual.
+# These messages quote the author's own text — `$tag`, `$value`, `$attribute`
+# — which is reproduced exactly as written.
 
 parse-invalid-doenetml = DoenetML no válido: { $content }
 
@@ -517,7 +524,7 @@ parse-attribute-invalid = DoenetML no válido: atributo no válido `{ $attribute
 
 parse-attribute-value-invalid = DoenetML no válido: valor de atributo no válido `{ $value }`
 
-# $quote es la comilla que cerraría el par: `"` o `'`.
+# $quote is the quotation mark that would close the pair: `"` or `'`.
 parse-attribute-value-quote-mismatch = DoenetML no válido: valor de atributo no válido `{ $value }`. Las comillas no coinciden. Parece que falta una `{ $quote }`
 
 parse-open-tag-name-missing = DoenetML no válido: se encontró una etiqueta sin nombre, por ejemplo `<`
@@ -540,7 +547,7 @@ parse-close-tag-mismatched = DoenetML no válido: la etiqueta de cierre no coinc
 
 parser-node-unconvertible = No se pudo convertir el nodo { $node } en un nodo Dast.
 
-## Nombres
+## Names
 
 name-attribute-invalid =
     Atributo name='{ $name }' no válido. { $reason ->
@@ -550,7 +557,7 @@ name-attribute-invalid =
 
 component-name-invalid-start = Nombre de componente "{ $name }" no válido. Los nombres deben empezar por una letra.
 
-## Azúcar sintáctico de `<answer>`
+## `<answer>` sugar
 
 answer-video-watched-missing-video = Un `<answer>` de tipo videoWatched debe tener un atributo video
 
@@ -558,7 +565,7 @@ answer-video-watched-video-not-reference = Un `<answer>` de tipo videoWatched de
 
 answer-name-not-single-text = El atributo name de `<answer>` debe tener un único hijo de texto
 
-## Referencias a otro documento
+## Referencing another document
 
 external-doenetml-recursion-limit = No se pudo obtener el DoenetML externo por exceso de niveles de recursión. ¿Hay alguna referencia circular?
 
@@ -566,11 +573,11 @@ external-doenetml-unavailable = No se pudo obtener el DoenetML de { $attribute }
 
 external-doenetml-type-mismatch = El DoenetML obtenido de { $attribute }="{ $uri }" no es válido: no coincide con el tipo de componente "{ $componentType }"
 
-## Sintaxis obsoleta
+## Deprecated syntax
 
-# `[deprecation]` es una marca literal que abre los tres mensajes; se deja
-# igual. $component es `none` cuando el cambio de nombre vale para todos los
-# componentes que aceptan el atributo y nombrar uno sería engañoso.
+# `[deprecation]` is a literal marker opening all three messages and is left
+# as it stands. $component is `none` when the rename applies to every component
+# that accepts the attribute, where naming one would mislead.
 
 deprecated-attribute-renamed =
     { $component ->
@@ -587,17 +594,17 @@ deprecated-attribute-renamed-conflict =
 deprecated-attribute-ignored = [deprecation] El atributo `{ $attribute }` de `<{ $component }>` está obsoleto y se ignora.
 
 
-## Cobertura de idiomas
+## Language coverage
 
-# $locale es la etiqueta de idioma del documento, tal como se declaró.
+# $locale is the document's language tag, exactly as it was declared.
 pluralize-english-only = `<pluralize>` solo puede pluralizar en inglés, así que su texto queda sin cambios en un documento escrito en { $locale }. Escribe el plural directamente o indícalo con el atributo `pluralForm`.
 
 
-## Comprobación del esquema
+## Checking against the schema
 
-# $tag, $parent y $attribute reproducen lo que escribió quien redacta el
-# documento y se dejan tal cual; los signos `<`, `>` y las comillas invertidas
-# que los rodean son puntuación de este catálogo, no parte del nombre.
+# $tag, $parent and $attribute reproduce what the author wrote and are left as
+# they stand; the `<`, `>` and the backticks around them are this catalog's own
+# punctuation, not part of the name.
 
 schema-element-unrecognized = El elemento `<{ $tag }>` no es un elemento de Doenet reconocido.
 
@@ -607,9 +614,9 @@ schema-element-not-allowed-inside = El elemento `<{ $tag }>` no se permite dentr
 
 schema-attribute-unrecognized = El elemento `<{ $tag }>` no tiene ningún atributo llamado `{ $attribute }`.
 
-# $allowed son los valores admitidos, cada uno ya entre comillas dobles y
-# enumerados según el idioma de quien lee. $isList indica si el atributo acepta
-# varios a la vez.
+# $allowed is the accepted values, each already in double quotes and joined in
+# the reader's own language. $isList says whether the attribute accepts more
+# than one at a time.
 schema-attribute-value-not-allowed =
     { $isList ->
         [true] El atributo `{ $attribute }` del elemento `<{ $tag }>` debe ser una lista en la que cada elemento sea uno de: { $allowed }
@@ -617,12 +624,12 @@ schema-attribute-value-not-allowed =
     }
 
 
-## Los cuadros de error de la familia `<select>`
+## The `<select>` family's error boxes
 ##
-## Los recuentos llegan como números, de modo que una lengua que concuerde con
-## ellos puede seleccionar sobre ellos. Los nombres de componentes y atributos
-## (`selectFromSequence`, `selectPrimeNumbers`, `from`, `to`, `step`) son
-## identificadores de DoenetML y se dejan tal cual.
+## Counts arrive as numbers, so a language that agrees a noun with them can
+## select on them. Component and attribute names — `selectFromSequence`,
+## `selectPrimeNumbers`, `from`, `to`, `step` — are DoenetML identifiers and are
+## left as they stand.
 
 select-variant-name-option-count-mismatch = Nombre de variante no válido para select.  El nombre de variante { $variantName } aparece en { $numOptions } opciones, pero el número a seleccionar es { $numToSelect }.
 

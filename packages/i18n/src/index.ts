@@ -30,6 +30,7 @@ export {
 } from "./namespaces";
 
 export {
+    BUNDLED_LOCALES,
     DEFAULT_LOCALE,
     EN_CATALOGS,
     EN_CATALOG_SOURCE,
@@ -37,8 +38,6 @@ export {
 } from "./catalogs";
 
 export { createChromeTranslator, EN_CHROME_TRANSLATOR } from "./chrome";
-
-export { bundledResources, BUNDLED_LOCALES } from "./bundled";
 
 // `LAZY_LOCALE_LOADERS` is deliberately not re-exported: it is what the
 // default path already uses, and a consumer that wants different catalogs

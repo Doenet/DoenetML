@@ -1,5 +1,4 @@
-import { BUNDLED_LOCALES } from "./bundled";
-import { DEFAULT_LOCALE } from "./catalogs";
+import { BUNDLED_LOCALES, DEFAULT_LOCALE } from "./catalogs";
 import { SUPPORTED_LOCALES } from "./generated/supportedLocales";
 import {
     CATALOG_NAMESPACES,
@@ -72,18 +71,14 @@ const CODE_SPLIT_CATALOGS =
  * not get its own chunk anyway, and Rollup says so on every build. They have
  * to be spelled out because a glob pattern is resolved at build time and
  * cannot read a runtime list — so `lint:i18n` compares the two and fails if
- * they drift. Add a locale to `BUNDLED_TRANSLATIONS` and a `!` line here at
+ * they drift. Add a locale to {@link BUNDLED_LOCALES} and a `!` line here at
  * the same time.
  */
 const LAZY_CATALOG_MODULES = CODE_SPLIT_CATALOGS
-    ? (import.meta.glob(
-          [
-              "../locales/*/*.ftl",
-              "!../locales/en/*.ftl",
-              "!../locales/es/*.ftl",
-          ],
-          { query: "?raw", import: "default" },
-      ) as Record<string, () => Promise<string>>)
+    ? (import.meta.glob(["../locales/*/*.ftl", "!../locales/en/*.ftl"], {
+          query: "?raw",
+          import: "default",
+      }) as Record<string, () => Promise<string>>)
     : {};
 
 /** `../locales/<locale>/<namespace>.ftl` */
@@ -105,9 +100,10 @@ function isCatalogNamespace(name: string): name is CatalogNamespace {
  * than rejected: the glob is a filesystem pattern, and a stray file under
  * `locales/` should not stop the catalogs beside it from loading.
  *
- * Exported for its unit tests, which hand it a synthetic map: while every
- * locale that exists is also inlined the glob is empty, so nothing else here
- * exercises it.
+ * Exported for its unit tests, which hand it a map they wrote rather than the
+ * one the glob builds: a test reading the shipped catalogs would start failing
+ * the day a locale gained or lost a namespace, and the stray file below could
+ * not be covered at all.
  */
 export function loadersFromModules(
     modules: Record<string, () => Promise<string>>,
@@ -195,8 +191,8 @@ export function fetchLocaleLoaders(
     for (const locale of locales) {
         // English is inlined in every variant and ends every fallback chain,
         // so there is no arrangement in which fetching it is the right thing
-        // to do. The other inlined locales stay on the list: which of those
-        // are worth a request is a judgement about *this* build, and
+        // to do. Any other locale that gets inlined stays on the list: which
+        // of those are worth a request is a judgement about *this* build, and
         // {@link loadLocaleResources} makes it against {@link BUNDLED_LOCALES}
         // before it ever reaches a loader.
         if (locale === DEFAULT_LOCALE) {
