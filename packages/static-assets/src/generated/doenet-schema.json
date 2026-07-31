@@ -65012,6 +65012,10 @@
                             "description": "Somali (Soomaali)"
                         },
                         {
+                            "value": "tr",
+                            "description": "Turkish (Türkçe)"
+                        },
+                        {
                             "value": "vi",
                             "description": "Vietnamese (Tiếng Việt)"
                         },

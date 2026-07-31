@@ -19,6 +19,7 @@ export type SupportedLocale =
     | "pt"
     | "ru"
     | "so"
+    | "tr"
     | "vi"
     | "zh-Hans"
     | "zh-Hant";
@@ -131,6 +132,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Somali",
         endonym: "Soomaali",
         label: "Somali (Soomaali)",
+    },
+    {
+        locale: "tr",
+        englishName: "Turkish",
+        endonym: "Türkçe",
+        label: "Turkish (Türkçe)",
     },
     {
         locale: "vi",
