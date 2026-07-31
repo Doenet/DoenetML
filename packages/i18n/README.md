@@ -66,11 +66,12 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English and Spanish are the two written by hand. The other eight — `de`, `fr`,
-`hnj`, `it`, `nl`, `ru`, `so`, `zh` — are **unreviewed machine-generated seeds**,
-which each file's own header says at the top, and which is what #1521's
-translation platform is for. Correcting one needs no permission and no
-coordination: a wrong string is just wrong, and the English is one key away.
+English is the source of truth. Every translation — `es` and the eight added
+since: `de`, `fr`, `hnj`, `it`, `nl`, `ru`, `so`, `zh` — is an **unreviewed
+machine-generated seed**, which each file's own header says at the top, and
+which is what #1521's translation platform is for. None has been read by a
+speaker. Correcting one needs no permission and no coordination: a wrong string
+is just wrong, and the English is one key away.
 Two of them are deliberately partial — Somali and Hmong Njua leave
 `element-name` and `element-anion-name` out rather than invent a chemical
 nomenclature, so those fall back to English, which is what `lint:i18n` reports

@@ -1,6 +1,9 @@
 # Advertencias y errores mostrados a quien lee o escribe el documento.
 # Seleccionados por `uiLocale`.
 #
+# UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
+# Correct anything here freely; nothing in it was written by a translator.
+#
 # Los nombres de atributos y componentes de DoenetML (`through`, `endpoint`,
 # `numDimensions`, …) forman parte del lenguaje y se dejan en inglés.
 

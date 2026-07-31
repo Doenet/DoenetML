@@ -1,6 +1,9 @@
 # Spanish content catalog: the prose the core computes into the document.
 # Selected by `documentLocale` — the language the activity was written in.
 #
+# UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
+# Correct anything here freely; nothing in it was written by a translator.
+#
 # Spanish inflects. Adjectives follow their noun and agree with it in gender,
 # so every adjective below selects on `$gender`, the gender of the noun it
 # describes, and the composition messages put the noun first. Neither is

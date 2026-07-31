@@ -2,6 +2,9 @@
 # variantes, el botón de accesibilidad y el panel de ayuda contextual.
 # Se selecciona con `uiLocale`.
 #
+# UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
+# Correct anything here freely; nothing in it was written by a translator.
+#
 # `WCAG AA` es el nombre de la norma y no se traduce.
 
 

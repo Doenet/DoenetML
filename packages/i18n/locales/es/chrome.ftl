@@ -4,6 +4,9 @@
 #
 # Message ids are never translated — only the text to the right of `=`.
 #
+# UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
+# Correct anything here freely; nothing in it was written by a translator.
+#
 # Register: impersonal throughout — infinitives and bare nouns, never a `tú`
 # or `usted` verb form. The viewer does not know how formally a deployment
 # addresses its readers, and an impersonal label is correct for both.
