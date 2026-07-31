@@ -406,14 +406,16 @@ describe("servedCatalogProblems", () => {
         expect(problems[0]).toContain("dist/locales/de/");
     });
 
-    it("checks the copy even while every locale is still inlined", () => {
-        // The state this runs in today. Judged against the locale directories
-        // that exist rather than the ones served, so a copy step that silently
-        // stopped running is caught now rather than the first time a language
-        // is not inlined.
-        const problems = servedCatalogProblems(["en", "es"], ["en"]);
+    it("checks a locale that is inlined rather than served", () => {
+        // Judged against the locale directories that exist rather than the
+        // ones anything fetches, so the check needs nothing changed when a
+        // locale starts or stops being inlined. English is the case in point:
+        // it is inlined and never fetched, and `copyLocaleCatalogsPlugin`
+        // copies it anyway, so a copy step that silently stopped running is
+        // caught here.
+        const problems = servedCatalogProblems(["en", "es"], ["es"]);
         expect(problems).toHaveLength(1);
-        expect(problems[0]).toContain("dist/locales/es/");
+        expect(problems[0]).toContain("dist/locales/en/");
     });
 
     it("reports the whole directory going missing", () => {

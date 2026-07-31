@@ -18,6 +18,6 @@ A word an author writes themselves — `lineColorWord="chartreuse"`, `markerStyl
 
 A shape that names itself after another, such as a triangle or a rectangle, is now described with its own noun rather than by rewriting the finished English sentence, so `$triangle.styleDescriptionWithNoun` reads correctly in every language.
 
-Hosts can supply their own catalogs through `localeResources` to describe graphics in a further language, or to correct a bundled translation — the same way they already could for the interface.
+Hosts can supply their own catalogs through `localeResources` to describe graphics in a further language, or to correct a translation DoenetML ships — the same way they already could for the interface.
 
 With no locale configured, every description reads exactly as it did before, with one exception: a `<regularPolygon>` reports its side count through the locale's own number formatting, so a thousand-sided one now reads "1,000-sided regular polygon" rather than "1000-sided regular polygon". Every side count anyone writes in practice is unaffected.
