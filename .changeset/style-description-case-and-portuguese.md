@@ -15,6 +15,12 @@ Style descriptions handed adjectives one token, the gender of the noun they desc
 
 Descriptions now carry the syntactic position alongside the gender, so a catalog can select on both. The positions are named rather than the cases, because which case a position governs is the translation's business. A language with no case ignores the new argument, so English, Spanish, French, Italian, Dutch, Chinese, Japanese, Korean, Vietnamese, Indonesian, Somali and Hmong Njua are byte-identical.
 
-Portuguese joins the catalogs, covering all four namespaces at full coverage. It is Brazilian, which is what a bare `pt` means; `pt-AO` and `pt-MZ` reach it too, and a European `pt-PT` could be added later without disturbing it. Its border is feminine where Spanish's is masculine, so the border clause reads `com uma borda grossa`.
+Portuguese, Turkish and Polish join the catalogs, each covering all four namespaces at full coverage.
+
+Portuguese is Brazilian, which is what a bare `pt` means; `pt-AO` and `pt-MZ` reach it too, and a European `pt-PT` could be added later without disturbing it. Its border is feminine where Spanish's is masculine, so the border clause reads `com uma borda grossa`.
+
+Turkish inflects none of this — its suffixes attach to the noun rather than to the adjectives in front of it — and a noun counted by a numeral stays singular, so a count reads the same in both of its plural branches.
+
+Polish is the catalog this change was needed for. Its style words land in three different cases: nominative alone, instrumental after «z» in the border clause, locative after «na» in the background clause. From one set of words it now renders `grube`, `z grubym obramowaniem` and `czerwony na żółtym tle`.
 
 Like the others, it is an **unreviewed machine-generated seed** and says so in every file's header.
