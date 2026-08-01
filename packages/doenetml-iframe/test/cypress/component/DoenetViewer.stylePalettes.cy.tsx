@@ -67,12 +67,12 @@ describe("DoenetViewer (iframe wrapper) — style palette discovery", () => {
     });
 
     it("reports palettes to a callback absent at the first render", () => {
-        // `onStylePalettes` is `undefined` on the first render — the render
-        // whose value the viewer captures in a ref, and whose closure its
-        // (deps-empty) message listener keeps for good. The palettes are
-        // therefore reported only if that listener reads the callback back
-        // out of the ref instead of using the `undefined` it closed over,
-        // which is the regression this spec exists to catch.
+        // `onStylePalettes` is `undefined` on the first render: that is what
+        // the viewer's `useRef` initializes with, and what its (deps-empty)
+        // message listener closes over for good. The palettes therefore
+        // reach the callback only if the viewer both refreshes that ref on
+        // every render and has the listener read the callback back out of it
+        // — the regression this spec exists to catch.
         function Harness() {
             const [palettes, setPalettes] = React.useState<
                 StylePaletteInfo[] | null | undefined
