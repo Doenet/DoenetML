@@ -84,6 +84,15 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.stn).eq("línea discontinua gruesa roja");
     });
 
+    it("negotiates a region to the script it implies", async () => {
+        // Chinese is catalogued by script, so `zh-TW` names no directory and
+        // strips to no directory either: only a negotiation that consults
+        // likely-subtags reaches Traditional Chinese, and the Simplified
+        // catalog is a different translation rather than a fallback.
+        const values = await descriptions(styled, names, "zh-TW");
+        expect(values.stn).eq("紅色粗虛線直線");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

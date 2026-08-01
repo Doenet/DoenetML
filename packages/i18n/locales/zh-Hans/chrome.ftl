@@ -7,17 +7,14 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Named for the script, `zh-Hans`, rather than the generic `zh`, because a
-# `zh-Hant` catalog sits beside it. That is not a cosmetic choice: filtering
-# negotiation tries the region-stripped tag before it consults likely-subtags,
-# so a directory named `zh` answers `zh-TW`, `zh-HK` and `zh-MO` ahead of
-# `zh-Hant` and hands a Traditional reader Simplified text. Named by script,
-# each tag reaches the catalog it should — `zh-CN` and `zh-SG` here, the
-# Traditional regions there, and bare `zh` here, `zh` being `zh-Hans-CN` once
-# CLDR fills in what it left out.
+# Named for the script, not a region: `zh-CN` and `zh-SG` negotiate here, as
+# does a bare `zh`, which is `zh-Hans-CN` once CLDR fills in what it left out.
+# The Traditional regions reach `zh-Hant` beside it. Why the pair is named by
+# script and neither half is named `zh` is in the package README, and
+# `negotiate.test.ts` holds it.
 #
-# The two catalogs are complete rather than layered. `zh-Hant` negotiates to
-# `["zh-Hant", "en"]` — `zh-Hans` is not in that chain — so a key missing here
+# The two catalogs are complete rather than layered. `zh-Hans` negotiates to
+# `["zh-Hans", "en"]` — `zh-Hant` is not in that chain — so a key missing here
 # falls back to English, never to the other script.
 #
 # Chinese has a single plural category, so a countable message needs no

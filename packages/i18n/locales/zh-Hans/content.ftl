@@ -1,6 +1,6 @@
 # Simplified Chinese content catalog: the prose the core computes into the
-# document.
-# Selected by `documentLocale` — the language the activity was written in.
+# document. Selected by `documentLocale` — the language the activity was
+# written in.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.

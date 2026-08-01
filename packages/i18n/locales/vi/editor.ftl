@@ -116,7 +116,7 @@ editor-none-found = Không tìm thấy mục nào
 ## Submitted responses
 
 editor-no-responses = Chưa có câu trả lời nào được gửi
-editor-response-answer-id = Answer Id
+editor-response-answer-id = Id câu trả lời
 editor-response-response = Câu trả lời
 editor-response-credit = Điểm
 editor-response-submitted = Đã gửi

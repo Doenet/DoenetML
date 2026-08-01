@@ -144,7 +144,7 @@ two different places:
 catalog directory, each with its name in English and in itself, derived at
 codegen time from `Intl.DisplayNames` so that adding a language costs no
 hand-written prose. The second answer is a delivery decision, and the two lists
-have long since diverged: ten languages are on the roster and one of them —
+have long since diverged: fifteen locales are on the roster and one of them —
 English — is inlined. Every other catalog is fetched or code-split when a
 document or a reader asks for it (see [Delivery](#delivery)).
 

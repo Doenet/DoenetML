@@ -116,7 +116,7 @@ editor-none-found = Tidak ditemukan
 ## Submitted responses
 
 editor-no-responses = Belum ada jawaban yang dikirim
-editor-response-answer-id = Answer Id
+editor-response-answer-id = Id jawaban
 editor-response-response = Jawaban
 editor-response-credit = Nilai
 editor-response-submitted = Dikirim

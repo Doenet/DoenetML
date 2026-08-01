@@ -116,7 +116,7 @@ editor-none-found = 발견된 항목 없음
 ## Submitted responses
 
 editor-no-responses = 아직 제출된 답안이 없습니다
-editor-response-answer-id = Answer Id
+editor-response-answer-id = 답안 Id
 editor-response-response = 답안
 editor-response-credit = 점수
 editor-response-submitted = 제출 시각

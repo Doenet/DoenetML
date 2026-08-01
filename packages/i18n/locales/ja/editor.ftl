@@ -116,7 +116,7 @@ editor-none-found = 見つかりませんでした
 ## Submitted responses
 
 editor-no-responses = 送信済みの解答はまだありません
-editor-response-answer-id = Answer Id
+editor-response-answer-id = 解答 Id
 editor-response-response = 解答
 editor-response-credit = 得点
 editor-response-submitted = 送信日時

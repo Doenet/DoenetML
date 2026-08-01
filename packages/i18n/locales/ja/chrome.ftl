@@ -16,9 +16,13 @@
 #
 # A run of Latin text or digits is set off from the Japanese around it with a
 # space — `残り { $count } 回` — while a unit stays tight against the number it
-# measures: `{ $percent }%`, never `{ $percent } %`. Japanese punctuation is
-# full-width (、。：), and a full-width mark carries its own trailing space, so
-# nothing is added after it.
+# measures: `{ $percent }%`, never `{ $percent } %`.
+#
+# Sentence punctuation is full-width (、。). A colon introducing a value keeps
+# the half-width `:` and writes the space after it. The full-width `：` is used
+# only in `content.ftl`'s title separators, where the message itself has to
+# supply the space after the colon: a full-width mark carries its own, and a
+# written one would be trimmed off the end of the message.
 
 
 ## Answer submission
