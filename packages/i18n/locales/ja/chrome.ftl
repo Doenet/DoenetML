@@ -19,10 +19,9 @@
 # measures: `{ $percent }%`, never `{ $percent } %`.
 #
 # Sentence punctuation is full-width (、。). A colon introducing a value keeps
-# the half-width `:` and writes the space after it. The full-width `：` is used
-# only in `content.ftl`'s title separators, where the message itself has to
-# supply the space after the colon: a full-width mark carries its own, and a
-# written one would be trimmed off the end of the message.
+# the half-width `:` and writes the space after it, since what follows is a
+# Latin run. `content.ftl`'s title separators use the full-width `：` instead,
+# which carries its own trailing space.
 
 
 ## Answer submission

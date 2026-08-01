@@ -73,8 +73,8 @@ noun =
     .cross = 十字
     .plus = プラス記号
 
-# Japanese puts the side count inside the noun itself — 正5角形 — so the whole
-# thing is one head and there is no tail.
+# Japanese puts the side count inside the noun itself — 正 5 角形 — so the
+# whole thing is one head and there is no tail.
 noun-regular-polygon =
     { $part ->
         [tail] { "" }

@@ -73,7 +73,7 @@ noun =
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
-       *[head] 정 { $numSides }각형
+       *[head] 정{ $numSides }각형
     }
 
 # Korean has no grammatical gender, so every noun answers the same and the

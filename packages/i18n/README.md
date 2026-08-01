@@ -66,10 +66,10 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every one of the fourteen translations — `de`,
-`es`, `fr`, `hnj`, `id`, `it`, `ja`, `ko`, `nl`, `ru`, `so`, `vi`, `zh-Hans`,
-`zh-Hant` — is an **unreviewed machine-generated seed**, which each file's own
-header says at the top, and which is what #1521's translation platform is for.
+English is the source of truth. Every translation — `de`, `es`, `fr`, `hnj`,
+`id`, `it`, `ja`, `ko`, `nl`, `ru`, `so`, `vi`, `zh-Hans`, `zh-Hant` — is an
+**unreviewed machine-generated seed**, which each file's own header says at the
+top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
@@ -97,7 +97,7 @@ translation but a different one.
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
 They are addressed to whoever maintains the file, and no one maintaining it
-reads all fourteen languages — a note that cannot be read cannot be checked.
+reads all of these languages — a note that cannot be read cannot be checked.
 Only the text to the right of `=` is translated.
 
 The split is by **load context**, not topic: the worker never draws chrome and
@@ -144,9 +144,10 @@ two different places:
 catalog directory, each with its name in English and in itself, derived at
 codegen time from `Intl.DisplayNames` so that adding a language costs no
 hand-written prose. The second answer is a delivery decision, and the two lists
-have long since diverged: fifteen locales are on the roster and one of them —
-English — is inlined. Every other catalog is fetched or code-split when a
-document or a reader asks for it (see [Delivery](#delivery)).
+have long since diverged: every locale with a catalog directory is on the
+roster, and one of them — English — is inlined. Every other catalog is fetched
+or code-split when a document or a reader asks for it (see
+[Delivery](#delivery)).
 
 Author-facing surfaces read the **roster**. That is what lets the editor offer
 the languages in `<document lang>`'s autocomplete and help panel (via the

@@ -6,6 +6,7 @@ import {
     resolveDocumentLocale,
     resolveUiLocale,
 } from "../src/negotiate";
+import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 describe("negotiateLocales", () => {
     it("builds the regional -> language -> default chain", () => {
@@ -38,9 +39,13 @@ describe("negotiateLocales", () => {
      * Chinese is the one language this repository translates twice, and the
      * two catalogs are told apart by script rather than by region. Which
      * catalog a reader reaches is decided here, so it is asserted here.
+     *
+     * Against the real roster rather than a stand-in for it, so that renaming
+     * a catalog directory turns these red instead of leaving them describing a
+     * layout the repository no longer has.
      */
     describe("Chinese, whose catalogs are named by script", () => {
-        const available = ["en", "zh-Hans", "zh-Hant"];
+        const available = SUPPORTED_LOCALES.map((info) => info.locale);
 
         it.each([
             ["zh-CN", "zh-Hans"],
@@ -60,11 +65,12 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * The reason the Simplified catalog is not simply named `zh`. Filtering
+         * The reason the Simplified catalog is not simply named `zh`, written
+         * out as the counterfactual roster it argues against. Filtering
          * negotiation tries the region-stripped tag before it consults
          * likely-subtags, so a `zh` directory answers every Traditional region
          * tag ahead of `zh-Hant` — a Taiwanese reader would be served
-         * Simplified. Renaming the directory back would turn this red.
+         * Simplified.
          */
         it("does not let a script-less catalog shadow the other script", () => {
             expect(

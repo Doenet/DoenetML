@@ -554,6 +554,10 @@ function renderSupportedLocalesModuleRaw(locales: string[]): string {
         // English and the endonym coincide for English itself, and for any
         // locale `Intl` doesn't know (both fall back to the tag). Repeating
         // the same word in parentheses would read as a mistake.
+        //
+        // The parenthesis is always the endonym, never a region, however much
+        // one of them looks like it: ICU's endonym for `id` is "Indonesia", so
+        // Indonesian labels itself "Indonesian (Indonesia)".
         const label =
             englishName === endonym
                 ? englishName
