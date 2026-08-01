@@ -534,6 +534,32 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             });
             verifyListItemNumberGutterSide("p1", "ltr");
         });
+
+        it("re-declares chrome inside a nested right-to-left document", () => {
+            // A nested `<document lang>` turns its own subtree around, so it
+            // is what the chrome drawn inside *it* has to agree with — not the
+            // activity, which is still left-to-right here and would report no
+            // disagreement at all.
+            render({
+                doenetML: `
+                <document lang="en">
+                  <document name="inner" lang="${RTL}">
+                    <solution name="sol"><p>answer</p></solution>
+                  </document>
+                </document>`,
+            });
+
+            cy.get(".doenet-viewer").should("have.attr", "dir", "ltr");
+            cy.get("#inner").should("have.attr", "dir", "rtl");
+            // The disclosure label is the reader's English inside that
+            // right-to-left box, so it says so on its own span. The icon
+            // beside it is an `<svg>`, so this is the only span in the
+            // heading.
+            cy.get("#sol_button span")
+                .should("contain.text", "(click to open)")
+                .should("have.attr", "dir", "ltr")
+                .should("have.attr", "lang", "en");
+        });
     });
 
     describe("pseudo-locale", () => {

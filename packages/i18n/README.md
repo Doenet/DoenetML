@@ -748,6 +748,12 @@ design, so it follows its direction too. `DocViewer`'s error banner is built
 above the provider the hook reads, so it calls the same rule as the plain
 function `chromeLangDir(uiLocale, documentDirection)`.
 
+"The document" there means the *nearest* one, not the activity: a nested
+`<document lang>` turns its own subtree around, so `section.tsx` re-mounts
+`DocumentDirectionProvider` around whatever it just declared. Otherwise chrome
+inside `<document lang="ar">` would compare itself against a left-to-right
+activity, find no disagreement, and stay silent in a box running the other way.
+
 ### Notation is a left-to-right island
 
 Mathematics reads left-to-right in Arabic and Hebrew as well, so a graph must

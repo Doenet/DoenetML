@@ -220,6 +220,16 @@ export function useUiLocale(): string {
  */
 const DocumentDirectionContext = createContext<Direction | null>(null);
 
+/**
+ * Declare the direction of the document the chrome below is drawn inside.
+ *
+ * Mounted twice over: once by `DocViewer` for the outermost document, and again
+ * by `section.tsx` around a nested `<document lang>`, which turns its own
+ * subtree around and so becomes what the chrome inside *it* has to agree with.
+ * Without the second, a hint inside `<document lang="ar">` would compare itself
+ * against the activity's direction and stay silent while sitting in a box
+ * running the other way.
+ */
 export function DocumentDirectionProvider({
     direction,
     children,
@@ -232,6 +242,17 @@ export function DocumentDirectionProvider({
             {children}
         </DocumentDirectionContext.Provider>
     );
+}
+
+/**
+ * The direction of the nearest enclosing document, or `null` outside any.
+ *
+ * For a renderer that both *declares* a direction and draws chrome of its own
+ * inside it — today only `section.tsx`, which has to compare its own heading
+ * against the box it is about to open rather than the one around it.
+ */
+export function useDocumentDirection(): Direction | null {
+    return useContext(DocumentDirectionContext);
 }
 
 /** What {@link useChromeLangDir} spreads onto a piece of chrome. */
@@ -282,7 +303,7 @@ export function chromeLangDir(
  * on purpose, so it should follow the document's direction too.
  */
 export function useChromeLangDir(): ChromeLangDir {
-    return chromeLangDir(useUiLocale(), useContext(DocumentDirectionContext));
+    return chromeLangDir(useUiLocale(), useDocumentDirection());
 }
 
 /**

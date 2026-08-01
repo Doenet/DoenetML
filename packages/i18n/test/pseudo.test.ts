@@ -106,7 +106,7 @@ describe("the right-to-left pseudo-locale", () => {
         expect(stripBidiIsolates(rtl)).toBe(ltr);
     });
 
-    it("adds only invisible marks, inside the brackets", () => {
+    it("adds only invisible marks, outside the brackets", () => {
         const t = createTranslator([PSEUDO_RTL_LOCALE], {
             [PSEUDO_RTL_LOCALE]: pseudoLocalize(SOURCE, {
                 brackets: PSEUDO_RTL_BRACKETS,

@@ -22,7 +22,14 @@ import { cesc } from "@doenet/utils";
 import { directionOf } from "@doenet/i18n";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DocContext } from "../DocViewer";
-import { useChromeLangDir, useContentT, useT } from "../../utils/i18n";
+import {
+    chromeLangDir as chromeLangDirProps,
+    DocumentDirectionProvider,
+    useContentT,
+    useDocumentDirection,
+    useT,
+    useUiLocale,
+} from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
 
 interface SectionSVs {
@@ -58,11 +65,26 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
     // reader's — see `useContentT`.
     const tContent = useContentT();
 
+    // Only a nested `<document>` in a language of its own supplies
+    // `renderedLang`, and it is set exactly when that language differs from the
+    // one around it — so this is non-null precisely for the sections that turn
+    // their own subtree around, and null for every ordinary section, which
+    // inherits whatever direction it is drawn inside.
+    const nestedDirection = SVs.renderedLang
+        ? directionOf(SVs.renderedLang)
+        : null;
+    const outerDirection = useDocumentDirection();
+
     // A collapsible section's heading is mixed: the title is the author's and
     // follows the document, while "(click to open)" is the reader's. Only the
     // chrome half re-declares itself, and only where the two directions
-    // disagree.
-    const chromeLangDir = useChromeLangDir();
+    // disagree. Compared against `nestedDirection` first, because the heading
+    // is drawn *inside* the container this section is about to open — a nested
+    // document's own heading sits in its own direction, not its parent's.
+    const chromeLangDir = chromeLangDirProps(
+        useUiLocale(),
+        nestedDirection ?? outerDirection,
+    );
 
     const { darkMode } = useContext(DocContext) || {};
 
@@ -186,30 +208,43 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         // viewer labels the whole activity from the outermost document).
         //
         // The direction rides along with it and needs no state variable of its
-        // own. `renderedLang` is set exactly when this document's language
-        // differs from the one around it, so where it is absent the direction
-        // cannot have changed either — and where it is present, reading the
-        // direction off it is right in every case, including English nested in
-        // Arabic. A German document inside an English one picks up a redundant
-        // `dir="ltr"`, which says out loud what was already true.
+        // own — see `nestedDirection`. Reading it off `renderedLang` is right
+        // in every case, including English nested in Arabic. A German document
+        // inside an English one picks up a redundant `dir="ltr"`, which says
+        // out loud what was already true.
         const props = {
             id,
             style,
             ref,
             lang: SVs.renderedLang ?? undefined,
-            dir: SVs.renderedLang ? directionOf(SVs.renderedLang) : undefined,
+            dir: nestedDirection ?? undefined,
         };
 
-        switch (SVs.containerTag) {
-            case "aside":
-                return <aside {...props}>{content}</aside>;
-            case "article":
-                return <article {...props}>{content}</article>;
-            case "div":
-                return <div {...props}>{content}</div>;
-            default:
-                return <section {...props}>{content}</section>;
-        }
+        const container = (() => {
+            switch (SVs.containerTag) {
+                case "aside":
+                    return <aside {...props}>{content}</aside>;
+                case "article":
+                    return <article {...props}>{content}</article>;
+                case "div":
+                    return <div {...props}>{content}</div>;
+                default:
+                    return <section {...props}>{content}</section>;
+            }
+        })();
+
+        // Having turned this subtree around, tell the chrome inside it what it
+        // is now drawn inside. Otherwise a hint or an error box within
+        // `<document lang="ar">` would compare itself against the activity's
+        // direction, find no disagreement, and render its English parentheses
+        // the wrong way round in a right-to-left box.
+        return nestedDirection ? (
+            <DocumentDirectionProvider direction={nestedDirection}>
+                {container}
+            </DocumentDirectionProvider>
+        ) : (
+            container
+        );
     };
 
     // Inject dynamic CSS for list-item section numbers into document head
