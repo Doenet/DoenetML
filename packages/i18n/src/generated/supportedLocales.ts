@@ -7,9 +7,11 @@
 /** A locale this repository ships a catalog for. */
 export type SupportedLocale =
     | "en"
+    | "am"
     | "de"
     | "es"
     | "fr"
+    | "hi"
     | "hnj"
     | "id"
     | "it"
@@ -63,6 +65,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "English",
     },
     {
+        locale: "am",
+        englishName: "Amharic",
+        endonym: "አማርኛ",
+        label: "Amharic (አማርኛ)",
+    },
+    {
         locale: "de",
         englishName: "German",
         endonym: "Deutsch",
@@ -79,6 +87,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "French",
         endonym: "français",
         label: "French (français)",
+    },
+    {
+        locale: "hi",
+        englishName: "Hindi",
+        endonym: "हिन्दी",
+        label: "Hindi (हिन्दी)",
     },
     {
         locale: "hnj",

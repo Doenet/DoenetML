@@ -66,19 +66,21 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `de`, `es`, `fr`, `hnj`,
-`id`, `it`, `ja`, `ko`, `nl`, `pl`, `pt`, `ru`, `so`, `tr`, `vi`, `zh-Hans`,
-`zh-Hant` — is an **unreviewed machine-generated seed**, which each file's own
-header says at the top, and which is what #1521's translation platform is for.
-None has been read by a speaker. Correcting one needs no permission and no
-coordination: a wrong string is just wrong, and the English is one key away.
+English is the source of truth. Every translation — `am`, `de`, `es`, `fr`,
+`hi`, `hnj`, `id`, `it`, `ja`, `ko`, `nl`, `pl`, `pt`, `ru`, `so`, `tr`, `vi`,
+`zh-Hans`, `zh-Hant` — is an **unreviewed machine-generated seed**, which each
+file's own header says at the top, and which is what #1521's translation
+platform is for. None has been read by a speaker. Correcting one needs no
+permission and no coordination: a wrong string is just wrong, and the English is
+one key away.
 
-Three of them are deliberately partial, all in the same place: Somali, Hmong
-Njua and Vietnamese leave `element-name` and `element-anion-name` out, so those
-130 keys fall back to English and `lint:i18n` reports the gap. The first two
-have no settled chemical nomenclature to seed from. Vietnamese has two, and the
-current one is English — school chemistry has moved from the transliterated
-names to the IUPAC forms — so the fallback is already what the curriculum uses.
+Four of them are deliberately partial, all in the same place: Somali, Hmong
+Njua, Amharic and Vietnamese leave `element-name` and `element-anion-name` out,
+so those 130 keys fall back to English and `lint:i18n` reports the gap. The
+first three have no settled chemical nomenclature to seed from. Vietnamese has
+two, and the current one is English — school chemistry has moved from the
+transliterated names to the IUPAC forms — so the fallback is already what the
+curriculum uses.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.

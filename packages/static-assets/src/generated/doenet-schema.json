@@ -64964,6 +64964,10 @@
                             "description": "English"
                         },
                         {
+                            "value": "am",
+                            "description": "Amharic (አማርኛ)"
+                        },
+                        {
                             "value": "de",
                             "description": "German (Deutsch)"
                         },
@@ -64974,6 +64978,10 @@
                         {
                             "value": "fr",
                             "description": "French (français)"
+                        },
+                        {
+                            "value": "hi",
+                            "description": "Hindi (हिन्दी)"
                         },
                         {
                             "value": "hnj",
