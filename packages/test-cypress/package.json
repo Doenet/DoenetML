@@ -57,6 +57,7 @@
     },
     "dependencies": {
         "@doenet/doenetml-prototype": "*",
+        "@doenet/i18n": "*",
         "@doenet/utils": "^*",
         "vite": "^*"
     },

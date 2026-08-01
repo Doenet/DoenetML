@@ -44,7 +44,7 @@ import {
     useHostChromeTranslator,
     useLocaleCatalogs,
 } from "./utils/i18n";
-import { type Translator } from "@doenet/i18n";
+import { directionOf, type Direction, type Translator } from "@doenet/i18n";
 import { defaultFlags } from "./flags";
 import type { DoenetMLFlags } from "./flags";
 export type { DoenetMLFlags } from "./flags";
@@ -268,6 +268,10 @@ export function DoenetViewer({
     // provider that also accounts for an authored `<document lang>`.
     const { translate: translateChrome, locale: hostUiLocale } =
         useHostChromeTranslator(uiLocale, documentLocale, availableCatalogs);
+    // The reader's writing direction. Needed twice: once as an attribute on
+    // the wrapper below, once handed to the keyboard tray, which renders into
+    // its own root and inherits nothing.
+    const hostUiDirection = directionOf(hostUiLocale);
 
     // Start off hidden and then unhide once the viewer is visible.
     // This is needed to delay the initialization of JSXgraph
@@ -409,6 +413,14 @@ export function DoenetViewer({
             >
                 <div
                     data-theme={resolvedTheme}
+                    // The chrome outside the document — the variant selector,
+                    // the "initializing" notice, the error-boundary fallback —
+                    // is in the reader's language, and until now said so
+                    // nowhere. `DocViewer` re-declares both attributes on the
+                    // wrapper below for the *content's* language, so this only
+                    // governs what sits outside it.
+                    lang={hostUiLocale}
+                    dir={hostUiDirection}
                     ref={(r) => {
                         ref.current = r;
                         if (onInit && r) {
@@ -427,6 +439,7 @@ export function DoenetViewer({
                             }
                             theme={resolvedTheme}
                             translate={translateChrome}
+                            direction={hostUiDirection}
                         >
                             {variantSelector}
                             {viewer}
@@ -595,6 +608,10 @@ export const DoenetEditor = React.forwardRef<
     );
     const { translate: translateChrome, locale: hostUiLocale } =
         useHostChromeTranslator(uiLocale, documentLocale, availableCatalogs);
+    // The reader's writing direction. Needed twice: once as an attribute on
+    // the wrapper below, once handed to the keyboard tray, which renders into
+    // its own root and inherits nothing.
+    const hostUiDirection = directionOf(hostUiLocale);
 
     const normalizedShowDiagnostics =
         showDiagnostics ?? showErrorsWarnings ?? true;
@@ -679,7 +696,17 @@ export const DoenetEditor = React.forwardRef<
                 src={mathjaxUrl}
                 useExistingMathJax={useExistingMathjax}
             >
-                <div data-theme={resolvedTheme} style={{ display: "contents" }}>
+                {/* The whole editor — toolbar, tabs, variant selector,
+                    diagnostics panel, context help — is chrome in the reader's
+                    language, and none of it is inside any `.doenet-viewer`.
+                    `display: contents` generates no box but both attributes
+                    still inherit, which is exactly what is wanted here. */}
+                <div
+                    data-theme={resolvedTheme}
+                    lang={hostUiLocale}
+                    dir={hostUiDirection}
+                    style={{ display: "contents" }}
+                >
                     <I18nProvider
                         translate={translateChrome}
                         locale={hostUiLocale}
@@ -691,6 +718,7 @@ export const DoenetEditor = React.forwardRef<
                             }
                             theme={resolvedTheme}
                             translate={translateChrome}
+                            direction={hostUiDirection}
                         >
                             {editor}
                         </WrapWithKeyboard>
@@ -709,12 +737,14 @@ function WrapWithKeyboard({
     externalVirtualKeyboardProvided,
     theme,
     translate,
+    direction,
     children,
 }: React.PropsWithChildren<{
     addVirtualKeyboard: boolean;
     externalVirtualKeyboardProvided: boolean;
     theme?: "dark" | "light";
     translate?: Translator;
+    direction?: Direction;
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
@@ -726,8 +756,10 @@ function WrapWithKeyboard({
             // The tray lives in its own React root outside this tree (it is
             // shared by every viewer on the page), so the translator has to be
             // handed to it the same way `theme` already is — context cannot
-            // cross a root boundary.
+            // cross a root boundary. Neither can an inherited `dir`, so the
+            // direction rides the same channel.
             translate={translate}
+            direction={direction}
             onClick={(keyCommands) => {
                 dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
             }}

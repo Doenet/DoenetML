@@ -59,6 +59,20 @@ describe("createTranslatorFromLocaleData", () => {
         expect(t("noun.circle", undefined, "circle")).toBe("circle");
     });
 
+    it("never isolates a placeable, even in a translated language", () => {
+        // The opposite answer to `createChromeTranslator`'s, pinned as exact
+        // bytes: what this translator renders becomes state variables an
+        // author interpolates and an `<award>` compares, where an invisible
+        // U+2068/U+2069 is a silent wrong answer. A future "consistency"
+        // change that passed `useIsolating` here the way the chrome does
+        // would corrupt every parameterized content string.
+        const t = createTranslatorFromLocaleData({
+            locale: "es",
+            resources: { es: "count-items = { $count } elementos" },
+        });
+        expect(t("count-items", { count: 3 })).toBe("3 elementos");
+    });
+
     it("translates for a locale other than the one the payload asked for", () => {
         // A nested `<document lang>` differing from the host's request.
         const localeData = { locale: "en", resources: ES };

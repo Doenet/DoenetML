@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import {
     createChromeTranslator,
+    directionOf,
     loadLocaleResourcesFor,
     localeResourceKey,
     resolveDocumentLocale,
@@ -14,6 +15,7 @@ import {
     CATALOG_NAMESPACES,
     DEFAULT_LOCALE,
     EN_CHROME_TRANSLATOR,
+    type Direction,
     type Translator,
 } from "@doenet/i18n";
 
@@ -207,6 +209,105 @@ export function useT(): Translator {
  */
 export function useUiLocale(): string {
     return useContext(I18nContext).locale;
+}
+
+/**
+ * The direction of the document this chrome is drawn inside, or `null` where
+ * there is no surrounding document to disagree with.
+ *
+ * `null` is the default so a renderer mounted outside `DocViewer` — or before
+ * the core has answered — adds no attributes and behaves as it does today.
+ */
+const DocumentDirectionContext = createContext<Direction | null>(null);
+
+/**
+ * Declare the direction of the document the chrome below is drawn inside.
+ *
+ * Mounted twice over: once by `DocViewer` for the outermost document, and again
+ * by `section.tsx` around a nested `<document lang>`, which turns its own
+ * subtree around and so becomes what the chrome inside *it* has to agree with.
+ * Without the second, a hint inside `<document lang="ar">` would compare itself
+ * against the activity's direction and stay silent while sitting in a box
+ * running the other way.
+ */
+export function DocumentDirectionProvider({
+    direction,
+    children,
+}: {
+    direction: Direction;
+    children: React.ReactNode;
+}) {
+    return (
+        <DocumentDirectionContext.Provider value={direction}>
+            {children}
+        </DocumentDirectionContext.Provider>
+    );
+}
+
+/**
+ * The direction of the nearest enclosing document, or `null` outside any.
+ *
+ * For a renderer that both *declares* a direction and draws chrome of its own
+ * inside it — today only `section.tsx`, which has to compare its own heading
+ * against the box it is about to open rather than the one around it.
+ */
+export function useDocumentDirection(): Direction | null {
+    return useContext(DocumentDirectionContext);
+}
+
+/** What {@link useChromeLangDir} spreads onto a piece of chrome. */
+export type ChromeLangDir = { lang?: string; dir?: Direction };
+
+/**
+ * {@link useChromeLangDir} without the hook, for a caller that renders *above*
+ * {@link DocumentDirectionProvider} and so cannot read the context — today only
+ * `DocViewer`'s error banner, which is built before the providers it sits
+ * inside.
+ *
+ * @param documentDirection The direction of the surrounding document, or `null`
+ *   where there is none to disagree with.
+ */
+export function chromeLangDir(
+    uiLocale: string,
+    documentDirection: Direction | null,
+): ChromeLangDir {
+    const chromeDirection = directionOf(uiLocale);
+    if (documentDirection === null || documentDirection === chromeDirection) {
+        return {};
+    }
+    return { lang: uiLocale, dir: chromeDirection };
+}
+
+/**
+ * `lang` and `dir` for a piece of chrome, or `{}` when it needs neither.
+ *
+ * The viewer labels its wrapper with the *document's* language, and mounts the
+ * chrome provider inside it — so every string a renderer draws through
+ * {@link useT} is the reader's language sitting in a box declared to be the
+ * content's. That costs nothing while the two run the same way, and is why
+ * this returns an empty object in the overwhelmingly common case: spreading it
+ * then adds no attribute to the element it is spread onto. (Several of the
+ * call sites wrap their string in a `<span>` to have something to spread onto;
+ * that span is inert when the object is empty.)
+ *
+ * It matters when they disagree, which is the case right-to-left support
+ * exists for: a Spanish-speaking reader working an Arabic activity. Without
+ * this, their English or Spanish chrome renders inside `dir="rtl"` and its
+ * trailing punctuation, parentheses and percent signs land on the wrong end of
+ * the sentence.
+ *
+ * Spread it onto chrome that sits *inside* the document — the error box, the
+ * feedback heading, the click-to-toggle text on a hint, a solution or a
+ * collapsible section, a pretzel's answer label, the summary-statistics
+ * caption, the math-input preview's parse-error message. Do not spread it onto
+ * anything reading {@link useContentT}: the check-work widget follows the
+ * document's language on purpose, so it should follow the document's direction
+ * too. Tooltips need nothing either, for the opposite reason — Ariakit portals
+ * them to `document.body`, so they are never inside the document's box at all,
+ * and a native `title` attribute is drawn by the browser rather than by CSS.
+ */
+export function useChromeLangDir(): ChromeLangDir {
+    return chromeLangDir(useUiLocale(), useDocumentDirection());
 }
 
 /**

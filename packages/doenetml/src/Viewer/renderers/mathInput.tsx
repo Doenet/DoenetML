@@ -38,7 +38,7 @@ import {
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
-import { useContentT, useT } from "../../utils/i18n";
+import { useChromeLangDir, useContentT, useT } from "../../utils/i18n";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
@@ -289,6 +289,12 @@ function MathInputPreviewPopover({
 }) {
     const t = useT();
 
+    // The parse-error message is chrome — the reader's language inside the
+    // document's box — while the raw expression quoted after it is what the
+    // user typed. Re-declared as one run so its trailing colon stays against
+    // the label, and empty unless the two directions disagree.
+    const chromeLangDir = useChromeLangDir();
+
     if (!showPreview) {
         return null;
     }
@@ -322,6 +328,19 @@ function MathInputPreviewPopover({
             <div
                 id={preview.previewId}
                 className="mathInputPreviewContent"
+                // The preview is notation, like the field it previews, and it
+                // is this div that scrolls a long expression — the popover
+                // does not portal, so inside a right-to-left document it
+                // would otherwise become an RTL scroll container: it opens
+                // showing the tail of the expression, and `scrollLeft` runs
+                // from the negatives up to zero, which turns Home and End in
+                // `handlePreviewKeyDown` into two ways of showing the same
+                // end. MathJax pins `mjx-math` itself, but that is the
+                // content, not the container that scrolls it. The parse-error
+                // branch is left to inherit: it is wrapping prose, and the
+                // chrome half of it re-declares itself below when it
+                // disagrees with the document.
+                dir={showParseErrorMessage ? undefined : "ltr"}
                 tabIndex={0}
                 aria-label={t("math-input-preview", undefined, "Preview")}
                 onFocus={() => preview.setInteractingWithPreview(true)}
@@ -329,7 +348,10 @@ function MathInputPreviewPopover({
                 onKeyDown={preview.handlePreviewKeyDown}
             >
                 {showParseErrorMessage ? (
-                    <div className="mathInputPreviewErrorMessage">
+                    <div
+                        className="mathInputPreviewErrorMessage"
+                        {...chromeLangDir}
+                    >
                         <strong>
                             {t(
                                 "math-input-invalid-expression",
@@ -1308,8 +1330,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
             id={labelId}
             htmlFor={inputKey}
             style={{
-                marginRight: SVs.labelPosition === "right" ? undefined : "2px",
-                marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
+                marginInlineEnd:
+                    SVs.labelPosition === "right" ? undefined : "2px",
+                marginInlineStart:
+                    SVs.labelPosition === "right" ? "2px" : undefined,
             }}
         >
             {label}

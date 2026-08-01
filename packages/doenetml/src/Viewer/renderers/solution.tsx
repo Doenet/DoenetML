@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPuzzlePiece as puzzle } from "@fortawesome/free-solid-svg-icons";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
-import { useT } from "../../utils/i18n";
+import { useChromeLangDir, useT } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
 import "./solution.css";
 
@@ -32,6 +32,11 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
     useRecordVisibilityChanges(ref, callAction, actions);
 
     const openCloseText = clickToToggleLabel(t, SVs.open);
+    // The heading is mixed: the section name and message come from the worker
+    // in the document's language, while "(click to open)" is the reader's.
+    // Only the chrome half re-declares itself, and only where the two
+    // directions disagree.
+    const chromeLangDir = useChromeLangDir();
 
     if (SVs.hidden) {
         return null;
@@ -132,7 +137,8 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
                 onClick={onClickFunction}
                 onKeyDown={onKeyPressFunction}
             >
-                {icon} {SVs.sectionName} {SVs.message} {openCloseText}
+                {icon} {SVs.sectionName} {SVs.message}{" "}
+                <span {...chromeLangDir}>{openCloseText}</span>
             </span>
             <span style={infoBlockStyle}>{childrenToRender}</span>
         </aside>

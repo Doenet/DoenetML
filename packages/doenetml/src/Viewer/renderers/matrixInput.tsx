@@ -226,8 +226,10 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
         <span
             id={labelId}
             style={{
-                marginRight: SVs.labelPosition === "right" ? undefined : "5px",
-                marginLeft: SVs.labelPosition === "right" ? "5px" : undefined,
+                marginInlineEnd:
+                    SVs.labelPosition === "right" ? undefined : "5px",
+                marginInlineStart:
+                    SVs.labelPosition === "right" ? "5px" : undefined,
             }}
         >
             {label}
@@ -245,7 +247,12 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                 verticalAlign: "baseline",
             }}
         >
-            <div className="matrix-input" id={id}>
+            {/* A matrix is notation: its columns are numbered left to right in
+                every language, and the brackets around it are drawn as
+                absolutely-positioned pseudo-elements that assume which side
+                they are on. A `<table>` reverses its columns under `rtl`, so
+                without this the whole matrix would come out mirrored. */}
+            <div className="matrix-input" id={id} dir="ltr">
                 <table
                     aria-labelledby={groupLabelledByIds || undefined}
                     aria-label={
@@ -259,7 +266,7 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                     <tbody>{matrixInputs}</tbody>
                 </table>
             </div>
-            <div style={{ marginRight: "4px" }}></div>
+            <div style={{ marginInlineEnd: "4px" }}></div>
             {rowNumControls}
             {colNumControls}
             {checkWorkComponent}

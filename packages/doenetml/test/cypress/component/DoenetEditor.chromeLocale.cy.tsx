@@ -1,5 +1,6 @@
 import React from "react";
 import { DoenetEditor } from "../../../src/doenetml-inline-worker";
+import { plainTextIncluding, stripBidiIsolates } from "./utils/bidi";
 
 // The editor chrome had no `useT()` in it at all, so a reader who asked for
 // Spanish got a Spanish document inside an English editor — worst in the
@@ -61,7 +62,11 @@ describe("the editor chrome follows the reader's language", () => {
             initialOpenTab: "errors",
         });
 
-        cy.contains("Línea n.º 2", { timeout: VIEWER_TIMEOUT });
+        // The line number is a placeable, and the chrome isolates placeables
+        // in every language but English.
+        cy.get("body", { timeout: VIEWER_TIMEOUT }).should(
+            plainTextIncluding("Línea n.º 2"),
+        );
         cy.get("body").should("not.contain.text", "Line #2");
     });
 
@@ -98,7 +103,11 @@ describe("the editor chrome follows the reader's language", () => {
         }).within(() => {
             cy.get("a").should("have.text", "WCAG AA");
         });
-        cy.contains("h3", "Infracciones de accesibilidad (WCAG AA)");
+        // `WCAG AA` is a placeable — it is the name of a standard and stays
+        // in English — so the parentheses no longer hug it byte-for-byte.
+        cy.get("h3").should(
+            plainTextIncluding("Infracciones de accesibilidad (WCAG AA)"),
+        );
     });
 
     it("renders it in English when nothing asks for another language", () => {
@@ -140,6 +149,10 @@ describe("the editor chrome follows the reader's language", () => {
         );
         cy.get('[data-test="Viewer Update Button"]')
             .invoke("attr", "title")
+            // Both the verb and the shortcut are placeables, so the anchors
+            // and the space between them only line up once the isolation
+            // marks are out.
+            .then(stripBidiIsolates)
             .should("match", /^Actualizar el visor (cmd|ctrl)\+s$/);
     });
 });

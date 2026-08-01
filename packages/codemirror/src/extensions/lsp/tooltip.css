@@ -32,6 +32,13 @@
     text-decoration-color: #9061d1;
 }
 
+/*
+ * The `border-left-color` rules below stay physical for two reasons: they
+ * recolor an accent bar CodeMirror itself declares as `border-left`, and
+ * mixing a logical override onto a physical declaration leaves the cascade
+ * deciding between two properties that mean the same thing; and the editor
+ * they sit in is pinned to `dir="ltr"` anyway, because it renders source.
+ */
 .cm-tooltip-lint
     .cm-diagnostic.cm-diagnostic-warning:has(
         .cm-lint-tooltip .heading.accessibility-level-1

@@ -1,3 +1,10 @@
+/*
+ * The brackets stay physical, and deliberately so: `matrixInput.tsx` pins this
+ * element to `dir="ltr"`, because a matrix is notation and does not mirror.
+ * There is no direction here for a logical property to follow, and writing one
+ * would suggest the brackets could swap ends — which would leave the opening
+ * bracket closing and the closing one opening.
+ */
 .doenet-viewer .matrix-input {
     position: relative;
     margin: 6px;

@@ -1,5 +1,6 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
+import { plainTextIncluding } from "./utils/bidi";
 
 // The red error box rendered *inside* the document used to stay English while
 // the same diagnostic in the Diagnostics panel was translated — same error,
@@ -18,9 +19,16 @@ const VIEWER_TIMEOUT = 15_000;
 /** The box `_error.tsx` draws, identified by the border color it alone uses. */
 const ERROR_BOX = "[style*='mainRed']";
 
-/** Assert some error box on the page contains `text`. */
+/**
+ * Assert some error box on the page contains `text`.
+ *
+ * Ignores bidi isolation marks: the location line puts its line number in a
+ * placeable, and the chrome isolates placeables in every language but English.
+ */
 function errorBoxContains(text: string) {
-    return cy.contains(ERROR_BOX, text, { timeout: VIEWER_TIMEOUT });
+    return cy
+        .get(ERROR_BOX, { timeout: VIEWER_TIMEOUT })
+        .should(plainTextIncluding(text));
 }
 
 /**

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { PSEUDO_LOCALE, pseudoLocalize } from "../src/pseudo";
+import {
+    PSEUDO_LOCALE,
+    PSEUDO_RTL_BRACKETS,
+    PSEUDO_RTL_LOCALE,
+    pseudoLocalize,
+} from "../src/pseudo";
+import { stripBidiIsolates } from "../src/direction";
 import { createTranslator } from "../src/translator";
 import { catalogParseErrors, extractKeys } from "../scripts/catalogUtils";
 
@@ -87,5 +93,46 @@ describe("pseudoLocalize", () => {
             brackets: ["[", "]"],
         });
         expect(pseudo.trim()).toBe("greeting = [Ĥí]");
+    });
+});
+
+describe("the right-to-left pseudo-locale", () => {
+    it("renders the same text as the left-to-right one", () => {
+        // The whole design: `en-XB` is a direction fixture, not a second
+        // vocabulary. A difference between an `en-XA` run and an `en-XB` run
+        // has to be a difference in layout, so the text must not vary.
+        const ltr = pseudoLocalize(SOURCE);
+        const rtl = pseudoLocalize(SOURCE, { brackets: PSEUDO_RTL_BRACKETS });
+        expect(stripBidiIsolates(rtl)).toBe(ltr);
+    });
+
+    it("adds only invisible marks, outside the brackets", () => {
+        const t = createTranslator([PSEUDO_RTL_LOCALE], {
+            [PSEUDO_RTL_LOCALE]: pseudoLocalize(SOURCE, {
+                brackets: PSEUDO_RTL_BRACKETS,
+            }),
+        });
+        const greeting = t("greeting");
+        // Still bracketed and still readable — the marks sit outside the `»`,
+        // so a truncation check reads exactly as it does under `en-XA`.
+        expect(greeting).toContain("»");
+        expect(greeting).toContain("Ĥéļļó");
+        expect(stripBidiIsolates(greeting).startsWith("»")).toBe(true);
+        expect(stripBidiIsolates(greeting).endsWith("«")).toBe(true);
+        // And *outside* pinned on the raw bytes — the mark precedes the
+        // opener and follows the closer, on the face turned towards the
+        // sentence. The assertions above would all still pass with the marks
+        // inside the brackets, where they would sit against the value's own
+        // strong Latin letters and resolve nothing.
+        expect(greeting.startsWith("\u200F»")).toBe(true);
+        expect(greeting.endsWith("«\u200F")).toBe(true);
+    });
+
+    it("is still a catalog with the same keys", () => {
+        const pseudo = pseudoLocalize(SOURCE, {
+            brackets: PSEUDO_RTL_BRACKETS,
+        });
+        expect(catalogParseErrors(pseudo)).toEqual([]);
+        expect(extractKeys(pseudo)).toEqual(extractKeys(SOURCE));
     });
 });

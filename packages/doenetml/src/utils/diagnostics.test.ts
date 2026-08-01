@@ -4,6 +4,7 @@ import path from "node:path";
 import {
     createChromeTranslator,
     createDiagnosticFormatter,
+    stripBidiIsolates,
 } from "@doenet/i18n";
 import type { DiagnosticRecord } from "@doenet/utils";
 
@@ -51,7 +52,9 @@ const formatEn = createDiagnosticFormatter(createChromeTranslator("en"), "en");
 describe("localizeDiagnostics", () => {
     it("renders a coded record's message in the chrome's language", () => {
         const [localized] = localizeDiagnostics([coded], formatEs);
-        expect(localized.message).toBe(
+        // Stripped because the chrome isolates its placeables in every
+        // language but English, and the ignored attributes are one.
+        expect(stripBidiIsolates(localized.message)).toBe(
             "slope y length se ignoran cuando se especifican los dos extremos",
         );
     });

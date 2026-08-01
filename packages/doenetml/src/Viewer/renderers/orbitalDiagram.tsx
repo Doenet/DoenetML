@@ -3,6 +3,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { ltrIslandProps } from "./utils/direction";
 
 const ORBITAL_ARROW_STYLE: React.CSSProperties = {
     fill: "none",
@@ -57,7 +58,11 @@ export default React.memo(function orbitalDiagram(
     }
 
     return (
-        <div ref={ref} id={id}>
+        // An electron configuration is notation: the subshell label sits to
+        // the left of its boxes and the boxes fill left to right, in every
+        // language. The rows are plain inline flow, so they would otherwise
+        // reverse wholesale under `rtl`.
+        <div ref={ref} id={id} {...ltrIslandProps()}>
             {rowsJSX}
         </div>
     );

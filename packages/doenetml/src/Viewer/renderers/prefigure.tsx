@@ -304,6 +304,11 @@ export default React.memo(function Prefigure({
                     <div
                         className="svg"
                         style={svgContainerStyle}
+                        // Coordinate space, like the JSXGraph board: the SVG
+                        // carries `text-anchor` on its labels, which resolves
+                        // against the computed direction. The annotations
+                        // below are prose and are left to inherit.
+                        dir="ltr"
                         dangerouslySetInnerHTML={{ __html: svgMarkup }}
                     />
                 ) : (
