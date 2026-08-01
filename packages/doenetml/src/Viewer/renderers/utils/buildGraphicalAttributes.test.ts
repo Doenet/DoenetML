@@ -23,14 +23,17 @@ function expectNoKeysDifferingOnlyByCase(attributes: Record<string, any>) {
     );
 }
 
-function buildElementAttributes(labelForGraph: string) {
+const SVs = {
+    labelForGraph: "v",
+    hidden: false,
+    layer: 3,
+    selectedStyle: resolveStyleDefinition({}),
+};
+
+/** Attributes of a visible line-family element that is fixed and fix-located. */
+function buildElementAttributes() {
     return buildLineLikeAttributes({
-        SVs: {
-            labelForGraph,
-            hidden: false,
-            layer: 3,
-            selectedStyle: resolveStyleDefinition({}),
-        },
+        SVs,
         layerOffset: 2,
         fixed: true,
         fixLocation: true,
@@ -40,12 +43,6 @@ function buildElementAttributes(labelForGraph: string) {
 
 describe("attribute builders", () => {
     it("produce no keys that differ only by case", () => {
-        const SVs = {
-            labelForGraph: "A",
-            hidden: false,
-            layer: 3,
-            selectedStyle: resolveStyleDefinition({}),
-        };
         const args = {
             SVs,
             layerOffset: 2,
@@ -62,7 +59,7 @@ describe("attribute builders", () => {
 
 describe("buildDragHandleAttributes", () => {
     it("turns off the label it inherits from the element", () => {
-        const elementAttributes = buildElementAttributes("v");
+        const elementAttributes = buildElementAttributes();
         expect(elementAttributes.withlabel).toBe(true);
 
         const handleAttributes = buildDragHandleAttributes({
@@ -83,7 +80,7 @@ describe("buildDragHandleAttributes", () => {
 
     it("makes the handles transparent, unfixed, and highlightable", () => {
         const handleAttributes = buildDragHandleAttributes({
-            elementAttributes: buildElementAttributes("v"),
+            elementAttributes: buildElementAttributes(),
             layer: 42,
             darkMode: "dark",
             showInfoBox: false,
@@ -101,15 +98,17 @@ describe("buildDragHandleAttributes", () => {
         expect(handleAttributes.showInfoBox).toBe(false);
     });
 
-    it("leaves the inherited visibility for the caller to adjust", () => {
+    it("inherits the element's visibility rather than forcing one", () => {
+        // Callers that show only some of the handles — a vector whose head is
+        // draggable but whose tail is not, a polyline with fixed vertices —
+        // layer their own `visible` on top of what the builder returns.
         const handleAttributes = buildDragHandleAttributes({
-            elementAttributes: buildElementAttributes("v"),
+            elementAttributes: buildElementAttributes(),
             layer: 42,
             darkMode: "light",
             showInfoBox: true,
         });
 
         expect(handleAttributes.visible).toBe(true);
-        expect({ ...handleAttributes, visible: false }.visible).toBe(false);
     });
 });

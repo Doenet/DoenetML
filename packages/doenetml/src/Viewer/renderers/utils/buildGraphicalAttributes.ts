@@ -133,10 +133,10 @@ export function buildFilledShapeAttributes({
  * Attributes for the invisible points a line-family renderer creates as drag
  * handles: a vector's or line segment's endpoints, a polyline's vertices.
  *
- * The handles start from the attributes of the element they drag, so that they
- * inherit its visibility and styling defaults, and are then made transparent
- * (they show up only as a highlight under the pointer), individually draggable
- * even when the element itself is not, and label-free.
+ * The handles are derived from the attributes of the element they drag, so that
+ * they follow its visibility, and are then made transparent (they show up only
+ * as a highlight under the pointer), individually draggable even when the
+ * element itself is not, and label-free.
  *
  * Suppressing the label is essential rather than cosmetic: the element's
  * attributes carry `name: SVs.labelForGraph`, so any handle left with

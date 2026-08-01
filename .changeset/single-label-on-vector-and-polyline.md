@@ -6,8 +6,8 @@
 "doenet-vscode-extension": patch
 ---
 
-Graphs: a labeled `<vector>` or `<polyline>` draws its label once again, instead of repeating it on every draggable handle.
+Graphs: a labeled `<vector>` or `<polyline>` draws its label only once, instead of repeating it on every draggable handle.
 
-A `<vector name="v"><label><m>x^2</m></label></vector>` in a graph drew three copies of its label: the intended one beside the arrow, plus one at the head and one at the tail. `<polyline>` did the same at each vertex. Only the component's own copy was typeset, so with a `<m>` label the extra copies appeared as raw LaTeX — `\(x^2\)`.
+A `<vector><label><m>x^2</m></label></vector>` in a graph drew three copies of its label: the intended one beside the arrow, plus one at the head and one at the tail. A `<polyline>` did the same at each vertex. Only the component's own copy was typeset, so with a `<m>` label the extra copies appeared as raw LaTeX — `\(x^2\)`.
 
-Both renderers built the invisible drag handles by copying the component's own JSXGraph attributes, which include its label text, and then switching the label back off. The two spellings of that attribute — `withlabel` in the shared attribute builder, `withLabel` in the override — became distinct object keys, and JSXGraph resolves such a clash in favor of the one written first, so the override was silently dropped and each handle kept the label. `<vector>`, `<lineSegment>` and `<polyline>` now derive their drag handles from one shared builder, so the two spellings can no longer drift apart.
+The extra copies came from the invisible points each renderer creates as drag handles. Those points inherit the component's attributes, including its label text, and the instruction that switched the label back off was being silently dropped. `<vector>`, `<lineSegment>` and `<polyline>` now build their drag handles from one shared helper, so the suppression can no longer go missing from one of them.
