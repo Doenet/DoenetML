@@ -1752,4 +1752,42 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         );
         cy.get('#ci [class*="-singleValue"]').should("have.text", "choice");
     });
+
+    it("inline selectMultiple choiceInput names its remove buttons by choice text", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci" inline selectMultiple placeholder="Choose fruit">
+      <choice><text>apple</text></choice>
+      <choice><text>banana</text></choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("banana").click({ force: true });
+        });
+
+        cy.log("Selecting a choice announces its text in the live region");
+        cy.get("#ci #aria-selection").should(
+            "have.text",
+            "option banana, selected.",
+        );
+
+        cy.log(
+            "The selected chip's remove button is named by the choice text, not '[object Object]'",
+        );
+        // The remove button is the only element react-select gives an
+        // `aria-label` inside the select.
+        cy.get('#ci [role="button"][aria-label]').should(
+            "have.attr",
+            "aria-label",
+            "Remove banana",
+        );
+    });
 });

@@ -291,6 +291,20 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     </ChoiceInputInlineContext.Provider>
                 </components.Option>
             ),
+            // With `selectMultiple`, each selected choice becomes a chip with a
+            // remove button. react-select names that button
+            // `Remove ${children}`, where `children` is the rendered choice
+            // node — which stringifies to "[object Object]" (#1613). Name it
+            // from the choice's text instead.
+            MultiValueRemove: (props: any) => (
+                <components.MultiValueRemove
+                    {...props}
+                    innerProps={{
+                        ...props.innerProps,
+                        "aria-label": `Remove ${props.data.label}`,
+                    }}
+                />
+            ),
             // Add aria-details to the internal input used by react-select.
             Input: (props: any) => (
                 <components.Input {...props} aria-details={descriptionId} />

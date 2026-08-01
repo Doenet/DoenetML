@@ -19,4 +19,7 @@ supplies the accessible name and the filter string, while the rendered content â
 which may contain math, images, or styled text â€” is still what is drawn in the
 menu and in the displayed value.
 
+With `selectMultiple`, the button that removes a selected choice was likewise
+named "Remove [object Object]"; it is now named after the choice text too.
+
 Closes #1613.
