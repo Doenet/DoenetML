@@ -24,7 +24,7 @@
         }
     },
     "scripts": {
-        "dev": "vite",
+        "dev": "wireit",
         "build": "wireit",
         "build:dev": "wireit",
         "preview": "vite preview",
@@ -103,6 +103,9 @@
                 "../parser:build",
                 "../codemirror:build"
             ]
+        },
+        "dev": {
+            "command": "node ../../scripts/copy-test-code.ts && vite"
         }
     },
     "peerDependencies": {
