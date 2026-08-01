@@ -29,7 +29,7 @@ import { DEFAULT_LOCALE } from "./catalogs";
  * The tag it returns pins the numbering system, which is the whole of the
  * digit policy (see {@link LATIN_DIGITS} and the package README). Pinning it
  * here is what makes the policy hold for formatters not yet written: a locale
- * reaches `Intl` through this function or it does not reach `Intl` at all.
+ * reaches an `Intl` formatter through this function or it reaches none at all.
  */
 export function intlLocale(locale: string): string {
     try {
@@ -61,17 +61,14 @@ function pinNumberingSystem(locale: string): string {
  * `{ $count }` in a catalog comes back as `১,২৩৪`, and so does the integer
  * part of an `<intComma>`. This constant says that DoenetML does not do that.
  *
- * It is deliberately narrow: the *separators* still follow the locale, so
- * German still groups with periods and India still groups in twos. The one
- * place the two halves cannot be separated is the Arabic script, where Persian
- * pairs `٬` and `٫` with its own digits and `,` and `.` with these — so
- * pinning the digits takes the Latin-digit separators along with them.
+ * It reaches the digits alone — the *separators* still follow the locale, so
+ * German still groups with periods and India still groups in twos — except in
+ * the Arabic script, where CLDR pairs each set of digits with its own
+ * separators and the two therefore move together.
  *
- * The reasoning is in the package README, under "Digits are Latin, separators
- * are not": a number in prose sits beside numbers that are not, and
- * mathematics is Latin-digit regardless ({@link MATH_NOTATION_LOCALE}). A host
- * that asks for a numbering system explicitly (`zh-u-nu-hanidec`) is
- * overridden too: the policy is one answer per product, not per tag.
+ * Why this is the answer is in the package README, under "Digits are Latin,
+ * separators are not"; {@link MATH_NOTATION_LOCALE} is the half of it that
+ * lives in code.
  */
 const LATIN_DIGITS = "latn";
 

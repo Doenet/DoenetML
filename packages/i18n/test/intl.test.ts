@@ -27,8 +27,8 @@ describe("intlLocale", () => {
 
     it("pins every formatter it feeds, not only the number ones", () => {
         // What the pin is doing here rather than at each formatter: a locale
-        // reaches `Intl` through this function or it does not reach it at all,
-        // so a formatter added later cannot miss the policy.
+        // reaches an `Intl` formatter through this function or it reaches none
+        // at all, so a formatter added later cannot miss the policy.
         expect(new Intl.NumberFormat(intlLocale("bn")).format(1234.5)).toBe(
             "1,234.5",
         );

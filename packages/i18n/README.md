@@ -682,9 +682,9 @@ includes Bangla, Assamese, Marathi, Nepali, Burmese, Persian, Pashto, Sindhi
 and Arabic as written in Egypt.
 
 `intlLocale` pins the numbering system, so this holds for every formatter this
-package builds and for every one added later: a locale reaches `Intl` through
-that function or it does not reach `Intl` at all. It applies to Fluent's
-`NUMBER()`, to a bare `{ $count }` — which Fluent wraps and formats
+package builds and for every one added later: a locale reaches an `Intl`
+formatter through that function or it reaches none at all. It applies to
+Fluent's `NUMBER()`, to a bare `{ $count }` — which Fluent wraps and formats
 identically — to `DATETIME()`, and to `formatDecimalString`. A tag that names a
 numbering system itself (`zh-u-nu-hanidec`) is overridden; the policy is one
 answer per product, not per tag. `lint:i18n` rejects a catalog that passes
@@ -706,8 +706,8 @@ the Latin-digit separators with it. Everywhere else the separator is untouched.
 The other half of the rule is on the argument, not the formatter: a value that
 is an **identifier** rather than a quantity — a line number, a `styleNumber`, a
 `componentIdx`, a section number built out of counters — is passed as a
-`string`, so that nothing groups it either. The catalogs say so where they take
-one.
+`string`, so that nothing groups it either. `TranslationArgs` is where that is
+written down.
 
 ## Bidi isolation
 
