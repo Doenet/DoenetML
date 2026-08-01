@@ -8,10 +8,10 @@ export const PSEUDO_LOCALE = "en-XA";
  * The right-to-left pseudo-locale tag. `XB` is a user-assigned region too, and
  * the pairing follows the convention Android and Chrome already use.
  *
- * Its catalog is *byte-identical* to `en-XA`'s — the same accented Latin, the
- * same expansion padding. The only thing that differs is that `directionOf`
- * reports it `rtl`, which is the whole point: it exercises the layout without
- * touching the text.
+ * Its catalog renders *visually identical* text to `en-XA`'s — the same
+ * accented Latin, the same expansion padding. What differs is that
+ * `directionOf` reports it `rtl`, which is the whole point: it exercises the
+ * layout without touching anything a reader can see.
  *
  * Deliberately not a text transform. Android's `en-XB` wraps values in
  * U+202E RIGHT-TO-LEFT OVERRIDE, which visually reverses Latin — that

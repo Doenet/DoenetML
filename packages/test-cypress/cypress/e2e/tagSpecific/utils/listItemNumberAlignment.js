@@ -72,3 +72,36 @@ export function verifyListItemNumbersAlign(
         ).to.be.lessThan(maxDriftPx);
     });
 }
+
+/**
+ * Assert that a list item's number hangs in the gutter on the side the text
+ * starts from, i.e. that its content is inset from that edge of its own box.
+ *
+ * {@link verifyListItemNumbersAlign} only says the siblings agree with each
+ * other, which a layout that put every number on the wrong side would satisfy
+ * too. This says *which* side, so the two together pin the layout in either
+ * direction.
+ *
+ * @param {string} id Doenet component id of the list item.
+ * @param {"ltr"|"rtl"} direction The direction the document is laid out in.
+ * @param {number} [minGutterPx=1] Smallest inset that counts as a gutter.
+ */
+export function verifyListItemNumberGutterSide(id, direction, minGutterPx = 1) {
+    cy.get(`#${cesc(id)}`).should(($el) => {
+        const el = $el[0];
+        const box = el.getBoundingClientRect();
+        // From the element's own document: `document` in a spec file is the
+        // Cypress runner's, not the application's.
+        const range = el.ownerDocument.createRange();
+        range.selectNodeContents(el);
+        const content = range.getBoundingClientRect();
+        const rtl = direction === "rtl";
+        const gutter = rtl
+            ? box.right - content.right
+            : content.left - box.left;
+        expect(
+            gutter,
+            `${id} gutter is on the ${rtl ? "right" : "left"}`,
+        ).to.be.greaterThan(minGutterPx);
+    });
+}

@@ -3,6 +3,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { LTR_ISLAND_PROPS } from "./utils/direction";
 
 const ORBITAL_ARROW_STYLE: React.CSSProperties = {
     fill: "none",
@@ -61,7 +62,7 @@ export default React.memo(function orbitalDiagram(
         // the left of its boxes and the boxes fill left to right, in every
         // language. The rows are plain inline flow, so they would otherwise
         // reverse wholesale under `rtl`.
-        <div ref={ref} id={id} dir="ltr" style={{ width: "fit-content" }}>
+        <div ref={ref} id={id} {...LTR_ISLAND_PROPS}>
             {rowsJSX}
         </div>
     );

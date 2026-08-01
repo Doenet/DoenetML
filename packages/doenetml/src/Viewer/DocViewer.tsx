@@ -52,6 +52,7 @@ import {
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
 import {
+    chromeLangDir,
     ContentI18nProvider,
     DocumentDirectionProvider,
     I18nProvider,
@@ -2413,17 +2414,12 @@ export function DocViewer({
             // content's language. Re-declared only where the two directions
             // disagree, so the common case adds no attributes: otherwise an
             // English "This document contains errors!" inside an Arabic
-            // document would put its exclamation mark on the wrong end.
-            // Computed here rather than through `useChromeLangDir` because this
-            // is built above the provider that hook reads.
+            // document would put its exclamation mark on the wrong end. Through
+            // the pure helper rather than `useChromeLangDir` because this is
+            // built above the provider that hook reads.
             <div
                 style={errorStyle}
-                {...(directionOf(effectiveUiLocale) !== documentDirection
-                    ? {
-                          lang: effectiveUiLocale,
-                          dir: directionOf(effectiveUiLocale),
-                      }
-                    : {})}
+                {...chromeLangDir(effectiveUiLocale, documentDirection)}
             >
                 <b>
                     {translate(

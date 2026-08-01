@@ -212,17 +212,6 @@ export function useUiLocale(): string {
 }
 
 /**
- * The direction the chrome is rendering in.
- *
- * Derived from {@link useUiLocale} rather than published beside it: direction
- * is a function of the tag, and a second field could only ever disagree with
- * the first.
- */
-export function useUiDirection(): Direction {
-    return directionOf(useUiLocale());
-}
-
-/**
  * The direction of the document this chrome is drawn inside.
  *
  * Defaults to the chrome's own, so a renderer mounted outside `DocViewer` — or
@@ -244,6 +233,29 @@ export function DocumentDirectionProvider({
     );
 }
 
+/** What {@link useChromeLangDir} spreads onto a piece of chrome. */
+export type ChromeLangDir = { lang?: string; dir?: Direction };
+
+/**
+ * {@link useChromeLangDir} without the hook, for a caller that renders *above*
+ * {@link DocumentDirectionProvider} and so cannot read the context — today only
+ * `DocViewer`'s error banner, which is built before the providers it sits
+ * inside.
+ *
+ * @param documentDirection The direction of the surrounding document, or `null`
+ *   where there is none to disagree with.
+ */
+export function chromeLangDir(
+    uiLocale: string,
+    documentDirection: Direction | null,
+): ChromeLangDir {
+    const chromeDirection = directionOf(uiLocale);
+    if (documentDirection === null || documentDirection === chromeDirection) {
+        return {};
+    }
+    return { lang: uiLocale, dir: chromeDirection };
+}
+
 /**
  * `lang` and `dir` for a piece of chrome, or `{}` when it needs neither.
  *
@@ -261,18 +273,13 @@ export function DocumentDirectionProvider({
  * the sentence.
  *
  * Spread it onto chrome that sits *inside* the document — the error box, the
- * feedback and hint headers. Do not spread it onto anything reading
+ * feedback heading, the click-to-toggle text on a hint, a solution or a
+ * collapsible section. Do not spread it onto anything reading
  * {@link useContentT}: the check-work widget follows the document's language
  * on purpose, so it should follow the document's direction too.
  */
-export function useChromeLangDir(): { lang?: string; dir?: Direction } {
-    const locale = useUiLocale();
-    const chromeDirection = directionOf(locale);
-    const documentDirection = useContext(DocumentDirectionContext);
-    if (documentDirection === null || documentDirection === chromeDirection) {
-        return {};
-    }
-    return { lang: locale, dir: chromeDirection };
+export function useChromeLangDir(): ChromeLangDir {
+    return chromeLangDir(useUiLocale(), useContext(DocumentDirectionContext));
 }
 
 /**

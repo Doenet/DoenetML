@@ -22,7 +22,7 @@ import { cesc } from "@doenet/utils";
 import { directionOf } from "@doenet/i18n";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DocContext } from "../DocViewer";
-import { useContentT, useT } from "../../utils/i18n";
+import { useChromeLangDir, useContentT, useT } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
 
 interface SectionSVs {
@@ -58,6 +58,12 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
     // reader's — see `useContentT`.
     const tContent = useContentT();
 
+    // A collapsible section's heading is mixed: the title is the author's and
+    // follows the document, while "(click to open)" is the reader's. Only the
+    // chrome half re-declares itself, and only where the two directions
+    // disagree.
+    const chromeLangDir = useChromeLangDir();
+
     const { darkMode } = useContext(DocContext) || {};
 
     // Pick the heading box background appropriate for the current theme.
@@ -67,12 +73,11 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             ? SVs.titleColorDarkMode
             : SVs.titleColor;
 
-    // List item styling constants
-    // When a section is rendered as a list item (SVs.isListItem), the section
-    // number hangs in the gutter on the side the text starts from — the left in
-    // English, the right in Arabic. Every rule below is written in logical
-    // properties so that follows the document without a second layout.
-    // These constants control the spacing.
+    // List item styling constants. When a section is rendered as a list item
+    // (SVs.isListItem), the section number hangs in the gutter on the side the
+    // text starts from — the left in English, the right in Arabic. Every rule
+    // below is written in logical properties so that follows the document
+    // without a second layout.
     const LIST_ITEM_INDENT = "2em"; // Total width reserved for the hanging section number
     const LIST_ITEM_SPACING = "0.3em"; // Space between section number and following text
     const BOX_PADDING = "6px"; // Standard padding for boxed sections
@@ -419,7 +424,10 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                 <FontAwesomeIcon
                     icon={SVs.open ? twirlIsOpen : twirlIsClosed}
                 />{" "}
-                {title} {clickToToggleLabel(t, SVs.open)}
+                {title}{" "}
+                <span {...chromeLangDir}>
+                    {clickToToggleLabel(t, SVs.open)}
+                </span>
             </>
         );
     }

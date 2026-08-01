@@ -1,5 +1,8 @@
 import { plainTextIncluding, stripBidiIsolates } from "../utils/bidi";
-import { verifyListItemNumbersAlign } from "../tagSpecific/utils/listItemNumberAlignment";
+import {
+    verifyListItemNumberGutterSide,
+    verifyListItemNumbersAlign,
+} from "../tagSpecific/utils/listItemNumberAlignment";
 
 /** Any of the four Unicode bidi isolates Fluent wraps a placeable in. */
 const ISOLATE = /[⁦-⁩]/;
@@ -506,18 +509,9 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             verifyListItemNumbersAlign(["p1", "p2", "p3"], {
                 label: "right-to-left document",
             });
-            // And the numbers really are on the other side: each item's
-            // content starts to the right of where its box ends on the left.
-            cy.get("#p1").should(($el) => {
-                const box = $el[0].getBoundingClientRect();
-                const range = document.createRange();
-                range.selectNodeContents($el[0]);
-                const content = range.getBoundingClientRect();
-                expect(
-                    box.right - content.right,
-                    "gutter is on the right",
-                ).to.be.greaterThan(1);
-            });
+            // And the numbers really are on the other side: aligning with each
+            // other is something a uniformly wrong layout would also manage.
+            verifyListItemNumberGutterSide("p1", "rtl");
         });
 
         it("still hangs them off the left in a left-to-right document", () => {
@@ -529,16 +523,7 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             verifyListItemNumbersAlign(["p1", "p2", "p3"], {
                 label: "left-to-right document",
             });
-            cy.get("#p1").should(($el) => {
-                const box = $el[0].getBoundingClientRect();
-                const range = document.createRange();
-                range.selectNodeContents($el[0]);
-                const content = range.getBoundingClientRect();
-                expect(
-                    content.left - box.left,
-                    "gutter is on the left",
-                ).to.be.greaterThan(1);
-            });
+            verifyListItemNumberGutterSide("p1", "ltr");
         });
     });
 

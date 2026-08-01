@@ -20,36 +20,30 @@ const BUNDLED_CHROME_CATALOGS: Record<string, string> = {
     [DEFAULT_LOCALE]: englishResources(CHROME_NAMESPACES),
 };
 
+type PseudoLocale = typeof PSEUDO_LOCALE | typeof PSEUDO_RTL_LOCALE;
+
+/** The pseudo-locale catalogs, each derived from English on first use. */
+const pseudoChromeCatalogs: Partial<Record<PseudoLocale, string>> = {};
+
 /**
- * The pseudo-locale catalog, derived from English on first use.
+ * The pseudo-locale catalog for `locale`, derived from English on first use.
  *
  * Deriving it rather than committing a generated `locales/en-XA/chrome.ftl`
  * means it can never drift from the English it is meant to shadow — a stale
  * pseudo catalog would report a string as extracted that no longer is, which
  * is precisely the bug the pseudo-locale exists to find.
- */
-let pseudoChromeCatalog: string | undefined;
-
-function getPseudoChromeCatalog(): string {
-    return (pseudoChromeCatalog ??= pseudoLocalize(
-        BUNDLED_CHROME_CATALOGS[DEFAULT_LOCALE],
-    ));
-}
-
-/**
- * The right-to-left pseudo-locale catalog, derived the same way.
  *
- * The same accented text as `en-XA` — only the brackets differ, and only by an
- * invisible mark. `en-XB` is a *direction* fixture, not a second vocabulary:
- * everything it renders should read exactly as `en-XA` does, so that a
- * difference between the two runs is a difference in layout and nothing else.
+ * The two differ only in their brackets, and there only by an invisible mark:
+ * `en-XB` is a *direction* fixture, not a second vocabulary, so everything it
+ * renders should read exactly as `en-XA` does and a difference between the two
+ * runs is a difference in layout and nothing else.
  */
-let pseudoRtlChromeCatalog: string | undefined;
-
-function getPseudoRtlChromeCatalog(): string {
-    return (pseudoRtlChromeCatalog ??= pseudoLocalize(
+function getPseudoChromeCatalog(locale: PseudoLocale): string {
+    return (pseudoChromeCatalogs[locale] ??= pseudoLocalize(
         BUNDLED_CHROME_CATALOGS[DEFAULT_LOCALE],
-        { brackets: PSEUDO_RTL_BRACKETS },
+        locale === PSEUDO_RTL_LOCALE
+            ? { brackets: PSEUDO_RTL_BRACKETS }
+            : undefined,
     ));
 }
 
@@ -65,11 +59,12 @@ function chromeResources(
     hostResources?: Record<string, string> | null,
 ): Record<string, string> {
     const resources: Record<string, string> = { ...BUNDLED_CHROME_CATALOGS };
-    if (normalizedUiLocale === PSEUDO_LOCALE) {
-        resources[PSEUDO_LOCALE] = getPseudoChromeCatalog();
-    }
-    if (normalizedUiLocale === PSEUDO_RTL_LOCALE) {
-        resources[PSEUDO_RTL_LOCALE] = getPseudoRtlChromeCatalog();
+    if (
+        normalizedUiLocale === PSEUDO_LOCALE ||
+        normalizedUiLocale === PSEUDO_RTL_LOCALE
+    ) {
+        resources[normalizedUiLocale] =
+            getPseudoChromeCatalog(normalizedUiLocale);
     }
     // `Object.assign` ignores a null or undefined source, so an absent
     // `hostResources` needs no special case.

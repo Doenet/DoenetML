@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 import { Button } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { useT } from "../../utils/i18n";
+import { LTR_ISLAND_PROPS } from "./utils/direction";
 
 const ORBITAL_ARROW_STYLE: React.CSSProperties = {
     fill: "none",
@@ -252,7 +253,7 @@ export default React.memo(function orbitalDiagramInput(
         // sits to the left of its boxes and the boxes fill left to right in
         // every language, and the rows are plain inline flow that would
         // otherwise reverse wholesale under `rtl`.
-        <div ref={ref} id={id} dir="ltr" style={{ width: "fit-content" }}>
+        <div ref={ref} id={id} {...LTR_ISLAND_PROPS}>
             {controls}
             {rowsJSX}
         </div>

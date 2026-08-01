@@ -1,4 +1,4 @@
-import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "./pseudo";
+import { PSEUDO_RTL_LOCALE } from "./pseudo";
 
 /** The writing direction of a locale's text. */
 export type Direction = "ltr" | "rtl";
@@ -119,14 +119,12 @@ export function directionOf(tag: string): Direction {
         return "ltr";
     }
 
-    // The pseudo-locales first: both are `en-…`, so every route below would
-    // report them left-to-right. `en-XB` exists to be the exception.
-    const lower = trimmed.toLowerCase();
-    if (lower === PSEUDO_RTL_LOCALE.toLowerCase()) {
+    // The right-to-left pseudo-locale first, and only it: `en-XB` is an `en-…`
+    // tag, so every route below would resolve it from the Latin script and
+    // report it left-to-right. `en-XA` needs no carve-out, because that is
+    // already the answer it wants.
+    if (trimmed.toLowerCase() === PSEUDO_RTL_LOCALE.toLowerCase()) {
         return "rtl";
-    }
-    if (lower === PSEUDO_LOCALE.toLowerCase()) {
-        return "ltr";
     }
 
     try {

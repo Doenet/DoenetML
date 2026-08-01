@@ -739,10 +739,14 @@ outside it. A nested `<document lang>` needs no state variable of its own —
 the direction cannot have changed either.
 
 Chrome drawn *inside* the document is the reader's language in a box declared to
-be the content's. `useChromeLangDir()` re-declares it, and returns `{}` when the
-two directions already agree — so the common case adds no attributes at all. It
-is not for anything reading `useContentT`: the check-work widget follows the
-document's language by design, so it follows its direction too.
+be the content's. `useChromeLangDir()` re-declares it — on the in-document error
+box, the feedback heading, and the click-to-toggle text on a hint, a solution
+and a collapsible section — and returns `{}` when the two directions already
+agree, so the common case adds no attributes at all. It is not for anything
+reading `useContentT`: the check-work widget follows the document's language by
+design, so it follows its direction too. `DocViewer`'s error banner is built
+above the provider the hook reads, so it calls the same rule as the plain
+function `chromeLangDir(uiLocale, documentDirection)`.
 
 ### Notation is a left-to-right island
 
@@ -757,6 +761,14 @@ and CodeMirror (it renders XML source). Handsontable is told through its own
 `layoutDirection` option rather than through CSS. MathJax needs nothing: its
 CHTML output already pins `direction: ltr` on `mjx-math`.
 
+A pin on a *block* needs a width with it: the element still fills its
+container, and its left-to-right contents then align to the container's left
+edge, stranding the widget at the far side of the page from the prose it
+belongs to. `LTR_ISLAND_PROPS` in
+`packages/doenetml/src/Viewer/renderers/utils/direction.ts` carries the pair, so
+the shrink-to-fit half cannot be left off by accident; an inline island, or one
+whose element already shrink-wraps, takes a bare `dir="ltr"`.
+
 The keyboard's keys are pinned in `keyboard.css` rather than by attribute,
 because `Keyboard` returns a different element per style. The tray *around*
 them follows the reader.
@@ -766,8 +778,10 @@ headers, the graph-controls panel, the editor chrome.
 
 ### Testing it without a catalog
 
-`en-XB` renders text byte-identical to `en-XA` and differs only in
-`directionOf` reporting it `rtl`. So a difference between the two runs is a
+`en-XB` renders visually identical text to `en-XA` and differs only in
+`directionOf` reporting it `rtl`, plus an invisible right-to-left mark inside
+each bracket so that a value's trailing punctuation resolves the way it would
+in a real RTL sentence. A difference between the two runs is therefore a
 difference in layout and nothing else, and every right-to-left assertion is
 runnable before any right-to-left language is translated. It is deliberately
 not a text transform: Android's U+202E override demonstrates bidi rather than
