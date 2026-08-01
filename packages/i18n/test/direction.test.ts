@@ -5,9 +5,11 @@ import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 describe("directionOf", () => {
-    it("reports the seven right-to-left languages RTL support unblocks", () => {
+    it("reports the seven right-to-left languages RTL support unblocked", () => {
         // Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur — the set
-        // #1614 exists to make renderable.
+        // #1614 existed to make renderable, and all seven now ship a catalog.
+        // Asserted by tag rather than off the roster: this is a claim about
+        // the languages, and it holds for a tag with no catalog too.
         for (const tag of ["ar", "fa", "he", "ur", "ps", "sd", "ug"]) {
             expect(directionOf(tag), tag).toBe("rtl");
         }
@@ -18,7 +20,7 @@ describe("directionOf", () => {
         // held from both sides so that adding a catalog has to say which way
         // it runs. `dir` stopped being inert the moment the first name below
         // appeared here.
-        const rtl = new Set(["ar"]);
+        const rtl = new Set(["ar", "fa", "he", "ur", "ps", "sd", "ug"]);
         for (const { locale } of SUPPORTED_LOCALES) {
             expect(directionOf(locale), locale).toBe(
                 rtl.has(locale) ? "rtl" : "ltr",

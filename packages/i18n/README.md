@@ -67,24 +67,27 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
-`de`, `es`, `fr`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`, `ne`, `nl`,
-`pl`, `pt`, `ru`, `so`, `tr`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
+`de`, `es`, `fa`, `fr`, `he`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`,
+`ne`, `nl`, `pl`, `ps`, `pt`, `ru`, `sd`, `so`, `tr`, `ug`, `ur`, `vi`,
+`zh-Hans`, `zh-Hant` — is an **unreviewed
 machine-generated seed**, which each file's own header says at the top, and
 which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
 is just wrong, and the English is one key away.
 
-Seven of them are deliberately partial, all in the same place: Somali, Hmong
-Njua, Amharic, Assamese, Nepali, Burmese and Vietnamese leave `element-name`
-and `element-anion-name` out, so those 130 keys fall back to English and
-`lint:i18n` reports the gap. The first six have no settled chemical
-nomenclature to seed from, and inventing one would be worse than the English a
-student meets in their own textbook. Vietnamese has two, and the current one is
-English — school chemistry has moved from the transliterated names to the IUPAC
-forms — so the fallback is already what the curriculum uses.
+Ten of them are deliberately partial, all in the same place: Somali, Hmong
+Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur and Vietnamese
+leave `element-name` and `element-anion-name` out, so those 130 keys fall back
+to English and `lint:i18n` reports the gap. The first nine have no settled
+chemical nomenclature to seed from, and inventing one would be worse than the
+English a student meets in their own textbook. Vietnamese has two, and the
+current one is English — school chemistry has moved from the transliterated
+names to the IUPAC forms — so the fallback is already what the curriculum uses.
 
 That is a decision per language and not per script: Bangla supplies the names
-its schools use, and Assamese, written in the same letters, does not.
+its schools use, and Assamese, written in the same letters, does not. The same
+line runs through the Arabic script — Arabic, Persian and Urdu supply them and
+Pashto, Sindhi and Uyghur do not.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.
@@ -796,38 +799,55 @@ headers, the graph-controls panel, the editor chrome.
 
 ### Writing a right-to-left catalog
 
-`ar` is the first, and nothing about the file format changes for it. A `.ftl`
-pattern is a sequence of characters in **logical** order — the order the text
-is spoken — and `dir` decides where each run is drawn, so a translation is
-written the way it is read and never reordered by hand to look right in an
-editor. Brackets, quotes and dashes are the same characters in both scripts and
-are written opening-first; the bidi algorithm turns them around at render time.
+Seven ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd` and `ug`. Nothing about the file
+format changes for any of them. A `.ftl` pattern is a sequence of characters in
+**logical** order — the order the text is spoken — and `dir` decides where each
+run is drawn, so a translation is written the way it is read and never reordered
+by hand to look right in an editor. Brackets, quotes and dashes are the same
+characters in every one of these scripts and are written opening-first; the bidi
+algorithm turns them around at render time. Digits stay Latin, as
+[everywhere else](#digits-are-latin-separators-are-not), which is why an Arabic
+sentence and the mathematics beside it count in the same characters.
 
-Three things do change, and they are properties of the language rather than of
-the direction:
+**Direction is not a language family.** These seven share a writing direction
+and almost nothing else, and the catalogs differ from each other far more than
+they differ from `de` or `es`:
+
+| | Adjectives | Gender | Plural categories |
+| --- | --- | --- | --- |
+| `ar` | follow the noun | m/f | six |
+| `he` | follow the noun | m/f | three |
+| `fa` | follow the noun | none | two |
+| `ur`, `ps`, `sd` | precede the noun | m/f | two |
+| `ug` | precedes the noun | none | two |
+
+`ur` is the outlier worth knowing about: its grammar is `hi`'s, so
+`locales/hi` is the closest thing to a parallel text for it and a correction to
+one is usually a correction to both. `ug` is Turkic and agrees with nothing.
+
+Three things recur across them, none a property of the direction:
 
 - **Plural categories.** Fluent selects through `Intl.PluralRules`, so an
   Arabic `{ $count -> … }` has `zero`, `one`, `two`, `few`, `many` and `other`
-  where English has two branches. `zero` is the category for exactly none,
-  which is what the `[0]` branch English spells out by number becomes.
-- **Prepositions cannot be welded to a placeable.** Arabic attaches «لـ» and
-  «بـ» to the word after them, and there is no word — there is an argument. So
-  a message that reads "for `<{ $component }>`" in English names what the
-  argument is instead, «للمكوّن { $component }», and a select whose variants
-  would land after such a preposition carries the preposition into each
-  variant. Several messages in `ar/editor.ftl` are restructured for this;
-  Fluent does not care where a select sits inside a pattern.
+  where English has two branches, and Hebrew has `one`, `two` and `other`. Only
+  Arabic has a `zero` category; everywhere else `other` covers none, so a
+  message wanting a separate wording for it says `[0]` by number, as the
+  English does — Fluent matches an explicit number before consulting the rules.
+- **An affix cannot be welded to a placeable.** Arabic attaches «لـ» and «بـ»
+  to the word after them and Uyghur attaches its case endings to the word
+  before, and in each case there is no word — there is an argument. So a
+  message that reads "for `<{ $component }>`" in English names what the
+  argument is instead, «للمكوّن { $component }», or reaches for a postposition,
+  which is a word of its own and can stand beside one. A select whose variants
+  would land against such an affix carries it into each variant: Fluent does
+  not care where a select sits inside a pattern, and this is why several
+  messages are restructured rather than translated in place.
 - **A distinction the source language makes may not exist.** Where English
   separates a singular from a plural only in the verb — "is ignored" against
-  "are ignored" — Arabic covers both with one form, and the select is dropped
-  rather than written out twice identically. The count argument then goes
-  unused, which is harmless: it stays in the English message for the languages
-  that need it.
-
-Digits stay Latin under `ar` like everywhere else — see
-[Digits are Latin, separators are not](#digits-are-latin-separators-are-not),
-which is why an Arabic sentence and the mathematics beside it count in the same
-characters.
+  "are ignored" — most of these cover both with one form, and the select is
+  dropped rather than written out twice identically. The count argument then
+  goes unused, which is harmless: it stays in the English message for the
+  languages that need it.
 
 ### Testing it without a catalog
 

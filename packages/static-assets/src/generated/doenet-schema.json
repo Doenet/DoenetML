@@ -64988,8 +64988,16 @@
                             "description": "Spanish (español)"
                         },
                         {
+                            "value": "fa",
+                            "description": "Persian (فارسی)"
+                        },
+                        {
                             "value": "fr",
                             "description": "French (français)"
+                        },
+                        {
+                            "value": "he",
+                            "description": "Hebrew (עברית)"
                         },
                         {
                             "value": "hi",
@@ -65036,6 +65044,10 @@
                             "description": "Polish (polski)"
                         },
                         {
+                            "value": "ps",
+                            "description": "Pashto (پښتو)"
+                        },
+                        {
                             "value": "pt",
                             "description": "Portuguese (português)"
                         },
@@ -65044,12 +65056,24 @@
                             "description": "Russian (русский)"
                         },
                         {
+                            "value": "sd",
+                            "description": "Sindhi (سنڌي)"
+                        },
+                        {
                             "value": "so",
                             "description": "Somali (Soomaali)"
                         },
                         {
                             "value": "tr",
                             "description": "Turkish (Türkçe)"
+                        },
+                        {
+                            "value": "ug",
+                            "description": "Uyghur (ئۇيغۇرچە)"
+                        },
+                        {
+                            "value": "ur",
+                            "description": "Urdu (اردو)"
                         },
                         {
                             "value": "vi",
