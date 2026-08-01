@@ -38,7 +38,7 @@ import {
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
-import { useContentT, useT } from "../../utils/i18n";
+import { useChromeLangDir, useContentT, useT } from "../../utils/i18n";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
@@ -289,6 +289,12 @@ function MathInputPreviewPopover({
 }) {
     const t = useT();
 
+    // The parse-error message is chrome — the reader's language inside the
+    // document's box — while the raw expression quoted after it is what the
+    // user typed. Re-declared as one run so its trailing colon stays against
+    // the label, and empty unless the two directions disagree.
+    const chromeLangDir = useChromeLangDir();
+
     if (!showPreview) {
         return null;
     }
@@ -329,7 +335,10 @@ function MathInputPreviewPopover({
                 onKeyDown={preview.handlePreviewKeyDown}
             >
                 {showParseErrorMessage ? (
-                    <div className="mathInputPreviewErrorMessage">
+                    <div
+                        className="mathInputPreviewErrorMessage"
+                        {...chromeLangDir}
+                    >
                         <strong>
                             {t(
                                 "math-input-invalid-expression",

@@ -560,6 +560,33 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
                 .should("have.attr", "dir", "ltr")
                 .should("have.attr", "lang", "en");
         });
+
+        it("re-declares a pretzel's answer label in a right-to-left document", () => {
+            // The same mixed-heading shape as a hint, at a different renderer:
+            // the "Answer" label and its colon are the reader's English, the
+            // answer beside them is the author's. Without the re-declaration
+            // the colon lands on the wrong end of the label. `uiLocale` is
+            // explicit because with nothing configured the chrome follows the
+            // document — and then the two directions agree and nothing needs
+            // saying.
+            render({
+                doenetML: `
+                <pretzel name="pz">
+                  <problem><statement>1</statement><answer>1</answer></problem>
+                  <problem><statement>2</statement><answer>2</answer></problem>
+                </pretzel>
+                <p name="ready">ready</p>`,
+                documentLocale: RTL,
+                uiLocale: "en",
+            });
+
+            cy.get("#ready").should("have.text", "ready");
+            cy.get('[data-test="pretzel-row-answer"] > span')
+                .first()
+                .should("contain.text", "Answer")
+                .should("have.attr", "dir", "ltr")
+                .should("have.attr", "lang", "en");
+        });
     });
 
     describe("pseudo-locale", () => {

@@ -286,9 +286,9 @@ export function chromeLangDir(
  * {@link useT} is the reader's language sitting in a box declared to be the
  * content's. That costs nothing while the two run the same way, and is why
  * this returns an empty object in the overwhelmingly common case: spreading it
- * then adds no attribute to the element it is spread onto. (Three of the call
- * sites wrap their string in a `<span>` to have something to spread onto; that
- * span is inert when the object is empty.)
+ * then adds no attribute to the element it is spread onto. (Several of the
+ * call sites wrap their string in a `<span>` to have something to spread onto;
+ * that span is inert when the object is empty.)
  *
  * It matters when they disagree, which is the case right-to-left support
  * exists for: a Spanish-speaking reader working an Arabic activity. Without
@@ -298,9 +298,13 @@ export function chromeLangDir(
  *
  * Spread it onto chrome that sits *inside* the document — the error box, the
  * feedback heading, the click-to-toggle text on a hint, a solution or a
- * collapsible section. Do not spread it onto anything reading
- * {@link useContentT}: the check-work widget follows the document's language
- * on purpose, so it should follow the document's direction too.
+ * collapsible section, a pretzel's answer label, the summary-statistics
+ * caption, the math-input preview's parse-error message. Do not spread it onto
+ * anything reading {@link useContentT}: the check-work widget follows the
+ * document's language on purpose, so it should follow the document's direction
+ * too. Tooltips need nothing either, for the opposite reason — Ariakit portals
+ * them to `document.body`, so they are never inside the document's box at all,
+ * and a native `title` attribute is drawn by the browser rather than by CSS.
  */
 export function useChromeLangDir(): ChromeLangDir {
     return chromeLangDir(useUiLocale(), useDocumentDirection());

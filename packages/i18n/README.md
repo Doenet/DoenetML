@@ -740,11 +740,15 @@ the direction cannot have changed either.
 
 Chrome drawn *inside* the document is the reader's language in a box declared to
 be the content's. `useChromeLangDir()` re-declares it — on the in-document error
-box, the feedback heading, and the click-to-toggle text on a hint, a solution
-and a collapsible section — and returns `{}` when the two directions already
-agree, so the common case adds no attributes at all. It is not for anything
-reading `useContentT`: the check-work widget follows the document's language by
-design, so it follows its direction too. `DocViewer`'s error banner is built
+box, the feedback heading, the click-to-toggle text on a hint, a solution and a
+collapsible section, a pretzel's answer label, the summary-statistics caption,
+and the math-input preview's parse-error message — and returns `{}` when the two
+directions already agree, so the common case adds no attributes at all. It is
+not for anything reading `useContentT`: the check-work widget follows the
+document's language by design, so it follows its direction too. Nor for
+tooltips, for the opposite reason: Ariakit portals them to `document.body`, so
+they are never inside the document's box, and a native `title` attribute is
+drawn by the browser rather than by CSS. `DocViewer`'s error banner is built
 above the provider the hook reads, so it calls the same rule as the plain
 function `chromeLangDir(uiLocale, documentDirection)`.
 
