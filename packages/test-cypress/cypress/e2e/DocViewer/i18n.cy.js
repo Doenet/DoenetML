@@ -507,6 +507,29 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             });
         });
 
+        it("keeps the math input's preview left-to-right too", () => {
+            // The preview draws the same notation as the field it previews,
+            // and its popover does not portal — so inside a right-to-left
+            // document this div is the sharp case among the islands: it is
+            // the scroll container for a long expression, and an RTL scroll
+            // container opens at the tail with `scrollLeft` running from the
+            // negatives up to zero, which inverts the renderer's Home/End
+            // handling.
+            render({
+                doenetML: `
+                <p><mathInput name="mi" showPreview /></p>
+                <p name="ready">ready</p>`,
+                documentLocale: RTL,
+            });
+
+            cy.get("#ready").should("have.text", "ready");
+            cy.get("#mi textarea").type("x+1", { force: true });
+            cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+            cy.get("#mi-preview").should(($el) => {
+                expect(getComputedStyle($el[0]).direction).to.equal("ltr");
+            });
+        });
+
         it("hangs list-item numbers off the side the text starts from", () => {
             // The layout that has been reworked five times. Asserted as the
             // outcome — sibling numbers line up — rather than as a technique,
@@ -559,6 +582,32 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
                 .should("contain.text", "(click to open)")
                 .should("have.attr", "dir", "ltr")
                 .should("have.attr", "lang", "en");
+        });
+
+        it("republishes the direction at every level of nesting", () => {
+            // Doubly nested: the middle document turns the subtree around and
+            // the innermost turns it back. Chrome compares itself against the
+            // box *nearest* to it, so the innermost document's disclosure
+            // label — English chrome in an English box — has nothing to
+            // re-declare, even though the document around that box runs the
+            // other way. A `dir` on it here would mean the innermost document
+            // failed to republish what it had just declared.
+            render({
+                doenetML: `
+                <document lang="en">
+                  <document name="mid" lang="${RTL}">
+                    <document name="inner" lang="en">
+                      <solution name="sol"><p>answer</p></solution>
+                    </document>
+                  </document>
+                </document>`,
+            });
+
+            cy.get("#mid").should("have.attr", "dir", "rtl");
+            cy.get("#inner").should("have.attr", "dir", "ltr");
+            cy.get("#sol_button span")
+                .should("contain.text", "(click to open)")
+                .should("not.have.attr", "dir");
         });
 
         it("re-declares a pretzel's answer label in a right-to-left document", () => {

@@ -766,11 +766,15 @@ JSXGraph board and the prefigure SVG (both write `text-anchor: start|end`, which
 resolves against the computed direction), the MathQuill wrapper (no `direction`
 declaration anywhere, inline siblings in source order, physical kerns), the
 matrix input (a `<table>` reverses its columns), the slider (a native range
-input reverses its track), the number line, the orbital diagram, and CodeMirror
-(it renders XML source). The spreadsheet is the one exception to the attribute:
-Handsontable reads the inherited direction through its own `layoutDirection`
-option, so it is told rather than styled. MathJax needs nothing: its CHTML
-output already pins `direction: ltr` on `mjx-math`.
+input reverses its track), the number line, the orbital diagram, the math
+input's preview (the popover does not portal, and the div that scrolls a long
+expression must not become an RTL scroll container, whose `scrollLeft` runs
+from the negatives up to zero), and CodeMirror (it renders XML source). The
+spreadsheet is the one exception to the attribute: Handsontable reads the
+inherited direction through its own `layoutDirection` option, so it is told
+rather than styled. MathJax needs nothing: its CHTML output already pins
+`direction: ltr` on `mjx-math` — but only on the mathematics itself, which is
+why the preview's scroll container still needs its own pin.
 
 A pin on a *block* needs a width with it: an element as wide as its container
 aligns its left-to-right contents to the container's left edge, stranding the
