@@ -75,9 +75,23 @@ describe("DoenetViewer (iframe wrapper) — style palette discovery", () => {
             >(undefined);
             const [ready, setReady] = React.useState(false);
 
-            React.useEffect(() => {
-                const timer = setTimeout(() => setReady(true), 10);
-                return () => clearTimeout(timer);
+            // `ready` is false for the first render, so the callback the
+            // viewer sees then — the value its `useRef` captures — is
+            // `undefined`; a listener that closed over that mount-time value
+            // would never report, which is what this spec exists to catch.
+            //
+            // Flipping `ready` from a *layout* effect rather than a timer is
+            // what keeps that deterministic. React flushes a state update made
+            // here synchronously, so the real callback is installed within the
+            // same task as the mount — before the iframe can possibly post
+            // `iframeReady`. Palettes are reported exactly once, on that
+            // message, so a callback that arrives even a millisecond late
+            // misses it forever: with a `setTimeout`, the timer and the boot
+            // both landed around 250ms (the boot starves the timer, and a warm
+            // second boot is fast) and the test failed whenever the message won
+            // by a millisecond or two.
+            React.useLayoutEffect(() => {
+                setReady(true);
             }, []);
 
             return (
