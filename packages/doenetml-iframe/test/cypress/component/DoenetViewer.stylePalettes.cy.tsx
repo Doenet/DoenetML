@@ -66,30 +66,32 @@ describe("DoenetViewer (iframe wrapper) — style palette discovery", () => {
             });
     });
 
-    it("reports palettes to a callback passed after mount", () => {
-        // The message listener has empty deps, so it must read the callback
-        // through a ref rather than closing over the mount-time value.
+    it("reports palettes to a callback absent at the first render", () => {
+        // `onStylePalettes` is `undefined` on the first render — the render
+        // whose value the viewer captures in a ref, and whose closure its
+        // (deps-empty) message listener keeps for good. The palettes are
+        // therefore reported only if that listener reads the callback back
+        // out of the ref instead of using the `undefined` it closed over,
+        // which is the regression this spec exists to catch.
         function Harness() {
             const [palettes, setPalettes] = React.useState<
                 StylePaletteInfo[] | null | undefined
             >(undefined);
             const [ready, setReady] = React.useState(false);
 
-            // `ready` is false for the first render, so the callback the
-            // viewer sees then — the value its `useRef` captures — is
-            // `undefined`; a listener that closed over that mount-time value
-            // would never report, which is what this spec exists to catch.
+            // Install the real callback from a *layout* effect, never a
+            // timer: React flushes the re-render it schedules synchronously,
+            // so the callback is in place within the same task as the mount,
+            // before the iframe can post `iframeReady`. That matters because
+            // palettes are reported exactly once, on that message (#1626), so
+            // a callback arriving even a millisecond late misses them
+            // forever — with `setTimeout(..., 10)` the timer and the boot both
+            // landed near 250ms (evaluating the ~32 MB bundle starves the
+            // parent's timers) and the spec failed whenever the message won.
             //
-            // Flipping `ready` from a *layout* effect rather than a timer is
-            // what keeps that deterministic. React flushes a state update made
-            // here synchronously, so the real callback is installed within the
-            // same task as the mount — before the iframe can possibly post
-            // `iframeReady`. Palettes are reported exactly once, on that
-            // message, so a callback that arrives even a millisecond late
-            // misses it forever: with a `setTimeout`, the timer and the boot
-            // both landed around 250ms (the boot starves the timer, and a warm
-            // second boot is fast) and the test failed whenever the message won
-            // by a millisecond or two.
+            // The flip side is that this spec covers only a callback missing
+            // at the first render, not one attached after the boot has already
+            // finished; see #1626 for that gap.
             React.useLayoutEffect(() => {
                 setReady(true);
             }, []);
