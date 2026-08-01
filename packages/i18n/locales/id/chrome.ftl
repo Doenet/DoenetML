@@ -72,6 +72,8 @@ slider-next = Berikutnya
 keyboard-open = Buka papan ketik
 keyboard-close = Tutup papan ketik
 
+choice-input-remove-choice = Hapus { $choice }
+
 matrix-remove-row = Hapus baris
 matrix-add-row = Tambah baris
 matrix-remove-column = Hapus kolom

@@ -77,6 +77,8 @@ slider-next = Tom ntej
 keyboard-open = Qhib lub keyboard
 keyboard-close = Kaw lub keyboard
 
+choice-input-remove-choice = Tshem kem { $choice }
+
 matrix-remove-row = Tshem kem kab
 matrix-add-row = Ntxiv kem kab
 matrix-remove-column = Tshem kem ncaj

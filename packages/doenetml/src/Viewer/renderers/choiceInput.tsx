@@ -21,7 +21,7 @@ import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useContentT } from "../../utils/i18n";
+import { useContentT, useT } from "../../utils/i18n";
 
 // type guard
 const isMultiValue = <T,>(
@@ -95,6 +95,8 @@ interface ChoiceInputSVs {
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
         useDoenetRenderer<ChoiceInputSVs>(props);
+
+    const t = useT();
 
     // The check-work button and the validation state announced on the input
     // both follow the document's language, not the reader's — see
@@ -295,13 +297,19 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             // remove button. react-select names that button
             // `Remove ${children}`, where `children` is the rendered choice
             // node — which stringifies to "[object Object]" (#1613). Name it
-            // from the choice's text instead.
+            // from the choice's text instead, in the reader's language: the
+            // name is addressed to whoever is looking at the screen, so it
+            // takes `useT` rather than `useContentT`.
             MultiValueRemove: (props: any) => (
                 <components.MultiValueRemove
                     {...props}
                     innerProps={{
                         ...props.innerProps,
-                        "aria-label": `Remove ${props.data.label}`,
+                        "aria-label": t(
+                            "choice-input-remove-choice",
+                            { choice: props.data.label },
+                            `Remove ${props.data.label}`,
+                        ),
                     }}
                 />
             ),
@@ -310,7 +318,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 <components.Input {...props} aria-details={descriptionId} />
             ),
         }),
-        [descriptionId],
+        [descriptionId, t],
     );
 
     if (SVs.inline) {

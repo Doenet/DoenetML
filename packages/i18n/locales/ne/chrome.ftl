@@ -75,6 +75,8 @@ slider-next = अर्को
 keyboard-open = किबोर्ड खोल्नुहोस्
 keyboard-close = किबोर्ड बन्द गर्नुहोस्
 
+choice-input-remove-choice = { $choice } हटाउनुहोस्
+
 matrix-remove-row = पङ्क्ति हटाउनुहोस्
 matrix-add-row = पङ्क्ति थप्नुहोस्
 matrix-remove-column = स्तम्भ हटाउनुहोस्

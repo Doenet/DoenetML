@@ -71,6 +71,8 @@ slider-next = Sonraki
 keyboard-open = Klavyeyi aç
 keyboard-close = Klavyeyi kapat
 
+choice-input-remove-choice = { $choice } sil
+
 matrix-remove-row = Satır sil
 matrix-add-row = Satır ekle
 matrix-remove-column = Sütun sil

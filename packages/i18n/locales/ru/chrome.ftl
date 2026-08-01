@@ -83,6 +83,8 @@ slider-next = Вперёд
 keyboard-open = Открыть клавиатуру
 keyboard-close = Закрыть клавиатуру
 
+choice-input-remove-choice = Удалить { $choice }
+
 matrix-remove-row = Удалить строку
 matrix-add-row = Добавить строку
 matrix-remove-column = Удалить столбец

@@ -74,6 +74,8 @@ slider-next = 다음
 keyboard-open = 키보드 열기
 keyboard-close = 키보드 닫기
 
+choice-input-remove-choice = { $choice } 삭제
+
 matrix-remove-row = 행 삭제
 matrix-add-row = 행 추가
 matrix-remove-column = 열 삭제

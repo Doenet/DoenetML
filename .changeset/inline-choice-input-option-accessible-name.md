@@ -20,6 +20,7 @@ which may contain math, images, or styled text — is still what is drawn in the
 menu and in the displayed value.
 
 With `selectMultiple`, the button that removes a selected choice was likewise
-named "Remove [object Object]"; it is now named after the choice text too.
+named "Remove [object Object]"; it is now named after the choice text too, in
+the reader's language.
 
 Closes #1613.

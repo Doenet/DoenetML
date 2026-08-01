@@ -75,6 +75,8 @@ slider-next = Weiter
 keyboard-open = Tastatur öffnen
 keyboard-close = Tastatur schließen
 
+choice-input-remove-choice = { $choice } entfernen
+
 matrix-remove-row = Zeile entfernen
 matrix-add-row = Zeile hinzufügen
 matrix-remove-column = Spalte entfernen

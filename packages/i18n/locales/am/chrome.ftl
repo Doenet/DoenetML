@@ -74,6 +74,8 @@ slider-next = ቀጣይ
 keyboard-open = ቁልፍ ሰሌዳ ክፈት
 keyboard-close = ቁልፍ ሰሌዳ ዝጋ
 
+choice-input-remove-choice = { $choice } አስወግድ
+
 matrix-remove-row = ረድፍ አስወግድ
 matrix-add-row = ረድፍ ጨምር
 matrix-remove-column = ዓምድ አስወግድ

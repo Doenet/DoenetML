@@ -34,6 +34,7 @@ export type MessageKey =
     | "slider-next"
     | "keyboard-open"
     | "keyboard-close"
+    | "choice-input-remove-choice"
     | "matrix-remove-row"
     | "matrix-add-row"
     | "matrix-remove-column"
@@ -596,6 +597,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "slider-next",
     "keyboard-open",
     "keyboard-close",
+    "choice-input-remove-choice",
     "matrix-remove-row",
     "matrix-add-row",
     "matrix-remove-column",

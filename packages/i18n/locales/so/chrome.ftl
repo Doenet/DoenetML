@@ -73,6 +73,8 @@ slider-next = Xiga
 keyboard-open = Fur kiiboodhka
 keyboard-close = Xir kiiboodhka
 
+choice-input-remove-choice = Ka saar { $choice }
+
 matrix-remove-row = Ka saar saf
 matrix-add-row = Ku dar saf
 matrix-remove-column = Ka saar tiir

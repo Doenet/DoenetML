@@ -74,6 +74,8 @@ slider-next = পৰৱৰ্তী
 keyboard-open = কীব'ৰ্ড খোলক
 keyboard-close = কীব'ৰ্ড বন্ধ কৰক
 
+choice-input-remove-choice = { $choice } আঁতৰাওক
+
 matrix-remove-row = শাৰী আঁতৰাওক
 matrix-add-row = শাৰী যোগ কৰক
 matrix-remove-column = স্তম্ভ আঁতৰাওক
