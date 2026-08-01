@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { OnClick } from "./keyboard";
 import { ManagedKeyboard } from "./managed-keyboard";
 import classNames from "classnames";
-import type { Translator } from "@doenet/i18n";
+import type { Direction, Translator } from "@doenet/i18n";
 import "./keyboard-tray.css";
 
 /**
@@ -39,6 +39,7 @@ export function KeyboardTray({
     onClick,
     theme,
     translate,
+    direction,
 }: {
     onClick: OnClick;
     theme?: "dark" | "light";
@@ -49,6 +50,16 @@ export function KeyboardTray({
      * so a host that never configured a locale is unaffected.
      */
     translate?: Translator;
+    /**
+     * The reader's writing direction. Passed in for the same reason
+     * `translate` is: this renders into its own root on `document.body` and
+     * inherits nothing from the viewer that owns it.
+     *
+     * It governs the tray's own chrome — where the open/close tab sits, which
+     * end the close button is on. The keys themselves stay left-to-right;
+     * `keyboard.css` pins them, because they are notation.
+     */
+    direction?: Direction;
 }) {
     const [open, setOpen] = React.useState(false);
     const t = translate ?? untranslated;
@@ -59,6 +70,7 @@ export function KeyboardTray({
         <div
             id="virtual-keyboard-tray"
             data-theme={theme}
+            dir={direction}
             className={classNames({ open })}
             onMouseDown={() => {
                 // The mousedown event appears to precede a blur event on a mathInput,

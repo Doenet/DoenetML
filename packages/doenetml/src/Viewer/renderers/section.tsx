@@ -19,6 +19,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { cesc } from "@doenet/utils";
+import { directionOf } from "@doenet/i18n";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DocContext } from "../DocViewer";
 import { useContentT, useT } from "../../utils/i18n";
@@ -178,11 +179,20 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         // `renderedLang`; every other section leaves the attribute off so the
         // subtree keeps whatever language is already in effect around it (the
         // viewer labels the whole activity from the outermost document).
+        //
+        // The direction rides along with it and needs no state variable of its
+        // own. `renderedLang` is set exactly when this document's language
+        // differs from the one around it, so where it is absent the direction
+        // cannot have changed either — and where it is present, reading the
+        // direction off it is right in every case, including English nested in
+        // Arabic. A German document inside an English one picks up a redundant
+        // `dir="ltr"`, which says out loud what was already true.
         const props = {
             id,
             style,
             ref,
             lang: SVs.renderedLang ?? undefined,
+            dir: SVs.renderedLang ? directionOf(SVs.renderedLang) : undefined,
         };
 
         switch (SVs.containerTag) {

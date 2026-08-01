@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import {
     createChromeTranslator,
+    directionOf,
     loadLocaleResourcesFor,
     localeResourceKey,
     resolveDocumentLocale,
@@ -14,6 +15,7 @@ import {
     CATALOG_NAMESPACES,
     DEFAULT_LOCALE,
     EN_CHROME_TRANSLATOR,
+    type Direction,
     type Translator,
 } from "@doenet/i18n";
 
@@ -207,6 +209,70 @@ export function useT(): Translator {
  */
 export function useUiLocale(): string {
     return useContext(I18nContext).locale;
+}
+
+/**
+ * The direction the chrome is rendering in.
+ *
+ * Derived from {@link useUiLocale} rather than published beside it: direction
+ * is a function of the tag, and a second field could only ever disagree with
+ * the first.
+ */
+export function useUiDirection(): Direction {
+    return directionOf(useUiLocale());
+}
+
+/**
+ * The direction of the document this chrome is drawn inside.
+ *
+ * Defaults to the chrome's own, so a renderer mounted outside `DocViewer` — or
+ * before the core has answered — behaves as it does today.
+ */
+const DocumentDirectionContext = createContext<Direction | null>(null);
+
+export function DocumentDirectionProvider({
+    direction,
+    children,
+}: {
+    direction: Direction;
+    children: React.ReactNode;
+}) {
+    return (
+        <DocumentDirectionContext.Provider value={direction}>
+            {children}
+        </DocumentDirectionContext.Provider>
+    );
+}
+
+/**
+ * `lang` and `dir` for a piece of chrome, or `{}` when it needs neither.
+ *
+ * The viewer labels its wrapper with the *document's* language, and mounts the
+ * chrome provider inside it — so every string a renderer draws through
+ * {@link useT} is the reader's language sitting in a box declared to be the
+ * content's. That costs nothing while the two run the same way, and is why
+ * this returns an empty object in the overwhelmingly common case: no attribute
+ * appears, and no existing DOM changes.
+ *
+ * It matters when they disagree, which is the case right-to-left support
+ * exists for: a Spanish-speaking reader working an Arabic activity. Without
+ * this, their English or Spanish chrome renders inside `dir="rtl"` and its
+ * trailing punctuation, parentheses and percent signs land on the wrong end of
+ * the sentence.
+ *
+ * Spread it onto chrome that sits *inside* the document — the error box, the
+ * feedback and hint headers. Do not spread it onto anything reading
+ * {@link useContentT}: the check-work widget follows the document's language
+ * on purpose, so it should follow the document's direction too.
+ */
+export function useChromeLangDir(): { lang?: string; dir?: Direction } {
+    const locale = useUiLocale();
+    const chromeDirection = directionOf(locale);
+    const documentDirection = useContext(DocumentDirectionContext);
+    if (documentDirection === null || documentDirection === chromeDirection) {
+        return {};
+    }
+    return { lang: locale, dir: chromeDirection };
 }
 
 /**

@@ -23,6 +23,7 @@ import { MdError } from "react-icons/md";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
+    directionOf,
     reachableCatalogLocales,
     resolveDocumentLocale,
     resolveUiLocale,
@@ -52,6 +53,7 @@ import {
 import type { ResolvedTheme } from "../utils/theme";
 import {
     ContentI18nProvider,
+    DocumentDirectionProvider,
     I18nProvider,
     useChromeTranslator,
     useLocaleCatalogs,
@@ -580,6 +582,10 @@ export function DocViewer({
         uiLocale,
         effectiveDocumentLocale,
     );
+    // The direction the *content* is written in, which is what the wrapper
+    // lays out. The chrome inside it may run the other way and says so for
+    // itself — see `useChromeLangDir`.
+    const documentDirection = directionOf(effectiveDocumentLocale);
     // Every language the source declares, read straight out of the DoenetML.
     // `effectiveDocumentLocale` only ever names the outermost document's, and
     // it arrives from the worker after the core has been built; a *nested*
@@ -2402,7 +2408,23 @@ export function DocViewer({
             borderColor: "var(--mainRed)",
         };
         errorOverview = (
-            <div style={errorStyle}>
+            // This banner is addressed to whoever is looking at the screen, so
+            // it is in `uiLocale` while the box around it is declared to be the
+            // content's language. Re-declared only where the two directions
+            // disagree, so the common case adds no attributes: otherwise an
+            // English "This document contains errors!" inside an Arabic
+            // document would put its exclamation mark on the wrong end.
+            // Computed here rather than through `useChromeLangDir` because this
+            // is built above the provider that hook reads.
+            <div
+                style={errorStyle}
+                {...(directionOf(effectiveUiLocale) !== documentDirection
+                    ? {
+                          lang: effectiveUiLocale,
+                          dir: directionOf(effectiveUiLocale),
+                      }
+                    : {})}
+            >
                 <b>
                     {translate(
                         "document-contains-errors",
@@ -2430,6 +2452,12 @@ export function DocViewer({
                 // Always the language the content is actually rendered in, so
                 // a screen reader pronounces it the way the core wrote it.
                 lang={effectiveDocumentLocale}
+                // And the direction that language is written in. A browser will
+                // not infer one from the other, so without this an Arabic
+                // document lays out right-to-left text in a left-to-right box:
+                // the punctuation lands on the wrong end and a mixed
+                // Latin/Arabic run comes out in the wrong visual order.
+                dir={documentDirection}
                 ref={viewerContainerRef}
             >
                 {errorOverview}
@@ -2442,9 +2470,16 @@ export function DocViewer({
                         translate={translate}
                         locale={effectiveUiLocale}
                     >
-                        <ContentI18nProvider translate={translateContent}>
-                            {documentRenderer}
-                        </ContentI18nProvider>
+                        {/* Tells the chrome below what it is drawn inside, so
+                            a piece of it can re-declare itself where the two
+                            directions disagree — see `useChromeLangDir`. */}
+                        <DocumentDirectionProvider
+                            direction={documentDirection}
+                        >
+                            <ContentI18nProvider translate={translateContent}>
+                                {documentRenderer}
+                            </ContentI18nProvider>
+                        </DocumentDirectionProvider>
                     </I18nProvider>
                 </DocContext.Provider>
             </div>

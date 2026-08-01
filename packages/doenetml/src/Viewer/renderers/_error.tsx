@@ -3,7 +3,7 @@ import type { DiagnosticArgs, DiagnosticCode } from "@doenet/i18n";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { useT, useUiLocale } from "../../utils/i18n";
+import { useChromeLangDir, useT, useUiLocale } from "../../utils/i18n";
 import { useDiagnosticFormatter } from "../../utils/diagnostics";
 
 interface ErrorSVs {
@@ -27,6 +27,10 @@ export default React.memo(function Error(props: UseDoenetRendererProps) {
 
     const t = useT();
     const uiLocale = useUiLocale();
+    // The box is addressed to whoever is looking at the screen (#1570), so it
+    // is in the reader's language inside a document that may be in another.
+    // Empty unless the two run opposite ways.
+    const chromeLangDir = useChromeLangDir();
     // The same formatter the Diagnostics panel renders with, over the same
     // translator: one diagnostic now reads the same in both places, where this
     // box used to show the English the worker wrote beside a panel showing the
@@ -73,7 +77,7 @@ export default React.memo(function Error(props: UseDoenetRendererProps) {
             );
         }
         displayedMessage = (
-            <div style={errorStyle}>
+            <div style={errorStyle} {...chromeLangDir}>
                 <b>{t("error-heading", undefined, "Error")}</b>: {message}
                 {locationLine}
             </div>
