@@ -26,7 +26,10 @@ import {
     attachLabelHoverHighlight,
     computeLabelMaskCssStyle,
 } from "./utils/labelMaskStyle";
-import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
+import {
+    buildDragHandleAttributes,
+    buildLineLikeAttributes,
+} from "./utils/buildGraphicalAttributes";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
@@ -131,16 +134,10 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             [...SVs.numericalEndpoints[1]],
         ];
 
-        let jsxPointAttributes = Object.assign({}, jsxVectorAttributes);
-        Object.assign(jsxPointAttributes, {
-            withLabel: false,
-            fixed: false,
-            highlight: true,
-            fillColor: "none",
-            strokeColor: "none",
-            highlightStrokeColor: "none",
-            highlightFillColor: resolveHandleColor(darkMode),
+        let jsxPointAttributes = buildDragHandleAttributes({
+            elementAttributes: jsxVectorAttributes,
             layer: pointLayer,
+            darkMode,
             showInfoBox: SVs.showCoordsWhenDragging,
         });
 
