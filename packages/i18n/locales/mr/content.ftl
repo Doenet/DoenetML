@@ -349,8 +349,9 @@ piecewise-condition-otherwise = अन्यथा
 ## Chemistry
 ##
 ## The names Marathi-medium school chemistry uses in Maharashtra: native words
-## for the metals known before the nomenclature was borrowed, transliterations
-## for the rest. Symbols and formulas are untouched.
+## for the elements known before the nomenclature was borrowed — लोह, तांबे,
+## जस्त, कथिल, चांदी, सोने, पारा, शिसे and गंधक — and transliterations for the
+## rest. Symbols and formulas are untouched.
 
 element-name =
     .h = हायड्रोजन
