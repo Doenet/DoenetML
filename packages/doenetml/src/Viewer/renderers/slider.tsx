@@ -405,8 +405,12 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 on the right while the tick labels under them, being notation,
                 still read left-to-right. Pinning the track keeps the two
                 agreeing, and takes in the prev/next buttons so that "prev"
-                stays on the end of the track it steps toward. */}
-            <div dir="ltr">
+                stays on the end of the track it steps toward.
+
+                Shrink-to-fit because a pinned *block* would otherwise stretch
+                the full width and left-align its contents, stranding the track
+                at the far side of the page from the label above it. */}
+            <div dir="ltr" style={{ width: "fit-content" }}>
                 <input
                     ref={inputRef}
                     id={id}

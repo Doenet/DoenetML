@@ -715,10 +715,92 @@ is an **identifier** rather than a quantity — a line number, a `styleNumber`, 
 `string`, so that nothing groups it either. `TranslationArgs` is where that is
 written down.
 
+## Direction
+
+`directionOf(tag)` in `src/direction.ts` is the whole rule. It answers for
+**any** BCP-47 tag, not only the ones with a catalog: `lang` accepts whatever an
+author types, and `<document lang="ar">` has to lay out right-to-left whether or
+not `locales/ar/` exists. That is why direction is computed rather than recorded
+beside the catalogs — a generated field could only cover the roster, which is
+[not the bundle](#the-roster-is-not-the-bundle) and not exhaustive either.
+
+It keys on **script**, because that is what decides: Punjabi is left-to-right in
+Gurmukhi and right-to-left in Arabic, Kurdish likewise in Latin and Arabic. A
+bare `ar` or `he` resolves through `Intl.Locale`'s `maximize()`. Deliberately
+not `Intl.Locale.prototype.getTextInfo()`, which is too new to rely on and
+throws on exactly the tags `normalizeLocaleTag` is written to pass through
+untouched.
+
+Two roots carry `dir`, for the same reason there are two locales. `DocViewer`
+puts the **content's** direction on `.doenet-viewer` beside its `lang`;
+`doenetml.tsx` puts the **reader's** on the wrapper around the chrome that sits
+outside it. A nested `<document lang>` needs no state variable of its own —
+`renderedLang` is set exactly when the language changes, so where it is absent
+the direction cannot have changed either.
+
+Chrome drawn *inside* the document is the reader's language in a box declared to
+be the content's. `useChromeLangDir()` re-declares it, and returns `{}` when the
+two directions already agree — so the common case adds no attributes at all. It
+is not for anything reading `useContentT`: the check-work widget follows the
+document's language by design, so it follows its direction too.
+
+### Notation is a left-to-right island
+
+Mathematics reads left-to-right in Arabic and Hebrew as well, so a graph must
+not mirror while the prose around it does. The pins are `dir="ltr"` on the
+JSXGraph board and the prefigure SVG (both write `text-anchor: start|end`, which
+resolves against the computed direction), the MathQuill wrapper (no `direction`
+declaration anywhere, inline siblings in source order, physical kerns), the
+matrix input and spreadsheet (a `<table>` reverses its columns), the slider (a
+native range input reverses its track), the number line, the orbital diagram,
+and CodeMirror (it renders XML source). Handsontable is told through its own
+`layoutDirection` option rather than through CSS. MathJax needs nothing: its
+CHTML output already pins `direction: ltr` on `mjx-math`.
+
+The keyboard's keys are pinned in `keyboard.css` rather than by attribute,
+because `Keyboard` returns a different element per style. The tray *around*
+them follows the reader.
+
+Everything else mirrors: the paginator, prose renderers, the feedback and hint
+headers, the graph-controls panel, the editor chrome.
+
+### Testing it without a catalog
+
+`en-XB` renders text byte-identical to `en-XA` and differs only in
+`directionOf` reporting it `rtl`. So a difference between the two runs is a
+difference in layout and nothing else, and every right-to-left assertion is
+runnable before any right-to-left language is translated. It is deliberately
+not a text transform: Android's U+202E override demonstrates bidi rather than
+testing a layout, and look-alike glyphs would cost the accented text its
+readability and break the hard-coded-English sweep.
+
 ## Bidi isolation
 
-`createTranslator` defaults `useIsolating` to **false**. Fluent otherwise wraps
-every placeable in U+2068/U+2069, which is right for free-form UI text but makes
-output non-byte-identical to the English it replaces and corrupts strings that
-are later compared or hashed — and Doenet compares response text. Turn it on per
-translator for a surface that genuinely mixes RTL and LTR runs.
+An interpolated value that runs the other way from the sentence around it
+scrambles that sentence. Unicode's isolates prevent that, and Fluent adds them
+per bundle — so `useIsolating` is decided per translator, and the two
+translators want opposite answers:
+
+- **`createChromeTranslator` turns it on**, for every language but English.
+  What it renders is looked at and discarded.
+- **`createTranslatorFromLocaleData` leaves it off.** What the worker renders
+  becomes state variables an author interpolates, an `<award>` compares against
+  a response, and `answer.js` folds into a SHA-1 of the dependency graph. The
+  line is drawn at what is compared, not at what looks like prose.
+
+Isolation is uniform across a fallback chain rather than per catalog: a key the
+reader's language has not translated resolves from English and is isolated all
+the same, because the chrome around it is still the reader's.
+
+**English is excluded, and the reason is not principled.** Isolation protects a
+sentence whose placeable runs the other way, which has nothing to do with
+whether the sentence is English — an English UI naming an Arabic answer still
+gets none. It is excluded because the assertion corpus compares English chrome
+as plain text, and every phase has held English byte-identical to what it
+replaced. Turning it on for English later is a mechanical change plus a sweep
+of exact-string assertions. Keyed on the primary subtag, so `en-GB` is English
+and so are both pseudo-locales.
+
+A test asserting on translated chrome has to strip the marks with
+`stripBidiIsolates`. They render as nothing, so a failure diff otherwise shows
+two strings that look identical.

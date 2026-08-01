@@ -100,7 +100,7 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
                     // panels themselves reorder under `rtl` while these
                     // percentages stay where they were put. Giving the
                     // attribute logical `start`/`end` values is tracked
-                    // separately.
+                    // in #1627.
                     marginLeft: `${thisMarginLeft}%`,
                     marginRight: `${thisMarginRight}%`,
                     width: `${width}%`,

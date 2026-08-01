@@ -252,7 +252,7 @@ export default React.memo(function orbitalDiagramInput(
         // sits to the left of its boxes and the boxes fill left to right in
         // every language, and the rows are plain inline flow that would
         // otherwise reverse wholesale under `rtl`.
-        <div ref={ref} id={id} dir="ltr">
+        <div ref={ref} id={id} dir="ltr" style={{ width: "fit-content" }}>
             {controls}
             {rowsJSX}
         </div>

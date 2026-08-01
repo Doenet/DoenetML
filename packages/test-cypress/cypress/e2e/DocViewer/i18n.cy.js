@@ -1,4 +1,5 @@
 import { plainTextIncluding, stripBidiIsolates } from "../utils/bidi";
+import { verifyListItemNumbersAlign } from "../tagSpecific/utils/listItemNumberAlignment";
 
 /** Any of the four Unicode bidi isolates Fluent wraps a placeable in. */
 const ISOLATE = /[⁦-⁩]/;
@@ -415,6 +416,129 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
 
             cy.get("#ready").should("have.text", "ready");
             shouldHaveDiagnostic("code", "doenet-i0001");
+        });
+    });
+
+    describe("direction", () => {
+        // `en-XB` renders exactly the text `en-XA` does and differs only in
+        // being right-to-left, so anything that moves between the two runs
+        // moved because of the layout and not because the words changed.
+        // Everything here would otherwise have to wait on an Arabic catalog.
+        const RTL = "en-XB";
+
+        /**
+         * Sections numbered as list items — the hanging-number layout that has
+         * been the recurring alignment hotspot. Items of deliberately
+         * different lengths, since the whole risk is that the number's
+         * position ends up depending on the content beside it.
+         */
+        const listItems = `
+        <problems name="problems">
+          <problem name="p1"><p>short</p></problem>
+          <problem name="p2"><p>a rather longer line of text that will wrap around onto a second line</p></problem>
+          <problem name="p3"><p>medium length</p></problem>
+        </problems>
+        <p name="ready">ready</p>`;
+
+        it("labels the document with its direction, beside its language", () => {
+            render({ doenetML: solution, documentLocale: RTL });
+
+            cy.get(".doenet-viewer").should("have.attr", "lang", RTL);
+            cy.get(".doenet-viewer").should("have.attr", "dir", "rtl");
+        });
+
+        it("says left-to-right for a left-to-right language", () => {
+            // Not merely absent: an explicit `ltr` is what stops a
+            // right-to-left host page from turning an English activity around.
+            render({ doenetML: solution, documentLocale: "es" });
+
+            cy.get(".doenet-viewer").should("have.attr", "dir", "ltr");
+        });
+
+        it("turns the chrome without turning the content", () => {
+            // The two locales are separate attributes for this case: a reader
+            // whose language runs the other way from the activity's.
+            render({ doenetML: solution, documentLocale: "es", uiLocale: RTL });
+
+            cy.get(".doenet-viewer").should("have.attr", "dir", "ltr");
+            cy.get("#virtual-keyboard-tray").should("have.attr", "dir", "rtl");
+        });
+
+        it("keeps the notation left-to-right inside a right-to-left document", () => {
+            // The reason this is a `dir` attribute per island rather than one
+            // on the wrapper: mathematics does not mirror.
+            render({
+                doenetML: `
+                <graph name="g"><point name="P">(1,2)</point></graph>
+                <p><mathInput name="mi" /></p>
+                <p><slider name="s" from="0" to="10" /></p>
+                <p name="ready">ready</p>`,
+                documentLocale: RTL,
+            });
+
+            cy.get("#ready").should("have.text", "ready");
+            cy.get(".doenet-viewer").should("have.attr", "dir", "rtl");
+            // Asserting the *computed* direction, so an island that stopped
+            // being pinned would fail here even if some ancestor still said
+            // `ltr` for another reason.
+            cy.get(".jxgbox").should(($el) => {
+                expect(getComputedStyle($el[0]).direction).to.equal("ltr");
+            });
+            cy.get("#mi .mq-editable-field").should(($el) => {
+                expect(getComputedStyle($el[0]).direction).to.equal("ltr");
+            });
+            cy.get("#s").should(($el) => {
+                expect(getComputedStyle($el[0]).direction).to.equal("ltr");
+            });
+            cy.get(".virtual-keyboard").should(($el) => {
+                expect(getComputedStyle($el[0]).direction).to.equal("ltr");
+            });
+        });
+
+        it("hangs list-item numbers off the side the text starts from", () => {
+            // The layout that has been reworked five times. Asserted as the
+            // outcome — sibling numbers line up — rather than as a technique,
+            // and measured from the starting edge so it means the same thing
+            // in both directions.
+            render({ doenetML: listItems, documentLocale: RTL });
+
+            cy.get("#ready").should("have.text", "ready");
+            verifyListItemNumbersAlign(["p1", "p2", "p3"], {
+                label: "right-to-left document",
+            });
+            // And the numbers really are on the other side: each item's
+            // content starts to the right of where its box ends on the left.
+            cy.get("#p1").should(($el) => {
+                const box = $el[0].getBoundingClientRect();
+                const range = document.createRange();
+                range.selectNodeContents($el[0]);
+                const content = range.getBoundingClientRect();
+                expect(
+                    box.right - content.right,
+                    "gutter is on the right",
+                ).to.be.greaterThan(1);
+            });
+        });
+
+        it("still hangs them off the left in a left-to-right document", () => {
+            // The mirror of the assertion above, so a change that fixed one
+            // direction by breaking the other cannot pass.
+            render({ doenetML: listItems, documentLocale: "es" });
+
+            cy.get("#ready").should("have.text", "ready");
+            verifyListItemNumbersAlign(["p1", "p2", "p3"], {
+                label: "left-to-right document",
+            });
+            cy.get("#p1").should(($el) => {
+                const box = $el[0].getBoundingClientRect();
+                const range = document.createRange();
+                range.selectNodeContents($el[0]);
+                const content = range.getBoundingClientRect();
+                expect(
+                    content.left - box.left,
+                    "gutter is on the left",
+                ).to.be.greaterThan(1);
+            });
         });
     });
 

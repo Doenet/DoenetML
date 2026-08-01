@@ -24,7 +24,7 @@ export default React.memo(function Row(props: UseDoenetRendererProps) {
     }
     // Physical, because the attribute is: an author writes `<row left="…">` and
     // means the left-hand edge. Adding a logical `start`/`end` vocabulary to
-    // the table attributes is tracked separately.
+    // the table attributes is tracked in #1627.
     if (SVs.left !== "none") {
         style.borderLeftStyle = "solid";
         if (SVs.left === "minor") {

@@ -363,7 +363,7 @@ export default React.memo(function subsetOfReals(
         // pointer handler maps an x position to a value by subtracting a left
         // edge. Pinned as one attribute on the whole widget so the controls
         // above the axis stay on the same side as the axis itself.
-        <div ref={ref} id={id} dir="ltr">
+        <div ref={ref} id={id} dir="ltr" style={{ width: "fit-content" }}>
             <div ref={bounds} style={{ display: "flex", gap: "12px" }}>
                 {controlButtons}
             </div>
