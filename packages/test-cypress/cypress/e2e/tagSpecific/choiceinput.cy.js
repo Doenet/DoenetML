@@ -1716,13 +1716,11 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-    <p>Some text leading into a
     <choiceInput name="ci" inline placeholder="Choose word">
       <choice>inline</choice>
       <choice>choice</choice>
       <choice>input</choice>
-    </choiceInput> showing the choices.
-    </p>
+    </choiceInput>
     `,
                 },
                 "*",

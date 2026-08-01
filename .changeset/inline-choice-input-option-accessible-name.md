@@ -8,10 +8,11 @@
 
 Viewer: announce inline `<choiceInput>` options by their text, not "[object Object]".
 
-The inline choice input passes each choice's rendered content to react-select as
+The inline choice input passed each choice's rendered content to react-select as
 the option label. React-select stringifies that label for the announcements it
 writes to its aria-live region (and for typeahead filtering), so screen readers
-heard "[object Object], 1 of 3" instead of the choice text.
+heard "[object Object], 1 of 3" instead of the choice text, and typing to filter
+the list matched nothing.
 
 Each option now carries its plain text alongside the rendered content: the text
 supplies the accessible name and the filter string, while the rendered content —
