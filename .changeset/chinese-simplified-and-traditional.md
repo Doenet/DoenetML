@@ -14,4 +14,4 @@ Catalogues the pair by script rather than leaving Simplified as a plain `zh`, wh
 
 The Traditional catalog is a full translation rather than a character conversion of the Simplified one, and follows Taiwan usage where the two diverge — 預設 over 默认, 變數 over 变量, 質數 over 素数, 元件 over 组件, 影片 over 视频. A table's rows and columns are 列 and 欄, the opposite assignment to the mainland's, so the matrix and data-frame messages are not a mistranslation of their Simplified counterparts. Several elements are named differently too, 矽 for silicon among them.
 
-Both remain **unreviewed machine-generated seeds**, as their headers say. Neither script falls back to the other: a key missing from one renders in English rather than in the wrong script.
+Both remain **unreviewed machine-generated seeds**, as their headers say. Both are complete, so neither leans on the other, and a Traditional reader never falls through to Simplified: `zh-Hant` and every region that implies it negotiate to `["zh-Hant", "en"]`.

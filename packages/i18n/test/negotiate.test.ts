@@ -83,16 +83,34 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * Neither catalog falls back to the other: a key missing from one
-         * renders in English rather than in the wrong script.
+         * A Traditional reader never falls through to Simplified: a key
+         * missing from `zh-Hant` renders in English instead.
          */
-        it("never chains one script behind the other", () => {
-            expect(negotiateLocales(["zh-Hant"], available)).not.toContain(
+        it.each(["zh-Hant", "zh-TW", "zh-HK", "zh-MO"])(
+            "never puts Simplified behind %s",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).not.toContain(
+                    "zh-Hans",
+                );
+            },
+        );
+
+        /**
+         * The reverse is not symmetric, because filtering offers every `zh-*`
+         * catalog it has. Keeping both catalogs complete is what keeps this
+         * step out of reach — a gap in `zh-Hans` would be filled from
+         * `zh-Hant` wherever both catalogs are loaded at once.
+         */
+        it("does put Traditional behind Simplified for a region tag", () => {
+            expect(negotiateLocales(["zh-CN"], available)).toEqual([
                 "zh-Hans",
-            );
-            expect(negotiateLocales(["zh-Hans"], available)).not.toContain(
                 "zh-Hant",
-            );
+                "en",
+            ]);
+            expect(negotiateLocales(["zh-Hans"], available)).toEqual([
+                "zh-Hans",
+                "en",
+            ]);
         });
     });
 });

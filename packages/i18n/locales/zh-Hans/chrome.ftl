@@ -13,9 +13,11 @@
 # script and neither half is named `zh` is in the package README, and
 # `negotiate.test.ts` holds it.
 #
-# The two catalogs are complete rather than layered. `zh-Hans` negotiates to
-# `["zh-Hans", "en"]` — `zh-Hant` is not in that chain — so a key missing here
-# falls back to English, never to the other script.
+# Keep this catalog complete. `zh-CN` and `zh-SG` negotiate to
+# `["zh-Hans", "zh-Hant", "en"]` — filtering negotiation offers every `zh-*`
+# catalog it has — so on a page holding both, a key dropped from here surfaces
+# in Traditional rather than in English. The reverse cannot happen: every
+# Traditional tag negotiates to `["zh-Hant", "en"]`.
 #
 # Chinese has a single plural category, so a countable message needs no
 # selection — `[other]` covers every count. `[0]` is still spelled out where

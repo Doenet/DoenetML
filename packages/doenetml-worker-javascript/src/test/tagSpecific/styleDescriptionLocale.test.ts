@@ -86,9 +86,8 @@ describe("style descriptions follow the document locale @group4", () => {
 
     it("negotiates a region to the script it implies", async () => {
         // Chinese is catalogued by script, so `zh-TW` names no directory and
-        // strips to no directory either: only a negotiation that consults
-        // likely-subtags reaches Traditional Chinese, and the Simplified
-        // catalog is a different translation rather than a fallback.
+        // strips to none either: only a negotiation that consults CLDR's
+        // likely-subtags reaches the Traditional catalog.
         const values = await descriptions(styled, names, "zh-TW");
         expect(values.stn).eq("紅色粗虛線直線");
     });

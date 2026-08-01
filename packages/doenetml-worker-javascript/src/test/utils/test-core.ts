@@ -243,12 +243,11 @@ export async function createTestCore({
  * because the one map it builds also feeds its own chrome; the three the core
  * never opens make no difference to what it computes.
  *
- * Negotiated through `negotiateLocales`, which is what `loadLocaleResources`
- * uses, rather than by trimming to the primary subtag: a document in `es-MX` is
- * served by the `es` catalog either way, but `zh-TW` is served by `zh-Hant`
- * only if the negotiation consults likely-subtags, and trimming to `zh` finds
- * no directory of that name at all. A tag nothing answers gets nothing and
- * falls back to English, which is what an untranslated locale does anyway.
+ * Negotiated through `negotiateLocales`, the helper `loadLocaleResources`
+ * uses, so a tag reaches the catalog the viewer would reach: `es-MX` is served
+ * by `es`, and `zh-TW` by `zh-Hant`, which only likely-subtags can work out. A
+ * tag nothing answers gets nothing and falls back to English, which is what an
+ * untranslated locale does anyway.
  */
 function catalogsFor(
     locale: string | undefined,
