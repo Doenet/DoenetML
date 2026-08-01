@@ -7,17 +7,22 @@
 /** A locale this repository ships a catalog for. */
 export type SupportedLocale =
     | "en"
+    | "am"
     | "de"
     | "es"
     | "fr"
+    | "hi"
     | "hnj"
     | "id"
     | "it"
     | "ja"
     | "ko"
     | "nl"
+    | "pl"
+    | "pt"
     | "ru"
     | "so"
+    | "tr"
     | "vi"
     | "zh-Hans"
     | "zh-Hant";
@@ -60,6 +65,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "English",
     },
     {
+        locale: "am",
+        englishName: "Amharic",
+        endonym: "አማርኛ",
+        label: "Amharic (አማርኛ)",
+    },
+    {
         locale: "de",
         englishName: "German",
         endonym: "Deutsch",
@@ -76,6 +87,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "French",
         endonym: "français",
         label: "French (français)",
+    },
+    {
+        locale: "hi",
+        englishName: "Hindi",
+        endonym: "हिन्दी",
+        label: "Hindi (हिन्दी)",
     },
     {
         locale: "hnj",
@@ -114,6 +131,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Dutch (Nederlands)",
     },
     {
+        locale: "pl",
+        englishName: "Polish",
+        endonym: "polski",
+        label: "Polish (polski)",
+    },
+    {
+        locale: "pt",
+        englishName: "Portuguese",
+        endonym: "português",
+        label: "Portuguese (português)",
+    },
+    {
         locale: "ru",
         englishName: "Russian",
         endonym: "русский",
@@ -124,6 +153,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Somali",
         endonym: "Soomaali",
         label: "Somali (Soomaali)",
+    },
+    {
+        locale: "tr",
+        englishName: "Turkish",
+        endonym: "Türkçe",
+        label: "Turkish (Türkçe)",
     },
     {
         locale: "vi",

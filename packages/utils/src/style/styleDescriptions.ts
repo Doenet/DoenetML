@@ -22,8 +22,9 @@ import type { TranslationArgs, Translator } from "@doenet/i18n";
  * re-punctuate each combination independently.
  *
  * Adjectives are also handed `$gender`, the grammatical gender the catalog
- * assigns the noun they describe (`noun-gender`). English has no agreement and
- * ignores it.
+ * assigns the noun they describe (`noun-gender`), and `$role`, the syntactic
+ * position the phrase is going into ({@link PhraseRole}). English has no
+ * agreement and ignores both.
  *
  * ## Words in, keys out
  *
@@ -195,18 +196,48 @@ function genderOf(t: Translator, noun: string): string {
     return t("noun-gender", { noun }, "neuter");
 }
 
-/** Look a derived word up in a vocabulary; pass an authored one through. */
+/**
+ * Which syntactic position a description is being rendered into.
+ *
+ * Gender alone is enough while a phrase appears in exactly one position. Three
+ * of them appear in two, and a language that inflects an attributive adjective
+ * for case has to tell them apart: a border's adjectives are a standalone
+ * phrase in `borderStyleDescription` and the object of a preposition inside
+ * `style-border-clause`, where German's `mit einem …` governs the dative and
+ * Russian's «с …» the instrumental. `background` forks the same way between
+ * `backgroundColor` and `style-text`. So does the text colour beside it, which
+ * German wants attributive in the `textColor` variable (`roter`) and
+ * predicative in the sentence (`rot auf gelbem Hintergrund`).
+ *
+ * The names are *positions*, not cases, because which case a position governs
+ * is the catalog's business — exactly as `$gender`'s token set already is. The
+ * code only has to say where the words are going.
+ *
+ * A language with no case ignores `$role`, as English ignores `$gender`.
+ */
+export type PhraseRole =
+    "standalone" | "border-clause" | "background-clause" | "text-clause";
+
+/**
+ * Look a derived word up in a vocabulary; pass an authored one through.
+ *
+ * `role` defaults to `"standalone"`, which is where a word lands unless its
+ * caller says otherwise. Only `describeStroke` and `describeColor` ever pass
+ * anything else — they are the two that also build the embedded forms
+ * {@link PhraseRole} exists for.
+ */
 function lookUp(
     t: Translator,
     vocabulary: Vocabulary,
     word: string | undefined,
     gender: string,
+    role: PhraseRole = "standalone",
 ): string {
     if (!word) {
         return "";
     }
     const entry = vocabulary[word];
-    return entry ? entry(t, { gender }) : word;
+    return entry ? entry(t, { gender, role }) : word;
 }
 
 /**
@@ -289,15 +320,30 @@ export type StrokeWords = {
  * rather than repeating the color it just used.
  *
  * @param gender The gender of whatever the stroke describes, for agreement.
+ * @param role Which position the phrase is going into, for the languages that
+ *   inflect for case. See {@link PhraseRole}.
  */
 function describeStroke(
     t: Translator,
     words: StrokeWords,
     gender: string,
+    role: PhraseRole,
 ): string {
-    const width = lookUp(t, LINE_WIDTH_WORDS, words.lineWidthWord, gender);
-    const lineStyle = lookUp(t, LINE_STYLE_WORDS, words.lineStyleWord, gender);
-    const color = lookUp(t, COLOR_WORDS, words.colorWord, gender);
+    const width = lookUp(
+        t,
+        LINE_WIDTH_WORDS,
+        words.lineWidthWord,
+        gender,
+        role,
+    );
+    const lineStyle = lookUp(
+        t,
+        LINE_STYLE_WORDS,
+        words.lineStyleWord,
+        gender,
+        role,
+    );
+    const color = lookUp(t, COLOR_WORDS, words.colorWord, gender, role);
 
     const parts = strokeParts(width, lineStyle, color);
     if (parts === null) {
@@ -305,7 +351,7 @@ function describeStroke(
     }
     return t(
         "style-stroke",
-        { parts, width, lineStyle, color, gender },
+        { parts, width, lineStyle, color, gender, role },
         joinPresent(width, lineStyle, color),
     );
 }
@@ -329,6 +375,11 @@ function attachNoun(
             description,
             noun,
             nounTail: tail,
+            // Every caller names the shape and stops there, so the phrase is
+            // never governed by anything. Passed rather than left out for the
+            // same reason `style-filled-word`'s is: a catalog reading `$role`
+            // finds a value in every message that places adjectives.
+            role: "standalone",
         },
         joinPresent(description, noun, tail),
     );
@@ -346,13 +397,23 @@ export function describeStrokedShape(
     words: StrokeWords,
     { noun, withNoun }: { noun: NounSpec; withNoun: boolean },
 ): string {
-    const stroke = describeStroke(t, words, genderOf(t, noun.key));
+    const stroke = describeStroke(
+        t,
+        words,
+        genderOf(t, noun.key),
+        "standalone",
+    );
     return withNoun ? attachNoun(t, stroke, nounPhrase(t, noun)) : stroke;
 }
 
-/** A shape's border on its own, as `borderStyleDescription` reports it. */
+/**
+ * A shape's border on its own, as `borderStyleDescription` reports it.
+ *
+ * Standalone, unlike the same words inside `style-border-clause`, which is the
+ * whole reason {@link PhraseRole} exists.
+ */
 export function describeBorder(t: Translator, words: StrokeWords): string {
-    return describeStroke(t, words, genderOf(t, "border"));
+    return describeStroke(t, words, genderOf(t, "border"), "standalone");
 }
 
 export type ClosedShapeWords = StrokeWords & {
@@ -398,8 +459,15 @@ export function describeClosedShape(
     // never sees it; a message reference does inherit it, but resolves only
     // within its own bundle, so a locale that translated `style-filled` and
     // not this word would render the reference literally instead of falling
-    // back to English.
-    const filledWord = t("style-filled-word", { gender }, "filled");
+    // back to English. It agrees with the shape and is only ever said of it, so
+    // its position is always `"standalone"` — passed rather than left out so
+    // that a catalog reading `$role` finds a value there, as every other
+    // adjective's lookup does.
+    const filledWord = t(
+        "style-filled-word",
+        { gender, role: "standalone" },
+        "filled",
+    );
     const patternClause = pattern ? ` with ${pattern}` : "";
 
     const filledText = phrase
@@ -416,13 +484,21 @@ export function describeClosedShape(
                   nounTail: phrase.tail,
                   filled: filledWord,
                   gender,
+                  role: "standalone",
               },
               joinPresent(filledWord, color, phrase.noun, phrase.tail) +
                   patternClause,
           )
         : t(
               "style-filled",
-              { parts: fillParts, color, pattern, filled: filledWord, gender },
+              {
+                  parts: fillParts,
+                  color,
+                  pattern,
+                  filled: filledWord,
+                  gender,
+                  role: "standalone",
+              },
               joinPresent(filledWord, color) + patternClause,
           );
 
@@ -433,10 +509,15 @@ export function describeClosedShape(
     // suppress the border's color there.
     const borderRepeatsFill = words.fillColorWord === words.colorWord;
     const borderGender = genderOf(t, "border");
+    // Not `"standalone"`: these words land inside `style-border-clause`, whose
+    // preposition governs a case in German, Russian and Polish, and the oblique
+    // in Hindi. `describeBorder` builds the same words for the standalone state
+    // variable and says so.
     const border = describeStroke(
         t,
         borderRepeatsFill ? { ...words, colorWord: "" } : words,
         borderGender,
+        "border-clause",
     );
     if (!border) {
         return filledText;
@@ -453,7 +534,12 @@ export function describeClosedShape(
         " " +
         t(
             "style-border-clause",
-            { parts: borderParts, border, gender: borderGender },
+            {
+                parts: borderParts,
+                border,
+                gender: borderGender,
+                role: "border-clause",
+            },
             withNoun
                 ? `${connective} a ${border} border`
                 : `${connective} ${border} border`,
@@ -475,7 +561,13 @@ export function describeFill(
     const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
     return t(
         "style-fill",
-        { parts: pattern ? "pattern" : "plain", color, pattern, gender },
+        {
+            parts: pattern ? "pattern" : "plain",
+            color,
+            pattern,
+            gender,
+            role: "standalone",
+        },
         joinPresent(color, pattern),
     );
 }
@@ -503,13 +595,23 @@ export function describeRegion(
     return withNoun ? attachNoun(t, color, nounPhrase(t, noun)) : color;
 }
 
-/** A color word on its own, as `textColor` and `backgroundColor` report it. */
+/**
+ * A color word on its own, as `textColor` and `backgroundColor` report it.
+ *
+ * @param role Defaults to `"standalone"`, which is what the two state variables
+ *   want. `textStyleDescription` asks for the same two words again in
+ *   `"text-clause"` and `"background-clause"`, because inside its sentence the
+ *   colour is predicative and the background sits behind a preposition — the
+ *   same fork the border has, and the reason a caller looks the words up twice
+ *   rather than reusing one string in both places.
+ */
 export function describeColor(
     t: Translator,
     colorWord: string | undefined,
     head: PhraseHead,
+    role: PhraseRole = "standalone",
 ): string {
-    return lookUp(t, COLOR_WORDS, colorWord, genderOf(t, head));
+    return lookUp(t, COLOR_WORDS, colorWord, genderOf(t, head), role);
 }
 
 /** What `backgroundColor` answers when nothing is drawn behind the text. */
@@ -519,6 +621,12 @@ export function noBackgroundWord(t: Translator): string {
 
 /**
  * How a piece of text is styled: "red with a blue background".
+ *
+ * `style-text` is the one composition message given no `$role`: its two words
+ * sit in two different positions — the colour predicative, the background
+ * behind a preposition — so no single token would describe them both. They
+ * arrive already inflected for their own position, and `$parts` tells the
+ * branches apart.
  *
  * @param background The already-translated background color, or `undefined`
  *   when nothing is drawn behind the text. Presence is decided by the caller

@@ -5,132 +5,224 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Russian inflects, and it has three genders. Adjectives precede their noun and
-# agree with it, so every adjective below selects on `$gender` with `m`, `f`
-# and `n`, and the composition messages keep the English adjective-then-noun
-# order. A description is a standalone phrase in the nominative, which is what
-# lets one form per gender be enough — except after the preposition the border
-# clause uses, for which `$gender` carries a fourth token, `insf`. `noun-gender`
-# says which noun answers it and why.
+# agree with it in gender and in the case their position governs, so every
+# adjective below selects on `$role` first — which position the words are going
+# into — and only then, where it matters, on `$gender`:
+#
+#   standalone          a phrase in the nominative: `-ый`/`-ой` m, `-ая` f,
+#                       `-ое` n
+#   border-clause       after «с», which governs the instrumental, of
+#                       «граница» — feminine: `-ой`
+#   background-clause   after «на … фоне», prepositional, of «фон» —
+#                       masculine: `-ом` (`-ем` after a soft stem)
+#   text-clause         nominative masculine, agreeing with «текст»
+#
+# The last three need no gender branch: each is only ever used of one noun, and
+# that noun's gender is fixed.
+#
+# This replaces the `insf` token an earlier seed carried inside `$gender`. One
+# token could hold a gender or a case but not both, so whichever of the two
+# positions it was tuned for, the other came out wrong (#1606).
 
 
 ## Style vocabulary
 
 color =
     .black =
-        { $gender ->
-            [insf] чёрной
-            [f] чёрная
-            [n] чёрное
-           *[m] чёрный
+        { $role ->
+            [border-clause] чёрной
+            [background-clause] чёрном
+            [text-clause] чёрный
+           *[standalone]
+                { $gender ->
+                    [f] чёрная
+                    [n] чёрное
+                   *[m] чёрный
+                }
         }
     .white =
-        { $gender ->
-            [insf] белой
-            [f] белая
-            [n] белое
-           *[m] белый
+        { $role ->
+            [border-clause] белой
+            [background-clause] белом
+            [text-clause] белый
+           *[standalone]
+                { $gender ->
+                    [f] белая
+                    [n] белое
+                   *[m] белый
+                }
         }
     .gray =
-        { $gender ->
-            [insf] серой
-            [f] серая
-            [n] серое
-           *[m] серый
+        { $role ->
+            [border-clause] серой
+            [background-clause] сером
+            [text-clause] серый
+           *[standalone]
+                { $gender ->
+                    [f] серая
+                    [n] серое
+                   *[m] серый
+                }
         }
     .red =
-        { $gender ->
-            [insf] красной
-            [f] красная
-            [n] красное
-           *[m] красный
+        { $role ->
+            [border-clause] красной
+            [background-clause] красном
+            [text-clause] красный
+           *[standalone]
+                { $gender ->
+                    [f] красная
+                    [n] красное
+                   *[m] красный
+                }
         }
     .orange =
-        { $gender ->
-            [insf] оранжевой
-            [f] оранжевая
-            [n] оранжевое
-           *[m] оранжевый
+        { $role ->
+            [border-clause] оранжевой
+            [background-clause] оранжевом
+            [text-clause] оранжевый
+           *[standalone]
+                { $gender ->
+                    [f] оранжевая
+                    [n] оранжевое
+                   *[m] оранжевый
+                }
         }
     .yellow =
-        { $gender ->
-            [insf] жёлтой
-            [f] жёлтая
-            [n] жёлтое
-           *[m] жёлтый
+        { $role ->
+            [border-clause] жёлтой
+            [background-clause] жёлтом
+            [text-clause] жёлтый
+           *[standalone]
+                { $gender ->
+                    [f] жёлтая
+                    [n] жёлтое
+                   *[m] жёлтый
+                }
         }
     .green =
-        { $gender ->
-            [insf] зелёной
-            [f] зелёная
-            [n] зелёное
-           *[m] зелёный
+        { $role ->
+            [border-clause] зелёной
+            [background-clause] зелёном
+            [text-clause] зелёный
+           *[standalone]
+                { $gender ->
+                    [f] зелёная
+                    [n] зелёное
+                   *[m] зелёный
+                }
         }
     .cyan =
-        { $gender ->
-            [insf] голубой
-            [f] голубая
-            [n] голубое
-           *[m] голубой
+        { $role ->
+            [border-clause] голубой
+            [background-clause] голубом
+            [text-clause] голубой
+           *[standalone]
+                { $gender ->
+                    [f] голубая
+                    [n] голубое
+                   *[m] голубой
+                }
         }
     .blue =
-        { $gender ->
-            [insf] синей
-            [f] синяя
-            [n] синее
-           *[m] синий
+        { $role ->
+            [border-clause] синей
+            [background-clause] синем
+            [text-clause] синий
+           *[standalone]
+                { $gender ->
+                    [f] синяя
+                    [n] синее
+                   *[m] синий
+                }
         }
     .purple =
-        { $gender ->
-            [insf] фиолетовой
-            [f] фиолетовая
-            [n] фиолетовое
-           *[m] фиолетовый
+        { $role ->
+            [border-clause] фиолетовой
+            [background-clause] фиолетовом
+            [text-clause] фиолетовый
+           *[standalone]
+                { $gender ->
+                    [f] фиолетовая
+                    [n] фиолетовое
+                   *[m] фиолетовый
+                }
         }
     .pink =
-        { $gender ->
-            [insf] розовой
-            [f] розовая
-            [n] розовое
-           *[m] розовый
+        { $role ->
+            [border-clause] розовой
+            [background-clause] розовом
+            [text-clause] розовый
+           *[standalone]
+                { $gender ->
+                    [f] розовая
+                    [n] розовое
+                   *[m] розовый
+                }
         }
     .brown =
-        { $gender ->
-            [insf] коричневой
-            [f] коричневая
-            [n] коричневое
-           *[m] коричневый
+        { $role ->
+            [border-clause] коричневой
+            [background-clause] коричневом
+            [text-clause] коричневый
+           *[standalone]
+                { $gender ->
+                    [f] коричневая
+                    [n] коричневое
+                   *[m] коричневый
+                }
         }
 
 line-width =
     .thick =
-        { $gender ->
-            [insf] толстой
-            [f] толстая
-            [n] толстое
-           *[m] толстый
+        { $role ->
+            [border-clause] толстой
+            [background-clause] толстом
+            [text-clause] толстый
+           *[standalone]
+                { $gender ->
+                    [f] толстая
+                    [n] толстое
+                   *[m] толстый
+                }
         }
     .thin =
-        { $gender ->
-            [insf] тонкой
-            [f] тонкая
-            [n] тонкое
-           *[m] тонкий
+        { $role ->
+            [border-clause] тонкой
+            [background-clause] тонком
+            [text-clause] тонкий
+           *[standalone]
+                { $gender ->
+                    [f] тонкая
+                    [n] тонкое
+                   *[m] тонкий
+                }
         }
 
 line-style =
     .dashed =
-        { $gender ->
-            [insf] штриховой
-            [f] штриховая
-            [n] штриховое
-           *[m] штриховой
+        { $role ->
+            [border-clause] штриховой
+            [background-clause] штриховом
+            [text-clause] штриховой
+           *[standalone]
+                { $gender ->
+                    [f] штриховая
+                    [n] штриховое
+                   *[m] штриховой
+                }
         }
     .dotted =
-        { $gender ->
-            [insf] пунктирной
-            [f] пунктирная
-            [n] пунктирное
-           *[m] пунктирный
+        { $role ->
+            [border-clause] пунктирной
+            [background-clause] пунктирном
+            [text-clause] пунктирный
+           *[standalone]
+                { $gender ->
+                    [f] пунктирная
+                    [n] пунктирное
+                   *[m] пунктирный
+                }
         }
 
 # Noun phrases in the instrumental, which is the case «с» takes. They agree
@@ -175,22 +267,13 @@ noun-regular-polygon =
 # or the head of a phrase the description never names: `border` (граница, f),
 # `fill` (заливка, f), `text` (текст, m), `background` (фон, m).
 #
-# `border` answers `insf` — feminine *instrumental* — rather than plain `f`,
-# because the only place its adjectives are rendered is after «с» in
-# `style-border-clause`, and «с» governs the instrumental: «с толстой
-# границей», not «с толстая границей». `$gender` is a single token that this
-# catalog chooses the meaning of, so carrying a case in it is what the
-# mechanism allows; what it cannot do is carry two, and
-# `borderStyleDescription` — the state variable that renders a border's style
-# on its own, with no preposition — therefore also comes out instrumental.
-# Fixing that properly means the code passing a case alongside the gender
-# (#1606).
-#
-# `background` faces the same fork and is resolved the other way: it stays
-# nominative, so `backgroundColor` reads right on its own and the «на … фоне»
-# clause in `style-text` carries the nominative with it. The two nouns split
-# because a border is named by a clause far more often than alone, and a
-# background the reverse.
+# Every one of them answers a plain gender now. `border` used to answer a case
+# instead — `insf` — because its adjectives are rendered in two positions and a
+# single token could only suit one of them; it was tuned for the clause, so the
+# standalone `borderStyleDescription` came out instrumental. `background` kept
+# its plain gender and so was wrong the other way round, nominative behind
+# «на». `$role` carries the distinction now, and this message is back to
+# answering the one question its name asks (#1606).
 noun-gender =
     { $noun ->
         [line] f
@@ -201,7 +284,7 @@ noun-gender =
         [circle] f
         [region] f
         [point] f
-        [border] insf
+        [border] f
         [fill] f
        *[other] m
     }
@@ -226,9 +309,10 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
+# Only ever said of the shape itself, so it is standalone in every
+# description and takes no `$role` branch.
 style-filled-word =
     { $gender ->
-        [insf] закрашенной
         [f] закрашенная
         [n] закрашенное
        *[m] закрашенный

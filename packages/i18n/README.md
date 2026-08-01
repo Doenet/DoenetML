@@ -66,19 +66,21 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `de`, `es`, `fr`, `hnj`,
-`id`, `it`, `ja`, `ko`, `nl`, `ru`, `so`, `vi`, `zh-Hans`, `zh-Hant` — is an
-**unreviewed machine-generated seed**, which each file's own header says at the
-top, and which is what #1521's translation platform is for. None has been read
-by a speaker. Correcting one needs no permission and no coordination: a wrong
-string is just wrong, and the English is one key away.
+English is the source of truth. Every translation — `am`, `de`, `es`, `fr`,
+`hi`, `hnj`, `id`, `it`, `ja`, `ko`, `nl`, `pl`, `pt`, `ru`, `so`, `tr`, `vi`,
+`zh-Hans`, `zh-Hant` — is an **unreviewed machine-generated seed**, which each
+file's own header says at the top, and which is what #1521's translation
+platform is for. None has been read by a speaker. Correcting one needs no
+permission and no coordination: a wrong string is just wrong, and the English is
+one key away.
 
-Three of them are deliberately partial, all in the same place: Somali, Hmong
-Njua and Vietnamese leave `element-name` and `element-anion-name` out, so those
-130 keys fall back to English and `lint:i18n` reports the gap. The first two
-have no settled chemical nomenclature to seed from. Vietnamese has two, and the
-current one is English — school chemistry has moved from the transliterated
-names to the IUPAC forms — so the fallback is already what the curriculum uses.
+Four of them are deliberately partial, all in the same place: Somali, Hmong
+Njua, Amharic and Vietnamese leave `element-name` and `element-anion-name` out,
+so those 130 keys fall back to English and `lint:i18n` reports the gap. The
+first three have no settled chemical nomenclature to seed from. Vietnamese has
+two, and the current one is English — school chemistry has moved from the
+transliterated names to the IUPAC forms — so the fallback is already what the
+curriculum uses.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.
@@ -345,6 +347,17 @@ message that receives the pieces as arguments plus a `$parts` argument naming
 piece selects a different branch rather than substituting an empty string —
 that is what lets a translation reorder and re-punctuate each combination on
 its own terms.
+
+Gender is not the only thing an adjective has to agree with. Three sets of
+words are rendered in two places each — a border's adjectives, the background
+colour, and the text colour beside it — once standing alone as a state
+variable reports them and once embedded in a clause, and a language that
+inflects for case wants a different form in each. So every adjective is handed
+`$role` as well, naming the *position* the phrase is going into rather than
+the case it takes: which case a position governs is the catalog's business,
+exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
+positions, and German, Russian, Polish and Hindi are the catalogs that select
+on them.
 
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the

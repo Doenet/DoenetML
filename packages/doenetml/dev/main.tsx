@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { DoenetViewer, DoenetEditor } from "../src/index";
+import { SUPPORTED_LOCALES } from "@doenet/i18n";
 import "./main.css";
 
 // @ts-ignore
@@ -214,10 +215,18 @@ function App() {
                     />
                 </label>
                 {/* Suggestions only — the inputs stay free text so an
-                    unrecognized tag can be typed to watch it negotiate. */}
+                    unrecognized tag can be typed to watch it negotiate. Every
+                    catalog the repo ships is listed, read off `SUPPORTED_LOCALES`
+                    so that seeding a new one needs no edit here, plus two tags
+                    that name no directory under `locales/`: `es-MX`, which
+                    negotiates down to `es`, and `en-XA`, the pseudo-locale,
+                    which the chrome generates from English on demand — so it is
+                    worth typing into the UI locale rather than the document
+                    one. */}
                 <datalist id="dev-locale-options">
-                    <option value="en" />
-                    <option value="es" />
+                    {SUPPORTED_LOCALES.map(({ locale, label }) => (
+                        <option key={locale} value={locale} label={label} />
+                    ))}
                     <option value="es-MX" />
                     <option value="en-XA" />
                 </datalist>

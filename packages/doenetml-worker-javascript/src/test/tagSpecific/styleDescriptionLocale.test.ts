@@ -140,4 +140,28 @@ describe("style descriptions follow the document locale @group4", () => {
             "negro con un fondo amarillo",
         );
     });
+
+    it("inflects a text description for the position each word lands in", async () => {
+        // `textColor` and `backgroundColor` report their word standing alone;
+        // `textStyleDescription` puts the same two words in a sentence, where
+        // German wants the colour predicative and the background dative behind
+        // `auf`. English and Spanish cannot tell the two apart, so this is what
+        // holds the `text-clause` and `background-clause` arguments the shared
+        // definitions pass (#1606) — dropping either leaves every expectation
+        // above green.
+        const doenetML = `
+        <setup>
+          <styleDefinition styleNumber="1" textColor="red" backgroundColor="yellow" />
+        </setup>
+        <text name="t" styleNumber="1">hallo</text>
+        <text name="c" extend="$t.textColor" />
+        <text name="b" extend="$t.backgroundColor" />
+        <text name="d" extend="$t.textStyleDescription" />
+        `;
+        expect(await descriptions(doenetML, ["c", "b", "d"], "de")).toEqual({
+            c: "roter",
+            b: "gelber",
+            d: "rot auf gelbem Hintergrund",
+        });
+    });
 });
