@@ -612,8 +612,8 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 htmlFor={inputKey}
                 style={
                     SVs.labelPosition === "left"
-                        ? { marginRight: "2px" }
-                        : { marginLeft: "2px" }
+                        ? { marginInlineEnd: "2px" }
+                        : { marginInlineStart: "2px" }
                 }
             >
                 {label}

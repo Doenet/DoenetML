@@ -4,7 +4,7 @@
 .doenet-viewer .radio-container {
     display: block;
     position: relative;
-    padding-left: 24px;
+    padding-inline-start: 24px;
     margin-bottom: 4px;
     min-height: 24px;
     cursor: pointer;
@@ -45,7 +45,7 @@
 .doenet-viewer .radio-checkmark {
     position: absolute;
     top: 0;
-    left: 0;
+    inset-inline-start: 0;
     height: 18px;
     width: 18px;
     background-color: var(--mainGray);
@@ -108,7 +108,14 @@
     display: block;
 }
 
-/* Style the indicator (dot/circle) */
+/*
+ * Style the indicator (dot/circle).
+ *
+ * Physical `left` on purpose: this centers a 6px dot in the 18px marker box
+ * above, whose own position is what follows the direction. Inside a
+ * fixed-size box the two are the same offset, and keeping it physical says
+ * that the glyph itself is not what mirrors.
+ */
 .doenet-viewer .radio-container .radio-checkmark:after {
     top: 6px;
     left: 6px;
@@ -124,7 +131,7 @@
 .doenet-viewer .checkbox-container {
     display: block;
     position: relative;
-    padding-left: 24px;
+    padding-inline-start: 24px;
     margin-bottom: 4px;
     min-height: 24px;
     cursor: pointer;
@@ -167,7 +174,7 @@
 .doenet-viewer .checkbox-checkmark {
     position: absolute;
     top: 0;
-    left: 0;
+    inset-inline-start: 0;
     height: 18px;
     width: 18px;
     background-color: var(--mainGray);
@@ -230,7 +237,14 @@
     display: block;
 }
 
-/* Style the checkmark/indicator */
+/*
+ * Style the checkmark/indicator.
+ *
+ * Physical `left` on purpose, and here it matters: the tick is drawn from two
+ * borders of a rotated box, and a check mark is the same shape in every
+ * language. Making this logical would mirror the glyph into a backwards tick
+ * while the marker box around it had already moved.
+ */
 .doenet-viewer .checkbox-container .checkbox-checkmark:after {
     left: 5px;
     top: 1px;

@@ -502,9 +502,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 id={labelId}
                 htmlFor={inlineInputId}
                 style={{
-                    marginRight:
+                    marginInlineEnd:
                         SVs.labelPosition === "right" ? undefined : "4px",
-                    marginLeft:
+                    marginInlineStart:
                         SVs.labelPosition === "right" ? "4px" : undefined,
                 }}
             >
@@ -672,7 +672,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                     disabled={radioDisabled}
                                 />
                                 <span className={radioClassName} />
-                                <span style={{ marginLeft: "2px" }}>
+                                <span style={{ marginInlineStart: "2px" }}>
                                     {child}
                                 </span>
                             </label>
@@ -710,7 +710,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                     }
                                 />
                                 <span className={checkboxClassName} />
-                                <span style={{ marginLeft: "2px" }}>
+                                <span style={{ marginInlineStart: "2px" }}>
                                     {child}
                                 </span>
                             </label>

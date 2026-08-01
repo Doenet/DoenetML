@@ -121,8 +121,10 @@ export default React.memo(function FractionInput(
         <span
             id={labelId}
             style={{
-                marginRight: SVs.labelPosition === "right" ? undefined : "5px",
-                marginLeft: SVs.labelPosition === "right" ? "5px" : undefined,
+                marginInlineEnd:
+                    SVs.labelPosition === "right" ? undefined : "5px",
+                marginInlineStart:
+                    SVs.labelPosition === "right" ? "5px" : undefined,
             }}
         >
             {label}
@@ -165,7 +167,7 @@ export default React.memo(function FractionInput(
                     </tbody>
                 </table>
             </div>
-            <div style={{ marginRight: "4px" }}></div>
+            <div style={{ marginInlineEnd: "4px" }}></div>
             {checkWorkComponent}
             {description}
         </span>

@@ -2279,7 +2279,7 @@ export function DocViewer({
                     borderStyle: "solid",
                     borderColor: "var(--mainRed)",
                     fontSize: "1.3em",
-                    marginLeft: "20px",
+                    marginInlineStart: "20px",
                     marginTop: "20px",
                     padding: "0.5em",
                 }}
@@ -2311,8 +2311,7 @@ export function DocViewer({
     let noCoreWarning = null;
     let viewerStyle = {
         maxWidth: "850px",
-        paddingLeft: "20px",
-        paddingRight: "20px",
+        paddingInline: "20px",
         backgroundColor: "var(--canvas)",
         containerType: "inline-size",
     };

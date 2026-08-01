@@ -1,6 +1,6 @@
 .variant-select {
     display: flex;
-    margin-left: 0.5rem;
+    margin-inline-start: 0.5rem;
 
     * {
         box-sizing: border-box;
@@ -18,19 +18,19 @@
     .select-button {
         width: 12em;
         justify-content: space-between;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        margin-right: 0;
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+        margin-inline-end: 0;
     }
     .prev-next-button {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-        margin-left: 0;
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+        margin-inline-start: 0;
     }
     /* Make all .prev-next-button buttons except for the last one have zero border radius */
     .prev-next-button:not(:last-child) {
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
     }
 
     .wrapper {
@@ -137,8 +137,7 @@
         border-radius: 0.25rem;
         border-style: none;
         background-color: hsl(204 20% 94%);
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-inline: 1rem;
         font-size: 1rem;
         line-height: 1.5rem;
         color: black;

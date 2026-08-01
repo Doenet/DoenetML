@@ -55,8 +55,8 @@
     .pretzelWrapper {
         display: grid;
         gap: 0px;
-        border-left: 1px solid var(--canvasText);
-        border-right: 1px solid var(--canvasText);
+        /* Both sides, so the pair is the same either way round. */
+        border-inline: 1px solid var(--canvasText);
     }
 
     .pretzelWrapperTop {

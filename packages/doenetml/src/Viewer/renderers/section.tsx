@@ -67,8 +67,11 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             : SVs.titleColor;
 
     // List item styling constants
-    // When a section is rendered as a list item (SVs.isListItem), the section number
-    // hangs to the left of the content. These constants control the spacing.
+    // When a section is rendered as a list item (SVs.isListItem), the section
+    // number hangs in the gutter on the side the text starts from — the left in
+    // English, the right in Arabic. Every rule below is written in logical
+    // properties so that follows the document without a second layout.
+    // These constants control the spacing.
     const LIST_ITEM_INDENT = "2em"; // Total width reserved for the hanging section number
     const LIST_ITEM_SPACING = "0.3em"; // Space between section number and following text
     const BOX_PADDING = "6px"; // Standard padding for boxed sections
@@ -108,9 +111,9 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             return `
                 display: inline-block;
                 width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                margin-left: calc(-1 * ${LIST_ITEM_INDENT});
-                margin-right: ${LIST_ITEM_SPACING};
-                text-align: right;
+                margin-inline-start: calc(-1 * ${LIST_ITEM_INDENT});
+                margin-inline-end: ${LIST_ITEM_SPACING};
+                text-align: end;
                 flex-shrink: 0;
             `;
         } else {
@@ -118,9 +121,9 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             // Use same width as with-heading case to ensure period alignment
             return `
                 position: absolute;
-                left: 0;
+                inset-inline-start: 0;
                 width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                text-align: right;
+                text-align: end;
             `;
         }
     };
@@ -150,7 +153,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                 return {
                     ...baseStyle,
                     position: "relative",
-                    paddingLeft: LIST_ITEM_INDENT,
+                    paddingInlineStart: LIST_ITEM_INDENT,
                 };
             } else {
                 // With heading: use flexbox for baseline alignment
@@ -158,7 +161,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                     ...baseStyle,
                     display: "flex",
                     alignItems: "baseline",
-                    paddingLeft: LIST_ITEM_INDENT,
+                    paddingInlineStart: LIST_ITEM_INDENT,
                 };
             }
         }
@@ -220,6 +223,14 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         const escapedHeadingWrapperId = cesc(`${id}-heading-wrapper`);
         const escapedContentWrapperId = cesc(`${id}-content-wrapper`);
 
+        // The trailing period in `content` is left to the bidi algorithm on
+        // purpose. It is a neutral character at the end of the run, so in a
+        // right-to-left document it resolves to the far side of the digits and
+        // the marker reads `.1` — which is how a numbered list is written in
+        // Arabic and Hebrew, and what a native `<ol>` does there. Forcing it
+        // back with an LRM would make these markers disagree with every
+        // browser-rendered list on the same page.
+
         // For non-boxed sections with heading wrapper
         if (!SVs.collapsible && !SVs.boxed && hasTitle) {
             cssRules.push(`
@@ -227,9 +238,9 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                     content: "${SVs.sectionNumber}.";
                     display: inline-block;
                     width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                    margin-left: calc(-1 * ${LIST_ITEM_INDENT});
-                    margin-right: ${LIST_ITEM_SPACING};
-                    text-align: right;
+                    margin-inline-start: calc(-1 * ${LIST_ITEM_INDENT});
+                    margin-inline-end: ${LIST_ITEM_SPACING};
+                    text-align: end;
                     flex-shrink: 0;
                 }
             `);
@@ -256,8 +267,8 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                     #${escapedId}::before {
                         content: "${SVs.sectionNumber}.";
                         grid-column: 1;
-                        text-align: right;
-                        padding-right: ${LIST_ITEM_SPACING};
+                        text-align: end;
+                        padding-inline-end: ${LIST_ITEM_SPACING};
                     }
 
                     #${escapedContentWrapperId} {
@@ -278,15 +289,15 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                 }
             } else {
                 // Empty untitled list item (number only, no content): hang the
-                // number into the container's left indent.
+                // number into the container's start-side indent.
                 cssRules.push(`
                     #${escapedId}::before {
                         content: "${SVs.sectionNumber}.";
                         display: inline-block;
                         width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                        margin-left: calc(-1 * ${LIST_ITEM_INDENT});
-                        margin-right: ${LIST_ITEM_SPACING};
-                        text-align: right;
+                        margin-inline-start: calc(-1 * ${LIST_ITEM_INDENT});
+                        margin-inline-end: ${LIST_ITEM_SPACING};
+                        text-align: end;
                         vertical-align: baseline;
                     }
                 `);
@@ -300,7 +311,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             cssRules.push(`
                 #${escapedId} .${escapedHeadingBoxClassName}::before {
                     content: "${SVs.sectionNumber}.";
-                    text-align: right;
+                    text-align: end;
                     ${getSectionNumberStyles(hasTitle)}
                 }
             `);
@@ -313,7 +324,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             cssRules.push(`
                 #${escapedId} .${escapedHeadingBoxClassName}::before {
                     content: "${SVs.sectionNumber}.";
-                    text-align: right;
+                    text-align: end;
                     ${getSectionNumberStyles(hasTitle)}
                 }
             `);
@@ -543,7 +554,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             const innerContentStyle = {
                 display: "block",
                 padding: BOX_PADDING,
-                ...(SVs.isListItem && { paddingLeft: LIST_ITEM_INDENT }),
+                ...(SVs.isListItem && { paddingInlineStart: LIST_ITEM_INDENT }),
             };
             innerContent = (
                 <div style={innerContentStyle}>
@@ -616,7 +627,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         const contentDivStyle = {
             display: "block",
             padding: BOX_PADDING,
-            ...(SVs.isListItem && { paddingLeft: LIST_ITEM_INDENT }),
+            ...(SVs.isListItem && { paddingInlineStart: LIST_ITEM_INDENT }),
         };
 
         const headingBoxClassName = `section-heading-${id}`;
@@ -661,7 +672,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             : {
                   margin: "12px 0",
                   position: "relative",
-                  marginLeft: LIST_ITEM_INDENT,
+                  marginInlineStart: LIST_ITEM_INDENT,
               };
 
         return renderContainer(content, containerStyle);

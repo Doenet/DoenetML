@@ -43,6 +43,9 @@ export default React.memo(function Cell(props: UseDoenetRendererProps) {
             properties.style!.borderBottomWidth = "thick";
         }
     }
+    // Physical, because the attribute is: an author writes `<cell right="…">`
+    // and means the right-hand edge. `halign` above is the same case. Adding
+    // logical `start`/`end` values to both is tracked separately.
     if (SVs.right !== "none") {
         properties.style!.borderRightStyle = "solid";
         if (SVs.right === "minor") {

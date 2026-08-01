@@ -95,6 +95,12 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
                         display: "flex",
                         alignItems: "flex-start",
                     }),
+                    // Physical, because `<sideBySide margins="…">` is: the
+                    // author wrote a left margin and a right margin, and the
+                    // panels themselves reorder under `rtl` while these
+                    // percentages stay where they were put. Giving the
+                    // attribute logical `start`/`end` values is tracked
+                    // separately.
                     marginLeft: `${thisMarginLeft}%`,
                     marginRight: `${thisMarginRight}%`,
                     width: `${width}%`,

@@ -1308,8 +1308,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
             id={labelId}
             htmlFor={inputKey}
             style={{
-                marginRight: SVs.labelPosition === "right" ? undefined : "2px",
-                marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
+                marginInlineEnd:
+                    SVs.labelPosition === "right" ? undefined : "2px",
+                marginInlineStart:
+                    SVs.labelPosition === "right" ? "2px" : undefined,
             }}
         >
             {label}
