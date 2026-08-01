@@ -243,4 +243,4 @@ piecewise-condition-otherwise = ካልሆነ
 ion-name-oxidation-state = { $name } ({ $numeral })
 
 chemistry-invalid-symbol = ልክ ያልሆነ የኬሚካል ምልክት
-chemistry-invalid-ionic-compound = ልክ ያልሆነ ionic ውህድ
+chemistry-invalid-ionic-compound = ልክ ያልሆነ አዮኒክ ውህድ

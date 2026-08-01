@@ -224,9 +224,9 @@ intersection-too-many-items = ከሁለት በላይ ነገሮች መገናኛ �
 
 ## Other math components
 
-ionic-compound-not-two-ions = ከሁለት ion ውጭ ላለ ionic ውህድ ገና አልተተገበረም።
+ionic-compound-not-two-ions = ከሁለት አዮን ውጭ ላለ አዮኒክ ውህድ ገና አልተተገበረም።
 
-ionic-compound-needs-cation-and-anion = ionic ውህድ የተተገበረው ለአንድ cation እና ለአንድ anion ብቻ ነው።
+ionic-compound-needs-cation-and-anion = አዮኒክ ውህድ የተተገበረው ለአንድ አዎንታዊ አዮን እና ለአንድ አሉታዊ አዮን ብቻ ነው።
 
 solve-equations-cannot-evaluate = ቀመሩ ሊሰላ ስላልቻለ መፍታት አይቻልም፦ { $equation }
 

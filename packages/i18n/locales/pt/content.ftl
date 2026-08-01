@@ -16,8 +16,8 @@
 # answer the same for both.
 #
 # Portuguese does not inflect an attributive adjective for case, so `$role`
-# goes unread here, exactly as it does in Spanish and English. Only German and
-# Russian select on it.
+# goes unread here, exactly as it does in Spanish and English. German, Russian,
+# Polish and Hindi are the catalogs that select on it.
 #
 # `borda` is feminine, where Spanish's `borde` is masculine — so the border's
 # adjectives agree the other way round from the Spanish catalog, and the

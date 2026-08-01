@@ -477,13 +477,21 @@ export function describeClosedShape(
                   nounTail: phrase.tail,
                   filled: filledWord,
                   gender,
+                  role: "standalone",
               },
               joinPresent(filledWord, color, phrase.noun, phrase.tail) +
                   patternClause,
           )
         : t(
               "style-filled",
-              { parts: fillParts, color, pattern, filled: filledWord, gender },
+              {
+                  parts: fillParts,
+                  color,
+                  pattern,
+                  filled: filledWord,
+                  gender,
+                  role: "standalone",
+              },
               joinPresent(filledWord, color) + patternClause,
           );
 
@@ -495,8 +503,9 @@ export function describeClosedShape(
     const borderRepeatsFill = words.fillColorWord === words.colorWord;
     const borderGender = genderOf(t, "border");
     // Not `"standalone"`: these words land inside `style-border-clause`, whose
-    // preposition governs a case in German and Russian. `describeBorder` builds
-    // the same words for the standalone state variable and says so.
+    // preposition governs a case in German, Russian and Polish, and the oblique
+    // in Hindi. `describeBorder` builds the same words for the standalone state
+    // variable and says so.
     const border = describeStroke(
         t,
         borderRepeatsFill ? { ...words, colorWord: "" } : words,

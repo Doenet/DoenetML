@@ -672,12 +672,32 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Hindi's other two positions are the case where a fork exists and both
+    // sides land on the same word: `पृष्ठभूमि` is feminine, and a marked
+    // adjective spells its feminine the same direct and oblique, so `पीली`
+    // stands alone and behind `पर` alike. Asserted anyway, because the branches
+    // are there to be selected and because the sentence reorders — Hindi puts
+    // the background first, which no other locale here does.
+    it("gives Hindi one spelling in both of its text positions", () => {
+        expect(bothTextForms(hi)).toEqual({
+            textColor: "लाल",
+            backgroundColor: "पीली",
+            sentence: "पीली पृष्ठभूमि पर लाल",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
         for (const t of [de, ru, pl, hi]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);
+        }
+        // Hindi is absent here on purpose: it is the one whose background does
+        // not change shape between the two, per the case above.
+        for (const t of [de, ru, pl]) {
+            const text = bothTextForms(t);
+            expect(text.sentence).not.toContain(text.backgroundColor);
         }
     });
 });
