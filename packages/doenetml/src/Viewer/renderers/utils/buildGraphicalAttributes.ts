@@ -2,12 +2,19 @@
  * Builders for the JSXgraph attribute objects that renderers hand to
  * `board.create(...)`.
  *
- * A renderer that overrides a key produced here must repeat that key with
- * *exactly* the spelling used here. JSXGraph lowercases the attribute object
- * with `JXG.keysToLowerCase`, which walks the keys in *reverse* insertion
- * order, so two spellings of one attribute (say `withlabel` from a builder and
- * a later `withLabel: false`) collapse onto the same lowercase key with the
- * **first-written** one winning — the override is silently dropped.
+ * One rule governs every such object, whether it comes from a builder here or
+ * is hand-rolled in a renderer: an attribute must appear under a single
+ * spelling. JSXgraph lowercases the object with `JXG.keysToLowerCase`, which
+ * walks the keys in *reverse* insertion order, so two spellings of one
+ * attribute (say `withlabel` from a builder and a later `withLabel: false`)
+ * collapse onto the same lowercase key with the **first-written** one winning
+ * — the later "override" is silently dropped. Two corollaries:
+ *
+ * - A renderer overriding a key produced here must repeat it with *exactly*
+ *   the spelling used here.
+ * - A renderer merging in an all-lowercase object — the spelling that direct
+ *   `visProp` writes and `setAttribute` calls use — must re-spell it to match
+ *   the keys it is merging into.
  */
 import { GraphicalSVs } from "./graphicalSVs";
 import {

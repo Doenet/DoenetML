@@ -78,7 +78,7 @@ function assertLabelDrawnOnce(graphName) {
     });
 }
 
-describe("Line-family label placement", { tags: ["@group3"] }, function () {
+describe("Line-family labels", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");
