@@ -373,6 +373,11 @@ function attachNoun(
             description,
             noun,
             nounTail: tail,
+            // Every caller names the shape and stops there, so the phrase is
+            // never governed by anything. Passed rather than left out for the
+            // same reason `style-filled-word`'s is: a catalog reading `$role`
+            // finds a value in every message that places adjectives.
+            role: "standalone",
         },
         joinPresent(description, noun, tail),
     );
@@ -618,8 +623,8 @@ export function noBackgroundWord(t: Translator): string {
  * `style-text` is the one composition message given no `$role`: its two words
  * sit in two different positions — the colour predicative, the background
  * behind a preposition — so no single token would describe them both. They
- * arrive already inflected for their own, and `$parts` tells the branches
- * apart.
+ * arrive already inflected for their own position, and `$parts` tells the
+ * branches apart.
  *
  * @param background The already-translated background color, or `undefined`
  *   when nothing is drawn behind the text. Presence is decided by the caller

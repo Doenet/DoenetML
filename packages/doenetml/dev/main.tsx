@@ -218,8 +218,11 @@ function App() {
                     unrecognized tag can be typed to watch it negotiate. Every
                     catalog the repo ships is listed, read off `SUPPORTED_LOCALES`
                     so that seeding a new one needs no edit here, plus two tags
-                    with no catalog of their own: `es-MX`, which negotiates down
-                    to `es`, and `en-XA`, which does not negotiate at all. */}
+                    that name no directory under `locales/`: `es-MX`, which
+                    negotiates down to `es`, and `en-XA`, the pseudo-locale,
+                    which the chrome generates from English on demand — so it is
+                    worth typing into the UI locale rather than the document
+                    one. */}
                 <datalist id="dev-locale-options">
                     {SUPPORTED_LOCALES.map(({ locale, label }) => (
                         <option key={locale} value={locale} label={label} />

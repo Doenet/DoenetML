@@ -158,6 +158,9 @@ style-stroke =
 # English has none today, so it only ever selects `noun` for itself — the other
 # variant is still what a partly-translated locale falls back to, and dropping
 # it would drop that locale's side count.
+#
+# The phrase it builds is never governed by anything, so its `$role` is always
+# `standalone`.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }

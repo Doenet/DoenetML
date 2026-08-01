@@ -5,6 +5,7 @@ import path from "node:path";
 import {
     createTranslator,
     createTranslatorFromLocaleData,
+    type TranslationArgs,
     type Translator,
 } from "@doenet/i18n";
 import {
@@ -18,6 +19,7 @@ import {
     describeText,
     noBackgroundWord,
     type NounSpec,
+    type PhraseRole,
 } from "../src/style/styleDescriptions";
 
 /**
@@ -761,5 +763,164 @@ describe("a phrase rendered in two positions", () => {
         expect(patternedWithBorder(ru)).toBe(
             "закрашенный зелёный многоугольник с ромбами и тонкой красной границей",
         );
+    });
+});
+
+/**
+ * The invariant behind `$role`: every message that places an adjective is
+ * handed one.
+ *
+ * The failure mode this guards is not a wrong word but a missing argument. A
+ * message that never receives `$role` selects its default branch in every
+ * position, silently, and English — which ignores the argument — renders
+ * identically either way, so no golden expectation above moves. Two messages
+ * were in fact forgotten while this change was being written, and neither was
+ * caught by a rendering test; both were found by reading the code.
+ *
+ * So rather than assert words, this walks every description with a translator
+ * that records what it was asked for, and checks the arguments themselves. A
+ * composition message added later lands on the "must carry a role" side by
+ * default, and the completeness check below fails until the walk reaches it.
+ */
+describe("the role argument", () => {
+    /**
+     * Every member of {@link PhraseRole}, as a table rather than a list so that
+     * widening the type without deciding what it means here is a type error.
+     */
+    const ROLES: Record<PhraseRole, true> = {
+        standalone: true,
+        "border-clause": true,
+        "background-clause": true,
+        "text-clause": true,
+    };
+    const ROLE_NAMES = Object.keys(ROLES);
+
+    /**
+     * The messages that legitimately go without one, and why. Everything else
+     * places an adjective somewhere and has to say where.
+     */
+    const withoutRole = new Set([
+        "style-unfilled", // describes an absence; there is no adjective in it
+        "style-background-none", // likewise
+        "style-text", // its two words are in two positions at once
+    ]);
+
+    /** Nouns are what the adjectives agree *with*: they carry gender, not role. */
+    const isNoun = (key: string) => key.startsWith("noun");
+
+    /** Every description this module can produce, in every branch. */
+    function everyDescription(t: Translator) {
+        const words = {
+            colorWord: "red",
+            lineWidthWord: "thick",
+            lineStyleWord: "dashed",
+            fillColorWord: "blue",
+            fillStyleWord: "diamonds",
+        };
+        const nouns: NounSpec[] = [
+            { key: "line" },
+            { key: "regular-polygon", numSides: 5 },
+        ];
+
+        for (const noun of nouns) {
+            for (const withNoun of [false, true]) {
+                describeStrokedShape(t, words, { noun, withNoun });
+                describeRegion(t, words, { noun, withNoun });
+                for (const filled of [false, true]) {
+                    describeClosedShape(t, words, { filled, noun, withNoun });
+                    // A border that repeats the fill is dropped, and a fill
+                    // with no pattern takes the other branch of every message
+                    // that mentions one.
+                    describeClosedShape(
+                        t,
+                        { ...words, colorWord: words.fillColorWord },
+                        { filled, noun, withNoun },
+                    );
+                    describeClosedShape(
+                        t,
+                        { ...words, fillStyleWord: "" },
+                        { filled, noun, withNoun },
+                    );
+                }
+            }
+        }
+
+        for (const withNoun of [false, true]) {
+            describeMarker(
+                t,
+                { markerColorWord: "green", markerStyleWord: "square" },
+                { withNoun },
+            );
+        }
+        describeBorder(t, words);
+        for (const filled of [false, true]) {
+            describeFill(t, words, { filled });
+            describeFill(t, { ...words, fillStyleWord: "" }, { filled });
+        }
+        for (const role of ROLE_NAMES as PhraseRole[]) {
+            describeColor(t, "red", "text", role);
+            describeColor(t, "yellow", "background", role);
+        }
+        noBackgroundWord(t);
+        describeText(t, { color: "red" });
+        describeText(t, { color: "red", background: "yellow" });
+    }
+
+    /**
+     * What the walk asked the catalog for. The recorder delegates to English so
+     * that each message still selects a real branch and the walk reaches
+     * whatever those branches call in turn.
+     */
+    const calls: [string, TranslationArgs | undefined][] = [];
+    const recorder: Translator = (key, args, fallback) => {
+        calls.push([key, args]);
+        return en(key, args, fallback);
+    };
+    everyDescription(recorder);
+
+    /** The distinct keys failing `predicate`, so a failure names them. */
+    const offenders = (
+        predicate: (key: string, args: TranslationArgs | undefined) => boolean,
+    ) => [
+        ...new Set(calls.filter(([k, a]) => predicate(k, a)).map(([k]) => k)),
+    ];
+
+    it("reaches every message that composes a description", () => {
+        const composed = [...new Set(calls.map(([key]) => key))]
+            .filter((key) => key.startsWith("style-"))
+            .sort();
+        expect(composed).toEqual([
+            "style-background-none",
+            "style-border-clause",
+            "style-fill",
+            "style-filled",
+            "style-filled-with-noun",
+            "style-filled-word",
+            "style-stroke",
+            "style-text",
+            "style-unfilled",
+            "style-with-noun",
+        ]);
+    });
+
+    it("is handed to every adjective and every message placing one", () => {
+        expect(
+            offenders(
+                (key, args) =>
+                    !isNoun(key) &&
+                    !withoutRole.has(key) &&
+                    !ROLE_NAMES.includes(String(args?.role)),
+            ),
+        ).toEqual([]);
+    });
+
+    it("is withheld from the messages that place none", () => {
+        expect(
+            offenders(
+                (key, args) =>
+                    (isNoun(key) || withoutRole.has(key)) &&
+                    args?.role !== undefined,
+            ),
+        ).toEqual([]);
     });
 });
