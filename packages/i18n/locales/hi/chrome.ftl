@@ -10,7 +10,7 @@
 # A count renders as 1,234 and not in Devanagari numerals. That is Hindi's own
 # CLDR numbering system, and it is also what DoenetML pins for every locale
 # (`src/intl.ts`), so Marathi and Nepali — which share the script but not the
-# numbering system — will count the same way.
+# numbering system — count the same way.
 #
 # Controls take the bare imperative Hindi puts on a button — `कीबोर्ड खोलें` —
 # which is the आप form without the honorific auxiliary.

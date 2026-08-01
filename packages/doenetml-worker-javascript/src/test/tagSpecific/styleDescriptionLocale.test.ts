@@ -92,6 +92,21 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.stn).eq("紅色粗虛線直線");
     });
 
+    it("renders Marathi, which inflects the border where it stands", async () => {
+        const values = await descriptions(styled, names, "mr");
+        expect(values.stn).eq("जाड तुटक लाल रेषा");
+        expect(values.pt).eq("हिरवा चौरस");
+        // The border's adjectives are feminine agreeing with «किनार» in `bd`
+        // and oblique before -सह in `sh`. `jaad` and `laal` do not end in -आ
+        // and so never change; that they still read the same in both places is
+        // the point, not a collapse of the two positions.
+        expect(values.sh).eq(
+            "ठिपके वापरून भरलेले निळे वर्तुळ आणि जाड तुटक लाल किनारीसह",
+        );
+        expect(values.bd).eq("जाड तुटक लाल");
+        expect(values.fd).eq("निळे ठिपके");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

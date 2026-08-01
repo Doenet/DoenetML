@@ -23,7 +23,7 @@
 # Numbers render as 1,234.5 and not in Devanagari numerals. That is Hindi's own
 # CLDR numbering system, and it is also what DoenetML pins for every locale
 # (`src/intl.ts`), so Marathi and Nepali — which share the script but not the
-# numbering system — will count the same way.
+# numbering system — count the same way.
 
 
 ## Style vocabulary
