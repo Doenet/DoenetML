@@ -133,7 +133,7 @@ export function createYAxis({
             position,
             offset,
             anchorx,
-            strokeColor: "var(--canvasText)",
+            strokeColor: "var(--graphAxes)",
             highlight: false,
         };
         if (SVs.yLabelHasLatex) {
@@ -142,7 +142,7 @@ export function createYAxis({
     }
     previousYaxisWithLabelRef.current = Boolean(SVs.yLabel);
 
-    yaxisOptions.strokeColor = "var(--canvasText)";
+    yaxisOptions.strokeColor = "var(--graphAxes)";
     yaxisOptions.highlight = false;
 
     yaxisOptions.ticks = {
@@ -150,11 +150,11 @@ export function createYAxis({
         label: {
             offset: [12, -2],
             layer: 2,
-            strokeColor: "var(--canvasText)",
-            highlightStrokeColor: "var(--canvasText)",
+            strokeColor: "var(--graphAxes)",
+            highlightStrokeColor: "var(--graphAxes)",
             highlightStrokeOpacity: 1,
         },
-        strokeColor: "var(--canvasText)",
+        strokeColor: "var(--graphGrid)",
         strokeOpacity: 0.5,
         digits: 4,
         drawLabels: SVs.displayYAxisTickLabels,
@@ -227,7 +227,7 @@ export function createXAxis({
             position,
             offset,
             anchorx,
-            strokeColor: "var(--canvasText)",
+            strokeColor: "var(--graphAxes)",
             highlight: false,
         };
         if (SVs.xLabelHasLatex) {
@@ -241,11 +241,11 @@ export function createXAxis({
         label: {
             offset: [-5, -15],
             layer: 2,
-            strokeColor: "var(--canvasText)",
-            highlightStrokeColor: "var(--canvasText)",
+            strokeColor: "var(--graphAxes)",
+            highlightStrokeColor: "var(--graphAxes)",
             highlightStrokeOpacity: 1,
         },
-        strokeColor: "var(--canvasText)",
+        strokeColor: "var(--graphGrid)",
         strokeOpacity: 0.5,
         digits: 4,
         drawLabels: SVs.displayXAxisTickLabels,
@@ -259,7 +259,7 @@ export function createXAxis({
             xaxisOptions.ticks.scaleSymbol = scaleSymbol;
         }
     }
-    xaxisOptions.strokeColor = "var(--canvasText)";
+    xaxisOptions.strokeColor = "var(--graphAxes)";
     xaxisOptions.highlight = false;
 
     // Only control real ticks (height != -1), not grid lines (height = -1)

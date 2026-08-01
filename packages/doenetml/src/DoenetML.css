@@ -84,9 +84,8 @@ html {
     --indicatorHoverBlue: var(--lightBlue);
     --buttonHoverBlue: var(--lightBlue);
     --doenetTagColor: #3e844a;
-    --graphElements: #757575;
-    --graphTicks: #595959;
-    --graphText: var(--canvasText);
+    --graphGrid: #757575;
+    --graphAxes: #555555;
 }
 
 [data-theme="dark"] {
@@ -118,9 +117,8 @@ html {
     --indicatorHoverBlue: #5b8cb5;
     --buttonHoverBlue: hsl(209, 54%, 82%);
     --doenetTagColor: #5cb870;
-    --graphElements: #8d8d8d;
-    --graphTicks: #959595;
-    --graphText: var(--canvasText);
+    --graphGrid: #7e7e7e;
+    --graphAxes: #aeaeae;
 }
 .doenet-viewer {
     font-family: "Open Sans" !important;
@@ -267,17 +265,15 @@ div.jxgbox input[type="checkbox"] {
 }
 
 /* CSS attributes will (permantely) overwrite attributes set in JSXGraph */
-/*
+
 .JXGimage {
-    opacity: 1.0;
+    /* opacity: 1.0; */
 }
 
 .JXGimageHighlight {
-    opacity: 0.6; 
+    /* opacity: 0.6; */
 }
-*/
-
-.jxgbox :focus {
+*/ .jxgbox :focus {
     outline-width: 0.5px;
     outline-style: dotted;
 }
@@ -301,7 +297,6 @@ div.jxgbox input[type="checkbox"] {
     color: #666;
 }
 
-/*
 .JXG_navigation_button_left {
 }
 
@@ -334,7 +329,6 @@ div.jxgbox input[type="checkbox"] {
 
 .JXG_navigation_button_screenshot {
 }
-*/
 
 .JXG_navigation_button:hover {
     border-radius: 2px;
@@ -469,21 +463,6 @@ div.jxgbox input[type="checkbox"] {
  */
 .doenet-viewer .doenet-tag {
     color: var(--doenetTagColor);
-}
-
-/* Set default graph contents to ~4.6:1 contrast ratio */
-.jxgbox * {
-    --canvasText: var(--graphElements);
-}
-
-/* Set text components back to Canvas text color. */
-.jxgbox .JXGtext,
-.jxgbox .JXG_navigation .JXG_navigation_button {
-    --canvasText: var(--graphText);
-}
-
-.jxgbox .JXGtext[id*="ticks"] {
-    --canvasText: var(--graphTicks);
 }
 
 /**************************************************
