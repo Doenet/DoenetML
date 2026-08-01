@@ -79,7 +79,8 @@
                 "../virtual-keyboard:build",
                 "../parser:build",
                 "../prefigure:build",
-                "../lsp-tools:build"
+                "../lsp-tools:build",
+                "../math:build"
             ]
         }
     },
@@ -89,6 +90,7 @@
     },
     "dependencies": {
         "@doenet/lsp-tools": "*",
+        "@doenet/math": "*",
         "@doenet/static-assets": "*",
         "dompurify": "^3.4.11"
     },

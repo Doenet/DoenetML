@@ -3,7 +3,7 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import me from "math-expressions";
+import me from "@doenet/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1125,7 +1125,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("result")].stateValues
                 .text,
-        ).eq("( 1, ∞ )");
+        ).eq("(1, ∞)");
 
         await updateSelectedIndices({
             componentIdx: await resolvePathToNodeIdx("displayMode"),
@@ -1169,7 +1169,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("result")].stateValues
                 .text,
-        ).eq("( 1, ∞ )");
+        ).eq("(1, ∞)");
 
         await updateMathInputValue({
             latex: "y \\ne 1",
@@ -1180,7 +1180,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("result")].stateValues
                 .text,
-        ).eq("( -∞, 1 ) ∪ ( 1, ∞ )");
+        ).eq("(-∞, 1) ∪ (1, ∞)");
 
         await updateMathInputValue({
             latex: "(y>1)\\land(y<3)",
@@ -1191,7 +1191,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("result")].stateValues
                 .text,
-        ).eq("( 1, 3 )");
+        ).eq("(1, 3)");
 
         await updateSelectedIndices({
             componentIdx: await resolvePathToNodeIdx("displayMode"),
@@ -1224,7 +1224,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("result")].stateValues
                 .text,
-        ).eq("( 1, 3 ) ∪ ( 6, ∞ )");
+        ).eq("(1, 3) ∪ (6, ∞)");
     });
 
     it("modifying copies of subsets", async () => {
@@ -1379,11 +1379,11 @@ describe("SubsetOfReals tag tests @group1", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("S")].stateValues.text,
-        ).eq("( -9, -6 ) ∪ ( -1, 8 )");
+        ).eq("(-9, -6) ∪ (-1, 8)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Sclosed")].stateValues
                 .text,
-        ).eq("[ -9, -6 ] ∪ [ -1, 8 ]");
+        ).eq("[-9, -6] ∪ [-1, 8]");
     });
 
     it("point and interval properties", async () => {
@@ -1453,7 +1453,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("intervalIntervals")]
                 .stateValues.text,
-        ).eq("interval intervals: [ -1, 2 )");
+        ).eq("interval intervals: [-1, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("intervalIsolated")]
                 .stateValues.text,
@@ -1473,7 +1473,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("intervalSingletonIntervals")
             ].stateValues.text,
-        ).eq("intervalSingleton intervals: ( -1, 2 ]");
+        ).eq("intervalSingleton intervals: (-1, 2]");
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("intervalSingletonIsolated")
@@ -1491,7 +1491,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("missPointIntervals")]
                 .stateValues.text,
-        ).eq("missPoint intervals: ( -∞, 3 ), ( 3, ∞ )");
+        ).eq("missPoint intervals: (-∞, 3), (3, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("missPointIsolated")]
                 .stateValues.text,
@@ -1508,7 +1508,7 @@ describe("SubsetOfReals tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("RIntervals")].stateValues
                 .text,
-        ).eq("R intervals: ( -∞, ∞ )");
+        ).eq("R intervals: (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("RIsolated")].stateValues
                 .text,

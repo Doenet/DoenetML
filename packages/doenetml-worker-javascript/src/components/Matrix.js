@@ -1,6 +1,6 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisplay";
 import MathComponent from "./Math";
-import me from "math-expressions";
+import me from "@doenet/math";
 
 export default class Matrix extends MathComponent {
     static componentType = "matrix";

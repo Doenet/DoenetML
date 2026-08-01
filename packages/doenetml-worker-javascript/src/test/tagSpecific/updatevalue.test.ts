@@ -12,7 +12,7 @@ import {
     updateSelectedIndices,
     updateValue,
 } from "../utils/actions";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { test_in_graph } from "../utils/in-graph";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
@@ -623,7 +623,7 @@ describe("UpdateValue tag tests @group1", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 1 and point ( 3, 2 ).");
+        ).eq("Number 1 and point (3, 2).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text hello and line 0 = x - y + 1.");
@@ -636,7 +636,7 @@ describe("UpdateValue tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 3 and point ( 3, 2 ).");
+        ).eq("Number 3 and point (3, 2).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text hello and line 0 = x - y + 1.");
@@ -649,7 +649,7 @@ describe("UpdateValue tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 3 and point ( 3, 5 ).");
+        ).eq("Number 3 and point (3, 5).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text hello and line 0 = x - y + 1.");
@@ -662,7 +662,7 @@ describe("UpdateValue tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 3 and point ( 3, 5 ).");
+        ).eq("Number 3 and point (3, 5).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text bye and line 0 = x - y + 1.");
@@ -675,7 +675,7 @@ describe("UpdateValue tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("Number 3 and point ( 3, 5 ).");
+        ).eq("Number 3 and point (3, 5).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Text bye and line 0 = x - 2.");

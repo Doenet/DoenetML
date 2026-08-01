@@ -1,5 +1,5 @@
-import me from "math-expressions";
-import type { Tree } from "math-expressions";
+import me from "@doenet/math";
+import type { Tree } from "@doenet/math";
 
 import { subsets, vectorOperators, roundForDisplay } from "@doenet/utils";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import type {

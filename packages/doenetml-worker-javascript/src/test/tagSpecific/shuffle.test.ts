@@ -287,11 +287,11 @@ describe("Shuffle tag tests @group1", async () => {
 
         const pointNames = ["A", "B", "C", "D", "E"];
         const pointTexts: Record<string, string> = {
-            A: "( 0, 1 )",
-            B: "( -2, 1 )",
-            C: "( 7, 1 )",
-            D: "( 3, 1 )",
-            E: "( 5, 1 )",
+            A: "(0, 1)",
+            B: "(-2, 1)",
+            C: "(7, 1)",
+            D: "(3, 1)",
+            E: "(5, 1)",
         };
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -318,7 +318,7 @@ describe("Shuffle tag tests @group1", async () => {
             y: 9,
             core,
         });
-        pointTexts.A = "( -8, 9 )";
+        pointTexts.A = "(-8, 9)";
         await expectCurrentPointOrder();
 
         await movePoint({
@@ -327,7 +327,7 @@ describe("Shuffle tag tests @group1", async () => {
             y: -3,
             core,
         });
-        pointTexts.B = "( 8, -3 )";
+        pointTexts.B = "(8, -3)";
         await expectCurrentPointOrder();
 
         await movePoint({
@@ -336,7 +336,7 @@ describe("Shuffle tag tests @group1", async () => {
             y: 5,
             core,
         });
-        pointTexts.C = "( 4, 5 )";
+        pointTexts.C = "(4, 5)";
         await expectCurrentPointOrder();
 
         await movePoint({
@@ -345,7 +345,7 @@ describe("Shuffle tag tests @group1", async () => {
             y: 0,
             core,
         });
-        pointTexts.D = "( -9, 0 )";
+        pointTexts.D = "(-9, 0)";
         await expectCurrentPointOrder();
 
         await movePoint({
@@ -354,7 +354,7 @@ describe("Shuffle tag tests @group1", async () => {
             y: -1,
             core,
         });
-        pointTexts.E = "( -2, -1 )";
+        pointTexts.E = "(-2, -1)";
         await expectCurrentPointOrder();
     });
 

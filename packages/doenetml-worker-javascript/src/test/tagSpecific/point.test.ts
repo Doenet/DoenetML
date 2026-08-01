@@ -10,7 +10,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { superSubscriptsToUnicode } from "../../utils/math";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
@@ -5551,49 +5551,49 @@ describe("Point tag tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pP")].stateValues.text,
-        ).eq("( 32, 0.067, 5 )");
+        ).eq("(32, 0.067, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pQ")].stateValues.text,
-        ).eq("( 32.25, 0.07, 5 )");
+        ).eq("(32.25, 0.07, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pR")].stateValues.text,
-        ).eq("( 32.25, 0.0673, 5.00 )");
+        ).eq("(32.25, 0.0673, 5.00)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Pcoords")].stateValues
                 .text,
-        ).eq("( 32, 0.067, 5 )");
+        ).eq("(32, 0.067, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Qcoords")].stateValues
                 .text,
-        ).eq("( 32.25, 0.07, 5 )");
+        ).eq("(32.25, 0.07, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Rcoords")].stateValues
                 .text,
-        ).eq("( 32.25, 0.0673, 5.00 )");
+        ).eq("(32.25, 0.0673, 5.00)");
         expect(
             stateVariables[await resolvePathToNodeIdx("PcoordsDec4")]
                 .stateValues.text,
-        ).eq("( 32.2526, 0.0673, 5 )");
+        ).eq("(32.2526, 0.0673, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("QcoordsDig4")]
                 .stateValues.text,
-        ).eq("( 32.25, 0.06729, 5 )");
+        ).eq("(32.25, 0.06729, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("RcoordsDig2")]
                 .stateValues.text,
-        ).eq("( 32, 0.067, 5.0 )");
+        ).eq("(32, 0.067, 5.0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("PcoordsPad")].stateValues
                 .text,
-        ).eq("( 32, 0.067, 5.0 )");
+        ).eq("(32, 0.067, 5.0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("QcoordsPad")].stateValues
                 .text,
-        ).eq("( 32.25, 0.07, 5.00 )");
+        ).eq("(32.25, 0.07, 5.00)");
         expect(
             stateVariables[await resolvePathToNodeIdx("RcoordsNoPad")]
                 .stateValues.text,
-        ).eq("( 32.25, 0.0673, 5 )");
+        ).eq("(32.25, 0.0673, 5)");
         // TODO: fix display digits propagation for math lists
         // expect(
         //     stateVariables[await resolvePathToNodeIdx("Pxs[1]")].stateValues.text,
@@ -5616,27 +5616,27 @@ describe("Point tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("Pmath")].stateValues
                 .text,
-        ).eq("( 32, 0.067, 5 )");
+        ).eq("(32, 0.067, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Qmath")].stateValues
                 .text,
-        ).eq("( 32.25, 0.07, 5 )");
+        ).eq("(32.25, 0.07, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Rmath")].stateValues
                 .text,
-        ).eq("( 32.25, 0.0673, 5.00 )");
+        ).eq("(32.25, 0.0673, 5.00)");
         expect(
             stateVariables[await resolvePathToNodeIdx("PmathDec4")].stateValues
                 .text,
-        ).eq("( 32.2526, 0.0673, 5 )");
+        ).eq("(32.2526, 0.0673, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("QmathDig4")].stateValues
                 .text,
-        ).eq("( 32.25, 0.06729, 5 )");
+        ).eq("(32.25, 0.06729, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("RmathDig2")].stateValues
                 .text,
-        ).eq("( 32, 0.067, 5.0 )");
+        ).eq("(32, 0.067, 5.0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("Px1number")].stateValues
                 .text,
@@ -5670,25 +5670,25 @@ describe("Point tag tests @group4", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1")].stateValues.text,
-        ).eq("( 34.24502348, 245.238234 )");
+        ).eq("(34.24502348, 245.238234)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1Dig4")].stateValues
                 .text,
-        ).eq("( 34.25, 245.2 )");
+        ).eq("(34.25, 245.2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1Dig4a")].stateValues
                 .text,
-        ).eq("( 34.25, 245.2 )");
+        ).eq("(34.25, 245.2)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1Dec6")].stateValues
                 .text,
-        ).eq("( 34.24502, 245.23823 )");
+        ).eq("(34.24502, 245.23823)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pp1Dec6a")].stateValues
                 .text,
-        ).eq("( 34.24502, 245.23823 )");
+        ).eq("(34.24502, 245.23823)");
     });
 
     it("warnings from attractTo and constrainTo", async () => {

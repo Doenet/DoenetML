@@ -1,5 +1,5 @@
 import Input from "./abstract/Input";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { convertValueToMathExpression } from "@doenet/utils";
 import BaseComponent from "./abstract/BaseComponent";
 import {

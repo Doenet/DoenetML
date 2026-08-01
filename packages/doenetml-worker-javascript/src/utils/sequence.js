@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 import { numberToLetters, lettersToNumber } from "@doenet/utils";
 import { findFiniteNumericalValue } from "./math";
 import { codedDiagnostic } from "./diagnostics";

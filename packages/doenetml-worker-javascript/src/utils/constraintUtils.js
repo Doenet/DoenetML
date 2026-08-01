@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 const { mod } = me.math;
 
 // Attract the points to the line determined numericalNearestPointAsLineFunction.

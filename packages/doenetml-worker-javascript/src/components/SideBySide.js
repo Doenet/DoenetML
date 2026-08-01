@@ -1,6 +1,6 @@
 import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 const { max } = me.math;
 

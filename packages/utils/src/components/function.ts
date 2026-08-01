@@ -1,7 +1,6 @@
-import me from "math-expressions";
+import me, { dopri } from "@doenet/math";
 import type { mod as ModType } from "mathjs";
 const { mod } = me.math as { mod: ModType };
-const { dopri } = me.math;
 import {
     convertValueToMathExpression,
     normalizeMathExpression,

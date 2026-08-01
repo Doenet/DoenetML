@@ -8,7 +8,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import GraphicalComponent from "./abstract/GraphicalComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
 
 export default class Polyline extends GraphicalComponent {

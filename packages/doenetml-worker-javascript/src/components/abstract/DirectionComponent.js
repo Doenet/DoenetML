@@ -5,7 +5,7 @@
 // that is a math-expression vector.
 // Then, one can add an adapter from that state variable to componentType _directionComponent.
 
-import me from "math-expressions";
+import me from "@doenet/math";
 import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
     returnNumberDisplayAttributeComponentShadowing,

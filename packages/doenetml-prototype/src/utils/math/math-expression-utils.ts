@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 
 import { serializedComponentsReviver } from "@doenet/utils";
 

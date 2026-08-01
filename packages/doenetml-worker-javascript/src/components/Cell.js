@@ -1,5 +1,5 @@
 import BaseComponent from "./abstract/BaseComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { preprocessMathInverseDefinition, textToAst } from "../utils/math";
 import { textFromChildren } from "../utils/text";
 

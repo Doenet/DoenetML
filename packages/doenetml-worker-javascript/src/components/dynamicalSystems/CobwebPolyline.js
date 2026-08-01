@@ -4,7 +4,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../../utils/numberDisplay";
 import Polyline from "../Polyline";
-import me from "math-expressions";
+import me from "@doenet/math";
 
 export default class CobwebPolyline extends Polyline {
     static componentType = "cobwebPolyline";

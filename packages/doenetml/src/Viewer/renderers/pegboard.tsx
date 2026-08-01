@@ -4,7 +4,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { BASE_LAYER_OFFSET, BoardContext } from "./graph";
-import me from "math-expressions";
+import me from "@doenet/math";
 import type { round as RoundType } from "mathjs";
 const { round } = me.math as { round: RoundType };
 import { JXGPoint } from "./jsxgraph-distrib/types";

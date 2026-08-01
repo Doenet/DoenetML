@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 import { roundForDisplay } from "@doenet/utils";
 import type { GraphControlDisplaySettings } from "./model";
 

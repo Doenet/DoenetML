@@ -1,5 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { convertValueToMathExpression } from "@doenet/utils";
 import {

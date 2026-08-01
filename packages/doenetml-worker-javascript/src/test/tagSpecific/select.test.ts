@@ -4,7 +4,7 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();

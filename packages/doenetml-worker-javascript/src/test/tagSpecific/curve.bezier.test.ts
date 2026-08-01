@@ -2220,16 +2220,16 @@ describe("Curve Tag Bezier Tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
-        ).eq("( 3, 4 )");
+        ).eq("(3, 4)");
         expect(
             stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
-        ).eq("( -4, 7 )");
+        ).eq("(-4, 7)");
         expect(
             stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
-        ).eq("( -2, 6 )");
+        ).eq("(-2, 6)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
-        ).eq("( 4, 7 )");
+        ).eq("(4, 7)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
         ).eq("2");
@@ -2265,16 +2265,16 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
-        ).eq("( 1, 2 )");
+        ).eq("(1, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
-        ).eq("( 3, 4 )");
+        ).eq("(3, 4)");
         expect(
             stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
-        ).eq("( 1, 2 )");
+        ).eq("(1, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
-        ).eq("( -2, 6 )");
+        ).eq("(-2, 6)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
         ).eq("1");
@@ -2355,13 +2355,13 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
-        ).eq("( -4, 7 )");
+        ).eq("(-4, 7)");
         expect(
             stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
         ).eq("");
         expect(
             stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
-        ).eq("( 6, 5 )");
+        ).eq("(6, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
         ).eq("");
@@ -2540,7 +2540,7 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pcv")].stateValues.text,
-        ).eq("( -1, 0 ), ( 1, 0 ), ( 0, -1 ), ( -1, 0 ), ( 1, 0 ), ( -1, 0 )");
+        ).eq("(-1, 0), (1, 0), (0, -1), (-1, 0), (1, 0), (-1, 0)");
 
         await moveControlVector({
             componentIdx: await resolvePathToNodeIdx("c"),
@@ -2570,9 +2570,7 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pcv")].stateValues.text,
-        ).eq(
-            "( -2, -1 ), ( 2, 1 ), ( 3, -5 ), ( 2, -4 ), ( -2, -6 ), ( 2, 6 )",
-        );
+        ).eq("(-2, -1), (2, 1), (3, -5), (2, -4), (-2, -6), (2, 6)");
     });
 
     it("sugared bezierControls from vector operations", async () => {

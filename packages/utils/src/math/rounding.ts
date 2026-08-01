@@ -1,5 +1,5 @@
-import me from "math-expressions";
-import type { Expression, Tree } from "math-expressions";
+import me from "@doenet/math";
+import type { Expression, Tree } from "@doenet/math";
 
 type RoundingDependencyValues = {
     displayDigits: number;

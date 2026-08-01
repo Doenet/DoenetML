@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 
 import { mathAssets } from "@doenet/static-assets/math-assets";
 

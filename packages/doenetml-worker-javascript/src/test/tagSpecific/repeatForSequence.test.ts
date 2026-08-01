@@ -1606,10 +1606,10 @@ describe("RepeatForSequence tag tests @group3", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("( 1, 1 ), ( 2, 4 ), ( 3, 9 )");
+        ).eq("(1, 1), (2, 4), (3, 9)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq("( 1, 1 ), ( 2, 4 ), ( 3, 9 )");
+        ).eq("(1, 1), (2, 4), (3, 9)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
         ).eq("y = 1, y = 2, y = 3");

@@ -1,5 +1,5 @@
 import checkEquality from "./checkEquality";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { buildSubsetFromMathExpression, deepCompare } from "@doenet/utils";
 import {
     appliedFunctionSymbolsDefault,

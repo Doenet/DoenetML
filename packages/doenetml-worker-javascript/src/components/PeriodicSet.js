@@ -1,5 +1,5 @@
 import MathComponent from "./Math";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { deepClone } from "@doenet/utils";
 import {
     returnNumberDisplayAttributeComponentShadowing,

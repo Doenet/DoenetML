@@ -1,0 +1,69 @@
+{
+    "name": "@doenet/math",
+    "type": "module",
+    "description": "The single seam through which DoenetML reaches a math-expressions engine. Re-exports either the legacy JavaScript library or the Rust/WASM drop-in, selected at build time.",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./engine-js": {
+            "import": "./dist/engine-js.js"
+        },
+        "./engine-rust": {
+            "import": "./dist/engine-rust.js"
+        }
+    },
+    "scripts": {
+        "watch": "vite build --watch",
+        "test": "vitest",
+        "build:wasm": "wireit",
+        "build": "wireit"
+    },
+    "wireit": {
+        "build:wasm": {
+            "command": "node scripts/build-wasm.mjs",
+            "env": {
+                "DOENET_MATH_ENGINE": {
+                    "external": true
+                }
+            }
+        },
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "vite.config.ts",
+                "tsconfig.json",
+                "../../vendor/math-expressions/packages/math-expressions-js-compat/lib/**/*.ts",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-js/**/*.ts"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.map",
+                "dist/**/*.d.ts"
+            ],
+            "dependencies": [
+                "build:wasm"
+            ],
+            "env": {
+                "DOENET_MATH_ENGINE": {
+                    "external": true
+                }
+            },
+            "clean": true
+        }
+    },
+    "dependencies": {
+        "math-expressions": "^2.0.0-alpha93",
+        "mathjs": "^15.2.0"
+    }
+}

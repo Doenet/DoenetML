@@ -4,7 +4,7 @@ import {
     vectorOperators,
 } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "./numberDisplay";
-import me, { Tree, Expression } from "math-expressions";
+import me, { Tree, Expression } from "@doenet/math";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
 

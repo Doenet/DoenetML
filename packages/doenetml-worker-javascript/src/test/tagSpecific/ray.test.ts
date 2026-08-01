@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Expression, Tree } from "math-expressions";
+import type { Expression, Tree } from "@doenet/math";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
@@ -3808,33 +3808,33 @@ describe("Ray Tag Tests @group1", function () {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1d")].stateValues.text,
-        ).eqls("( 2.64, 113 )");
+        ).eqls("(2.64, 113)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
-        ).eqls("( 2.58, 510.52 )");
+        ).eqls("(2.58, 510.52)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1h")].stateValues.text,
-        ).eqls("( 5.22, 623.52 )");
+        ).eqls("(5.22, 623.52)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p2d")].stateValues.text,
-        ).eqls("( 2.63535, 113 )");
+        ).eqls("(2.63535, 113)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2t")].stateValues.text,
-        ).eqls("( 2.58107, 510.524 )");
+        ).eqls("(2.58107, 510.524)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2h")].stateValues.text,
-        ).eqls("( 5.21642, 623.523 )");
+        ).eqls("(5.21642, 623.523)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p3d")].stateValues.text,
-        ).eqls("( 3, 113 )");
+        ).eqls("(3, 113)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p3t")].stateValues.text,
-        ).eqls("( 3, 511 )");
+        ).eqls("(3, 511)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p3h")].stateValues.text,
-        ).eqls("( 5, 624 )");
+        ).eqls("(5, 624)");
     });
 
     it("warnings", async () => {

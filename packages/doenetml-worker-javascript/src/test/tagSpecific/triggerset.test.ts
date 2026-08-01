@@ -12,7 +12,7 @@ import {
     updateSelectedIndices,
     updateValue,
 } from "../utils/actions";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { test_in_graph } from "../utils/in-graph";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 

@@ -9,7 +9,7 @@ import {
     updateMathInputValue,
     updateMathInputValueToImmediateValue,
 } from "../utils/actions";
-import me, { Expression, Tree } from "math-expressions";
+import me, { Expression, Tree } from "@doenet/math";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();

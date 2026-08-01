@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import me from "math-expressions";
+import me from "@doenet/math";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";

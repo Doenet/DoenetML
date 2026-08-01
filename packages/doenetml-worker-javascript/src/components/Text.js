@@ -13,7 +13,7 @@ import {
 } from "../utils/text";
 import { textToMathFactory, latexToMathFactory } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 
 export default class Text extends InlineComponent {
     constructor(args) {

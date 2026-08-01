@@ -5,7 +5,7 @@ import {
     returnPiecewiseNumericalFunctionFromChildren,
     find_effective_domains_piecewise_children,
 } from "@doenet/utils";
-import me from "math-expressions";
+import me from "@doenet/math";
 import {
     buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,

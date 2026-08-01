@@ -1,0 +1,15 @@
+{
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "rootDir": "./src"
+    },
+    "include": ["./src/**/*.ts", "./src/**/*.d.ts"],
+    "exclude": [
+        "./**/*.test.ts",
+        "node_modules",
+        "**/dist/**/*",
+        "./vite.config.ts"
+    ],
+    "references": []
+}

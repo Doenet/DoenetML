@@ -1,5 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { subsets, buildSubsetFromMathExpression } from "@doenet/utils";
 import { returnPointsIntervalsFromSubsetStateVariableDefinitions } from "./SubsetOfReals";
 

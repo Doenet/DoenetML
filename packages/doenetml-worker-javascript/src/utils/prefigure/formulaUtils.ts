@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 import type { CurveFunctionDefinition } from "./types";
 
 /** A parsed formula with its variable and expression in string form. */

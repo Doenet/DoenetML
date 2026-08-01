@@ -7,7 +7,7 @@
 
 */
 
-import me from "math-expressions";
+import me from "@doenet/math";
 
 /**
  * The interface for the subset-of-reals object.

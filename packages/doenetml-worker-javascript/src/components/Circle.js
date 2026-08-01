@@ -7,7 +7,7 @@ import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import Curve from "./Curve";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 
-import me from "math-expressions";
+import me from "@doenet/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Circle extends Curve {

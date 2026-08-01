@@ -2,7 +2,7 @@ import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
-import me from "math-expressions";
+import me, { getComponent } from "@doenet/math";
 import { processNewDefiningChildren } from "./ComponentLifecycle";
 import { expandAllComposites } from "./CompositeExpander";
 import { ensureStateVariableMaterialized } from "./StateVariableInitializer";
@@ -1498,15 +1498,21 @@ function spreadMathOverArrayKeys(
 
     const desiredValuesForArray: Record<string, any> = {};
     for (let [ind, arrayKey] of arrayKeys.entries()) {
-        try {
-            desiredValuesForArray[arrayKey] = value.get_component(ind);
-        } catch (e) {
-            // `get_component(ind)` throws when the expression has no such
-            // component (it is shorter than the array, or is not a vector at
-            // all); leave the slot unset so the inverse definition keeps the
-            // current value for that key. Any other exception shape would also
-            // be swallowed here — narrow if a concrete error type from
-            // math-expressions becomes available.
+        // `getComponent` yields `undefined` when the expression has no such
+        // component — it is shorter than the array, or is not a vector at all —
+        // and we leave the slot unset so the inverse definition keeps the
+        // current value for that key.
+        //
+        // This used to be a try/catch around `value.get_component(ind)`, relying
+        // on the legacy library throwing. The Rust engine does not throw: an
+        // out-of-range index yields `undefined`, and a *scalar* receiver yields
+        // a real component (every operator node has components there). Catching
+        // was therefore both dead and wrong — a scalar would have written a
+        // wrong value into the slot instead of skipping it. `getComponent`
+        // restores the legacy contract on either engine.
+        const component = getComponent(value, ind);
+        if (component !== undefined) {
+            desiredValuesForArray[arrayKey] = component;
         }
     }
     return desiredValuesForArray;

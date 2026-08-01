@@ -1,4 +1,4 @@
-import me, { isTree, Expression } from "math-expressions";
+import me, { isTree, Expression } from "@doenet/math";
 
 export function normalizeMathExpression({
     value,

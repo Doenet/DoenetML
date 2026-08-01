@@ -1,5 +1,5 @@
 import Input from "./abstract/Input";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";

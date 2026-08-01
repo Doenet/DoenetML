@@ -19,7 +19,7 @@ import {
     estimateNumberOfNumberCombinationsExcluded,
     mergeContainingNumberCombinations,
 } from "../utils/excludeCombinations";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
     NO_SELECT_ERROR,

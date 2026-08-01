@@ -1,6 +1,6 @@
 import InlineComponent from "./abstract/InlineComponent";
 import { renameStateVariable } from "../utils/stateVariables";
-import me from "math-expressions";
+import me from "@doenet/math";
 import {
     returnSimplifyExpandOnCompareWarning,
     returnStandardAnswerAttributes,

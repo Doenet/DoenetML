@@ -1,5 +1,5 @@
 import Function from "../Function";
-import me from "math-expressions";
+import me from "@doenet/math";
 import {
     returnNumericalFunctionFromFormula,
     returnSymbolicFunctionFromFormula,

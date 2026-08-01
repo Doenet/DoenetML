@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import me from "math-expressions";
+import me from "@doenet/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1700,10 +1700,10 @@ describe("Spreadsheet tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                 .text,
-        ).eq("( 1, 2 )");
+        ).eq("(1, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
-        ).eq("( 1, 2 )");
+        ).eq("(1, 2)");
 
         await updateMathInputValue({
             latex: "3",
@@ -1714,10 +1714,10 @@ describe("Spreadsheet tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                 .text,
-        ).eq("( 3, 2 )");
+        ).eq("(3, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
-        ).eq("( 3, 2 )");
+        ).eq("(3, 2)");
 
         await updateMathInputValue({
             latex: "4",
@@ -1728,10 +1728,10 @@ describe("Spreadsheet tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                 .text,
-        ).eq("( 3, 4 )");
+        ).eq("(3, 4)");
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
-        ).eq("( 3, 4 )");
+        ).eq("(3, 4)");
     }
 
     it("spreadsheet can merge coordinates", async () => {
@@ -1740,7 +1740,7 @@ describe("Spreadsheet tag tests @group1", async () => {
   <cell extend="$ss.cellA1" name="A1" />
   <text extend="$A1.text" name="t1" />
   <spreadsheet name="ss">
-  <cell name="coords" prefill="( 1, 2 )" />
+  <cell name="coords" prefill="(1, 2)" />
   </spreadsheet>
   <graph>
     <point name="P" coords="$(coords.math)" />

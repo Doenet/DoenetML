@@ -1,6 +1,6 @@
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Line from "./Line";
-import me from "math-expressions";
+import me from "@doenet/math";
 const { matrix, transpose, multiply, lusolve, subset, index } = me.math;
 
 export default class BestFitLine extends Line {

@@ -5,7 +5,7 @@ import {
     mergeIntervals,
 } from "@doenet/utils";
 import { renameStateVariable } from "../utils/stateVariables";
-import me from "math-expressions";
+import me from "@doenet/math";
 
 export default class SubsetOfReals extends MathComponent {
     static componentType = "subsetOfReals";

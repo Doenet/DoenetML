@@ -10,7 +10,7 @@ import {
 } from "../utils/actions";
 import { test_in_graph } from "../utils/in-graph";
 import { latexToText } from "../../utils/math";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
@@ -38,10 +38,10 @@ describe("Label tag tests @group2", async () => {
         let l2 = "Hello";
         let l3Latex = "\\left(x_2 y_{2.1},\\frac{y^2}{z^{2.1}}\\right)";
         let l3Value = `\\(${l3Latex}\\)`;
-        let l3Text = "( x₂ y_2.1, (y²)/(z^2.1) )";
+        let l3Text = "(x₂ y_2.1, (y²)/(z^2.1))";
         let l4Latex = "\\left( a_{2} b_{2.1}, \\frac{b^{2}}{c^{2.1}} \\right)";
         let l4Value = `\\(${l4Latex}\\)`;
-        let l4Text = "( a₂ b_2.1, (b²)/(c^2.1) )";
+        let l4Text = "(a₂ b_2.1, (b²)/(c^2.1))";
         let l5 = "1";
         let l6Latex = "2";
         let l6Value = `\\(${l6Latex}\\)`;
@@ -381,7 +381,7 @@ describe("Label tag tests @group2", async () => {
         });
         await check_items(
             "\\(\\left( x, y \\right)\\)",
-            "( x, y )",
+            "(x, y)",
             "\\left( x, y \\right)",
         );
 
@@ -512,7 +512,7 @@ describe("Label tag tests @group2", async () => {
         });
         await check_items(
             "\\(\\left( x, y \\right)\\)",
-            "( x, y )",
+            "(x, y)",
             "\\left( x, y \\right)",
         );
 

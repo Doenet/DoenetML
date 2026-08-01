@@ -1,7 +1,7 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisplay";
 import MathBaseOperator from "./abstract/MathBaseOperator";
 import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 const { mod, median } = me.math;
 

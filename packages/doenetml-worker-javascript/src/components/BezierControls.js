@@ -1,5 +1,5 @@
 import InlineComponent from "./abstract/InlineComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 
 export default class BezierControls extends InlineComponent {

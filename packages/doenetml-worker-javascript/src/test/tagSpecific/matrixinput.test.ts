@@ -1652,7 +1652,7 @@ describe("MathInput tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pMatrix")].stateValues
                 .text,
-        ).eq("Matrix: [ [ a, b ], [ c, d ] ]");
+        ).eq("Matrix: [[a, b], [c, d]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pRow")].stateValues.text,
         ).eq("Row: ");
@@ -1670,7 +1670,7 @@ describe("MathInput tag tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pRow")].stateValues.text,
-        ).eq("Row: [ [ c, d ] ]");
+        ).eq("Row: [[c, d]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pEntry")].stateValues
                 .text,
@@ -1698,10 +1698,10 @@ describe("MathInput tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pMatrix")].stateValues
                 .text,
-        ).eq("Matrix: [ [ a, b ], [ x, d ] ]");
+        ).eq("Matrix: [[a, b], [x, d]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pRow")].stateValues.text,
-        ).eq("Row: [ [ x, d ] ]");
+        ).eq("Row: [[x, d]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pEntry")].stateValues
                 .text,
@@ -1716,7 +1716,7 @@ describe("MathInput tag tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pRow")].stateValues.text,
-        ).eq("Row: [ [ a, b ] ]");
+        ).eq("Row: [[a, b]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pEntry")].stateValues
                 .text,
@@ -1735,10 +1735,10 @@ describe("MathInput tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pMatrix")].stateValues
                 .text,
-        ).eq("Matrix: [ [ y, b ], [ x, d ] ]");
+        ).eq("Matrix: [[y, b], [x, d]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pRow")].stateValues.text,
-        ).eq("Row: [ [ y, b ] ]");
+        ).eq("Row: [[y, b]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pEntry")].stateValues
                 .text,
@@ -1766,10 +1766,10 @@ describe("MathInput tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pMatrix")].stateValues
                 .text,
-        ).eq("Matrix: [ [ y, z ], [ x, d ] ]");
+        ).eq("Matrix: [[y, z], [x, d]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pRow")].stateValues.text,
-        ).eq("Row: [ [ y, z ] ]");
+        ).eq("Row: [[y, z]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("pEntry")].stateValues
                 .text,
@@ -1795,20 +1795,20 @@ describe("MathInput tag tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.text,
-        ).eq("[ [ 5 E + 1 ] ]");
+        ).eq("[[5 E + 1]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.text,
-        ).eq("[ [ 5 E + 1 ] ]");
+        ).eq("[[5 E + 1]]");
         expect(stateVariables[entryName1].stateValues.rawRendererValue).eq(
             "5 E + 1",
         );
         expect(stateVariables[entryName1].stateValues.text).eq("5 E + 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.text,
-        ).eq("[ [ 50 ] ]");
+        ).eq("[[50]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.text,
-        ).eq("[ [ 50 ] ]");
+        ).eq("[[50]]");
         expect(stateVariables[entryName2].stateValues.rawRendererValue).eq(
             "50",
         );
@@ -1826,10 +1826,10 @@ describe("MathInput tag tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.text,
-        ).eq("[ [ 2 x - 3 E + 2 ] ]");
+        ).eq("[[2 x - 3 E + 2]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.text,
-        ).eq("[ [ 2 x - 3 E + 2 ] ]");
+        ).eq("[[2 x - 3 E + 2]]");
         expect(stateVariables[entryName1].stateValues.rawRendererValue).eq(
             "2x-3E+2",
         );
@@ -1847,10 +1847,10 @@ describe("MathInput tag tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.text,
-        ).eq("[ [ 2 x - 300 ] ]");
+        ).eq("[[2 x - 300]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.text,
-        ).eq("[ [ 2 x - 300 ] ]");
+        ).eq("[[2 x - 300]]");
         expect(stateVariables[entryName2].stateValues.rawRendererValue).eq(
             "2x-3E+2",
         );
@@ -2102,13 +2102,13 @@ describe("MathInput tag tests @group3", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
 
         let mi1 = "[ [ \uff3f ] ]",
-            mi2 = "[ [ x ], [ y ] ]",
+            mi2 = "[[x], [y]]",
             mi3 = "[ [ \uff3f ] ]",
-            mi4 = "[ [ x ], [ y ] ]";
+            mi4 = "[[x], [y]]";
         let mi1iv = "[ [ \uff3f ] ]",
-            mi2iv = "[ [ x ], [ y ] ]",
+            mi2iv = "[[x], [y]]",
             mi3iv = "[ [ \uff3f ] ]",
-            mi4iv = "[ [ x ], [ y ] ]";
+            mi4iv = "[[x], [y]]";
         let mi1changed = false,
             mi2changed = false,
             mi3changed = false,
@@ -2127,7 +2127,7 @@ describe("MathInput tag tests @group3", async () => {
 
         // type in first marks only first immediate value as changed
 
-        mi1iv = "[ [ z ] ]";
+        mi1iv = "[[z]]";
         mi1ivchanged = true;
         await updateMatrixInputImmediateValue({
             latex: "z",
@@ -2162,7 +2162,7 @@ describe("MathInput tag tests @group3", async () => {
 
         // type in second marks only second immediate value as changed
 
-        mi4 = mi4iv = mi2iv = "[ [ a ], [ y ] ]";
+        mi4 = mi4iv = mi2iv = "[[a], [y]]";
         mi2ivchanged = true;
         await updateMatrixInputImmediateValue({
             latex: "a",
@@ -2197,7 +2197,7 @@ describe("MathInput tag tests @group3", async () => {
         );
 
         // type in third marks third immediate value as changed
-        mi3iv = "[ [ b ] ]";
+        mi3iv = "[[b]]";
         mi3ivchanged = true;
         await updateMatrixInputImmediateValue({
             latex: "b",
@@ -2233,7 +2233,7 @@ describe("MathInput tag tests @group3", async () => {
 
         // type in fourth marks fourth immediate value as changed
 
-        mi4iv = "[ [ a ], [ c ] ]";
+        mi4iv = "[[a], [c]]";
         mi4ivchanged = true;
         await updateMatrixInputImmediateValue({
             latex: "c",
@@ -2272,13 +2272,13 @@ describe("MathInput tag tests @group3", async () => {
         ({ core, resolvePathToNodeIdx } = await createTestCore({ doenetML }));
 
         mi1 = "[ [ \uff3f ] ]";
-        mi2 = "[ [ x ], [ y ] ]";
+        mi2 = "[[x], [y]]";
         mi3 = "[ [ \uff3f ] ]";
-        mi4 = "[ [ x ], [ y ] ]";
+        mi4 = "[[x], [y]]";
         mi1iv = "[ [ \uff3f ] ]";
-        mi2iv = "[ [ x ], [ y ] ]";
+        mi2iv = "[[x], [y]]";
         mi3iv = "[ [ \uff3f ] ]";
-        mi4iv = "[ [ x ], [ y ] ]";
+        mi4iv = "[[x], [y]]";
         mi1changed = false;
         mi2changed = false;
         mi3changed = false;
@@ -2296,7 +2296,7 @@ describe("MathInput tag tests @group3", async () => {
         );
 
         // type in third marks only third immediate value as changed
-        mi3iv = "[ [ z ] ]";
+        mi3iv = "[[z]]";
         mi3ivchanged = true;
 
         await updateMatrixInputImmediateValue({
@@ -2334,7 +2334,7 @@ describe("MathInput tag tests @group3", async () => {
 
         // type in fourth marks only fourth immediate value as changed
 
-        mi4iv = "[ [ a ], [ y ] ]";
+        mi4iv = "[[a], [y]]";
         mi4ivchanged = true;
 
         await updateMatrixInputImmediateValue({
@@ -2373,13 +2373,13 @@ describe("MathInput tag tests @group3", async () => {
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({ doenetML }));
         mi1 = "[ [ \uff3f ] ]";
-        mi2 = "[ [ x ], [ y ] ]";
+        mi2 = "[[x], [y]]";
         mi3 = "[ [ \uff3f ] ]";
-        mi4 = "[ [ x ], [ y ] ]";
+        mi4 = "[[x], [y]]";
         mi1iv = "[ [ \uff3f ] ]";
-        mi2iv = "[ [ x ], [ y ] ]";
+        mi2iv = "[[x], [y]]";
         mi3iv = "[ [ \uff3f ] ]";
-        mi4iv = "[ [ x ], [ y ] ]";
+        mi4iv = "[[x], [y]]";
         mi1changed = false;
         mi2changed = false;
         mi3changed = false;
@@ -2432,13 +2432,13 @@ describe("MathInput tag tests @group3", async () => {
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({ doenetML }));
         mi1 = "[ [ \uff3f ] ]";
-        mi2 = "[ [ x ], [ y ] ]";
+        mi2 = "[[x], [y]]";
         mi3 = "[ [ \uff3f ] ]";
-        mi4 = "[ [ x ], [ y ] ]";
+        mi4 = "[[x], [y]]";
         mi1iv = "[ [ \uff3f ] ]";
-        mi2iv = "[ [ x ], [ y ] ]";
+        mi2iv = "[[x], [y]]";
         mi3iv = "[ [ \uff3f ] ]";
-        mi4iv = "[ [ x ], [ y ] ]";
+        mi4iv = "[[x], [y]]";
         mi1changed = false;
         mi2changed = false;
         mi3changed = false;
@@ -2471,7 +2471,7 @@ describe("MathInput tag tests @group3", async () => {
         );
 
         // subtracting row from fourth marks second and fourth value/immediateValue as changed
-        mi2 = mi4 = mi4iv = mi2iv = "[ [ x ] ]";
+        mi2 = mi4 = mi4iv = mi2iv = "[[x]]";
         mi4changed = mi4ivchanged = mi2changed = mi2ivchanged = true;
         await updateMatrixInputNumRows({
             numRows: 1,

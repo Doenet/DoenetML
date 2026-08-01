@@ -5,7 +5,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { DynamicMath } from "./utils/DynamicMath";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";

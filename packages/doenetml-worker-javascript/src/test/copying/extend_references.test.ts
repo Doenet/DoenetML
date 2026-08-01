@@ -14,7 +14,7 @@ import {
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
@@ -4638,7 +4638,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("P: ( 2, 3 )");
+        ).eq("P: (2, 3)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("x of P: 2");
@@ -4647,10 +4647,10 @@ describe("Extend and references tests @group2", async () => {
         ).eq("y of P: 3");
         expect(
             stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
-        ).eq("P.: ( 2, 3 ).");
+        ).eq("P.: (2, 3).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
-        ).eq("P.1: ( 2, 3 ).1");
+        ).eq("P.1: (2, 3).1");
         expect(
             stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
         ).eq("x of P: 2");
@@ -4672,10 +4672,10 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p12")].stateValues.text,
-        ).eq("P: ( 2, 3 )");
+        ).eq("P: (2, 3)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p13")].stateValues.text,
-        ).eq("(P).x: ( 2, 3 ).x");
+        ).eq("(P).x: (2, 3).x");
         expect(
             stateVariables[await resolvePathToNodeIdx("p14")].stateValues.text,
         ).eq("no match: $(P.)");
@@ -6001,7 +6001,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("another blank: ");
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
-        ).eq("the point: ( 4, 5 )");
+        ).eq("the point: (4, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
         ).eq("the point x: 4");
@@ -6010,7 +6010,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("the line: 0 = x - y - 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
-        ).eq("the line, point 1: ( 10, 9 )");
+        ).eq("the line, point 1: (10, 9)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
         ).eq("the line, point 2, y: 8");

@@ -3,7 +3,7 @@ import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
-import me from "math-expressions";
+import me from "@doenet/math";
 import {
     moveGraphicalObjectWithAnchorAction,
     returnAnchorAttributes,

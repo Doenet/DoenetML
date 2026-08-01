@@ -3533,7 +3533,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("tuple")].stateValues
                 .text,
-        ).eq("( a, b, c )");
+        ).eq("(a, b, c)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("doubleNoList")]
@@ -3551,7 +3551,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("doubleTuple")]
                 .stateValues.text,
-        ).eq("2 ( a, b, c )");
+        ).eq("2 (a, b, c)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("appendNoList")]
@@ -3587,7 +3587,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("functionOfList")]
                 .stateValues.text,
-        ).eq("f( a, b, c )");
+        ).eq("f(a, b, c)");
     });
 
     it("aslist inside math, sequence", async () => {

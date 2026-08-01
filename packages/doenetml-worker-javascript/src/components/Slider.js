@@ -1,6 +1,6 @@
 import { roundForDisplay } from "../utils/math";
 import BaseComponent from "./abstract/BaseComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,

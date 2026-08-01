@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { movePoint } from "../utils/actions";
-import me from "math-expressions";
+import me from "@doenet/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -418,9 +418,7 @@ describe("BestFitLine tag tests @group3", async () => {
         ).eq("y = -0.519 x + 5.21");
         expect(
             stateVariables[await resolvePathToNodeIdx("data")].stateValues.text,
-        ).eq(
-            "data: ( 1.23, 2.35 ), ( 1.23, 6.79 ), ( 7.89, 3.46 ), ( 7.89, -1.23 )",
-        );
+        ).eq("data: (1.23, 2.35), (1.23, 6.79), (7.89, 3.46), (7.89, -1.23)");
         expect(
             stateVariables[await resolvePathToNodeIdx("eq2")].stateValues.text,
         ).eq("y = -0.51922 x + 5.2084");
@@ -428,7 +426,7 @@ describe("BestFitLine tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("data2")].stateValues
                 .text,
         ).eq(
-            "data2: ( 1.2346, 2.3457 ), ( 1.2346, 6.7891 ), ( 7.8912, 3.4568 ), ( 7.8912, -1.2346 )",
+            "data2: (1.2346, 2.3457), (1.2346, 6.7891), (7.8912, 3.4568), (7.8912, -1.2346)",
         );
     });
 });

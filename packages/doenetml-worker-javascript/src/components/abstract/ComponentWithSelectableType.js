@@ -1,5 +1,5 @@
 import BaseComponent from "./BaseComponent";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { convertValueToMathExpression } from "@doenet/utils";
 import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../commonsugar/lists";

@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 
 import { EmptySet, RealLine } from "../math/subset-of-reals";
 import { buildSubsetFromMathExpression } from "../math/subset-of-reals-operations";

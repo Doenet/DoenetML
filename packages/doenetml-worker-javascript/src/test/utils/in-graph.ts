@@ -80,10 +80,10 @@ export async function test_in_graph(
     let stateVariables = await core.returnAllStateVariables(false, true);
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor1")].stateValues.text,
-    ).eq("Anchor 1 coordinates: ( 1, 3 )");
+    ).eq("Anchor 1 coordinates: (1, 3)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor2")].stateValues.text,
-    ).eq("Anchor 2 coordinates: ( 0, 0 )");
+    ).eq("Anchor 2 coordinates: (0, 0)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pPositionFromAnchor1")]
             .stateValues.text,
@@ -149,10 +149,10 @@ export async function test_in_graph(
     stateVariables = await core.returnAllStateVariables(false, true);
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor1")].stateValues.text,
-    ).eq("Anchor 1 coordinates: ( -2, 3 )");
+    ).eq("Anchor 1 coordinates: (-2, 3)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor2")].stateValues.text,
-    ).eq("Anchor 2 coordinates: ( 4, -5 )");
+    ).eq("Anchor 2 coordinates: (4, -5)");
 
     // move items by entering coordinates
 
@@ -170,10 +170,10 @@ export async function test_in_graph(
     stateVariables = await core.returnAllStateVariables(false, true);
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor1")].stateValues.text,
-    ).eq("Anchor 1 coordinates: ( 6, 7 )");
+    ).eq("Anchor 1 coordinates: (6, 7)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor2")].stateValues.text,
-    ).eq("Anchor 2 coordinates: ( 8, 9 )");
+    ).eq("Anchor 2 coordinates: (8, 9)");
 
     // change position from anchor
     await updateSelectedIndices({
@@ -236,10 +236,10 @@ export async function test_in_graph(
 
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor1")].stateValues.text,
-    ).eq("Anchor 1 coordinates: ( 6, 7 )");
+    ).eq("Anchor 1 coordinates: (6, 7)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor2")].stateValues.text,
-    ).eq("Anchor 2 coordinates: ( 8, 9 )");
+    ).eq("Anchor 2 coordinates: (8, 9)");
 
     // make draggable again
     await updateBooleanInputValue({
@@ -279,10 +279,10 @@ export async function test_in_graph(
 
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor1")].stateValues.text,
-    ).eq("Anchor 1 coordinates: ( -10, -9 )");
+    ).eq("Anchor 1 coordinates: (-10, -9)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor2")].stateValues.text,
-    ).eq("Anchor 2 coordinates: ( -8, -7 )");
+    ).eq("Anchor 2 coordinates: (-8, -7)");
 
     // fix location
     await updateBooleanInputValue({
@@ -322,10 +322,10 @@ export async function test_in_graph(
 
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor1")].stateValues.text,
-    ).eq("Anchor 1 coordinates: ( 1, 2 )");
+    ).eq("Anchor 1 coordinates: (1, 2)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor2")].stateValues.text,
-    ).eq("Anchor 2 coordinates: ( -8, -7 )");
+    ).eq("Anchor 2 coordinates: (-8, -7)");
 
     // cannot move items by dragging
     await moveCommand({
@@ -345,10 +345,10 @@ export async function test_in_graph(
 
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor1")].stateValues.text,
-    ).eq("Anchor 1 coordinates: ( 1, 2 )");
+    ).eq("Anchor 1 coordinates: (1, 2)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor2")].stateValues.text,
-    ).eq("Anchor 2 coordinates: ( -8, -7 )");
+    ).eq("Anchor 2 coordinates: (-8, -7)");
 
     // can change position from anchor only for button 1
     await updateSelectedIndices({
@@ -432,10 +432,10 @@ export async function test_in_graph(
 
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor1")].stateValues.text,
-    ).eq("Anchor 1 coordinates: ( 5, 6 )");
+    ).eq("Anchor 1 coordinates: (5, 6)");
     expect(
         stateVariables[await resolvePathToNodeIdx("pAnchor2")].stateValues.text,
-    ).eq("Anchor 2 coordinates: ( -8, -7 )");
+    ).eq("Anchor 2 coordinates: (-8, -7)");
 
     // can change position from anchor only for button 1
     await updateSelectedIndices({

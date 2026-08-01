@@ -2,7 +2,7 @@ import { normalizeIndex } from "../utils/table";
 import { textToAst } from "../utils/math";
 import BlockComponent from "./abstract/BlockComponent";
 import { vectorOperators } from "@doenet/utils";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { HyperFormula } from "hyperformula";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 

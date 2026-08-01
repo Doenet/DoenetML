@@ -7,7 +7,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import { createFunctionFromDefinition } from "@doenet/utils";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
@@ -5399,23 +5399,23 @@ describe("Function tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing1")].stateValues
                 .text,
-        ).eq("g1 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g1 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing2")].stateValues
                 .text,
-        ).eq("g2 domain: ( 3, 4 ), ( 5, 6 )");
+        ).eq("g2 domain: (3, 4), (5, 6)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing3")].stateValues
                 .text,
-        ).eq("g3 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g3 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing4")].stateValues
                 .text,
-        ).eq("g4 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g4 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing5")].stateValues
                 .text,
-        ).eq("g5 domain: ( 3, 4 ), ( 5, 6 )");
+        ).eq("g5 domain: (3, 4), (5, 6)");
 
         let diagnosticsByType = getDiagnosticsByType(core);
 

@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 const { mod, min, fraction, number: mathNumber } = me.math;
 
 export default function periodicSetEquality(

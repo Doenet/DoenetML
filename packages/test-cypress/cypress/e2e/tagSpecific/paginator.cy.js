@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me from "@doenet/math";
 import { cesc } from "@doenet/utils";
 
 describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {

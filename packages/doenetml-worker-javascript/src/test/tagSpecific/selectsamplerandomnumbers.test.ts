@@ -5,7 +5,7 @@ import {
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
-import me from "math-expressions";
+import me from "@doenet/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import type { mean as MeanType, variance as VarianceType } from "mathjs";
 const { mean, variance } = me.math as {

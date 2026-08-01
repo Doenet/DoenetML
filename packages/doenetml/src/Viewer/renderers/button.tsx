@@ -5,7 +5,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
-import me from "math-expressions";
+import me from "@doenet/math";
 import {
     getPositionFromAnchorByCoordinate,
     POINTER_DRAG_THRESHOLD,
