@@ -47,11 +47,19 @@ export type CreateTranslatorOptions = {
     /**
      * Wrap placeables in Unicode bidi isolation marks (U+2068/U+2069).
      *
-     * Fluent defaults this on, which is right for free-form UI text but makes
-     * output non-byte-identical to the untranslated English it replaces, and
-     * corrupts strings that are later compared, hashed, or parsed (Doenet
-     * compares response text). Default off; turn it on for a surface that
-     * genuinely mixes RTL and LTR runs.
+     * Fluent defaults this on. It is right for text a reader only ever looks
+     * at, and wrong for text anything later compares, hashes, or parses —
+     * the marks are invisible, they survive `trim()`, and they break `===`.
+     * The default here is therefore off, and the two callers decide:
+     *
+     * - `createChromeTranslator` turns it **on** for every language but
+     *   English. Chrome is rendered and discarded.
+     * - `createTranslatorFromLocaleData` leaves it **off**. Worker content
+     *   becomes state variables an author can interpolate and an answer can
+     *   compare, and it can reach the response hash.
+     *
+     * Isolation also makes output non-byte-identical to the English it
+     * replaces, which is why English is the exception rather than the rule.
      */
     useIsolating?: boolean;
     /**

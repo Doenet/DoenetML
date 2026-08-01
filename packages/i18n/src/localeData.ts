@@ -46,6 +46,13 @@ export const DEFAULT_LOCALE_DATA: LocaleData = {
  * thread and sent through. `documentLocale="es"` therefore produces Spanish
  * style descriptions with nothing configured, one load after the first paint.
  *
+ * Never isolates its placeables, unlike the chrome translator. What this builds
+ * becomes state variables — `$line.styleDescription` and the rest — that an
+ * author interpolates into prose, an `<award>` compares against a response, and
+ * the answer machinery folds into a SHA-1 of the dependency graph. Invisible
+ * marks in any of those break a comparison silently. The line is drawn at what
+ * is compared, not at what looks like prose.
+ *
  * @param locale The content locale to render in. Defaults to the one in
  *   `localeData`; the caller passes a different tag when an authored
  *   `<document lang>` overrides what the host asked for.

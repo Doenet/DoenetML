@@ -35,6 +35,13 @@ export function useDiagnosticFormatter(
  * catalogs yet (#1518) — come back untouched, and so does the array itself
  * when nothing changed, so a document whose diagnostics are all legacy costs
  * nothing and doesn't churn a memo downstream.
+ *
+ * A *coded* record under a non-English chrome locale is re-rendered even where
+ * the catalog hasn't translated it, because the chrome isolates its placeables
+ * in every language but English and the English fallback picks the marks up
+ * too. That is deliberate — isolation follows the surface, not whichever
+ * catalog answered — and it means such a record no longer keeps its identity.
+ * The cost is a new array for those documents, not a wrong message.
  */
 export function localizeDiagnostics(
     diagnostics: DiagnosticRecord[],

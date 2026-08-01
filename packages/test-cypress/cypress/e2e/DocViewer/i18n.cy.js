@@ -1,3 +1,8 @@
+import { plainTextIncluding, stripBidiIsolates } from "../utils/bidi";
+
+/** Any of the four Unicode bidi isolates Fluent wraps a placeable in. */
+const ISOLATE = /[⁦-⁩]/;
+
 // Covers both halves of the split: chrome, which follows the reader's
 // `uiLocale`, and worker-computed content, which follows the document's.
 describe("Translation Tests", { tags: ["@group5"] }, function () {
@@ -63,6 +68,32 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         cy.get("#sol_button").should("contain.text", "(clic para abrir)");
     });
 
+    it("isolates an interpolated value in translated chrome", () => {
+        // Pinned in the DOM, not only at the translator, and pinned as the
+        // presence of the marks rather than their absence: every other
+        // assertion in this file strips them, so nothing else here would
+        // notice if isolation were turned back off.
+        //
+        // This is what keeps a Latin identifier from visually scrambling the
+        // Arabic around it once a right-to-left catalog lands.
+        render({ doenetML: problem, documentLocale: "es" });
+
+        cy.get("[data-test=attempts-remaining]")
+            .invoke("text")
+            .should("match", ISOLATE);
+    });
+
+    it("leaves English free of isolation marks", () => {
+        // The invariant every phase has held: with nothing configured, the
+        // output is byte-identical to what it replaced.
+        render({ doenetML: problem });
+
+        cy.get("[data-test=attempts-remaining]")
+            .invoke("text")
+            .should("contain", "2 attempts remaining")
+            .should("not.match", ISOLATE);
+    });
+
     it("translates the check-work widget for the document's language", () => {
         // The whole widget follows the document, so a `documentLocale` with no
         // `uiLocale` moves it. The plural form is the target language's, not a
@@ -70,17 +101,17 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         // it.
         render({ doenetML: problem, documentLocale: "es" });
 
+        // The count is a placeable, so the rendered text carries isolation
+        // marks on either side of it in every language but English.
         cy.get("[data-test=attempts-remaining]").should(
-            "contain.text",
-            "quedan 2 intentos",
+            plainTextIncluding("quedan 2 intentos"),
         );
 
         submitWrongAnswer();
 
         cy.get("#prob_button").should("contain.text", "Incorrecto");
         cy.get("[data-test=attempts-remaining]").should(
-            "contain.text",
-            "queda 1 intento",
+            plainTextIncluding("queda 1 intento"),
         );
     });
 
@@ -91,8 +122,7 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
 
         cy.get(".doenet-viewer").should("have.attr", "lang", "es");
         cy.get("[data-test=attempts-remaining]").should(
-            "contain.text",
-            "quedan 2 intentos",
+            plainTextIncluding("quedan 2 intentos"),
         );
     });
 
@@ -339,11 +369,17 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
          * Through `should` rather than `then`, so it retries: the records
          * arrive with the core's first result, which is not tied to any
          * element being on screen.
+         *
+         * Bidi marks are stripped because a diagnostic in any language but
+         * English isolates its placeables, and the ignored attributes here are
+         * one. The comparison is exact once they are out.
          */
         function shouldHaveDiagnostic(field, value) {
             cy.window().should((win) => {
                 const diagnostics = win.returnDiagnostics1?.() ?? [];
-                expect(diagnostics.map((d) => d[field])).to.include(value);
+                expect(
+                    diagnostics.map((d) => stripBidiIsolates(String(d[field]))),
+                ).to.include(value);
             });
         }
 

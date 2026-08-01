@@ -86,8 +86,11 @@ describe("createTranslator", () => {
     });
 
     it("does not insert bidi isolation marks by default", () => {
-        // Doenet compares and hashes rendered strings, so U+2068/U+2069 around
-        // every placeable would be a silent behavior change.
+        // Off unless a caller asks, because the caller is what knows whether
+        // its output is only looked at: the chrome turns it on for every
+        // language but English, and the worker's content translator never
+        // does — what it renders becomes state variables that get compared
+        // and hashed.
         const t = createTranslator(["en"], { en: EN });
         expect(t("count-items", { count: 3 })).not.toMatch(/[⁦-⁩]/);
 

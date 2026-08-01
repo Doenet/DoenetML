@@ -77,6 +77,31 @@ function chromeResources(
 }
 
 /**
+ * Whether the chrome in `locale` wraps its placeables in bidi isolation marks.
+ *
+ * On everywhere except English, keyed on the primary language subtag — so
+ * `en-GB` is English, and so are both pseudo-locales, which is what keeps
+ * `en-XA` and `en-XB` renderable as plain text.
+ *
+ * The rule is not principled, and pretending otherwise would mislead whoever
+ * changes it next. Isolation protects a sentence when a *placeable's*
+ * direction differs from the paragraph's, which has nothing to do with whether
+ * the paragraph is English: an English UI formatting an Arabic answer name gets
+ * no isolation here and visually strands the words around it. English is
+ * excluded because the assertion corpus compares English chrome as plain text,
+ * and every phase so far has held English byte-identical to what it replaced.
+ * Turning it on for English later is a mechanical change plus a sweep of
+ * exact-string assertions.
+ *
+ * Content is a different question and gets the opposite answer — see
+ * `createTranslatorFromLocaleData`, which never isolates.
+ */
+function isolatesPlaceables(locale: string): boolean {
+    const language = locale.split(/[-_]/)[0].toLowerCase();
+    return language !== DEFAULT_LOCALE;
+}
+
+/**
  * Build the translator for the viewer chrome.
  *
  * @param uiLocale The chrome's language, already resolved by
@@ -95,7 +120,14 @@ export function createChromeTranslator(
     const normalized = normalizeLocaleTag(uiLocale) || DEFAULT_LOCALE;
     const resources = chromeResources(normalized, hostResources);
     const locales = negotiateLocales([normalized], Object.keys(resources));
-    return createTranslator(locales, resources);
+    // Uniform across the chain, deliberately: isolation belongs to the surface
+    // being rendered, not to whichever catalog happened to answer. A key the
+    // requested locale hasn't translated resolves from English and is isolated
+    // all the same, because the chrome around it is still the requested
+    // locale's.
+    return createTranslator(locales, resources, {
+        useIsolating: isolatesPlaceables(normalized),
+    });
 }
 
 /**

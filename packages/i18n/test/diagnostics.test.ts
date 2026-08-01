@@ -12,6 +12,7 @@ import {
 } from "../src/diagnostics";
 import { EN_CATALOGS } from "../src/catalogs";
 import { createChromeTranslator } from "../src/chrome";
+import { stripBidiIsolates } from "../src/direction";
 import esDiagnostics from "../locales/es/diagnostics.ftl?raw";
 import { createTranslator, type Translator } from "../src/translator";
 import { extractKeys } from "../scripts/catalogUtils";
@@ -432,9 +433,12 @@ describe("one code, several components", () => {
             code: "doenet-w0015",
             args: { value: "a b c", component: "sort" },
         });
-        expect(message).toContain("sort");
-        expect(message).toContain('"a b c"');
-        expect(message).not.toContain("Ignoring");
+        // Stripped because the chrome isolates its placeables in every
+        // language but English, and the quotes sit on either side of one.
+        const plain = stripBidiIsolates(message);
+        expect(plain).toContain("sort");
+        expect(plain).toContain('"a b c"');
+        expect(plain).not.toContain("Ignoring");
     });
 });
 
