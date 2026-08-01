@@ -51,19 +51,22 @@ editor-accessibility-title =
         } क्लिक करा. एकही सुलभता समस्या आढळली नाही.
     }
 
+# आढळले / आढळली / आढळल्या agrees with what was found — उल्लंघन is neuter and
+# शिफारस feminine — so the participle sits inside the `$count` branches rather
+# than after them.
 editor-accessibility-label =
     { $status ->
         [violations] WCAG AA सुलभता उल्लंघन आढळले. { $count ->
-            [one] { $count } WCAG AA उल्लंघन
-           *[other] { $count } WCAG AA उल्लंघने
-        } आढळली. सुलभता अहवाल { $action ->
+            [one] { $count } WCAG AA उल्लंघन आढळले.
+           *[other] { $count } WCAG AA उल्लंघने आढळली.
+        } सुलभता अहवाल { $action ->
             [close] बंद करण्यासाठी
            *[open] उघडण्यासाठी
         } क्लिक करा.
         [advisories] एकही WCAG AA उल्लंघन आढळले नाही. आणखी { $count ->
-            [one] { $count } सुलभता शिफारस
-           *[other] { $count } सुलभता शिफारशी
-        } आढळल्या. सुलभता अहवाल { $action ->
+            [one] { $count } सुलभता शिफारस आढळली.
+           *[other] { $count } सुलभता शिफारशी आढळल्या.
+        } सुलभता अहवाल { $action ->
             [close] बंद करण्यासाठी
            *[open] उघडण्यासाठी
         } क्लिक करा.

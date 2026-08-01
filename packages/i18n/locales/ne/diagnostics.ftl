@@ -162,16 +162,19 @@ circle-change-center-non-numerical = सङ्ख्यात्मक नभए
 
 ## `<function>`
 
+# छ / छन् agrees with the inputs alone, so it belongs inside the `$inputs`
+# branches rather than after them — the same agreement the outer `$intervals`
+# select already makes for अन्तराल. इनपुट itself is unchanged either way.
 function-domain-insufficient-dimensions =
     { $intervals ->
         [one] फलनको क्षेत्रका आयाम पर्याप्त छैनन्। क्षेत्रमा { $intervals } अन्तराल छ तर फलनमा { $inputs ->
-            [one] { $inputs } इनपुट
-           *[other] { $inputs } इनपुट
-        } छन्।
+            [one] { $inputs } इनपुट छ।
+           *[other] { $inputs } इनपुट छन्।
+        }
        *[other] फलनको क्षेत्रका आयाम पर्याप्त छैनन्। क्षेत्रमा { $intervals } अन्तराल छन् तर फलनमा { $inputs ->
-            [one] { $inputs } इनपुट
-           *[other] { $inputs } इनपुट
-        } छन्।
+            [one] { $inputs } इनपुट छ।
+           *[other] { $inputs } इनपुट छन्।
+        }
     }
 
 function-domain-invalid-format = फलनको क्षेत्रको ढाँचा अमान्य छ।

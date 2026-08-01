@@ -162,16 +162,19 @@ circle-change-center-non-numerical = संख्यात्मक नसले
 
 ## `<function>`
 
+# आहे / आहेत agrees with the inputs alone, so it belongs inside the `$inputs`
+# branches rather than after them — the same agreement the outer `$intervals`
+# select already makes for अंतराल.
 function-domain-insufficient-dimensions =
     { $intervals ->
         [one] फलनाच्या प्रांताच्या मिती पुरेशा नाहीत. प्रांतात { $intervals } अंतराल आहे पण फलनाला { $inputs ->
-            [one] { $inputs } इनपुट
-           *[other] { $inputs } इनपुटे
-        } आहेत.
+            [one] { $inputs } इनपुट आहे.
+           *[other] { $inputs } इनपुटे आहेत.
+        }
        *[other] फलनाच्या प्रांताच्या मिती पुरेशा नाहीत. प्रांतात { $intervals } अंतराले आहेत पण फलनाला { $inputs ->
-            [one] { $inputs } इनपुट
-           *[other] { $inputs } इनपुटे
-        } आहेत.
+            [one] { $inputs } इनपुट आहे.
+           *[other] { $inputs } इनपुटे आहेत.
+        }
     }
 
 function-domain-invalid-format = फलनाच्या प्रांताची मांडणी अवैध आहे.

@@ -10,9 +10,13 @@
 # Controls take the -ရန် form Burmese puts on a button — ကီးဘုတ် ဖွင့်ရန် —
 # which names the action rather than commanding the reader.
 #
-# Burmese has a single plural category, so a plural selector is written with
-# its default variant alone; an explicit `[0]` is a numeric match and still
-# selects. This file is Unicode, not Zawgyi.
+# CLDR gives Burmese a single plural category, so a plural selector is written
+# with its default variant alone: `one` can never be chosen, and a branch that
+# cannot be reached is worse than no branch. An explicit `[0]` is a numeric
+# match rather than a category and still selects, which is how
+# `attempts-remaining` says "no attempts left" below.
+#
+# This file is Unicode, not Zawgyi.
 
 
 ## Answer submission

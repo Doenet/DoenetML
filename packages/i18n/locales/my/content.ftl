@@ -11,11 +11,6 @@
 # postposition, since ဖြင့် and ပေါ်တွင် follow their noun where English's
 # `with` and `on` precede it.
 #
-# CLDR gives Burmese a single plural category, so a plural selector is written
-# with its default variant alone: `one` can never be chosen, and a branch that
-# cannot be reached is worse than no branch. An explicit `[0]` is a numeric
-# match rather than a category and still selects.
-#
 # This file is **Unicode**, not Zawgyi. The two encodings share code points and
 # render each other as nonsense, so a correction pasted in from a Zawgyi source
 # will look right in one font and be wrong everywhere else.

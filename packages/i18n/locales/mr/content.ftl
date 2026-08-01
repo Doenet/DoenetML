@@ -8,8 +8,8 @@
 # before it. Adjectives ending in -आ inflect for **three** genders — काळा /
 # काळी / काळे — where Hindi has two, and they take a further *oblique* form in
 # -या before a noun governed by a postposition. Adjectives not ending in -आ —
-# लाल, गुलाबी, नारिंगी, तपकिरी, जाड, बारीक, तुटक, ठिपकेदार — never change, and
-# answer the same in every branch.
+# लाल, नारिंगी, सायन, गुलाबी, तपकिरी, जाड, बारीक, तुटक, ठिपकेदार — never
+# change, and answer the same in every branch.
 #
 # So `$role` sorts the four positions into three forms:
 #
