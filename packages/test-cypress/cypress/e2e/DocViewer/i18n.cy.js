@@ -484,6 +484,8 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
                 <graph name="g"><point name="P">(1,2)</point></graph>
                 <p><mathInput name="mi" /></p>
                 <p><slider name="s" from="0" to="10" /></p>
+                <p><subsetOfRealsInput name="sori" /></p>
+                <orbitalDiagramInput name="od" />
                 <p name="ready">ready</p>`,
                 documentLocale: RTL,
             });
@@ -492,7 +494,9 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             cy.get(".doenet-viewer").should("have.attr", "dir", "rtl");
             // Asserting the *computed* direction, so an island that stopped
             // being pinned would fail here even if some ancestor still said
-            // `ltr` for another reason.
+            // `ltr` for another reason. The slider, number line and orbital
+            // diagram are the `ltrIslandProps()` sites; the rest pin
+            // themselves.
             cy.get(".jxgbox").should(($el) => {
                 expect(getComputedStyle($el[0]).direction).to.equal("ltr");
             });
@@ -500,6 +504,12 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
                 expect(getComputedStyle($el[0]).direction).to.equal("ltr");
             });
             cy.get("#s").should(($el) => {
+                expect(getComputedStyle($el[0]).direction).to.equal("ltr");
+            });
+            cy.get("#sori").should(($el) => {
+                expect(getComputedStyle($el[0]).direction).to.equal("ltr");
+            });
+            cy.get("#od").should(($el) => {
                 expect(getComputedStyle($el[0]).direction).to.equal("ltr");
             });
             cy.get(".virtual-keyboard").should(($el) => {

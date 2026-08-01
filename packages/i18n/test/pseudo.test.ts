@@ -119,6 +119,13 @@ describe("the right-to-left pseudo-locale", () => {
         expect(greeting).toContain("Ĥéļļó");
         expect(stripBidiIsolates(greeting).startsWith("»")).toBe(true);
         expect(stripBidiIsolates(greeting).endsWith("«")).toBe(true);
+        // And *outside* pinned on the raw bytes — the mark precedes the
+        // opener and follows the closer, on the face turned towards the
+        // sentence. The assertions above would all still pass with the marks
+        // inside the brackets, where they would sit against the value's own
+        // strong Latin letters and resolve nothing.
+        expect(greeting.startsWith("\u200F»")).toBe(true);
+        expect(greeting.endsWith("«\u200F")).toBe(true);
     });
 
     it("is still a catalog with the same keys", () => {
