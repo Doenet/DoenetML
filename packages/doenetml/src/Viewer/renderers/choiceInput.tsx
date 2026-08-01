@@ -30,7 +30,21 @@ const isMultiValue = <T,>(
     return Array.isArray(val);
 };
 
-type Option = { value: number; label: any; isDisabled: boolean };
+/**
+ * An option of the inline (react-select) choice input.
+ *
+ * - `label` is the rendered choice content (a React node), used for display.
+ * - `text` is the choice's plain text, used for the accessible name that
+ *   react-select puts in its aria-live region (and for typeahead filtering).
+ *   Without it, react-select would stringify `label` and announce
+ *   "[object Object]" to screen readers (#1613).
+ */
+type Option = {
+    value: number;
+    label: any;
+    text: string;
+    isDisabled: boolean;
+};
 
 /**
  * The ChoiceInputInlineContext provides information about two modifications needed in descendants
@@ -63,6 +77,7 @@ interface ChoiceInputSVs {
     colorCorrectness: boolean;
     choiceChildIndices: any;
     choiceOrder: any;
+    choiceTexts: string[];
     choicesDisabled: any;
     choicesHidden: any;
     descriptionChildInd: any;
@@ -263,8 +278,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             inOption: !!props.isSelected,
                         }}
                     >
+                        {/*
+                         * `children` is the rendered choice content supplied by
+                         * `formatOptionLabel`; `props.label` is the plain text
+                         * accessible name from `getOptionLabel`.
+                         */}
                         <div style={{ pointerEvents: "none" }}>
-                            {props.label}
+                            {props.children}
                         </div>
                     </ChoiceInputInlineContext.Provider>
                 </components.Option>
@@ -301,6 +321,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 return {
                     value: i + 1,
                     label: child,
+                    text: SVs.choiceTexts?.[i] ?? "",
                     isDisabled: !!SVs.choicesDisabled[i],
                 };
             })
@@ -469,6 +490,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             styles={customStyles}
                             options={choiceOptions}
                             components={inlineSelectComponents}
+                            // react-select stringifies the result of
+                            // `getOptionLabel` for its aria-live announcements
+                            // and for typeahead filtering, so it must be text.
+                            // `formatOptionLabel` supplies the React content
+                            // actually rendered in the menu and in the value.
+                            getOptionLabel={(opt) => opt.text}
+                            formatOptionLabel={(opt) => opt.label}
                             menuPortalTarget={menuPortalTarget}
                             menuPlacement="auto"
                             className={inputClasses}

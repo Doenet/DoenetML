@@ -1694,7 +1694,11 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         getOpenInlineChoiceMenu().within(() => {
             cy.contains("apple").click({ force: true });
         });
-        cy.get("#ci").contains("apple").should("have.css", "color", green);
+        // Scope to the displayed value: `#ci` also holds react-select's
+        // visually hidden live region, which now names the choice too.
+        cy.get('#ci [class*="-singleValue"]')
+            .contains("apple")
+            .should("have.css", "color", green);
 
         cy.log(
             "Reopen the menu: the selected option uses white text for contrast",
@@ -1705,5 +1709,44 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             cy.contains("banana").should("have.css", "color", red);
             cy.contains("cherry").should("have.css", "color", black);
         });
+    });
+
+    it("inline choiceInput exposes choice text to assistive technology", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>Some text leading into a
+    <choiceInput name="ci" inline placeholder="Choose word">
+      <choice>inline</choice>
+      <choice>choice</choice>
+      <choice>input</choice>
+    </choiceInput> showing the choices.
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log(
+            "Typeahead filters on the choice text, not on '[object Object]'",
+        );
+        cy.get("#ci").click();
+        cy.get("#ci_input").type("cho");
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("choice").should("exist");
+            cy.contains("inline").should("not.exist");
+            cy.contains("input").should("not.exist");
+        });
+
+        cy.log("Selecting a choice announces its text in the live region");
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("choice").click({ force: true });
+        });
+        cy.get("#aria-selection").should(
+            "have.text",
+            "option choice, selected.",
+        );
     });
 });
