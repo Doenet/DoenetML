@@ -2,7 +2,8 @@
  * CI guard for the message catalogs. Run with `npm run lint:i18n`.
  *
  * Checks, in order:
- *  1. every catalog parses as Fluent;
+ *  1. every catalog parses as Fluent, and none names a numbering system on a
+ *     Fluent builtin;
  *  2. no key is defined twice within a locale (namespaces share one bundle);
  *  3. no translated locale defines a key English doesn't have (a typo'd key in
  *     a translation is invisible at runtime — it just never resolves);
@@ -33,6 +34,7 @@ import {
     GENERATED_KEYS_FILE,
     SUPPORTED_LOCALES_FILE,
     catalogParseErrors,
+    numberingSystemOverrides,
     collectCallSites,
     collectDiagnosticUsage,
     remainingLiteralDiagnostics,
@@ -71,6 +73,14 @@ for (const locale of locales) {
         }
         for (const error of catalogParseErrors(source)) {
             problems.push(`locales/${locale}/${namespace}.ftl: ${error}`);
+        }
+        // 1b: the digit policy is not a catalog's to reopen. A hand-written
+        // numbering system is the one way back out of it, and it would show up
+        // only as a number in the wrong script in one message.
+        for (const override of numberingSystemOverrides(source)) {
+            problems.push(
+                `locales/${locale}/${namespace}.ftl: ${override} — DoenetML formats every number in Latin digits (src/intl.ts), so a catalog may not name one`,
+            );
         }
     }
 

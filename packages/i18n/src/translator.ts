@@ -9,6 +9,13 @@ import { intlLocale } from "./intl";
  * Fluent formats numbers and dates with `Intl`, so passing a real `number`
  * rather than a pre-formatted string is what makes locale-aware formatting
  * possible later (see the number-formatting policy in the package README).
+ *
+ * An argument that is *not* a quantity — a line number, a `styleNumber`, a
+ * component index, anything the reader is meant to match against something
+ * else — is passed as a `string` instead, and the catalogs say so where they
+ * take one. The hazard is grouping: line 1234 would be written "1,234". The
+ * digits are safe either way, since the bundle formats under the numbering
+ * system `intlLocale` pins.
  */
 export type TranslationArgs = Record<string, string | number | Date>;
 
@@ -86,8 +93,9 @@ function lookupPattern(bundle: FluentBundle, key: string) {
 type ChainLink = {
     /**
      * The tag as the caller wrote it, which is what {@link Translator.localeOf}
-     * reports and what an error is attributed to — not necessarily the tag the
-     * bundle formats under. See {@link intlLocale}.
+     * reports and what an error is attributed to — never the tag the bundle
+     * formats under, which carries a pinned numbering system and may fall back
+     * to English outright. See {@link intlLocale}.
      *
      * Fluent builds its `Intl.PluralRules` from `bundle.locales`, and unlike
      * its number formatting it does not degrade when that constructor throws:

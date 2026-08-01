@@ -12,8 +12,8 @@ import { DEFAULT_LOCALE } from "./catalogs";
  */
 
 /**
- * The tag to hand `Intl`, which is not always the tag a catalog is filed
- * under.
+ * The tag to hand `Intl`, which is neither the tag a catalog is filed under nor
+ * the tag as it was written.
  *
  * A locale tag does two jobs: it keys the catalog, and it names the language
  * `Intl` formats in. They come apart for a tag `Intl` refuses — `en_US`, the
@@ -25,17 +25,52 @@ import { DEFAULT_LOCALE } from "./catalogs";
  * reach a state-variable definition: a mis-tagged locale should cost the
  * host's number conventions — which were never available for that tag anyway
  * — and not the document.
+ *
+ * The tag it returns pins the numbering system, which is the whole of the
+ * digit policy (see {@link LATIN_DIGITS} and the package README). Pinning it
+ * here is what makes the policy hold for formatters not yet written: a locale
+ * reaches an `Intl` formatter through this function or it reaches none at all.
  */
 export function intlLocale(locale: string): string {
     try {
-        // Throws `RangeError` for a structurally invalid tag — the same tags,
-        // and the same error, every `Intl` constructor rejects.
-        Intl.getCanonicalLocales(locale);
-        return locale;
+        return pinNumberingSystem(locale);
     } catch {
-        return DEFAULT_LOCALE;
+        return pinNumberingSystem(DEFAULT_LOCALE);
     }
 }
+
+/**
+ * `locale` with its numbering system replaced.
+ *
+ * Throws `RangeError` for a structurally invalid tag — the same tags, and the
+ * same error, every `Intl` constructor rejects, which is what makes this the
+ * validity check as well as the pin.
+ */
+function pinNumberingSystem(locale: string): string {
+    return new Intl.Locale(locale, {
+        numberingSystem: LATIN_DIGITS,
+    }).toString();
+}
+
+/**
+ * The numbering system every number DoenetML formats is written in, whatever
+ * the locale's own is.
+ *
+ * CLDR gives a locale a default numbering system, and for Bangla, Assamese,
+ * Marathi, Nepali, Burmese, Persian and others it is not `latn`: a bare
+ * `{ $count }` in a catalog comes back as `১,২৩৪`, and so does the integer
+ * part of an `<intComma>`. This constant says that DoenetML does not do that.
+ *
+ * It reaches the digits alone — the *separators* still follow the locale, so
+ * German still groups with periods and India still groups in twos — except in
+ * the Arabic script, where CLDR pairs each set of digits with its own
+ * separators and the two therefore move together.
+ *
+ * Why this is the answer is in the package README, under "Digits are Latin,
+ * separators are not"; {@link MATH_NOTATION_LOCALE} is the half of it that
+ * lives in code.
+ */
+const LATIN_DIGITS = "latn";
 
 /**
  * The locale numbers *inside mathematics* are formatted under, regardless of
@@ -54,7 +89,9 @@ export function intlLocale(locale: string): string {
  * Until then this constant is where the policy is written down, so that a
  * number formatted in English is a decision with a name rather than an
  * omission — see {@link formatDecimalString} for the other half, the numbers
- * that are prose and do follow the document.
+ * that are prose and do follow the document. The two halves already agree on
+ * digits, which is what {@link LATIN_DIGITS} is for; the separator is the only
+ * thing left for #1528 to settle.
  *
  * It has no callers, and that is what it records: no math number in the core
  * passes through an `Intl` formatter at all, so there is no site to pass a
@@ -81,10 +118,6 @@ const DECIMAL_LITERAL = /^(-?\d+)(?:\.(\d+))?$/;
  * change at all. (`maximumFractionDigits` lifts the rounding, but stops at a
  * hundred digits; carrying the fraction across has no ceiling.)
  *
- * Carried across, but not verbatim: a locale that counts in its own digits
- * gets the fraction in those digits too, or the two halves of one number would
- * be written in two different scripts (`"২,৫২,৩৬,৫০১.35"`).
- *
  * A string that is not a decimal literal is returned unchanged — there is
  * nothing to regroup, and a caller that has extracted the number itself
  * shouldn't have to check twice.
@@ -100,7 +133,7 @@ export function formatDecimalString(locale: string, value: string): string {
     if (fractionPart === undefined) {
         return grouped;
     }
-    return `${grouped}${decimalSeparator(tag)}${localizeDigits(tag, fractionPart)}`;
+    return `${grouped}${decimalSeparator(tag)}${fractionPart}`;
 }
 
 /**
@@ -116,6 +149,11 @@ export function formatDecimalString(locale: string, value: string): string {
  * formatting question — where a locale puts its separators depends on how many
  * digits a number has, not on which ones or on how many of them fit in a
  * double — so only the pattern is asked for.
+ *
+ * The grouping is measured in code units, which is exact because every digit
+ * involved is ASCII: the value's because {@link DECIMAL_LITERAL} matches only
+ * `0`–`9`, and the probe's in {@link numberPattern} because `tag` pins
+ * {@link LATIN_DIGITS}.
  */
 function groupIntegerPart(tag: string, integerPart: string): string {
     const negative = integerPart.startsWith("-");
@@ -123,18 +161,16 @@ function groupIntegerPart(tag: string, integerPart: string): string {
         tag,
         negative,
     );
-    const digits = Array.from(
-        localizeDigits(tag, integerPart.slice(negative ? 1 : 0)),
-    );
+    const digits = integerPart.slice(negative ? 1 : 0);
     const groups = [];
     let size = primary;
     let end = digits.length;
     while (end > size) {
-        groups.unshift(digits.slice(end - size, end).join(""));
+        groups.unshift(digits.slice(end - size, end));
         end -= size;
         size = secondary;
     }
-    groups.unshift(digits.slice(0, end).join(""));
+    groups.unshift(digits.slice(0, end));
     return prefix + groups.join(separator) + suffix;
 }
 
@@ -180,7 +216,7 @@ function numberPattern(tag: string, negative: boolean) {
     let separator = "";
     for (const part of parts) {
         if (part.type === "integer") {
-            groups.push(Array.from(part.value).length);
+            groups.push(part.value.length);
             suffix = "";
         } else if (part.type === "group") {
             separator = part.value;
@@ -213,31 +249,6 @@ function decimalSeparator(tag: string): string {
             .formatToParts(1.1)
             .find((part) => part.type === "decimal")?.value ?? "."
     );
-}
-
-/**
- * ASCII `digits` rewritten in the digits `tag` counts in.
- *
- * Bengali, Persian, Nepali and Burmese — among others — format numbers in
- * their own digits by default, so the integer part comes back out of
- * `Intl.NumberFormat` transliterated while a fraction copied across as text
- * would not be. One number written half in one script and half in another is
- * wrong in a way neither half is.
- *
- * The digits are read out of the formatter one at a time rather than derived
- * from the code point of its zero: most numbering systems are a contiguous
- * run, but `hanidec` (〇一二三…) is not, and a tag can name it (`zh-u-nu-hanidec`).
- */
-function localizeDigits(tag: string, digits: string): string {
-    const format = new Intl.NumberFormat(tag, { useGrouping: false });
-    if (format.format(0) === "0") {
-        // Latin digits, which is nearly every locale: nothing to rewrite.
-        return digits;
-    }
-    const localDigits = Array.from({ length: 10 }, (_, digit) =>
-        format.format(digit),
-    );
-    return Array.from(digits, (digit) => localDigits[Number(digit)]).join("");
 }
 
 /** The list joins `Intl.ListFormat` can produce. */

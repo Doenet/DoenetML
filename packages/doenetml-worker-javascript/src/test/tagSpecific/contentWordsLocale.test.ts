@@ -354,6 +354,22 @@ describe("content words follow the document locale @group4", () => {
                 ).n,
             ).eq("12,34,567");
         });
+
+        it("counts in Latin digits under a locale that does not", async () => {
+            // #1615. Bangla groups in twos like Hindi and, unlike Hindi, CLDR
+            // counts it in its own digits — which this value is not written in,
+            // because `value` is a public state variable an author can compare,
+            // extend and interpolate, and the mathematics beside it is Latin
+            // whatever the document's language.
+            expect(await values(doenetML, names, "bn")).toEqual({
+                whole: "2,52,36,501",
+                fraction: "2,52,36,501.35",
+                trailing: "1,000.50",
+                small: "999",
+                padded: "007",
+                prose: "not a number",
+            });
+        });
     });
 
     describe("<pluralize>", () => {
