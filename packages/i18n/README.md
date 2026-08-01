@@ -69,11 +69,11 @@ locales/<locale>/
 English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
 `de`, `es`, `fa`, `fr`, `he`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`,
 `ne`, `nl`, `pl`, `ps`, `pt`, `ru`, `sd`, `so`, `tr`, `ug`, `ur`, `vi`,
-`zh-Hans`, `zh-Hant` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the top, and
-which is what #1521's translation platform is for. None has been read by a
-speaker. Correcting one needs no permission and no coordination: a wrong string
-is just wrong, and the English is one key away.
+`zh-Hans`, `zh-Hant` — is an **unreviewed machine-generated seed**, which each
+file's own header says at the top, and which is what #1521's translation
+platform is for. None has been read by a speaker. Correcting one needs no
+permission and no coordination: a wrong string is just wrong, and the English
+is one key away.
 
 Ten of them are deliberately partial, all in the same place: Somali, Hmong
 Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur and Vietnamese
@@ -363,10 +363,12 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and German, Russian, Polish, Hindi and Marathi are the catalogs that
-select on them. Sharing a script does not imply sharing the fork: Marathi and
-Hindi both take an oblique adjective before a postposition and Nepali, written
-in the same letters, takes none.
+positions, and German, Russian, Polish, Hindi, Marathi, Urdu and Sindhi are the
+catalogs that select on them. Sharing a script does not imply sharing the fork:
+Marathi and Hindi both take an oblique adjective before a postposition and
+Nepali, written in the same letters, takes none. The same line runs through the
+Arabic script — Urdu and Sindhi fork, and Pashto, whose oblique coincides with
+its direct in all four positions, does not.
 
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
@@ -393,7 +395,12 @@ hard way:
   further line puts a `\n` in the rendered string — including when that line
   opens a nested select. Keep each variant's content on one line; a select
   nested *within* that line is fine, and is how a message would sub-divide one
-  of its variants.
+  of its variants. The same rule catches a subtler mistake: a `#` line indented
+  *under* a message is not a comment, it is more of the pattern above it, so a
+  note explaining a wording choice has to sit above the message rather than
+  beside the attribute it explains. `lint:i18n` fails on any pattern that
+  renders a line break, which is what makes both of these findable before a
+  reader meets them.
 
 ## Diagnostics
 
@@ -637,7 +644,8 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
-catalog naming a `numberingSystem` on a Fluent builtin, a translated locale
+catalog naming a `numberingSystem` on a Fluent builtin, a message whose value
+would render a line break, a translated locale
 defining a key English lacks, a stale `messageKeys.ts`, `supportedLocales.ts`,
 or `diagnostic-codes.lock.json`, a lazy-catalog glob that no longer excludes
 exactly the inlined locales, a call site referencing a key that doesn't exist,
@@ -819,7 +827,7 @@ they differ from `de` or `es`:
 | `he` | follow the noun | m/f | three |
 | `fa` | follow the noun | none | two |
 | `ur`, `ps`, `sd` | precede the noun | m/f | two |
-| `ug` | precedes the noun | none | two |
+| `ug` | precede the noun | none | two |
 
 `ur` is the outlier worth knowing about: its grammar is `hi`'s, so
 `locales/hi` is the closest thing to a parallel text for it and a correction to
@@ -859,10 +867,9 @@ difference in layout and nothing else, and every right-to-left assertion is
 runnable before any right-to-left language is translated. It stays useful now
 that one is: a layout regression under `en-XB` is legible to a reviewer who
 reads no Arabic, so what a screenshot shows is the layout rather than the
-words. It is deliberately
-not a text transform: Android's U+202E override demonstrates bidi rather than
-testing a layout, and look-alike glyphs would cost the accented text its
-readability and break the hard-coded-English sweep.
+words. It is deliberately not a text transform: Android's U+202E override
+demonstrates bidi rather than testing a layout, and look-alike glyphs would
+cost the accented text its readability and break the hard-coded-English sweep.
 
 ## Bidi isolation
 

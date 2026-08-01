@@ -18,6 +18,10 @@
 
 ## Style vocabulary
 
+# «תכלת» is a noun used as a colour word rather than an adjective, so `.cyan`
+# does not inflect and takes no branch. The note sits here rather than beside
+# that attribute: an indented `#` line inside a message is not a comment but a
+# continuation of the pattern above it, and would be rendered.
 color =
     .black =
         { $gender ->
@@ -54,8 +58,6 @@ color =
             [f] ירוקה
            *[m] ירוק
         }
-    # «תכלת» is a noun used as a colour word and does not inflect, so both
-    # branches say the same thing rather than inventing a feminine for it.
     .cyan = תכלת
     .blue =
         { $gender ->

@@ -12,6 +12,6 @@ It covers all four namespaces — the viewer chrome, the editor and language-ser
 
 This is an **unreviewed machine-generated seed**, and every file says so in its header. Nothing falls back silently: a key the translation is missing renders in English.
 
-Arabic is the first catalog to use more than two plural branches — a count of two selects a dual form that carries no number at all, and three to ten, eleven to ninety-nine and everything above take three further forms. It is also the first to put its adjectives after the noun rather than before it, so a styled line describes itself as `خط أحمر متقطع سميك`, each adjective agreeing with the noun's gender. Where English welds a preposition to an interpolated value, the Arabic message names what the value is instead, since a one-letter preposition cannot be attached to an argument.
+Arabic counts a phrase six ways where English counts it two, and is the first catalog to need a dual: a count of exactly two selects a form carrying no number at all, and none, three to ten, eleven to ninety-nine and everything above take four further forms of their own. Its adjectives follow the noun and agree with it in gender, so a styled line describes itself as `خط أحمر متقطع سميك`. Where English welds a preposition to an interpolated value, the Arabic message names what the value is instead, since a one-letter preposition cannot be attached to an argument.
 
 Element and anion names are included: Arabic has a settled chemical nomenclature, and it is the one a student meets in their own textbook.

@@ -79,7 +79,10 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
         // notice if isolation were turned back off.
         //
         // This is what keeps a Latin identifier from visually scrambling the
-        // Arabic around it once a right-to-left catalog lands.
+        // Arabic around it, now that a reader can ask for Arabic. Asserted
+        // under Spanish because the marks are what is being checked, and a
+        // left-to-right language shows they are added for every locale rather
+        // than only where the direction disagrees.
         render({ doenetML: problem, documentLocale: "es" });
 
         cy.get("[data-test=attempts-remaining]")

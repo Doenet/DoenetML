@@ -2,8 +2,8 @@
  * CI guard for the message catalogs. Run with `npm run lint:i18n`.
  *
  * Checks, in order:
- *  1. every catalog parses as Fluent, and none names a numbering system on a
- *     Fluent builtin;
+ *  1. every catalog parses as Fluent, none names a numbering system on a
+ *     Fluent builtin, and no message renders a line break;
  *  2. no key is defined twice within a locale (namespaces share one bundle);
  *  3. no translated locale defines a key English doesn't have (a typo'd key in
  *     a translation is invisible at runtime — it just never resolves);
@@ -34,6 +34,7 @@ import {
     GENERATED_KEYS_FILE,
     SUPPORTED_LOCALES_FILE,
     catalogParseErrors,
+    multilinePatterns,
     numberingSystemOverrides,
     collectCallSites,
     collectDiagnosticUsage,
@@ -80,6 +81,15 @@ for (const locale of locales) {
         for (const override of numberingSystemOverrides(source)) {
             problems.push(
                 `locales/${locale}/${namespace}.ftl: ${override} — DoenetML formats every number in Latin digits (src/intl.ts), so a catalog may not name one`,
+            );
+        }
+        // 1c: no message renders a line break. A pattern continued onto a
+        // further line keeps the newline, and the usual way that happens is a
+        // note indented under the message it explains — which Fluent reads as
+        // more of the pattern, so the explanation ends up in the UI.
+        for (const multiline of multilinePatterns(source)) {
+            problems.push(
+                `locales/${locale}/${namespace}.ftl: ${multiline} — keep each pattern and each variant on one line; a comment belongs above the message, never indented under it`,
             );
         }
     }

@@ -7,6 +7,7 @@ import {
     parse as parseFtl,
     Visitor,
     type FunctionReference,
+    type TextElement,
 } from "@fluent/syntax";
 import * as prettier from "prettier";
 
@@ -206,6 +207,62 @@ class NumberingSystemVisitor extends Visitor {
             )
         ) {
             this.found.push(node.id.name);
+        }
+        this.genericVisit(node);
+    }
+}
+
+/**
+ * Every entry whose rendered value would carry a newline, by id.
+ *
+ * A Fluent pattern that continues onto a further line keeps the `\n` in what it
+ * renders, and none of these messages wants one: they are button labels,
+ * sentences and phrases an author interpolates. Nothing else catches it — the
+ * catalog parses, the lint's key extraction sees the id it expects, and the
+ * newline only shows up in the browser.
+ *
+ * The failure that motivates it is not a wrapped sentence but a misplaced
+ * comment. A `#` line indented under a message is not a comment at all; Fluent
+ * reads it as more of the pattern above it, so the note explaining a wording
+ * choice becomes part of the words. That is how English prose ends up rendered
+ * inside a translated document, which is exactly the outcome the catalogs
+ * exist to prevent.
+ *
+ * A select nested inside a pattern is fine and is how a message sub-divides
+ * one of its variants — what matters is that each variant's own content stays
+ * on one line. See "Composition, not substitution" in the package README.
+ */
+export function multilinePatterns(source: string): string[] {
+    const found: string[] = [];
+    for (const entry of parseFtl(source, {}).body) {
+        if (entry.type !== "Message" && entry.type !== "Term") {
+            continue;
+        }
+        const visitor = new MultilineTextVisitor();
+        visitor.visit(entry);
+        if (visitor.found.length > 0) {
+            found.push(
+                `"${entry.id.name}" renders a newline (${visitor.found[0]})`,
+            );
+        }
+    }
+    return found;
+}
+
+/** The text runs under one entry that span more than one line. */
+class MultilineTextVisitor extends Visitor {
+    found: string[] = [];
+
+    visitTextElement(node: TextElement) {
+        if (node.value.includes("\n")) {
+            // The line after the break is what a reader would see appended,
+            // and is the most recognizable half of a swallowed comment.
+            const continuation = node.value.split("\n")[1]?.trim() ?? "";
+            this.found.push(
+                continuation.startsWith("#")
+                    ? `an indented comment line is part of the pattern: ${JSON.stringify(continuation.slice(0, 40))}`
+                    : `continues with ${JSON.stringify(continuation.slice(0, 40))}`,
+            );
         }
         this.genericVisit(node);
     }
