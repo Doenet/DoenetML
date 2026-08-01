@@ -7,7 +7,7 @@ import { sizeToCSS } from "./utils/css";
 import { ActionButton, ActionButtonGroup } from "@doenet/ui-components";
 import { renderLabelWithLatex } from "./utils/labelWithLatex";
 import { useT } from "../../utils/i18n";
-import { LTR_ISLAND_PROPS } from "./utils/direction";
+import { ltrIslandProps } from "./utils/direction";
 
 let round_to_decimals = (x: number, n: number) => {
     try {
@@ -406,13 +406,16 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 on the right while the tick labels under them, being notation,
                 still read left-to-right. Pinning the track keeps the two
                 agreeing, and takes in the prev/next buttons so that "prev"
-                stays on the end of the track it steps toward. */}
-            <div {...LTR_ISLAND_PROPS}>
+                stays on the end of the track it steps toward.
+
+                The authored width sizes the pinned box and the input fills it,
+                so that `width="50%"` still measures against the column. */}
+            <div {...ltrIslandProps(width)}>
                 <input
                     ref={inputRef}
                     id={id}
                     type="range"
-                    style={{ width, margin: 0, maxWidth: "100%" }}
+                    style={{ width: "100%", margin: 0 }}
                     value={index}
                     list={id + "-datalist"}
                     min={0}

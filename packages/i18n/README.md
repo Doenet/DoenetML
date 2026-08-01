@@ -762,13 +762,16 @@ Handsontable reads the inherited direction through its own `layoutDirection`
 option, so it is told rather than styled. MathJax needs nothing: its CHTML
 output already pins `direction: ltr` on `mjx-math`.
 
-A pin on a *block* needs a width with it: the element still fills its
-container, and its left-to-right contents then align to the container's left
-edge, stranding the widget at the far side of the page from the prose it
-belongs to. `LTR_ISLAND_PROPS` in
+A pin on a *block* needs a width with it: an element as wide as its container
+aligns its left-to-right contents to the container's left edge, stranding the
+widget at the far side of the page from the prose it belongs to.
+`ltrIslandProps()` in
 `packages/doenetml/src/Viewer/renderers/utils/direction.ts` carries the pair, so
-the shrink-to-fit half cannot be left off by accident; an inline island, or one
-whose element already shrink-wraps, takes a bare `dir="ltr"`.
+the sizing half cannot be left off by accident. It shrink-wraps by default and
+takes a width for a widget the author can size — the slider passes its own,
+because a percentage inside a shrink-wrapped box would measure against the box
+instead of the column. An inline island, or one whose element already
+shrink-wraps, takes a bare `dir="ltr"`.
 
 The keyboard's keys are pinned in `keyboard.css` rather than by attribute,
 because `Keyboard` returns a different element per style. The tray *around*

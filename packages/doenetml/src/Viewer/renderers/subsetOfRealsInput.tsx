@@ -8,7 +8,7 @@ import { ToggleButton } from "@doenet/ui-components";
 import { ToggleButtonGroup } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { useT } from "../../utils/i18n";
-import { LTR_ISLAND_PROPS } from "./utils/direction";
+import { ltrIslandProps } from "./utils/direction";
 import "./subsetOfRealsInput.css";
 
 interface PointDisplayed {
@@ -364,7 +364,7 @@ export default React.memo(function subsetOfReals(
         // pointer handler maps an x position to a value by subtracting a left
         // edge. Pinned as one attribute on the whole widget so the controls
         // above the axis stay on the same side as the axis itself.
-        <div ref={ref} id={id} {...LTR_ISLAND_PROPS}>
+        <div ref={ref} id={id} {...ltrIslandProps()}>
             <div ref={bounds} style={{ display: "flex", gap: "12px" }}>
                 {controlButtons}
             </div>

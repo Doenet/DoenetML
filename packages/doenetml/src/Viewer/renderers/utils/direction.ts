@@ -9,23 +9,29 @@
  * arrowheads or a native `<input type="range">` would all come out mirrored —
  * or, worse, half-mirrored — if they inherited `rtl`.
  *
- * The `width` is the half that is easy to leave off, and it is not optional. A
- * pinned *block* still fills its container, and its left-to-right contents then
- * align to the container's left edge — so in a right-to-left document the
+ * The width is the half that is easy to leave off, and it is not optional. A
+ * pinned *block* that is as wide as its container aligns its left-to-right
+ * contents to the container's left edge — so in a right-to-left document the
  * widget would sit at the far side of the page from the prose and the label it
- * belongs to. Shrink-to-fit lets the surrounding direction place the box while
- * its insides keep running the other way.
+ * belongs to. Giving the box a width of its own lets the surrounding direction
+ * place it while its insides keep running the other way.
  *
- * Shrink-to-fit has one consequence worth knowing before adding an island: a
- * percentage width inside now resolves against the widget's own content width
- * rather than the column it sits in. Everything here is sized in pixels by
- * default, so an authored `<slider width="50%" />` is the one case that
- * renders narrower than it used to.
+ * @param width CSS width for the pinned box. Omit it to shrink-wrap the
+ * contents, which is what a widget drawn at its own intrinsic size wants. Pass
+ * the authored width when the widget has one: a percentage *inside* a
+ * shrink-wrapped box resolves against that box's own content width rather than
+ * the column, so `<slider width="50%" />` has to size the pinned box itself
+ * and stretch the widget to fill it.
+ *
+ * Either way the box is capped at the column, so an island can never widen the
+ * page — a widget that does not fit overflows its own box instead.
  *
  * For an inline island, or one whose element already shrink-wraps, use a bare
  * `dir="ltr"` instead — see `EditableMathField.jsx` and `matrixInput.tsx`.
  */
-export const LTR_ISLAND_PROPS = {
-    dir: "ltr",
-    style: { width: "fit-content" },
-} as const;
+export function ltrIslandProps(width: string = "fit-content") {
+    return {
+        dir: "ltr",
+        style: { width, maxWidth: "100%" },
+    } as const;
+}
