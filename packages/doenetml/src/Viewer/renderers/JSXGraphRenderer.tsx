@@ -203,6 +203,15 @@ export default function JSXGraphRenderer({
                 className="jxgbox"
                 style={surfaceStyle}
                 ref={boardContainer}
+                // A graph is coordinate space, and mathematical notation stays
+                // left-to-right in a right-to-left language. Pinned rather than
+                // inherited because JSXGraph writes `text-anchor: start|end` on
+                // its SVG labels, which resolve against the computed direction:
+                // under RTL every tick and axis label would jump to the wrong
+                // side of the point it names, and `-5` would render as `5-`.
+                // JSXGraph appends both the SVG surface and its HTML labels
+                // here, so this one attribute covers all of it.
+                dir="ltr"
             />
             {board ? (
                 <BoardContext.Provider value={board}>

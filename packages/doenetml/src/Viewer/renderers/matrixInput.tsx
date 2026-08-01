@@ -245,7 +245,12 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                 verticalAlign: "baseline",
             }}
         >
-            <div className="matrix-input" id={id}>
+            {/* A matrix is notation: its columns are numbered left to right in
+                every language, and the brackets around it are drawn as
+                absolutely-positioned pseudo-elements that assume which side
+                they are on. A `<table>` reverses its columns under `rtl`, so
+                without this the whole matrix would come out mirrored. */}
+            <div className="matrix-input" id={id} dir="ltr">
                 <table
                     aria-labelledby={groupLabelledByIds || undefined}
                     aria-label={

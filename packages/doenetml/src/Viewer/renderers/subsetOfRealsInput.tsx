@@ -356,7 +356,14 @@ export default React.memo(function subsetOfReals(
     }
 
     return (
-        <div ref={ref} id={id}>
+        // A number line runs from −10 on the left to 10 on the right in every
+        // language: it is mathematical notation, not prose. Everything under
+        // here assumes that — the hash marks are laid out at fixed pixel
+        // offsets, the arrowheads are hard-coded left and right, and the
+        // pointer handler maps an x position to a value by subtracting a left
+        // edge. Pinned as one attribute on the whole widget so the controls
+        // above the axis stay on the same side as the axis itself.
+        <div ref={ref} id={id} dir="ltr">
             <div ref={bounds} style={{ display: "flex", gap: "12px" }}>
                 {controlButtons}
             </div>

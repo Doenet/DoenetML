@@ -210,7 +210,22 @@ const EditableMathField = ({
     const ariaLabel = otherProps.ariaLabel;
     delete otherProps.ariaLabel;
 
-    return <span {...otherProps} aria-label={ariaLabel} ref={wrapperElement} />;
+    // `dir="ltr"` because MathQuill has no direction story at all: its
+    // stylesheet never declares `direction`, it lays an expression out as a run
+    // of sibling inline spans in source order, and its italic-correction kerns
+    // are physical `margin-left`/`margin-right`. Inheriting `rtl` would reverse
+    // whole expressions and put every kern on the wrong side, while cursor
+    // motion — computed in MathQuill's own tree, not from CSS — kept going the
+    // other way. One attribute here covers the inline, in-graph, matrix and
+    // fraction fields, which all mount through this component.
+    return (
+        <span
+            {...otherProps}
+            dir="ltr"
+            aria-label={ariaLabel}
+            ref={wrapperElement}
+        />
+    );
 };
 
 EditableMathField.propTypes = {

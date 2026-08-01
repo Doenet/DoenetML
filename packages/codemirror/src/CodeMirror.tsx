@@ -210,6 +210,12 @@ const CodeMirror = React.memo(function CodeMirror({
             className="mathjax_ignore"
             data-theme={darkMode}
             style={{ height: "100%" }}
+            // Source code, not prose. DoenetML is XML: its tags, attributes and
+            // nesting read left-to-right whatever language the content inside
+            // them is in, and the gutter's line numbers go down the same side
+            // in every locale. The editor chrome around this may be
+            // right-to-left; the document being edited never is.
+            dir="ltr"
         >
             <ReactCodeMirror
                 style={{ height: "100%" }}

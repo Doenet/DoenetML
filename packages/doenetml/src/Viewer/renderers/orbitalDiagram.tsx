@@ -57,7 +57,11 @@ export default React.memo(function orbitalDiagram(
     }
 
     return (
-        <div ref={ref} id={id}>
+        // An electron configuration is notation: the subshell label sits to
+        // the left of its boxes and the boxes fill left to right, in every
+        // language. The rows are plain inline flow, so they would otherwise
+        // reverse wholesale under `rtl`.
+        <div ref={ref} id={id} dir="ltr">
             {rowsJSX}
         </div>
     );

@@ -10,6 +10,24 @@
     @apply bg-slate-200 border-slate-200 hover:bg-slate-300 hover:border-slate-300 active:bg-slate-400 active:border-slate-400 active:text-slate-50;
 }
 
+/*
+ * The keys are mathematical notation, so they stay left-to-right even when the
+ * tray around them is right-to-left. Every row is a flex row and every region a
+ * grid, both of which reverse under `rtl`, so an Arabic reader would otherwise
+ * get a mirrored QWERTY and a numeric pad running 3-2-1. The cursor keys are
+ * the sharpest case: `.key-left` has to move the caret the way the math field
+ * lays the expression out, which is always left.
+ *
+ * Stated here rather than as a `dir` attribute because `Keyboard` returns a
+ * different element per style; one rule covers all of them. The tab strip is
+ * included: its labels are `123`, `f(x)`, `ABC`, `αβγ` and `$%∞`, none of which
+ * is prose.
+ */
+.virtual-keyboard,
+.virtual-keyboard-tab-list {
+    direction: ltr;
+}
+
 .virtual-keyboard {
     @apply flex gap-y-1 justify-center max-w-2xl sm:gap-y-2 gap-x-3;
     @apply flex-wrap sm:flex-nowrap;

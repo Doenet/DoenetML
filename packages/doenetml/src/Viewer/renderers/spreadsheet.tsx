@@ -59,6 +59,14 @@ export default React.memo(function SpreadsheetRenderer(
             <HotTable
                 // style={{ borderRadius:"var(--mainBorderRadius)", border:"var(--mainBorder)" }}
                 licenseKey="non-commercial-and-evaluation"
+                // Handsontable reads the inherited `dir` and flips its column
+                // order to match, so an RTL document would renumber the
+                // columns from the right. Column A is column A in every
+                // language: `fixedColumnsLeft` and the cell references authors
+                // write both assume it. Stated rather than inherited because
+                // Handsontable owns this decision through its own option, not
+                // through CSS.
+                layoutDirection="ltr"
                 theme={
                     darkMode === "dark"
                         ? "ht-theme-classic-dark"
