@@ -164,7 +164,8 @@ export function catalogParseErrors(source: string): string[] {
 }
 
 /**
- * Every place a catalog names a numbering system on a Fluent builtin.
+ * Every place a catalog names a numbering system on a Fluent builtin, each
+ * reported with the entry it sits in.
  *
  * `NUMBER($ratio, numberingSystem: "beng")` opts one message out of the digit
  * policy `intlLocale` pins, and nothing at runtime says so — the number simply
@@ -177,19 +178,34 @@ export function catalogParseErrors(source: string): string[] {
  * comments explaining the policy can say the word.
  */
 export function numberingSystemOverrides(source: string): string[] {
-    const visitor = new NumberingSystemVisitor();
-    visitor.visit(parseFtl(source, {}));
-    return visitor.found;
+    const found: string[] = [];
+    for (const entry of parseFtl(source, {}).body) {
+        if (entry.type !== "Message" && entry.type !== "Term") {
+            continue;
+        }
+        const visitor = new NumberingSystemVisitor();
+        visitor.visit(entry);
+        found.push(
+            ...visitor.found.map(
+                (builtin) =>
+                    `${builtin}() sets numberingSystem in "${entry.id.name}"`,
+            ),
+        );
+    }
+    return found;
 }
 
+/** The builtins under one entry that name a numbering system. */
 class NumberingSystemVisitor extends Visitor {
     found: string[] = [];
 
     visitFunctionReference(node: FunctionReference) {
-        for (const argument of node.arguments.named) {
-            if (argument.name.name === "numberingSystem") {
-                this.found.push(`${node.id.name}() sets numberingSystem`);
-            }
+        if (
+            node.arguments.named.some(
+                (argument) => argument.name.name === "numberingSystem",
+            )
+        ) {
+            this.found.push(node.id.name);
         }
         this.genericVisit(node);
     }

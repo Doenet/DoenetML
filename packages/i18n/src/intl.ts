@@ -28,9 +28,8 @@ import { DEFAULT_LOCALE } from "./catalogs";
  *
  * The tag it returns pins the numbering system, which is the whole of the
  * digit policy (see {@link LATIN_DIGITS} and the package README). Pinning it
- * here rather than at each formatter is what makes the policy hold for
- * formatters this module has not been written yet: a locale reaches `Intl`
- * through this function or it does not reach `Intl` at all.
+ * here is what makes the policy hold for formatters not yet written: a locale
+ * reaches `Intl` through this function or it does not reach `Intl` at all.
  */
 export function intlLocale(locale: string): string {
     try {
@@ -60,29 +59,21 @@ function pinNumberingSystem(locale: string): string {
  * CLDR gives a locale a default numbering system, and for Bangla, Assamese,
  * Marathi, Nepali, Burmese, Persian and others it is not `latn`: a bare
  * `{ $count }` in a catalog comes back as `১,২৩৪`, and so does the integer
- * part of an `<intComma>`. This constant says that DoenetML does not do that,
- * and it is deliberately narrow — the *separators* still follow the locale, so
- * German still groups with periods and India still groups in twos.
+ * part of an `<intComma>`. This constant says that DoenetML does not do that.
  *
- * Narrow, but not quite only the digits: in the Arabic script the two are not
- * independent, and Persian pairs `٬` and `٫` with its own digits and `,` and
- * `.` with these. Taking one set without the other would write a number in
- * neither convention.
+ * It is deliberately narrow: the *separators* still follow the locale, so
+ * German still groups with periods and India still groups in twos. The one
+ * place the two halves cannot be separated is the Arabic script, where Persian
+ * pairs `٬` and `٫` with its own digits and `,` and `.` with these — so
+ * pinning the digits takes the Latin-digit separators along with them.
  *
- * Two reasons, and the second is the one that decides it:
- *
- * - A number in prose sits beside numbers that are not prose. A contrast ratio
- *   is written `{ ratio }:1` with the `1` a literal in the catalog; a line
- *   number is read off a gutter the editor draws itself; an author's
- *   `styleNumber="3"` is quoted back at them. Localizing the digits splits
- *   those across two scripts rather than moving them together.
- * - Mathematics is Latin-digit regardless — {@link MATH_NOTATION_LOCALE}, and
- *   #1528 keeps it that way while it makes the separator configurable. A
- *   document whose prose counted in one script and whose equations counted in
- *   another would be worse than either alone.
- *
- * A host that asks for a numbering system explicitly (`zh-u-nu-hanidec`) is
- * overridden too. The policy is one answer per product, not per tag.
+ * The reasoning is in the package README, under "Digits are Latin, separators
+ * are not": a number in prose sits beside numbers that are not prose — a
+ * contrast ratio's `:1`, a line number the editor's gutter draws, an author's
+ * `styleNumber="3"` — and mathematics is Latin-digit regardless
+ * ({@link MATH_NOTATION_LOCALE}). A host that asks for a numbering system
+ * explicitly (`zh-u-nu-hanidec`) is overridden too: the policy is one answer
+ * per product, not per tag.
  */
 const LATIN_DIGITS = "latn";
 
@@ -163,6 +154,11 @@ export function formatDecimalString(locale: string, value: string): string {
  * formatting question — where a locale puts its separators depends on how many
  * digits a number has, not on which ones or on how many of them fit in a
  * double — so only the pattern is asked for.
+ *
+ * The grouping is measured in code units, which is exact because every digit
+ * involved is ASCII: the value's because {@link DECIMAL_LITERAL} matches only
+ * `0`–`9`, and the probe's in {@link numberPattern} because `tag` pins
+ * {@link LATIN_DIGITS}.
  */
 function groupIntegerPart(tag: string, integerPart: string): string {
     const negative = integerPart.startsWith("-");
@@ -170,16 +166,16 @@ function groupIntegerPart(tag: string, integerPart: string): string {
         tag,
         negative,
     );
-    const digits = Array.from(integerPart.slice(negative ? 1 : 0));
+    const digits = integerPart.slice(negative ? 1 : 0);
     const groups = [];
     let size = primary;
     let end = digits.length;
     while (end > size) {
-        groups.unshift(digits.slice(end - size, end).join(""));
+        groups.unshift(digits.slice(end - size, end));
         end -= size;
         size = secondary;
     }
-    groups.unshift(digits.slice(0, end).join(""));
+    groups.unshift(digits.slice(0, end));
     return prefix + groups.join(separator) + suffix;
 }
 
@@ -225,7 +221,7 @@ function numberPattern(tag: string, negative: boolean) {
     let separator = "";
     for (const part of parts) {
         if (part.type === "integer") {
-            groups.push(Array.from(part.value).length);
+            groups.push(part.value.length);
             suffix = "";
         } else if (part.type === "group") {
             separator = part.value;

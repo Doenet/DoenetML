@@ -69,12 +69,12 @@ describe("numberingSystemOverrides", () => {
             numberingSystemOverrides(
                 'ratio = contrast { NUMBER($ratio, numberingSystem: "beng") }',
             ),
-        ).toEqual(["NUMBER() sets numberingSystem"]);
+        ).toEqual(['NUMBER() sets numberingSystem in "ratio"']);
         expect(
             numberingSystemOverrides(
                 'when = { DATETIME($due, numberingSystem: "deva") }',
             ),
-        ).toEqual(["DATETIME() sets numberingSystem"]);
+        ).toEqual(['DATETIME() sets numberingSystem in "when"']);
     });
 
     it("leaves the formatting options a catalog is allowed to set", () => {
@@ -105,8 +105,12 @@ items =
         [one] one item
        *[other] { NUMBER($count, numberingSystem: "mymr") } items
     }
+    .label = { NUMBER($count, numberingSystem: "beng") }
 `),
-        ).toEqual(["NUMBER() sets numberingSystem"]);
+        ).toEqual([
+            'NUMBER() sets numberingSystem in "items"',
+            'NUMBER() sets numberingSystem in "items"',
+        ]);
     });
 });
 

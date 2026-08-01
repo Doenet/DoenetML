@@ -628,16 +628,16 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
-catalog naming a `numberingSystem` on a Fluent builtin, a
-translated locale defining a key English lacks, a stale `messageKeys.ts`,
-`supportedLocales.ts`, or `diagnostic-codes.lock.json`, a lazy-catalog glob
-that no longer excludes exactly the inlined locales, a call site referencing
-a key that doesn't exist, an English key no source file references, a malformed
-diagnostic code, a code naming a message English lacks, a code used in source
-that the registry doesn't define, a registered code that nothing raises and
-that is not listed as retired, and any change to a code already issued. Keys
-*missing* from a translation are reported as coverage, not failure — a partial
-translation is legitimate and falls back.
+catalog naming a `numberingSystem` on a Fluent builtin, a translated locale
+defining a key English lacks, a stale `messageKeys.ts`, `supportedLocales.ts`,
+or `diagnostic-codes.lock.json`, a lazy-catalog glob that no longer excludes
+exactly the inlined locales, a call site referencing a key that doesn't exist,
+an English key no source file references, a malformed diagnostic code, a code
+naming a message English lacks, a code used in source that the registry doesn't
+define, a registered code that nothing raises and that is not listed as
+retired, and any change to a code already issued. Keys *missing* from a
+translation are reported as coverage, not failure — a partial translation is
+legitimate and falls back.
 
 Run `codegen` after editing any English catalog, adding a diagnostic code, or
 adding a locale directory; the generated `MessageKey` union, the locale roster
@@ -677,8 +677,9 @@ a digit.
 
 What localizes is the **punctuation**, never the ten characters. German still
 groups with periods, India still groups in twos, and a number still comes back
-in `0`–`9` — even under a locale CLDR counts in another script, which today is
-Bangla, Assamese, Marathi, Nepali, Burmese, Persian, Pashto and Sindhi.
+in `0`–`9` — even under a locale CLDR counts in another script, which today
+includes Bangla, Assamese, Marathi, Nepali, Burmese, Persian, Pashto, Sindhi
+and Arabic as written in Egypt.
 
 `intlLocale` pins the numbering system, so this holds for every formatter this
 package builds and for every one added later: a locale reaches `Intl` through

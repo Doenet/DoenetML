@@ -79,10 +79,9 @@ describe("formatDecimalString", () => {
         expect(formatDecimalString("my", "1234567.5")).toBe("1,234,567.5");
     });
 
-    it("carries a separator that is not one code unit", () => {
-        // Adlam writes its groups with U+2E41, and its own digits are astral
-        // — which they no longer appear in, but the pattern is still read off
-        // a formatter and the separator still comes back whole.
+    it("keeps a group separator that is not a comma", () => {
+        // Adlam has a separator of its own (U+2E41) and digits of its own
+        // (astral). Only the separator survives the pin.
         expect(formatDecimalString("ff-Adlm", "1234567")).toBe(
             "1\u{2e41}234\u{2e41}567",
         );

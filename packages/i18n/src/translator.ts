@@ -10,12 +10,12 @@ import { intlLocale } from "./intl";
  * rather than a pre-formatted string is what makes locale-aware formatting
  * possible later (see the number-formatting policy in the package README).
  *
- * Which is why an argument that is *not* a quantity — a line number, a
- * `styleNumber`, a component index, anything the reader is meant to match
- * against something else — is passed as a `string` instead, and the catalogs
- * say so where they take one. Grouping a four-digit identifier is the hazard
- * there; the digits themselves are safe in either form, since the bundle
- * formats under a numbering system `intlLocale` pins.
+ * An argument that is *not* a quantity — a line number, a `styleNumber`, a
+ * component index, anything the reader is meant to match against something
+ * else — is passed as a `string` instead, and the catalogs say so where they
+ * take one. The hazard is grouping: line 1234 would be written "1,234". The
+ * digits are safe either way, since the bundle formats under the numbering
+ * system `intlLocale` pins.
  */
 export type TranslationArgs = Record<string, string | number | Date>;
 
