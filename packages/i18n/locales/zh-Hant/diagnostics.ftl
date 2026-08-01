@@ -16,8 +16,8 @@
 # (and 自變數/應變數 not 自变量/因变量), 常數 not 常量, 布林 not 布尔,
 # 字串 not 字符串, 元件 not 组件, 參照 not 引用, 物件 not 对象, 資料 not 数据,
 # 設定 not 设置, 預設 not 默认, 實作 not 实现, 質數 not 素数, 遞迴 not 递归,
-# 疊代 not 迭代, 模組 not 模块, 滑桿 not 滑块, 影片 not 视频, 略過 not 跳过,
-# 停用 not 禁用, 覆寫 not 覆盖, 呼叫 not 调用, 建立 not 创建, 偵測 not 检测.
+# 疊代 not 迭代, 模組 not 模块, 滑桿 not 滑块, 略過 not 跳过, 停用 not 禁用,
+# 覆寫 not 覆盖, 呼叫 not 调用, 建立 not 创建, 偵測 not 检测.
 #
 # A `<dataFrame>` row is 列 and its column 欄, the opposite assignment to the
 # mainland's 行/列 — so the row and column messages read as though they had

@@ -19,9 +19,9 @@
 # character conversion, and are the part worth checking first. Taiwan and the
 # mainland name several elements differently — 矽 not 硅 (Si), 錼 not 鎿 (Np),
 # 鋂 not 鎇 (Am), 鉳 not 錇 (Bk), 鑀 not 鎄 (Es), 鎦 not 鑥 (Lu), 砈 not 砹
-# (At) — and 104–118 differ throughout, those names being the newest and least
-# settled in both. A wrong one renders as a wrong character rather than as a
-# missing key, so lint cannot catch it.
+# (At). Check 104–118 next: those names are the newest and least settled in
+# both, and most of them are written differently here. A wrong one renders as
+# a wrong character rather than as a missing key, so lint cannot catch it.
 
 
 ## Style vocabulary

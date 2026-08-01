@@ -15,9 +15,9 @@
 # in English, never in Simplified.
 #
 # Wording follows Taiwan usage where it and mainland usage diverge, which is
-# more than character conversion: 預設 not 默认, 資訊 not 信息, 載入 not 加载,
-# 儲存 not 保存, 元件 not 组件, 變數 not 变量, 影片 not 视频, 質數 not 素数.
-# Those are the lines to check first when reviewing this against `zh-Hans`.
+# more than character conversion. In this file: 資訊 not 信息, 載入 not 加载,
+# 儲存 not 保存, 元件 not 组件, 檢視 not 查看. Those are the lines to check
+# first when reviewing this against `zh-Hans`.
 #
 # Rows and columns are the trap. Taiwan writes a table's row as 列 and its
 # column as 欄 — the opposite assignment to 行/列 in the mainland — so the
