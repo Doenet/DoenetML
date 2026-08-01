@@ -133,7 +133,9 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
         let jsxPointAttributes = Object.assign({}, jsxVectorAttributes);
         Object.assign(jsxPointAttributes, {
-            withLabel: false,
+            // Spelled as `buildLineLikeAttributes` spells it, so that this
+            // actually overrides it; see `buildBaseAttributes`.
+            withlabel: false,
             fixed: false,
             highlight: true,
             fillColor: "none",

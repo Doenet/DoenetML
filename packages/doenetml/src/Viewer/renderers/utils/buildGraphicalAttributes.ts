@@ -9,6 +9,13 @@ import { styleToDash } from "./styleToDash";
  * Renderers compose this with kind-specific attributes (stroke for lines,
  * fill+stroke for closed shapes, marker properties for points) before passing
  * the merged object to `board.create(...)`.
+ *
+ * Every key here is spelled exactly as JSXGraph stores it internally, and an
+ * overriding renderer must use that same spelling. JSXGraph lowercases the
+ * attribute object with `JXG.keysToLowerCase`, which walks the keys in
+ * *reverse* insertion order, so when an object carries two spellings of one
+ * attribute — `withlabel` from here and a later `withLabel: false` — the one
+ * written first wins and the override is silently dropped.
  */
 export function buildBaseAttributes({
     SVs,

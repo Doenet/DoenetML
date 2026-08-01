@@ -127,7 +127,9 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         Object.assign(jsxPointAttributes.current, {
             fixed: false,
             highlight: true,
-            withLabel: false,
+            // Spelled as `buildLineLikeAttributes` spells it, so that this
+            // actually overrides it; see `buildBaseAttributes`.
+            withlabel: false,
             fillColor: "none",
             strokeColor: "none",
             highlightStrokeColor: "none",
