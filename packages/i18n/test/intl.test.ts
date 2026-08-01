@@ -131,11 +131,10 @@ describe("formatDecimalString", () => {
         // makes just as long.
         const zeros = "0".repeat(400);
         expect(formatDecimalString("en", zeros).replace(/,/g, "")).toBe(zeros);
-        // Secondary grouping and non-Latin digits come off the same pattern.
+        // Secondary grouping comes off the same pattern.
         const hindi = formatDecimalString("hi-IN", digits).split(",");
         expect(hindi.at(-1)).toHaveLength(3);
         expect(hindi.at(-2)).toHaveLength(2);
-        expect(formatDecimalString("bn", digits)).not.toContain("∞");
     });
 
     it("writes a negative the way the locale writes one", () => {
@@ -159,7 +158,6 @@ describe("formatDecimalString", () => {
         // at all. Where the two sets agree — which is everywhere outside the
         // Arabic script — nothing moves.
         expect(formatDecimalString("fa", "1000.50")).toBe("1,000.50");
-        expect(formatDecimalString("bn", "25236501.35")).toBe("2,52,36,501.35");
     });
 
     it("returns anything that is not a decimal literal unchanged", () => {

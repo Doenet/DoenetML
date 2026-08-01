@@ -68,12 +68,10 @@ function pinNumberingSystem(locale: string): string {
  * pinning the digits takes the Latin-digit separators along with them.
  *
  * The reasoning is in the package README, under "Digits are Latin, separators
- * are not": a number in prose sits beside numbers that are not prose — a
- * contrast ratio's `:1`, a line number the editor's gutter draws, an author's
- * `styleNumber="3"` — and mathematics is Latin-digit regardless
- * ({@link MATH_NOTATION_LOCALE}). A host that asks for a numbering system
- * explicitly (`zh-u-nu-hanidec`) is overridden too: the policy is one answer
- * per product, not per tag.
+ * are not": a number in prose sits beside numbers that are not, and
+ * mathematics is Latin-digit regardless ({@link MATH_NOTATION_LOCALE}). A host
+ * that asks for a numbering system explicitly (`zh-u-nu-hanidec`) is
+ * overridden too: the policy is one answer per product, not per tag.
  */
 const LATIN_DIGITS = "latn";
 
