@@ -66,21 +66,25 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `am`, `de`, `es`, `fr`,
-`hi`, `hnj`, `id`, `it`, `ja`, `ko`, `nl`, `pl`, `pt`, `ru`, `so`, `tr`, `vi`,
-`zh-Hans`, `zh-Hant` — is an **unreviewed machine-generated seed**, which each
-file's own header says at the top, and which is what #1521's translation
-platform is for. None has been read by a speaker. Correcting one needs no
-permission and no coordination: a wrong string is just wrong, and the English is
-one key away.
+English is the source of truth. Every translation — `am`, `as`, `bn`, `de`,
+`es`, `fr`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`, `ne`, `nl`, `pl`,
+`pt`, `ru`, `so`, `tr`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
+machine-generated seed**, which each file's own header says at the top, and
+which is what #1521's translation platform is for. None has been read by a
+speaker. Correcting one needs no permission and no coordination: a wrong string
+is just wrong, and the English is one key away.
 
-Four of them are deliberately partial, all in the same place: Somali, Hmong
-Njua, Amharic and Vietnamese leave `element-name` and `element-anion-name` out,
-so those 130 keys fall back to English and `lint:i18n` reports the gap. The
-first three have no settled chemical nomenclature to seed from. Vietnamese has
-two, and the current one is English — school chemistry has moved from the
-transliterated names to the IUPAC forms — so the fallback is already what the
-curriculum uses.
+Seven of them are deliberately partial, all in the same place: Somali, Hmong
+Njua, Amharic, Assamese, Nepali, Burmese and Vietnamese leave `element-name`
+and `element-anion-name` out, so those 130 keys fall back to English and
+`lint:i18n` reports the gap. The first six have no settled chemical
+nomenclature to seed from, and inventing one would be worse than the English a
+student meets in their own textbook. Vietnamese has two, and the current one is
+English — school chemistry has moved from the transliterated names to the IUPAC
+forms — so the fallback is already what the curriculum uses.
+
+That is a decision per language and not per script: Bangla supplies the names
+its schools use, and Assamese, written in the same letters, does not.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.
@@ -356,8 +360,10 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and German, Russian, Polish and Hindi are the catalogs that select
-on them.
+positions, and German, Russian, Polish, Hindi and Marathi are the catalogs that
+select on them. Sharing a script does not imply sharing the fork: Marathi and
+Hindi both take an oblique adjective before a postposition and Nepali, written
+in the same letters, takes none.
 
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the

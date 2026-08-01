@@ -64968,6 +64968,14 @@
                             "description": "Amharic (አማርኛ)"
                         },
                         {
+                            "value": "as",
+                            "description": "Assamese (অসমীয়া)"
+                        },
+                        {
+                            "value": "bn",
+                            "description": "Bangla (বাংলা)"
+                        },
+                        {
                             "value": "de",
                             "description": "German (Deutsch)"
                         },
@@ -65002,6 +65010,18 @@
                         {
                             "value": "ko",
                             "description": "Korean (한국어)"
+                        },
+                        {
+                            "value": "mr",
+                            "description": "Marathi (मराठी)"
+                        },
+                        {
+                            "value": "my",
+                            "description": "Burmese (မြန်မာ)"
+                        },
+                        {
+                            "value": "ne",
+                            "description": "Nepali (नेपाली)"
                         },
                         {
                             "value": "nl",

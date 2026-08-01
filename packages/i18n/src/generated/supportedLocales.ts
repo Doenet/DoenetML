@@ -8,6 +8,8 @@
 export type SupportedLocale =
     | "en"
     | "am"
+    | "as"
+    | "bn"
     | "de"
     | "es"
     | "fr"
@@ -17,6 +19,9 @@ export type SupportedLocale =
     | "it"
     | "ja"
     | "ko"
+    | "mr"
+    | "my"
+    | "ne"
     | "nl"
     | "pl"
     | "pt"
@@ -71,6 +76,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Amharic (አማርኛ)",
     },
     {
+        locale: "as",
+        englishName: "Assamese",
+        endonym: "অসমীয়া",
+        label: "Assamese (অসমীয়া)",
+    },
+    {
+        locale: "bn",
+        englishName: "Bangla",
+        endonym: "বাংলা",
+        label: "Bangla (বাংলা)",
+    },
+    {
         locale: "de",
         englishName: "German",
         endonym: "Deutsch",
@@ -123,6 +140,24 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Korean",
         endonym: "한국어",
         label: "Korean (한국어)",
+    },
+    {
+        locale: "mr",
+        englishName: "Marathi",
+        endonym: "मराठी",
+        label: "Marathi (मराठी)",
+    },
+    {
+        locale: "my",
+        englishName: "Burmese",
+        endonym: "မြန်မာ",
+        label: "Burmese (မြန်မာ)",
+    },
+    {
+        locale: "ne",
+        englishName: "Nepali",
+        endonym: "नेपाली",
+        label: "Nepali (नेपाली)",
     },
     {
         locale: "nl",

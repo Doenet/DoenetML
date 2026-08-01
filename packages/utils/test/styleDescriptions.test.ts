@@ -546,7 +546,7 @@ noun-regular-polygon =
  * fork, not merely that the mechanism can.
  */
 describe("a phrase rendered in two positions", () => {
-    /** A catalog as the worker receives it, for the four that select on role. */
+    /** A catalog as the worker receives it, for the five that select on role. */
     const forLocale = (locale: string): Translator =>
         createTranslatorFromLocaleData(
             { locale, resources: { [locale]: readCatalog(locale, "content") } },
@@ -557,6 +557,7 @@ describe("a phrase rendered in two positions", () => {
     const ru = forLocale("ru");
     const pl = forLocale("pl");
     const hi = forLocale("hi");
+    const mr = forLocale("mr");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -688,16 +689,40 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Marathi forks the same way Hindi does and on three genders rather than
+    // two, so a border agrees feminine with «किनार» standing alone and takes
+    // the oblique -या before -सह.
+    it("gives Marathi a feminine border alone and an oblique one in the clause", () => {
+        expect(bothBorderForms(mr)).toEqual({
+            standalone: "जाड काळी",
+            embedded: "भरलेले निळे वर्तुळ जाड काळ्या किनारीसह",
+        });
+    });
+
+    // Marathi's background does fork where Hindi's does not: «पिवळी» agrees
+    // with the feminine «पार्श्वभूमी» standing alone and goes oblique to
+    // «पिवळ्या» before -वर. The text colour beside it is «लाल», which never
+    // inflects, so its `text-clause` branch is selected here rather than told
+    // apart from the direct form.
+    it("gives Marathi an oblique background inside the sentence", () => {
+        expect(bothTextForms(mr)).toEqual({
+            textColor: "लाल",
+            backgroundColor: "पिवळी",
+            sentence: "पिवळ्या पार्श्वभूमीवर लाल",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
-        for (const t of [de, ru, pl, hi]) {
+        for (const t of [de, ru, pl, hi, mr]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);
         }
         // Hindi is absent here on purpose: it is the one whose background does
-        // not change shape between the two, per the case above.
-        for (const t of [de, ru, pl]) {
+        // not change shape between the two, per the case above. Marathi spells
+        // its feminine oblique differently and so belongs here.
+        for (const t of [de, ru, pl, mr]) {
             const text = bothTextForms(t);
             expect(text.sentence).not.toContain(text.backgroundColor);
         }
