@@ -17,8 +17,12 @@ export {
 export {
     pseudoLocalize,
     PSEUDO_LOCALE,
+    PSEUDO_RTL_LOCALE,
+    PSEUDO_RTL_BRACKETS,
     type PseudoLocalizeOptions,
 } from "./pseudo";
+
+export { directionOf, stripBidiIsolates, type Direction } from "./direction";
 
 export {
     CATALOG_NAMESPACES,

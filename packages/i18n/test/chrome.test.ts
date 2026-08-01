@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { createChromeTranslator, EN_CHROME_TRANSLATOR } from "../src/chrome";
-import { PSEUDO_LOCALE } from "../src/pseudo";
+import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
+import { stripBidiIsolates } from "../src/direction";
 import { EN_CATALOGS } from "../src/catalogs";
 import esChrome from "../locales/es/chrome.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
@@ -155,6 +156,23 @@ describe("createChromeTranslator", () => {
             // the fallback chain of real ones.
             const t = createChromeTranslator("es", ES);
             expect(t("answer-correct")).toBe("Correcto");
+        });
+
+        it("has a right-to-left twin that renders the same words", () => {
+            // `en-XB` differs from `en-XA` in direction and nothing else, so a
+            // layout difference between the two runs cannot be blamed on the
+            // text having changed.
+            const ltr = createChromeTranslator(PSEUDO_LOCALE);
+            const rtl = createChromeTranslator(PSEUDO_RTL_LOCALE);
+            for (const key of extractKeys(EN_CATALOGS.chrome)) {
+                expect(stripBidiIsolates(rtl(key)), key).toBe(ltr(key));
+            }
+        });
+
+        it("recognizes the right-to-left tag hand-typed too", () => {
+            expect(createChromeTranslator("en-xb")("answer-correct")).toBe(
+                createChromeTranslator(PSEUDO_RTL_LOCALE)("answer-correct"),
+            );
         });
     });
 });

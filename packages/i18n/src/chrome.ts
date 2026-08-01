@@ -1,7 +1,12 @@
 import { DEFAULT_LOCALE, englishResources } from "./catalogs";
 import { CHROME_NAMESPACES } from "./namespaces";
 import { negotiateLocales, normalizeLocaleTag } from "./negotiate";
-import { PSEUDO_LOCALE, pseudoLocalize } from "./pseudo";
+import {
+    PSEUDO_LOCALE,
+    PSEUDO_RTL_BRACKETS,
+    PSEUDO_RTL_LOCALE,
+    pseudoLocalize,
+} from "./pseudo";
 import { createTranslator, type Translator } from "./translator";
 
 /**
@@ -32,6 +37,23 @@ function getPseudoChromeCatalog(): string {
 }
 
 /**
+ * The right-to-left pseudo-locale catalog, derived the same way.
+ *
+ * The same accented text as `en-XA` — only the brackets differ, and only by an
+ * invisible mark. `en-XB` is a *direction* fixture, not a second vocabulary:
+ * everything it renders should read exactly as `en-XA` does, so that a
+ * difference between the two runs is a difference in layout and nothing else.
+ */
+let pseudoRtlChromeCatalog: string | undefined;
+
+function getPseudoRtlChromeCatalog(): string {
+    return (pseudoRtlChromeCatalog ??= pseudoLocalize(
+        BUNDLED_CHROME_CATALOGS[DEFAULT_LOCALE],
+        { brackets: PSEUDO_RTL_BRACKETS },
+    ));
+}
+
+/**
  * Chrome catalogs available for a given request, keyed by locale.
  *
  * Host-supplied resources win over the bundled ones for the same locale, so a
@@ -45,6 +67,9 @@ function chromeResources(
     const resources: Record<string, string> = { ...BUNDLED_CHROME_CATALOGS };
     if (normalizedUiLocale === PSEUDO_LOCALE) {
         resources[PSEUDO_LOCALE] = getPseudoChromeCatalog();
+    }
+    if (normalizedUiLocale === PSEUDO_RTL_LOCALE) {
+        resources[PSEUDO_RTL_LOCALE] = getPseudoRtlChromeCatalog();
     }
     // `Object.assign` ignores a null or undefined source, so an absent
     // `hostResources` needs no special case.

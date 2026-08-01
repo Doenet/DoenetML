@@ -5,6 +5,41 @@
 export const PSEUDO_LOCALE = "en-XA";
 
 /**
+ * The right-to-left pseudo-locale tag. `XB` is a user-assigned region too, and
+ * the pairing follows the convention Android and Chrome already use.
+ *
+ * Its catalog is *byte-identical* to `en-XA`'s — the same accented Latin, the
+ * same expansion padding. The only thing that differs is that `directionOf`
+ * reports it `rtl`, which is the whole point: it exercises the layout without
+ * touching the text.
+ *
+ * Deliberately not a text transform. Android's `en-XB` wraps values in
+ * U+202E RIGHT-TO-LEFT OVERRIDE, which visually reverses Latin — that
+ * demonstrates bidi rather than testing a layout, and it would make both the
+ * accented text and the manual dev harness unreadable. Mapping to Hebrew or
+ * Arabic look-alikes would cost the same and additionally break the
+ * hard-coded-English sweep, which reads `textContent` with a regex.
+ *
+ * What it *does* add is a right-to-left mark inside each bracket (see
+ * {@link PSEUDO_RTL_BRACKETS}), so the neutral characters at a value's edges —
+ * trailing periods, parentheses, colons — resolve the way they would in a real
+ * RTL sentence.
+ */
+export const PSEUDO_RTL_LOCALE = "en-XB";
+
+/**
+ * The brackets {@link PSEUDO_RTL_LOCALE} wraps its values in: the same `»`/`«`
+ * as `en-XA`, each with a U+200F RIGHT-TO-LEFT MARK inside it.
+ *
+ * The mark is invisible and adds no glyph, so the value reads exactly as it
+ * does under `en-XA`; what it changes is the bidi resolution of the neutral
+ * characters between the value and whatever surrounds it. `stripBidiIsolates`
+ * removes it, so an assertion can still compare rendered text as a plain
+ * string.
+ */
+export const PSEUDO_RTL_BRACKETS: [string, string] = ["‏»", "«‏"];
+
+/**
  * Latin letters mapped to accented look-alikes. Still readable in English, but
  * unmistakably *not* the original — which is the point: any string that shows
  * up unaccented in an `en-XA` run never went through the catalogs.
