@@ -23,7 +23,10 @@ import {
     attachLabelHoverHighlight,
     computeLabelMaskCssStyle,
 } from "./utils/labelMaskStyle";
-import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
+import {
+    buildDragHandleAttributes,
+    buildLineLikeAttributes,
+} from "./utils/buildGraphicalAttributes";
 import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -129,19 +132,15 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
 
         let endpointsVisible = !endpointsFixed.current && !SVs.hidden;
 
-        let jsxPointAttributes = Object.assign({}, jsxSegmentAttributes);
-        Object.assign(jsxPointAttributes, {
-            withlabel: false,
-            fixed: false,
-            highlight: true,
-            fillColor: "none",
-            strokeColor: "none",
-            highlightStrokeColor: "none",
-            highlightFillColor: resolveHandleColor(darkMode),
-            layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
-            showInfoBox: SVs.showCoordsWhenDragging,
+        let jsxPointAttributes = {
+            ...buildDragHandleAttributes({
+                elementAttributes: jsxSegmentAttributes,
+                layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
+                darkMode,
+                showInfoBox: SVs.showCoordsWhenDragging,
+            }),
             visible: endpointsVisible,
-        });
+        };
 
         let endpoints = [
             [...SVs.numericalEndpoints[0]],

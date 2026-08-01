@@ -31,7 +31,10 @@ import {
     attachLabelHoverHighlight,
     computeLabelMaskCssStyle,
 } from "./utils/labelMaskStyle";
-import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
+import {
+    buildDragHandleAttributes,
+    buildLineLikeAttributes,
+} from "./utils/buildGraphicalAttributes";
 
 interface PolylineSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -123,18 +126,10 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             lineCap: "butt",
         };
 
-        jsxPointAttributes.current = Object.assign({}, jsxPolylineAttributes);
-        Object.assign(jsxPointAttributes.current, {
-            fixed: false,
-            highlight: true,
-            // Spelled as `buildLineLikeAttributes` spells it, so that this
-            // actually overrides it; see `buildBaseAttributes`.
-            withlabel: false,
-            fillColor: "none",
-            strokeColor: "none",
-            highlightStrokeColor: "none",
-            highlightFillColor: resolveHandleColor(darkMode),
+        jsxPointAttributes.current = buildDragHandleAttributes({
+            elementAttributes: jsxPolylineAttributes,
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
+            darkMode,
             showInfoBox: SVs.showCoordsWhenDragging,
         });
         if (verticesFixed.current || SVs.hidden || !validCoords) {
