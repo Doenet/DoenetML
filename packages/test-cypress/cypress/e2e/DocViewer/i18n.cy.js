@@ -302,6 +302,17 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
                 "ligne épaisse discontinue rouge",
             );
         });
+
+        it("puts the noun first where the language does", () => {
+            // Arabic's adjectives follow their noun instead of preceding it,
+            // and agree with it in gender. Both halves are visible here:
+            // «خط» leads its three adjectives, and each of them is the
+            // masculine form the noun governs.
+            render({ doenetML: styled, documentLocale: "ar" });
+
+            cy.get("#line").should("have.text", "خط أحمر متقطع سميك");
+            cy.get("#point").should("have.text", "مربع أخضر");
+        });
     });
 
     describe("nested documents", () => {
@@ -448,6 +459,26 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
 
             cy.get(".doenet-viewer").should("have.attr", "lang", RTL);
             cy.get(".doenet-viewer").should("have.attr", "dir", "rtl");
+        });
+
+        it("renders a real right-to-left language, not only the pseudo-locale", () => {
+            // What the mechanics were built for. `en-XB` can only ever show
+            // the layout half of this; the words being Arabic as well is the
+            // part a catalog had to land for.
+            //
+            // The attempts count is Arabic's dual, a category English has no
+            // branch for and whose variant carries no placeable at all — so
+            // this also pins that the plural rules being consulted are the
+            // reader's and not the source language's.
+            render({ doenetML: problem, documentLocale: "ar" });
+
+            cy.get(".doenet-viewer")
+                .should("have.attr", "lang", "ar")
+                .should("have.attr", "dir", "rtl");
+            cy.get("#prob_button").should("contain.text", "تحقق من الإجابة");
+            cy.get("[data-test=attempts-remaining]").should(
+                plainTextIncluding("بقيت محاولتان"),
+            );
         });
 
         it("says left-to-right for a left-to-right language", () => {

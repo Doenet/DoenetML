@@ -13,12 +13,22 @@ describe("directionOf", () => {
         }
     });
 
-    it("reports every locale this repository ships a catalog for LTR", () => {
+    it("agrees with the roster about which shipped catalogs run right to left", () => {
         // Not an assertion about the world — a statement about today's roster,
-        // and the thing that makes emitting `dir` inert until a right-to-left
-        // catalog lands. It is meant to fail when one does.
+        // held from both sides so that adding a catalog has to say which way
+        // it runs. `dir` stopped being inert the moment the first name below
+        // appeared here.
+        const rtl = new Set(["ar"]);
         for (const { locale } of SUPPORTED_LOCALES) {
-            expect(directionOf(locale), locale).toBe("ltr");
+            expect(directionOf(locale), locale).toBe(
+                rtl.has(locale) ? "rtl" : "ltr",
+            );
+        }
+        for (const locale of rtl) {
+            expect(
+                SUPPORTED_LOCALES.some((info) => info.locale === locale),
+                locale,
+            ).toBe(true);
         }
     });
 

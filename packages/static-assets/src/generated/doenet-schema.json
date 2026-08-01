@@ -64968,6 +64968,10 @@
                             "description": "Amharic (አማርኛ)"
                         },
                         {
+                            "value": "ar",
+                            "description": "Arabic (العربية)"
+                        },
+                        {
                             "value": "as",
                             "description": "Assamese (অসমীয়া)"
                         },

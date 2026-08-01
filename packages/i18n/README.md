@@ -66,9 +66,9 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `am`, `as`, `bn`, `de`,
-`es`, `fr`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`, `ne`, `nl`, `pl`,
-`pt`, `ru`, `so`, `tr`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
+English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
+`de`, `es`, `fr`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`, `ne`, `nl`,
+`pl`, `pt`, `ru`, `so`, `tr`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
 machine-generated seed**, which each file's own header says at the top, and
 which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
@@ -794,6 +794,41 @@ them follows the reader.
 Everything else mirrors: the paginator, prose renderers, the feedback and hint
 headers, the graph-controls panel, the editor chrome.
 
+### Writing a right-to-left catalog
+
+`ar` is the first, and nothing about the file format changes for it. A `.ftl`
+pattern is a sequence of characters in **logical** order — the order the text
+is spoken — and `dir` decides where each run is drawn, so a translation is
+written the way it is read and never reordered by hand to look right in an
+editor. Brackets, quotes and dashes are the same characters in both scripts and
+are written opening-first; the bidi algorithm turns them around at render time.
+
+Three things do change, and they are properties of the language rather than of
+the direction:
+
+- **Plural categories.** Fluent selects through `Intl.PluralRules`, so an
+  Arabic `{ $count -> … }` has `zero`, `one`, `two`, `few`, `many` and `other`
+  where English has two branches. `zero` is the category for exactly none,
+  which is what the `[0]` branch English spells out by number becomes.
+- **Prepositions cannot be welded to a placeable.** Arabic attaches «لـ» and
+  «بـ» to the word after them, and there is no word — there is an argument. So
+  a message that reads "for `<{ $component }>`" in English names what the
+  argument is instead, «للمكوّن { $component }», and a select whose variants
+  would land after such a preposition carries the preposition into each
+  variant. Several messages in `ar/editor.ftl` are restructured for this;
+  Fluent does not care where a select sits inside a pattern.
+- **A distinction the source language makes may not exist.** Where English
+  separates a singular from a plural only in the verb — "is ignored" against
+  "are ignored" — Arabic covers both with one form, and the select is dropped
+  rather than written out twice identically. The count argument then goes
+  unused, which is harmless: it stays in the English message for the languages
+  that need it.
+
+Digits stay Latin under `ar` like everywhere else — see
+[Digits are Latin, separators are not](#digits-are-latin-separators-are-not),
+which is why an Arabic sentence and the mathematics beside it count in the same
+characters.
+
 ### Testing it without a catalog
 
 `en-XB` renders visually identical text to `en-XA` and differs only in
@@ -801,7 +836,10 @@ headers, the graph-controls panel, the editor chrome.
 the outer face of each bracket so that a value's trailing punctuation resolves
 the way it would in a real RTL sentence. A difference between the two runs is a
 difference in layout and nothing else, and every right-to-left assertion is
-runnable before any right-to-left language is translated. It is deliberately
+runnable before any right-to-left language is translated. It stays useful now
+that one is: a layout regression under `en-XB` is legible to a reviewer who
+reads no Arabic, so what a screenshot shows is the layout rather than the
+words. It is deliberately
 not a text transform: Android's U+202E override demonstrates bidi rather than
 testing a layout, and look-alike glyphs would cost the accented text its
 readability and break the hard-coded-English sweep.

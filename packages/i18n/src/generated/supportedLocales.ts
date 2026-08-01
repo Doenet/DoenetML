@@ -8,6 +8,7 @@
 export type SupportedLocale =
     | "en"
     | "am"
+    | "ar"
     | "as"
     | "bn"
     | "de"
@@ -74,6 +75,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Amharic",
         endonym: "አማርኛ",
         label: "Amharic (አማርኛ)",
+    },
+    {
+        locale: "ar",
+        englishName: "Arabic",
+        endonym: "العربية",
+        label: "Arabic (العربية)",
     },
     {
         locale: "as",
