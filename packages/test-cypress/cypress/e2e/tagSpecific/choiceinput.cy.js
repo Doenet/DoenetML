@@ -1742,13 +1742,13 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         getOpenInlineChoiceMenu().within(() => {
             cy.contains("choice").click({ force: true });
         });
-        cy.get("#aria-selection").should(
+        cy.get("#ci #aria-selection").should(
             "have.text",
             "option choice, selected.",
         );
 
         cy.log(
-            "The plain text is only an accessible name: the displayed value still renders the choice content, and only once",
+            "The displayed value renders the choice content once, not the plain text as well",
         );
         cy.get('#ci [class*="-singleValue"]').should("have.text", "choice");
     });
