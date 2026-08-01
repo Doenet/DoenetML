@@ -17,8 +17,8 @@
 #
 # The element names are where this catalog diverges from `zh-Hans` by more than
 # character conversion, and are the part worth checking first. Taiwan and the
-# mainland name several elements differently — 矽 not 硅 (Si), 錼 not 鎿 (Np),
-# 鋂 not 鎇 (Am), 鉳 not 錇 (Bk), 鑀 not 鎄 (Es), 鎦 not 鑥 (Lu), 砈 not 砹
+# mainland name several elements differently — 矽 not 硅 (Si), 錼 not 镎 (Np),
+# 鋂 not 镅 (Am), 鉳 not 锫 (Bk), 鑀 not 锿 (Es), 鎦 not 镥 (Lu), 砈 not 砹
 # (At). Check 104–118 next: those names are the newest and least settled in
 # both, and most of them are written differently here. A wrong one renders as
 # a wrong character rather than as a missing key, so lint cannot catch it.
