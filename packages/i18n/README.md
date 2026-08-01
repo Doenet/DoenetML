@@ -348,6 +348,17 @@ piece selects a different branch rather than substituting an empty string —
 that is what lets a translation reorder and re-punctuate each combination on
 its own terms.
 
+Gender is not the only thing an adjective has to agree with. Three sets of
+words are rendered in two places each — a border's adjectives, the background
+colour, and the text colour beside it — once standing alone as a state
+variable reports them and once embedded in a clause, and a language that
+inflects for case wants a different form in each. So every adjective is handed
+`$role` as well, naming the *position* the phrase is going into rather than
+the case it takes: which case a position governs is the catalog's business,
+exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
+positions, and German, Russian, Polish and Hindi are the catalogs that select
+on them.
+
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
 adjectives rather than sitting beside them, so `noun-regular-polygon` answers

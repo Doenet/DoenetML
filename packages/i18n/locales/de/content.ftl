@@ -36,11 +36,11 @@ color =
             [border-clause] schwarzen
             [background-clause] schwarzem
             [text-clause] schwarz
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] schwarze
                     [n] schwarzes
-                    *[m] schwarzer
+                   *[m] schwarzer
                 }
         }
     .white =
@@ -48,11 +48,11 @@ color =
             [border-clause] weißen
             [background-clause] weißem
             [text-clause] weiß
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] weiße
                     [n] weißes
-                    *[m] weißer
+                   *[m] weißer
                 }
         }
     .gray =
@@ -60,11 +60,11 @@ color =
             [border-clause] grauen
             [background-clause] grauem
             [text-clause] grau
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] graue
                     [n] graues
-                    *[m] grauer
+                   *[m] grauer
                 }
         }
     .red =
@@ -72,11 +72,11 @@ color =
             [border-clause] roten
             [background-clause] rotem
             [text-clause] rot
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] rote
                     [n] rotes
-                    *[m] roter
+                   *[m] roter
                 }
         }
     .orange =
@@ -84,11 +84,11 @@ color =
             [border-clause] orangefarbenen
             [background-clause] orangefarbenem
             [text-clause] orangefarben
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] orangefarbene
                     [n] orangefarbenes
-                    *[m] orangefarbener
+                   *[m] orangefarbener
                 }
         }
     .yellow =
@@ -96,11 +96,11 @@ color =
             [border-clause] gelben
             [background-clause] gelbem
             [text-clause] gelb
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] gelbe
                     [n] gelbes
-                    *[m] gelber
+                   *[m] gelber
                 }
         }
     .green =
@@ -108,11 +108,11 @@ color =
             [border-clause] grünen
             [background-clause] grünem
             [text-clause] grün
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] grüne
                     [n] grünes
-                    *[m] grüner
+                   *[m] grüner
                 }
         }
     .cyan =
@@ -120,11 +120,11 @@ color =
             [border-clause] cyanfarbenen
             [background-clause] cyanfarbenem
             [text-clause] cyanfarben
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] cyanfarbene
                     [n] cyanfarbenes
-                    *[m] cyanfarbener
+                   *[m] cyanfarbener
                 }
         }
     .blue =
@@ -132,11 +132,11 @@ color =
             [border-clause] blauen
             [background-clause] blauem
             [text-clause] blau
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] blaue
                     [n] blaues
-                    *[m] blauer
+                   *[m] blauer
                 }
         }
     .purple =
@@ -144,11 +144,11 @@ color =
             [border-clause] violetten
             [background-clause] violettem
             [text-clause] violett
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] violette
                     [n] violettes
-                    *[m] violetter
+                   *[m] violetter
                 }
         }
     .pink =
@@ -156,11 +156,11 @@ color =
             [border-clause] rosafarbenen
             [background-clause] rosafarbenem
             [text-clause] rosafarben
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] rosafarbene
                     [n] rosafarbenes
-                    *[m] rosafarbener
+                   *[m] rosafarbener
                 }
         }
     .brown =
@@ -168,11 +168,11 @@ color =
             [border-clause] braunen
             [background-clause] braunem
             [text-clause] braun
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] braune
                     [n] braunes
-                    *[m] brauner
+                   *[m] brauner
                 }
         }
 
@@ -182,11 +182,11 @@ line-width =
             [border-clause] dicken
             [background-clause] dickem
             [text-clause] dick
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] dicke
                     [n] dickes
-                    *[m] dicker
+                   *[m] dicker
                 }
         }
     .thin =
@@ -194,11 +194,11 @@ line-width =
             [border-clause] dünnen
             [background-clause] dünnem
             [text-clause] dünn
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] dünne
                     [n] dünnes
-                    *[m] dünner
+                   *[m] dünner
                 }
         }
 
@@ -208,11 +208,11 @@ line-style =
             [border-clause] gestrichelten
             [background-clause] gestricheltem
             [text-clause] gestrichelt
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] gestrichelte
                     [n] gestricheltes
-                    *[m] gestrichelter
+                   *[m] gestrichelter
                 }
         }
     .dotted =
@@ -220,11 +220,11 @@ line-style =
             [border-clause] gepunkteten
             [background-clause] gepunktetem
             [text-clause] gepunktet
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] gepunktete
                     [n] gepunktetes
-                    *[m] gepunkteter
+                   *[m] gepunkteter
                 }
         }
 
@@ -318,17 +318,13 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
+# Only ever said of the shape itself, so it is standalone in every
+# description and takes no `$role` branch.
 style-filled-word =
-    { $role ->
-        [border-clause] gefüllten
-        [background-clause] gefülltem
-        [text-clause] gefüllt
-        *[standalone]
-            { $gender ->
-                [f] gefüllte
-                [n] gefülltes
-                *[m] gefüllter
-            }
+    { $gender ->
+        [f] gefüllte
+        [n] gefülltes
+       *[m] gefüllter
     }
 
 style-filled =

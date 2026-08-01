@@ -539,21 +539,24 @@ noun-regular-polygon =
  * of the border and the embedded side of the background were both wrong for
  * over a release without a test noticing.
  *
- * So every case below asserts *both* sides. German and Russian are read off
- * disk rather than stubbed, because the point is that the shipped catalogs
- * resolve the fork, not merely that the mechanism can.
+ * So every case below asserts *both* sides. The catalogs are read off disk
+ * rather than stubbed, because the point is that the shipped ones resolve the
+ * fork, not merely that the mechanism can.
  */
 describe("a phrase rendered in two positions", () => {
-    const de: Translator = createTranslatorFromLocaleData(
-        { locale: "de", resources: { de: readCatalog("de", "content") } },
-        "de",
-    );
-    const ru: Translator = createTranslatorFromLocaleData(
-        { locale: "ru", resources: { ru: readCatalog("ru", "content") } },
-        "ru",
-    );
+    /** A catalog as the worker receives it, for the four that select on role. */
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
 
-    const borderWords = { lineColorWord: "black", lineWidthWord: "thick" };
+    const de = forLocale("de");
+    const ru = forLocale("ru");
+    const pl = forLocale("pl");
+    const hi = forLocale("hi");
+
+    const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
     const circle: NounSpec = { key: "circle" };
 
@@ -584,8 +587,8 @@ describe("a phrase rendered in two positions", () => {
 
     it("leaves English alone, which has no case to inflect for", () => {
         expect(bothBorderForms(en)).toEqual({
-            standalone: "thick",
-            embedded: "filled blue circle with a thick border",
+            standalone: "thick black",
+            embedded: "filled blue circle with a thick black border",
         });
         expect(bothTextForms(en)).toEqual({
             textColor: "red",
@@ -607,8 +610,8 @@ describe("a phrase rendered in two positions", () => {
     // clause.
     it("gives German a nominative border alone and a dative one in the clause", () => {
         expect(bothBorderForms(de)).toEqual({
-            standalone: "dicker",
-            embedded: "gefüllter blauer Kreis mit einem dicken Rand",
+            standalone: "dicker schwarzer",
+            embedded: "gefüllter blauer Kreis mit einem dicken schwarzen Rand",
         });
     });
 
@@ -627,8 +630,8 @@ describe("a phrase rendered in two positions", () => {
     // «с». Before #1606 the standalone form came out `толстой`.
     it("gives Russian a nominative border alone and an instrumental one in the clause", () => {
         expect(bothBorderForms(ru)).toEqual({
-            standalone: "толстая",
-            embedded: "закрашенная синяя окружность с толстой границей",
+            standalone: "толстая чёрная",
+            embedded: "закрашенная синяя окружность с толстой чёрной границей",
         });
     });
 
@@ -643,10 +646,36 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Three cases from one set of words: nominative alone, instrumental after
+    // «z», locative after «na». Polish is the catalog `$role` was needed for —
+    // no single token could have carried all three.
+    it("gives Polish a different case in each of its three positions", () => {
+        expect(bothBorderForms(pl)).toEqual({
+            standalone: "grube czarne",
+            embedded:
+                "wypełniony niebieski okrąg z grubym czarnym obramowaniem",
+        });
+        expect(bothTextForms(pl)).toEqual({
+            textColor: "czerwony",
+            backgroundColor: "żółte",
+            sentence: "czerwony na żółtym tle",
+        });
+    });
+
+    // Hindi forks on the direct/oblique distinction rather than on a case
+    // paradigm: a marked adjective takes the oblique before a postposition,
+    // and an unmarked one never changes.
+    it("gives Hindi an oblique border before its postposition", () => {
+        expect(bothBorderForms(hi)).toEqual({
+            standalone: "मोटा काला",
+            embedded: "नीला भरा हुआ वृत्त मोटे काले किनारे के साथ",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
-        for (const t of [de, ru]) {
+        for (const t of [de, ru, pl, hi]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);
         }

@@ -33,11 +33,11 @@ color =
             [border-clause] чёрной
             [background-clause] чёрном
             [text-clause] чёрный
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] чёрная
                     [n] чёрное
-                    *[m] чёрный
+                   *[m] чёрный
                 }
         }
     .white =
@@ -45,11 +45,11 @@ color =
             [border-clause] белой
             [background-clause] белом
             [text-clause] белый
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] белая
                     [n] белое
-                    *[m] белый
+                   *[m] белый
                 }
         }
     .gray =
@@ -57,11 +57,11 @@ color =
             [border-clause] серой
             [background-clause] сером
             [text-clause] серый
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] серая
                     [n] серое
-                    *[m] серый
+                   *[m] серый
                 }
         }
     .red =
@@ -69,11 +69,11 @@ color =
             [border-clause] красной
             [background-clause] красном
             [text-clause] красный
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] красная
                     [n] красное
-                    *[m] красный
+                   *[m] красный
                 }
         }
     .orange =
@@ -81,11 +81,11 @@ color =
             [border-clause] оранжевой
             [background-clause] оранжевом
             [text-clause] оранжевый
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] оранжевая
                     [n] оранжевое
-                    *[m] оранжевый
+                   *[m] оранжевый
                 }
         }
     .yellow =
@@ -93,11 +93,11 @@ color =
             [border-clause] жёлтой
             [background-clause] жёлтом
             [text-clause] жёлтый
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] жёлтая
                     [n] жёлтое
-                    *[m] жёлтый
+                   *[m] жёлтый
                 }
         }
     .green =
@@ -105,11 +105,11 @@ color =
             [border-clause] зелёной
             [background-clause] зелёном
             [text-clause] зелёный
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] зелёная
                     [n] зелёное
-                    *[m] зелёный
+                   *[m] зелёный
                 }
         }
     .cyan =
@@ -117,11 +117,11 @@ color =
             [border-clause] голубой
             [background-clause] голубом
             [text-clause] голубой
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] голубая
                     [n] голубое
-                    *[m] голубой
+                   *[m] голубой
                 }
         }
     .blue =
@@ -129,11 +129,11 @@ color =
             [border-clause] синей
             [background-clause] синем
             [text-clause] синий
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] синяя
                     [n] синее
-                    *[m] синий
+                   *[m] синий
                 }
         }
     .purple =
@@ -141,11 +141,11 @@ color =
             [border-clause] фиолетовой
             [background-clause] фиолетовом
             [text-clause] фиолетовый
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] фиолетовая
                     [n] фиолетовое
-                    *[m] фиолетовый
+                   *[m] фиолетовый
                 }
         }
     .pink =
@@ -153,11 +153,11 @@ color =
             [border-clause] розовой
             [background-clause] розовом
             [text-clause] розовый
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] розовая
                     [n] розовое
-                    *[m] розовый
+                   *[m] розовый
                 }
         }
     .brown =
@@ -165,11 +165,11 @@ color =
             [border-clause] коричневой
             [background-clause] коричневом
             [text-clause] коричневый
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] коричневая
                     [n] коричневое
-                    *[m] коричневый
+                   *[m] коричневый
                 }
         }
 
@@ -179,11 +179,11 @@ line-width =
             [border-clause] толстой
             [background-clause] толстом
             [text-clause] толстый
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] толстая
                     [n] толстое
-                    *[m] толстый
+                   *[m] толстый
                 }
         }
     .thin =
@@ -191,11 +191,11 @@ line-width =
             [border-clause] тонкой
             [background-clause] тонком
             [text-clause] тонкий
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] тонкая
                     [n] тонкое
-                    *[m] тонкий
+                   *[m] тонкий
                 }
         }
 
@@ -205,11 +205,11 @@ line-style =
             [border-clause] штриховой
             [background-clause] штриховом
             [text-clause] штриховой
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] штриховая
                     [n] штриховое
-                    *[m] штриховой
+                   *[m] штриховой
                 }
         }
     .dotted =
@@ -217,11 +217,11 @@ line-style =
             [border-clause] пунктирной
             [background-clause] пунктирном
             [text-clause] пунктирный
-            *[standalone]
+           *[standalone]
                 { $gender ->
                     [f] пунктирная
                     [n] пунктирное
-                    *[m] пунктирный
+                   *[m] пунктирный
                 }
         }
 
@@ -307,17 +307,13 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
+# Only ever said of the shape itself, so it is standalone in every
+# description and takes no `$role` branch.
 style-filled-word =
-    { $role ->
-        [border-clause] закрашенной
-        [background-clause] закрашенном
-        [text-clause] закрашенный
-        *[standalone]
-            { $gender ->
-                [f] закрашенная
-                [n] закрашенное
-                *[m] закрашенный
-            }
+    { $gender ->
+        [f] закрашенная
+        [n] закрашенное
+       *[m] закрашенный
     }
 
 style-filled =

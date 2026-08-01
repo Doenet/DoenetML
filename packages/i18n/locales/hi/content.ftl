@@ -191,16 +191,12 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
+# Only ever said of the shape itself, so it is standalone in every
+# description and takes no `$role` branch.
 style-filled-word =
-    { $role ->
-        [border-clause] भरे हुए
-        [background-clause] भरी हुई
-        [text-clause] भरा हुआ
-       *[standalone]
-            { $gender ->
-                [f] भरी हुई
-               *[m] भरा हुआ
-            }
+    { $gender ->
+        [f] भरी हुई
+       *[m] भरा हुआ
     }
 
 style-filled =

@@ -22,8 +22,9 @@ import type { TranslationArgs, Translator } from "@doenet/i18n";
  * re-punctuate each combination independently.
  *
  * Adjectives are also handed `$gender`, the grammatical gender the catalog
- * assigns the noun they describe (`noun-gender`). English has no agreement and
- * ignores it.
+ * assigns the noun they describe (`noun-gender`), and `$role`, the syntactic
+ * position the phrase is going into ({@link PhraseRole}). English has no
+ * agreement and ignores both.
  *
  * ## Words in, keys out
  *
@@ -217,13 +218,18 @@ function genderOf(t: Translator, noun: string): string {
 export type PhraseRole =
     "standalone" | "border-clause" | "background-clause" | "text-clause";
 
-/** Look a derived word up in a vocabulary; pass an authored one through. */
+/**
+ * Look a derived word up in a vocabulary; pass an authored one through.
+ *
+ * `role` defaults to `"standalone"`, the position every lookup is in but the
+ * three {@link PhraseRole} exists for.
+ */
 function lookUp(
     t: Translator,
     vocabulary: Vocabulary,
     word: string | undefined,
     gender: string,
-    role: PhraseRole,
+    role: PhraseRole = "standalone",
 ): string {
     if (!word) {
         return "";
@@ -436,20 +442,8 @@ export function describeClosedShape(
     const gender = genderOf(t, noun.key);
     const phrase = withNoun ? nounPhrase(t, noun) : undefined;
 
-    const color = lookUp(
-        t,
-        COLOR_WORDS,
-        words.fillColorWord,
-        gender,
-        "standalone",
-    );
-    const pattern = lookUp(
-        t,
-        FILL_STYLE_WORDS,
-        words.fillStyleWord,
-        gender,
-        "standalone",
-    );
+    const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
+    const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
     const fillParts = pattern ? "pattern" : "plain";
     // Looked up here and handed over as an argument rather than referenced
     // from the messages below: a language that inflects "filled" has to agree
@@ -458,8 +452,15 @@ export function describeClosedShape(
     // never sees it; a message reference does inherit it, but resolves only
     // within its own bundle, so a locale that translated `style-filled` and
     // not this word would render the reference literally instead of falling
-    // back to English.
-    const filledWord = t("style-filled-word", { gender }, "filled");
+    // back to English. It agrees with the shape and is only ever said of it, so
+    // its position is always `"standalone"` — passed rather than left out so
+    // that a catalog reading `$role` finds a value there, as every other
+    // adjective's lookup does.
+    const filledWord = t(
+        "style-filled-word",
+        { gender, role: "standalone" },
+        "filled",
+    );
     const patternClause = pattern ? ` with ${pattern}` : "";
 
     const filledText = phrase
@@ -540,20 +541,8 @@ export function describeFill(
         return t("style-unfilled", undefined, "unfilled");
     }
     const gender = genderOf(t, "fill");
-    const color = lookUp(
-        t,
-        COLOR_WORDS,
-        words.fillColorWord,
-        gender,
-        "standalone",
-    );
-    const pattern = lookUp(
-        t,
-        FILL_STYLE_WORDS,
-        words.fillStyleWord,
-        gender,
-        "standalone",
-    );
+    const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
+    const pattern = lookUp(t, FILL_STYLE_WORDS, words.fillStyleWord, gender);
     return t(
         "style-fill",
         {
@@ -575,13 +564,7 @@ export function describeMarker(
 ): string {
     const noun = markerWord(t, words.markerStyleWord);
     const gender = genderOf(t, words.markerStyleWord || "point");
-    const color = lookUp(
-        t,
-        COLOR_WORDS,
-        words.markerColorWord,
-        gender,
-        "standalone",
-    );
+    const color = lookUp(t, COLOR_WORDS, words.markerColorWord, gender);
     return withNoun ? attachNoun(t, color, { noun, tail: "" }) : color;
 }
 
@@ -592,13 +575,7 @@ export function describeRegion(
     { noun, withNoun }: { noun: NounSpec; withNoun: boolean },
 ): string {
     const gender = genderOf(t, noun.key);
-    const color = lookUp(
-        t,
-        COLOR_WORDS,
-        words.fillColorWord,
-        gender,
-        "standalone",
-    );
+    const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
     return withNoun ? attachNoun(t, color, nounPhrase(t, noun)) : color;
 }
 
@@ -606,10 +583,11 @@ export function describeRegion(
  * A color word on its own, as `textColor` and `backgroundColor` report it.
  *
  * @param role Defaults to `"standalone"`, which is what the two state variables
- *   want. `textStyleDescription` asks for the background in
- *   `"background-clause"` instead, because there the word sits behind a
- *   preposition — the same fork the border has, and the reason a caller has to
- *   look the word up twice rather than reuse one string in both places.
+ *   want. `textStyleDescription` asks for the same two words again in
+ *   `"text-clause"` and `"background-clause"`, because inside its sentence the
+ *   colour is predicative and the background sits behind a preposition — the
+ *   same fork the border has, and the reason a caller looks the words up twice
+ *   rather than reusing one string in both places.
  */
 export function describeColor(
     t: Translator,
@@ -628,6 +606,12 @@ export function noBackgroundWord(t: Translator): string {
 /**
  * How a piece of text is styled: "red with a blue background".
  *
+ * `style-text` is the one composition message given no `$role`: its two words
+ * sit in two different positions — the colour predicative, the background
+ * behind a preposition — so no single token would describe them both. They
+ * arrive already inflected for their own, and `$parts` tells the branches
+ * apart.
+ *
  * @param background The already-translated background color, or `undefined`
  *   when nothing is drawn behind the text. Presence is decided by the caller
  *   from the raw style, never by comparing against the translated "none" —
@@ -638,20 +622,11 @@ export function describeText(
     { color, background }: { color: string; background?: string },
 ): string {
     if (background === undefined) {
-        return t(
-            "style-text",
-            { parts: "plain", color, role: "standalone" },
-            color,
-        );
+        return t("style-text", { parts: "plain", color }, color);
     }
     return t(
         "style-text",
-        {
-            parts: "background",
-            color,
-            background,
-            role: "background-clause",
-        },
+        { parts: "background", color, background },
         `${color} with a ${background} background`,
     );
 }

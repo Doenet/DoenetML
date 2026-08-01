@@ -301,17 +301,13 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
+# Only ever said of the shape itself, so it is standalone in every
+# description and takes no `$role` branch.
 style-filled-word =
-    { $role ->
-        [border-clause] wypełnionym
-        [background-clause] wypełnionym
-        [text-clause] wypełniony
-       *[standalone]
-            { $gender ->
-                [f] wypełniona
-                [n] wypełnione
-               *[m] wypełniony
-            }
+    { $gender ->
+        [f] wypełniona
+        [n] wypełnione
+       *[m] wypełniony
     }
 
 style-filled =

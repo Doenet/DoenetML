@@ -17,8 +17,26 @@
 ## `resolveColorWord` deliberately preserves.
 ##
 ## Every adjective here is handed `$gender`, the grammatical gender of the noun
-## it describes (see `noun-gender`). English has no agreement and ignores it; a
-## language that inflects selects on it.
+## it describes (see `noun-gender`), and `$role`, the syntactic position the
+## phrase it belongs to is going into. English has no agreement and ignores
+## both; a language that inflects selects on them.
+##
+## `$role` is one of:
+##
+##   standalone          the phrase stands on its own, which is where all but
+##                       the three below are
+##   border-clause       inside `style-border-clause`, behind its preposition
+##   background-clause   the background colour inside `style-text`, behind its
+##                       preposition
+##   text-clause         the text colour beside it, inside `style-text`
+##
+## The last three exist because those words are rendered in two places each —
+## once alone, as `borderStyleDescription`, `backgroundColor` and `textColor`
+## report them, and once embedded in a clause. A language that inflects for
+## case needs a different form in each, and no amount of `$gender` can say
+## which is wanted. Which case a position governs is the catalog's business:
+## `border-clause` is a dative in German, an instrumental in Russian and
+## Polish, and nothing at all in a language that does not inflect.
 
 # The canonical color families a color value resolves to.
 color =
@@ -155,6 +173,8 @@ style-with-noun =
 # `$gender`, and a message reference resolves only inside its own bundle, so a
 # locale that translated `style-filled` but not this word would render the
 # reference literally instead of falling back to English.
+#
+# Said only of the shape itself, so its `$role` is always `standalone`.
 style-filled-word = filled
 
 # A filled shape, and the pattern its interior is drawn with, if any.
@@ -200,6 +220,10 @@ style-fill =
 style-unfilled = unfilled
 
 # How a piece of text is styled: its color, and the background behind it.
+#
+# The only composition message with no `$role`: its two words sit in two
+# different positions, so they arrive already inflected for `text-clause` and
+# `background-clause` respectively and no one token would describe them both.
 style-text =
     { $parts ->
         [background] { $color } with a { $background } background

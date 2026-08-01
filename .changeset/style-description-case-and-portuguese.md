@@ -6,25 +6,19 @@
 "doenet-vscode-extension": patch
 ---
 
-Fix the German and Russian style descriptions that were inflected for the wrong position, and add a Portuguese catalog.
+Fix the German and Russian style descriptions that were inflected for the wrong position, and add Portuguese, Turkish, Polish, Hindi and Amharic catalogs.
 
 Style descriptions handed adjectives one token, the gender of the noun they describe. That is enough while a phrase is rendered in one place, but three of them are rendered in two — a border's adjectives, the background colour, and the text colour beside it — and a language that inflects for case needs a different form in each. German and Russian had to spend their one token on a case and were wrong in the other position:
 
 - `borderStyleDescription` read `dicken` and `толстой` instead of `dicker` and `толстая`
 - `textStyleDescription` read `roter auf gelber Hintergrund` instead of `rot auf gelbem Hintergrund`, and `красный на жёлтый фоне` instead of `красный на жёлтом фоне`
 
-Descriptions now carry the syntactic position alongside the gender, so a catalog can select on both. The positions are named rather than the cases, because which case a position governs is the translation's business. A language with no case ignores the new argument, so English, Spanish, French, Italian, Dutch, Chinese, Japanese, Korean, Vietnamese, Indonesian, Somali and Hmong Njua are byte-identical.
+Descriptions now carry the syntactic position alongside the gender, so a catalog can select on both. A language with no case ignores the new argument, so English, Spanish, French, Italian, Dutch, Chinese, Japanese, Korean, Vietnamese, Indonesian, Somali and Hmong Njua are byte-identical.
 
-Portuguese, Turkish, Polish, Hindi and Amharic join the catalogs, each covering all four namespaces.
+Five catalogs join, each covering all four namespaces. Portuguese is Brazilian, which is what a bare `pt` means; `pt-AO` and `pt-MZ` reach it too, and a European `pt-PT` could be added later without disturbing it. Its border is feminine where Spanish's is masculine, so the border clause reads `com uma borda grossa`. Turkish inflects none of this — its suffixes attach to the noun rather than to the adjectives in front of it — and a noun counted by a numeral stays singular.
 
-Portuguese is Brazilian, which is what a bare `pt` means; `pt-AO` and `pt-MZ` reach it too, and a European `pt-PT` could be added later without disturbing it. Its border is feminine where Spanish's is masculine, so the border clause reads `com uma borda grossa`.
+Polish and Hindi are the two that needed the new argument. Polish style words land in three different cases, so from one set of words it now renders `grube`, `z grubym obramowaniem` and `czerwony na żółtym tle`. Hindi's marked adjectives — the ones ending in -ा — take the oblique before a postposition, so a border reads `मोटा` alone and `मोटे किनारे के साथ` in the clause, while unmarked ones like लाल never change; it uses Latin digits, unlike Marathi and Nepali, which share the script but not the numbering system.
 
-Turkish inflects none of this — its suffixes attach to the noun rather than to the adjectives in front of it — and a noun counted by a numeral stays singular, so a count reads the same in both of its plural branches.
+Amharic is written in the Ge'ez script, which runs left to right, so it needs none of the right-to-left support DoenetML lacks. It leaves the element and anion names untranslated, as Somali and Hmong Njua do and for the same reason — there is no settled Amharic chemical nomenclature to seed from — so those names fall back to English and `lint:i18n` reports the gap.
 
-Polish is the catalog this change was needed for. Its style words land in three different cases: nominative alone, instrumental after «z» in the border clause, locative after «na» in the background clause. From one set of words it now renders `grube`, `z grubym obramowaniem` and `czerwony na żółtym tle`.
-
-Hindi is the second one to use it. Its marked adjectives — the ones ending in -ा — take the oblique before a postposition, so a border reads `मोटा` alone and `मोटे किनारे के साथ` in the clause; the unmarked ones like लाल never change. It uses Latin digits, unlike Marathi and Nepali, which share the script but not the numbering system.
-
-Amharic is written in the Ge'ez script, which runs left to right, so it needs none of the right-to-left support DoenetML lacks. Its style words are the invariable kind, so neither gender nor case is selected on. It leaves the element names untranslated, as Somali and Hmong Njua do and for the same reason — there is no settled Amharic chemical nomenclature to seed from.
-
-Like the others, it is an **unreviewed machine-generated seed** and says so in every file's header.
+Like the others, every one of the five is an **unreviewed machine-generated seed** and says so in every file's header.
