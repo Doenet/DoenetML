@@ -221,8 +221,10 @@ export type PhraseRole =
 /**
  * Look a derived word up in a vocabulary; pass an authored one through.
  *
- * `role` defaults to `"standalone"`, the position every lookup is in but the
- * three {@link PhraseRole} exists for.
+ * `role` defaults to `"standalone"`, which is where a word lands unless its
+ * caller says otherwise. Only `describeStroke` and `describeColor` ever pass
+ * anything else — they are the two that also build the embedded forms
+ * {@link PhraseRole} exists for.
  */
 function lookUp(
     t: Translator,

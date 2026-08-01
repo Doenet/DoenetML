@@ -270,11 +270,13 @@ noun-regular-polygon =
 # names: `border` (der Rand, m), `fill` (die Füllung, f), `text` (der Text, m),
 # `background` (der Hintergrund, m).
 #
-# Every one of them answers a plain gender now. `border` and `background` used
-# to answer a case instead — `datm` — because each is rendered in two positions
-# and a single token could only suit one of them. `$role` carries that
-# distinction, so this message is back to answering the one question its name
-# asks (#1606).
+# Every one of them answers a plain gender now. `border` used to answer a case
+# instead — `datm` — because its adjectives are rendered in two positions and a
+# single token could only suit one of them; it was tuned for the clause, so the
+# standalone `borderStyleDescription` came out dative. `background` kept its
+# plain gender and so was wrong the other way round, nominative behind `auf`.
+# `$role` carries the distinction now, and this message is back to answering
+# the one question its name asks (#1606).
 noun-gender =
     { $noun ->
         [border] m

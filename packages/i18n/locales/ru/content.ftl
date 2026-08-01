@@ -11,7 +11,7 @@
 #
 #   standalone          a phrase in the nominative: `-ый`/`-ой` m, `-ая` f,
 #                       `-ое` n
-#   border-clause       after «с », which governs the instrumental, of
+#   border-clause       after «с», which governs the instrumental, of
 #                       «граница» — feminine: `-ой`
 #   background-clause   after «на … фоне», prepositional, of «фон» —
 #                       masculine: `-ом` (`-ем` after a soft stem)
@@ -267,11 +267,13 @@ noun-regular-polygon =
 # or the head of a phrase the description never names: `border` (граница, f),
 # `fill` (заливка, f), `text` (текст, m), `background` (фон, m).
 #
-# Every one of them answers a plain gender now. `border` and `background` used
-# to answer a case instead — `insf` — because each is rendered in two positions
-# and a single token could only suit one of them. `$role` carries that
-# distinction, so this message is back to answering the one question its name
-# asks (#1606).
+# Every one of them answers a plain gender now. `border` used to answer a case
+# instead — `insf` — because its adjectives are rendered in two positions and a
+# single token could only suit one of them; it was tuned for the clause, so the
+# standalone `borderStyleDescription` came out instrumental. `background` kept
+# its plain gender and so was wrong the other way round, nominative behind
+# «на». `$role` carries the distinction now, and this message is back to
+# answering the one question its name asks (#1606).
 noun-gender =
     { $noun ->
         [line] f

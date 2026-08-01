@@ -8,7 +8,7 @@
 
 Fix the German and Russian style descriptions that were inflected for the wrong position, and add Portuguese, Turkish, Polish, Hindi and Amharic catalogs.
 
-Style descriptions handed adjectives one token, the gender of the noun they describe. That is enough while a phrase is rendered in one place, but three of them are rendered in two — a border's adjectives, the background colour, and the text colour beside it — and a language that inflects for case needs a different form in each. German and Russian had to spend their one token on a case and were wrong in the other position:
+Style descriptions handed adjectives one token, the gender of the noun they describe. That is enough while a phrase is rendered in one place, but three of them are rendered in two — a border's adjectives, the background colour, and the text colour beside it — and a language that inflects for case needs a different form in each. German and Russian had one token to spend, so each fork came out right in one position and wrong in the other:
 
 - `borderStyleDescription` read `dicken` and `толстой` instead of `dicker` and `толстая`
 - `textStyleDescription` read `roter auf gelber Hintergrund` instead of `rot auf gelbem Hintergrund`, and `красный на жёлтый фоне` instead of `красный на жёлтом фоне`
