@@ -57,8 +57,8 @@ describe("the lazy loader registry", () => {
         expect(Object.keys(LAZY_LOCALE_LOADERS)).not.toContain(DEFAULT_LOCALE);
         expect(Object.keys(LAZY_LOCALE_LOADERS).sort()).toEqual(LAZY_LOCALES);
         // Both lists being empty would satisfy the equality above and leave
-        // the two tests below with no locale to reach for. Nine translations
-        // are code-split today; one is enough for any of this to mean
+        // the two tests below with no locale to reach for. Every translation
+        // is code-split today; one is enough for any of this to mean
         // something.
         expect(LAZY_LOCALES.length).toBeGreaterThan(0);
     });

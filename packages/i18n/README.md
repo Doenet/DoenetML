@@ -66,23 +66,41 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every one of the nine translations — `de`,
-`es`, `fr`, `hnj`, `it`, `nl`, `ru`, `so`, `zh` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the top, and
-which is what #1521's translation platform is for. None has been read by a
-speaker. Correcting one needs no permission and no coordination: a wrong string
-is just wrong, and the English is one key away.
+English is the source of truth. Every translation — `de`, `es`, `fr`, `hnj`,
+`id`, `it`, `ja`, `ko`, `nl`, `ru`, `so`, `vi`, `zh-Hans`, `zh-Hant` — is an
+**unreviewed machine-generated seed**, which each file's own header says at the
+top, and which is what #1521's translation platform is for. None has been read
+by a speaker. Correcting one needs no permission and no coordination: a wrong
+string is just wrong, and the English is one key away.
 
-Two of them are deliberately partial — Somali and Hmong Njua leave
-`element-name` and `element-anion-name` out rather than invent a chemical
-nomenclature, so those fall back to English, which is what `lint:i18n` reports
-as coverage.
+Three of them are deliberately partial, all in the same place: Somali, Hmong
+Njua and Vietnamese leave `element-name` and `element-anion-name` out, so those
+130 keys fall back to English and `lint:i18n` reports the gap. The first two
+have no settled chemical nomenclature to seed from. Vietnamese has two, and the
+current one is English — school chemistry has moved from the transliterated
+names to the IUPAC forms — so the fallback is already what the curriculum uses.
+
+A directory is named for a **script** rather than a language only where two
+scripts of one language are translated separately, which today is Chinese.
+Name that pair `zh-Hans` and `zh-Hant`, never `zh`: filtering negotiation tries
+the region-stripped tag before it consults likely-subtags, so a directory named
+`zh` answers `zh-TW`, `zh-HK` and `zh-MO` ahead of `zh-Hant` and serves a
+Traditional reader Simplified text. Named by script, every tag reaches the
+catalog it should, and bare `zh` reaches `zh-Hans` because that is what CLDR
+fills it in as. `negotiate.test.ts` holds this.
+
+Keep both complete rather than layering one over the other. A Traditional tag
+negotiates to `["zh-Hant", "en"]`, so a key missing there renders in English —
+the right outcome, since the wrong script is not a partial translation but a
+different one. It is not symmetric: `zh-CN` and `zh-SG` negotiate to
+`["zh-Hans", "zh-Hant", "en"]`, since filtering offers every `zh-*` catalog it
+has, so a gap in `zh-Hans` can be filled from `zh-Hant` on a page holding both.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
 They are addressed to whoever maintains the file, and no one maintaining it
-reads all nine languages — a note that cannot be read cannot be checked. Only
-the text to the right of `=` is translated.
+reads them all — a note that cannot be read cannot be checked. Only the text to
+the right of `=` is translated.
 
 The split is by **load context**, not topic: the worker never draws chrome and
 never renders a diagnostic, so it ships only `content` (`WORKER_NAMESPACES`).
@@ -128,9 +146,9 @@ two different places:
 catalog directory, each with its name in English and in itself, derived at
 codegen time from `Intl.DisplayNames` so that adding a language costs no
 hand-written prose. The second answer is a delivery decision, and the two lists
-have long since diverged: ten languages are on the roster and one of them —
-English — is inlined. Every other catalog is fetched or code-split when a
-document or a reader asks for it (see [Delivery](#delivery)).
+have long since diverged: English is the only catalog inlined, and every other
+one is fetched or code-split when a document or a reader asks for it (see
+[Delivery](#delivery)).
 
 Author-facing surfaces read the **roster**. That is what lets the editor offer
 the languages in `<document lang>`'s autocomplete and help panel (via the

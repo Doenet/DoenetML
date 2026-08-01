@@ -21,6 +21,7 @@ import {
     lezerToDast,
     normalizeDocumentDast,
 } from "@doenet/parser";
+import { negotiateLocales } from "@doenet/i18n";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 import { defaultFlags } from "../../../../doenetml/src/flags";
 import type { DoenetMLFlags } from "../../../../doenetml/src/flags";
@@ -227,6 +228,17 @@ export async function createTestCore({
     return { core, rustCore, resolvePathToNodeIdx, scoreState };
 }
 
+const LOCALES_DIR = path.resolve(__dirname, "../../../../i18n/locales");
+
+/**
+ * The locales this repository ships, read once: `createTestCore` asks for a
+ * catalog on every call, and the set of directories cannot change under a run.
+ */
+const AVAILABLE_LOCALES = fs
+    .readdirSync(LOCALES_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
 /**
  * The repository's own catalogs for a locale, as the main thread would deliver
  * them.
@@ -242,15 +254,16 @@ export async function createTestCore({
  * because the one map it builds also feeds its own chrome; the three the core
  * never opens make no difference to what it computes.
  *
- * Negotiated by primary subtag, as `loadLocaleResources` negotiates: a document
- * in `es-MX` is served by the `es` catalog. A tag nothing answers gets nothing
- * and falls back to English, which is what an untranslated locale does anyway.
+ * Negotiated through `negotiateLocales`, the helper `loadLocaleResources`
+ * uses, so a tag reaches the catalog the viewer would reach: `es-MX` is served
+ * by `es`, and `zh-TW` by `zh-Hant`, which only likely-subtags can work out. A
+ * tag nothing answers gets nothing and falls back to English, which is what an
+ * untranslated locale does anyway.
  */
 function catalogsFor(
     locale: string | undefined,
     doenetML: string,
 ): Record<string, string> {
-    const localesDir = path.resolve(__dirname, "../../../../i18n/locales");
     const resources: Record<string, string> = {};
     // The host's locale and every language the source declares — the same set
     // the viewer loads, through the same helper, since a `<document lang>`
@@ -261,11 +274,11 @@ function catalogsFor(
         if (tag === undefined || tag === "en") {
             continue;
         }
-        for (const candidate of [tag, tag.split("-")[0]]) {
+        for (const candidate of negotiateLocales([tag], AVAILABLE_LOCALES)) {
             if (candidate === "en" || candidate in resources) {
                 break;
             }
-            const catalog = path.join(localesDir, candidate, "content.ftl");
+            const catalog = path.join(LOCALES_DIR, candidate, "content.ftl");
             if (fs.existsSync(catalog)) {
                 resources[candidate] = fs.readFileSync(catalog, "utf-8");
                 break;

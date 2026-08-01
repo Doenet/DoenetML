@@ -1,15 +1,23 @@
-# Chinese viewer chrome. Translated from `locales/en/chrome.ftl`, which is the
-# source of truth: `lint:i18n` rejects a key that does not exist there, and
-# reports a key that exists there but not here as missing coverage.
+# Simplified Chinese viewer chrome. Translated from `locales/en/chrome.ftl`,
+# which is the source of truth: `lint:i18n` rejects a key that does not exist
+# there, and reports a key that exists there but not here as missing coverage.
 #
 # Message ids are never translated — only the text to the right of `=`.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Written in Simplified Chinese under the generic `zh` tag, which is what a
-# reader asking for `zh-CN` or `zh-Hans` negotiates to. A Traditional catalog
-# would be a `zh-Hant` directory of its own; adding one would not disturb this.
+# Named for the script, not a region: `zh-CN` and `zh-SG` negotiate here, as
+# does a bare `zh`, which is `zh-Hans-CN` once CLDR fills in what it left out.
+# The Traditional regions reach `zh-Hant` beside it. Why the pair is named by
+# script and neither half is named `zh` is in the package README, and
+# `negotiate.test.ts` holds it.
+#
+# Keep this catalog complete. `zh-CN` and `zh-SG` negotiate to
+# `["zh-Hans", "zh-Hant", "en"]` — filtering negotiation offers every `zh-*`
+# catalog it has — so on a page holding both, a key dropped from here surfaces
+# in Traditional rather than in English. The reverse cannot happen: every
+# Traditional tag negotiates to `["zh-Hant", "en"]`.
 #
 # Chinese has a single plural category, so a countable message needs no
 # selection — `[other]` covers every count. `[0]` is still spelled out where
