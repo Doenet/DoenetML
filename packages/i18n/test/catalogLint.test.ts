@@ -6,6 +6,7 @@ import {
     countDiagnosticConstructions,
     extractKeys,
     listLocales,
+    numberingSystemOverrides,
     remainingLiteralDiagnostics,
     renderMessageKeysModule,
     renderSupportedLocalesModule,
@@ -59,6 +60,53 @@ describe("catalogParseErrors", () => {
         expect(
             catalogParseErrors("greeting = Hello\ngreeting = Hi\n").length,
         ).toBeGreaterThan(0);
+    });
+});
+
+describe("numberingSystemOverrides", () => {
+    it("catches a builtin that names a numbering system", () => {
+        expect(
+            numberingSystemOverrides(
+                'ratio = contrast { NUMBER($ratio, numberingSystem: "beng") }',
+            ),
+        ).toEqual(["NUMBER() sets numberingSystem"]);
+        expect(
+            numberingSystemOverrides(
+                'when = { DATETIME($due, numberingSystem: "deva") }',
+            ),
+        ).toEqual(["DATETIME() sets numberingSystem"]);
+    });
+
+    it("leaves the formatting options a catalog is allowed to set", () => {
+        // The real pattern from `diagnostics.ftl`. Fraction digits are a
+        // catalog's business; which script the digits are written in is not.
+        expect(
+            numberingSystemOverrides(
+                "ratio = { NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1",
+            ),
+        ).toEqual([]);
+    });
+
+    it("reads the syntax rather than the text, so a comment may say the word", () => {
+        // The group comments explaining the policy are the reason this is an
+        // AST walk: a catalog has to be able to write down why it must not.
+        expect(
+            numberingSystemOverrides(
+                "# Never pass numberingSystem here — see src/intl.ts.\ncount = { $count } items",
+            ),
+        ).toEqual([]);
+    });
+
+    it("descends into selects and attributes", () => {
+        expect(
+            numberingSystemOverrides(`
+items =
+    { $count ->
+        [one] one item
+       *[other] { NUMBER($count, numberingSystem: "mymr") } items
+    }
+`),
+        ).toEqual(["NUMBER() sets numberingSystem"]);
     });
 });
 

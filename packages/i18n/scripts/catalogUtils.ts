@@ -3,7 +3,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { FluentBundle, FluentResource } from "@fluent/bundle";
-import { parse as parseFtl } from "@fluent/syntax";
+import {
+    parse as parseFtl,
+    Visitor,
+    type FunctionReference,
+} from "@fluent/syntax";
 import * as prettier from "prettier";
 
 import { CATALOG_NAMESPACES } from "../src/namespaces";
@@ -157,6 +161,38 @@ export function catalogParseErrors(source: string): string[] {
     }
 
     return errors;
+}
+
+/**
+ * Every place a catalog names a numbering system on a Fluent builtin.
+ *
+ * `NUMBER($ratio, numberingSystem: "beng")` opts one message out of the digit
+ * policy `intlLocale` pins, and nothing at runtime says so — the number simply
+ * comes back in another script, in one message, in one language. That is the
+ * rule catalog authors would have to remember, which is why it is checked
+ * instead: the policy is a product-wide answer (`src/intl.ts`), and a catalog
+ * is not where it gets reopened.
+ *
+ * Read off the AST rather than by searching the text, so that the group
+ * comments explaining the policy can say the word.
+ */
+export function numberingSystemOverrides(source: string): string[] {
+    const visitor = new NumberingSystemVisitor();
+    visitor.visit(parseFtl(source, {}));
+    return visitor.found;
+}
+
+class NumberingSystemVisitor extends Visitor {
+    found: string[] = [];
+
+    visitFunctionReference(node: FunctionReference) {
+        for (const argument of node.arguments.named) {
+            if (argument.name.name === "numberingSystem") {
+                this.found.push(`${node.id.name}() sets numberingSystem`);
+            }
+        }
+        this.genericVisit(node);
+    }
 }
 
 /** Every key in every namespace of a locale. */

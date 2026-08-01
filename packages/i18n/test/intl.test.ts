@@ -8,15 +8,36 @@ import {
 } from "../src/intl";
 
 describe("intlLocale", () => {
-    it("passes a well-formed tag through", () => {
-        expect(intlLocale("es-MX")).toBe("es-MX");
+    it("keeps a well-formed tag, pinning the numbering system onto it", () => {
+        expect(intlLocale("es-MX")).toBe("es-MX-u-nu-latn");
     });
 
     it("falls back to English for a tag Intl refuses", () => {
         // The POSIX spelling, which `normalizeLocaleTag` deliberately leaves
         // alone so the host's own catalog can still be found by it.
-        expect(intlLocale("en_US")).toBe("en");
-        expect(intlLocale("")).toBe("en");
+        expect(intlLocale("en_US")).toBe("en-u-nu-latn");
+        expect(intlLocale("")).toBe("en-u-nu-latn");
+    });
+
+    it("overrides a numbering system the tag asked for", () => {
+        // One answer per product, not per tag: a host that spells its own
+        // preference into the tag does not get to reopen the policy either.
+        expect(intlLocale("zh-u-nu-hanidec")).toBe("zh-u-nu-latn");
+    });
+
+    it("pins every formatter it feeds, not only the number ones", () => {
+        // What the pin is doing here rather than at each formatter: a locale
+        // reaches `Intl` through this function or it does not reach it at all,
+        // so a formatter added later cannot miss the policy.
+        expect(new Intl.NumberFormat(intlLocale("bn")).format(1234.5)).toBe(
+            "1,234.5",
+        );
+        expect(
+            new Intl.DateTimeFormat(intlLocale("my"), {
+                year: "numeric",
+                timeZone: "UTC",
+            }).format(new Date(Date.UTC(2026, 0, 1))),
+        ).toContain("2026");
     });
 });
 
@@ -48,16 +69,25 @@ describe("formatDecimalString", () => {
         expect(formatDecimalString("de", "1234")).toBe("1.234");
     });
 
-    it("counts digits that are not one code unit each", () => {
-        // Adlam's digits are astral, so a group of three is six code units.
-        // Both the group size read off the pattern and the split of the value
-        // into digits are counted in code points; either one measured in code
-        // units would group this in halves and cut a surrogate pair.
+    it("writes the digits in Latin whatever the locale counts in", () => {
+        // The separators still move, and only the separators. Bangla and
+        // Marathi keep India's grouping, Burmese keeps the plain thousands,
+        // and none of the three writes the value in its own digits — which
+        // they all would if the tag reached `Intl` as it was given (#1615).
+        expect(formatDecimalString("bn", "25236501.35")).toBe("2,52,36,501.35");
+        expect(formatDecimalString("mr", "1234567.5")).toBe("12,34,567.5");
+        expect(formatDecimalString("my", "1234567.5")).toBe("1,234,567.5");
+    });
+
+    it("carries a separator that is not one code unit", () => {
+        // Adlam writes its groups with U+2E41, and its own digits are astral
+        // — which they no longer appear in, but the pattern is still read off
+        // a formatter and the separator still comes back whole.
         expect(formatDecimalString("ff-Adlm", "1234567")).toBe(
-            "\u{1e951}\u{2e41}\u{1e952}\u{1e953}\u{1e954}\u{2e41}\u{1e955}\u{1e956}\u{1e957}",
+            "1\u{2e41}234\u{2e41}567",
         );
         expect(formatDecimalString("ff-Adlm", "0001234")).toBe(
-            "\u{1e950}\u{2e41}\u{1e950}\u{1e950}\u{1e951}\u{2e41}\u{1e952}\u{1e953}\u{1e954}",
+            "0\u{2e41}001\u{2e41}234",
         );
     });
 
@@ -111,23 +141,26 @@ describe("formatDecimalString", () => {
 
     it("writes a negative the way the locale writes one", () => {
         // Not always an ASCII hyphen, and not always only a sign: Persian
-        // negates with U+2212 and Arabic prefixes a bidi mark.
-        expect(formatDecimalString("fa", "-1234")).toBe("‎−۱٬۲۳۴");
-        expect(formatDecimalString("ar-EG", "-1234")).toBe("؜-١٬٢٣٤");
+        // negates with U+2212 and Arabic prefixes a bidi mark. Pinning the
+        // digits flattens neither.
+        expect(formatDecimalString("fa", "-1234")).toBe("\u200e\u22121,234");
+        expect(formatDecimalString("ar-EG", "-1234")).toBe("\u200e-1,234");
     });
 
-    it("keeps a leading zero in the locale's own digits", () => {
-        // Written back after grouping, so it has to be the digit the locale
-        // counts in rather than an ASCII `0` spliced into a Bengali number.
-        expect(formatDecimalString("bn", "0001234")).toBe("০০,০১,২৩৪");
+    it("keeps a leading zero under a locale that groups in twos", () => {
+        // Written back after grouping rather than handed to a formatter, which
+        // would normalize it away.
+        expect(formatDecimalString("bn", "0001234")).toBe("00,01,234");
     });
 
-    it("writes both halves of a number in the same digits", () => {
-        // Bengali and Persian count in their own digits, so an integer part
-        // regrouped by `Intl` comes back transliterated. A fraction copied
-        // across as ASCII would make one number out of two scripts.
-        expect(formatDecimalString("bn", "25236501.35")).toBe("২,৫২,৩৬,৫০১.৩৫");
-        expect(formatDecimalString("fa", "1000.50")).toBe("۱٬۰۰۰٫۵۰");
+    it("takes the separators a locale pairs with Latin digits", () => {
+        // The separator is not independent of the digits: Persian writes \u066c
+        // and \u066b around its own and `,` and `.` around these, so a number
+        // that took one and kept the other would be written in no convention
+        // at all. Where the two sets agree — which is everywhere outside the
+        // Arabic script — nothing moves.
+        expect(formatDecimalString("fa", "1000.50")).toBe("1,000.50");
+        expect(formatDecimalString("bn", "25236501.35")).toBe("2,52,36,501.35");
     });
 
     it("returns anything that is not a decimal literal unchanged", () => {
