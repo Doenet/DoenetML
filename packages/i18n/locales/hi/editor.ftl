@@ -29,10 +29,10 @@ editor-update-viewer-title =
 
 ## The variant picker
 
-editor-variant = संस्करण
-editor-variant-filter = छाँटें...
-editor-variant-next = अगला संस्करण चुनें
-editor-variant-previous = पिछला संस्करण चुनें
+editor-variant = रूपांतर
+editor-variant-filter = फ़िल्टर...
+editor-variant-next = अगला रूपांतर चुनें
+editor-variant-previous = पिछला रूपांतर चुनें
 
 
 ## The accessibility status button
@@ -113,7 +113,7 @@ editor-none-found = कुछ नहीं मिला
 ## Submitted responses
 
 editor-no-responses = अभी तक कोई उत्तर नहीं भेजा गया
-editor-response-answer-id = Answer Id
+editor-response-answer-id = उत्तर आईडी
 editor-response-response = उत्तर
 editor-response-credit = अंक
 editor-response-submitted = भेजा गया

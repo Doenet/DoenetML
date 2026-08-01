@@ -25,7 +25,7 @@
 # keep the English order.
 
 
-## Słownictwo stylów
+## Style vocabulary
 
 color =
     .black =
@@ -225,8 +225,11 @@ line-style =
                 }
         }
 
-# Rzeczowniki w narzędniku liczby mnogiej: występują po «w» i z niczym się nie
-# uzgadniają.
+# Noun phrases in the accusative plural, which is the case «w» takes when it
+# names a pattern — «w romby», the way Polish describes patterned cloth. The
+# accusative of a non-virile plural is spelled like the nominative, so the same
+# words serve `style-fill`, where they stand on their own. They agree with
+# nothing either way.
 fill-style =
     .horizontal = poziome linie
     .vertical = pionowe linie
@@ -255,17 +258,17 @@ noun =
     .cross = krzyżyk
     .plus = plus
 
-# Polski liczy boki po rzeczowniku, więc liczba zamyka wyrażenie za
-# przymiotnikami: «gruby czerwony wielokąt foremny o 5 bokach».
+# Polish counts the sides after the noun, so the count closes the phrase
+# behind the adjectives: «gruby czerwony wielokąt foremny o 5 bokach».
 noun-regular-polygon =
     { $part ->
         [tail] o { $numSides } bokach
        *[head] wielokąt foremny
     }
 
-# Poza rzeczownikami powyżej `$noun` może być «regular-polygon» (wielokąt, m)
-# albo głową wyrażenia, którego opis nie nazywa: «border» (obramowanie, n),
-# «fill» (wypełnienie, n), «text» (tekst, m), «background» (tło, n).
+# Besides the nouns above, `$noun` can be `regular-polygon` (wielokąt, m) or
+# the head of a phrase the description never names: `border` (obramowanie, n),
+# `fill` (wypełnienie, n), `text` (tekst, m), `background` (tło, n).
 noun-gender =
     { $noun ->
         [line] f
@@ -281,7 +284,7 @@ noun-gender =
     }
 
 
-## Składanie stylów
+## Style composition
 
 style-stroke =
     { $parts ->
@@ -294,7 +297,7 @@ style-stroke =
        *[color] { $color }
     }
 
-# Przymiotniki poprzedzają rzeczownik, a dopełnienie zamyka wyrażenie.
+# Adjectives precede the noun, and the complement closes the phrase.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
@@ -324,14 +327,19 @@ style-filled-with-noun =
        *[plain] { $filled } { $color } { $noun }
     }
 
-# «z» rządzi narzędnikiem, którego dostarcza gałąź `border-clause` każdego
-# przymiotnika. Polski nie ma rodzajnika, więc gałęzie `-article` brzmią tak
-# samo jak pozostałe.
+# «z» governs the instrumental, which the `border-clause` branch of every
+# adjective supplies. Polish has no article, so the `-article` branches read
+# the same as the ones without.
+#
+# The `and-` branches keep «z» of their own. English lets one "with" cover both
+# the fill pattern and the border, but Polish names a pattern with «w» and the
+# accusative, and that preposition cannot reach the instrumental behind it — so
+# «i z … obramowaniem», never a bare «i».
 style-border-clause =
     { $parts ->
         [with-article] z { $border } obramowaniem
-        [and] i { $border } obramowaniem
-        [and-article] i { $border } obramowaniem
+        [and] i z { $border } obramowaniem
+        [and-article] i z { $border } obramowaniem
        *[with] z { $border } obramowaniem
     }
 
@@ -343,8 +351,9 @@ style-fill =
 
 style-unfilled = niewypełniony
 
-# «na» rządzi miejscownikiem, który dla rodzaju nijakiego brzmi tak samo jak
-# narzędnik — stąd wspólna postać w obu gałęziach przymiotników.
+# «na» governs the locative, which for a neuter noun is spelled like the
+# instrumental — which is why the `background-clause` and `border-clause`
+# branches of every adjective coincide.
 style-text =
     { $parts ->
         [background] { $color } na { $background } tle
@@ -354,19 +363,19 @@ style-text =
 style-background-none = brak
 
 
-## Słowa logiczne
+## Boolean words
 
 boolean-true = prawda
 boolean-false = fałsz
 
 
-## Przyciski odpowiedzi
+## Answer buttons
 
 answer-submit-label = Sprawdź
 answer-submit-label-no-correctness = Wyślij odpowiedź
 
 
-## Bloki sekcyjne
+## Sectional blocks
 
 section-name =
     .activity = Aktywność
@@ -403,7 +412,7 @@ section-title-prefix =
 hint-title = Wskazówka
 
 
-## Tabele i rysunki
+## Tables and figures
 
 table-name =
     { $parts ->
@@ -422,7 +431,7 @@ figure-name =
     }
 
 
-## Sterowanie paginacją
+## Paginator controls
 
 paginator-previous = Poprzednia
 paginator-next = Następna
@@ -431,14 +440,14 @@ paginator-page = Strona
 paginator-page-status = { $pageLabel } { $currentPage } z { $numPages }
 
 
-## Funkcje określone przedziałami
+## Piecewise functions
 
 piecewise-condition-or = lub
 piecewise-condition-if = jeśli
 piecewise-condition-otherwise = w przeciwnym razie
 
 
-## Chemia
+## Chemistry
 
 element-name =
     .h = Wodór

@@ -10,8 +10,9 @@
 # Brazilian Portuguese, which is what a bare `pt` means — see the note at the
 # head of `content.ftl`.
 #
-# Controls are labelled with the bare imperative, which is what Portuguese puts
-# on a button: `Abrir teclado`, not `Abra o teclado`.
+# Controls are labelled with the infinitive, which is what Portuguese puts on a
+# button: `Abrir teclado`, not `Abra o teclado`. A sentence addressed to the
+# reader still takes the second person — `Recarregue a página`.
 
 
 ## Answer submission

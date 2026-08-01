@@ -700,4 +700,66 @@ describe("a phrase rendered in two positions", () => {
             expect(text.sentence).not.toContain(text.backgroundColor);
         }
     });
+
+    /**
+     * The fill-pattern words fork the same way the adjectives do, but without a
+     * `$role` to say so: `describeClosedShape` puts them behind a preposition
+     * ("with diamonds") while `describeFill` prints them on their own. A
+     * language that inflects a noun after a preposition therefore has to spell
+     * them for the embedded use — the one where a word is actually governed —
+     * and give `style-fill` a head noun for them to hang off, as German's
+     * „blaue Füllung mit Rauten" does. A catalog that forgets prints a bare
+     * governed form: Hindi's oblique plural «समचतुर्भुजों» with nothing
+     * governing it.
+     */
+    it("gives a governed fill pattern something to hang off when it stands alone", () => {
+        const blueDiamonds = {
+            fillColorWord: "blue",
+            fillStyleWord: "diamonds",
+        };
+        const standalone = (t: Translator) =>
+            describeFill(t, blueDiamonds, { filled: true });
+
+        expect(standalone(de)).toBe("blaue Füllung mit Rauten");
+        expect(standalone(ru)).toBe("синяя заливка с ромбами");
+        expect(standalone(hi)).toBe("समचतुर्भुजों वाला नीला भराव");
+        // Polish names a pattern with «w» and the accusative, which for a
+        // non-virile plural is spelled like the nominative — so the same words
+        // serve both positions and no head noun is needed.
+        expect(standalone(pl)).toBe("niebieskie romby");
+    });
+
+    /**
+     * English lets one "with" cover both a fill pattern and the border that
+     * follows it — "with diamonds and a thin red border". A language whose two
+     * clauses take different prepositions cannot: Polish names the pattern with
+     * «w» and the accusative, and that preposition does not reach the
+     * instrumental behind it, so the `and` branch of `style-border-clause` has
+     * to carry a «z» of its own.
+     */
+    it("repeats the preposition when the two clauses do not share one", () => {
+        const patternedWithBorder = (t: Translator) =>
+            describeClosedShape(
+                t,
+                {
+                    colorWord: "red",
+                    lineWidthWord: "thin",
+                    fillColorWord: "green",
+                    fillStyleWord: "diamonds",
+                },
+                { filled: true, noun: { key: "polygon" }, withNoun: true },
+            );
+
+        expect(patternedWithBorder(pl)).toBe(
+            "wypełniony zielony wielokąt w romby i z cienkim czerwonym obramowaniem",
+        );
+        // German and Russian do share one — „mit" and «с» govern both — so
+        // theirs stays a bare conjunction.
+        expect(patternedWithBorder(de)).toBe(
+            "gefülltes grünes Vieleck mit Rauten und einem dünnen roten Rand",
+        );
+        expect(patternedWithBorder(ru)).toBe(
+            "закрашенный зелёный многоугольник с ромбами и тонкой красной границей",
+        );
+    });
 });

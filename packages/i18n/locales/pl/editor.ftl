@@ -11,8 +11,13 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Polish has four plural categories; every countable message below selects on
-# all of them.
+# Polish counts in four plural categories, and which of them a message needs
+# depends on what the count does in it. A message that prints the number next
+# to a noun has to agree that noun with it, so it spells out `one`, `few` and
+# `many` and lets `*[other]` carry the fractional values CLDR routes there. A
+# message where the number never appears — the list messages, whose count only
+# decides whether a verb is singular or plural — has just the two forms Polish
+# offers there, so `one` and `*[other]` are the whole selection.
 
 
 ## The viewer's controls
@@ -126,7 +131,7 @@ editor-none-found = Nic nie znaleziono
 ## Submitted responses
 
 editor-no-responses = Nie wysłano jeszcze żadnych odpowiedzi
-editor-response-answer-id = Answer Id
+editor-response-answer-id = Id odpowiedzi
 editor-response-response = Odpowiedź
 editor-response-credit = Punkty
 editor-response-submitted = Wysłano

@@ -29,10 +29,10 @@ editor-update-viewer-title =
 
 ## The variant picker
 
-editor-variant = ዓይነት
+editor-variant = ተለዋጭ
 editor-variant-filter = አጣራ...
-editor-variant-next = ቀጣዩን ዓይነት ምረጥ
-editor-variant-previous = ቀዳሚውን ዓይነት ምረጥ
+editor-variant-next = ቀጣዩን ተለዋጭ ምረጥ
+editor-variant-previous = ቀዳሚውን ተለዋጭ ምረጥ
 
 
 ## The accessibility status button
@@ -87,8 +87,8 @@ editor-tab-responses = የተላኩ መልሶች
 editor-tab-with-count = { $label }፦ { $count }
 
 editor-options = የአርታዒ አማራጮች
-editor-format-as-doenetml = እንደ DoenetML አቅርብ
-editor-format-as-xml = እንደ XML አቅርብ
+editor-format-as-doenetml = እንደ DoenetML ቅረጽ
+editor-format-as-xml = እንደ XML ቅረጽ
 
 
 ## The diagnostics panel
@@ -113,7 +113,7 @@ editor-none-found = ምንም አልተገኘም
 ## Submitted responses
 
 editor-no-responses = እስካሁን የተላከ መልስ የለም
-editor-response-answer-id = Answer Id
+editor-response-answer-id = የመልስ መለያ
 editor-response-response = መልስ
 editor-response-credit = ነጥብ
 editor-response-submitted = ተልኳል
@@ -121,7 +121,7 @@ editor-response-submitted = ተልኳል
 
 ## The context-help panel
 
-help-placeholder = ሰነዱን ለማየት ጠቋሚውን በመለያ ስም፣ በባሕርይ ወይም በ{ $ref } ላይ ያድርጉ።
+help-placeholder = ማብራሪያ ለማየት ጠቋሚውን በመለያ ስም፣ በባሕርይ ወይም በ{ $ref } ላይ ያድርጉ።
 
 help-unsupported-ref-chain = እንደ { $example } ላሉ ባለብዙ ክፍል ማጣቀሻዎች እገዛ ገና አልተደገፈም።
 

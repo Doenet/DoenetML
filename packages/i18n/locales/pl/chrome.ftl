@@ -8,9 +8,10 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Polish has four plural categories — `one`, `few`, `many` and `other` — and
-# every countable message below selects on all of them. `few` covers 2–4 and
-# any count ending in 2–4 except the teens; `many` covers the rest, including
-# 0. `other` catches the fractional values CLDR routes there.
+# every message here that prints a count beside a noun selects on all of them.
+# `few` covers 2–4 and any count ending in 2–4 except the teens; `many` covers
+# the rest, including 0. `other` catches the fractional values CLDR routes
+# there.
 #
 # Controls take the bare imperative, which is what Polish puts on a button:
 # `Otwórz klawiaturę`, not `Proszę otworzyć klawiaturę`.
@@ -33,7 +34,7 @@ answer-percent-credit = { $percent }% punktów
 answer-percent-correct = { $percent }% poprawnie
 answer-percent-short = { $percent }%
 
-max-credit-available = Maksymalna liczba punktów: { $percent }%
+max-credit-available = Maksymalny dostępny wynik: { $percent }%
 
 attempts-remaining =
     { $count ->

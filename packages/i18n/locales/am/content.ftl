@@ -17,7 +17,7 @@
 # the English order.
 
 
-## የቅጥ ቃላት
+## Style vocabulary
 
 color =
     .black = ጥቁር
@@ -41,7 +41,7 @@ line-style =
     .dashed = ሰረዝ ያለው
     .dotted = ነጥብ ያለው
 
-# የስም ሐረጎች፦ ከ«ያለው» በፊት ይመጣሉ እና ከምንም ጋር አይስማሙም።
+# Noun phrases: they come in front of «ያለው» and agree with nothing.
 fill-style =
     .horizontal = አግድም መስመሮች
     .vertical = ቀጥ ያሉ መስመሮች
@@ -70,7 +70,8 @@ noun =
     .cross = መስቀል
     .plus = የመደመር ምልክት
 
-# የጎን ብዛቱ ከስሙ በፊት ስለሚመጣ ከራስጌው ጋር ተጣምሮ ይቀራል፤ ጭራ የለም።
+# Amharic keeps the side count in front of the noun, so the whole thing is one
+# head and there is no tail.
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
@@ -82,7 +83,7 @@ noun-regular-polygon =
 noun-gender = neuter
 
 
-## የቅጥ ጥምረት
+## Style composition
 
 style-stroke =
     { $parts ->
@@ -144,19 +145,19 @@ style-text =
 style-background-none = የለም
 
 
-## የቡሊያን ቃላት
+## Boolean words
 
 boolean-true = እውነት
 boolean-false = ሐሰት
 
 
-## የመልስ አዝራሮች
+## Answer buttons
 
 answer-submit-label = አረጋግጥ
 answer-submit-label-no-correctness = መልስ ላክ
 
 
-## ክፍሎች
+## Sectional blocks
 
 section-name =
     .activity = እንቅስቃሴ
@@ -193,7 +194,7 @@ section-title-prefix =
 hint-title = ፍንጭ
 
 
-## ሠንጠረዦችና ሥዕሎች
+## Tables and figures
 
 table-name =
     { $parts ->
@@ -212,7 +213,7 @@ figure-name =
     }
 
 
-## የገጽ መቆጣጠሪያዎች
+## Paginator controls
 
 paginator-previous = ቀዳሚ
 paginator-next = ቀጣይ
@@ -221,14 +222,14 @@ paginator-page = ገጽ
 paginator-page-status = { $pageLabel } { $currentPage } ከ{ $numPages }
 
 
-## በክፍል የተገለጹ ተግባራት
+## Piecewise functions
 
 piecewise-condition-or = ወይም
 piecewise-condition-if = ከሆነ
 piecewise-condition-otherwise = ካልሆነ
 
 
-## ኬሚስትሪ
+## Chemistry
 
 # `element-name` and `element-anion-name` are deliberately omitted, and those
 # 130 keys fall back to English.

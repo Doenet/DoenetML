@@ -11,8 +11,11 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# A noun counted by a numeral stays singular in Turkish, so a `{ $count }`
-# message reads the same in both plural branches and needs no selection.
+# A noun counted by a numeral stays singular in Turkish, so a message that
+# prints the number next to a noun reads the same in both plural branches and
+# needs no selection. A message whose count never appears — the list messages,
+# where it only says whether one thing or several are being named — does still
+# select, because there the plural suffix is the only thing carrying it.
 #
 # Turkish suffixes agree with the vowels of the word they attach to, which
 # cannot be done to a placeable whose value is not known — an element or
@@ -244,7 +247,11 @@ eigen-decomposition-failed = Matrisin özdeğerleri hesaplanamadı
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: { $parameters } parametresi örüntüde geçmiyor, bu yüzden her zaman boşlukla eşleşecek.
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: { $parameters } parametresi örüntüde geçmiyor, bu yüzden her zaman boşlukla eşleşecek.
+       *[other] `<matchesPattern>`: { $parameters } parametreleri örüntüde geçmiyor, bu yüzden her zaman boşlukla eşleşecek.
+    }
 
 ## `<graph>`
 
@@ -252,9 +259,9 @@ graph-grid-invalid = `<graph>`: grid="{ $grid }" yorumlanamıyor. none, medium, 
 
 ## PreFigure renderer
 
-prefigure-x-label-position-unsupported = `<graph>`: prefigure görüntüleyicisinde xLabelPosition="left" desteklenmiyor; sağ konum davranışı kullanılıyor.
+prefigure-x-label-position-unsupported = `<graph>`: prefigure işleyicisinde xLabelPosition="left" desteklenmiyor; sağ konum davranışı kullanılıyor.
 
-prefigure-y-label-position-unsupported = `<graph>`: prefigure görüntüleyicisinde yLabelPosition="bottom" desteklenmiyor; üst konum davranışı kullanılıyor.
+prefigure-y-label-position-unsupported = `<graph>`: prefigure işleyicisinde yLabelPosition="bottom" desteklenmiyor; üst konum davranışı kullanılıyor.
 
 prefigure-invalid-axis-bounds = `<graph>`: prefigure dönüşümü için eksen sınırları geçersiz; varsayılan bbox (-10,-10,10,10) kullanılıyor.
 
@@ -262,9 +269,9 @@ prefigure-invalid-width = `<graph>`: prefigure dönüşümü için genişlik ge�
 
 prefigure-invalid-aspect-ratio = `<graph>`: prefigure dönüşümü için aspectRatio geçersiz; varsayılan en boy oranı 1 kullanılıyor.
 
-prefigure-grid-spacing-too-fine = `<graph>`: ızgara aralığı eksen sınırlarına göre çok ince; prefigure görüntüleyicisinde ızgara atlanıyor.
+prefigure-grid-spacing-too-fine = `<graph>`: ızgara aralığı eksen sınırlarına göre çok ince; prefigure işleyicisinde ızgara atlanıyor.
 
-prefigure-annotations-not-rendered = `<graph>`: PreFigure görüntüleyicisi kullanılmadığında açıklamalar çizilmez.
+prefigure-annotations-not-rendered = `<graph>`: PreFigure işleyicisi kullanılmadığında açıklamalar çizilmez.
 
 multiple-annotations-children = `<graph>` içinde birden çok `<annotations>` alt ögesi bulundu; sonuncusu dışındakiler yok sayılıyor.
 
@@ -300,7 +307,11 @@ answer-max-num-attempts-in-section-wide-check-work = Deneme sayısı kapsayıcı
 
 nested-section-wide-check-work-max-num-attempts = Deneme sayısı dıştaki kapsayıcı tarafından denetlendiği için, `sectionWideCheckWork` bulunan başka bir kapsayıcının içindeki `sectionWideCheckWork` kapsayıcısında `maxNumAttempts` ayarlamanın etkisi olmaz. `maxNumAttempts` değerini dıştaki kapsayıcıda ayarlayın.
 
-answer-attributes-need-symbolic-equality = symbolicEquality ayarlanmadan { $attributes } özniteliğinin etkisi olmaz.
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] symbolicEquality ayarlanmadan { $attributes } özniteliğinin etkisi olmaz.
+       *[other] symbolicEquality ayarlanmadan { $attributes } özniteliklerinin etkisi olmaz.
+    }
 
 answer-invalid-type = answer için tür geçersiz: { $type }
 
@@ -320,7 +331,11 @@ pretzel-circuit-first-problem-distractor = pretzel geçersiz: mode="circuit" dur
 
 ## Attribute values
 
-attribute-invalid-values = `{ $attribute }` özniteliği için { $values } değeri geçersiz; yok sayılıyor.
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] `{ $attribute }` özniteliği için { $values } değeri geçersiz; yok sayılıyor.
+       *[other] `{ $attribute }` özniteliği için { $values } değerleri geçersiz; yok sayılıyor.
+    }
 
 attribute-must-be-references = `{ $attribute }` özniteliği için `{ $value }` değeri geçersiz. Öznitelik `$` ile başlayan başvurulardan oluşmalıdır.
 
@@ -360,7 +375,7 @@ style-definition-dark-mode-text-canvas-contrast =
        *[none] Koyu kipte yeterli karşıtlığı sağlamak için açık kip karşıtlığını artırın ya da türetilen rengi textColorDarkMode ile geçersiz kılın.
     }
 
-section-multiple-style-palettes = Bir kısım yalnızca bir <stylePalette> seçebilir; sonuncusu kullanılıyor.
+section-multiple-style-palettes = Bir bölüm yalnızca bir <stylePalette> seçebilir; sonuncusu kullanılıyor.
 
 ## Unique variants
 
@@ -398,7 +413,7 @@ variant-non-constant-exclude-not-implemented = Sabit olmayan exclude bulunan bir
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: grafik prefigure görüntüleyicisinde desteklenmiyor; alt öge atlandı.
+prefigure-descendant-unsupported = { $subject }: grafik prefigure işleyicisinde desteklenmiyor; alt öge atlandı.
 
 prefigure-descendant-invalid-geometry = { $subject }: geometri sonlu değil ya da eksik; alt öge atlandı.
 

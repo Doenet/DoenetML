@@ -236,7 +236,11 @@ eigen-decomposition-failed = आव्यूह के अभिलक्षण�
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: प्राचल { $parameters } पैटर्न में नहीं आता, इसलिए वह सदा रिक्त से मेल खाएगा।
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: प्राचल { $parameters } पैटर्न में नहीं आता, इसलिए वह सदा रिक्त से मेल खाएगा।
+       *[other] `<matchesPattern>`: प्राचल { $parameters } पैटर्न में नहीं आते, इसलिए वे सदा रिक्त से मेल खाएँगे।
+    }
 
 ## `<graph>`
 
@@ -292,7 +296,11 @@ answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` व�
 
 nested-section-wide-check-work-max-num-attempts = `sectionWideCheckWork` वाले किसी अन्य पात्र के भीतर स्थित `sectionWideCheckWork` पात्र पर `maxNumAttempts` सेट करने का कोई प्रभाव नहीं होता, क्योंकि प्रयासों की संख्या बाहरी पात्र नियंत्रित करता है। `maxNumAttempts` बाहरी पात्र पर सेट करें।
 
-answer-attributes-need-symbolic-equality = symbolicEquality सेट किए बिना { $attributes } विशेषता का कोई प्रभाव नहीं होगा।
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] symbolicEquality सेट किए बिना { $attributes } विशेषता का कोई प्रभाव नहीं होगा।
+       *[other] symbolicEquality सेट किए बिना { $attributes } विशेषताओं का कोई प्रभाव नहीं होगा।
+    }
 
 answer-invalid-type = answer के लिए प्रकार अमान्य है: { $type }
 
@@ -312,7 +320,11 @@ pretzel-circuit-first-problem-distractor = अमान्य pretzel: mode="cir
 
 ## Attribute values
 
-attribute-invalid-values = विशेषता `{ $attribute }` के लिए मान { $values } अमान्य है; छोड़ा जा रहा है।
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] विशेषता `{ $attribute }` के लिए मान { $values } अमान्य है; छोड़ा जा रहा है।
+       *[other] विशेषता `{ $attribute }` के लिए मान { $values } अमान्य हैं; छोड़ा जा रहा है।
+    }
 
 attribute-must-be-references = विशेषता `{ $attribute }` के लिए मान `{ $value }` अमान्य है। विशेषता `$` से आरंभ होने वाले संदर्भों से बनी होनी चाहिए।
 

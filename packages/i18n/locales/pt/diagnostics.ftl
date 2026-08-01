@@ -66,17 +66,17 @@ choice-input-label-position-ignored = labelPosition é ignorado em um choiceInpu
 
 ## Ordering children by index
 
-choice-input-indices-count-mismatch = Ignorando os indices especificados para choiceInput porque a quantidade de indices não corresponde à quantidade de filhos choice.
+choice-input-indices-count-mismatch = Ignorando os índices especificados para choiceInput porque a quantidade de índices não corresponde à quantidade de filhos choice.
 
-pretzel-indices-count-mismatch = Ignorando os indices especificados para problem porque a quantidade de indices não corresponde à quantidade de filhos problem.
+pretzel-indices-count-mismatch = Ignorando os índices especificados para problem porque a quantidade de índices não corresponde à quantidade de filhos problem.
 
-shuffle-indices-count-mismatch = Ignorando os indices especificados para shuffle porque a quantidade de indices não corresponde à quantidade de componentes.
+shuffle-indices-count-mismatch = Ignorando os índices especificados para shuffle porque a quantidade de índices não corresponde à quantidade de componentes.
 
-indices-ignored-out-of-range = Ignorando os indices especificados para { $component } porque alguns índices estão fora do intervalo.
+indices-ignored-out-of-range = Ignorando os índices especificados para { $component } porque alguns índices estão fora do intervalo.
 
-pretzel-indices-repeated = Ignorando os indices especificados para pretzel porque alguns índices se repetem.
+pretzel-indices-repeated = Ignorando os índices especificados para pretzel porque alguns índices se repetem.
 
-pretzel-circuit-first-index = Ignorando os indices especificados para pretzel no modo circuit porque o primeiro índice deve ser 1.
+pretzel-circuit-first-index = Ignorando os índices especificados para pretzel no modo circuit porque o primeiro índice deve ser 1.
 
 ## `<shuffle>` and `<sort>`
 

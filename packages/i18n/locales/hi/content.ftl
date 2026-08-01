@@ -25,7 +25,7 @@
 # script but not the numbering system.
 
 
-## शैली शब्दावली
+## Style vocabulary
 
 color =
     .black =
@@ -120,7 +120,10 @@ line-style =
     .dashed = खंडित
     .dotted = बिंदुदार
 
-# संज्ञा वाक्यांश: ये «वाले» से पहले आते हैं और किसी से मेल नहीं खाते।
+# Noun phrases in the oblique plural, because their other use is in front of
+# «वाला» — a postposition, which puts what precedes it in the oblique. They
+# agree with nothing. `style-fill` therefore has to give them something to hang
+# off rather than print them bare, the way German and Russian do.
 fill-style =
     .horizontal = क्षैतिज रेखाओं
     .vertical = ऊर्ध्वाधर रेखाओं
@@ -149,29 +152,28 @@ noun =
     .cross = क्रॉस
     .plus = धन चिह्न
 
-# भुजाओं की गिनती संज्ञा से पहले आती है, इसलिए यह सिर पर ही जुड़ जाती है और
-# कोई पुच्छ नहीं बचता।
+# Hindi keeps the side count in front of the noun, so the whole thing is one
+# head and there is no tail.
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
        *[head] { $numSides } भुजाओं वाला सम बहुभुज
     }
 
-# ऊपर की संज्ञाओं के अलावा `$noun` «regular-polygon» (बहुभुज, पु.) हो सकता है
-# या उस वाक्यांश का शीर्ष जिसे विवरण नाम नहीं देता: «border» (किनारा, पु.),
-# «fill» (भराव, पु.), «text» (पाठ, पु.), «background» (पृष्ठभूमि, स्त्री.)।
+# Besides the nouns above, `$noun` can be `regular-polygon` (बहुभुज, m) or the
+# head of a phrase the description never names: `border` (किनारा, m), `fill`
+# (भराव, m), `text` (पाठ, m), `background` (पृष्ठभूमि, f).
 noun-gender =
     { $noun ->
         [line] f
         [ray] f
         [polyline] f
-        [curve] f
         [background] f
        *[other] m
     }
 
 
-## शैली संयोजन
+## Style composition
 
 style-stroke =
     { $parts ->
@@ -184,7 +186,7 @@ style-stroke =
        *[color] { $color }
     }
 
-# विशेषण संज्ञा से पहले आते हैं, अंग्रेज़ी की तरह।
+# Adjectives precede the noun, as in English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
@@ -213,9 +215,9 @@ style-filled-with-noun =
        *[plain] { $color } { $filled } { $noun }
     }
 
-# «के साथ» एक परसर्ग है, इसलिए «किनारा» तिर्यक रूप «किनारे» लेता है और उसके
-# विशेषण भी — यही `border-clause` शाखा देती है। हिंदी में उपपद नहीं होता,
-# इसलिए `-article` शाखाएँ बाकी जैसी ही पढ़ी जाती हैं।
+# «के साथ» is a postposition, so «किनारा» takes the oblique «किनारे» and so do
+# its adjectives — which is what the `border-clause` branch supplies. Hindi has
+# no article, so the `-article` branches read the same as the ones without.
 style-border-clause =
     { $parts ->
         [with-article] { $border } किनारे के साथ
@@ -224,16 +226,21 @@ style-border-clause =
        *[with] { $border } किनारे के साथ
     }
 
+# The fill-pattern words are oblique plurals, because their other use is the
+# «{ $pattern } वाला» clause in `style-filled`. So this message supplies a noun
+# for them to hang off — «भराव», masculine, which is the gender `noun-gender`
+# already answers for `fill`, so the colour agrees with it in both variants.
 style-fill =
     { $parts ->
-        [pattern] { $color } { $pattern }
-       *[plain] { $color }
+        [pattern] { $pattern } वाला { $color } भराव
+       *[plain] { $color } भराव
     }
 
 style-unfilled = बिना भराव
 
-# «पर» भी परसर्ग है, पर «पृष्ठभूमि» स्त्रीलिंग है और चिह्नित विशेषण का
-# स्त्रीलिंग रूप सीधे और तिर्यक दोनों में एक ही रहता है।
+# «पर» is a postposition too, but «पृष्ठभूमि» is feminine, and a marked
+# adjective spells its feminine the same in the direct and the oblique — so the
+# `background-clause` branch coincides with the standalone feminine.
 style-text =
     { $parts ->
         [background] { $background } पृष्ठभूमि पर { $color }
@@ -243,19 +250,19 @@ style-text =
 style-background-none = कोई नहीं
 
 
-## बूलीय शब्द
+## Boolean words
 
 boolean-true = सत्य
 boolean-false = असत्य
 
 
-## उत्तर बटन
+## Answer buttons
 
 answer-submit-label = जाँचें
 answer-submit-label-no-correctness = उत्तर भेजें
 
 
-## खंड
+## Sectional blocks
 
 section-name =
     .activity = गतिविधि
@@ -292,7 +299,7 @@ section-title-prefix =
 hint-title = संकेत
 
 
-## सारणियाँ और चित्र
+## Tables and figures
 
 table-name =
     { $parts ->
@@ -311,7 +318,7 @@ figure-name =
     }
 
 
-## पृष्ठ नियंत्रण
+## Paginator controls
 
 paginator-previous = पिछला
 paginator-next = अगला
@@ -320,14 +327,14 @@ paginator-page = पृष्ठ
 paginator-page-status = { $numPages } में से { $pageLabel } { $currentPage }
 
 
-## खंडशः फलन
+## Piecewise functions
 
 piecewise-condition-or = या
 piecewise-condition-if = यदि
 piecewise-condition-otherwise = अन्यथा
 
 
-## रसायन विज्ञान
+## Chemistry
 
 element-name =
     .h = हाइड्रोजन

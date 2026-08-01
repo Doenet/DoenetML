@@ -131,6 +131,6 @@ accessibility-heading-level-2 = Erişilebilirlik uyarısı
 
 something-went-wrong = Bir şeyler ters gitti.
 
-renderer-load-failed = bir görüntüleyici bileşeni yüklenemedi. Lütfen sayfayı yeniden yükleyin.
+renderer-load-failed = bir işleyici bileşeni yüklenemedi. Lütfen sayfayı yeniden yükleyin.
 
 core-start-failed = Belge görüntüleyici başlatılamadı. Lütfen sayfayı yeniden yükleyin.

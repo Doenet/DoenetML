@@ -24,7 +24,7 @@
 # article in `style-border-clause` is `uma`.
 
 
-## Vocabulário de estilos
+## Style vocabulary
 
 color =
     .black =
@@ -84,7 +84,7 @@ line-style =
            *[m] pontilhado
         }
 
-# Sintagmas nominais: vêm depois de «com» e não concordam com nada.
+# Noun phrases: they follow «com» and agree with nothing.
 fill-style =
     .horizontal = linhas horizontais
     .vertical = linhas verticais
@@ -113,18 +113,18 @@ noun =
     .cross = cruz
     .plus = sinal de mais
 
-# O nome divide-se: «polígono regular» leva os adjetivos e «de 5 lados» fecha o
-# sintagma depois deles. Se o complemento viesse antes, os adjetivos ficariam
-# separados do nome com que concordam.
+# The noun is split: «polígono regular» carries the agreement and «de 5 lados»
+# closes the phrase behind the adjectives. Were the complement to come first,
+# the adjectives would be stranded away from the noun they agree with.
 noun-regular-polygon =
     { $part ->
         [tail] de { $numSides } lados
        *[head] polígono regular
     }
 
-# Além dos nomes acima, `$noun` pode ser «regular-polygon» (polígono, m) ou o
-# núcleo de um sintagma que a descrição não nomeia: «border» (borda, f),
-# «fill» (preenchimento, m), «text» (texto, m), «background» (fundo, m).
+# Besides the nouns above, `$noun` can be `regular-polygon` (polígono, m) or
+# the head of a phrase the description never names: `border` (borda, f), `fill`
+# (preenchimento, m), `text` (texto, m), `background` (fundo, m).
 noun-gender =
     { $noun ->
         [line] f
@@ -140,7 +140,7 @@ noun-gender =
     }
 
 
-## Composição de estilos
+## Style composition
 
 style-stroke =
     { $parts ->
@@ -153,7 +153,7 @@ style-stroke =
        *[color] { $color }
     }
 
-# O nome vai à frente e os adjetivos atrás: «linha tracejada grossa vermelha».
+# The noun leads and the adjectives follow: «linha tracejada grossa vermelha».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
@@ -172,8 +172,8 @@ style-filled =
        *[plain] { $color } { $filled }
     }
 
-# O complemento fica junto ao nome, e não no fim: «polígono regular de 5 lados
-# azul preenchido».
+# The complement stays beside its own noun rather than at the end: «polígono
+# regular de 5 lados azul preenchido».
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } com { $pattern }
@@ -182,8 +182,8 @@ style-filled-with-noun =
        *[plain] { $noun } { $color } { $filled }
     }
 
-# «borda» é feminino, portanto os adjetivos da borda concordam com ela e não
-# com a figura que a rodeia — e o artigo é «uma».
+# «borda» is feminine, so the border's adjectives agree with it and not with
+# the shape it surrounds — and the article is «uma».
 style-border-clause =
     { $parts ->
         [with-article] com uma borda { $border }
@@ -192,7 +192,7 @@ style-border-clause =
        *[with] com borda { $border }
     }
 
-# «de cor» evita ter de concordar a cor com um padrão no plural.
+# «de cor» avoids having to agree the colour with a plural pattern word.
 style-fill =
     { $parts ->
         [pattern] { $pattern } de cor { $color }
@@ -210,19 +210,19 @@ style-text =
 style-background-none = nenhum
 
 
-## Palavras booleanas
+## Boolean words
 
 boolean-true = verdadeiro
 boolean-false = falso
 
 
-## Botões de resposta
+## Answer buttons
 
 answer-submit-label = Verificar
 answer-submit-label-no-correctness = Enviar resposta
 
 
-## Blocos seccionais
+## Sectional blocks
 
 section-name =
     .activity = Atividade
@@ -259,7 +259,7 @@ section-title-prefix =
 hint-title = Dica
 
 
-## Tabelas e figuras
+## Tables and figures
 
 table-name =
     { $parts ->
@@ -278,7 +278,7 @@ figure-name =
     }
 
 
-## Controles do paginador
+## Paginator controls
 
 paginator-previous = Anterior
 paginator-next = Próxima
@@ -287,14 +287,14 @@ paginator-page = Página
 paginator-page-status = { $pageLabel } { $currentPage } de { $numPages }
 
 
-## Funções definidas por partes
+## Piecewise functions
 
 piecewise-condition-or = ou
 piecewise-condition-if = se
 piecewise-condition-otherwise = caso contrário
 
 
-## Química
+## Chemistry
 
 element-name =
     .h = Hidrogênio

@@ -282,7 +282,7 @@ data-frame-inconsistent-row-lengths = የመረጃው ቅርጽ ልክ አይደ
 
 data-frame-duplicate-column-names = መረጃው የተደጋገሙ የዓምድ ስሞች አሉት። በcomponentIdx :{ $componentIdx } ተገኝቷል
 
-data-frame-missing-column-name = መረጃው የዓምድ ስም ይጎለዋል። በcomponentIdx :{ $componentIdx } ተገኝቷል
+data-frame-missing-column-name = መረጃው የዓምድ ስም ይጎድለዋል። በcomponentIdx :{ $componentIdx } ተገኝቷል
 
 ## `<answer>` and scoring
 
@@ -426,7 +426,7 @@ annotation-ref-outside-graph = `<annotation>`፦ `ref` ልክ አይደለም፤
 
 annotation-ref-unsupported-target = `<annotation>`፦ `ref` ልክ አይደለም፤ በprefigure ልወጣ ውስጥ ዒላማው የሚደገፍ ሥዕላዊ ነገር አይደለም። ማብራሪያው ተትቷል።
 
-annotation-text-missing = `<annotation>`፦ `text` ይጎላል ወይም ባዶ ነው፤ ባዶ ጽሑፍ ወጥቷል።
+annotation-text-missing = `<annotation>`፦ `text` ይጎድላል ወይም ባዶ ነው፤ ባዶ ጽሑፍ ወጥቷል።
 
 ## Composites and references
 

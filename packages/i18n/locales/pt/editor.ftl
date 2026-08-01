@@ -122,7 +122,7 @@ editor-none-found = Nenhum encontrado
 ## Submitted responses
 
 editor-no-responses = Ainda não há respostas enviadas
-editor-response-answer-id = Answer Id
+editor-response-answer-id = Id da resposta
 editor-response-response = Resposta
 editor-response-credit = Nota
 editor-response-submitted = Enviada
@@ -179,7 +179,7 @@ help-property-is-reference =
 
 help-kind-attribute = atributo
 help-kind-snippet = trecho de código
-help-kind-array-entry = entrada de vetor
+help-kind-array-entry = entrada de array
 
 help-default = Padrão:
 help-active-default = Padrão em vigor:

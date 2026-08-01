@@ -85,11 +85,12 @@ subset-toggle-points-intervals = बिंदुओं और अंतराल
 subset-move-points = बिंदु खिसकाएँ
 subset-clear = साफ़ करें
 
-# A `box` here is one orbital, drawn as a square: खाना.
+# A `box` here is one orbital, drawn as a square: खाँचा. Not खाना, whose first
+# reading is "food".
 orbital-add-row = पंक्ति जोड़ें
 orbital-remove-row = पंक्ति हटाएँ
-orbital-add-box = खाना जोड़ें
-orbital-remove-box = खाना हटाएँ
+orbital-add-box = खाँचा जोड़ें
+orbital-remove-box = खाँचा हटाएँ
 orbital-add-up-arrow = ऊपर का तीर जोड़ें
 orbital-add-down-arrow = नीचे का तीर जोड़ें
 orbital-remove-arrow = तीर हटाएँ

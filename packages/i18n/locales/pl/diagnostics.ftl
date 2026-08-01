@@ -11,8 +11,13 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Polish has four plural categories; every countable message below selects on
-# all of them.
+# Polish counts in four plural categories, and which of them a message needs
+# depends on what the count does in it. A message that prints the number next
+# to a noun has to agree that noun with it, so it spells out `one`, `few` and
+# `many` and lets `*[other]` carry the fractional values CLDR routes there. A
+# message where the number never appears — the list messages, whose count only
+# decides whether a verb is singular or plural — has just the two forms Polish
+# offers there, so `one` and `*[other]` are the whole selection.
 
 ## `<lineSegment>`
 
@@ -140,7 +145,15 @@ accessibility-section-title-insufficient-contrast =
 
 ## `<circle>`
 
-circle-through-points-non-numerical = Nie zaimplementowano jeszcze `<circle>` przechodzącego przez { $count } punktów, gdy punkty nie mają wartości liczbowych.
+# «przez» governs the accusative, and the negation in front of it does not
+# reach inside a prepositional phrase — so the count still selects, and 2–4
+# (which is what a circle through points actually gets) needs «punkty».
+circle-through-points-non-numerical =
+    { $count ->
+        [one] Nie zaimplementowano jeszcze `<circle>` przechodzącego przez { $count } punkt, gdy punkty nie mają wartości liczbowych.
+        [few] Nie zaimplementowano jeszcze `<circle>` przechodzącego przez { $count } punkty, gdy punkty nie mają wartości liczbowych.
+       *[other] Nie zaimplementowano jeszcze `<circle>` przechodzącego przez { $count } punktów, gdy punkty nie mają wartości liczbowych.
+    }
 
 circle-too-many-through-points = Nie można wyznaczyć okręgu przechodzącego przez więcej niż 3 punkty.
 
@@ -164,7 +177,33 @@ circle-change-center-non-numerical = Nie zaimplementowano jeszcze zmiany środka
 
 ## `<function>`
 
-function-domain-insufficient-dimensions = Niewystarczające wymiary dziedziny funkcji. Dziedzina ma { $intervals } przedziałów, a funkcja ma { $inputs } argumentów.
+function-domain-insufficient-dimensions =
+    { $intervals ->
+        [one] Niewystarczające wymiary dziedziny funkcji. Dziedzina ma { $intervals } przedział, a funkcja ma { $inputs ->
+            [one] { $inputs } argument
+            [few] { $inputs } argumenty
+            [many] { $inputs } argumentów
+           *[other] { $inputs } argumentu
+        }.
+        [few] Niewystarczające wymiary dziedziny funkcji. Dziedzina ma { $intervals } przedziały, a funkcja ma { $inputs ->
+            [one] { $inputs } argument
+            [few] { $inputs } argumenty
+            [many] { $inputs } argumentów
+           *[other] { $inputs } argumentu
+        }.
+        [many] Niewystarczające wymiary dziedziny funkcji. Dziedzina ma { $intervals } przedziałów, a funkcja ma { $inputs ->
+            [one] { $inputs } argument
+            [few] { $inputs } argumenty
+            [many] { $inputs } argumentów
+           *[other] { $inputs } argumentu
+        }.
+       *[other] Niewystarczające wymiary dziedziny funkcji. Dziedzina ma { $intervals } przedziału, a funkcja ma { $inputs ->
+            [one] { $inputs } argument
+            [few] { $inputs } argumenty
+            [many] { $inputs } argumentów
+           *[other] { $inputs } argumentu
+        }.
+    }
 
 function-domain-invalid-format = Nieprawidłowy format dziedziny funkcji.
 
@@ -189,7 +228,33 @@ function-ignoring-empty =
 
 function-points-too-close = Funkcja zawiera dwa punkty położone zbyt blisko siebie. Nie można zdefiniować funkcji.
 
-function-iterates-input-output-mismatch = Iterowanie funkcji jest możliwe tylko wtedy, gdy liczba argumentów równa się liczbie wartości. Ta funkcja ma { $inputs } argumentów i { $outputs } wartości.
+function-iterates-input-output-mismatch =
+    { $inputs ->
+        [one] Iterowanie funkcji jest możliwe tylko wtedy, gdy liczba argumentów równa się liczbie wartości. Ta funkcja ma { $inputs } argument i { $outputs ->
+            [one] { $outputs } wartość
+            [few] { $outputs } wartości
+            [many] { $outputs } wartości
+           *[other] { $outputs } wartości
+        }.
+        [few] Iterowanie funkcji jest możliwe tylko wtedy, gdy liczba argumentów równa się liczbie wartości. Ta funkcja ma { $inputs } argumenty i { $outputs ->
+            [one] { $outputs } wartość
+            [few] { $outputs } wartości
+            [many] { $outputs } wartości
+           *[other] { $outputs } wartości
+        }.
+        [many] Iterowanie funkcji jest możliwe tylko wtedy, gdy liczba argumentów równa się liczbie wartości. Ta funkcja ma { $inputs } argumentów i { $outputs ->
+            [one] { $outputs } wartość
+            [few] { $outputs } wartości
+            [many] { $outputs } wartości
+           *[other] { $outputs } wartości
+        }.
+       *[other] Iterowanie funkcji jest możliwe tylko wtedy, gdy liczba argumentów równa się liczbie wartości. Ta funkcja ma { $inputs } argumentu i { $outputs ->
+            [one] { $outputs } wartość
+            [few] { $outputs } wartości
+            [many] { $outputs } wartości
+           *[other] { $outputs } wartości
+        }.
+    }
 
 ## `<sequence>`
 
@@ -415,7 +480,7 @@ variant-non-constant-exclude-not-implemented = nie zaimplementowano jeszcze unik
 
 prefigure-descendant-unsupported = { $subject }: nieobsługiwane w rendererze prefigure wykresu; element potomny pominięty.
 
-prefigure-descendant-invalid-geometry = { $subject }: geometria nieskończona albo niepełna; element potomny pominięty.
+prefigure-descendant-invalid-geometry = { $subject }: nieskończone lub niepełne wartości geometryczne; element potomny pominięty.
 
 prefigure-curve-label-omitted = { $subject }: przekształcone elementy krzywej nie obsługują etykiet; etykieta pominięta.
 

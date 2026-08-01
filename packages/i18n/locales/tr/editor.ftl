@@ -11,8 +11,11 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# A noun counted by a numeral stays singular in Turkish, so a `{ $count }`
-# message reads the same in both plural branches and needs no selection.
+# A noun counted by a numeral stays singular in Turkish, so a message that
+# prints the number next to a noun reads the same in both plural branches and
+# needs no selection. A message whose count never appears — `help-coordinates`,
+# which labels one coordinate or several — does still select, because there the
+# plural suffix is the only thing carrying it.
 
 
 ## The viewer's controls
@@ -116,7 +119,7 @@ editor-none-found = Bulunamadı
 ## Submitted responses
 
 editor-no-responses = Henüz gönderilmiş yanıt yok
-editor-response-answer-id = Answer Id
+editor-response-answer-id = Yanıt kimliği
 editor-response-response = Yanıt
 editor-response-credit = Puan
 editor-response-submitted = Gönderildi
@@ -190,7 +193,11 @@ help-suggested-values = Önerilen değerler:
 
 help-inserts = Eklenen:
 
-help-coordinates = Koordinatlar:
+help-coordinates =
+    { $count ->
+        [one] Koordinat:
+       *[other] Koordinatlar:
+    }
 
 help-type = Tür:
 
