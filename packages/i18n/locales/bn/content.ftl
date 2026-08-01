@@ -245,8 +245,10 @@ piecewise-condition-otherwise = অন্যথায়
 
 ## Chemistry
 ##
-## The transliterated names Bangla-medium school chemistry uses, in Bangladesh
-## and in West Bengal alike. Symbols and formulas are untouched.
+## The names Bangla-medium school chemistry uses, in Bangladesh and in West
+## Bengal alike: native words for the metals named before the nomenclature was
+## borrowed — লোহা, তামা, সোনা, রুপা, দস্তা, সীসা, পারদ — and transliterations
+## for the rest. Symbols and formulas are untouched.
 
 element-name =
     .h = হাইড্রোজেন
