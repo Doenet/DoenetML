@@ -70,13 +70,13 @@ describe("directionOf", () => {
 
 describe("stripBidiIsolates", () => {
     it("removes Fluent's isolation marks", () => {
-        expect(stripBidiIsolates("Show ⁨3⁩ responses")).toBe(
+        expect(stripBidiIsolates("Show \u20683\u2069 responses")).toBe(
             "Show 3 responses",
         );
     });
 
     it("removes the directional marks the RTL pseudo-locale adds", () => {
-        expect(stripBidiIsolates("‏»Çórréçţ«‏")).toBe("»Çórréçţ«");
+        expect(stripBidiIsolates("\u200F»Çórréçţ«\u200F")).toBe("»Çórréçţ«");
     });
 
     it("leaves text carrying none of them untouched", () => {

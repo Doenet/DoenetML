@@ -15,8 +15,9 @@
  * tray around them is right-to-left. Every row is a flex row and every region a
  * grid, both of which reverse under `rtl`, so an Arabic reader would otherwise
  * get a mirrored QWERTY and a numeric pad running 3-2-1. The cursor keys are
- * the sharpest case: `.key-left` has to move the caret the way the math field
- * lays the expression out, which is always left.
+ * the sharpest case: `.key-left` sends MathQuill a `Left` keystroke whatever
+ * the CSS says, so a reversed row would leave the `←` key sitting on the right
+ * and moving the caret the other way.
  *
  * Stated here rather than as a `dir` attribute because `Keyboard` returns a
  * different element per style; one rule covers all of them. The tab strip is

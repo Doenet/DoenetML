@@ -74,7 +74,7 @@ function chromeResources(
 /**
  * Whether the chrome in `locale` wraps its placeables in bidi isolation marks.
  *
- * On everywhere except English, keyed on the primary language subtag — so
+ * True for every language except English, keyed on the primary subtag — so
  * `en-GB` is English, and so are both pseudo-locales, which is what keeps
  * `en-XA` and `en-XB` renderable as plain text.
  *

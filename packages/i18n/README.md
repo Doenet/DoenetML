@@ -755,11 +755,12 @@ not mirror while the prose around it does. The pins are `dir="ltr"` on the
 JSXGraph board and the prefigure SVG (both write `text-anchor: start|end`, which
 resolves against the computed direction), the MathQuill wrapper (no `direction`
 declaration anywhere, inline siblings in source order, physical kerns), the
-matrix input and spreadsheet (a `<table>` reverses its columns), the slider (a
-native range input reverses its track), the number line, the orbital diagram,
-and CodeMirror (it renders XML source). Handsontable is told through its own
-`layoutDirection` option rather than through CSS. MathJax needs nothing: its
-CHTML output already pins `direction: ltr` on `mjx-math`.
+matrix input (a `<table>` reverses its columns), the slider (a native range
+input reverses its track), the number line, the orbital diagram, and CodeMirror
+(it renders XML source). The spreadsheet is the one exception to the attribute:
+Handsontable reads the inherited direction through its own `layoutDirection`
+option, so it is told rather than styled. MathJax needs nothing: its CHTML
+output already pins `direction: ltr` on `mjx-math`.
 
 A pin on a *block* needs a width with it: the element still fills its
 container, and its left-to-right contents then align to the container's left
@@ -779,9 +780,9 @@ headers, the graph-controls panel, the editor chrome.
 ### Testing it without a catalog
 
 `en-XB` renders visually identical text to `en-XA` and differs only in
-`directionOf` reporting it `rtl`, plus an invisible right-to-left mark inside
-each bracket so that a value's trailing punctuation resolves the way it would
-in a real RTL sentence. A difference between the two runs is therefore a
+`directionOf` reporting it `rtl`, plus an invisible right-to-left mark against
+the outer face of each bracket so that a value's trailing punctuation resolves
+the way it would in a real RTL sentence. A difference between the two runs is a
 difference in layout and nothing else, and every right-to-left assertion is
 runnable before any right-to-left language is translated. It is deliberately
 not a text transform: Android's U+202E override demonstrates bidi rather than

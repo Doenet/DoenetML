@@ -20,24 +20,29 @@ export const PSEUDO_LOCALE = "en-XA";
  * Arabic look-alikes would cost the same and additionally break the
  * hard-coded-English sweep, which reads `textContent` with a regex.
  *
- * What it *does* add is a right-to-left mark inside each bracket (see
- * {@link PSEUDO_RTL_BRACKETS}), so the neutral characters at a value's edges —
- * trailing periods, parentheses, colons — resolve the way they would in a real
- * RTL sentence.
+ * What it *does* add is a right-to-left mark against the outer face of each
+ * bracket (see {@link PSEUDO_RTL_BRACKETS}), so the neutral characters at a
+ * value's edges — trailing periods, parentheses, colons — resolve the way they
+ * would in a real RTL sentence.
  */
 export const PSEUDO_RTL_LOCALE = "en-XB";
 
 /**
  * The brackets {@link PSEUDO_RTL_LOCALE} wraps its values in: the same `»`/`«`
- * as `en-XA`, each with a U+200F RIGHT-TO-LEFT MARK inside it.
+ * as `en-XA`, each preceded (opener) or followed (closer) by a U+200F
+ * RIGHT-TO-LEFT MARK — i.e. on the face turned towards the surrounding
+ * sentence, not towards the value.
  *
  * The mark is invisible and adds no glyph, so the value reads exactly as it
  * does under `en-XA`; what it changes is the bidi resolution of the neutral
- * characters between the value and whatever surrounds it. `stripBidiIsolates`
- * removes it, so an assertion can still compare rendered text as a plain
- * string.
+ * characters between the value and whatever surrounds it — which is why it
+ * goes outside the `»`, where those neutrals are. `stripBidiIsolates` removes
+ * it, so an assertion can still compare rendered text as a plain string.
+ *
+ * Spelled with escapes because the marks are invisible: written literally,
+ * these two strings look like a bare `»` and `«` in every editor.
  */
-export const PSEUDO_RTL_BRACKETS: [string, string] = ["‏»", "«‏"];
+export const PSEUDO_RTL_BRACKETS: [string, string] = ["\u200F»", "«\u200F"];
 
 /**
  * Latin letters mapped to accented look-alikes. Still readable in English, but

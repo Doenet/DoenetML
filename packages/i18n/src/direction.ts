@@ -166,9 +166,10 @@ function directionFromRawSubtags(tag: string): Direction {
  *
  * The isolates U+2066–U+2069 are what Fluent wraps placeables in when
  * `useIsolating` is on; the marks U+200E/U+200F are what the right-to-left
- * pseudo-locale puts inside its brackets.
+ * pseudo-locale puts against its brackets. Spelled as escapes because written
+ * literally the character class would look empty.
  */
-const BIDI_FORMATTING_CHARACTERS = /[⁦-⁩‎‏]/g;
+const BIDI_FORMATTING_CHARACTERS = /[\u2066-\u2069\u200E\u200F]/g;
 
 /**
  * Strip the invisible bidi formatting characters from rendered text.

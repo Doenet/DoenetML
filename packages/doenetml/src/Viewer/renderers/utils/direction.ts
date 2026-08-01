@@ -16,6 +16,12 @@
  * belongs to. Shrink-to-fit lets the surrounding direction place the box while
  * its insides keep running the other way.
  *
+ * Shrink-to-fit has one consequence worth knowing before adding an island: a
+ * percentage width inside now resolves against the widget's own content width
+ * rather than the column it sits in. Everything here is sized in pixels by
+ * default, so an authored `<slider width="50%" />` is the one case that
+ * renders narrower than it used to.
+ *
  * For an inline island, or one whose element already shrink-wraps, use a bare
  * `dir="ltr"` instead — see `EditableMathField.jsx` and `matrixInput.tsx`.
  */

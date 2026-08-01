@@ -105,8 +105,8 @@
  * Style the checkmark/indicator.
  *
  * Physical `left` on purpose: the tick is two borders of a rotated box, and a
- * check mark is the same shape in every language. The marker box around it is
- * what follows the direction.
+ * check mark is the same shape and sits at the same offset within its own box
+ * in every language. The marker box around it is what follows the direction.
  */
 .doenet-viewer .boolean-container .checkmark:after {
     left: 5px;

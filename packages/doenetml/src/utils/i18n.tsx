@@ -212,10 +212,11 @@ export function useUiLocale(): string {
 }
 
 /**
- * The direction of the document this chrome is drawn inside.
+ * The direction of the document this chrome is drawn inside, or `null` where
+ * there is no surrounding document to disagree with.
  *
- * Defaults to the chrome's own, so a renderer mounted outside `DocViewer` — or
- * before the core has answered — behaves as it does today.
+ * `null` is the default so a renderer mounted outside `DocViewer` — or before
+ * the core has answered — adds no attributes and behaves as it does today.
  */
 const DocumentDirectionContext = createContext<Direction | null>(null);
 
@@ -263,8 +264,10 @@ export function chromeLangDir(
  * chrome provider inside it — so every string a renderer draws through
  * {@link useT} is the reader's language sitting in a box declared to be the
  * content's. That costs nothing while the two run the same way, and is why
- * this returns an empty object in the overwhelmingly common case: no attribute
- * appears, and no existing DOM changes.
+ * this returns an empty object in the overwhelmingly common case: spreading it
+ * then adds no attribute to the element it is spread onto. (Three of the call
+ * sites wrap their string in a `<span>` to have something to spread onto; that
+ * span is inert when the object is empty.)
  *
  * It matters when they disagree, which is the case right-to-left support
  * exists for: a Spanish-speaking reader working an Arabic activity. Without

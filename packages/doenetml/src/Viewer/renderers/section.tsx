@@ -319,27 +319,13 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             }
         }
 
-        // For collapsible boxed sections
-        if (SVs.collapsible) {
-            const headingBoxClassName = `section-heading-${id}`;
-            const escapedHeadingBoxClassName = cesc(headingBoxClassName);
+        // For sections with a heading box: collapsible (always boxed) or
+        // statically boxed. Both draw the number the same way.
+        if (SVs.collapsible || SVs.boxed) {
+            const escapedHeadingBoxClassName = cesc(`section-heading-${id}`);
             cssRules.push(`
                 #${escapedId} .${escapedHeadingBoxClassName}::before {
                     content: "${SVs.sectionNumber}.";
-                    text-align: end;
-                    ${getSectionNumberStyles(hasTitle)}
-                }
-            `);
-        }
-
-        // For static boxed sections
-        if (SVs.boxed && !SVs.collapsible) {
-            const headingBoxClassName = `section-heading-${id}`;
-            const escapedHeadingBoxClassName = cesc(headingBoxClassName);
-            cssRules.push(`
-                #${escapedId} .${escapedHeadingBoxClassName}::before {
-                    content: "${SVs.sectionNumber}.";
-                    text-align: end;
                     ${getSectionNumberStyles(hasTitle)}
                 }
             `);

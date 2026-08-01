@@ -5,7 +5,7 @@ import {
 } from "../tagSpecific/utils/listItemNumberAlignment";
 
 /** Any of the four Unicode bidi isolates Fluent wraps a placeable in. */
-const ISOLATE = /[⁦-⁩]/;
+const ISOLATE = /[\u2066-\u2069]/;
 
 // Covers both halves of the split: chrome, which follows the reader's
 // `uiLocale`, and worker-computed content, which follows the document's.
@@ -464,6 +464,15 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             render({ doenetML: solution, documentLocale: "es", uiLocale: RTL });
 
             cy.get(".doenet-viewer").should("have.attr", "dir", "ltr");
+            // The wrapper around the viewer is the chrome's root, and carries
+            // the reader's tag. `closest` because it is the nearest ancestor
+            // with a theme; nothing inside `.doenet-viewer` has one.
+            cy.get(".doenet-viewer")
+                .closest("[data-theme]")
+                .should("have.attr", "lang", RTL)
+                .should("have.attr", "dir", "rtl");
+            // And the keyboard tray, which is outside the React tree entirely
+            // and so has to be told rather than inherit.
             cy.get("#virtual-keyboard-tray").should("have.attr", "dir", "rtl");
         });
 

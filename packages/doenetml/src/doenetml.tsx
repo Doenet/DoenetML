@@ -268,6 +268,10 @@ export function DoenetViewer({
     // provider that also accounts for an authored `<document lang>`.
     const { translate: translateChrome, locale: hostUiLocale } =
         useHostChromeTranslator(uiLocale, documentLocale, availableCatalogs);
+    // The reader's writing direction. Needed twice: once as an attribute on
+    // the wrapper below, once handed to the keyboard tray, which renders into
+    // its own root and inherits nothing.
+    const hostUiDirection = directionOf(hostUiLocale);
 
     // Start off hidden and then unhide once the viewer is visible.
     // This is needed to delay the initialization of JSXgraph
@@ -416,7 +420,7 @@ export function DoenetViewer({
                     // wrapper below for the *content's* language, so this only
                     // governs what sits outside it.
                     lang={hostUiLocale}
-                    dir={directionOf(hostUiLocale)}
+                    dir={hostUiDirection}
                     ref={(r) => {
                         ref.current = r;
                         if (onInit && r) {
@@ -435,7 +439,7 @@ export function DoenetViewer({
                             }
                             theme={resolvedTheme}
                             translate={translateChrome}
-                            direction={directionOf(hostUiLocale)}
+                            direction={hostUiDirection}
                         >
                             {variantSelector}
                             {viewer}
@@ -604,6 +608,10 @@ export const DoenetEditor = React.forwardRef<
     );
     const { translate: translateChrome, locale: hostUiLocale } =
         useHostChromeTranslator(uiLocale, documentLocale, availableCatalogs);
+    // The reader's writing direction. Needed twice: once as an attribute on
+    // the wrapper below, once handed to the keyboard tray, which renders into
+    // its own root and inherits nothing.
+    const hostUiDirection = directionOf(hostUiLocale);
 
     const normalizedShowDiagnostics =
         showDiagnostics ?? showErrorsWarnings ?? true;
@@ -696,7 +704,7 @@ export const DoenetEditor = React.forwardRef<
                 <div
                     data-theme={resolvedTheme}
                     lang={hostUiLocale}
-                    dir={directionOf(hostUiLocale)}
+                    dir={hostUiDirection}
                     style={{ display: "contents" }}
                 >
                     <I18nProvider
@@ -710,7 +718,7 @@ export const DoenetEditor = React.forwardRef<
                             }
                             theme={resolvedTheme}
                             translate={translateChrome}
-                            direction={directionOf(hostUiLocale)}
+                            direction={hostUiDirection}
                         >
                             {editor}
                         </WrapWithKeyboard>

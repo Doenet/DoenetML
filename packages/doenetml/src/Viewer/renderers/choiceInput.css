@@ -240,10 +240,10 @@
 /*
  * Style the checkmark/indicator.
  *
- * Physical `left` on purpose, and here it matters: the tick is drawn from two
- * borders of a rotated box, and a check mark is the same shape in every
- * language. Making this logical would mirror the glyph into a backwards tick
- * while the marker box around it had already moved.
+ * Physical `left` on purpose: the tick is two borders of a rotated box, and a
+ * check mark is the same shape and sits at the same offset within its own box
+ * in every language. The marker box around it is what follows the direction.
+ * Same rule, same reason, as `booleanInput.css`.
  */
 .doenet-viewer .checkbox-container .checkbox-checkmark:after {
     left: 5px;
