@@ -41,6 +41,9 @@ const isMultiValue = <T,>(
  * - `content` is the rendered choice content (a React node) — which may contain
  *   math, images, or styled text — and is what is actually drawn in the menu
  *   and in the displayed value.
+ *
+ * The two are wired to react-select by the `getOptionLabel` and
+ * `formatOptionLabel` props of `<Select>` below.
  */
 type Option = {
     value: number;
@@ -270,10 +273,15 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             Option: (props: any) => (
                 <components.Option {...props}>
                     {/*
-                     * Render the option content with its style colors, except
-                     * for selected options, which are highlighted with a dark
-                     * background. There, the text color is left to react-select
-                     * (white) for contrast.
+                     * `props.children` is the option's `content`, which
+                     * react-select obtained from `formatOptionLabel`.
+                     * (`props.label` is the plain text used for announcements
+                     * and typeahead, not for display.)
+                     *
+                     * Render it with its style colors, except for selected
+                     * options, which are highlighted with a dark background.
+                     * There, the text color is left to react-select (white) for
+                     * contrast.
                      */}
                     <ChoiceInputInlineContext.Provider
                         value={{
@@ -281,8 +289,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             inOption: !!props.isSelected,
                         }}
                     >
-                        {/* `children` is the rendered choice content that
-                         * react-select obtained from `formatOptionLabel`. */}
                         <div style={{ pointerEvents: "none" }}>
                             {props.children}
                         </div>
@@ -490,14 +496,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             styles={customStyles}
                             options={choiceOptions}
                             components={inlineSelectComponents}
-                            // `getOptionLabel` supplies the plain text that
-                            // react-select interpolates into its aria-live
-                            // announcements and matches typeahead input
-                            // against; `formatOptionLabel` supplies the React
-                            // content it renders in the menu and in the
-                            // displayed value. (`getOptionLabel` restates
-                            // react-select's default so that the two sit
-                            // together and neither is changed in isolation.)
+                            // Keep an option's accessible name (`label`) and
+                            // its rendering (`content`) wired up together — see
+                            // the `Option` type. `getOptionLabel` restates
+                            // react-select's default, which makes a later
+                            // rename of `Option.label` a type error here rather
+                            // than a silent fallback to an undefined name.
                             getOptionLabel={(opt) => opt.label}
                             formatOptionLabel={(opt) => opt.content}
                             menuPortalTarget={menuPortalTarget}

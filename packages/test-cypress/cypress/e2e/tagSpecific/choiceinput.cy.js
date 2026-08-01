@@ -1746,5 +1746,10 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             "have.text",
             "option choice, selected.",
         );
+
+        cy.log(
+            "The plain text is only an accessible name: the displayed value still renders the choice content, and only once",
+        );
+        cy.get('#ci [class*="-singleValue"]').should("have.text", "choice");
     });
 });
