@@ -6,12 +6,15 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Register as in `chrome.ftl`: verbal nouns for controls.
+# Register as in `chrome.ftl`: a control is a verbal noun, and an instruction
+# is «… كېرەك» or «…قا بولىدۇ», never the imperative in ـڭ — which is the polite
+# form, and so would pick a formality for a deployment that never asked.
 #
 # Where English interpolates a bare verb — "Click to { $action } accessibility
 # report" — Uyghur puts its verb at the end of the clause and cannot take one
 # dropped into the middle, so the selector carries the whole sentence. Fluent
-# does not care where a select sits inside a pattern.
+# does not care where a select sits inside a pattern. What the selector carries
+# here is the impersonal «چېكىش … ئاچىدۇ», as Arabic's «النقر يفتح» does.
 
 
 ## The viewer's controls
@@ -42,32 +45,32 @@ editor-variant-previous = ئالدىنقى نۇسخىنى تاللاش
 editor-accessibility-title =
     { $status ->
         [violations] WCAG AA بويىچە زىيارەت قۇلايلىقى بۇزۇلۇشى بايقالدى. { $action ->
-            [close] زىيارەت قۇلايلىقى دوكلاتىنى يېپىش ئۈچۈن چېكىڭ.
-           *[open] زىيارەت قۇلايلىقى دوكلاتىنى ئېچىش ئۈچۈن چېكىڭ.
+            [close] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى يېپىدۇ.
+           *[open] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى ئاچىدۇ.
         }
         [advisories] { $action ->
-            [close] زىيارەت قۇلايلىقى دوكلاتىنى يېپىش ئۈچۈن چېكىڭ.
-           *[open] زىيارەت قۇلايلىقى دوكلاتىنى ئېچىش ئۈچۈن چېكىڭ.
+            [close] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى يېپىدۇ.
+           *[open] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى ئاچىدۇ.
         } WCAG AA بۇزۇلۇشى تېپىلمىدى، لېكىن باشقا تەۋسىيەلەر بار.
        *[clean] { $action ->
-            [close] زىيارەت قۇلايلىقى دوكلاتىنى يېپىش ئۈچۈن چېكىڭ.
-           *[open] زىيارەت قۇلايلىقى دوكلاتىنى ئېچىش ئۈچۈن چېكىڭ.
+            [close] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى يېپىدۇ.
+           *[open] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى ئاچىدۇ.
         } زىيارەت قۇلايلىقىدا مەسىلە تېپىلمىدى.
     }
 
 editor-accessibility-label =
     { $status ->
         [violations] WCAG AA بويىچە زىيارەت قۇلايلىقى بۇزۇلۇشى بايقالدى. { $count } بۇزۇلۇش تېپىلدى. { $action ->
-            [close] زىيارەت قۇلايلىقى دوكلاتىنى يېپىش ئۈچۈن چېكىڭ.
-           *[open] زىيارەت قۇلايلىقى دوكلاتىنى ئېچىش ئۈچۈن چېكىڭ.
+            [close] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى يېپىدۇ.
+           *[open] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى ئاچىدۇ.
         }
         [advisories] WCAG AA بۇزۇلۇشى بايقالمىدى. { $count } قوشۇمچە تەۋسىيە تېپىلدى. { $action ->
-            [close] زىيارەت قۇلايلىقى دوكلاتىنى يېپىش ئۈچۈن چېكىڭ.
-           *[open] زىيارەت قۇلايلىقى دوكلاتىنى ئېچىش ئۈچۈن چېكىڭ.
+            [close] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى يېپىدۇ.
+           *[open] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى ئاچىدۇ.
         }
        *[clean] WCAG AA بۇزۇلۇشى بايقالمىدى. { $action ->
-            [close] زىيارەت قۇلايلىقى دوكلاتىنى يېپىش ئۈچۈن چېكىڭ.
-           *[open] زىيارەت قۇلايلىقى دوكلاتىنى ئېچىش ئۈچۈن چېكىڭ.
+            [close] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى يېپىدۇ.
+           *[open] چېكىش زىيارەت قۇلايلىقى دوكلاتىنى ئاچىدۇ.
         }
     }
 
@@ -123,7 +126,7 @@ editor-response-submitted = يوللانغان ۋاقىت
 
 ## The context-help panel
 
-help-placeholder = ھۆججەتنى كۆرۈش ئۈچۈن نۇر بەلگىنى بىر ئېلېمېنت ئىسمى، خاسلىق ياكى { $ref } ئۈستىگە قويۇڭ.
+help-placeholder = ھۆججەتنى كۆرۈش ئۈچۈن نۇر بەلگىنى بىر ئېلېمېنت ئىسمى، خاسلىق ياكى { $ref } ئۈستىگە قويۇش كېرەك.
 
 help-unsupported-ref-chain = { $example } دەك كۆپ بۆلەكلىك نەقىللەر ئۈچۈن ياردەم تېخى يوق.
 
@@ -146,11 +149,11 @@ help-suggestions-header =
     }{ $allowed ->
         [none] { " — بۇ يەرگە ھېچنېمە كەلمەيدۇ." }
         [text] { " — بۇ يەرگە تېكىست يازغىلى بولىدۇ." }
-        [text-and-components] { " — بۇ يەرگە تېكىست يازغىلى بولىدۇ، ياكى بۇلارنى سىناڭ:" }
+        [text-and-components] { " — بۇ يەرگە تېكىست يازغىلى بولىدۇ، ياكى بۇلارنى سىناشقا بولىدۇ:" }
        *[components] { " — سىنايدىغان نەرسىلەر:" }
     }
 
-help-suggestions-footer = بارلىق { $total } بۆلەكنى كۆرۈش ئۈچۈن { $shortcut } نى بېسىڭ.
+help-suggestions-footer = بارلىق { $total } بۆلەكنى كۆرۈش ئۈچۈن { $shortcut } نى بېسىش كېرەك.
 
 help-name-summary = { $name } — { $summary }
 

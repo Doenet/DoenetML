@@ -8,6 +8,10 @@
 #
 # Register as in `chrome.ftl`: the polite plural.
 #
+# Counting as in `chrome.ftl` too: a Sindhi noun after a numeral takes the
+# plural, so `editor-accessibility-label` — the one counted message in this
+# file — branches on `one` rather than reporting «1 ڀڃڪڙيون».
+#
 # Where English interpolates a bare verb — "Click to { $action } accessibility
 # report" — Sindhi puts its verb at the end of the clause and cannot take one
 # dropped into the middle, so the selector carries the whole sentence. Fluent
@@ -57,11 +61,17 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] WCAG AA موجب رسائي جي ڀڃڪڙي ملي. WCAG AA جون { $count } ڀڃڪڙيون مليون. { $action ->
+        [violations] WCAG AA موجب رسائي جي ڀڃڪڙي ملي. { $count ->
+            [one] WCAG AA جي { $count } ڀڃڪڙي ملي.
+           *[other] WCAG AA جون { $count } ڀڃڪڙيون مليون.
+        } { $action ->
             [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو.
            *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو.
         }
-        [advisories] WCAG AA جي ڪا به ڀڃڪڙي نه ملي. رسائي بابت { $count } ٻيون صلاحون مليون. { $action ->
+        [advisories] WCAG AA جي ڪا به ڀڃڪڙي نه ملي. { $count ->
+            [one] رسائي بابت { $count } ٻي صلاح ملي.
+           *[other] رسائي بابت { $count } ٻيون صلاحون مليون.
+        } { $action ->
             [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو.
            *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو.
         }

@@ -8,6 +8,11 @@
 #
 # Register as in `chrome.ftl`: the polite plural, and «۔» for a full stop.
 #
+# Counting as in `chrome.ftl` too: an Urdu noun after a numeral does not
+# change, so `editor-accessibility-label` — the one counted message in this
+# file — says «{ $count } خلاف ورزی» whatever the count is, and needs no
+# branch.
+#
 # Where English interpolates a bare verb — "Click to { $action } accessibility
 # report" — Urdu puts its verb at the end of the clause and cannot take one
 # dropped into the middle, so the selector carries the whole sentence. Fluent
@@ -57,11 +62,11 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] WCAG AA کے مطابق رسائی کی خلاف ورزی سامنے آئی۔ WCAG AA کی { $count } خلاف ورزیاں ملیں۔ { $action ->
+        [violations] WCAG AA کے مطابق رسائی کی خلاف ورزی سامنے آئی۔ WCAG AA کی { $count } خلاف ورزی ملی۔ { $action ->
             [close] رسائی کی رپورٹ بند کرنے کے لیے کلک کریں۔
            *[open] رسائی کی رپورٹ کھولنے کے لیے کلک کریں۔
         }
-        [advisories] WCAG AA کی کوئی خلاف ورزی سامنے نہیں آئی۔ رسائی سے متعلق { $count } مزید تجاویز ملیں۔ { $action ->
+        [advisories] WCAG AA کی کوئی خلاف ورزی سامنے نہیں آئی۔ رسائی سے متعلق { $count } مزید تجویز ملی۔ { $action ->
             [close] رسائی کی رپورٹ بند کرنے کے لیے کلک کریں۔
            *[open] رسائی کی رپورٹ کھولنے کے لیے کلک کریں۔
         }

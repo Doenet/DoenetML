@@ -8,6 +8,10 @@
 #
 # Register as in `chrome.ftl`: the polite plural.
 #
+# Counting as in `chrome.ftl` too: a Pashto noun after a numeral takes the
+# plural, so `editor-accessibility-label` — the one counted message in this
+# file — branches on `one` rather than reporting «1 سرغړونې».
+#
 # Where English interpolates a bare verb — "Click to { $action } accessibility
 # report" — Pashto puts its verb at the end of the clause and cannot take one
 # dropped into the middle, so the selector carries the whole sentence. Fluent
@@ -57,11 +61,17 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] د WCAG AA له مخې د لاسرسي سرغړونه وموندل شوه. د WCAG AA { $count } سرغړونې وموندل شوې. { $action ->
+        [violations] د WCAG AA له مخې د لاسرسي سرغړونه وموندل شوه. { $count ->
+            [one] د WCAG AA { $count } سرغړونه وموندل شوه.
+           *[other] د WCAG AA { $count } سرغړونې وموندل شوې.
+        } { $action ->
             [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ.
            *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ.
         }
-        [advisories] د WCAG AA هېڅ سرغړونه ونه موندل شوه. د لاسرسي { $count } نورې سپارښتنې وموندل شوې. { $action ->
+        [advisories] د WCAG AA هېڅ سرغړونه ونه موندل شوه. { $count ->
+            [one] د لاسرسي { $count } نوره سپارښتنه وموندل شوه.
+           *[other] د لاسرسي { $count } نورې سپارښتنې وموندل شوې.
+        } { $action ->
             [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ.
            *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ.
         }

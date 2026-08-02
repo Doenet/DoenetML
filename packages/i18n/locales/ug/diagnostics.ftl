@@ -121,7 +121,7 @@ label-for-must-resolve-to-one = `<label>` دىكى `for` خاسلىقى دەل �
 
 label-for-unresolved = `<label>` دىكى `for` خاسلىقى ھېچقانداق بۆلەككە يەتمىدى.
 
-label-for-answer-with-authored-inputs = `<label>` دىكى `for` خاسلىقى كىرگۈزۈشلىرى ئوچۇق يېزىلغان `<answer>` نى كۆرسىتىدۇ؛ كىرگۈزۈشنىڭ ئۆزىنى كۆرسىتىڭ.
+label-for-answer-with-authored-inputs = `<label>` دىكى `for` خاسلىقى كىرگۈزۈشلىرى ئوچۇق يېزىلغان `<answer>` نى كۆرسىتىدۇ؛ كىرگۈزۈشنىڭ ئۆزىنى كۆرسىتىش كېرەك.
 
 label-for-answer-without-input = `<label>` دىكى `for` خاسلىقى ئىسىم قويغىلى بولىدىغان كىرگۈزۈشى يوق `<answer>` نى كۆرسىتىدۇ.
 
@@ -137,7 +137,7 @@ accessibility-input-short-description-or-label = زىيارەت قۇلايلىق
 
 accessibility-answer-input-short-description-or-label = زىيارەت قۇلايلىقى ئۈچۈن كىرگۈزۈش ھاسىل قىلىدىغان `<answer>` دا قىسقا چۈشەندۈرۈش ياكى ئىسىم بولۇشى كېرەك.
 
-accessibility-short-description-contains-math = قىسقا چۈشەندۈرۈشتە `<{ $component }>` دەك ماتېماتىكىلىق بۆلەكلەر بولماسلىقى كېرەك. ماتېماتىكىنى سۆز بىلەن يېزىڭ.
+accessibility-short-description-contains-math = قىسقا چۈشەندۈرۈشتە `<{ $component }>` دەك ماتېماتىكىلىق بۆلەكلەر بولماسلىقى كېرەك. ماتېماتىكىنى سۆز بىلەن يېزىش كېرەك.
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
@@ -313,9 +313,9 @@ data-frame-missing-column-name = سانلىق مەلۇماتتا بىر ئىست
 
 answer-award-depends-on-own-response = بۇ جاۋابنىڭ بىر award ى answer نىڭ ئۆزى يوللىغان جاۋابقا تايىنىدۇ، بۇ كۈتۈلمىگەن ئىش ھەرىكەتنى كەلتۈرۈپ چىقىرىدۇ.
 
-answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` بار قاچىنىڭ ئىچىدىكى `<answer>` غا `maxNumAttempts` بەلگىلەشنىڭ تەسىرى يوق، چۈنكى سىناش سانىنى قاچا بەلگىلەيدۇ. ئۇنىڭ ئورنىغا `maxNumAttempts` نى قاچىغا بەلگىلەڭ.
+answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` بار قاچىنىڭ ئىچىدىكى `<answer>` غا `maxNumAttempts` بەلگىلەشنىڭ تەسىرى يوق، چۈنكى سىناش سانىنى قاچا بەلگىلەيدۇ. ئۇنىڭ ئورنىغا `maxNumAttempts` نى قاچىغا بەلگىلەش كېرەك.
 
-nested-section-wide-check-work-max-num-attempts = `sectionWideCheckWork` بار، ئۆزى يەنە شۇنداق بىر قاچىنىڭ ئىچىدە تۇرغان قاچىغا `maxNumAttempts` بەلگىلەشنىڭ تەسىرى يوق، چۈنكى سىناش سانىنى سىرتقى قاچا بەلگىلەيدۇ. `maxNumAttempts` نى سىرتقى قاچىغا بەلگىلەڭ.
+nested-section-wide-check-work-max-num-attempts = `sectionWideCheckWork` بار، ئۆزى يەنە شۇنداق بىر قاچىنىڭ ئىچىدە تۇرغان قاچىغا `maxNumAttempts` بەلگىلەشنىڭ تەسىرى يوق، چۈنكى سىناش سانىنى سىرتقى قاچا بەلگىلەيدۇ. `maxNumAttempts` نى سىرتقى قاچىغا بەلگىلەش كېرەك.
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
@@ -375,14 +375,14 @@ style-definition-insufficient-contrast =
 
 style-definition-dark-mode-text-background-contrast =
     ئۇسلۇب ئېنىقلىمىسى { $styleNumber } يورۇق ھالەتتە يېتەرلىك سېلىشتۇرما بېرىدىغان رەڭلەرنى بەلگىلىگەن بولسىمۇ، ئۇلاردىن كېلىپ چىققان قاراڭغۇ ھالەت رەڭلىرى تېكىست بىلەن تەگلىك رەڭگى ئارىسىدا يېتەرلىك سېلىشتۇرما بەرمەيدۇ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1؛ ئاز دېگەندە { $threshold }:1 كېرەك). { $suggestion ->
-        [available] قاراڭغۇ ھالەتتە يېتەرلىك سېلىشتۇرما ئۈچۈن يا يورۇق ھالەتنىڭ سېلىشتۇرمىسىنى ئاشۇرۇڭ (مەسىلەن { $lightAttribute }="{ $lightColor }")، يا قاراڭغۇ ھالەت رەڭگىنى ئۆزىڭىز بەلگىلەڭ (مەسىلەن { $darkAttribute }="{ $darkColor }").
-       *[none] قاراڭغۇ ھالەتتە يېتەرلىك سېلىشتۇرما ئۈچۈن يورۇق ھالەتنىڭ سېلىشتۇرمىسىنى ئاشۇرۇڭ ياكى كېلىپ چىققان رەڭلەرنى textColorDarkMode ۋە/ياكى backgroundColorDarkMode بىلەن ئالماشتۇرۇڭ.
+        [available] قاراڭغۇ ھالەتتە يېتەرلىك سېلىشتۇرما ئۈچۈن يا يورۇق ھالەتنىڭ سېلىشتۇرمىسىنى ئاشۇرۇش (مەسىلەن { $lightAttribute }="{ $lightColor }")، يا قاراڭغۇ ھالەت رەڭگىنى بەلگىلەش كېرەك (مەسىلەن { $darkAttribute }="{ $darkColor }").
+       *[none] قاراڭغۇ ھالەتتە يېتەرلىك سېلىشتۇرما ئۈچۈن يورۇق ھالەتنىڭ سېلىشتۇرمىسىنى ئاشۇرۇش ياكى كېلىپ چىققان رەڭلەرنى textColorDarkMode ۋە/ياكى backgroundColorDarkMode بىلەن ئالماشتۇرۇش كېرەك.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
     ئۇسلۇب ئېنىقلىمىسى { $styleNumber } يورۇق ھالەتتە يېتەرلىك سېلىشتۇرما بېرىدىغان تېكىست رەڭگىنى بەلگىلىگەن بولسىمۇ، ئۇنىڭدىن كېلىپ چىققان قاراڭغۇ ھالەت تېكىست رەڭگى تاختىغا سېلىشتۇرغاندا يېتەرلىك سېلىشتۇرما بەرمەيدۇ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1؛ ئاز دېگەندە { $threshold }:1 كېرەك). { $suggestion ->
-        [available] قاراڭغۇ ھالەتتە يېتەرلىك سېلىشتۇرما ئۈچۈن يا يورۇق ھالەتنىڭ سېلىشتۇرمىسىنى ئاشۇرۇڭ (مەسىلەن textColor="{ $lightColor }")، يا قاراڭغۇ ھالەت رەڭگىنى ئۆزىڭىز بەلگىلەڭ (مەسىلەن textColorDarkMode="{ $darkColor }").
-       *[none] قاراڭغۇ ھالەتتە يېتەرلىك سېلىشتۇرما ئۈچۈن يورۇق ھالەتنىڭ سېلىشتۇرمىسىنى ئاشۇرۇڭ ياكى كېلىپ چىققان رەڭنى textColorDarkMode بىلەن ئالماشتۇرۇڭ.
+        [available] قاراڭغۇ ھالەتتە يېتەرلىك سېلىشتۇرما ئۈچۈن يا يورۇق ھالەتنىڭ سېلىشتۇرمىسىنى ئاشۇرۇش (مەسىلەن textColor="{ $lightColor }")، يا قاراڭغۇ ھالەت رەڭگىنى بەلگىلەش كېرەك (مەسىلەن textColorDarkMode="{ $darkColor }").
+       *[none] قاراڭغۇ ھالەتتە يېتەرلىك سېلىشتۇرما ئۈچۈن يورۇق ھالەتنىڭ سېلىشتۇرمىسىنى ئاشۇرۇش ياكى كېلىپ چىققان رەڭنى textColorDarkMode بىلەن ئالماشتۇرۇش كېرەك.
     }
 
 section-multiple-style-palettes = بىر بۆلۈم پەقەت بىرلا <stylePalette> تاللىيالايدۇ؛ ئاخىرقىسى ئىشلىتىلىدۇ.
@@ -557,8 +557,8 @@ external-doenetml-type-mismatch = { $attribute }="{ $uri }" دىن ئېلىنغ�
 
 deprecated-attribute-renamed =
     { $component ->
-        [none] [deprecation] `{ $from }` خاسلىقى ۋاز كېچىلگەن؛ ئۇنىڭ ئورنىغا `{ $to }` نى ئىشلىتىڭ.
-       *[other] [deprecation] `<{ $component }>` دىكى `{ $from }` خاسلىقى ۋاز كېچىلگەن؛ ئۇنىڭ ئورنىغا `{ $to }` نى ئىشلىتىڭ.
+        [none] [deprecation] `{ $from }` خاسلىقى ۋاز كېچىلگەن؛ ئۇنىڭ ئورنىغا `{ $to }` نى ئىشلىتىش كېرەك.
+       *[other] [deprecation] `<{ $component }>` دىكى `{ $from }` خاسلىقى ۋاز كېچىلگەن؛ ئۇنىڭ ئورنىغا `{ $to }` نى ئىشلىتىش كېرەك.
     }
 
 deprecated-attribute-renamed-conflict =
@@ -572,7 +572,7 @@ deprecated-attribute-ignored = [deprecation] `<{ $component }>` دىكى `{ $att
 
 ## Language coverage
 
-pluralize-english-only = `<pluralize>` پەقەت ئىنگلىزچە سۆزلەرنىلا كۆپلۈك قىلالايدۇ، شۇڭا { $locale } تىلىدا يېزىلغان ھۆججەتتە ئۇنىڭ تېكىستى ئۆزگەرمەي قالىدۇ. كۆپلۈك شەكلىنى بىۋاسىتە يېزىڭ، ياكى ئۇنى `pluralForm` خاسلىقى بىلەن بەلگىلەڭ.
+pluralize-english-only = `<pluralize>` پەقەت ئىنگلىزچە سۆزلەرنىلا كۆپلۈك قىلالايدۇ، شۇڭا { $locale } تىلىدا يېزىلغان ھۆججەتتە ئۇنىڭ تېكىستى ئۆزگەرمەي قالىدۇ. كۆپلۈك شەكلىنى بىۋاسىتە يېزىش، ياكى ئۇنى `pluralForm` خاسلىقى بىلەن بەلگىلەش كېرەك.
 
 
 ## Checking against the schema

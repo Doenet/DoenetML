@@ -139,6 +139,6 @@ accessibility-heading-level-2 = زىيارەت قۇلايلىقى ئەسكەرت
 something-went-wrong = بىر يەردە خاتالىق كۆرۈلدى.
 
 # Follows `error-heading` and a colon.
-renderer-load-failed = بىر بۆلەك يۈكلەنمىدى. بەتنى قايتا يۈكلەڭ.
+renderer-load-failed = بىر بۆلەك يۈكلەنمىدى. بەتنى قايتا يۈكلەش كېرەك.
 
-core-start-failed = ھۆججەت كۆرگۈچنى قوزغاتقىلى بولمىدى. بەتنى قايتا يۈكلەڭ.
+core-start-failed = ھۆججەت كۆرگۈچنى قوزغاتقىلى بولمىدى. بەتنى قايتا يۈكلەش كېرەك.

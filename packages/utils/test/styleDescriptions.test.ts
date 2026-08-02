@@ -50,6 +50,12 @@ const he: Translator = createTranslatorFromLocaleData(
     "he",
 );
 
+/** One whose adjectives follow the noun rather than preceding it. */
+const ar: Translator = createTranslatorFromLocaleData(
+    { locale: "ar", resources: { ar: readCatalog("ar", "content") } },
+    "ar",
+);
+
 /** One that agrees them *and* inflects them for the position they land in. */
 const ur: Translator = createTranslatorFromLocaleData(
     { locale: "ur", resources: { ur: readCatalog("ur", "content") } },
@@ -499,6 +505,49 @@ describe("Spanish", () => {
                 { noun: line, withNoun: true },
             ),
         ).toBe("línea rebeccapurple");
+    });
+});
+
+describe("Arabic", () => {
+    // The fill is the phrase head an Arabic description is likeliest to get
+    // wrong, because the words `describeFill` puts beside the colour are
+    // feminine plurals — «معينات» — while the head they hang off, «ملء», is
+    // masculine. The gender belongs to the head, so the pattern is given a
+    // noun of its own («بلون») rather than the colour being agreed with it;
+    // otherwise `fillColor` on its own would report a feminine adjective with
+    // nothing feminine in sight.
+    it("agrees the fill colour with the word for fill, not with the pattern", () => {
+        expect(
+            describeFill(
+                ar,
+                { fillColorWord: "blue", fillStyleWord: "diamonds" },
+                { filled: true },
+            ),
+        ).toBe("معينات بلون أزرق");
+        expect(
+            describeFill(ar, { fillColorWord: "blue" }, { filled: true }),
+        ).toBe("أزرق");
+    });
+
+    // The background is the one head that *is* feminine, so the two assertions
+    // together say that `noun-gender` names exactly the head it has to.
+    it("agrees a background as feminine and the text beside it as masculine", () => {
+        expect(describeColor(ar, "yellow", "background")).toBe("صفراء");
+        expect(describeColor(ar, "red", "text")).toBe("أحمر");
+    });
+
+    it("puts the noun in front of the adjectives that agree with it", () => {
+        expect(
+            describeStrokedShape(
+                ar,
+                {
+                    lineWidthWord: "thick",
+                    lineStyleWord: "dashed",
+                    colorWord: "red",
+                },
+                { noun: { key: "circle" }, withNoun: true },
+            ),
+        ).toBe("دائرة حمراء متقطعة سميكة");
     });
 });
 

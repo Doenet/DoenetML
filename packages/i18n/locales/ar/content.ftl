@@ -176,6 +176,12 @@ noun-regular-polygon =
        *[head] مضلع منتظم
     }
 
+# Besides the nouns above, `$noun` may be «regular-polygon» (مضلع منتظم, m) or
+# the head of a phrase the description never names: «border» (إطار, m), «fill»
+# (ملء, m), «text» (نص, m), «background» (خلفية, f). Only the last is feminine
+# and only it is listed; the other three take the default. «خلفية» has to be
+# named because `style-text` writes it and its adjective would otherwise read
+# «على خلفية أصفر».
 noun-gender =
     { $noun ->
         [line-segment] f
@@ -185,7 +191,6 @@ noun-gender =
         [point] f
         [cross] f
         [plus] f
-        [fill] f
         [background] f
        *[other] m
     }
@@ -251,11 +256,14 @@ style-border-clause =
        *[with] بإطار { $border }
     }
 
-# The pattern is the noun here and the colour the adjective describing it, so
-# the two swap places against the English: "blue diamonds" is «معينات زرقاء».
+# «بلون» — "of the colour" — because the colour arrives agreed with «ملء»,
+# which is masculine singular, while the pattern words are feminine plurals.
+# The plain variant is the whole of what `fillColor` reports, so the gender the
+# adjective takes there has to be the fill's own; hanging the pattern off a
+# noun of its own is what lets both variants use the one form.
 style-fill =
     { $parts ->
-        [pattern] { $pattern } { $color }
+        [pattern] { $pattern } بلون { $color }
        *[plain] { $color }
     }
 
