@@ -80,6 +80,8 @@ slider-next = הבא
 keyboard-open = פתיחת המקלדת
 keyboard-close = סגירת המקלדת
 
+choice-input-remove-choice = הסרת { $choice }
+
 matrix-remove-row = הסרת שורה
 matrix-add-row = הוספת שורה
 matrix-remove-column = הסרת עמודה

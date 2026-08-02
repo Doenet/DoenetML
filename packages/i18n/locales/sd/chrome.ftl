@@ -76,6 +76,8 @@ slider-next = ايندڙ
 keyboard-open = ڪي بورڊ کوليو
 keyboard-close = ڪي بورڊ بند ڪريو
 
+choice-input-remove-choice = { $choice } هٽايو
+
 matrix-remove-row = قطار هٽايو
 matrix-add-row = قطار شامل ڪريو
 matrix-remove-column = ڪالم هٽايو

@@ -88,6 +88,8 @@ slider-next = التالي
 keyboard-open = فتح لوحة المفاتيح
 keyboard-close = إغلاق لوحة المفاتيح
 
+choice-input-remove-choice = حذف { $choice }
+
 matrix-remove-row = حذف صف
 matrix-add-row = إضافة صف
 matrix-remove-column = حذف عمود

@@ -71,6 +71,12 @@ slider-next = كېيىنكى
 keyboard-open = ھەرپتاختىنى ئېچىش
 keyboard-close = ھەرپتاختىنى يېپىش
 
+# The accusative «نى» is written detached after the placeable, as it is after
+# `{ $shortcut }` in `editor.ftl` and as Uyghur writes a case ending against a
+# foreign word. `$choice` is the choice's own text, in whatever language the
+# document is written in, so it is exactly that case.
+choice-input-remove-choice = { $choice } نى ئۆچۈرۈش
+
 matrix-remove-row = قۇر ئۆچۈرۈش
 matrix-add-row = قۇر قوشۇش
 matrix-remove-column = ئىستون ئۆچۈرۈش

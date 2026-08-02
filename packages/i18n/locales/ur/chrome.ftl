@@ -73,6 +73,8 @@ slider-next = اگلا
 keyboard-open = کی بورڈ کھولیں
 keyboard-close = کی بورڈ بند کریں
 
+choice-input-remove-choice = { $choice } ہٹائیں
+
 matrix-remove-row = سطر ہٹائیں
 matrix-add-row = سطر شامل کریں
 matrix-remove-column = کالم ہٹائیں

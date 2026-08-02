@@ -77,6 +77,8 @@ slider-next = راتلونکی
 keyboard-open = کیبورډ پرانیزئ
 keyboard-close = کیبورډ وتړئ
 
+choice-input-remove-choice = { $choice } لرې کړئ
+
 matrix-remove-row = کتار لرې کړئ
 matrix-add-row = کتار زیات کړئ
 matrix-remove-column = ستون لرې کړئ

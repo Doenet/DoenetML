@@ -73,6 +73,8 @@ slider-next = بعدی
 keyboard-open = باز کردن صفحه‌کلید
 keyboard-close = بستن صفحه‌کلید
 
+choice-input-remove-choice = حذف { $choice }
+
 matrix-remove-row = حذف سطر
 matrix-add-row = افزودن سطر
 matrix-remove-column = حذف ستون
