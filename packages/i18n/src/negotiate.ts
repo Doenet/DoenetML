@@ -11,6 +11,30 @@ export type NegotiateLocalesOptions = {
 };
 
 /**
+ * Language subtags a request may arrive under that no catalog is named after.
+ *
+ * `Intl.getCanonicalLocales` already rewrites the deprecated codes a browser
+ * might still send — `iw` to `he`, `in` to `id`, `mo` to `ro` — so only the
+ * ones it leaves alone are listed here.
+ *
+ * `no` is the macrolanguage covering both written Norwegians, and `nb` is the
+ * one of the two with a catalog. It is also what a hand-typed
+ * `<document lang="no">` says, and what several browsers still send. Filtering
+ * negotiation matches on the language subtag, so `no` reaches nothing at all
+ * and would fall to English with nothing to say why. `nn` is deliberately
+ * absent: Nynorsk is a written standard of its own, and answering it with
+ * Bokmål would be a substitution rather than a canonicalization.
+ */
+const LANGUAGE_ALIASES: Record<string, string> = { no: "nb" };
+
+/** Rewrite a request's language subtag if it is one no catalog is named after. */
+function applyLanguageAlias(tag: string): string {
+    const [language, ...rest] = tag.split("-");
+    const alias = LANGUAGE_ALIASES[language.toLowerCase()];
+    return alias === undefined ? tag : [alias, ...rest].join("-");
+}
+
+/**
  * Build a fallback chain from what the host asked for and what actually
  * exists.
  *
@@ -19,7 +43,9 @@ export type NegotiateLocalesOptions = {
  * chain. The default locale is always appended, so the chain never ends
  * somewhere a lookup could fall off.
  *
- * @param requested BCP-47 tags in the host's order of preference.
+ * @param requested BCP-47 tags in the host's order of preference. A tag whose
+ *   language subtag is one no catalog is named after is rewritten first; see
+ *   {@link LANGUAGE_ALIASES}.
  * @param available Locales with catalogs on hand.
  */
 export function negotiateLocales(
@@ -35,10 +61,14 @@ export function negotiateLocales(
         ? available
         : [...available, defaultLocale];
 
-    return negotiateLanguages(requested, availableWithDefault, {
-        strategy: "filtering",
-        defaultLocale,
-    });
+    return negotiateLanguages(
+        requested.map(applyLanguageAlias),
+        availableWithDefault,
+        {
+            strategy: "filtering",
+            defaultLocale,
+        },
+    );
 }
 
 /**

@@ -11,29 +11,39 @@ export type SupportedLocale =
     | "ar"
     | "as"
     | "bn"
+    | "cs"
+    | "da"
     | "de"
+    | "el"
     | "es"
     | "fa"
+    | "fi"
     | "fr"
     | "he"
     | "hi"
     | "hnj"
+    | "hu"
     | "id"
     | "it"
     | "ja"
     | "ko"
     | "mr"
     | "my"
+    | "nb"
     | "ne"
     | "nl"
     | "pl"
     | "ps"
     | "pt"
+    | "ro"
     | "ru"
     | "sd"
+    | "sk"
     | "so"
+    | "sv"
     | "tr"
     | "ug"
+    | "uk"
     | "ur"
     | "vi"
     | "zh-Hans"
@@ -101,10 +111,28 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Bangla (বাংলা)",
     },
     {
+        locale: "cs",
+        englishName: "Czech",
+        endonym: "čeština",
+        label: "Czech (čeština)",
+    },
+    {
+        locale: "da",
+        englishName: "Danish",
+        endonym: "dansk",
+        label: "Danish (dansk)",
+    },
+    {
         locale: "de",
         englishName: "German",
         endonym: "Deutsch",
         label: "German (Deutsch)",
+    },
+    {
+        locale: "el",
+        englishName: "Greek",
+        endonym: "Ελληνικά",
+        label: "Greek (Ελληνικά)",
     },
     {
         locale: "es",
@@ -117,6 +145,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Persian",
         endonym: "فارسی",
         label: "Persian (فارسی)",
+    },
+    {
+        locale: "fi",
+        englishName: "Finnish",
+        endonym: "suomi",
+        label: "Finnish (suomi)",
     },
     {
         locale: "fr",
@@ -141,6 +175,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Hmong Njua",
         endonym: "Hmong Njua",
         label: "Hmong Njua",
+    },
+    {
+        locale: "hu",
+        englishName: "Hungarian",
+        endonym: "magyar",
+        label: "Hungarian (magyar)",
     },
     {
         locale: "id",
@@ -179,6 +219,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Burmese (မြန်မာ)",
     },
     {
+        locale: "nb",
+        englishName: "Norwegian Bokmål",
+        endonym: "norsk bokmål",
+        label: "Norwegian Bokmål (norsk bokmål)",
+    },
+    {
         locale: "ne",
         englishName: "Nepali",
         endonym: "नेपाली",
@@ -209,6 +255,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Portuguese (português)",
     },
     {
+        locale: "ro",
+        englishName: "Romanian",
+        endonym: "română",
+        label: "Romanian (română)",
+    },
+    {
         locale: "ru",
         englishName: "Russian",
         endonym: "русский",
@@ -221,10 +273,22 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Sindhi (سنڌي)",
     },
     {
+        locale: "sk",
+        englishName: "Slovak",
+        endonym: "slovenčina",
+        label: "Slovak (slovenčina)",
+    },
+    {
         locale: "so",
         englishName: "Somali",
         endonym: "Soomaali",
         label: "Somali (Soomaali)",
+    },
+    {
+        locale: "sv",
+        englishName: "Swedish",
+        endonym: "svenska",
+        label: "Swedish (svenska)",
     },
     {
         locale: "tr",
@@ -237,6 +301,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Uyghur",
         endonym: "ئۇيغۇرچە",
         label: "Uyghur (ئۇيغۇرچە)",
+    },
+    {
+        locale: "uk",
+        englishName: "Ukrainian",
+        endonym: "українська",
+        label: "Ukrainian (українська)",
     },
     {
         locale: "ur",

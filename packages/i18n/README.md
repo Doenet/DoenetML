@@ -67,13 +67,13 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
-`de`, `es`, `fa`, `fr`, `he`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`,
-`ne`, `nl`, `pl`, `ps`, `pt`, `ru`, `sd`, `so`, `tr`, `ug`, `ur`, `vi`,
-`zh-Hans`, `zh-Hant` — is an **unreviewed machine-generated seed**, which each
-file's own header says at the top, and which is what #1521's translation
-platform is for. None has been read by a speaker. Correcting one needs no
-permission and no coordination: a wrong string is just wrong, and the English
-is one key away.
+`cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fr`, `he`, `hi`, `hnj`, `hu`, `id`,
+`it`, `ja`, `ko`, `mr`, `my`, `nb`, `ne`, `nl`, `pl`, `ps`, `pt`, `ro`, `ru`,
+`sd`, `sk`, `so`, `sv`, `tr`, `ug`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` — is
+an **unreviewed machine-generated seed**, which each file's own header says at
+the top, and which is what #1521's translation platform is for. None has been
+read by a speaker. Correcting one needs no permission and no coordination: a
+wrong string is just wrong, and the English is one key away.
 
 Ten of them are deliberately partial, all in the same place: Somali, Hmong
 Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur and Vietnamese
@@ -104,6 +104,17 @@ the right outcome, since the wrong script is not a partial translation but a
 different one. It is not symmetric: `zh-CN` and `zh-SG` negotiate to
 `["zh-Hans", "zh-Hant", "en"]`, since filtering offers every `zh-*` catalog it
 has, so a gap in `zh-Hans` can be filled from `zh-Hant` on a page holding both.
+
+Norwegian is the other case where the tag a reader arrives under is not the tag
+a directory is named for. `nb` is Bokmål specifically; `no` is the
+macrolanguage over Bokmål and Nynorsk, and it is what a hand-typed
+`<document lang>` usually says and what several browsers still send. Nothing in
+filtering negotiation connects the two, so `negotiate.ts` rewrites the language
+subtag before negotiating — the same service `Intl.getCanonicalLocales` already
+performs for `iw`, `in` and `mo`, which it maps to `he`, `id` and `ro` on its
+own. `nn` is left alone: Nynorsk is a written standard of its own, and
+answering it with Bokmål would be a substitution rather than a
+canonicalization.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
@@ -363,8 +374,9 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and German, Russian, Polish, Hindi, Marathi, Urdu, Sindhi and Pashto
-are the catalogs that select on them. Sharing a script does not imply sharing
+positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
+Romanian, Finnish, Hindi, Marathi, Urdu, Sindhi and Pashto are the catalogs
+that select on them. Sharing a script does not imply sharing
 the fork: Marathi and Hindi both take an oblique adjective before a
 postposition and Nepali, written in the same letters, takes none. Nor is the
 fork all-or-nothing — Pashto marks the oblique on a feminine adjective in ـه
@@ -402,6 +414,43 @@ hard way:
   beside the attribute it explains. `lint:i18n` fails on any pattern that
   renders a line break, which is what makes both of these findable before a
   reader meets them.
+
+### An affix cannot be welded to a placeable
+
+The one constraint that recurs in every catalog that has to restructure a
+message rather than translate it in place, and it has nothing to do with
+writing direction — it turned up first in Arabic and Uyghur and then in
+Hungarian, Finnish, Czech, Slovak and Romanian.
+
+A placeable is a value the catalog never sees. So a message may not depend on
+what that value turns out to *be*:
+
+| The catalog wants | The language | Why it cannot |
+| --- | --- | --- |
+| a case ending on the value | `ar`, `ug`, `hu`, `fi` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
+| the definite article on the value | `ro` | the article is a suffix — «secțiune» → «secțiunea» |
+| a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
+| a compound with the value | `fi` | Finnish writes a compound as one word |
+
+Adjacency is not the problem. `{ $numSides }-kulmio` is correct Finnish for
+every side count, because `-kulmio` is the same whatever number lands in front
+of it. What cannot be written is *agreement* with an unknown word.
+
+There are four ways out, and every catalog here takes one of them:
+
+- **Name what the value is.** «للمكوّن { $component }» — "for the component X"
+  — puts the affix on a word the catalog writes.
+- **Reach for a word that can stand beside it.** A postposition in Urdu, a
+  relative clause in Finnish («jossa on vinoneliöitä»), a demonstrative in
+  Hungarian («ehhez: { $answerId }»).
+- **Choose the words that land there.** Czech's pattern for horizontal lines is
+  «horizontální čáry» rather than «vodorovné čáry», because «v vodorovné» would
+  have wanted «ve».
+- **Write both forms.** Hungarian's «a(z)» is the standard orthographic answer
+  to exactly this problem, and predates software by a long way.
+
+A select whose variants would land against such an affix carries the affix into
+each variant: Fluent does not care where a select sits inside a pattern.
 
 ## Diagnostics
 
@@ -848,13 +897,11 @@ Three things recur across them, none a property of the direction:
   the locale would otherwise have chosen.
 - **An affix cannot be welded to a placeable.** Arabic attaches «لـ» and «بـ»
   to the word after them and Uyghur attaches its case endings to the word
-  before, and in each case there is no word — there is an argument. So a
-  message that reads "for `<{ $component }>`" in English names what the
-  argument is instead, «للمكوّن { $component }», or reaches for a postposition,
-  which is a word of its own and can stand beside one. A select whose variants
-  would land against such an affix carries it into each variant: Fluent does
-  not care where a select sits inside a pattern, and this is why several
-  messages are restructured rather than translated in place.
+  before, and in each case there is no word — there is an argument. This is
+  where these two met a constraint that turned out to hold in half the
+  left-to-right catalogs as well; see
+  [An affix cannot be welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable)
+  for the general shape of it and the ways out.
 - **A distinction the source language makes may not exist.** Where English
   separates a singular from a plural only in the verb — "is ignored" against
   "are ignored" — most of these cover both with one form, and the select is

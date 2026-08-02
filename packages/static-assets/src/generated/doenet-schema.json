@@ -64980,8 +64980,20 @@
                             "description": "Bangla (বাংলা)"
                         },
                         {
+                            "value": "cs",
+                            "description": "Czech (čeština)"
+                        },
+                        {
+                            "value": "da",
+                            "description": "Danish (dansk)"
+                        },
+                        {
                             "value": "de",
                             "description": "German (Deutsch)"
+                        },
+                        {
+                            "value": "el",
+                            "description": "Greek (Ελληνικά)"
                         },
                         {
                             "value": "es",
@@ -64990,6 +65002,10 @@
                         {
                             "value": "fa",
                             "description": "Persian (فارسی)"
+                        },
+                        {
+                            "value": "fi",
+                            "description": "Finnish (suomi)"
                         },
                         {
                             "value": "fr",
@@ -65006,6 +65022,10 @@
                         {
                             "value": "hnj",
                             "description": "Hmong Njua"
+                        },
+                        {
+                            "value": "hu",
+                            "description": "Hungarian (magyar)"
                         },
                         {
                             "value": "id",
@@ -65032,6 +65052,10 @@
                             "description": "Burmese (မြန်မာ)"
                         },
                         {
+                            "value": "nb",
+                            "description": "Norwegian Bokmål (norsk bokmål)"
+                        },
+                        {
                             "value": "ne",
                             "description": "Nepali (नेपाली)"
                         },
@@ -65052,6 +65076,10 @@
                             "description": "Portuguese (português)"
                         },
                         {
+                            "value": "ro",
+                            "description": "Romanian (română)"
+                        },
+                        {
                             "value": "ru",
                             "description": "Russian (русский)"
                         },
@@ -65060,8 +65088,16 @@
                             "description": "Sindhi (سنڌي)"
                         },
                         {
+                            "value": "sk",
+                            "description": "Slovak (slovenčina)"
+                        },
+                        {
                             "value": "so",
                             "description": "Somali (Soomaali)"
+                        },
+                        {
+                            "value": "sv",
+                            "description": "Swedish (svenska)"
                         },
                         {
                             "value": "tr",
@@ -65070,6 +65106,10 @@
                         {
                             "value": "ug",
                             "description": "Uyghur (ئۇيغۇرچە)"
+                        },
+                        {
+                            "value": "uk",
+                            "description": "Ukrainian (українська)"
                         },
                         {
                             "value": "ur",
