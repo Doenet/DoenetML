@@ -66,25 +66,28 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `am`, `as`, `bn`, `de`,
-`es`, `fr`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`, `ne`, `nl`, `pl`,
-`pt`, `ru`, `so`, `tr`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the top, and
-which is what #1521's translation platform is for. None has been read by a
-speaker. Correcting one needs no permission and no coordination: a wrong string
-is just wrong, and the English is one key away.
+English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
+`de`, `es`, `fa`, `fr`, `he`, `hi`, `hnj`, `id`, `it`, `ja`, `ko`, `mr`, `my`,
+`ne`, `nl`, `pl`, `ps`, `pt`, `ru`, `sd`, `so`, `tr`, `ug`, `ur`, `vi`,
+`zh-Hans`, `zh-Hant` — is an **unreviewed machine-generated seed**, which each
+file's own header says at the top, and which is what #1521's translation
+platform is for. None has been read by a speaker. Correcting one needs no
+permission and no coordination: a wrong string is just wrong, and the English
+is one key away.
 
-Seven of them are deliberately partial, all in the same place: Somali, Hmong
-Njua, Amharic, Assamese, Nepali, Burmese and Vietnamese leave `element-name`
-and `element-anion-name` out, so those 130 keys fall back to English and
-`lint:i18n` reports the gap. The first six have no settled chemical
-nomenclature to seed from, and inventing one would be worse than the English a
-student meets in their own textbook. Vietnamese has two, and the current one is
-English — school chemistry has moved from the transliterated names to the IUPAC
-forms — so the fallback is already what the curriculum uses.
+Ten of them are deliberately partial, all in the same place: Somali, Hmong
+Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur and Vietnamese
+leave `element-name` and `element-anion-name` out, so those 130 keys fall back
+to English and `lint:i18n` reports the gap. The first nine have no settled
+chemical nomenclature to seed from, and inventing one would be worse than the
+English a student meets in their own textbook. Vietnamese has two, and the
+current one is English — school chemistry has moved from the transliterated
+names to the IUPAC forms — so the fallback is already what the curriculum uses.
 
 That is a decision per language and not per script: Bangla supplies the names
-its schools use, and Assamese, written in the same letters, does not.
+its schools use, and Assamese, written in the same letters, does not. The same
+line runs through the Arabic script — Arabic, Persian and Urdu supply them and
+Pashto, Sindhi and Uyghur do not.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.
@@ -360,10 +363,13 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and German, Russian, Polish, Hindi and Marathi are the catalogs that
-select on them. Sharing a script does not imply sharing the fork: Marathi and
-Hindi both take an oblique adjective before a postposition and Nepali, written
-in the same letters, takes none.
+positions, and German, Russian, Polish, Hindi, Marathi, Urdu, Sindhi and Pashto
+are the catalogs that select on them. Sharing a script does not imply sharing
+the fork: Marathi and Hindi both take an oblique adjective before a
+postposition and Nepali, written in the same letters, takes none. Nor is the
+fork all-or-nothing — Pashto marks the oblique on a feminine adjective in ـه
+and nowhere else, so it branches on one position out of the four and leaves the
+rest to the default.
 
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
@@ -390,7 +396,12 @@ hard way:
   further line puts a `\n` in the rendered string — including when that line
   opens a nested select. Keep each variant's content on one line; a select
   nested *within* that line is fine, and is how a message would sub-divide one
-  of its variants.
+  of its variants. The same rule catches a subtler mistake: a `#` line indented
+  *under* a message is not a comment, it is more of the pattern above it, so a
+  note explaining a wording choice has to sit above the message rather than
+  beside the attribute it explains. `lint:i18n` fails on any pattern that
+  renders a line break, which is what makes both of these findable before a
+  reader meets them.
 
 ## Diagnostics
 
@@ -634,7 +645,8 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
-catalog naming a `numberingSystem` on a Fluent builtin, a translated locale
+catalog naming a `numberingSystem` on a Fluent builtin, a message whose value
+would render a line break, a translated locale
 defining a key English lacks, a stale `messageKeys.ts`, `supportedLocales.ts`,
 or `diagnostic-codes.lock.json`, a lazy-catalog glob that no longer excludes
 exactly the inlined locales, a call site referencing a key that doesn't exist,
@@ -794,6 +806,65 @@ them follows the reader.
 Everything else mirrors: the paginator, prose renderers, the feedback and hint
 headers, the graph-controls panel, the editor chrome.
 
+### Writing a right-to-left catalog
+
+Seven ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd` and `ug`. Nothing about the file
+format changes for any of them. A `.ftl` pattern is a sequence of characters in
+**logical** order — the order the text is spoken — and `dir` decides where each
+run is drawn, so a translation is written the way it is read and never reordered
+by hand to look right in an editor. Brackets, quotes and dashes are the same
+characters in every one of these scripts and are written opening-first; the bidi
+algorithm turns them around at render time. Digits stay Latin, as
+[everywhere else](#digits-are-latin-separators-are-not), which is why an Arabic
+sentence and the mathematics beside it count in the same characters.
+
+**Direction is not a language family.** These seven share a writing direction
+and almost nothing else, and the catalogs differ from each other far more than
+they differ from `de` or `es`:
+
+| | Adjectives | Gender | Plural categories |
+| --- | --- | --- | --- |
+| `ar` | follow the noun | m/f | six |
+| `he` | follow the noun | m/f | three |
+| `fa` | follow the noun | none | two |
+| `ur`, `ps`, `sd` | precede the noun | m/f | two |
+| `ug` | precede the noun | none | two |
+
+`ur` is the outlier worth knowing about: its grammar is `hi`'s, so
+`locales/hi` is the closest thing to a parallel text for it and a correction to
+one is usually a correction to both. `ug` is Turkic and agrees with nothing.
+
+Three things recur across them, none a property of the direction:
+
+- **Plural categories.** Fluent selects through `Intl.PluralRules`, so an
+  Arabic `{ $count -> … }` has `zero`, `one`, `two`, `few`, `many` and `other`
+  where English has two branches, and Hebrew has `one`, `two` and `other`. Only
+  Arabic has a `zero` category, and which branch catches none elsewhere is not
+  worth guessing: it is `other` in Hebrew, Urdu, Pashto, Sindhi and Uyghur but
+  `one` in Persian, whose rule counts zero with the singular. That is why a
+  message wanting a separate wording for none says `[0]` by number, as the
+  English does, rather than reaching for a category — Fluent matches an
+  explicit number before it consults the rules, so the branch is right whatever
+  the locale would otherwise have chosen.
+- **An affix cannot be welded to a placeable.** Arabic attaches «لـ» and «بـ»
+  to the word after them and Uyghur attaches its case endings to the word
+  before, and in each case there is no word — there is an argument. So a
+  message that reads "for `<{ $component }>`" in English names what the
+  argument is instead, «للمكوّن { $component }», or reaches for a postposition,
+  which is a word of its own and can stand beside one. A select whose variants
+  would land against such an affix carries it into each variant: Fluent does
+  not care where a select sits inside a pattern, and this is why several
+  messages are restructured rather than translated in place.
+- **A distinction the source language makes may not exist.** Where English
+  separates a singular from a plural only in the verb — "is ignored" against
+  "are ignored" — most of these cover both with one form, and the select is
+  dropped rather than written out twice identically. The count argument then
+  goes unused, which is harmless: it stays in the English message for the
+  languages that need it. Where English changes the *noun* as well, the branch
+  stays — and whether it has to is a fact about the language rather than about
+  the script: Persian, Urdu and Uyghur leave a noun singular after a numeral,
+  while Arabic, Hebrew, Pashto and Sindhi pluralize it.
+
 ### Testing it without a catalog
 
 `en-XB` renders visually identical text to `en-XA` and differs only in
@@ -801,10 +872,12 @@ headers, the graph-controls panel, the editor chrome.
 the outer face of each bracket so that a value's trailing punctuation resolves
 the way it would in a real RTL sentence. A difference between the two runs is a
 difference in layout and nothing else, and every right-to-left assertion is
-runnable before any right-to-left language is translated. It is deliberately
-not a text transform: Android's U+202E override demonstrates bidi rather than
-testing a layout, and look-alike glyphs would cost the accented text its
-readability and break the hard-coded-English sweep.
+runnable before any right-to-left language is translated. It stays useful now
+that one is: a layout regression under `en-XB` is legible to a reviewer who
+reads no Arabic, so what a screenshot shows is the layout rather than the
+words. It is deliberately not a text transform: Android's U+202E override
+demonstrates bidi rather than testing a layout, and look-alike glyphs would
+cost the accented text its readability and break the hard-coded-English sweep.
 
 ## Bidi isolation
 

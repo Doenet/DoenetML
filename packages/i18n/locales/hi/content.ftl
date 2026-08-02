@@ -122,9 +122,10 @@ line-style =
     .dotted = बिंदुदार
 
 # Noun phrases in the oblique plural, because their other use is in front of
-# «वाला» — a postposition, which puts what precedes it in the oblique. They
-# agree with nothing. `style-fill` therefore has to give them something to hang
-# off rather than print them bare, the way German and Russian do.
+# «वाला» — a postposition that governs the oblique and inflects like a marked
+# adjective itself. They agree with nothing, so `style-fill` has to give them
+# something to hang off rather than print them bare, the way German and Russian
+# do.
 fill-style =
     .horizontal = क्षैतिज रेखाओं
     .vertical = ऊर्ध्वाधर रेखाओं
@@ -202,17 +203,31 @@ style-filled-word =
        *[m] भरा हुआ
     }
 
+# «वाला» is a marked adjective itself, and it agrees with the shape rather than
+# with the pattern in front of it: «बिंदुओं वाली रेखा», «बिंदुओं वाला वर्ग». It
+# is always said of the shape, so the direct form is the only one needed here —
+# `style-fill` writes it with no branch at all, because the noun it agrees with
+# there is «भराव», which is always masculine.
 style-filled =
     { $parts ->
-        [pattern] { $pattern } वाला { $color } { $filled }
+        [pattern] { $pattern } { $gender ->
+            [f] वाली
+           *[m] वाला
+        } { $color } { $filled }
        *[plain] { $color } { $filled }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } वाला { $color } { $filled } { $noun }
+        [pattern] { $pattern } { $gender ->
+            [f] वाली
+           *[m] वाला
+        } { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } वाला { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail] { $pattern } { $gender ->
+            [f] वाली
+           *[m] वाला
+        } { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
 

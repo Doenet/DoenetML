@@ -4,21 +4,42 @@ import { directionOf, stripBidiIsolates } from "../src/direction";
 import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
+/**
+ * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi and Uyghur — the set #1614
+ * existed to make renderable, and the whole of it as of today.
+ *
+ * Written out rather than derived, so that the two tests below can hold it
+ * from opposite sides: one says these tags are right-to-left whether or not a
+ * catalog exists, the other says the roster contains exactly these and no
+ * other right-to-left locale.
+ */
+const RTL_LANGUAGES = ["ar", "fa", "he", "ur", "ps", "sd", "ug"];
+
 describe("directionOf", () => {
-    it("reports the seven right-to-left languages RTL support unblocks", () => {
-        // Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur — the set
-        // #1614 exists to make renderable.
-        for (const tag of ["ar", "fa", "he", "ur", "ps", "sd", "ug"]) {
+    it("reports the seven right-to-left languages RTL support unblocked", () => {
+        // Asserted by tag rather than off the roster: this is a claim about
+        // the languages, and it holds for a tag with no catalog too.
+        for (const tag of RTL_LANGUAGES) {
             expect(directionOf(tag), tag).toBe("rtl");
         }
     });
 
-    it("reports every locale this repository ships a catalog for LTR", () => {
+    it("agrees with the roster about which shipped catalogs run right to left", () => {
         // Not an assertion about the world — a statement about today's roster,
-        // and the thing that makes emitting `dir` inert until a right-to-left
-        // catalog lands. It is meant to fail when one does.
+        // held from both sides so that adding a catalog has to say which way
+        // it runs. `dir` stopped being inert the moment these seven acquired
+        // catalogs of their own.
+        const rtl = new Set(RTL_LANGUAGES);
         for (const { locale } of SUPPORTED_LOCALES) {
-            expect(directionOf(locale), locale).toBe("ltr");
+            expect(directionOf(locale), locale).toBe(
+                rtl.has(locale) ? "rtl" : "ltr",
+            );
+        }
+        for (const locale of RTL_LANGUAGES) {
+            expect(
+                SUPPORTED_LOCALES.some((info) => info.locale === locale),
+                locale,
+            ).toBe(true);
         }
     });
 

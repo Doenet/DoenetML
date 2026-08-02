@@ -8,11 +8,14 @@
 export type SupportedLocale =
     | "en"
     | "am"
+    | "ar"
     | "as"
     | "bn"
     | "de"
     | "es"
+    | "fa"
     | "fr"
+    | "he"
     | "hi"
     | "hnj"
     | "id"
@@ -24,10 +27,14 @@ export type SupportedLocale =
     | "ne"
     | "nl"
     | "pl"
+    | "ps"
     | "pt"
     | "ru"
+    | "sd"
     | "so"
     | "tr"
+    | "ug"
+    | "ur"
     | "vi"
     | "zh-Hans"
     | "zh-Hant";
@@ -76,6 +83,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Amharic (አማርኛ)",
     },
     {
+        locale: "ar",
+        englishName: "Arabic",
+        endonym: "العربية",
+        label: "Arabic (العربية)",
+    },
+    {
         locale: "as",
         englishName: "Assamese",
         endonym: "অসমীয়া",
@@ -100,10 +113,22 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Spanish (español)",
     },
     {
+        locale: "fa",
+        englishName: "Persian",
+        endonym: "فارسی",
+        label: "Persian (فارسی)",
+    },
+    {
         locale: "fr",
         englishName: "French",
         endonym: "français",
         label: "French (français)",
+    },
+    {
+        locale: "he",
+        englishName: "Hebrew",
+        endonym: "עברית",
+        label: "Hebrew (עברית)",
     },
     {
         locale: "hi",
@@ -172,6 +197,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Polish (polski)",
     },
     {
+        locale: "ps",
+        englishName: "Pashto",
+        endonym: "پښتو",
+        label: "Pashto (پښتو)",
+    },
+    {
         locale: "pt",
         englishName: "Portuguese",
         endonym: "português",
@@ -184,6 +215,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Russian (русский)",
     },
     {
+        locale: "sd",
+        englishName: "Sindhi",
+        endonym: "سنڌي",
+        label: "Sindhi (سنڌي)",
+    },
+    {
         locale: "so",
         englishName: "Somali",
         endonym: "Soomaali",
@@ -194,6 +231,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Turkish",
         endonym: "Türkçe",
         label: "Turkish (Türkçe)",
+    },
+    {
+        locale: "ug",
+        englishName: "Uyghur",
+        endonym: "ئۇيغۇرچە",
+        label: "Uyghur (ئۇيغۇرچە)",
+    },
+    {
+        locale: "ur",
+        englishName: "Urdu",
+        endonym: "اردو",
+        label: "Urdu (اردو)",
     },
     {
         locale: "vi",

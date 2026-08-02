@@ -6,6 +6,7 @@ import {
     countDiagnosticConstructions,
     extractKeys,
     listLocales,
+    multilinePatterns,
     numberingSystemOverrides,
     remainingLiteralDiagnostics,
     renderMessageKeysModule,
@@ -111,6 +112,63 @@ items =
             'NUMBER() sets numberingSystem in "items"',
             'NUMBER() sets numberingSystem in "items"',
         ]);
+    });
+});
+
+describe("multilinePatterns", () => {
+    it("catches a note indented under the attribute it explains", () => {
+        // The bug this exists for. The `#` line is not a comment — Fluent
+        // reads it as more of `.green`'s pattern, so a Hebrew document
+        // describing a green square rendered the English note along with it.
+        const found = multilinePatterns(`
+color =
+    .green = ירוק
+    # «תכלת» does not inflect.
+    .cyan = תכלת
+`);
+        expect(found).toHaveLength(1);
+        expect(found[0]).toContain('"color"');
+        expect(found[0]).toContain("indented comment");
+    });
+
+    it("catches a pattern wrapped across two lines", () => {
+        expect(multilinePatterns("greeting =\n    Hello\n    there\n")).toEqual(
+            ['"greeting" renders a newline (continues with "there")'],
+        );
+    });
+
+    it("allows a comment above the message and a pattern on its own line", () => {
+        expect(
+            multilinePatterns("# A greeting.\ngreeting =\n    Hello there\n"),
+        ).toEqual([]);
+    });
+
+    it("allows a select, whose own line breaks are structure rather than text", () => {
+        // The shape every counted message uses: the variants sit on separate
+        // lines but each variant's content is one line, so nothing renders a
+        // break.
+        expect(
+            multilinePatterns(`
+items =
+    { $count ->
+        [one] one item
+       *[other] { $count } items
+    }
+`),
+        ).toEqual([]);
+    });
+
+    it("catches a variant continued onto a further line", () => {
+        expect(
+            multilinePatterns(`
+items =
+    { $count ->
+        [one] one
+            item
+       *[other] items
+    }
+`),
+        ).toEqual(['"items" renders a newline (continues with "item")']);
     });
 });
 

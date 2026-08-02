@@ -44,6 +44,30 @@ const es: Translator = createTranslatorFromLocaleData(
     "es",
 );
 
+/** The same, for a right-to-left language that agrees its adjectives. */
+const he: Translator = createTranslatorFromLocaleData(
+    { locale: "he", resources: { he: readCatalog("he", "content") } },
+    "he",
+);
+
+/** One whose adjectives follow the noun rather than preceding it. */
+const ar: Translator = createTranslatorFromLocaleData(
+    { locale: "ar", resources: { ar: readCatalog("ar", "content") } },
+    "ar",
+);
+
+/** One that agrees them *and* inflects them for the position they land in. */
+const ur: Translator = createTranslatorFromLocaleData(
+    { locale: "ur", resources: { ur: readCatalog("ur", "content") } },
+    "ur",
+);
+
+/** One whose case marking shows up in a single gender and a single position. */
+const ps: Translator = createTranslatorFromLocaleData(
+    { locale: "ps", resources: { ps: readCatalog("ps", "content") } },
+    "ps",
+);
+
 /** One of this repository's catalogs, read the way a host would supply it. */
 function readCatalog(locale: string, namespace: string): string {
     return fs.readFileSync(
@@ -481,6 +505,140 @@ describe("Spanish", () => {
                 { noun: line, withNoun: true },
             ),
         ).toBe("línea rebeccapurple");
+    });
+});
+
+describe("Arabic", () => {
+    // The fill is the phrase head an Arabic description is likeliest to get
+    // wrong, because the words `describeFill` puts beside the colour are
+    // feminine plurals — «معينات» — while the head they hang off, «ملء», is
+    // masculine. The gender belongs to the head, so the pattern is given a
+    // noun of its own («بلون») rather than the colour being agreed with it;
+    // otherwise `fillColor` on its own would report a feminine adjective with
+    // nothing feminine in sight.
+    it("agrees the fill colour with the word for fill, not with the pattern", () => {
+        expect(
+            describeFill(
+                ar,
+                { fillColorWord: "blue", fillStyleWord: "diamonds" },
+                { filled: true },
+            ),
+        ).toBe("معينات بلون أزرق");
+        expect(
+            describeFill(ar, { fillColorWord: "blue" }, { filled: true }),
+        ).toBe("أزرق");
+    });
+
+    // The background is the one head that *is* feminine, so the two assertions
+    // together say that `noun-gender` names exactly the head it has to.
+    it("agrees a background as feminine and the text beside it as masculine", () => {
+        expect(describeColor(ar, "yellow", "background")).toBe("صفراء");
+        expect(describeColor(ar, "red", "text")).toBe("أحمر");
+    });
+
+    it("puts the noun in front of the adjectives that agree with it", () => {
+        expect(
+            describeStrokedShape(
+                ar,
+                {
+                    lineWidthWord: "thick",
+                    lineStyleWord: "dashed",
+                    colorWord: "red",
+                },
+                { noun: { key: "circle" }, withNoun: true },
+            ),
+        ).toBe("دائرة حمراء متقطعة سميكة");
+    });
+});
+
+describe("Hebrew", () => {
+    // The border is the one phrase head whose gender disagrees with the
+    // default here: «מסגרת» is feminine where «מילוי», «רקע» and «טקסט» are
+    // masculine, so `noun-gender` has to name it. Asserted because the noun is
+    // never handed to the catalog — it is written into `style-border-clause`,
+    // and nothing but agreement reveals which word the clause chose.
+    it("agrees a border with the word for border, not with the shape", () => {
+        expect(
+            describeBorder(he, {
+                lineWidthWord: "thick",
+                lineStyleWord: "",
+                colorWord: "red",
+            }),
+        ).toBe("אדומה עבה");
+        expect(
+            describeClosedShape(
+                he,
+                {
+                    lineWidthWord: "thick",
+                    lineStyleWord: "",
+                    colorWord: "red",
+                    fillColorWord: "blue",
+                    fillStyleWord: "",
+                },
+                { filled: true, noun: { key: "region" }, withNoun: true },
+            ),
+        ).toBe("אזור כחול מלא עם מסגרת אדומה עבה");
+    });
+
+    it("agrees the other phrase heads as masculine", () => {
+        expect(describeColor(he, "red", "text")).toBe("אדום");
+        expect(describeColor(he, "red", "background")).toBe("אדום");
+        expect(
+            describeFill(he, { fillColorWord: "red" }, { filled: true }),
+        ).toBe("אדום");
+    });
+});
+
+describe("Urdu", () => {
+    // «والا» attaches the fill pattern to the shape, and it is a marked
+    // adjective in its own right: it agrees with the shape rather than with the
+    // pattern it follows. Nothing else in the phrase reveals the choice, since
+    // the pattern word beside it is an invariant oblique plural.
+    it("agrees the fill-pattern word with the shape it describes", () => {
+        const words = {
+            lineWidthWord: "",
+            lineStyleWord: "",
+            colorWord: "",
+            fillColorWord: "green",
+            fillStyleWord: "dots",
+        };
+        expect(
+            describeClosedShape(ur, words, {
+                filled: true,
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("نقطوں والی ہری بھری ہوئی لکیر");
+        expect(
+            describeClosedShape(ur, words, {
+                filled: true,
+                noun: { key: "square" },
+                withNoun: true,
+            }),
+        ).toBe("نقطوں والا ہرا بھرا ہوا مربع");
+    });
+});
+
+describe("Pashto", () => {
+    // Pashto marks case on a feminine adjective in ـه and nowhere else, so the
+    // border clause — whose «څنډه» is feminine and sits under a circumposition
+    // — is the one position whose words differ from the standalone form. The
+    // masculine spells both alike, which is why the standalone assertion below
+    // is the interesting half of the pair.
+    it("puts a border's adjectives in the oblique inside the clause", () => {
+        const border = {
+            lineWidthWord: "thick",
+            lineStyleWord: "",
+            colorWord: "red",
+        };
+        expect(describeBorder(ps, border)).toBe("پنډه سره");
+        expect(
+            describeClosedShape(
+                ps,
+                { ...border, fillColorWord: "blue", fillStyleWord: "" },
+                { filled: true, noun: { key: "square" }, withNoun: true },
+            ),
+        ).toBe("نیلي ډک مربع له پنډې سرې څنډې سره");
     });
 });
 
