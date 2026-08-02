@@ -20,6 +20,13 @@ Semantic markup for building interactive web activities.
 
 -   Internally manages a directed acyclic graph of dependencies to coordinate updates of self-referential worksheets
 
+## Translations
+
+DoenetML is translated with the help of [Weblate](https://weblate.org/), a
+libre, web-based localization platform. Head over to our
+[Hosted Weblate project](https://hosted.weblate.org/projects/doenetml/) to
+help translate the viewer, editor, and content messages into your language.
+
 ## Quickstart
 
 To quickly get started contributing to DoenetML, you can use a
