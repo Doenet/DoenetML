@@ -85,7 +85,7 @@ fill-style =
     .horizontal = vannrette linjer
     .vertical = loddrette linjer
     .diagonal = diagonale linjer
-    .backdiagonal = motsatt diagonale linjer
+    .backdiagonal = motsatte diagonale linjer
     .dots = prikker
     .diamonds = romber
 

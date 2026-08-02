@@ -570,7 +570,7 @@ answer-name-not-single-text = Atribut name u answer musí mít jednoho textovéh
 
 external-doenetml-recursion-limit = Externí DoenetML se nepodařilo načíst kvůli příliš mnoha úrovním rekurze. Není zde kruhový odkaz?
 
-external-doenetml-unavailable = DoenetML z { $attribute }="{ $uri }" nebylo možné načíst
+external-doenetml-unavailable = DoenetML z { $attribute }="{ $uri }" se nepodařilo načíst
 
 external-doenetml-type-mismatch = Z { $attribute }="{ $uri }" byl načten neplatný DoenetML: neodpovídá typu komponenty „{ $componentType }“
 

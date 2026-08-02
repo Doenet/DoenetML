@@ -157,7 +157,7 @@ circle-change-center-non-numerical = Att ändra medelpunkt för en cirkel genom 
 
 # «intervall» and «indata» are both invariant in the plural, so neither count
 # picks anything and the message is not a select.
-function-domain-insufficient-dimensions = Otillräckligt antal dimensioner för funktionens definitionsmängd. Mängden har { $intervals } intervall men funktionen har { $inputs } indata.
+function-domain-insufficient-dimensions = Otillräckligt antal dimensioner för funktionens definitionsmängd. Mängden har { $intervals } intervall, men funktionen har { $inputs } indata.
 
 function-domain-invalid-format = Ogiltigt format för funktionens definitionsmängd.
 

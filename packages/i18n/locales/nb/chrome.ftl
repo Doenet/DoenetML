@@ -132,6 +132,6 @@ accessibility-heading-level-2 = Tilgjengelighetsmerknad
 
 something-went-wrong = Noe gikk galt.
 
-renderer-load-failed = et gjengivelsesmodul kunne ikke lastes. Last inn siden på nytt.
+renderer-load-failed = en gjengivelsesmodul kunne ikke lastes. Last inn siden på nytt.
 
 core-start-failed = Dokumentviseren kunne ikke startes. Last inn siden på nytt.
