@@ -7,6 +7,8 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
+# Sentences end in «۔», Pashto's own full stop.
+#
 # Register: the polite plural throughout, which is what Pashto interfaces use
 # and the only form that is safe not knowing who is being addressed.
 #
@@ -122,8 +124,8 @@ error-heading = تېروتنه
 
 error-found-at =
     { $span ->
-        [line] په کرښه { $startLine } کې وموندل شوه.
-       *[lines] په کرښو { $startLine } تر { $endLine } کې وموندل شوه.
+        [line] په کرښه { $startLine } کې وموندل شوه۔
+       *[lines] په کرښو { $startLine } تر { $endLine } کې وموندل شوه۔
     }
 
 document-contains-errors = په دې سند کې تېروتنې شته!
@@ -138,9 +140,9 @@ diagnostic-heading-hint = اشاره
 accessibility-heading-level-1 = د WCAG AA له مخې د لاسرسي سرغړونه
 accessibility-heading-level-2 = د لاسرسي خبرتیا
 
-something-went-wrong = یو څه ناسم شول.
+something-went-wrong = یو څه ناسم شول۔
 
 # Follows `error-heading` and a colon.
-renderer-load-failed = یوه برخه بار نه شوه. مهرباني وکړئ مخ بیا بار کړئ.
+renderer-load-failed = یوه برخه بار نه شوه۔ مهرباني وکړئ مخ بیا بار کړئ۔
 
-core-start-failed = د سند لیدونکی پیل نه شو. مهرباني وکړئ مخ بیا بار کړئ.
+core-start-failed = د سند لیدونکی پیل نه شو۔ مهرباني وکړئ مخ بیا بار کړئ۔

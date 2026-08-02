@@ -24,6 +24,8 @@
 # would be worse than the English a student meets in their own textbook.
 #
 # Numbers reach the reader in Latin digits, as everywhere in these catalogs.
+#
+# Sentences end in «۔», Sindhi's own full stop, and separate with «،».
 
 
 ## Style vocabulary
@@ -317,7 +319,7 @@ section-title-prefix =
         [name] { $sectionName }
         [number] { $sectionNumber }
         [name-title] { $sectionName }{ ": " }
-        [number-title] { $sectionNumber }{ ". " }
+        [number-title] { $sectionNumber }{ "۔ " }
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }

@@ -7,6 +7,8 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
+# Sentences end in «۔», Sindhi's own full stop.
+#
 # Register: the polite plural throughout, which is what Sindhi interfaces use
 # and the only form that is safe not knowing who is being addressed.
 #
@@ -121,8 +123,8 @@ error-heading = خرابي
 
 error-found-at =
     { $span ->
-        [line] سٽ { $startLine } تي ملي.
-       *[lines] سٽ { $startLine } کان { $endLine } تائين ملي.
+        [line] سٽ { $startLine } تي ملي۔
+       *[lines] سٽ { $startLine } کان { $endLine } تائين ملي۔
     }
 
 document-contains-errors = هن دستاويز ۾ خرابيون آهن!
@@ -137,9 +139,9 @@ diagnostic-heading-hint = اشارو
 accessibility-heading-level-1 = WCAG AA موجب رسائي جي ڀڃڪڙي
 accessibility-heading-level-2 = رسائي بابت خبردار
 
-something-went-wrong = ڪجهه غلط ٿي ويو.
+something-went-wrong = ڪجهه غلط ٿي ويو۔
 
 # Follows `error-heading` and a colon.
-renderer-load-failed = هڪ جزو لوڊ نه ٿي سگهيو. مهرباني ڪري صفحو ٻيهر لوڊ ڪريو.
+renderer-load-failed = هڪ جزو لوڊ نه ٿي سگهيو۔ مهرباني ڪري صفحو ٻيهر لوڊ ڪريو۔
 
-core-start-failed = دستاويز جو ناظر شروع نه ٿي سگهيو. مهرباني ڪري صفحو ٻيهر لوڊ ڪريو.
+core-start-failed = دستاويز جو ناظر شروع نه ٿي سگهيو۔ مهرباني ڪري صفحو ٻيهر لوڊ ڪريو۔

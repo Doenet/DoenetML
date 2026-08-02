@@ -6,7 +6,7 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Register as in `chrome.ftl`: the polite plural.
+# Register as in `chrome.ftl`: the polite plural, and «۔» for a full stop.
 #
 # Counting as in `chrome.ftl` too: a Sindhi noun after a numeral takes the
 # plural, so `editor-accessibility-label` branches on `one` rather than
@@ -45,39 +45,39 @@ editor-variant-previous = پويون نسخو چونڊيو
 
 editor-accessibility-title =
     { $status ->
-        [violations] WCAG AA موجب رسائي جي ڀڃڪڙي ملي. { $action ->
-            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو.
-           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو.
+        [violations] WCAG AA موجب رسائي جي ڀڃڪڙي ملي۔ { $action ->
+            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو۔
+           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو۔
         }
         [advisories] { $action ->
-            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو.
-           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو.
-        } WCAG AA جي ڪا به ڀڃڪڙي نه ملي، پر رسائي بابت ٻيون صلاحون موجود آهن.
+            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو۔
+           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو۔
+        } WCAG AA جي ڪا به ڀڃڪڙي نه ملي، پر رسائي بابت ٻيون صلاحون موجود آهن۔
        *[clean] { $action ->
-            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو.
-           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو.
-        } رسائي بابت ڪو مسئلو نه مليو.
+            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو۔
+           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو۔
+        } رسائي بابت ڪو مسئلو نه مليو۔
     }
 
 editor-accessibility-label =
     { $status ->
-        [violations] WCAG AA موجب رسائي جي ڀڃڪڙي ملي. { $count ->
-            [one] WCAG AA جي { $count } ڀڃڪڙي ملي.
-           *[other] WCAG AA جون { $count } ڀڃڪڙيون مليون.
+        [violations] WCAG AA موجب رسائي جي ڀڃڪڙي ملي۔ { $count ->
+            [one] WCAG AA جي { $count } ڀڃڪڙي ملي۔
+           *[other] WCAG AA جون { $count } ڀڃڪڙيون مليون۔
         } { $action ->
-            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو.
-           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو.
+            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو۔
+           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو۔
         }
-        [advisories] WCAG AA جي ڪا به ڀڃڪڙي نه ملي. { $count ->
-            [one] رسائي بابت { $count } ٻي صلاح ملي.
-           *[other] رسائي بابت { $count } ٻيون صلاحون مليون.
+        [advisories] WCAG AA جي ڪا به ڀڃڪڙي نه ملي۔ { $count ->
+            [one] رسائي بابت { $count } ٻي صلاح ملي۔
+           *[other] رسائي بابت { $count } ٻيون صلاحون مليون۔
         } { $action ->
-            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو.
-           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو.
+            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو۔
+           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو۔
         }
-       *[clean] WCAG AA جي ڪا به ڀڃڪڙي نه ملي. { $action ->
-            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو.
-           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو.
+       *[clean] WCAG AA جي ڪا به ڀڃڪڙي نه ملي۔ { $action ->
+            [close] رسائي جي رپورٽ بند ڪرڻ لاءِ ڪلڪ ڪريو۔
+           *[open] رسائي جي رپورٽ کولڻ لاءِ ڪلڪ ڪريو۔
         }
     }
 
@@ -133,15 +133,15 @@ editor-response-submitted = موڪلڻ جو وقت
 
 ## The context-help panel
 
-help-placeholder = دستاويز ڏسڻ لاءِ ڪرسر ڪنهن عنصر جي نالي، ڪنهن خاصيت يا { $ref } تي رکو.
+help-placeholder = دستاويز ڏسڻ لاءِ ڪرسر ڪنهن عنصر جي نالي، ڪنهن خاصيت يا { $ref } تي رکو۔
 
-help-unsupported-ref-chain = { $example } جهڙن گهڻ حصن وارن حوالن لاءِ مدد اڃا موجود ناهي.
+help-unsupported-ref-chain = { $example } جهڙن گهڻ حصن وارن حوالن لاءِ مدد اڃا موجود ناهي۔
 
 help-unresolved-ref =
     { $reason ->
-        [notFound] { $ref } جنهن عنصر ڏانهن اشارو ڪري ٿو، اهو نه مليو.
-        [multiple] { $ref } جن عنصرن ڏانهن اشارو ڪري ٿو، اهي هڪ کان وڌيڪ آهن.
-       *[indeterminate] { $ref } ڪهڙي عنصر ڏانهن اشارو ڪري ٿو، اهو طئي نه ٿي سگهيو.
+        [notFound] { $ref } جنهن عنصر ڏانهن اشارو ڪري ٿو، اهو نه مليو۔
+        [multiple] { $ref } جن عنصرن ڏانهن اشارو ڪري ٿو، اهي هڪ کان وڌيڪ آهن۔
+       *[indeterminate] { $ref } ڪهڙي عنصر ڏانهن اشارو ڪري ٿو، اهو طئي نه ٿي سگهيو۔
     }
 
 # The arrow is direction rather than punctuation, and Sindhi runs the other
@@ -154,32 +154,32 @@ help-suggestions-header =
         [inside] { $element } جي اندر
        *[top] مٿئين سطح تي
     }{ $allowed ->
-        [none] { " — هتي ڪجهه به نٿو اچي." }
-        [text] { " — هتي متن لکي سگهجي ٿو." }
+        [none] { " — هتي ڪجهه به نٿو اچي۔" }
+        [text] { " — هتي متن لکي سگهجي ٿو۔" }
         [text-and-components] { " — هتي متن لکي سگهجي ٿو، يا هي آزمايو:" }
        *[components] { " — آزمائڻ لاءِ شيون:" }
     }
 
-help-suggestions-footer = سڀ { $total } جزا ڏسڻ لاءِ { $shortcut } دٻايو.
+help-suggestions-footer = سڀ { $total } جزا ڏسڻ لاءِ { $shortcut } دٻايو۔
 
 help-name-summary = { $name } — { $summary }
 
 help-ref-is-reference =
     { $line ->
-        [none] { $ref } { $target } ڏانهن حوالو آهي.
-       *[other] { $ref } { $target } ڏانهن حوالو آهي (سٽ { $line }).
+        [none] { $ref } { $target } ڏانهن حوالو آهي۔
+       *[other] { $ref } { $target } ڏانهن حوالو آهي (سٽ { $line })۔
     }
 
 help-ref-derived-from =
     { $line ->
-        [none] هن کي { $owner } { $role } جي حيثيت سان متعارف ڪرايو.
-       *[other] هن کي { $owner } سٽ { $line } تي { $role } جي حيثيت سان متعارف ڪرايو.
+        [none] هن کي { $owner } { $role } جي حيثيت سان متعارف ڪرايو۔
+       *[other] هن کي { $owner } سٽ { $line } تي { $role } جي حيثيت سان متعارف ڪرايو۔
     }
 
 help-property-is-reference =
     { $line ->
-        [none] { $ref } { $element } جي { $property } خاصيت ڏانهن حوالو آهي.
-       *[other] { $ref } { $element } جي { $property } خاصيت ڏانهن حوالو آهي (سٽ { $line }).
+        [none] { $ref } { $element } جي { $property } خاصيت ڏانهن حوالو آهي۔
+       *[other] { $ref } { $element } جي { $property } خاصيت ڏانهن حوالو آهي (سٽ { $line })۔
     }
 
 help-kind-attribute = خاصيت
@@ -216,4 +216,4 @@ help-reset-list = هن داخلا تي فهرست ٻيهر ترتيب ڏيو:
 help-added-on-input = هن داخلا تي شامل ٿيو:
 help-removed-on-input = هن داخلا تي هٽايو ويو:
 
-help-reset-overrides = { $reset } کي { $additional } ۽ { $removed } تي ترجيح آهي.
+help-reset-overrides = { $reset } کي { $additional } ۽ { $removed } تي ترجيح آهي۔

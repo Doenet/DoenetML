@@ -6,7 +6,7 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Register as in `chrome.ftl`: the polite plural.
+# Register as in `chrome.ftl`: the polite plural, and «۔» for a full stop.
 #
 # Counting as in `chrome.ftl` too: a Pashto noun after a numeral takes the
 # plural, so `editor-accessibility-label` branches on `one` rather than
@@ -46,39 +46,39 @@ editor-variant-previous = پخوانۍ بڼه وټاکئ
 
 editor-accessibility-title =
     { $status ->
-        [violations] د WCAG AA له مخې د لاسرسي سرغړونه وموندل شوه. { $action ->
-            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ.
-           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ.
+        [violations] د WCAG AA له مخې د لاسرسي سرغړونه وموندل شوه۔ { $action ->
+            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ۔
+           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ۔
         }
         [advisories] { $action ->
-            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ.
-           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ.
-        } د WCAG AA هېڅ سرغړونه ونه موندل شوه، خو د لاسرسي نورې سپارښتنې شته.
+            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ۔
+           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ۔
+        } د WCAG AA هېڅ سرغړونه ونه موندل شوه، خو د لاسرسي نورې سپارښتنې شته۔
        *[clean] { $action ->
-            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ.
-           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ.
-        } د لاسرسي هېڅ ستونزه ونه موندل شوه.
+            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ۔
+           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ۔
+        } د لاسرسي هېڅ ستونزه ونه موندل شوه۔
     }
 
 editor-accessibility-label =
     { $status ->
-        [violations] د WCAG AA له مخې د لاسرسي سرغړونه وموندل شوه. { $count ->
-            [one] د WCAG AA { $count } سرغړونه وموندل شوه.
-           *[other] د WCAG AA { $count } سرغړونې وموندل شوې.
+        [violations] د WCAG AA له مخې د لاسرسي سرغړونه وموندل شوه۔ { $count ->
+            [one] د WCAG AA { $count } سرغړونه وموندل شوه۔
+           *[other] د WCAG AA { $count } سرغړونې وموندل شوې۔
         } { $action ->
-            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ.
-           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ.
+            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ۔
+           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ۔
         }
-        [advisories] د WCAG AA هېڅ سرغړونه ونه موندل شوه. { $count ->
-            [one] د لاسرسي { $count } نوره سپارښتنه وموندل شوه.
-           *[other] د لاسرسي { $count } نورې سپارښتنې وموندل شوې.
+        [advisories] د WCAG AA هېڅ سرغړونه ونه موندل شوه۔ { $count ->
+            [one] د لاسرسي { $count } نوره سپارښتنه وموندل شوه۔
+           *[other] د لاسرسي { $count } نورې سپارښتنې وموندل شوې۔
         } { $action ->
-            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ.
-           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ.
+            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ۔
+           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ۔
         }
-       *[clean] د WCAG AA هېڅ سرغړونه ونه موندل شوه. { $action ->
-            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ.
-           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ.
+       *[clean] د WCAG AA هېڅ سرغړونه ونه موندل شوه۔ { $action ->
+            [close] د لاسرسي راپور تړلو لپاره کلیک وکړئ۔
+           *[open] د لاسرسي راپور پرانیستلو لپاره کلیک وکړئ۔
         }
     }
 
@@ -134,15 +134,15 @@ editor-response-submitted = د لېږلو وخت
 
 ## The context-help panel
 
-help-placeholder = د اسنادو لیدلو لپاره کرسر د یوه عنصر نوم، یوې ځانګړنې یا { $ref } باندې کېږدئ.
+help-placeholder = د اسنادو لیدلو لپاره کرسر د یوه عنصر نوم، یوې ځانګړنې یا { $ref } باندې کېږدئ۔
 
-help-unsupported-ref-chain = د { $example } په څېر څو برخیزو حوالو لپاره مرسته لا نه ده چمتو.
+help-unsupported-ref-chain = د { $example } په څېر څو برخیزو حوالو لپاره مرسته لا نه ده چمتو۔
 
 help-unresolved-ref =
     { $reason ->
-        [notFound] هغه عنصر ونه موندل شو چې { $ref } ورته اشاره کوي.
-        [multiple] له یوه څخه زیات عنصرونه وموندل شول چې { $ref } ورته اشاره کوي.
-       *[indeterminate] دا معلومه نه شوه چې { $ref } کوم عنصر ته اشاره کوي.
+        [notFound] هغه عنصر ونه موندل شو چې { $ref } ورته اشاره کوي۔
+        [multiple] له یوه څخه زیات عنصرونه وموندل شول چې { $ref } ورته اشاره کوي۔
+       *[indeterminate] دا معلومه نه شوه چې { $ref } کوم عنصر ته اشاره کوي۔
     }
 
 # The arrow is direction rather than punctuation, and Pashto runs the other
@@ -155,32 +155,32 @@ help-suggestions-header =
         [inside] د { $element } دننه
        *[top] په لوړه کچه کې
     }{ $allowed ->
-        [none] { " — دلته هېڅ نه ځای پر ځای کیږي." }
-        [text] { " — دلته متن لیکل کېدای شي." }
+        [none] { " — دلته هېڅ نه ځای پر ځای کیږي۔" }
+        [text] { " — دلته متن لیکل کېدای شي۔" }
         [text-and-components] { " — دلته متن لیکل کېدای شي، یا دا وآزمویئ:" }
        *[components] { " — د آزمویلو لپاره څیزونه:" }
     }
 
-help-suggestions-footer = د ټولو { $total } برخو لیدلو لپاره { $shortcut } کېکاږئ.
+help-suggestions-footer = د ټولو { $total } برخو لیدلو لپاره { $shortcut } کېکاږئ۔
 
 help-name-summary = { $name } — { $summary }
 
 help-ref-is-reference =
     { $line ->
-        [none] { $ref } { $target } ته حواله ده.
-       *[other] { $ref } { $target } ته حواله ده (کرښه { $line }).
+        [none] { $ref } { $target } ته حواله ده۔
+       *[other] { $ref } { $target } ته حواله ده (کرښه { $line })۔
     }
 
 help-ref-derived-from =
     { $line ->
-        [none] { $owner } دا د { $role } په توګه معرفي کړ.
-       *[other] { $owner } دا په کرښه { $line } کې د { $role } په توګه معرفي کړ.
+        [none] { $owner } دا د { $role } په توګه معرفي کړ۔
+       *[other] { $owner } دا په کرښه { $line } کې د { $role } په توګه معرفي کړ۔
     }
 
 help-property-is-reference =
     { $line ->
-        [none] { $ref } د { $element } د { $property } ځانګړنې ته حواله ده.
-       *[other] { $ref } د { $element } د { $property } ځانګړنې ته حواله ده (کرښه { $line }).
+        [none] { $ref } د { $element } د { $property } ځانګړنې ته حواله ده۔
+       *[other] { $ref } د { $element } د { $property } ځانګړنې ته حواله ده (کرښه { $line })۔
     }
 
 help-kind-attribute = ځانګړنه
@@ -217,4 +217,4 @@ help-reset-list = پر دې ننوتنه لړ بیا تنظیم کړئ:
 help-added-on-input = پر دې ننوتنه زیات شو:
 help-removed-on-input = پر دې ننوتنه لرې شو:
 
-help-reset-overrides = { $reset } پر { $additional } او { $removed } لومړیتوب لري.
+help-reset-overrides = { $reset } پر { $additional } او { $removed } لومړیتوب لري۔
