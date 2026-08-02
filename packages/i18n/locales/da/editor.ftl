@@ -124,7 +124,7 @@ editor-response-submitted = Indsendt
 
 ## The context-help panel
 
-help-placeholder = Placér markøren på et tagnavn, et attribut eller { $ref } for at se dokumentationen.
+help-placeholder = Placér markøren på et tagnavn, en attribut eller { $ref } for at se dokumentationen.
 
 help-unsupported-ref-chain = Hjælp til flerleddede referencer som { $example } understøttes endnu ikke.
 

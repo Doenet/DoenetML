@@ -142,6 +142,6 @@ accessibility-heading-level-2 = Upozornění na přístupnost
 
 something-went-wrong = Něco se pokazilo.
 
-renderer-load-failed = se nepodařilo načíst vykreslovací modul. Je třeba znovu načíst stránku.
+renderer-load-failed = vykreslovací modul se nepodařilo načíst. Je třeba znovu načíst stránku.
 
 core-start-failed = Prohlížeč dokumentu se nepodařilo spustit. Je třeba znovu načíst stránku.

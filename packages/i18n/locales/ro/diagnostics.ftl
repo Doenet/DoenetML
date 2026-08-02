@@ -11,8 +11,12 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# A counted noun takes «de» above nineteen, so a message naming a count has
-# three branches rather than two, and the third one carries the preposition.
+# A counted noun takes «de» above nineteen — «20 de laturi» against «19
+# laturi» — which is what Romanian's third CLDR plural category is for. Where a
+# message selects on a count it has three branches rather than two and the
+# `other` branch carries the preposition. Messages that interpolate a count
+# without selecting on it are inherited from the English shape and still read
+# «{ $count } puncte» at twenty; correcting them means adding the select.
 
 ## `<lineSegment>`
 
@@ -82,13 +86,13 @@ pretzel-circuit-first-index = Indicii specificați pentru pretzel în modul circ
 
 string-children-need-type = Pentru ca `<{ $component }>` să funcționeze cu copii de tip șir, trebuie specificat atributul `type`.
 
-invalid-type-defaulting-to-math = type nevalid { $type } pentru componenta { $component }. Trebuie să fie unul dintre math, text, number sau boolean. Se folosește math.
+invalid-type-defaulting-to-math = Tip nevalid { $type } pentru componenta { $component }. Trebuie să fie unul dintre math, text, number sau boolean. Se folosește math.
 
 string-not-valid-component-to-arrange = Șirul „{ $value }” nu este o componentă validă pentru { $component }. Se ignoră.
 
 ## Types and variables
 
-invalid-type-defaulting-to-number = type nevalid { $type }, type se stabilește la number.
+invalid-type-defaulting-to-number = Tip nevalid { $type }, tipul se stabilește la number.
 
 invalid-variable-value = Valoare nevalidă a unei variabile: `{ $value }`
 
@@ -118,7 +122,7 @@ label-for-answer-with-authored-inputs = Atributul `for` al unui `<label>` face r
 
 label-for-answer-without-input = Atributul `for` al unui `<label>` face referire la un `<answer>` fără o intrare de etichetat.
 
-label-for-must-reference-input-or-answer = Atributul `for` al unui `<label>` trebuie să facă referire la o intrare sau la un answer.
+label-for-must-reference-input-or-answer = Atributul `for` al unui `<label>` trebuie să facă referire la o intrare sau la un răspuns.
 
 ## Accessibility
 
@@ -293,9 +297,9 @@ graph-grid-invalid = `<graph>`: nu se poate interpreta grid="{ $grid }". Trebuie
 
 ## PreFigure renderer
 
-prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" nu este acceptat în randorul prefigure; se folosește comportamentul pentru right.
+prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" nu este acceptat în modulul de randare prefigure; se folosește comportamentul pentru right.
 
-prefigure-y-label-position-unsupported = `<graph>`: yLabelPosition="bottom" nu este acceptat în randorul prefigure; se folosește comportamentul pentru top.
+prefigure-y-label-position-unsupported = `<graph>`: yLabelPosition="bottom" nu este acceptat în modulul de randare prefigure; se folosește comportamentul pentru top.
 
 prefigure-invalid-axis-bounds = `<graph>`: limite de axe nevalide pentru conversia prefigure; se folosește bbox implicit (-10,-10,10,10).
 
@@ -303,9 +307,9 @@ prefigure-invalid-width = `<graph>`: lățime nevalidă pentru conversia prefigu
 
 prefigure-invalid-aspect-ratio = `<graph>`: aspectRatio nevalid pentru conversia prefigure; se folosește raportul implicit 1.
 
-prefigure-grid-spacing-too-fine = `<graph>`: pasul grilei este prea fin pentru limitele axelor; grila este omisă în randorul prefigure.
+prefigure-grid-spacing-too-fine = `<graph>`: pasul grilei este prea fin pentru limitele axelor; grila este omisă în modulul de randare prefigure.
 
-prefigure-annotations-not-rendered = `<graph>`: adnotările nu sunt randate când nu se folosește randorul PreFigure.
+prefigure-annotations-not-rendered = `<graph>`: adnotările nu sunt randate când nu se folosește modulul de randare PreFigure.
 
 multiple-annotations-children = S-au găsit mai mulți copii `<annotations>` într-un `<graph>`; toți în afară de ultimul sunt ignorați.
 
@@ -359,9 +363,9 @@ conditional-content-condition-ignored = Atributul `condition` este ignorat pe o 
 
 slider-markers-type-mismatch = Tipul marcajelor nu corespunde tipului glisorului.
 
-pretzel-problem-needs-statement-and-answer = pretzel nevalid: fiecare `<problem>` trebuie să conțină un `<statement>` și un `<answer>`.
+pretzel-problem-needs-statement-and-answer = Pretzel nevalid: fiecare `<problem>` trebuie să conțină un `<statement>` și un `<answer>`.
 
-pretzel-circuit-first-problem-distractor = pretzel nevalid: în mode="circuit", primul `<problem>` nu poate fi un distractor.
+pretzel-circuit-first-problem-distractor = Pretzel nevalid: în mode="circuit", primul `<problem>` nu poate fi un distractor.
 
 ## Attribute values
 
@@ -388,10 +392,10 @@ attribute-invalid-for-component = Atribut nevalid „{ $attribute }” pentru o 
 style-definition-insufficient-contrast =
     Definiția de stil { $styleNumber } are contrast insuficient { $context ->
         [text-on-background] al culorii textului față de culoarea fundalului
-        [high-contrast] al culorii de contrast ridicat față de pânză
-        [line] al culorii liniei față de pânză
-        [marker] al culorii marcajului față de pânză
-       *[text-on-canvas] al culorii textului față de pânză
+        [high-contrast] al culorii de contrast ridicat față de canvas
+        [line] al culorii liniei față de canvas
+        [marker] al culorii marcajului față de canvas
+       *[text-on-canvas] al culorii textului față de canvas
     }{ $mode ->
         [dark] { " (mod întunecat)" }
        *[light] { "" }
@@ -404,7 +408,7 @@ style-definition-dark-mode-text-background-contrast =
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    Deși definiția de stil { $styleNumber } specifică o culoare de text cu contrast suficient pentru modul luminos, culoarea de text pentru modul întunecat derivată din această valoare are contrast insuficient față de pânză ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; este necesar cel puțin { $threshold }:1). { $suggestion ->
+    Deși definiția de stil { $styleNumber } specifică o culoare de text cu contrast suficient pentru modul luminos, culoarea de text pentru modul întunecat derivată din această valoare are contrast insuficient față de canvas ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; este necesar cel puțin { $threshold }:1). { $suggestion ->
         [available] Pentru un contrast suficient în modul întunecat, fie măriți contrastul în modul luminos (de ex. stabiliți textColor="{ $lightColor }"), fie suprascrieți culoarea modului întunecat (de ex. stabiliți textColorDarkMode="{ $darkColor }").
        *[none] Pentru un contrast suficient în modul întunecat, măriți contrastul în modul luminos sau suprascrieți culoarea derivată cu textColorDarkMode.
     }
@@ -413,29 +417,29 @@ section-multiple-style-palettes = O secțiune poate selecta o singură <stylePal
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = nu se pot determina variantele unice ale { $component } deoarece numToSelect nu este un întreg nenegativ.
+variant-num-to-select-not-non-negative-integer = nu se pot determina variantele unice ale lui { $component } deoarece numToSelect nu este un întreg nenegativ.
 
-variant-num-to-select-not-constant-number = nu se pot determina variantele unice ale { $component } deoarece numToSelect nu este un număr constant.
+variant-num-to-select-not-constant-number = nu se pot determina variantele unice ale lui { $component } deoarece numToSelect nu este un număr constant.
 
-variant-with-replacement-not-constant-boolean = nu se pot determina variantele unice ale { $component } deoarece withReplacement nu este o valoare booleană constantă.
+variant-with-replacement-not-constant-boolean = nu se pot determina variantele unice ale lui { $component } deoarece withReplacement nu este o valoare booleană constantă.
 
 variant-select-weight-disables-unique = Variantele unice pentru select sunt dezactivate dacă există o opțiune cu selectWeight sau selectForVariants specificat
 
-variant-coprime-undetermined = nu se pot determina variantele unice ale { $component } deoarece nu se poate stabili că coprime este întotdeauna fals.
+variant-coprime-undetermined = nu se pot determina variantele unice ale lui { $component } deoarece nu se poate stabili că coprime este întotdeauna fals.
 
-variant-attribute-not-constant = nu se pot determina variantele unice ale { $component } deoarece { $attribute } nu este o constantă.
+variant-attribute-not-constant = nu se pot determina variantele unice ale lui { $component } deoarece { $attribute } nu este o constantă.
 
-variant-attribute-not-number = nu se pot determina variantele unice ale { $component } deoarece { $attribute } nu este un număr.
+variant-attribute-not-number = nu se pot determina variantele unice ale lui { $component } deoarece { $attribute } nu este un număr.
 
 variant-attribute-wrong-type-for-sequence =
-    nu se pot determina variantele unice ale { $component } de tip { $type } deoarece { $attribute } nu este { $expected ->
+    nu se pot determina variantele unice ale lui { $component } de tip { $type } deoarece { $attribute } nu este { $expected ->
         [letters-combination] o combinație de litere
         [math-expression] o expresie matematică validă
         [integer] un întreg
        *[number] un număr
     }.
 
-variant-length-not-integer = nu se pot determina variantele unice ale { $component } deoarece length nu este un întreg.
+variant-length-not-integer = nu se pot determina variantele unice ale lui { $component } deoarece length nu este un întreg.
 
 variant-sort-not-implemented = nu s-au implementat variantele unice ale unui { $component } cu sort
 
@@ -447,7 +451,7 @@ variant-non-constant-exclude-not-implemented = nu s-au implementat variantele un
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: neacceptat în randorul graph prefigure; descendentul a fost omis.
+prefigure-descendant-unsupported = { $subject }: neacceptat în modulul de randare graph prefigure; descendentul a fost omis.
 
 prefigure-descendant-invalid-geometry = { $subject }: geometrie nefinită sau incompletă; descendentul a fost omis.
 

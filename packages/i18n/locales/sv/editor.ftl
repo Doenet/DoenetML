@@ -204,8 +204,8 @@ help-type = Typ:
 help-resolved-style = Beräknad stil (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Beräknade funktionsnamn:
-help-reset-list = Återställning av listan på detta fält:
-help-added-on-input = Tillagt på detta fält:
-help-removed-on-input = Borttaget på detta fält:
+help-reset-list = Återställning av listan på denna inmatning:
+help-added-on-input = Tillagt på denna inmatning:
+help-removed-on-input = Borttaget på denna inmatning:
 
 help-reset-overrides = { $reset } åsidosätter { $additional } och { $removed }.

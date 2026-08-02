@@ -29,7 +29,7 @@ line-segment-attributes-ignored-with-endpoint-and-midpoint =
        *[other] { $attributes } ігноруються, коли задано і кінцеву точку, і середину
     }
 
-line-segment-midpoint-offset-without-midpoint = midpointOffset не діє без midpoint
+line-segment-midpoint-offset-without-midpoint = midpointOffset не діє без середини
 
 ## `<line>`
 
@@ -55,15 +55,15 @@ vector-dimension-mismatch = Невідповідність numDimensions у ве
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Неможливо притягувати до `<{ $component }>`, бо він не має змінної стану nearestPoint.
+attract-to-without-nearest-point = Неможливо притягувати до `<{ $component }>`, бо цей компонент не має змінної стану nearestPoint.
 
-constrain-to-without-nearest-point = Неможливо обмежити до `<{ $component }>`, бо він не має змінної стану nearestPoint.
+constrain-to-without-nearest-point = Неможливо обмежити до `<{ $component }>`, бо цей компонент не має змінної стану nearestPoint.
 
-constrain-to-interior-without-nearest-point = Неможливо обмежити до внутрішньої області `<{ $component }>`, бо він не має змінної стану nearestPoint.
+constrain-to-interior-without-nearest-point = Неможливо обмежити до внутрішньої області `<{ $component }>`, бо цей компонент не має змінної стану nearestPoint.
 
 ## `<choiceInput>`
 
-choice-input-label-position-ignored = labelPosition ігнорується для нерядкового choiceInput
+choice-input-label-position-ignored = labelPosition ігнорується для невбудованого choiceInput
 
 ## Ordering children by index
 
@@ -83,13 +83,13 @@ pretzel-circuit-first-index = Задані для pretzel у режимі circui
 
 string-children-need-type = Щоб `<{ $component }>` працював із рядковими дочірніми елементами, потрібно задати атрибут `type`.
 
-invalid-type-defaulting-to-math = Некоректний type { $type } для компонента { $component }. Має бути одне з math, text, number або boolean. Використовується math.
+invalid-type-defaulting-to-math = Некоректний тип { $type } для компонента { $component }. Має бути одне з math, text, number або boolean. Використовується math.
 
 string-not-valid-component-to-arrange = Рядок «{ $value }» не є придатним компонентом для { $component }. Ігнорується.
 
 ## Types and variables
 
-invalid-type-defaulting-to-number = Некоректний type { $type }, встановлено type number.
+invalid-type-defaulting-to-number = Некоректний тип { $type }, тип встановлено на number.
 
 invalid-variable-value = Некоректне значення змінної: `{ $value }`
 
@@ -380,7 +380,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = Некоректне значення `{ $value }` для атрибута `{ $attribute }`. Атрибут має складатися з посилань, що починаються з `$`.
 
-math-input-invalid-function-names = <mathInput>: у { $attribute } проігноровано некоректні назви функцій: { $names }. Показова частина кожної назви має містити щонайменше 2 символи (літери або дефіси); після неї може стояти необов'язковий суфікс `|<mathspeak alternative>`.
+math-input-invalid-function-names = <mathInput>: у { $attribute } проігноровано некоректні назви функцій: { $names }. Частина кожної назви, що відображається, має містити щонайменше 2 символи (літери або дефіси); після неї може стояти необов'язковий суфікс `|<mathspeak alternative>`.
 
 ## Building components from the source
 
@@ -456,7 +456,7 @@ variant-non-constant-exclude-not-implemented = унікальні варіант
 
 prefigure-descendant-unsupported = { $subject }: не підтримується в модулі відображення graph prefigure; нащадка пропущено.
 
-prefigure-descendant-invalid-geometry = { $subject }: нескінченна або неповна геометрія; нащадка пропущено.
+prefigure-descendant-invalid-geometry = { $subject }: геометрія не є скінченною або є неповною; нащадка пропущено.
 
 prefigure-curve-label-omitted = { $subject }: підписи не підтримуються на перетворених елементах кривої; підпис пропущено.
 

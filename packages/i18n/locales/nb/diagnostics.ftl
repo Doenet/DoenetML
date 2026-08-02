@@ -59,17 +59,17 @@ choice-input-label-position-ignored = labelPosition ignoreres for choiceInput so
 
 ## Ordering children by index
 
-choice-input-indices-count-mismatch = Indeksene som er angitt for choiceInput ignoreres fordi antallet ikke stemmer med antallet choice-barn.
+choice-input-indices-count-mismatch = Indeksene som er angitt for choiceInput, ignoreres fordi antallet ikke stemmer med antallet choice-barn.
 
-pretzel-indices-count-mismatch = Indeksene som er angitt for problem ignoreres fordi antallet ikke stemmer med antallet problem-barn.
+pretzel-indices-count-mismatch = Indeksene som er angitt for problem, ignoreres fordi antallet ikke stemmer med antallet problem-barn.
 
-shuffle-indices-count-mismatch = Indeksene som er angitt for shuffle ignoreres fordi antallet ikke stemmer med antallet komponenter.
+shuffle-indices-count-mismatch = Indeksene som er angitt for shuffle, ignoreres fordi antallet ikke stemmer med antallet komponenter.
 
-indices-ignored-out-of-range = Indeksene som er angitt for { $component } ignoreres fordi noen ligger utenfor området.
+indices-ignored-out-of-range = Indeksene som er angitt for { $component }, ignoreres fordi noen ligger utenfor området.
 
-pretzel-indices-repeated = Indeksene som er angitt for pretzel ignoreres fordi noen gjentas.
+pretzel-indices-repeated = Indeksene som er angitt for pretzel, ignoreres fordi noen gjentas.
 
-pretzel-circuit-first-index = Indeksene som er angitt for pretzel i modusen circuit ignoreres fordi den første indeksen må være 1.
+pretzel-circuit-first-index = Indeksene som er angitt for pretzel i modusen circuit, ignoreres fordi den første indeksen må være 1.
 
 ## `<shuffle>` and `<sort>`
 
@@ -107,7 +107,7 @@ label-for-must-resolve-to-one = Attributtet `for` på `<label>` må peke ut nøy
 
 label-for-unresolved = Attributtet `for` på `<label>` kunne ikke knyttes til en komponent.
 
-label-for-answer-with-authored-inputs = Attributtet `for` på `<label>` viser til et `<answer>` med uttrykkelig skrevne inndatafelt; vis direkte til feltet.
+label-for-answer-with-authored-inputs = Attributtet `for` på `<label>` viser til et `<answer>` med uttrykkelig skrevne inndatafelt; vis direkte til inndatafeltet.
 
 label-for-answer-without-input = Attributtet `for` på `<label>` viser til et `<answer>` uten et inndatafelt å merke.
 
@@ -121,7 +121,7 @@ accessibility-video-short-description = Av hensyn til tilgjengelighet må `<vide
 
 accessibility-input-short-description-or-label = Av hensyn til tilgjengelighet må `<{ $component }>` ha en kort beskrivelse eller en etikett.
 
-accessibility-answer-input-short-description-or-label = Av hensyn til tilgjengelighet må et `<answer>` som oppretter et inndatafelt ha en kort beskrivelse eller en etikett.
+accessibility-answer-input-short-description-or-label = Av hensyn til tilgjengelighet må et `<answer>` som oppretter et inndatafelt, ha en kort beskrivelse eller en etikett.
 
 accessibility-short-description-contains-math = Korte beskrivelser bør ikke inneholde matematiske komponenter som `<{ $component }>`. Skriv matematikken med ord.
 
@@ -157,7 +157,13 @@ circle-change-center-non-numerical = Å endre sentrum for en sirkel gjennom punk
 
 ## `<function>`
 
-function-domain-insufficient-dimensions = Utilstrekkelig antall dimensjoner for funksjonens definisjonsmengde. Mengden har { $intervals } intervaller, men funksjonen har { $inputs } inndata.
+# «inndata» is invariant in the plural but «intervall» is not, so this message
+# selects on the interval count and leaves the input count plain.
+function-domain-insufficient-dimensions =
+    Utilstrekkelig antall dimensjoner for funksjonens definisjonsmengde. Mengden har { $intervals ->
+        [one] { $intervals } intervall
+       *[other] { $intervals } intervaller
+    }, men funksjonen har { $inputs } inndata.
 
 function-domain-invalid-format = Ugyldig format for funksjonens definisjonsmengde.
 
@@ -248,7 +254,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: kan ikke tolke grid="{ $grid }". Det må være none, medium, dense eller to positive tall skilt med et mellomrom, for eksempel grid="1 0.5". Ingen rutenett tegnes.
+graph-grid-invalid = `<graph>`: kan ikke tolke grid="{ $grid }". Det må være none, medium, dense eller to positive tall skilt med et mellomrom, for eksempel grid="1 0.5". Det tegnes ikke noe rutenett.
 
 ## PreFigure renderer
 
@@ -298,7 +304,7 @@ answer-award-depends-on-own-response = En award for dette svaret bygger på answ
 
 answer-max-num-attempts-in-section-wide-check-work = Å sette `maxNumAttempts` på et `<answer>` inne i en beholder med `sectionWideCheckWork` har ingen virkning, siden antallet forsøk styres av beholderen. Sett `maxNumAttempts` på beholderen i stedet.
 
-nested-section-wide-check-work-max-num-attempts = Å sette `maxNumAttempts` på en beholder med `sectionWideCheckWork` som ligger i en annen beholder med `sectionWideCheckWork` har ingen virkning, siden antallet forsøk styres av den ytre beholderen. Sett `maxNumAttempts` på den ytre beholderen i stedet.
+nested-section-wide-check-work-max-num-attempts = Å sette `maxNumAttempts` på en beholder med `sectionWideCheckWork` som ligger i en annen beholder med `sectionWideCheckWork`, har ingen virkning, siden antallet forsøk styres av den ytre beholderen. Sett `maxNumAttempts` på den ytre beholderen i stedet.
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
@@ -555,7 +561,7 @@ deprecated-attribute-ignored = [deprecation] Attributtet `{ $attribute }` på `<
 
 ## Language coverage
 
-pluralize-english-only = `<pluralize>` kan bare bøye flertall på engelsk, så i et dokument skrevet på { $locale } står teksten uendret. Skriv flertallsformen direkte, eller angi den med attributtet `pluralForm`.
+pluralize-english-only = `<pluralize>` kan bare lage flertallsformer på engelsk, så i et dokument skrevet på { $locale } står teksten uendret. Skriv flertallsformen direkte, eller angi den med attributtet `pluralForm`.
 
 
 ## Checking against the schema
@@ -587,13 +593,13 @@ select-too-few-options = Kan ikke velge { $numToSelect } komponenter av bare { $
 
 select-from-sequence-too-few-values = Kan ikke velge { $numToSelect } verdier fra en følge av lengde { $length }.
 
-select-from-sequence-indices-count-mismatch = Antallet indekser som er angitt for select må stemme med antallet som skal velges
+select-from-sequence-indices-count-mismatch = Antallet indekser som er angitt for select, må stemme med antallet som skal velges
 
-select-from-sequence-indices-not-integers = Alle indekser som er angitt for select må være heltall
+select-from-sequence-indices-not-integers = Alle indekser som er angitt for select, må være heltall
 
-select-from-sequence-index-excluded = Indeksen som ble angitt for selectfromsequence var utelukket
+select-from-sequence-index-excluded = Indeksen som ble angitt for selectfromsequence, var utelukket
 
-select-from-sequence-indices-excluded-combination = Indeksene som ble angitt for selectfromsequence utgjorde en utelukket kombinasjon
+select-from-sequence-indices-excluded-combination = Indeksene som ble angitt for selectfromsequence, utgjorde en utelukket kombinasjon
 
 select-from-sequence-coprime-not-positive-integers = Kan ikke velge innbyrdes primiske kombinasjoner siden det ikke er positive heltall som velges.
 
@@ -609,11 +615,11 @@ select-from-sequence-too-few-unique-values = Kan ikke velge { $numToSelect } uni
 
 select-prime-numbers-too-few-values = Kan ikke velge { $numToSelect } verdier fra en liste med primtall av lengde { $numValues }
 
-select-prime-numbers-values-count-mismatch = Antallet verdier som er angitt for select må stemme med antallet som skal velges
+select-prime-numbers-values-count-mismatch = Antallet verdier som er angitt for select, må stemme med antallet som skal velges
 
-select-prime-numbers-values-not-prime = Alle verdier som er angitt for valg av primtall må finnes i listen med primtall
+select-prime-numbers-values-not-prime = Alle verdier som er angitt for valg av primtall, må finnes i listen med primtall
 
-select-prime-numbers-values-excluded-combination = Verdiene som ble angitt for selectPrimeNumbers utgjorde en utelukket kombinasjon
+select-prime-numbers-values-excluded-combination = Verdiene som ble angitt for selectPrimeNumbers, utgjorde en utelukket kombinasjon
 
 select-prime-numbers-excluded-too-many-combinations = Over 70 % av kombinasjonene ble utelukket i selectPrimeNumbers
 

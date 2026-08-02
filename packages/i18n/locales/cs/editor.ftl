@@ -209,7 +209,7 @@ help-type = Typ:
 help-resolved-style = Vyhodnocený styl (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Vyhodnocené názvy funkcí:
-help-reset-list = Reset seznamu na tomto vstupu:
+help-reset-list = Resetováno na tomto vstupu:
 help-added-on-input = Přidáno na tomto vstupu:
 help-removed-on-input = Odebráno na tomto vstupu:
 

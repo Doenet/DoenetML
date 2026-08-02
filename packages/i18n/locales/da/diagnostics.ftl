@@ -47,7 +47,7 @@ vector-dimension-mismatch = numDimensions passer ikke i vektoren.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Kan ikke tiltrække til `<{ $component }>`, da den ikke har tilstandsvariablen nearestPoint.
+attract-to-without-nearest-point = Kan ikke tiltrækkes mod `<{ $component }>`, da den ikke har tilstandsvariablen nearestPoint.
 
 constrain-to-without-nearest-point = Kan ikke begrænses til `<{ $component }>`, da den ikke har tilstandsvariablen nearestPoint.
 
@@ -65,7 +65,7 @@ pretzel-indices-count-mismatch = Indeks angivet for problem ignoreres, da antall
 
 shuffle-indices-count-mismatch = Indeks angivet for shuffle ignoreres, da antallet ikke svarer til antallet af komponenter.
 
-indices-ignored-out-of-range = Indeks angivet for { $component } ignoreres, da nogle ligger uden for intervallet.
+indices-ignored-out-of-range = Indeks angivet for { $component } ignoreres, da nogle ligger uden for det gyldige område.
 
 pretzel-indices-repeated = Indeks angivet for pretzel ignoreres, da nogle gentages.
 
@@ -157,7 +157,13 @@ circle-change-center-non-numerical = At ændre centrum for en cirkel gennem punk
 
 ## `<function>`
 
-function-domain-insufficient-dimensions = Utilstrækkeligt antal dimensioner for funktionens definitionsmængde. Mængden har { $intervals } intervaller, men funktionen har { $inputs } input.
+# «input» is invariant in the plural but «interval» is not, so this message
+# selects on the interval count and leaves the input count plain.
+function-domain-insufficient-dimensions =
+    Utilstrækkeligt antal dimensioner for funktionens definitionsmængde. Mængden har { $intervals ->
+        [one] { $intervals } interval
+       *[other] { $intervals } intervaller
+    }, men funktionen har { $inputs } input.
 
 function-domain-invalid-format = Ugyldigt format for funktionens definitionsmængde.
 

@@ -59,7 +59,7 @@ constrain-to-interior-without-nearest-point = Na vnitřek `<{ $component }>` nel
 
 ## `<choiceInput>`
 
-choice-input-label-position-ignored = labelPosition je u neřádkového choiceInput ignorován
+choice-input-label-position-ignored = labelPosition je u choiceInput, který není inline, ignorován
 
 ## Ordering children by index
 
@@ -115,7 +115,7 @@ label-for-answer-with-authored-inputs = Atribut `for` u `<label>` odkazuje na `<
 
 label-for-answer-without-input = Atribut `for` u `<label>` odkazuje na `<answer>`, který nemá vstup k popsání.
 
-label-for-must-reference-input-or-answer = Atribut `for` u `<label>` musí odkazovat na vstup nebo na answer.
+label-for-must-reference-input-or-answer = Atribut `for` u `<label>` musí odkazovat na vstup nebo na odpověď.
 
 ## Accessibility
 
@@ -332,9 +332,9 @@ data-frame-missing-column-name = Datům chybí název sloupce.  Nalezeno v compo
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Hodnocení této odpovědi vychází z odeslané odpovědi samotné značky answer, což povede k neočekávanému chování.
+answer-award-depends-on-own-response = Prvek award u této odpovědi vychází z odeslané odpovědi samotné značky answer, což povede k neočekávanému chování.
 
-answer-max-num-attempts-in-section-wide-check-work = Nastavení `maxNumAttempts` na `<answer>` uvnitř kontejneru s `sectionWideCheckWork` nemá žádný účinek, protože počet pokusů řídí kontejner. Nastavte `maxNumAttempts` na kontejneru.
+answer-max-num-attempts-in-section-wide-check-work = Nastavení `maxNumAttempts` na `<answer>` uvnitř kontejneru s `sectionWideCheckWork` nemá žádný účinek, protože počet pokusů řídí kontejner. Nastavte `maxNumAttempts` místo toho na kontejneru.
 
 nested-section-wide-check-work-max-num-attempts = Nastavení `maxNumAttempts` na kontejneru s `sectionWideCheckWork`, který je uvnitř jiného kontejneru s `sectionWideCheckWork`, nemá žádný účinek, protože počet pokusů řídí vnější kontejner. Nastavte `maxNumAttempts` na vnějším kontejneru.
 
@@ -348,7 +348,7 @@ answer-invalid-type = Neplatný typ pro answer: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
-module-attribute-child-needs-name = Protože komponenta `<{ $component }>` nemá jméno, nelze ji použít jako atribut modulu
+module-attribute-child-needs-name = Protože komponenta `<{ $component }>` nemá název, nelze ji použít jako atribut modulu
 
 module-attribute-name-already-defined = Komponentu `<{ $component } name="{ $name }">` nelze použít jako atribut modulu, protože typ komponenty `<module>` už atribut „{ $name }“ definuje.
 
@@ -446,7 +446,7 @@ variant-non-constant-exclude-not-implemented = jedinečné varianty { $component
 
 prefigure-descendant-unsupported = { $subject }: není podporováno ve vykreslovacím modulu graph prefigure; potomek přeskočen.
 
-prefigure-descendant-invalid-geometry = { $subject }: nekonečná nebo neúplná geometrie; potomek přeskočen.
+prefigure-descendant-invalid-geometry = { $subject }: geometrie není konečná nebo je neúplná; potomek přeskočen.
 
 prefigure-curve-label-omitted = { $subject }: popisky nejsou u převedených prvků křivky podporovány; popisek vynechán.
 
@@ -454,7 +454,7 @@ prefigure-curve-unsupported-definition-type = { $subject }: nepodporovaný typ d
 
 prefigure-region-flip-functions-unsupported = { $subject }: nepodporovaný atribut flipFunctions u regionBetweenCurves; potomek přeskočen.
 
-prefigure-region-non-formula-child = { $subject }: u regionBetweenCurves jsou podporovány jen dětské funkce zadané vzorcem; potomek přeskočen.
+prefigure-region-non-formula-child = { $subject }: u regionBetweenCurves jsou podporovány jen podřízené funkce zadané vzorcem; potomek přeskočen.
 
 prefigure-label-position-unsupported =
     { $subject }: nepodporovaný labelPosition „{ $labelPosition }“ pro { $labelKind ->
@@ -556,7 +556,7 @@ name-attribute-invalid =
        *[start] Jména musí začínat písmenem.
     }
 
-component-name-invalid-start = Neplatné jméno komponenty „{ $name }“. Jména musí začínat písmenem.
+component-name-invalid-start = Neplatný název komponenty „{ $name }“. Názvy musí začínat písmenem.
 
 ## `<answer>` sugar
 
@@ -568,11 +568,11 @@ answer-name-not-single-text = Atribut name u answer musí mít jednoho textovéh
 
 ## Referencing another document
 
-external-doenetml-recursion-limit = Externí DoenetML nebylo možné načíst kvůli příliš mnoha úrovním rekurze. Není zde kruhový odkaz?
+external-doenetml-recursion-limit = Externí DoenetML se nepodařilo načíst kvůli příliš mnoha úrovním rekurze. Není zde kruhový odkaz?
 
 external-doenetml-unavailable = DoenetML z { $attribute }="{ $uri }" nebylo možné načíst
 
-external-doenetml-type-mismatch = Z { $attribute }="{ $uri }" bylo načteno neplatné DoenetML: neodpovídá typu komponenty „{ $componentType }“
+external-doenetml-type-mismatch = Z { $attribute }="{ $uri }" byl načten neplatný DoenetML: neodpovídá typu komponenty „{ $componentType }“
 
 ## Deprecated syntax
 

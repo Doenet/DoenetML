@@ -135,11 +135,11 @@ diagnostic-heading-warning = Figyelmeztetés
 diagnostic-heading-information = Információ
 diagnostic-heading-hint = Tipp
 
-accessibility-heading-level-1 = WCAG AA akadálymentességi hiba
+accessibility-heading-level-1 = WCAG AA akadálymentességi szabálysértés
 accessibility-heading-level-2 = Akadálymentességi figyelmeztetés
 
 something-went-wrong = Valami hiba történt.
 
-renderer-load-failed = egy megjelenítő modult nem sikerült betölteni. Töltse újra az oldalt.
+renderer-load-failed = egy megjelenítőmodult nem sikerült betölteni. Töltse újra az oldalt.
 
 core-start-failed = A dokumentummegjelenítőt nem sikerült elindítani. Töltse újra az oldalt.

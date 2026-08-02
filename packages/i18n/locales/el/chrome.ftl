@@ -131,7 +131,7 @@ document-contains-errors = Αυτό το έγγραφο περιέχει σφά�
 
 diagnostic-heading-error = Σφάλμα
 diagnostic-heading-warning = Προειδοποίηση
-diagnostic-heading-information = Πληροφορία
+diagnostic-heading-information = Πληροφορίες
 diagnostic-heading-hint = Υπόδειξη
 
 accessibility-heading-level-1 = Παραβίαση προσβασιμότητας WCAG AA
@@ -139,6 +139,6 @@ accessibility-heading-level-2 = Ειδοποίηση προσβασιμότητ�
 
 something-went-wrong = Κάτι πήγε στραβά.
 
-renderer-load-failed = απέτυχε η φόρτωση ενός στοιχείου απόδοσης. Φορτώστε ξανά τη σελίδα.
+renderer-load-failed = απέτυχε η φόρτωση ενός προγράμματος απόδοσης. Φορτώστε ξανά τη σελίδα.
 
 core-start-failed = Δεν ήταν δυνατή η εκκίνηση του προγράμματος προβολής εγγράφων. Φορτώστε ξανά τη σελίδα.

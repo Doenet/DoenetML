@@ -25,8 +25,8 @@ editor-update-viewer =
 
 editor-update-viewer-title =
     { $shortcut ->
-        [none] Megjelenítő { $word }
-       *[other] Megjelenítő { $word } { $shortcut }
+        [none] Megjelenítő – { $word }
+       *[other] Megjelenítő – { $word } ({ $shortcut })
     }
 
 
@@ -42,14 +42,14 @@ editor-variant-previous = Előző változat kiválasztása
 
 editor-accessibility-title =
     { $status ->
-        [violations] WCAG AA akadálymentességi hibát találtunk. Kattintson az akadálymentességi jelentés { $action ->
+        [violations] WCAG AA akadálymentességi szabálysértést találtunk. Kattintson az akadálymentességi jelentés { $action ->
             [close] bezárásához
            *[open] megnyitásához
         }.
         [advisories] Kattintson az akadálymentességi jelentés { $action ->
             [close] bezárásához
            *[open] megnyitásához
-        }. WCAG AA hibát nem találtunk, de vannak további akadálymentességi javaslatok.
+        }. WCAG AA szabálysértést nem találtunk, de vannak további akadálymentességi javaslatok.
        *[clean] Kattintson az akadálymentességi jelentés { $action ->
             [close] bezárásához
            *[open] megnyitásához
@@ -58,15 +58,15 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] WCAG AA akadálymentességi hibát találtunk. { $count } WCAG AA hiba található. Kattintson az akadálymentességi jelentés { $action ->
+        [violations] WCAG AA akadálymentességi szabálysértést találtunk. { $count } WCAG AA szabálysértés található. Kattintson az akadálymentességi jelentés { $action ->
             [close] bezárásához
            *[open] megnyitásához
         }.
-        [advisories] WCAG AA hibát nem találtunk. { $count } további akadálymentességi javaslat található. Kattintson az akadálymentességi jelentés { $action ->
+        [advisories] WCAG AA szabálysértést nem találtunk. { $count } további akadálymentességi javaslat található. Kattintson az akadálymentességi jelentés { $action ->
             [close] bezárásához
            *[open] megnyitásához
         }.
-       *[clean] WCAG AA hibát nem találtunk. Kattintson az akadálymentességi jelentés { $action ->
+       *[clean] WCAG AA szabálysértést nem találtunk. Kattintson az akadálymentességi jelentés { $action ->
             [close] bezárásához
            *[open] megnyitásához
         }.
@@ -107,7 +107,7 @@ editor-show-accessibility-annotations = Akadálymentességi üzenetek megjelení
 
 editor-accessibility-learn-more = Hogyan közelíti meg a Doenet az akadálymentességet
 
-editor-accessibility-violations-heading = Akadálymentességi hibák ({ $standard })
+editor-accessibility-violations-heading = Akadálymentességi szabálysértések ({ $standard })
 
 editor-accessibility-other-heading = Egyéb akadálymentességi problémák
 editor-none-found = Nincs találat

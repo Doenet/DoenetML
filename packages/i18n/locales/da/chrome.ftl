@@ -117,7 +117,7 @@ error-heading = Fejl
 error-found-at =
     { $span ->
         [line] Fundet på linje { $startLine }.
-       *[lines] Fundet på linje { $startLine }–{ $endLine }.
+       *[lines] Fundet på linjerne { $startLine }–{ $endLine }.
     }
 
 document-contains-errors = Dette dokument indeholder fejl!

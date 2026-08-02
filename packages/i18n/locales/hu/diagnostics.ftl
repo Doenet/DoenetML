@@ -97,7 +97,7 @@ side-by-side-absolute-widths = A(z) `<{ $component }>` nincs megvalósítva absz
 
 side-by-side-absolute-margins = A(z) `<{ $component }>` nincs megvalósítva abszolút mértékekhez. A margók relatívra állnak.
 
-side-by-side-no-block-child = Érvénytelen `<{ $component }>`: legalább egy blokk típusú gyermeke kell legyen.
+side-by-side-no-block-child = Érvénytelen `<{ $component }>`: legalább egy blokk típusú gyermekének kell lennie.
 
 ## `<label>`
 
@@ -115,7 +115,7 @@ label-for-must-reference-input-or-answer = A `<label>` `for` attribútumának be
 
 ## Accessibility
 
-accessibility-short-description-or-decorative = Az akadálymentesség érdekében a(z) `<{ $component }>` elemnek vagy rövid leírással kell rendelkeznie, vagy dekoratívnak kell lennie megjelölve.
+accessibility-short-description-or-decorative = Az akadálymentesség érdekében a(z) `<{ $component }>` elemnek vagy rövid leírással kell rendelkeznie, vagy dekoratívként kell megjelölni.
 
 accessibility-video-short-description = Az akadálymentesség érdekében a `<video>` elemnek rövid leírással kell rendelkeznie.
 
@@ -248,9 +248,9 @@ graph-grid-invalid = `<graph>`: a grid="{ $grid }" nem értelmezhető. none, med
 
 ## PreFigure renderer
 
-prefigure-x-label-position-unsupported = `<graph>`: az xLabelPosition="left" nem támogatott a prefigure megjelenítőben; a right viselkedése lép életbe.
+prefigure-x-label-position-unsupported = `<graph>`: az xLabelPosition="left" nem támogatott a prefigure megjelenítőmodulban; a right viselkedése lép életbe.
 
-prefigure-y-label-position-unsupported = `<graph>`: az yLabelPosition="bottom" nem támogatott a prefigure megjelenítőben; a top viselkedése lép életbe.
+prefigure-y-label-position-unsupported = `<graph>`: az yLabelPosition="bottom" nem támogatott a prefigure megjelenítőmodulban; a top viselkedése lép életbe.
 
 prefigure-invalid-axis-bounds = `<graph>`: érvénytelen tengelyhatárok a prefigure átalakításhoz; az alapértelmezett bbox (-10,-10,10,10) lép életbe.
 
@@ -258,9 +258,9 @@ prefigure-invalid-width = `<graph>`: érvénytelen szélesség a prefigure átal
 
 prefigure-invalid-aspect-ratio = `<graph>`: érvénytelen aspectRatio a prefigure átalakításhoz; az alapértelmezett 1 oldalarány lép életbe.
 
-prefigure-grid-spacing-too-fine = `<graph>`: a rács osztásköze túl finom a tengelyhatárokhoz; a prefigure megjelenítőben a rács kimarad.
+prefigure-grid-spacing-too-fine = `<graph>`: a rács osztásköze túl finom a tengelyhatárokhoz; a prefigure megjelenítőmodulban a rács kimarad.
 
-prefigure-annotations-not-rendered = `<graph>`: a jegyzetek nem jelennek meg, ha nem a PreFigure megjelenítőt használjuk.
+prefigure-annotations-not-rendered = `<graph>`: a jegyzetek nem jelennek meg, ha nem a PreFigure megjelenítőmodult használjuk.
 
 multiple-annotations-children = Több `<annotations>` gyermek található a `<graph>` elemben; az utolsó kivételével mind figyelmen kívül marad.
 
@@ -394,7 +394,7 @@ variant-non-constant-exclude-not-implemented = nincs megvalósítva a(z) { $comp
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: nem támogatott a graph prefigure megjelenítőben; a leszármazott kimarad.
+prefigure-descendant-unsupported = { $subject }: nem támogatott a graph prefigure megjelenítőmodulban; a leszármazott kimarad.
 
 prefigure-descendant-invalid-geometry = { $subject }: nem véges vagy hiányos geometria; a leszármazott kimarad.
 
@@ -558,8 +558,8 @@ schema-attribute-unrecognized = A(z) `<{ $tag }>` elemnek nincs `{ $attribute }`
 
 schema-attribute-value-not-allowed =
     { $isList ->
-        [true] A(z) `<{ $tag }>` elem `{ $attribute }` attribútuma olyan lista kell legyen, amelynek minden eleme egy a következők közül: { $allowed }
-       *[other] A(z) `<{ $tag }>` elem `{ $attribute }` attribútuma egy a következők közül kell legyen: { $allowed }
+        [true] A(z) `<{ $tag }>` elem `{ $attribute }` attribútumának olyan listának kell lennie, amelynek minden eleme egy a következők közül: { $allowed }
+       *[other] A(z) `<{ $tag }>` elem `{ $attribute }` attribútumának egynek kell lennie a következők közül: { $allowed }
     }
 
 

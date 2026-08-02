@@ -33,7 +33,7 @@ answer-percent-credit = { $percent } % poeng
 answer-percent-correct = { $percent } % riktig
 answer-percent-short = { $percent } %
 
-max-credit-available = Høyest oppnåelige poengsum: { $percent } %
+max-credit-available = Høyeste oppnåelige poengsum: { $percent } %
 
 attempts-remaining =
     { $count ->
@@ -127,11 +127,11 @@ diagnostic-heading-warning = Advarsel
 diagnostic-heading-information = Informasjon
 diagnostic-heading-hint = Tips
 
-accessibility-heading-level-1 = Brudd på tilgjengelighet etter WCAG AA
+accessibility-heading-level-1 = Tilgjengelighetsbrudd etter WCAG AA
 accessibility-heading-level-2 = Tilgjengelighetsmerknad
 
 something-went-wrong = Noe gikk galt.
 
-renderer-load-failed = en gjengivelsesmodul kunne ikke lastes. Last inn siden på nytt.
+renderer-load-failed = et gjengivelsesmodul kunne ikke lastes. Last inn siden på nytt.
 
 core-start-failed = Dokumentviseren kunne ikke startes. Last inn siden på nytt.

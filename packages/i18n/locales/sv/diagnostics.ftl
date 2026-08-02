@@ -320,7 +320,7 @@ conditional-content-condition-ignored = Attributet `condition` ignoreras på en 
 
 slider-markers-type-mismatch = Markörernas typ stämmer inte med reglagets typ.
 
-pretzel-problem-needs-statement-and-answer = Ogiltig pretzel: varje `<problem>` måste innehålla ett `<statement>` och ett `<answer>`.
+pretzel-problem-needs-statement-and-answer = Ogiltig pretzel: varje `<problem>` måste innehålla en `<statement>` och en `<answer>`.
 
 pretzel-circuit-first-problem-distractor = Ogiltig pretzel: i mode="circuit" får det första `<problem>` inte vara en distraktor.
 

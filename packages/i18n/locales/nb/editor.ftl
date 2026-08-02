@@ -39,7 +39,7 @@ editor-variant-previous = Velg forrige variant
 
 editor-accessibility-title =
     { $status ->
-        [violations] Det er funnet et brudd på tilgjengelighet etter WCAG AA. Klikk for å { $action ->
+        [violations] Det er funnet et tilgjengelighetsbrudd etter WCAG AA. Klikk for å { $action ->
             [close] lukke
            *[open] åpne
         } tilgjengelighetsrapporten.
@@ -55,7 +55,7 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Det er funnet et brudd på tilgjengelighet etter WCAG AA. Det ble funnet { $count } WCAG AA-brudd. Klikk for å { $action ->
+        [violations] Det er funnet et tilgjengelighetsbrudd etter WCAG AA. Det ble funnet { $count } WCAG AA-brudd. Klikk for å { $action ->
             [close] lukke
            *[open] åpne
         } tilgjengelighetsrapporten.

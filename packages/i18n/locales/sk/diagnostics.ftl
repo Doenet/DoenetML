@@ -59,7 +59,7 @@ constrain-to-interior-without-nearest-point = Na vnútro `<{ $component }>` nemo
 
 ## `<choiceInput>`
 
-choice-input-label-position-ignored = labelPosition sa pri neriadkovom choiceInput ignoruje
+choice-input-label-position-ignored = labelPosition sa pri choiceInput, ktorý nie je inline, ignoruje
 
 ## Ordering children by index
 
@@ -115,7 +115,7 @@ label-for-answer-with-authored-inputs = Atribút `for` pri `<label>` odkazuje na
 
 label-for-answer-without-input = Atribút `for` pri `<label>` odkazuje na `<answer>`, ktorý nemá vstup na označenie.
 
-label-for-must-reference-input-or-answer = Atribút `for` pri `<label>` musí odkazovať na vstup alebo na answer.
+label-for-must-reference-input-or-answer = Atribút `for` pri `<label>` musí odkazovať na vstup alebo na odpoveď.
 
 ## Accessibility
 
@@ -248,7 +248,7 @@ target-state-variable-not-found = Neplatný target pre `<{ $source }>`: na `<{ $
 
 ode-system-variables-match-independent = Premenné `<odeSystem>` sa musia líšiť od nezávislej premennej.
 
-ode-system-duplicate-variable-names = Pravé strany ODR nemožno definovať s rovnakými názvami závislých premenných.
+ode-system-duplicate-variable-names = Pravé strany ODR nemožno definovať s duplicitnými názvami závislých premenných.
 
 ode-system-rhs-function-error = Pravú stranu ODR nemožno definovať.  Chyba pri vytváraní funkcie mathjs.
 
@@ -326,15 +326,15 @@ component-action-unavailable = Na komponente `{ $reference }` nemožno zavolať 
 
 data-frame-inconsistent-row-lengths = Údaje majú neplatný tvar.  Riadky majú nerovnakú dĺžku. Nájdené v componentIdx :{ $componentIdx }
 
-data-frame-duplicate-column-names = Údaje obsahujú rovnaké názvy stĺpcov.  Nájdené v componentIdx :{ $componentIdx }
+data-frame-duplicate-column-names = Údaje obsahujú duplicitné názvy stĺpcov.  Nájdené v componentIdx :{ $componentIdx }
 
 data-frame-missing-column-name = Údajom chýba názov stĺpca.  Nájdené v componentIdx :{ $componentIdx }
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Hodnotenie tejto odpovede vychádza z odoslanej odpovede samotnej značky answer, čo povedie k neočakávanému správaniu.
+answer-award-depends-on-own-response = Prvok award pri tejto odpovedi vychádza z odoslanej odpovede samotnej značky answer, čo povedie k neočakávanému správaniu.
 
-answer-max-num-attempts-in-section-wide-check-work = Nastavenie `maxNumAttempts` na `<answer>` vnútri kontajnera s `sectionWideCheckWork` nemá žiadny účinok, pretože počet pokusov riadi kontajner. Nastavte `maxNumAttempts` na kontajneri.
+answer-max-num-attempts-in-section-wide-check-work = Nastavenie `maxNumAttempts` na `<answer>` vnútri kontajnera s `sectionWideCheckWork` nemá žiadny účinok, pretože počet pokusov riadi kontajner. Nastavte `maxNumAttempts` namiesto toho na kontajneri.
 
 nested-section-wide-check-work-max-num-attempts = Nastavenie `maxNumAttempts` na kontajneri s `sectionWideCheckWork`, ktorý je vnútri iného kontajnera s `sectionWideCheckWork`, nemá žiadny účinok, pretože počet pokusov riadi vonkajší kontajner. Nastavte `maxNumAttempts` na vonkajšom kontajneri.
 
@@ -348,7 +348,7 @@ answer-invalid-type = Neplatný typ pre answer: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
-module-attribute-child-needs-name = Keďže komponent `<{ $component }>` nemá meno, nemožno ho použiť ako atribút modulu
+module-attribute-child-needs-name = Keďže komponent `<{ $component }>` nemá názov, nemožno ho použiť ako atribút modulu
 
 module-attribute-name-already-defined = Komponent `<{ $component } name="{ $name }">` nemožno použiť ako atribút modulu, pretože typ komponentu `<module>` už atribút „{ $name }“ definuje.
 
@@ -446,7 +446,7 @@ variant-non-constant-exclude-not-implemented = jedinečné varianty { $component
 
 prefigure-descendant-unsupported = { $subject }: nie je podporované vo vykresľovacom module graph prefigure; potomok preskočený.
 
-prefigure-descendant-invalid-geometry = { $subject }: nekonečná alebo neúplná geometria; potomok preskočený.
+prefigure-descendant-invalid-geometry = { $subject }: geometria nie je konečná alebo je neúplná; potomok preskočený.
 
 prefigure-curve-label-omitted = { $subject }: označenia nie sú pri prevedených prvkoch krivky podporované; označenie vynechané.
 
@@ -454,7 +454,7 @@ prefigure-curve-unsupported-definition-type = { $subject }: nepodporovaný typ d
 
 prefigure-region-flip-functions-unsupported = { $subject }: nepodporovaný atribút flipFunctions pri regionBetweenCurves; potomok preskočený.
 
-prefigure-region-non-formula-child = { $subject }: pri regionBetweenCurves sú podporované len detské funkcie zadané vzorcom; potomok preskočený.
+prefigure-region-non-formula-child = { $subject }: pri regionBetweenCurves sú podporované len podriadené funkcie zadané vzorcom; potomok preskočený.
 
 prefigure-label-position-unsupported =
     { $subject }: nepodporovaný labelPosition „{ $labelPosition }“ pre { $labelKind ->
@@ -556,7 +556,7 @@ name-attribute-invalid =
        *[start] Mená musia začínať písmenom.
     }
 
-component-name-invalid-start = Neplatné meno komponentu „{ $name }“. Mená musia začínať písmenom.
+component-name-invalid-start = Neplatný názov komponentu „{ $name }“. Názvy musia začínať písmenom.
 
 ## `<answer>` sugar
 
@@ -568,7 +568,7 @@ answer-name-not-single-text = Atribút name pri answer musí mať jedného texto
 
 ## Referencing another document
 
-external-doenetml-recursion-limit = Externý DoenetML sa nepodarilo načítať pre priveľa úrovní rekurzie. Nie je tu kruhový odkaz?
+external-doenetml-recursion-limit = Externý DoenetML sa nepodarilo načítať kvôli príliš mnohým úrovniam rekurzie. Nie je tu kruhový odkaz?
 
 external-doenetml-unavailable = DoenetML z { $attribute }="{ $uri }" sa nepodarilo načítať
 

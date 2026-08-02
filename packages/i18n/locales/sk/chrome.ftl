@@ -132,7 +132,7 @@ error-found-at =
 document-contains-errors = Tento dokument obsahuje chyby!
 
 diagnostic-heading-error = Chyba
-diagnostic-heading-warning = Upozornenie
+diagnostic-heading-warning = Varovanie
 diagnostic-heading-information = Informácia
 diagnostic-heading-hint = Pomôcka
 

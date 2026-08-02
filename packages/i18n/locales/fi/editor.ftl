@@ -103,10 +103,10 @@ editor-diagnostic-line = Rivi { $line }
 
 editor-no-errors = Ei virheitä
 editor-no-warnings = Ei varoituksia
-editor-no-info = Ei tiedotteita
+editor-no-info = Ei tietodiagnostiikkaa
 
-editor-show-info-annotations = Näytä tiedotteet editorissa
-editor-show-accessibility-annotations = Näytä saavutettavuusilmoitukset editorissa
+editor-show-info-annotations = Näytä tietodiagnostiikka editorissa
+editor-show-accessibility-annotations = Näytä saavutettavuusdiagnostiikka editorissa
 
 editor-accessibility-learn-more = Näin Doenet lähestyy saavutettavuutta
 
@@ -139,7 +139,7 @@ help-unresolved-ref =
     }
 
 help-learn-about-references = Lue viittauksista →
-help-reference-page = Hakusivu →
+help-reference-page = Ohjesivu →
 
 help-suggestions-header =
     { $location ->
@@ -164,8 +164,8 @@ help-ref-is-reference =
 
 help-ref-derived-from =
     { $line ->
-        [none] Esitteli { $owner } roolissa { $role }.
-       *[other] Esitteli { $owner } rivillä { $line } roolissa { $role }.
+        [none] Esitelty kohteessa { $owner } roolissa { $role }.
+       *[other] Esitelty kohteessa { $owner } rivillä { $line } roolissa { $role }.
     }
 
 help-property-is-reference =
@@ -208,4 +208,4 @@ help-reset-list = Listan palautus tässä syötteessä:
 help-added-on-input = Lisätty tässä syötteessä:
 help-removed-on-input = Poistettu tässä syötteessä:
 
-help-reset-overrides = { $reset } ohittaa asetukset { $additional } ja { $removed }.
+help-reset-overrides = { $reset } kumoaa asetukset { $additional } ja { $removed }.

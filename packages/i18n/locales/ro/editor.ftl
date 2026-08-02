@@ -145,7 +145,7 @@ help-reference-page = Pagina de referință →
 
 help-suggestions-header =
     { $location ->
-        [inside] În interiorul { $element }
+        [inside] În interiorul lui { $element }
        *[top] La nivelul superior
     }{ $allowed ->
         [none] { " — aici nu se pune nimic." }
@@ -172,8 +172,8 @@ help-ref-derived-from =
 
 help-property-is-reference =
     { $line ->
-        [none] { $ref } este o referință la proprietatea { $property } a { $element }.
-       *[other] { $ref } este o referință la proprietatea { $property } a { $element } (linia { $line }).
+        [none] { $ref } este o referință la proprietatea { $property } a lui { $element }.
+       *[other] { $ref } este o referință la proprietatea { $property } a lui { $element } (linia { $line }).
     }
 
 help-kind-attribute = atribut

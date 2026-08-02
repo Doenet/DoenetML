@@ -12,10 +12,9 @@
 # has two. `many` is the one that covers five and up as well as the teens, and
 # it takes the genitive plural: «5 спроб», not «5 спроби».
 #
-# Register: impersonal. An instruction is given with the infinitive
-# («Перезавантажте сторінку» is a command to a person; «Потрібно
-# перезавантажити сторінку» is not), which is how Ukrainian software addresses
-# a reader whose number it does not know.
+# Register: the second-person plural imperative — «Перезавантажте сторінку» —
+# which is how Ukrainian software addresses a reader, and which the other two
+# namespaces already use throughout («Натисніть», «Задайте», «Запишіть»).
 
 
 ## Answer submission
@@ -146,6 +145,6 @@ accessibility-heading-level-2 = Зауваження щодо доступнос
 
 something-went-wrong = Щось пішло не так.
 
-renderer-load-failed = не вдалося завантажити модуль відображення. Потрібно перезавантажити сторінку.
+renderer-load-failed = не вдалося завантажити модуль відображення. Перезавантажте сторінку.
 
-core-start-failed = Не вдалося запустити переглядач документа. Потрібно перезавантажити сторінку.
+core-start-failed = Не вдалося запустити переглядач документа. Перезавантажте сторінку.

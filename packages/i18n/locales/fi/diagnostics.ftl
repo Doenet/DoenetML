@@ -20,7 +20,7 @@ line-segment-attributes-ignored-with-endpoints = { $attributes } ohitetaan, kun 
 
 line-segment-attributes-ignored-with-endpoint-and-midpoint = { $attributes } ohitetaan, kun sekä päätepiste että keskipiste on määritetty
 
-line-segment-midpoint-offset-without-midpoint = midpointOffset ei vaikuta mitään ilman midpoint-arvoa
+line-segment-midpoint-offset-without-midpoint = midpointOffset-attribuutilla ei ole vaikutusta ilman midpoint-arvoa
 
 ## `<line>`
 
@@ -62,7 +62,7 @@ choice-input-indices-count-mismatch = choiceInputille määritetyt indeksit ohit
 
 pretzel-indices-count-mismatch = problemille määritetyt indeksit ohitetaan, koska niiden määrä ei vastaa problem-lapsien määrää.
 
-shuffle-indices-count-mismatch = shufflelle määritetyt indeksit ohitetaan, koska niiden määrä ei vastaa komponenttien määrää.
+shuffle-indices-count-mismatch = shuffle-komponentille määritetyt indeksit ohitetaan, koska niiden määrä ei vastaa komponenttien määrää.
 
 indices-ignored-out-of-range = Kohteelle { $component } määritetyt indeksit ohitetaan, koska osa niistä on alueen ulkopuolella.
 
@@ -132,7 +132,7 @@ accessibility-section-title-insufficient-contrast =
 
 ## `<circle>`
 
-circle-through-points-non-numerical = `<circle>` { $count } pisteen kautta ei ole toteutettu tapaukseen, jossa pisteillä ei ole numeerisia arvoja.
+circle-through-points-non-numerical = `<circle>` { $count } pisteen kautta ei ole toteutettu tapauksessa, jossa pisteillä ei ole numeerisia arvoja.
 
 circle-too-many-through-points = Ympyrää ei voi laskea useamman kuin 3 pisteen kautta.
 
@@ -315,14 +315,14 @@ data-frame-missing-column-name = Datasta puuttuu sarakenimi.  Löytyi kohdasta c
 
 answer-award-depends-on-own-response = Tämän vastauksen award perustuu answer-tunnisteen omaan lähetettyyn vastaukseen, mikä johtaa odottamattomaan toimintaan.
 
-answer-max-num-attempts-in-section-wide-check-work = `maxNumAttempts`-arvon asettaminen `<answer>`-elementtiin, joka on `sectionWideCheckWork`-säiliön sisällä, ei vaikuta mitään, koska säiliö ohjaa yritysten määrää. Aseta `maxNumAttempts` säiliöön.
+answer-max-num-attempts-in-section-wide-check-work = `maxNumAttempts`-arvon asettaminen `<answer>`-elementtiin, joka on `sectionWideCheckWork`-säiliön sisällä, ei vaikuta mihinkään, koska säiliö ohjaa yritysten määrää. Aseta `maxNumAttempts` säiliöön.
 
-nested-section-wide-check-work-max-num-attempts = `maxNumAttempts`-arvon asettaminen `sectionWideCheckWork`-säiliöön, joka on toisen `sectionWideCheckWork`-säiliön sisällä, ei vaikuta mitään, koska ulompi säiliö ohjaa yritysten määrää. Aseta `maxNumAttempts` ulompaan säiliöön.
+nested-section-wide-check-work-max-num-attempts = `maxNumAttempts`-arvon asettaminen `sectionWideCheckWork`-säiliöön, joka on toisen `sectionWideCheckWork`-säiliön sisällä, ei vaikuta mihinkään, koska ulompi säiliö ohjaa yritysten määrää. Aseta `maxNumAttempts` ulompaan säiliöön.
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
-        [one] Attribuutti { $attributes } ei vaikuta mitään ilman symbolicEquality-asetusta.
-       *[other] Attribuutit { $attributes } eivät vaikuta mitään ilman symbolicEquality-asetusta.
+        [one] Attribuutilla { $attributes } ei ole vaikutusta ilman symbolicEquality-asetusta.
+       *[other] Attribuuteilla { $attributes } ei ole vaikutusta ilman symbolicEquality-asetusta.
     }
 
 answer-invalid-type = Virheellinen tyyppi answer-elementille: { $type }
@@ -377,14 +377,14 @@ style-definition-insufficient-contrast =
 
 style-definition-dark-mode-text-background-contrast =
     Vaikka tyylimäärittely { $styleNumber } antaa vaaleaan tilaan riittävän kontrastin värit, näistä arvoista johdetuilla tumman tilan väreillä tekstin värin ja taustavärin kontrasti on riittämätön ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vaaditaan vähintään { $threshold }:1). { $suggestion ->
-        [available] Riittävän kontrastin saamiseksi tummassa tilassa joko lisää kontrastia vaaleassa tilassa (esim. { $lightAttribute }="{ $lightColor }") tai ohita tumman tilan väri (esim. { $darkAttribute }="{ $darkColor }").
-       *[none] Riittävän kontrastin saamiseksi tummassa tilassa lisää kontrastia vaaleassa tilassa tai ohita johdetut värit asetuksilla textColorDarkMode ja/tai backgroundColorDarkMode.
+        [available] Riittävän kontrastin saamiseksi tummassa tilassa joko lisää kontrastia vaaleassa tilassa (esim. { $lightAttribute }="{ $lightColor }") tai korvaa tumman tilan väri (esim. { $darkAttribute }="{ $darkColor }").
+       *[none] Riittävän kontrastin saamiseksi tummassa tilassa lisää kontrastia vaaleassa tilassa tai korvaa johdetut värit asetuksilla textColorDarkMode ja/tai backgroundColorDarkMode.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
     Vaikka tyylimäärittely { $styleNumber } antaa vaaleaan tilaan riittävän kontrastin tekstivärin, tästä arvosta johdetun tumman tilan tekstivärin kontrasti piirtoalustaan nähden on riittämätön ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vaaditaan vähintään { $threshold }:1). { $suggestion ->
-        [available] Riittävän kontrastin saamiseksi tummassa tilassa joko lisää kontrastia vaaleassa tilassa (esim. textColor="{ $lightColor }") tai ohita tumman tilan väri (esim. textColorDarkMode="{ $darkColor }").
-       *[none] Riittävän kontrastin saamiseksi tummassa tilassa lisää kontrastia vaaleassa tilassa tai ohita johdettu väri asetuksella textColorDarkMode.
+        [available] Riittävän kontrastin saamiseksi tummassa tilassa joko lisää kontrastia vaaleassa tilassa (esim. textColor="{ $lightColor }") tai korvaa tumman tilan väri (esim. textColorDarkMode="{ $darkColor }").
+       *[none] Riittävän kontrastin saamiseksi tummassa tilassa lisää kontrastia vaaleassa tilassa tai korvaa johdettu väri asetuksella textColorDarkMode.
     }
 
 section-multiple-style-palettes = Luku voi valita vain yhden <stylePalette>-elementin; käytetään viimeistä.
@@ -602,7 +602,7 @@ select-variant-name-without-options = selectille on määritetty muunnelmia, mut
 
 select-variant-name-not-possible = selectille määritetty muunnelman nimi { $variantName } ei ole mahdollinen muunnelman nimi.
 
-select-too-few-options = Ei voi valita { $numToSelect } komponenttia vain { $numOptions } joukosta.
+select-too-few-options = Ei voi valita { $numToSelect } komponenttia vain { $numOptions } vaihtoehdosta.
 
 select-from-sequence-too-few-values = Ei voi valita { $numToSelect } arvoa jonosta, jonka pituus on { $length }.
 
@@ -610,9 +610,9 @@ select-from-sequence-indices-count-mismatch = selectille määritettyjen indeksi
 
 select-from-sequence-indices-not-integers = Kaikkien selectille määritettyjen indeksien on oltava kokonaislukuja
 
-select-from-sequence-index-excluded = selectfromsequencelle määritetty indeksi oli poissuljettu
+select-from-sequence-index-excluded = selectfromsequence-komponentille määritetty indeksi oli poissuljettu
 
-select-from-sequence-indices-excluded-combination = selectfromsequencelle määritetyt indeksit muodostivat poissuljetun yhdistelmän
+select-from-sequence-indices-excluded-combination = selectfromsequence-komponentille määritetyt indeksit muodostivat poissuljetun yhdistelmän
 
 select-from-sequence-coprime-not-positive-integers = Keskenään jaottomia yhdistelmiä ei voi valita, koska valittavat eivät ole positiivisia kokonaislukuja.
 
@@ -620,7 +620,7 @@ select-from-sequence-coprime-common-factor = Keskenään jaottomia lukuja ei voi
 
 select-from-sequence-coprime-single-number = Keskenään jaottomia yhdistelmiä ei voi valita yhdestä luvusta, joka ei ole 1.
 
-select-from-sequence-excluded-too-many-combinations = selectFromSequencessa suljettiin pois yli 70 % yhdistelmistä
+select-from-sequence-excluded-too-many-combinations = selectFromSequence-komponentissa suljettiin pois yli 70 % yhdistelmistä
 
 select-from-sequence-coprime-none-found = Keskenään jaottomia lukuja ei voitu valita. Kaikilla mahdollisilla arvoilla on yhteinen tekijä.
 
@@ -634,7 +634,7 @@ select-prime-numbers-values-not-prime = Kaikkien alkuluvun valintaan määritett
 
 select-prime-numbers-values-excluded-combination = selectPrimeNumbersille määritetyt arvot muodostivat poissuljetun yhdistelmän
 
-select-prime-numbers-excluded-too-many-combinations = selectPrimeNumbersissa suljettiin pois yli 70 % yhdistelmistä
+select-prime-numbers-excluded-too-many-combinations = selectPrimeNumbers-komponentissa suljettiin pois yli 70 % yhdistelmistä
 
 select-random-combination-fluke = Äärimmäisen epätodennäköisen sattuman vuoksi satunnaisarvojen yhdistelmää ei voitu valita
 

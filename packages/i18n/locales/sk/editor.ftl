@@ -87,7 +87,7 @@ editor-version-title = Verzia DoenetML { $version }
 editor-tab-help = Kontextový pomocník
 editor-tab-help-short = Kontext
 editor-tab-errors = Chyby
-editor-tab-warnings = Upozornenia
+editor-tab-warnings = Varovania
 editor-tab-info = Informácie
 editor-tab-accessibility = Prístupnosť
 editor-tab-responses = Odoslané odpovede
@@ -104,7 +104,7 @@ editor-format-as-xml = Formátovať ako XML
 editor-diagnostic-line = Riadok č. { $line }
 
 editor-no-errors = Žiadne chyby
-editor-no-warnings = Žiadne upozornenia
+editor-no-warnings = Žiadne varovania
 editor-no-info = Žiadne informačné hlásenia
 
 editor-show-info-annotations = Zobrazovať informačné hlásenia v editore
@@ -131,7 +131,7 @@ editor-response-submitted = Odoslané
 
 help-placeholder = Umiestnite kurzor na názov značky, atribút alebo { $ref } a zobrazí sa dokumentácia.
 
-help-unsupported-ref-chain = Pomocník pre viacdielne odkazy ako { $example } zatiaľ nie je podporovaný.
+help-unsupported-ref-chain = Pomoc pre viacdielne odkazy ako { $example } zatiaľ nie je podporovaná.
 
 help-unresolved-ref =
     { $reason ->
@@ -177,7 +177,7 @@ help-property-is-reference =
     }
 
 help-kind-attribute = atribút
-help-kind-snippet = útržok
+help-kind-snippet = úryvok
 help-kind-array-entry = položka poľa
 
 help-default = Predvolená hodnota:
@@ -206,7 +206,7 @@ help-type = Typ:
 help-resolved-style = Vyhodnotený štýl (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Vyhodnotené názvy funkcií:
-help-reset-list = Reset zoznamu na tomto vstupe:
+help-reset-list = Resetované na tomto vstupe:
 help-added-on-input = Pridané na tomto vstupe:
 help-removed-on-input = Odobraté na tomto vstupe:
 

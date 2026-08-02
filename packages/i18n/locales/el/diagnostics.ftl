@@ -25,7 +25,7 @@ line-segment-attributes-ignored-with-endpoint-and-midpoint =
        *[other] Τα { $attributes } αγνοούνται όταν καθορίζονται και άκρο και μέσο
     }
 
-line-segment-midpoint-offset-without-midpoint = Το midpointOffset δεν έχει καμία επίδραση χωρίς midpoint
+line-segment-midpoint-offset-without-midpoint = Το midpointOffset δεν έχει καμία επίδραση χωρίς μέσο
 
 ## `<line>`
 
@@ -79,13 +79,13 @@ pretzel-circuit-first-index = Οι δείκτες που καθορίστηκα�
 
 string-children-need-type = Για να λειτουργήσει το `<{ $component }>` με θυγατρικά αλφαριθμητικά, πρέπει να καθοριστεί χαρακτηριστικό `type`.
 
-invalid-type-defaulting-to-math = Μη έγκυρο type { $type } για το στοιχείο { $component }. Πρέπει να είναι ένα από math, text, number ή boolean. Χρησιμοποιείται math.
+invalid-type-defaulting-to-math = Μη έγκυρος τύπος { $type } για το στοιχείο { $component }. Πρέπει να είναι ένα από math, text, number ή boolean. Χρησιμοποιείται math.
 
 string-not-valid-component-to-arrange = Το αλφαριθμητικό «{ $value }» δεν είναι έγκυρο στοιχείο για { $component }. Αγνοείται.
 
 ## Types and variables
 
-invalid-type-defaulting-to-number = Μη έγκυρο type { $type }, το type ορίζεται σε number.
+invalid-type-defaulting-to-number = Μη έγκυρος τύπος { $type }· ο τύπος ορίζεται σε number.
 
 invalid-variable-value = Μη έγκυρη τιμή μεταβλητής: `{ $value }`
 
@@ -276,9 +276,9 @@ graph-grid-invalid = `<graph>`: δεν είναι δυνατή η ερμηνεί
 
 ## PreFigure renderer
 
-prefigure-x-label-position-unsupported = `<graph>`: το xLabelPosition="left" δεν υποστηρίζεται στον αποδότη prefigure· χρησιμοποιείται η συμπεριφορά του right.
+prefigure-x-label-position-unsupported = `<graph>`: το xLabelPosition="left" δεν υποστηρίζεται στο πρόγραμμα απόδοσης prefigure· χρησιμοποιείται η συμπεριφορά του right.
 
-prefigure-y-label-position-unsupported = `<graph>`: το yLabelPosition="bottom" δεν υποστηρίζεται στον αποδότη prefigure· χρησιμοποιείται η συμπεριφορά του top.
+prefigure-y-label-position-unsupported = `<graph>`: το yLabelPosition="bottom" δεν υποστηρίζεται στο πρόγραμμα απόδοσης prefigure· χρησιμοποιείται η συμπεριφορά του top.
 
 prefigure-invalid-axis-bounds = `<graph>`: μη έγκυρα όρια αξόνων για τη μετατροπή prefigure· χρησιμοποιείται το προεπιλεγμένο bbox (-10,-10,10,10).
 
@@ -286,9 +286,9 @@ prefigure-invalid-width = `<graph>`: μη έγκυρο πλάτος για τη 
 
 prefigure-invalid-aspect-ratio = `<graph>`: μη έγκυρο aspectRatio για τη μετατροπή prefigure· χρησιμοποιείται η προεπιλεγμένη αναλογία 1.
 
-prefigure-grid-spacing-too-fine = `<graph>`: η απόσταση του πλέγματος είναι πολύ μικρή για τα όρια των αξόνων· το πλέγμα παραλείπεται στον αποδότη prefigure.
+prefigure-grid-spacing-too-fine = `<graph>`: η απόσταση του πλέγματος είναι πολύ μικρή για τα όρια των αξόνων· το πλέγμα παραλείπεται στο πρόγραμμα απόδοσης prefigure.
 
-prefigure-annotations-not-rendered = `<graph>`: οι σχολιασμοί δεν αποδίδονται όταν δεν χρησιμοποιείται ο αποδότης PreFigure.
+prefigure-annotations-not-rendered = `<graph>`: οι σχολιασμοί δεν αποδίδονται όταν δεν χρησιμοποιείται το πρόγραμμα απόδοσης PreFigure.
 
 multiple-annotations-children = Βρέθηκαν πολλά θυγατρικά `<annotations>` σε `<graph>`· αγνοούνται όλα εκτός από το τελευταίο.
 
@@ -340,7 +340,7 @@ module-attribute-name-already-defined = Το στοιχείο `<{ $component } n
 
 conditional-content-condition-ignored = Το χαρακτηριστικό `condition` αγνοείται σε στοιχείο `<conditionalContent>` με θυγατρικά case ή else.
 
-slider-markers-type-mismatch = Ο τύπος των δεικτών δεν ταιριάζει με τον τύπο του ολισθητή.
+slider-markers-type-mismatch = Ο τύπος των σημαδιών δεν ταιριάζει με τον τύπο του ολισθητή.
 
 pretzel-problem-needs-statement-and-answer = Μη έγκυρο pretzel: κάθε `<problem>` πρέπει να περιέχει ένα `<statement>` και ένα `<answer>`.
 
@@ -373,7 +373,7 @@ style-definition-insufficient-contrast =
         [text-on-background] του χρώματος κειμένου ως προς το χρώμα φόντου
         [high-contrast] του χρώματος υψηλής αντίθεσης ως προς τον καμβά
         [line] του χρώματος γραμμής ως προς τον καμβά
-        [marker] του χρώματος δείκτη ως προς τον καμβά
+        [marker] του χρώματος σημαδιού ως προς τον καμβά
        *[text-on-canvas] του χρώματος κειμένου ως προς τον καμβά
     }{ $mode ->
         [dark] { " (σκοτεινό θέμα)" }
@@ -430,7 +430,7 @@ variant-non-constant-exclude-not-implemented = δεν έχουν υλοποιη�
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: δεν υποστηρίζεται στον αποδότη graph prefigure· ο απόγονος παραλείπεται.
+prefigure-descendant-unsupported = { $subject }: δεν υποστηρίζεται στο πρόγραμμα απόδοσης graph prefigure· ο απόγονος παραλείπεται.
 
 prefigure-descendant-invalid-geometry = { $subject }: μη πεπερασμένη ή ελλιπής γεωμετρία· ο απόγονος παραλείπεται.
 
@@ -452,9 +452,9 @@ prefigure-fill-style-unsupported = { $subject }: το στυλ γεμίσματ�
 
 prefigure-line-style-unknown = { $subject }: το άγνωστο στυλ γραμμής «{ $lineStyle }» παραλείφθηκε από την έξοδο PreFigure.
 
-prefigure-marker-style-mapped-to-diamond = { $subject }: το στυλ δείκτη «{ $markerStyle }» αντιστοιχίστηκε στο στυλ PreFigure «diamond».
+prefigure-marker-style-mapped-to-diamond = { $subject }: το στυλ σημαδιού «{ $markerStyle }» αντιστοιχίστηκε στο στυλ PreFigure «diamond».
 
-prefigure-marker-style-unsupported = { $subject }: το στυλ δείκτη «{ $markerStyle }» δεν υποστηρίζεται από το PreFigure· χρησιμοποιείται το προεπιλεγμένο στυλ.
+prefigure-marker-style-unsupported = { $subject }: το στυλ σημαδιού «{ $markerStyle }» δεν υποστηρίζεται από το PreFigure· χρησιμοποιείται το προεπιλεγμένο στυλ.
 
 ## PreFigure annotations
 

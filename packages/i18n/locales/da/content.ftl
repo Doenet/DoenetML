@@ -94,7 +94,7 @@ fill-style =
     .diagonal = diagonale linjer
     .backdiagonal = omvendte diagonale linjer
     .dots = prikker
-    .diamonds = rhomber
+    .diamonds = romber
 
 noun =
     .line = linje
@@ -112,7 +112,7 @@ noun =
     .region = område
     .point = punkt
     .square = kvadrat
-    .diamond = rhombe
+    .diamond = rombe
     .cross = kryds
     .plus = plus
 
