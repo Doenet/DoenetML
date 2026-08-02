@@ -1790,4 +1790,73 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             "Remove banana",
         );
     });
+
+    it("inline choiceInput displays the selected choice when an earlier choice is hidden", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci" inline placeholder="Choose animal">
+      <choice hide>cat</choice>
+      <choice>dog</choice>
+      <choice>mouse</choice>
+    </choiceInput>
+
+    <p name="p1">Selected value: $ci.selectedValue</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Select the choice right after the hidden one");
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("dog").click({ force: true });
+        });
+
+        // The hidden choice still occupies an index, so the selected index (2)
+        // is one past the selected option's position in the visible list.
+        cy.get("#p1").should("have.text", "Selected value: dog");
+        cy.get('#ci [class*="-singleValue"]').should("have.text", "dog");
+
+        cy.log("And the last choice, whose index runs past the visible list");
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("mouse").click({ force: true });
+        });
+        cy.get("#p1").should("have.text", "Selected value: mouse");
+        cy.get('#ci [class*="-singleValue"]').should("have.text", "mouse");
+    });
+
+    it("inline choiceInput survives being hidden and shown again", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="b" />
+    <choiceInput name="ci" inline hide="$b" placeholder="Choose animal">
+      <choice>cat</choice>
+      <choice>dog</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ci").should("exist");
+
+        cy.log("Hide it, then show it again");
+        cy.get("#b").click();
+        cy.get("#ci").should("not.exist");
+        cy.get("#b").click();
+
+        cy.log("It comes back working, rather than throwing on the re-render");
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("dog").click({ force: true });
+        });
+        cy.get('#ci [class*="-singleValue"]').should("have.text", "dog");
+    });
 });
