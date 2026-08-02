@@ -113,6 +113,30 @@ describe("negotiateLocales", () => {
             ]);
         });
     });
+
+    /**
+     * Norwegian's catalog is named `nb`, but `no` is the tag an author is
+     * likeliest to type and one several browsers still send. Nothing in
+     * filtering negotiation connects the two, so the alias is asserted here
+     * against the real roster.
+     */
+    describe("Norwegian, whose catalog is named for one written standard", () => {
+        const available = SUPPORTED_LOCALES.map((info) => info.locale);
+
+        it.each(["no", "no-NO", "nb", "nb-NO"])(
+            "serves Bokmål to %s",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).toEqual([
+                    "nb",
+                    "en",
+                ]);
+            },
+        );
+
+        it("leaves Nynorsk to fall back to English", () => {
+            expect(negotiateLocales(["nn"], available)).toEqual(["en"]);
+        });
+    });
 });
 
 describe("resolveDocumentLocale", () => {

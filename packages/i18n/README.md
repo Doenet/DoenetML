@@ -105,6 +105,17 @@ different one. It is not symmetric: `zh-CN` and `zh-SG` negotiate to
 `["zh-Hans", "zh-Hant", "en"]`, since filtering offers every `zh-*` catalog it
 has, so a gap in `zh-Hans` can be filled from `zh-Hant` on a page holding both.
 
+Norwegian is the other case where the tag a reader arrives under is not the tag
+a directory is named for. `nb` is Bokmål specifically; `no` is the
+macrolanguage over Bokmål and Nynorsk, and it is what a hand-typed
+`<document lang>` usually says and what several browsers still send. Nothing in
+filtering negotiation connects the two, so `negotiate.ts` rewrites the language
+subtag before negotiating — the same service `Intl.getCanonicalLocales` already
+performs for `iw`, `in` and `mo`, which it maps to `he`, `id` and `ro` on its
+own. `nn` is left alone: Nynorsk is a written standard of its own, and
+answering it with Bokmål would be a substitution rather than a
+canonicalization.
+
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
 They are addressed to whoever maintains the file, and no one maintaining it
