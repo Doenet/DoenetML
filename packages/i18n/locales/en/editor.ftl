@@ -33,12 +33,18 @@
 ## reference literally instead of falling back to English. This is the shape
 ## `paginator-page-status` already uses.
 
+# Button label. "Update" recompiles after a source edit; "Reset" reverts
+# only the document's live state to match — same button, different verb.
+# Keep both forms short enough to fit a toolbar button.
 editor-update-viewer =
     { $action ->
         [reset] Reset
        *[update] Update
     }
 
+# Tooltip on the button above. { $word } is that button's own current label
+# ("Update" or "Reset"), so this reads as e.g. "Update Viewer" or
+# "Reset Viewer". { $shortcut } appends the keyboard shortcut when one exists.
 editor-update-viewer-title =
     { $shortcut ->
         [none] { $word } Viewer
