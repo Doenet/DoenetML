@@ -27,11 +27,7 @@
 ## Style vocabulary
 
 color =
-    .black =
-        { $gender ->
-            [neuter] svart
-           *[common] svart
-        }
+    .black = svart
     .white =
         { $gender ->
             [neuter] vitt

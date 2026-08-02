@@ -53,20 +53,25 @@ editor-accessibility-title =
         } zprávu o přístupnosti. Nebyly nalezeny žádné problémy s přístupností.
     }
 
+# The counted noun is the same in all three forms — «porušení» and
+# «doporučení» are neuter nouns whose nominative and genitive plurals are
+# spelled alike — but the participle in front of it is not: Czech agrees it
+# with a plural for two to four and leaves it neuter singular otherwise. So the
+# participle sits inside the select rather than in front of it.
 editor-accessibility-label =
     { $status ->
-        [violations] Bylo zjištěno porušení přístupnosti WCAG AA. Nalezena { $count ->
-            [one] { $count } porušení WCAG AA
-            [few] { $count } porušení WCAG AA
-           *[other] { $count } porušení WCAG AA
+        [violations] Bylo zjištěno porušení přístupnosti WCAG AA. { $count ->
+            [one] Nalezeno { $count } porušení WCAG AA
+            [few] Nalezena { $count } porušení WCAG AA
+           *[other] Nalezeno { $count } porušení WCAG AA
         }. Kliknutím { $action ->
             [close] zavřete
            *[open] otevřete
         } zprávu o přístupnosti.
-        [advisories] Žádná porušení WCAG AA nebyla zjištěna. Nalezena { $count ->
-            [one] { $count } další doporučení k přístupnosti
-            [few] { $count } další doporučení k přístupnosti
-           *[other] { $count } dalších doporučení k přístupnosti
+        [advisories] Žádná porušení WCAG AA nebyla zjištěna. { $count ->
+            [one] Nalezeno { $count } další doporučení k přístupnosti
+            [few] Nalezena { $count } další doporučení k přístupnosti
+           *[other] Nalezeno { $count } dalších doporučení k přístupnosti
         }. Kliknutím { $action ->
             [close] zavřete
            *[open] otevřete
@@ -195,11 +200,9 @@ help-suggested-values = Doporučené hodnoty:
 
 help-inserts = Vloží:
 
-help-coordinates =
-    { $count ->
-        [one] Souřadnice:
-       *[other] Souřadnice:
-    }
+# «souřadnice» is spelled alike in the singular and the plural, so the count
+# picks nothing and the message is not a select.
+help-coordinates = Souřadnice:
 
 help-type = Typ:
 

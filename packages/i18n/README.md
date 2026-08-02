@@ -374,8 +374,9 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and German, Russian, Polish, Hindi, Marathi, Urdu, Sindhi and Pashto
-are the catalogs that select on them. Sharing a script does not imply sharing
+positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
+Romanian, Finnish, Hindi, Marathi, Urdu, Sindhi and Pashto are the catalogs
+that select on them. Sharing a script does not imply sharing
 the fork: Marathi and Hindi both take an oblique adjective before a
 postposition and Nepali, written in the same letters, takes none. Nor is the
 fork all-or-nothing — Pashto marks the oblique on a feminine adjective in ـه

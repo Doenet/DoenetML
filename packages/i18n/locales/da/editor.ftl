@@ -55,10 +55,7 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Der er fundet et tilgængelighedsbrud efter WCAG AA. Der blev fundet { $count ->
-            [one] { $count } WCAG AA-brud
-           *[other] { $count } WCAG AA-brud
-        }. Klik for at { $action ->
+        [violations] Der er fundet et tilgængelighedsbrud efter WCAG AA. Der blev fundet { $count } WCAG AA-brud. Klik for at { $action ->
             [close] lukke
            *[open] åbne
         } tilgængelighedsrapporten.

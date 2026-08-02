@@ -13,17 +13,11 @@
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] { $attributes } ignoreras när två ändpunkter anges
-       *[other] { $attributes } ignoreras när två ändpunkter anges
-    }
+# Swedish inflects neither the passive verb nor the noun for number here, so
+# the count picks nothing and neither message is a select.
+line-segment-attributes-ignored-with-endpoints = { $attributes } ignoreras när två ändpunkter anges
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] { $attributes } ignoreras när både en ändpunkt och en mittpunkt anges
-       *[other] { $attributes } ignoreras när både en ändpunkt och en mittpunkt anges
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = { $attributes } ignoreras när både en ändpunkt och en mittpunkt anges
 
 line-segment-midpoint-offset-without-midpoint = midpointOffset har ingen verkan utan midpoint
 
@@ -161,17 +155,9 @@ circle-change-center-non-numerical = Att ändra medelpunkt för en cirkel genom 
 
 ## `<function>`
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] Otillräckligt antal dimensioner för funktionens definitionsmängd. Mängden har { $intervals } intervall men funktionen har { $inputs ->
-            [one] { $inputs } indata
-           *[other] { $inputs } indata
-        }.
-       *[other] Otillräckligt antal dimensioner för funktionens definitionsmängd. Mängden har { $intervals } intervall men funktionen har { $inputs ->
-            [one] { $inputs } indata
-           *[other] { $inputs } indata
-        }.
-    }
+# «intervall» and «indata» are both invariant in the plural, so neither count
+# picks anything and the message is not a select.
+function-domain-insufficient-dimensions = Otillräckligt antal dimensioner för funktionens definitionsmängd. Mängden har { $intervals } intervall men funktionen har { $inputs } indata.
 
 function-domain-invalid-format = Ogiltigt format för funktionens definitionsmängd.
 
@@ -196,11 +182,9 @@ function-ignoring-empty =
 
 function-points-too-close = Funktionen innehåller två punkter vars lägen ligger för nära varandra. Funktionen kan inte definieras.
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] Funktionsiterationer är möjliga endast om antalet indata är lika med antalet utdata. Denna funktion har { $inputs } indata och { $outputs } utdata.
-       *[other] Funktionsiterationer är möjliga endast om antalet indata är lika med antalet utdata. Denna funktion har { $inputs } indata och { $outputs } utdata.
-    }
+# «indata» and «utdata» are invariant in the plural, so neither count picks
+# anything and the message is not a select.
+function-iterates-input-output-mismatch = Funktionsiterationer är möjliga endast om antalet indata är lika med antalet utdata. Denna funktion har { $inputs } indata och { $outputs } utdata.
 
 ## `<sequence>`
 
