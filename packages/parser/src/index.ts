@@ -4,6 +4,7 @@ export * from "./extract-dast-errors";
 export * from "./types";
 export * from "./types-util";
 export * from "./detect-version";
+export * from "./document-lang";
 export {
     visit,
     EXIT,

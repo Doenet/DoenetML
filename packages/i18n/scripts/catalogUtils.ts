@@ -3,7 +3,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { FluentBundle, FluentResource } from "@fluent/bundle";
-import { parse as parseFtl } from "@fluent/syntax";
+import {
+    parse as parseFtl,
+    Visitor,
+    type FunctionReference,
+    type TextElement,
+} from "@fluent/syntax";
 import * as prettier from "prettier";
 
 import { CATALOG_NAMESPACES } from "../src/namespaces";
@@ -37,9 +42,9 @@ export const DIAGNOSTIC_CODES_LOCK_FILE = path.join(
  * The committed roster of locales with a catalog directory, with each one's
  * name in English and in itself.
  *
- * Derived from `locales/` rather than from `BUNDLED_TRANSLATIONS`, which
- * answers a different question — see "The roster is not the bundle" in the
- * package README.
+ * Derived from `locales/` rather than from `BUNDLED_LOCALES`, which answers a
+ * different question — see "The roster is not the bundle" in the package
+ * README.
  */
 export const SUPPORTED_LOCALES_FILE = path.join(
     PACKAGE_ROOT,
@@ -47,6 +52,28 @@ export const SUPPORTED_LOCALES_FILE = path.join(
     "generated",
     "supportedLocales.ts",
 );
+
+/** The module whose glob decides which catalogs are code-split. */
+export const LOAD_MODULE_FILE = path.join(PACKAGE_ROOT, "src", "load.ts");
+
+/** `!../locales/<locale>/*.ftl` inside the lazy-catalog glob. */
+const GLOB_EXCLUSION_PATTERN = /"!\.\.\/locales\/([^/"]+)\/\*\.ftl"/g;
+
+/**
+ * The locales `load.ts` excludes from its lazy-catalog glob.
+ *
+ * Read out of the source text because a glob pattern is resolved at build time
+ * and cannot be derived from a runtime list. That is the whole reason this
+ * needs checking: the exclusions have to be spelled out, and spelled-out lists
+ * drift. They are meant to be exactly the locales already inlined, so
+ * `lint:i18n` compares them against `BUNDLED_LOCALES`.
+ */
+export function lazyGlobExclusions(): string[] {
+    const source = fs.readFileSync(LOAD_MODULE_FILE, "utf8");
+    return [...source.matchAll(GLOB_EXCLUSION_PATTERN)]
+        .map((match) => match[1])
+        .sort();
+}
 
 export type CatalogKey = {
     key: string;
@@ -135,6 +162,110 @@ export function catalogParseErrors(source: string): string[] {
     }
 
     return errors;
+}
+
+/**
+ * Every place a catalog names a numbering system on a Fluent builtin, each
+ * reported with the entry it sits in.
+ *
+ * `NUMBER($ratio, numberingSystem: "beng")` opts one message out of the digit
+ * policy `intlLocale` pins, and nothing at runtime says so — the number simply
+ * comes back in another script, in one message, in one language. That is the
+ * rule catalog authors would have to remember, which is why it is checked
+ * instead: the policy is a product-wide answer (`src/intl.ts`), and a catalog
+ * is not where it gets reopened.
+ *
+ * Read off the AST rather than by searching the text, so that the group
+ * comments explaining the policy can say the word.
+ */
+export function numberingSystemOverrides(source: string): string[] {
+    const found: string[] = [];
+    for (const entry of parseFtl(source, {}).body) {
+        if (entry.type !== "Message" && entry.type !== "Term") {
+            continue;
+        }
+        const visitor = new NumberingSystemVisitor();
+        visitor.visit(entry);
+        found.push(
+            ...visitor.found.map(
+                (builtin) =>
+                    `${builtin}() sets numberingSystem in "${entry.id.name}"`,
+            ),
+        );
+    }
+    return found;
+}
+
+/** The builtins under one entry that name a numbering system. */
+class NumberingSystemVisitor extends Visitor {
+    found: string[] = [];
+
+    visitFunctionReference(node: FunctionReference) {
+        if (
+            node.arguments.named.some(
+                (argument) => argument.name.name === "numberingSystem",
+            )
+        ) {
+            this.found.push(node.id.name);
+        }
+        this.genericVisit(node);
+    }
+}
+
+/**
+ * Every entry whose rendered value would carry a newline, by id.
+ *
+ * A Fluent pattern that continues onto a further line keeps the `\n` in what it
+ * renders, and none of these messages wants one: they are button labels,
+ * sentences and phrases an author interpolates. Nothing else catches it — the
+ * catalog parses, the lint's key extraction sees the id it expects, and the
+ * newline only shows up in the browser.
+ *
+ * The failure that motivates it is not a wrapped sentence but a misplaced
+ * comment. A `#` line indented under a message is not a comment at all; Fluent
+ * reads it as more of the pattern above it, so the note explaining a wording
+ * choice becomes part of the words. That is how English prose ends up rendered
+ * inside a translated document, which is exactly the outcome the catalogs
+ * exist to prevent.
+ *
+ * A select nested inside a pattern is fine and is how a message sub-divides
+ * one of its variants — what matters is that each variant's own content stays
+ * on one line. See "Composition, not substitution" in the package README.
+ */
+export function multilinePatterns(source: string): string[] {
+    const found: string[] = [];
+    for (const entry of parseFtl(source, {}).body) {
+        if (entry.type !== "Message" && entry.type !== "Term") {
+            continue;
+        }
+        const visitor = new MultilineTextVisitor();
+        visitor.visit(entry);
+        if (visitor.found.length > 0) {
+            found.push(
+                `"${entry.id.name}" renders a newline (${visitor.found[0]})`,
+            );
+        }
+    }
+    return found;
+}
+
+/** The text runs under one entry that span more than one line. */
+class MultilineTextVisitor extends Visitor {
+    found: string[] = [];
+
+    visitTextElement(node: TextElement) {
+        if (node.value.includes("\n")) {
+            // The line after the break is what a reader would see appended,
+            // and is the most recognizable half of a swallowed comment.
+            const continuation = node.value.split("\n")[1]?.trim() ?? "";
+            this.found.push(
+                continuation.startsWith("#")
+                    ? `an indented comment line is part of the pattern: ${JSON.stringify(continuation.slice(0, 40))}`
+                    : `continues with ${JSON.stringify(continuation.slice(0, 40))}`,
+            );
+        }
+        this.genericVisit(node);
+    }
 }
 
 /** Every key in every namespace of a locale. */
@@ -532,6 +663,10 @@ function renderSupportedLocalesModuleRaw(locales: string[]): string {
         // English and the endonym coincide for English itself, and for any
         // locale `Intl` doesn't know (both fall back to the tag). Repeating
         // the same word in parentheses would read as a mistake.
+        //
+        // The parenthesis is always the endonym, never a region, however much
+        // one of them looks like it: ICU's endonym for `id` is "Indonesia", so
+        // Indonesian labels itself "Indonesian (Indonesia)".
         const label =
             englishName === endonym
                 ? englishName
@@ -572,9 +707,10 @@ export type SupportedLocaleInfo = {
  * Every locale with a catalog in this repository, \`en\` first.
  *
  * The *roster*, not the delivery mechanism: it is generated from the
- * \`locales/\` directory, so it stays correct when a locale stops being inlined
- * into the bundle. Read \`bundledResources\` for "which catalogs are in this JS
- * bundle" instead.
+ * \`locales/\` directory, so it lists every language this repository ships a
+ * translation for, whether or not the bundle carries it. Read
+ * \`BUNDLED_LOCALES\` for "which catalogs are in this JS bundle" instead — today
+ * that is English alone.
  *
  * A deployment can always supply a catalog of its own that is not listed here.
  * That is why the surfaces built on this list suggest rather than enforce: an

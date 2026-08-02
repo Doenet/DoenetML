@@ -66,18 +66,34 @@ describe("DoenetViewer (iframe wrapper) — style palette discovery", () => {
             });
     });
 
-    it("reports palettes to a callback passed after mount", () => {
-        // The message listener has empty deps, so it must read the callback
-        // through a ref rather than closing over the mount-time value.
+    it("reports palettes to a callback absent at the first render", () => {
+        // `onStylePalettes` is `undefined` on the first render: that is what
+        // the viewer's `useRef` initializes with, and what its (deps-empty)
+        // message listener closes over for good. The palettes therefore
+        // reach the callback only if the viewer both refreshes that ref on
+        // every render and has the listener read the callback back out of it
+        // — the regression this spec exists to catch.
         function Harness() {
             const [palettes, setPalettes] = React.useState<
                 StylePaletteInfo[] | null | undefined
             >(undefined);
             const [ready, setReady] = React.useState(false);
 
-            React.useEffect(() => {
-                const timer = setTimeout(() => setReady(true), 10);
-                return () => clearTimeout(timer);
+            // Install the real callback from a *layout* effect, never a
+            // timer: React flushes the re-render it schedules synchronously,
+            // so the callback is in place within the same task as the mount,
+            // before the iframe can post `iframeReady`. That matters because
+            // palettes are reported exactly once, on that message (#1626), so
+            // a callback arriving even a millisecond late misses them
+            // forever — with `setTimeout(..., 10)` the timer and the boot both
+            // landed near 250ms (evaluating the ~32 MB bundle starves the
+            // parent's timers) and the spec failed whenever the message won.
+            //
+            // The flip side is that this spec covers only a callback missing
+            // at the first render, not one attached after the boot has already
+            // finished; see #1626 for that gap.
+            React.useLayoutEffect(() => {
+                setReady(true);
             }, []);
 
             return (

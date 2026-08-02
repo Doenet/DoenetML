@@ -47,9 +47,50 @@ describe("createTranslator", () => {
         expect(t("count-items", { count: 3 })).toBe("You have 3 items");
     });
 
+    it("writes a number in Latin digits under the locale's own conventions", () => {
+        // #1615: Fluent formats a placeable with `Intl.NumberFormat` under the
+        // bundle's locale, and it does so for a bare `{ $count }` as much as
+        // for an explicit `NUMBER()`. Bangla, Marathi and Burmese would each
+        // count in their own script; what they keep is their grouping, which
+        // for the first two is India's twos above the first thousand.
+        const bn = createTranslator(["bn"], { bn: "count-items = { $count }" });
+        expect(bn("count-items", { count: 1234567 })).toBe("12,34,567");
+
+        const my = createTranslator(["my"], { my: "count-items = { $count }" });
+        expect(my("count-items", { count: 1234567 })).toBe("1,234,567");
+
+        // The real pattern from `diagnostics.ftl`, whose `:1` is a literal in
+        // the catalog. Localized digits would put the two halves of one ratio
+        // in two scripts.
+        const mr = createTranslator(["mr"], {
+            mr: "ratio = { NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1",
+        });
+        expect(mr("ratio", { ratio: 4.53 })).toBe("4.53:1");
+    });
+
+    it("keeps the counting rules of a locale whose digits it pins", () => {
+        // The pin is on the numbering system alone. Plural selection reads the
+        // same locale and must still get Polish's four categories — `few` for
+        // 2–4, `many` for the rest — or the fix would have cost the grammar to
+        // buy the digits.
+        const pl = createTranslator(["pl"], {
+            pl: `items = { $count ->
+        [one] jeden
+        [few] kilka
+       *[many] wiele
+    }`,
+        });
+        expect(pl("items", { count: 1 })).toBe("jeden");
+        expect(pl("items", { count: 3 })).toBe("kilka");
+        expect(pl("items", { count: 12 })).toBe("wiele");
+    });
+
     it("does not insert bidi isolation marks by default", () => {
-        // Doenet compares and hashes rendered strings, so U+2068/U+2069 around
-        // every placeable would be a silent behavior change.
+        // Off unless a caller asks, because the caller is what knows whether
+        // its output is only looked at: the chrome turns it on for every
+        // language but English, and the worker's content translator never
+        // does — what it renders becomes state variables that get compared
+        // and hashed.
         const t = createTranslator(["en"], { en: EN });
         expect(t("count-items", { count: 3 })).not.toMatch(/[⁦-⁩]/);
 

@@ -6,6 +6,8 @@ import {
     countDiagnosticConstructions,
     extractKeys,
     listLocales,
+    multilinePatterns,
+    numberingSystemOverrides,
     remainingLiteralDiagnostics,
     renderMessageKeysModule,
     renderSupportedLocalesModule,
@@ -59,6 +61,114 @@ describe("catalogParseErrors", () => {
         expect(
             catalogParseErrors("greeting = Hello\ngreeting = Hi\n").length,
         ).toBeGreaterThan(0);
+    });
+});
+
+describe("numberingSystemOverrides", () => {
+    it("catches a builtin that names a numbering system", () => {
+        expect(
+            numberingSystemOverrides(
+                'ratio = contrast { NUMBER($ratio, numberingSystem: "beng") }',
+            ),
+        ).toEqual(['NUMBER() sets numberingSystem in "ratio"']);
+        expect(
+            numberingSystemOverrides(
+                'when = { DATETIME($due, numberingSystem: "deva") }',
+            ),
+        ).toEqual(['DATETIME() sets numberingSystem in "when"']);
+    });
+
+    it("leaves the formatting options a catalog is allowed to set", () => {
+        // The real pattern from `diagnostics.ftl`. Fraction digits are a
+        // catalog's business; which script the digits are written in is not.
+        expect(
+            numberingSystemOverrides(
+                "ratio = { NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1",
+            ),
+        ).toEqual([]);
+    });
+
+    it("reads the syntax rather than the text, so a comment may say the word", () => {
+        // The group comments explaining the policy are the reason this is an
+        // AST walk: a catalog has to be able to write down why it must not.
+        expect(
+            numberingSystemOverrides(
+                "# Never pass numberingSystem here — see src/intl.ts.\ncount = { $count } items",
+            ),
+        ).toEqual([]);
+    });
+
+    it("descends into selects and attributes", () => {
+        expect(
+            numberingSystemOverrides(`
+items =
+    { $count ->
+        [one] one item
+       *[other] { NUMBER($count, numberingSystem: "mymr") } items
+    }
+    .label = { NUMBER($count, numberingSystem: "beng") }
+`),
+        ).toEqual([
+            'NUMBER() sets numberingSystem in "items"',
+            'NUMBER() sets numberingSystem in "items"',
+        ]);
+    });
+});
+
+describe("multilinePatterns", () => {
+    it("catches a note indented under the attribute it explains", () => {
+        // The bug this exists for. The `#` line is not a comment — Fluent
+        // reads it as more of `.green`'s pattern, so a Hebrew document
+        // describing a green square rendered the English note along with it.
+        const found = multilinePatterns(`
+color =
+    .green = ירוק
+    # «תכלת» does not inflect.
+    .cyan = תכלת
+`);
+        expect(found).toHaveLength(1);
+        expect(found[0]).toContain('"color"');
+        expect(found[0]).toContain("indented comment");
+    });
+
+    it("catches a pattern wrapped across two lines", () => {
+        expect(multilinePatterns("greeting =\n    Hello\n    there\n")).toEqual(
+            ['"greeting" renders a newline (continues with "there")'],
+        );
+    });
+
+    it("allows a comment above the message and a pattern on its own line", () => {
+        expect(
+            multilinePatterns("# A greeting.\ngreeting =\n    Hello there\n"),
+        ).toEqual([]);
+    });
+
+    it("allows a select, whose own line breaks are structure rather than text", () => {
+        // The shape every counted message uses: the variants sit on separate
+        // lines but each variant's content is one line, so nothing renders a
+        // break.
+        expect(
+            multilinePatterns(`
+items =
+    { $count ->
+        [one] one item
+       *[other] { $count } items
+    }
+`),
+        ).toEqual([]);
+    });
+
+    it("catches a variant continued onto a further line", () => {
+        expect(
+            multilinePatterns(`
+items =
+    { $count ->
+        [one] one
+            item
+       *[other] items
+    }
+`),
+        ).toEqual(['"items" renders a newline (continues with "item")']);
     });
 });
 
@@ -136,9 +246,9 @@ describe("renderSupportedLocalesModule", () => {
 describe("SUPPORTED_LOCALES", () => {
     it("lists every locale directory, English first", () => {
         // The roster is generated from `locales/`, deliberately not from the
-        // catalogs inlined into the bundle — that is what keeps it correct
-        // once locales stop being bundled. `lint:i18n` enforces the same
-        // agreement; this pins it as a runtime fact too.
+        // catalogs inlined into the bundle — which is what keeps it listing
+        // every language now that English is the only one inlined. `lint:i18n`
+        // enforces the same agreement; this pins it as a runtime fact too.
         expect(SUPPORTED_LOCALES.map((l) => l.locale)).toEqual(listLocales());
         expect(SUPPORTED_LOCALES[0]?.locale).toBe("en");
     });

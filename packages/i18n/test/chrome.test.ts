@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import { createChromeTranslator, EN_CHROME_TRANSLATOR } from "../src/chrome";
-import { PSEUDO_LOCALE } from "../src/pseudo";
+import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
+import { stripBidiIsolates } from "../src/direction";
 import { EN_CATALOGS } from "../src/catalogs";
+import esChrome from "../locales/es/chrome.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
+
+/**
+ * Spanish, handed over the way a host hands over a catalog it loaded.
+ *
+ * No translation is inlined, so every language other than English reaches the
+ * chrome through this argument — the same route `useLocaleCatalogs` takes at
+ * runtime once `loadLocaleResources` resolves.
+ */
+const ES = { es: esChrome };
 
 describe("createChromeTranslator", () => {
     it("answers in English for the default locale", () => {
@@ -11,8 +22,8 @@ describe("createChromeTranslator", () => {
         expect(t("answer-correct")).toBe("Correct");
     });
 
-    it("answers in Spanish for a bundled translation", () => {
-        const t = createChromeTranslator("es");
+    it("answers in Spanish once the catalog is supplied", () => {
+        const t = createChromeTranslator("es", ES);
         expect(t("answer-correct")).toBe("Correcto");
         expect(t("keyboard-close")).toBe("Cerrar el teclado");
     });
@@ -20,12 +31,12 @@ describe("createChromeTranslator", () => {
     it("negotiates a regional tag down to the locale that exists", () => {
         // A Mexican Spanish activity has no `es-MX` catalog, but falling back
         // to `es` is far better than falling back to English.
-        const t = createChromeTranslator("es-MX");
+        const t = createChromeTranslator("es-MX", ES);
         expect(t("answer-correct")).toBe("Correcto");
     });
 
     it("normalizes a hand-typed tag before negotiating", () => {
-        const t = createChromeTranslator("ES-mx");
+        const t = createChromeTranslator("ES-mx", ES);
         expect(t("answer-correct")).toBe("Correcto");
     });
 
@@ -34,15 +45,13 @@ describe("createChromeTranslator", () => {
         expect(t("answer-correct")).toBe("Correct");
     });
 
-    it("lets a host catalog override the bundled translation", () => {
-        // A deployment can correct a translation without waiting for a
-        // release.
+    it("falls back to English for keys a host catalog does not mention", () => {
+        // A deployment can correct or extend a translation without waiting for
+        // a release, and supplying one key does not blank out the rest.
         const t = createChromeTranslator("es", {
             es: "answer-correct = ¡Bien hecho!",
         });
         expect(t("answer-correct")).toBe("¡Bien hecho!");
-        // Keys the override does not mention still come from English, not
-        // from the bundled Spanish it replaced.
         expect(t("answer-incorrect")).toBe("Incorrect");
     });
 
@@ -67,12 +76,16 @@ describe("createChromeTranslator", () => {
     });
 
     it("picks the plural forms of the target language, not English's", () => {
-        const t = createChromeTranslator("es");
+        const t = createChromeTranslator("es", ES);
         expect(t("attempts-remaining", { count: 0 })).toBe(
             "no quedan intentos",
         );
-        expect(t("attempts-remaining", { count: 1 })).toBe("queda 1 intento");
-        expect(t("attempts-remaining", { count: 4 })).toBe("quedan 4 intentos");
+        expect(stripBidiIsolates(t("attempts-remaining", { count: 1 }))).toBe(
+            "queda 1 intento",
+        );
+        expect(stripBidiIsolates(t("attempts-remaining", { count: 4 }))).toBe(
+            "quedan 4 intentos",
+        );
     });
 
     it("pluralizes around an untranslatable identifier", () => {
@@ -86,18 +99,53 @@ describe("createChromeTranslator", () => {
             "Show 3 responses to ans",
         );
 
-        const es = createChromeTranslator("es");
-        expect(es("answer-show-responses", { count: 3, answerId: "ans" })).toBe(
-            "Mostrar 3 respuestas a ans",
-        );
+        const es = createChromeTranslator("es", ES);
+        expect(
+            stripBidiIsolates(
+                es("answer-show-responses", { count: 3, answerId: "ans" }),
+            ),
+        ).toBe("Mostrar 3 respuestas a ans");
     });
 
-    it("substitutes without bidi isolation marks", () => {
-        // `useIsolating` stays off so translated output can still be compared
-        // and asserted on as plain text.
+    it("leaves English free of bidi isolation marks", () => {
+        // Every phase has held English byte-identical to the string it
+        // replaced, and the assertion corpus compares it as plain text.
         const t = createChromeTranslator("en");
         expect(t("max-credit-available", { percent: 80 })).toBe(
             "Max credit available: 80%",
+        );
+        // Including a regional English, which is English by primary subtag.
+        expect(
+            createChromeTranslator("en-GB")("max-credit-available", {
+                percent: 80,
+            }),
+        ).toBe("Max credit available: 80%");
+    });
+
+    it("isolates placeables in every other language", () => {
+        // What keeps an interpolated Latin identifier from scrambling the
+        // Arabic around it. The marks are invisible, so assert the code
+        // points rather than the rendering.
+        const es = createChromeTranslator("es", ES);
+        expect(es("max-credit-available", { percent: 80 })).toBe(
+            "Crédito máximo disponible: \u{2068}80\u{2069} %",
+        );
+    });
+
+    it("isolates a message that falls back to English", () => {
+        // Isolation follows the surface, not whichever catalog answered: the
+        // chrome around an untranslated string is still Spanish.
+        const es = createChromeTranslator("es", { es: "" });
+        expect(es("max-credit-available", { percent: 80 })).toBe(
+            "Max credit available: \u{2068}80\u{2069}%",
+        );
+    });
+
+    it("leaves a message with no placeable byte-identical either way", () => {
+        // Isolation wraps placeables and nothing else, which is what bounds
+        // the change to the handful of parameterized messages.
+        expect(createChromeTranslator("es", ES)("answer-correct")).toBe(
+            "Correcto",
         );
     });
 
@@ -145,8 +193,25 @@ describe("createChromeTranslator", () => {
         it("is not offered unless it is asked for", () => {
             // Materializing it for every locale would put a pseudo catalog in
             // the fallback chain of real ones.
-            const t = createChromeTranslator("es");
+            const t = createChromeTranslator("es", ES);
             expect(t("answer-correct")).toBe("Correcto");
+        });
+
+        it("has a right-to-left twin that renders the same words", () => {
+            // `en-XB` differs from `en-XA` in direction and nothing else, so a
+            // layout difference between the two runs cannot be blamed on the
+            // text having changed.
+            const ltr = createChromeTranslator(PSEUDO_LOCALE);
+            const rtl = createChromeTranslator(PSEUDO_RTL_LOCALE);
+            for (const key of extractKeys(EN_CATALOGS.chrome)) {
+                expect(stripBidiIsolates(rtl(key)), key).toBe(ltr(key));
+            }
+        });
+
+        it("recognizes the right-to-left tag hand-typed too", () => {
+            expect(createChromeTranslator("en-xb")("answer-correct")).toBe(
+                createChromeTranslator(PSEUDO_RTL_LOCALE)("answer-correct"),
+            );
         });
     });
 });

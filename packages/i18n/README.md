@@ -66,19 +66,80 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-The split is by **load context**, not topic: the worker never draws chrome, so
-it ships only `content` + `diagnostics` (`WORKER_NAMESPACES`). English is
-inlined into every build via `?raw` imports — the worker cannot reliably fetch
-a relative URL across the standalone/iframe/dedicated-worker variants, so the
-fallback locale must not depend on the network.
+English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
+`cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fr`, `he`, `hi`, `hnj`, `hu`, `id`,
+`it`, `ja`, `ko`, `mr`, `my`, `nb`, `ne`, `nl`, `pl`, `ps`, `pt`, `ro`, `ru`,
+`sd`, `sk`, `so`, `sv`, `tr`, `ug`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` — is
+an **unreviewed machine-generated seed**, which each file's own header says at
+the top, and which is what #1521's translation platform is for. None has been
+read by a speaker. Correcting one needs no permission and no coordination: a
+wrong string is just wrong, and the English is one key away.
 
-Spanish is inlined the same way, so `uiLocale="es"` and `documentLocale="es"`
-both work with no host configuration. `bundledResources(namespaces)` is what
-assembles those catalogs for a context, and both `createChromeTranslator` and
-`createTranslatorFromLocaleData` merge host-supplied `localeResources` over
-them (the host's copy wins for a locale that exists in both). Inlining does not
-scale, and additional locales are still meant to arrive as modules the host
-loads and passes in; revisit when the count reaches a handful.
+Ten of them are deliberately partial, all in the same place: Somali, Hmong
+Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur and Vietnamese
+leave `element-name` and `element-anion-name` out, so those 130 keys fall back
+to English and `lint:i18n` reports the gap. The first nine have no settled
+chemical nomenclature to seed from, and inventing one would be worse than the
+English a student meets in their own textbook. Vietnamese has two, and the
+current one is English — school chemistry has moved from the transliterated
+names to the IUPAC forms — so the fallback is already what the curriculum uses.
+
+That is a decision per language and not per script: Bangla supplies the names
+its schools use, and Assamese, written in the same letters, does not. The same
+line runs through the Arabic script — Arabic, Persian and Urdu supply them and
+Pashto, Sindhi and Uyghur do not.
+
+A directory is named for a **script** rather than a language only where two
+scripts of one language are translated separately, which today is Chinese.
+Name that pair `zh-Hans` and `zh-Hant`, never `zh`: filtering negotiation tries
+the region-stripped tag before it consults likely-subtags, so a directory named
+`zh` answers `zh-TW`, `zh-HK` and `zh-MO` ahead of `zh-Hant` and serves a
+Traditional reader Simplified text. Named by script, every tag reaches the
+catalog it should, and bare `zh` reaches `zh-Hans` because that is what CLDR
+fills it in as. `negotiate.test.ts` holds this.
+
+Keep both complete rather than layering one over the other. A Traditional tag
+negotiates to `["zh-Hant", "en"]`, so a key missing there renders in English —
+the right outcome, since the wrong script is not a partial translation but a
+different one. It is not symmetric: `zh-CN` and `zh-SG` negotiate to
+`["zh-Hans", "zh-Hant", "en"]`, since filtering offers every `zh-*` catalog it
+has, so a gap in `zh-Hans` can be filled from `zh-Hant` on a page holding both.
+
+Norwegian is the other case where the tag a reader arrives under is not the tag
+a directory is named for. `nb` is Bokmål specifically; `no` is the
+macrolanguage over Bokmål and Nynorsk, and it is what a hand-typed
+`<document lang>` usually says and what several browsers still send. Nothing in
+filtering negotiation connects the two, so `negotiate.ts` rewrites the language
+subtag before negotiating — the same service `Intl.getCanonicalLocales` already
+performs for `iw`, `in` and `mo`, which it maps to `he`, `id` and `ro` on its
+own. `nn` is left alone: Nynorsk is a written standard of its own, and
+answering it with Bokmål would be a substitution rather than a
+canonicalization.
+
+A catalog's **comments are in English** whatever it translates into: its
+header, its `##` group headings, and the notes explaining a wording choice.
+They are addressed to whoever maintains the file, and no one maintaining it
+reads them all — a note that cannot be read cannot be checked. Only the text to
+the right of `=` is translated.
+
+The split is by **load context**, not topic: the worker never draws chrome and
+never renders a diagnostic, so it ships only `content` (`WORKER_NAMESPACES`).
+English is inlined into every build via `?raw` imports — the worker cannot
+reliably fetch a relative URL across the standalone/iframe/dedicated-worker
+variants, so the fallback locale must not depend on the network.
+
+English is the only language inlined. `createChromeTranslator` builds its own
+English candidate with `englishResources(namespaces)` and merges host-supplied
+`localeResources` over it, the host's copy winning for a locale in both;
+`createTranslatorFromLocaleData` builds none, translating out of what reached
+the worker and nothing else. Neither has to carry English for the fallback:
+`createTranslator` appends the whole English catalog behind every chain.
+
+Every translation is **loaded on demand** — see [Delivery](#delivery). At
+roughly 16 KB gzipped for a complete one, inlining a language puts its weight on
+every consumer whether or not anyone reads it, and no single language earns
+that. English is exempt because every fallback chain ends there: it has to be
+present with no network, in every bundling variant.
 
 Note that `content` and `diagnostics` answer to *different* settings —
 `documentLocale` and `uiLocale` respectively — which is why `WORKER_NAMESPACES`
@@ -95,29 +156,103 @@ diagnostics catalog inside the worker would never be read. See
 Two different questions get asked about locales, and they must be answered from
 two different places:
 
-| Question                              | Source of truth                             |
-| ------------------------------------- | ------------------------------------------- |
-| Which languages does DoenetML have?   | `SUPPORTED_LOCALES` — the `locales/` dirs   |
-| Which catalogs are in this JS bundle? | `bundledResources` — `BUNDLED_TRANSLATIONS` |
+| Question                              | Source of truth                               |
+| ------------------------------------- | --------------------------------------------- |
+| Which languages does DoenetML have?   | `SUPPORTED_LOCALES` — the `locales/` dirs     |
+| Which catalogs are in this JS bundle? | `BUNDLED_LOCALES` — English, and only English |
 
 `SUPPORTED_LOCALES` (`src/generated/supportedLocales.ts`, regenerated by
 `codegen` and guarded by `lint:i18n`) is the roster: every locale with a
 catalog directory, each with its name in English and in itself, derived at
 codegen time from `Intl.DisplayNames` so that adding a language costs no
-hand-written prose. The second answer is a delivery decision that is expected
-to change — Spanish is inlined today only because it is the sole translation
-and a dynamic import would have to survive four bundling variants.
+hand-written prose. The second answer is a delivery decision, and the two lists
+have long since diverged: English is the only catalog inlined, and every other
+one is fetched or code-split when a document or a reader asks for it (see
+[Delivery](#delivery)).
 
 Author-facing surfaces read the **roster**. That is what lets the editor offer
 the languages in `<document lang>`'s autocomplete and help panel (via the
 attribute's `suggestedValues` in the worker's `Document.js`) and keep offering
-them after a locale stops being inlined. Reading `BUNDLED_TRANSLATIONS` for
-that would silently shrink the list the day the delivery strategy changes.
+them after a locale stops being inlined. Reading `BUNDLED_LOCALES` for that
+would offer the author English and nothing else.
 
 Neither list is exhaustive from an author's point of view: a deployment can
 hand over catalogs of its own as `localeResources`, which no build-time list
 can know about. So the roster *suggests* and never *enforces* — `lang` accepts
 any BCP-47 tag, and an unlisted one draws no diagnostic.
+
+## Delivery
+
+A locale that is not inlined still has to reach the browser. `load.ts` does
+that, and the viewer calls it for you: `useLocaleCatalogs` (in
+`@doenet/doenetml`'s `utils/i18n.tsx`) loads the catalogs for whatever tags are
+in play and merges them *under* the host's `localeResources`, so a deployment
+correcting a shipped translation still wins. Adding `locales/pt/` and running
+`npm run codegen` is therefore the whole job — no list of languages to register
+anywhere, and `documentLocale="pt"` and `<document lang="pt">` both work with
+nothing configured. (The codegen step is what puts `pt` in `SUPPORTED_LOCALES`,
+which is the list `fetchLocaleLoaders` offers by default; `lint:i18n` fails if
+it is skipped.)
+
+```ts
+// What the viewer does. Returns {} for English, for a locale the caller says
+// it already has, and for one nothing offers a catalog for. A served catalog
+// that 404s or cannot be reached is {} too; only a code-split chunk that
+// fails to load rejects, and `useLocaleCatalogs` catches that and leaves the
+// locale on English.
+const resources = await loadLocaleResources("de-AT", CATALOG_NAMESPACES);
+// → { de: "<all four namespaces, concatenated>" }
+```
+
+The tag is negotiated the usual way, so `de-AT` loads `de` and comes back keyed
+`de` — the key the fallback chain looks for. Requests are cached by what was
+asked for, so N viewers on a page share one fetch.
+
+The viewer asks for all four namespaces because the one map it builds serves
+both jobs: the chrome reads three of them and the core, handed the same map as
+`LocaleData.resources`, reads `content`. The namespaces stay a parameter
+because each costs a request (or a chunk) of its own, so a context that renders
+a subset — `WORKER_NAMESPACES`, which is `content` alone — need not move four
+catalogs to get one.
+
+Where the catalogs come from depends on the build, and the difference is real
+rather than cosmetic:
+
+| Build                     | Mechanism                                              |
+| ------------------------- | ------------------------------------------------------ |
+| `@doenet/doenetml`        | `import.meta.glob` — one code-split chunk per catalog   |
+| `@doenet/standalone`      | `fetch` from `locales/`, served beside the bundle       |
+| `@doenet/doenetml-worker` | Neither: it is handed `LocaleData.resources`           |
+| `@doenet/doenetml-iframe` | Neither: what renders inside its iframe is a standalone bundle, which loads its own |
+
+The glob is what makes adding a language cost a directory. It is also why the
+two single-file builds need a different answer: `inlineDynamicImports` folds
+every dynamic import back into the one output file, so code-splitting cannot
+keep catalogs out of them — and *being reachable is enough*, whether or not
+anything calls it. Both therefore define `__DOENET_CODE_SPLIT_CATALOGS__`
+false, which makes the glob dead code. The standalone build then copies
+`locales/` into `dist/` (`copyLocaleCatalogsPlugin`) and installs
+`fetchLocaleLoaders` against it in `src/index.tsx`; the worker needs no
+replacement at all, because the main thread loads its catalog and passes it
+across. `packages/standalone/scripts/check-bundle-size.mjs` fails the build if
+a served catalog turns up inside an emitted script, and if any locale directory
+did not reach `dist/locales/` — the copy is of the whole directory, English
+included, so the second half stays meaningful whatever the inlining decision
+turns out to be.
+
+Two lists have to agree for any of this to hold, and `lint:i18n` checks that
+they do: the locales excluded from the glob in `load.ts` are exactly
+`BUNDLED_LOCALES`. A bundled locale left in the glob is imported both
+statically and dynamically, never gets its own chunk, and makes Rollup warn on
+every build; an unbundled one excluded from it can never be loaded at all.
+
+A host with a translation of its own has two ways in: pass it as
+`localeResources` (highest precedence, no loading involved), or serve it and
+call `setLocaleLoaders(fetchLocaleLoaders(url, tags))`. The second replaces the
+loaders for the whole page rather than adding to them — a standalone bundle
+that calls it is no longer reading its own `locales/` — and `tags` is worth
+passing whenever the language is not one DoenetML ships, since the default list
+is `SUPPORTED_LOCALES`.
 
 ## Keys
 
@@ -231,6 +366,23 @@ piece selects a different branch rather than substituting an empty string —
 that is what lets a translation reorder and re-punctuate each combination on
 its own terms.
 
+Gender is not the only thing an adjective has to agree with. Three sets of
+words are rendered in two places each — a border's adjectives, the background
+colour, and the text colour beside it — once standing alone as a state
+variable reports them and once embedded in a clause, and a language that
+inflects for case wants a different form in each. So every adjective is handed
+`$role` as well, naming the *position* the phrase is going into rather than
+the case it takes: which case a position governs is the catalog's business,
+exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
+positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
+Romanian, Finnish, Hindi, Marathi, Urdu, Sindhi and Pashto are the catalogs
+that select on them. Sharing a script does not imply sharing
+the fork: Marathi and Hindi both take an oblique adjective before a
+postposition and Nepali, written in the same letters, takes none. Nor is the
+fork all-or-nothing — Pashto marks the oblique on a feminine adjective in ـه
+and nowhere else, so it branches on one position out of the four and leaves the
+rest to the default.
+
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
 adjectives rather than sitting beside them, so `noun-regular-polygon` answers
@@ -256,7 +408,49 @@ hard way:
   further line puts a `\n` in the rendered string — including when that line
   opens a nested select. Keep each variant's content on one line; a select
   nested *within* that line is fine, and is how a message would sub-divide one
-  of its variants.
+  of its variants. The same rule catches a subtler mistake: a `#` line indented
+  *under* a message is not a comment, it is more of the pattern above it, so a
+  note explaining a wording choice has to sit above the message rather than
+  beside the attribute it explains. `lint:i18n` fails on any pattern that
+  renders a line break, which is what makes both of these findable before a
+  reader meets them.
+
+### An affix cannot be welded to a placeable
+
+The one constraint that recurs in every catalog that has to restructure a
+message rather than translate it in place, and it has nothing to do with
+writing direction — it turned up first in Arabic and Uyghur and then in
+Hungarian, Finnish, Czech, Slovak and Romanian.
+
+A placeable is a value the catalog never sees. So a message may not depend on
+what that value turns out to *be*:
+
+| The catalog wants | The language | Why it cannot |
+| --- | --- | --- |
+| a case ending on the value | `ar`, `ug`, `hu`, `fi` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
+| the definite article on the value | `ro` | the article is a suffix — «secțiune» → «secțiunea» |
+| a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
+| a compound with the value | `fi` | Finnish writes a compound as one word |
+
+Adjacency is not the problem. `{ $numSides }-kulmio` is correct Finnish for
+every side count, because `-kulmio` is the same whatever number lands in front
+of it. What cannot be written is *agreement* with an unknown word.
+
+There are four ways out, and every catalog here takes one of them:
+
+- **Name what the value is.** «للمكوّن { $component }» — "for the component X"
+  — puts the affix on a word the catalog writes.
+- **Reach for a word that can stand beside it.** A postposition in Urdu, a
+  relative clause in Finnish («jossa on vinoneliöitä»), a demonstrative in
+  Hungarian («ehhez: { $answerId }»).
+- **Choose the words that land there.** Czech's pattern for horizontal lines is
+  «horizontální čáry» rather than «vodorovné čáry», because «v vodorovné» would
+  have wanted «ve».
+- **Write both forms.** Hungarian's «a(z)» is the standard orthographic answer
+  to exactly this problem, and predates software by a long way.
+
+A select whose variants would land against such an affix carries the affix into
+each variant: Fluent does not care where a select sits inside a pattern.
 
 ## Diagnostics
 
@@ -500,14 +694,17 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
-translated locale defining a key English lacks, a stale `messageKeys.ts`,
-`supportedLocales.ts`, or `diagnostic-codes.lock.json`, a call site referencing
-a key that doesn't exist, an English key no source file references, a malformed
-diagnostic code, a code naming a message English lacks, a code used in source
-that the registry doesn't define, a registered code that nothing raises and
-that is not listed as retired, and any change to a code already issued. Keys
-*missing* from a translation are reported as coverage, not failure — a partial
-translation is legitimate and falls back.
+catalog naming a `numberingSystem` on a Fluent builtin, a message whose value
+would render a line break, a translated locale
+defining a key English lacks, a stale `messageKeys.ts`, `supportedLocales.ts`,
+or `diagnostic-codes.lock.json`, a lazy-catalog glob that no longer excludes
+exactly the inlined locales, a call site referencing a key that doesn't exist,
+an English key no source file references, a malformed diagnostic code, a code
+naming a message English lacks, a code used in source that the registry doesn't
+define, a registered code that nothing raises and that is not listed as
+retired, and any change to a code already issued. Keys *missing* from a
+translation are reported as coverage, not failure — a partial translation is
+legitimate and falls back.
 
 Run `codegen` after editing any English catalog, adding a diagnostic code, or
 adding a locale directory; the generated `MessageKey` union, the locale roster
@@ -543,10 +740,219 @@ it — use `formatDecimalString`, which re-punctuates an already-rendered decima
 under the locale's grouping and separator without adding, removing, or rounding
 a digit.
 
+### Digits are Latin, separators are not
+
+What localizes is the **punctuation**, never the ten characters. German still
+groups with periods, India still groups in twos, and a number still comes back
+in `0`–`9` — even under a locale CLDR counts in another script, which today
+includes Bangla, Assamese, Marathi, Nepali, Burmese, Persian, Pashto, Sindhi
+and Arabic as written in Egypt.
+
+`intlLocale` pins the numbering system, so this holds for every formatter this
+package builds and for every one added later: a locale reaches an `Intl`
+formatter through that function or it reaches none at all. It applies to
+Fluent's `NUMBER()`, to a bare `{ $count }` — which Fluent wraps and formats
+identically — to `DATETIME()`, and to `formatDecimalString`. A tag that names a
+numbering system itself (`zh-u-nu-hanidec`) is overridden; the policy is one
+answer per product, not per tag. `lint:i18n` rejects a catalog that passes
+`numberingSystem` to a builtin, which is the only other way back out.
+
+Two reasons, and the second decides it. A number in prose sits beside numbers
+that are not prose: a contrast ratio is written `{ ratio }:1` with the `1` a
+literal in the catalog, a line number is read off a gutter the editor draws
+itself, an author's `styleNumber="3"` is quoted back at them. And mathematics
+is Latin-digit regardless — `MATH_NOTATION_LOCALE`, which #1528 keeps that way
+while it makes the *separator* configurable. A document whose prose counted in
+one script and whose equations counted in another would be worse than either
+alone.
+
+For the Arabic script the two halves are not independent: Persian pairs `٬` and
+`٫` with its own digits and `,` and `.` with these, so pinning the digits takes
+the Latin-digit separators with it. Everywhere else the separator is untouched.
+
+The other half of the rule is on the argument, not the formatter: a value that
+is an **identifier** rather than a quantity — a line number, a `styleNumber`, a
+`componentIdx`, a section number built out of counters — is passed as a
+`string`, so that nothing groups it either. `TranslationArgs` is where that is
+written down.
+
+## Direction
+
+`directionOf(tag)` in `src/direction.ts` is the whole rule. It answers for
+**any** BCP-47 tag, not only the ones with a catalog: `lang` accepts whatever an
+author types, and `<document lang="ar">` has to lay out right-to-left whether or
+not `locales/ar/` exists. That is why direction is computed rather than recorded
+beside the catalogs — a generated field could only cover the roster, which is
+[not the bundle](#the-roster-is-not-the-bundle) and not exhaustive either.
+
+It keys on **script**, because that is what decides: Punjabi is left-to-right in
+Gurmukhi and right-to-left in Arabic, Kurdish likewise in Latin and Arabic. A
+bare `ar` or `he` resolves through `Intl.Locale`'s `maximize()`. Deliberately
+not `Intl.Locale.prototype.getTextInfo()`, which is too new to rely on and
+throws on exactly the tags `normalizeLocaleTag` is written to pass through
+untouched.
+
+Two roots carry `dir`, for the same reason there are two locales. `DocViewer`
+puts the **content's** direction on `.doenet-viewer` beside its `lang`;
+`doenetml.tsx` puts the **reader's** on the wrapper around the chrome that sits
+outside it. A nested `<document lang>` needs no state variable of its own —
+`renderedLang` is set exactly when the language changes, so where it is absent
+the direction cannot have changed either.
+
+Chrome drawn *inside* the document is the reader's language in a box declared to
+be the content's. `useChromeLangDir()` re-declares it — on the in-document error
+box, the feedback heading, the click-to-toggle text on a hint, a solution and a
+collapsible section, a pretzel's answer label, the summary-statistics caption,
+and the math-input preview's parse-error message — and returns `{}` when the two
+directions already agree, so the common case adds no attributes at all. It is
+not for anything reading `useContentT`: the check-work widget follows the
+document's language by design, so it follows its direction too. Nor for
+tooltips, for the opposite reason: Ariakit portals them to `document.body`, so
+they are never inside the document's box, and a native `title` attribute is
+drawn by the browser rather than by CSS. `DocViewer`'s error banner is built
+above the provider the hook reads, so it calls the same rule as the plain
+function `chromeLangDir(uiLocale, documentDirection)`.
+
+"The document" there means the *nearest* one, not the activity: a nested
+`<document lang>` turns its own subtree around, so `section.tsx` re-mounts
+`DocumentDirectionProvider` around whatever it just declared. Otherwise chrome
+inside `<document lang="ar">` would compare itself against a left-to-right
+activity, find no disagreement, and stay silent in a box running the other way.
+
+### Notation is a left-to-right island
+
+Mathematics reads left-to-right in Arabic and Hebrew as well, so a graph must
+not mirror while the prose around it does. The pins are `dir="ltr"` on the
+JSXGraph board and the prefigure SVG (both write `text-anchor: start|end`, which
+resolves against the computed direction), the MathQuill wrapper (no `direction`
+declaration anywhere, inline siblings in source order, physical kerns), the
+matrix input (a `<table>` reverses its columns), the slider (a native range
+input reverses its track), the number line, the orbital diagram, the math
+input's preview (the popover does not portal, and the div that scrolls a long
+expression must not become an RTL scroll container, whose `scrollLeft` runs
+from the negatives up to zero), and CodeMirror (it renders XML source). The
+spreadsheet is the one exception to the attribute: Handsontable reads the
+inherited direction through its own `layoutDirection` option, so it is told
+rather than styled. MathJax needs nothing: its CHTML output already pins
+`direction: ltr` on `mjx-math` — but only on the mathematics itself, which is
+why the preview's scroll container still needs its own pin.
+
+A pin on a *block* needs a width with it: an element as wide as its container
+aligns its left-to-right contents to the container's left edge, stranding the
+widget at the far side of the page from the prose it belongs to.
+`ltrIslandProps()` in
+`packages/doenetml/src/Viewer/renderers/utils/direction.ts` carries the pair, so
+the sizing half cannot be left off by accident. It shrink-wraps by default and
+takes a width for a widget the author can size — the slider passes its own,
+because a percentage inside a shrink-wrapped box would measure against the box
+instead of the column. An inline island, or one whose element already
+shrink-wraps, takes a bare `dir="ltr"`.
+
+The keyboard's keys are pinned in `keyboard.css` rather than by attribute,
+because `Keyboard` returns a different element per style. The tray *around*
+them follows the reader.
+
+Everything else mirrors: the paginator, prose renderers, the feedback and hint
+headers, the graph-controls panel, the editor chrome.
+
+### Writing a right-to-left catalog
+
+Seven ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd` and `ug`. Nothing about the file
+format changes for any of them. A `.ftl` pattern is a sequence of characters in
+**logical** order — the order the text is spoken — and `dir` decides where each
+run is drawn, so a translation is written the way it is read and never reordered
+by hand to look right in an editor. Brackets, quotes and dashes are the same
+characters in every one of these scripts and are written opening-first; the bidi
+algorithm turns them around at render time. Digits stay Latin, as
+[everywhere else](#digits-are-latin-separators-are-not), which is why an Arabic
+sentence and the mathematics beside it count in the same characters.
+
+**Direction is not a language family.** These seven share a writing direction
+and almost nothing else, and the catalogs differ from each other far more than
+they differ from `de` or `es`:
+
+| | Adjectives | Gender | Plural categories |
+| --- | --- | --- | --- |
+| `ar` | follow the noun | m/f | six |
+| `he` | follow the noun | m/f | three |
+| `fa` | follow the noun | none | two |
+| `ur`, `ps`, `sd` | precede the noun | m/f | two |
+| `ug` | precede the noun | none | two |
+
+`ur` is the outlier worth knowing about: its grammar is `hi`'s, so
+`locales/hi` is the closest thing to a parallel text for it and a correction to
+one is usually a correction to both. `ug` is Turkic and agrees with nothing.
+
+Three things recur across them, none a property of the direction:
+
+- **Plural categories.** Fluent selects through `Intl.PluralRules`, so an
+  Arabic `{ $count -> … }` has `zero`, `one`, `two`, `few`, `many` and `other`
+  where English has two branches, and Hebrew has `one`, `two` and `other`. Only
+  Arabic has a `zero` category, and which branch catches none elsewhere is not
+  worth guessing: it is `other` in Hebrew, Urdu, Pashto, Sindhi and Uyghur but
+  `one` in Persian, whose rule counts zero with the singular. That is why a
+  message wanting a separate wording for none says `[0]` by number, as the
+  English does, rather than reaching for a category — Fluent matches an
+  explicit number before it consults the rules, so the branch is right whatever
+  the locale would otherwise have chosen.
+- **An affix cannot be welded to a placeable.** Arabic attaches «لـ» and «بـ»
+  to the word after them and Uyghur attaches its case endings to the word
+  before, and in each case there is no word — there is an argument. This is
+  where these two met a constraint that turned out to hold in half the
+  left-to-right catalogs as well; see
+  [An affix cannot be welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable)
+  for the general shape of it and the ways out.
+- **A distinction the source language makes may not exist.** Where English
+  separates a singular from a plural only in the verb — "is ignored" against
+  "are ignored" — most of these cover both with one form, and the select is
+  dropped rather than written out twice identically. The count argument then
+  goes unused, which is harmless: it stays in the English message for the
+  languages that need it. Where English changes the *noun* as well, the branch
+  stays — and whether it has to is a fact about the language rather than about
+  the script: Persian, Urdu and Uyghur leave a noun singular after a numeral,
+  while Arabic, Hebrew, Pashto and Sindhi pluralize it.
+
+### Testing it without a catalog
+
+`en-XB` renders visually identical text to `en-XA` and differs only in
+`directionOf` reporting it `rtl`, plus an invisible right-to-left mark against
+the outer face of each bracket so that a value's trailing punctuation resolves
+the way it would in a real RTL sentence. A difference between the two runs is a
+difference in layout and nothing else, and every right-to-left assertion is
+runnable before any right-to-left language is translated. It stays useful now
+that one is: a layout regression under `en-XB` is legible to a reviewer who
+reads no Arabic, so what a screenshot shows is the layout rather than the
+words. It is deliberately not a text transform: Android's U+202E override
+demonstrates bidi rather than testing a layout, and look-alike glyphs would
+cost the accented text its readability and break the hard-coded-English sweep.
+
 ## Bidi isolation
 
-`createTranslator` defaults `useIsolating` to **false**. Fluent otherwise wraps
-every placeable in U+2068/U+2069, which is right for free-form UI text but makes
-output non-byte-identical to the English it replaces and corrupts strings that
-are later compared or hashed — and Doenet compares response text. Turn it on per
-translator for a surface that genuinely mixes RTL and LTR runs.
+An interpolated value that runs the other way from the sentence around it
+scrambles that sentence. Unicode's isolates prevent that, and Fluent adds them
+per bundle — so `useIsolating` is decided per translator, and the two
+translators want opposite answers:
+
+- **`createChromeTranslator` turns it on**, for every language but English.
+  What it renders is looked at and discarded.
+- **`createTranslatorFromLocaleData` leaves it off.** What the worker renders
+  becomes state variables an author interpolates, an `<award>` compares against
+  a response, and `answer.js` folds into a SHA-1 of the dependency graph. The
+  line is drawn at what is compared, not at what looks like prose.
+
+Isolation is uniform across a fallback chain rather than per catalog: a key the
+reader's language has not translated resolves from English and is isolated all
+the same, because the chrome around it is still the reader's.
+
+**English is excluded, and the reason is not principled.** Isolation protects a
+sentence whose placeable runs the other way, which has nothing to do with
+whether the sentence is English — an English UI naming an Arabic answer still
+gets none. It is excluded because the assertion corpus compares English chrome
+as plain text, and every phase has held English byte-identical to what it
+replaced. Turning it on for English later is a mechanical change plus a sweep
+of exact-string assertions. Keyed on the primary subtag, so `en-GB` is English
+and so are both pseudo-locales.
+
+A test asserting on translated chrome has to strip the marks with
+`stripBidiIsolates`. They render as nothing, so a failure diff otherwise shows
+two strings that look identical.

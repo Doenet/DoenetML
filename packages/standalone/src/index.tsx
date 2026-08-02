@@ -15,6 +15,7 @@ import type {
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import { getStylePalettes, getStylePalette } from "@doenet/utils";
 import type { StylePaletteInfo } from "@doenet/utils";
+import { fetchLocaleLoaders, setLocaleLoaders } from "@doenet/i18n";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { ResizeWatcher } from "./resize-watcher";
@@ -33,6 +34,60 @@ export { getStylePalettes, getStylePalette };
 export type { StylePaletteInfo };
 
 export const version: string = STANDALONE_VERSION;
+
+// Message catalogs beyond the bundled ones are served next to this file, not
+// inside it: a single-file bundle inlines every dynamic import, so the
+// code-splitting the library build relies on would put all of `locales/` in
+// here. The build copies `locales/` into `dist/` and switches the code-split
+// path off (`__DOENET_CODE_SPLIT_CATALOGS__`); this points the viewer at that
+// copy, resolved against the bundle's own URL the same way the core worker is.
+//
+// A host that serves this bundle without `locales/` beside it loses nothing it
+// has today: those fetches fail quietly and every locale falls back to English.
+//
+// The paths are held in constants rather than written inline because Vite reads
+// a literal `new URL(..., import.meta.url)` as an asset reference and warns that
+// the target does not exist at build time. It does not — the build copies it in
+// afterwards — so the reference has to stay unanalyzed.
+const CATALOGS_BESIDE_BUNDLE = "./locales/";
+const CATALOGS_AT_ORIGIN = "/locales/";
+
+/**
+ * Where to fetch the message catalogs from, or `null` if nowhere can be worked
+ * out.
+ *
+ * Beside the bundle is the right answer and the one the build arranges — an
+ * embed loading this file from the CDN gets the `locales/` published beside it.
+ * But `import.meta.url` is not always a base a URL can be resolved against:
+ * `@doenet/doenetml-iframe`'s dev harness and Cypress component tests boot a
+ * locally built copy of this bundle from a Blob URL, and `blob:` is opaque, so
+ * `new URL` throws on it. Nothing is "beside" a blob, so that case tries the
+ * page's own origin instead — where `getWorkerUrl` in `@doenet/doenetml` looks
+ * for the core worker.
+ *
+ * Returning `null` is a normal outcome, not an error: every locale then falls
+ * back to English, exactly as it does when the catalogs are simply not served.
+ * What must not happen is a throw, which at module scope would leave the bundle
+ * unevaluated and every viewer on the page blank.
+ */
+function localeCatalogsUrl(): string | null {
+    for (const [path, base] of [
+        [CATALOGS_BESIDE_BUNDLE, import.meta.url],
+        [CATALOGS_AT_ORIGIN, globalThis.window?.location?.href],
+    ] as const) {
+        try {
+            return new URL(path, base).href;
+        } catch {
+            // Opaque or absent base — try the next candidate.
+        }
+    }
+    return null;
+}
+
+const localeCatalogsBase = localeCatalogsUrl();
+if (localeCatalogsBase) {
+    setLocaleLoaders(fetchLocaleLoaders(localeCatalogsBase));
+}
 
 // Parent-page coordinator support (see coordinated-mode.ts): when this
 // page's URL carries the coordinator's fragment token, viewers rendered

@@ -1,11 +1,18 @@
-# Superficies del editor: el pie, el panel de diagnósticos, el selector de
-# variantes, el botón de accesibilidad y el panel de ayuda contextual.
-# Se selecciona con `uiLocale`.
+# Spanish editor and language-server surfaces. Translated from
+# `locales/en/editor.ftl`, which is the source of truth: `lint:i18n` rejects a
+# key that does not exist there, and reports a key that exists there but not
+# here as missing coverage.
 #
-# `WCAG AA` es el nombre de la norma y no se traduce.
+# Message ids are never translated — only the text to the right of `=`.
+#
+# UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
+# Correct anything here freely; nothing in it was written by a translator.
+#
+# `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
+# name are identifiers, not prose, and stay as written.
 
 
-## Los controles del visor
+## The viewer's controls
 
 editor-update-viewer =
     { $action ->
@@ -20,7 +27,7 @@ editor-update-viewer-title =
     }
 
 
-## El selector de variantes
+## The variant picker
 
 editor-variant = Variante
 editor-variant-filter = Filtrar...
@@ -28,7 +35,7 @@ editor-variant-next = Seleccionar la variante siguiente
 editor-variant-previous = Seleccionar la variante anterior
 
 
-## El botón de estado de accesibilidad
+## The accessibility status button
 
 editor-accessibility-title =
     { $status ->
@@ -71,7 +78,7 @@ editor-accessibility-label =
 editor-accessibility-badge = WCAG
 
 
-## El pie
+## The footer
 
 editor-version-title = Versión de DoenetML { $version }
 
@@ -90,7 +97,7 @@ editor-format-as-doenetml = Formatear como DoenetML
 editor-format-as-xml = Formatear como XML
 
 
-## El panel de diagnósticos
+## The diagnostics panel
 
 editor-diagnostic-line = Línea n.º { $line }
 
@@ -109,7 +116,7 @@ editor-accessibility-other-heading = Otros problemas de accesibilidad
 editor-none-found = No se encontró ninguno
 
 
-## Respuestas enviadas
+## Submitted responses
 
 editor-no-responses = Todavía no hay respuestas enviadas
 editor-response-answer-id = Id. de respuesta
@@ -118,11 +125,11 @@ editor-response-credit = Puntuación
 editor-response-submitted = Enviada
 
 
-## El panel de ayuda contextual
+## The context-help panel
 ##
-## Los fragmentos con formato — un nombre de elemento en `<code>`, un enlace —
-## llegan como argumentos y se vuelven a insertar después de formatear el
-## mensaje, de modo que la traducción decide dónde va cada uno.
+## Formatted fragments — an element name in `<code>`, a link — arrive as
+## arguments and are put back after the message is formatted, so the
+## translation decides where each one goes.
 
 help-placeholder = Coloque el cursor sobre el nombre de una etiqueta, un atributo o { $ref } para ver la documentación.
 

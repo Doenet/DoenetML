@@ -5,7 +5,49 @@
 // directory.
 
 /** A locale this repository ships a catalog for. */
-export type SupportedLocale = "en" | "es";
+export type SupportedLocale =
+    | "en"
+    | "am"
+    | "ar"
+    | "as"
+    | "bn"
+    | "cs"
+    | "da"
+    | "de"
+    | "el"
+    | "es"
+    | "fa"
+    | "fi"
+    | "fr"
+    | "he"
+    | "hi"
+    | "hnj"
+    | "hu"
+    | "id"
+    | "it"
+    | "ja"
+    | "ko"
+    | "mr"
+    | "my"
+    | "nb"
+    | "ne"
+    | "nl"
+    | "pl"
+    | "ps"
+    | "pt"
+    | "ro"
+    | "ru"
+    | "sd"
+    | "sk"
+    | "so"
+    | "sv"
+    | "tr"
+    | "ug"
+    | "uk"
+    | "ur"
+    | "vi"
+    | "zh-Hans"
+    | "zh-Hant";
 
 /** A supported locale and the names to show an author. */
 export type SupportedLocaleInfo = {
@@ -28,9 +70,10 @@ export type SupportedLocaleInfo = {
  * Every locale with a catalog in this repository, `en` first.
  *
  * The *roster*, not the delivery mechanism: it is generated from the
- * `locales/` directory, so it stays correct when a locale stops being inlined
- * into the bundle. Read `bundledResources` for "which catalogs are in this JS
- * bundle" instead.
+ * `locales/` directory, so it lists every language this repository ships a
+ * translation for, whether or not the bundle carries it. Read
+ * `BUNDLED_LOCALES` for "which catalogs are in this JS bundle" instead — today
+ * that is English alone.
  *
  * A deployment can always supply a catalog of its own that is not listed here.
  * That is why the surfaces built on this list suggest rather than enforce: an
@@ -44,9 +87,249 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "English",
     },
     {
+        locale: "am",
+        englishName: "Amharic",
+        endonym: "አማርኛ",
+        label: "Amharic (አማርኛ)",
+    },
+    {
+        locale: "ar",
+        englishName: "Arabic",
+        endonym: "العربية",
+        label: "Arabic (العربية)",
+    },
+    {
+        locale: "as",
+        englishName: "Assamese",
+        endonym: "অসমীয়া",
+        label: "Assamese (অসমীয়া)",
+    },
+    {
+        locale: "bn",
+        englishName: "Bangla",
+        endonym: "বাংলা",
+        label: "Bangla (বাংলা)",
+    },
+    {
+        locale: "cs",
+        englishName: "Czech",
+        endonym: "čeština",
+        label: "Czech (čeština)",
+    },
+    {
+        locale: "da",
+        englishName: "Danish",
+        endonym: "dansk",
+        label: "Danish (dansk)",
+    },
+    {
+        locale: "de",
+        englishName: "German",
+        endonym: "Deutsch",
+        label: "German (Deutsch)",
+    },
+    {
+        locale: "el",
+        englishName: "Greek",
+        endonym: "Ελληνικά",
+        label: "Greek (Ελληνικά)",
+    },
+    {
         locale: "es",
         englishName: "Spanish",
         endonym: "español",
         label: "Spanish (español)",
+    },
+    {
+        locale: "fa",
+        englishName: "Persian",
+        endonym: "فارسی",
+        label: "Persian (فارسی)",
+    },
+    {
+        locale: "fi",
+        englishName: "Finnish",
+        endonym: "suomi",
+        label: "Finnish (suomi)",
+    },
+    {
+        locale: "fr",
+        englishName: "French",
+        endonym: "français",
+        label: "French (français)",
+    },
+    {
+        locale: "he",
+        englishName: "Hebrew",
+        endonym: "עברית",
+        label: "Hebrew (עברית)",
+    },
+    {
+        locale: "hi",
+        englishName: "Hindi",
+        endonym: "हिन्दी",
+        label: "Hindi (हिन्दी)",
+    },
+    {
+        locale: "hnj",
+        englishName: "Hmong Njua",
+        endonym: "Hmong Njua",
+        label: "Hmong Njua",
+    },
+    {
+        locale: "hu",
+        englishName: "Hungarian",
+        endonym: "magyar",
+        label: "Hungarian (magyar)",
+    },
+    {
+        locale: "id",
+        englishName: "Indonesian",
+        endonym: "Indonesia",
+        label: "Indonesian (Indonesia)",
+    },
+    {
+        locale: "it",
+        englishName: "Italian",
+        endonym: "italiano",
+        label: "Italian (italiano)",
+    },
+    {
+        locale: "ja",
+        englishName: "Japanese",
+        endonym: "日本語",
+        label: "Japanese (日本語)",
+    },
+    {
+        locale: "ko",
+        englishName: "Korean",
+        endonym: "한국어",
+        label: "Korean (한국어)",
+    },
+    {
+        locale: "mr",
+        englishName: "Marathi",
+        endonym: "मराठी",
+        label: "Marathi (मराठी)",
+    },
+    {
+        locale: "my",
+        englishName: "Burmese",
+        endonym: "မြန်မာ",
+        label: "Burmese (မြန်မာ)",
+    },
+    {
+        locale: "nb",
+        englishName: "Norwegian Bokmål",
+        endonym: "norsk bokmål",
+        label: "Norwegian Bokmål (norsk bokmål)",
+    },
+    {
+        locale: "ne",
+        englishName: "Nepali",
+        endonym: "नेपाली",
+        label: "Nepali (नेपाली)",
+    },
+    {
+        locale: "nl",
+        englishName: "Dutch",
+        endonym: "Nederlands",
+        label: "Dutch (Nederlands)",
+    },
+    {
+        locale: "pl",
+        englishName: "Polish",
+        endonym: "polski",
+        label: "Polish (polski)",
+    },
+    {
+        locale: "ps",
+        englishName: "Pashto",
+        endonym: "پښتو",
+        label: "Pashto (پښتو)",
+    },
+    {
+        locale: "pt",
+        englishName: "Portuguese",
+        endonym: "português",
+        label: "Portuguese (português)",
+    },
+    {
+        locale: "ro",
+        englishName: "Romanian",
+        endonym: "română",
+        label: "Romanian (română)",
+    },
+    {
+        locale: "ru",
+        englishName: "Russian",
+        endonym: "русский",
+        label: "Russian (русский)",
+    },
+    {
+        locale: "sd",
+        englishName: "Sindhi",
+        endonym: "سنڌي",
+        label: "Sindhi (سنڌي)",
+    },
+    {
+        locale: "sk",
+        englishName: "Slovak",
+        endonym: "slovenčina",
+        label: "Slovak (slovenčina)",
+    },
+    {
+        locale: "so",
+        englishName: "Somali",
+        endonym: "Soomaali",
+        label: "Somali (Soomaali)",
+    },
+    {
+        locale: "sv",
+        englishName: "Swedish",
+        endonym: "svenska",
+        label: "Swedish (svenska)",
+    },
+    {
+        locale: "tr",
+        englishName: "Turkish",
+        endonym: "Türkçe",
+        label: "Turkish (Türkçe)",
+    },
+    {
+        locale: "ug",
+        englishName: "Uyghur",
+        endonym: "ئۇيغۇرچە",
+        label: "Uyghur (ئۇيغۇرچە)",
+    },
+    {
+        locale: "uk",
+        englishName: "Ukrainian",
+        endonym: "українська",
+        label: "Ukrainian (українська)",
+    },
+    {
+        locale: "ur",
+        englishName: "Urdu",
+        endonym: "اردو",
+        label: "Urdu (اردو)",
+    },
+    {
+        locale: "vi",
+        englishName: "Vietnamese",
+        endonym: "Tiếng Việt",
+        label: "Vietnamese (Tiếng Việt)",
+    },
+    {
+        locale: "zh-Hans",
+        englishName: "Simplified Chinese",
+        endonym: "简体中文",
+        label: "Simplified Chinese (简体中文)",
+    },
+    {
+        locale: "zh-Hant",
+        englishName: "Traditional Chinese",
+        endonym: "繁體中文",
+        label: "Traditional Chinese (繁體中文)",
     },
 ];

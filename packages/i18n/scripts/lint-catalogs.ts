@@ -2,12 +2,15 @@
  * CI guard for the message catalogs. Run with `npm run lint:i18n`.
  *
  * Checks, in order:
- *  1. every catalog parses as Fluent;
+ *  1. every catalog parses as Fluent, none names a numbering system on a
+ *     Fluent builtin, and no message renders a line break;
  *  2. no key is defined twice within a locale (namespaces share one bundle);
  *  3. no translated locale defines a key English doesn't have (a typo'd key in
  *     a translation is invisible at runtime — it just never resolves);
- *  4. `src/generated/messageKeys.ts` matches the English catalogs, and
- *     `src/generated/supportedLocales.ts` matches the `locales/` directory;
+ *  4. `src/generated/messageKeys.ts` matches the English catalogs,
+ *     `src/generated/supportedLocales.ts` matches the `locales/` directory,
+ *     and the lazy-catalog glob in `src/load.ts` excludes exactly the locales
+ *     that are inlined;
  *  5. every key referenced from source exists in English;
  *  6. every English key is referenced from source (no orphans);
  *  7. diagnostic codes are well-formed, resolvable, and append-only.
@@ -18,7 +21,7 @@
 import fs from "node:fs";
 
 import { CATALOG_NAMESPACES } from "../src/namespaces";
-import { DEFAULT_LOCALE } from "../src/catalogs";
+import { BUNDLED_LOCALES, DEFAULT_LOCALE } from "../src/catalogs";
 import {
     DIAGNOSTIC_CODES,
     DIAGNOSTIC_CODE_PATTERN,
@@ -31,10 +34,13 @@ import {
     GENERATED_KEYS_FILE,
     SUPPORTED_LOCALES_FILE,
     catalogParseErrors,
+    multilinePatterns,
+    numberingSystemOverrides,
     collectCallSites,
     collectDiagnosticUsage,
     remainingLiteralDiagnostics,
     collectLocaleKeys,
+    lazyGlobExclusions,
     listLocales,
     mergeDiagnosticCodesLock,
     readCatalog,
@@ -68,6 +74,23 @@ for (const locale of locales) {
         }
         for (const error of catalogParseErrors(source)) {
             problems.push(`locales/${locale}/${namespace}.ftl: ${error}`);
+        }
+        // 1b: the digit policy is not a catalog's to reopen. A hand-written
+        // numbering system is the one way back out of it, and it would show up
+        // only as a number in the wrong script in one message.
+        for (const override of numberingSystemOverrides(source)) {
+            problems.push(
+                `locales/${locale}/${namespace}.ftl: ${override} — DoenetML formats every number in Latin digits (src/intl.ts), so a catalog may not name one`,
+            );
+        }
+        // 1c: no message renders a line break. A pattern continued onto a
+        // further line keeps the newline, and the usual way that happens is a
+        // note indented under the message it explains — which Fluent reads as
+        // more of the pattern, so the explanation ends up in the UI.
+        for (const multiline of multilinePatterns(source)) {
+            problems.push(
+                `locales/${locale}/${namespace}.ftl: ${multiline} — keep each pattern and each variant on one line; a comment belongs above the message, never indented under it`,
+            );
         }
     }
 
@@ -120,8 +143,8 @@ if (actualGenerated !== expectedGenerated) {
     );
 }
 
-// 4b: so does the locale roster. Adding `locales/de/` and stopping there would
-// otherwise leave German out of the editor's `<document lang>` autocomplete
+// 4b: so does the locale roster. Adding `locales/pt/` and stopping there would
+// otherwise leave Portuguese out of the editor's `<document lang>` autocomplete
 // with nothing to say so.
 const expectedLocales = await renderSupportedLocalesModule(locales);
 const actualLocales = fs.existsSync(SUPPORTED_LOCALES_FILE)
@@ -130,6 +153,20 @@ const actualLocales = fs.existsSync(SUPPORTED_LOCALES_FILE)
 if (actualLocales !== expectedLocales) {
     problems.push(
         "src/generated/supportedLocales.ts is out of date — run `npm run codegen -w @doenet/i18n`",
+    );
+}
+
+// 4c: the lazy-catalog glob excludes exactly the locales that are inlined.
+//
+// Neither way round is harmless. A bundled locale left in the glob is imported
+// both statically and dynamically, so it never gets its own chunk and Rollup
+// warns on every build; an unbundled one excluded from it can never be loaded
+// at all, and would fall back to English with nothing to say why.
+const excludedFromGlob = lazyGlobExclusions();
+const inlinedLocales = [...BUNDLED_LOCALES].sort();
+if (excludedFromGlob.join(",") !== inlinedLocales.join(",")) {
+    problems.push(
+        `src/load.ts: the lazy-catalog glob excludes [${excludedFromGlob.join(", ")}] but the inlined locales are [${inlinedLocales.join(", ")}] — the two lists have to match`,
     );
 }
 

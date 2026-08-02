@@ -8,7 +8,7 @@ import { faLightbulb as lightOn } from "@fortawesome/free-regular-svg-icons";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 import { addCommasForCompositeRanges } from "./utils/composites";
-import { useT } from "../../utils/i18n";
+import { useChromeLangDir, useT } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
 import "./hint.css";
 
@@ -77,6 +77,10 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
     };
 
     const openCloseText = clickToToggleLabel(t, SVs.open);
+    // The heading is mixed: `title` is the author's and follows the document,
+    // while "(click to open)" is the reader's. Only the chrome half
+    // re-declares itself, and only where the two directions disagree.
+    const chromeLangDir = useChromeLangDir();
 
     if (SVs.open) {
         if (SVs._compositeReplacementActiveRange) {
@@ -133,7 +137,7 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
                 onKeyDown={onKeyPressFunction}
             >
                 {" "}
-                {icon} {title} {openCloseText}
+                {icon} {title} <span {...chromeLangDir}>{openCloseText}</span>
             </span>
             <span style={infoBlockStyle}>{info}</span>
         </aside>

@@ -3,7 +3,7 @@ import React from "react";
 import { IframeMessage } from "./external-virtual-keyboard";
 import { UniqueKeyboardTray } from "./unique-keyboard-tray";
 import { KeyCommand } from "./keys";
-import type { Translator } from "@doenet/i18n";
+import type { Direction, Translator } from "@doenet/i18n";
 
 /**
  * Virtual keyboard that can be made aware of an externally provided virtual keyboard (e.g., when used
@@ -14,6 +14,7 @@ export function ExternalAwareVirtualKeyboard({
     onClick = () => {},
     theme,
     translate,
+    direction,
     ownerRef,
 }: {
     /**
@@ -36,6 +37,12 @@ export function ExternalAwareVirtualKeyboard({
      * omitted.
      */
     translate?: Translator;
+    /**
+     * Writing direction for the tray's own chrome. Defaults to left-to-right
+     * when omitted. The keys stay left-to-right regardless — they are
+     * mathematical notation.
+     */
+    direction?: Direction;
     /**
      * Element whose focus should be treated as this keyboard instance being
      * active when a document-wide shared tray is used.
@@ -82,6 +89,7 @@ export function ExternalAwareVirtualKeyboard({
             ownerRef={ownerRef}
             theme={theme}
             translate={translate}
+            direction={direction}
         />
     );
 }

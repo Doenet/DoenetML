@@ -1,5 +1,6 @@
 import React from "react";
 import { DoenetEditor } from "../../../src/doenetml-inline-worker";
+import { stripBidiIsolates } from "./utils/bidi";
 
 // The context-help panel had no `useT()` in it, so it stayed English inside an
 // otherwise Spanish editor (Doenet/DoenetML#1580). Most of it is sentences
@@ -62,6 +63,10 @@ describe("the context-help panel follows the reader's language", () => {
 
         cy.get(".help-ref-sentence")
             .invoke("text")
+            // Both names are placeables, and U+2069 is not whitespace as far
+            // as `\s` is concerned, so the marks have to come out before the
+            // sentence matches.
+            .then(stripBidiIsolates)
             .should("match", /\$m\s+es una referencia a\s+<math>/);
         // The names inside the sentence are identifiers, still in `<code>`,
         // and still spelled the way the author wrote them.

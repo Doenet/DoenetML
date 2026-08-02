@@ -33,12 +33,18 @@
 ## reference literally instead of falling back to English. This is the shape
 ## `paginator-page-status` already uses.
 
+# Button label. "Update" recompiles after a source edit; "Reset" reverts
+# only the document's live state to match — same button, different verb.
+# Keep both forms short enough to fit a toolbar button.
 editor-update-viewer =
     { $action ->
         [reset] Reset
        *[update] Update
     }
 
+# Tooltip on the button above. { $word } is that button's own current label
+# ("Update" or "Reset"), so this reads as e.g. "Update Viewer" or
+# "Reset Viewer". { $shortcut } appends the keyboard shortcut when one exists.
 editor-update-viewer-title =
     { $shortcut ->
         [none] { $word } Viewer
@@ -48,9 +54,17 @@ editor-update-viewer-title =
 
 ## The variant picker
 
+# Label for the variant picker control itself (a noun, like a field label).
 editor-variant = Variant
+
+# Placeholder text shown in the empty filter input, before the user types
+# anything — not a button or instruction.
 editor-variant-filter = Filter...
+
+# Button/action label: advances to the next variant in the list.
 editor-variant-next = Select next variant
+
+# Button/action label: goes back to the previous variant in the list.
 editor-variant-previous = Select previous variant
 
 

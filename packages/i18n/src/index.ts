@@ -17,8 +17,12 @@ export {
 export {
     pseudoLocalize,
     PSEUDO_LOCALE,
+    PSEUDO_RTL_LOCALE,
+    PSEUDO_RTL_BRACKETS,
     type PseudoLocalizeOptions,
 } from "./pseudo";
+
+export { directionOf, stripBidiIsolates, type Direction } from "./direction";
 
 export {
     CATALOG_NAMESPACES,
@@ -30,6 +34,7 @@ export {
 } from "./namespaces";
 
 export {
+    BUNDLED_LOCALES,
     DEFAULT_LOCALE,
     EN_CATALOGS,
     EN_CATALOG_SOURCE,
@@ -38,7 +43,19 @@ export {
 
 export { createChromeTranslator, EN_CHROME_TRANSLATOR } from "./chrome";
 
-export { bundledResources } from "./bundled";
+// `LAZY_LOCALE_LOADERS` is deliberately not re-exported: it is what the
+// default path already uses, and a consumer that wants different catalogs
+// installs them with `setLocaleLoaders`.
+export {
+    loadLocaleResources,
+    loadLocaleResourcesFor,
+    reachableCatalogLocales,
+    fetchLocaleLoaders,
+    setLocaleLoaders,
+    type LocaleLoader,
+    type LocaleLoaders,
+    type LoadLocaleResourcesOptions,
+} from "./load";
 
 export {
     DEFAULT_LOCALE_DATA,

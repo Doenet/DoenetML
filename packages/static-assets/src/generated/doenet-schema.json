@@ -64964,8 +64964,168 @@
                             "description": "English"
                         },
                         {
+                            "value": "am",
+                            "description": "Amharic (አማርኛ)"
+                        },
+                        {
+                            "value": "ar",
+                            "description": "Arabic (العربية)"
+                        },
+                        {
+                            "value": "as",
+                            "description": "Assamese (অসমীয়া)"
+                        },
+                        {
+                            "value": "bn",
+                            "description": "Bangla (বাংলা)"
+                        },
+                        {
+                            "value": "cs",
+                            "description": "Czech (čeština)"
+                        },
+                        {
+                            "value": "da",
+                            "description": "Danish (dansk)"
+                        },
+                        {
+                            "value": "de",
+                            "description": "German (Deutsch)"
+                        },
+                        {
+                            "value": "el",
+                            "description": "Greek (Ελληνικά)"
+                        },
+                        {
                             "value": "es",
                             "description": "Spanish (español)"
+                        },
+                        {
+                            "value": "fa",
+                            "description": "Persian (فارسی)"
+                        },
+                        {
+                            "value": "fi",
+                            "description": "Finnish (suomi)"
+                        },
+                        {
+                            "value": "fr",
+                            "description": "French (français)"
+                        },
+                        {
+                            "value": "he",
+                            "description": "Hebrew (עברית)"
+                        },
+                        {
+                            "value": "hi",
+                            "description": "Hindi (हिन्दी)"
+                        },
+                        {
+                            "value": "hnj",
+                            "description": "Hmong Njua"
+                        },
+                        {
+                            "value": "hu",
+                            "description": "Hungarian (magyar)"
+                        },
+                        {
+                            "value": "id",
+                            "description": "Indonesian (Indonesia)"
+                        },
+                        {
+                            "value": "it",
+                            "description": "Italian (italiano)"
+                        },
+                        {
+                            "value": "ja",
+                            "description": "Japanese (日本語)"
+                        },
+                        {
+                            "value": "ko",
+                            "description": "Korean (한국어)"
+                        },
+                        {
+                            "value": "mr",
+                            "description": "Marathi (मराठी)"
+                        },
+                        {
+                            "value": "my",
+                            "description": "Burmese (မြန်မာ)"
+                        },
+                        {
+                            "value": "nb",
+                            "description": "Norwegian Bokmål (norsk bokmål)"
+                        },
+                        {
+                            "value": "ne",
+                            "description": "Nepali (नेपाली)"
+                        },
+                        {
+                            "value": "nl",
+                            "description": "Dutch (Nederlands)"
+                        },
+                        {
+                            "value": "pl",
+                            "description": "Polish (polski)"
+                        },
+                        {
+                            "value": "ps",
+                            "description": "Pashto (پښتو)"
+                        },
+                        {
+                            "value": "pt",
+                            "description": "Portuguese (português)"
+                        },
+                        {
+                            "value": "ro",
+                            "description": "Romanian (română)"
+                        },
+                        {
+                            "value": "ru",
+                            "description": "Russian (русский)"
+                        },
+                        {
+                            "value": "sd",
+                            "description": "Sindhi (سنڌي)"
+                        },
+                        {
+                            "value": "sk",
+                            "description": "Slovak (slovenčina)"
+                        },
+                        {
+                            "value": "so",
+                            "description": "Somali (Soomaali)"
+                        },
+                        {
+                            "value": "sv",
+                            "description": "Swedish (svenska)"
+                        },
+                        {
+                            "value": "tr",
+                            "description": "Turkish (Türkçe)"
+                        },
+                        {
+                            "value": "ug",
+                            "description": "Uyghur (ئۇيغۇرچە)"
+                        },
+                        {
+                            "value": "uk",
+                            "description": "Ukrainian (українська)"
+                        },
+                        {
+                            "value": "ur",
+                            "description": "Urdu (اردو)"
+                        },
+                        {
+                            "value": "vi",
+                            "description": "Vietnamese (Tiếng Việt)"
+                        },
+                        {
+                            "value": "zh-Hans",
+                            "description": "Simplified Chinese (简体中文)"
+                        },
+                        {
+                            "value": "zh-Hant",
+                            "description": "Traditional Chinese (繁體中文)"
                         }
                     ],
                     "suggestedValuesOnly": true,

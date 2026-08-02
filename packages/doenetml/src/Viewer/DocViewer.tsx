@@ -5,6 +5,7 @@ import React, {
     ReactNode,
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
 } from "react";
@@ -22,11 +23,13 @@ import { MdError } from "react-icons/md";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
-    localeResourceKey,
+    directionOf,
+    reachableCatalogLocales,
     resolveDocumentLocale,
     resolveUiLocale,
     type Translator,
 } from "@doenet/i18n";
+import { declaredLangsInSource } from "@doenet/parser";
 import { hasNavigationModifier } from "../utils/sourceNavigation";
 import type { CoreWorker } from "@doenet/doenetml-worker";
 import { DoenetMLFlags } from "../doenetml";
@@ -49,9 +52,12 @@ import {
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
 import {
+    chromeLangDir,
     ContentI18nProvider,
+    DocumentDirectionProvider,
     I18nProvider,
     useChromeTranslator,
+    useLocaleCatalogs,
 } from "../utils/i18n";
 import {
     localizeDiagnostics,
@@ -184,9 +190,16 @@ export function DocViewer({
     /** BCP-47 tag for the chrome's language. Defaults to `documentLocale`. */
     uiLocale?: string | null;
     /**
-     * FTL catalogs keyed by locale. English is bundled and never needed here.
-     * A locale appearing or disappearing rebuilds the core, since the catalogs
-     * are handed to it at creation.
+     * FTL catalogs keyed by locale, for a host with translations of its own.
+     * Optional: this viewer loads a catalog for every language it resolves and
+     * merges what it loads *under* this map, so a catalog supplied here wins.
+     *
+     * A catalog for one of the *content's* languages arriving rebuilds the
+     * core, since the catalogs are handed to it at creation. One for the
+     * reader's chrome does not — the core never reads it, and rebuilding would
+     * discard whatever the reader had typed. Withdrawing a catalog rebuilds
+     * nothing either: the core goes on rendering what it was built with until
+     * something else rebuilds it.
      */
     localeResources?: Record<string, string> | null;
     /**
@@ -461,9 +474,16 @@ export function DocViewer({
     const lastAttemptNumber = useRef<number | null>(null);
     const lastRequestedVariantIndex = useRef<number | null>(null);
     const lastDocumentLocale = useRef<string | null>(null);
-    // "" rather than null: no catalogs is the starting state, not "not yet
-    // seen", so a host that never passes any never triggers a rebuild.
-    const lastLocaleResourceKey = useRef("");
+    // The content catalogs the core has been built with. Empty is the starting
+    // state, not "not yet seen", so a host that never supplies any never
+    // triggers a rebuild.
+    const contentCatalogsBuilt = useRef<Set<string>>(new Set());
+    // What the worker primed by the `initialPass && !render` branch was last
+    // initialized with, so a re-render while `render` is still false does not
+    // repeat an initialization that would report the same thing again. Held as
+    // the values themselves rather than a joined key: `doenetML` is the whole
+    // source, and this is compared on every render in that window.
+    const lastNoRenderInit = useRef<unknown[] | null>(null);
 
     const [stage, setStage] = useState<
         | "initial"
@@ -563,18 +583,87 @@ export function DocViewer({
         uiLocale,
         effectiveDocumentLocale,
     );
+    // The direction the *content* is written in, which is what the wrapper
+    // lays out. The chrome inside it may run the other way and says so for
+    // itself — see `useChromeLangDir`.
+    const documentDirection = directionOf(effectiveDocumentLocale);
+    // Every language the source declares, read straight out of the DoenetML.
+    // `effectiveDocumentLocale` only ever names the outermost document's, and
+    // it arrives from the worker after the core has been built; a *nested*
+    // `<document lang>` renders its own subtree and would otherwise never have
+    // a catalog asked for at all. Scanning the source is what gets both in
+    // flight before the core exists, rather than after it has already computed
+    // the subtree's prose in the wrong language.
+    const declaredLocales = useMemo(
+        () => declaredLangsInSource(doenetML),
+        [doenetML],
+    );
+    // The languages the *core* renders in: what it computes depends on these
+    // catalogs and no others, which makes them both the set to have loaded and
+    // the set to gate a rebuild on.
+    //
+    // `effectiveDocumentLocale` starts as the prop's language and is corrected
+    // to the authored `<document lang>` once the core has reported back, so it
+    // lags a changed `documentLocale` by a round trip. The prop is listed
+    // beside it so the new language starts loading at once rather than after
+    // that trip. `effectiveDocumentLocale` earns its place the other way round:
+    // it is the one thing that can name a language the source does not, since
+    // content pulled in by an external reference joins the tree after this scan
+    // has run.
+    const contentLocales = useMemo(
+        () => [
+            resolveDocumentLocale(undefined, documentLocale),
+            effectiveDocumentLocale,
+            ...declaredLocales,
+        ],
+        [documentLocale, effectiveDocumentLocale, declaredLocales],
+    );
+    // Catalogs for every language in play, which is knowable only here: an
+    // authored `<document lang>` is not in the props, so this is where a
+    // code-split catalog for it gets loaded. Everything below reads
+    // `availableCatalogs` rather than the prop — including the core, which is
+    // handed them as `LocaleData.resources`.
+    //
+    // A content catalog that lands after the core has been created is an
+    // arrival the gate below rebuilds on, the same as a changed
+    // `documentLocale`. Loading always starts in an effect, so that race is
+    // there for a language named in the props too — it is just usually won,
+    // since `doenetml.tsx` asks for those catalogs in the same commit that
+    // mounts this component while the core is still waiting on a worker.
+    const availableCatalogs = useLocaleCatalogs(
+        [effectiveUiLocale, ...contentLocales],
+        localeResources,
+    );
+    // Which of the catalogs on hand the *content's* languages can reach.
+    // Everything that decides whether the core has to be built again compares
+    // these rather than the whole map — the rebuild gate at the bottom of this
+    // component, and the initialization of the worker primed before `render`
+    // turns true.
+    //
+    // Scoped to the content's languages because those are the only catalogs the
+    // core reads. The chrome's live in the same map, and counting them would
+    // rebuild the core whenever a reader switched `uiLocale` — discarding
+    // whatever they had typed for a catalog the core never opens.
+    //
+    // Read off the loaded map rather than the prop, so a catalog that finished
+    // loading after the core was created counts as having arrived.
+    const contentCatalogsOnHand = useMemo(
+        () => reachableCatalogLocales(contentLocales, availableCatalogs),
+        [contentLocales, availableCatalogs],
+    );
     // Bound to `translate` rather than a more descriptive name on purpose:
     // `lint:i18n` only recognizes call sites through a translator named `t` or
     // `translate`, so a key reached from here would otherwise read as an
     // orphan.
-    const translate = useChromeTranslator(effectiveUiLocale, localeResources);
+    const translate = useChromeTranslator(effectiveUiLocale, availableCatalogs);
     // The same catalogs negotiated against the *content's* language, for a
     // control the core already writes part of — see `useContentT`. Built from
-    // `effectiveDocumentLocale`, the tag the core itself was handed, so the
-    // words this renders and the words the worker computed cannot disagree.
+    // `effectiveDocumentLocale`, which core initialization resolved by the same
+    // rule the worker applies to reach `document.locale`, so the words this
+    // renders and the words the worker computed cannot disagree.
     const translateContent = useChromeTranslator(
         effectiveDocumentLocale,
-        localeResources,
+        availableCatalogs,
     );
     const formatDiagnostic = useDiagnosticFormatter(
         translate,
@@ -968,7 +1057,7 @@ export function DocViewer({
             documentStructureCallback,
             fetchExternalDoenetML,
             documentLocale,
-            localeResources,
+            localeResources: availableCatalogs,
         });
         setEffectiveDocumentLocale(result.resolvedDocumentLocale);
         return result;
@@ -2062,16 +2151,46 @@ export function DocViewer({
     // then just initialize the core worker so that can return document structure
     // but core itself won't actually start
     if (initialPass && !render) {
-        const remote = attachNewCoreWorker();
-        // Fire-and-forget: this only primes the worker so it can report the
-        // document structure; core itself isn't started until `render` flips
-        // true. Surface failures rather than swallowing the promise.
-        initializeCoreWorkerForDoc(remote).catch((e) => {
-            console.warn(
-                "DocViewer: core worker initialization (no-render path) failed",
-                e,
-            );
-        });
+        // Nothing below this point runs, so `lastDoenetML` is never recorded
+        // and this branch repeats on every re-render until `render` turns
+        // true. Reuse the worker already attached rather than attaching a
+        // second one: `attachNewCoreWorker` overwrites the refs, which would
+        // leave its predecessor running with nothing pointing at it — never
+        // terminated, and still reporting document structure over the callback
+        // its replacement is also using. A catalog finishing loading is one of
+        // the things that re-renders a viewer sitting in this window.
+        const remote = coreWorker.current ?? attachNewCoreWorker();
+        // Initializing parses the source, expands its external references and
+        // makes a round trip, so repeat it only when one of its inputs has
+        // changed. The inputs are the ones a rebuild is gated on further down,
+        // this being the same initialization the core is later built from —
+        // compared for any change rather than for an arrival, since there is
+        // no core here yet whose work a needless rebuild would throw away.
+        const noRenderInit: unknown[] = [
+            doenetML,
+            docId,
+            activityId,
+            attemptNumber,
+            requestedVariantIndex,
+            documentLocale ?? null,
+            contentCatalogsOnHand.join(","),
+        ];
+        const previous = lastNoRenderInit.current;
+        if (
+            previous === null ||
+            noRenderInit.some((value, index) => value !== previous[index])
+        ) {
+            lastNoRenderInit.current = noRenderInit;
+            // Fire-and-forget: this only primes the worker so it can report the
+            // document structure; core itself isn't started until `render` flips
+            // true. Surface failures rather than swallowing the promise.
+            initializeCoreWorkerForDoc(remote).catch((e) => {
+                console.warn(
+                    "DocViewer: core worker initialization (no-render path) failed",
+                    e,
+                );
+            });
+        }
         return null;
     }
 
@@ -2109,12 +2228,20 @@ export function DocViewer({
         changedState = true;
     }
 
-    // Compared by *which locales* arrived, not by their contents — see
-    // `localeResourceKey`.
-    const resourceKey = localeResourceKey(localeResources);
-    if (lastLocaleResourceKey.current !== resourceKey) {
-        lastLocaleResourceKey.current = resourceKey;
-        changedState = true;
+    // Compared by *which locales* the core can reach — see
+    // `contentCatalogsOnHand` — rather than by what the catalogs say, since the
+    // catalogs are handed to the core at creation.
+    //
+    // Only an *arrival* is a reason to rebuild. What is reachable can also
+    // shrink: `effectiveDocumentLocale` names the previous language until the
+    // core reports back, so a changed `documentLocale` puts the old language's
+    // catalog out of reach a moment after the rebuild just above — and
+    // rebuilding again there would build the core twice for one switch.
+    for (const locale of contentCatalogsOnHand) {
+        if (!contentCatalogsBuilt.current.has(locale)) {
+            contentCatalogsBuilt.current.add(locale);
+            changedState = true;
+        }
     }
 
     if (changedState) {
@@ -2159,7 +2286,7 @@ export function DocViewer({
                     borderStyle: "solid",
                     borderColor: "var(--mainRed)",
                     fontSize: "1.3em",
-                    marginLeft: "20px",
+                    marginInlineStart: "20px",
                     marginTop: "20px",
                     padding: "0.5em",
                 }}
@@ -2191,8 +2318,7 @@ export function DocViewer({
     let noCoreWarning = null;
     let viewerStyle = {
         maxWidth: "850px",
-        paddingLeft: "20px",
-        paddingRight: "20px",
+        paddingInline: "20px",
         backgroundColor: "var(--canvas)",
         containerType: "inline-size",
     };
@@ -2283,7 +2409,18 @@ export function DocViewer({
             borderColor: "var(--mainRed)",
         };
         errorOverview = (
-            <div style={errorStyle}>
+            // This banner is addressed to whoever is looking at the screen, so
+            // it is in `uiLocale` while the box around it is declared to be the
+            // content's language. Re-declared only where the two directions
+            // disagree, so the common case adds no attributes: otherwise an
+            // English "This document contains errors!" inside an Arabic
+            // document would put its exclamation mark on the wrong end. Through
+            // the pure helper rather than `useChromeLangDir` because this is
+            // built above the provider that hook reads.
+            <div
+                style={errorStyle}
+                {...chromeLangDir(effectiveUiLocale, documentDirection)}
+            >
                 <b>
                     {translate(
                         "document-contains-errors",
@@ -2311,6 +2448,12 @@ export function DocViewer({
                 // Always the language the content is actually rendered in, so
                 // a screen reader pronounces it the way the core wrote it.
                 lang={effectiveDocumentLocale}
+                // And the direction that language is written in. A browser will
+                // not infer one from the other, so without this an Arabic
+                // document lays out right-to-left text in a left-to-right box:
+                // the punctuation lands on the wrong end and a mixed
+                // Latin/Arabic run comes out in the wrong visual order.
+                dir={documentDirection}
                 ref={viewerContainerRef}
             >
                 {errorOverview}
@@ -2323,9 +2466,16 @@ export function DocViewer({
                         translate={translate}
                         locale={effectiveUiLocale}
                     >
-                        <ContentI18nProvider translate={translateContent}>
-                            {documentRenderer}
-                        </ContentI18nProvider>
+                        {/* Tells the chrome below what it is drawn inside, so
+                            a piece of it can re-declare itself where the two
+                            directions disagree — see `useChromeLangDir`. */}
+                        <DocumentDirectionProvider
+                            direction={documentDirection}
+                        >
+                            <ContentI18nProvider translate={translateContent}>
+                                {documentRenderer}
+                            </ContentI18nProvider>
+                        </DocumentDirectionProvider>
                     </I18nProvider>
                 </DocContext.Provider>
             </div>

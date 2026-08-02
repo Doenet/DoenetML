@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import {
     createChromeTranslator,
     createDiagnosticFormatter,
+    stripBidiIsolates,
 } from "@doenet/i18n";
 import type { DiagnosticRecord } from "@doenet/utils";
 
@@ -28,13 +31,30 @@ const legacy: DiagnosticRecord = {
     message: "Invalid type for answer: nonsense",
 };
 
-const formatEs = createDiagnosticFormatter(createChromeTranslator("es"), "es");
+/**
+ * Spanish handed over the way `DocViewer` hands it over: only English is
+ * bundled, so every other language reaches the chrome through the catalogs
+ * `useLocaleCatalogs` has loaded.
+ */
+const ES = {
+    es: fs.readFileSync(
+        path.resolve(__dirname, "../../../i18n/locales/es/diagnostics.ftl"),
+        "utf-8",
+    ),
+};
+
+const formatEs = createDiagnosticFormatter(
+    createChromeTranslator("es", ES),
+    "es",
+);
 const formatEn = createDiagnosticFormatter(createChromeTranslator("en"), "en");
 
 describe("localizeDiagnostics", () => {
     it("renders a coded record's message in the chrome's language", () => {
         const [localized] = localizeDiagnostics([coded], formatEs);
-        expect(localized.message).toBe(
+        // Stripped because the chrome isolates its placeables in every
+        // language but English, and the ignored attributes are one.
+        expect(stripBidiIsolates(localized.message)).toBe(
             "slope y length se ignoran cuando se especifican los dos extremos",
         );
     });

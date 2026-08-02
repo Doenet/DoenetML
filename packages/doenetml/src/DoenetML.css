@@ -276,6 +276,10 @@ div.jxgbox input[type="checkbox"] {
 
 /* CSS rules for the navigation bar */
 
+/*
+ * Physical `right`, because the board this sits in is pinned to `dir="ltr"` in
+ * `JSXGraphRenderer.tsx` — a graph is coordinate space and does not mirror.
+ */
 .JXG_navigation {
     position: absolute;
     right: 5px;

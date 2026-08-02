@@ -1,11 +1,21 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import {
     createChromeTranslator,
+    directionOf,
+    loadLocaleResourcesFor,
     localeResourceKey,
     resolveDocumentLocale,
     resolveUiLocale,
+    CATALOG_NAMESPACES,
     DEFAULT_LOCALE,
     EN_CHROME_TRANSLATOR,
+    type Direction,
     type Translator,
 } from "@doenet/i18n";
 
@@ -28,6 +38,80 @@ const I18nContext = createContext<{ translate: Translator; locale: string }>({
 });
 
 /**
+ * The catalogs available for a set of locales: whatever the host supplied,
+ * plus whatever this build can code-split in for the tags actually asked for.
+ *
+ * Every locale beyond `BUNDLED_LOCALES` arrives this way, which is what lets
+ * `documentLocale="fr"` and `<document lang="fr">` work with nothing
+ * configured. A host that supplies a catalog of its own still wins: its map is
+ * merged last, so a deployment can correct a shipped translation.
+ *
+ * Returns the host's map *by identity* until something has actually loaded.
+ * Catalogs are compared by which locales they hold rather than by their
+ * contents, and `DocViewer` rebuilds the core when one of the content's
+ * arrives — so handing back an empty map before the host's had arrived would
+ * build the core once without it and again with it, for nothing.
+ *
+ * Loaded catalogs accumulate rather than being replaced. A viewer whose locale
+ * changes and changes back should not pay for the same catalog twice, and a
+ * stale entry costs only the negotiation passing it over.
+ *
+ * @param locales The tags in play — the content's and the reader's, which need
+ *   not agree. Blanks, repeats and English are ignored.
+ * @param hostResources Catalogs the embedding page supplied.
+ */
+export function useLocaleCatalogs(
+    locales: (string | null | undefined)[],
+    hostResources?: Record<string, string> | null,
+): Record<string, string> | null | undefined {
+    const [loaded, setLoaded] = useState<Record<string, string>>({});
+
+    const hostKey = localeResourceKey(hostResources);
+    // The locales as a scalar, so the effect re-runs when *which* languages
+    // are wanted changes rather than on every render that rebuilds the array.
+    const wantedKey = [...new Set(locales.filter(Boolean))].sort().join(",");
+
+    useEffect(() => {
+        let cancelled = false;
+        async function load() {
+            const resources = await loadLocaleResourcesFor(
+                locales,
+                CATALOG_NAMESPACES,
+                { available: Object.keys(hostResources ?? {}) },
+            );
+            if (cancelled || Object.keys(resources).length === 0) {
+                return;
+            }
+            setLoaded((previous) => {
+                const next = { ...previous, ...resources };
+                // Same locales as before means nothing downstream needs to
+                // know, and re-keying would rebuild the core.
+                return localeResourceKey(next) === localeResourceKey(previous)
+                    ? previous
+                    : next;
+            });
+        }
+        load().catch(() => {
+            // A catalog that cannot be fetched leaves the locale falling back
+            // to English, which is what an untranslated locale does anyway.
+            // Nothing here is worth failing a render over.
+        });
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [wantedKey, hostKey]);
+
+    return useMemo(() => {
+        if (Object.keys(loaded).length === 0) {
+            return hostResources;
+        }
+        return { ...loaded, ...hostResources };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loaded, hostKey]);
+}
+
+/**
  * Build the chrome translator for a resolved UI locale.
  *
  * @param uiLocale The chrome's language, already through `resolveUiLocale`.
@@ -37,8 +121,8 @@ export function useChromeTranslator(
     uiLocale: string,
     localeResources?: Record<string, string> | null,
 ): Translator {
-    // Keyed by *which locales* arrived, not by their contents — the same
-    // comparison `DocViewer` uses to decide the core needs rebuilding.
+    // Keyed by *which locales* arrived, not by their contents, the way
+    // everything that compares catalogs does — see `localeResourceKey`.
     const resourceKey = localeResourceKey(localeResources);
 
     return useMemo(
@@ -125,6 +209,105 @@ export function useT(): Translator {
  */
 export function useUiLocale(): string {
     return useContext(I18nContext).locale;
+}
+
+/**
+ * The direction of the document this chrome is drawn inside, or `null` where
+ * there is no surrounding document to disagree with.
+ *
+ * `null` is the default so a renderer mounted outside `DocViewer` — or before
+ * the core has answered — adds no attributes and behaves as it does today.
+ */
+const DocumentDirectionContext = createContext<Direction | null>(null);
+
+/**
+ * Declare the direction of the document the chrome below is drawn inside.
+ *
+ * Mounted twice over: once by `DocViewer` for the outermost document, and again
+ * by `section.tsx` around a nested `<document lang>`, which turns its own
+ * subtree around and so becomes what the chrome inside *it* has to agree with.
+ * Without the second, a hint inside `<document lang="ar">` would compare itself
+ * against the activity's direction and stay silent while sitting in a box
+ * running the other way.
+ */
+export function DocumentDirectionProvider({
+    direction,
+    children,
+}: {
+    direction: Direction;
+    children: React.ReactNode;
+}) {
+    return (
+        <DocumentDirectionContext.Provider value={direction}>
+            {children}
+        </DocumentDirectionContext.Provider>
+    );
+}
+
+/**
+ * The direction of the nearest enclosing document, or `null` outside any.
+ *
+ * For a renderer that both *declares* a direction and draws chrome of its own
+ * inside it — today only `section.tsx`, which has to compare its own heading
+ * against the box it is about to open rather than the one around it.
+ */
+export function useDocumentDirection(): Direction | null {
+    return useContext(DocumentDirectionContext);
+}
+
+/** What {@link useChromeLangDir} spreads onto a piece of chrome. */
+export type ChromeLangDir = { lang?: string; dir?: Direction };
+
+/**
+ * {@link useChromeLangDir} without the hook, for a caller that renders *above*
+ * {@link DocumentDirectionProvider} and so cannot read the context — today only
+ * `DocViewer`'s error banner, which is built before the providers it sits
+ * inside.
+ *
+ * @param documentDirection The direction of the surrounding document, or `null`
+ *   where there is none to disagree with.
+ */
+export function chromeLangDir(
+    uiLocale: string,
+    documentDirection: Direction | null,
+): ChromeLangDir {
+    const chromeDirection = directionOf(uiLocale);
+    if (documentDirection === null || documentDirection === chromeDirection) {
+        return {};
+    }
+    return { lang: uiLocale, dir: chromeDirection };
+}
+
+/**
+ * `lang` and `dir` for a piece of chrome, or `{}` when it needs neither.
+ *
+ * The viewer labels its wrapper with the *document's* language, and mounts the
+ * chrome provider inside it — so every string a renderer draws through
+ * {@link useT} is the reader's language sitting in a box declared to be the
+ * content's. That costs nothing while the two run the same way, and is why
+ * this returns an empty object in the overwhelmingly common case: spreading it
+ * then adds no attribute to the element it is spread onto. (Several of the
+ * call sites wrap their string in a `<span>` to have something to spread onto;
+ * that span is inert when the object is empty.)
+ *
+ * It matters when they disagree, which is the case right-to-left support
+ * exists for: a Spanish-speaking reader working an Arabic activity. Without
+ * this, their English or Spanish chrome renders inside `dir="rtl"` and its
+ * trailing punctuation, parentheses and percent signs land on the wrong end of
+ * the sentence.
+ *
+ * Spread it onto chrome that sits *inside* the document — the error box, the
+ * feedback heading, the click-to-toggle text on a hint, a solution or a
+ * collapsible section, a pretzel's answer label, the summary-statistics
+ * caption, the math-input preview's parse-error message. Do not spread it onto
+ * anything reading {@link useContentT}: the check-work widget follows the
+ * document's language on purpose, so it should follow the document's direction
+ * too. Tooltips need nothing either, for the opposite reason — Ariakit portals
+ * them to `document.body`, so they are never inside the document's box at all,
+ * and a native `title` attribute is drawn by the browser rather than by CSS.
+ */
+export function useChromeLangDir(): ChromeLangDir {
+    return chromeLangDir(useUiLocale(), useDocumentDirection());
 }
 
 /**

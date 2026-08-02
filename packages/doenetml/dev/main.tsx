@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { DoenetViewer, DoenetEditor } from "../src/index";
+import { SUPPORTED_LOCALES } from "@doenet/i18n";
 import "./main.css";
 
 // @ts-ignore
@@ -214,12 +215,26 @@ function App() {
                     />
                 </label>
                 {/* Suggestions only — the inputs stay free text so an
-                    unrecognized tag can be typed to watch it negotiate. */}
+                    unrecognized tag can be typed to watch it negotiate. Every
+                    catalog the repo ships is listed, read off `SUPPORTED_LOCALES`
+                    so that seeding a new one needs no edit here, plus three
+                    tags that name no directory under `locales/`:
+
+                    - `es-MX`, which negotiates down to `es`;
+                    - `en-XA`, the pseudo-locale, which the chrome generates
+                      from English on demand — so it is worth typing into the
+                      UI locale rather than the document one;
+                    - `en-XB`, the same catalog rendered right-to-left. Still
+                      worth reaching for beside a real right-to-left language:
+                      it is legible to a reader of neither, so a layout can be
+                      checked without also reading Arabic. */}
                 <datalist id="dev-locale-options">
-                    <option value="en" />
-                    <option value="es" />
+                    {SUPPORTED_LOCALES.map(({ locale, label }) => (
+                        <option key={locale} value={locale} label={label} />
+                    ))}
                     <option value="es-MX" />
                     <option value="en-XA" />
+                    <option value="en-XB" label="right-to-left pseudo-locale" />
                 </datalist>
                 <span className="dev-toolbar-status">
                     DoenetML source is saved to local storage as you edit.

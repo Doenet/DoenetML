@@ -9,6 +9,13 @@ import { intlLocale } from "./intl";
  * Fluent formats numbers and dates with `Intl`, so passing a real `number`
  * rather than a pre-formatted string is what makes locale-aware formatting
  * possible later (see the number-formatting policy in the package README).
+ *
+ * An argument that is *not* a quantity — a line number, a `styleNumber`, a
+ * component index, anything the reader is meant to match against something
+ * else — is passed as a `string` instead, and the catalogs say so where they
+ * take one. The hazard is grouping: line 1234 would be written "1,234". The
+ * digits are safe either way, since the bundle formats under the numbering
+ * system `intlLocale` pins.
  */
 export type TranslationArgs = Record<string, string | number | Date>;
 
@@ -40,11 +47,19 @@ export type CreateTranslatorOptions = {
     /**
      * Wrap placeables in Unicode bidi isolation marks (U+2068/U+2069).
      *
-     * Fluent defaults this on, which is right for free-form UI text but makes
-     * output non-byte-identical to the untranslated English it replaces, and
-     * corrupts strings that are later compared, hashed, or parsed (Doenet
-     * compares response text). Default off; turn it on for a surface that
-     * genuinely mixes RTL and LTR runs.
+     * Fluent defaults this on. It is right for text a reader only ever looks
+     * at, and wrong for text anything later compares, hashes, or parses —
+     * the marks are invisible, they survive `trim()`, and they break `===`.
+     * The default here is therefore off, and the two callers decide:
+     *
+     * - `createChromeTranslator` turns it **on** for every language but
+     *   English. Chrome is rendered and discarded.
+     * - `createTranslatorFromLocaleData` leaves it **off**. Worker content
+     *   becomes state variables an author can interpolate and an answer can
+     *   compare, and it can reach the response hash.
+     *
+     * Isolation also makes output non-byte-identical to the English it
+     * replaces, which is why English is the exception rather than the rule.
      */
     useIsolating?: boolean;
     /**
@@ -86,8 +101,9 @@ function lookupPattern(bundle: FluentBundle, key: string) {
 type ChainLink = {
     /**
      * The tag as the caller wrote it, which is what {@link Translator.localeOf}
-     * reports and what an error is attributed to — not necessarily the tag the
-     * bundle formats under. See {@link intlLocale}.
+     * reports and what an error is attributed to — never the tag the bundle
+     * formats under, which carries a pinned numbering system and may fall back
+     * to English outright. See {@link intlLocale}.
      *
      * Fluent builds its `Intl.PluralRules` from `bundle.locales`, and unlike
      * its number formatting it does not degrade when that constructor throws:

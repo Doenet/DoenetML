@@ -2,6 +2,8 @@ import { PluginOption } from "vite";
 import { transform } from "esbuild";
 import remapping, { type SourceMapInput } from "@jridgewell/remapping";
 import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const PREFIGURE_DIST_ASSET_JS_RE =
     /(^|\/)packages\/prefigure\/dist\/assets\/.+\.js$/;
@@ -177,6 +179,50 @@ export function prefigureDynamicImportIgnorePlugin(): PluginOption {
                 code: rewrittenCode,
                 map: null,
             };
+        },
+    };
+}
+
+/**
+ * Copy the message catalogs into a build's output, for a bundle that serves
+ * them rather than carrying them.
+ *
+ * `@doenet/i18n` code-splits every non-inlined catalog into its own chunk, but
+ * a single-file build (`inlineDynamicImports`) folds those chunks straight back
+ * in. Such a build sets `__DOENET_CODE_SPLIT_CATALOGS__` false to make the
+ * splitting path dead code and calls `setLocaleLoaders(fetchLocaleLoaders(…))`
+ * against the copy this plugin leaves beside the bundle.
+ *
+ * `fs.cpSync` rather than a `viteStaticCopy` target: that plugin copies its
+ * targets concurrently and races itself creating the nested `locales/<tag>/`
+ * directories.
+ *
+ * All of `locales/` is copied, including the locales the bundle inlines —
+ * `loadLocaleResources` answers those from the bundle without consulting a
+ * loader, so their copies are never fetched. Filtering them out would save a
+ * few tens of kilobytes of published files and add a third place that has to
+ * know which locales are inlined; leaving the copy whole means a locale that
+ * stops being inlined is served with no build change at all.
+ *
+ * The destination comes from the resolved config rather than the call site, so
+ * `locales/` cannot end up somewhere other than where the bundle itself lands.
+ */
+export function copyLocaleCatalogsPlugin(): PluginOption {
+    let outDir = "";
+    return {
+        name: "doenet-copy-locale-catalogs",
+        apply: "build",
+        configResolved(config) {
+            outDir = path.resolve(config.root, config.build.outDir);
+        },
+        closeBundle() {
+            const source = path.resolve(
+                path.dirname(fileURLToPath(import.meta.url)),
+                "../packages/i18n/locales",
+            );
+            fs.cpSync(source, path.join(outDir, "locales"), {
+                recursive: true,
+            });
         },
     };
 }

@@ -84,8 +84,56 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.stn).eq("línea discontinua gruesa roja");
     });
 
+    it("negotiates a region to the script it implies", async () => {
+        // Chinese is catalogued by script, so `zh-TW` names no directory, and
+        // stripping its region leaves `zh`, which names none either. Only a
+        // negotiation that consults CLDR's likely-subtags gets to `zh-Hant`.
+        const values = await descriptions(styled, names, "zh-TW");
+        expect(values.stn).eq("紅色粗虛線直線");
+    });
+
+    it("agrees a Marathi adjective with the gender of what it describes", async () => {
+        const values = await descriptions(styled, names, "mr");
+        // «चौरस» is masculine and «वर्तुळ» neuter, so the same colour word
+        // arrives as हिरवा in one and निळे in the other. The stroke's own
+        // words — जाड, तुटक, लाल — end in a consonant and never change, which
+        // is why `bd` and the border inside `sh` read alike here; the case
+        // below is the one where they do not.
+        expect(values.stn).eq("जाड तुटक लाल रेषा");
+        expect(values.pt).eq("हिरवा चौरस");
+        expect(values.sh).eq(
+            "ठिपके वापरून भरलेले निळे वर्तुळ आणि जाड तुटक लाल किनारीसह",
+        );
+        expect(values.bd).eq("जाड तुटक लाल");
+        expect(values.fd).eq("निळे ठिपके");
+    });
+
+    it("inflects a Marathi border for the position it lands in", async () => {
+        // The `$role` fork through the whole worker path rather than through
+        // the `describe*` helpers: «काळी» agrees with the feminine «किनार»
+        // reported on its own, and goes oblique to «काळ्या» in front of the
+        // postposition -सह. A colour ending in -आ is what makes the two
+        // visible; the fixture above has none.
+        const doenetML = `
+        <setup>
+          <styleDefinition styleNumber="1" lineColor="black" lineWidth="6"
+            fillColor="blue" />
+        </setup>
+        <graph><circle name="c" filled /></graph>
+        <text name="sh" extend="$c.styleDescriptionWithNoun" />
+        <text name="bd" extend="$c.borderStyleDescription" />
+        `;
+        expect(await descriptions(doenetML, ["sh", "bd"], "mr")).toEqual({
+            sh: "भरलेले निळे वर्तुळ जाड काळ्या किनारीसह",
+            bd: "जाड काळी",
+        });
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
-        const values = await descriptions(styled, names, "fr");
+        // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
+        // catalog and this stays a test of the fallback rather than of which
+        // languages happen to be translated today.
+        const values = await descriptions(styled, names, "qaa");
         expect(values.stn).eq("thick dashed red line");
     });
 
@@ -128,5 +176,29 @@ describe("style descriptions follow the document locale @group4", () => {
         expect((await descriptions(doenetML, ["d"], "es")).d).eq(
             "negro con un fondo amarillo",
         );
+    });
+
+    it("inflects a text description for the position each word lands in", async () => {
+        // `textColor` and `backgroundColor` report their word standing alone;
+        // `textStyleDescription` puts the same two words in a sentence, where
+        // German wants the colour predicative and the background dative behind
+        // `auf`. English and Spanish cannot tell the two apart, so this is what
+        // holds the `text-clause` and `background-clause` arguments the shared
+        // definitions pass (#1606) — dropping either leaves every expectation
+        // above green.
+        const doenetML = `
+        <setup>
+          <styleDefinition styleNumber="1" textColor="red" backgroundColor="yellow" />
+        </setup>
+        <text name="t" styleNumber="1">hallo</text>
+        <text name="c" extend="$t.textColor" />
+        <text name="b" extend="$t.backgroundColor" />
+        <text name="d" extend="$t.textStyleDescription" />
+        `;
+        expect(await descriptions(doenetML, ["c", "b", "d"], "de")).toEqual({
+            c: "roter",
+            b: "gelber",
+            d: "rot auf gelbem Hintergrund",
+        });
     });
 });

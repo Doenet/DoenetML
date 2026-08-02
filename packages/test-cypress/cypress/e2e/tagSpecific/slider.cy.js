@@ -436,4 +436,48 @@ describe("Slider Tag Tests", { tags: ["@group1"] }, function () {
             ).eq(6);
         });
     });
+
+    it("sizes an authored percentage width against the column", () => {
+        // The track is pinned to `dir="ltr"` so a right-to-left document does
+        // not mirror it, and a pinned block needs a width of its own or it
+        // fills the column and strands its contents against the far edge.
+        // Taking that width shrink-to-fit would resolve an authored percentage
+        // against the widget's own content instead of the column — which is a
+        // regression in both directions, so it is guarded here rather than
+        // among the direction tests.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <slider name="sPx" from="0" to="10" />
+  <slider name="sPct" from="0" to="10" width="50%" />
+  <p name="ready">ready</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ready").should("have.text", "ready");
+
+        // A few px of slack throughout: the range input's thumb overhangs the
+        // track it is measured with.
+        cy.get("#sPx").should(($el) => {
+            expect($el[0].getBoundingClientRect().width).to.be.closeTo(300, 4);
+        });
+
+        cy.get(".doenet-viewer").then(($viewer) => {
+            const style = getComputedStyle($viewer[0]);
+            const columnWidth =
+                $viewer[0].getBoundingClientRect().width -
+                parseFloat(style.paddingInlineStart) -
+                parseFloat(style.paddingInlineEnd);
+            cy.get("#sPct").should(($el) => {
+                expect($el[0].getBoundingClientRect().width).to.be.closeTo(
+                    columnWidth / 2,
+                    4,
+                );
+            });
+        });
+    });
 });

@@ -1,12 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { bundledResources } from "../src/bundled";
+import { englishResources } from "../src/catalogs";
 import {
     DEFAULT_LOCALE_DATA,
     createTranslatorFromLocaleData,
 } from "../src/localeData";
 import { CHROME_NAMESPACES, WORKER_NAMESPACES } from "../src/namespaces";
 import { extractKeys, readCatalog } from "../scripts/catalogUtils";
+import esContent from "../locales/es/content.ftl?raw";
+
+/**
+ * Spanish content, handed over the way `DocViewer` hands the worker a catalog
+ * it loaded. No translation is inlined, so `LocaleData.resources` is how every
+ * language other than English reaches the worker.
+ */
+const ES = { es: esContent };
 
 describe("createTranslatorFromLocaleData", () => {
     it("negotiates the requested locale against the catalogs that arrived", () => {
@@ -30,27 +38,44 @@ describe("createTranslatorFromLocaleData", () => {
         expect(t("greeting", undefined, "Hello")).toBe("Hello");
     });
 
-    it("resolves a bundled locale with no host catalogs at all", () => {
-        // What makes `documentLocale="es"` work without the embedding page
-        // shipping anything.
+    it("resolves a locale from the catalogs it was handed", () => {
+        // What makes `documentLocale="es"` work: the catalog reaches the
+        // worker as `resources`, loaded on the main thread.
         const t = createTranslatorFromLocaleData({
             locale: "es",
-            resources: {},
+            resources: ES,
         });
         expect(t("noun.line", undefined, "line")).toBe("línea");
     });
 
-    it("lets a host catalog win over the bundled one for the same locale", () => {
+    it("takes a handed catalog over the English fallback, key by key", () => {
         const t = createTranslatorFromLocaleData({
             locale: "es",
             resources: { es: "noun =\n    .line = recta" },
         });
         expect(t("noun.line", undefined, "line")).toBe("recta");
+        // A partial catalog is legitimate: keys it leaves out still resolve,
+        // through the English `createTranslator` appends behind every chain.
+        expect(t("noun.circle", undefined, "circle")).toBe("circle");
+    });
+
+    it("never isolates a placeable, even in a translated language", () => {
+        // The opposite answer to `createChromeTranslator`'s, pinned as exact
+        // bytes: what this translator renders becomes state variables an
+        // author interpolates and an `<award>` compares, where an invisible
+        // U+2068/U+2069 is a silent wrong answer. A future "consistency"
+        // change that passed `useIsolating` here the way the chrome does
+        // would corrupt every parameterized content string.
+        const t = createTranslatorFromLocaleData({
+            locale: "es",
+            resources: { es: "count-items = { $count } elementos" },
+        });
+        expect(t("count-items", { count: 3 })).toBe("3 elementos");
     });
 
     it("translates for a locale other than the one the payload asked for", () => {
         // A nested `<document lang>` differing from the host's request.
-        const localeData = { locale: "en", resources: {} };
+        const localeData = { locale: "en", resources: ES };
         expect(
             createTranslatorFromLocaleData(localeData, "es")("noun.circle"),
         ).toBe("círculo");
@@ -60,46 +85,39 @@ describe("createTranslatorFromLocaleData", () => {
     });
 });
 
-describe("bundledResources", () => {
-    it("gives the worker content but not chrome", () => {
-        const worker = bundledResources(WORKER_NAMESPACES);
-        expect(Object.keys(worker)).toEqual(["es"]);
-        expect(worker.es).toContain("noun-regular-polygon");
-        expect(worker.es).not.toContain("keyboard-open");
+describe("englishResources", () => {
+    // The worker is handed nothing at all: English is appended behind every
+    // chain by `createTranslator`, and no translation is inlined.
+    it("gives the chrome its namespaces and not the worker's", () => {
+        const chrome = englishResources(CHROME_NAMESPACES);
+        expect(chrome).toContain("keyboard-open");
+        expect(chrome).not.toContain("noun-regular-polygon");
     });
 
-    it("gives the chrome its namespaces, English included as a candidate", () => {
-        const chrome = bundledResources(CHROME_NAMESPACES, {
-            includeEnglish: true,
-        });
-        expect(Object.keys(chrome).sort()).toEqual(["en", "es"]);
-        expect(chrome.es).toContain("keyboard-open");
-        expect(chrome.es).not.toContain("noun-regular-polygon");
+    it("gives the worker its namespace and not the chrome's", () => {
+        const worker = englishResources(WORKER_NAMESPACES);
+        expect(worker).toContain("noun-regular-polygon");
+        expect(worker).not.toContain("keyboard-open");
     });
 
-    // A locale is inlined namespace by namespace, so a new catalog file is
-    // easy to write and then forget to bundle — it would simply never load,
-    // silently, with everything falling back to English. Every namespace a
-    // context asks for has to arrive for every bundled locale.
-    it("bundles every namespace a context asks for, for every locale", () => {
+    // A namespace silently missing from the combined source would fall back to
+    // English everywhere — which looks like nothing being wrong, because
+    // English is what it would have said anyway. Every key of every namespace a
+    // context asks for has to be in what it gets.
+    it("carries every key of every namespace a context asks for", () => {
         for (const namespaces of [CHROME_NAMESPACES, WORKER_NAMESPACES]) {
-            for (const [locale, source] of Object.entries(
-                bundledResources(namespaces),
-            )) {
-                // Compared as parsed keys, not as substrings: an attribute is
-                // addressed as `color.black` but written as a `.black` line
-                // under `color`, so searching the source text for the key
-                // would report every attribute as missing.
-                const bundled = new Set(extractKeys(source));
-                for (const namespace of namespaces) {
-                    for (const key of extractKeys(
-                        readCatalog(locale, namespace) ?? "",
-                    )) {
-                        expect(
-                            bundled.has(key),
-                            `${locale}/${namespace}: ${key}`,
-                        ).toBe(true);
-                    }
+            // Compared as parsed keys, not as substrings: an attribute is
+            // addressed as `color.black` but written as a `.black` line under
+            // `color`, so searching the source text for the key would report
+            // every attribute as missing.
+            const combined = new Set(extractKeys(englishResources(namespaces)));
+            for (const namespace of namespaces) {
+                for (const key of extractKeys(
+                    readCatalog("en", namespace) ?? "",
+                )) {
+                    expect(combined.has(key), `${namespace}: ${key}`).toBe(
+                        true,
+                    );
                 }
             }
         }

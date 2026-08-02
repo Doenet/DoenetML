@@ -4,7 +4,7 @@ import { OnClick } from "./keyboard";
 import { KeyboardTray } from "./keyboard-tray";
 import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig } from "@doenet/utils";
-import type { Translator } from "@doenet/i18n";
+import type { Direction, Translator } from "@doenet/i18n";
 
 type VirtualKeyboardState = {
     count: number;
@@ -15,6 +15,12 @@ type VirtualKeyboardState = {
         onClick: OnClick;
         theme?: "dark" | "light";
         translate?: Translator;
+        /**
+         * The reader's writing direction, for the tray's own chrome. Prop-drilled
+         * for the same reason `translate` is: the tray lives in its own React
+         * root on `document.body` and inherits nothing from any viewer.
+         */
+        direction?: Direction;
         ownerRef: React.RefObject<HTMLElement | null>;
     }[];
     lastRenderedTranslate?: Translator;
@@ -88,8 +94,8 @@ function getActiveRegistration() {
  * The registration whose settings the tray should reflect: the one whose owner
  * is focused, else the last one that was, else the most recent registration.
  *
- * The tray is shared by every viewer on the page, so which viewer's `theme`
- * and `translate` it shows is a question about focus.
+ * The tray is shared by every viewer on the page, so which viewer's `theme`,
+ * `translate` and `direction` it shows is a question about focus.
  */
 function getTrayRegistration():
     VirtualKeyboardState["registrations"][number] | undefined {
@@ -114,6 +120,7 @@ function rerenderTray() {
     const registration = getTrayRegistration();
     const theme = registration?.theme;
     const translate = registration?.translate;
+    const direction = registration?.direction;
     // The focusin listener fires on every focus change anywhere in the
     // document. Skip the React re-render when what the tray already shows is
     // correct — reconciling the MathJaxContext + tray subtree on every focus
@@ -124,13 +131,21 @@ function rerenderTray() {
     // before comparing so they compare equal. The translator has no DOM
     // counterpart to read back, so the last one rendered is recorded instead;
     // it is memoized per locale, making identity a sound comparison.
+    // `dir` is read back off the DOM the same way `data-theme` is. It has to be
+    // part of this comparison: moving focus between two viewers whose readers
+    // differ only in direction would otherwise leave the tray facing the way
+    // the previous one did.
     const trayEl = getTrayElement();
     if (trayEl) {
         const currentTheme =
             (trayEl.getAttribute("data-theme") as
                 "dark" | "light" | null | undefined) ?? undefined;
+        const currentDirection =
+            (trayEl.getAttribute("dir") as Direction | null | undefined) ??
+            undefined;
         if (
             currentTheme === theme &&
+            currentDirection === direction &&
             virtualKeyboardState.lastRenderedTranslate === translate
         ) {
             return;
@@ -138,19 +153,21 @@ function rerenderTray() {
     }
     virtualKeyboardState.lastRenderedTranslate = translate;
     virtualKeyboardState.keyboardReactRoot?.render(
-        renderTray(theme, translate),
+        renderTray(theme, translate, direction),
     );
 }
 
 function renderTray(
     theme: "dark" | "light" | undefined,
     translate: Translator | undefined,
+    direction: Direction | undefined,
 ) {
     return (
         <MathJaxContext config={mathjaxConfig} version={4}>
             <KeyboardTray
                 theme={theme}
                 translate={translate}
+                direction={direction}
                 onClick={(e) => {
                     // Route key events only to the active (focused) owner.
                     getActiveRegistration()?.onClick(e);
@@ -167,12 +184,15 @@ function renderTray(
 export function UniqueKeyboardTray({
     onClick,
     theme,
+    direction,
     translate,
     ownerRef,
 }: {
     onClick: OnClick;
     theme?: "dark" | "light";
     translate?: Translator;
+    /** The reader's writing direction, for the tray's own chrome. */
+    direction?: Direction;
     ownerRef: React.RefObject<HTMLElement | null>;
 }) {
     // Allocate a stable registration ID for this instance using a lazy useState
@@ -211,6 +231,7 @@ export function UniqueKeyboardTray({
             onClick,
             theme,
             translate,
+            direction,
             ownerRef,
         });
         rerenderTray();
@@ -265,10 +286,11 @@ export function UniqueKeyboardTray({
             registration.onClick = onClick;
             registration.theme = theme;
             registration.translate = translate;
+            registration.direction = direction;
             registration.ownerRef = ownerRef;
             rerenderTray();
         }
-    }, [onClick, ownerRef, theme, translate]);
+    }, [onClick, ownerRef, theme, translate, direction]);
 
     // This component doesn't render anything directly. Instead it relies on a common instance of the keyboard tray already existing.
     return null;

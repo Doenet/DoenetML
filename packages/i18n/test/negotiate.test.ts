@@ -6,6 +6,7 @@ import {
     resolveDocumentLocale,
     resolveUiLocale,
 } from "../src/negotiate";
+import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 describe("negotiateLocales", () => {
     it("builds the regional -> language -> default chain", () => {
@@ -32,6 +33,109 @@ describe("negotiateLocales", () => {
         expect(
             negotiateLocales(["ja"], ["es", "fr"], { defaultLocale: "fr" }),
         ).toEqual(["fr"]);
+    });
+
+    /**
+     * Chinese is the one language this repository translates twice, and the
+     * two catalogs are told apart by script rather than by region. Which
+     * catalog a reader reaches is decided here, so it is asserted here.
+     *
+     * Against the real roster rather than a stand-in for it, so that renaming
+     * a catalog directory turns these red instead of leaving them describing a
+     * layout the repository no longer has.
+     */
+    describe("Chinese, whose catalogs are named by script", () => {
+        const available = SUPPORTED_LOCALES.map((info) => info.locale);
+
+        it.each([
+            ["zh-CN", "zh-Hans"],
+            ["zh-SG", "zh-Hans"],
+            ["zh-TW", "zh-Hant"],
+            ["zh-HK", "zh-Hant"],
+            ["zh-MO", "zh-Hant"],
+        ])("serves %s from %s", (requested, expected) => {
+            expect(negotiateLocales([requested], available)[0]).toBe(expected);
+        });
+
+        it("reads a bare zh as Simplified, which is what CLDR fills in", () => {
+            expect(negotiateLocales(["zh"], available)).toEqual([
+                "zh-Hans",
+                "en",
+            ]);
+        });
+
+        /**
+         * The reason the Simplified catalog is not simply named `zh`, written
+         * out as the counterfactual roster it argues against. Filtering
+         * negotiation tries the region-stripped tag before it consults
+         * likely-subtags, so a `zh` directory answers every Traditional region
+         * tag ahead of `zh-Hant` — a Taiwanese reader would be served
+         * Simplified.
+         */
+        it("does not let a script-less catalog shadow the other script", () => {
+            expect(
+                negotiateLocales(["zh-TW"], ["en", "zh", "zh-Hant"]),
+            ).toEqual(["zh", "zh-Hant", "en"]);
+            expect(negotiateLocales(["zh-TW"], available)).toEqual([
+                "zh-Hant",
+                "en",
+            ]);
+        });
+
+        /**
+         * A Traditional reader never falls through to Simplified: a key
+         * missing from `zh-Hant` renders in English instead.
+         */
+        it.each(["zh-Hant", "zh-TW", "zh-HK", "zh-MO"])(
+            "never puts Simplified behind %s",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).not.toContain(
+                    "zh-Hans",
+                );
+            },
+        );
+
+        /**
+         * The reverse is not symmetric, because filtering offers every `zh-*`
+         * catalog it has. Keeping both catalogs complete is what keeps this
+         * step out of reach — a gap in `zh-Hans` would be filled from
+         * `zh-Hant` wherever both catalogs are loaded at once.
+         */
+        it("does put Traditional behind Simplified for a region tag", () => {
+            expect(negotiateLocales(["zh-CN"], available)).toEqual([
+                "zh-Hans",
+                "zh-Hant",
+                "en",
+            ]);
+            expect(negotiateLocales(["zh-Hans"], available)).toEqual([
+                "zh-Hans",
+                "en",
+            ]);
+        });
+    });
+
+    /**
+     * Norwegian's catalog is named `nb`, but `no` is the tag an author is
+     * likeliest to type and one several browsers still send. Nothing in
+     * filtering negotiation connects the two, so the alias is asserted here
+     * against the real roster.
+     */
+    describe("Norwegian, whose catalog is named for one written standard", () => {
+        const available = SUPPORTED_LOCALES.map((info) => info.locale);
+
+        it.each(["no", "no-NO", "nb", "nb-NO"])(
+            "serves Bokmål to %s",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).toEqual([
+                    "nb",
+                    "en",
+                ]);
+            },
+        );
+
+        it("leaves Nynorsk to fall back to English", () => {
+            expect(negotiateLocales(["nn"], available)).toEqual(["en"]);
+        });
     });
 });
 

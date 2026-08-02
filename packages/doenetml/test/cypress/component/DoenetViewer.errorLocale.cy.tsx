@@ -1,5 +1,6 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
+import { plainTextIncluding } from "./utils/bidi";
 
 // The red error box rendered *inside* the document used to stay English while
 // the same diagnostic in the Diagnostics panel was translated — same error,
@@ -18,9 +19,16 @@ const VIEWER_TIMEOUT = 15_000;
 /** The box `_error.tsx` draws, identified by the border color it alone uses. */
 const ERROR_BOX = "[style*='mainRed']";
 
-/** Assert some error box on the page contains `text`. */
+/**
+ * Assert some error box on the page contains `text`.
+ *
+ * Ignores bidi isolation marks: the location line puts its line number in a
+ * placeable, and the chrome isolates placeables in every language but English.
+ */
 function errorBoxContains(text: string) {
-    return cy.contains(ERROR_BOX, text, { timeout: VIEWER_TIMEOUT });
+    return cy
+        .get(ERROR_BOX, { timeout: VIEWER_TIMEOUT })
+        .should(plainTextIncluding(text));
 }
 
 /**
@@ -98,13 +106,18 @@ describe("the in-document error box follows the reader's language", () => {
     it("falls back to the English on the record when the catalog has no answer", () => {
         // The renderer treats an error whose code the negotiated catalogs
         // cannot resolve exactly as it treats one with no code at all: the
-        // formatter hands the record's own `message` straight back. French
-        // has no catalog, so this is that path — and it is the path every
-        // locale takes for a diagnostic nobody has translated yet.
+        // formatter hands the record's own `message` straight back. It is the
+        // path every locale takes for a diagnostic nobody has translated yet.
+        //
+        // `qaa` is from the ISO 639-3 range reserved for local use (qaa–qtz),
+        // so no catalog can ever claim it. This test used to say `fr` and
+        // meant the same thing, until French became a real catalog and
+        // started answering — a reserved tag is the version of the assertion
+        // that cannot rot.
         cy.mount(
             <DoenetViewer
                 doenetML={SELECT_WITH_MISSING_VARIANT}
-                uiLocale="fr"
+                uiLocale="qaa"
                 addVirtualKeyboard={false}
             />,
         );

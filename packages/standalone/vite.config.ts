@@ -6,6 +6,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
 import {
+    copyLocaleCatalogsPlugin,
     forceEsbuildMinifyPlugin,
     suppressLogPlugin,
 } from "../../scripts/vite-plugins";
@@ -50,6 +51,14 @@ export default defineConfig({
                 { src: "README.md", dest: "./" },
             ],
         }),
+        // Serve the message catalogs beside the bundle rather than inside it.
+        // `inlineDynamicImports` folds every dynamic import into the one output
+        // file, so the code-splitting that keeps catalogs out of the library
+        // build cannot work here — `__DOENET_CODE_SPLIT_CATALOGS__` switches it
+        // off below, and `index.tsx` points the viewer's loaders at this copy
+        // instead. Same arrangement as the core worker above, for the same
+        // reason.
+        copyLocaleCatalogsPlugin(),
         suppressLogPlugin(),
         // Vite's built-in `minify` does not actually minify this lib-mode
         // bundle (see plugin doc). Do it explicitly instead.
@@ -77,5 +86,10 @@ export default defineConfig({
     define: {
         "process.env.NODE_ENV": '"production"',
         STANDALONE_VERSION: JSON.stringify(version),
+        // See the `locales/` copy target above: this bundle is one file, so
+        // the catalogs have to be served beside it rather than split out of
+        // it. Switching this off makes `@doenet/i18n`'s lazy-catalog glob dead
+        // code, so none of `locales/` is inlined here.
+        __DOENET_CODE_SPLIT_CATALOGS__: "false",
     },
 });

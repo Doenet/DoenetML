@@ -4,7 +4,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
-import { useT } from "../../utils/i18n";
+import { useChromeLangDir, useT } from "../../utils/i18n";
 
 interface SummaryStatisticsSVs {
     [key: string]: any;
@@ -23,6 +23,12 @@ export default React.memo(function SummaryStatistics(
         useDoenetRenderer<SummaryStatisticsSVs>(props);
 
     const t = useT();
+
+    // The caption is chrome — the reader's language inside the document's box.
+    // The column name interpolated into it is the author's, which is what the
+    // translator's bidi isolation is for. Empty unless the two directions
+    // disagree.
+    const chromeLangDir = useChromeLangDir();
 
     const ref = useRef(null);
 
@@ -74,7 +80,7 @@ export default React.memo(function SummaryStatistics(
 
     return (
         <div style={{ margin: "12px 0" }} ref={ref}>
-            <p>
+            <p {...chromeLangDir}>
                 {t(
                     "summary-statistics-caption",
                     // Fluent renders `{ $column }` literally if handed a

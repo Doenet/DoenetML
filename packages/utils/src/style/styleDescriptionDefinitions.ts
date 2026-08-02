@@ -12,6 +12,7 @@ import {
     noBackgroundWord,
     type NounKey,
     type NounSpec,
+    type PhraseRole,
 } from "./styleDescriptions";
 
 /**
@@ -136,9 +137,10 @@ function nounSpec(noun: StyleDescriptionNoun, dependencyValues: any): NounSpec {
 function backgroundDescription(
     t: Translator,
     dependencyValues: any,
+    role: PhraseRole = "standalone",
 ): string | undefined {
     const word = colorWord(dependencyValues, "background");
-    return word ? describeColor(t, word, "background") : undefined;
+    return word ? describeColor(t, word, "background", role) : undefined;
 }
 
 /**
@@ -342,13 +344,24 @@ export function returnTextStyleDescriptionDefinitions(): StateVariableDefinition
             commonDependencies,
             (dependencyValues) => {
                 const t = translatorFor(dependencyValues);
+                // Both colours are looked up again rather than reusing what
+                // `textColor` and `backgroundColor` report. Those two are the
+                // standalone side of the fork; these are the embedded side,
+                // and a language that inflects needs the forms to differ —
+                // German wants `rot auf gelbem Hintergrund` here and `roter` /
+                // `gelber` there (#1606).
                 return describeText(t, {
                     color: describeColor(
                         t,
                         colorWord(dependencyValues, "text"),
                         "text",
+                        "text-clause",
                     ),
-                    background: backgroundDescription(t, dependencyValues),
+                    background: backgroundDescription(
+                        t,
+                        dependencyValues,
+                        "background-clause",
+                    ),
                 });
             },
         ),

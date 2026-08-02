@@ -125,12 +125,20 @@ language the core computes such an activity's prose in.
 Changing `documentLocale` rebuilds the document, since it changes every string
 the core computes; `uiLocale` updates in place.
 
-English and Spanish are bundled, so `es` needs no catalogs from the host.
-Further languages arrive as `localeResources`, supplied only through the
-`renderDoenet{Viewer,Editor}ToContainer` config object — they are FTL sources
-keyed by locale, too large to ride an HTML attribute. A host's catalog also
-wins over a bundled one for the same locale, which is how a deployment
-corrects a translation it disagrees with.
+English is bundled. Every other language is fetched on demand from the
+`locales/` directory published beside `doenet-standalone.js` — **serve that
+directory next to the bundle** and any language it holds works with nothing
+else configured, named by `data-doenet-document-locale` or by a
+`<document lang>` in the DoenetML. When the bundle's own URL cannot be resolved
+against (an embed that boots it from a blob URL), `/locales/` at the page's
+origin is tried instead. If neither is served, those fetches fail quietly and
+the language falls back to English.
+
+A host with translations of its own passes them as `localeResources`, supplied
+only through the `renderDoenet{Viewer,Editor}ToContainer` config object — they
+are FTL sources keyed by locale, too large to ride an HTML attribute. A host's
+catalog wins over a bundled or fetched one for the same locale, which is how a
+deployment corrects a translation it disagrees with.
 
 ## Editor control handle
 

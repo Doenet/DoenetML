@@ -1,5 +1,11 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetViewer.
+
+// Comlink must be imported *here* so the iife build compiles it into this
+// script, never supplied as a free binding by the srcdoc. See the equivalent
+// import in iframe-editor-index.ts for the cold-boot hang that motivated it.
+import * as Comlink from "comlink";
+
 declare const viewerId: string;
 declare const doenetViewerProps: Record<string, any>;
 declare const doenetViewerPropsSpecified: string[];
@@ -10,24 +16,22 @@ declare const doenetSharedCoreWorker: boolean | undefined;
 // Baked into the srcdoc for windowed (mountPolicy) viewers. Guarded with
 // `typeof` at the use site like doenetSharedCoreWorker.
 declare const doenetWindowedViewer: boolean | undefined;
-declare const ComlinkViewer: {
-    expose: Function;
-    windowEndpoint: Function;
-    releaseProxy: symbol;
-};
-interface Window {
-    renderDoenetViewerToContainer: (
-        container: Element,
-        doenetMLSource?: string,
-        config?: object,
-    ) => void;
-    doenetGlobalConfig: Record<string, any>;
-    /**
-     * Style-palette discovery, defined by standalone bundles new enough to
-     * ship it. Feature-detected (not version-gated) so an older bundle
-     * simply reports no palettes.
-     */
-    getDoenetStylePalettes?: () => unknown[];
+
+declare global {
+    interface Window {
+        renderDoenetViewerToContainer: (
+            container: Element,
+            doenetMLSource?: string,
+            config?: object,
+        ) => void;
+        doenetGlobalConfig: Record<string, any>;
+        /**
+         * Style-palette discovery, defined by standalone bundles new enough to
+         * ship it. Feature-detected (not version-gated) so an older bundle
+         * simply reports no palettes.
+         */
+        getDoenetStylePalettes?: () => unknown[];
+    }
 }
 
 // Module-scope state below is per-iframe-document: each `<DoenetViewer>` lives
@@ -111,7 +115,7 @@ function functionPropArgsToMap(
 
 function releaseFunctionProxy(fn: Function) {
     try {
-        (fn as any)?.[ComlinkViewer.releaseProxy]?.();
+        (fn as any)?.[Comlink.releaseProxy]?.();
     } catch (e) {
         console.warn(
             "iframe DoenetViewer: failed to release stale Comlink proxy",
@@ -209,7 +213,7 @@ async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
     return false;
 }
 
-ComlinkViewer.expose(
+Comlink.expose(
     {
         renderViewerWithFunctionProps,
         updateViewerProps(updatedSerializableProps: Record<string, any>) {
@@ -272,7 +276,7 @@ ComlinkViewer.expose(
             }
         },
     },
-    ComlinkViewer.windowEndpoint(globalThis.parent),
+    Comlink.windowEndpoint(globalThis.parent),
 );
 
 /**

@@ -11,22 +11,31 @@
  * that puts the blob back into `doenet-standalone.js`, or emits it twice, would
  * be just as quiet.
  *
- * Two checks, doing different jobs:
+ * Three checks, doing different jobs:
  *
  *  - The placement check needs no threshold and never needs adjusting. The
  *    core is meant to sit in {@link WASM_CORE_SCRIPT} and nowhere else, and any
  *    other arrangement is a bug rather than a judgement call. It scans *every*
  *    emitted script under `dist/`, not just the budgeted ones, so a copy that
  *    lands in a newly emitted chunk is still caught.
+ *  - The catalog check covers the same kind of mistake for `@doenet/i18n`'s
+ *    message catalogs, which this bundle serves from `dist/locales/` rather
+ *    than carrying. Both halves are silent failures: a catalog inlined back
+ *    into a script costs everyone the bytes (see {@link collectCatalogProbes}),
+ *    and a catalog nobody copied leaves that language falling back to English
+ *    (see {@link servedCatalogProblems}). Both halves are live: English is the
+ *    only inlined locale, so every other catalog this repository ships is one
+ *    the first half probes for and the second half insists on finding.
  *  - The size budgets in `bundle-budgets.json` catch the general case the
- *    first check cannot see — a heavy dependency, a duplicated copy of
+ *    first two cannot see — a heavy dependency, a duplicated copy of
  *    something that is not wasm. They are expected to be raised as the project
  *    grows; the point is that raising one lands in the diff.
  *
  * Run via `npm run check:size -w packages/standalone`. Exits non-zero, and
  * prints every problem it found rather than just the first, when a bundle is
  * over budget, when a budgeted file is missing, when `bundle-budgets.json` is
- * unusable, or when the core is not inlined exactly once in the right script.
+ * unusable, when the core is not inlined exactly once in the right script, or
+ * when a served catalog is in the wrong place or missing.
  *
  * The exported helpers exist so `check-bundle-size.test.mjs` can exercise the
  * decision logic without a build, against synthetic bundles and throwaway
@@ -50,6 +59,49 @@ const DIST_DIR = path.join(PACKAGE_ROOT, "dist");
  * matching one in `bundle-budgets.json` together.
  */
 export const WASM_CORE_SCRIPT = "dist/doenetml-worker/index.js";
+
+/** `@doenet/i18n`'s catalogs, which this bundle serves rather than carries. */
+const I18N_ROOT = path.resolve(PACKAGE_ROOT, "..", "i18n");
+const LOCALES_DIR = path.join(I18N_ROOT, "locales");
+const LOAD_MODULE_FILE = path.join(I18N_ROOT, "src", "load.ts");
+/**
+ * `!../locales/<locale>/*.ftl` — the locales that are inlined, not served.
+ *
+ * The same pattern is read for the same reason by `lazyGlobExclusions` in
+ * `packages/i18n/scripts/catalogUtils.ts`, which `lint:i18n` uses to hold the
+ * exclusions to `BUNDLED_LOCALES`. It is spelled out twice rather than shared
+ * because this is a plain-node script and that one is TypeScript — but drift
+ * is loud rather than silent: a change to the glob's spelling makes this find
+ * no inlined locales, probe English, and fail on the very next build.
+ */
+const GLOB_EXCLUSION_PATTERN = /"!\.\.\/locales\/([^/"]+)\/\*\.ftl"/g;
+/**
+ * `key = value` at the top level of an FTL catalog.
+ *
+ * The value stops at the line ending rather than running to `$`, which on a
+ * CRLF checkout would put a carriage return on the end of every probe. That
+ * probe matches nothing in an emitted script, so the leak check would pass
+ * whatever it was shown.
+ */
+const FTL_MESSAGE_PATTERN = /^([a-z0-9-]+) = ([^\r\n]+)/gm;
+/**
+ * `\xNN`, `\uNNNN` or `\u{N…}` — how a minifier spells a character it will not
+ * write literally.
+ */
+const ESCAPED_CODE_POINT =
+    /\\(?:x([0-9A-Fa-f]{2})|u\{([0-9A-Fa-f]{1,6})\}|u([0-9A-Fa-f]{4}))/g;
+/**
+ * Namespaces to look through for a probe, in the order they are tried. Any
+ * one distinctive string identifies the catalog, so the order only decides
+ * which is found first.
+ */
+const PROBE_NAMESPACES = ["diagnostics", "chrome", "editor", "content"];
+/**
+ * How long a translated string has to be before it is trusted to identify its
+ * catalog. Short ones ("Total", "OK") are shared across languages often enough
+ * to raise a false alarm.
+ */
+const PROBE_MIN_LENGTH = 16;
 
 /** A base64 run long enough that nothing but an embedded binary explains it. */
 const BIG_BLOB_MIN = 1_000_000;
@@ -92,6 +144,191 @@ function mib(bytes) {
     return `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
 }
 
+function readMessages(file) {
+    if (!fs.existsSync(file)) {
+        return new Map();
+    }
+    const source = fs.readFileSync(file, "utf-8");
+    return new Map(
+        [...source.matchAll(FTL_MESSAGE_PATTERN)].map((m) => [m[1], m[2]]),
+    );
+}
+
+/**
+ * A distinctive string from each *served* locale's catalogs.
+ *
+ * The served locales are every catalog directory `@doenet/i18n` does not
+ * inline, read from the exclusion list in its lazy-catalog glob — the same
+ * list `lint:i18n` holds to the inlined set, so this cannot drift from it
+ * independently.
+ *
+ * A probe has to be long enough, and has to differ from what *every inlined*
+ * locale says for the same key. Matching an inlined catalog is what makes a
+ * probe useless: those strings are legitimately in the bundle, so a translation
+ * that happens to reuse one would report a leak on every build. English is the
+ * culprit today, being the only inlined locale — a term left untranslated reads
+ * identically in both. The rule is written for the general case because
+ * inlining a second locale would add another, and neighbouring languages share
+ * plenty of wording.
+ *
+ * A locale that yields no such string simply gets no probe. That is the right
+ * failure mode for a catalog too close to an inlined one to fingerprint —
+ * better than a check that cries wolf, since the size budget still covers the
+ * general case.
+ *
+ * @returns `[locale, probe]` pairs.
+ */
+export function collectCatalogProbes(
+    localesDir = LOCALES_DIR,
+    loadModuleFile = LOAD_MODULE_FILE,
+) {
+    if (!fs.existsSync(localesDir) || !fs.existsSync(loadModuleFile)) {
+        return [];
+    }
+    const inlined = [
+        ...new Set(
+            [
+                ...fs
+                    .readFileSync(loadModuleFile, "utf-8")
+                    .matchAll(GLOB_EXCLUSION_PATTERN),
+            ].map((match) => match[1]),
+        ),
+    ];
+    /** `namespace → key → every string an inlined catalog gives that key`. */
+    const inlinedMessages = new Map(
+        PROBE_NAMESPACES.map((namespace) => {
+            const byKey = new Map();
+            for (const locale of inlined) {
+                const messages = readMessages(
+                    path.join(localesDir, locale, `${namespace}.ftl`),
+                );
+                for (const [key, value] of messages) {
+                    byKey.set(key, [...(byKey.get(key) ?? []), value]);
+                }
+            }
+            return [namespace, byKey];
+        }),
+    );
+    const probes = [];
+    for (const entry of fs.readdirSync(localesDir, { withFileTypes: true })) {
+        if (!entry.isDirectory() || inlined.includes(entry.name)) {
+            continue;
+        }
+        for (const namespace of PROBE_NAMESPACES) {
+            const translated = readMessages(
+                path.join(localesDir, entry.name, `${namespace}.ftl`),
+            );
+            const alsoInlined = inlinedMessages.get(namespace);
+            const probe = [...translated].find(
+                ([key, value]) =>
+                    value.length >= PROBE_MIN_LENGTH &&
+                    !(alsoInlined.get(key) ?? []).includes(value),
+            );
+            if (probe) {
+                probes.push([entry.name, probe[1]]);
+                break;
+            }
+        }
+    }
+    return probes;
+}
+
+/**
+ * The served locales whose catalog text is inside one emitted script.
+ *
+ * The comparison is made against the script with its character escapes
+ * decoded. `forceEsbuildMinifyPlugin` calls esbuild's `transform` without a
+ * `charset`, and esbuild then defaults to ASCII: every accented character in
+ * an inlined catalog is written back out as `\xNN` or `\uNNNN`, so
+ * `contribución` never appears literally in `doenet-standalone.js`. Matching
+ * the raw text would miss a leak for exactly the languages most likely to leak
+ * — outside English an accent is the rule rather than the exception.
+ *
+ * @param contents an emitted script's source.
+ * @param probes `[locale, probe]` pairs, from {@link collectCatalogProbes}.
+ * @returns the locales whose probe the script carries.
+ */
+export function catalogsInScript(contents, probes) {
+    if (probes.length === 0) {
+        return [];
+    }
+    const decoded = contents.replace(
+        ESCAPED_CODE_POINT,
+        (_whole, hex2, braced, hex4) =>
+            String.fromCodePoint(parseInt(hex2 ?? braced ?? hex4, 16)),
+    );
+    return probes
+        .filter(([, probe]) => decoded.includes(probe))
+        .map(([locale]) => locale);
+}
+
+/**
+ * The locale directories the build emitted, or `null` if there is no
+ * `dist/locales/` at all.
+ *
+ * `null` and `[]` mean different things: nothing copied is a broken build
+ * (`copyLocaleCatalogsPlugin` runs unconditionally), while an empty directory
+ * would be a `locales/` with nothing in it.
+ */
+function collectEmittedLocales(distDir = DIST_DIR) {
+    const localesDir = path.join(distDir, "locales");
+    if (!fs.existsSync(localesDir)) {
+        return null;
+    }
+    return fs
+        .readdirSync(localesDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
+}
+
+/** The locale directories `@doenet/i18n` has, which the build copies whole. */
+function collectSourceLocales(localesDir = LOCALES_DIR) {
+    if (!fs.existsSync(localesDir)) {
+        return [];
+    }
+    return fs
+        .readdirSync(localesDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
+}
+
+/**
+ * Problems with the catalogs the bundle is supposed to serve beside itself.
+ *
+ * The counterpart to the leak check in {@link findProblems}: that one catches a
+ * catalog that ended up inside a script, this one catches a catalog that ended
+ * up nowhere. A language that is neither inlined nor served silently renders in
+ * English, which no size budget would ever notice.
+ *
+ * Held against every locale directory in `@doenet/i18n` rather than against the
+ * served ones alone, because `copyLocaleCatalogsPlugin` copies all of them —
+ * so a locale that starts or stops being inlined needs nothing changed here,
+ * and the check keeps its meaning whatever that decision turns out to be.
+ *
+ * @param sourceLocales locale directories under `packages/i18n/locales/`, from
+ *   {@link collectSourceLocales}.
+ * @param emittedLocales locale directories under `dist/locales/`, or `null` if
+ *   the directory is missing, as {@link collectEmittedLocales} reports it.
+ */
+export function servedCatalogProblems(sourceLocales, emittedLocales) {
+    if (emittedLocales === null) {
+        return [
+            `dist/locales/ was not emitted, so no language beyond the inlined ones could\n` +
+                `    be fetched. It is copied there by copyLocaleCatalogsPlugin in\n` +
+                `    packages/standalone/vite.config.ts.`,
+        ];
+    }
+    return sourceLocales
+        .filter((locale) => !emittedLocales.includes(locale))
+        .map(
+            (locale) =>
+                `dist/locales/${locale}/ was not emitted, so a language served rather than\n` +
+                `    inlined cannot be fetched and would fall back to English. It is copied\n` +
+                `    there by copyLocaleCatalogsPlugin in\n` +
+                `    packages/standalone/vite.config.ts.`,
+        );
+}
+
 /**
  * Every emitted script under `dist/`, keyed by its path relative to the
  * package root (matching the keys in `bundle-budgets.json`).
@@ -102,7 +339,7 @@ function mib(bytes) {
  * own (an inlined SVG webfont) that the blob heuristic cannot tell apart from
  * wasm. Only a script can actually execute a duplicated Rust core.
  */
-function collectEmittedScripts() {
+function collectEmittedScripts(probes = []) {
     const scripts = new Map();
     if (!fs.existsSync(DIST_DIR)) {
         return scripts;
@@ -127,6 +364,7 @@ function collectEmittedScripts() {
             size: buffer.length,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
             bigBlobs: countBigBlobs(contents),
+            inlinedCatalogs: catalogsInScript(contents, probes),
         });
     }
     return scripts;
@@ -277,6 +515,26 @@ export function findProblems(budgets, scripts) {
             problems.push(blobPlacementProblem(relative, emitted, expected));
         }
     }
+    // Catalogs this bundle is supposed to serve, not carry. Being one file, it
+    // cannot code-split them the way the library build does, so it switches
+    // `__DOENET_CODE_SPLIT_CATALOGS__` off and fetches `dist/locales/` at
+    // runtime instead. Anything that makes the glob reachable again — a define
+    // that stops being applied, a new eager import of a catalog — puts every
+    // translation back in here, and the size budget alone would absorb it for
+    // a long time.
+    for (const [relative, emitted] of scripts) {
+        const leaked = emitted.inlinedCatalogs;
+        if (leaked.length > 0) {
+            problems.push(
+                `${relative} carries the message catalogs for [${leaked.join(", ")}], which\n` +
+                    `    this bundle is supposed to serve from dist/locales/ rather than inline.\n` +
+                    `    Check that __DOENET_CODE_SPLIT_CATALOGS__ is still defined false in\n` +
+                    `    packages/standalone/vite.config.ts, and that nothing imports a catalog\n` +
+                    `    statically.`,
+            );
+        }
+    }
+
     // An unbuilt `dist/` has no scripts to check, and the budget loop above has
     // already said to build; only complain about the core going missing once
     // there is a build to complain about.
@@ -293,8 +551,20 @@ export function findProblems(budgets, scripts) {
 
 function main() {
     const budgets = loadBudgets();
-    const scripts = collectEmittedScripts();
+    const probes = collectCatalogProbes();
+    const scripts = collectEmittedScripts(probes);
     const { report, problems } = findProblems(budgets, scripts);
+
+    // An unbuilt `dist/` has already been reported as such; only ask where the
+    // served catalogs went once there is a build to ask about.
+    if (scripts.size > 0) {
+        problems.push(
+            ...servedCatalogProblems(
+                collectSourceLocales(),
+                collectEmittedLocales(),
+            ),
+        );
+    }
 
     console.log("standalone bundle sizes:");
     console.log(report.join("\n"));
@@ -307,7 +577,10 @@ function main() {
         process.exit(1);
     }
 
-    console.log("\nwithin budget, and the core is inlined exactly once.");
+    console.log(
+        "\nwithin budget, the core is inlined exactly once, and the message catalogs\n" +
+            "are served rather than carried.",
+    );
 }
 
 // Only when run as a command; importing this module (from its test) must not

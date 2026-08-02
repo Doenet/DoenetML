@@ -19,9 +19,17 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { cesc } from "@doenet/utils";
+import { directionOf } from "@doenet/i18n";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DocContext } from "../DocViewer";
-import { useContentT, useT } from "../../utils/i18n";
+import {
+    chromeLangDir as chromeLangDirProps,
+    DocumentDirectionProvider,
+    useContentT,
+    useDocumentDirection,
+    useT,
+    useUiLocale,
+} from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
 
 interface SectionSVs {
@@ -57,6 +65,27 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
     // reader's — see `useContentT`.
     const tContent = useContentT();
 
+    // Only a nested `<document>` in a language of its own supplies
+    // `renderedLang`, and it is set exactly when that language differs from the
+    // one around it — so this is non-null precisely for the sections that turn
+    // their own subtree around, and null for every ordinary section, which
+    // inherits whatever direction it is drawn inside.
+    const nestedDirection = SVs.renderedLang
+        ? directionOf(SVs.renderedLang)
+        : null;
+    const outerDirection = useDocumentDirection();
+
+    // A collapsible section's heading is mixed: the title is the author's and
+    // follows the document, while "(click to open)" is the reader's. Only the
+    // chrome half re-declares itself, and only where the two directions
+    // disagree. Compared against `nestedDirection` first, because the heading
+    // is drawn *inside* the container this section is about to open — a nested
+    // document's own heading sits in its own direction, not its parent's.
+    const chromeLangDir = chromeLangDirProps(
+        useUiLocale(),
+        nestedDirection ?? outerDirection,
+    );
+
     const { darkMode } = useContext(DocContext) || {};
 
     // Pick the heading box background appropriate for the current theme.
@@ -66,9 +95,11 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             ? SVs.titleColorDarkMode
             : SVs.titleColor;
 
-    // List item styling constants
-    // When a section is rendered as a list item (SVs.isListItem), the section number
-    // hangs to the left of the content. These constants control the spacing.
+    // List item styling constants. When a section is rendered as a list item
+    // (SVs.isListItem), the section number hangs in the gutter on the side the
+    // text starts from — the left in English, the right in Arabic. Every rule
+    // below is written in logical properties so that follows the document
+    // without a second layout.
     const LIST_ITEM_INDENT = "2em"; // Total width reserved for the hanging section number
     const LIST_ITEM_SPACING = "0.3em"; // Space between section number and following text
     const BOX_PADDING = "6px"; // Standard padding for boxed sections
@@ -108,9 +139,9 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             return `
                 display: inline-block;
                 width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                margin-left: calc(-1 * ${LIST_ITEM_INDENT});
-                margin-right: ${LIST_ITEM_SPACING};
-                text-align: right;
+                margin-inline-start: calc(-1 * ${LIST_ITEM_INDENT});
+                margin-inline-end: ${LIST_ITEM_SPACING};
+                text-align: end;
                 flex-shrink: 0;
             `;
         } else {
@@ -118,9 +149,9 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             // Use same width as with-heading case to ensure period alignment
             return `
                 position: absolute;
-                left: 0;
+                inset-inline-start: 0;
                 width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                text-align: right;
+                text-align: end;
             `;
         }
     };
@@ -150,7 +181,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                 return {
                     ...baseStyle,
                     position: "relative",
-                    paddingLeft: LIST_ITEM_INDENT,
+                    paddingInlineStart: LIST_ITEM_INDENT,
                 };
             } else {
                 // With heading: use flexbox for baseline alignment
@@ -158,7 +189,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                     ...baseStyle,
                     display: "flex",
                     alignItems: "baseline",
-                    paddingLeft: LIST_ITEM_INDENT,
+                    paddingInlineStart: LIST_ITEM_INDENT,
                 };
             }
         }
@@ -175,23 +206,45 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         // `renderedLang`; every other section leaves the attribute off so the
         // subtree keeps whatever language is already in effect around it (the
         // viewer labels the whole activity from the outermost document).
+        //
+        // The direction rides along with it and needs no state variable of its
+        // own — see `nestedDirection`. Reading it off `renderedLang` is right
+        // in every case, including English nested in Arabic. A German document
+        // inside an English one picks up a redundant `dir="ltr"`, which says
+        // out loud what was already true.
         const props = {
             id,
             style,
             ref,
             lang: SVs.renderedLang ?? undefined,
+            dir: nestedDirection ?? undefined,
         };
 
-        switch (SVs.containerTag) {
-            case "aside":
-                return <aside {...props}>{content}</aside>;
-            case "article":
-                return <article {...props}>{content}</article>;
-            case "div":
-                return <div {...props}>{content}</div>;
-            default:
-                return <section {...props}>{content}</section>;
-        }
+        const container = (() => {
+            switch (SVs.containerTag) {
+                case "aside":
+                    return <aside {...props}>{content}</aside>;
+                case "article":
+                    return <article {...props}>{content}</article>;
+                case "div":
+                    return <div {...props}>{content}</div>;
+                default:
+                    return <section {...props}>{content}</section>;
+            }
+        })();
+
+        // Having turned this subtree around, tell the chrome inside it what it
+        // is now drawn inside. Otherwise a hint or an error box within
+        // `<document lang="ar">` would compare itself against the activity's
+        // direction, find no disagreement, and render its English parentheses
+        // the wrong way round in a right-to-left box.
+        return nestedDirection ? (
+            <DocumentDirectionProvider direction={nestedDirection}>
+                {container}
+            </DocumentDirectionProvider>
+        ) : (
+            container
+        );
     };
 
     // Inject dynamic CSS for list-item section numbers into document head
@@ -220,6 +273,14 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         const escapedHeadingWrapperId = cesc(`${id}-heading-wrapper`);
         const escapedContentWrapperId = cesc(`${id}-content-wrapper`);
 
+        // The trailing period in `content` is left to the bidi algorithm on
+        // purpose. It is a neutral character at the end of the run, so in a
+        // right-to-left document it resolves to the far side of the digits and
+        // the marker reads `.1` — which is how a numbered list is written in
+        // Arabic and Hebrew, and what a native `<ol>` does there. Forcing it
+        // back with an LRM would make these markers disagree with every
+        // browser-rendered list on the same page.
+
         // For non-boxed sections with heading wrapper
         if (!SVs.collapsible && !SVs.boxed && hasTitle) {
             cssRules.push(`
@@ -227,9 +288,9 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                     content: "${SVs.sectionNumber}.";
                     display: inline-block;
                     width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                    margin-left: calc(-1 * ${LIST_ITEM_INDENT});
-                    margin-right: ${LIST_ITEM_SPACING};
-                    text-align: right;
+                    margin-inline-start: calc(-1 * ${LIST_ITEM_INDENT});
+                    margin-inline-end: ${LIST_ITEM_SPACING};
+                    text-align: end;
                     flex-shrink: 0;
                 }
             `);
@@ -256,8 +317,8 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                     #${escapedId}::before {
                         content: "${SVs.sectionNumber}.";
                         grid-column: 1;
-                        text-align: right;
-                        padding-right: ${LIST_ITEM_SPACING};
+                        text-align: end;
+                        padding-inline-end: ${LIST_ITEM_SPACING};
                     }
 
                     #${escapedContentWrapperId} {
@@ -278,42 +339,28 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                 }
             } else {
                 // Empty untitled list item (number only, no content): hang the
-                // number into the container's left indent.
+                // number into the container's start-side indent.
                 cssRules.push(`
                     #${escapedId}::before {
                         content: "${SVs.sectionNumber}.";
                         display: inline-block;
                         width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                        margin-left: calc(-1 * ${LIST_ITEM_INDENT});
-                        margin-right: ${LIST_ITEM_SPACING};
-                        text-align: right;
+                        margin-inline-start: calc(-1 * ${LIST_ITEM_INDENT});
+                        margin-inline-end: ${LIST_ITEM_SPACING};
+                        text-align: end;
                         vertical-align: baseline;
                     }
                 `);
             }
         }
 
-        // For collapsible boxed sections
-        if (SVs.collapsible) {
-            const headingBoxClassName = `section-heading-${id}`;
-            const escapedHeadingBoxClassName = cesc(headingBoxClassName);
+        // For sections with a heading box: collapsible (always boxed) or
+        // statically boxed. Both draw the number the same way.
+        if (SVs.collapsible || SVs.boxed) {
+            const escapedHeadingBoxClassName = cesc(`section-heading-${id}`);
             cssRules.push(`
                 #${escapedId} .${escapedHeadingBoxClassName}::before {
                     content: "${SVs.sectionNumber}.";
-                    text-align: right;
-                    ${getSectionNumberStyles(hasTitle)}
-                }
-            `);
-        }
-
-        // For static boxed sections
-        if (SVs.boxed && !SVs.collapsible) {
-            const headingBoxClassName = `section-heading-${id}`;
-            const escapedHeadingBoxClassName = cesc(headingBoxClassName);
-            cssRules.push(`
-                #${escapedId} .${escapedHeadingBoxClassName}::before {
-                    content: "${SVs.sectionNumber}.";
-                    text-align: right;
                     ${getSectionNumberStyles(hasTitle)}
                 }
             `);
@@ -398,7 +445,10 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                 <FontAwesomeIcon
                     icon={SVs.open ? twirlIsOpen : twirlIsClosed}
                 />{" "}
-                {title} {clickToToggleLabel(t, SVs.open)}
+                {title}{" "}
+                <span {...chromeLangDir}>
+                    {clickToToggleLabel(t, SVs.open)}
+                </span>
             </>
         );
     }
@@ -543,7 +593,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             const innerContentStyle = {
                 display: "block",
                 padding: BOX_PADDING,
-                ...(SVs.isListItem && { paddingLeft: LIST_ITEM_INDENT }),
+                ...(SVs.isListItem && { paddingInlineStart: LIST_ITEM_INDENT }),
             };
             innerContent = (
                 <div style={innerContentStyle}>
@@ -616,7 +666,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
         const contentDivStyle = {
             display: "block",
             padding: BOX_PADDING,
-            ...(SVs.isListItem && { paddingLeft: LIST_ITEM_INDENT }),
+            ...(SVs.isListItem && { paddingInlineStart: LIST_ITEM_INDENT }),
         };
 
         const headingBoxClassName = `section-heading-${id}`;
@@ -661,7 +711,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
             : {
                   margin: "12px 0",
                   position: "relative",
-                  marginLeft: LIST_ITEM_INDENT,
+                  marginInlineStart: LIST_ITEM_INDENT,
               };
 
         return renderContainer(content, containerStyle);

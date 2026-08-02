@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 import { Button } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { useT } from "../../utils/i18n";
+import { ltrIslandProps } from "./utils/direction";
 
 const ORBITAL_ARROW_STYLE: React.CSSProperties = {
     fill: "none",
@@ -248,7 +249,11 @@ export default React.memo(function orbitalDiagramInput(
         );
     }
     return (
-        <div ref={ref} id={id}>
+        // Notation, like the read-only diagram it edits: the subshell label
+        // sits to the left of its boxes and the boxes fill left to right in
+        // every language, and the rows are plain inline flow that would
+        // otherwise reverse wholesale under `rtl`.
+        <div ref={ref} id={id} {...ltrIslandProps()}>
             {controls}
             {rowsJSX}
         </div>

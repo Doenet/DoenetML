@@ -138,7 +138,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
                         display: "inline",
                     }}
                 >
-                    <span style={{ marginRight: "4px" }}>{label}</span>
+                    <span style={{ marginInlineEnd: "4px" }}>{label}</span>
                     {checkWorkComponent}
                 </label>
             );

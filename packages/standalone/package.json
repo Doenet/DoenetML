@@ -52,7 +52,8 @@
                 "src/**/*.ts",
                 "src/**/*.tsx",
                 "tsconfig.json",
-                "vite.config.ts"
+                "vite.config.ts",
+                "../i18n/locales/**/*.ftl"
             ],
             "output": [
                 "dist/**/*.js",
@@ -62,7 +63,8 @@
                 "dist/**/*.d.ts",
                 "dist/**/*.json",
                 "dist/**/*.css",
-                "dist/fonts/**/*"
+                "dist/fonts/**/*",
+                "dist/locales/**/*"
             ],
             "dependencies": [
                 "../doenetml:build"

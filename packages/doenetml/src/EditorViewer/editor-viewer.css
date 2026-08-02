@@ -19,7 +19,7 @@
 
 .editor-panel .footer-menu-button {
     all: unset;
-    margin-left: auto;
+    margin-inline-start: auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -37,25 +37,29 @@
 }
 
 /*
- * When the footer's right edge meets the virtual keyboard's open-keyboard
+ * When the footer's trailing edge meets the virtual keyboard's open-keyboard
  * tab (showViewer={false} or viewerLocation in {"left","top"} with the
- * keyboard enabled), push the rightmost footer element inward so the icons
- * stay clickable. The reservation must match the keyboard tab's right-edge
+ * keyboard enabled), push the last footer element inward so the icons stay
+ * clickable. The reservation must match the keyboard tab's inline-end
  * footprint (`w-12` + `me-4` = 3rem + 1rem) defined in
  * `packages/virtual-keyboard/src/virtual-keyboard/keyboard-tray.css`. Keep
  * this value in sync if that footprint changes. Very narrow viewports may
  * still let the tab and the icons collide; that's accepted.
+ *
+ * Logical, and it has to stay paired with the tab's own `end-0`: the tab is
+ * portaled to `document.body`, so nothing but this axis agreement keeps the
+ * space and the thing it is reserved for on the same side of the screen.
  */
 .editor-panel .editor-footer.reserve-keyboard-button-space {
     --keyboard-tab-reserve-width: 4rem;
 }
 .editor-panel .editor-footer.reserve-keyboard-button-space .footer-menu-button {
-    margin-right: var(--keyboard-tab-reserve-width);
+    margin-inline-end: var(--keyboard-tab-reserve-width);
 }
 .editor-panel
     .editor-footer.reserve-keyboard-button-space:not(:has(.footer-menu-button))
     .footer-icons {
-    margin-right: var(--keyboard-tab-reserve-width);
+    margin-inline-end: var(--keyboard-tab-reserve-width);
 }
 
 .editor-panel .footer-menu {
@@ -148,7 +152,7 @@
 
 .editor-panel .diagnostic-tab-count {
     min-width: 1.5ch;
-    text-align: right;
+    text-align: end;
     font-variant-numeric: tabular-nums;
 }
 
@@ -226,7 +230,7 @@
 
 .editor-panel .diagnostic-entry-location {
     font-weight: 600;
-    margin-right: 0.35rem;
+    margin-inline-end: 0.35rem;
 }
 
 /* Dark mode overrides for .diagnostic-entry-message code — see [data-theme="dark"] block below. */
@@ -502,6 +506,8 @@
  * Active-line gutter: CodeMirror base theme uses #e2f2ff (light blue), which
  * is garish on a dark gutter. Use a barely-lighter #363636 instead.
  */
+/* Physical, matching CodeMirror's own gutter rule; the editor renders source
+   and is pinned to `dir="ltr"` in `CodeMirror.tsx`. */
 [data-theme="dark"] .editor-panel .cm-gutters {
     background-color: #1e1e1e;
     color: #8b949e;
