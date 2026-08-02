@@ -13,7 +13,9 @@
 # Sindhi counts in two categories, and `other` covers zero as well as
 # everything above one, so a message wanting a separate wording for none says
 # `[0]` by number, as the English does — Fluent matches an explicit number
-# before it consults the plural rules.
+# before it consults the plural rules. Unlike Urdu, a Sindhi noun after a
+# numeral takes the plural, so a counted noun needs the `one` branch wherever
+# its plural is spelled differently.
 
 
 ## Answer submission
@@ -38,6 +40,7 @@ max-credit-available = وڌ ۾ وڌ ممڪن نمبر: { $percent }%
 attempts-remaining =
     { $count ->
         [0] ڪا به ڪوشش باقي ناهي
+        [one] { $count } ڪوشش باقي
        *[other] { $count } ڪوششون باقي
     }
 
@@ -45,6 +48,9 @@ validation-correct = (صحيح جواب)
 validation-incorrect = (غلط جواب)
 validation-partially-correct = (جزوي طور تي صحيح جواب)
 
+# «جواب» is spelled alike in the singular and the plural, so this one needs no
+# branch — unlike `attempts-remaining` above, whose «ڪوشش» pluralizes to
+# «ڪوششون».
 answer-show-responses = { $answerId } ڏانهن موڪليل { $count } جواب ڏيکاريو
 
 
@@ -99,7 +105,7 @@ summary-statistics-caption = ڪالم { $column } جو شمارياتي خلاص
 
 math-input-preview-region = رياضياتي جملي جو اڳ نظارو
 math-input-preview = اڳ نظارو
-math-input-invalid-expression = ناجائز جملو:
+math-input-invalid-expression = نامعتبر جملو:
 
 
 ## Document status

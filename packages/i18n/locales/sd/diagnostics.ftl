@@ -40,7 +40,7 @@ line-points-too-few-dimensions = ليڪ کي گهٽ ۾ گهٽ ٻن طولن وا
 
 line-points-depend-on-variables = ليڪ اهڙن نقطن مان لنگهي ٿي جيڪي متغيرن تي دارومدار رکن ٿا: { $variables }.
 
-line-equation-invalid-format = متغيرن { $variable1 } ۽ { $variable2 } ۾ ليڪ جي مساوات جي صورت ناجائز آهي.
+line-equation-invalid-format = متغيرن { $variable1 } ۽ { $variable2 } ۾ ليڪ جي مساوات جي صورت نامعتبر آهي.
 
 ## `<ray>`
 
@@ -84,15 +84,15 @@ pretzel-circuit-first-index = circuit حالت ۾ pretzel جا مقرر ڪيل i
 
 string-children-need-type = `<{ $component }>` کي متني ٻارن سان هلائڻ لاءِ type خاصيت مقرر ڪرڻ ضروري آهي.
 
-invalid-type-defaulting-to-math = جزي { $component } لاءِ قسم { $type } ناجائز آهي. اهو math، text، number يا boolean مان هڪ هجڻ گهرجي. math استعمال ٿي رهيو آهي.
+invalid-type-defaulting-to-math = جزي { $component } لاءِ قسم { $type } نامعتبر آهي. اهو math، text، number يا boolean مان هڪ هجڻ گهرجي. math استعمال ٿي رهيو آهي.
 
 string-not-valid-component-to-arrange = متن "{ $value }" اهڙو جائز جزو ناهي جنهن کي { $component } ترتيب ڏئي سگهي. ان کي نظرانداز ڪيو پيو وڃي.
 
 ## Types and variables
 
-invalid-type-defaulting-to-number = قسم { $type } ناجائز آهي، قسم number مقرر ڪيو پيو وڃي.
+invalid-type-defaulting-to-number = قسم { $type } نامعتبر آهي، قسم number مقرر ڪيو پيو وڃي.
 
-invalid-variable-value = ڪنهن متغير جو ناجائز قدر: `{ $value }`
+invalid-variable-value = ڪنهن متغير جو نامعتبر قدر: `{ $value }`
 
 ## Variants
 
@@ -106,7 +106,7 @@ side-by-side-absolute-widths = `<{ $component }>` مطلق ماپن لاءِ ن�
 
 side-by-side-absolute-margins = `<{ $component }>` مطلق ماپن لاءِ نافذ ناهي. حاشيا نسبتي مقرر ڪيا پيا وڃن.
 
-side-by-side-no-block-child = `<{ $component }>` ناجائز آهي: ان ۾ گهٽ ۾ گهٽ هڪ بلاڪ ٻار هجڻ گهرجي.
+side-by-side-no-block-child = `<{ $component }>` نامعتبر آهي: ان ۾ گهٽ ۾ گهٽ هڪ بلاڪ ٻار هجڻ گهرجي.
 
 ## `<label>`
 
@@ -154,7 +154,7 @@ circle-radius-too-small = دائرو ڳڻي نٿو سگهجي: جيئن ته ٻ�
 
 circle-radius-with-many-points = مقرر ٿيل نصف قطر سان ٻن کان وڌيڪ نقطن مان لنگهندڙ دائرو ٺاهي نٿو سگهجي.
 
-circle-invalid-center-or-through-points = دائري جو مرڪز يا ان جا لنگهندڙ نقطا ناجائز آهن.
+circle-invalid-center-or-through-points = دائري جو مرڪز يا ان جا لنگهندڙ نقطا نامعتبر آهن.
 
 circle-radius-center-with-multiple-points = مقرر ٿيل مرڪز سان هڪ کان وڌيڪ نقطي مان لنگهندڙ دائري جو نصف قطر ڳڻي نٿو سگهجي.
 
@@ -168,7 +168,7 @@ circle-change-center-non-numerical = غير عددي نقطن مان لنگهن�
 
 function-domain-insufficient-dimensions = فنڪشن جي دائري لاءِ طول ڪافي ناهن. دائري ۾ { $intervals } وقفا آهن پر فنڪشن وٽ { $inputs } داخلائون آهن.
 
-function-domain-invalid-format = فنڪشن جي دائري جي صورت ناجائز آهي.
+function-domain-invalid-format = فنڪشن جي دائري جي صورت نامعتبر آهي.
 
 function-ignoring-non-numerical =
     { $type ->
@@ -195,15 +195,15 @@ function-iterates-input-output-mismatch = فنڪشن جا ورجاءَ تڏهن 
 
 ## `<sequence>`
 
-sequence-invalid-length = سلسلي جي ڊيگهه ناجائز آهي. اها غير منفي صحيح عدد هجڻ گهرجي.
+sequence-invalid-length = سلسلي جي ڊيگهه نامعتبر آهي. اها غير منفي صحيح عدد هجڻ گهرجي.
 
-sequence-invalid-step = سلسلي جو قدم ناجائز آهي. { $type } قسم جي سلسلي لاءِ اهو انگ هجڻ گهرجي.
+sequence-invalid-step = سلسلي جو قدم نامعتبر آهي. { $type } قسم جي سلسلي لاءِ اهو انگ هجڻ گهرجي.
 
-sequence-invalid-endpoint-number = عددي سلسلي جو "{ $attribute }" قدر ناجائز آهي. اهو انگ هجڻ گهرجي.
+sequence-invalid-endpoint-number = عددي سلسلي جو "{ $attribute }" قدر نامعتبر آهي. اهو انگ هجڻ گهرجي.
 
-sequence-invalid-endpoint-letters = اکرن جي سلسلي جو "{ $attribute }" قدر ناجائز آهي. اهو اکرن جو ميلاپ هجڻ گهرجي.
+sequence-invalid-endpoint-letters = اکرن جي سلسلي جو "{ $attribute }" قدر نامعتبر آهي. اهو اکرن جو ميلاپ هجڻ گهرجي.
 
-sequence-invalid-endpoint = سلسلي جو "{ $attribute }" قدر ناجائز آهي.
+sequence-invalid-endpoint = سلسلي جو "{ $attribute }" قدر نامعتبر آهي.
 
 select-from-sequence-coprime-not-numbers = coprime نظرانداز ڪيو ويو ڇو ته چونڊ انگن مان ناهي
 
@@ -211,9 +211,9 @@ select-from-sequence-coprime-with-exclude-combinations = coprime نظراندا�
 
 ## Resolving a `target`
 
-target-not-found = `<{ $source }>` ۾ target جو قدر ناجائز آهي: منزل نه ملي.
+target-not-found = `<{ $source }>` ۾ target جو قدر نامعتبر آهي: منزل نه ملي.
 
-target-state-variable-not-found = `<{ $source }>` ۾ target جو قدر ناجائز آهي: `<{ $component }>` تي "{ $property }" نالي ڪو حالت وارو متغير نه مليو.
+target-state-variable-not-found = `<{ $source }>` ۾ target جو قدر نامعتبر آهي: `<{ $component }>` تي "{ $property }" نالي ڪو حالت وارو متغير نه مليو.
 
 ## `<odeSystem>`
 
@@ -230,7 +230,7 @@ ode-system-rhs-function-error = تفاضلي مساوات جي ساڄي پاسي
 
 angle-too-many-lines = { $count } ليڪن جي وچ ۾ زاويه جي وضاحت نٿي ڪري سگهجي
 
-angle-invalid-through-point = `<angle>` جي through ۾ ناجائز نقطو
+angle-invalid-through-point = `<angle>` جي through ۾ نامعتبر نقطو
 
 parabola-vertex-too-many-points = مقرر ٿيل چوٽيءَ سان هڪ کان وڌيڪ نقطي مان لنگهندڙ پيرابولا نافذ ناهي.
 
@@ -252,7 +252,11 @@ eigen-decomposition-failed = ميٽرڪس جا خاص قدر ڳڻي نه سگه�
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: پيرا ميٽر { $parameters } نموني ۾ نٿا اچن، ان ڪري اهي هميشه خالي جاءِ سان ٺهڪندا.
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: پيرا ميٽر { $parameters } نموني ۾ نٿو اچي، ان ڪري اهو هميشه خالي جاءِ سان ٺهڪندو.
+       *[other] `<matchesPattern>`: پيرا ميٽر { $parameters } نموني ۾ نٿا اچن، ان ڪري اهي هميشه خالي جاءِ سان ٺهڪندا.
+    }
 
 ## `<graph>`
 
@@ -264,11 +268,11 @@ prefigure-x-label-position-unsupported = `<graph>`: prefigure ناظر ۾ xLabel
 
 prefigure-y-label-position-unsupported = `<graph>`: prefigure ناظر ۾ yLabelPosition="bottom" جي مدد ناهي؛ top واري هنڌ جو رويو استعمال ٿي رهيو آهي.
 
-prefigure-invalid-axis-bounds = `<graph>`: prefigure ۾ تبديليءَ لاءِ محورن جون حدون ناجائز آهن؛ ڊفالٽ bbox (-10,-10,10,10) استعمال ٿي رهيو آهي.
+prefigure-invalid-axis-bounds = `<graph>`: prefigure ۾ تبديليءَ لاءِ محورن جون حدون نامعتبر آهن؛ ڊفالٽ bbox (-10,-10,10,10) استعمال ٿي رهيو آهي.
 
-prefigure-invalid-width = `<graph>`: prefigure ۾ تبديليءَ لاءِ ويڪر ناجائز آهي؛ ڊفالٽ خاڪي جي ويڪر 425 استعمال ٿي رهي آهي.
+prefigure-invalid-width = `<graph>`: prefigure ۾ تبديليءَ لاءِ ويڪر نامعتبر آهي؛ ڊفالٽ خاڪي جي ويڪر 425 استعمال ٿي رهي آهي.
 
-prefigure-invalid-aspect-ratio = `<graph>`: prefigure ۾ تبديليءَ لاءِ aspectRatio ناجائز آهي؛ ڊفالٽ تناسب 1 استعمال ٿي رهيو آهي.
+prefigure-invalid-aspect-ratio = `<graph>`: prefigure ۾ تبديليءَ لاءِ aspectRatio نامعتبر آهي؛ ڊفالٽ تناسب 1 استعمال ٿي رهيو آهي.
 
 prefigure-grid-spacing-too-fine = `<graph>`: محورن جي حدن جي ڀيٽ ۾ ڄاري جو وٿي تمام سنهو آهي؛ prefigure ناظر ۾ ڄاري ڇڏي وئي آهي.
 
@@ -284,7 +288,7 @@ copy-prop-not-found = { $component } قسم جي جزي تي { $property } خا�
 
 collect-no-source = collect لاءِ ڪو ذريعو نه مليو.
 
-collect-invalid-component-type = `<{ $component }>` قسم جا جزا گڏ نٿا ڪري سگهجن ڇو ته اهو ناجائز قسم آهي.
+collect-invalid-component-type = `<{ $component }>` قسم جا جزا گڏ نٿا ڪري سگهجن ڇو ته اهو نامعتبر قسم آهي.
 
 reference-index-unavailable = اشاري `{ $reference }` ڏانهن حوالو نٿو ڏئي سگهجي
 
@@ -294,7 +298,7 @@ component-action-unavailable = جزي `{ $reference }` تي { $action } نٿو �
 
 ## `<dataFrame>`
 
-data-frame-inconsistent-row-lengths = ڊيٽا جي صورت ناجائز آهي. قطارن جون ڊيگهون هڪجهڙيون ناهن. componentIdx :{ $componentIdx } تي مليو
+data-frame-inconsistent-row-lengths = ڊيٽا جي صورت نامعتبر آهي. قطارن جون ڊيگهون هڪجهڙيون ناهن. componentIdx :{ $componentIdx } تي مليو
 
 data-frame-duplicate-column-names = ڊيٽا ۾ ڪالمن جا نالا ورجايل آهن. componentIdx :{ $componentIdx } تي مليو
 
@@ -308,9 +312,13 @@ answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` وا
 
 nested-section-wide-check-work-max-num-attempts = اهڙي ظرف تي `maxNumAttempts` مقرر ڪرڻ جو ڪو اثر ناهي جيڪو `sectionWideCheckWork` رکي ٿو ۽ پاڻ ٻئي اهڙي ظرف اندر آهي، ڇو ته ڪوششن جو تعداد ٻاهريون ظرف طئي ڪري ٿو. `maxNumAttempts` ٻاهرين ظرف تي مقرر ڪريو.
 
-answer-attributes-need-symbolic-equality = symbolicEquality مقرر ڪرڻ کانسواءِ { $attributes } خاصيتن جو ڪو اثر نه ٿيندو.
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] symbolicEquality مقرر ڪرڻ کانسواءِ { $attributes } خاصيت جو ڪو اثر نه ٿيندو.
+       *[other] symbolicEquality مقرر ڪرڻ کانسواءِ { $attributes } خاصيتن جو ڪو اثر نه ٿيندو.
+    }
 
-answer-invalid-type = جواب لاءِ ناجائز قسم: { $type }
+answer-invalid-type = جواب لاءِ نامعتبر قسم: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
@@ -322,25 +330,29 @@ conditional-content-condition-ignored = اهڙي `<conditionalContent>` جزي �
 
 slider-markers-type-mismatch = نشانن جو قسم سلائيڊر جي قسم سان نٿو ملي.
 
-pretzel-problem-needs-statement-and-answer = ناجائز pretzel: هر `<problem>` ۾ هڪ `<statement>` ۽ هڪ `<answer>` هجڻ گهرجي.
+pretzel-problem-needs-statement-and-answer = نامعتبر pretzel: هر `<problem>` ۾ هڪ `<statement>` ۽ هڪ `<answer>` هجڻ گهرجي.
 
-pretzel-circuit-first-problem-distractor = ناجائز pretzel: mode="circuit" ۾ پهريون `<problem>` ڌيان ڇڪائيندڙ نٿو ٿي سگهي.
+pretzel-circuit-first-problem-distractor = نامعتبر pretzel: mode="circuit" ۾ پهريون `<problem>` ڌيان ڇڪائيندڙ نٿو ٿي سگهي.
 
 ## Attribute values
 
-attribute-invalid-values = خاصيت `{ $attribute }` لاءِ { $values } قدر ناجائز آهن؛ انهن کي نظرانداز ڪيو پيو وڃي.
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] خاصيت `{ $attribute }` لاءِ { $values } قدر نامعتبر آهي؛ ان کي نظرانداز ڪيو پيو وڃي.
+       *[other] خاصيت `{ $attribute }` لاءِ { $values } قدر نامعتبر آهن؛ انهن کي نظرانداز ڪيو پيو وڃي.
+    }
 
-attribute-must-be-references = خاصيت `{ $attribute }` لاءِ قدر `{ $value }` ناجائز آهي. خاصيت اهڙن حوالن مان ٺهڻ گهرجي جيڪي `$` سان شروع ٿين.
+attribute-must-be-references = خاصيت `{ $attribute }` لاءِ قدر `{ $value }` نامعتبر آهي. خاصيت اهڙن حوالن مان ٺهڻ گهرجي جيڪي `$` سان شروع ٿين.
 
-math-input-invalid-function-names = <mathInput>: { $attribute } ۾ ناجائز فنڪشن نالا نظرانداز ڪيا ويا: { $names }. هر نالي جو ڏيکاريل حصو گهٽ ۾ گهٽ ٻن اکرن جو هجڻ گهرجي (اکر يا ڊيش)؛ ان کان پوءِ اختياري لاحقو `|<mathspeak alternative>` اچي سگهي ٿو.
+math-input-invalid-function-names = <mathInput>: { $attribute } ۾ نامعتبر فنڪشن نالا نظرانداز ڪيا ويا: { $names }. هر نالي جو ڏيکاريل حصو گهٽ ۾ گهٽ ٻن اکرن جو هجڻ گهرجي (اکر يا ڊيش)؛ ان کان پوءِ اختياري لاحقو `|<mathspeak alternative>` اچي سگهي ٿو.
 
 ## Building components from the source
 
-component-type-invalid = ناجائز قسم جو جزو: `<{ $componentType }>`
+component-type-invalid = نامعتبر قسم جو جزو: `<{ $componentType }>`
 
 attribute-repeated = خاصيت { $attribute } کي ورجائي نٿو سگهجي.
 
-attribute-invalid-for-component = `<{ $componentType }>` قسم جي جزي لاءِ خاصيت "{ $attribute }" ناجائز آهي.
+attribute-invalid-for-component = `<{ $componentType }>` قسم جي جزي لاءِ خاصيت "{ $attribute }" نامعتبر آهي.
 
 ## Style definition contrast
 
@@ -434,13 +446,13 @@ prefigure-marker-style-unsupported = { $subject }: نشان جو انداز '{ $
 
 ## PreFigure annotations
 
-annotation-ref-unresolvable = `<annotation>`: `ref` ناجائز آهي؛ منزل طئي نه ٿي سگهي. حاشيو ڇڏي ڏنو ويو.
+annotation-ref-unresolvable = `<annotation>`: `ref` نامعتبر آهي؛ منزل طئي نه ٿي سگهي. حاشيو ڇڏي ڏنو ويو.
 
 annotation-ref-multiple-targets = `<annotation>`: `ref` هڪ کان وڌيڪ منزلن تائين پهتو؛ پهرين منزل استعمال ٿي رهي آهي.
 
-annotation-ref-outside-graph = `<annotation>`: `ref` ناجائز آهي؛ منزل پنهنجي خاڪي کان ٻاهر آهي. حاشيو ڇڏي ڏنو ويو.
+annotation-ref-outside-graph = `<annotation>`: `ref` نامعتبر آهي؛ منزل پنهنجي خاڪي کان ٻاهر آهي. حاشيو ڇڏي ڏنو ويو.
 
-annotation-ref-unsupported-target = `<annotation>`: `ref` ناجائز آهي؛ منزل prefigure ۾ تبديليءَ لاءِ مدد ٿيل گرافڪ شيءِ ناهي. حاشيو ڇڏي ڏنو ويو.
+annotation-ref-unsupported-target = `<annotation>`: `ref` نامعتبر آهي؛ منزل prefigure ۾ تبديليءَ لاءِ مدد ٿيل گرافڪ شيءِ ناهي. حاشيو ڇڏي ڏنو ويو.
 
 annotation-text-missing = `<annotation>`: `text` غائب يا خالي آهي؛ خالي متن ڏنو پيو وڃي.
 
@@ -458,13 +470,13 @@ reference-multiple-referents = حوالي لاءِ هڪ کان وڌيڪ مرجع
 
 ## Children that do not match
 
-children-invalid-attribute-format = `<{ $componentType }>` جي { $attribute } خاصيت جي صورت ناجائز آهي.
+children-invalid-attribute-format = `<{ $componentType }>` جي { $attribute } خاصيت جي صورت نامعتبر آهي.
 
-children-invalid = `<{ $componentType }>` لاءِ ناجائز ٻار: ناجائز ٻار مليا: { $children }
+children-invalid = `<{ $componentType }>` لاءِ نامعتبر ٻار: نامعتبر ٻار مليا: { $children }
 
 ## Falling back to a default
 
-attribute-value-invalid-using-default = خاصيت `{ $attribute }` لاءِ قدر `{ $value }` ناجائز آهي، قدر `{ $default }` استعمال ٿي رهيو آهي
+attribute-value-invalid-using-default = خاصيت `{ $attribute }` لاءِ قدر `{ $value }` نامعتبر آهي، قدر `{ $default }` استعمال ٿي رهيو آهي
 
 ## Loading a DoenetML version
 
@@ -476,49 +488,49 @@ doenetml-version-not-found =
 
 ## Reading the DoenetML
 
-parse-invalid-doenetml = ناجائز DoenetML: { $content }
+parse-invalid-doenetml = نامعتبر DoenetML: { $content }
 
-parse-tag-missing-close-tag = ناجائز DoenetML: ٽيگ `{ $tag }` جو بند ٿيندڙ ٽيگ ناهي. پاڻ بند ٿيندڙ ٽيگ يا `</{ $tagName }>` ٽيگ جي اميد هئي.
+parse-tag-missing-close-tag = نامعتبر DoenetML: ٽيگ `{ $tag }` جو بند ٿيندڙ ٽيگ ناهي. پاڻ بند ٿيندڙ ٽيگ يا `</{ $tagName }>` ٽيگ جي اميد هئي.
 
-parse-tag-error = ناجائز DoenetML: ٽيگ `<{ $tagName }>` ۾ خرابي
+parse-tag-error = نامعتبر DoenetML: ٽيگ `<{ $tagName }>` ۾ خرابي
 
-parse-attribute-missing-value = ناجائز DoenetML: لڳي ٿو ناجائز خاصيت `{ $attribute }` جو قدر غائب آهي.
+parse-attribute-missing-value = نامعتبر DoenetML: لڳي ٿو نامعتبر خاصيت `{ $attribute }` جو قدر غائب آهي.
 
-parse-attribute-invalid = ناجائز DoenetML: خاصيت `{ $attribute }` ناجائز آهي
+parse-attribute-invalid = نامعتبر DoenetML: خاصيت `{ $attribute }` نامعتبر آهي
 
-parse-attribute-value-invalid = ناجائز DoenetML: خاصيت جو قدر `{ $value }` ناجائز آهي
+parse-attribute-value-invalid = نامعتبر DoenetML: خاصيت جو قدر `{ $value }` نامعتبر آهي
 
-parse-attribute-value-quote-mismatch = ناجائز DoenetML: خاصيت جو قدر `{ $value }` ناجائز آهي. اقتباسي نشان ٺهڪي نٿا اچن. لڳي ٿو هڪ `{ $quote }` غائب آهي
+parse-attribute-value-quote-mismatch = نامعتبر DoenetML: خاصيت جو قدر `{ $value }` نامعتبر آهي. اقتباسي نشان ٺهڪي نٿا اچن. لڳي ٿو هڪ `{ $quote }` غائب آهي
 
-parse-open-tag-name-missing = ناجائز DoenetML: بغير نالي وارو ٽيگ مليو، جيئن `<`
+parse-open-tag-name-missing = نامعتبر DoenetML: بغير نالي وارو ٽيگ مليو، جيئن `<`
 
-parse-tag-not-closed = ناجائز DoenetML: ٽيگ `{ $tag }` بند نه ٿيو (لڳي ٿو `>` غائب آهي).
+parse-tag-not-closed = نامعتبر DoenetML: ٽيگ `{ $tag }` بند نه ٿيو (لڳي ٿو `>` غائب آهي).
 
-parse-self-closing-tag-name-missing = ناجائز DoenetML: بغير نالي وارو ٽيگ مليو `<{ $content }>`
+parse-self-closing-tag-name-missing = نامعتبر DoenetML: بغير نالي وارو ٽيگ مليو `<{ $content }>`
 
-parse-self-closing-tag-not-closed = ناجائز DoenetML: ٽيگ `{ $tag }` بند نه ٿيو (لڳي ٿو `/>` غائب آهي).
+parse-self-closing-tag-not-closed = نامعتبر DoenetML: ٽيگ `{ $tag }` بند نه ٿيو (لڳي ٿو `/>` غائب آهي).
 
-parse-tag-invalid-attributes = ناجائز DoenetML: ٽيگ `{ $tag }` جائز ناهي. ٿي سگهي ٿو ان جون خاصيتون غلط هجن.
+parse-tag-invalid-attributes = نامعتبر DoenetML: ٽيگ `{ $tag }` جائز ناهي. ٿي سگهي ٿو ان جون خاصيتون غلط هجن.
 
-parse-close-tag-name-missing = ناجائز DoenetML: بغير نالي وارو بند ٿيندڙ ٽيگ مليو، جيئن `</`
+parse-close-tag-name-missing = نامعتبر DoenetML: بغير نالي وارو بند ٿيندڙ ٽيگ مليو، جيئن `</`
 
 parse-attribute-value-unquoted = خاصيتن جا قدر اقتباسي نشانن اندر هجڻ گهرجن: `{ $attribute }="{ $value }"`
 
-parse-close-tag-without-open-tag = ناجائز DoenetML: بند ٿيندڙ ٽيگ `{ $tag }` مليو، پر ان جو ڪو کلندڙ ٽيگ ناهي
+parse-close-tag-without-open-tag = نامعتبر DoenetML: بند ٿيندڙ ٽيگ `{ $tag }` مليو، پر ان جو ڪو کلندڙ ٽيگ ناهي
 
-parse-close-tag-mismatched = ناجائز DoenetML: بند ٿيندڙ ٽيگ ٺهڪي نٿو اچي. `</{ $expected }>` جي اميد هئي. `{ $found }` مليو
+parse-close-tag-mismatched = نامعتبر DoenetML: بند ٿيندڙ ٽيگ ٺهڪي نٿو اچي. `</{ $expected }>` جي اميد هئي. `{ $found }` مليو
 
 parser-node-unconvertible = ڳنڍ { $node } کي Dast ڳنڍ ۾ تبديل نه ڪري سگهيو.
 
 ## Names
 
 name-attribute-invalid =
-    خاصيت name='{ $name }' ناجائز آهي. { $reason ->
+    خاصيت name='{ $name }' نامعتبر آهي. { $reason ->
         [characters] نالن ۾ رڳو اکر، انگ، هيٺيون ليڪون يا ڊيش ٿي سگهن ٿا.
        *[start] نالا اکر سان شروع ٿيڻ گهرجن.
     }
 
-component-name-invalid-start = جزي جو نالو "{ $name }" ناجائز آهي. نالا اکر سان شروع ٿيڻ گهرجن.
+component-name-invalid-start = جزي جو نالو "{ $name }" نامعتبر آهي. نالا اکر سان شروع ٿيڻ گهرجن.
 
 ## `<answer>` sugar
 
@@ -534,7 +546,7 @@ external-doenetml-recursion-limit = تمام گهڻن ورجاون سبب ٻاه
 
 external-doenetml-unavailable = { $attribute }="{ $uri }" مان DoenetML حاصل نه ٿي سگهيو
 
-external-doenetml-type-mismatch = { $attribute }="{ $uri }" مان حاصل ڪيل DoenetML ناجائز آهي: اهو "{ $componentType }" قسم سان نٿو ملي
+external-doenetml-type-mismatch = { $attribute }="{ $uri }" مان حاصل ڪيل DoenetML نامعتبر آهي: اهو "{ $componentType }" قسم سان نٿو ملي
 
 ## Deprecated syntax
 
@@ -577,7 +589,7 @@ schema-attribute-value-not-allowed =
 
 ## The `<select>` family's error boxes
 
-select-variant-name-option-count-mismatch = select لاءِ ناجائز نسخي جو نالو. نسخي جو نالو { $variantName } { $numOptions } اختيارن ۾ اچي ٿو پر چونڊڻ جو تعداد { $numToSelect } آهي.
+select-variant-name-option-count-mismatch = select لاءِ نامعتبر نسخي جو نالو. نسخي جو نالو { $variantName } { $numOptions } اختيارن ۾ اچي ٿو پر چونڊڻ جو تعداد { $numToSelect } آهي.
 
 select-variant-name-without-options = select لاءِ ڪجهه نسخا مقرر آهن پر ممڪن نسخي جي نالي لاءِ ڪو اختيار مقرر ناهي: { $variantName }.
 

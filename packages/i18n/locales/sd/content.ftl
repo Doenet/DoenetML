@@ -142,9 +142,9 @@ line-style =
     .dotted = نقطيدار
 
 # Noun phrases in the oblique plural, because their other use is in front of
-# «وارو» — a postposition, which puts what precedes it in the oblique. They
-# agree with nothing, so `style-fill` has to give them something to hang off
-# rather than print them bare.
+# «وارو» — a postposition that governs the oblique and inflects like a marked
+# adjective itself. They agree with nothing, so `style-fill` has to give them
+# something to hang off rather than print them bare.
 fill-style =
     .horizontal = افقي ليڪن
     .vertical = عمودي ليڪن
@@ -217,17 +217,31 @@ style-with-noun =
 # though it is handed a gender.
 style-filled-word = ڀريل
 
+# «وارو» is a marked adjective itself, and it agrees with the shape rather than
+# with the pattern in front of it: «نقطن واري ليڪ», «نقطن وارو چورس». It is
+# always said of the shape, so the direct form is the only one needed here —
+# `style-fill` writes it with no branch at all, because the noun it agrees with
+# there is «ڀراءُ», which is always masculine.
 style-filled =
     { $parts ->
-        [pattern] { $pattern } وارو { $color } { $filled }
+        [pattern] { $pattern } { $gender ->
+            [f] واري
+           *[m] وارو
+        } { $color } { $filled }
        *[plain] { $color } { $filled }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } وارو { $color } { $filled } { $noun }
+        [pattern] { $pattern } { $gender ->
+            [f] واري
+           *[m] وارو
+        } { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } وارو { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail] { $pattern } { $gender ->
+            [f] واري
+           *[m] وارو
+        } { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
 
@@ -352,5 +366,5 @@ piecewise-condition-otherwise = ٻي صورت ۾
 
 ion-name-oxidation-state = { $name } ({ $numeral })
 
-chemistry-invalid-symbol = ناجائز ڪيميائي نشان
-chemistry-invalid-ionic-compound = ناجائز آئوني مرڪب
+chemistry-invalid-symbol = نامعتبر ڪيميائي نشان
+chemistry-invalid-ionic-compound = نامعتبر آئوني مرڪب

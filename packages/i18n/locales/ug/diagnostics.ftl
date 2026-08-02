@@ -257,7 +257,11 @@ eigen-decomposition-failed = ماترىتسىنىڭ خاس قىممەتلىرى�
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: { $parameters } پارامېتىرلىرى ئەندىزىدە كۆرۈلمەيدۇ، شۇڭا ئۇلار ھەمىشە قۇرۇق ئورۇنغا ماس كېلىدۇ.
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: { $parameters } پارامېتىرى ئەندىزىدە كۆرۈلمەيدۇ، شۇڭا ئۇ ھەمىشە قۇرۇق ئورۇنغا ماس كېلىدۇ.
+       *[other] `<matchesPattern>`: { $parameters } پارامېتىرلىرى ئەندىزىدە كۆرۈلمەيدۇ، شۇڭا ئۇلار ھەمىشە قۇرۇق ئورۇنغا ماس كېلىدۇ.
+    }
 
 ## `<graph>`
 
@@ -313,7 +317,11 @@ answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` با
 
 nested-section-wide-check-work-max-num-attempts = `sectionWideCheckWork` بار، ئۆزى يەنە شۇنداق بىر قاچىنىڭ ئىچىدە تۇرغان قاچىغا `maxNumAttempts` بەلگىلەشنىڭ تەسىرى يوق، چۈنكى سىناش سانىنى سىرتقى قاچا بەلگىلەيدۇ. `maxNumAttempts` نى سىرتقى قاچىغا بەلگىلەڭ.
 
-answer-attributes-need-symbolic-equality = symbolicEquality بەلگىلەنمىسە { $attributes } خاسلىقلىرىنىڭ تەسىرى بولمايدۇ.
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] symbolicEquality بەلگىلەنمىسە { $attributes } خاسلىقىنىڭ تەسىرى بولمايدۇ.
+       *[other] symbolicEquality بەلگىلەنمىسە { $attributes } خاسلىقلىرىنىڭ تەسىرى بولمايدۇ.
+    }
 
 answer-invalid-type = جاۋاب ئۈچۈن ئىناۋەتسىز تىپ: { $type }
 
@@ -333,7 +341,11 @@ pretzel-circuit-first-problem-distractor = ئىناۋەتسىز pretzel: mode="c
 
 ## Attribute values
 
-attribute-invalid-values = `{ $attribute }` خاسلىقى ئۈچۈن { $values } قىممەتلىرى ئىناۋەتسىز؛ ئۇلارغا پەرۋا قىلىنمايدۇ.
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] `{ $attribute }` خاسلىقى ئۈچۈن { $values } قىممىتى ئىناۋەتسىز؛ ئۇنىڭغا پەرۋا قىلىنمايدۇ.
+       *[other] `{ $attribute }` خاسلىقى ئۈچۈن { $values } قىممەتلىرى ئىناۋەتسىز؛ ئۇلارغا پەرۋا قىلىنمايدۇ.
+    }
 
 attribute-must-be-references = `{ $attribute }` خاسلىقى ئۈچۈن `{ $value }` قىممىتى ئىناۋەتسىز. خاسلىق `$` بىلەن باشلىنىدىغان نەقىللەردىن تۈزۈلۈشى كېرەك.
 

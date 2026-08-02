@@ -126,9 +126,9 @@ line-style =
     .dotted = نقطہ دار
 
 # Noun phrases in the oblique plural, because their other use is in front of
-# «والا» — a postposition, which puts what precedes it in the oblique. They
-# agree with nothing, so `style-fill` has to give them something to hang off
-# rather than print them bare.
+# «والا» — a postposition that governs the oblique and inflects like a marked
+# adjective itself. They agree with nothing, so `style-fill` has to give them
+# something to hang off rather than print them bare.
 fill-style =
     .horizontal = افقی لکیروں
     .vertical = عمودی لکیروں
@@ -208,17 +208,31 @@ style-filled-word =
        *[m] بھرا ہوا
     }
 
+# «والا» is a marked adjective itself, and it agrees with the shape rather than
+# with the pattern in front of it: «نقطوں والی لکیر», «نقطوں والا مربع». It is
+# always said of the shape, so the direct form is the only one needed here —
+# `style-fill` writes it with no branch at all, because the noun it agrees with
+# there is «بھراؤ», which is always masculine.
 style-filled =
     { $parts ->
-        [pattern] { $pattern } والا { $color } { $filled }
+        [pattern] { $pattern } { $gender ->
+            [f] والی
+           *[m] والا
+        } { $color } { $filled }
        *[plain] { $color } { $filled }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } والا { $color } { $filled } { $noun }
+        [pattern] { $pattern } { $gender ->
+            [f] والی
+           *[m] والا
+        } { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } والا { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail] { $pattern } { $gender ->
+            [f] والی
+           *[m] والا
+        } { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
 

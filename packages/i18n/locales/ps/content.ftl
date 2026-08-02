@@ -12,9 +12,17 @@
 # below; a borrowed adjective ending in ي — نارنجي، نیلي، بنفشي، ګلابي،
 # نسواري، اسماني — is the same in both genders and takes no branch.
 #
-# None selects on `$role`. Pashto does inflect for case, but the oblique of
-# these adjectives coincides with the direct in the positions `$role`
-# distinguishes, so a branch would only repeat itself.
+# `$role` matters for one of the four positions and one gender. Every Pashto
+# adposition governs the oblique, and a feminine adjective in ـه takes ـې
+# there — «توره کرښه» standing alone against «له تورې کرښې سره» after the
+# circumposition in `style-border-clause`. A masculine adjective spells the two
+# alike, and so does a feminine one in ـۍ, so `border-clause` is the only
+# branch written out:
+#
+#   standalone          direct; also what `background-clause` and
+#                       `text-clause` fall through to, since «شاليد» and
+#                       «متن» are masculine and spell their oblique the same
+#   border-clause       oblique, before «څنډې سره» — «څنډه» is feminine
 #
 # The 118 element names and 12 anion names are deliberately absent, as they are
 # for Somali, Hmong Njua, Amharic, Assamese, Nepali and Burmese: there is no
@@ -29,35 +37,83 @@
 
 color =
     .black =
-        { $gender ->
-            [f] توره
-           *[m] تور
+        { $role ->
+            [border-clause]
+                { $gender ->
+                    [f] تورې
+                   *[m] تور
+                }
+           *[standalone]
+                { $gender ->
+                    [f] توره
+                   *[m] تور
+                }
         }
     .white =
-        { $gender ->
-            [f] سپینه
-           *[m] سپین
+        { $role ->
+            [border-clause]
+                { $gender ->
+                    [f] سپینې
+                   *[m] سپین
+                }
+           *[standalone]
+                { $gender ->
+                    [f] سپینه
+                   *[m] سپین
+                }
         }
     .gray =
-        { $gender ->
-            [f] خړه
-           *[m] خړ
+        { $role ->
+            [border-clause]
+                { $gender ->
+                    [f] خړې
+                   *[m] خړ
+                }
+           *[standalone]
+                { $gender ->
+                    [f] خړه
+                   *[m] خړ
+                }
         }
     .red =
-        { $gender ->
-            [f] سره
-           *[m] سور
+        { $role ->
+            [border-clause]
+                { $gender ->
+                    [f] سرې
+                   *[m] سور
+                }
+           *[standalone]
+                { $gender ->
+                    [f] سره
+                   *[m] سور
+                }
         }
     .orange = نارنجي
     .yellow =
-        { $gender ->
-            [f] ژېړه
-           *[m] ژېړ
+        { $role ->
+            [border-clause]
+                { $gender ->
+                    [f] ژېړې
+                   *[m] ژېړ
+                }
+           *[standalone]
+                { $gender ->
+                    [f] ژېړه
+                   *[m] ژېړ
+                }
         }
     .green =
-        { $gender ->
-            [f] شنه
-           *[m] شین
+        { $role ->
+            [border-clause]
+                { $gender ->
+                    [f] شنې
+                   *[m] شین
+                }
+           *[standalone]
+                { $gender ->
+                    [f] شنه
+                   *[m] شین
+                }
         }
     .cyan = اسماني
     .blue = نیلي
@@ -67,14 +123,30 @@ color =
 
 line-width =
     .thick =
-        { $gender ->
-            [f] پنډه
-           *[m] پنډ
+        { $role ->
+            [border-clause]
+                { $gender ->
+                    [f] پنډې
+                   *[m] پنډ
+                }
+           *[standalone]
+                { $gender ->
+                    [f] پنډه
+                   *[m] پنډ
+                }
         }
     .thin =
-        { $gender ->
-            [f] نرۍ
-           *[m] نری
+        { $role ->
+            [border-clause]
+                { $gender ->
+                    [f] نرۍ
+                   *[m] نری
+                }
+           *[standalone]
+                { $gender ->
+                    [f] نرۍ
+                   *[m] نری
+                }
         }
 
 # Both are reduplicated phrases rather than adjectives, so neither inflects.
@@ -164,17 +236,30 @@ style-filled-word =
        *[m] ډک
     }
 
+# «لرونکی» inflects like any adjective in ی, and it agrees with the shape
+# rather than with the pattern in front of it: «ټکي لرونکې کرښه», «ټکي لرونکی
+# مربع». `style-fill` writes it with no branch at all, because the noun it
+# agrees with there is «ډکاو», which is always masculine.
 style-filled =
     { $parts ->
-        [pattern] { $pattern } لرونکی { $color } { $filled }
+        [pattern] { $pattern } { $gender ->
+            [f] لرونکې
+           *[m] لرونکی
+        } { $color } { $filled }
        *[plain] { $color } { $filled }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } لرونکی { $color } { $filled } { $noun }
+        [pattern] { $pattern } { $gender ->
+            [f] لرونکې
+           *[m] لرونکی
+        } { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } لرونکی { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail] { $pattern } { $gender ->
+            [f] لرونکې
+           *[m] لرونکی
+        } { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
 

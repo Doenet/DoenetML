@@ -13,7 +13,9 @@
 # Pashto counts in two categories, and `other` covers zero as well as
 # everything above one, so a message wanting a separate wording for none says
 # `[0]` by number, as the English does — Fluent matches an explicit number
-# before it consults the plural rules.
+# before it consults the plural rules. Unlike Persian, Urdu and Uyghur, a
+# Pashto noun after a numeral takes the plural, so a counted noun does need the
+# `one` branch.
 
 
 ## Answer submission
@@ -38,6 +40,7 @@ max-credit-available = تر ټولو لوړه ممکنه نمره: { $percent }%
 attempts-remaining =
     { $count ->
         [0] هېڅ هڅه نه ده پاتې
+        [one] { $count } هڅه پاتې ده
        *[other] { $count } هڅې پاتې دي
     }
 
@@ -45,7 +48,11 @@ validation-correct = (سم ځواب)
 validation-incorrect = (ناسم ځواب)
 validation-partially-correct = (جزوي سم ځواب)
 
-answer-show-responses = { $answerId } ته لېږل شوي { $count } ځوابونه وښایاست
+answer-show-responses =
+    { $count ->
+        [one] { $answerId } ته لېږل شوی { $count } ځواب وښایاست
+       *[other] { $answerId } ته لېږل شوي { $count } ځوابونه وښایاست
+    }
 
 
 ## Disclosure panels

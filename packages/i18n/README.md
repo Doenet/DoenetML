@@ -363,12 +363,13 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and German, Russian, Polish, Hindi, Marathi, Urdu and Sindhi are the
-catalogs that select on them. Sharing a script does not imply sharing the fork:
-Marathi and Hindi both take an oblique adjective before a postposition and
-Nepali, written in the same letters, takes none. The same line runs through the
-Arabic script — Urdu and Sindhi fork, and Pashto, whose oblique coincides with
-its direct in all four positions, does not.
+positions, and German, Russian, Polish, Hindi, Marathi, Urdu, Sindhi and Pashto
+are the catalogs that select on them. Sharing a script does not imply sharing
+the fork: Marathi and Hindi both take an oblique adjective before a
+postposition and Nepali, written in the same letters, takes none. Nor is the
+fork all-or-nothing — Pashto marks the oblique on a feminine adjective in ـه
+and nowhere else, so it branches on one position out of the four and leaves the
+rest to the default.
 
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
@@ -859,7 +860,10 @@ Three things recur across them, none a property of the direction:
   "are ignored" — most of these cover both with one form, and the select is
   dropped rather than written out twice identically. The count argument then
   goes unused, which is harmless: it stays in the English message for the
-  languages that need it.
+  languages that need it. Where English changes the *noun* as well, the branch
+  stays — and whether it has to is a fact about the language rather than about
+  the script: Persian, Urdu and Uyghur leave a noun singular after a numeral,
+  while Arabic, Hebrew, Pashto and Sindhi pluralize it.
 
 ### Testing it without a catalog
 

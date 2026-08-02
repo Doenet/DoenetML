@@ -252,7 +252,11 @@ eigen-decomposition-failed = د ماتریکس ځانګړي ارزښتونه و�
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: { $parameters } پرامیټرونه په نمونه کې نه راځي، نو تل به له تش ځای سره برابر شي.
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: { $parameters } پرامیټر په نمونه کې نه راځي، نو تل به له تش ځای سره برابر شي.
+       *[other] `<matchesPattern>`: { $parameters } پرامیټرونه په نمونه کې نه راځي، نو تل به له تش ځای سره برابر شي.
+    }
 
 ## `<graph>`
 
@@ -308,7 +312,11 @@ answer-max-num-attempts-in-section-wide-check-work = د `sectionWideCheckWork` �
 
 nested-section-wide-check-work-max-num-attempts = پر هغه ظرف باندې د `maxNumAttempts` ټاکل چې `sectionWideCheckWork` لري او پخپله د بل داسې ظرف دننه دی هېڅ اغېز نه لري، ځکه چې د هڅو شمېر بهرنی ظرف ټاکي. `maxNumAttempts` پر بهرني ظرف وټاکئ.
 
-answer-attributes-need-symbolic-equality = د symbolicEquality له ټاکلو پرته به د { $attributes } ځانګړنو هېڅ اغېز ونه لري.
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] د symbolicEquality له ټاکلو پرته به د { $attributes } ځانګړنې هېڅ اغېز ونه لري.
+       *[other] د symbolicEquality له ټاکلو پرته به د { $attributes } ځانګړنو هېڅ اغېز ونه لري.
+    }
 
 answer-invalid-type = د ځواب لپاره ناسم ډول: { $type }
 
@@ -328,7 +336,11 @@ pretzel-circuit-first-problem-distractor = ناسم pretzel: په mode="circuit"
 
 ## Attribute values
 
-attribute-invalid-values = د `{ $attribute }` ځانګړنې لپاره { $values } ارزښتونه ناسم دي؛ نظر نه کیږي.
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] د `{ $attribute }` ځانګړنې لپاره { $values } ارزښت ناسم دی؛ نظر نه کیږي.
+       *[other] د `{ $attribute }` ځانګړنې لپاره { $values } ارزښتونه ناسم دي؛ نظر نه کیږي.
+    }
 
 attribute-must-be-references = د `{ $attribute }` ځانګړنې لپاره `{ $value }` ارزښت ناسم دی. ځانګړنه باید له هغو حوالو جوړه وي چې په `$` پیل کیږي.
 

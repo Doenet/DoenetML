@@ -50,6 +50,18 @@ const he: Translator = createTranslatorFromLocaleData(
     "he",
 );
 
+/** One that agrees them *and* inflects them for the position they land in. */
+const ur: Translator = createTranslatorFromLocaleData(
+    { locale: "ur", resources: { ur: readCatalog("ur", "content") } },
+    "ur",
+);
+
+/** One whose case marking shows up in a single gender and a single position. */
+const ps: Translator = createTranslatorFromLocaleData(
+    { locale: "ps", resources: { ps: readCatalog("ps", "content") } },
+    "ps",
+);
+
 /** One of this repository's catalogs, read the way a host would supply it. */
 function readCatalog(locale: string, namespace: string): string {
     return fs.readFileSync(
@@ -525,6 +537,59 @@ describe("Hebrew", () => {
         expect(
             describeFill(he, { fillColorWord: "red" }, { filled: true }),
         ).toBe("אדום");
+    });
+});
+
+describe("Urdu", () => {
+    // «والا» attaches the fill pattern to the shape, and it is a marked
+    // adjective in its own right: it agrees with the shape rather than with the
+    // pattern it follows. Nothing else in the phrase reveals the choice, since
+    // the pattern word beside it is an invariant oblique plural.
+    it("agrees the fill-pattern word with the shape it describes", () => {
+        const words = {
+            lineWidthWord: "",
+            lineStyleWord: "",
+            colorWord: "",
+            fillColorWord: "green",
+            fillStyleWord: "dots",
+        };
+        expect(
+            describeClosedShape(ur, words, {
+                filled: true,
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("نقطوں والی ہری بھری ہوئی لکیر");
+        expect(
+            describeClosedShape(ur, words, {
+                filled: true,
+                noun: { key: "square" },
+                withNoun: true,
+            }),
+        ).toBe("نقطوں والا ہرا بھرا ہوا مربع");
+    });
+});
+
+describe("Pashto", () => {
+    // Pashto marks case on a feminine adjective in ـه and nowhere else, so the
+    // border clause — whose «څنډه» is feminine and sits under a circumposition
+    // — is the one position whose words differ from the standalone form. The
+    // masculine spells both alike, which is why the standalone assertion below
+    // is the interesting half of the pair.
+    it("puts a border's adjectives in the oblique inside the clause", () => {
+        const border = {
+            lineWidthWord: "thick",
+            lineStyleWord: "",
+            colorWord: "red",
+        };
+        expect(describeBorder(ps, border)).toBe("پنډه سره");
+        expect(
+            describeClosedShape(
+                ps,
+                { ...border, fillColorWord: "blue", fillStyleWord: "" },
+                { filled: true, noun: { key: "square" }, withNoun: true },
+            ),
+        ).toBe("نیلي ډک مربع له پنډې سرې څنډې سره");
     });
 });
 
