@@ -1829,6 +1829,9 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get('#ci [class*="-singleValue"]').should("have.text", "mouse");
     });
 
+    // Coverage for the hide/show path, not a regression pin: hiding the
+    // component unmounts it, so this passes whether or not the renderer's
+    // hooks sit above its `hidden` early return.
     it("inline choiceInput survives being hidden and shown again", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1852,7 +1855,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#ci").should("not.exist");
         cy.get("#b").click();
 
-        cy.log("It comes back working, rather than throwing on the re-render");
+        cy.log("It comes back working after the remount");
         cy.get("#ci").click();
         getOpenInlineChoiceMenu().within(() => {
             cy.contains("dog").click({ force: true });

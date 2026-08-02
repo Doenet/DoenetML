@@ -207,8 +207,8 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         }
     }
 
-    // The description and the `useMemo` below are derived before the
-    // `SVs.hidden` early return so that every hook runs on every render.
+    // The description and the `useMemo` that depends on it are computed above
+    // the `SVs.hidden` early return so that every hook runs on every render.
     //
     // Nothing reaches that state today: when `hidden` becomes true the worker
     // drops the component from its parent's rendered children (see
@@ -368,9 +368,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         // is an index into the full ordered list — which is also what
         // `selectedIndices` holds. Look the option up by that key rather than
         // by position in the filtered array, which a hidden choice shifts.
-        const getOptionFromIndex = (index: number) => {
+        function getOptionFromIndex(index: number) {
             return choiceOptions.find((opt) => opt.value === index);
-        };
+        }
 
         const valuePadding = "2px 0px 2px 6px";
 
