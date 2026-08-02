@@ -54,9 +54,17 @@ editor-update-viewer-title =
 
 ## The variant picker
 
+# Label for the variant picker control itself (a noun, like a field label).
 editor-variant = Variant
+
+# Placeholder text shown in the empty filter input, before the user types
+# anything — not a button or instruction.
 editor-variant-filter = Filter...
+
+# Button/action label: advances to the next variant in the list.
 editor-variant-next = Select next variant
+
+# Button/action label: goes back to the previous variant in the list.
 editor-variant-previous = Select previous variant
 
 
