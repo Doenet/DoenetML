@@ -207,34 +207,17 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         }
     }
 
-    if (SVs.hidden) {
-        return null;
-    }
-
-    let disabled = SVs.disabled;
-
-    let label: React.ReactNode = SVs.label;
-    const hasLabel =
-        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
-    const labelId = `${id}-label`;
-    const inlineInputId = `${id}_input`;
-    if (SVs.labelHasLatex) {
-        label = (
-            <MathJax hideUntilTypeset={"first"} inline dynamic>
-                {label}
-            </MathJax>
-        );
-    }
-
-    let shortDescription = SVs.shortDescription || undefined;
-    const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
-    const inlineLabelledByIds = [
-        hasLabel ? labelId : null,
-        ...externalLabelRendererIds,
-    ]
-        .filter(Boolean)
-        .join(" ");
-
+    // The description and the `useMemo` that depends on it are computed above
+    // the `SVs.hidden` early return so that every hook runs on every render.
+    //
+    // Nothing reaches that state today: when `hidden` becomes true the worker
+    // drops the component from its parent's rendered children (see
+    // `returnActiveChildrenIndicesToRender` in the worker's `ChildMatcher`),
+    // so React unmounts the instance instead of re-rendering it past the
+    // return. But that is an invariant of the worker, not of this file, and a
+    // component that opts into `sendToRendererEvenIfHidden` does keep
+    // re-rendering while hidden — at which point a hook below the return
+    // changes the hook count and React throws.
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
@@ -249,22 +232,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </DescriptionPopover>
         );
     }
-
-    // For inline, the default is a small check work button,
-    // for non-inline, the default is a full check work button
-    const fullCheckWork = SVs.inline
-        ? SVs.forceFullCheckWorkButton
-        : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
-
-    const checkWorkComponent = createCheckWorkComponent(
-        SVs,
-        id,
-        validationState,
-        submitActionWithPending,
-        fullCheckWork,
-        isPending,
-        tContent,
-    );
 
     const inlineSelectComponents = useMemo(
         () => ({
@@ -321,6 +288,50 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         [descriptionId, t],
     );
 
+    if (SVs.hidden) {
+        return null;
+    }
+
+    let disabled = SVs.disabled;
+
+    let label: React.ReactNode = SVs.label;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-label`;
+    const inlineInputId = `${id}_input`;
+    if (SVs.labelHasLatex) {
+        label = (
+            <MathJax hideUntilTypeset={"first"} inline dynamic>
+                {label}
+            </MathJax>
+        );
+    }
+
+    let shortDescription = SVs.shortDescription || undefined;
+    const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
+    const inlineLabelledByIds = [
+        hasLabel ? labelId : null,
+        ...externalLabelRendererIds,
+    ]
+        .filter(Boolean)
+        .join(" ");
+
+    // For inline, the default is a small check work button,
+    // for non-inline, the default is a full check work button
+    const fullCheckWork = SVs.inline
+        ? SVs.forceFullCheckWorkButton
+        : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
+
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitActionWithPending,
+        fullCheckWork,
+        isPending,
+        tContent,
+    );
+
     if (SVs.inline) {
         // since we color correctness for inline choiceInput,
         // modify shortDescription to include correctness state
@@ -353,9 +364,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             })
             .filter((opt) => opt !== null) as Option[];
 
-        const getOptionFromIndex = (index: number) => {
-            return choiceOptions[index - 1];
-        };
+        // `value` is assigned before the hidden choices are filtered out, so it
+        // is an index into the full ordered list — which is also what
+        // `selectedIndices` holds. Look the option up by that key rather than
+        // by position in the filtered array, which a hidden choice shifts.
+        function getOptionFromIndex(index: number) {
+            return choiceOptions.find((opt) => opt.value === index);
+        }
 
         const valuePadding = "2px 0px 2px 6px";
 
@@ -524,9 +539,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             menuPlacement="auto"
                             className={inputClasses}
                             onChange={onChangeHandlerInline}
-                            value={rendererSelectedIndices.map((ind) =>
-                                getOptionFromIndex(ind),
-                            )}
+                            // A selected choice that is now hidden has no
+                            // option to show, so it drops out of the value
+                            // rather than displacing the others.
+                            value={rendererSelectedIndices
+                                .map((ind) => getOptionFromIndex(ind))
+                                .filter((opt) => opt !== undefined)}
                             placeholder={SVs.placeHolder}
                             isDisabled={disabled}
                             isOptionDisabled={(opt) => !!opt.isDisabled}
