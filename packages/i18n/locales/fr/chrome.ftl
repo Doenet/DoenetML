@@ -77,6 +77,8 @@ slider-next = Suiv.
 keyboard-open = Ouvrir le clavier
 keyboard-close = Fermer le clavier
 
+choice-input-remove-choice = Supprimer { $choice }
+
 matrix-remove-row = Supprimer une ligne
 matrix-add-row = Ajouter une ligne
 matrix-remove-column = Supprimer une colonne

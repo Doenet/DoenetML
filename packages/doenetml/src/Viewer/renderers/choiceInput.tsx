@@ -21,7 +21,7 @@ import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
-import { useContentT } from "../../utils/i18n";
+import { useContentT, useT } from "../../utils/i18n";
 
 // type guard
 const isMultiValue = <T,>(
@@ -30,7 +30,25 @@ const isMultiValue = <T,>(
     return Array.isArray(val);
 };
 
-type Option = { value: number; label: any; isDisabled: boolean };
+/**
+ * An option of the inline (react-select) choice input.
+ *
+ * `label` must be a string, as in react-select's own option shape: react-select
+ * interpolates it into the announcements it writes to its aria-live region and
+ * matches typeahead input against it, so a React node there is announced as
+ * "[object Object]" (#1613). `content` carries the rendered choice — which may
+ * contain math, images, or styled text — and is what is actually drawn in the
+ * menu and in the displayed value.
+ *
+ * The `getOptionLabel` and `formatOptionLabel` props of `<Select>` below wire
+ * the two to react-select.
+ */
+type Option = {
+    value: number;
+    label: string;
+    content: React.ReactNode;
+    isDisabled: boolean;
+};
 
 /**
  * The ChoiceInputInlineContext provides information about two modifications needed in descendants
@@ -63,6 +81,7 @@ interface ChoiceInputSVs {
     colorCorrectness: boolean;
     choiceChildIndices: any;
     choiceOrder: any;
+    choiceTexts: string[];
     choicesDisabled: any;
     choicesHidden: any;
     descriptionChildInd: any;
@@ -76,6 +95,8 @@ interface ChoiceInputSVs {
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
         useDoenetRenderer<ChoiceInputSVs>(props);
+
+    const t = useT();
 
     // The check-work button and the validation state announced on the input
     // both follow the document's language, not the reader's — see
@@ -252,10 +273,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             Option: (props: any) => (
                 <components.Option {...props}>
                     {/*
-                     * Render the option content with its style colors, except
-                     * for selected options, which are highlighted with a dark
-                     * background. There, the text color is left to react-select
-                     * (white) for contrast.
+                     * `props.children` is the option's `content`, which
+                     * react-select took from `formatOptionLabel`.
+                     *
+                     * Render it with its style colors, except for selected
+                     * options, which are highlighted with a dark background.
+                     * There, the text color is left to react-select (white) for
+                     * contrast.
                      */}
                     <ChoiceInputInlineContext.Provider
                         value={{
@@ -264,17 +288,37 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                         }}
                     >
                         <div style={{ pointerEvents: "none" }}>
-                            {props.label}
+                            {props.children}
                         </div>
                     </ChoiceInputInlineContext.Provider>
                 </components.Option>
+            ),
+            // With `selectMultiple`, each selected choice becomes a chip with a
+            // remove button. react-select names that button
+            // `Remove ${children}`, where `children` is the rendered choice
+            // node — which stringifies to "[object Object]" (#1613). Name it
+            // from the choice's text instead, in the reader's language: the
+            // name is addressed to whoever is looking at the screen, so it
+            // takes `useT` rather than `useContentT`.
+            MultiValueRemove: (props: any) => (
+                <components.MultiValueRemove
+                    {...props}
+                    innerProps={{
+                        ...props.innerProps,
+                        "aria-label": t(
+                            "choice-input-remove-choice",
+                            { choice: props.data.label },
+                            `Remove ${props.data.label}`,
+                        ),
+                    }}
+                />
             ),
             // Add aria-details to the internal input used by react-select.
             Input: (props: any) => (
                 <components.Input {...props} aria-details={descriptionId} />
             ),
         }),
-        [descriptionId],
+        [descriptionId, t],
     );
 
     if (SVs.inline) {
@@ -300,7 +344,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 }
                 return {
                     value: i + 1,
-                    label: child,
+                    // `choiceTexts` is in displayed order, like `choicesHidden`
+                    // and `choicesDisabled`, so it shares this index.
+                    label: SVs.choiceTexts[i],
+                    content: child,
                     isDisabled: !!SVs.choicesDisabled[i],
                 };
             })
@@ -428,27 +475,25 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     <ChoiceInputInlineContext.Provider
                         value={{ isHidden: true, inOption: false }}
                     >
-                        {choiceOptions
-                            .filter((opt) => opt !== null)
-                            .map((opt) => (
-                                <div
-                                    key={opt.value}
-                                    style={{
-                                        whiteSpace: "nowrap", // Force single line
-                                        padding: valuePadding,
-                                    }}
-                                >
-                                    {opt.label}
+                        {choiceOptions.map((opt) => (
+                            <div
+                                key={opt.value}
+                                style={{
+                                    whiteSpace: "nowrap", // Force single line
+                                    padding: valuePadding,
+                                }}
+                            >
+                                {opt.content}
 
-                                    {/* Add buffer space for the Dropdown Arrow. */}
-                                    <span
-                                        style={{
-                                            display: "inline-block",
-                                            width: "30px",
-                                        }}
-                                    ></span>
-                                </div>
-                            ))}
+                                {/* Add buffer space for the Dropdown Arrow. */}
+                                <span
+                                    style={{
+                                        display: "inline-block",
+                                        width: "30px",
+                                    }}
+                                ></span>
+                            </div>
+                        ))}
                     </ChoiceInputInlineContext.Provider>
                 </div>
 
@@ -469,6 +514,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             styles={customStyles}
                             options={choiceOptions}
                             components={inlineSelectComponents}
+                            // `getOptionLabel` restates react-select's default,
+                            // so that renaming `Option.label` becomes a type
+                            // error here rather than a silently undefined
+                            // accessible name.
+                            getOptionLabel={(opt) => opt.label}
+                            formatOptionLabel={(opt) => opt.content}
                             menuPortalTarget={menuPortalTarget}
                             menuPlacement="auto"
                             className={inputClasses}

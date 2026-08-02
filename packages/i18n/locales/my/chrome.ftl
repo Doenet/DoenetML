@@ -77,6 +77,8 @@ slider-next = နောက်
 keyboard-open = ကီးဘုတ် ဖွင့်ရန်
 keyboard-close = ကီးဘုတ် ပိတ်ရန်
 
+choice-input-remove-choice = { $choice } ဖယ်ရန်
+
 matrix-remove-row = အတန်း ဖယ်ရန်
 matrix-add-row = အတန်း ထည့်ရန်
 matrix-remove-column = ကော်လံ ဖယ်ရန်

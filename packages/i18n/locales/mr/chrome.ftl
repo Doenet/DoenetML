@@ -74,6 +74,8 @@ slider-next = पुढील
 keyboard-open = कीबोर्ड उघडा
 keyboard-close = कीबोर्ड बंद करा
 
+choice-input-remove-choice = { $choice } काढा
+
 matrix-remove-row = ओळ काढा
 matrix-add-row = ओळ जोडा
 matrix-remove-column = स्तंभ काढा

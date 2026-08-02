@@ -74,6 +74,8 @@ slider-next = পরবর্তী
 keyboard-open = কীবোর্ড খুলুন
 keyboard-close = কীবোর্ড বন্ধ করুন
 
+choice-input-remove-choice = { $choice } সরান
+
 matrix-remove-row = সারি সরান
 matrix-add-row = সারি যোগ করুন
 matrix-remove-column = কলাম সরান

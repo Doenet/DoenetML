@@ -74,6 +74,8 @@ slider-next = Succ.
 keyboard-open = Apri la tastiera
 keyboard-close = Chiudi la tastiera
 
+choice-input-remove-choice = Rimuovi { $choice }
+
 matrix-remove-row = Rimuovi riga
 matrix-add-row = Aggiungi riga
 matrix-remove-column = Rimuovi colonna

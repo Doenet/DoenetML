@@ -1694,7 +1694,11 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         getOpenInlineChoiceMenu().within(() => {
             cy.contains("apple").click({ force: true });
         });
-        cy.get("#ci").contains("apple").should("have.css", "color", green);
+        // Scope to the displayed value: `#ci` also holds react-select's
+        // visually hidden live region, which now names the choice too.
+        cy.get('#ci [class*="-singleValue"]')
+            .contains("apple")
+            .should("have.css", "color", green);
 
         cy.log(
             "Reopen the menu: the selected option uses white text for contrast",
@@ -1705,5 +1709,85 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             cy.contains("banana").should("have.css", "color", red);
             cy.contains("cherry").should("have.css", "color", black);
         });
+    });
+
+    it("inline choiceInput exposes choice text to assistive technology", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci" inline placeholder="Choose word">
+      <choice>inline</choice>
+      <choice>choice</choice>
+      <choice>input</choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log(
+            "Typeahead filters on the choice text, not on '[object Object]'",
+        );
+        cy.get("#ci").click();
+        cy.get("#ci_input").type("cho");
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("choice").should("exist");
+            cy.contains("inline").should("not.exist");
+            cy.contains("input").should("not.exist");
+        });
+
+        cy.log("Selecting a choice announces its text in the live region");
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("choice").click({ force: true });
+        });
+        cy.get("#ci #aria-selection").should(
+            "have.text",
+            "option choice, selected.",
+        );
+
+        cy.log(
+            "The displayed value renders the choice content once, not the plain text as well",
+        );
+        cy.get('#ci [class*="-singleValue"]').should("have.text", "choice");
+    });
+
+    it("inline selectMultiple choiceInput names its remove buttons by choice text", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci" inline selectMultiple placeholder="Choose fruit">
+      <choice><text>apple</text></choice>
+      <choice><text>banana</text></choice>
+    </choiceInput>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ci").click();
+        getOpenInlineChoiceMenu().within(() => {
+            cy.contains("banana").click({ force: true });
+        });
+
+        cy.log("Selecting a choice announces its text in the live region");
+        cy.get("#ci #aria-selection").should(
+            "have.text",
+            "option banana, selected.",
+        );
+
+        cy.log(
+            "The selected chip's remove button is named by the choice text, not '[object Object]'",
+        );
+        // The remove button is the only element react-select gives an
+        // `aria-label` inside the select.
+        cy.get('#ci [role="button"][aria-label]').should(
+            "have.attr",
+            "aria-label",
+            "Remove banana",
+        );
     });
 });

@@ -79,6 +79,8 @@ slider-next = 次へ
 keyboard-open = キーボードを開く
 keyboard-close = キーボードを閉じる
 
+choice-input-remove-choice = { $choice } を削除
+
 matrix-remove-row = 行を削除
 matrix-add-row = 行を追加
 matrix-remove-column = 列を削除

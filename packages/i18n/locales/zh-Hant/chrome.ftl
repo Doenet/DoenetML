@@ -89,6 +89,8 @@ slider-next = 下一個
 keyboard-open = 開啟鍵盤
 keyboard-close = 關閉鍵盤
 
+choice-input-remove-choice = 刪除 { $choice }
+
 # 列 is the row and 欄 the column — see the note on rows and columns above.
 matrix-remove-row = 刪除列
 matrix-add-row = 新增列

@@ -81,6 +81,8 @@ slider-next = Następny
 keyboard-open = Otwórz klawiaturę
 keyboard-close = Zamknij klawiaturę
 
+choice-input-remove-choice = Usuń { $choice }
+
 matrix-remove-row = Usuń wiersz
 matrix-add-row = Dodaj wiersz
 matrix-remove-column = Usuń kolumnę

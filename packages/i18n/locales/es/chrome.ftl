@@ -73,6 +73,8 @@ slider-next = Siguiente
 keyboard-open = Abrir el teclado
 keyboard-close = Cerrar el teclado
 
+choice-input-remove-choice = Eliminar { $choice }
+
 matrix-remove-row = Eliminar fila
 matrix-add-row = Añadir fila
 matrix-remove-column = Eliminar columna

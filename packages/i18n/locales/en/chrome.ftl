@@ -93,6 +93,12 @@ slider-next = Next
 keyboard-open = Open Keyboard
 keyboard-close = Close Keyboard
 
+# Accessible name of the button that drops one selected choice from an inline
+# `<choiceInput selectMultiple>`. The button itself is drawn as a bare cross,
+# so `$choice` — the choice's own text, which is never translated — is the
+# only thing that says which chip it belongs to.
+choice-input-remove-choice = Remove { $choice }
+
 # Accessible names of a matrix input's size controls, whose visible labels are
 # the symbols `r-` `r+` `c-` `c+`.
 matrix-remove-row = Remove row

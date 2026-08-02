@@ -84,6 +84,8 @@ slider-next = 下一个
 keyboard-open = 打开键盘
 keyboard-close = 关闭键盘
 
+choice-input-remove-choice = 删除 { $choice }
+
 matrix-remove-row = 删除行
 matrix-add-row = 添加行
 matrix-remove-column = 删除列

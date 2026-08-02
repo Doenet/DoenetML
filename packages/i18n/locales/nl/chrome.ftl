@@ -75,6 +75,8 @@ slider-next = Volgende
 keyboard-open = Toetsenbord openen
 keyboard-close = Toetsenbord sluiten
 
+choice-input-remove-choice = { $choice } verwijderen
+
 matrix-remove-row = Rij verwijderen
 matrix-add-row = Rij toevoegen
 matrix-remove-column = Kolom verwijderen

@@ -71,6 +71,8 @@ slider-next = Sau
 keyboard-open = Mở bàn phím
 keyboard-close = Đóng bàn phím
 
+choice-input-remove-choice = Xóa { $choice }
+
 matrix-remove-row = Xóa hàng
 matrix-add-row = Thêm hàng
 matrix-remove-column = Xóa cột
