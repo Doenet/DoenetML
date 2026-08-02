@@ -272,7 +272,11 @@ eigen-decomposition-failed = לא ניתן היה לחשב את הערכים ה�
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: הפרמטרים { $parameters } אינם מופיעים בתבנית, ולכן הם יתאימו תמיד למקום ריק.
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: הפרמטר { $parameters } אינו מופיע בתבנית, ולכן הוא יתאים תמיד למקום ריק.
+       *[other] `<matchesPattern>`: הפרמטרים { $parameters } אינם מופיעים בתבנית, ולכן הם יתאימו תמיד למקום ריק.
+    }
 
 ## `<graph>`
 
@@ -328,7 +332,11 @@ answer-max-num-attempts-in-section-wide-check-work = הגדרת `maxNumAttempts`
 
 nested-section-wide-check-work-max-num-attempts = הגדרת `maxNumAttempts` על מכל עם `sectionWideCheckWork` שנמצא בתוך מכל אחר עם `sectionWideCheckWork` חסרת השפעה, כי מספר הניסיונות נשלט על ידי המכל החיצוני. יש להגדיר את `maxNumAttempts` על המכל החיצוני.
 
-answer-attributes-need-symbolic-equality = למאפיינים { $attributes } לא תהיה השפעה בלי הגדרת symbolicEquality.
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] למאפיין { $attributes } לא תהיה השפעה בלי הגדרת symbolicEquality.
+       *[other] למאפיינים { $attributes } לא תהיה השפעה בלי הגדרת symbolicEquality.
+    }
 
 answer-invalid-type = סוג לא תקין לתשובה: { $type }
 
@@ -348,7 +356,11 @@ pretzel-circuit-first-problem-distractor = pretzel לא תקין: ב־mode="circ
 
 ## Attribute values
 
-attribute-invalid-values = הערכים { $values } אינם תקינים למאפיין `{ $attribute }`; הם לא ילקחו בחשבון.
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] הערך { $values } אינו תקין למאפיין `{ $attribute }`; הוא לא ילקח בחשבון.
+       *[other] הערכים { $values } אינם תקינים למאפיין `{ $attribute }`; הם לא ילקחו בחשבון.
+    }
 
 attribute-must-be-references = הערך `{ $value }` אינו תקין למאפיין `{ $attribute }`. המאפיין חייב להיות מורכב מהפניות שמתחילות ב־`$`.
 
@@ -364,13 +376,17 @@ attribute-invalid-for-component = המאפיין "{ $attribute }" אינו תק�
 
 ## Style definition contrast
 
+# «אין די» needs the noun it quantifies directly after it, so the subject stays
+# «להגדרת הסגנון» and «ניגודיות» sits in front of the select rather than being
+# fronted into it. `style-definition-dark-mode-text-background-contrast` below
+# builds the same sentence the same way.
 style-definition-insufficient-contrast =
-    לניגודיות של הגדרת הסגנון { $styleNumber } אין די { $context ->
+    להגדרת הסגנון { $styleNumber } אין די ניגודיות { $context ->
         [text-on-background] בין צבע הטקסט לצבע הרקע
-        [high-contrast] בין הצבע בעל הניגודיות הגבוהה לבין הבד
-        [line] בין צבע הקו לבין הבד
-        [marker] בין צבע הסמן לבין הבד
-       *[text-on-canvas] בין צבע הטקסט לבין הבד
+        [high-contrast] בין הצבע בעל הניגודיות הגבוהה לבין משטח הציור
+        [line] בין צבע הקו לבין משטח הציור
+        [marker] בין צבע הסמן לבין משטח הציור
+       *[text-on-canvas] בין צבע הטקסט לבין משטח הציור
     }{ $mode ->
         [dark] { " (מצב כהה)" }
        *[light] { "" }
@@ -383,7 +399,7 @@ style-definition-dark-mode-text-background-contrast =
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    אף שהגדרת הסגנון { $styleNumber } מציינת צבע טקסט בעל ניגודיות מספקת במצב בהיר, לצבע הטקסט של המצב הכהה הנגזר ממנו אין די ניגודיות מול הבד ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; נדרש לפחות { $threshold }:1). { $suggestion ->
+    אף שהגדרת הסגנון { $styleNumber } מציינת צבע טקסט בעל ניגודיות מספקת במצב בהיר, לצבע הטקסט של המצב הכהה הנגזר ממנו אין די ניגודיות מול משטח הציור ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; נדרש לפחות { $threshold }:1). { $suggestion ->
         [available] כדי להבטיח ניגודיות מספקת במצב כהה, אפשר להגדיל את הניגודיות במצב בהיר (למשל textColor="{ $lightColor }") או לדרוס את צבע המצב הכהה (למשל textColorDarkMode="{ $darkColor }").
        *[none] כדי להבטיח ניגודיות מספקת במצב כהה, יש להגדיל את הניגודיות במצב בהיר או לדרוס את הצבע הנגזר באמצעות textColorDarkMode.
     }

@@ -44,6 +44,12 @@ const es: Translator = createTranslatorFromLocaleData(
     "es",
 );
 
+/** The same, for a right-to-left language that agrees its adjectives. */
+const he: Translator = createTranslatorFromLocaleData(
+    { locale: "he", resources: { he: readCatalog("he", "content") } },
+    "he",
+);
+
 /** One of this repository's catalogs, read the way a host would supply it. */
 function readCatalog(locale: string, namespace: string): string {
     return fs.readFileSync(
@@ -481,6 +487,44 @@ describe("Spanish", () => {
                 { noun: line, withNoun: true },
             ),
         ).toBe("línea rebeccapurple");
+    });
+});
+
+describe("Hebrew", () => {
+    // The border is the one phrase head whose gender disagrees with the
+    // default here: «מסגרת» is feminine where «מילוי», «רקע» and «טקסט» are
+    // masculine, so `noun-gender` has to name it. Asserted because the noun is
+    // never handed to the catalog — it is written into `style-border-clause`,
+    // and nothing but agreement reveals which word the clause chose.
+    it("agrees a border with the word for border, not with the shape", () => {
+        expect(
+            describeBorder(he, {
+                lineWidthWord: "thick",
+                lineStyleWord: "",
+                colorWord: "red",
+            }),
+        ).toBe("אדומה עבה");
+        expect(
+            describeClosedShape(
+                he,
+                {
+                    lineWidthWord: "thick",
+                    lineStyleWord: "",
+                    colorWord: "red",
+                    fillColorWord: "blue",
+                    fillStyleWord: "",
+                },
+                { filled: true, noun: { key: "region" }, withNoun: true },
+            ),
+        ).toBe("אזור כחול מלא עם מסגרת אדומה עבה");
+    });
+
+    it("agrees the other phrase heads as masculine", () => {
+        expect(describeColor(he, "red", "text")).toBe("אדום");
+        expect(describeColor(he, "red", "background")).toBe("אדום");
+        expect(
+            describeFill(he, { fillColorWord: "red" }, { filled: true }),
+        ).toBe("אדום");
     });
 });
 

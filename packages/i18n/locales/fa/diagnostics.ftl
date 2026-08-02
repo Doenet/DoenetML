@@ -249,7 +249,11 @@ eigen-decomposition-failed = محاسبهٔ مقادیر ویژهٔ ماتریس
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: پارامترهای { $parameters } در الگو نمی‌آیند، پس همیشه با یک جای خالی مطابقت می‌کنند.
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: پارامتر { $parameters } در الگو نمی‌آید، پس همیشه با یک جای خالی مطابقت می‌کند.
+       *[other] `<matchesPattern>`: پارامترهای { $parameters } در الگو نمی‌آیند، پس همیشه با یک جای خالی مطابقت می‌کنند.
+    }
 
 ## `<graph>`
 
@@ -305,7 +309,11 @@ answer-max-num-attempts-in-section-wide-check-work = تنظیم `maxNumAttempts`
 
 nested-section-wide-check-work-max-num-attempts = تنظیم `maxNumAttempts` روی ظرفی با `sectionWideCheckWork` که خود درون ظرف دیگری با `sectionWideCheckWork` است اثری ندارد، چون شمار تلاش‌ها را ظرف بیرونی تعیین می‌کند. `maxNumAttempts` را روی ظرف بیرونی تنظیم کنید.
 
-answer-attributes-need-symbolic-equality = ویژگی‌های { $attributes } بدون تنظیم symbolicEquality اثری ندارند.
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] ویژگی { $attributes } بدون تنظیم symbolicEquality اثری ندارد.
+       *[other] ویژگی‌های { $attributes } بدون تنظیم symbolicEquality اثری ندارند.
+    }
 
 answer-invalid-type = نوع نامعتبر برای پاسخ: { $type }
 
@@ -325,7 +333,11 @@ pretzel-circuit-first-problem-distractor = pretzel نامعتبر: در mode="ci
 
 ## Attribute values
 
-attribute-invalid-values = مقادیر { $values } برای ویژگی `{ $attribute }` نامعتبر است؛ نادیده گرفته می‌شود.
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] مقدار { $values } برای ویژگی `{ $attribute }` نامعتبر است؛ نادیده گرفته می‌شود.
+       *[other] مقادیر { $values } برای ویژگی `{ $attribute }` نامعتبر است؛ نادیده گرفته می‌شود.
+    }
 
 attribute-must-be-references = مقدار `{ $value }` برای ویژگی `{ $attribute }` نامعتبر است. ویژگی باید از ارجاع‌هایی ساخته شود که با `$` آغاز می‌شوند.
 

@@ -477,5 +477,5 @@ element-anion-name =
 
 ion-name-oxidation-state = { $name } ({ $numeral })
 
-chemistry-invalid-symbol = ناجائز کیمیائی علامت
-chemistry-invalid-ionic-compound = ناجائز آئنی مرکب
+chemistry-invalid-symbol = نامعتبر کیمیائی علامت
+chemistry-invalid-ionic-compound = نامعتبر آئنی مرکب

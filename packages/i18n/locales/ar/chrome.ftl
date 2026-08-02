@@ -70,8 +70,8 @@ answer-show-responses =
 
 feedback-heading = ملاحظات
 
-collapsible-click-to-open = (انقر للفتح)
-collapsible-click-to-close = (انقر للإغلاق)
+collapsible-click-to-open = (النقر للفتح)
+collapsible-click-to-close = (النقر للإغلاق)
 collapsible-initializing = جارٍ التهيئة...
 
 footnote-show = إظهار الحاشية

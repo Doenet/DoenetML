@@ -42,7 +42,7 @@ line-points-too-few-dimensions = لکیر کو کم از کم دو ابعاد و
 
 line-points-depend-on-variables = لکیر ایسے نقطوں سے گزرتی ہے جو متغیرات پر منحصر ہیں: { $variables }۔
 
-line-equation-invalid-format = متغیرات { $variable1 } اور { $variable2 } میں لکیر کی مساوات کی ساخت ناجائز ہے۔
+line-equation-invalid-format = متغیرات { $variable1 } اور { $variable2 } میں لکیر کی مساوات کی ساخت نامعتبر ہے۔
 
 ## `<ray>`
 
@@ -86,15 +86,15 @@ pretzel-circuit-first-index = circuit وضع میں pretzel کے مقرر کرد
 
 string-children-need-type = `<{ $component }>` کو متنی بچوں کے ساتھ چلانے کے لیے type صفت مقرر کرنا ضروری ہے۔
 
-invalid-type-defaulting-to-math = جزو { $component } کے لیے قسم { $type } ناجائز ہے۔ یہ math، text، number یا boolean میں سے کوئی ایک ہونی چاہیے۔ math استعمال کی جا رہی ہے۔
+invalid-type-defaulting-to-math = جزو { $component } کے لیے قسم { $type } نامعتبر ہے۔ یہ math، text، number یا boolean میں سے کوئی ایک ہونی چاہیے۔ math استعمال کی جا رہی ہے۔
 
 string-not-valid-component-to-arrange = متن "{ $value }" ایسا جائز جزو نہیں جسے { $component } ترتیب دے سکے۔ اسے نظرانداز کیا جا رہا ہے۔
 
 ## Types and variables
 
-invalid-type-defaulting-to-number = قسم { $type } ناجائز ہے، قسم number مقرر کی جا رہی ہے۔
+invalid-type-defaulting-to-number = قسم { $type } نامعتبر ہے، قسم number مقرر کی جا رہی ہے۔
 
-invalid-variable-value = کسی متغیر کی ناجائز قیمت: `{ $value }`
+invalid-variable-value = کسی متغیر کی نامعتبر قیمت: `{ $value }`
 
 ## Variants
 
@@ -108,7 +108,7 @@ side-by-side-absolute-widths = `<{ $component }>` مطلق پیمائشوں کے
 
 side-by-side-absolute-margins = `<{ $component }>` مطلق پیمائشوں کے لیے نافذ نہیں۔ حاشیے نسبتی مقرر کیے جا رہے ہیں۔
 
-side-by-side-no-block-child = `<{ $component }>` ناجائز ہے: اس میں کم از کم ایک بلاک نوعیت کا بچہ ہونا چاہیے۔
+side-by-side-no-block-child = `<{ $component }>` نامعتبر ہے: اس میں کم از کم ایک بلاک نوعیت کا بچہ ہونا چاہیے۔
 
 ## `<label>`
 
@@ -156,7 +156,7 @@ circle-radius-too-small = دائرہ شمار نہیں کیا جا سکتا: چ�
 
 circle-radius-with-many-points = مقرر کردہ نصف قطر کے ساتھ دو سے زیادہ نقطوں سے گزرنے والا دائرہ نہیں بنایا جا سکتا۔
 
-circle-invalid-center-or-through-points = دائرے کا مرکز یا اس کے گزرنے والے نقطے ناجائز ہیں۔
+circle-invalid-center-or-through-points = دائرے کا مرکز یا اس کے گزرنے والے نقطے نامعتبر ہیں۔
 
 circle-radius-center-with-multiple-points = مقرر کردہ مرکز کے ساتھ ایک سے زیادہ نقطے سے گزرنے والے دائرے کا نصف قطر شمار نہیں کیا جا سکتا۔
 
@@ -170,7 +170,7 @@ circle-change-center-non-numerical = غیر عددی نقطوں سے گزرنے 
 
 function-domain-insufficient-dimensions = دالے کے میدان کے لیے ابعاد ناکافی ہیں۔ میدان میں { $intervals } وقفے ہیں جبکہ دالے کے { $inputs } اندراج ہیں۔
 
-function-domain-invalid-format = دالے کے میدان کی ساخت ناجائز ہے۔
+function-domain-invalid-format = دالے کے میدان کی ساخت نامعتبر ہے۔
 
 function-ignoring-non-numerical =
     { $type ->
@@ -193,19 +193,19 @@ function-ignoring-empty =
 
 function-points-too-close = دالے میں دو ایسے نقطے ہیں جن کے مقامات بہت قریب ہیں۔ دالہ متعین نہیں کیا جا سکتا۔
 
-function-iterates-input-output-mismatch = دالے کی تکرار تبھی ممکن ہے جب اندراجات کی تعداد اخراجات کی تعداد کے برابر ہو۔ اس دالے کے { $inputs } اندراج اور { $outputs } اخراج ہیں۔
+function-iterates-input-output-mismatch = دالے کی تکرار تبھی ممکن ہے جب اندراج کی تعداد اخراج کی تعداد کے برابر ہو۔ اس دالے کے { $inputs } اندراج اور { $outputs } اخراج ہیں۔
 
 ## `<sequence>`
 
-sequence-invalid-length = تسلسل کی لمبائی ناجائز ہے۔ یہ غیر منفی صحیح عدد ہونی چاہیے۔
+sequence-invalid-length = تسلسل کی لمبائی نامعتبر ہے۔ یہ غیر منفی صحیح عدد ہونی چاہیے۔
 
-sequence-invalid-step = تسلسل کا قدم ناجائز ہے۔ { $type } قسم کے تسلسل کے لیے یہ ایک عدد ہونا چاہیے۔
+sequence-invalid-step = تسلسل کا قدم نامعتبر ہے۔ { $type } قسم کے تسلسل کے لیے یہ ایک عدد ہونا چاہیے۔
 
-sequence-invalid-endpoint-number = عددی تسلسل کی "{ $attribute }" قیمت ناجائز ہے۔ یہ ایک عدد ہونی چاہیے۔
+sequence-invalid-endpoint-number = عددی تسلسل کی "{ $attribute }" قیمت نامعتبر ہے۔ یہ ایک عدد ہونی چاہیے۔
 
-sequence-invalid-endpoint-letters = حروف کے تسلسل کی "{ $attribute }" قیمت ناجائز ہے۔ یہ حروف کا مجموعہ ہونی چاہیے۔
+sequence-invalid-endpoint-letters = حروف کے تسلسل کی "{ $attribute }" قیمت نامعتبر ہے۔ یہ حروف کا مجموعہ ہونی چاہیے۔
 
-sequence-invalid-endpoint = تسلسل کی "{ $attribute }" قیمت ناجائز ہے۔
+sequence-invalid-endpoint = تسلسل کی "{ $attribute }" قیمت نامعتبر ہے۔
 
 select-from-sequence-coprime-not-numbers = coprime نظرانداز کیا گیا کیونکہ انتخاب عددوں میں سے نہیں ہو رہا
 
@@ -213,9 +213,9 @@ select-from-sequence-coprime-with-exclude-combinations = coprime نظراندا�
 
 ## Resolving a `target`
 
-target-not-found = `<{ $source }>` میں target کی قیمت ناجائز ہے: ہدف نہیں ملا۔
+target-not-found = `<{ $source }>` میں target کی قیمت نامعتبر ہے: ہدف نہیں ملا۔
 
-target-state-variable-not-found = `<{ $source }>` میں target کی قیمت ناجائز ہے: `<{ $component }>` پر "{ $property }" نام کا کوئی حالت متغیر نہیں ملا۔
+target-state-variable-not-found = `<{ $source }>` میں target کی قیمت نامعتبر ہے: `<{ $component }>` پر "{ $property }" نام کا کوئی حالت متغیر نہیں ملا۔
 
 ## `<odeSystem>`
 
@@ -232,7 +232,7 @@ ode-system-rhs-function-error = تفریقی مساوات کے دائیں طرف
 
 angle-too-many-lines = { $count } لکیروں کے درمیان زاویہ متعین نہیں کیا جا سکتا
 
-angle-invalid-through-point = `<angle>` کی through میں ناجائز نقطہ
+angle-invalid-through-point = `<angle>` کی through میں نامعتبر نقطہ
 
 parabola-vertex-too-many-points = مقرر کردہ راس کے ساتھ ایک سے زیادہ نقطے سے گزرنے والا قطع مکافی نافذ نہیں کیا گیا۔
 
@@ -254,7 +254,11 @@ eigen-decomposition-failed = میٹرکس کی خاص قیمتیں شمار نہ
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: پیرامیٹر { $parameters } نمونے میں نہیں آتے، اس لیے وہ ہمیشہ ایک خالی جگہ سے مطابقت کریں گے۔
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [one] `<matchesPattern>`: پیرامیٹر { $parameters } نمونے میں نہیں آتا، اس لیے وہ ہمیشہ ایک خالی جگہ سے مطابقت کرے گا۔
+       *[other] `<matchesPattern>`: پیرامیٹر { $parameters } نمونے میں نہیں آتے، اس لیے وہ ہمیشہ ایک خالی جگہ سے مطابقت کریں گے۔
+    }
 
 ## `<graph>`
 
@@ -266,11 +270,11 @@ prefigure-x-label-position-unsupported = `<graph>`: prefigure ناظر میں xL
 
 prefigure-y-label-position-unsupported = `<graph>`: prefigure ناظر میں yLabelPosition="bottom" کی مدد نہیں؛ top مقام کا رویہ استعمال کیا جا رہا ہے۔
 
-prefigure-invalid-axis-bounds = `<graph>`: prefigure میں تبدیلی کے لیے محوروں کی حدود ناجائز ہیں؛ طے شدہ bbox (-10,-10,10,10) استعمال کیا جا رہا ہے۔
+prefigure-invalid-axis-bounds = `<graph>`: prefigure میں تبدیلی کے لیے محوروں کی حدود نامعتبر ہیں؛ طے شدہ bbox (-10,-10,10,10) استعمال کیا جا رہا ہے۔
 
-prefigure-invalid-width = `<graph>`: prefigure میں تبدیلی کے لیے چوڑائی ناجائز ہے؛ طے شدہ خاکے کی چوڑائی 425 استعمال کی جا رہی ہے۔
+prefigure-invalid-width = `<graph>`: prefigure میں تبدیلی کے لیے چوڑائی نامعتبر ہے؛ طے شدہ خاکے کی چوڑائی 425 استعمال کی جا رہی ہے۔
 
-prefigure-invalid-aspect-ratio = `<graph>`: prefigure میں تبدیلی کے لیے aspectRatio ناجائز ہے؛ طے شدہ تناسب 1 استعمال کیا جا رہا ہے۔
+prefigure-invalid-aspect-ratio = `<graph>`: prefigure میں تبدیلی کے لیے aspectRatio نامعتبر ہے؛ طے شدہ تناسب 1 استعمال کیا جا رہا ہے۔
 
 prefigure-grid-spacing-too-fine = `<graph>`: محوروں کی حدود کے لحاظ سے جالی کا فاصلہ بہت باریک ہے؛ prefigure ناظر میں جالی چھوڑ دی گئی ہے۔
 
@@ -286,7 +290,7 @@ copy-prop-not-found = { $component } قسم کے جزو پر { $property } خا�
 
 collect-no-source = collect کے لیے کوئی مأخذ نہیں ملا۔
 
-collect-invalid-component-type = `<{ $component }>` قسم کے اجزا جمع نہیں کیے جا سکتے کیونکہ یہ ناجائز قسم ہے۔
+collect-invalid-component-type = `<{ $component }>` قسم کے اجزا جمع نہیں کیے جا سکتے کیونکہ یہ نامعتبر قسم ہے۔
 
 reference-index-unavailable = اشاریے `{ $reference }` کا حوالہ نہیں دیا جا سکتا
 
@@ -296,7 +300,7 @@ component-action-unavailable = جزو `{ $reference }` پر { $action } نہیں
 
 ## `<dataFrame>`
 
-data-frame-inconsistent-row-lengths = ڈیٹا کی ساخت ناجائز ہے۔ سطروں کی لمبائیاں یکساں نہیں۔ componentIdx :{ $componentIdx } پر ملا
+data-frame-inconsistent-row-lengths = ڈیٹا کی ساخت نامعتبر ہے۔ سطروں کی لمبائیاں یکساں نہیں۔ componentIdx :{ $componentIdx } پر ملا
 
 data-frame-duplicate-column-names = ڈیٹا میں کالموں کے نام دہرائے گئے ہیں۔ componentIdx :{ $componentIdx } پر ملا
 
@@ -310,9 +314,13 @@ answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` وا
 
 nested-section-wide-check-work-max-num-attempts = ایسے ظرف پر `maxNumAttempts` مقرر کرنے کا کوئی اثر نہیں جو `sectionWideCheckWork` رکھتا ہو اور خود ایک اور ایسے ہی ظرف کے اندر ہو، کیونکہ کوششوں کی تعداد بیرونی ظرف طے کرتا ہے۔ `maxNumAttempts` بیرونی ظرف پر مقرر کریں۔
 
-answer-attributes-need-symbolic-equality = symbolicEquality مقرر کیے بغیر { $attributes } صفات کا کوئی اثر نہیں ہوگا۔
+answer-attributes-need-symbolic-equality =
+    { $attributesCount ->
+        [one] symbolicEquality مقرر کیے بغیر { $attributes } صفت کا کوئی اثر نہیں ہوگا۔
+       *[other] symbolicEquality مقرر کیے بغیر { $attributes } صفات کا کوئی اثر نہیں ہوگا۔
+    }
 
-answer-invalid-type = جواب کے لیے ناجائز قسم: { $type }
+answer-invalid-type = جواب کے لیے نامعتبر قسم: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
@@ -324,25 +332,29 @@ conditional-content-condition-ignored = ایسے `<conditionalContent>` جزو �
 
 slider-markers-type-mismatch = نشانوں کی قسم سلائیڈر کی قسم سے نہیں ملتی۔
 
-pretzel-problem-needs-statement-and-answer = ناجائز pretzel: ہر `<problem>` میں ایک `<statement>` اور ایک `<answer>` ہونا چاہیے۔
+pretzel-problem-needs-statement-and-answer = نامعتبر pretzel: ہر `<problem>` میں ایک `<statement>` اور ایک `<answer>` ہونا چاہیے۔
 
-pretzel-circuit-first-problem-distractor = ناجائز pretzel: mode="circuit" میں پہلا `<problem>` توجہ بٹانے والا نہیں ہو سکتا۔
+pretzel-circuit-first-problem-distractor = نامعتبر pretzel: mode="circuit" میں پہلا `<problem>` توجہ بٹانے والا نہیں ہو سکتا۔
 
 ## Attribute values
 
-attribute-invalid-values = صفت `{ $attribute }` کے لیے { $values } قیمتیں ناجائز ہیں؛ انہیں نظرانداز کیا جا رہا ہے۔
+attribute-invalid-values =
+    { $valuesCount ->
+        [one] صفت `{ $attribute }` کے لیے قیمت { $values } نامعتبر ہے؛ اسے نظرانداز کیا جا رہا ہے۔
+       *[other] صفت `{ $attribute }` کے لیے قیمتیں { $values } نامعتبر ہیں؛ انہیں نظرانداز کیا جا رہا ہے۔
+    }
 
-attribute-must-be-references = صفت `{ $attribute }` کے لیے قیمت `{ $value }` ناجائز ہے۔ صفت ایسے حوالوں سے بننی چاہیے جو `$` سے شروع ہوں۔
+attribute-must-be-references = صفت `{ $attribute }` کے لیے قیمت `{ $value }` نامعتبر ہے۔ صفت ایسے حوالوں سے بننی چاہیے جو `$` سے شروع ہوں۔
 
-math-input-invalid-function-names = <mathInput>: { $attribute } میں ناجائز دالوں کے نام نظرانداز کیے گئے: { $names }۔ ہر نام کا نمایاں حصہ کم از کم دو حروف کا ہونا چاہیے (حروف یا ڈیش)؛ اس کے بعد اختیاری لاحقہ `|<mathspeak alternative>` آ سکتا ہے۔
+math-input-invalid-function-names = <mathInput>: { $attribute } میں نامعتبر دالوں کے نام نظرانداز کیے گئے: { $names }۔ ہر نام کا نمایاں حصہ کم از کم دو حروف کا ہونا چاہیے (حروف یا ڈیش)؛ اس کے بعد اختیاری لاحقہ `|<mathspeak alternative>` آ سکتا ہے۔
 
 ## Building components from the source
 
-component-type-invalid = ناجائز قسم کا جزو: `<{ $componentType }>`
+component-type-invalid = نامعتبر قسم کا جزو: `<{ $componentType }>`
 
 attribute-repeated = صفت { $attribute } کو دہرایا نہیں جا سکتا۔
 
-attribute-invalid-for-component = `<{ $componentType }>` قسم کے جزو کے لیے صفت "{ $attribute }" ناجائز ہے۔
+attribute-invalid-for-component = `<{ $componentType }>` قسم کے جزو کے لیے صفت "{ $attribute }" نامعتبر ہے۔
 
 ## Style definition contrast
 
@@ -436,13 +448,13 @@ prefigure-marker-style-unsupported = { $subject }: نشان کا اسلوب '{ $
 
 ## PreFigure annotations
 
-annotation-ref-unresolvable = `<annotation>`: `ref` ناجائز ہے؛ ہدف طے نہیں ہو سکا۔ حاشیہ چھوڑ دیا گیا۔
+annotation-ref-unresolvable = `<annotation>`: `ref` نامعتبر ہے؛ ہدف طے نہیں ہو سکا۔ حاشیہ چھوڑ دیا گیا۔
 
 annotation-ref-multiple-targets = `<annotation>`: `ref` ایک سے زیادہ ہدف تک پہنچا؛ پہلا ہدف استعمال کیا جا رہا ہے۔
 
-annotation-ref-outside-graph = `<annotation>`: `ref` ناجائز ہے؛ ہدف اپنے خاکے سے باہر ہے۔ حاشیہ چھوڑ دیا گیا۔
+annotation-ref-outside-graph = `<annotation>`: `ref` نامعتبر ہے؛ ہدف اپنے خاکے سے باہر ہے۔ حاشیہ چھوڑ دیا گیا۔
 
-annotation-ref-unsupported-target = `<annotation>`: `ref` ناجائز ہے؛ ہدف prefigure میں تبدیلی کے لیے معاون گرافیکی شے نہیں۔ حاشیہ چھوڑ دیا گیا۔
+annotation-ref-unsupported-target = `<annotation>`: `ref` نامعتبر ہے؛ ہدف prefigure میں تبدیلی کے لیے معاون گرافیکی شے نہیں۔ حاشیہ چھوڑ دیا گیا۔
 
 annotation-text-missing = `<annotation>`: `text` غائب یا خالی ہے؛ خالی متن دیا جا رہا ہے۔
 
@@ -460,13 +472,13 @@ reference-multiple-referents = حوالے کے لیے ایک سے زیادہ م�
 
 ## Children that do not match
 
-children-invalid-attribute-format = `<{ $componentType }>` کی { $attribute } صفت کی ساخت ناجائز ہے۔
+children-invalid-attribute-format = `<{ $componentType }>` کی { $attribute } صفت کی ساخت نامعتبر ہے۔
 
-children-invalid = `<{ $componentType }>` کے لیے ناجائز بچے: ناجائز بچے ملے: { $children }
+children-invalid = `<{ $componentType }>` کے لیے نامعتبر بچے: نامعتبر بچے ملے: { $children }
 
 ## Falling back to a default
 
-attribute-value-invalid-using-default = صفت `{ $attribute }` کے لیے قیمت `{ $value }` ناجائز ہے، قیمت `{ $default }` استعمال کی جا رہی ہے
+attribute-value-invalid-using-default = صفت `{ $attribute }` کے لیے قیمت `{ $value }` نامعتبر ہے، قیمت `{ $default }` استعمال کی جا رہی ہے
 
 ## Loading a DoenetML version
 
@@ -478,49 +490,49 @@ doenetml-version-not-found =
 
 ## Reading the DoenetML
 
-parse-invalid-doenetml = ناجائز DoenetML: { $content }
+parse-invalid-doenetml = نامعتبر DoenetML: { $content }
 
-parse-tag-missing-close-tag = ناجائز DoenetML: ٹیگ `{ $tag }` کا اختتامی ٹیگ نہیں۔ خود بند ہونے والا ٹیگ یا `</{ $tagName }>` ٹیگ متوقع تھا۔
+parse-tag-missing-close-tag = نامعتبر DoenetML: ٹیگ `{ $tag }` کا اختتامی ٹیگ نہیں۔ خود بند ہونے والا ٹیگ یا `</{ $tagName }>` ٹیگ متوقع تھا۔
 
-parse-tag-error = ناجائز DoenetML: ٹیگ `<{ $tagName }>` میں خرابی
+parse-tag-error = نامعتبر DoenetML: ٹیگ `<{ $tagName }>` میں خرابی
 
-parse-attribute-missing-value = ناجائز DoenetML: لگتا ہے ناجائز صفت `{ $attribute }` کی قیمت غائب ہے۔
+parse-attribute-missing-value = نامعتبر DoenetML: لگتا ہے نامعتبر صفت `{ $attribute }` کی قیمت غائب ہے۔
 
-parse-attribute-invalid = ناجائز DoenetML: صفت `{ $attribute }` ناجائز ہے
+parse-attribute-invalid = نامعتبر DoenetML: صفت `{ $attribute }` نامعتبر ہے
 
-parse-attribute-value-invalid = ناجائز DoenetML: صفت کی قیمت `{ $value }` ناجائز ہے
+parse-attribute-value-invalid = نامعتبر DoenetML: صفت کی قیمت `{ $value }` نامعتبر ہے
 
-parse-attribute-value-quote-mismatch = ناجائز DoenetML: صفت کی قیمت `{ $value }` ناجائز ہے۔ واوین آپس میں نہیں ملتے۔ لگتا ہے ایک `{ $quote }` غائب ہے
+parse-attribute-value-quote-mismatch = نامعتبر DoenetML: صفت کی قیمت `{ $value }` نامعتبر ہے۔ واوین آپس میں نہیں ملتے۔ لگتا ہے ایک `{ $quote }` غائب ہے
 
-parse-open-tag-name-missing = ناجائز DoenetML: بغیر نام کا ٹیگ ملا، جیسے `<`
+parse-open-tag-name-missing = نامعتبر DoenetML: بغیر نام کا ٹیگ ملا، جیسے `<`
 
-parse-tag-not-closed = ناجائز DoenetML: ٹیگ `{ $tag }` بند نہیں ہوا (لگتا ہے `>` غائب ہے)۔
+parse-tag-not-closed = نامعتبر DoenetML: ٹیگ `{ $tag }` بند نہیں ہوا (لگتا ہے `>` غائب ہے)۔
 
-parse-self-closing-tag-name-missing = ناجائز DoenetML: بغیر نام کا ٹیگ ملا `<{ $content }>`
+parse-self-closing-tag-name-missing = نامعتبر DoenetML: بغیر نام کا ٹیگ ملا `<{ $content }>`
 
-parse-self-closing-tag-not-closed = ناجائز DoenetML: ٹیگ `{ $tag }` بند نہیں ہوا (لگتا ہے `/>` غائب ہے)۔
+parse-self-closing-tag-not-closed = نامعتبر DoenetML: ٹیگ `{ $tag }` بند نہیں ہوا (لگتا ہے `/>` غائب ہے)۔
 
-parse-tag-invalid-attributes = ناجائز DoenetML: ٹیگ `{ $tag }` جائز نہیں۔ ہو سکتا ہے اس کی صفات غلط ہوں۔
+parse-tag-invalid-attributes = نامعتبر DoenetML: ٹیگ `{ $tag }` جائز نہیں۔ ہو سکتا ہے اس کی صفات غلط ہوں۔
 
-parse-close-tag-name-missing = ناجائز DoenetML: بغیر نام کا اختتامی ٹیگ ملا، جیسے `</`
+parse-close-tag-name-missing = نامعتبر DoenetML: بغیر نام کا اختتامی ٹیگ ملا، جیسے `</`
 
 parse-attribute-value-unquoted = صفات کی قیمتیں واوین کے اندر ہونی چاہئیں: `{ $attribute }="{ $value }"`
 
-parse-close-tag-without-open-tag = ناجائز DoenetML: اختتامی ٹیگ `{ $tag }` ملا، مگر اس کا کوئی ابتدائی ٹیگ نہیں
+parse-close-tag-without-open-tag = نامعتبر DoenetML: اختتامی ٹیگ `{ $tag }` ملا، مگر اس کا کوئی ابتدائی ٹیگ نہیں
 
-parse-close-tag-mismatched = ناجائز DoenetML: اختتامی ٹیگ میل نہیں کھاتا۔ `</{ $expected }>` متوقع تھا۔ `{ $found }` ملا
+parse-close-tag-mismatched = نامعتبر DoenetML: اختتامی ٹیگ میل نہیں کھاتا۔ `</{ $expected }>` متوقع تھا۔ `{ $found }` ملا
 
 parser-node-unconvertible = گرہ { $node } کو Dast گرہ میں تبدیل نہیں کیا جا سکا۔
 
 ## Names
 
 name-attribute-invalid =
-    صفت name='{ $name }' ناجائز ہے۔ { $reason ->
+    صفت name='{ $name }' نامعتبر ہے۔ { $reason ->
         [characters] ناموں میں صرف حروف، ہندسے، زیریں خط یا ڈیش ہو سکتے ہیں۔
        *[start] نام حرف سے شروع ہونے چاہئیں۔
     }
 
-component-name-invalid-start = جزو کا نام "{ $name }" ناجائز ہے۔ نام حرف سے شروع ہونے چاہئیں۔
+component-name-invalid-start = جزو کا نام "{ $name }" نامعتبر ہے۔ نام حرف سے شروع ہونے چاہئیں۔
 
 ## `<answer>` sugar
 
@@ -536,7 +548,7 @@ external-doenetml-recursion-limit = بہت زیادہ تکرار کی وجہ س�
 
 external-doenetml-unavailable = { $attribute }="{ $uri }" سے DoenetML حاصل نہیں ہو سکا
 
-external-doenetml-type-mismatch = { $attribute }="{ $uri }" سے حاصل کیا گیا DoenetML ناجائز ہے: یہ "{ $componentType }" قسم سے نہیں ملتا
+external-doenetml-type-mismatch = { $attribute }="{ $uri }" سے حاصل کیا گیا DoenetML نامعتبر ہے: یہ "{ $componentType }" قسم سے نہیں ملتا
 
 ## Deprecated syntax
 
@@ -579,7 +591,7 @@ schema-attribute-value-not-allowed =
 
 ## The `<select>` family's error boxes
 
-select-variant-name-option-count-mismatch = select کے لیے ناجائز نسخے کا نام۔ نسخے کا نام { $variantName } { $numOptions } اختیارات میں آتا ہے مگر منتخب کرنے کی تعداد { $numToSelect } ہے۔
+select-variant-name-option-count-mismatch = select کے لیے نامعتبر نسخے کا نام۔ نسخے کا نام { $variantName } { $numOptions } اختیارات میں آتا ہے مگر منتخب کرنے کی تعداد { $numToSelect } ہے۔
 
 select-variant-name-without-options = select کے لیے کچھ نسخے مقرر ہیں مگر ممکنہ نسخے کے نام کے لیے کوئی اختیار مقرر نہیں: { $variantName }۔
 

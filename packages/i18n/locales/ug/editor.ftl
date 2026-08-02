@@ -76,7 +76,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = DoenetML نۇسخىسى { $version }
+editor-version-title = DoenetML نەشرى { $version }
 
 editor-tab-help = مۇھىتقا ماس ياردەم
 editor-tab-help-short = مۇھىت

@@ -144,6 +144,12 @@ noun-regular-polygon =
        *[head] מצולע משוכלל
     }
 
+# Besides the nouns above, `$noun` may be «regular-polygon» (מצולע משוכלל, m) or
+# the head of a phrase the description never names: «border» (מסגרת, f), «fill»
+# (מילוי, m), «text» (טקסט, m), «background» (רקע, m). Only the first of those
+# is feminine, and it has to be listed — «מסגרת» is the noun the border clause
+# writes, so without it a border is described «עם מסגרת אדום» rather than «עם
+# מסגרת אדומה».
 noun-gender =
     { $noun ->
         [ray] f
@@ -151,6 +157,7 @@ noun-gender =
         [function] f
         [parabola] f
         [point] f
+        [border] f
        *[other] m
     }
 

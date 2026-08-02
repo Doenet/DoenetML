@@ -236,7 +236,7 @@ parabola-vertex-too-many-points = مقرر ٿيل چوٽيءَ سان هڪ کا�
 
 parabola-too-many-points = 3 کان وڌيڪ نقطن مان لنگهندڙ پيرابولا نافذ ناهي.
 
-intersection-too-many-items = ٻن کان وڌيڪ شين جو ميلاپ نافذ ناهي
+intersection-too-many-items = ٻن کان وڌيڪ شين جو تقاطع نافذ ناهي
 
 ## Other math components
 
@@ -488,7 +488,7 @@ parse-attribute-invalid = ناجائز DoenetML: خاصيت `{ $attribute }` ن�
 
 parse-attribute-value-invalid = ناجائز DoenetML: خاصيت جو قدر `{ $value }` ناجائز آهي
 
-parse-attribute-value-quote-mismatch = ناجائز DoenetML: خاصيت جو قدر `{ $value }` ناجائز آهي. ڪاما ٺهڪي نٿا اچن. لڳي ٿو هڪ `{ $quote }` غائب آهي
+parse-attribute-value-quote-mismatch = ناجائز DoenetML: خاصيت جو قدر `{ $value }` ناجائز آهي. اقتباسي نشان ٺهڪي نٿا اچن. لڳي ٿو هڪ `{ $quote }` غائب آهي
 
 parse-open-tag-name-missing = ناجائز DoenetML: بغير نالي وارو ٽيگ مليو، جيئن `<`
 
@@ -502,7 +502,7 @@ parse-tag-invalid-attributes = ناجائز DoenetML: ٽيگ `{ $tag }` جائز
 
 parse-close-tag-name-missing = ناجائز DoenetML: بغير نالي وارو بند ٿيندڙ ٽيگ مليو، جيئن `</`
 
-parse-attribute-value-unquoted = خاصيتن جا قدر ڪامن اندر هجڻ گهرجن: `{ $attribute }="{ $value }"`
+parse-attribute-value-unquoted = خاصيتن جا قدر اقتباسي نشانن اندر هجڻ گهرجن: `{ $attribute }="{ $value }"`
 
 parse-close-tag-without-open-tag = ناجائز DoenetML: بند ٿيندڙ ٽيگ `{ $tag }` مليو، پر ان جو ڪو کلندڙ ٽيگ ناهي
 

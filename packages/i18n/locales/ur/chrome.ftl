@@ -102,7 +102,7 @@ summary-statistics-caption = کالم { $column } کا شماریاتی خلاص
 
 math-input-preview-region = ریاضیاتی اظہار کا پیش نظارہ
 math-input-preview = پیش نظارہ
-math-input-invalid-expression = ناجائز اظہار:
+math-input-invalid-expression = نامعتبر اظہار:
 
 
 ## Document status

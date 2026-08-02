@@ -14,9 +14,12 @@
 # own separators with its own digits and Latin separators with Latin digits, so
 # pinning the digits pins the separators with them.
 #
-# Adjectives follow their noun, joined by the ezāfe, which is not written. So
-# `style-with-noun` reverses the two halves and the space between them carries
-# the link.
+# Adjectives follow their noun, joined by the ezāfe. After a consonant it is an
+# unwritten vowel, so `style-with-noun` reverses the two halves and the space
+# between them carries the link. After a word ending in a vowel it *is* written
+# — «حاشیهٔ», «پس‌زمینهٔ» — which is why the nouns this file spells out carry it
+# and the ones handed in through `$noun` cannot: a placeable is not a word, and
+# nothing can be attached to it. See the note on `style-fill` below.
 
 
 ## Style vocabulary

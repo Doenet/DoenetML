@@ -236,7 +236,7 @@ parabola-vertex-too-many-points = له ټاکل شوي راس سره هغه پا
 
 parabola-too-many-points = له 3 څخه زیاتو ټکو تېرېدونکې پارابولا نه ده چمتو شوې.
 
-intersection-too-many-items = د دوو څخه زیاتو څیزونو پرېکړه نه ده چمتو شوې
+intersection-too-many-items = د دوو څخه زیاتو څیزونو تقاطع نه ده چمتو شوې
 
 ## Other math components
 

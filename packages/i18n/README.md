@@ -838,9 +838,13 @@ Three things recur across them, none a property of the direction:
 - **Plural categories.** Fluent selects through `Intl.PluralRules`, so an
   Arabic `{ $count -> … }` has `zero`, `one`, `two`, `few`, `many` and `other`
   where English has two branches, and Hebrew has `one`, `two` and `other`. Only
-  Arabic has a `zero` category; everywhere else `other` covers none, so a
-  message wanting a separate wording for it says `[0]` by number, as the
-  English does — Fluent matches an explicit number before consulting the rules.
+  Arabic has a `zero` category, and which branch catches none elsewhere is not
+  worth guessing: it is `other` in Hebrew, Urdu, Pashto, Sindhi and Uyghur but
+  `one` in Persian, whose rule counts zero with the singular. That is why a
+  message wanting a separate wording for none says `[0]` by number, as the
+  English does, rather than reaching for a category — Fluent matches an
+  explicit number before it consults the rules, so the branch is right whatever
+  the locale would otherwise have chosen.
 - **An affix cannot be welded to a placeable.** Arabic attaches «لـ» and «بـ»
   to the word after them and Uyghur attaches its case endings to the word
   before, and in each case there is no word — there is an argument. So a

@@ -15,9 +15,13 @@
 # bidi algorithm turns them around when the text is drawn.
 #
 # Uyghur marks its cases with suffixes, and a suffix cannot attach to a
-# placeable. Where English reads "for `<{ $component }>`", the Uyghur uses a
-# postposition — «ئۈچۈن», «بىلەن», «غا» written as its own word after a Latin
-# name — which is what Uyghur does with a foreign word anyway.
+# placeable. Where English reads "for `<{ $component }>`", the Uyghur either
+# reaches for a real postposition — «ئۈچۈن», «بىلەن», each a word of its own
+# that can stand beside a placeable — or writes the dative «غا» detached after
+# the argument, which is what Uyghur does with a Latin-script foreign word
+# anyway. «غا» is a case suffix rather than a postposition, so detaching it is
+# the concession the placeable forces; it is left unharmonized, since the word
+# it follows is not known here.
 #
 # Where English distinguishes a singular from a plural only in the verb — "is
 # ignored" against "are ignored" — Uyghur says one thing, and the select is

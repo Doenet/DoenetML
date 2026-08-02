@@ -193,8 +193,8 @@ help-inserts = داخل کرتا ہے:
 
 help-coordinates =
     { $count ->
-        [one] محور:
-       *[other] محاور:
+        [one] متناسق:
+       *[other] متناسقات:
     }
 
 help-type = قسم:
