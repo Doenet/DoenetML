@@ -119,10 +119,10 @@ line-style =
         }
 
 # Fill patterns are plural nouns rather than adjectives, so they do not agree
-# with the shape and take no `$gender` branch. A colour word beside one agrees
-# with it as a feminine singular, which is what Arabic does with a non-human
-# plural — and which the colour already is, since `describeFill` looks it up
-# under the gender of «تعبئة».
+# with the shape and take no `$gender` branch. The colour handed in beside one
+# agrees with the head of its phrase instead, never with the pattern: the shape
+# in `style-filled`, and «ملء», which is masculine, in `style-fill` — see the
+# note on that message.
 fill-style =
     .horizontal = خطوط أفقية
     .vertical = خطوط رأسية

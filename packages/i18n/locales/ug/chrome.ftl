@@ -53,8 +53,8 @@ answer-show-responses = { $answerId } غا يوللانغان { $count } جاۋ�
 
 feedback-heading = ئىنكاس
 
-collapsible-click-to-open = (ئېچىش ئۈچۈن چېكىڭ)
-collapsible-click-to-close = (يېپىش ئۈچۈن چېكىڭ)
+collapsible-click-to-open = (ئېچىش ئۈچۈن چېكىش)
+collapsible-click-to-close = (يېپىش ئۈچۈن چېكىش)
 collapsible-initializing = تەييارلىنىۋاتىدۇ...
 
 footnote-show = بەت ئىزاھاتىنى كۆرسىتىش

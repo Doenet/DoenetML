@@ -9,8 +9,8 @@
 # Register as in `chrome.ftl`: the polite plural.
 #
 # Counting as in `chrome.ftl` too: a Sindhi noun after a numeral takes the
-# plural, so `editor-accessibility-label` — the one counted message in this
-# file — branches on `one` rather than reporting «1 ڀڃڪڙيون».
+# plural, so `editor-accessibility-label` branches on `one` rather than
+# reporting «1 ڀڃڪڙيون».
 #
 # Where English interpolates a bare verb — "Click to { $action } accessibility
 # report" — Sindhi puts its verb at the end of the clause and cannot take one

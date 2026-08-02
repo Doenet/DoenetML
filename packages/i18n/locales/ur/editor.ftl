@@ -8,10 +8,12 @@
 #
 # Register as in `chrome.ftl`: the polite plural, and «۔» for a full stop.
 #
-# Counting as in `chrome.ftl` too: an Urdu noun after a numeral does not
-# change, so `editor-accessibility-label` — the one counted message in this
-# file — says «{ $count } خلاف ورزی» whatever the count is, and needs no
-# branch.
+# Counting as in `chrome.ftl` too, and it turns on whether a numeral is
+# actually there: an Urdu noun after one does not change, so
+# `editor-accessibility-label` says «{ $count } خلاف ورزی» whatever the count
+# is and needs no branch. `help-coordinates`, the file's other counted message,
+# heads a list rather than counting one, so it takes the ordinary plural and
+# keeps the branch English has.
 #
 # Where English interpolates a bare verb — "Click to { $action } accessibility
 # report" — Urdu puts its verb at the end of the clause and cannot take one
