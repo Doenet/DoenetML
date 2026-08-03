@@ -872,12 +872,10 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
-    // Gujarati forks on gender in all four positions and on case in none: an
-    // adjective in front of a postposition is spelled exactly as it is
-    // standing alone. So both of its border forms read alike, and what the
-    // fork buys is agreement with the right noun — feminine «કિનારી» for the
-    // border against neuter «વર્તુળ» for the shape it surrounds, in one
-    // sentence.
+    // Gujarati inflects for gender and for no case at all, so it selects on
+    // `$gender` alone and both of its border forms read alike. What the gender
+    // buys is agreement with the right noun — feminine «કિનારી» for the border
+    // against neuter «વર્તુળ» for the shape it surrounds, in one sentence.
     it("gives Gujarati a border that agrees with the border, not the shape", () => {
         expect(bothBorderForms(gu)).toEqual({
             standalone: "જાડી કાળી",
@@ -886,9 +884,10 @@ describe("a phrase rendered in two positions", () => {
     });
 
     // Punjabi is Hindi's mirror image across the two guards below. Its border
-    // is feminine «ਕਿਨਾਰੀ`, and a feminine -ੀ is spelled alike direct and
+    // is feminine «ਕਿਨਾਰੀ», and a feminine -ੀ is spelled alike direct and
     // oblique, so the border does not move; its background is masculine
-    // «ਪਿਛੋਕੜ», so the colour in front of ਉੱਤੇ does.
+    // «ਪਿਛੋਕੜ», so the colour in front of ਉੱਤੇ does. That is why
+    // `background-clause` is the one `$role` branch its catalog writes out.
     it("gives Punjabi an unchanged border and an oblique background", () => {
         expect(bothBorderForms(pa)).toEqual({
             standalone: "ਮੋਟੀ ਕਾਲੀ",
@@ -904,8 +903,9 @@ describe("a phrase rendered in two positions", () => {
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
-        // Gujarati and Punjabi are absent: neither inflects a border for case,
-        // and both are asserted spelling it alike in the two cases above.
+        // Gujarati and Punjabi are absent: neither inflects a border for case
+        // — Gujarati inflects for none, and Punjabi's border is feminine — and
+        // both are asserted spelling it alike in the two cases above.
         for (const t of [de, ru, pl, hi, mr]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);

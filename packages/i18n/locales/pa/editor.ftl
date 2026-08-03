@@ -193,11 +193,9 @@ help-suggested-values = ਸੁਝਾਏ ਮੁੱਲ:
 
 help-inserts = ਜੋੜਦਾ ਹੈ:
 
-help-coordinates =
-    { $count ->
-        [one] ਨਿਰਦੇਸ਼ਾਂਕ:
-       *[other] ਨਿਰਦੇਸ਼ਾਂਕ:
-    }
+# «ਨਿਰਦੇਸ਼ਾਂਕ» reads as one coordinate or as several, so `$count` selects
+# nothing and the branch is dropped.
+help-coordinates = ਨਿਰਦੇਸ਼ਾਂਕ:
 
 help-type = ਕਿਸਮ:
 

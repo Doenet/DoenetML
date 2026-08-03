@@ -13,17 +13,13 @@
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] രണ്ട് അഗ്രബിന്ദുക്കൾ നൽകുമ്പോൾ { $attributes } അവഗണിക്കപ്പെടുന്നു
-       *[other] രണ്ട് അഗ്രബിന്ദുക്കൾ നൽകുമ്പോൾ { $attributes } അവഗണിക്കപ്പെടുന്നു
-    }
+# English separates these two only in the verb — "is ignored" against "are
+# ignored" — and Malayalam covers both with one form, so the count selects
+# nothing and the branch is dropped. `$attributesCount` goes unused here, as it
+# does wherever a language makes no such distinction.
+line-segment-attributes-ignored-with-endpoints = രണ്ട് അഗ്രബിന്ദുക്കൾ നൽകുമ്പോൾ { $attributes } അവഗണിക്കപ്പെടുന്നു
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] ഒരു അഗ്രബിന്ദുവും ഒരു മധ്യബിന്ദുവും നൽകുമ്പോൾ { $attributes } അവഗണിക്കപ്പെടുന്നു
-       *[other] ഒരു അഗ്രബിന്ദുവും ഒരു മധ്യബിന്ദുവും നൽകുമ്പോൾ { $attributes } അവഗണിക്കപ്പെടുന്നു
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = ഒരു അഗ്രബിന്ദുവും ഒരു മധ്യബിന്ദുവും നൽകുമ്പോൾ { $attributes } അവഗണിക്കപ്പെടുന്നു
 
 line-segment-midpoint-offset-without-midpoint = മധ്യബിന്ദു ഇല്ലാതെ midpointOffset നു ഒരു ഫലവുമില്ല
 

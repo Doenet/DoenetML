@@ -34,10 +34,13 @@ answer-percent-short = { $percent }%
 
 max-credit-available = Pinakamataas na puntos na maaaring makuha: { $percent }%
 
+# A Filipino noun after a numeral stays singular, so the `[one]` branch would
+# repeat `[other]` and is dropped. `[0]` is written by number rather than by
+# category, exactly as the English is: Fluent matches an explicit number before
+# it consults the plural rules.
 attempts-remaining =
     { $count ->
         [0] wala nang natitirang pagsubok
-        [one] { $count } pagsubok na lang ang natitira
        *[other] { $count } pagsubok na lang ang natitira
     }
 

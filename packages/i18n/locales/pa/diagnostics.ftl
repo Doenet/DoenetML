@@ -161,16 +161,14 @@ circle-change-center-non-numerical = ਸੰਖਿਆਤਮਕ ਮੁੱਲ ਤ�
 
 ## `<function>`
 
+# The interval count picks the copula — ਹੈ against ਹਨ — so that select stays.
+# The inner one does not: «ਇਨਪੁਟ» and «ਆਉਟਪੁਟ» are loanwords that take no
+# plural after a numeral, so both branches read alike and the select is
+# dropped.
 function-domain-insufficient-dimensions =
     { $intervals ->
-        [one] ਫਲਨ ਦੇ ਖੇਤਰ ਲਈ ਕਾਫ਼ੀ ਪਸਾਰ ਨਹੀਂ। ਖੇਤਰ ਵਿੱਚ { $intervals } ਅੰਤਰਾਲ ਹੈ, ਪਰ ਫਲਨ ਦੇ { $inputs ->
-            [one] { $inputs } ਇਨਪੁਟ
-           *[other] { $inputs } ਇਨਪੁਟ
-        } ਹਨ।
-       *[other] ਫਲਨ ਦੇ ਖੇਤਰ ਲਈ ਕਾਫ਼ੀ ਪਸਾਰ ਨਹੀਂ। ਖੇਤਰ ਵਿੱਚ { $intervals } ਅੰਤਰਾਲ ਹਨ, ਪਰ ਫਲਨ ਦੇ { $inputs ->
-            [one] { $inputs } ਇਨਪੁਟ
-           *[other] { $inputs } ਇਨਪੁਟ
-        } ਹਨ।
+        [one] ਫਲਨ ਦੇ ਖੇਤਰ ਲਈ ਕਾਫ਼ੀ ਪਸਾਰ ਨਹੀਂ। ਖੇਤਰ ਵਿੱਚ { $intervals } ਅੰਤਰਾਲ ਹੈ, ਪਰ ਫਲਨ ਦੇ { $inputs } ਇਨਪੁਟ ਹਨ।
+       *[other] ਫਲਨ ਦੇ ਖੇਤਰ ਲਈ ਕਾਫ਼ੀ ਪਸਾਰ ਨਹੀਂ। ਖੇਤਰ ਵਿੱਚ { $intervals } ਅੰਤਰਾਲ ਹਨ, ਪਰ ਫਲਨ ਦੇ { $inputs } ਇਨਪੁਟ ਹਨ।
     }
 
 function-domain-invalid-format = ਫਲਨ ਦੇ ਖੇਤਰ ਲਈ ਗਲਤ ਰੂਪ।
@@ -196,17 +194,7 @@ function-ignoring-empty =
 
 function-points-too-close = ਫਲਨ ਵਿੱਚ ਬਹੁਤ ਨੇੜੇ-ਨੇੜੇ ਦੋ ਬਿੰਦੂ ਹਨ। ਫਲਨ ਪਰਿਭਾਸ਼ਿਤ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ।
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] ਫਲਨ ਦੇ ਇਨਪੁਟਾਂ ਦੀ ਗਿਣਤੀ ਆਉਟਪੁਟਾਂ ਦੀ ਗਿਣਤੀ ਬਰਾਬਰ ਹੋਵੇ ਤਾਂ ਹੀ ਫਲਨ ਦੁਹਰਾਓ ਸੰਭਵ ਹਨ। ਇਸ ਫਲਨ ਦੇ { $inputs } ਇਨਪੁਟ ਅਤੇ { $outputs ->
-            [one] { $outputs } ਆਉਟਪੁਟ
-           *[other] { $outputs } ਆਉਟਪੁਟ
-        } ਹਨ।
-       *[other] ਫਲਨ ਦੇ ਇਨਪੁਟਾਂ ਦੀ ਗਿਣਤੀ ਆਉਟਪੁਟਾਂ ਦੀ ਗਿਣਤੀ ਬਰਾਬਰ ਹੋਵੇ ਤਾਂ ਹੀ ਫਲਨ ਦੁਹਰਾਓ ਸੰਭਵ ਹਨ। ਇਸ ਫਲਨ ਦੇ { $inputs } ਇਨਪੁਟ ਅਤੇ { $outputs ->
-            [one] { $outputs } ਆਉਟਪੁਟ
-           *[other] { $outputs } ਆਉਟਪੁਟ
-        } ਹਨ।
-    }
+function-iterates-input-output-mismatch = ਫਲਨ ਦੇ ਇਨਪੁਟਾਂ ਦੀ ਗਿਣਤੀ ਆਉਟਪੁਟਾਂ ਦੀ ਗਿਣਤੀ ਬਰਾਬਰ ਹੋਵੇ ਤਾਂ ਹੀ ਫਲਨ ਦੁਹਰਾਓ ਸੰਭਵ ਹਨ। ਇਸ ਫਲਨ ਦੇ { $inputs } ਇਨਪੁਟ ਅਤੇ { $outputs } ਆਉਟਪੁਟ ਹਨ।
 
 ## `<sequence>`
 

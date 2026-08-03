@@ -8,16 +8,14 @@
 # noun: કાળો m, કાળી f, કાળું n. Adjectives precede the noun, as in English,
 # so only the words change and not their order.
 #
-# `$role` selects before `$gender` does, but not because Gujarati inflects for
-# case — it does not, and an adjective in front of a postposition is spelled
-# exactly as it is standing alone. It selects because each clause position
-# lands on a noun of its own whose gender is fixed:
-#
-#   standalone          agrees with the noun described, so it forks on
-#                       `$gender`
-#   border-clause       કિનારી — feminine: `-ી`
-#   background-clause   પૃષ્ઠભૂમિ — feminine: `-ી`
-#   text-clause         લખાણ — neuter: `-ું`
+# `$role` goes unused, as it does in English: Gujarati does not inflect for
+# case, and an adjective in front of a postposition is spelled exactly as it is
+# standing alone. `$gender` alone carries every distinction the four positions
+# make, because each already arrives with the gender of the noun it lands on —
+# કિનારી f for `border-clause`, પૃષ્ઠભૂમિ f for `background-clause`, લખાણ n for
+# `text-clause`, and the noun described for `standalone`. That is what
+# `noun-gender` below is answering when it is asked about a head the
+# description never names.
 #
 # Half the colour words do not agree at all. લાલ, સફેદ, રાખોડી, નારંગી,
 # આસમાની, જાંબલી, ગુલાબી and કથ્થઈ end in a consonant or in -ી and are
@@ -36,44 +34,26 @@
 
 color =
     .black =
-        { $role ->
-            [border-clause] કાળી
-            [background-clause] કાળી
-            [text-clause] કાળું
-           *[standalone]
-                { $gender ->
-                    [f] કાળી
-                    [n] કાળું
-                   *[m] કાળો
-                }
+        { $gender ->
+            [f] કાળી
+            [n] કાળું
+           *[m] કાળો
         }
     .white = સફેદ
     .gray = રાખોડી
     .red = લાલ
     .orange = નારંગી
     .yellow =
-        { $role ->
-            [border-clause] પીળી
-            [background-clause] પીળી
-            [text-clause] પીળું
-           *[standalone]
-                { $gender ->
-                    [f] પીળી
-                    [n] પીળું
-                   *[m] પીળો
-                }
+        { $gender ->
+            [f] પીળી
+            [n] પીળું
+           *[m] પીળો
         }
     .green =
-        { $role ->
-            [border-clause] લીલી
-            [background-clause] લીલી
-            [text-clause] લીલું
-           *[standalone]
-                { $gender ->
-                    [f] લીલી
-                    [n] લીલું
-                   *[m] લીલો
-                }
+        { $gender ->
+            [f] લીલી
+            [n] લીલું
+           *[m] લીલો
         }
     .cyan = આસમાની
     .blue = વાદળી
@@ -83,44 +63,26 @@ color =
 
 line-width =
     .thick =
-        { $role ->
-            [border-clause] જાડી
-            [background-clause] જાડી
-            [text-clause] જાડું
-           *[standalone]
-                { $gender ->
-                    [f] જાડી
-                    [n] જાડું
-                   *[m] જાડો
-                }
+        { $gender ->
+            [f] જાડી
+            [n] જાડું
+           *[m] જાડો
         }
     .thin =
-        { $role ->
-            [border-clause] પાતળી
-            [background-clause] પાતળી
-            [text-clause] પાતળું
-           *[standalone]
-                { $gender ->
-                    [f] પાતળી
-                    [n] પાતળું
-                   *[m] પાતળો
-                }
+        { $gender ->
+            [f] પાતળી
+            [n] પાતળું
+           *[m] પાતળો
         }
 
 # તૂટક ends in a consonant and never changes; ટપકાંવાળો does.
 line-style =
     .dashed = તૂટક
     .dotted =
-        { $role ->
-            [border-clause] ટપકાંવાળી
-            [background-clause] ટપકાંવાળી
-            [text-clause] ટપકાંવાળું
-           *[standalone]
-                { $gender ->
-                    [f] ટપકાંવાળી
-                    [n] ટપકાંવાળું
-                   *[m] ટપકાંવાળો
-                }
+        { $gender ->
+            [f] ટપકાંવાળી
+            [n] ટપકાંવાળું
+           *[m] ટપકાંવાળો
         }
 
 # Noun phrases: they stand in front of the «સાથે» the composition messages
@@ -202,7 +164,7 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
-# Said only of the shape itself, so it takes no `$role` branch.
+# Said only of the shape itself, so it agrees with the noun described.
 style-filled-word =
     { $gender ->
         [f] ભરેલી

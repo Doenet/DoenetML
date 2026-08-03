@@ -136,7 +136,8 @@ describe("style descriptions follow the document locale @group4", () => {
         // that never changes, which is why only the marker moves. The stroke's
         // own words are લાલ and તૂટક, both invariant, so `bd` and the border
         // inside `sh` read alike: Gujarati inflects for gender and not for the
-        // position a phrase lands in.
+        // position a phrase lands in, so its catalog selects on `$gender`
+        // alone.
         expect(values.stn).eq("જાડી તૂટક લાલ રેખા");
         expect(values.pt).eq("લીલો ચોરસ");
         expect(values.sh).eq(

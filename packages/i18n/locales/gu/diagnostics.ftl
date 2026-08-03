@@ -13,17 +13,13 @@
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] બે અંતિમ બિંદુઓ આપ્યાં હોય ત્યારે { $attributes } અવગણાય છે
-       *[other] બે અંતિમ બિંદુઓ આપ્યાં હોય ત્યારે { $attributes } અવગણાય છે
-    }
+# English separates these two only in the verb — "is ignored" against "are
+# ignored" — and Gujarati covers both with «અવગણાય છે», so the count selects
+# nothing and the branch is dropped. `$attributesCount` goes unused here, as it
+# does wherever a language makes no such distinction.
+line-segment-attributes-ignored-with-endpoints = બે અંતિમ બિંદુઓ આપ્યાં હોય ત્યારે { $attributes } અવગણાય છે
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] એક અંતિમ બિંદુ અને એક મધ્યબિંદુ બંને આપ્યાં હોય ત્યારે { $attributes } અવગણાય છે
-       *[other] એક અંતિમ બિંદુ અને એક મધ્યબિંદુ બંને આપ્યાં હોય ત્યારે { $attributes } અવગણાય છે
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = એક અંતિમ બિંદુ અને એક મધ્યબિંદુ બંને આપ્યાં હોય ત્યારે { $attributes } અવગણાય છે
 
 line-segment-midpoint-offset-without-midpoint = મધ્યબિંદુ વગર midpointOffset ની કોઈ અસર થતી નથી
 
@@ -161,17 +157,12 @@ circle-change-center-non-numerical = સંખ્યાત્મક મૂલ્
 
 ## `<function>`
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] વિધેયના પ્રદેશ માટે પૂરતાં પરિમાણો નથી. પ્રદેશમાં { $intervals } અંતરાલ છે, પણ વિધેયમાં { $inputs ->
-            [one] { $inputs } ઇનપુટ
-           *[other] { $inputs } ઇનપુટ
-        } છે.
-       *[other] વિધેયના પ્રદેશ માટે પૂરતાં પરિમાણો નથી. પ્રદેશમાં { $intervals } અંતરાલ છે, પણ વિધેયમાં { $inputs ->
-            [one] { $inputs } ઇનપુટ
-           *[other] { $inputs } ઇનપુટ
-        } છે.
-    }
+# English counts the nouns as well as the verb here, but «છે» serves singular
+# and plural alike and the loanwords «ઇનપુટ» and «આઉટપુટ» take no plural, so
+# every branch would read the same and both selects are dropped. That leaves
+# `$intervals`, `$inputs` and `$outputs` as plain placeables, which is what
+# Hindi does with the same two messages.
+function-domain-insufficient-dimensions = વિધેયના પ્રદેશ માટે પૂરતાં પરિમાણો નથી. પ્રદેશમાં { $intervals } અંતરાલ છે, પણ વિધેયમાં { $inputs } ઇનપુટ છે.
 
 function-domain-invalid-format = વિધેયના પ્રદેશ માટે અમાન્ય રૂપ.
 
@@ -196,17 +187,7 @@ function-ignoring-empty =
 
 function-points-too-close = વિધેયમાં ખૂબ નજીક આવેલાં બે બિંદુઓ છે. વિધેય વ્યાખ્યાયિત કરી શકાય નહીં.
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] વિધેયના ઇનપુટની સંખ્યા આઉટપુટની સંખ્યા જેટલી હોય તો જ વિધેય પુનરાવર્તનો શક્ય છે. આ વિધેયમાં { $inputs } ઇનપુટ અને { $outputs ->
-            [one] { $outputs } આઉટપુટ
-           *[other] { $outputs } આઉટપુટ
-        } છે.
-       *[other] વિધેયના ઇનપુટની સંખ્યા આઉટપુટની સંખ્યા જેટલી હોય તો જ વિધેય પુનરાવર્તનો શક્ય છે. આ વિધેયમાં { $inputs } ઇનપુટ અને { $outputs ->
-            [one] { $outputs } આઉટપુટ
-           *[other] { $outputs } આઉટપુટ
-        } છે.
-    }
+function-iterates-input-output-mismatch = વિધેયના ઇનપુટની સંખ્યા આઉટપુટની સંખ્યા જેટલી હોય તો જ વિધેય પુનરાવર્તનો શક્ય છે. આ વિધેયમાં { $inputs } ઇનપુટ અને { $outputs } આઉટપુટ છે.
 
 ## `<sequence>`
 

@@ -15,15 +15,15 @@
 # ਕਾਲਾ m, ਕਾਲੀ f. Adjectives precede the noun, as in English, so only the
 # words change and not their order.
 #
-# `$role` selects first, because each clause position lands on a noun of its
-# own and, for a masculine one, on the oblique that a postposition governs:
+# `$role` matters for one of the four positions. A postposition governs the
+# oblique, and a masculine adjective in -ਾ takes -ੇ there; a feminine one in -ੀ
+# spells the two alike. Of the three clause positions, only `background-clause`
+# lands on a masculine noun, so it is the only branch written out:
 #
-#   standalone          agrees with the noun described, so it forks on
-#                       `$gender`
-#   border-clause       ਕਿਨਾਰੀ — feminine, and a feminine -ੀ does not go
-#                       oblique: `-ੀ`
+#   standalone          direct; also what `border-clause` and `text-clause`
+#                       fall through to, since ਕਿਨਾਰੀ and ਲਿਖਤ are feminine and
+#                       arrive with `$gender` saying so
 #   background-clause   ਪਿਛੋਕੜ — masculine, oblique before ਉੱਤੇ: `-ੇ`
-#   text-clause         ਲਿਖਤ — feminine: `-ੀ`
 #
 # Half the colour words do not agree at all. ਲਾਲ, ਸਲੇਟੀ, ਸੰਤਰੀ, ਅਸਮਾਨੀ,
 # ਜਾਮਨੀ and ਗੁਲਾਬੀ end in a consonant or in -ੀ and are invariant, so they are
@@ -41,9 +41,7 @@
 color =
     .black =
         { $role ->
-            [border-clause] ਕਾਲੀ
             [background-clause] ਕਾਲੇ
-            [text-clause] ਕਾਲੀ
            *[standalone]
                 { $gender ->
                     [f] ਕਾਲੀ
@@ -52,9 +50,7 @@ color =
         }
     .white =
         { $role ->
-            [border-clause] ਚਿੱਟੀ
             [background-clause] ਚਿੱਟੇ
-            [text-clause] ਚਿੱਟੀ
            *[standalone]
                 { $gender ->
                     [f] ਚਿੱਟੀ
@@ -66,9 +62,7 @@ color =
     .orange = ਸੰਤਰੀ
     .yellow =
         { $role ->
-            [border-clause] ਪੀਲੀ
             [background-clause] ਪੀਲੇ
-            [text-clause] ਪੀਲੀ
            *[standalone]
                 { $gender ->
                     [f] ਪੀਲੀ
@@ -77,9 +71,7 @@ color =
         }
     .green =
         { $role ->
-            [border-clause] ਹਰੀ
             [background-clause] ਹਰੇ
-            [text-clause] ਹਰੀ
            *[standalone]
                 { $gender ->
                     [f] ਹਰੀ
@@ -89,9 +81,7 @@ color =
     .cyan = ਅਸਮਾਨੀ
     .blue =
         { $role ->
-            [border-clause] ਨੀਲੀ
             [background-clause] ਨੀਲੇ
-            [text-clause] ਨੀਲੀ
            *[standalone]
                 { $gender ->
                     [f] ਨੀਲੀ
@@ -102,9 +92,7 @@ color =
     .pink = ਗੁਲਾਬੀ
     .brown =
         { $role ->
-            [border-clause] ਭੂਰੀ
             [background-clause] ਭੂਰੇ
-            [text-clause] ਭੂਰੀ
            *[standalone]
                 { $gender ->
                     [f] ਭੂਰੀ
@@ -115,9 +103,7 @@ color =
 line-width =
     .thick =
         { $role ->
-            [border-clause] ਮੋਟੀ
             [background-clause] ਮੋਟੇ
-            [text-clause] ਮੋਟੀ
            *[standalone]
                 { $gender ->
                     [f] ਮੋਟੀ
@@ -126,9 +112,7 @@ line-width =
         }
     .thin =
         { $role ->
-            [border-clause] ਪਤਲੀ
             [background-clause] ਪਤਲੇ
-            [text-clause] ਪਤਲੀ
            *[standalone]
                 { $gender ->
                     [f] ਪਤਲੀ
@@ -140,9 +124,7 @@ line-width =
 line-style =
     .dashed =
         { $role ->
-            [border-clause] ਟੁੱਟਵੀਂ
             [background-clause] ਟੁੱਟਵੇਂ
-            [text-clause] ਟੁੱਟਵੀਂ
            *[standalone]
                 { $gender ->
                     [f] ਟੁੱਟਵੀਂ

@@ -396,13 +396,21 @@ inflects for case wants a different form in each. So every adjective is handed
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
 positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
-Romanian, Finnish, Hindi, Marathi, Urdu, Sindhi and Pashto are the catalogs
-that select on them. Sharing a script does not imply sharing
-the fork: Marathi and Hindi both take an oblique adjective before a
-postposition and Nepali, written in the same letters, takes none. Nor is the
-fork all-or-nothing — Pashto marks the oblique on a feminine adjective in ـه
-and nowhere else, so it branches on one position out of the four and leaves the
-rest to the default.
+Romanian, Finnish, Hindi, Marathi, Punjabi, Urdu, Sindhi and Pashto are the
+catalogs that select on them. Sharing a script does not imply sharing the fork:
+Marathi and Hindi both take an oblique adjective before a postposition and
+Nepali, written in the same letters, takes none. Neither does neighbouring the
+language that does: Punjabi inflects and Gujarati does not, so Gujarati's
+adjectives select on `$gender` alone. Nor is the fork all-or-nothing: Pashto
+marks the oblique on a feminine adjective in ـه and nowhere else, and Punjabi
+only where the position's own noun is masculine, so each branches on one
+position out of the four and leaves the rest to the default.
+
+A catalog that inflects for nothing needs no `$role` branch even where it has
+gender, and writing one is a trap worth naming: the three clause positions each
+arrive with `$gender` already set from the position's own noun — `border`,
+`background`, `text` in `noun-gender` — so a `$role` fork that only restates
+that gender renders exactly what the `$gender` fork underneath it would.
 
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
