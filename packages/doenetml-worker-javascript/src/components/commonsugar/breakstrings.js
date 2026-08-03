@@ -221,7 +221,7 @@ export function breakEmbeddedStringsIntoParensPieces({
             continue;
         }
 
-        let s = component;
+        let s = component.trim();
 
         let beginInd = 0;
 
@@ -292,7 +292,7 @@ export function breakIntoPiecesBySpacesOutsideParens({ componentList }) {
             continue;
         }
 
-        let s = component;
+        let s = component.trim();
 
         let beginInd = 0;
 
