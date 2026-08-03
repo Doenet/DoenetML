@@ -23,6 +23,13 @@ export default defineConfig({
                 "@fortawesome/free-solid-svg-icons",
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",
+                // Resolves to the `@doenet/math` seam, which inlines the Rust
+                // core as ~1.8 MiB of base64. Bundling it here baked a private
+                // copy into this dist, which then rode into every bundle that
+                // embeds this package — the second of the two copies the
+                // standalone bundle was carrying. The application bundle
+                // resolves it once instead.
+                "math-expressions",
             ],
             onwarn(warning, warn) {
                 if (warning.code === "MODULE_LEVEL_DIRECTIVE") {

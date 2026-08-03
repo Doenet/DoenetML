@@ -3,6 +3,7 @@ import { PluginOption, defineConfig } from "vite";
 import { viteStaticCopy, TransformOption } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import * as fs from "node:fs/promises";
 import { visualizer } from "rollup-plugin-visualizer";
 import { version } from "./package.json";
@@ -11,7 +12,34 @@ import { suppressLogPlugin } from "../../scripts/vite-plugins";
 const require = createRequire(import.meta.url);
 
 // These are the dependencies that will not be bundled into the library.
-const EXTERNAL_DEPS = ["react", "react-dom"];
+//
+// `math-expressions` resolves to `@doenet/math`, which inlines the Rust core as
+// ~1.8 MiB of base64. Bundling it here put a private copy in this library *and*
+// in every sibling library, so `doenet-standalone.js` ended up carrying three —
+// 5.3 MiB of the same bytes. Externalized, the application bundle resolves it
+// once. Deliberately NOT done in `packages/doenetml-worker`: that bundle is
+// fetched on its own by URL and has to stay self-contained (see the
+// viteStaticCopy note in packages/standalone/vite.config.ts).
+const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
+/**
+ * `math-expressions` resolves to the `@doenet/math` workspace package through a
+ * `file:` link. Vite rewrites that to an absolute path before rollup's
+ * string-array `external` check runs, so listing the bare specifier alone
+ * silently bundles it anyway — which is how ~1.8 MiB of inlined WASM kept
+ * landing in this library after it was supposedly externalized. Match the
+ * resolved path as well as the specifier.
+ */
+const MATH_DIST = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../math/dist",
+);
+function isExternalDep(id: string): boolean {
+    return (
+        EXTERNAL_DEPS.includes(id) ||
+        id === "math-expressions" ||
+        id.startsWith(MATH_DIST)
+    );
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -73,7 +101,7 @@ export default defineConfig({
             cssFileName: "style",
         },
         rollupOptions: {
-            external: EXTERNAL_DEPS,
+            external: isExternalDep,
             output: {
                 globals: Object.fromEntries(
                     EXTERNAL_DEPS.map((dep) => [dep, dep]),

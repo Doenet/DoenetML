@@ -140,6 +140,57 @@ export function countBigBlobs(text) {
     return run >= BIG_BLOB_MIN ? count + 1 : count;
 }
 
+/** The marker that precedes the DoenetML core's payload. */
+const WASM_URI_PREFIX = "data:application/wasm;base64,";
+
+/**
+ * Split the big base64 runs into the two inlined binaries this repository has.
+ *
+ *  - **DoenetML's Rust core** arrives as a `data:application/wasm;base64,…`
+ *    URI, so its payload is preceded by {@link WASM_URI_PREFIX}. It belongs to
+ *    {@link WASM_CORE_SCRIPT} and nowhere else.
+ *  - **`@doenet/math`'s core** is a bare base64 string assigned to a constant
+ *    (`packages/math/src/generated/wasm-bytes.ts`), with no URI wrapper. It
+ *    belongs wherever math is used — including this bundle — but never more
+ *    than once per script.
+ *
+ * They are told apart by what precedes the run rather than by the variable
+ * name holding it, which minification renames.
+ */
+export function countInlinedBinaries(text) {
+    let wasmUriBlobs = 0;
+    let bareBlobs = 0;
+    let run = 0;
+    const finish = (end) => {
+        if (run < BIG_BLOB_MIN) {
+            return;
+        }
+        const start = end - run;
+        if (text.startsWith(WASM_URI_PREFIX, start - WASM_URI_PREFIX.length)) {
+            wasmUriBlobs++;
+        } else {
+            bareBlobs++;
+        }
+    };
+    for (let i = 0; i < text.length; i++) {
+        const c = text.charCodeAt(i);
+        const isBase64 =
+            (c >= 48 && c <= 57) ||
+            (c >= 65 && c <= 90) ||
+            (c >= 97 && c <= 122) ||
+            c === 43 ||
+            c === 47;
+        if (isBase64) {
+            run++;
+        } else {
+            finish(i);
+            run = 0;
+        }
+    }
+    finish(text.length);
+    return { wasmUriBlobs, bareBlobs };
+}
+
 function mib(bytes) {
     return `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
 }
@@ -360,10 +411,14 @@ function collectEmittedScripts(probes = []) {
             .relative(PACKAGE_ROOT, file)
             .split(path.sep)
             .join("/");
+        const binaries = countInlinedBinaries(contents);
         scripts.set(relative, {
             size: buffer.length,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
             bigBlobs: countBigBlobs(contents),
+            // The math core, counted apart from the DoenetML core so each can
+            // be held to its own rule.
+            mathCores: binaries.bareBlobs,
             inlinedCatalogs: catalogsInScript(contents, probes),
         });
     }
@@ -411,6 +466,22 @@ export function loadBudgets(budgetsFile = BUDGETS_FILE) {
         }
     }
     return entries;
+}
+
+/**
+ * Describe a script carrying more than one copy of the `@doenet/math` core.
+ *
+ * One copy is expected wherever math is used. More than one is always a
+ * bundling fault rather than a judgement call, so this needs no threshold.
+ */
+function mathCorePlacementProblem(relative, count) {
+    return (
+        `${relative} carries ${count} copies of the @doenet/math core; one is expected.\n` +
+        `    Each copy is ~1.8 MiB of inlined base64 and a separate WASM instantiation\n` +
+        `    at runtime. It means the seam resolved as more than one module instance —\n` +
+        `    usually a package that bundles \`math-expressions\` into its own dist instead\n` +
+        `    of externalizing it, which then rides into every bundle embedding it.`
+    );
 }
 
 /**
@@ -511,8 +582,20 @@ export function findProblems(budgets, scripts) {
     // cannot tell them apart.
     for (const [relative, emitted] of scripts) {
         const expected = relative === WASM_CORE_SCRIPT ? 1 : 0;
-        if (emitted.wasmUris !== expected || emitted.bigBlobs !== expected) {
+        // The DoenetML core: exactly where it belongs, exactly once. Its
+        // payload always arrives as a wasm data-URI, so both counts move
+        // together — `bigBlobs` minus the math cores isolates it.
+        const doenetCoreBlobs = emitted.bigBlobs - (emitted.mathCores ?? 0);
+        if (emitted.wasmUris !== expected || doenetCoreBlobs !== expected) {
             problems.push(blobPlacementProblem(relative, emitted, expected));
+        }
+        // The math core: allowed anywhere math is used, but never twice in one
+        // script. Two copies means it was resolved as two module instances —
+        // which is how ~1.8 MiB of duplicated base64 rode into these bundles
+        // through `virtual-keyboard` and `doenetml-worker-rust` before both
+        // externalized it.
+        if ((emitted.mathCores ?? 0) > 1) {
+            problems.push(mathCorePlacementProblem(relative, emitted.mathCores));
         }
     }
     // Catalogs this bundle is supposed to serve, not carry. Being one file, it
