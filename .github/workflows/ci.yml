@@ -317,7 +317,6 @@ jobs:
                   # @doenet/math compiles its WASM core from this submodule at
                   # build time; checkout skips submodules by default.
                   submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
 
             - name: Install devcontainer CLI
               run: npm install -g @devcontainers/cli@0
@@ -347,7 +346,6 @@ jobs:
                   # @doenet/math compiles its WASM core from this submodule at
                   # build time; checkout skips submodules by default.
                   submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
 
             - name: Download build artifacts
               uses: actions/download-artifact@v8

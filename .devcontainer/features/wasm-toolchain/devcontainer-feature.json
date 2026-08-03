@@ -1,0 +1,14 @@
+{
+    "id": "wasm-toolchain",
+    "version": "1.0.0",
+    "name": "Rust WASM toolchain for @doenet/math",
+    "description": "Adds the wasm32 target and a version-matched wasm-bindgen-cli, which @doenet/math needs to compile the math-expressions Rust core.",
+    "options": {
+        "wasmBindgenVersion": {
+            "type": "string",
+            "default": "0.2.126",
+            "description": "Must equal the wasm-bindgen crate version pinned in vendor/math-expressions/packages/math-expressions-rs-wasm/Cargo.toml. The CLI and the crate are checked against each other at build time and a mismatch is a hard error."
+        }
+    },
+    "installsAfter": ["ghcr.io/devcontainers/features/rust"]
+}
