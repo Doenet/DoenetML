@@ -18,7 +18,9 @@ export type SupportedLocale =
     | "es"
     | "fa"
     | "fi"
+    | "fil"
     | "fr"
+    | "gu"
     | "he"
     | "hi"
     | "hnj"
@@ -26,12 +28,17 @@ export type SupportedLocale =
     | "id"
     | "it"
     | "ja"
+    | "kn"
     | "ko"
+    | "ml"
     | "mr"
+    | "ms"
     | "my"
     | "nb"
     | "ne"
     | "nl"
+    | "or"
+    | "pa"
     | "pl"
     | "ps"
     | "pt"
@@ -41,6 +48,9 @@ export type SupportedLocale =
     | "sk"
     | "so"
     | "sv"
+    | "ta"
+    | "te"
+    | "th"
     | "tr"
     | "ug"
     | "uk"
@@ -153,10 +163,22 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Finnish (suomi)",
     },
     {
+        locale: "fil",
+        englishName: "Filipino",
+        endonym: "Filipino",
+        label: "Filipino",
+    },
+    {
         locale: "fr",
         englishName: "French",
         endonym: "français",
         label: "French (français)",
+    },
+    {
+        locale: "gu",
+        englishName: "Gujarati",
+        endonym: "ગુજરાતી",
+        label: "Gujarati (ગુજરાતી)",
     },
     {
         locale: "he",
@@ -201,16 +223,34 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Japanese (日本語)",
     },
     {
+        locale: "kn",
+        englishName: "Kannada",
+        endonym: "ಕನ್ನಡ",
+        label: "Kannada (ಕನ್ನಡ)",
+    },
+    {
         locale: "ko",
         englishName: "Korean",
         endonym: "한국어",
         label: "Korean (한국어)",
     },
     {
+        locale: "ml",
+        englishName: "Malayalam",
+        endonym: "മലയാളം",
+        label: "Malayalam (മലയാളം)",
+    },
+    {
         locale: "mr",
         englishName: "Marathi",
         endonym: "मराठी",
         label: "Marathi (मराठी)",
+    },
+    {
+        locale: "ms",
+        englishName: "Malay",
+        endonym: "Melayu",
+        label: "Malay (Melayu)",
     },
     {
         locale: "my",
@@ -235,6 +275,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Dutch",
         endonym: "Nederlands",
         label: "Dutch (Nederlands)",
+    },
+    {
+        locale: "or",
+        englishName: "Odia",
+        endonym: "ଓଡ଼ିଆ",
+        label: "Odia (ଓଡ଼ିଆ)",
+    },
+    {
+        locale: "pa",
+        englishName: "Punjabi",
+        endonym: "ਪੰਜਾਬੀ",
+        label: "Punjabi (ਪੰਜਾਬੀ)",
     },
     {
         locale: "pl",
@@ -290,6 +342,19 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "svenska",
         label: "Swedish (svenska)",
     },
+    {
+        locale: "ta",
+        englishName: "Tamil",
+        endonym: "தமிழ்",
+        label: "Tamil (தமிழ்)",
+    },
+    {
+        locale: "te",
+        englishName: "Telugu",
+        endonym: "తెలుగు",
+        label: "Telugu (తెలుగు)",
+    },
+    { locale: "th", englishName: "Thai", endonym: "ไทย", label: "Thai (ไทย)" },
     {
         locale: "tr",
         englishName: "Turkish",

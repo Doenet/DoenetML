@@ -716,6 +716,8 @@ describe("a phrase rendered in two positions", () => {
     const pl = forLocale("pl");
     const hi = forLocale("hi");
     const mr = forLocale("mr");
+    const gu = forLocale("gu");
+    const pa = forLocale("pa");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -870,17 +872,49 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Gujarati forks on gender in all four positions and on case in none: an
+    // adjective in front of a postposition is spelled exactly as it is
+    // standing alone. So both of its border forms read alike, and what the
+    // fork buys is agreement with the right noun — feminine «કિનારી» for the
+    // border against neuter «વર્તુળ» for the shape it surrounds, in one
+    // sentence.
+    it("gives Gujarati a border that agrees with the border, not the shape", () => {
+        expect(bothBorderForms(gu)).toEqual({
+            standalone: "જાડી કાળી",
+            embedded: "ભરેલું વાદળી વર્તુળ જાડી કાળી કિનારી સાથે",
+        });
+    });
+
+    // Punjabi is Hindi's mirror image across the two guards below. Its border
+    // is feminine «ਕਿਨਾਰੀ`, and a feminine -ੀ is spelled alike direct and
+    // oblique, so the border does not move; its background is masculine
+    // «ਪਿਛੋਕੜ», so the colour in front of ਉੱਤੇ does.
+    it("gives Punjabi an unchanged border and an oblique background", () => {
+        expect(bothBorderForms(pa)).toEqual({
+            standalone: "ਮੋਟੀ ਕਾਲੀ",
+            embedded: "ਭਰਿਆ ਨੀਲਾ ਚੱਕਰ ਮੋਟੀ ਕਾਲੀ ਕਿਨਾਰੀ ਨਾਲ",
+        });
+        expect(bothTextForms(pa)).toEqual({
+            textColor: "ਲਾਲ",
+            backgroundColor: "ਪੀਲਾ",
+            sentence: "ਪੀਲੇ ਪਿਛੋਕੜ ਉੱਤੇ ਲਾਲ",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
+        // Gujarati and Punjabi are absent: neither inflects a border for case,
+        // and both are asserted spelling it alike in the two cases above.
         for (const t of [de, ru, pl, hi, mr]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);
         }
         // Hindi is absent here on purpose: it is the one whose background does
         // not change shape between the two, per the case above. Marathi spells
-        // its feminine oblique differently and so belongs here.
-        for (const t of [de, ru, pl, mr]) {
+        // its feminine oblique differently and so belongs here, and so does
+        // Punjabi, whose background is masculine and does go oblique.
+        for (const t of [de, ru, pl, mr, pa]) {
             const text = bothTextForms(t);
             expect(text.sentence).not.toContain(text.backgroundColor);
         }

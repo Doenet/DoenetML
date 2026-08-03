@@ -65008,8 +65008,16 @@
                             "description": "Finnish (suomi)"
                         },
                         {
+                            "value": "fil",
+                            "description": "Filipino"
+                        },
+                        {
                             "value": "fr",
                             "description": "French (français)"
+                        },
+                        {
+                            "value": "gu",
+                            "description": "Gujarati (ગુજરાતી)"
                         },
                         {
                             "value": "he",
@@ -65040,12 +65048,24 @@
                             "description": "Japanese (日本語)"
                         },
                         {
+                            "value": "kn",
+                            "description": "Kannada (ಕನ್ನಡ)"
+                        },
+                        {
                             "value": "ko",
                             "description": "Korean (한국어)"
                         },
                         {
+                            "value": "ml",
+                            "description": "Malayalam (മലയാളം)"
+                        },
+                        {
                             "value": "mr",
                             "description": "Marathi (मराठी)"
+                        },
+                        {
+                            "value": "ms",
+                            "description": "Malay (Melayu)"
                         },
                         {
                             "value": "my",
@@ -65062,6 +65082,14 @@
                         {
                             "value": "nl",
                             "description": "Dutch (Nederlands)"
+                        },
+                        {
+                            "value": "or",
+                            "description": "Odia (ଓଡ଼ିଆ)"
+                        },
+                        {
+                            "value": "pa",
+                            "description": "Punjabi (ਪੰਜਾਬੀ)"
                         },
                         {
                             "value": "pl",
@@ -65098,6 +65126,18 @@
                         {
                             "value": "sv",
                             "description": "Swedish (svenska)"
+                        },
+                        {
+                            "value": "ta",
+                            "description": "Tamil (தமிழ்)"
+                        },
+                        {
+                            "value": "te",
+                            "description": "Telugu (తెలుగు)"
+                        },
+                        {
+                            "value": "th",
+                            "description": "Thai (ไทย)"
                         },
                         {
                             "value": "tr",

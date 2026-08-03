@@ -67,27 +67,34 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
-`cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fr`, `he`, `hi`, `hnj`, `hu`, `id`,
-`it`, `ja`, `ko`, `mr`, `my`, `nb`, `ne`, `nl`, `pl`, `ps`, `pt`, `ro`, `ru`,
-`sd`, `sk`, `so`, `sv`, `tr`, `ug`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` — is
-an **unreviewed machine-generated seed**, which each file's own header says at
-the top, and which is what #1521's translation platform is for. None has been
-read by a speaker. Correcting one needs no permission and no coordination: a
-wrong string is just wrong, and the English is one key away.
+`cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fil`, `fr`, `gu`, `he`, `hi`, `hnj`,
+`hu`, `id`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `ms`, `my`, `nb`, `ne`, `nl`,
+`or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `sd`, `sk`, `so`, `sv`, `ta`, `te`,
+`th`, `tr`, `ug`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
+machine-generated seed**, which each file's own header says at the top, and
+which is what #1521's translation platform is for. None has been read by a
+speaker. Correcting one needs no permission and no coordination: a wrong string
+is just wrong, and the English is one key away.
 
-Ten of them are deliberately partial, all in the same place: Somali, Hmong
-Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur and Vietnamese
-leave `element-name` and `element-anion-name` out, so those 130 keys fall back
-to English and `lint:i18n` reports the gap. The first nine have no settled
-chemical nomenclature to seed from, and inventing one would be worse than the
-English a student meets in their own textbook. Vietnamese has two, and the
-current one is English — school chemistry has moved from the transliterated
-names to the IUPAC forms — so the fallback is already what the curriculum uses.
+Thirteen of them are deliberately partial, all in the same place: Somali, Hmong
+Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada,
+Punjabi, Filipino and Vietnamese leave `element-name` and `element-anion-name`
+out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
+The first nine have no settled chemical nomenclature to seed from, and
+inventing one would be worse than the English a student meets in their own
+textbook. Kannada has two — native coinages reaching a dozen elements and
+transliterations reaching all 118 — and picking either would misreport the
+other. Filipino and Vietnamese have two as well, and in both the current one is
+English: the Philippines teaches science in English from the intermediate
+grades, and Vietnamese school chemistry has moved from the transliterated names
+to the IUPAC forms, so in each case the fallback is already what the curriculum
+uses.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
 line runs through the Arabic script — Arabic, Persian and Urdu supply them and
-Pashto, Sindhi and Uyghur do not.
+Pashto, Sindhi and Uyghur do not — and through the Brahmic scripts of southern
+India, where Tamil, Telugu and Malayalam supply them and Kannada does not.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.
@@ -115,6 +122,20 @@ performs for `iw`, `in` and `mo`, which it maps to `he`, `id` and `ro` on its
 own. `nn` is left alone: Nynorsk is a written standard of its own, and
 answering it with Bokmål would be a substitution rather than a
 canonicalization.
+
+Filipino needs no such entry, and that is worth saying so nobody adds one:
+`fil` is the standard language's code and `tl` is the deprecated one, so
+`Intl.Locale` canonicalizes `tl` to `fil` and `normalizeLocaleTag` has already
+rewritten it before negotiation is reached. `negotiate.test.ts` holds that too,
+against the real roster rather than a stub — a change to the normalization step
+is the only thing that could drop Filipino to English, and this is what would
+catch it.
+
+Punjabi is named `pa` and written in Gurmukhi, which the rule above allows
+because only one of its two scripts is translated. A Shahmukhi reader arriving
+under `pa-Arab` reaches it and gets Gurmukhi — the same asymmetry `zh-CN`
+already has, and the answer to it is a second catalog rather than a differently
+named first one.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.

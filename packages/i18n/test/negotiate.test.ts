@@ -137,6 +137,30 @@ describe("negotiateLocales", () => {
             expect(negotiateLocales(["nn"], available)).toEqual(["en"]);
         });
     });
+
+    /**
+     * Filipino's catalog is named `fil`, and `tl` — the code an author is as
+     * likely to type — needs no alias of its own: `Intl.Locale` canonicalizes
+     * it, so `normalizeLocaleTag` has already rewritten it before negotiation
+     * sees it. That is the same step that rewrites `iw` and `in`, which is why
+     * `LANGUAGE_ALIASES` lists neither. Asserted here so that a future change
+     * to the normalization step cannot silently drop Filipino to English.
+     */
+    describe("Filipino, whose catalog is named for the standard language", () => {
+        const available = SUPPORTED_LOCALES.map((info) => info.locale);
+
+        it.each(["tl", "tl-PH", "fil", "fil-PH"])(
+            "serves Filipino to %s",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["fil", "en"]);
+            },
+        );
+    });
 });
 
 describe("resolveDocumentLocale", () => {
