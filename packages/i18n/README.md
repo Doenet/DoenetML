@@ -406,12 +406,11 @@ each branches on one position out of the four and leaves the rest to the
 default.
 
 Whether a language inflects is not on its own the question. Gujarati has the
-same oblique Punjabi has, and still selects on `$gender` alone, because the
-words each of its clause positions lands on happen never to reach it — feminine
-before the two postpositions, predicative in the third. So the note explaining
-that sits in `locales/gu/content.ftl` rather than the fact being inferable from
-the language, and it says which noun would have to change for the branch to be
-needed.
+same oblique Punjabi has and still selects on `$gender` alone, because the
+words its clause positions land on never reach that form — feminine before the
+two postpositions, predicative in the third. `locales/gu/content.ftl` records
+which noun would have to change for a `$role` branch to be needed, since
+nothing about the language itself says so.
 
 That is the trap worth naming, because the three clause positions each arrive
 with `$gender` already set from the position's own noun — `border`,

@@ -65,10 +65,9 @@ description-more-information = maklumat lanjut
 
 ## Controls
 
-# English abbreviates "Previous" to fit the button; Malay has no such clipping
-# — «Seterus» is not a word and «Sebelum» is the preposition, not the button —
-# so both are written in full, as `paginator-previous` and `paginator-next`
-# already are.
+# English clips "Previous" to "Prev" to fit the button. Malay has no such
+# short form, so both words are written in full here, as `paginator-previous`
+# and `paginator-next` are.
 slider-previous = Sebelumnya
 slider-next = Seterusnya
 

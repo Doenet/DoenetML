@@ -109,25 +109,29 @@ style-with-noun =
 
 style-filled-word = నింపిన
 
-# «-తో» is a postposition, so the pattern it marks comes before it and the
-# whole clause follows what it describes.
+# The pattern is marked with «కలిగిన», a participle that stands as a word of
+# its own in front of what it modifies, so the pattern clause leads. The bound
+# «-తో» the border takes below cannot be used here: a plural in -లు goes to
+# -ల before it — చుక్కలు + తో is చుక్కలతో — and the pattern arrives as an
+# argument this catalog never sees, which is the affix rule in the package
+# README.
 style-filled =
     { $parts ->
-        [pattern] { $filled } { $color } { $pattern }తో
+        [pattern] { $pattern } కలిగిన { $filled } { $color }
        *[plain] { $filled } { $color }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $filled } { $color } { $noun } { $pattern }తో
+        [pattern] { $pattern } కలిగిన { $filled } { $color } { $noun }
         [plain-tail] { $filled } { $color } { $noun } { $nounTail }
-        [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern }తో
+        [pattern-tail] { $pattern } కలిగిన { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
 
-# «అంచు» takes the same postposition, and «మరియు» opens the further clause
-# where English opens it with "and". Telugu has no article, so the two
-# `-article` branches read like the ones without.
+# «అంచు» is the catalog's own word, so «-తో» is joined to it directly, and
+# «మరియు» opens the further clause where English opens it with "and". Telugu
+# has no article, so the two `-article` branches read like the ones without.
 style-border-clause =
     { $parts ->
         [with-article] { $border } అంచుతో

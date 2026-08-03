@@ -705,9 +705,9 @@ noun-regular-polygon =
  */
 describe("a phrase rendered in two positions", () => {
     /**
-     * A catalog as the worker receives it. Five of the seven below select on
-     * `$role`; Gujarati and Punjabi's border are here for the opposite reason,
-     * to hold the cases where the two positions legitimately read alike.
+     * A catalog as the worker receives it. Six of the seven below select on
+     * `$role` somewhere; Gujarati selects on `$gender` alone, and is here to
+     * hold a case where the two positions legitimately read alike.
      */
     const forLocale = (locale: string): Translator =>
         createTranslatorFromLocaleData(
@@ -909,17 +909,18 @@ describe("a phrase rendered in two positions", () => {
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
-        // Gujarati and Punjabi are absent: both spell a border alike in the
-        // two positions, because in both the border's noun is feminine and a
-        // feminine -ੀ/-ી does not go oblique. Asserted in the two cases above.
+        // Gujarati and Punjabi are absent: in both the border's noun is
+        // feminine and a feminine -ੀ/-ી does not go oblique, so the two
+        // positions read alike. Asserted as exact strings in the two cases
+        // above, which is what holds them there.
         for (const t of [de, ru, pl, hi, mr]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);
         }
-        // Hindi is absent here on purpose: it is the one whose background does
-        // not change shape between the two, per the case above. Marathi spells
-        // its feminine oblique differently and so belongs here, and so does
-        // Punjabi, whose background is masculine and does go oblique.
+        // Hindi and Gujarati are absent here on purpose: both have a feminine
+        // background whose colour is spelled alike in the two positions, per
+        // the cases above. Marathi spells its feminine oblique differently and
+        // so belongs here, and so does Punjabi, whose background is masculine.
         for (const t of [de, ru, pl, mr, pa]) {
             const text = bothTextForms(t);
             expect(text.sentence).not.toContain(text.backgroundColor);
@@ -952,6 +953,32 @@ describe("a phrase rendered in two positions", () => {
         // non-virile plural is spelled like the nominative — so the same words
         // serve both positions and no head noun is needed.
         expect(standalone(pl)).toBe("niebieskie romby");
+    });
+
+    /**
+     * The same head noun, wanted for the other reason a language can want one.
+     *
+     * `describeFill` hands the colour `fill`'s gender, and the pattern word is
+     * a noun with a gender of its own — masculine હીરા and ਹੀਰੇ against a
+     * feminine `fill` in both catalogs — so a colour set straight in front of
+     * it would agree with neither the word beside it nor anything else in the
+     * sentence. Naming «ભરણી» / «ਭਰਾਈ» gives it a noun of the gender it was
+     * handed. `style-unfilled` is the other answer the same state variable
+     * gives and receives no `$gender` at all, so it names the noun too.
+     */
+    it("gives a fill colour a noun of its own gender to agree with", () => {
+        const blueDiamonds = {
+            fillColorWord: "blue",
+            fillStyleWord: "diamonds",
+        };
+        expect(describeFill(gu, blueDiamonds, { filled: true })).toBe(
+            "હીરા વાળી વાદળી ભરણી",
+        );
+        expect(describeFill(pa, blueDiamonds, { filled: true })).toBe(
+            "ਹੀਰੇ ਵਾਲੀ ਨੀਲੀ ਭਰਾਈ",
+        );
+        expect(describeFill(gu, {}, { filled: false })).toBe("ભરણી વગર");
+        expect(describeFill(pa, {}, { filled: false })).toBe("ਬਿਨਾਂ ਭਰਾਈ");
     });
 
     /**

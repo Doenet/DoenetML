@@ -138,8 +138,8 @@ describe("style descriptions follow the document locale @group4", () => {
         // alike for a different reason: both take «કિનારી»'s feminine gender,
         // and neither position reaches an oblique a feminine -ી would spell
         // differently, so the catalog selects on `$gender` alone. `fd` names
-        // «ભરણી» so that the colour has a noun of the right gender to agree
-        // with rather than standing in front of «ટપકાં», which is neuter.
+        // «ભરણી», feminine like the `fill` gender its colour arrives with, so
+        // the colour has a noun to agree with; «ટપકાં» beside it is neuter.
         expect(values.stn).eq("જાડી તૂટક લાલ રેખા");
         expect(values.pt).eq("લીલો ચોરસ");
         expect(values.sh).eq(

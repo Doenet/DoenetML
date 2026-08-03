@@ -110,25 +110,30 @@ style-with-noun =
 
 style-filled-word = நிரப்பப்பட்ட
 
-# «-உடன்» is a postposition, so the pattern it marks comes before it and the
-# whole clause follows what it describes.
+# The pattern is marked with «கொண்ட», a participle that stands as a word of
+# its own in front of what it modifies, so the pattern clause leads. The bound
+# «-உடன்» the border takes below cannot be used here: joining it to a word
+# absorbs that word's final consonant — புள்ளிகள் + உடன் is புள்ளிகளுடன் —
+# and the pattern arrives as an argument this catalog never sees, which is the
+# affix rule in the package README.
 style-filled =
     { $parts ->
-        [pattern] { $filled } { $color } { $pattern }உடன்
+        [pattern] { $pattern } கொண்ட { $filled } { $color }
        *[plain] { $filled } { $color }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $filled } { $color } { $noun } { $pattern }உடன்
+        [pattern] { $pattern } கொண்ட { $filled } { $color } { $noun }
         [plain-tail] { $filled } { $color } { $noun } { $nounTail }
-        [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern }உடன்
+        [pattern-tail] { $pattern } கொண்ட { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
 
-# «விளிம்பு» takes the same postposition, and «மற்றும்» opens the further
-# clause where English opens it with "and". Tamil has no article, so the two
-# `-article` branches read like the ones without.
+# «விளிம்பு» is the catalog's own word, so «-உடன்» is joined to it directly,
+# and «மற்றும்» opens the further clause where English opens it with "and".
+# Tamil has no article, so the two `-article` branches read like the ones
+# without.
 style-border-clause =
     { $parts ->
         [with-article] { $border } விளிம்புடன்
