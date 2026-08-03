@@ -2,7 +2,7 @@ import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
-import me, { getComponent } from "@doenet/math";
+import me, { getComponent } from "math-expressions";
 import { processNewDefiningChildren } from "./ComponentLifecycle";
 import { expandAllComposites } from "./CompositeExpander";
 import { ensureStateVariableMaterialized } from "./StateVariableInitializer";

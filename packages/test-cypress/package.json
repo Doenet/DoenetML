@@ -59,8 +59,8 @@
     "dependencies": {
         "@doenet/doenetml-prototype": "*",
         "@doenet/i18n": "*",
-        "@doenet/math": "*",
         "@doenet/utils": "^*",
+        "math-expressions": "file:../math",
         "vite": "^*"
     },
     "devDependencies": {

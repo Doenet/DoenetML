@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 
 export function returnAnchorAttributes() {
     return {

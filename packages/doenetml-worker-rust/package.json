@@ -113,6 +113,6 @@
     },
     "devDependencies": {},
     "dependencies": {
-        "@doenet/math": "*"
+        "math-expressions": "file:../math"
     }
 }

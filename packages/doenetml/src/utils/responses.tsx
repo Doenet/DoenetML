@@ -1,5 +1,5 @@
 import React from "react";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { DynamicMath } from "../Viewer/renderers/utils/DynamicMath";
 
 /**

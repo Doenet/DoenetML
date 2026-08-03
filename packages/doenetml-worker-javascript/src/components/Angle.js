@@ -1,5 +1,5 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { roundForDisplay } from "../utils/math";
 import {
     buildNumberDisplayParameters,

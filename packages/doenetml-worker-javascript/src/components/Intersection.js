@@ -1,5 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { codedDiagnostic } from "../utils/diagnostics";
 export default class Intersection extends CompositeComponent {

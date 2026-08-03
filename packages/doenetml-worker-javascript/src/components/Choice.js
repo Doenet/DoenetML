@@ -1,7 +1,7 @@
 import { renameStateVariable } from "../utils/stateVariables";
 import { textFromChildren } from "../utils/text";
 import InlineComponent from "./abstract/InlineComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 export default class Choice extends InlineComponent {
     static componentType = "choice";

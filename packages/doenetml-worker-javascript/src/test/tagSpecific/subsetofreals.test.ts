@@ -3,7 +3,7 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 import { cesc } from "@doenet/utils";
 import type { RefObject } from "react";
 import { JXGBoard, JXGElement } from "../jsxgraph-distrib/types";

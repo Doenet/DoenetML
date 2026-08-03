@@ -14,7 +14,7 @@ import {
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 

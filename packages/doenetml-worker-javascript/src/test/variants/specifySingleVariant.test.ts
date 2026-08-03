@@ -6,7 +6,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { numberToLetters } from "@doenet/utils";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

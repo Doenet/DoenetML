@@ -15,7 +15,7 @@
  */
 
 declare module "math-expressions-js-compat" {
-    import type { Context, Tree } from "math-expressions";
+    import type { Context, Tree } from "./vendored/math-expressions";
     import type { WasmModule } from "math-expressions-rs-wasm";
 
     /** The compat `Expression` class. Structurally the legacy `Expression`. */

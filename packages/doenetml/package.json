@@ -90,9 +90,9 @@
     },
     "dependencies": {
         "@doenet/lsp-tools": "*",
-        "@doenet/math": "*",
         "@doenet/static-assets": "*",
-        "dompurify": "^3.4.11"
+        "dompurify": "^3.4.11",
+        "math-expressions": "file:../math"
     },
     "prettier": {
         "tabWidth": 4

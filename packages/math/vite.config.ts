@@ -9,15 +9,6 @@ const SUBMODULE = fileURLToPath(
 const JS_COMPAT = resolve(SUBMODULE, "packages/math-expressions-js-compat");
 const RS_WASM = resolve(SUBMODULE, "packages/math-expressions-rs-wasm");
 
-/**
- * Rust is the engine. `DOENET_MATH_ENGINE=js` rebuilds against the legacy
- * JavaScript library instead — kept not as a supported configuration but as a
- * differential-debugging tool: when a spec disagrees with the Rust engine, the
- * question is always "does this pass on the old one?", and answering it by
- * rebuilding one package beats bisecting a behavioral difference by hand.
- */
-const useRust = process.env.DOENET_MATH_ENGINE !== "js";
-
 export default defineConfig({
     base: "./",
     plugins: [
@@ -29,16 +20,6 @@ export default defineConfig({
     ],
     resolve: {
         alias: [
-            ...(useRust
-                ? []
-                : [
-                      {
-                          find: /^\.\/engine$/,
-                          replacement: fileURLToPath(
-                              new URL("./src/engine-js.ts", import.meta.url),
-                          ),
-                      },
-                  ]),
             {
                 find: /^math-expressions-js-compat\/lib\/(.*)$/,
                 replacement: resolve(JS_COMPAT, "lib/$1"),
@@ -65,17 +46,16 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/index.ts",
-                "engine-js": "./src/engine-js.ts",
                 "engine-rust": "./src/engine-rust.ts",
             },
             formats: ["es"],
         },
         rollupOptions: {
-            // The legacy engine and math.js stay bare imports: every consumer
-            // of this package already resolves them, and a second copy of
-            // either would be pure bundle weight. The WASM core is the opposite
-            // case — it is inlined on purpose (see scripts/build-wasm.mjs).
-            external: ["math-expressions", "mathjs"],
+            // math.js stays a bare import: every consumer of this package
+            // already resolves it, and a second copy would be pure bundle
+            // weight. The WASM core is the opposite case — it is inlined on
+            // purpose (see scripts/build-wasm.mjs).
+            external: ["mathjs"],
         },
     },
 });

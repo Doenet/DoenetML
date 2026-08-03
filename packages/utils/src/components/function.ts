@@ -1,4 +1,4 @@
-import me, { dopri } from "@doenet/math";
+import me, { dopri } from "math-expressions";
 import type { mod as ModType } from "mathjs";
 const { mod } = me.math as { mod: ModType };
 import {

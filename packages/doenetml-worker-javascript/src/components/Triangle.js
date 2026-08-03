@@ -1,6 +1,6 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import Polygon from "./Polygon";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 export default class Triangle extends Polygon {
     constructor(args) {

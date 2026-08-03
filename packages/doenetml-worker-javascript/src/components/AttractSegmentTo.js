@@ -1,6 +1,6 @@
 import { attractSegment } from "../utils/constraintUtils";
 import SegmentConstraintComponent from "./abstract/SegmentConstraintComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class AttractSegmentTo extends SegmentConstraintComponent {

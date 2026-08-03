@@ -7,7 +7,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();

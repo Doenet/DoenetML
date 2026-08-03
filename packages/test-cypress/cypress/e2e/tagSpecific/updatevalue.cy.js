@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 
 describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {

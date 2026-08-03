@@ -4,7 +4,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../../utils/numberDisplay";
 import BaseComponent from "../abstract/BaseComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { codedDiagnostic } from "../../utils/diagnostics";
 const { eigs, square, abs, divide } = me.math;
 

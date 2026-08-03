@@ -6,7 +6,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 import { NonInlineMediaWrapper } from "./utils/NonInlineMediaWrapper";

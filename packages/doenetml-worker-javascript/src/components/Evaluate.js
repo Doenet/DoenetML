@@ -1,5 +1,5 @@
 import MathComponent from "./Math";
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     returnNumericFunctionForEvaluate,
     returnSymbolicFunctionForEvaluate,

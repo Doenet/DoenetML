@@ -2,7 +2,7 @@ import BooleanComponent from "./Boolean";
 import { numberToLetters } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { isValidVariable } from "../utils/math";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 const BLANK = "\uff3f";
 

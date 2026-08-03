@@ -32,7 +32,7 @@ export default defineConfig({
                 "@fortawesome/free-solid-svg-icons",
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",
-                "@doenet/math",
+                "math-expressions",
                 // Left as a bare import rather than inlined. Consumers of this
                 // package overwhelmingly depend on `@doenet/i18n` themselves —
                 // the viewer formats diagnostics with it, the worker raises

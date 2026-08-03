@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import type { mod as ModType, round as RoundType } from "mathjs";
 const { mod, round } = me.math as { mod: ModType; round: RoundType };

@@ -6,7 +6,7 @@ import {
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();

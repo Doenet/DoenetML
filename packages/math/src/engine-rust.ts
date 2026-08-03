@@ -81,10 +81,11 @@ Context.fromAst = ((ast: Tree) =>
     originalFromAst(unwrapExpressions(ast) as Tree)) as typeof Context.fromAst;
 
 /**
- * The Dormand-Prince integrator. Legacy exposed numeric.js's under `me.math`;
- * the Rust engine has no `me.math` and provides its own `solve_ode`-backed
- * equivalent on the context. `engine-js.ts` exports the legacy one under this
- * same name, which is what keeps `ODESystem.js` engine-agnostic.
+ * The Dormand-Prince integrator, re-exported as a named export. The legacy
+ * library reached numeric.js's copy through `me.math.dopri`; this engine has no
+ * `me.math` entry for it and supplies its own `solve_ode`-backed equivalent on
+ * the context. Callers (`ODESystem.js`, `packages/utils`) import it from
+ * `@doenet/math` rather than reaching into the context.
  */
 export const dopri = (Context as unknown as { dopri: Dopri }).dopri;
 

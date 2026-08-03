@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
 import { buildNumberDisplayParameters } from "./numberDisplay";
 import {

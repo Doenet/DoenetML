@@ -1,6 +1,6 @@
 import InlineComponent from "./abstract/InlineComponent";
 import GraphicalComponent from "./abstract/GraphicalComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     returnGraphicalStyleDescriptionDefinitions,
     returnInterpolatedFunction,

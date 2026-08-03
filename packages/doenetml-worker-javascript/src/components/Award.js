@@ -1,5 +1,5 @@
 import BaseComponent from "./abstract/BaseComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     buildParsedExpression,
     evaluateLogic,

@@ -1,5 +1,5 @@
 import { atomDatabase } from "@doenet/static-assets/atom-database";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 /**
  * Load the chemistry data from the csv file containing information about atoms

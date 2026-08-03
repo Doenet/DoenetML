@@ -1,7 +1,7 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Polygon from "./Polygon";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 export default class Rectangle extends Polygon {
     constructor(args) {

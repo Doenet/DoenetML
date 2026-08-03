@@ -1,7 +1,7 @@
 {
     "name": "@doenet/math",
     "type": "module",
-    "description": "The single seam through which DoenetML reaches a math-expressions engine. Re-exports either the legacy JavaScript library or the Rust/WASM drop-in, selected at build time.",
+    "description": "The single seam through which DoenetML reaches math-expressions: the Rust core compiled to WASM, inlined and re-exported behind the legacy API.",
     "version": "1.0.0",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
@@ -15,9 +15,6 @@
             "import": "./dist/index.js",
             "types": "./dist/index.d.ts"
         },
-        "./engine-js": {
-            "import": "./dist/engine-js.js"
-        },
         "./engine-rust": {
             "import": "./dist/engine-rust.js"
         }
@@ -30,12 +27,7 @@
     },
     "wireit": {
         "build:wasm": {
-            "command": "node scripts/build-wasm.mjs",
-            "env": {
-                "DOENET_MATH_ENGINE": {
-                    "external": true
-                }
-            }
+            "command": "node scripts/build-wasm.mjs"
         },
         "build": {
             "command": "vite build",
@@ -54,16 +46,10 @@
             "dependencies": [
                 "build:wasm"
             ],
-            "env": {
-                "DOENET_MATH_ENGINE": {
-                    "external": true
-                }
-            },
             "clean": true
         }
     },
     "dependencies": {
-        "math-expressions": "^2.0.0-alpha93",
         "mathjs": "^15.2.0"
     }
 }

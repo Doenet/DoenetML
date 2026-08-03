@@ -18,7 +18,7 @@ export default defineConfig({
         },
         rollupOptions: {
             // `math-expressions` is also pulled in by `doenetml-worker`; we don't need two copies.
-            external: ["@doenet/math"],
+            external: ["math-expressions"],
         },
     },
     test: {

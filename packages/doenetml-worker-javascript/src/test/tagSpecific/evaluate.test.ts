@@ -6,7 +6,7 @@ import {
     submitAnswer,
     updateMathInputValue,
 } from "../utils/actions";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import type { round as RoundType } from "mathjs";
 const { round } = me.math as { round: RoundType };

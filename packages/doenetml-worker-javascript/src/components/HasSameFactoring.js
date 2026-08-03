@@ -1,6 +1,6 @@
 import checkEquality from "../utils/checkEquality";
 import BooleanComponent from "./Boolean";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 export default class HasSameFactoring extends BooleanComponent {
     static componentType = "hasSameFactoring";

@@ -1,5 +1,5 @@
 import { convertValueToMathExpression } from "@doenet/utils";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 export function applyConstraintFromComponentConstraints(
     variables,

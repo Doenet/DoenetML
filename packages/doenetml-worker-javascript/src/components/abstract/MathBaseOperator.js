@@ -1,6 +1,6 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import MathComponent from "../Math";
-import me from "@doenet/math";
+import me from "math-expressions";
 
 export default class MathOperator extends MathComponent {
     static componentType = "_mathOperator";

@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 import type { gcd as GcdType, lcm as LcmType } from "mathjs";
 const { gcd, lcm } = me.math as { gcd: typeof GcdType; lcm: typeof LcmType };
 

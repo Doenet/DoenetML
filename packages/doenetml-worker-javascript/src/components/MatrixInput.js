@@ -1,5 +1,5 @@
 import Input from "./abstract/Input";
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     deepClone,
     convertValueToMathExpression,

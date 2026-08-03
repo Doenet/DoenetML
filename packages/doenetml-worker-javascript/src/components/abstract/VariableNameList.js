@@ -1,5 +1,5 @@
 import MathList from "../MathList";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { isValidVariable } from "../../utils/math";
 import { codedDiagnostic } from "../../utils/diagnostics";
 

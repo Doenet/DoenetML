@@ -1,10 +1,13 @@
 /**
- * The types DoenetML imports alongside `me`. They come from the legacy
- * package's hand-written `index.d.ts`, which is the shape ~163 call sites are
- * written against; the Rust engine is a drop-in for that shape, so both engines
- * are typed by it. Where the two genuinely diverge, the divergence belongs in
- * the ledger (MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md §Stage 1 Step 0), not in
- * a widened type that hides it.
+ * The types DoenetML imports alongside `me` — the shape ~147 call sites are
+ * written against.
+ *
+ * They are vendored in `./vendored/math-expressions.d.ts` rather than pulled
+ * from the legacy package, which is no longer a dependency. They arrived with
+ * that library but were never *about* it: the Rust engine is a drop-in for this
+ * shape. Where the engine genuinely diverges, the divergence belongs in the
+ * ledger (MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md), not in a widened type that
+ * hides it.
  */
 export type {
     Bindings,
@@ -12,7 +15,7 @@ export type {
     Context,
     Expression,
     Tree,
-} from "math-expressions";
+} from "./vendored/math-expressions";
 
 /** A state vector, or a bare number for a scalar ODE. */
 export type OdeState = number | number[];

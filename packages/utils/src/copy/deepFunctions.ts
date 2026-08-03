@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 import { isSubset } from "../math/subset-of-reals";
 
 // from https://stackoverflow.com/a/40293777

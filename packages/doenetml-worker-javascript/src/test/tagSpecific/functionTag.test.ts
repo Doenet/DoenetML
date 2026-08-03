@@ -7,7 +7,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import { createFunctionFromDefinition } from "@doenet/utils";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 

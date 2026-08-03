@@ -43,8 +43,8 @@ function decodeWasm(): Uint8Array {
     if (!WASM_BASE64) {
         throw new Error(
             "@doenet/math: the WASM core was not inlined into this build. " +
-                "This build was made with DOENET_MATH_ENGINE=js, which stubs " +
-                "out scripts/build-wasm.mjs. Rebuild without it.",
+                "scripts/build-wasm.mjs did not run, or produced no bytes. " +
+                "Rebuild the package.",
         );
     }
     // `Buffer` where it exists (node) — it decodes natively and avoids a

@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 import { subsetReviver } from "../math/subset-of-reals";
 
 export function serializedComponentsReplacer(key: any, value: any) {

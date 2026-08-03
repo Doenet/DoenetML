@@ -9,8 +9,8 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import me from "@doenet/math";
-import type { Expression } from "@doenet/math";
+import me from "math-expressions";
+import type { Expression } from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);

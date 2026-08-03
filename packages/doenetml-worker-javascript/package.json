@@ -52,11 +52,11 @@
         }
     },
     "dependencies": {
-        "@doenet/math": "*",
         "compromise": "^13.11.4",
         "compromise-numbers": "^1.4.0",
         "efrt": "2.7.0",
         "grad-school": "0.0.5",
+        "math-expressions": "file:../math",
         "suffix-thumb": "5.0.2"
     },
     "devDependencies": {}

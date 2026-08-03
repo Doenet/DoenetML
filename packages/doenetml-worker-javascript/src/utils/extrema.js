@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     find_effective_domain,
     find_effective_domains_piecewise_children,

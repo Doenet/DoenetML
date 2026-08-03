@@ -1,5 +1,5 @@
 import InlineComponent from "./abstract/InlineComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { normalizeMathExpression } from "@doenet/utils";
 import { returnNVariables } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";

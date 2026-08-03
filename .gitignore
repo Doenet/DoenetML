@@ -88,3 +88,5 @@ __pycache__
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 tmp/
+# .heapsnapshot and .heapprofile files are generated during profiling 
+*.heap*

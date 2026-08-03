@@ -9,7 +9,7 @@
  *
  * Run against both engines:
  *   npm run build -w packages/math && npm run test -w packages/math
- *   DOENET_MATH_ENGINE=rust npm run build -w packages/math && npm run test -w packages/math
+ *   npm run build -w packages/math && npm run test -w packages/math
  */
 import { describe, expect, it } from "vitest";
 import me, { engineName, isTree } from "../dist/index.js";

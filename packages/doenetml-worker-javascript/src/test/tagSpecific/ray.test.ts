@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Expression, Tree } from "@doenet/math";
+import type { Expression, Tree } from "math-expressions";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";

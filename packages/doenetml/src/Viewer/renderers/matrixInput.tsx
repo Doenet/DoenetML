@@ -2,7 +2,7 @@ import React, { useContext, useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-// import me from '@doenet/math';
+// import me from 'math-expressions';
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
 import { MathJax } from "better-react-mathjax";

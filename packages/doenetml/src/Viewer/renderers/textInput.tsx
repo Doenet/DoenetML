@@ -6,7 +6,7 @@ import useDoenetRenderer, {
 import { sizeToCSS } from "./utils/css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,
     POINTER_DRAG_THRESHOLD,

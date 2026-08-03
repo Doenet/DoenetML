@@ -1,19 +1,12 @@
 /**
- * The engine this build resolves to: the Rust/WASM one.
+ * The engine: the Rust core compiled to WASM, reached through
+ * `math-expressions-js-compat`.
  *
- * `vite.config.ts` aliases this module to `./engine-js` when the build runs
- * with `DOENET_MATH_ENGINE=js`; otherwise the file you are reading is what
- * ships. Resolving at build time rather than at runtime is deliberate:
- *
- *   - `me.fromAst` and `.tree` are called from dependency-graph hot loops, so a
- *     runtime indirection (a Proxy, or a branch per access) would tax every
- *     call to serve a switch that flips once per build.
- *   - Only the selected engine lands in the bundle, so a JS-engine build does
- *     not carry a multi-megabyte inlined WASM payload it never executes.
- *
- * A differential harness that needs *both* engines at once should import
- * `@doenet/math/engine-js` and `@doenet/math/engine-rust` directly rather than
- * going through this module.
+ * This module used to be a build-time switch between two engines. There is only
+ * one now — the legacy JavaScript library was removed once it stopped carrying
+ * any runtime code we ship. The indirection is kept because ~147 call sites
+ * import `@doenet/math` rather than a specific engine, and because it remains
+ * the one place to look to answer "what backs `me` in this build?".
  */
 export * from "./engine-rust";
 export { default } from "./engine-rust";

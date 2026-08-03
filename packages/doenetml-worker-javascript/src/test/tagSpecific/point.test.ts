@@ -10,7 +10,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { superSubscriptsToUnicode } from "../../utils/math";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 

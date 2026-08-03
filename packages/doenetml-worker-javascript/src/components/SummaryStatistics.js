@@ -1,5 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 const { mean, std, variance, median, quantileSeq } = me.math;
 import { roundForDisplay } from "../utils/math";
 import {

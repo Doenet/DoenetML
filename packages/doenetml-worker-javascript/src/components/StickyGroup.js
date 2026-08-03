@@ -14,7 +14,7 @@ import {
     addChildrenToDynamicChild,
     deleteChildrenFromDynamicChild,
 } from "../utils/dynamicChildren";
-import me from "@doenet/math";
+import me from "math-expressions";
 const { mod } = me.math;
 
 export default class StickyGroup extends GraphicalComponent {

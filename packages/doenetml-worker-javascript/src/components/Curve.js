@@ -1,7 +1,7 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import { returnBreakStringsSugarFunction } from "./commonsugar/breakstrings";
 
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     returnBezierFunctions,
     returnGraphicalStyleDescriptionDefinitions,

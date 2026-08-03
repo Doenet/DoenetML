@@ -10,7 +10,7 @@ import {
 } from "../utils/actions";
 import { test_in_graph } from "../utils/in-graph";
 import { latexToText } from "../../utils/math";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();

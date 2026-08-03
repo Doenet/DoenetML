@@ -1,5 +1,5 @@
 import NumberComponent from "./Number";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { renameStateVariable } from "../utils/stateVariables";
 import { textToAst } from "../utils/math";
 

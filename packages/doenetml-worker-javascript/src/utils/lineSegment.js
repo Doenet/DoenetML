@@ -1,4 +1,4 @@
-import me from "@doenet/math";
+import me from "math-expressions";
 
 export function directionFromSlope(slope) {
     if (slope === Infinity || slope === -Infinity) {

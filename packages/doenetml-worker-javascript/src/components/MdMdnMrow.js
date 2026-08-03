@@ -1,6 +1,6 @@
 import InlineComponent from "./abstract/InlineComponent";
 import { M } from "./MMeMen";
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,

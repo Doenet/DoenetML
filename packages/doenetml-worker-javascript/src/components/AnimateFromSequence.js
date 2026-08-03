@@ -4,7 +4,7 @@ import {
     returnStandardSequenceAttributes,
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
-import me from "@doenet/math";
+import me from "math-expressions";
 const { mod } = me.math;
 import { nanoid } from "nanoid";
 import { codedDiagnostic } from "../utils/diagnostics";

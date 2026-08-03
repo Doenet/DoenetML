@@ -1,5 +1,5 @@
 import InlineComponent from "./abstract/InlineComponent";
-import me from "@doenet/math";
+import me from "math-expressions";
 import { vectorOperators } from "@doenet/utils";
 import {
     returnNumberDisplayAttributeComponentShadowing,

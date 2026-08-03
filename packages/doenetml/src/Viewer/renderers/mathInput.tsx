@@ -32,7 +32,7 @@ import {
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
-import me from "@doenet/math";
+import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,
     POINTER_DRAG_THRESHOLD,

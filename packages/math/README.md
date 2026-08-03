@@ -17,43 +17,34 @@ See [MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md](../../MATH_EXPRESSIONS_RUST_MIGRAT
 
 ## The engine
 
-This branch runs on the **Rust** engine: `math-expressions-js-compat` (upstream
-v3) over the Rust core compiled to WASM, from the `vendor/math-expressions`
-submodule. That is the default and the only supported configuration.
+`math-expressions-js-compat` (upstream v3) over the Rust core compiled to WASM,
+from the `vendor/math-expressions` submodule. It is the only engine.
 
 ```bash
-npm run build -w packages/math                        # Rust/WASM engine
-DOENET_MATH_ENGINE=js npm run build -w packages/math  # legacy math-expressions@2.x
+npm run build -w packages/math
 ```
 
-The `js` build is kept as a **differential-debugging tool**, not as a supported
-mode. When a spec disagrees with the Rust engine the first question is always
-"does this pass on the old one?", and rebuilding one package to answer it beats
-bisecting a behavioral difference by hand:
+Building requires a Rust toolchain: `rustup target add wasm32-unknown-unknown`
+and `wasm-bindgen-cli` matching the `wasm-bindgen` version pinned in the
+submodule's `Cargo.toml` (`cargo install wasm-bindgen-cli --version <pinned>`).
 
-```bash
-npm run build -w packages/math && npx vitest run --root packages/doenetml-worker-javascript <spec>
-DOENET_MATH_ENGINE=js npm run build -w packages/math && npx vitest run --root packages/doenetml-worker-javascript <spec>
-```
+### The legacy library is gone
 
-Building therefore requires a Rust toolchain: `rustup target add
-wasm32-unknown-unknown` and `wasm-bindgen-cli` matching the `wasm-bindgen`
-version pinned in the submodule's `Cargo.toml` (`cargo install wasm-bindgen-cli
---version <pinned>`).
+`math-expressions@2.x` was removed as a dependency. For a while it was retained
+so `DOENET_MATH_ENGINE=js` could rebuild against it for differential debugging,
+but it had stopped carrying any runtime code we ship — the Rust bundle imports
+nothing from it — and keeping a second math engine installed to serve an
+occasional debugging convenience was not worth the hazard: with both packages
+present, `import me from "math-expressions"` silently meant *different engines*
+in different packages depending on resolution.
 
-Because the choice is baked into `dist/`, switching engines means rebuilding
-this package — consumers need no rebuild.
+Its hand-written type definitions were the one thing still needed, and those are
+vendored verbatim in [`src/vendored/math-expressions.d.ts`](src/vendored/math-expressions.d.ts).
+They are the API contract ~147 call sites are written against; they arrived with
+that library but were never *about* it, since the Rust engine is a drop-in for
+exactly this shape.
 
-A harness that needs both engines *simultaneously* — the differential corpus in
-the migration plan — should import `@doenet/math/engine-js` and
-`@doenet/math/engine-rust` directly rather than going through the root entry.
-
-### Why build-time and not runtime
-
-`me.fromAst` and `.tree` are called from dependency-graph hot loops. A runtime
-switch (a Proxy, or a branch per property access) would tax the default path to
-serve the experimental one, and would force both engines — including a
-multi-megabyte inlined WASM payload — into every bundle.
+To A/B against the old engine now, check out a commit from before the switch.
 
 ## WASM initialization
 
@@ -75,10 +66,8 @@ import { initMathWasm } from "@doenet/math";
 await initMathWasm();
 ```
 
-Both engines export `initMathWasm` (the JavaScript one as a no-op), so callers
-never branch on which engine they were built against. Using the Rust engine on
-the main thread before initializing throws a message saying so, rather than
-failing deep inside wasm-bindgen.
+Using it on the main thread before initializing throws a message saying so,
+rather than failing deep inside wasm-bindgen.
 
 The WASM reaches the compat layer through its `setWasmModule` injection point,
 which `wasm-loader.ts` calls at import time. That import must be evaluated
@@ -108,14 +97,14 @@ stack trace naming the missing method is far better than a silently wrong answer
 ```
 src/
   index.ts           the public entry — re-exports the selected engine
-  engine.ts          the selection point (aliased to engine-js.ts when DOENET_MATH_ENGINE=js)
-  engine-js.ts       legacy math-expressions@2.x
+  engine.ts          indirection point — what backs `me` in this build
   engine-rust.ts     compat over the Rust core
   wasm-loader.ts     inlined WASM, injected into compat via setWasmModule
   components.ts      getComponent — the legacy sequence-only contract, on either engine
   types.ts           the types consumers import
-  vendor-shims.d.ts  declared surface of the three submodule modules we consume
+  vendored/          math-expressions.d.ts — the API contract, vendored
+  vendor-shims.d.ts  declared surface of the submodule modules we consume
   generated/         wasm-bytes.ts, written by scripts/build-wasm.mjs (git-ignored)
 test/
-  engine-smoke.test.ts   runs against whichever engine dist/ was built with
+  engine-smoke.test.ts   exercises dist/
 ```

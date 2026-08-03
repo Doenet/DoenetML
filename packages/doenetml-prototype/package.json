@@ -106,6 +106,6 @@
         "tabWidth": 4
     },
     "dependencies": {
-        "@doenet/math": "*"
+        "math-expressions": "file:../math"
     }
 }

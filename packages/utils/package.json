@@ -61,9 +61,9 @@
     },
     "dependencies": {
         "@doenet/i18n": "*",
-        "@doenet/math": "*",
         "color-name": "^1.1.4",
         "colord": "^2.9.3",
+        "math-expressions": "file:../math",
         "micromark": "^4.0.2"
     },
     "devDependencies": {
