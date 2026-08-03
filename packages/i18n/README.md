@@ -82,9 +82,9 @@ Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
 Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
 Hausa, Yoruba, Igbo and Oromo leave `element-name` and `element-anion-name`
 out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
-Most of them have no settled chemical nomenclature to seed from, and inventing
-one would be worse than the English a student meets in their own textbook.
-Kannada has two — native coinages reaching a dozen elements and
+The first nine have no settled chemical nomenclature to seed from, and
+inventing one would be worse than the English a student meets in their own
+textbook. Kannada has two — native coinages reaching a dozen elements and
 transliterations reaching all 118 — and picking either would misreport the
 other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
 current one is English: Punjabi secondary chemistry uses the English terms, the
@@ -402,6 +402,17 @@ piece selects a different branch rather than substituting an empty string —
 that is what lets a translation reorder and re-punctuate each combination on
 its own terms.
 
+`$gender` is read more widely than its name suggests: it is a token set naming
+what an adjective agrees with, and nothing outside a catalog interprets its
+values. The five Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda and Nyanja
+— answer it with the noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`) rather
+than with a gender, and nothing outside them had to learn what a noun class is.
+The reachability rule applies to the class tokens exactly as it does to
+`$role`: a catalog writes a branch for a class only if its own `noun-gender`
+can answer that class, which is why Swahili and Nyanja carry `c6` — the plural
+class, which their word for *text* or *border* lands in — and Zulu, Xhosa and
+Kinyarwanda do not.
+
 Gender is not the only thing an adjective has to agree with. Three sets of
 words are rendered in two places each — a border's adjectives, the background
 colour, and the text colour beside it — once standing alone as a state
@@ -412,16 +423,7 @@ the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
 positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
 Romanian, Finnish, Hindi, Marathi, Punjabi, Urdu, Sindhi and Pashto are the
-catalogs that select on them. `$gender` is read more widely than its name
-suggests: it is a token set naming what an adjective agrees with, and the five
-Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda and Nyanja — answer it with
-the noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`) rather than with a gender.
-Nothing outside those catalogs had to learn what a noun class is, which is the
-argument working as designed. The reachability rule applies to the class tokens
-exactly as it does to `$role`: a catalog writes a branch for a class only if
-its own `noun-gender` can answer that class, which is why Swahili and Nyanja
-carry `c6` — the plural class, which their word for *text* or *border* lands in
-— and Zulu, Xhosa and Kinyarwanda do not. Sharing a script does not imply sharing the fork:
+catalogs that select on them. Sharing a script does not imply sharing the fork:
 Marathi and Hindi both take an oblique adjective before a postposition and
 Nepali, written in the same letters, takes none. Nor is the fork
 all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and

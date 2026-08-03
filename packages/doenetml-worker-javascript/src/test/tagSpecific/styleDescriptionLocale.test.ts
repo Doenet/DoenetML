@@ -182,12 +182,17 @@ describe("style descriptions follow the document locale @group4", () => {
         });
     });
 
-    it("agrees Swahili adjectives with four noun classes in one document", async () => {
+    it("carries a Swahili noun class through the worker path", async () => {
         const values = await descriptions(styled, names, "sw");
-        // «mstari» is class 3, «duara» class 5, «mraba» class 3 and «mpaka»
-        // class 3, and the same two stems — -nene and -ekundu — take a
-        // different prefix against each. `$gender` carries the class here, and
-        // nothing else in the pipeline had to learn what a noun class is.
+        // `$gender` carries a noun class rather than a gender in the Bantu
+        // catalogs, and what this checks is that it survives the worker path —
+        // `setLocaleData`, the document's locale, the `translator` dependency
+        // — not the agreement itself, which `@doenet/utils`' "Swahili noun
+        // classes" suite pins across all four classes the catalog names.
+        //
+        // This document reaches two of them: «mstari», «mraba» and «mpaka» are
+        // all class 3, so the adjectives on them share the m- prefix, and the
+        // class-5 «duara» shows only on «lililojazwa».
         expect(values.st).eq("mnene mwekundu kwa vipande");
         expect(values.stn).eq("mstari mnene mwekundu kwa vipande");
         expect(values.pt).eq("mraba kijani");
