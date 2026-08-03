@@ -96,6 +96,23 @@ describe(
             cy.get("#trailingPara").should("have.attr", "role", "paragraph");
         });
 
+        it("content pulled in by a composite claims the lead of its list item", () => {
+            // A composite's replacements are wrapped in a `<span>` carrying
+            // the composite's name, and that wrapper keeps the marker out of
+            // the item's text run whatever role the paragraph inside it has.
+            // The paragraph after the wrapper does not lead the item, so it
+            // must stay a paragraph.
+            postDoenetML({
+                settleSelector: "#after",
+                doenetML: `<p name="src">Apples</p>
+<ol>
+  <li>$src<p name="after">More about apples</p></li>
+</ol>`,
+            });
+
+            cy.get("#after").should("have.attr", "role", "paragraph");
+        });
+
         it("hidden paragraph does not claim the lead of its list item", () => {
             // The core sends `null` for a child it does not render, so a
             // hidden paragraph never reaches the accessibility tree and must

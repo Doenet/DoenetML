@@ -145,21 +145,24 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
  * paragraph keeps its own node, since a reader still wants to be told where
  * the next paragraph starts.
  *
- * Only a paragraph that leads the item is worth flagging: any other first
- * child (a figure, a nested list) sits between the marker and the text no
- * matter what role it carries.
+ * Only a paragraph that leads the item is worth flagging: any other leading
+ * child (a figure, a nested list, or the `<span>` that
+ * `addCommasForCompositeRanges` wraps around a composite's replacements) sits
+ * between the marker and the text no matter what role the paragraph carries.
  *
  * Two kinds of child are skipped when looking for the leading one, because
  * neither reaches the accessibility tree: whitespace-only text (the
- * indentation an author writes inside the `<li>`) and `null`, which is what
- * the core sends for a child it does not render — a hidden child, most
- * often a `<p hide>`.
+ * indentation an author writes inside the `<li>`) and `null`, which stands for
+ * a child that is not rendered — the core sends it for a child it leaves out,
+ * most often a `<p hide>`, and `useDoenetRenderer` sends it for a child whose
+ * renderer has not finished loading yet (a later render then marks that child,
+ * since this runs on every render).
  */
 function markLeadingParagraphOfListItem(children: React.ReactNode[]) {
     const leadingInd = children.findIndex(
         (child) =>
-            React.isValidElement(child) ||
-            (typeof child === "string" && child.trim() !== ""),
+            child != null &&
+            !(typeof child === "string" && child.trim() === ""),
     );
 
     const leadingChild = children[leadingInd];
