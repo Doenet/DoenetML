@@ -152,6 +152,11 @@ under `pa-Arab` reaches it and gets Gurmukhi — the same asymmetry `zh-CN`
 already has, and the answer to it is a second catalog rather than a differently
 named first one.
 
+Hausa is the same case again: `ha` is Boko, the Latin orthography its schools,
+its publishing and CLDR all use, and a reader arriving under `ha-Arab` reaches
+it and gets Boko. Ajami is still written, so if it is ever seeded it is a
+`ha-Arab` catalog beside this one rather than a rename of it.
+
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
 They are addressed to whoever maintains the file, and no one maintaining it

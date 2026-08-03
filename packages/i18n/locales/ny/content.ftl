@@ -7,10 +7,10 @@
 # Chichewa reads `$gender` as the noun **class**, as the other Bantu catalogs
 # in this repository do. `noun-gender` answers `c3`, `c5`, `c6`, `c7` or `c9`.
 #
-# Where Zulu and Kinyarwanda need two concord sets, Chichewa needs one: almost
-# every describing word here is built from a noun with the associative `-a`,
-# and the associative takes the class prefix. So the whole table is one column
-# of prefixes applied to one stem apiece:
+# Where Zulu, Xhosa and Kinyarwanda need two concord sets, Chichewa needs one:
+# almost every describing word here is built from a noun with the associative
+# `-a`, and the associative takes the class prefix. So the whole table is one
+# column of prefixes applied to one stem apiece:
 #
 #   c3 w-   c5 l-   c6 a-   c7 ch-   c9 y-
 #

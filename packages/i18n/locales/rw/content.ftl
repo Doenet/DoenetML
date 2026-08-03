@@ -5,10 +5,10 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Kinyarwanda reads `$gender` as the noun **class**, as `locales/sw`,
-# `locales/zu` and `locales/xh` do. `noun-gender` answers `c3`, `c5`, `c7` or
-# `c9`, and every describing word selects on it. There is no `c6` here: none of
-# the nouns this catalog names lands in that class, and a token nothing answers
-# is a branch nothing reaches.
+# `locales/zu`, `locales/xh` and `locales/ny` do. `noun-gender` answers `c3`,
+# `c5`, `c7` or `c9`, and every describing word selects on it. There is no
+# `c6` here: none of the nouns this catalog names lands in that class, and a
+# token nothing answers is a branch nothing reaches.
 #
 # Two concord sets, as in Zulu, and again which set a word takes is a fact
 # about the word:
