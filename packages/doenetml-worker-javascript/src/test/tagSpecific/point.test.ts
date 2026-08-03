@@ -4581,7 +4581,7 @@ describe("Point tag tests @group4", async () => {
             );
             let coordsString = xString.join(", ");
             if (nDim > 1) {
-                coordsString = `( ${coordsString} )`;
+                coordsString = `(${coordsString})`;
             }
 
             const stateVariables = await core.returnAllStateVariables(

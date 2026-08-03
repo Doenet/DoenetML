@@ -5697,12 +5697,12 @@ describe("Vector Tag Tests @group4", function () {
         let bi = false;
 
         async function check_items() {
-            let parens1 = `( ${x1}, ${y1} )`;
-            let brackets1 = `⟨ ${x1}, ${y1} ⟩`;
-            let parens2 = `( ${x2}, ${y2} )`;
-            let brackets2 = `⟨ ${x2}, ${y2} ⟩`;
-            let parens3 = `( ${x3}, ${y3} )`;
-            let brackets3 = `⟨ ${x3}, ${y3} ⟩`;
+            let parens1 = `(${x1}, ${y1})`;
+            let brackets1 = `⟨${x1}, ${y1}⟩`;
+            let parens2 = `(${x2}, ${y2})`;
+            let brackets2 = `⟨${x2}, ${y2}⟩`;
+            let parens3 = `(${x3}, ${y3})`;
+            let brackets3 = `⟨${x3}, ${y3}⟩`;
 
             let stateVariables = await core.returnAllStateVariables(
                 false,

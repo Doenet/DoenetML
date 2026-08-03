@@ -480,7 +480,9 @@ describe("the math core's placement", () => {
         const scripts = healthyBuild();
         scripts.set(STANDALONE, script(500, 0, [], 2));
         expect(problemsFor(scripts)).toEqual([
-            expect.stringContaining("carries 2 copies of the @doenet/math core"),
+            expect.stringContaining(
+                "carries 2 copies of the @doenet/math core",
+            ),
         ]);
     });
 

@@ -11918,7 +11918,7 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p14")]
                         .stateValues.text,
-                ).eq(`Matrix: [ [ ${math} ] ]`);
+                ).eq(`Matrix: [[${math}]]`);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
@@ -11946,12 +11946,12 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
                         .stateValues.text,
-                ).eq(`Matrix[${i}]: [ [ ${x1} ] ]`);
+                ).eq(`Matrix[${i}]: [[${x1}]]`);
             } else if (i <= numDimensions) {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
                         .stateValues.text,
-                ).eq(`Matrix[${i}]: [ [ ${math.get_component(i - 1)} ] ]`);
+                ).eq(`Matrix[${i}]: [[${math.get_component(i - 1)}]]`);
             } else {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]

@@ -151,7 +151,7 @@ describe("Repeat tag tests @group1", async () => {
         }
 
         let pText = values
-            .map((v, i) => `( ${v.join(", ")} ): ( ${indices[i].join(", ")} )`)
+            .map((v, i) => `(${v.join(", ")}): (${indices[i].join(", ")})`)
             .join(", ");
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -196,7 +196,7 @@ describe("Repeat tag tests @group1", async () => {
         }
 
         let pText = values
-            .map((v, i) => `( ${v.join(", ")} ): ( ${indices[i].join(", ")} )`)
+            .map((v, i) => `(${v.join(", ")}): (${indices[i].join(", ")})`)
             .join(", ");
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -614,7 +614,7 @@ describe("Repeat tag tests @group1", async () => {
 
         let e_n2 = 6;
 
-        let maths1 = [1, 2, 3].map((n) => `( ${n}, ${e_n2} )`);
+        let maths1 = [1, 2, 3].map((n) => `(${n}, ${e_n2})`);
         let maths2 = [4, 5, 6].map((n) => `sin(${n})`);
         let names1 = ["r1[1].math", "r1[2].math", "r1[3].math"];
         let names2 = ["r2[1].math", "r2[2].math", "r2[3].math"];
@@ -654,7 +654,7 @@ describe("Repeat tag tests @group1", async () => {
 
         for (let b of [1, 2, 3]) {
             for (let a of [...Array(b).keys()].map((v) => v + 1)) {
-                texts.push(`( ${a}, ${b} )`);
+                texts.push(`(${a}, ${b})`);
             }
         }
 
@@ -1293,8 +1293,8 @@ describe("Repeat tag tests @group1", async () => {
             let points1 = sources1.map((n) => [n, 2 * n]);
             let points2 = points1.map((p) => [p[0] ** 2, p[1] ** 2]);
 
-            let point1Texts = points1.map((p) => `( ${p[0]}, ${p[1]} )`);
-            let point2Texts = points2.map((p) => `( ${p[0]}, ${p[1]} )`);
+            let point1Texts = points1.map((p) => `(${p[0]}, ${p[1]})`);
+            let point2Texts = points2.map((p) => `(${p[0]}, ${p[1]})`);
 
             let pNames1 = [
                 ["p1a", "p1b"],

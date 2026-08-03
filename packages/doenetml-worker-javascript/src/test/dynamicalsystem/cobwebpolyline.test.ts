@@ -72,7 +72,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
     `,
         });
 
-        let latexResults = ["x_{0} & = -1.5"];
+        let latexResults = ["x_{ 0 } & = -1.5"];
         let submittedVertices: string[] = [];
         let currentVertices = ["(-1.5, 0)"];
         let initialValCredit = 0;
@@ -172,7 +172,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Move first point
         currentVertices[0] = "(1, 0)";
-        latexResults[0] = "x_{0} & = 1";
+        latexResults[0] = "x_{ 0 } & = 1";
         await movePolyline({
             componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
             pointCoords: { 0: [1, 0] },
@@ -192,7 +192,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         const graphCenterX = (-2 + 5) / 2;
         const graphCenterY = (-2.2 + 4.5) / 2;
         latexResults.push(`x_{ 1 } & = ${graphCenterY}`);
-        currentVertices.push(`( ${graphCenterX}, ${graphCenterY} )`);
+        currentVertices.push(`(${graphCenterX}, ${graphCenterY})`);
         cobwebJustSubmitted = false;
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -201,7 +201,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Move second point to wrong location, submit
-        latexResults[1] = "x_{1} & = 4";
+        latexResults[1] = "x_{ 1 } & = 4";
         currentVertices[1] = "(3, 4)";
         submittedVertices = [...currentVertices];
         cobwebJustSubmitted = true;
@@ -217,7 +217,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Move second point to a different wrong location and make sure submit button reappears
-        latexResults[1] = "x_{1} & = 1";
+        latexResults[1] = "x_{ 1 } & = 1";
         currentVertices[1] = "(1, 1)";
         cobwebJustSubmitted = false;
         await movePolyline({
@@ -237,7 +237,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Move second point to correct location, submit
-        latexResults[1] = "x_{1} & = 1.6667";
+        latexResults[1] = "x_{ 1 } & = 1.6667";
         currentVertices[1] = "(1, 1.6667)";
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.2;
@@ -253,7 +253,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add third point but don't move it, should be at graph's center, submit
-        currentVertices.push(`( ${graphCenterX}, ${graphCenterY} )`);
+        currentVertices.push(`(${graphCenterX}, ${graphCenterY})`);
         submittedVertices = [...currentVertices];
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -281,7 +281,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add fourth point and move to wrong location, submit
-        latexResults.push("x_{2} & = 2");
+        latexResults.push("x_{ 2 } & = 2");
         currentVertices.push(`( 1, 2 )`);
         submittedVertices = [...currentVertices];
         await updateValue({
@@ -300,7 +300,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Move fourth point to correct location, submit
-        latexResults[2] = "x_{2} & = 2.4074";
+        latexResults[2] = "x_{ 2 } & = 2.4074";
         currentVertices[3] = "(1.6667, 2.4074)";
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.6;
@@ -370,7 +370,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add sixth point and move to wrong location, submit
-        latexResults.push("x_{3} & = 3");
+        latexResults.push("x_{ 3 } & = 3");
         currentVertices.push(`( -1, 3 )`);
         submittedVertices = [...currentVertices];
         await updateValue({
@@ -389,7 +389,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Move sixth point to correct location, submit
-        latexResults[3] = "x_{3} & = 2.8829";
+        latexResults[3] = "x_{ 3 } & = 2.8829";
         currentVertices[5] = "(2.4074, 2.8829)";
         submittedVertices = [...currentVertices];
         cobwebCredit = 1;
@@ -439,7 +439,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add eighth point and move to correct location, submit
-        latexResults[4] = "x_{4} & = 2.9954";
+        latexResults[4] = "x_{ 4 } & = 2.9954";
         currentVertices[7] = "(2.8829, 2.9954)";
         submittedVertices = [...currentVertices];
         await updateValue({

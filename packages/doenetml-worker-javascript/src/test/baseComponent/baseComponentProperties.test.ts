@@ -231,15 +231,15 @@ describe("Base component property tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pACoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of A: ( ${A.join(", ")} )`);
+            ).eq(`Coordinates of A: (${A.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pBCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of B: ( ${B.join(", ")} )`);
+            ).eq(`Coordinates of B: (${B.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of C: ( ${C.join(", ")} )`);
+            ).eq(`Coordinates of C: (${C.join(", ")})`);
         }
 
         let gFixed = false;
@@ -493,19 +493,19 @@ describe("Base component property tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pACoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of A: ( ${A.join(", ")} )`);
+            ).eq(`Coordinates of A: (${A.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pBCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of B: ( ${B.join(", ")} )`);
+            ).eq(`Coordinates of B: (${B.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of C: ( ${C.join(", ")} )`);
+            ).eq(`Coordinates of C: (${C.join(", ")})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("pDCoords")]
                     .stateValues.text,
-            ).eq(`Coordinates of D: ( ${D.join(", ")} )`);
+            ).eq(`Coordinates of D: (${D.join(", ")})`);
         }
 
         let AFixed = false;

@@ -2484,7 +2484,7 @@ describe("Curve Tag Bezier Tests @group3", async () => {
                     .text,
             ).eq(
                 desiredControlVectors[m - 1]
-                    .map((v) => `( ${v.join(", ")} )`)
+                    .map((v) => `(${v.join(", ")})`)
                     .join(", "),
             );
             expect(
@@ -2492,7 +2492,7 @@ describe("Curve Tag Bezier Tests @group3", async () => {
                     .text,
             ).eq(
                 desiredControlPoints[m - 1]
-                    .map((v) => `( ${v.join(", ")} )`)
+                    .map((v) => `(${v.join(", ")})`)
                     .join(", "),
             );
 
@@ -2510,11 +2510,11 @@ describe("Curve Tag Bezier Tests @group3", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("pV")].stateValues
                         .text,
-                ).eq(`( ${desiredControlVectors[m - 1][n - 1].join(", ")} )`);
+                ).eq(`(${desiredControlVectors[m - 1][n - 1].join(", ")})`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("pP")].stateValues
                         .text,
-                ).eq(`( ${desiredControlPoints[m - 1][n - 1].join(", ")} )`);
+                ).eq(`(${desiredControlPoints[m - 1][n - 1].join(", ")})`);
             }
         }
     });

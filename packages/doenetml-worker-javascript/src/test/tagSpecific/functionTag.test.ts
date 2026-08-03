@@ -3644,7 +3644,7 @@ describe("Function tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(pName)].stateValues
                     .text,
-            ).eq(`( 0, 1 ), ( ${piString}, -1 )`);
+            ).eq(`(0, 1), (${piString}, -1)`);
         }
 
         for (const pName of [
@@ -3662,7 +3662,7 @@ describe("Function tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx(pName)].stateValues
                     .text,
             ).eq(
-                `( -${piString}, 0 ), ( 0, 2 ), ( ${piString}, 0 ), ( ${twoPiString}, 2 )`,
+                `(-${piString}, 0), (0, 2), (${piString}, 0), (${twoPiString}, 2)`,
             );
         }
     });

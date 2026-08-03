@@ -595,7 +595,9 @@ export function findProblems(budgets, scripts) {
         // through `virtual-keyboard` and `doenetml-worker-rust` before both
         // externalized it.
         if ((emitted.mathCores ?? 0) > 1) {
-            problems.push(mathCorePlacementProblem(relative, emitted.mathCores));
+            problems.push(
+                mathCorePlacementProblem(relative, emitted.mathCores),
+            );
         }
     }
     // Catalogs this bundle is supposed to serve, not carry. Being one file, it
