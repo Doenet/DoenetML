@@ -65,8 +65,12 @@ description-more-information = maklumat lanjut
 
 ## Controls
 
-slider-previous = Sebelum
-slider-next = Seterus
+# English abbreviates "Previous" to fit the button; Malay has no such clipping
+# — «Seterus» is not a word and «Sebelum» is the preposition, not the button —
+# so both are written in full, as `paginator-previous` and `paginator-next`
+# already are.
+slider-previous = Sebelumnya
+slider-next = Seterusnya
 
 keyboard-open = Buka Papan Kekunci
 keyboard-close = Tutup Papan Kekunci

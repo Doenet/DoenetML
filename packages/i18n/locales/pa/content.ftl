@@ -15,10 +15,11 @@
 # ਕਾਲਾ m, ਕਾਲੀ f. Adjectives precede the noun, as in English, so only the
 # words change and not their order.
 #
-# `$role` matters for one of the four positions. A postposition governs the
-# oblique, and a masculine adjective in -ਾ takes -ੇ there; a feminine one in -ੀ
-# spells the two alike. Of the three clause positions, only `background-clause`
-# lands on a masculine noun, so it is the only branch written out:
+# `$role` matters for one of the four positions, and only in `color`. A
+# postposition governs the oblique, and a masculine adjective in -ਾ takes -ੇ
+# there; a feminine one in -ੀ spells the two alike. Of the three clause
+# positions, only `background-clause` lands on a masculine noun, so it is the
+# only branch written out:
 #
 #   standalone          direct; also what `border-clause` and `text-clause`
 #                       fall through to, since ਕਿਨਾਰੀ and ਲਿਖਤ are feminine and
@@ -100,41 +101,34 @@ color =
                 }
         }
 
+# No `$role` fork on these two or on `line-style` below, unlike the colours: a
+# width and a dash pattern are only ever said of a stroke, which is placed
+# `standalone` or in `border-clause` and never in the one clause position that
+# goes oblique. A `[background-clause]` branch here could not be reached.
 line-width =
     .thick =
-        { $role ->
-            [background-clause] ਮੋਟੇ
-           *[standalone]
-                { $gender ->
-                    [f] ਮੋਟੀ
-                   *[m] ਮੋਟਾ
-                }
+        { $gender ->
+            [f] ਮੋਟੀ
+           *[m] ਮੋਟਾ
         }
     .thin =
-        { $role ->
-            [background-clause] ਪਤਲੇ
-           *[standalone]
-                { $gender ->
-                    [f] ਪਤਲੀ
-                   *[m] ਪਤਲਾ
-                }
+        { $gender ->
+            [f] ਪਤਲੀ
+           *[m] ਪਤਲਾ
         }
 
 # ਬਿੰਦੀਦਾਰ ends in a consonant and never changes; ਟੁੱਟਵਾਂ does.
 line-style =
     .dashed =
-        { $role ->
-            [background-clause] ਟੁੱਟਵੇਂ
-           *[standalone]
-                { $gender ->
-                    [f] ਟੁੱਟਵੀਂ
-                   *[m] ਟੁੱਟਵਾਂ
-                }
+        { $gender ->
+            [f] ਟੁੱਟਵੀਂ
+           *[m] ਟੁੱਟਵਾਂ
         }
     .dotted = ਬਿੰਦੀਦਾਰ
 
 # Noun phrases: they stand in front of the «ਨਾਲ» the composition messages
-# supply, and agree with nothing.
+# supply, or in front of the «ਵਾਲੀ» in `style-fill`, and agree with nothing
+# themselves.
 fill-style =
     .horizontal = ਖਿਤਿਜੀ ਲਕੀਰਾਂ
     .vertical = ਲੰਬਕਾਰੀ ਲਕੀਰਾਂ
@@ -172,8 +166,9 @@ noun-regular-polygon =
     }
 
 # Besides the nouns above, `$noun` can be `regular-polygon` (ਬਹੁਭੁਜ, m) or the
-# head of a phrase the description never names: `border` (ਕਿਨਾਰੀ, f), `fill`
-# (ਭਰਾਈ, f), `text` (ਲਿਖਤ, f), `background` (ਪਿਛੋਕੜ, m).
+# head of a phrase: `border` (ਕਿਨਾਰੀ, f), `fill` (ਭਰਾਈ, f), `text` (ਲਿਖਤ, f),
+# `background` (ਪਿਛੋਕੜ, m). English leaves all four unnamed; the composition
+# messages below write out the three this catalog needs a noun for.
 noun-gender =
     { $noun ->
         [line] f
@@ -238,13 +233,21 @@ style-border-clause =
        *[with] { $border } ਕਿਨਾਰੀ ਨਾਲ
     }
 
+# The colour arrives agreeing with `fill`, which `noun-gender` answers feminine
+# — but the pattern words are plural nouns of their own gender (ਹੀਰੇ m), so
+# putting the colour straight in front of one would disagree with it. So the
+# message supplies «ਭਰਾਈ» for the colour to agree with and hangs the pattern
+# off it, which is what `hi` does with the same message.
 style-fill =
     { $parts ->
-        [pattern] { $color } { $pattern }
-       *[plain] { $color }
+        [pattern] { $pattern } ਵਾਲੀ { $color } ਭਰਾਈ
+       *[plain] { $color } ਭਰਾਈ
     }
 
-style-unfilled = ਨਾ ਭਰਿਆ
+# The other answer the same variable gives, and it takes no `$gender`, so it
+# names the noun rather than inflecting an adjective for a gender it was not
+# told — as «बिना भराव» does in `hi`.
+style-unfilled = ਬਿਨਾਂ ਭਰਾਈ
 
 # «ਪਿਛੋਕੜ» is masculine and takes the postposition «ਉੱਤੇ», which is what puts
 # its colour in the oblique.

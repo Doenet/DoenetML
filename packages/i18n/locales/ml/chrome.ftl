@@ -122,9 +122,14 @@ viewer-initializing = ആരംഭിക്കുന്നു...
 
 error-heading = പിശക്
 
+# The ordinal «-ാം» opens with a combining vowel sign, so it cannot stand as a
+# word of its own: after a space it renders as a stranded mark or a dotted
+# circle. It is invariant whatever number precedes it, so it is welded to the
+# placeable with the hyphen Malayalam already writes a digit ordinal with —
+# the case the README's affix rule explicitly allows.
 error-found-at =
     { $span ->
-        [line] { $startLine } ാം വരിയിൽ കണ്ടെത്തി.
+        [line] { $startLine }-ാം വരിയിൽ കണ്ടെത്തി.
        *[lines] { $startLine }–{ $endLine } വരികളിൽ കണ്ടെത്തി.
     }
 

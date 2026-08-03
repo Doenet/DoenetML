@@ -131,39 +131,50 @@ describe("style descriptions follow the document locale @group4", () => {
 
     it("agrees a Gujarati adjective with three genders in one document", async () => {
         const values = await descriptions(styled, names, "gu");
-        // «ચોરસ» is masculine and «વર્તુળ» neuter, so «લીલો» and «વાદળી» come
-        // out of the same table differently — and «વાદળી» is one of the loans
-        // that never changes, which is why only the marker moves. The stroke's
-        // own words are લાલ and તૂટક, both invariant, so `bd` and the border
-        // inside `sh` read alike: Gujarati inflects for gender and not for the
-        // position a phrase lands in, so its catalog selects on `$gender`
-        // alone.
+        // «રેખા» is feminine, «ચોરસ» masculine and «વર્તુળ» neuter, so «જાડી»
+        // and «લીલો» come out of the same tables differently — and «વાદળી» is
+        // one of the nine invariant colour words, which is why the shape's own
+        // colour does not move with them. `bd` and the border inside `sh` read
+        // alike for a different reason: both take «કિનારી»'s feminine gender,
+        // and neither position reaches an oblique a feminine -ી would spell
+        // differently, so the catalog selects on `$gender` alone. `fd` names
+        // «ભરણી» so that the colour has a noun of the right gender to agree
+        // with rather than standing in front of «ટપકાં», which is neuter.
         expect(values.stn).eq("જાડી તૂટક લાલ રેખા");
         expect(values.pt).eq("લીલો ચોરસ");
         expect(values.sh).eq(
             "ભરેલું વાદળી વર્તુળ ટપકાં સાથે અને જાડી તૂટક લાલ કિનારી સાથે",
         );
         expect(values.bd).eq("જાડી તૂટક લાલ");
-        expect(values.fd).eq("વાદળી ટપકાં");
+        expect(values.fd).eq("ટપકાં વાળી વાદળી ભરણી");
     });
 
     it("puts a Punjabi background in the oblique and its border in neither", async () => {
         // Punjabi's two marked positions fall the opposite way round from
         // Hindi's: «ਕਿਨਾਰੀ» is feminine and spells its -ੀ alike in both
         // positions, while «ਪਿਛੋਕੜ» is masculine and sends the colour in front
-        // of ਉੱਤੇ to the oblique -ੇ. Both are read here off the same document.
+        // of ਉੱਤੇ to the oblique -ੇ. Both are read off the same document, so
+        // the one catalog is asserted resolving `border-clause` to the default
+        // branch and `background-clause` to the branch it writes out.
         const doenetML = `
         <setup>
           <styleDefinition styleNumber="1" lineColor="black" lineWidth="6"
             fillColor="blue" textColor="red" backgroundColor="yellow" />
         </setup>
         <graph><circle name="c" filled /></graph>
+        <text name="t" styleNumber="1">ਸਤ ਸ੍ਰੀ ਅਕਾਲ</text>
         <text name="sh" extend="$c.styleDescriptionWithNoun" />
         <text name="bd" extend="$c.borderStyleDescription" />
+        <text name="bg" extend="$t.backgroundColor" />
+        <text name="tx" extend="$t.textStyleDescription" />
         `;
-        expect(await descriptions(doenetML, ["sh", "bd"], "pa")).toEqual({
+        expect(
+            await descriptions(doenetML, ["sh", "bd", "bg", "tx"], "pa"),
+        ).toEqual({
             sh: "ਭਰਿਆ ਨੀਲਾ ਚੱਕਰ ਮੋਟੀ ਕਾਲੀ ਕਿਨਾਰੀ ਨਾਲ",
             bd: "ਮੋਟੀ ਕਾਲੀ",
+            bg: "ਪੀਲਾ",
+            tx: "ਪੀਲੇ ਪਿਛੋਕੜ ਉੱਤੇ ਲਾਲ",
         });
     });
 

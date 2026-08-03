@@ -16,12 +16,13 @@
 # What Filipino adds is the **linker**, which joins an adjective to whatever
 # follows it: `-ng` after a vowel and the separate word `na` after a consonant.
 # Which of the two applies depends on the last letter of the word in front of
-# it, and that word arrives as an argument this catalog never sees — so every
-# join below is written as the separate `na`. That is grammatical after a
-# consonant and merely uncontracted after a vowel: «pula na guhit» where a
-# speaker would write «pulang guhit». It is the one place this seed is stiff on
-# purpose rather than by oversight, and a speaker correcting it is correcting
-# spelling and not structure.
+# it. Where both words are the catalog's own the contraction is written out
+# («pahigang mga guhit»); where the word in front is an argument this catalog
+# never sees, the join falls back to the separate `na`. That is grammatical
+# after a consonant and merely uncontracted after a vowel: «pula na guhit»
+# where a speaker would write «pulang guhit». It is the one place this seed is
+# stiff on purpose rather than by oversight, and a speaker correcting it is
+# correcting spelling and not structure.
 #
 # The element names are deliberately absent; see the note above the chemistry
 # section.

@@ -121,9 +121,12 @@ viewer-initializing = ప్రారంభమవుతోంది...
 
 error-heading = దోషం
 
+# The ordinal «వ» is invariant whatever number precedes it, and Telugu writes
+# it closed up against the digits — «1వ», not «1 వ» — so it is welded to the
+# placeable, which is the case the README's affix rule allows.
 error-found-at =
     { $span ->
-        [line] { $startLine } వ పంక్తిలో కనుగొనబడింది.
+        [line] { $startLine }వ పంక్తిలో కనుగొనబడింది.
        *[lines] { $startLine }–{ $endLine } పంక్తులలో కనుగొనబడింది.
     }
 

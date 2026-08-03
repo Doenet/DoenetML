@@ -11,8 +11,8 @@
 # keyboard» — which is what a reader expects from software.
 #
 # Filipino counts in two plural categories. The plural of a noun is the
-# separate word «mga» rather than an ending, so both branches are written out
-# where English marks the difference.
+# separate word «mga» rather than an ending, so a select is written out only
+# where the two branches genuinely differ.
 
 
 ## Answer submission

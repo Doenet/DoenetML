@@ -156,22 +156,25 @@ help-suggestions-footer = എല്ലാ { $total } ഘടകങ്ങളും
 
 help-name-summary = { $name } — { $summary }
 
+# «-ാം» is the ordinal of the line number, and it opens with a combining
+# vowel sign, so it is welded to the placeable rather than left standing
+# after a space — see the note on `error-found-at` in `chrome.ftl`.
 help-ref-is-reference =
     { $line ->
         [none] { $ref } എന്നത് { $target } നുള്ള പരാമർശമാണ്.
-       *[other] { $ref } എന്നത് { $target } നുള്ള പരാമർശമാണ് ({ $line } ാം വരി).
+       *[other] { $ref } എന്നത് { $target } നുള്ള പരാമർശമാണ് ({ $line }-ാം വരി).
     }
 
 help-ref-derived-from =
     { $line ->
         [none] { $owner } ഇത് { $role } ആയി അവതരിപ്പിച്ചു.
-       *[other] { $owner } ഇത് { $line } ാം വരിയിൽ { $role } ആയി അവതരിപ്പിച്ചു.
+       *[other] { $owner } ഇത് { $line }-ാം വരിയിൽ { $role } ആയി അവതരിപ്പിച്ചു.
     }
 
 help-property-is-reference =
     { $line ->
         [none] { $ref } എന്നത് { $element } ന്റെ { $property } ഗുണത്തിനുള്ള പരാമർശമാണ്.
-       *[other] { $ref } എന്നത് { $element } ന്റെ { $property } ഗുണത്തിനുള്ള പരാമർശമാണ് ({ $line } ാം വരി).
+       *[other] { $ref } എന്നത് { $element } ന്റെ { $property } ഗുണത്തിനുള്ള പരാമർശമാണ് ({ $line }-ാം വരി).
     }
 
 help-kind-attribute = ഗുണം

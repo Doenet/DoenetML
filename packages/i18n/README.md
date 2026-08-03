@@ -399,18 +399,27 @@ positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
 Romanian, Finnish, Hindi, Marathi, Punjabi, Urdu, Sindhi and Pashto are the
 catalogs that select on them. Sharing a script does not imply sharing the fork:
 Marathi and Hindi both take an oblique adjective before a postposition and
-Nepali, written in the same letters, takes none. Neither does neighbouring the
-language that does: Punjabi inflects and Gujarati does not, so Gujarati's
-adjectives select on `$gender` alone. Nor is the fork all-or-nothing: Pashto
-marks the oblique on a feminine adjective in ـه and nowhere else, and Punjabi
-only where the position's own noun is masculine, so each branches on one
-position out of the four and leaves the rest to the default.
+Nepali, written in the same letters, takes none. Nor is the fork
+all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and
+nowhere else, and Punjabi only where the position's own noun is masculine, so
+each branches on one position out of the four and leaves the rest to the
+default.
 
-A catalog that inflects for nothing needs no `$role` branch even where it has
-gender, and writing one is a trap worth naming: the three clause positions each
-arrive with `$gender` already set from the position's own noun — `border`,
+Whether a language inflects is not on its own the question. Gujarati has the
+same oblique Punjabi has, and still selects on `$gender` alone, because the
+words each of its clause positions lands on happen never to reach it — feminine
+before the two postpositions, predicative in the third. So the note explaining
+that sits in `locales/gu/content.ftl` rather than the fact being inferable from
+the language, and it says which noun would have to change for the branch to be
+needed.
+
+That is the trap worth naming, because the three clause positions each arrive
+with `$gender` already set from the position's own noun — `border`,
 `background`, `text` in `noun-gender` — so a `$role` fork that only restates
-that gender renders exactly what the `$gender` fork underneath it would.
+that gender renders exactly what the `$gender` fork underneath it would. The
+other half of the same check is reachability: only `describeColor` ever asks
+for `background-clause` or `text-clause`, so a stroke width or a dash pattern
+branching on either is writing a variant nothing can select.
 
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the

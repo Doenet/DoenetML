@@ -110,7 +110,12 @@ style-with-noun =
        *[noun] { $noun }{ $description }
     }
 
-style-filled-word = ระบายสี
+# «ระบาย» rather than «ระบายสี»: every colour word above already carries its
+# own สี, and `$filled` is placed immediately in front of `$color` in all four
+# messages below, so spelling it out here would render «ระบายสีสีน้ำเงิน». What
+# the composition produces is «ระบายสีน้ำเงิน» — the same phrase, said once.
+# `style-unfilled` stands alone and keeps the full form.
+style-filled-word = ระบาย
 
 style-filled =
     { $parts ->

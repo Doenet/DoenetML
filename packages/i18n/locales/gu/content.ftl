@@ -8,19 +8,23 @@
 # noun: કાળો m, કાળી f, કાળું n. Adjectives precede the noun, as in English,
 # so only the words change and not their order.
 #
-# `$role` goes unused, as it does in English: Gujarati does not inflect for
-# case, and an adjective in front of a postposition is spelled exactly as it is
-# standing alone. `$gender` alone carries every distinction the four positions
-# make, because each already arrives with the gender of the noun it lands on —
-# કિનારી f for `border-clause`, પૃષ્ઠભૂમિ f for `background-clause`, લખાણ n for
-# `text-clause`, and the noun described for `standalone`. That is what
-# `noun-gender` below is answering when it is asked about a head the
-# description never names.
+# `$role` goes unused, and the reason is a fact about these four positions
+# rather than about the language: Gujarati does have an oblique — a -ો/-ું
+# adjective takes -ા in front of a postposition — but none of the three clause
+# positions reaches it. Each arrives with the gender of the noun it lands on:
+# કિનારી f before «સાથે» and પૃષ્ઠભૂમિ f before «પર», where a feminine -ી is
+# spelled alike direct and oblique, and લખાણ n in `text-clause`, which no
+# postposition governs. `standalone` takes the gender of the noun described.
+# So `$gender` carries every distinction the four positions make — and if
+# «કિનારી» is ever replaced by a masculine word, this is the note that says a
+# `[border-clause]` branch has to come back with it. Those four heads are what
+# `noun-gender` below is answering for when it is asked about something that is
+# not one of the shapes.
 #
-# Half the colour words do not agree at all. લાલ, સફેદ, રાખોડી, નારંગી,
-# આસમાની, જાંબલી, ગુલાબી and કથ્થઈ end in a consonant or in -ી and are
-# invariant in Gujarati, so they are written once and every branch reads the
-# same.
+# Most of the colour words do not agree at all. લાલ, સફેદ, રાખોડી, નારંગી,
+# આસમાની, વાદળી, જાંબલી, ગુલાબી and કથ્થઈ end in a consonant or in -ી and are
+# invariant in Gujarati, so nine of the twelve are written once and every
+# branch reads the same. Only કાળો, પીળો and લીલો inflect.
 #
 # The postpositions follow their noun — «જાડી કાળી કિનારી સાથે» — so the
 # `with`/`and` branches put the phrase first and the marker last, and the two
@@ -86,7 +90,8 @@ line-style =
         }
 
 # Noun phrases: they stand in front of the «સાથે» the composition messages
-# supply, and agree with nothing.
+# supply, or in front of the «વાળી» in `style-fill`, and agree with nothing
+# themselves.
 fill-style =
     .horizontal = આડી લીટીઓ
     .vertical = ઊભી લીટીઓ
@@ -124,8 +129,9 @@ noun-regular-polygon =
     }
 
 # Besides the nouns above, `$noun` can be `regular-polygon` (બહુકોણ, m) or the
-# head of a phrase the description never names: `border` (કિનારી, f), `fill`
-# (ભરણી, f), `text` (લખાણ, n), `background` (પૃષ્ઠભૂમિ, f).
+# head of a phrase: `border` (કિનારી, f), `fill` (ભરણી, f), `text` (લખાણ, n),
+# `background` (પૃષ્ઠભૂમિ, f). English leaves all four unnamed; the composition
+# messages below write out the three this catalog needs a noun for.
 noun-gender =
     { $noun ->
         [line] f
@@ -197,13 +203,21 @@ style-border-clause =
        *[with] { $border } કિનારી સાથે
     }
 
+# The colour arrives agreeing with `fill`, which `noun-gender` answers feminine
+# — but the pattern words are plural nouns of their own gender (હીરા m, ટપકાં
+# n), so putting the colour straight in front of one would disagree with it.
+# So the message supplies «ભરણી» for the colour to agree with and hangs the
+# pattern off it, which is what `hi` does with the same message.
 style-fill =
     { $parts ->
-        [pattern] { $color } { $pattern }
-       *[plain] { $color }
+        [pattern] { $pattern } વાળી { $color } ભરણી
+       *[plain] { $color } ભરણી
     }
 
-style-unfilled = ન ભરેલું
+# The other answer the same variable gives, and it takes no `$gender`, so it
+# names the noun rather than inflecting an adjective for a gender it was not
+# told — as «बिना भराव» does in `hi`.
+style-unfilled = ભરણી વગર
 
 # «પૃષ્ઠભૂમિ» takes the postposition «પર», so the background leads and the text
 # colour follows it.

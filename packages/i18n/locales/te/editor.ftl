@@ -156,22 +156,24 @@ help-suggestions-footer = మొత్తం { $total } భాగాలను �
 
 help-name-summary = { $name } — { $summary }
 
+# «వ» is the ordinal of the line number, written closed up against the digits
+# — see the note on `error-found-at` in `chrome.ftl`.
 help-ref-is-reference =
     { $line ->
         [none] { $ref } అనేది { $target } కు నిర్దేశం.
-       *[other] { $ref } అనేది { $target } కు నిర్దేశం ({ $line } వ పంక్తి).
+       *[other] { $ref } అనేది { $target } కు నిర్దేశం ({ $line }వ పంక్తి).
     }
 
 help-ref-derived-from =
     { $line ->
         [none] { $owner } దీన్ని { $role } గా ప్రవేశపెట్టింది.
-       *[other] { $owner } దీన్ని { $line } వ పంక్తిలో { $role } గా ప్రవేశపెట్టింది.
+       *[other] { $owner } దీన్ని { $line }వ పంక్తిలో { $role } గా ప్రవేశపెట్టింది.
     }
 
 help-property-is-reference =
     { $line ->
         [none] { $ref } అనేది { $element } యొక్క { $property } లక్షణానికి నిర్దేశం.
-       *[other] { $ref } అనేది { $element } యొక్క { $property } లక్షణానికి నిర్దేశం ({ $line } వ పంక్తి).
+       *[other] { $ref } అనేది { $element } యొక్క { $property } లక్షణానికి నిర్దేశం ({ $line }వ పంక్తి).
     }
 
 help-kind-attribute = లక్షణం
