@@ -18,6 +18,7 @@ import {
     describeStrokedShape,
     describeText,
     noBackgroundWord,
+    type NounKey,
     type NounSpec,
     type PhraseRole,
 } from "../src/style/styleDescriptions";
@@ -671,6 +672,95 @@ describe("Pashto", () => {
     });
 });
 
+/**
+ * `$gender` is a token set, not a gender (#1641).
+ *
+ * The argument was named for the masculine/feminine split Spanish and German
+ * need, but nothing outside a catalog interprets its values: `noun-gender`
+ * answers whatever the language agrees on, and every adjective lookup selects
+ * on that answer. Swahili is the case that proves it — a Bantu adjective
+ * agrees with its noun's *class*, of which the catalog's shapes land in four,
+ * and no code outside `locales/sw/content.ftl` had to learn what a noun class
+ * is. (`noun-gender` answers a fifth, `c6`, for `text` alone.)
+ *
+ * This is the guard for that. If `$gender` ever stopped reaching the adjective
+ * lookups, or `noun-gender` stopped being consulted per noun, all four rows
+ * below would collapse onto one prefix.
+ */
+describe("Swahili noun classes", () => {
+    const sw: Translator = createTranslatorFromLocaleData(
+        { locale: "sw", resources: { sw: readCatalog("sw", "content") } },
+        "sw",
+    );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    // One set of style words against four nouns, one from each class a shape
+    // lands in. The stems are the same throughout —
+    // -nene "thick" and -ekundu "red" — and only the concord prefix moves.
+    const byClass: [string, NounKey, string][] = [
+        ["class 3", "line", "mstari mnene mwekundu kwa vipande"],
+        ["class 5", "circle", "duara nene jekundu kwa vipande"],
+        [
+            "class 7",
+            "line-segment",
+            "kipande cha mstari kinene chekundu kwa vipande",
+        ],
+        ["class 9", "polygon", "pembenyingi nene nyekundu kwa vipande"],
+    ];
+
+    for (const [className, key, expected] of byClass) {
+        it(`agrees with a ${className} noun`, () => {
+            expect(
+                describeStrokedShape(sw, words, {
+                    noun: { key },
+                    withNoun: true,
+                }),
+            ).toBe(expected);
+        });
+    }
+
+    // The rows above would each still pass if `$gender` were ignored and all
+    // four read alike, since none of them looks at another. This is the case
+    // that would not: the adjectives alone, with the noun withheld, are four
+    // different strings.
+    it("gives each class a different adjective phrase", () => {
+        const adjectives = byClass.map(([, key]) =>
+            describeStrokedShape(sw, words, { noun: { key }, withNoun: false }),
+        );
+        expect(adjectives).toEqual([
+            "mnene mwekundu kwa vipande",
+            "nene jekundu kwa vipande",
+            "kinene chekundu kwa vipande",
+            "nene nyekundu kwa vipande",
+        ]);
+    });
+
+    // The class the *filled* participle agrees with is the shape's, while the
+    // border clause beside it agrees with «mpaka» — class 3 whatever the shape
+    // is. So one sentence carries two classes, and swapping the shape moves
+    // only the first of them.
+    it("agrees the fill with the shape and the border with «mpaka»", () => {
+        const filled = { ...words, fillColorWord: "blue", fillStyleWord: "" };
+        const shape = (key: NounKey) =>
+            describeClosedShape(sw, filled, {
+                filled: true,
+                noun: { key },
+                withNoun: true,
+            });
+        expect(shape("circle")).toBe(
+            "duara lililojazwa buluu na mpaka mnene mwekundu kwa vipande",
+        );
+        expect(shape("square")).toBe(
+            "mraba uliojazwa buluu na mpaka mnene mwekundu kwa vipande",
+        );
+    });
+});
+
 describe("a partly translated locale", () => {
     // A translation is allowed to lag: every key it does not define falls
     // through to English. The split noun is the case where that matters, since
@@ -734,9 +824,10 @@ noun-regular-polygon =
  */
 describe("a phrase rendered in two positions", () => {
     /**
-     * A catalog as the worker receives it. Six of the seven below select on
-     * `$role` somewhere; Gujarati selects on `$gender` alone, and is here to
-     * hold a case where the two positions legitimately read alike.
+     * A catalog as the worker receives it. Six of the nine below select on
+     * `$role` somewhere; Gujarati, Swahili and Zulu select on `$gender` alone,
+     * and are here to hold the cases where the two positions legitimately read
+     * alike.
      */
     const forLocale = (locale: string): Translator =>
         createTranslatorFromLocaleData(
@@ -751,6 +842,8 @@ describe("a phrase rendered in two positions", () => {
     const mr = forLocale("mr");
     const gu = forLocale("gu");
     const pa = forLocale("pa");
+    const sw = forLocale("sw");
+    const zu = forLocale("zu");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -935,13 +1028,47 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Swahili and Zulu belong here for the same reason Gujarati does: neither
+    // selects on `$role`, so the two positions read alike and these assertions
+    // are what holds them there. What each *does* select on is `$gender`
+    // carrying a noun class — pinned across four classes by "Swahili noun
+    // classes" above, which is where that mechanism is actually guarded.
+    //
+    // The class-5 «duara» shows here only on «lililojazwa»; the two adjective
+    // stems in this sentence both describe the class-3 «mpaka», which is why
+    // the standalone form is a substring of the embedded one.
+    it("agrees a Swahili adjective with the noun class, not a gender", () => {
+        expect(bothBorderForms(sw)).toEqual({
+            standalone: "mnene mweusi",
+            embedded: "duara lililojazwa buluu na mpaka mnene mweusi",
+        });
+    });
+
+    // Zulu is the same story with two classes in one sentence, and both come
+    // from `noun-gender`: it answers `c3` for `text` and falls to its `*[c9]`
+    // default for `background`, which it does not list. So the two colours
+    // take o- and e- off the relative-concord table — the one a colour word
+    // uses — and which of Zulu's two tables a word reads from is a fact about
+    // the word, so the catalog writes both out per word rather than deriving
+    // either. «engemuva» between them is `style-text`'s own word for the
+    // position, not a noun either colour agrees with.
+    it("agrees a Zulu colour with the class of the noun it describes", () => {
+        expect(bothTextForms(zu)).toEqual({
+            textColor: "obomvu",
+            backgroundColor: "ephuzi",
+            sentence: "obomvu engemuva ephuzi",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
         // Gujarati and Punjabi are absent: in both the border's noun is
         // feminine and a feminine -ੀ/-ી does not go oblique, so the two
         // positions read alike. Asserted as exact strings in the two cases
-        // above, which is what holds them there.
+        // above, which is what holds them there. Swahili and Zulu are absent
+        // for a different reason: they agree for noun class rather than for
+        // case, so no position moves anything.
         for (const t of [de, ru, pl, hi, mr]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);

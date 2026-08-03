@@ -182,6 +182,30 @@ describe("style descriptions follow the document locale @group4", () => {
         });
     });
 
+    it("carries a Swahili noun class through the worker path", async () => {
+        const values = await descriptions(styled, names, "sw");
+        // `$gender` carries a noun class rather than a gender in the Bantu
+        // catalogs, and what this checks is that it survives the worker path —
+        // `setLocaleData`, the document's locale, the `translator` dependency
+        // — not the agreement itself, which `@doenet/utils`' "Swahili noun
+        // classes" suite pins across all four classes the catalog names.
+        //
+        // This document reaches two of them: «mstari», «mraba» and «mpaka» are
+        // all class 3, so the adjectives on them share the m- prefix, and the
+        // class-5 «duara» shows only on «lililojazwa».
+        expect(values.st).eq("mnene mwekundu kwa vipande");
+        expect(values.stn).eq("mstari mnene mwekundu kwa vipande");
+        expect(values.pt).eq("mraba kijani");
+        expect(values.sh).eq(
+            "duara lililojazwa buluu na vitone na mpaka mnene mwekundu kwa vipande",
+        );
+        // The border's words agree with «mpaka», not with the «duara» they
+        // surround, which is why `bd` and the clause inside `sh` read alike:
+        // Swahili agrees for class and not for the position a phrase lands in.
+        expect(values.bd).eq("mnene mwekundu kwa vipande");
+        expect(values.fd).eq("vitone buluu");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

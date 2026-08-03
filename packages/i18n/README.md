@@ -66,19 +66,21 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
-`cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fil`, `fr`, `gu`, `he`, `hi`, `hnj`,
-`hu`, `id`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `ms`, `my`, `nb`, `ne`, `nl`,
-`or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `sd`, `sk`, `so`, `sv`, `ta`, `te`,
-`th`, `tr`, `ug`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the top, and
+English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
+`bn`, `cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fil`, `fr`, `gu`, `ha`, `he`,
+`hi`, `hnj`, `hu`, `id`, `ig`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `ms`, `my`,
+`nb`, `ne`, `nl`, `ny`, `om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`,
+`sd`, `sk`, `so`, `sv`, `sw`, `ta`, `te`, `th`, `tr`, `ug`, `uk`, `ur`, `vi`,
+`xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
+seed**, which each file's own header says at the top, and
 which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
 is just wrong, and the English is one key away.
 
-Thirteen of them are deliberately partial, all in the same place: Somali, Hmong
-Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada,
-Punjabi, Filipino and Vietnamese leave `element-name` and `element-anion-name`
+Twenty-one of them are deliberately partial, all in the same place: Somali,
+Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
+Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
+Hausa, Yoruba, Igbo and Oromo leave `element-name` and `element-anion-name`
 out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
@@ -89,12 +91,19 @@ current one is English: Punjabi secondary chemistry uses the English terms, the
 Philippines teaches science in English from the intermediate grades, and
 Vietnamese school chemistry has moved from the transliterated names to the
 IUPAC forms, so in each case the fallback is already what the curriculum uses.
+The eight from the sub-Saharan batch are that same case for a different
+reason: secondary science is taught in English, French or Afrikaans across all
+of them, so the fallback *is* the curriculum. Afrikaans and Swahili are the two
+of that batch that do have a settled list and supply it.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
 line runs through the Arabic script — Arabic, Persian and Urdu supply them and
 Pashto, Sindhi and Uyghur do not — and through the Brahmic scripts of southern
-India, where Tamil, Telugu and Malayalam supply them and Kannada does not.
+India, where Tamil, Telugu and Malayalam supply them and Kannada does not. It
+runs through a language family too: Swahili supplies them and Zulu, Xhosa,
+Kinyarwanda and Nyanja do not, which is a fact about five school systems rather
+than about Bantu.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.
@@ -131,11 +140,22 @@ against the real roster rather than a stub — a change to the normalization ste
 is the only thing that could drop Filipino to English, and this is what would
 catch it.
 
+The roster names a language whatever CLDR names it, which is why Chichewa
+appears as **Nyanja** in `<document lang>`'s autocomplete: `ny` is the code,
+`Intl.DisplayNames` renders it "Nyanja", and `supportedLocales.ts` is derived
+rather than hand-written so that adding a language costs no prose. The two
+names are one language, and the catalog's own header says so.
+
 Punjabi is named `pa` and written in Gurmukhi, which the rule above allows
 because only one of its two scripts is translated. A Shahmukhi reader arriving
 under `pa-Arab` reaches it and gets Gurmukhi — the same asymmetry `zh-CN`
 already has, and the answer to it is a second catalog rather than a differently
 named first one.
+
+Hausa is the same case again: `ha` is Boko, the Latin orthography its schools,
+its publishing and CLDR all use, and a reader arriving under `ha-Arab` reaches
+it and gets Boko. Ajami is still written, so if it is ever seeded it is a
+`ha-Arab` catalog beside this one rather than a rename of it.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
@@ -386,6 +406,17 @@ message that receives the pieces as arguments plus a `$parts` argument naming
 piece selects a different branch rather than substituting an empty string —
 that is what lets a translation reorder and re-punctuate each combination on
 its own terms.
+
+`$gender` is read more widely than its name suggests: it is a token set naming
+what an adjective agrees with, and nothing outside a catalog interprets its
+values. The five Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda and Nyanja
+— answer it with the noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`) rather
+than with a gender, and nothing outside them had to learn what a noun class is.
+The reachability rule applies to the class tokens exactly as it does to
+`$role`: a catalog writes a branch for a class only if its own `noun-gender`
+can answer that class, which is why Swahili and Nyanja carry `c6` — the plural
+class, which their word for *text* or *border* lands in — and Zulu, Xhosa and
+Kinyarwanda do not.
 
 Gender is not the only thing an adjective has to agree with. Three sets of
 words are rendered in two places each — a border's adjectives, the background

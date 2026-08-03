@@ -64964,6 +64964,10 @@
                             "description": "English"
                         },
                         {
+                            "value": "af",
+                            "description": "Afrikaans"
+                        },
+                        {
                             "value": "am",
                             "description": "Amharic (አማርኛ)"
                         },
@@ -65020,6 +65024,10 @@
                             "description": "Gujarati (ગુજરાતી)"
                         },
                         {
+                            "value": "ha",
+                            "description": "Hausa"
+                        },
+                        {
                             "value": "he",
                             "description": "Hebrew (עברית)"
                         },
@@ -65038,6 +65046,10 @@
                         {
                             "value": "id",
                             "description": "Indonesian (Indonesia)"
+                        },
+                        {
+                            "value": "ig",
+                            "description": "Igbo"
                         },
                         {
                             "value": "it",
@@ -65084,6 +65096,14 @@
                             "description": "Dutch (Nederlands)"
                         },
                         {
+                            "value": "ny",
+                            "description": "Nyanja"
+                        },
+                        {
+                            "value": "om",
+                            "description": "Oromo (Oromoo)"
+                        },
+                        {
                             "value": "or",
                             "description": "Odia (ଓଡ଼ିଆ)"
                         },
@@ -65112,6 +65132,10 @@
                             "description": "Russian (русский)"
                         },
                         {
+                            "value": "rw",
+                            "description": "Kinyarwanda (Ikinyarwanda)"
+                        },
+                        {
                             "value": "sd",
                             "description": "Sindhi (سنڌي)"
                         },
@@ -65126,6 +65150,10 @@
                         {
                             "value": "sv",
                             "description": "Swedish (svenska)"
+                        },
+                        {
+                            "value": "sw",
+                            "description": "Swahili (Kiswahili)"
                         },
                         {
                             "value": "ta",
@@ -65160,12 +65188,24 @@
                             "description": "Vietnamese (Tiếng Việt)"
                         },
                         {
+                            "value": "xh",
+                            "description": "Xhosa (IsiXhosa)"
+                        },
+                        {
+                            "value": "yo",
+                            "description": "Yoruba (Èdè Yorùbá)"
+                        },
+                        {
                             "value": "zh-Hans",
                             "description": "Simplified Chinese (简体中文)"
                         },
                         {
                             "value": "zh-Hant",
                             "description": "Traditional Chinese (繁體中文)"
+                        },
+                        {
+                            "value": "zu",
+                            "description": "Zulu (isiZulu)"
                         }
                     ],
                     "suggestedValuesOnly": true,

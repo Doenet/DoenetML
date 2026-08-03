@@ -7,6 +7,7 @@
 /** A locale this repository ships a catalog for. */
 export type SupportedLocale =
     | "en"
+    | "af"
     | "am"
     | "ar"
     | "as"
@@ -21,11 +22,13 @@ export type SupportedLocale =
     | "fil"
     | "fr"
     | "gu"
+    | "ha"
     | "he"
     | "hi"
     | "hnj"
     | "hu"
     | "id"
+    | "ig"
     | "it"
     | "ja"
     | "kn"
@@ -37,6 +40,8 @@ export type SupportedLocale =
     | "nb"
     | "ne"
     | "nl"
+    | "ny"
+    | "om"
     | "or"
     | "pa"
     | "pl"
@@ -44,10 +49,12 @@ export type SupportedLocale =
     | "pt"
     | "ro"
     | "ru"
+    | "rw"
     | "sd"
     | "sk"
     | "so"
     | "sv"
+    | "sw"
     | "ta"
     | "te"
     | "th"
@@ -56,8 +63,11 @@ export type SupportedLocale =
     | "uk"
     | "ur"
     | "vi"
+    | "xh"
+    | "yo"
     | "zh-Hans"
-    | "zh-Hant";
+    | "zh-Hant"
+    | "zu";
 
 /** A supported locale and the names to show an author. */
 export type SupportedLocaleInfo = {
@@ -95,6 +105,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "English",
         endonym: "English",
         label: "English",
+    },
+    {
+        locale: "af",
+        englishName: "Afrikaans",
+        endonym: "Afrikaans",
+        label: "Afrikaans",
     },
     {
         locale: "am",
@@ -180,6 +196,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "ગુજરાતી",
         label: "Gujarati (ગુજરાતી)",
     },
+    { locale: "ha", englishName: "Hausa", endonym: "Hausa", label: "Hausa" },
     {
         locale: "he",
         englishName: "Hebrew",
@@ -210,6 +227,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Indonesia",
         label: "Indonesian (Indonesia)",
     },
+    { locale: "ig", englishName: "Igbo", endonym: "Igbo", label: "Igbo" },
     {
         locale: "it",
         englishName: "Italian",
@@ -276,6 +294,13 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Nederlands",
         label: "Dutch (Nederlands)",
     },
+    { locale: "ny", englishName: "Nyanja", endonym: "Nyanja", label: "Nyanja" },
+    {
+        locale: "om",
+        englishName: "Oromo",
+        endonym: "Oromoo",
+        label: "Oromo (Oromoo)",
+    },
     {
         locale: "or",
         englishName: "Odia",
@@ -319,6 +344,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Russian (русский)",
     },
     {
+        locale: "rw",
+        englishName: "Kinyarwanda",
+        endonym: "Ikinyarwanda",
+        label: "Kinyarwanda (Ikinyarwanda)",
+    },
+    {
         locale: "sd",
         englishName: "Sindhi",
         endonym: "سنڌي",
@@ -341,6 +372,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Swedish",
         endonym: "svenska",
         label: "Swedish (svenska)",
+    },
+    {
+        locale: "sw",
+        englishName: "Swahili",
+        endonym: "Kiswahili",
+        label: "Swahili (Kiswahili)",
     },
     {
         locale: "ta",
@@ -386,6 +423,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Vietnamese (Tiếng Việt)",
     },
     {
+        locale: "xh",
+        englishName: "Xhosa",
+        endonym: "IsiXhosa",
+        label: "Xhosa (IsiXhosa)",
+    },
+    {
+        locale: "yo",
+        englishName: "Yoruba",
+        endonym: "Èdè Yorùbá",
+        label: "Yoruba (Èdè Yorùbá)",
+    },
+    {
         locale: "zh-Hans",
         englishName: "Simplified Chinese",
         endonym: "简体中文",
@@ -396,5 +445,11 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Traditional Chinese",
         endonym: "繁體中文",
         label: "Traditional Chinese (繁體中文)",
+    },
+    {
+        locale: "zu",
+        englishName: "Zulu",
+        endonym: "isiZulu",
+        label: "Zulu (isiZulu)",
     },
 ];
