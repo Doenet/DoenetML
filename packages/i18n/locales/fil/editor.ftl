@@ -10,6 +10,12 @@
 #
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
+#
+# Filipino's two plural categories are not singular and plural — they are the
+# linker a numeral takes, `-ng` for `one` and the separate `na` for `other`
+# (4, 6, 9 and anything ending in them). Number itself is the free word «mga»,
+# so a message that wants a singular selects `[1]` by number. See the head of
+# `chrome.ftl` for the whole of it.
 
 
 ## The viewer's controls
@@ -152,7 +158,11 @@ help-suggestions-header =
        *[components] { " — mga puwedeng subukan:" }
     }
 
-help-suggestions-footer = Pindutin ang { $shortcut } para makita ang lahat ng { $total } na bahagi.
+help-suggestions-footer =
+    { $total ->
+        [one] Pindutin ang { $shortcut } para makita ang lahat ng { $total } bahagi.
+       *[other] Pindutin ang { $shortcut } para makita ang lahat ng { $total } na bahagi.
+    }
 
 help-name-summary = { $name } — { $summary }
 
@@ -195,7 +205,7 @@ help-inserts = Ipinapasok:
 
 help-coordinates =
     { $count ->
-        [one] Koordinado:
+        [1] Koordinado:
        *[other] Mga koordinado:
     }
 

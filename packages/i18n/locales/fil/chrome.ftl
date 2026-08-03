@@ -10,9 +10,17 @@
 # Controls take the bare imperative Filipino puts on a button — «Buksan ang
 # keyboard» — which is what a reader expects from software.
 #
-# Filipino counts in two plural categories. The plural of a noun is the
-# separate word «mga» rather than an ending, so a select is written out only
-# where the two branches genuinely differ.
+# Filipino counts in two plural categories, and they are not singular and
+# plural: a noun's plural is the separate word «mga», not an ending. What CLDR
+# splits Filipino on is the linker a numeral takes — `one` is every number
+# whose Tagalog word ends in a vowel (isa, lima, pito) and takes `-ng`, and
+# `other` is 4, 6, 9 and anything ending in them (apat, anim, siyam), which
+# take the separate word `na`. A digit cannot carry a suffixed `-ng`, so the
+# `[one]` branch writes the numeral bare and `[other]` writes the `na`.
+#
+# A message that wants a singular therefore says `[1]` by number, the way `[0]`
+# is written: Fluent matches an explicit number before it consults the plural
+# rules.
 
 
 ## Answer submission
@@ -34,14 +42,14 @@ answer-percent-short = { $percent }%
 
 max-credit-available = Pinakamataas na puntos na maaaring makuha: { $percent }%
 
-# A Filipino noun after a numeral stays singular, so the `[one]` branch would
-# repeat `[other]` and is dropped. `[0]` is written by number rather than by
-# category, exactly as the English is: Fluent matches an explicit number before
-# it consults the plural rules.
+# The noun stays as it is whatever the count; the two branches differ only in
+# the linker the numeral takes, as `answer-show-responses` below does. `[0]` is
+# written by number rather than by category, exactly as the English is.
 attempts-remaining =
     { $count ->
         [0] wala nang natitirang pagsubok
-       *[other] { $count } pagsubok na lang ang natitira
+        [one] { $count } pagsubok na lang ang natitira
+       *[other] { $count } na pagsubok na lang ang natitira
     }
 
 validation-correct = (Tama)
