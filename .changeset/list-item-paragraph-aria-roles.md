@@ -16,9 +16,9 @@ ordered list whose items each held a `<p>` lost its numbering out loud. The
 paragraph that leads a list item is now presentational, which restores the
 accessibility tree a plain `<li>Apples</li>` produces.
 
-Paragraphs are also exposed as paragraphs now, in and out of lists: a `<div>`
-carries no paragraph semantics on its own, so every `<p>` beyond the leading
-one in a list item gets an explicit `paragraph` role. Nothing about the visual
-layout changes.
+Paragraphs are also exposed as paragraphs now: a `<div>` carries no paragraph
+semantics on its own, so every `<p>` — outside a list, and every one in a list
+item beyond the leading one — gets an explicit `paragraph` role. Nothing about
+the visual layout changes.
 
 Closes #662.

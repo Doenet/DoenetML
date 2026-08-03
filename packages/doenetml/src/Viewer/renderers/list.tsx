@@ -149,6 +149,12 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
  * child (a figure, a nested list, or the `<span>` that
  * `addCommasForCompositeRanges` wraps around a composite's replacements) sits
  * between the marker and the text no matter what role the paragraph carries.
+ * Blink folds away a semantics-free *inline* generic, so a bare `<span>` around
+ * text is harmless — but the span around a composite's replacements holds the
+ * block-level `<div class="para">`, which keeps it in the tree as a `generic`
+ * node. Making the paragraph inside it presentational would only trade
+ * `generic > paragraph > text` for `generic > text`, which is the shape that is
+ * already broken; the paragraph keeps its `paragraph` role instead.
  *
  * Two kinds of child are skipped when looking for the leading one, because
  * neither reaches the accessibility tree: whitespace-only text (the

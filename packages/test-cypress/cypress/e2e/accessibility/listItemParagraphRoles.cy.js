@@ -97,11 +97,13 @@ describe(
         });
 
         it("content pulled in by a composite claims the lead of its list item", () => {
-            // A composite's replacements are wrapped in a `<span>` carrying
-            // the composite's name, and that wrapper keeps the marker out of
-            // the item's text run whatever role the paragraph inside it has.
-            // The paragraph after the wrapper does not lead the item, so it
-            // must stay a paragraph.
+            // A composite's replacements reach the `<li>` renderer as a nested
+            // array, and are wrapped in a `<span>` carrying the composite's
+            // name. That wrapper holds a block-level paragraph, so it survives
+            // in the accessibility tree and keeps the marker out of the item's
+            // text run whatever role the paragraph inside it has. Both the
+            // paragraph inside the wrapper and the one after it therefore stay
+            // paragraphs.
             postDoenetML({
                 settleSelector: "#after",
                 doenetML: `<p name="src">Apples</p>
@@ -110,7 +112,31 @@ describe(
 </ol>`,
             });
 
+            // Assert the wrapper is really there, so this stays a test of the
+            // composite shape rather than passing for an unrelated reason.
+            cy.get("#after")
+                .parent("li")
+                .children()
+                .first()
+                .should("match", "span")
+                .find(".para")
+                .should("have.attr", "role", "paragraph");
+
             cy.get("#after").should("have.attr", "role", "paragraph");
+        });
+
+        it("paragraph inside a leading section stays a paragraph", () => {
+            // The leading child is an element other than a paragraph, so
+            // nothing is made presentational: the section sits between the
+            // marker and the text however its contents are marked up.
+            postDoenetML({
+                settleSelector: "#inSection",
+                doenetML: `<ol>
+  <li><section name="sec"><p name="inSection">Apples</p></section></li>
+</ol>`,
+            });
+
+            cy.get("#inSection").should("have.attr", "role", "paragraph");
         });
 
         it("hidden paragraph does not claim the lead of its list item", () => {

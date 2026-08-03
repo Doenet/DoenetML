@@ -85,7 +85,13 @@ export default React.memo(function P(props: PProps) {
             // A `<div>` is exposed as an anonymous `generic` node, so paragraphs
             // are not announced as paragraphs without an explicit role. The one
             // paragraph that leads a list item is presentational instead, to
-            // keep the item's marker readable — see `list.tsx`.
+            // keep the item's marker readable — see `list.tsx`. That flag comes
+            // from the `<li>` renderer rather than from
+            // `SVs.renderInlineForListItem` below: the latter is the core's
+            // margin-collapsing signal, which answers a related but different
+            // question (it is set only for a section rendered as a list item,
+            // not for a plain `<li>`) and does not track what the renderer
+            // actually puts in the accessibility tree.
             role={
                 props.isLeadingListItemParagraph ? "presentation" : "paragraph"
             }
