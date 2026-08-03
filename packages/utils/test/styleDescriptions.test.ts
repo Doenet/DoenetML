@@ -1032,7 +1032,7 @@ describe("a phrase rendered in two positions", () => {
     // selects on `$role`, so the two positions read alike and these assertions
     // are what holds them there. What each *does* select on is `$gender`
     // carrying a noun class — pinned across four classes by "Swahili noun
-    // classes" below, which is where that mechanism is actually guarded.
+    // classes" above, which is where that mechanism is actually guarded.
     //
     // The class-5 «duara» shows here only on «lililojazwa»; the two adjective
     // stems in this sentence both describe the class-3 «mpaka», which is why
@@ -1044,11 +1044,14 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
-    // Zulu is the same story with two classes in one sentence: «umbhalo» is
-    // class 3 and «ingemuva» class 9, so the two colours take o- and e- off
-    // the relative-concord table — the one a colour word uses. Which of Zulu's
-    // two tables a word reads from is a fact about the word, so the catalog
-    // writes both out per word rather than deriving either.
+    // Zulu is the same story with two classes in one sentence, and both come
+    // from `noun-gender`: it answers `c3` for `text` and falls to its `*[c9]`
+    // default for `background`, which it does not list. So the two colours
+    // take o- and e- off the relative-concord table — the one a colour word
+    // uses — and which of Zulu's two tables a word reads from is a fact about
+    // the word, so the catalog writes both out per word rather than deriving
+    // either. «engemuva» between them is `style-text`'s own word for the
+    // position, not a noun either colour agrees with.
     it("agrees a Zulu colour with the class of the noun it describes", () => {
         expect(bothTextForms(zu)).toEqual({
             textColor: "obomvu",

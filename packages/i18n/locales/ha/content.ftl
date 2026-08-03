@@ -13,9 +13,11 @@
 # And nothing selects on it. That is worth saying so nobody adds a fork
 # expecting to find one missing: Hausa has a handful of true adjectives and
 # describes everything else with «mai …» — "having …" — which follows the noun
-# and never changes shape. Every word this catalog needs is in that second
-# class, so the agreement the language certainly has is not reachable from any
-# of them. `noun-gender` is written out anyway: it costs a table, and a
+# and never changes shape. Not one describing word this catalog needs is a
+# true adjective: the colours and the widths are «mai …» phrases and the fill
+# patterns are bare noun phrases after «da» — «layukan kwance» — so the
+# agreement the language certainly has is not reachable from any of them.
+# `noun-gender` is written out anyway: it costs a table, and a
 # translator who reaches for «farin»/«farar» later finds the genders already
 # decided and correct.
 #
