@@ -101,7 +101,7 @@ orbital-add-up-arrow = ਉੱਪਰਲਾ ਤੀਰ ਜੋੜੋ
 orbital-add-down-arrow = ਹੇਠਲਾ ਤੀਰ ਜੋੜੋ
 orbital-remove-arrow = ਤੀਰ ਹਟਾਓ
 
-orbital-row-label = ਕਤਾਰ { $row } ਦਾ ਨਾਂ
+orbital-row-label = ਕਤਾਰ { $row } ਦਾ ਲੇਬਲ
 
 pretzel-answer = ਜਵਾਬ
 

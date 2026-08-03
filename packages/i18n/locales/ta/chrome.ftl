@@ -100,7 +100,7 @@ orbital-add-up-arrow = மேல் அம்புக்குறியைச�
 orbital-add-down-arrow = கீழ் அம்புக்குறியைச் சேர்
 orbital-remove-arrow = அம்புக்குறியை நீக்கு
 
-orbital-row-label = வரிசை { $row } க்கான பெயர்
+orbital-row-label = வரிசை { $row } க்கான லேபிள்
 
 pretzel-answer = விடை
 

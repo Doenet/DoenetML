@@ -299,6 +299,35 @@ describe("closed shapes", () => {
             ),
         ).toBe("red 1,000-sided regular polygon");
     });
+
+    /**
+     * Filipino joins a numeral to the noun it counts with a linker, and which
+     * linker it is depends on how the numeral is *said*: `-ng` after a vowel,
+     * the separate `na` after a consonant. That is exactly the split CLDR
+     * gives `fil` its two plural categories on, so the side count selects on
+     * itself — `other` is 4, 6, 9 and anything ending in them, and `one` is
+     * everything else, including 5.
+     */
+    it("picks the Filipino linker from the side count", () => {
+        const fil: Translator = createTranslatorFromLocaleData(
+            {
+                locale: "fil",
+                resources: { fil: readCatalog("fil", "content") },
+            },
+            "fil",
+        );
+        const sided = (numSides: number) =>
+            describeStrokedShape(
+                fil,
+                { colorWord: "red" },
+                {
+                    noun: { key: "regular-polygon", numSides },
+                    withNoun: true,
+                },
+            );
+        expect(sided(5)).toBe("pula na regular na polygon na may 5 gilid");
+        expect(sided(4)).toBe("pula na regular na polygon na may 4 na gilid");
+    });
 });
 
 describe("the other descriptions", () => {

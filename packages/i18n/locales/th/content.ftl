@@ -113,7 +113,10 @@ style-with-noun =
 # «ระบาย» carries no สี of its own: every colour word above already begins
 # with one, and both messages below place `$filled` immediately in front of
 # `$color` in every variant, so the composition produces «ระบายสีน้ำเงิน» with
-# the สี said once. `style-unfilled` stands on its own and keeps the full
+# the สี said once. A colour that did not come from the table above — a CSS
+# keyword asked for by name, or a word an author wrote into `fillColorWord` —
+# reaches `$color` untranslated and brings no สี with it, so «ระบาย» stands
+# without one there. `style-unfilled` stands on its own and keeps the full
 # «ไม่ระบายสี».
 style-filled-word = ระบาย
 

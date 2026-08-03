@@ -12,7 +12,10 @@
 # own source.
 #
 # The plural of a noun is the separate word «mga» rather than an ending, so a
-# select is written out only where the two branches genuinely differ.
+# select is written out only where the two branches genuinely differ. Where a
+# count stands in front of a noun they do differ, by the linker joining the
+# two: CLDR's two plural categories for Filipino are those two linkers, and
+# the head of `chrome.ftl` says which is which.
 
 ## `<lineSegment>`
 
@@ -46,11 +49,11 @@ vector-dimension-mismatch = Hindi magkatugma ang numDimensions sa bektor.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Hindi maaaring maakit sa `<{ $component }>` dahil wala itong baryabol ng estado na nearestPoint.
+attract-to-without-nearest-point = Hindi maaaring maakit sa `<{ $component }>` dahil wala itong baryabol ng estadong nearestPoint.
 
-constrain-to-without-nearest-point = Hindi maaaring ikulong sa `<{ $component }>` dahil wala itong baryabol ng estado na nearestPoint.
+constrain-to-without-nearest-point = Hindi maaaring ikulong sa `<{ $component }>` dahil wala itong baryabol ng estadong nearestPoint.
 
-constrain-to-interior-without-nearest-point = Hindi maaaring ikulong sa loob ng `<{ $component }>` dahil wala itong baryabol ng estado na nearestPoint.
+constrain-to-interior-without-nearest-point = Hindi maaaring ikulong sa loob ng `<{ $component }>` dahil wala itong baryabol ng estadong nearestPoint.
 
 ## `<choiceInput>`
 
@@ -86,9 +89,9 @@ invalid-variable-value = Di-wastong halaga ng baryabol: `{ $value }`
 
 ## Variants
 
-variant-index-must-be-number = Ang indeks ng baryante na { $index } ay dapat isang numero
+variant-index-must-be-number = Ang indeks ng baryanteng { $index } ay dapat isang numero
 
-variant-index-must-be-integer = Ang indeks ng baryante na { $index } ay dapat isang integer
+variant-index-must-be-integer = Ang indeks ng baryanteng { $index } ay dapat isang integer
 
 ## `<sideBySide>`
 
@@ -132,7 +135,11 @@ accessibility-section-title-insufficient-contrast =
 
 ## `<circle>`
 
-circle-through-points-non-numerical = Hindi pa naipapatupad ang `<circle>` na dumaraan sa { $count } punto kapag walang bilang na halaga ang mga punto.
+circle-through-points-non-numerical =
+    Hindi pa naipapatupad ang `<circle>` na dumaraan sa { $count ->
+        [one] { $count } punto
+       *[other] { $count } na punto
+    } kapag walang bilang na halaga ang mga punto.
 
 circle-too-many-through-points = Hindi makalkula ang bilog na dumaraan sa higit sa 3 punto.
 
@@ -156,7 +163,14 @@ circle-change-center-non-numerical = Hindi pa naipapatupad ang pagbabago ng sent
 
 ## `<function>`
 
-function-domain-insufficient-dimensions = Kulang ang dimensiyon ng domain ng punsiyon. May { $intervals } agwat ang domain ngunit may { $inputs } input ang punsiyon.
+function-domain-insufficient-dimensions =
+    Kulang ang dimensiyon ng domain ng punsiyon. May { $intervals ->
+        [one] { $intervals } agwat
+       *[other] { $intervals } na agwat
+    } ang domain ngunit may { $inputs ->
+        [one] { $inputs } input
+       *[other] { $inputs } na input
+    } ang punsiyon.
 
 function-domain-invalid-format = Di-wastong format para sa domain ng punsiyon.
 
@@ -181,7 +195,14 @@ function-ignoring-empty =
 
 function-points-too-close = May dalawang puntong masyadong magkalapit ang punsiyon. Hindi matukoy ang punsiyon.
 
-function-iterates-input-output-mismatch = Posible lamang ang mga pag-ulit ng punsiyon kung katumbas ng bilang ng output ang bilang ng input. May { $inputs } input at { $outputs } output ang punsiyong ito.
+function-iterates-input-output-mismatch =
+    Posible lamang ang mga pag-ulit ng punsiyon kung katumbas ng bilang ng output ang bilang ng input. May { $inputs ->
+        [one] { $inputs } input
+       *[other] { $inputs } na input
+    } at { $outputs ->
+        [one] { $outputs } output
+       *[other] { $outputs } na output
+    } ang punsiyong ito.
 
 ## `<sequence>`
 
@@ -203,7 +224,7 @@ select-from-sequence-coprime-with-exclude-combinations = Binabalewala ang coprim
 
 target-not-found = Di-wastong target para sa `<{ $source }>`: hindi matagpuan ang target.
 
-target-state-variable-not-found = Di-wastong target para sa `<{ $source }>`: hindi matagpuan ang baryabol ng estado na "{ $property }" sa `<{ $component }>`.
+target-state-variable-not-found = Di-wastong target para sa `<{ $source }>`: hindi matagpuan ang baryabol ng estadong "{ $property }" sa `<{ $component }>`.
 
 ## `<odeSystem>`
 
@@ -215,7 +236,11 @@ ode-system-rhs-function-error = Hindi matukoy ang punsiyong ODE RHS. May error s
 
 ## `<angle>`, `<parabola>`, and `<intersection>`
 
-angle-too-many-lines = Hindi matukoy ang anggulo sa pagitan ng { $count } guhit
+angle-too-many-lines =
+    Hindi matukoy ang anggulo sa pagitan ng { $count ->
+        [one] { $count } guhit
+       *[other] { $count } na guhit
+    }
 
 angle-invalid-through-point = Di-wastong punto sa through ng `<angle>`
 
@@ -239,7 +264,13 @@ eigen-decomposition-failed = Hindi makalkula ang mga eigenvalue ng matriks
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: hindi lumilitaw sa padron ang parameter na { $parameters }, kaya lagi itong tutugma sa isang blangko.
+# The two branches differ by «mga», so the count is read by number: one
+# parameter against several is a count, and `one` in Filipino is not.
+matches-pattern-parameter-not-in-pattern =
+    { $parametersCount ->
+        [1] `<matchesPattern>`: hindi lumilitaw sa padron ang parameter na { $parameters }, kaya lagi itong tutugma sa isang blangko.
+       *[other] `<matchesPattern>`: hindi lumilitaw sa padron ang mga parameter na { $parameters }, kaya lagi itong tutugma sa isang blangko.
+    }
 
 ## `<graph>`
 
@@ -505,7 +536,7 @@ name-attribute-invalid =
        *[start] Dapat magsimula sa titik ang mga pangalan.
     }
 
-component-name-invalid-start = Di-wastong pangalan ng bahagi na "{ $name }". Dapat magsimula sa titik ang mga pangalan.
+component-name-invalid-start = Di-wastong pangalan ng bahaging "{ $name }". Dapat magsimula sa titik ang mga pangalan.
 
 ## `<answer>` sugar
 
@@ -564,15 +595,27 @@ schema-attribute-value-not-allowed =
 
 ## The `<select>` family's error boxes
 
-select-variant-name-option-count-mismatch = Di-wastong pangalan ng baryante para sa select. Lumilitaw ang pangalang { $variantName } sa { $numOptions } opsiyon ngunit { $numToSelect } ang bilang na pipiliin.
+select-variant-name-option-count-mismatch =
+    Di-wastong pangalan ng baryante para sa select. Lumilitaw ang pangalang { $variantName } sa { $numOptions ->
+        [one] { $numOptions } opsiyon
+       *[other] { $numOptions } na opsiyon
+    } ngunit { $numToSelect } ang bilang na pipiliin.
 
 select-variant-name-without-options = May mga baryanteng tinukoy para sa select ngunit walang opsiyong tinukoy para sa posibleng pangalan ng baryante: { $variantName }.
 
-select-variant-name-not-possible = Ang pangalan ng baryante na { $variantName } na tinukoy para sa select ay hindi posibleng pangalan ng baryante.
+select-variant-name-not-possible = Ang pangalan ng baryanteng { $variantName } na tinukoy para sa select ay hindi posibleng pangalan ng baryante.
 
-select-too-few-options = Hindi makapili ng { $numToSelect } bahagi mula sa { $numOptions } lamang.
+select-too-few-options =
+    Hindi makapili ng { $numToSelect ->
+        [one] { $numToSelect } bahagi
+       *[other] { $numToSelect } na bahagi
+    } mula sa { $numOptions } lamang.
 
-select-from-sequence-too-few-values = Hindi makapili ng { $numToSelect } halaga mula sa sunuran na may habang { $length }.
+select-from-sequence-too-few-values =
+    Hindi makapili ng { $numToSelect ->
+        [one] { $numToSelect } halaga
+       *[other] { $numToSelect } na halaga
+    } mula sa sunuran na may habang { $length }.
 
 select-from-sequence-indices-count-mismatch = Dapat tumugma ang bilang ng mga indeks na tinukoy para sa select sa bilang na pipiliin
 
@@ -592,9 +635,17 @@ select-from-sequence-excluded-too-many-combinations = Mahigit 70% ng mga kombina
 
 select-from-sequence-coprime-none-found = Hindi makapili ng mga numerong coprime. May iisang salik na magkatulad ang lahat ng posibleng halaga.
 
-select-from-sequence-too-few-unique-values = Hindi makapili ng { $numToSelect } natatanging halaga mula sa sunuran na may habang { $numPossibleValues }
+select-from-sequence-too-few-unique-values =
+    Hindi makapili ng { $numToSelect ->
+        [one] { $numToSelect } natatanging halaga
+       *[other] { $numToSelect } na natatanging halaga
+    } mula sa sunuran na may habang { $numPossibleValues }
 
-select-prime-numbers-too-few-values = Hindi makapili ng { $numToSelect } halaga mula sa listahan ng mga primo na may habang { $numValues }
+select-prime-numbers-too-few-values =
+    Hindi makapili ng { $numToSelect ->
+        [one] { $numToSelect } halaga
+       *[other] { $numToSelect } na halaga
+    } mula sa listahan ng mga primo na may habang { $numValues }
 
 select-prime-numbers-values-count-mismatch = Dapat tumugma ang bilang ng mga halagang tinukoy para sa select sa bilang na pipiliin
 

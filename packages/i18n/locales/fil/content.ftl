@@ -24,6 +24,11 @@
 # stiff on purpose rather than by oversight, and a speaker correcting it is
 # correcting spelling and not structure.
 #
+# A count is the argument that does say which linker it takes: CLDR's two
+# plural categories for Filipino are those two linkers, so a numeral standing
+# in front of a noun selects on the count and writes the right one. See the
+# head of `chrome.ftl`.
+#
 # The element names are deliberately absent; see the note above the chemistry
 # section.
 
@@ -87,7 +92,10 @@ noun =
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
-       *[head] regular na polygon na may { $numSides } gilid
+       *[head] regular na polygon na may { $numSides ->
+            [one] { $numSides } gilid
+           *[other] { $numSides } na gilid
+        }
     }
 
 # Filipino has no grammatical gender, so every noun answers the same and the

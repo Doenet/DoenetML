@@ -44,8 +44,8 @@ line-style =
     .dashed = తెగిన
     .dotted = చుక్కల
 
-# Noun phrases: they take the -తో the composition messages suffix, and modify
-# nothing.
+# Noun phrases: they stand in front of the «కలిగిన» the composition messages
+# supply, and modify nothing.
 fill-style =
     .horizontal = సమాంతర గీతలు
     .vertical = నిలువు గీతలు

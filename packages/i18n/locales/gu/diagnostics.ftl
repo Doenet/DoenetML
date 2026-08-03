@@ -109,7 +109,7 @@ label-for-unresolved = `<label>` પરનો `for` ગુણધર્મ કો
 
 label-for-answer-with-authored-inputs = `<label>` પરનો `for` ગુણધર્મ સ્પષ્ટ લખેલા ઇનપુટવાળા `<answer>` નો સંદર્ભ આપે છે; ઇનપુટનો સીધો સંદર્ભ આપો.
 
-label-for-answer-without-input = `<label>` પરનો `for` ગુણધર્મ નામ આપવા માટે ઇનપુટ ન હોય તેવા `<answer>` નો સંદર્ભ આપે છે.
+label-for-answer-without-input = `<label>` પરનો `for` ગુણધર્મ લેબલ આપવા માટે ઇનપુટ ન હોય તેવા `<answer>` નો સંદર્ભ આપે છે.
 
 label-for-must-reference-input-or-answer = `<label>` પરનો `for` ગુણધર્મ કોઈ ઇનપુટ કે જવાબનો સંદર્ભ આપવો જોઈએ.
 
@@ -119,9 +119,9 @@ accessibility-short-description-or-decorative = સુગમતા માટે 
 
 accessibility-video-short-description = સુગમતા માટે `<video>` પાસે ટૂંકું વર્ણન હોવું જોઈએ.
 
-accessibility-input-short-description-or-label = સુગમતા માટે `<{ $component }>` પાસે ટૂંકું વર્ણન કે નામ હોવું જોઈએ.
+accessibility-input-short-description-or-label = સુગમતા માટે `<{ $component }>` પાસે ટૂંકું વર્ણન કે લેબલ હોવું જોઈએ.
 
-accessibility-answer-input-short-description-or-label = સુગમતા માટે, ઇનપુટ બનાવતા `<answer>` પાસે ટૂંકું વર્ણન કે નામ હોવું જોઈએ.
+accessibility-answer-input-short-description-or-label = સુગમતા માટે, ઇનપુટ બનાવતા `<answer>` પાસે ટૂંકું વર્ણન કે લેબલ હોવું જોઈએ.
 
 accessibility-short-description-contains-math = ટૂંકાં વર્ણનોમાં `<{ $component }>` જેવા ગણિત ઘટકો ન હોવા જોઈએ. ગણિતને શબ્દોમાં લખો.
 
@@ -241,7 +241,7 @@ solve-equations-cannot-evaluate = સમીકરણનું મૂલ્યા
 
 math-operators-operand-number-required = ગણિત ઘટક છૂટું પાડતી વખતે operandNumber આપવો જરૂરી છે.
 
-eigen-decomposition-failed = સ્વરૂપની આઇગન કિંમતો ગણી શકાઈ નહીં
+eigen-decomposition-failed = શ્રેણિકની આઇગન કિંમતો ગણી શકાઈ નહીં
 
 ## `<matchesPattern>`
 
@@ -415,7 +415,7 @@ prefigure-descendant-unsupported = { $subject }: graph prefigure રેન્ડ
 
 prefigure-descendant-invalid-geometry = { $subject }: અસીમ કે અધૂરી ભૂમિતિ; વંશજ છોડી દેવાયો.
 
-prefigure-curve-label-omitted = { $subject }: રૂપાંતરિત વક્રરેખા ઘટકો પર નામ સમર્થિત નથી; નામ છોડી દેવાયું.
+prefigure-curve-label-omitted = { $subject }: રૂપાંતરિત વક્રરેખા ઘટકો પર લેબલ સમર્થિત નથી; લેબલ છોડી દેવાયું.
 
 prefigure-curve-unsupported-definition-type = { $subject }: અસમર્થિત વક્રરેખા વિધેય વ્યાખ્યા પ્રકાર '{ $definitionType }'; વંશજ છોડી દેવાયો.
 
@@ -425,8 +425,8 @@ prefigure-region-non-formula-child = { $subject }: regionBetweenCurves પર �
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
-        [line-family] રેખા કુળના નામ માટે
-       *[point] બિંદુના નામ માટે
+        [line-family] રેખા કુળના લેબલ માટે
+       *[point] બિંદુના લેબલ માટે
     } અસમર્થિત labelPosition '{ $labelPosition }'; મૂળભૂત PreFigure ગોઠવણી વપરાઈ.
 
 prefigure-fill-style-unsupported = { $subject }: ભરણી શૈલી '{ $fillStyle }' ને PreFigure સમર્થન આપતું નથી; ઘન ભરણી પર પાછા ફરાય છે.

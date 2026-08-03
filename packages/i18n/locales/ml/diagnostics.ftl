@@ -109,7 +109,7 @@ label-for-unresolved = `<label>` ലെ `for` ഗുണം ഒരു ഘടക�
 
 label-for-answer-with-authored-inputs = `<label>` ലെ `for` ഗുണം, വ്യക്തമായി എഴുതിയ ഇൻപുട്ടുകളുള്ള `<answer>` നെ പരാമർശിക്കുന്നു; ഇൻപുട്ടിനെ നേരിട്ടു പരാമർശിക്കുക.
 
-label-for-answer-without-input = `<label>` ലെ `for` ഗുണം, പേരു നൽകാൻ ഇൻപുട്ട് ഇല്ലാത്ത `<answer>` നെ പരാമർശിക്കുന്നു.
+label-for-answer-without-input = `<label>` ലെ `for` ഗുണം, ലേബൽ നൽകാൻ ഇൻപുട്ട് ഇല്ലാത്ത `<answer>` നെ പരാമർശിക്കുന്നു.
 
 label-for-must-reference-input-or-answer = `<label>` ലെ `for` ഗുണം ഒരു ഇൻപുട്ടിനെയോ ഒരു ഉത്തരത്തെയോ പരാമർശിക്കണം.
 
@@ -119,9 +119,9 @@ accessibility-short-description-or-decorative = പ്രാപ്യതയ്�
 
 accessibility-video-short-description = പ്രാപ്യതയ്ക്കായി `<video>` നു ഒരു ചെറുവിവരണം വേണം.
 
-accessibility-input-short-description-or-label = പ്രാപ്യതയ്ക്കായി `<{ $component }>` നു ഒരു ചെറുവിവരണമോ ഒരു പേരോ വേണം.
+accessibility-input-short-description-or-label = പ്രാപ്യതയ്ക്കായി `<{ $component }>` നു ഒരു ചെറുവിവരണമോ ഒരു ലേബലോ വേണം.
 
-accessibility-answer-input-short-description-or-label = പ്രാപ്യതയ്ക്കായി, ഒരു ഇൻപുട്ട് സൃഷ്ടിക്കുന്ന `<answer>` നു ഒരു ചെറുവിവരണമോ ഒരു പേരോ വേണം.
+accessibility-answer-input-short-description-or-label = പ്രാപ്യതയ്ക്കായി, ഒരു ഇൻപുട്ട് സൃഷ്ടിക്കുന്ന `<answer>` നു ഒരു ചെറുവിവരണമോ ഒരു ലേബലോ വേണം.
 
 accessibility-short-description-contains-math = ചെറുവിവരണങ്ങളിൽ `<{ $component }>` പോലുള്ള ഗണിത ഘടകങ്ങൾ പാടില്ല. ഗണിതം വാക്കുകളിൽ എഴുതുക.
 
@@ -430,7 +430,7 @@ prefigure-descendant-unsupported = { $subject }: graph prefigure റെൻഡറ
 
 prefigure-descendant-invalid-geometry = { $subject }: അപരിമിതമോ അപൂർണമോ ആയ ജ്യാമിതി; പിൻഗാമിയെ ഒഴിവാക്കി.
 
-prefigure-curve-label-omitted = { $subject }: പരിവർത്തനം ചെയ്ത വക്രരേഖാ ഘടകങ്ങളിൽ പേരുകൾ പിന്തുണയ്ക്കുന്നില്ല; പേര് ഒഴിവാക്കി.
+prefigure-curve-label-omitted = { $subject }: പരിവർത്തനം ചെയ്ത വക്രരേഖാ ഘടകങ്ങളിൽ ലേബലുകൾ പിന്തുണയ്ക്കുന്നില്ല; ലേബൽ ഒഴിവാക്കി.
 
 prefigure-curve-unsupported-definition-type = { $subject }: പിന്തുണയ്ക്കാത്ത വക്രരേഖാ ഫലന നിർവചന തരം '{ $definitionType }'; പിൻഗാമിയെ ഒഴിവാക്കി.
 
@@ -440,8 +440,8 @@ prefigure-region-non-formula-child = { $subject }: regionBetweenCurves ൽ സ�
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
-        [line-family] രേഖാ കുടുംബത്തിന്റെ പേരിനു
-       *[point] ബിന്ദുവിന്റെ പേരിനു
+        [line-family] രേഖാ കുടുംബത്തിന്റെ ലേബലിനു
+       *[point] ബിന്ദുവിന്റെ ലേബലിനു
     } പിന്തുണയ്ക്കാത്ത labelPosition '{ $labelPosition }'; സ്ഥിരസ്ഥിതി PreFigure വിന്യാസം ഉപയോഗിച്ചു.
 
 prefigure-fill-style-unsupported = { $subject }: നിറയ്ക്കൽ ശൈലി '{ $fillStyle }' PreFigure പിന്തുണയ്ക്കുന്നില്ല; ഘന നിറയ്ക്കലിലേക്കു മടങ്ങുന്നു.

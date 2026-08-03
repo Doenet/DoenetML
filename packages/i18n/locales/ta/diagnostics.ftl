@@ -116,7 +116,7 @@ label-for-unresolved = `<label>` இல் உள்ள `for` பண்பை �
 
 label-for-answer-with-authored-inputs = `<label>` இல் உள்ள `for` பண்பு, வெளிப்படையாக எழுதப்பட்ட உள்ளீடுகளைக் கொண்ட `<answer>` ஐக் குறிக்கிறது; உள்ளீட்டை நேரடியாகக் குறிப்பிடவும்.
 
-label-for-answer-without-input = `<label>` இல் உள்ள `for` பண்பு, பெயரிட உள்ளீடு இல்லாத `<answer>` ஐக் குறிக்கிறது.
+label-for-answer-without-input = `<label>` இல் உள்ள `for` பண்பு, லேபிள் இட உள்ளீடு இல்லாத `<answer>` ஐக் குறிக்கிறது.
 
 label-for-must-reference-input-or-answer = `<label>` இல் உள்ள `for` பண்பு ஒரு உள்ளீட்டையோ ஒரு விடையையோ குறிக்க வேண்டும்.
 
@@ -126,9 +126,9 @@ accessibility-short-description-or-decorative = அணுகல்தன்ம�
 
 accessibility-video-short-description = அணுகல்தன்மைக்காக `<video>` க்கு ஒரு சுருக்க விளக்கம் இருக்க வேண்டும்.
 
-accessibility-input-short-description-or-label = அணுகல்தன்மைக்காக `<{ $component }>` க்கு ஒரு சுருக்க விளக்கமோ ஒரு பெயரோ இருக்க வேண்டும்.
+accessibility-input-short-description-or-label = அணுகல்தன்மைக்காக `<{ $component }>` க்கு ஒரு சுருக்க விளக்கமோ ஒரு லேபிளோ இருக்க வேண்டும்.
 
-accessibility-answer-input-short-description-or-label = அணுகல்தன்மைக்காக, ஒரு உள்ளீட்டை உருவாக்கும் `<answer>` க்கு ஒரு சுருக்க விளக்கமோ ஒரு பெயரோ இருக்க வேண்டும்.
+accessibility-answer-input-short-description-or-label = அணுகல்தன்மைக்காக, ஒரு உள்ளீட்டை உருவாக்கும் `<answer>` க்கு ஒரு சுருக்க விளக்கமோ ஒரு லேபிளோ இருக்க வேண்டும்.
 
 accessibility-short-description-contains-math = சுருக்க விளக்கங்களில் `<{ $component }>` போன்ற கணிதக் கூறுகள் இருக்கக் கூடாது. கணிதத்தை வார்த்தைகளில் எழுதவும்.
 
@@ -437,7 +437,7 @@ prefigure-descendant-unsupported = { $subject }: graph prefigure காட்ச
 
 prefigure-descendant-invalid-geometry = { $subject }: முடிவிலா அல்லது முழுமையற்ற வடிவியல்; வழிவந்தது தவிர்க்கப்படுகிறது.
 
-prefigure-curve-label-omitted = { $subject }: மாற்றப்பட்ட வளைவரைக் கூறுகளில் பெயர்கள் ஆதரிக்கப்படவில்லை; பெயர் விடப்படுகிறது.
+prefigure-curve-label-omitted = { $subject }: மாற்றப்பட்ட வளைவரைக் கூறுகளில் லேபிள்கள் ஆதரிக்கப்படவில்லை; லேபிள் விடப்படுகிறது.
 
 prefigure-curve-unsupported-definition-type = { $subject }: ஆதரிக்கப்படாத வளைவரைச் சார்பு வரையறை வகை '{ $definitionType }'; வழிவந்தது தவிர்க்கப்படுகிறது.
 
@@ -447,8 +447,8 @@ prefigure-region-non-formula-child = { $subject }: regionBetweenCurves இல்
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
-        [line-family] கோட்டுக் குடும்பப் பெயருக்கு
-       *[point] புள்ளிப் பெயருக்கு
+        [line-family] கோட்டுக் குடும்ப லேபிளுக்கு
+       *[point] புள்ளி லேபிளுக்கு
     } ஆதரிக்கப்படாத labelPosition '{ $labelPosition }'; இயல்புநிலை PreFigure சீரமைப்பு பயன்படுத்தப்படுகிறது.
 
 prefigure-fill-style-unsupported = { $subject }: நிரப்பு நடை '{ $fillStyle }' PreFigure ஆல் ஆதரிக்கப்படவில்லை; திடமான நிரப்புக்கு மாற்றப்படுகிறது.

@@ -113,7 +113,7 @@ label-for-unresolved = `<label>` ਉੱਤੇ `for` ਗੁਣ ਕਿਸੇ ਹ�
 
 label-for-answer-with-authored-inputs = `<label>` ਉੱਤੇ `for` ਗੁਣ ਸਪਸ਼ਟ ਲਿਖੇ ਇਨਪੁਟਾਂ ਵਾਲੇ `<answer>` ਦਾ ਹਵਾਲਾ ਦਿੰਦਾ ਹੈ; ਇਨਪੁਟ ਦਾ ਸਿੱਧਾ ਹਵਾਲਾ ਦਿਓ।
 
-label-for-answer-without-input = `<label>` ਉੱਤੇ `for` ਗੁਣ ਨਾਂ ਦੇਣ ਲਈ ਇਨਪੁਟ ਤੋਂ ਬਿਨਾਂ `<answer>` ਦਾ ਹਵਾਲਾ ਦਿੰਦਾ ਹੈ।
+label-for-answer-without-input = `<label>` ਉੱਤੇ `for` ਗੁਣ ਲੇਬਲ ਦੇਣ ਲਈ ਇਨਪੁਟ ਤੋਂ ਬਿਨਾਂ `<answer>` ਦਾ ਹਵਾਲਾ ਦਿੰਦਾ ਹੈ।
 
 label-for-must-reference-input-or-answer = `<label>` ਉੱਤੇ `for` ਗੁਣ ਕਿਸੇ ਇਨਪੁਟ ਜਾਂ ਜਵਾਬ ਦਾ ਹਵਾਲਾ ਦੇਣਾ ਚਾਹੀਦਾ ਹੈ।
 
@@ -123,9 +123,9 @@ accessibility-short-description-or-decorative = ਪਹੁੰਚਯੋਗਤਾ �
 
 accessibility-video-short-description = ਪਹੁੰਚਯੋਗਤਾ ਲਈ `<video>` ਕੋਲ ਛੋਟਾ ਵਰਣਨ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।
 
-accessibility-input-short-description-or-label = ਪਹੁੰਚਯੋਗਤਾ ਲਈ `<{ $component }>` ਕੋਲ ਛੋਟਾ ਵਰਣਨ ਜਾਂ ਨਾਂ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।
+accessibility-input-short-description-or-label = ਪਹੁੰਚਯੋਗਤਾ ਲਈ `<{ $component }>` ਕੋਲ ਛੋਟਾ ਵਰਣਨ ਜਾਂ ਲੇਬਲ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।
 
-accessibility-answer-input-short-description-or-label = ਪਹੁੰਚਯੋਗਤਾ ਲਈ, ਇਨਪੁਟ ਬਣਾਉਣ ਵਾਲੇ `<answer>` ਕੋਲ ਛੋਟਾ ਵਰਣਨ ਜਾਂ ਨਾਂ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।
+accessibility-answer-input-short-description-or-label = ਪਹੁੰਚਯੋਗਤਾ ਲਈ, ਇਨਪੁਟ ਬਣਾਉਣ ਵਾਲੇ `<answer>` ਕੋਲ ਛੋਟਾ ਵਰਣਨ ਜਾਂ ਲੇਬਲ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।
 
 accessibility-short-description-contains-math = ਛੋਟੇ ਵਰਣਨਾਂ ਵਿੱਚ `<{ $component }>` ਵਰਗੇ ਗਣਿਤ ਹਿੱਸੇ ਨਹੀਂ ਹੋਣੇ ਚਾਹੀਦੇ। ਗਣਿਤ ਨੂੰ ਸ਼ਬਦਾਂ ਵਿੱਚ ਲਿਖੋ।
 
@@ -422,7 +422,7 @@ prefigure-descendant-unsupported = { $subject }: graph prefigure ਰੈਂਡਰ
 
 prefigure-descendant-invalid-geometry = { $subject }: ਅਸੀਮ ਜਾਂ ਅਧੂਰੀ ਰੇਖਾ-ਗਣਿਤ; ਵੰਸ਼ਜ ਛੱਡਿਆ ਗਿਆ।
 
-prefigure-curve-label-omitted = { $subject }: ਬਦਲੇ ਵਕਰਰੇਖਾ ਤੱਤਾਂ ਉੱਤੇ ਨਾਂ ਸਮਰਥਿਤ ਨਹੀਂ; ਨਾਂ ਛੱਡਿਆ ਗਿਆ।
+prefigure-curve-label-omitted = { $subject }: ਬਦਲੇ ਵਕਰਰੇਖਾ ਤੱਤਾਂ ਉੱਤੇ ਲੇਬਲ ਸਮਰਥਿਤ ਨਹੀਂ; ਲੇਬਲ ਛੱਡਿਆ ਗਿਆ।
 
 prefigure-curve-unsupported-definition-type = { $subject }: ਅਸਮਰਥਿਤ ਵਕਰਰੇਖਾ ਫਲਨ ਪਰਿਭਾਸ਼ਾ ਕਿਸਮ '{ $definitionType }'; ਵੰਸ਼ਜ ਛੱਡਿਆ ਗਿਆ।
 
@@ -432,8 +432,8 @@ prefigure-region-non-formula-child = { $subject }: regionBetweenCurves ਉੱਤ
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
-        [line-family] ਰੇਖਾ ਪਰਿਵਾਰ ਦੇ ਨਾਂ ਲਈ
-       *[point] ਬਿੰਦੂ ਦੇ ਨਾਂ ਲਈ
+        [line-family] ਰੇਖਾ ਪਰਿਵਾਰ ਦੇ ਲੇਬਲ ਲਈ
+       *[point] ਬਿੰਦੂ ਦੇ ਲੇਬਲ ਲਈ
     } ਅਸਮਰਥਿਤ labelPosition '{ $labelPosition }'; ਮੂਲ PreFigure ਤਰਤੀਬ ਵਰਤੀ ਗਈ।
 
 prefigure-fill-style-unsupported = { $subject }: ਭਰਾਈ ਸ਼ੈਲੀ '{ $fillStyle }' ਨੂੰ PreFigure ਸਮਰਥਨ ਨਹੀਂ ਦਿੰਦਾ; ਠੋਸ ਭਰਾਈ ਉੱਤੇ ਵਾਪਸ ਜਾ ਰਿਹਾ ਹੈ।

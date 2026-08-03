@@ -113,7 +113,7 @@ label-for-unresolved = `<label>` ಮೇಲಿನ `for` ಗುಣವನ್ನು 
 
 label-for-answer-with-authored-inputs = `<label>` ಮೇಲಿನ `for` ಗುಣ, ಸ್ಪಷ್ಟವಾಗಿ ಬರೆದ ಆದಾನಗಳಿರುವ `<answer>` ಅನ್ನು ಸೂಚಿಸುತ್ತದೆ; ಆದಾನವನ್ನು ನೇರವಾಗಿ ಉಲ್ಲೇಖಿಸಿ.
 
-label-for-answer-without-input = `<label>` ಮೇಲಿನ `for` ಗುಣ, ಹೆಸರಿಸಲು ಆದಾನವಿಲ್ಲದ `<answer>` ಅನ್ನು ಸೂಚಿಸುತ್ತದೆ.
+label-for-answer-without-input = `<label>` ಮೇಲಿನ `for` ಗುಣ, ಲೇಬಲ್ ಮಾಡಲು ಆದಾನವಿಲ್ಲದ `<answer>` ಅನ್ನು ಸೂಚಿಸುತ್ತದೆ.
 
 label-for-must-reference-input-or-answer = `<label>` ಮೇಲಿನ `for` ಗುಣ ಒಂದು ಆದಾನವನ್ನು ಅಥವಾ ಒಂದು ಉತ್ತರವನ್ನು ಉಲ್ಲೇಖಿಸಬೇಕು.
 
@@ -123,9 +123,9 @@ accessibility-short-description-or-decorative = ಪ್ರವೇಶಸಾಧ್�
 
 accessibility-video-short-description = ಪ್ರವೇಶಸಾಧ್ಯತೆಗಾಗಿ `<video>` ಗೆ ಒಂದು ಸಣ್ಣ ವಿವರಣೆ ಇರಬೇಕು.
 
-accessibility-input-short-description-or-label = ಪ್ರವೇಶಸಾಧ್ಯತೆಗಾಗಿ `<{ $component }>` ಗೆ ಒಂದು ಸಣ್ಣ ವಿವರಣೆ ಅಥವಾ ಒಂದು ಹೆಸರು ಇರಬೇಕು.
+accessibility-input-short-description-or-label = ಪ್ರವೇಶಸಾಧ್ಯತೆಗಾಗಿ `<{ $component }>` ಗೆ ಒಂದು ಸಣ್ಣ ವಿವರಣೆ ಅಥವಾ ಒಂದು ಲೇಬಲ್ ಇರಬೇಕು.
 
-accessibility-answer-input-short-description-or-label = ಪ್ರವೇಶಸಾಧ್ಯತೆಗಾಗಿ, ಆದಾನವನ್ನು ಸೃಷ್ಟಿಸುವ `<answer>` ಗೆ ಒಂದು ಸಣ್ಣ ವಿವರಣೆ ಅಥವಾ ಒಂದು ಹೆಸರು ಇರಬೇಕು.
+accessibility-answer-input-short-description-or-label = ಪ್ರವೇಶಸಾಧ್ಯತೆಗಾಗಿ, ಆದಾನವನ್ನು ಸೃಷ್ಟಿಸುವ `<answer>` ಗೆ ಒಂದು ಸಣ್ಣ ವಿವರಣೆ ಅಥವಾ ಒಂದು ಲೇಬಲ್ ಇರಬೇಕು.
 
 accessibility-short-description-contains-math = ಸಣ್ಣ ವಿವರಣೆಗಳಲ್ಲಿ `<{ $component }>` ನಂತಹ ಗಣಿತ ಘಟಕಗಳು ಇರಬಾರದು. ಗಣಿತವನ್ನು ಪದಗಳಲ್ಲಿ ಬರೆಯಿರಿ.
 
@@ -310,11 +310,11 @@ component-action-unavailable = `{ $reference }` ಘಟಕದ ಮೇಲೆ { $act
 
 ## `<dataFrame>`
 
-data-frame-inconsistent-row-lengths = ದತ್ತಾಂಶದ ಆಕಾರ ಅಮಾನ್ಯ. ಸಾಲುಗಳ ಉದ್ದಗಳು ಅಸಮಂಜಸ. componentIdx :{ $componentIdx } ನಲ್ಲಿ ಕಂಡುಬಂದಿದೆ
+data-frame-inconsistent-row-lengths = ದತ್ತಾಂಶದ ಆಕಾರ ಅಮಾನ್ಯ. ಸಾಲುಗಳ ಉದ್ದಗಳು ಅಸಮಂಜಸ. componentIdx :{ $componentIdx } ರಲ್ಲಿ ಕಂಡುಬಂದಿದೆ
 
-data-frame-duplicate-column-names = ದತ್ತಾಂಶದಲ್ಲಿ ಕಂಬಗಳ ಹೆಸರುಗಳು ಪುನರಾವರ್ತನೆಯಾಗಿವೆ. componentIdx :{ $componentIdx } ನಲ್ಲಿ ಕಂಡುಬಂದಿದೆ
+data-frame-duplicate-column-names = ದತ್ತಾಂಶದಲ್ಲಿ ಕಂಬಗಳ ಹೆಸರುಗಳು ಪುನರಾವರ್ತನೆಯಾಗಿವೆ. componentIdx :{ $componentIdx } ರಲ್ಲಿ ಕಂಡುಬಂದಿದೆ
 
-data-frame-missing-column-name = ದತ್ತಾಂಶದಲ್ಲಿ ಒಂದು ಕಂಬದ ಹೆಸರು ಇಲ್ಲ. componentIdx :{ $componentIdx } ನಲ್ಲಿ ಕಂಡುಬಂದಿದೆ
+data-frame-missing-column-name = ದತ್ತಾಂಶದಲ್ಲಿ ಒಂದು ಕಂಬದ ಹೆಸರು ಇಲ್ಲ. componentIdx :{ $componentIdx } ರಲ್ಲಿ ಕಂಡುಬಂದಿದೆ
 
 ## `<answer>` and scoring
 
@@ -434,7 +434,7 @@ prefigure-descendant-unsupported = { $subject }: graph prefigure ರೆಂಡರ
 
 prefigure-descendant-invalid-geometry = { $subject }: ಅಪರಿಮಿತ ಅಥವಾ ಅಪೂರ್ಣ ರೇಖಾಗಣಿತ; ವಂಶಜನನ್ನು ಬಿಡಲಾಗಿದೆ.
 
-prefigure-curve-label-omitted = { $subject }: ಪರಿವರ್ತಿತ ವಕ್ರರೇಖೆ ಅಂಶಗಳ ಮೇಲೆ ಹೆಸರುಗಳು ಬೆಂಬಲಿತವಲ್ಲ; ಹೆಸರನ್ನು ಬಿಡಲಾಗಿದೆ.
+prefigure-curve-label-omitted = { $subject }: ಪರಿವರ್ತಿತ ವಕ್ರರೇಖೆ ಅಂಶಗಳ ಮೇಲೆ ಲೇಬಲ್‌ಗಳು ಬೆಂಬಲಿತವಲ್ಲ; ಲೇಬಲ್ ಅನ್ನು ಬಿಡಲಾಗಿದೆ.
 
 prefigure-curve-unsupported-definition-type = { $subject }: ಬೆಂಬಲಿತವಲ್ಲದ ವಕ್ರರೇಖೆ ಉತ್ಪನ್ನ ವ್ಯಾಖ್ಯೆ ಬಗೆ '{ $definitionType }'; ವಂಶಜನನ್ನು ಬಿಡಲಾಗಿದೆ.
 
@@ -444,8 +444,8 @@ prefigure-region-non-formula-child = { $subject }: regionBetweenCurves ಮೇಲ
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
-        [line-family] ರೇಖಾ ಕುಟುಂಬದ ಹೆಸರಿಗೆ
-       *[point] ಬಿಂದುವಿನ ಹೆಸರಿಗೆ
+        [line-family] ರೇಖಾ ಕುಟುಂಬದ ಲೇಬಲ್‌ಗೆ
+       *[point] ಬಿಂದುವಿನ ಲೇಬಲ್‌ಗೆ
     } ಬೆಂಬಲಿತವಲ್ಲದ labelPosition '{ $labelPosition }'; ಪೂರ್ವನಿಯೋಜಿತ PreFigure ಜೋಡಣೆ ಬಳಸಲಾಗಿದೆ.
 
 prefigure-fill-style-unsupported = { $subject }: ತುಂಬುವ ಶೈಲಿ '{ $fillStyle }' ಗೆ PreFigure ಬೆಂಬಲ ನೀಡುವುದಿಲ್ಲ; ಘನ ತುಂಬುವಿಕೆಗೆ ಮರಳಲಾಗುತ್ತಿದೆ.

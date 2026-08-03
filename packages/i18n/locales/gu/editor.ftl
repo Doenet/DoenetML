@@ -56,9 +56,9 @@ editor-accessibility-title =
 editor-accessibility-label =
     { $status ->
         [violations] WCAG AA સુગમતા ઉલ્લંઘન મળ્યું. { $count ->
-            [one] { $count } WCAG AA ઉલ્લંઘન
-           *[other] { $count } WCAG AA ઉલ્લંઘનો
-        } મળ્યાં. સુગમતા અહેવાલ { $action ->
+            [one] { $count } WCAG AA ઉલ્લંઘન મળ્યું.
+           *[other] { $count } WCAG AA ઉલ્લંઘનો મળ્યાં.
+        } સુગમતા અહેવાલ { $action ->
             [close] બંધ કરવા
            *[open] ખોલવા
         } ક્લિક કરો.

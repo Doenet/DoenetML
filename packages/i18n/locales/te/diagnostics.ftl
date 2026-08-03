@@ -113,7 +113,7 @@ label-for-unresolved = `<label>` పై ఉన్న `for` లక్షణాన
 
 label-for-answer-with-authored-inputs = `<label>` పై ఉన్న `for` లక్షణం, స్పష్టంగా రాసిన ఇన్‌పుట్‌లు గల `<answer>` ను సూచిస్తోంది; ఇన్‌పుట్‌ను నేరుగా సూచించండి.
 
-label-for-answer-without-input = `<label>` పై ఉన్న `for` లక్షణం, పేరు పెట్టడానికి ఇన్‌పుట్ లేని `<answer>` ను సూచిస్తోంది.
+label-for-answer-without-input = `<label>` పై ఉన్న `for` లక్షణం, లేబుల్ పెట్టడానికి ఇన్‌పుట్ లేని `<answer>` ను సూచిస్తోంది.
 
 label-for-must-reference-input-or-answer = `<label>` పై ఉన్న `for` లక్షణం ఒక ఇన్‌పుట్‌ను లేదా ఒక సమాధానాన్ని సూచించాలి.
 
@@ -123,9 +123,9 @@ accessibility-short-description-or-decorative = అందుబాటు కో�
 
 accessibility-video-short-description = అందుబాటు కోసం `<video>` కు ఒక చిన్న వివరణ ఉండాలి.
 
-accessibility-input-short-description-or-label = అందుబాటు కోసం `<{ $component }>` కు ఒక చిన్న వివరణ లేదా ఒక పేరు ఉండాలి.
+accessibility-input-short-description-or-label = అందుబాటు కోసం `<{ $component }>` కు ఒక చిన్న వివరణ లేదా ఒక లేబుల్ ఉండాలి.
 
-accessibility-answer-input-short-description-or-label = అందుబాటు కోసం, ఇన్‌పుట్‌ను సృష్టించే `<answer>` కు ఒక చిన్న వివరణ లేదా ఒక పేరు ఉండాలి.
+accessibility-answer-input-short-description-or-label = అందుబాటు కోసం, ఇన్‌పుట్‌ను సృష్టించే `<answer>` కు ఒక చిన్న వివరణ లేదా ఒక లేబుల్ ఉండాలి.
 
 accessibility-short-description-contains-math = చిన్న వివరణలలో `<{ $component }>` వంటి గణిత భాగాలు ఉండకూడదు. గణితాన్ని మాటల్లో రాయండి.
 
@@ -434,7 +434,7 @@ prefigure-descendant-unsupported = { $subject }: graph prefigure రెండర
 
 prefigure-descendant-invalid-geometry = { $subject }: అనంత లేదా అసంపూర్ణ జ్యామితి; వారసుడు వదిలివేయబడ్డాడు.
 
-prefigure-curve-label-omitted = { $subject }: మార్చిన వక్రరేఖ మూలకాలపై పేర్లకు మద్దతు లేదు; పేరు వదిలివేయబడింది.
+prefigure-curve-label-omitted = { $subject }: మార్చిన వక్రరేఖ మూలకాలపై లేబుల్‌లకు మద్దతు లేదు; లేబుల్ వదిలివేయబడింది.
 
 prefigure-curve-unsupported-definition-type = { $subject }: మద్దతు లేని వక్రరేఖ ప్రమేయ నిర్వచన రకం '{ $definitionType }'; వారసుడు వదిలివేయబడ్డాడు.
 
@@ -444,8 +444,8 @@ prefigure-region-non-formula-child = { $subject }: regionBetweenCurves పై �
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
-        [line-family] రేఖ కుటుంబ పేరుకు
-       *[point] బిందు పేరుకు
+        [line-family] రేఖ కుటుంబ లేబుల్‌కు
+       *[point] బిందు లేబుల్‌కు
     } మద్దతు లేని labelPosition '{ $labelPosition }'; అప్రమేయ PreFigure అమరిక వాడబడింది.
 
 prefigure-fill-style-unsupported = { $subject }: నింపు శైలి '{ $fillStyle }' కు PreFigure మద్దతు ఇవ్వదు; ఘన నింపునకు మారుతోంది.

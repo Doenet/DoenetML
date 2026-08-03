@@ -56,16 +56,16 @@ editor-accessibility-title =
 editor-accessibility-label =
     { $status ->
         [violations] WCAG AA ਪਹੁੰਚਯੋਗਤਾ ਉਲੰਘਣਾ ਮਿਲੀ। { $count ->
-            [one] { $count } WCAG AA ਉਲੰਘਣਾ
-           *[other] { $count } WCAG AA ਉਲੰਘਣਾਵਾਂ
-        } ਮਿਲੀਆਂ। ਪਹੁੰਚਯੋਗਤਾ ਰਿਪੋਰਟ { $action ->
+            [one] { $count } WCAG AA ਉਲੰਘਣਾ ਮਿਲੀ।
+           *[other] { $count } WCAG AA ਉਲੰਘਣਾਵਾਂ ਮਿਲੀਆਂ।
+        } ਪਹੁੰਚਯੋਗਤਾ ਰਿਪੋਰਟ { $action ->
             [close] ਬੰਦ ਕਰਨ
            *[open] ਖੋਲ੍ਹਣ
         } ਲਈ ਕਲਿੱਕ ਕਰੋ।
         [advisories] ਕੋਈ WCAG AA ਉਲੰਘਣਾ ਨਹੀਂ ਮਿਲੀ। { $count ->
-            [one] { $count } ਵਾਧੂ ਪਹੁੰਚਯੋਗਤਾ ਸਿਫ਼ਾਰਸ਼
-           *[other] { $count } ਵਾਧੂ ਪਹੁੰਚਯੋਗਤਾ ਸਿਫ਼ਾਰਸ਼ਾਂ
-        } ਮਿਲੀਆਂ। ਪਹੁੰਚਯੋਗਤਾ ਰਿਪੋਰਟ { $action ->
+            [one] { $count } ਵਾਧੂ ਪਹੁੰਚਯੋਗਤਾ ਸਿਫ਼ਾਰਸ਼ ਮਿਲੀ।
+           *[other] { $count } ਵਾਧੂ ਪਹੁੰਚਯੋਗਤਾ ਸਿਫ਼ਾਰਸ਼ਾਂ ਮਿਲੀਆਂ।
+        } ਪਹੁੰਚਯੋਗਤਾ ਰਿਪੋਰਟ { $action ->
             [close] ਬੰਦ ਕਰਨ
            *[open] ਖੋਲ੍ਹਣ
         } ਲਈ ਕਲਿੱਕ ਕਰੋ।
@@ -93,8 +93,8 @@ editor-tab-responses = ਭੇਜੇ ਜਵਾਬ
 editor-tab-with-count = { $label }: { $count }
 
 editor-options = ਸੰਪਾਦਕ ਚੋਣਾਂ
-editor-format-as-doenetml = DoenetML ਵਜੋਂ ਸੋਧੋ
-editor-format-as-xml = XML ਵਜੋਂ ਸੋਧੋ
+editor-format-as-doenetml = DoenetML ਵਜੋਂ ਫਾਰਮੈਟ ਕਰੋ
+editor-format-as-xml = XML ਵਜੋਂ ਫਾਰਮੈਟ ਕਰੋ
 
 
 ## The diagnostics panel
@@ -158,8 +158,8 @@ help-name-summary = { $name } — { $summary }
 
 help-ref-is-reference =
     { $line ->
-        [none] { $ref } { $target } ਦਾ ਹਵਾਲਾ ਹੈ।
-       *[other] { $ref } { $target } ਦਾ ਹਵਾਲਾ ਹੈ (ਸਤਰ { $line })।
+        [none] { $ref }, { $target } ਦਾ ਹਵਾਲਾ ਹੈ।
+       *[other] { $ref }, { $target } ਦਾ ਹਵਾਲਾ ਹੈ (ਸਤਰ { $line })।
     }
 
 help-ref-derived-from =
@@ -170,8 +170,8 @@ help-ref-derived-from =
 
 help-property-is-reference =
     { $line ->
-        [none] { $ref } { $element } ਦੇ { $property } ਗੁਣ ਦਾ ਹਵਾਲਾ ਹੈ।
-       *[other] { $ref } { $element } ਦੇ { $property } ਗੁਣ ਦਾ ਹਵਾਲਾ ਹੈ (ਸਤਰ { $line })।
+        [none] { $ref }, { $element } ਦੇ { $property } ਗੁਣ ਦਾ ਹਵਾਲਾ ਹੈ।
+       *[other] { $ref }, { $element } ਦੇ { $property } ਗੁਣ ਦਾ ਹਵਾਲਾ ਹੈ (ਸਤਰ { $line })।
     }
 
 help-kind-attribute = ਗੁਣ

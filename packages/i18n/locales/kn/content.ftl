@@ -240,7 +240,7 @@ paginator-page-status = { $numPages } ರಲ್ಲಿ { $pageLabel } { $currentP
 ## Piecewise functions
 
 piecewise-condition-or = ಅಥವಾ
-piecewise-condition-if = ಆದರೆ
+piecewise-condition-if = ಒಂದು ವೇಳೆ
 piecewise-condition-otherwise = ಇಲ್ಲದಿದ್ದರೆ
 
 

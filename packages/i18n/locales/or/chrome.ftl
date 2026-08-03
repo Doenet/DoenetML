@@ -94,7 +94,7 @@ orbital-add-up-arrow = ଉପର ତୀର ଯୋଡ଼ନ୍ତୁ
 orbital-add-down-arrow = ତଳ ତୀର ଯୋଡ଼ନ୍ତୁ
 orbital-remove-arrow = ତୀର ହଟାନ୍ତୁ
 
-orbital-row-label = ଧାଡ଼ି { $row } ର ନାମ
+orbital-row-label = ଧାଡ଼ି { $row } ର ଲେବଲ
 
 pretzel-answer = ଉତ୍ତର
 

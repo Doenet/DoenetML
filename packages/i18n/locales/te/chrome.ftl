@@ -98,7 +98,7 @@ orbital-add-up-arrow = పైకి బాణం చేర్చు
 orbital-add-down-arrow = కిందికి బాణం చేర్చు
 orbital-remove-arrow = బాణాన్ని తొలగించు
 
-orbital-row-label = వరుస { $row } కు పేరు
+orbital-row-label = వరుస { $row } కు లేబుల్
 
 pretzel-answer = సమాధానం
 

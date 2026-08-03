@@ -99,7 +99,7 @@ orbital-add-up-arrow = മുകളിലേക്കുള്ള അമ്പ�
 orbital-add-down-arrow = താഴേക്കുള്ള അമ്പ് ചേർക്കുക
 orbital-remove-arrow = അമ്പ് നീക്കുക
 
-orbital-row-label = വരി { $row } ന്റെ പേര്
+orbital-row-label = വരി { $row } ന്റെ ലേബൽ
 
 pretzel-answer = ഉത്തരം
 

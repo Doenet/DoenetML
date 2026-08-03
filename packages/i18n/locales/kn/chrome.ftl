@@ -98,7 +98,7 @@ orbital-add-up-arrow = ಮೇಲ್ಬಾಣ ಸೇರಿಸು
 orbital-add-down-arrow = ಕೆಳಬಾಣ ಸೇರಿಸು
 orbital-remove-arrow = ಬಾಣ ತೆಗೆ
 
-orbital-row-label = ಸಾಲು { $row } ಗೆ ಹೆಸರು
+orbital-row-label = ಸಾಲು { $row } ಗೆ ಲೇಬಲ್
 
 pretzel-answer = ಉತ್ತರ
 

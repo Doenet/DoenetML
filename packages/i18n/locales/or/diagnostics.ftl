@@ -108,7 +108,7 @@ label-for-unresolved = `<label>` ଉପରେ `for` ଗୁଣ କୌଣସି �
 
 label-for-answer-with-authored-inputs = `<label>` ଉପରେ `for` ଗୁଣ ସ୍ପଷ୍ଟ ଲିଖିତ ଇନପୁଟ ଥିବା `<answer>` କୁ ସୂଚାଉଛି; ଇନପୁଟକୁ ସିଧାସଳଖ ସୂଚାନ୍ତୁ।
 
-label-for-answer-without-input = `<label>` ଉପରେ `for` ଗୁଣ ନାମ ଦେବା ପାଇଁ ଇନପୁଟ ନଥିବା `<answer>` କୁ ସୂଚାଉଛି।
+label-for-answer-without-input = `<label>` ଉପରେ `for` ଗୁଣ ଲେବଲ ଦେବା ପାଇଁ ଇନପୁଟ ନଥିବା `<answer>` କୁ ସୂଚାଉଛି।
 
 label-for-must-reference-input-or-answer = `<label>` ଉପରେ `for` ଗୁଣ ଗୋଟିଏ ଇନପୁଟ କିମ୍ବା ଗୋଟିଏ ଉତ୍ତରକୁ ସୂଚାଇବା ଆବଶ୍ୟକ।
 
@@ -118,9 +118,9 @@ accessibility-short-description-or-decorative = ଅଭିଗମ୍ୟତା ପ�
 
 accessibility-video-short-description = ଅଭିଗମ୍ୟତା ପାଇଁ `<video>` ପାଖରେ ଏକ ସଂକ୍ଷିପ୍ତ ବର୍ଣ୍ଣନା ରହିବା ଉଚିତ।
 
-accessibility-input-short-description-or-label = ଅଭିଗମ୍ୟତା ପାଇଁ `<{ $component }>` ପାଖରେ ଏକ ସଂକ୍ଷିପ୍ତ ବର୍ଣ୍ଣନା କିମ୍ବା ଏକ ନାମ ରହିବା ଉଚିତ।
+accessibility-input-short-description-or-label = ଅଭିଗମ୍ୟତା ପାଇଁ `<{ $component }>` ପାଖରେ ଏକ ସଂକ୍ଷିପ୍ତ ବର୍ଣ୍ଣନା କିମ୍ବା ଏକ ଲେବଲ ରହିବା ଉଚିତ।
 
-accessibility-answer-input-short-description-or-label = ଅଭିଗମ୍ୟତା ପାଇଁ, ଇନପୁଟ ସୃଷ୍ଟି କରୁଥିବା `<answer>` ପାଖରେ ଏକ ସଂକ୍ଷିପ୍ତ ବର୍ଣ୍ଣନା କିମ୍ବା ଏକ ନାମ ରହିବା ଉଚିତ।
+accessibility-answer-input-short-description-or-label = ଅଭିଗମ୍ୟତା ପାଇଁ, ଇନପୁଟ ସୃଷ୍ଟି କରୁଥିବା `<answer>` ପାଖରେ ଏକ ସଂକ୍ଷିପ୍ତ ବର୍ଣ୍ଣନା କିମ୍ବା ଏକ ଲେବଲ ରହିବା ଉଚିତ।
 
 accessibility-short-description-contains-math = ସଂକ୍ଷିପ୍ତ ବର୍ଣ୍ଣନାରେ `<{ $component }>` ପରି ଗାଣିତିକ ଉପାଦାନ ରହିବା ଉଚିତ ନୁହେଁ। ଗଣିତକୁ ଶବ୍ଦରେ ଲେଖନ୍ତୁ।
 
@@ -397,7 +397,7 @@ prefigure-descendant-unsupported = { $subject }: graph prefigure ରେଣ୍ଡ
 
 prefigure-descendant-invalid-geometry = { $subject }: ଅସୀମ କିମ୍ବା ଅସମ୍ପୂର୍ଣ୍ଣ ଜ୍ୟାମିତି; ବଂଶଜ ଛାଡ଼ି ଦିଆଗଲା।
 
-prefigure-curve-label-omitted = { $subject }: ରୂପାନ୍ତରିତ ବକ୍ରରେଖା ଉପାଦାନ ଉପରେ ନାମ ସମର୍ଥିତ ନୁହେଁ; ନାମ ଛାଡ଼ି ଦିଆଗଲା।
+prefigure-curve-label-omitted = { $subject }: ରୂପାନ୍ତରିତ ବକ୍ରରେଖା ଉପାଦାନ ଉପରେ ଲେବଲ ସମର୍ଥିତ ନୁହେଁ; ଲେବଲ ଛାଡ଼ି ଦିଆଗଲା।
 
 prefigure-curve-unsupported-definition-type = { $subject }: ଅସମର୍ଥିତ ବକ୍ରରେଖା ଫଳନ ସଂଜ୍ଞା ପ୍ରକାର '{ $definitionType }'; ବଂଶଜ ଛାଡ଼ି ଦିଆଗଲା।
 
@@ -407,8 +407,8 @@ prefigure-region-non-formula-child = { $subject }: regionBetweenCurves ଉପର
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
-        [line-family] ରେଖା ପରିବାରର ନାମ ପାଇଁ
-       *[point] ବିନ୍ଦୁର ନାମ ପାଇଁ
+        [line-family] ରେଖା ପରିବାରର ଲେବଲ ପାଇଁ
+       *[point] ବିନ୍ଦୁର ଲେବଲ ପାଇଁ
     } ଅସମର୍ଥିତ labelPosition '{ $labelPosition }'; ପୂର୍ବନିର୍ଦ୍ଧାରିତ PreFigure ସଜ୍ଜା ବ୍ୟବହାର କରାଗଲା।
 
 prefigure-fill-style-unsupported = { $subject }: ପୂରଣ ଶୈଳୀ '{ $fillStyle }' କୁ PreFigure ସମର୍ଥନ କରେ ନାହିଁ; ଘନ ପୂରଣକୁ ଫେରାଯାଉଛି।

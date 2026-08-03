@@ -46,8 +46,8 @@ line-style =
     .dashed = துண்டிக்கப்பட்ட
     .dotted = புள்ளியிட்ட
 
-# Noun phrases: they take the -உடன் the composition messages suffix, and
-# modify nothing.
+# Noun phrases: they stand in front of the «கொண்ட» the composition messages
+# supply, and modify nothing.
 fill-style =
     .horizontal = கிடைமட்டக் கோடுகள்
     .vertical = செங்குத்துக் கோடுகள்

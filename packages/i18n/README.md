@@ -84,11 +84,11 @@ The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
 transliterations reaching all 118 — and picking either would misreport the
-other. Filipino and Vietnamese have two as well, and in both the current one is
-English: the Philippines teaches science in English from the intermediate
-grades, and Vietnamese school chemistry has moved from the transliterated names
-to the IUPAC forms, so in each case the fallback is already what the curriculum
-uses.
+other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
+current one is English: Punjabi secondary chemistry uses the English terms, the
+Philippines teaches science in English from the intermediate grades, and
+Vietnamese school chemistry has moved from the transliterated names to the
+IUPAC forms, so in each case the fallback is already what the curriculum uses.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -464,7 +464,7 @@ what that value turns out to *be*:
 
 | The catalog wants | The language | Why it cannot |
 | --- | --- | --- |
-| a case ending on the value | `ar`, `ug`, `hu`, `fi` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
+| a case ending on the value | `ar`, `ug`, `hu`, `fi`, `ta`, `te` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
 | the definite article on the value | `ro` | the article is a suffix — «secțiune» → «secțiunea» |
 | a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
 | a compound with the value | `fi` | Finnish writes a compound as one word |
