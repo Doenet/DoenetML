@@ -126,9 +126,10 @@ line-style =
     .dashed = तुटक
     .dotted = ठिपकेदार
 
-# Plural nouns rather than adjectives: वापरून ("using") takes them bare, and
-# `style-fill` sets them straight after a colour word that agrees with the fill
-# rather than with them.
+# Plural nouns rather than adjectives, with genders of their own — रेषा is
+# feminine and ठिपके masculine. वापरून ("using") is invariable and takes them
+# bare, which is what lets both `style-filled` and `style-fill` set them beside
+# a colour that agrees with something else.
 fill-style =
     .horizontal = आडव्या रेषा
     .vertical = उभ्या रेषा
@@ -238,10 +239,13 @@ style-border-clause =
        *[with] { $border } किनारीसह
     }
 
+# The colour arrives agreeing with «भरण», which is neuter, so it needs that
+# noun beside it — «निळे» in front of the feminine «आडव्या रेषा» agrees with
+# neither. The pattern hangs off वापरून, as it does in `style-filled`.
 style-fill =
     { $parts ->
-        [pattern] { $color } { $pattern }
-       *[plain] { $color }
+        [pattern] { $pattern } वापरून { $color } भरण
+       *[plain] { $color } भरण
     }
 
 # Invariable, because nothing is passed to agree it with.

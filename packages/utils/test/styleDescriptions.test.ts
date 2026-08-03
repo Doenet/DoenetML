@@ -1011,6 +1011,29 @@ describe("a phrase rendered in two positions", () => {
     });
 
     /**
+     * The same again, in the one language where which pattern is asked for
+     * decides whether the gap shows. Marathi's «ठिपके» and «समभुज चौकोन» are
+     * masculine plural, and neuter «निळे» is spelled alike there — so the four
+     * patterns built on the feminine «रेषा» are the only ones that expose a
+     * colour agreeing with «भरण» instead of with the word beside it. A test
+     * that reached for diamonds, as the two above do, would pass either way.
+     */
+    it("names the fill noun for a pattern whose gender is not the fill's", () => {
+        const blue = (fillStyleWord: string) =>
+            describeFill(
+                mr,
+                { fillColorWord: "blue", fillStyleWord },
+                {
+                    filled: true,
+                },
+            );
+
+        expect(blue("horizontal lines")).toBe("आडव्या रेषा वापरून निळे भरण");
+        expect(blue("diamonds")).toBe("समभुज चौकोन वापरून निळे भरण");
+        expect(blue("")).toBe("निळे भरण");
+    });
+
+    /**
      * English lets one "with" cover both a fill pattern and the border that
      * follows it — "with diamonds and a thin red border". A language whose two
      * clauses take different prepositions cannot: Polish names the pattern with

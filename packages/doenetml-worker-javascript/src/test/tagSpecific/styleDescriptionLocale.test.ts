@@ -105,7 +105,11 @@ describe("style descriptions follow the document locale @group4", () => {
             "ठिपके वापरून भरलेले निळे वर्तुळ आणि जाड तुटक लाल किनारीसह",
         );
         expect(values.bd).eq("जाड तुटक लाल");
-        expect(values.fd).eq("निळे ठिपके");
+        // Reported on its own, the fill names «भरण» — the noun whose neuter
+        // the colour was handed. Inside `sh` the colour agrees with «वर्तुळ»
+        // instead and the pattern hangs off the same वापरून, so only the
+        // standalone form carries the noun.
+        expect(values.fd).eq("ठिपके वापरून निळे भरण");
     });
 
     it("inflects a Marathi border for the position it lands in", async () => {
