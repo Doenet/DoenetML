@@ -74,7 +74,7 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
     if (SVs.item) {
         return (
             <li id={id} ref={ref}>
-                {children}
+                {markLeadingParagraphOfListItem(children)}
                 {checkWorkComponent}
             </li>
         );
@@ -131,6 +131,48 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
         );
     }
 });
+
+/**
+ * Flag the leading paragraph of a list item so that it renders as
+ * presentational.
+ *
+ * A screen reader folds a list item's `::marker` into the item's own text run
+ * only when that text is a direct child of the `<li>`. A paragraph wrapper
+ * makes the marker a separate object that VoiceOver lands on and announces as
+ * a bare "list marker" instead of "1. Apples, 1 of 3" — see issue #662. The
+ * leading paragraph therefore drops out of the accessibility tree; every later
+ * paragraph keeps its own node, since a reader still wants to be told where
+ * the next paragraph starts.
+ *
+ * Only a paragraph that leads the item is worth flagging: any other first
+ * child (a figure, a nested list) sits between the marker and the text no
+ * matter what role it carries.
+ */
+function markLeadingParagraphOfListItem(children: React.ReactNode[]) {
+    const leadingInd = children.findIndex(
+        (child) =>
+            React.isValidElement(child) ||
+            (typeof child === "string" && child.trim() !== ""),
+    );
+
+    const leadingChild = children[leadingInd];
+
+    if (
+        leadingInd === -1 ||
+        !React.isValidElement<UseDoenetRendererProps>(leadingChild) ||
+        leadingChild.props.componentInstructions?.rendererType !== "p"
+    ) {
+        return children;
+    }
+
+    return children.map((child, ind) =>
+        ind === leadingInd
+            ? React.cloneElement(leadingChild, {
+                  isLeadingListItemParagraph: true,
+              } as Partial<UseDoenetRendererProps>)
+            : child,
+    );
+}
 
 const unnumberedStyles = ["disc", "circle", "square"];
 
