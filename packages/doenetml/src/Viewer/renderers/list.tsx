@@ -10,6 +10,7 @@ import {
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
+import type { PProps } from "./p";
 
 interface ListSVs {
     [key: string]: any;
@@ -146,7 +147,13 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
  *
  * Only a paragraph that leads the item is worth flagging: any other first
  * child (a figure, a nested list) sits between the marker and the text no
- * matter what role it carries.
+ * matter what role it carries. Whitespace-only text between the `<li>` and
+ * the paragraph is skipped, since it produces no accessibility node.
+ *
+ * The leading child is identified from the React tree, which does not know
+ * which children will render nothing: a hidden paragraph at the front of the
+ * item still counts as the leading one, so an item whose first visible
+ * content follows a `<p hide>` keeps the pre-existing behavior.
  */
 function markLeadingParagraphOfListItem(children: React.ReactNode[]) {
     const leadingInd = children.findIndex(
@@ -158,20 +165,17 @@ function markLeadingParagraphOfListItem(children: React.ReactNode[]) {
     const leadingChild = children[leadingInd];
 
     if (
-        leadingInd === -1 ||
-        !React.isValidElement<UseDoenetRendererProps>(leadingChild) ||
+        !React.isValidElement<PProps>(leadingChild) ||
         leadingChild.props.componentInstructions?.rendererType !== "p"
     ) {
         return children;
     }
 
-    return children.map((child, ind) =>
-        ind === leadingInd
-            ? React.cloneElement(leadingChild, {
-                  isLeadingListItemParagraph: true,
-              } as Partial<UseDoenetRendererProps>)
-            : child,
-    );
+    const markedChildren = [...children];
+    markedChildren[leadingInd] = React.cloneElement(leadingChild, {
+        isLeadingListItemParagraph: true,
+    });
+    return markedChildren;
 }
 
 const unnumberedStyles = ["disc", "circle", "square"];

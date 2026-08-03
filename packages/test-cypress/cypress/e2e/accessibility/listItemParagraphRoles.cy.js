@@ -20,6 +20,7 @@ describe(
         beforeEach(() => {
             cy.clearIndexedDB();
             cy.visit("/");
+            cy.injectAxe();
         });
 
         function postDoenetML({ doenetML, settleSelector }) {
@@ -60,6 +61,28 @@ describe(
 
             cy.get("#firstPara").should("have.attr", "role", "presentation");
             cy.get("#secondPara").should("have.attr", "role", "paragraph");
+        });
+
+        it("leading paragraph is still found across whitespace, and the roles pass axe", () => {
+            // The shape authors actually write: the `<p>` is preceded by the
+            // whitespace that indents it, which produces no accessibility node
+            // and so must not count as the item's leading content.
+            postDoenetML({
+                settleSelector: "#firstPara",
+                doenetML: `<ul>
+  <li>
+    <p name="firstPara">Apples</p>
+    <p name="secondPara">More about apples</p>
+  </li>
+</ul>`,
+            });
+
+            cy.get("#firstPara").should("have.attr", "role", "presentation");
+            cy.get("#secondPara").should("have.attr", "role", "paragraph");
+
+            cy.checkAccessibility([".doenet-viewer"], {
+                onlyWarnImpacts: ["moderate", "minor"],
+            });
         });
 
         it("paragraph that does not lead its list item stays a paragraph", () => {
