@@ -66,35 +66,44 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
-`cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fil`, `fr`, `gu`, `he`, `hi`, `hnj`,
-`hu`, `id`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `ms`, `my`, `nb`, `ne`, `nl`,
-`or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `sd`, `sk`, `so`, `sv`, `ta`, `te`,
-`th`, `tr`, `ug`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the top, and
+English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
+`bn`, `cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fil`, `fr`, `gu`, `ha`, `he`,
+`hi`, `hnj`, `hu`, `id`, `ig`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `ms`, `my`,
+`nb`, `ne`, `nl`, `ny`, `om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`,
+`sd`, `sk`, `so`, `sv`, `sw`, `ta`, `te`, `th`, `tr`, `ug`, `uk`, `ur`, `vi`,
+`xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
+seed**, which each file's own header says at the top, and
 which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
 is just wrong, and the English is one key away.
 
-Thirteen of them are deliberately partial, all in the same place: Somali, Hmong
-Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada,
-Punjabi, Filipino and Vietnamese leave `element-name` and `element-anion-name`
+Twenty-one of them are deliberately partial, all in the same place: Somali,
+Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
+Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
+Hausa, Yoruba, Igbo and Oromo leave `element-name` and `element-anion-name`
 out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
-The first nine have no settled chemical nomenclature to seed from, and
-inventing one would be worse than the English a student meets in their own
-textbook. Kannada has two — native coinages reaching a dozen elements and
+Most of them have no settled chemical nomenclature to seed from, and inventing
+one would be worse than the English a student meets in their own textbook.
+Kannada has two — native coinages reaching a dozen elements and
 transliterations reaching all 118 — and picking either would misreport the
 other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
 current one is English: Punjabi secondary chemistry uses the English terms, the
 Philippines teaches science in English from the intermediate grades, and
 Vietnamese school chemistry has moved from the transliterated names to the
 IUPAC forms, so in each case the fallback is already what the curriculum uses.
+The eight sub-Saharan catalogs are that same case for a different reason:
+secondary science is taught in English, French or Afrikaans across all of them,
+so the fallback *is* the curriculum. Afrikaans and Swahili are the two of that
+batch that do have a settled list and supply it.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
 line runs through the Arabic script — Arabic, Persian and Urdu supply them and
 Pashto, Sindhi and Uyghur do not — and through the Brahmic scripts of southern
-India, where Tamil, Telugu and Malayalam supply them and Kannada does not.
+India, where Tamil, Telugu and Malayalam supply them and Kannada does not. It
+runs through a language family too: Swahili supplies them and Zulu, Xhosa,
+Kinyarwanda and Nyanja do not, which is a fact about five school systems rather
+than about Bantu.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.
@@ -130,6 +139,12 @@ rewritten it before negotiation is reached. `negotiate.test.ts` holds that too,
 against the real roster rather than a stub — a change to the normalization step
 is the only thing that could drop Filipino to English, and this is what would
 catch it.
+
+The roster names a language whatever CLDR names it, which is why Chichewa
+appears as **Nyanja** in `<document lang>`'s autocomplete: `ny` is the code,
+`Intl.DisplayNames` renders it "Nyanja", and `supportedLocales.ts` is derived
+rather than hand-written so that adding a language costs no prose. The two
+names are one language, and the catalog's own header says so.
 
 Punjabi is named `pa` and written in Gurmukhi, which the rule above allows
 because only one of its two scripts is translated. A Shahmukhi reader arriving
@@ -397,7 +412,12 @@ the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
 positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
 Romanian, Finnish, Hindi, Marathi, Punjabi, Urdu, Sindhi and Pashto are the
-catalogs that select on them. Sharing a script does not imply sharing the fork:
+catalogs that select on them. `$gender` is read more widely than its name
+suggests: it is a token set naming what an adjective agrees with, and the five
+Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda and Nyanja — answer it with
+the noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`) rather than with a gender.
+Nothing outside those catalogs had to learn what a noun class is, which is the
+argument working as designed. Sharing a script does not imply sharing the fork:
 Marathi and Hindi both take an oblique adjective before a postposition and
 Nepali, written in the same letters, takes none. Nor is the fork
 all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and

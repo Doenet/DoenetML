@@ -751,6 +751,8 @@ describe("a phrase rendered in two positions", () => {
     const mr = forLocale("mr");
     const gu = forLocale("gu");
     const pa = forLocale("pa");
+    const sw = forLocale("sw");
+    const zu = forLocale("zu");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -935,13 +937,38 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Swahili reads `$gender` as the noun *class* rather than as a gender, and
+    // that is the whole point of these two cases: the argument was designed for
+    // masculine against feminine and carries a five-way distinction with no
+    // change to anything but the catalog. Class 3 «mpaka» and class 5 «duara»
+    // put different prefixes on the same two adjective stems, in one sentence.
+    it("agrees a Swahili adjective with the noun class, not a gender", () => {
+        expect(bothBorderForms(sw)).toEqual({
+            standalone: "mnene mweusi",
+            embedded: "duara lililojazwa buluu na mpaka mnene mweusi",
+        });
+    });
+
+    // Zulu does the same across its two concord sets, and its text sentence is
+    // where two classes meet: «umbhalo» is class 3 and «ingemuva» class 9, so
+    // the two colours take o- and e- off the same table.
+    it("agrees a Zulu colour with the class of the noun it describes", () => {
+        expect(bothTextForms(zu)).toEqual({
+            textColor: "obomvu",
+            backgroundColor: "ephuzi",
+            sentence: "obomvu engemuva ephuzi",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
         // Gujarati and Punjabi are absent: in both the border's noun is
         // feminine and a feminine -ੀ/-ી does not go oblique, so the two
         // positions read alike. Asserted as exact strings in the two cases
-        // above, which is what holds them there.
+        // above, which is what holds them there. Swahili and Zulu are absent
+        // for a different reason: they agree for noun class rather than for
+        // case, so no position moves anything.
         for (const t of [de, ru, pl, hi, mr]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);

@@ -182,6 +182,25 @@ describe("style descriptions follow the document locale @group4", () => {
         });
     });
 
+    it("agrees Swahili adjectives with four noun classes in one document", async () => {
+        const values = await descriptions(styled, names, "sw");
+        // «mstari» is class 3, «duara» class 5, «mraba» class 3 and «mpaka»
+        // class 3, and the same two stems — -nene and -ekundu — take a
+        // different prefix against each. `$gender` carries the class here, and
+        // nothing else in the pipeline had to learn what a noun class is.
+        expect(values.st).eq("mnene mwekundu kwa vipande");
+        expect(values.stn).eq("mstari mnene mwekundu kwa vipande");
+        expect(values.pt).eq("mraba kijani");
+        expect(values.sh).eq(
+            "duara lililojazwa buluu na vitone na mpaka mnene mwekundu kwa vipande",
+        );
+        // The border's words agree with «mpaka», not with the «duara» they
+        // surround, which is why `bd` and the clause inside `sh` read alike:
+        // Swahili agrees for class and not for the position a phrase lands in.
+        expect(values.bd).eq("mnene mwekundu kwa vipande");
+        expect(values.fd).eq("vitone buluu");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which
