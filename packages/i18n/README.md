@@ -67,27 +67,34 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `am`, `ar`, `as`, `bn`,
-`cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fr`, `he`, `hi`, `hnj`, `hu`, `id`,
-`it`, `ja`, `ko`, `mr`, `my`, `nb`, `ne`, `nl`, `pl`, `ps`, `pt`, `ro`, `ru`,
-`sd`, `sk`, `so`, `sv`, `tr`, `ug`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` — is
-an **unreviewed machine-generated seed**, which each file's own header says at
-the top, and which is what #1521's translation platform is for. None has been
-read by a speaker. Correcting one needs no permission and no coordination: a
-wrong string is just wrong, and the English is one key away.
+`cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fil`, `fr`, `gu`, `he`, `hi`, `hnj`,
+`hu`, `id`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `ms`, `my`, `nb`, `ne`, `nl`,
+`or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `sd`, `sk`, `so`, `sv`, `ta`, `te`,
+`th`, `tr`, `ug`, `uk`, `ur`, `vi`, `zh-Hans`, `zh-Hant` — is an **unreviewed
+machine-generated seed**, which each file's own header says at the top, and
+which is what #1521's translation platform is for. None has been read by a
+speaker. Correcting one needs no permission and no coordination: a wrong string
+is just wrong, and the English is one key away.
 
-Ten of them are deliberately partial, all in the same place: Somali, Hmong
-Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur and Vietnamese
-leave `element-name` and `element-anion-name` out, so those 130 keys fall back
-to English and `lint:i18n` reports the gap. The first nine have no settled
-chemical nomenclature to seed from, and inventing one would be worse than the
-English a student meets in their own textbook. Vietnamese has two, and the
-current one is English — school chemistry has moved from the transliterated
-names to the IUPAC forms — so the fallback is already what the curriculum uses.
+Thirteen of them are deliberately partial, all in the same place: Somali, Hmong
+Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada,
+Punjabi, Filipino and Vietnamese leave `element-name` and `element-anion-name`
+out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
+The first nine have no settled chemical nomenclature to seed from, and
+inventing one would be worse than the English a student meets in their own
+textbook. Kannada has two — native coinages reaching a dozen elements and
+transliterations reaching all 118 — and picking either would misreport the
+other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
+current one is English: Punjabi secondary chemistry uses the English terms, the
+Philippines teaches science in English from the intermediate grades, and
+Vietnamese school chemistry has moved from the transliterated names to the
+IUPAC forms, so in each case the fallback is already what the curriculum uses.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
 line runs through the Arabic script — Arabic, Persian and Urdu supply them and
-Pashto, Sindhi and Uyghur do not.
+Pashto, Sindhi and Uyghur do not — and through the Brahmic scripts of southern
+India, where Tamil, Telugu and Malayalam supply them and Kannada does not.
 
 A directory is named for a **script** rather than a language only where two
 scripts of one language are translated separately, which today is Chinese.
@@ -115,6 +122,20 @@ performs for `iw`, `in` and `mo`, which it maps to `he`, `id` and `ro` on its
 own. `nn` is left alone: Nynorsk is a written standard of its own, and
 answering it with Bokmål would be a substitution rather than a
 canonicalization.
+
+Filipino needs no such entry, and that is worth saying so nobody adds one:
+`fil` is the standard language's code and `tl` is the deprecated one, so
+`Intl.Locale` canonicalizes `tl` to `fil` and `normalizeLocaleTag` has already
+rewritten it before negotiation is reached. `negotiate.test.ts` holds that too,
+against the real roster rather than a stub — a change to the normalization step
+is the only thing that could drop Filipino to English, and this is what would
+catch it.
+
+Punjabi is named `pa` and written in Gurmukhi, which the rule above allows
+because only one of its two scripts is translated. A Shahmukhi reader arriving
+under `pa-Arab` reaches it and gets Gurmukhi — the same asymmetry `zh-CN`
+already has, and the answer to it is a second catalog rather than a differently
+named first one.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
@@ -375,13 +396,29 @@ inflects for case wants a different form in each. So every adjective is handed
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
 positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
-Romanian, Finnish, Hindi, Marathi, Urdu, Sindhi and Pashto are the catalogs
-that select on them. Sharing a script does not imply sharing
-the fork: Marathi and Hindi both take an oblique adjective before a
-postposition and Nepali, written in the same letters, takes none. Nor is the
-fork all-or-nothing — Pashto marks the oblique on a feminine adjective in ـه
-and nowhere else, so it branches on one position out of the four and leaves the
-rest to the default.
+Romanian, Finnish, Hindi, Marathi, Punjabi, Urdu, Sindhi and Pashto are the
+catalogs that select on them. Sharing a script does not imply sharing the fork:
+Marathi and Hindi both take an oblique adjective before a postposition and
+Nepali, written in the same letters, takes none. Nor is the fork
+all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and
+nowhere else, and Punjabi only where the position's own noun is masculine, so
+each branches on one position out of the four and leaves the rest to the
+default.
+
+Whether a language inflects is not on its own the question. Gujarati has the
+same oblique Punjabi has and still selects on `$gender` alone, because the
+words its clause positions land on never reach that form — feminine before the
+two postpositions, predicative in the third. `locales/gu/content.ftl` records
+which noun would have to change for a `$role` branch to be needed, since
+nothing about the language itself says so.
+
+That is the trap worth naming, because the three clause positions each arrive
+with `$gender` already set from the position's own noun — `border`,
+`background`, `text` in `noun-gender` — so a `$role` fork that only restates
+that gender renders exactly what the `$gender` fork underneath it would. The
+other half of the same check is reachability: only `describeColor` ever asks
+for `background-clause` or `text-clause`, so a stroke width or a dash pattern
+branching on either is writing a variant nothing can select.
 
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
@@ -427,7 +464,7 @@ what that value turns out to *be*:
 
 | The catalog wants | The language | Why it cannot |
 | --- | --- | --- |
-| a case ending on the value | `ar`, `ug`, `hu`, `fi` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
+| a case ending on the value | `ar`, `ug`, `hu`, `fi`, `ta`, `te` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
 | the definite article on the value | `ro` | the article is a suffix — «secțiune» → «secțiunea» |
 | a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
 | a compound with the value | `fi` | Finnish writes a compound as one word |

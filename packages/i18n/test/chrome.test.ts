@@ -5,6 +5,8 @@ import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
 import { stripBidiIsolates } from "../src/direction";
 import { EN_CATALOGS } from "../src/catalogs";
 import esChrome from "../locales/es/chrome.ftl?raw";
+import filChrome from "../locales/fil/chrome.ftl?raw";
+import filEditor from "../locales/fil/editor.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
 
 /**
@@ -15,6 +17,13 @@ import { extractKeys } from "../scripts/catalogUtils";
  * runtime once `loadLocaleResources` resolves.
  */
 const ES = { es: esChrome };
+
+/**
+ * Filipino, whose two plural categories are the sharpest reminder that a
+ * category is not a number. Two namespaces, joined the way `combineCatalogs`
+ * joins them, because the pair of messages that shows it lives in both.
+ */
+const FIL = { fil: `${filChrome}\n${filEditor}` };
 
 describe("createChromeTranslator", () => {
     it("answers in English for the default locale", () => {
@@ -105,6 +114,24 @@ describe("createChromeTranslator", () => {
                 es("answer-show-responses", { count: 3, answerId: "ans" }),
             ),
         ).toBe("Mostrar 3 respuestas a ans");
+    });
+
+    it("selects on a plural category that does not count", () => {
+        // Filipino's `one` and `other` split the numerals by the linker they
+        // take rather than by how many there are: `one` is every number whose
+        // Tagalog word ends in a vowel, so it catches 5, and `other` is 4, 6,
+        // 9 and anything ending in them. Number itself is the free word
+        // «mga», so a message wanting a real singular has to say `[1]` by
+        // number — which is why the two below select on different things.
+        const t = createChromeTranslator("fil", FIL);
+        expect(stripBidiIsolates(t("attempts-remaining", { count: 5 }))).toBe(
+            "5 pagsubok na lang ang natitira",
+        );
+        expect(stripBidiIsolates(t("attempts-remaining", { count: 4 }))).toBe(
+            "4 na pagsubok na lang ang natitira",
+        );
+        expect(t("help-coordinates", { count: 1 })).toBe("Koordinado:");
+        expect(t("help-coordinates", { count: 5 })).toBe("Mga koordinado:");
     });
 
     it("leaves English free of bidi isolation marks", () => {

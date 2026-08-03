@@ -8,6 +8,14 @@ import {
 } from "../src/negotiate";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
+/**
+ * The real roster, which the catalog-naming groups below negotiate against
+ * rather than against a stand-in for it: renaming a catalog directory should
+ * turn them red instead of leaving them describing a layout the repository no
+ * longer has.
+ */
+const available = SUPPORTED_LOCALES.map((info) => info.locale);
+
 describe("negotiateLocales", () => {
     it("builds the regional -> language -> default chain", () => {
         expect(negotiateLocales(["es-MX"], ["es-MX", "es", "en"])).toEqual([
@@ -39,14 +47,8 @@ describe("negotiateLocales", () => {
      * Chinese is the one language this repository translates twice, and the
      * two catalogs are told apart by script rather than by region. Which
      * catalog a reader reaches is decided here, so it is asserted here.
-     *
-     * Against the real roster rather than a stand-in for it, so that renaming
-     * a catalog directory turns these red instead of leaving them describing a
-     * layout the repository no longer has.
      */
     describe("Chinese, whose catalogs are named by script", () => {
-        const available = SUPPORTED_LOCALES.map((info) => info.locale);
-
         it.each([
             ["zh-CN", "zh-Hans"],
             ["zh-SG", "zh-Hans"],
@@ -121,8 +123,6 @@ describe("negotiateLocales", () => {
      * against the real roster.
      */
     describe("Norwegian, whose catalog is named for one written standard", () => {
-        const available = SUPPORTED_LOCALES.map((info) => info.locale);
-
         it.each(["no", "no-NO", "nb", "nb-NO"])(
             "serves Bokmål to %s",
             (requested) => {
@@ -136,6 +136,28 @@ describe("negotiateLocales", () => {
         it("leaves Nynorsk to fall back to English", () => {
             expect(negotiateLocales(["nn"], available)).toEqual(["en"]);
         });
+    });
+
+    /**
+     * Filipino's catalog is named `fil`, and `tl` — the code an author is as
+     * likely to type — needs no alias of its own: `Intl.Locale` canonicalizes
+     * it, so `normalizeLocaleTag` has already rewritten it before negotiation
+     * sees it. That is the same step that rewrites `iw` and `in`, which is why
+     * `LANGUAGE_ALIASES` lists neither. Asserted here so that a future change
+     * to the normalization step cannot silently drop Filipino to English.
+     */
+    describe("Filipino, whose catalog is named for the standard language", () => {
+        it.each(["tl", "tl-PH", "fil", "fil-PH"])(
+            "serves Filipino to %s",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["fil", "en"]);
+            },
+        );
     });
 });
 

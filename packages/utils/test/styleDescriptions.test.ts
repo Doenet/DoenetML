@@ -299,6 +299,35 @@ describe("closed shapes", () => {
             ),
         ).toBe("red 1,000-sided regular polygon");
     });
+
+    /**
+     * Filipino joins a numeral to the noun it counts with a linker, and which
+     * linker it is depends on how the numeral is *said*: `-ng` after a vowel,
+     * the separate `na` after a consonant. That is exactly the split CLDR
+     * gives `fil` its two plural categories on, so the side count selects on
+     * itself — `other` is 4, 6, 9 and anything ending in them, and `one` is
+     * everything else, including 5.
+     */
+    it("picks the Filipino linker from the side count", () => {
+        const fil: Translator = createTranslatorFromLocaleData(
+            {
+                locale: "fil",
+                resources: { fil: readCatalog("fil", "content") },
+            },
+            "fil",
+        );
+        const sided = (numSides: number) =>
+            describeStrokedShape(
+                fil,
+                { colorWord: "red" },
+                {
+                    noun: { key: "regular-polygon", numSides },
+                    withNoun: true,
+                },
+            );
+        expect(sided(5)).toBe("pula na regular na polygon na may 5 gilid");
+        expect(sided(4)).toBe("pula na regular na polygon na may 4 na gilid");
+    });
 });
 
 describe("the other descriptions", () => {
@@ -704,7 +733,11 @@ noun-regular-polygon =
  * fork, not merely that the mechanism can.
  */
 describe("a phrase rendered in two positions", () => {
-    /** A catalog as the worker receives it, for the five that select on role. */
+    /**
+     * A catalog as the worker receives it. Six of the seven below select on
+     * `$role` somewhere; Gujarati selects on `$gender` alone, and is here to
+     * hold a case where the two positions legitimately read alike.
+     */
     const forLocale = (locale: string): Translator =>
         createTranslatorFromLocaleData(
             { locale, resources: { [locale]: readCatalog(locale, "content") } },
@@ -716,6 +749,8 @@ describe("a phrase rendered in two positions", () => {
     const pl = forLocale("pl");
     const hi = forLocale("hi");
     const mr = forLocale("mr");
+    const gu = forLocale("gu");
+    const pa = forLocale("pa");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -870,17 +905,52 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Gujarati has an oblique, but none of its clause positions reaches one:
+    // «કિનારી» is feminine and a feminine -ી spells the two alike. So it
+    // selects on `$gender` alone and both of its border forms read the same.
+    // What the gender buys is agreement with the right noun — feminine
+    // «કિનારી» for the border against neuter «વર્તુળ» for the shape it
+    // surrounds, in one sentence.
+    it("gives Gujarati a border that agrees with the border, not the shape", () => {
+        expect(bothBorderForms(gu)).toEqual({
+            standalone: "જાડી કાળી",
+            embedded: "ભરેલું વાદળી વર્તુળ જાડી કાળી કિનારી સાથે",
+        });
+    });
+
+    // Punjabi is Hindi's mirror image across the two guards below. Its border
+    // is feminine «ਕਿਨਾਰੀ», and a feminine -ੀ is spelled alike direct and
+    // oblique, so the border does not move; its background is masculine
+    // «ਪਿਛੋਕੜ», so the colour in front of ਉੱਤੇ does. That is why
+    // `background-clause` is the one `$role` branch its catalog writes out.
+    it("gives Punjabi an unchanged border and an oblique background", () => {
+        expect(bothBorderForms(pa)).toEqual({
+            standalone: "ਮੋਟੀ ਕਾਲੀ",
+            embedded: "ਭਰਿਆ ਨੀਲਾ ਚੱਕਰ ਮੋਟੀ ਕਾਲੀ ਕਿਨਾਰੀ ਨਾਲ",
+        });
+        expect(bothTextForms(pa)).toEqual({
+            textColor: "ਲਾਲ",
+            backgroundColor: "ਪੀਲਾ",
+            sentence: "ਪੀਲੇ ਪਿਛੋਕੜ ਉੱਤੇ ਲਾਲ",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
+        // Gujarati and Punjabi are absent: in both the border's noun is
+        // feminine and a feminine -ੀ/-ી does not go oblique, so the two
+        // positions read alike. Asserted as exact strings in the two cases
+        // above, which is what holds them there.
         for (const t of [de, ru, pl, hi, mr]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);
         }
-        // Hindi is absent here on purpose: it is the one whose background does
-        // not change shape between the two, per the case above. Marathi spells
-        // its feminine oblique differently and so belongs here.
-        for (const t of [de, ru, pl, mr]) {
+        // Hindi and Gujarati are absent here on purpose: both have a feminine
+        // background whose colour is spelled alike in the two positions, per
+        // the cases above. Marathi spells its feminine oblique differently and
+        // so belongs here, and so does Punjabi, whose background is masculine.
+        for (const t of [de, ru, pl, mr, pa]) {
             const text = bothTextForms(t);
             expect(text.sentence).not.toContain(text.backgroundColor);
         }
@@ -912,6 +982,55 @@ describe("a phrase rendered in two positions", () => {
         // non-virile plural is spelled like the nominative — so the same words
         // serve both positions and no head noun is needed.
         expect(standalone(pl)).toBe("niebieskie romby");
+    });
+
+    /**
+     * The same head noun, wanted for the other reason a language can want one.
+     *
+     * `describeFill` hands the colour `fill`'s gender, and the pattern word is
+     * a noun with a gender of its own — masculine હીરા and ਹੀਰੇ against a
+     * feminine `fill` in both catalogs — so a colour set straight in front of
+     * it would agree with neither the word beside it nor anything else in the
+     * sentence. Naming «ભરણી» / «ਭਰਾਈ» gives it a noun of the gender it was
+     * handed. `style-unfilled` is the other answer the same state variable
+     * gives and receives no `$gender` at all, so it names the noun too.
+     */
+    it("gives a fill colour a noun of its own gender to agree with", () => {
+        const blueDiamonds = {
+            fillColorWord: "blue",
+            fillStyleWord: "diamonds",
+        };
+        expect(describeFill(gu, blueDiamonds, { filled: true })).toBe(
+            "હીરા વાળી વાદળી ભરણી",
+        );
+        expect(describeFill(pa, blueDiamonds, { filled: true })).toBe(
+            "ਹੀਰੇ ਵਾਲੀ ਨੀਲੀ ਭਰਾਈ",
+        );
+        expect(describeFill(gu, {}, { filled: false })).toBe("ભરણી વગર");
+        expect(describeFill(pa, {}, { filled: false })).toBe("ਬਿਨਾਂ ਭਰਾਈ");
+    });
+
+    /**
+     * The same again, in the one language where which pattern is asked for
+     * decides whether the gap shows. Marathi's «ठिपके» and «समभुज चौकोन» are
+     * masculine plural, and neuter «निळे» is spelled alike there — so the four
+     * patterns built on the feminine «रेषा» are the only ones that expose a
+     * colour agreeing with «भरण» instead of with the word beside it. A test
+     * that reached for diamonds, as the two above do, would pass either way.
+     */
+    it("names the fill noun for a pattern whose gender is not the fill's", () => {
+        const blue = (fillStyleWord: string) =>
+            describeFill(
+                mr,
+                { fillColorWord: "blue", fillStyleWord },
+                {
+                    filled: true,
+                },
+            );
+
+        expect(blue("horizontal lines")).toBe("आडव्या रेषा वापरून निळे भरण");
+        expect(blue("diamonds")).toBe("समभुज चौकोन वापरून निळे भरण");
+        expect(blue("")).toBe("निळे भरण");
     });
 
     /**
