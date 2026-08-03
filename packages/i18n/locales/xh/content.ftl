@@ -7,8 +7,12 @@
 # Xhosa reads `$gender` as the noun **class**, the way `locales/zu` and
 # `locales/sw` do, and it takes the same two concord sets Zulu takes:
 #
-#   adjective concord (-khulu, -ncinci)   c3 om-  c5 eli-  c6 ama-  c7 esi-  c9 en-
-#   relative concord (the colours, -zalisiweyo)  c3 o-  c5 eli-  c6 a-  c7 esi-  c9 e-
+#   adjective concord (-khulu, -ncinci)   c3 om-  c5 eli-  c7 esi-  c9 en-
+#   relative concord (the colours, -zalisiweyo)  c3 o-  c5 eli-  c7 esi-  c9 e-
+#
+# Class 6 is absent for the reason it is absent from `locales/zu`: it is the
+# plural of class 5, every noun the core names is singular, and `noun-gender`
+# can never answer `c6`, so a `c6` branch would be unselectable.
 #
 # `locales/zu` is the closest thing to a parallel text for this file, the way
 # `locales/hi` is for Urdu, and a correction to one is usually a correction to
@@ -28,7 +32,6 @@ color =
         { $gender ->
             [c3] omnyama
             [c5] elimnyama
-            [c6] amnyama
             [c7] esimnyama
            *[c9] emnyama
         }
@@ -36,7 +39,6 @@ color =
         { $gender ->
             [c3] omhlophe
             [c5] elimhlophe
-            [c6] amhlophe
             [c7] esimhlophe
            *[c9] emhlophe
         }
@@ -44,7 +46,6 @@ color =
         { $gender ->
             [c3] ongwevu
             [c5] elingwevu
-            [c6] angwevu
             [c7] esingwevu
            *[c9] engwevu
         }
@@ -52,7 +53,6 @@ color =
         { $gender ->
             [c3] obomvu
             [c5] elibomvu
-            [c6] abomvu
             [c7] esibomvu
            *[c9] ebomvu
         }
@@ -60,7 +60,6 @@ color =
         { $gender ->
             [c3] o-orenji
             [c5] eli-orenji
-            [c6] a-orenji
             [c7] esi-orenji
            *[c9] e-orenji
         }
@@ -68,7 +67,6 @@ color =
         { $gender ->
             [c3] otyheli
             [c5] elityheli
-            [c6] atyheli
             [c7] esityheli
            *[c9] etyheli
         }
@@ -76,7 +74,6 @@ color =
         { $gender ->
             [c3] oluhlaza okwengca
             [c5] eliluhlaza okwengca
-            [c6] aluhlaza okwengca
             [c7] esiluhlaza okwengca
            *[c9] eluhlaza okwengca
         }
@@ -84,7 +81,6 @@ color =
         { $gender ->
             [c3] osayeni
             [c5] elisayeni
-            [c6] asayeni
             [c7] esisayeni
            *[c9] esayeni
         }
@@ -92,7 +88,6 @@ color =
         { $gender ->
             [c3] oluhlaza okwesibhakabhaka
             [c5] eliluhlaza okwesibhakabhaka
-            [c6] aluhlaza okwesibhakabhaka
             [c7] esiluhlaza okwesibhakabhaka
            *[c9] eluhlaza okwesibhakabhaka
         }
@@ -100,7 +95,6 @@ color =
         { $gender ->
             [c3] omfusa
             [c5] elimfusa
-            [c6] amfusa
             [c7] esimfusa
            *[c9] emfusa
         }
@@ -108,7 +102,6 @@ color =
         { $gender ->
             [c3] opinki
             [c5] elipinki
-            [c6] apinki
             [c7] esipinki
            *[c9] epinki
         }
@@ -116,7 +109,6 @@ color =
         { $gender ->
             [c3] ontsundu
             [c5] elintsundu
-            [c6] antsundu
             [c7] esintsundu
            *[c9] entsundu
         }
@@ -128,7 +120,6 @@ line-width =
         { $gender ->
             [c3] omkhulu
             [c5] elikhulu
-            [c6] amakhulu
             [c7] esikhulu
            *[c9] enkulu
         }
@@ -136,7 +127,6 @@ line-width =
         { $gender ->
             [c3] omncinci
             [c5] elincinci
-            [c6] amancinci
             [c7] esincinci
            *[c9] encinci
         }
@@ -228,7 +218,6 @@ style-filled-word =
     { $gender ->
         [c3] ozalisiweyo
         [c5] elizalisiweyo
-        [c6] azalisiweyo
         [c7] esizalisiweyo
        *[c9] ezalisiweyo
     }

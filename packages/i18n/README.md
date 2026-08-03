@@ -91,10 +91,10 @@ current one is English: Punjabi secondary chemistry uses the English terms, the
 Philippines teaches science in English from the intermediate grades, and
 Vietnamese school chemistry has moved from the transliterated names to the
 IUPAC forms, so in each case the fallback is already what the curriculum uses.
-The eight sub-Saharan catalogs are that same case for a different reason:
-secondary science is taught in English, French or Afrikaans across all of them,
-so the fallback *is* the curriculum. Afrikaans and Swahili are the two of that
-batch that do have a settled list and supply it.
+The eight from the sub-Saharan batch are that same case for a different
+reason: secondary science is taught in English, French or Afrikaans across all
+of them, so the fallback *is* the curriculum. Afrikaans and Swahili are the two
+of that batch that do have a settled list and supply it.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -417,7 +417,11 @@ suggests: it is a token set naming what an adjective agrees with, and the five
 Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda and Nyanja — answer it with
 the noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`) rather than with a gender.
 Nothing outside those catalogs had to learn what a noun class is, which is the
-argument working as designed. Sharing a script does not imply sharing the fork:
+argument working as designed. The reachability rule applies to the class tokens
+exactly as it does to `$role`: a catalog writes a branch for a class only if
+its own `noun-gender` can answer that class, which is why Swahili and Nyanja
+carry `c6` — the plural class, which their word for *text* or *border* lands in
+— and Zulu, Xhosa and Kinyarwanda do not. Sharing a script does not imply sharing the fork:
 Marathi and Hindi both take an oblique adjective before a postposition and
 Nepali, written in the same letters, takes none. Nor is the fork
 all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and

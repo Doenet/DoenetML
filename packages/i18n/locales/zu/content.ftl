@@ -6,14 +6,20 @@
 #
 # Zulu reads `$gender` as the noun **class**, the way `locales/sw` does: it has
 # no masculine or feminine, and what a describing word agrees with is the class
-# of the noun in front of it. `noun-gender` answers `c3`, `c5`, `c6`, `c7` or
-# `c9`, and every word that carries a concord selects on it.
+# of the noun in front of it. `noun-gender` answers `c3`, `c5`, `c7` or `c9`,
+# and every word that carries a concord selects on it.
 #
 # Zulu differs from Swahili in needing *two* concord sets rather than one, and
 # which set a word takes is a fact about the word and not about the noun:
 #
-#   adjective concord (-khulu, -ncane)   c3 om-  c5 eli-  c6 ama-  c7 esi-  c9 en-
-#   relative concord (the colours, -gcwalisiwe)  c3 o-  c5 eli-  c6 a-  c7 esi-  c9 e-
+#   adjective concord (-khulu, -ncane)   c3 om-  c5 eli-  c7 esi-  c9 en-
+#   relative concord (the colours, -gcwalisiwe)  c3 o-  c5 eli-  c7 esi-  c9 e-
+#
+# Class 6 is absent on purpose. It is the plural of class 5 and every noun the
+# core names is singular, so `noun-gender` can never answer `c6` — a `c6`
+# branch would be a variant nothing can select. Adding one means adding the
+# noun that reaches it first. `locales/sw` and `locales/ny` do have such a
+# noun, which is why they write the branch and this file does not.
 #
 # So the two tables are written out per word rather than derived, which is why
 # «omkhulu» and «obomvu» describe the same line with different prefixes.
@@ -34,7 +40,6 @@ color =
         { $gender ->
             [c3] omnyama
             [c5] elimnyama
-            [c6] amnyama
             [c7] esimnyama
            *[c9] emnyama
         }
@@ -42,7 +47,6 @@ color =
         { $gender ->
             [c3] omhlophe
             [c5] elimhlophe
-            [c6] amhlophe
             [c7] esimhlophe
            *[c9] emhlophe
         }
@@ -50,7 +54,6 @@ color =
         { $gender ->
             [c3] ompunga
             [c5] elimpunga
-            [c6] ampunga
             [c7] esimpunga
            *[c9] empunga
         }
@@ -58,7 +61,6 @@ color =
         { $gender ->
             [c3] obomvu
             [c5] elibomvu
-            [c6] abomvu
             [c7] esibomvu
            *[c9] ebomvu
         }
@@ -66,7 +68,6 @@ color =
         { $gender ->
             [c3] o-orenji
             [c5] eli-orenji
-            [c6] a-orenji
             [c7] esi-orenji
            *[c9] e-orenji
         }
@@ -74,7 +75,6 @@ color =
         { $gender ->
             [c3] ophuzi
             [c5] eliphuzi
-            [c6] aphuzi
             [c7] esiphuzi
            *[c9] ephuzi
         }
@@ -82,7 +82,6 @@ color =
         { $gender ->
             [c3] oluhlaza okotshani
             [c5] eliluhlaza okotshani
-            [c6] aluhlaza okotshani
             [c7] esiluhlaza okotshani
            *[c9] eluhlaza okotshani
         }
@@ -90,7 +89,6 @@ color =
         { $gender ->
             [c3] osayeni
             [c5] elisayeni
-            [c6] asayeni
             [c7] esisayeni
            *[c9] esayeni
         }
@@ -98,7 +96,6 @@ color =
         { $gender ->
             [c3] oluhlaza okwesibhakabhaka
             [c5] eliluhlaza okwesibhakabhaka
-            [c6] aluhlaza okwesibhakabhaka
             [c7] esiluhlaza okwesibhakabhaka
            *[c9] eluhlaza okwesibhakabhaka
         }
@@ -106,7 +103,6 @@ color =
         { $gender ->
             [c3] obubende
             [c5] elibubende
-            [c6] abubende
             [c7] esibubende
            *[c9] ebubende
         }
@@ -114,7 +110,6 @@ color =
         { $gender ->
             [c3] opinki
             [c5] elipinki
-            [c6] apinki
             [c7] esipinki
            *[c9] epinki
         }
@@ -122,7 +117,6 @@ color =
         { $gender ->
             [c3] onsundu
             [c5] elinsundu
-            [c6] ansundu
             [c7] esinsundu
            *[c9] ensundu
         }
@@ -134,7 +128,6 @@ line-width =
         { $gender ->
             [c3] omkhulu
             [c5] elikhulu
-            [c6] amakhulu
             [c7] esikhulu
            *[c9] enkulu
         }
@@ -142,7 +135,6 @@ line-width =
         { $gender ->
             [c3] omncane
             [c5] elincane
-            [c6] amancane
             [c7] esincane
            *[c9] encane
         }
@@ -240,7 +232,6 @@ style-filled-word =
     { $gender ->
         [c3] ogcwalisiwe
         [c5] eligcwalisiwe
-        [c6] agcwalisiwe
         [c7] esigcwalisiwe
        *[c9] egcwalisiwe
     }
