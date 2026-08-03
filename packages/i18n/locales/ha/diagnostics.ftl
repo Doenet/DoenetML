@@ -11,8 +11,10 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Hausa has a single plural category, and a noun after a numeral stays
-# singular, so a countable message needs no selection.
+# Hausa counts in two plural categories, but a noun after a numeral stays
+# singular and the passive «ana yin watsi da …» does not change shape for
+# number, so a countable message here reads the same in both branches and the
+# select is dropped rather than written out twice identically.
 
 ## `<lineSegment>`
 

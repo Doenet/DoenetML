@@ -233,10 +233,15 @@ piecewise-condition-otherwise = andersins
 
 ## Chemistry
 
-# The Afrikaans names South African chemistry textbooks print, which follow
-# the Afrikaanse Woordelys en Spelreëls: `-ium` becomes `-ium`, `-ine` becomes
-# `-ien`, and the metals known before the nomenclature was regularized keep
-# their own words — yster, koper, silwer, goud, lood, tin, kwik.
+# The Afrikaans names South African chemistry textbooks print, spelled as the
+# Afrikaanse Woordelys en Spelreëls has them. Three patterns cover the list:
+# the `-ium` metals keep the ending and lose the English spelling around it
+# (litium, berillium, natrium); the halogens and the light non-metals have
+# Afrikaans words of their own (fluoor, chloor, broom, waterstof, suurstof,
+# stikstof, koolstof); and the metals known before the nomenclature was
+# regularized keep theirs — yster, koper, silwer, goud, lood, tin, kwik.
+#
+# The anions below take `-ied` where English takes `-ide`.
 element-name =
     .h = waterstof
     .he = helium

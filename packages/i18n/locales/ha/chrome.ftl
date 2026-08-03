@@ -7,13 +7,12 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Hausa has a single plural category, so a countable message needs no
-# selection — `[other]` covers every count. `[0]` is still spelled out where
-# the English wording changes for zero, because that is a different sentence
-# rather than a different number.
-#
-# A noun after a numeral stays singular — «yunƙuri 5» — so the selects that
-# only changed the noun are dropped with the plural categories.
+# Hausa counts in two plural categories, but a noun after a numeral stays
+# singular — «yunƙuri 5», never «yunƙure-yunƙure 5» — so a `{ $count }` message
+# reads the same in both branches and the select is dropped rather than written
+# out twice identically. `[other]` then catches every count. `[0]` is still
+# spelled out where the English wording changes for zero, because that is a
+# different sentence rather than a different number.
 
 
 ## Answer submission

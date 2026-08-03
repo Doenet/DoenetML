@@ -14,6 +14,12 @@
 # Oromo is postpositional: the word joining a phrase to what it modifies
 # follows it. That is why several of these sentences end where the English
 # begins.
+#
+# Oromo counts in two plural categories and the chrome catalog keeps its
+# selects, but none survives here: where English separates a singular from a
+# plural only in the verb — "is ignored" against "are ignored" — the Oromo
+# passive «ni dhiifama» covers both, so those selects are dropped rather than
+# written out twice identically and the count argument goes unused.
 
 ## `<lineSegment>`
 

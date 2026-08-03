@@ -13,6 +13,10 @@
 #
 # Afrikaans negates with a closing «nie», which is why several of these
 # sentences end in a word the English has no counterpart for.
+#
+# The selects are kept wherever the noun changes, and dropped in the two
+# `<lineSegment>` messages: «word geïgnoreer» is the same for one attribute and
+# for several, so writing the branch out twice identically would say nothing.
 
 ## `<lineSegment>`
 

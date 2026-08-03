@@ -8,8 +8,9 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Oromo has two plural categories, so the counted messages keep both branches.
-# A noun after a numeral usually stays in its base form, which is why the two
-# branches often differ only in the words around the count.
+# The noun takes the `-oota`/`-wwan` plural and the verb agrees with it —
+# «yaaliin … hafeera» against «yaaliiwwan … hafaniiru» — so both halves of the
+# sentence move and neither branch could stand for the other.
 
 
 ## Answer submission

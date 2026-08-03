@@ -8,7 +8,7 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Chichewa has two plural categories, and a noun marks number with a class
-# prefix rather than a suffix: «kuyesa kumodzi», «zoyesa zisanu». So the
+# prefix rather than a suffix: «choyesa chimodzi», «zoyesa zisanu». So the
 # selects are kept and the noun changes shape inside them.
 
 

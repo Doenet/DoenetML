@@ -9,9 +9,9 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
-# name are identifiers, not prose, and stay as written. Zulu prefixes a
-# borrowed noun with a hyphen — «i-DoenetML», «ku-XML» — and the hyphen is this
-# catalog's punctuation rather than part of the name.
+# name are identifiers, not prose, and stay as written. Zulu joins a borrowed
+# noun to the word before it with a hyphen — «ye-DoenetML», «njenge-XML» — and
+# the hyphen is this catalog's punctuation rather than part of the name.
 
 
 ## The viewer's controls

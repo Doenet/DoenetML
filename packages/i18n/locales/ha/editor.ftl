@@ -11,8 +11,12 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Hausa has a single plural category, so a countable message needs no
-# selection.
+# Hausa counts in two plural categories, but a noun after a numeral stays
+# singular, so a message printing the number next to a noun reads the same in
+# both branches and needs no selection. This seed writes one form for the
+# messages whose count never appears too — `help-coordinates`, which labels one
+# coordinate or several — so a reviewer supplying the Hausa plural there is
+# restoring a select rather than correcting one.
 
 
 ## The viewer's controls

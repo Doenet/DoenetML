@@ -12,7 +12,7 @@
 # the English wording changes for zero, because that is a different sentence
 # rather than a different number.
 #
-# A noun is not marked for number: «ọgụgụ { $count }» is both "1 attempt" and
+# A noun is not marked for number: «mgbalị { $count }» is both "1 attempt" and
 # "5 attempts".
 
 
