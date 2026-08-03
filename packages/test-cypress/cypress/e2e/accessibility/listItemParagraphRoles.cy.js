@@ -95,5 +95,20 @@ describe(
 
             cy.get("#trailingPara").should("have.attr", "role", "paragraph");
         });
+
+        it("hidden paragraph does not claim the lead of its list item", () => {
+            // The core sends `null` for a child it does not render, so a
+            // hidden paragraph never reaches the accessibility tree and must
+            // not take the leading role from the paragraph after it.
+            postDoenetML({
+                settleSelector: "#visiblePara",
+                doenetML: `<ol>
+  <li><p hide name="hiddenPara">Not shown</p><p name="visiblePara">Apples</p></li>
+</ol>`,
+            });
+
+            cy.get("#hiddenPara").should("not.exist");
+            cy.get("#visiblePara").should("have.attr", "role", "presentation");
+        });
     },
 );

@@ -147,13 +147,13 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
  *
  * Only a paragraph that leads the item is worth flagging: any other first
  * child (a figure, a nested list) sits between the marker and the text no
- * matter what role it carries. Whitespace-only text between the `<li>` and
- * the paragraph is skipped, since it produces no accessibility node.
+ * matter what role it carries.
  *
- * The leading child is identified from the React tree, which does not know
- * which children will render nothing: a hidden paragraph at the front of the
- * item still counts as the leading one, so an item whose first visible
- * content follows a `<p hide>` keeps the pre-existing behavior.
+ * Two kinds of child are skipped when looking for the leading one, because
+ * neither reaches the accessibility tree: whitespace-only text (the
+ * indentation an author writes inside the `<li>`) and `null`, which is what
+ * the core sends for a child it does not render — a hidden child, most
+ * often a `<p hide>`.
  */
 function markLeadingParagraphOfListItem(children: React.ReactNode[]) {
     const leadingInd = children.findIndex(
