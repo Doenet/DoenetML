@@ -542,7 +542,10 @@ this rule and the third way out below to come off. Its adjectives follow the
 noun and the izafat links them, and unlike Persian's — an unwritten vowel after
 a consonant, which is why `locales/fa` lets the space carry it — Tajik's is
 written, as «-и». So `locales/tg` writes `{ $noun }и { $description }`, welding
-an affix onto a value, which nothing else here does. What makes that sound is
+an affix onto a value whose *form* the value decides, which nothing else here
+does — the hyphenated endings `locales/hy` and `locales/ka` put on an
+identifier are welds too, but each has one shape whatever precedes it, so they
+fall under the paragraph above rather than this one. What makes Tajik's sound is
 not that the izafat never changes: a ъ-final word drops the ъ before it
 («шуоъ» → «шуои») and a ӣ-final word shortens the ӣ. It is that the catalog
 **chooses the words that land there** — `.ray` is «нур» rather than «шуоъ»,

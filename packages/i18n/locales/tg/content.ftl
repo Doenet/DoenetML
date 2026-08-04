@@ -37,7 +37,10 @@
 # `tg/diagnostics.ftl` write the hyphenated «-ро» and «-и» onto identifiers in
 # a good many messages — but those affixes have one form whatever stands in
 # front of them, the way `{ $numSides }-kulmio` does in Finnish, so nothing
-# there depends on what the value turns out to be. Where the value was an
+# there depends on what the value turns out to be. The lone exception is
+# `editor-update-viewer-title`, which puts an unhyphenated izafat on a label
+# this catalog writes itself, and its own header carries the same rule this one
+# does for the `noun` table. Where the value was an
 # author's own word rather than a DoenetML identifier, those two files name
 # what the value is instead of welding to it.
 #

@@ -22,7 +22,12 @@
 # is not welded to: `help-unresolved-ref` and `help-suggestions-footer` name
 # what the value is and let it follow the clause, which is the README's "Name
 # what the value is". A Cyrillic word this catalog wrote itself takes the
-# ending unhyphenated, as in `editor-update-viewer-title`.
+# ending unhyphenated, as in `editor-update-viewer-title`, whose «и» is the
+# izafat and so is the one ending here whose form depends on the word in front
+# of it: that word is `editor-update-viewer`'s own label, so both of its
+# branches have to stay clear of a final ъ or ӣ, which the izafat would have
+# reshaped («Нав кардан» → «Нав кардани», but «Навсозӣ» would need «Навсозии»).
+# `tg/content.ftl`'s header states the same rule for its `noun` table.
 
 
 ## The viewer's controls
