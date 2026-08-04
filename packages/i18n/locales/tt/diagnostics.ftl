@@ -375,25 +375,25 @@ attribute-invalid-for-component = `<{ $componentType }>` төрендәге ко
 style-definition-insufficient-contrast =
     { $styleNumber } стиль билгеләмәсендә { $context ->
         [text-on-background] текст төсе белән фон төсе
-        [high-contrast] югары контрастлы төс белән киндер
-        [line] сызык төсе белән киндер
-        [marker] маркер төсе белән киндер
-       *[text-on-canvas] текст төсе белән киндер
+        [high-contrast] югары контрастлы төс белән рәсем мәйданы
+        [line] сызык төсе белән рәсем мәйданы
+        [marker] маркер төсе белән рәсем мәйданы
+       *[text-on-canvas] текст төсе белән рәсем мәйданы
     } арасындагы контраст җитәрлек түгел{ $mode ->
         [dark] { " (караңгы тема)" }
        *[light] { "" }
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ким дигәндә { $threshold }:1 кирәк).
 
 style-definition-dark-mode-text-background-contrast =
-    { $styleNumber } стиль билгеләмәсендә бирелгән төсләр яктыр тема өчен җитәрлек контраст бирсә дә, алардан алынган караңгы тема төсләре текст белән фон арасында җитәрлек контраст бирми ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ким дигәндә { $threshold }:1 кирәк). { $suggestion ->
-        [available] Караңгы темада җитәрлек контраст өчен я яктыр темадагы контрастны арттырыгыз (мәсәлән { $lightAttribute }="{ $lightColor }"), я караңгы тема төсен алыштырыгыз (мәсәлән { $darkAttribute }="{ $darkColor }").
-       *[none] Караңгы темада җитәрлек контраст өчен яктыр темадагы контрастны арттырыгыз яки алынган төсләрне textColorDarkMode һәм/яки backgroundColorDarkMode белән алыштырыгыз.
+    { $styleNumber } стиль билгеләмәсендә бирелгән төсләр якты тема өчен җитәрлек контраст бирсә дә, алардан алынган караңгы тема төсләре текст белән фон арасында җитәрлек контраст бирми ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ким дигәндә { $threshold }:1 кирәк). { $suggestion ->
+        [available] Караңгы темада җитәрлек контраст өчен я якты темадагы контрастны арттырыгыз (мәсәлән { $lightAttribute }="{ $lightColor }"), я караңгы тема төсен алыштырыгыз (мәсәлән { $darkAttribute }="{ $darkColor }").
+       *[none] Караңгы темада җитәрлек контраст өчен якты темадагы контрастны арттырыгыз яки алынган төсләрне textColorDarkMode һәм/яки backgroundColorDarkMode белән алыштырыгыз.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    { $styleNumber } стиль билгеләмәсендә бирелгән текст төсе яктыр тема өчен җитәрлек контраст бирсә дә, аннан алынган караңгы тема текст төсе киндер белән җитәрлек контраст бирми ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ким дигәндә { $threshold }:1 кирәк). { $suggestion ->
-        [available] Караңгы темада җитәрлек контраст өчен я яктыр темадагы контрастны арттырыгыз (мәсәлән textColor="{ $lightColor }"), я караңгы тема төсен алыштырыгыз (мәсәлән textColorDarkMode="{ $darkColor }").
-       *[none] Караңгы темада җитәрлек контраст өчен яктыр темадагы контрастны арттырыгыз яки алынган төсне textColorDarkMode белән алыштырыгыз.
+    { $styleNumber } стиль билгеләмәсендә бирелгән текст төсе якты тема өчен җитәрлек контраст бирсә дә, аннан алынган караңгы тема текст төсе рәсем мәйданы белән җитәрлек контраст бирми ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ким дигәндә { $threshold }:1 кирәк). { $suggestion ->
+        [available] Караңгы темада җитәрлек контраст өчен я якты темадагы контрастны арттырыгыз (мәсәлән textColor="{ $lightColor }"), я караңгы тема төсен алыштырыгыз (мәсәлән textColorDarkMode="{ $darkColor }").
+       *[none] Караңгы темада җитәрлек контраст өчен якты темадагы контрастны арттырыгыз яки алынган төсне textColorDarkMode белән алыштырыгыз.
     }
 
 section-multiple-style-palettes = Бүлек бер генә <stylePalette> сайлый ала; соңгысы кулланыла.

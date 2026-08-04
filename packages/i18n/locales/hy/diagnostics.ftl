@@ -49,7 +49,7 @@ ray-dimension-mismatch = numDimensions-ը չի համապատասխանում ճ
 
 ## `<vector>`
 
-vector-overprescribed-head = Վեկտորը տրված է head, tail և displacement միջոցով։ Նշված head-ն անտեսվում է։
+vector-overprescribed-head = Վեկտորը տրված է head, tail և displacement միջոցով։ Նշված head-ը անտեսվում է։
 
 vector-dimension-mismatch = numDimensions-ը չի համապատասխանում վեկտորում։
 
@@ -63,7 +63,7 @@ constrain-to-interior-without-nearest-point = Հնարավոր չէ սահման
 
 ## `<choiceInput>`
 
-choice-input-label-position-ignored = labelPosition-ն անտեսվում է ոչ ներտողային choiceInput-ի դեպքում
+choice-input-label-position-ignored = labelPosition-ը անտեսվում է ոչ ներտողային choiceInput-ի դեպքում
 
 ## Ordering children by index
 
@@ -186,7 +186,7 @@ function-ignoring-non-numerical =
         [extremum] Ֆունկցիայի ոչ թվային էքստրեմումն անտեսվում է։
         [point] Ֆունկցիայի ոչ թվային կետն անտեսվում է։
         [slope] Ֆունկցիայի ոչ թվային թեքությունն անտեսվում է։
-       *[other] Ֆունկցիայի ոչ թվային { $type }-ն անտեսվում է։
+       *[other] Ֆունկցիայի ոչ թվային { $type } արժեքն անտեսվում է։
     }
 
 function-ignoring-empty =
@@ -195,7 +195,7 @@ function-ignoring-empty =
         [minimum] Ֆունկցիայի դատարկ մինիմումն անտեսվում է։
         [extremum] Ֆունկցիայի դատարկ էքստրեմումն անտեսվում է։
         [point] Ֆունկցիայի դատարկ կետն անտեսվում է։
-       *[other] Ֆունկցիայի դատարկ { $type }-ն անտեսվում է։
+       *[other] Ֆունկցիայի դատարկ { $type } արժեքն անտեսվում է։
     }
 
 function-points-too-close = Ֆունկցիան պարունակում է իրար չափազանց մոտ երկու կետ։ Ֆունկցիան հնարավոր չէ որոշել։
@@ -224,9 +224,9 @@ sequence-invalid-endpoint-letters = Տառային հաջորդականությ�
 
 sequence-invalid-endpoint = Հաջորդականության անվավեր «{ $attribute }»։
 
-select-from-sequence-coprime-not-numbers = coprime-ն անտեսվում է, քանի որ թվեր չեն ընտրվում
+select-from-sequence-coprime-not-numbers = coprime-ը անտեսվում է, քանի որ թվեր չեն ընտրվում
 
-select-from-sequence-coprime-with-exclude-combinations = coprime-ն անտեսվում է, քանի որ նշված է excludeCombinations
+select-from-sequence-coprime-with-exclude-combinations = coprime-ը անտեսվում է, քանի որ նշված է excludeCombinations
 
 ## Resolving a `target`
 
@@ -238,9 +238,9 @@ target-state-variable-not-found = `<{ $source }>`-ի անվավեր target՝ `<{
 
 ode-system-variables-match-independent = `<odeSystem>`-ի փոփոխականները պետք է տարբերվեն անկախ փոփոխականից։
 
-ode-system-duplicate-variable-names = Հնարավոր չէ որոշել ԴՀ աջ մասերի ֆունկցիաները կրկնվող կախյալ փոփոխականների անուններով։
+ode-system-duplicate-variable-names = Հնարավոր չէ որոշել դիֆերենցիալ հավասարումների աջ մասերի ֆունկցիաները կրկնվող կախյալ փոփոխականների անուններով։
 
-ode-system-rhs-function-error = Հնարավոր չէ որոշել ԴՀ աջ մասի ֆունկցիան։ Սխալ mathjs ֆունկցիա ստեղծելիս։
+ode-system-rhs-function-error = Հնարավոր չէ որոշել դիֆերենցիալ հավասարման աջ մասի ֆունկցիան։ Սխալ mathjs ֆունկցիա ստեղծելիս։
 
 ## `<angle>`, `<parabola>`, and `<intersection>`
 

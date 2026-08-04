@@ -168,8 +168,8 @@ help-ref-is-reference =
 
 help-ref-derived-from =
     { $line ->
-        [none] Ներմուծել է { $owner }-ը որպես { $role }։
-       *[other] Ներմուծել է { $owner }-ը { $line } տողում որպես { $role }։
+        [none] Ներմուծվել է { $owner }-ի կողմից՝ որպես { $role }։
+       *[other] Ներմուծվել է { $owner }-ի կողմից՝ { $line } տողում, որպես { $role }։
     }
 
 help-property-is-reference =

@@ -143,25 +143,25 @@ accessibility-section-title-insufficient-contrast =
 
 circle-through-points-non-numerical = Nokatlaryň san bahalary ýok mahaly { $count } nokatdan geçýän `<circle>` amala aşyrylmadyk.
 
-circle-too-many-through-points = 3-den köp nokatdan geçýän aýlawy hasaplap bolmaýar.
+circle-too-many-through-points = 3-den köp nokatdan geçýän tegelegi hasaplap bolmaýar.
 
-circle-overprescribed-radius-center-points = Berlen radius, merkez we nokatlar bilen aýlawy hasaplap bolmaýar.
+circle-overprescribed-radius-center-points = Berlen radius, merkez we nokatlar bilen tegelegi hasaplap bolmaýar.
 
-circle-center-with-multiple-points = Berlen merkez bilen 1-den köp nokatdan geçýän aýlawy hasaplap bolmaýar.
+circle-center-with-multiple-points = Berlen merkez bilen 1-den köp nokatdan geçýän tegelegi hasaplap bolmaýar.
 
-circle-radius-too-small = Aýlawy hasaplap bolmaýar: iki nokadyň arasyndaky aralyk { $distance } bolansoň, berlen radius { $radius } örän kiçi.
+circle-radius-too-small = Tegelegi hasaplap bolmaýar: iki nokadyň arasyndaky aralyk { $distance } bolansoň, berlen radius { $radius } örän kiçi.
 
-circle-radius-with-many-points = Berlen radius bilen ikiden köp nokatdan geçýän aýlaw döredip bolmaýar.
+circle-radius-with-many-points = Berlen radius bilen ikiden köp nokatdan geçýän tegelek döredip bolmaýar.
 
-circle-invalid-center-or-through-points = Aýlawyň merkezi ýa-da nokatlary nädogry.
+circle-invalid-center-or-through-points = Tegelegiň merkezi ýa-da nokatlary nädogry.
 
-circle-radius-center-with-multiple-points = Berlen merkez bilen 1-den köp nokatdan geçýän aýlawyň radiusyny hasaplap bolmaýar.
+circle-radius-center-with-multiple-points = Berlen merkez bilen 1-den köp nokatdan geçýän tegelegiň radiusyny hasaplap bolmaýar.
 
-circle-change-radius-non-numerical = San däl nokatly aýlawyň radiusyny üýtgedip bolmaýar
+circle-change-radius-non-numerical = San däl nokatly tegelegiň radiusyny üýtgedip bolmaýar
 
-circle-radius-with-points-non-numerical = San bahalary ýok mahaly berlen radius bilen birden köp nokatdan geçýän aýlaw döredip bolmaýar.
+circle-radius-with-points-non-numerical = San bahalary ýok mahaly berlen radius bilen birden köp nokatdan geçýän tegelek döredip bolmaýar.
 
-circle-change-center-non-numerical = San däl nokatlardan geçýän aýlawyň merkezini üýtgetmek amala aşyrylmadyk.
+circle-change-center-non-numerical = San däl nokatlardan geçýän tegelegiň merkezini üýtgetmek amala aşyrylmadyk.
 
 ## `<function>`
 

@@ -103,7 +103,7 @@ editor-format-as-xml = XML буларак форматлау
 
 ## The diagnostics panel
 
-editor-diagnostic-line = { $line } юл
+editor-diagnostic-line = { $line } нче юл
 
 editor-no-errors = Хаталар юк
 editor-no-warnings = Кисәтүләр юк

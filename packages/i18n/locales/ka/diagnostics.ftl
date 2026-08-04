@@ -103,7 +103,7 @@ variant-index-must-be-integer = ვარიანტის ინდექს�
 
 side-by-side-absolute-widths = `<{ $component }>` არ არის რეალიზებული აბსოლუტური ზომებისთვის. სიგანეები ხდება ფარდობითი.
 
-side-by-side-absolute-margins = `<{ $component }>` არ არის რეალიზებული აბსოლუტური ზომებისთვის. ველები ხდება ფარდობითი.
+side-by-side-absolute-margins = `<{ $component }>` არ არის რეალიზებული აბსოლუტური ზომებისთვის. მინდვრები ხდება ფარდობითი.
 
 side-by-side-no-block-child = არასწორი `<{ $component }>`: მას უნდა ჰქონდეს სულ მცირე ერთი ბლოკური შვილი.
 

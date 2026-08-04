@@ -16,9 +16,10 @@
 #
 # So only `background-clause` is written out below, and the other three fall to
 # the default — the same shape `locales/pa` has, arrived at from a different
-# grammar. Which words move is a fact about the word rather than the position:
-# «მწვანე» ends in a vowel and never truncates, so green reads alike in all
-# four.
+# grammar. It is written out for the colours alone: only a colour is ever looked
+# up in that position, so the widths and the dash patterns are plain values.
+# Which words move is a fact about the word rather than the position: «მწვანე»
+# ends in a vowel and never truncates, so green reads alike in all four.
 #
 # The border and the fill patterns are marked by an instrumental ending on the
 # noun rather than by a preposition, so `style-border-clause` and `style-filled`
@@ -90,29 +91,17 @@ color =
            *[standalone] ყავისფერი
         }
 
+# Only a colour is ever looked up in `background-clause`, so a width and a dash
+# pattern reach just the nominative and the instrumental, where they read alike.
+# No select is written here: the dative form these words would take there is
+# unreachable.
 line-width =
-    .thick =
-        { $role ->
-            [background-clause] სქელ
-           *[standalone] სქელი
-        }
-    .thin =
-        { $role ->
-            [background-clause] თხელ
-           *[standalone] თხელი
-        }
+    .thick = სქელი
+    .thin = თხელი
 
 line-style =
-    .dashed =
-        { $role ->
-            [background-clause] წყვეტილ
-           *[standalone] წყვეტილი
-        }
-    .dotted =
-        { $role ->
-            [background-clause] წერტილოვან
-           *[standalone] წერტილოვანი
-        }
+    .dashed = წყვეტილი
+    .dotted = წერტილოვანი
 
 # Instrumental plurals — the case that renders as "with" in English. The ending
 # carries the sense, so nothing is written in front of them where they are
@@ -156,7 +145,7 @@ noun-regular-polygon =
 # Georgian has no grammatical gender, so every noun answers the same and the
 # answer goes unused. What this catalog agrees for is case, which `$role`
 # carries.
-noun-gender = none
+noun-gender = neuter
 
 
 ## Style composition

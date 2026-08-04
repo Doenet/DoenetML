@@ -11,6 +11,11 @@
 # English has, so every `{ $count -> … }` below keeps the shape it had. A noun
 # after a numeral stays singular — «2 оролдлого», not a plural — so the two
 # branches differ in nothing but the number they print.
+#
+# A Mongolian case ending harmonizes with the word it attaches to, so none is
+# welded to a placeable: «{ $answerId } хариултад» puts the dative on a noun
+# this catalog writes. The invariant ordinal «-р» on a line number is the one
+# affix that may sit directly against a value.
 
 
 ## Answer submission
@@ -45,8 +50,8 @@ validation-partially-correct = (Хэсэгчлэн зөв)
 
 answer-show-responses =
     { $count ->
-        [one] { $answerId }-д өгсөн { $count } хариултыг харуулах
-       *[other] { $answerId }-д өгсөн { $count } хариултыг харуулах
+        [one] { $answerId } хариултад өгсөн { $count } хариултыг харуулах
+       *[other] { $answerId } хариултад өгсөн { $count } хариултыг харуулах
     }
 
 

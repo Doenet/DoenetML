@@ -26,8 +26,8 @@ editor-update-viewer =
 
 editor-update-viewer-title =
     { $shortcut ->
-        [none] Ko‘ruvchini { $word }
-       *[other] Ko‘ruvchini { $word } { $shortcut }
+        [none] Koʻruvchini { $word }
+       *[other] Koʻruvchini { $word } { $shortcut }
     }
 
 
@@ -50,7 +50,7 @@ editor-accessibility-title =
         [advisories] Foydalanuvchanlik hisobotini { $action ->
             [close] yopish
            *[open] ochish
-        } uchun bosing. WCAG AA buzilishlari topilmadi, ammo qo‘shimcha foydalanuvchanlik tavsiyalari bor.
+        } uchun bosing. WCAG AA buzilishlari topilmadi, ammo qoʻshimcha foydalanuvchanlik tavsiyalari bor.
        *[clean] Foydalanuvchanlik hisobotini { $action ->
             [close] yopish
            *[open] ochish
@@ -67,8 +67,8 @@ editor-accessibility-label =
            *[open] ochish
         } uchun bosing.
         [advisories] WCAG AA buzilishlari aniqlanmadi. { $count ->
-            [one] { $count } qo‘shimcha foydalanuvchanlik tavsiyasi
-           *[other] { $count } qo‘shimcha foydalanuvchanlik tavsiyasi
+            [one] { $count } qoʻshimcha foydalanuvchanlik tavsiyasi
+           *[other] { $count } qoʻshimcha foydalanuvchanlik tavsiyasi
         } topildi. Foydalanuvchanlik hisobotini { $action ->
             [close] yopish
            *[open] ochish
@@ -90,7 +90,7 @@ editor-tab-help = Kontekstli yordam
 editor-tab-help-short = Kontekst
 editor-tab-errors = Xatolar
 editor-tab-warnings = Ogohlantirishlar
-editor-tab-info = Ma’lumot
+editor-tab-info = Maʼlumot
 editor-tab-accessibility = Foydalanuvchanlik
 editor-tab-responses = Yuborilgan javoblar
 
@@ -105,12 +105,12 @@ editor-format-as-xml = XML sifatida formatlash
 
 editor-diagnostic-line = { $line }-qator
 
-editor-no-errors = Xatolar yo‘q
-editor-no-warnings = Ogohlantirishlar yo‘q
-editor-no-info = Ma’lumot bildirishnomalari yo‘q
+editor-no-errors = Xatolar yoʻq
+editor-no-warnings = Ogohlantirishlar yoʻq
+editor-no-info = Maʼlumot bildirishnomalari yoʻq
 
-editor-show-info-annotations = Ma’lumot bildirishnomalarini muharrirda ko‘rsatish
-editor-show-accessibility-annotations = Foydalanuvchanlik bildirishnomalarini muharrirda ko‘rsatish
+editor-show-info-annotations = Maʼlumot bildirishnomalarini muharrirda koʻrsatish
+editor-show-accessibility-annotations = Foydalanuvchanlik bildirishnomalarini muharrirda koʻrsatish
 
 editor-accessibility-learn-more = Doenet foydalanuvchanlikka qanday yondashadi
 
@@ -122,7 +122,7 @@ editor-none-found = Hech narsa topilmadi
 
 ## Submitted responses
 
-editor-no-responses = Hozircha yuborilgan javoblar yo‘q
+editor-no-responses = Hozircha yuborilgan javoblar yoʻq
 editor-response-answer-id = Javob Id-si
 editor-response-response = Javob
 editor-response-credit = Ball
@@ -131,19 +131,19 @@ editor-response-submitted = Yuborilgan
 
 ## The context-help panel
 
-help-placeholder = Hujjatlarni ko‘rish uchun kursorni teg nomiga, atributga yoki { $ref } ustiga qo‘ying.
+help-placeholder = Hujjatlarni koʻrish uchun kursorni teg nomiga, atributga yoki { $ref } ustiga qoʻying.
 
-help-unsupported-ref-chain = { $example } kabi ko‘p qismli havolalar uchun yordam hozircha qo‘llab-quvvatlanmaydi.
+help-unsupported-ref-chain = { $example } kabi koʻp qismli havolalar uchun yordam hozircha qoʻllab-quvvatlanmaydi.
 
 help-unresolved-ref =
     { $reason ->
         [notFound] Havola uchun obyekt topilmadi: { $ref }.
         [multiple] Havola uchun bir nechta obyekt topildi: { $ref }.
-       *[indeterminate] { $ref } uchun obyektni aniqlab bo‘lmadi.
+       *[indeterminate] { $ref } uchun obyektni aniqlab boʻlmadi.
     }
 
 help-learn-about-references = Havolalar haqida bilib oling →
-help-reference-page = Ma’lumotnoma sahifasi →
+help-reference-page = Maʼlumotnoma sahifasi →
 
 help-suggestions-header =
     { $location ->
@@ -152,11 +152,11 @@ help-suggestions-header =
     }{ $allowed ->
         [none] { " — bu yerga hech narsa joylashmaydi." }
         [text] { " — bu yerga matn yozish mumkin." }
-        [text-and-components] { " — bu yerga matn yozish mumkin yoki quyidagilarni sinab ko‘ring:" }
-       *[components] { " — quyidagilarni sinab ko‘rish mumkin:" }
+        [text-and-components] { " — bu yerga matn yozish mumkin yoki quyidagilarni sinab koʻring:" }
+       *[components] { " — quyidagilarni sinab koʻrish mumkin:" }
     }
 
-help-suggestions-footer = Barcha { $total } komponentni ko‘rish uchun { $shortcut } bosing.
+help-suggestions-footer = Barcha { $total } komponentni koʻrish uchun { $shortcut } bosing.
 
 help-name-summary = { $name } — { $summary }
 
@@ -195,7 +195,7 @@ help-allowed-values =
 
 help-suggested-values = Tavsiya etilgan qiymatlar:
 
-help-inserts = Qo‘shadi:
+help-inserts = Qoʻshadi:
 
 help-coordinates =
     { $count ->
@@ -208,8 +208,8 @@ help-type = Turi:
 help-resolved-style = Olingan uslub (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Olingan funksiya nomlari:
-help-reset-list = Bu maydonning tiklash ro‘yxati:
-help-added-on-input = Bu maydonga qo‘shilganlar:
+help-reset-list = Bu maydonning tiklash roʻyxati:
+help-added-on-input = Bu maydonga qoʻshilganlar:
 help-removed-on-input = Bu maydondan olib tashlanganlar:
 
 help-reset-overrides = { $reset } — { $additional } va { $removed } ustidan ustunlik qiladi.

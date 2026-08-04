@@ -12,19 +12,39 @@
 #
 # There is no grammatical gender and an adjective does not inflect, so both
 # `$gender` and `$role` go unused. Adjectives follow their noun, joined by the
-# izafat, which is why `style-with-noun` and `style-filled-with-noun` reverse
-# the two halves rather than substituting into the English frame.
+# izafat, which is why `style-with-noun` and `style-filled-with-noun` put the
+# noun first rather than substituting into the English frame.
 #
-# The izafat is where this catalog differs from `locales/fa`, and it is the one
-# place in any catalog here that an affix is written onto a placeable. In
-# Persian the link after a consonant is an unwritten vowel and the space carries
-# it; Tajik writes it, as «-и», and writes the same «-и» whatever the word ends
-# in. So `{ $noun }и` is safe for the reason `{ $numSides }-kulmio` is safe in
-# Finnish: the ending does not agree with the word in front of it, it is merely
-# adjacent to it. See "An affix cannot be welded to a placeable" in the README
-# for the distinction. The one case this arrangement cannot cover is a noun with
-# no adjectives at all — a marker whose style names no colour — where the izafat
-# is left standing on its own.
+# The izafat is where this catalog differs from `locales/fa`. In Persian the
+# link after a consonant is an unwritten vowel and the space carries it; Tajik
+# writes it, as «-и». That «-и» is written the same way after most endings, but
+# not after every one: a ъ-final word drops the ъ before it («шуоъ» → «шуои»),
+# and a ӣ-final word shortens the ӣ to и («моҳӣ» → «моҳии»). So welding it onto
+# `{ $noun }` is sound because of *which words this file puts in the `noun`
+# table*, not because the izafat never changes what precedes it — every entry
+# there ends in a consonant or in an unstressed vowel that the izafat leaves
+# untouched, and a new entry has to be checked against that. Choosing the
+# vocabulary to fit the frame is the README's "Choose the words that land
+# there", the escape hatch `locales/cs` takes for horizontal lines: `.ray` is
+# «нур» rather than «шуоъ» and `.square` is «квадрат» rather than «мураббаъ»
+# for exactly this reason. The `color` table is picked the same way, because
+# `style-stroke` chains an izafat onto a colour: «хокистарранг», «норинҷранг»,
+# «фирӯза» and «гулгун» stand where «хокистарӣ», «норинҷӣ», «фирӯзаӣ» and
+# «гулобӣ» would have needed the ӣ shortened. See "An affix cannot be welded to
+# a placeable" in the README.
+#
+# This is not the only Tajik affix that meets a placeable — `tg/editor.ftl` and
+# `tg/diagnostics.ftl` write the hyphenated «-ро» and «-и» onto identifiers in
+# a good many messages — but those affixes have one form whatever stands in
+# front of them, the way `{ $numSides }-kulmio` does in Finnish, so nothing
+# there depends on what the value turns out to be. Where the value was an
+# author's own word rather than a DoenetML identifier, those two files name
+# what the value is instead of welding to it.
+#
+# A noun with no adjectives at all — a marker whose style names no colour —
+# would leave the izafat standing on its own, but it cannot
+# arrive here: `attachNoun` in `styleDescriptions.ts` returns the bare noun
+# without going through `style-with-noun` when the description is empty.
 
 
 ## Style vocabulary
@@ -32,15 +52,15 @@
 color =
     .black = сиёҳ
     .white = сафед
-    .gray = хокистарӣ
+    .gray = хокистарранг
     .red = сурх
-    .orange = норинҷӣ
+    .orange = норинҷранг
     .yellow = зард
     .green = сабз
-    .cyan = фирӯзаӣ
+    .cyan = фирӯза
     .blue = кабуд
     .purple = бунафш
-    .pink = гулобӣ
+    .pink = гулгун
     .brown = қаҳваранг
 
 line-width =
@@ -62,7 +82,7 @@ fill-style =
 noun =
     .line = хат
     .line-segment = порча
-    .ray = шуоъ
+    .ray = нур
     .vector = вектор
     .curve = каҷхат
     .function = функсия
@@ -74,9 +94,9 @@ noun =
     .circle = доира
     .region = минтақа
     .point = нуқта
-    .square = мураббаъ
+    .square = квадрат
     .diamond = ромб
-    .cross = салиб
+    .cross = чорхат
     .plus = плюс
 
 # The side count follows the adjectives rather than standing in front of the
@@ -90,19 +110,29 @@ noun-regular-polygon =
 
 # Tajik has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in Persian.
-noun-gender = none
+noun-gender = neuter
 
 
 ## Style composition
 
-# The mirror of the English order, so the adjective English puts nearest the
-# noun is the one Tajik puts nearest it.
+# Stacked attributives follow the noun and each non-final one carries an izafat
+# of its own, the way `style-filled-with-noun` already chains «доираи пуршудаи
+# кабуд» — so a chain here is «{ $color }и { $lineStyle }и { $width }», not a
+# bare juxtaposition. The order is the mirror of English's, so the adjective
+# English puts nearest the noun stands nearest it in Tajik.
+#
+# `style-filled` and `style-filled-with-noun` are the deliberate exception and
+# are not mirrored: «пуршуда» is a participle predicated of the shape itself
+# rather than a quality ranked with the colour, so it takes the first slot after
+# the noun and the colour — which says what the filling is — follows it.
+# «доираи пуршудаи кабуд» is the natural Tajik; «доираи кабуди пуршуда» would
+# read as a blue circle that happens to be filled.
 style-stroke =
     { $parts ->
-        [width-style-color] { $color } { $lineStyle } { $width }
-        [width-color] { $color } { $width }
-        [style-color] { $color } { $lineStyle }
-        [width-style] { $lineStyle } { $width }
+        [width-style-color] { $color }и { $lineStyle }и { $width }
+        [width-color] { $color }и { $width }
+        [style-color] { $color }и { $lineStyle }
+        [width-style] { $lineStyle }и { $width }
         [width] { $width }
         [style] { $lineStyle }
        *[color] { $color }
@@ -258,7 +288,7 @@ element-name =
     .na = Натрий
     .mg = Магний
     .al = Алюминий
-    .si = Силитсий
+    .si = Силисий
     .p = Фосфор
     .s = Сулфур
     .cl = Хлор
@@ -277,7 +307,7 @@ element-name =
     .zn = Руҳ
     .ga = Галлий
     .ge = Германий
-    .as = Мышьяк
+    .as = Арсен
     .se = Селен
     .br = Бром
     .kr = Криптон
@@ -287,7 +317,7 @@ element-name =
     .zr = Сирконий
     .nb = Ниобий
     .mo = Молибден
-    .tc = Технетсий
+    .tc = Технесий
     .ru = Рутений
     .rh = Родий
     .pd = Палладий
@@ -315,7 +345,7 @@ element-name =
     .er = Эрбий
     .tm = Тулий
     .yb = Иттербий
-    .lu = Лютетсий
+    .lu = Лютесий
     .hf = Гафний
     .ta = Тантал
     .w = Волфрам
@@ -339,7 +369,7 @@ element-name =
     .u = Уран
     .np = Нептуний
     .pu = Плутоний
-    .am = Америтсий
+    .am = Америсий
     .cm = Кюрий
     .bk = Берклий
     .cf = Калифорний
@@ -356,7 +386,7 @@ element-name =
     .mt = Мейтнерий
     .ds = Дармштадтий
     .rg = Рентгений
-    .cn = Копернитсий
+    .cn = Копернисий
     .nh = Нихоний
     .fl = Флеровий
     .mc = Московий

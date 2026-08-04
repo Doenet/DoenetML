@@ -168,8 +168,8 @@ help-ref-is-reference =
 
 help-ref-derived-from =
     { $line ->
-        [none] შემოიტანა { $owner }-მა როგორც { $role }.
-       *[other] შემოიტანა { $owner }-მა { $line } სტრიქონში როგორც { $role }.
+        [none] შემოტანილია { $owner }-ის მიერ, როგორც { $role }.
+       *[other] შემოტანილია { $owner }-ის მიერ { $line } სტრიქონში, როგორც { $role }.
     }
 
 help-property-is-reference =

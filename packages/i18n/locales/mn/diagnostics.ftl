@@ -14,6 +14,14 @@
 # Mongolian counts in the same two categories English does, so every selection
 # below keeps both branches — but a noun after a numeral stays singular, so the
 # two usually differ only in the number they print.
+#
+# Mongolian marks case with a suffix, and the suffix harmonizes with the vowels
+# of the word it lands on — so it can never be welded to a placeable, whose
+# value this catalog never sees. Every case ending below therefore sits on a
+# noun this file writes itself: «бүрэлдэхүүн» for a component or tag name,
+# «үйлдэл» for an action, «атрибут» for an attribute, «утга» for a value,
+# «сонголт» for an option. The ordinal «-р» is the one exception, and only
+# because it is invariant and lands on a number.
 
 ## `<lineSegment>`
 
@@ -43,9 +51,9 @@ line-equation-invalid-format = { $variable1 } ба { $variable2 } хувьсаг
 
 ## `<ray>`
 
-ray-overprescribed-through = Туяа нь through, endpoint болон direction-оор өгөгдсөн. Өгөгдсөн through тооцогдохгүй.
+ray-overprescribed-through = Цацраг нь through, endpoint болон direction-оор өгөгдсөн. Өгөгдсөн through тооцогдохгүй.
 
-ray-dimension-mismatch = туяан дахь numDimensions таарахгүй байна.
+ray-dimension-mismatch = цацраг дахь numDimensions таарахгүй байна.
 
 ## `<vector>`
 
@@ -55,11 +63,11 @@ vector-dimension-mismatch = вектор дахь numDimensions таарахгү
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = `<{ $component }>`-д татах боломжгүй, учир нь түүнд nearestPoint төлөвийн хувьсагч алга.
+attract-to-without-nearest-point = `<{ $component }>` бүрэлдэхүүнд татах боломжгүй, учир нь түүнд nearestPoint төлөвийн хувьсагч алга.
 
-constrain-to-without-nearest-point = `<{ $component }>`-ээр хязгаарлах боломжгүй, учир нь түүнд nearestPoint төлөвийн хувьсагч алга.
+constrain-to-without-nearest-point = `<{ $component }>` бүрэлдэхүүнээр хязгаарлах боломжгүй, учир нь түүнд nearestPoint төлөвийн хувьсагч алга.
 
-constrain-to-interior-without-nearest-point = `<{ $component }>`-ийн дотор талаар хязгаарлах боломжгүй, учир нь түүнд nearestPoint төлөвийн хувьсагч алга.
+constrain-to-interior-without-nearest-point = `<{ $component }>` бүрэлдэхүүний дотор талаар хязгаарлах боломжгүй, учир нь түүнд nearestPoint төлөвийн хувьсагч алга.
 
 ## `<choiceInput>`
 
@@ -73,7 +81,7 @@ pretzel-indices-count-mismatch = problem-д өгсөн индексүүд тоо
 
 shuffle-indices-count-mismatch = shuffle-д өгсөн индексүүд тооцогдохгүй, учир нь тэдгээрийн тоо бүрэлдэхүүнүүдийн тоотой таарахгүй байна.
 
-indices-ignored-out-of-range = { $component }-д өгсөн индексүүд тооцогдохгүй, учир нь зарим нь мужаас гадуур байна.
+indices-ignored-out-of-range = { $component } бүрэлдэхүүнд өгсөн индексүүд тооцогдохгүй, учир нь зарим нь мужаас гадуур байна.
 
 pretzel-indices-repeated = pretzel-д өгсөн индексүүд тооцогдохгүй, учир нь зарим нь давтагдаж байна.
 
@@ -85,7 +93,7 @@ string-children-need-type = `<{ $component }>` текст удмуудтай а�
 
 invalid-type-defaulting-to-math = { $component } бүрэлдэхүүнд буруу төрөл { $type }. Энэ нь math, text, number эсвэл boolean байх ёстой. math ашиглагдана.
 
-string-not-valid-component-to-arrange = «{ $value }» мөр нь { $component }-д тохирох бүрэлдэхүүн биш. Тооцогдохгүй.
+string-not-valid-component-to-arrange = «{ $value }» мөр нь { $component } үйлдэлд тохирох бүрэлдэхүүн биш. Тооцогдохгүй.
 
 ## Types and variables
 
@@ -135,7 +143,7 @@ accessibility-short-description-contains-math = Богино тайлбарт `<
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] { $colorName } нь бүлгийн гарчгийн текстэд хангалттай тодрол өгөхгүй байна (харанхуй загвар) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; дор хаяж { $threshold }:1 шаардлагатай).
+        [dark] { $colorName } нь бүлгийн гарчгийн текстэд хангалттай тодрол өгөхгүй байна (харанхуй горим) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; дор хаяж { $threshold }:1 шаардлагатай).
        *[other] { $colorName } нь бүлгийн гарчгийн текстэд хангалттай тодрол өгөхгүй байна ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; дор хаяж { $threshold }:1 шаардлагатай).
     }
 
@@ -230,17 +238,17 @@ select-from-sequence-coprime-with-exclude-combinations = excludeCombinations з�
 
 ## Resolving a `target`
 
-target-not-found = `<{ $source }>`-д буруу target: бай олдсонгүй.
+target-not-found = `<{ $source }>` бүрэлдэхүүнд буруу target: бай олдсонгүй.
 
-target-state-variable-not-found = `<{ $source }>`-д буруу target: `<{ $component }>` дээр «{ $property }» нэртэй төлөвийн хувьсагч олдсонгүй.
+target-state-variable-not-found = `<{ $source }>` бүрэлдэхүүнд буруу target: `<{ $component }>` дээр «{ $property }» нэртэй төлөвийн хувьсагч олдсонгүй.
 
 ## `<odeSystem>`
 
 ode-system-variables-match-independent = `<odeSystem>`-ийн хувьсагчид үл хамаарах хувьсагчаас ялгаатай байх ёстой.
 
-ode-system-duplicate-variable-names = Хамаарах хувьсагчдын давхардсан нэрсээр ДТ-ийн баруун талын функцүүдийг тодорхойлох боломжгүй.
+ode-system-duplicate-variable-names = Хамаарах хувьсагчдын давхардсан нэрсээр дифференциал тэгшитгэлийн баруун талын функцүүдийг тодорхойлох боломжгүй.
 
-ode-system-rhs-function-error = ДТ-ийн баруун талын функцийг тодорхойлох боломжгүй. mathjs функц үүсгэхэд алдаа гарлаа.
+ode-system-rhs-function-error = дифференциал тэгшитгэлийн баруун талын функцийг тодорхойлох боломжгүй. mathjs функц үүсгэхэд алдаа гарлаа.
 
 ## `<angle>`, `<parabola>`, and `<intersection>`
 
@@ -276,7 +284,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: grid="{ $grid }"-ийг тайлбарлах боломжгүй. Энэ нь none, medium, dense эсвэл хоосон зайгаар тусгаарласан хоёр эерэг тоо байх ёстой, жишээ нь grid="1 0.5". Тор зурагдахгүй.
+graph-grid-invalid = `<graph>`: grid="{ $grid }" утгыг тайлбарлах боломжгүй. Энэ нь none, medium, dense эсвэл хоосон зайгаар тусгаарласан хоёр эерэг тоо байх ёстой, жишээ нь grid="1 0.5". Тор зурагдахгүй.
 
 ## PreFigure renderer
 
@@ -310,7 +318,7 @@ reference-index-unavailable = `{ $reference }` индексийг лавлах �
 
 ## `<callAction>`
 
-component-action-unavailable = `{ $reference }` бүрэлдэхүүн дээр { $action }-ыг дуудах боломжгүй
+component-action-unavailable = `{ $reference }` бүрэлдэхүүн дээр { $action } үйлдлийг дуудах боломжгүй
 
 ## `<dataFrame>`
 
@@ -373,64 +381,64 @@ attribute-invalid-for-component = `<{ $componentType }>` төрлийн бүрэ
 ## Style definition contrast
 
 style-definition-insufficient-contrast =
-    { $styleNumber } загварын тодорхойлолтод { $context ->
+    { $styleNumber }-р загварын тодорхойлолтод { $context ->
         [text-on-background] текстийн өнгө болон дэвсгэрийн өнгөний
         [high-contrast] өндөр тодролтой өнгө болон зурагны талбарын
         [line] шугамын өнгө болон зурагны талбарын
         [marker] маркерын өнгө болон зурагны талбарын
        *[text-on-canvas] текстийн өнгө болон зурагны талбарын
     } хоорондох тодрол хангалтгүй{ $mode ->
-        [dark] { " (харанхуй загвар)" }
+        [dark] { " (харанхуй горим)" }
        *[light] { "" }
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; дор хаяж { $threshold }:1 шаардлагатай).
 
 style-definition-dark-mode-text-background-contrast =
-    { $styleNumber } загварын тодорхойлолтод өгөгдсөн өнгөнүүд цайвар загварт хангалттай тодрол өгч байгаа ч тэдгээрээс гаргасан харанхуй загварын өнгөнүүд текст ба дэвсгэрийн хооронд хангалтгүй тодрол өгч байна ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; дор хаяж { $threshold }:1 шаардлагатай). { $suggestion ->
-        [available] Харанхуй загварт хангалттай тодрол авахын тулд цайвар загварын тодролыг нэмэгдүүлэх (жишээ нь { $lightAttribute }="{ $lightColor }"), эсвэл харанхуй загварын өнгийг дарж бичнэ үү (жишээ нь { $darkAttribute }="{ $darkColor }").
-       *[none] Харанхуй загварт хангалттай тодрол авахын тулд цайвар загварын тодролыг нэмэгдүүлэх, эсвэл гарсан өнгөнүүдийг textColorDarkMode ба/эсвэл backgroundColorDarkMode-оор дарж бичнэ үү.
+    { $styleNumber }-р загварын тодорхойлолтод өгөгдсөн өнгөнүүд цайвар горимд хангалттай тодрол өгч байгаа ч тэдгээрээс гаргасан харанхуй горимын өнгөнүүд текст ба дэвсгэрийн хооронд хангалтгүй тодрол өгч байна ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; дор хаяж { $threshold }:1 шаардлагатай). { $suggestion ->
+        [available] Харанхуй горимд хангалттай тодрол авахын тулд цайвар горимын тодролыг нэмэгдүүлэх (жишээ нь { $lightAttribute }="{ $lightColor }"), эсвэл харанхуй горимын өнгийг дарж бичнэ үү (жишээ нь { $darkAttribute }="{ $darkColor }").
+       *[none] Харанхуй горимд хангалттай тодрол авахын тулд цайвар горимын тодролыг нэмэгдүүлэх, эсвэл гарсан өнгөнүүдийг textColorDarkMode ба/эсвэл backgroundColorDarkMode-оор дарж бичнэ үү.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    { $styleNumber } загварын тодорхойлолтод өгөгдсөн текстийн өнгө цайвар загварт хангалттай тодрол өгч байгаа ч түүнээс гаргасан харанхуй загварын текстийн өнгө зурагны талбартай хангалтгүй тодрол өгч байна ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; дор хаяж { $threshold }:1 шаардлагатай). { $suggestion ->
-        [available] Харанхуй загварт хангалттай тодрол авахын тулд цайвар загварын тодролыг нэмэгдүүлэх (жишээ нь textColor="{ $lightColor }"), эсвэл харанхуй загварын өнгийг дарж бичнэ үү (жишээ нь textColorDarkMode="{ $darkColor }").
-       *[none] Харанхуй загварт хангалттай тодрол авахын тулд цайвар загварын тодролыг нэмэгдүүлэх, эсвэл гарсан өнгийг textColorDarkMode-оор дарж бичнэ үү.
+    { $styleNumber }-р загварын тодорхойлолтод өгөгдсөн текстийн өнгө цайвар горимд хангалттай тодрол өгч байгаа ч түүнээс гаргасан харанхуй горимын текстийн өнгө зурагны талбартай хангалтгүй тодрол өгч байна ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; дор хаяж { $threshold }:1 шаардлагатай). { $suggestion ->
+        [available] Харанхуй горимд хангалттай тодрол авахын тулд цайвар горимын тодролыг нэмэгдүүлэх (жишээ нь textColor="{ $lightColor }"), эсвэл харанхуй горимын өнгийг дарж бичнэ үү (жишээ нь textColorDarkMode="{ $darkColor }").
+       *[none] Харанхуй горимд хангалттай тодрол авахын тулд цайвар горимын тодролыг нэмэгдүүлэх, эсвэл гарсан өнгийг textColorDarkMode-оор дарж бичнэ үү.
     }
 
 section-multiple-style-palettes = Бүлэг зөвхөн нэг <stylePalette> сонгож чадна; сүүлчийнх нь хэрэглэгдэнэ.
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = { $component }-ийн давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь numToSelect сөрөг бус бүхэл тоо биш.
+variant-num-to-select-not-non-negative-integer = { $component } бүрэлдэхүүний давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь numToSelect сөрөг бус бүхэл тоо биш.
 
-variant-num-to-select-not-constant-number = { $component }-ийн давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь numToSelect тогтмол тоо биш.
+variant-num-to-select-not-constant-number = { $component } бүрэлдэхүүний давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь numToSelect тогтмол тоо биш.
 
-variant-with-replacement-not-constant-boolean = { $component }-ийн давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь withReplacement тогтмол логик утга биш.
+variant-with-replacement-not-constant-boolean = { $component } бүрэлдэхүүний давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь withReplacement тогтмол логик утга биш.
 
 variant-select-weight-disables-unique = аль нэг сонголтод selectWeight эсвэл selectForVariants заагдсан бол select-ийн давтагдашгүй хувилбарууд идэвхгүй болно
 
-variant-coprime-undetermined = { $component }-ийн давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь coprime үргэлж худал эсэхийг тогтоох боломжгүй.
+variant-coprime-undetermined = { $component } бүрэлдэхүүний давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь coprime үргэлж худал эсэхийг тогтоох боломжгүй.
 
-variant-attribute-not-constant = { $component }-ийн давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь { $attribute } тогтмол биш.
+variant-attribute-not-constant = { $component } бүрэлдэхүүний давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь { $attribute } тогтмол биш.
 
-variant-attribute-not-number = { $component }-ийн давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь { $attribute } тоо биш.
+variant-attribute-not-number = { $component } бүрэлдэхүүний давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь { $attribute } тоо биш.
 
 variant-attribute-wrong-type-for-sequence =
-    { $type } төрлийн { $component }-ийн давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь { $attribute } нь { $expected ->
+    { $type } төрлийн { $component } бүрэлдэхүүний давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь { $attribute } нь { $expected ->
         [letters-combination] үсгүүдийн хослол
         [math-expression] зөв математик илэрхийлэл
         [integer] бүхэл тоо
        *[number] тоо
     } биш.
 
-variant-length-not-integer = { $component }-ийн давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь length бүхэл тоо биш.
+variant-length-not-integer = { $component } бүрэлдэхүүний давтагдашгүй хувилбаруудыг тодорхойлох боломжгүй, учир нь length бүхэл тоо биш.
 
-variant-sort-not-implemented = sort бүхий { $component }-ийн давтагдашгүй хувилбарууд хэрэгжүүлэгдээгүй
+variant-sort-not-implemented = sort бүхий { $component } бүрэлдэхүүний давтагдашгүй хувилбарууд хэрэгжүүлэгдээгүй
 
-variant-exclude-combinations-not-implemented = excludeCombinations бүхий { $component }-ийн давтагдашгүй хувилбарууд хэрэгжүүлэгдээгүй
+variant-exclude-combinations-not-implemented = excludeCombinations бүхий { $component } бүрэлдэхүүний давтагдашгүй хувилбарууд хэрэгжүүлэгдээгүй
 
-variant-math-exclude-not-implemented = exclude бүхий math төрлийн { $component }-ийн давтагдашгүй хувилбарууд хэрэгжүүлэгдээгүй
+variant-math-exclude-not-implemented = exclude бүхий math төрлийн { $component } бүрэлдэхүүний давтагдашгүй хувилбарууд хэрэгжүүлэгдээгүй
 
-variant-non-constant-exclude-not-implemented = тогтмол бус exclude бүхий { $component }-ийн давтагдашгүй хувилбарууд хэрэгжүүлэгдээгүй
+variant-non-constant-exclude-not-implemented = тогтмол бус exclude бүхий { $component } бүрэлдэхүүний давтагдашгүй хувилбарууд хэрэгжүүлэгдээгүй
 
 ## PreFigure conversion
 
@@ -486,9 +494,9 @@ reference-multiple-referents = Лавлагаанд тохирох хэд хэд
 
 ## Children that do not match
 
-children-invalid-attribute-format = `<{ $componentType }>`-ийн { $attribute } атрибутын хэлбэр буруу.
+children-invalid-attribute-format = `<{ $componentType }>` бүрэлдэхүүний { $attribute } атрибутын хэлбэр буруу.
 
-children-invalid = `<{ $componentType }>`-д буруу удмууд: буруу удмууд олдлоо: { $children }
+children-invalid = `<{ $componentType }>` бүрэлдэхүүнд буруу удмууд: буруу удмууд олдлоо: { $children }
 
 ## Falling back to a default
 
@@ -568,8 +576,8 @@ external-doenetml-type-mismatch = { $attribute }="{ $uri }" хаягаас бу�
 
 deprecated-attribute-renamed =
     { $component ->
-        [none] [deprecation] `{ $from }` атрибут хуучирсан; оронд нь `{ $to }`-ыг ашиглана уу.
-       *[other] [deprecation] `<{ $component }>` дээрх `{ $from }` атрибут хуучирсан; оронд нь `{ $to }`-ыг ашиглана уу.
+        [none] [deprecation] `{ $from }` атрибут хуучирсан; оронд нь `{ $to }` атрибутыг ашиглана уу.
+       *[other] [deprecation] `<{ $component }>` дээрх `{ $from }` атрибут хуучирсан; оронд нь `{ $to }` атрибутыг ашиглана уу.
     }
 
 deprecated-attribute-renamed-conflict =
@@ -611,7 +619,7 @@ select-variant-name-without-options = select-д хувилбарууд зааг�
 
 select-variant-name-not-possible = select-д заасан { $variantName } хувилбарын нэр нь боломжит хувилбарын нэр биш.
 
-select-too-few-options = Ердөө { $numOptions }-аас { $numToSelect } бүрэлдэхүүн сонгох боломжгүй.
+select-too-few-options = Ердөө { $numOptions } сонголтоос { $numToSelect } бүрэлдэхүүн сонгох боломжгүй.
 
 select-from-sequence-too-few-values = Урт нь { $length } дараалалаас { $numToSelect } утга сонгох боломжгүй.
 

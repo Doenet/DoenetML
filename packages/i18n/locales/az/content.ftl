@@ -71,8 +71,8 @@ noun =
     .point = nöqtə
     .square = kvadrat
     .diamond = romb
-    .cross = xaç
-    .plus = plyus
+    .cross = çarpaz
+    .plus = plus
 
 # Azerbaijani builds the word from the side count in front of the noun, so the
 # whole of it is one head and there is no tail.
@@ -224,7 +224,7 @@ paginator-previous = Əvvəlki
 paginator-next = Sonrakı
 paginator-page = Səhifə
 
-paginator-page-status = { $numPages } { $pageLabel }-dən { $currentPage }
+paginator-page-status = { $numPages } { $pageLabel } içərisindən { $currentPage }
 
 
 ## Piecewise functions

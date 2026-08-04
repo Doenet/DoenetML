@@ -52,15 +52,15 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Yzky habar
+feedback-heading = Seslenme
 
 collapsible-click-to-open = (açmak üçin basyň)
 collapsible-click-to-close = (ýapmak üçin basyň)
 
 collapsible-initializing = Taýýarlanýar…
 
-footnote-show = Bellikni görkez
-footnote-hide = Bellikni gizle
+footnote-show = Belligi görkez
+footnote-hide = Belligi gizle
 
 description-more-information = goşmaça maglumat
 

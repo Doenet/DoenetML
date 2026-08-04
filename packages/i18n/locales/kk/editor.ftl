@@ -212,4 +212,4 @@ help-reset-list = Осы өрістің қалпына келтіру тізім
 help-added-on-input = Осы өріске қосылғандар:
 help-removed-on-input = Осы өрістен алынғандар:
 
-help-reset-overrides = { $reset } — { $additional } мен { $removed } үстінен басым.
+help-reset-overrides = { $reset } — { $additional }, { $removed } атрибуттарынан басым.

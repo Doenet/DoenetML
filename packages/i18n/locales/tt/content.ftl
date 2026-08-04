@@ -66,7 +66,7 @@ noun =
     .point = нокта
     .square = квадрат
     .diamond = ромб
-    .cross = хач
+    .cross = кисешү тамгасы
     .plus = плюс
 
 # Tatar builds the word from the side count in front of the noun, so the whole
@@ -74,7 +74,7 @@ noun =
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
-       *[head] дөрес { $numSides }-мөйешлек
+       *[head] дөрес { $numSides } мөйешлек
     }
 
 # Tatar has no grammatical gender, so every noun answers the same and the answer
@@ -200,16 +200,16 @@ hint-title = Киңәш
 
 table-name =
     { $parts ->
-        [numbered] { $enumeration }-таблица
-        [numbered-title] { $enumeration }-таблица{ ". " }
+        [numbered] { $enumeration } нче таблица
+        [numbered-title] { $enumeration } нче таблица{ ". " }
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
 
 figure-name =
     { $parts ->
-        [numbered] { $enumeration }-рәсем
-        [numbered-caption] { $enumeration }-рәсем{ ". " }
+        [numbered] { $enumeration } нче рәсем
+        [numbered-caption] { $enumeration } нче рәсем{ ". " }
         [unnumbered-caption] Рәсем{ ". " }
        *[unnumbered] Рәсем
     }

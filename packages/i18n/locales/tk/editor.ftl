@@ -143,7 +143,7 @@ help-unresolved-ref =
     }
 
 help-learn-about-references = Salgylanmalar barada öwreniň →
-help-reference-page = Sprawka sahypasy →
+help-reference-page = Salgylanma sahypasy →
 
 help-suggestions-header =
     { $location ->

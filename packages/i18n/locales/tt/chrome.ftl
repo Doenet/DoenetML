@@ -45,8 +45,8 @@ validation-partially-correct = (Өлешчә дөрес)
 
 answer-show-responses =
     { $count ->
-        [one] { $answerId } өчен { $count } җавапны күрсәтү
-       *[other] { $answerId } өчен { $count } җавапны күрсәтү
+        [one] { $answerId } өчен { $count } җавап күрсәтү
+       *[other] { $answerId } өчен { $count } җавап күрсәтү
     }
 
 
@@ -118,8 +118,8 @@ error-heading = Хата
 
 error-found-at =
     { $span ->
-        [line] { $startLine } юлында табылды.
-       *[lines] { $startLine }–{ $endLine } юлларында табылды.
+        [line] { $startLine } нче юлда табылды.
+       *[lines] { $startLine }–{ $endLine } нче юлларда табылды.
     }
 
 document-contains-errors = Бу документта хаталар бар!

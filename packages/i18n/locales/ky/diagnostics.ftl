@@ -230,7 +230,7 @@ select-from-sequence-coprime-with-exclude-combinations = excludeCombinations б�
 
 ## Resolving a `target`
 
-target-not-found = `<{ $source }>` үчүн жараксыз target: бутага табылган жок.
+target-not-found = `<{ $source }>` үчүн жараксыз target: бута табылган жок.
 
 target-state-variable-not-found = `<{ $source }>` үчүн жараксыз target: `<{ $component }>` элементинде «{ $property }» аттуу абал өзгөрмөсү табылган жок.
 
@@ -360,7 +360,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = `{ $attribute }` атрибуту үчүн жараксыз маани `{ $value }`. Атрибут `$` белгисинен башталган шилтемелерден турушу керек.
 
-math-input-invalid-function-names = <mathInput>: { $attribute } ичиндеги жараксыз функция аттары эске алынган жок: { $names }. Ар бир аттын көрсөтүлүүчү бөлүгү жок дегенде 2 белги болушу керек (тамгалар же сызыкчалар); андан кийин милдеттүү эмес `|<mathspeak алтернатива>` мүчөсү келиши мүмкүн.
+math-input-invalid-function-names = <mathInput>: { $attribute } ичиндеги жараксыз функция аттары эске алынган жок: { $names }. Ар бир аттын көрсөтүлүүчү бөлүгү жок дегенде 2 белги болушу керек (тамгалар же сызыкчалар); андан кийин милдеттүү эмес `|<mathspeak альтернатива>` мүчөсү келиши мүмкүн.
 
 ## Building components from the source
 

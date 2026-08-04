@@ -18,7 +18,13 @@
 #
 # «хүрээтэй» is the comitative of «хүрээ» and says "with a border" by itself;
 # its vowels follow that noun rather than anything handed in, so writing it out
-# here is safe.
+# here is safe. That is the general rule here: a Mongolian suffix harmonizes
+# with the word it lands on, so every ending below sits on a noun this catalog
+# writes and nothing is welded to a placeable.
+#
+# The element names drop a final -й — «Гели», «Лити», «Сканди» — which is what
+# the great majority of the list already did, so the outliers were brought into
+# line rather than the other way round.
 
 
 ## Style vocabulary
@@ -38,8 +44,8 @@ color =
     .brown = бор
 
 line-width =
-    .thick = зузаан
-    .thin = нимгэн
+    .thick = бүдүүн
+    .thin = нарийн
 
 line-style =
     .dashed = тасалдсан
@@ -57,12 +63,12 @@ fill-style =
 noun =
     .line = шулуун
     .line-segment = хэрчим
-    .ray = туяа
+    .ray = цацраг
     .vector = вектор
     .curve = муруй
     .function = функц
     .parabola = парабол
-    .polyline = эвдэрсэн шугам
+    .polyline = хугархай шугам
     .polygon = олон өнцөгт
     .triangle = гурвалжин
     .rectangle = тэгш өнцөгт
@@ -106,7 +112,7 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
-style-filled-word = дүүргэсэн
+style-filled-word = дүүргэлттэй
 
 style-filled =
     { $parts ->
@@ -139,7 +145,7 @@ style-fill =
        *[plain] { $color } дүүргэлт
     }
 
-style-unfilled = дүүргээгүй
+style-unfilled = дүүргэлтгүй
 
 # «дэвсгэр дээр» — the postposition follows the noun, and the colour in front of
 # it does not move.
@@ -259,7 +265,7 @@ element-name =
     .ar = Аргон
     .k = Кали
     .ca = Кальци
-    .sc = Скандий
+    .sc = Сканди
     .ti = Титан
     .v = Ванади
     .cr = Хром

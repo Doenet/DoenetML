@@ -680,12 +680,17 @@ describe("Tajik", () => {
 
     // Tajik is Persian in Cyrillic, so its adjectives follow the noun and the
     // link between them is the izafat. Persian's is an unwritten vowel after a
-    // consonant and the space carries it; Tajik writes it as «-и», the same
-    // «-и» whatever the word ends in, so `style-with-noun` welds it onto the
-    // placeable. That is allowed for the reason `{ $numSides }-kulmio` is
-    // allowed in Finnish — the ending is adjacent to the word rather than
-    // agreeing with it — and this is what holds it: the same suffix lands on a
-    // consonant-final «хат» and a vowel-final «доира» without changing shape.
+    // consonant and the space carries it; Tajik writes it as «-и», so
+    // `style-with-noun` welds it onto the placeable. The izafat is not written
+    // the same way after every ending — a ъ-final word drops the ъ and a
+    // ӣ-final word shortens the ӣ — so what holds the weld is that the catalog
+    // chose the words that land there: every entry in its `noun` and `color`
+    // tables ends in a consonant or in a vowel the izafat leaves untouched, so
+    // the same suffix lands on a consonant-final «хат» and a vowel-final
+    // «доира» without changing shape. A chain of adjectives carries the izafat
+    // on each non-final one, so «сурхи хат-хати ғафс» rather than a bare
+    // juxtaposition, and the stroke adjectives are the mirror of English's
+    // order while «пуршуда» stays nearest the noun.
     it("links a noun to its adjectives with the izafat", () => {
         expect(
             describeStrokedShape(
@@ -697,7 +702,7 @@ describe("Tajik", () => {
                 },
                 { noun: { key: "line" }, withNoun: true },
             ),
-        ).toBe("хати сурх хат-хат ғафс");
+        ).toBe("хати сурхи хат-хати ғафс");
         expect(
             describeClosedShape(
                 tg,
@@ -708,7 +713,7 @@ describe("Tajik", () => {
                 },
                 { filled: true, noun: { key: "circle" }, withNoun: true },
             ),
-        ).toBe("доираи пуршудаи кабуд бо ҳошияи сиёҳ ғафс");
+        ).toBe("доираи пуршудаи кабуд бо ҳошияи сиёҳи ғафс");
     });
 
     // The side count follows the adjectives rather than standing in front of
@@ -724,7 +729,7 @@ describe("Tajik", () => {
                     withNoun: true,
                 },
             ),
-        ).toBe("бисёркунҷаи мунтазами сурх ғафс бо 5 тараф");
+        ).toBe("бисёркунҷаи мунтазами сурхи ғафс бо 5 тараф");
     });
 });
 

@@ -14,6 +14,15 @@
 # Tajik counts in the same two categories English does, so every selection below
 # keeps both branches — though a noun after a numeral stays singular, so the two
 # read alike.
+#
+# Case and izafat endings are written onto a value only where the value is an
+# identifier — a Latin-script attribute, element or property name, which takes
+# the same ending whatever it is — and they are hyphenated there, as Tajik
+# hyphenates a suffix after Latin script. An author's own word
+# is not welded to: `help-unresolved-ref` and `help-suggestions-footer` name
+# what the value is and let it follow the clause, which is the README's "Name
+# what the value is". A Cyrillic word this catalog wrote itself takes the
+# ending unhyphenated, as in `editor-update-viewer-title`.
 
 
 ## The viewer's controls
@@ -139,7 +148,7 @@ help-unresolved-ref =
     { $reason ->
         [notFound] Барои истинод объект ёфт нашуд: { $ref }.
         [multiple] Барои истинод якчанд объект ёфт шуд: { $ref }.
-       *[indeterminate] Объекти { $ref }-ро муайян кардан нашуд.
+       *[indeterminate] Барои истинод объектро муайян кардан нашуд: { $ref }.
     }
 
 help-learn-about-references = Дар бораи истинодҳо омӯзед →
@@ -156,7 +165,7 @@ help-suggestions-header =
        *[components] { " — инҳоро санҷидан мумкин аст:" }
     }
 
-help-suggestions-footer = Барои дидани ҳамаи { $total } ҷузъ { $shortcut }-ро пахш кунед.
+help-suggestions-footer = Барои дидани ҳамаи { $total } ҷузъ ин тугмаҳоро пахш кунед: { $shortcut }.
 
 help-name-summary = { $name } — { $summary }
 

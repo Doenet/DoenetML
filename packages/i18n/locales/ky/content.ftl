@@ -9,11 +9,12 @@
 # English and Turkish. Adjectives precede the noun, so the composition messages
 # keep the English order.
 #
-# The two clauses are marked by a suffix on the *noun* — «чектүү», «фондо» — and
+# The two clauses are marked by a suffix on the *noun* — «жээктүү», «фондо» — and
 # that noun is one this catalog writes, so nothing is welded to a placeable.
 # `locales/kk` is the closest parallel text to this file: the grammar is the
-# same and the vocabulary is not, so a correction to one is usually a
-# correction to neither.
+# same and the vocabulary is not, so a correction to the *shape* of a message
+# here is usually a correction to that file too, while a correction to a word
+# is usually a correction to this one alone.
 
 
 ## Style vocabulary
@@ -29,11 +30,11 @@ color =
     .cyan = көгүлтүр
     .blue = көк
     .purple = кызгылт көк
-    .pink = кызгылт
+    .pink = ачык кызгылт
     .brown = күрөң
 
 line-width =
-    .thick = жоон
+    .thick = калың
     .thin = ичке
 
 line-style =
@@ -117,15 +118,15 @@ style-filled-with-noun =
        *[plain] { $color } { $filled } { $noun }
     }
 
-# «чектүү» — "bordered" — carries the "with a border" sense in its own suffix,
+# «жээктүү» — "bordered" — carries the "with a border" sense in its own suffix,
 # so neither a preposition nor an article is wanted, and all four branches read
 # alike except for the connective English needs and Kyrgyz does not.
 style-border-clause =
     { $parts ->
-        [with-article] { $border } чектүү
-        [and] жана { $border } чектүү
-        [and-article] жана { $border } чектүү
-       *[with] { $border } чектүү
+        [with-article] { $border } жээктүү
+        [and] жана { $border } жээктүү
+        [and-article] жана { $border } жээктүү
+       *[with] { $border } жээктүү
     }
 
 style-fill =
@@ -163,7 +164,7 @@ answer-submit-label-no-correctness = Жоопту жөнөтүү
 
 section-name =
     .activity = Иш-аракет
-    .aside = Кыйыр эскертүү
+    .aside = Чегинүү
     .cascade = Каскад
     .definition = Аныктама
     .example = Мисал

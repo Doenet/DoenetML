@@ -14,6 +14,14 @@
 # Tajik counts in the same two categories English does, so every selection below
 # keeps both branches — but a noun after a numeral stays singular, so the two
 # usually differ only in the number they print.
+#
+# A case or izafat ending is written onto a value only where that value is a
+# DoenetML identifier, which is Latin script and takes the same ending whatever
+# it is — «{ $component }-ро», «{ $type }-и» — and it is hyphenated everywhere
+# in this file, as Tajik hyphenates a suffix after Latin script. Nothing here
+# welds an ending onto an author's own word: where one is quoted back it stands
+# inside backticks or quotes and the ending falls on a word this catalog wrote.
+# See "An affix cannot be welded to a placeable" in the README.
 
 ## `<lineSegment>`
 

@@ -448,18 +448,19 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and German, Russian, Polish, Czech, Slovak, Ukrainian, Greek,
-Romanian, Finnish, Hindi, Marathi, Punjabi, Urdu, Sindhi, Pashto and Georgian
-are the catalogs that select on them. Sharing a script does not imply sharing the fork:
-Marathi and Hindi both take an oblique adjective before a postposition and
-Nepali, written in the same letters, takes none. Nor is the fork
+positions, and `be`, `cs`, `de`, `el`, `et`, `fi`, `hi`, `hr`, `ka`, `lt`,
+`lv`, `mr`, `pa`, `pl`, `ps`, `ro`, `ru`, `sd`, `sk`, `sl`, `sq`, `sr`, `uk`
+and `ur` are the catalogs that select on them. Sharing a script does not imply
+sharing the fork: Marathi and Hindi both take an oblique adjective before a
+postposition and Nepali, written in the same letters, takes none. Nor is the fork
 all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and
 nowhere else, and Punjabi only where the position's own noun is masculine, so
 each branches on one position out of the four and leaves the rest to the
 default. Georgian is the third of that kind and the narrowest: an attributive
 adjective there drops its final -ი in the dative and keeps it everywhere else,
 and only the background is a dative, so `background-clause` is the one branch
-its catalog writes out.
+its catalog writes out — and only for the colours, since a colour is the one
+thing ever looked up in that position.
 
 Nor does inflecting for case imply forking at all. The Turkic catalogs — `tr`,
 `az`, `kk`, `ky`, `uz`, `tk`, `tt`, `ug` — inflect a great deal and select on
@@ -536,14 +537,20 @@ Adjacency is not the problem. `{ $numSides }-kulmio` is correct Finnish for
 every side count, because `-kulmio` is the same whatever number lands in front
 of it. What cannot be written is *agreement* with an unknown word.
 
-Tajik is the case where that distinction decides something. Its adjectives
-follow the noun and the izafat links them, and unlike Persian's — an unwritten
-vowel after a consonant, which is why `locales/fa` lets the space carry it —
-Tajik's is written, as «-и», and is the same «-и» whatever the word ends in. So
-`locales/tg` writes `{ $noun }и { $description }` and that is sound: the ending
-is adjacent to the placeable rather than agreeing with it. It is the one place
-any catalog here welds an affix onto a value, and the rule above is what
-permits it.
+Tajik is the case where that distinction decides something, and it needs both
+this rule and the third way out below to come off. Its adjectives follow the
+noun and the izafat links them, and unlike Persian's — an unwritten vowel after
+a consonant, which is why `locales/fa` lets the space carry it — Tajik's is
+written, as «-и». So `locales/tg` writes `{ $noun }и { $description }`, welding
+an affix onto a value, which nothing else here does. What makes that sound is
+not that the izafat never changes: a ъ-final word drops the ъ before it
+(«шуоъ» → «шуои») and a ӣ-final word shortens the ӣ. It is that the catalog
+**chooses the words that land there** — `.ray` is «нур» rather than «шуоъ»,
+`.square` is «квадрат» rather than «мураббаъ», and the colours that chain an
+izafat in `style-stroke` are picked the same way — so every word the frame can
+meet is one the ending merely sits beside. `locales/tg`'s own header records
+that, because a new entry in its `noun` or `color` table has to be checked
+against it.
 
 There are four ways out, and every catalog here takes one of them:
 

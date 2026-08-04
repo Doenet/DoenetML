@@ -14,6 +14,11 @@
 # Mongolian counts in the same two categories English does, so every selection
 # below keeps both branches — though a noun after a numeral stays singular, so
 # the two read alike.
+#
+# A Mongolian case ending harmonizes with the word it attaches to, so none is
+# welded to a placeable: «лавлагаа», «бай» and «атрибут» are nouns this catalog
+# writes, and they carry the case instead. The invariant ordinal «-р» on a line
+# number is the one affix that may sit directly against a value.
 
 
 ## The viewer's controls
@@ -139,7 +144,7 @@ help-unresolved-ref =
     { $reason ->
         [notFound] Лавлагаанд тохирох объект олдсонгүй: { $ref }.
         [multiple] Лавлагаанд тохирох хэд хэдэн объект олдлоо: { $ref }.
-       *[indeterminate] { $ref }-д тохирох объектыг тодорхойлж чадсангүй.
+       *[indeterminate] { $ref } лавлагаанд тохирох объектыг тодорхойлж чадсангүй.
     }
 
 help-learn-about-references = Лавлагааны талаар мэдэх →
@@ -162,8 +167,8 @@ help-name-summary = { $name } — { $summary }
 
 help-ref-is-reference =
     { $line ->
-        [none] { $ref } нь { $target }-д хийсэн лавлагаа юм.
-       *[other] { $ref } нь { $target }-д хийсэн лавлагаа юм ({ $line }-р мөр).
+        [none] { $ref } нь { $target } байд хийсэн лавлагаа юм.
+       *[other] { $ref } нь { $target } байд хийсэн лавлагаа юм ({ $line }-р мөр).
     }
 
 help-ref-derived-from =
@@ -212,4 +217,4 @@ help-reset-list = Энэ талбарын сэргээх жагсаалт:
 help-added-on-input = Энэ талбарт нэмэгдсэн:
 help-removed-on-input = Энэ талбараас хасагдсан:
 
-help-reset-overrides = { $reset } нь { $additional } болон { $removed }-аас давуу үйлчилнэ.
+help-reset-overrides = { $reset } нь { $additional } болон { $removed } атрибутаас давуу үйлчилнэ.

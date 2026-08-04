@@ -42,12 +42,12 @@ line-style =
     .dotted = կետավոր
 
 fill-style =
-    .horizontal = հորիզոնական գծեր
-    .vertical = ուղղահայաց գծեր
-    .diagonal = անկյունագծային գծեր
-    .backdiagonal = հակառակ անկյունագծային գծեր
-    .dots = կետեր
-    .diamonds = շեղանկյուններ
+    .horizontal = հորիզոնական գծերի
+    .vertical = ուղղահայաց գծերի
+    .diagonal = անկյունագծային գծերի
+    .backdiagonal = հակառակ անկյունագծային գծերի
+    .dots = կետերի
+    .diamonds = շեղանկյունների
 
 noun =
     .line = ուղիղ
@@ -80,7 +80,7 @@ noun-regular-polygon =
 # Armenian has no grammatical gender, so every noun answers the same and the
 # answer goes unused — the same thing `locales/en` and `locales/tr` do. Nor is
 # there a case fork underneath it: the adjectives never move.
-noun-gender = none
+noun-gender = neuter
 
 
 ## Style composition
@@ -105,7 +105,9 @@ style-with-noun =
 style-filled-word = լցված
 
 # «զարդանախշով» — "with a pattern" — is instrumental, and the pattern word in
-# front of it stands unchanged, so nothing has to be welded to the placeable.
+# front of it is genitive, governed by «զարդանախշով» — which is why the
+# `fill-style` patterns are written in the genitive plural. Nothing is welded
+# to the placeable: the ending sits on a word this catalog writes.
 style-filled =
     { $parts ->
         [pattern] { $pattern } զարդանախշով { $color } { $filled }

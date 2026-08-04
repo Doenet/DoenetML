@@ -70,7 +70,7 @@ noun =
     .point = нүкте
     .square = шаршы
     .diamond = ромб
-    .cross = крест
+    .cross = айқыш
     .plus = плюс
 
 # Kazakh builds the word from the side count in front of the noun, so the whole
@@ -270,7 +270,7 @@ element-name =
     .zn = Мырыш
     .ga = Галлий
     .ge = Германий
-    .as = Мышьяк
+    .as = Күшән
     .se = Селен
     .br = Бром
     .kr = Криптон
@@ -288,7 +288,7 @@ element-name =
     .cd = Кадмий
     .in = Индий
     .sn = Қалайы
-    .sb = Сурьма
+    .sb = Сүрме
     .te = Теллур
     .i = Йод
     .xe = Ксенон

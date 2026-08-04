@@ -26,11 +26,11 @@ color =
     .white = oq
     .gray = kulrang
     .red = qizil
-    .orange = to‘q sariq
+    .orange = toʻq sariq
     .yellow = sariq
     .green = yashil
     .cyan = havorang
-    .blue = ko‘k
+    .blue = koʻk
     .purple = binafsha
     .pink = pushti
     .brown = jigarrang
@@ -53,7 +53,7 @@ fill-style =
     .diamonds = romb
 
 noun =
-    .line = to‘g‘ri chiziq
+    .line = toʻgʻri chiziq
     .line-segment = kesma
     .ray = nur
     .vector = vektor
@@ -61,9 +61,9 @@ noun =
     .function = funksiya
     .parabola = parabola
     .polyline = siniq chiziq
-    .polygon = ko‘pburchak
+    .polygon = koʻpburchak
     .triangle = uchburchak
-    .rectangle = to‘g‘ri to‘rtburchak
+    .rectangle = toʻgʻri toʻrtburchak
     .circle = aylana
     .region = soha
     .point = nuqta
@@ -104,7 +104,7 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
-style-filled-word = bo‘yalgan
+style-filled-word = boʻyalgan
 
 style-filled =
     { $parts ->
@@ -134,11 +134,11 @@ style-border-clause =
 
 style-fill =
     { $parts ->
-        [pattern] { $pattern } naqshli { $color } bo‘yoq
-       *[plain] { $color } bo‘yoq
+        [pattern] { $pattern } naqshli { $color } boʻyoq
+       *[plain] { $color } boʻyoq
     }
 
-style-unfilled = bo‘yalmagan
+style-unfilled = boʻyalmagan
 
 # «fonda» is the locative of «fon» and says "on the background" by itself, so
 # nothing stands between the two colours.
@@ -148,13 +148,13 @@ style-text =
        *[plain] { $color }
     }
 
-style-background-none = yo‘q
+style-background-none = yoʻq
 
 
 ## Boolean words
 
 boolean-true = rost
-boolean-false = yolg‘on
+boolean-false = yolgʻon
 
 
 ## Answer buttons
@@ -169,7 +169,7 @@ section-name =
     .activity = Faoliyat
     .aside = Chekinish
     .cascade = Kaskad
-    .definition = Ta’rif
+    .definition = Taʼrif
     .example = Misol
     .exercise = Mashq
     .exercises = Mashqlar
@@ -182,7 +182,7 @@ section-name =
     .problems = Masalalar
     .proof = Isbot
     .question = Savol
-    .section = Bo‘lim
+    .section = Boʻlim
     .solution = Yechim
     .task = Topshiriq
     .theorem = Teorema
@@ -308,7 +308,7 @@ element-name =
     .er = Erbiy
     .tm = Tuliy
     .yb = Itterbiy
-    .lu = Lyutetsiy
+    .lu = Lyutesiy
     .hf = Gafniy
     .ta = Tantal
     .w = Volfram
@@ -319,7 +319,7 @@ element-name =
     .au = Oltin
     .hg = Simob
     .tl = Talliy
-    .pb = Qo‘rg‘oshin
+    .pb = Qoʻrgʻoshin
     .bi = Vismut
     .po = Poloniy
     .at = Astat
@@ -332,7 +332,7 @@ element-name =
     .u = Uran
     .np = Neptuniy
     .pu = Plutoniy
-    .am = Ameritsiy
+    .am = Amerisiy
     .cm = Kyuriy
     .bk = Berkliy
     .cf = Kaliforniy
@@ -349,7 +349,7 @@ element-name =
     .mt = Meytneriy
     .ds = Darmshtadtiy
     .rg = Rentgeniy
-    .cn = Kopernitsiy
+    .cn = Kopernisiy
     .nh = Nixoniy
     .fl = Fleroviy
     .mc = Moskoviy

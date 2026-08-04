@@ -20,14 +20,14 @@
 
 editor-update-viewer =
     { $action ->
-        [reset] Баштапкы абалга
+        [reset] Калыбына келтирүү
        *[update] Жаңыртуу
     }
 
 editor-update-viewer-title =
     { $shortcut ->
-        [none] Көрсөткүчтү { $word }
-       *[other] Көрсөткүчтү { $word } { $shortcut }
+        [none] Карап көрүү куралын { $word }
+       *[other] Карап көрүү куралын { $word } { $shortcut }
     }
 
 

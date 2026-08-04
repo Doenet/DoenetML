@@ -605,7 +605,7 @@ schema-attribute-value-not-allowed =
 
 ## The `<select>` family's error boxes
 
-select-variant-name-option-count-mismatch = select üçün yanlış variant adı. { $variantName } variant adı { $numOptions } seçimdə rast gəlinir, seçiləcək say isə { $numToSelect }-dir.
+select-variant-name-option-count-mismatch = select üçün yanlış variant adı. { $variantName } variant adı { $numOptions } seçimdə rast gəlinir, seçiləcək say isə { $numToSelect }.
 
 select-variant-name-without-options = select üçün variantlar göstərilib, lakin mümkün variant adı üçün heç bir seçim yoxdur: { $variantName }.
 
