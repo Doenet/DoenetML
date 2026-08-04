@@ -251,4 +251,4 @@ piecewise-condition-otherwise = a leai
 ion-name-oxidation-state = { $name } ({ $numeral })
 
 chemistry-invalid-symbol = Faʻailoga kemikolo lē saʻo
-chemistry-invalid-ionic-compound = Tuufaatasiga ionika lē saʻo
+chemistry-invalid-ionic-compound = Tuʻufaʻatasiga ionika lē saʻo

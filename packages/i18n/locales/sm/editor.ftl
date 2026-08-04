@@ -19,8 +19,8 @@
 
 editor-update-viewer =
     { $action ->
-        [reset] Toe faatulaga
-       *[update] Faafou
+        [reset] Toe faʻatulaga
+       *[update] Faʻafou
     }
 
 editor-update-viewer-title =
@@ -33,7 +33,7 @@ editor-update-viewer-title =
 ## The variant picker
 
 editor-variant = Ituaiga
-editor-variant-filter = Faamama...
+editor-variant-filter = Faʻamama...
 editor-variant-next = Filifili le ituaiga sosoʻo
 editor-variant-previous = Filifili le ituaiga muamua
 
@@ -49,11 +49,11 @@ editor-accessibility-title =
         [advisories] Kiliki e { $action ->
             [close] tapuni
            *[open] tatala
-        } le lipoti o avanoa faigofie. E leai se solitulafono WCAG AA na maua, ae o loʻo iai ni fautuaga faaopoopo.
+        } le lipoti o avanoa faigofie. E leai se solitulafono WCAG AA na maua, ae o loʻo iai ni fautuaga faʻaopoopo.
        *[clean] Kiliki e { $action ->
             [close] tapuni
            *[open] tatala
-        } le lipoti o avanoa faigofie. E leai se faafitauli na maua.
+        } le lipoti o avanoa faigofie. E leai se faʻafitauli na maua.
     }
 
 editor-accessibility-label =
@@ -62,7 +62,7 @@ editor-accessibility-label =
             [close] tapuni
            *[open] tatala
         } le lipoti o avanoa faigofie.
-        [advisories] E leai se solitulafono WCAG AA na maua. E { $count } fautuaga faaopoopo na maua. Kiliki e { $action ->
+        [advisories] E leai se solitulafono WCAG AA na maua. E { $count } fautuaga faʻaopoopo na maua. Kiliki e { $action ->
             [close] tapuni
            *[open] tatala
         } le lipoti o avanoa faigofie.
@@ -90,8 +90,8 @@ editor-tab-responses = Tali ua lafo
 editor-tab-with-count = { $label }: { $count }
 
 editor-options = Filifiliga o le ētita
-editor-format-as-doenetml = Faatulaga e pei o le DoenetML
-editor-format-as-xml = Faatulaga e pei o le XML
+editor-format-as-doenetml = Faʻatulaga e pei o le DoenetML
+editor-format-as-xml = Faʻatulaga e pei o le XML
 
 
 ## The diagnostics panel
@@ -103,13 +103,13 @@ editor-no-warnings = E leai ni lapataʻiga
 editor-no-info = E leai ni faʻamatalaga
 
 editor-show-info-annotations = Faʻaali faʻamatalaga i le ētita
-editor-show-accessibility-annotations = Faʻaali faailoga o avanoa faigofie i le ētita
+editor-show-accessibility-annotations = Faʻaali faʻailoga o avanoa faigofie i le ētita
 
-editor-accessibility-learn-more = Aʻoaʻo pe faapefea ona vaʻai Doenet i avanoa faigofie
+editor-accessibility-learn-more = Aʻoaʻo pe faʻapefea ona vaʻai Doenet i avanoa faigofie
 
 editor-accessibility-violations-heading = Solitulafono i avanoa faigofie ({ $standard })
 
-editor-accessibility-other-heading = Isi faafitauli o avanoa faigofie
+editor-accessibility-other-heading = Isi faʻafitauli o avanoa faigofie
 editor-none-found = E leai se mea na maua
 
 
@@ -124,19 +124,19 @@ editor-response-submitted = Na lafo
 
 ## The context-help panel
 
-help-placeholder = Tuʻu le kesa i luga o se igoa tag, uiga, poʻo le { $ref } mo faamatalaga.
+help-placeholder = Tuʻu le kesa i luga o se igoa tag, uiga, poʻo le { $ref } mo faʻamatalaga.
 
-help-unsupported-ref-chain = E leʻi lagolagoina le fesoasoani mo faasinomaga e tele vaega e pei o le { $example }.
+help-unsupported-ref-chain = E leʻi lagolagoina le fesoasoani mo faʻasinomaga e tele vaega e pei o le { $example }.
 
 help-unresolved-ref =
     { $reason ->
-        [notFound] E leai se mea na maua e faasino i ai le faasinomaga: { $ref }.
-        [multiple] E tele mea na maua e faasino i ai le faasinomaga: { $ref }.
-       *[indeterminate] E lē mafai ona faamaoti le mea e faasino i ai le { $ref }.
+        [notFound] E leai se mea na maua e faʻasino i ai le faʻasinomaga: { $ref }.
+        [multiple] E tele mea na maua e faʻasino i ai le faʻasinomaga: { $ref }.
+       *[indeterminate] E lē mafai ona faʻamaoti le mea e faʻasino i ai le { $ref }.
     }
 
-help-learn-about-references = Aʻoaʻo e uiga i faasinomaga →
-help-reference-page = Itulau faasinomaga →
+help-learn-about-references = Aʻoaʻo e uiga i faʻasinomaga →
+help-reference-page = Itulau faʻasinomaga →
 
 help-suggestions-header =
     { $location ->
@@ -155,20 +155,20 @@ help-name-summary = { $name } — { $summary }
 
 help-ref-is-reference =
     { $line ->
-        [none] O le { $ref } o se faasinomaga i le { $target }.
-       *[other] O le { $ref } o se faasinomaga i le { $target } (laina { $line }).
+        [none] O le { $ref } o se faʻasinomaga i le { $target }.
+       *[other] O le { $ref } o se faʻasinomaga i le { $target } (laina { $line }).
     }
 
 help-ref-derived-from =
     { $line ->
-        [none] Na faailoa mai e { $owner } o se { $role }.
-       *[other] Na faailoa mai e { $owner } i le laina { $line } o se { $role }.
+        [none] Na faʻailoa mai e { $owner } o se { $role }.
+       *[other] Na faʻailoa mai e { $owner } i le laina { $line } o se { $role }.
     }
 
 help-property-is-reference =
     { $line ->
-        [none] O le { $ref } o se faasinomaga i le uiga { $property } o le { $element }.
-       *[other] O le { $ref } o se faasinomaga i le uiga { $property } o le { $element } (laina { $line }).
+        [none] O le { $ref } o se faʻasinomaga i le uiga { $property } o le { $element }.
+       *[other] O le { $ref } o se faʻasinomaga i le uiga { $property } o le { $element } (laina { $line }).
     }
 
 help-kind-attribute = uiga
@@ -176,29 +176,29 @@ help-kind-snippet = vaega puupuu
 help-kind-array-entry = ulufale array
 
 help-default = Masani:
-help-active-default = Masani o loʻo faaaogāina:
+help-active-default = Masani o loʻo faʻaaogāina:
 
 help-style-number-annotation = { " " }(styleNumber { $styleNumber })
 
 help-allowed-values =
     { $perItem ->
-        [true] Tau e faatagaina (tasi mo mea taitasi):
-       *[other] Tau e faatagaina:
+        [true] Tau e faʻatagaina (tasi mo mea taitasi):
+       *[other] Tau e faʻatagaina:
     }
 
 help-suggested-values = Tau e fautuaina:
 
-help-inserts = E faaofi:
+help-inserts = E faʻaofi:
 
-help-coordinates = Faasinomaga tulaga:
+help-coordinates = Faʻasinomaga tulaga:
 
 help-type = Ituaiga:
 
-help-resolved-style = Sitaili ua faamaoti (styleNumber { $styleNumber }):
+help-resolved-style = Sitaili ua faʻamaoti (styleNumber { $styleNumber }):
 
-help-resolved-function-names = Igoa galuega ua faamaoti:
-help-reset-list = Lisi toe faatulaga i lenei faaofiga:
-help-added-on-input = Na faaopoopo i lenei faaofiga:
-help-removed-on-input = Na aveese mai lenei faaofiga:
+help-resolved-function-names = Igoa galuega ua faʻamaoti:
+help-reset-list = Lisi toe faʻatulaga i lenei faʻaofiga:
+help-added-on-input = Na faʻaopoopo i lenei faʻaofiga:
+help-removed-on-input = Na aveʻese mai lenei faʻaofiga:
 
 help-reset-overrides = E sili le { $reset } i le { $additional } ma le { $removed }.

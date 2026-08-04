@@ -84,7 +84,7 @@ noun =
     .plus = សញ្ញាបូក
 
 # A Khmer count follows what it counts and takes its own classifier word:
-# «ពហុកោណនិយ័ត ៥ ជ្រុង», where «ជ្រុង» is the word for side. That whole group
+# «ពហុកោណនិយ័ត 5 ជ្រុង», where «ជ្រុង» is the word for side. That whole group
 # sits immediately after the noun and in front of any adjective, so it folds
 # into the head and there is no tail. Putting it after the adjectives would
 # separate «ជ្រុង» from the number counting it.

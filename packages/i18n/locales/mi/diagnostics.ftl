@@ -547,18 +547,18 @@ pluralize-english-only = Ko te reo Pākehā anake ka taea e `<pluralize>` te wha
 
 ## Checking against the schema
 
-schema-element-unrecognized = Ehara te huānga `<{ $tag }>` i te huānga Doenet e mōhiotia ana.
+schema-element-unrecognized = Ehara te wāhanga `<{ $tag }>` i te wāhanga Doenet e mōhiotia ana.
 
-schema-element-not-allowed-at-root = Kāore te huānga `<{ $tag }>` e whakaaetia i te pūtake o te tuhinga.
+schema-element-not-allowed-at-root = Kāore te wāhanga `<{ $tag }>` e whakaaetia i te pūtake o te tuhinga.
 
-schema-element-not-allowed-inside = Kāore te huānga `<{ $tag }>` e whakaaetia i roto i `<{ $parent }>`.
+schema-element-not-allowed-inside = Kāore te wāhanga `<{ $tag }>` e whakaaetia i roto i `<{ $parent }>`.
 
-schema-attribute-unrecognized = Kāore he huanga ko `{ $attribute }` te ingoa o te huānga `<{ $tag }>`.
+schema-attribute-unrecognized = Kāore he huanga ko `{ $attribute }` te ingoa o te wāhanga `<{ $tag }>`.
 
 schema-attribute-value-not-allowed =
     { $isList ->
-        [true] Me rārangi te huanga `{ $attribute }` o te huānga `<{ $tag }>`, ā, me noho ia mea hei tētahi o: { $allowed }
-       *[other] Me noho te huanga `{ $attribute }` o te huānga `<{ $tag }>` hei tētahi o: { $allowed }
+        [true] Me rārangi te huanga `{ $attribute }` o te wāhanga `<{ $tag }>`, ā, me noho ia mea hei tētahi o: { $allowed }
+       *[other] Me noho te huanga `{ $attribute }` o te wāhanga `<{ $tag }>` hei tētahi o: { $allowed }
     }
 
 

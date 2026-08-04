@@ -7,7 +7,7 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# The koma liliu «ʻ» and the fa'amamafa are part of the spelling. Where this
+# The koma liliu «ʻ» and the faʻamamafa are part of the spelling. Where this
 # seed has left one out it is an error to fix, not a style to keep.
 #
 # A Samoan noun is not marked for number by an ending, so a count in front of

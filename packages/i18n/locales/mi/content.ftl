@@ -237,7 +237,7 @@ paginator-page-status = { $pageLabel } { $currentPage } o { $numPages }
 # place, which is worth a speaker's attention.
 piecewise-condition-or = rānei
 piecewise-condition-if = mēnā
-piecewise-condition-otherwise = ki tua atu
+piecewise-condition-otherwise = ki te kore
 
 
 ## Chemistry
