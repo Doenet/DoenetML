@@ -84,6 +84,8 @@ html {
     --indicatorHoverBlue: var(--lightBlue);
     --buttonHoverBlue: var(--lightBlue);
     --doenetTagColor: #3e844a;
+    --graphGrid: #757575;
+    --graphAxes: #555555;
 }
 
 [data-theme="dark"] {
@@ -115,6 +117,8 @@ html {
     --indicatorHoverBlue: #5b8cb5;
     --buttonHoverBlue: hsl(209, 54%, 82%);
     --doenetTagColor: #5cb870;
+    --graphGrid: #7e7e7e;
+    --graphAxes: #aeaeae;
 }
 .doenet-viewer {
     font-family: "Open Sans" !important;
@@ -261,6 +265,7 @@ div.jxgbox input[type="checkbox"] {
 }
 
 /* CSS attributes will (permantely) overwrite attributes set in JSXGraph */
+
 .JXGimage {
     /* opacity: 1.0; */
 }
