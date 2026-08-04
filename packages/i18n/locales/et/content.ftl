@@ -167,8 +167,9 @@ noun-regular-polygon =
 
 # Estonian has no grammatical gender, so every noun answers the same and the
 # answer goes unused — the same thing `locales/en` does, and for the same
-# reason. What this catalog agrees for is case, which `$role` carries.
-noun-gender = none
+# reason, down to the constant it answers, which every genderless catalog here
+# spells `neuter`. What this catalog agrees for is case, which `$role` carries.
+noun-gender = neuter
 
 
 ## Style composition

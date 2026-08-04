@@ -208,13 +208,12 @@ describe("style descriptions follow the document locale @group4", () => {
 
     it("inflects Estonian for position with no gender to agree with", async () => {
         const values = await descriptions(styled, names, "et");
-        // Estonian has fourteen cases and no grammatical gender, so `$role`
-        // does all the work here and `$gender` none of it — the mirror of the
-        // Bulgarian and Macedonian catalogs, which fork the other way round.
-        // It also marks both clauses with an ending on the noun rather than
+        // Estonian marks the clause with an ending on the noun rather than
         // with a preposition, so nothing stands in front of the colour in
         // `sh`: «äärisega» is the comitative of «ääris» and carries the "with"
-        // itself.
+        // itself. Why the catalog is shaped that way is in its own header and
+        // in `@doenet/utils`' suite; what this checks is that the locale
+        // reaches the definitions.
         expect(values.st).eq("paks katkendlik punane");
         expect(values.stn).eq("paks katkendlik punane sirge");
         expect(values.pt).eq("roheline ruut");
