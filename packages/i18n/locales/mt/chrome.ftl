@@ -38,7 +38,7 @@ attempts-remaining =
         [one] fadal { $count } prova
         [two] fadal { $count } provi
         [few] fadal { $count } provi
-        [many] fadal { $count } prova
+        [many] fadal { $count }-il prova
        *[other] fadal { $count } prova
     }
 
@@ -51,7 +51,7 @@ answer-show-responses =
         [one] Uri { $count } tweġiba għal { $answerId }
         [two] Uri { $count } tweġibiet għal { $answerId }
         [few] Uri { $count } tweġibiet għal { $answerId }
-        [many] Uri { $count } tweġiba għal { $answerId }
+        [many] Uri { $count }-il tweġiba għal { $answerId }
        *[other] Uri { $count } tweġiba għal { $answerId }
     }
 

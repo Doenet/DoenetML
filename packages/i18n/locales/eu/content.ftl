@@ -75,11 +75,12 @@ noun =
     .cross = gurutze
     .plus = plus
 
-# The side count follows the style adjectives, so the head and the tail split
-# around them.
+# Basque puts a «-ko» modifier phrase *before* the noun — «5 aldeko poligono
+# erregular» — so the tail is the side count and the composing messages place
+# it ahead of the head rather than after the adjectives.
 noun-regular-polygon =
     { $part ->
-        [tail] { $numSides } aldekoa
+        [tail] { $numSides } aldeko
        *[head] poligono erregular
     }
 
@@ -103,7 +104,7 @@ style-stroke =
 
 style-with-noun =
     { $parts ->
-        [noun-tail] { $noun } { $description } { $nounTail }
+        [noun-tail] { $nounTail } { $noun } { $description }
        *[noun] { $noun } { $description }
     }
 
@@ -118,8 +119,8 @@ style-filled =
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } { $pattern }
-        [plain-tail] { $noun } { $color } { $filled } { $nounTail }
-        [pattern-tail] { $noun } { $color } { $filled } { $nounTail } { $pattern }
+        [plain-tail] { $nounTail } { $noun } { $color } { $filled }
+        [pattern-tail] { $nounTail } { $noun } { $color } { $filled } { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
 
@@ -277,7 +278,7 @@ element-name =
     .as = Artsenikoa
     .se = Selenioa
     .br = Bromoa
-    .kr = Kriptoia
+    .kr = Kriptona
     .rb = Rubidioa
     .sr = Estrontzioa
     .y = Itrioa
@@ -358,8 +359,8 @@ element-name =
     .fl = Flerovioa
     .mc = Moskovioa
     .lv = Livermorioa
-    .ts = Teneso
-    .og = Oganesoia
+    .ts = Tenesoa
+    .og = Oganesoa
 
 element-anion-name =
     .h = Hidruroa

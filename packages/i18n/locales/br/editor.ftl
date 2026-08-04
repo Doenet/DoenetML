@@ -13,7 +13,9 @@
 #
 # Breton counts in five plural categories, so the counted messages below are
 # written out in all five; the noun after a numeral stays singular and it is
-# the mutation on it that moves.
+# the mutation on it that moves. `two` softens after daou/div; `few` covers 3,
+# 4 and 9, of which only 3 mutates, so it keeps the base form; `many` is for
+# multiples of a million, where «a» takes a plural.
 
 
 ## The viewer's controls
@@ -62,8 +64,8 @@ editor-accessibility-label =
         [violations] Un torr-reizh haezadusted WCAG AA a zo bet kavet. Kavet ez eus bet { $count ->
             [one] { $count } torr-reizh WCAG AA
             [two] { $count } dorr-reizh WCAG AA
-            [few] { $count } zorr-reizh WCAG AA
-            [many] { $count } a dorr-reizhoù WCAG AA
+            [few] { $count } torr-reizh WCAG AA
+            [many] { $count } a dorroù-reizh WCAG AA
            *[other] { $count } torr-reizh WCAG AA
         }. Klikit evit { $action ->
             [close] serriñ
@@ -72,7 +74,7 @@ editor-accessibility-label =
         [advisories] Torr-reizh WCAG AA ebet n'eus bet kavet. Kavet ez eus bet { $count ->
             [one] { $count } kuzul haezadusted ouzhpenn
             [two] { $count } guzul haezadusted ouzhpenn
-            [few] { $count } c'huzul haezadusted ouzhpenn
+            [few] { $count } kuzul haezadusted ouzhpenn
             [many] { $count } a guzulioù haezadusted ouzhpenn
            *[other] { $count } kuzul haezadusted ouzhpenn
         }. Klikit evit { $action ->
@@ -162,7 +164,7 @@ help-suggestions-header =
        *[components] { " — traoù da glask:" }
     }
 
-help-suggestions-footer = Pouezit war { $shortcut } evit gwelet an holl { $total } parzh.
+help-suggestions-footer = Pouezit war { $shortcut } evit gwelet an holl barzhioù ({ $total }).
 
 help-name-summary = { $name } — { $summary }
 
@@ -180,8 +182,8 @@ help-ref-derived-from =
 
 help-property-is-reference =
     { $line ->
-        [none] Un dave d'ar berzh { $property } eus { $element } eo { $ref }.
-       *[other] Un dave d'ar berzh { $property } eus { $element } eo { $ref } (linenn { $line }).
+        [none] Un dave d'ar perzh { $property } eus { $element } eo { $ref }.
+       *[other] Un dave d'ar perzh { $property } eus { $element } eo { $ref } (linenn { $line }).
     }
 
 help-kind-attribute = doareenn
@@ -218,4 +220,4 @@ help-reset-list = Adderaouekaat ar roll war an enankad-mañ:
 help-added-on-input = Ouzhpennet war an enankad-mañ:
 help-removed-on-input = Lamet war an enankad-mañ:
 
-help-reset-overrides = { $reset } a zo trec'h war { $additional } ha { $removed }.
+help-reset-overrides = { $reset } a zo trec'h war { $additional } ha war { $removed }.

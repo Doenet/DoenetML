@@ -9,8 +9,10 @@
 #
 # Breton counts in five plural categories — `one`, `two`, `few`, `many` and
 # `other` — so every `{ $count -> … }` below is written out in full. The noun
-# after a numeral stays singular; `many` is the branch for the numerals ending
-# in a million, which is why it reads with «a» before the noun.
+# after a numeral stays singular, and what moves is the mutation the numeral
+# puts on it: `two` softens (daou/div), while `few` covers 3, 4 and 9 and only
+# 3 of those mutates, so that branch keeps the base form. `many` is the branch
+# for multiples of a million, which is why it reads with «a» and a plural.
 
 ## Answer submission
 
@@ -36,7 +38,7 @@ attempts-remaining =
         [0] taol ebet a chom
         [one] { $count } taol a chom
         [two] { $count } daol a chom
-        [few] { $count } zaol a chom
+        [few] { $count } taol a chom
         [many] { $count } a daolioù a chom
        *[other] { $count } taol a chom
     }
@@ -130,7 +132,7 @@ error-found-at =
 document-contains-errors = Fazioù zo en teul-mañ!
 
 diagnostic-heading-error = Fazi
-diagnostic-heading-warning = Diwallit
+diagnostic-heading-warning = Diwall
 diagnostic-heading-information = Titour
 diagnostic-heading-hint = Kuzul
 

@@ -24,7 +24,7 @@ answer-submitting-status = A' cur na freagairt
 answer-correct = Ceart
 answer-incorrect = Ceàrr
 
-answer-response-saved = Chaidh am freagairt a shàbhaladh
+answer-response-saved = Chaidh an fhreagairt a shàbhaladh
 
 answer-percent-credit = { $percent }% de chreideas
 answer-percent-correct = { $percent }% ceart
@@ -58,7 +58,7 @@ answer-show-responses =
 
 feedback-heading = Beachdan
 
-collapsible-click-to-open = (briog gus fhosgladh)
+collapsible-click-to-open = (briog gus a fhosgladh)
 collapsible-click-to-close = (briog gus a dhùnadh)
 
 collapsible-initializing = 'Ga thòiseachadh…
@@ -93,15 +93,15 @@ orbital-add-row = Cuir sreath ris
 orbital-remove-row = Thoir sreath air falbh
 orbital-add-box = Cuir bogsa ris
 orbital-remove-box = Thoir bogsa air falbh
-orbital-add-up-arrow = Cuir saighead suas ris
-orbital-add-down-arrow = Cuir saighead sìos ris
+orbital-add-up-arrow = Cuir saighead-suas ris
+orbital-add-down-arrow = Cuir saighead-sìos ris
 orbital-remove-arrow = Thoir saighead air falbh
 
 orbital-row-label = Leubail airson sreath { $row }
 
 pretzel-answer = Freagairt
 
-summary-statistics-caption = Geàrr-shuimean staitistigeach { $column }
+summary-statistics-caption = Geàrr-shuimean staitistigeach airson { $column }
 
 
 ## Math input
@@ -134,10 +134,10 @@ diagnostic-heading-information = Fiosrachadh
 diagnostic-heading-hint = Sanas
 
 accessibility-heading-level-1 = Briseadh so-ruigsinneachd WCAG AA
-accessibility-heading-level-2 = Caismeachd so-ruigsinneachd
+accessibility-heading-level-2 = Rabhadh so-ruigsinneachd
 
 something-went-wrong = Chaidh rudeigin ceàrr.
 
 renderer-load-failed = dh'fhàillig le reandaraiche a luchdachadh. Ath-luchdaich an duilleag.
 
-core-start-failed = Cha b' urrainn sealladair na sgrìobhainn a thòiseachadh. Ath-luchdaich an duilleag.
+core-start-failed = Cha b' urrainnear sealladair na sgrìobhainn a thòiseachadh. Ath-luchdaich an duilleag.

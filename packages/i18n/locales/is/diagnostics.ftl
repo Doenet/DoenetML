@@ -275,7 +275,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: ekki er hægt að túlka grid="{ $grid }". Það verður að vera none, medium, dense, eða tvær jákvæðar tölur aðskildar með bili, svo sem grid="1 0.5". Ekkert hnitanet er teiknað.
+graph-grid-invalid = `<graph>`: ekki er hægt að túlka grid="{ $grid }". Það verður að vera none, medium, dense eða tvær jákvæðar tölur aðskildar með bili, svo sem grid="1 0.5". Ekkert hnitanet er teiknað.
 
 ## PreFigure renderer
 
@@ -359,7 +359,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = Ógilt gildi `{ $value }` fyrir eigindina `{ $attribute }`. Eigindin verður að vera sett saman úr tilvísunum sem byrja á `$`.
 
-math-input-invalid-function-names = <mathInput>: hunsaði ógild fallanöfn í { $attribute }: { $names }. Birtingarhluti hvers nafns verður að vera að minnsta kosti 2 stafir (bókstafir eða bandstrik); valfrjáls viðskeytið `|<mathspeak alternative>` má fylgja.
+math-input-invalid-function-names = <mathInput>: hunsaði ógild fallanöfn í { $attribute }: { $names }. Birtingarhluti hvers nafns verður að vera að minnsta kosti 2 stafir (bókstafir eða bandstrik); valfrjálst viðskeyti `|<mathspeak alternative>` má fylgja.
 
 ## Building components from the source
 

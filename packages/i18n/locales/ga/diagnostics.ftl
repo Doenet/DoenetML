@@ -11,23 +11,20 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Irish counts in five plural categories, so a counted message is written out
-# in all five. The noun after a numeral stays singular and is eclipsed after
-# `seacht` to `deich`, which is what separates `many` from the rest.
+# Irish counts in five plural categories. A message whose numeral stands
+# directly in front of a noun is written out in all five, because the numeral
+# decides the noun's initial: it stays singular throughout, is lenited after 2
+# to 6 and eclipsed after `seacht` to `deich`, which is the `many` branch.
+# Where English distinguishes only a singular verb from a plural one and Irish
+# uses one form for both, the select is dropped rather than written out twice
+# identically; where only the noun changes, `one` and `other` are enough, since
+# `two`, `few` and `many` all fall through to `other` and want the plural.
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] déantar neamhaird de { $attributes } nuair a shonraítear dhá chríochphointe
-       *[other] déantar neamhaird de { $attributes } nuair a shonraítear dhá chríochphointe
-    }
+line-segment-attributes-ignored-with-endpoints = déantar neamhaird de { $attributes } nuair a shonraítear dhá chríochphointe
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] déantar neamhaird de { $attributes } nuair a shonraítear críochphointe agus lárphointe le chéile
-       *[other] déantar neamhaird de { $attributes } nuair a shonraítear críochphointe agus lárphointe le chéile
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = déantar neamhaird de { $attributes } nuair a shonraítear críochphointe agus lárphointe le chéile
 
 line-segment-midpoint-offset-without-midpoint = níl aon éifeacht ag midpointOffset gan lárphointe
 
@@ -141,7 +138,7 @@ accessibility-section-title-insufficient-contrast =
 
 ## `<circle>`
 
-circle-through-points-non-numerical = Níl `<circle>` trí { $count } pointe curtha i bhfeidhm sa chás nach bhfuil luachanna uimhriúla ag na pointí.
+circle-through-points-non-numerical = Níl `<circle>` trí phointí curtha i bhfeidhm sa chás nach bhfuil luachanna uimhriúla ag na pointí (líon na bpointí: { $count }).
 
 circle-too-many-through-points = Ní féidir ciorcal trí níos mó ná 3 phointe a ríomh.
 
@@ -165,17 +162,7 @@ circle-change-center-non-numerical = Níl athrú lárphointe ciorcail trí phoin
 
 ## `<function>`
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] Toisí neamhleora don fhearann feidhme. Tá { $intervals } eatramh ag an bhfearann ach tá { $inputs ->
-            [one] { $inputs } ionchur
-           *[other] { $inputs } ionchur
-        } ag an bhfeidhm.
-       *[other] Toisí neamhleora don fhearann feidhme. Tá { $intervals } eatramh ag an bhfearann ach tá { $inputs ->
-            [one] { $inputs } ionchur
-           *[other] { $inputs } ionchur
-        } ag an bhfeidhm.
-    }
+function-domain-insufficient-dimensions = Toisí neamhleora don fhearann feidhme. Líon na n-eatramh san fhearann: { $intervals }; líon ionchur na feidhme: { $inputs }.
 
 function-domain-invalid-format = Formáid neamhbhailí don fhearann feidhme.
 
@@ -200,17 +187,7 @@ function-ignoring-empty =
 
 function-points-too-close = Tá dhá phointe sa fheidhm atá róghar dá chéile. Ní féidir an fheidhm a shainmhíniú.
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] Níl atriallta feidhme indéanta ach amháin nuair is ionann líon ionchur na feidhme agus líon a haschur. Tá { $inputs } ionchur agus { $outputs ->
-            [one] { $outputs } aschur
-           *[other] { $outputs } aschur
-        } ag an bhfeidhm seo.
-       *[other] Níl atriallta feidhme indéanta ach amháin nuair is ionann líon ionchur na feidhme agus líon a haschur. Tá { $inputs } ionchur agus { $outputs ->
-            [one] { $outputs } aschur
-           *[other] { $outputs } aschur
-        } ag an bhfeidhm seo.
-    }
+function-iterates-input-output-mismatch = Níl atriallta feidhme indéanta ach amháin nuair is ionann líon ionchur na feidhme agus líon a haschur. Líon ionchur na feidhme seo: { $inputs }; líon a haschur: { $outputs }.
 
 ## `<sequence>`
 
@@ -264,7 +241,7 @@ solve-equations-cannot-evaluate = Ní féidir an chothromóid a réiteach toisc 
 
 math-operators-operand-number-required = Caithfear operandNumber a shonrú agus oibreann matamaitice á bhaint.
 
-eigen-decomposition-failed = Níorbh fhéidir luachanna dhúchasacha an mhaitrís a ríomh
+eigen-decomposition-failed = Níorbh fhéidir luachanna dúchasacha an mhaitríse a ríomh
 
 ## `<matchesPattern>`
 
@@ -611,7 +588,14 @@ select-variant-name-without-options = Tá leaganacha sonraithe do select ach ní
 
 select-variant-name-not-possible = Ní ainm leagain féideartha é an t-ainm leagain { $variantName } atá sonraithe do select.
 
-select-too-few-options = Ní féidir { $numToSelect } comhpháirt a roghnú as { $numOptions } amháin.
+select-too-few-options =
+    { $numToSelect ->
+        [one] Ní féidir { $numToSelect } chomhpháirt a roghnú as { $numOptions } amháin.
+        [two] Ní féidir { $numToSelect } chomhpháirt a roghnú as { $numOptions } amháin.
+        [few] Ní féidir { $numToSelect } chomhpháirt a roghnú as { $numOptions } amháin.
+        [many] Ní féidir { $numToSelect } gcomhpháirt a roghnú as { $numOptions } amháin.
+       *[other] Ní féidir { $numToSelect } comhpháirt a roghnú as { $numOptions } amháin.
+    }
 
 select-from-sequence-too-few-values = Ní féidir { $numToSelect } luach a roghnú as seicheamh a bhfuil fad { $length } aige.
 

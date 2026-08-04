@@ -15,8 +15,9 @@
 # «gwen» and then «wen», and «melyn» becomes «melen» and then «felen». The
 # feminine branch below is that finished form, not the mutation alone.
 #
-# A word beginning with a vowel or with `ll`, `rh`, `n`, `s` has no soft
-# mutation, so «oren» reads alike in both branches.
+# The soft mutation moves `p` `t` `c` `b` `d` `g` `m` `ll` `rh` and nothing
+# else, so «llwyd» becomes «lwyd» but «oren» — a vowel — reads alike in both
+# branches, as would any word in `n`, `s` or `ff`.
 
 
 ## Style vocabulary
@@ -135,9 +136,14 @@ noun =
 
 # The side count follows the style adjectives, so the head and the tail split
 # around them.
+#
+# The tail is the bare count and its noun rather than «â»/«ag» plus one: which
+# of that pair is right depends on the sound the numeral is read with, and the
+# numeral is a placeable the catalog never sees. Juxtaposing the count is the
+# ordinary Welsh way to say it and asks nothing of the value.
 noun-regular-polygon =
     { $part ->
-        [tail] ag { $numSides } ochr
+        [tail] { $numSides } ochr
        *[head] polygon rheolaidd
     }
 
@@ -182,22 +188,23 @@ style-filled-word = wedi'i lenwi
 
 style-filled =
     { $parts ->
-        [pattern] { $color } wedi'i lenwi â { $pattern }
+        [pattern] { $color } { $filled } â { $pattern }
        *[plain] { $color } { $filled }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $noun } { $color } wedi'i lenwi â { $pattern }
+        [pattern] { $noun } { $color } { $filled } â { $pattern }
         [plain-tail] { $noun } { $color } { $filled } { $nounTail }
-        [pattern-tail] { $noun } { $color } wedi'i lenwi { $nounTail } â { $pattern }
+        [pattern-tail] { $noun } { $color } { $filled } { $nounTail } â { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
 
 # «ffin» is feminine, so the border's adjectives soften after it whatever the
 # shape around it is. Welsh has no indefinite article, so the two `-article`
-# branches read like the two without; what does change between the pairs is the
-# conjunction, «â» in one and «a ffin» after «ac» in the other.
+# branches read like the two without; what changes between the pairs is the
+# conjunction, which the two `and` branches put in front as «ac» — the form
+# «a» takes before the vowel of «â».
 style-border-clause =
     { $parts ->
         [with-article] â ffin { $border }

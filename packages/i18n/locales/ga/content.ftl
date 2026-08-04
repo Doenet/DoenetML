@@ -89,7 +89,11 @@ line-width =
             [f] thiubh
            *[m] tiubh
         }
-    .thin = tanaí
+    .thin =
+        { $gender ->
+            [f] thanaí
+           *[m] tanaí
+        }
 
 line-style =
     .dashed =

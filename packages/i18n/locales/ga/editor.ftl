@@ -137,7 +137,7 @@ editor-response-submitted = Seolta
 
 ## The context-help panel
 
-help-placeholder = Cuir an cúrsóir ar ainm cluaisín, ar aitreabúid nó ar { $ref } le doiciméadú a fháil.
+help-placeholder = Cuir an cúrsóir ar ainm clibe, ar aitreabúid nó ar { $ref } le doiciméadú a fháil.
 
 help-unsupported-ref-chain = Níl cabhair ar fáil fós do thagairtí ilchodacha ar nós { $example }.
 
@@ -153,7 +153,7 @@ help-reference-page = Leathanach tagartha →
 
 help-suggestions-header =
     { $location ->
-        [inside] Taobh istigh de { $element }
+        [inside] Taobh istigh den eilimint { $element }
        *[top] Ag an leibhéal is airde
     }{ $allowed ->
         [none] { " — ní théann aon rud anseo." }
@@ -162,26 +162,26 @@ help-suggestions-header =
        *[components] { " — rudaí le triail:" }
     }
 
-help-suggestions-footer = Brúigh { $shortcut } chun na { $total } comhpháirt ar fad a fheiceáil.
+help-suggestions-footer = Brúigh { $shortcut } chun na comhpháirteanna go léir a fheiceáil ({ $total } acu).
 
 help-name-summary = { $name } — { $summary }
 
 help-ref-is-reference =
     { $line ->
-        [none] Is tagairt do { $target } é { $ref }.
-       *[other] Is tagairt do { $target } é { $ref } (líne { $line }).
+        [none] Is tagairt chuig { $target } é { $ref }.
+       *[other] Is tagairt chuig { $target } é { $ref } (líne { $line }).
     }
 
 help-ref-derived-from =
     { $line ->
-        [none] Tugtha isteach ag { $owner } mar { $role }.
-       *[other] Tugtha isteach ag { $owner } ar líne { $line } mar { $role }.
+        [none] Tugtha isteach ag { $owner } mar ról { $role }.
+       *[other] Tugtha isteach ag { $owner } ar líne { $line } mar ról { $role }.
     }
 
 help-property-is-reference =
     { $line ->
-        [none] Is tagairt do airí { $property } de { $element } é { $ref }.
-       *[other] Is tagairt do airí { $property } de { $element } é { $ref } (líne { $line }).
+        [none] Is tagairt chuig airí { $property } na heiliminte { $element } é { $ref }.
+       *[other] Is tagairt chuig airí { $property } na heiliminte { $element } é { $ref } (líne { $line }).
     }
 
 help-kind-attribute = aitreabúid
@@ -206,6 +206,9 @@ help-inserts = Cuireann isteach:
 help-coordinates =
     { $count ->
         [one] Comhordanáid:
+        [two] Comhordanáidí:
+        [few] Comhordanáidí:
+        [many] Comhordanáidí:
        *[other] Comhordanáidí:
     }
 

@@ -39,7 +39,7 @@ line-points-too-few-dimensions = Rhaid i'r llinell fynd drwy bwyntiau sydd â da
 
 line-points-depend-on-variables = Mae'r llinell yn mynd drwy bwyntiau sy'n dibynnu ar newidynnau: { $variables }.
 
-line-equation-invalid-format = Fformat annilys ar gyfer hafaliad llinell yn y newidynnau { $variable1 } a { $variable2 }.
+line-equation-invalid-format = Fformat annilys ar gyfer hafaliad llinell yn y newidynnau canlynol: { $variable1 }, { $variable2 }.
 
 ## `<ray>`
 

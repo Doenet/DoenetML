@@ -51,12 +51,12 @@ color =
         }
     .cyan =
         { $gender ->
-            [f] laz
-           *[m] glaz
+            [f] c'hlaswer
+           *[m] glaswer
         }
     .blue =
         { $gender ->
-            [f] las
+            [f] c'hlas
            *[m] glas
         }
     .purple = limestra
@@ -198,7 +198,7 @@ style-fill =
        *[plain] { $color }
     }
 
-style-unfilled = didrouc'h
+style-unfilled = goullo
 
 style-text =
     { $parts ->

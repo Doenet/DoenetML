@@ -423,13 +423,13 @@ variant-attribute-wrong-type-for-sequence =
 
 variant-length-not-integer = ezin dira { $component } elementuaren aldaera bakarrak zehaztu, length ez baita zenbaki osoa.
 
-variant-sort-not-implemented = ez dago inplementatuta sort duen { $component } baten aldaera bakarrik
+variant-sort-not-implemented = ez dago inplementatuta sort duen { $component } baten aldaera bakarrak
 
-variant-exclude-combinations-not-implemented = ez dago inplementatuta excludeCombinations duen { $component } baten aldaera bakarrik
+variant-exclude-combinations-not-implemented = ez dago inplementatuta excludeCombinations duen { $component } baten aldaera bakarrak
 
-variant-math-exclude-not-implemented = ez dago inplementatuta exclude duen math motako { $component } baten aldaera bakarrik
+variant-math-exclude-not-implemented = ez dago inplementatuta exclude duen math motako { $component } baten aldaera bakarrak
 
-variant-non-constant-exclude-not-implemented = ez dago inplementatuta exclude ez-konstantea duen { $component } baten aldaera bakarrik
+variant-non-constant-exclude-not-implemented = ez dago inplementatuta exclude ez-konstantea duen { $component } baten aldaera bakarrak
 
 ## PreFigure conversion
 

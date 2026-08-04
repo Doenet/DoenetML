@@ -424,13 +424,13 @@ variant-attribute-wrong-type-for-sequence =
 
 variant-length-not-integer = n'haller ket termeniñ doareoù dizhevelep { $component } rak n'eo ket length un anterin.
 
-variant-sort-not-implemented = n'eo ket bet kefloueret an doareoù dizhevelep eus ur { $component } gant sort
+variant-sort-not-implemented = n'eo ket bet kefloueret an doareoù dizhevelep eus ar parzh { $component } gant sort
 
-variant-exclude-combinations-not-implemented = n'eo ket bet kefloueret an doareoù dizhevelep eus ur { $component } gant excludeCombinations
+variant-exclude-combinations-not-implemented = n'eo ket bet kefloueret an doareoù dizhevelep eus ar parzh { $component } gant excludeCombinations
 
-variant-math-exclude-not-implemented = n'eo ket bet kefloueret an doareoù dizhevelep eus ur { $component } eus ar seurt math gant exclude
+variant-math-exclude-not-implemented = n'eo ket bet kefloueret an doareoù dizhevelep eus ar parzh { $component } eus ar seurt math gant exclude
 
-variant-non-constant-exclude-not-implemented = n'eo ket bet kefloueret an doareoù dizhevelep eus ur { $component } gant un exclude nann-digemm
+variant-non-constant-exclude-not-implemented = n'eo ket bet kefloueret an doareoù dizhevelep eus ar parzh { $component } gant un exclude nann-digemm
 
 ## PreFigure conversion
 
@@ -583,7 +583,7 @@ deprecated-attribute-ignored = [deprecation] Dispredet eo an doareenn `{ $attrib
 
 ## Language coverage
 
-pluralize-english-only = N'hall `<pluralize>` lakaat el liester nemet ar saozneg, setu e vez laosket e destenn hep cheñch en un teul skrivet e { $locale }. Skrivit ar stumm liester war-eeun, pe lakait anezhañ gant an doareenn `pluralForm`.
+pluralize-english-only = N'hall `<pluralize>` lakaat el liester nemet ar saozneg, setu e vez laosket e destenn hep cheñch en un teul skrivet er yezh { $locale }. Skrivit ar stumm liester war-eeun, pe lakait anezhañ gant an doareenn `pluralForm`.
 
 
 ## Checking against the schema
@@ -605,7 +605,7 @@ schema-attribute-value-not-allowed =
 
 ## The `<select>` family's error boxes
 
-select-variant-name-option-count-mismatch = Anv doare direizh evit select.  An anv doare { $variantName } a zeu war wel e { $numOptions } dibab met { $numToSelect } eo an niver da ziuzañ.
+select-variant-name-option-count-mismatch = Anv doare direizh evit select.  An anv doare { $variantName } a zeu war wel e-touez { $numOptions } dibab met { $numToSelect } eo an niver da ziuzañ.
 
 select-variant-name-without-options = Doareoù a zo bet spisaet evit select met n'eus bet spisaet dibab ebet evit an anv doare posupl: { $variantName }.
 

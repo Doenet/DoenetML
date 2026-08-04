@@ -354,7 +354,7 @@ answer-submit-label-no-correctness = Send svar
 
 section-name =
     .activity = Virksemi
-    .aside = Síðumerking
+    .aside = Síðugrein
     .cascade = Rað
     .definition = Skilgreining
     .example = Dømi

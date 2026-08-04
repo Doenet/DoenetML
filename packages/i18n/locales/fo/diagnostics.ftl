@@ -32,7 +32,7 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset hevur onga ávirk
 
 ## `<line>`
 
-line-points-undetermined-dimensions = Linja gjøgnum punkt við óávgjørdum víddum.
+line-points-undetermined-dimensions = Linja gjøgnum punkt við óavgjørdum víddum.
 
 line-points-too-few-dimensions = Linjan má ganga gjøgnum punkt við í minsta lagi tveimum víddum.
 

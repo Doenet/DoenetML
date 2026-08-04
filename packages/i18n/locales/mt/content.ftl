@@ -17,9 +17,16 @@
 # an ending, which is why none of them can be derived from the other.
 #
 # The definite article `il-` assimilates to a following sun letter — `id-`,
-# `is-`, `ir-` and the rest. Nothing here writes it: a style description is
-# indefinite, and Maltese has no indefinite article, so the two `-article`
-# branches read like the two without.
+# `is-`, `ir-` and the rest. No style description writes it: such a description
+# is indefinite, and Maltese has no indefinite article, so the two `-article`
+# branches read like the two without. Where the article does appear elsewhere in
+# this file it sits in front of a word written here, never in front of an
+# argument.
+#
+# `bi` keeps its vowel before a word starting with the same letter and loses it
+# elsewhere, which is why the border clause reads «bi bordura» and the fill
+# patterns «b'linji», «b'tikek», «b'rombi» — every word that can land behind it
+# is one this catalog chose.
 
 
 ## Style vocabulary
@@ -181,10 +188,10 @@ style-filled-with-noun =
 # the shape it surrounds.
 style-border-clause =
     { $parts ->
-        [with-article] b'bordura { $border }
+        [with-article] bi bordura { $border }
         [and] u bordura { $border }
         [and-article] u bordura { $border }
-       *[with] b'bordura { $border }
+       *[with] bi bordura { $border }
     }
 
 style-fill =
@@ -362,7 +369,7 @@ element-name =
     .tm = Tulju
     .yb = Itterbju
     .lu = Lutezju
-    .hf = Ħafnju
+    .hf = Hafnju
     .ta = Tantalu
     .w = Tungstenu
     .re = Renju

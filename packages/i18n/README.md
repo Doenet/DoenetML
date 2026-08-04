@@ -73,8 +73,9 @@ English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
 `ky`, `lt`, `lv`, `mk`, `ml`, `mn`, `mr`, `ms`, `mt`, `my`, `nb`, `ne`, `nl`,
 `ny`, `om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`, `sd`, `sk`, `sl`,
 `so`, `sq`, `sr`, `sv`, `sw`, `ta`, `te`, `tg`, `th`, `tk`, `tr`, `tt`, `ug`,
-`uk`, `ur`, `uz`, `vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's own header
-says at the top, and which is what #1521's translation platform is for. None has
+`uk`, `ur`, `uz`, `vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an
+**unreviewed machine-generated seed**, which each file's own header says at the
+top, and which is what #1521's translation platform is for. None has
 been read by a speaker. Correcting one needs no permission and no coordination:
 a wrong string is just wrong, and the English is one key away.
 
@@ -459,8 +460,8 @@ positions, and `be`, `cs`, `de`, `el`, `et`, `fi`, `fo`, `hi`, `hr`, `is`,
 `sr`, `uk` and `ur` are the catalogs that select on them. Sharing a script does
 not imply sharing the fork: Marathi and Hindi both take an oblique adjective
 before a postposition and Nepali, written in the same letters, takes none. Nor
-is the fork all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and
-nowhere else, and Punjabi only where the position's own noun is masculine, so
+is the fork all-or-nothing: Pashto marks the oblique on a feminine adjective in
+ـه and nowhere else, and Punjabi only where the position's own noun is masculine, so
 each branches on one position out of the four and leaves the rest to the
 default. Georgian is the third of that kind and the narrowest: an attributive
 adjective there drops its final -ი in the dative and keeps it everywhere else,

@@ -9,8 +9,9 @@
 #
 # Icelandic counts in the same two plural categories English does, so every
 # `{ $count -> … }` below keeps the shape it had — but the category is decided
-# by the *last digit*, so 21 and 101 take the singular the way 1 does. That is
-# CLDR's rule and Fluent applies it; the branches only have to be written.
+# by the *last digit*, so 21 and 101 take the singular the way 1 does, while 11
+# and 111 do not. That is CLDR's rule and Fluent applies it; the branches only
+# have to be written.
 
 ## Answer submission
 

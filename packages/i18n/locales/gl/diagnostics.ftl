@@ -582,7 +582,7 @@ deprecated-attribute-ignored = [deprecation] O atributo `{ $attribute }` de `<{ 
 
 ## Language coverage
 
-pluralize-english-only = `<pluralize>` só pode poñer en plural o inglés, polo que o seu texto déixase sen cambios nun documento escrito en { $locale }. Escriba a forma plural directamente, ou estabelézaa co atributo `pluralForm`.
+pluralize-english-only = `<pluralize>` só pode poñer en plural o inglés, polo que o seu texto déixase sen cambios nun documento escrito en { $locale }. Escriba a forma plural directamente, ou establézaa co atributo `pluralForm`.
 
 
 ## Checking against the schema

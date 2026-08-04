@@ -9,10 +9,10 @@
 # has. Adjectives follow their noun, so the composition messages are reordered
 # from the English and the noun leads.
 #
-# «taronja», «cian», «rosa» and «marró» are invariable: they are nouns pressed
-# into service as colour words, and a noun does not agree. So they read alike
-# in both branches, which is a fact about Catalan and not an untranslated
-# string.
+# «taronja», «cian», «rosa», «marró» and «porpra» are invariable: they are
+# nouns pressed into service as colour words, and a noun does not agree. So
+# they are written without a `$gender` select at all, which is a fact about
+# Catalan and not an untranslated string.
 
 
 ## Style vocabulary
@@ -55,11 +55,7 @@ color =
             [f] blava
            *[m] blau
         }
-    .purple =
-        { $gender ->
-            [f] porpra
-           *[m] porpra
-        }
+    .purple = porpra
     .pink = rosa
     .brown = marró
 
@@ -114,7 +110,7 @@ noun =
     .square = quadrat
     .diamond = rombe
     .cross = creu
-    .plus = més
+    .plus = signe més
 
 # The side count follows the style adjectives so that they stay beside the noun
 # they agree with, which is the split `noun-regular-polygon` exists for.
@@ -175,11 +171,14 @@ style-filled =
        *[plain] { $color } { $filled }
     }
 
+# The complement sits against the noun rather than at the end, unlike
+# `style-with-noun`: «ple de …» reads as «full of …», so «ple de 5 costats»
+# would say something else. «Polígon regular de 5 costats blau ple».
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } amb { $pattern }
-        [plain-tail] { $noun } { $color } { $filled } { $nounTail }
-        [pattern-tail] { $noun } { $color } { $filled } { $nounTail } amb { $pattern }
+        [plain-tail] { $noun } { $nounTail } { $color } { $filled }
+        [pattern-tail] { $noun } { $nounTail } { $color } { $filled } amb { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
 
@@ -194,9 +193,11 @@ style-border-clause =
        *[with] amb vora { $border }
     }
 
+# «de color» avoids having to agree the colour with a plural pattern noun
+# («línies horitzontals de color vermell»).
 style-fill =
     { $parts ->
-        [pattern] emplenat { $color } amb { $pattern }
+        [pattern] { $pattern } de color { $color }
        *[plain] { $color }
     }
 
@@ -400,7 +401,7 @@ element-name =
     .fm = Fermi
     .md = Mendelevi
     .no = Nobeli
-    .lr = Lawrenci
+    .lr = Laurenci
     .rf = Rutherfordi
     .db = Dubni
     .sg = Seaborgi

@@ -15,8 +15,10 @@
 # hyphen — «le himlíne» — and Gaelic writes it with one: «le h-iomall». Both
 # are the same rule seen twice.
 #
-# `l`, `n`, `r` and a vowel have no lenited form, so «uaine» and «loidhne» are
-# identical in both branches.
+# `l`, `n`, `r` and a vowel have no lenited form, and neither does an `s`
+# before another consonant — `sg-`, `sm-`, `sp-`, `st-`. So «uaine»,
+# «loidhne» and «strìochagach» are identical in both branches, which is a fact
+# about Gaelic spelling and not an untranslated string.
 
 
 ## Style vocabulary
@@ -88,11 +90,7 @@ line-width =
         }
 
 line-style =
-    .dashed =
-        { $gender ->
-            [f] shrìochagach
-           *[m] strìochagach
-        }
+    .dashed = strìochagach
     .dotted =
         { $gender ->
             [f] dhotagach
@@ -223,13 +221,13 @@ style-background-none = chan eil gin
 ## Boolean words
 
 boolean-true = fìor
-boolean-false = meallta
+boolean-false = breugach
 
 
 ## Answer buttons
 
-answer-submit-label = Ceartaich
-answer-submit-label-no-correctness = Cuir am freagairt
+answer-submit-label = Dearbh an obair
+answer-submit-label-no-correctness = Cuir a-steach an fhreagairt
 
 
 ## Sectional blocks
@@ -315,7 +313,7 @@ element-name =
     .c = Carbon
     .n = Nitrigin
     .o = Ogsaidean
-    .f = Fluorine
+    .f = Fluorain
     .ne = Neon
     .na = Sòidiam
     .mg = Magnèisium
@@ -423,7 +421,7 @@ element-name =
     .fl = Flerovium
     .mc = Moscovium
     .lv = Livermorium
-    .ts = Tennessine
+    .ts = Tenneisin
     .og = Oganeson
 
 element-anion-name =

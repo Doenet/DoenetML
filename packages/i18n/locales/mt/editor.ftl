@@ -11,9 +11,16 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Maltese counts in five plural categories, so the counted messages below are
-# written out in all five; `many` is the 11–19 branch and takes a singular
-# noun, the same as `other`.
+# Maltese counts in five plural categories, so the accessibility counts below
+# are written out in all five; `many` is the 11–19 branch and takes a singular
+# noun with an `-il` on the numeral, and `other` the bare singular.
+# `help-coordinates` prints no number beside its noun, so it keeps the two
+# branches the English source has.
+#
+# `help-suggestions-footer` puts its count in brackets rather than before the
+# noun: the definite article assimilates to the word after it, and which form
+# `l-` takes before a spelled-out numeral is not something this catalog can
+# know from a digit.
 
 
 ## The viewer's controls
@@ -63,7 +70,7 @@ editor-accessibility-label =
             [one] { $count } ksur ta' WCAG AA
             [two] { $count } każijiet ta' ksur ta' WCAG AA
             [few] { $count } każijiet ta' ksur ta' WCAG AA
-            [many] { $count } ksur ta' WCAG AA
+            [many] { $count }-il ksur ta' WCAG AA
            *[other] { $count } ksur ta' WCAG AA
         }. Ikklikkja biex { $action ->
             [close] tagħlaq
@@ -73,7 +80,7 @@ editor-accessibility-label =
             [one] { $count } rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
             [two] { $count } rakkomandazzjonijiet addizzjonali dwar l-aċċessibbiltà
             [few] { $count } rakkomandazzjonijiet addizzjonali dwar l-aċċessibbiltà
-            [many] { $count } rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
+            [many] { $count }-il rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
            *[other] { $count } rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
         }. Ikklikkja biex { $action ->
             [close] tagħlaq
@@ -162,7 +169,7 @@ help-suggestions-header =
        *[components] { " — affarijiet x'tipprova:" }
     }
 
-help-suggestions-footer = Agħfas { $shortcut } biex tara l-{ $total } komponenti kollha.
+help-suggestions-footer = Agħfas { $shortcut } biex tara l-komponenti kollha ({ $total }).
 
 help-name-summary = { $name } — { $summary }
 

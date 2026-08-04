@@ -102,7 +102,7 @@ editor-format-as-xml = Formata com a XML
 
 ## The diagnostics panel
 
-editor-diagnostic-line = Línia #{ $line }
+editor-diagnostic-line = Línia núm. { $line }
 
 editor-no-errors = Cap error
 editor-no-warnings = Cap advertiment

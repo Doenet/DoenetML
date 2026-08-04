@@ -11,9 +11,10 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Welsh counts in six plural categories, so the counted messages below are
-# written out in all six. The noun stays singular after a numeral and it is the
-# mutation that moves.
+# Welsh counts in six plural categories. The noun stays singular after a
+# numeral and it is the mutation that moves, so `tramgwydd` is written out in
+# all six below. `argymhelliad` begins with a vowel and cannot mutate, so all
+# six branches would read alike and it takes no select at all.
 
 
 ## The viewer's controls
@@ -70,14 +71,7 @@ editor-accessibility-label =
             [close] gau
            *[open] agor
         } yr adroddiad hygyrchedd.
-        [advisories] Ni chanfuwyd unrhyw dramgwydd WCAG AA. Canfuwyd { $count ->
-            [zero] { $count } argymhelliad hygyrchedd ychwanegol
-            [one] { $count } argymhelliad hygyrchedd ychwanegol
-            [two] { $count } argymhelliad hygyrchedd ychwanegol
-            [few] { $count } argymhelliad hygyrchedd ychwanegol
-            [many] { $count } argymhelliad hygyrchedd ychwanegol
-           *[other] { $count } argymhelliad hygyrchedd ychwanegol
-        }. Cliciwch i { $action ->
+        [advisories] Ni chanfuwyd unrhyw dramgwydd WCAG AA. Canfuwyd { $count } argymhelliad hygyrchedd ychwanegol. Cliciwch i { $action ->
             [close] gau
            *[open] agor
         } yr adroddiad hygyrchedd.
@@ -187,7 +181,7 @@ help-property-is-reference =
     }
 
 help-kind-attribute = priodoledd
-help-kind-snippet = pytyn
+help-kind-snippet = pwt
 help-kind-array-entry = cofnod arae
 
 help-default = Rhagosodiad:
@@ -220,4 +214,4 @@ help-reset-list = Ailosod y rhestr ar y mewnbwn hwn:
 help-added-on-input = Wedi'i ychwanegu ar y mewnbwn hwn:
 help-removed-on-input = Wedi'i dynnu ar y mewnbwn hwn:
 
-help-reset-overrides = Mae { $reset } yn diystyru { $additional } a { $removed }.
+help-reset-overrides = Mae { $reset } yn diystyru'r canlynol: { $additional }, { $removed }.

@@ -11,8 +11,8 @@
 # `other` — so every `{ $count -> … }` below is written out in full. What
 # distinguishes them is not the ending on the noun but what the numeral does to
 # the front of it: a noun after a numeral stays singular, and after «seacht» to
-# «deich» it is eclipsed, so 7 to 10 is the `many` branch and is the one place
-# an `n-` appears.
+# «deich» it is eclipsed, so 7 to 10 is the `many` branch and is where the
+# eclipsis shows: `n-` before a vowel, `bhf-` before `f`.
 
 ## Answer submission
 

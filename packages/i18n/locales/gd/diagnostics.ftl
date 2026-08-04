@@ -284,7 +284,7 @@ prefigure-x-label-position-unsupported = `<graph>`: chan eil taic ri xLabelPosit
 
 prefigure-y-label-position-unsupported = `<graph>`: chan eil taic ri yLabelPosition="bottom" san reandaraiche prefigure; a' cleachdadh giùlan an t-suidheachaidh uachdaraich.
 
-prefigure-invalid-axis-bounds = `<graph>`: crìochan aiseil mì-dhligheach airson tionndadh prefigure; a' cleachdadh a' bhun-bhbox (-10,-10,10,10).
+prefigure-invalid-axis-bounds = `<graph>`: crìochan aiseil mì-dhligheach airson tionndadh prefigure; a' cleachdadh bbox bunaiteach (-10,-10,10,10).
 
 prefigure-invalid-width = `<graph>`: leud mì-dhligheach airson tionndadh prefigure; a' cleachdadh leud bunaiteach dhealbh 425.
 
@@ -583,7 +583,7 @@ deprecated-attribute-ignored = [deprecation] Tha a' bhuadh `{ $attribute }` air 
 
 ## Language coverage
 
-pluralize-english-only = Chan urrainn do `<pluralize>` ach Beurla a chur san iolra, agus mar sin fàgar an teacsa aige gun atharrachadh ann an sgrìobhainn a chaidh a sgrìobhadh ann an { $locale }. Sgrìobh am foirm iolra gu dìreach, no suidhich e leis a' bhuadh `pluralForm`.
+pluralize-english-only = Chan urrainn do `<pluralize>` ach Beurla a chur san iolra, agus mar sin fàgar an teacsa aige gun atharrachadh ann an sgrìobhainn a chaidh a sgrìobhadh sa chànan { $locale }. Sgrìobh am foirm iolra gu dìreach, no suidhich e leis a' bhuadh `pluralForm`.
 
 
 ## Checking against the schema

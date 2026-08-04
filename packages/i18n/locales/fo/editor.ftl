@@ -91,7 +91,7 @@ editor-tab-errors = Villur
 editor-tab-warnings = Ávaringar
 editor-tab-info = Kunning
 editor-tab-accessibility = Atkoma
-editor-tab-responses = Send svar
+editor-tab-responses = Innsend svør
 
 editor-tab-with-count = { $label }: { $count }
 
@@ -111,7 +111,7 @@ editor-no-info = Ongar kunningarmeldingar
 editor-show-info-annotations = Vís kunningarmeldingar í ritlinum
 editor-show-accessibility-annotations = Vís atkomumeldingar í ritlinum
 
-editor-accessibility-learn-more = Lær hvussu Doenet viðgerð atkomu
+editor-accessibility-learn-more = Lær hvussu Doenet viðger atkomu
 
 editor-accessibility-violations-heading = Atkomubrot ({ $standard })
 
@@ -121,7 +121,7 @@ editor-none-found = Einki funnið
 
 ## Submitted responses
 
-editor-no-responses = Eingi svar eru send enn
+editor-no-responses = Eingi svør eru send enn
 editor-response-answer-id = Eyðkenni svars
 editor-response-response = Svar
 editor-response-credit = Stig
@@ -138,7 +138,7 @@ help-unresolved-ref =
     { $reason ->
         [notFound] Einki mál varð funnið fyri tilvísingina: { $ref }.
         [multiple] Fleiri mál vórðu funnin fyri tilvísingina: { $ref }.
-       *[indeterminate] Málið fyri { $ref } kundi ikki ávgerast.
+       *[indeterminate] Málið fyri { $ref } kundi ikki avgerast.
     }
 
 help-learn-about-references = Lær um tilvísingar →

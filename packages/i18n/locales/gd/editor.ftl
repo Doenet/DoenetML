@@ -166,8 +166,8 @@ help-name-summary = { $name } — { $summary }
 
 help-ref-is-reference =
     { $line ->
-        [none] Is e iomradh air { $target } a th' ann an { $ref }.
-       *[other] Is e iomradh air { $target } a th' ann an { $ref } (loidhne { $line }).
+        [none] Tha { $ref } a' toirt iomradh air { $target }.
+       *[other] Tha { $ref } a' toirt iomradh air { $target } (loidhne { $line }).
     }
 
 help-ref-derived-from =
@@ -178,8 +178,8 @@ help-ref-derived-from =
 
 help-property-is-reference =
     { $line ->
-        [none] Is e iomradh air a' bhuadh { $property } de { $element } a th' ann an { $ref }.
-       *[other] Is e iomradh air a' bhuadh { $property } de { $element } a th' ann an { $ref } (loidhne { $line }).
+        [none] Tha { $ref } a' toirt iomradh air a' bhuadh { $property } aig { $element }.
+       *[other] Tha { $ref } a' toirt iomradh air a' bhuadh { $property } aig { $element } (loidhne { $line }).
     }
 
 help-kind-attribute = buadh

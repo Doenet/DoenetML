@@ -23,11 +23,11 @@ answer-incorrect = Okerra
 
 answer-response-saved = Erantzuna gordeta
 
-answer-percent-credit = %{ $percent } puntu
-answer-percent-correct = %{ $percent } zuzen
-answer-percent-short = { $percent } %
+answer-percent-credit = % { $percent } puntu
+answer-percent-correct = % { $percent } zuzen
+answer-percent-short = % { $percent }
 
-max-credit-available = Eskuragarri dagoen gehieneko puntuazioa: %{ $percent }
+max-credit-available = Eskuragarri dagoen gehieneko puntuazioa: % { $percent }
 
 attempts-remaining =
     { $count ->

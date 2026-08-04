@@ -14,8 +14,8 @@
 # and not an untranslated string.
 #
 # «cun» in the border and background clauses is «con» plus the article «un»,
-# written as one word — which is why the two `-article` branches differ from
-# the other two by a letter rather than by a separate word.
+# written as one word — so `with-article` differs from `with` by a letter,
+# while `and-article` carries the article as the separate word «un».
 
 
 ## Style vocabulary
@@ -136,10 +136,10 @@ noun-gender =
 
 style-stroke =
     { $parts ->
-        [width-style-color] { $color } { $width } { $lineStyle }
-        [width-color] { $color } { $width }
-        [style-color] { $color } { $lineStyle }
-        [width-style] { $width } { $lineStyle }
+        [width-style-color] { $lineStyle } { $width } { $color }
+        [width-color] { $width } { $color }
+        [style-color] { $lineStyle } { $color }
+        [width-style] { $lineStyle } { $width }
         [width] { $width }
         [style] { $lineStyle }
        *[color] { $color }
@@ -163,11 +163,14 @@ style-filled =
        *[plain] { $color } { $filled }
     }
 
+# The complement stays beside its own noun rather than at the end: «cheo de 5
+# lados» would read as «full of 5 sides». «Polígono regular de 5 lados azul
+# cheo».
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } con { $pattern }
-        [plain-tail] { $noun } { $color } { $filled } { $nounTail }
-        [pattern-tail] { $noun } { $color } { $filled } { $nounTail } con { $pattern }
+        [plain-tail] { $noun } { $nounTail } { $color } { $filled }
+        [pattern-tail] { $noun } { $nounTail } { $color } { $filled } con { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
 
@@ -392,7 +395,7 @@ element-name =
     .db = Dubnio
     .sg = Seaborxio
     .bh = Bohrio
-    .hs = Hassio
+    .hs = Hasio
     .mt = Meitnerio
     .ds = Darmstadtio
     .rg = Roentxenio

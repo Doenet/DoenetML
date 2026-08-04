@@ -11,9 +11,17 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Maltese counts in five plural categories, but nothing below counts high
-# enough to separate them, so the selections keep the two branches the English
-# source has.
+# Maltese counts in five plural categories. Where a message only agrees a verb
+# with a list, the two branches the English source has cover it: `two` and
+# `few` fall to `other` and take the plural. Where a numeral stands in front of
+# the noun it counts — the interval, input and output counts below — 11 to 19
+# take the singular with an `-il` on the numeral, so those messages write a
+# `many` branch of their own.
+#
+# `bi` and `fi` lose their vowel before some words and keep it before
+# others, so neither is written in front of an argument: the messages
+# below name what the value is («fl-attribut { $attribute }»,
+# «bil-lingwa { $locale }») and put the affix on a word this catalog chose.
 
 ## `<lineSegment>`
 
@@ -165,17 +173,22 @@ circle-change-center-non-numerical = Il-bidla taċ-ċentru ta' ċirku li jgħadd
 
 ## `<function>`
 
+# The counted noun is the only thing the count changes, so the select sits
+# around the noun rather than around the whole sentence: two and three to ten
+# take the plural, 11 to 19 the singular with an `-il` on the numeral, and
+# twenty and up the bare singular.
 function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] Dimensjonijiet insuffiċjenti għad-dominju tal-funzjoni. Id-dominju għandu { $intervals } intervall iżda l-funzjoni għandha { $inputs ->
-            [one] { $inputs } input
-           *[other] { $inputs } inputs
-        }.
-       *[other] Dimensjonijiet insuffiċjenti għad-dominju tal-funzjoni. Id-dominju għandu { $intervals } intervalli iżda l-funzjoni għandha { $inputs ->
-            [one] { $inputs } input
-           *[other] { $inputs } inputs
-        }.
-    }
+    Dimensjonijiet insuffiċjenti għad-dominju tal-funzjoni. Id-dominju għandu { $intervals ->
+        [two] { $intervals } intervalli
+        [few] { $intervals } intervalli
+        [many] { $intervals }-il intervall
+       *[other] { $intervals } intervall
+    } iżda l-funzjoni għandha { $inputs ->
+        [two] { $inputs } inputs
+        [few] { $inputs } inputs
+        [many] { $inputs }-il input
+       *[other] { $inputs } input
+    }.
 
 function-domain-invalid-format = Format invalidu għad-dominju tal-funzjoni.
 
@@ -201,16 +214,17 @@ function-ignoring-empty =
 function-points-too-close = Il-funzjoni fiha żewġ punti qrib wisq ta' xulxin. Il-funzjoni ma tistax tiġi definita.
 
 function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] L-iterazzjonijiet ta' funzjoni huma possibbli biss jekk in-numru ta' inputs ikun daqs in-numru ta' outputs. Din il-funzjoni għandha { $inputs } input u { $outputs ->
-            [one] { $outputs } output
-           *[other] { $outputs } outputs
-        }.
-       *[other] L-iterazzjonijiet ta' funzjoni huma possibbli biss jekk in-numru ta' inputs ikun daqs in-numru ta' outputs. Din il-funzjoni għandha { $inputs } inputs u { $outputs ->
-            [one] { $outputs } output
-           *[other] { $outputs } outputs
-        }.
-    }
+    L-iterazzjonijiet ta' funzjoni huma possibbli biss jekk in-numru ta' inputs ikun daqs in-numru ta' outputs. Din il-funzjoni għandha { $inputs ->
+        [two] { $inputs } inputs
+        [few] { $inputs } inputs
+        [many] { $inputs }-il input
+       *[other] { $inputs } input
+    } u { $outputs ->
+        [two] { $outputs } outputs
+        [few] { $outputs } outputs
+        [many] { $outputs }-il output
+       *[other] { $outputs } output
+    }.
 
 ## `<sequence>`
 
@@ -360,7 +374,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = Valur invalidu `{ $value }` għall-attribut `{ $attribute }`. L-attribut irid ikun magħmul minn referenzi li jibdew b'`$`.
 
-math-input-invalid-function-names = <mathInput>: ismijiet ta' funzjonijiet invalidi f'{ $attribute } ġew injorati: { $names }. Is-segment li jintwera ta' kull isem irid ikun ta' mill-inqas 2 karattri (ittri jew sing); jista' jsegwi suffiss fakultattiv `|<mathspeak alternative>`.
+math-input-invalid-function-names = <mathInput>: ismijiet ta' funzjonijiet invalidi fl-attribut { $attribute } ġew injorati: { $names }. Is-segment li jintwera ta' kull isem irid ikun ta' mill-inqas 2 karattri (ittri jew sing); jista' jsegwi suffiss fakultattiv `|<mathspeak alternative>`.
 
 ## Building components from the source
 
@@ -583,7 +597,7 @@ deprecated-attribute-ignored = [deprecation] L-attribut `{ $attribute }` fuq `<{
 
 ## Language coverage
 
-pluralize-english-only = `<pluralize>` jista' jqiegħed fil-plural l-Ingliż biss, u għalhekk it-test tiegħu jitħalla mhux mibdul f'dokument miktub bi { $locale }. Ikteb il-forma plurali direttament, jew issettjaha bl-attribut `pluralForm`.
+pluralize-english-only = `<pluralize>` jista' jqiegħed fil-plural l-Ingliż biss, u għalhekk it-test tiegħu jitħalla mhux mibdul f'dokument miktub bil-lingwa { $locale }. Ikteb il-forma plurali direttament, jew issettjaha bl-attribut `pluralForm`.
 
 
 ## Checking against the schema

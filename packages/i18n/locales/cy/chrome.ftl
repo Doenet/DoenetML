@@ -8,11 +8,11 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Welsh counts in six plural categories — `zero`, `one`, `two`, `few`, `many`
-# and `other` — the most of any language this repository ships, so every
-# `{ $count -> … }` below is written out in all six. A noun after a numeral
-# stays singular; what varies is the mutation the numeral puts on it, which is
-# why the branches differ in the first letter of the word and not in its
-# ending.
+# and `other` — the most of any language this repository ships. A noun after a
+# numeral stays singular; what varies is the mutation the numeral puts on it,
+# which is why a counted message's branches differ in the first letter of the
+# word and not in its ending. A noun that begins with a vowel cannot mutate, so
+# all six branches would read alike and the select is dropped instead.
 
 ## Answer submission
 
@@ -48,15 +48,7 @@ validation-correct = (Cywir)
 validation-incorrect = (Anghywir)
 validation-partially-correct = (Yn rhannol gywir)
 
-answer-show-responses =
-    { $count ->
-        [zero] Dangos { $count } ateb i { $answerId }
-        [one] Dangos { $count } ateb i { $answerId }
-        [two] Dangos { $count } ateb i { $answerId }
-        [few] Dangos { $count } ateb i { $answerId }
-        [many] Dangos { $count } ateb i { $answerId }
-       *[other] Dangos { $count } ateb i { $answerId }
-    }
+answer-show-responses = Dangos { $count } ateb i { $answerId }
 
 
 ## Disclosure panels

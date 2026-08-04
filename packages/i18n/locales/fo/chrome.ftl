@@ -43,7 +43,7 @@ validation-partially-correct = (Partvíst rætt)
 answer-show-responses =
     { $count ->
         [one] Vís { $count } svar til { $answerId }
-       *[other] Vís { $count } svar til { $answerId }
+       *[other] Vís { $count } svør til { $answerId }
     }
 
 

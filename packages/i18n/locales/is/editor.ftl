@@ -155,7 +155,7 @@ help-suggestions-header =
        *[components] { " — hluti til að prófa:" }
     }
 
-help-suggestions-footer = Ýttu á { $shortcut } til að sjá allar { $total } eininganna.
+help-suggestions-footer = Ýttu á { $shortcut } til að sjá allar { $total } einingarnar.
 
 help-name-summary = { $name } — { $summary }
 
@@ -178,7 +178,7 @@ help-property-is-reference =
     }
 
 help-kind-attribute = eigind
-help-kind-snippet = búti
+help-kind-snippet = bútur
 help-kind-array-entry = fylkisfærsla
 
 help-default = Sjálfgefið:
