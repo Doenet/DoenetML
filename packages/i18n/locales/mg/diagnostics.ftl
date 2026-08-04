@@ -134,23 +134,23 @@ accessibility-section-title-insufficient-contrast =
 
 circle-through-points-non-numerical = Tsy mbola vita ny `<circle>` mandalo teboka { $count } raha tsy manana sanda isa ny teboka.
 
-circle-too-many-through-points = Tsy afaka manisa faribolana mandalo teboka mihoatra ny 3.
+circle-too-many-through-points = Tsy afaka mikajy faribolana mandalo teboka mihoatra ny 3.
 
-circle-overprescribed-radius-center-points = Tsy afaka manisa faribolana voafaritra ny savaivony, ny afovoany ary ny teboka aleha.
+circle-overprescribed-radius-center-points = Tsy afaka mikajy faribolana voafaritra ny rayon, ny afovoany ary ny teboka aleha.
 
-circle-center-with-multiple-points = Tsy afaka manisa faribolana voafaritra afovoany mandalo teboka mihoatra ny 1.
+circle-center-with-multiple-points = Tsy afaka mikajy faribolana voafaritra afovoany mandalo teboka mihoatra ny 1.
 
-circle-radius-too-small = Tsy afaka manisa faribolana: satria { $distance } ny elanelan'ny teboka roa, kely loatra ny savaivony { $radius } voafaritra.
+circle-radius-too-small = Tsy afaka mikajy faribolana: satria { $distance } ny elanelan'ny teboka roa, kely loatra ny rayon { $radius } voafaritra.
 
-circle-radius-with-many-points = Tsy afaka mamorona faribolana mandalo teboka mihoatra ny roa miaraka amin'ny savaivony voafaritra.
+circle-radius-with-many-points = Tsy afaka mamorona faribolana mandalo teboka mihoatra ny roa miaraka amin'ny rayon voafaritra.
 
 circle-invalid-center-or-through-points = Tsy mety ny afovoany na ny teboka aleha amin'ny faribolana.
 
-circle-radius-center-with-multiple-points = Tsy afaka manisa ny savaivon'ny faribolana voafaritra afovoany mandalo teboka mihoatra ny 1.
+circle-radius-center-with-multiple-points = Tsy afaka mikajy ny rayon'ny faribolana voafaritra afovoany mandalo teboka mihoatra ny 1.
 
-circle-change-radius-non-numerical = Tsy afaka manova ny savaivon'ny faribolana izay tsy isa ny teboka alehany
+circle-change-radius-non-numerical = Tsy afaka manova ny rayon'ny faribolana izay tsy isa ny teboka alehany
 
-circle-radius-with-points-non-numerical = Tsy afaka mamorona faribolana mandalo teboka mihoatra ny iray miaraka amin'ny savaivony voafaritra rehefa tsy misy sanda isa.
+circle-radius-with-points-non-numerical = Tsy afaka mamorona faribolana mandalo teboka mihoatra ny iray miaraka amin'ny rayon voafaritra rehefa tsy misy sanda isa.
 
 circle-change-center-non-numerical = Tsy mbola vita ny fanovana ny afovoan'ny faribolana mandalo teboka tsy isa.
 
@@ -223,7 +223,7 @@ parabola-vertex-too-many-points = Tsy mbola vita ny parabola manana vertex manda
 
 parabola-too-many-points = Tsy mbola vita ny parabola mandalo teboka mihoatra ny 3.
 
-intersection-too-many-items = Tsy mbola vita ny fifanaovana ho an'ny singa mihoatra ny roa
+intersection-too-many-items = Tsy mbola vita ny fihaonana ho an'ny singa mihoatra ny roa
 
 ## Other math components
 
@@ -235,7 +235,7 @@ solve-equations-cannot-evaluate = Tsy afaka mamaha ny equation satria tsy azo to
 
 math-operators-operand-number-required = Tsy maintsy voafaritra ny operandNumber rehefa maka operand matematika.
 
-eigen-decomposition-failed = Tsy afaka nanisa ny eigenvalues amin'ny matrix
+eigen-decomposition-failed = Tsy afaka nikajy ny eigenvalues amin'ny matrix
 
 ## `<matchesPattern>`
 
@@ -243,7 +243,7 @@ matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: tsy ao anatin'ny 
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: tsy azo hazavaina ny grid="{ $grid }". Tsy maintsy none, medium, dense, na isa roa mihoatra ny aotra sarahin'ny elanelana, toy ny grid="1 0.5". Tsy misy tsihy voasoritra.
+graph-grid-invalid = `<graph>`: tsy azo hazavaina ny grid="{ $grid }". Tsy maintsy none, medium, dense, na isa roa mihoatra ny aotra sarahin'ny elanelana, toy ny grid="1 0.5". Tsy misy makarakara voasoritra.
 
 ## PreFigure renderer
 
@@ -257,7 +257,7 @@ prefigure-invalid-width = `<graph>`: tsy mety ny sakany ho an'ny fanovana ho pre
 
 prefigure-invalid-aspect-ratio = `<graph>`: tsy mety ny aspectRatio ho an'ny fanovana ho prefigure; ampiasaina ny tahan'ny endrika mahazatra 1.
 
-prefigure-grid-spacing-too-fine = `<graph>`: madinika loatra ny elanelan'ny tsihy ho an'ny fetran'ny axis; esorina ny tsihy amin'ny mpanolotra prefigure.
+prefigure-grid-spacing-too-fine = `<graph>`: madinika loatra ny elanelan'ny makarakara ho an'ny fetran'ny axis; esorina ny makarakara amin'ny mpanolotra prefigure.
 
 prefigure-annotations-not-rendered = `<graph>`: tsy haseho ny fanamarihana raha tsy ampiasaina ny mpanolotra PreFigure.
 
@@ -319,7 +319,7 @@ attribute-invalid-values = Sanda { $values } tsy mety ho an'ny attribute `{ $att
 
 attribute-must-be-references = Sanda `{ $value }` tsy mety ho an'ny attribute `{ $attribute }`. Tsy maintsy voaforona amin'ny fanondroana manomboka amin'ny `$` ny attribute.
 
-math-input-invalid-function-names = <mathInput>: tsy noraharahaina ny anaram-piasa tsy mety tao amin'ny { $attribute }: { $names }. Tsy maintsy misy litera 2 farafahakeliny (litera na tsipika) ny ampahany aseho amin'ny anarana tsirairay; azo ampiana ny tovana `|<mathspeak alternative>`.
+math-input-invalid-function-names = <mathInput>: tsy noraharahaina ny anaram-piasa tsy mety tao amin'ny { $attribute }: { $names }. Tsy maintsy misy tarehintsoratra 2 farafahakeliny (litera na tsipika) ny ampahany aseho amin'ny anarana tsirairay; azo ampiana ny tovana `|<mathspeak alternative>`.
 
 ## Building components from the source
 
@@ -334,10 +334,10 @@ attribute-invalid-for-component = Tsy mety ny attribute "{ $attribute }" ho an'n
 style-definition-insufficient-contrast =
     Tsy ampy ny fifanoheran'ny famaritana endrika { $styleNumber } ho an'ny { $context ->
         [text-on-background] lokon-tsoratra manoloana ny lokon'ny fotony
-        [high-contrast] loko be fifanoherana manoloana ny lamba
-        [line] lokon-tsipika manoloana ny lamba
-        [marker] lokon-marika manoloana ny lamba
-       *[text-on-canvas] lokon-tsoratra manoloana ny lamba
+        [high-contrast] loko be fifanoherana manoloana ny faritra fanaovan-tsary
+        [line] lokon-tsipika manoloana ny faritra fanaovan-tsary
+        [marker] lokon-marika manoloana ny faritra fanaovan-tsary
+       *[text-on-canvas] lokon-tsoratra manoloana ny faritra fanaovan-tsary
     }{ $mode ->
         [dark] { " (mode maizina)" }
        *[light] { "" }
@@ -350,7 +350,7 @@ style-definition-dark-mode-text-background-contrast =
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    Na dia namaritra lokon-tsoratra ampy fifanoherana ho an'ny mode mazava aza ny famaritana endrika { $styleNumber }, tsy ampy fifanoherana manoloana ny lamba ny lokon-tsoratra ho an'ny mode maizina noforonina avy amin'io sanda io ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; mila { $threshold }:1 farafahakeliny). { $suggestion ->
+    Na dia namaritra lokon-tsoratra ampy fifanoherana ho an'ny mode mazava aza ny famaritana endrika { $styleNumber }, tsy ampy fifanoherana manoloana ny faritra fanaovan-tsary ny lokon-tsoratra ho an'ny mode maizina noforonina avy amin'io sanda io ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; mila { $threshold }:1 farafahakeliny). { $suggestion ->
         [available] Mba hahazoana fifanoherana ampy amin'ny mode maizina, ampitomboy ny fifanoherana amin'ny mode mazava (ohatra, apetraho textColor="{ $lightColor }") na soloy ny lokon'ny mode maizina (ohatra, apetraho textColorDarkMode="{ $darkColor }").
        *[none] Mba hahazoana fifanoherana ampy amin'ny mode maizina, ampitomboy ny fifanoherana amin'ny mode mazava na soloy ny loko noforonina amin'ny textColorDarkMode.
     }
@@ -369,7 +369,7 @@ variant-select-weight-disables-unique = Atsahatra ny variant tokana ho an'ny sel
 
 variant-coprime-undetermined = tsy afaka mamaritra ny variant tokana amin'ny { $component } satria tsy azo faritana fa diso foana ny coprime.
 
-variant-attribute-not-constant = tsy afaka mamaritra ny variant tokana amin'ny { $component } satria tsy tsy miova ny { $attribute }.
+variant-attribute-not-constant = tsy afaka mamaritra ny variant tokana amin'ny { $component } satria miovaova ny { $attribute }.
 
 variant-attribute-not-number = tsy afaka mamaritra ny variant tokana amin'ny { $component } satria tsy isa ny { $attribute }.
 
@@ -435,8 +435,8 @@ annotation-text-missing = `<annotation>`: tsy misy na foana ny `text`; soratra f
 
 composite-circular-dependency =
     { $componentType ->
-        [none] Hita ny fiankinana miolaka.
-       *[other] Hita ny fiankinana miolaka mahakasika ny singa `<{ $componentType }>`.
+        [none] Hita ny fiankinana mihodidina.
+       *[other] Hita ny fiankinana mihodidina mahakasika ny singa `<{ $componentType }>`.
     }
 
 reference-no-referent = Tsy hita izay tondroin'ny fanondroana: `{ $reference }`
@@ -457,8 +457,8 @@ attribute-value-invalid-using-default = Sanda `{ $value }` tsy mety ho an'ny att
 
 doenetml-version-not-found =
     { $fallback ->
-        [none] Tsy hita ny DoenetML dikan-teny { $version }.
-       *[other] Tsy hita ny DoenetML dikan-teny { $version }. Miverina amin'ny dikan-teny { $fallback }
+        [none] Tsy hita ny DoenetML dikan-drindrambaiko { $version }.
+       *[other] Tsy hita ny DoenetML dikan-drindrambaiko { $version }. Miverina amin'ny dikan-drindrambaiko { $fallback }
     }
 
 ## Reading the DoenetML
@@ -517,7 +517,7 @@ answer-name-not-single-text = Tsy maintsy manana zanaka soratra tokana ny attrib
 
 ## Referencing another document
 
-external-doenetml-recursion-limit = Tsy afaka naka ny DoenetML ivelany noho ny ambaratonga famerimberenana be loatra. Misy fanondroana miolaka ve?
+external-doenetml-recursion-limit = Tsy afaka naka ny DoenetML ivelany noho ny ambaratonga famerimberenana be loatra. Misy fanondroana mihodidina ve?
 
 external-doenetml-unavailable = Tsy afaka naka DoenetML avy amin'ny { $attribute }="{ $uri }"
 

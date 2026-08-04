@@ -109,7 +109,7 @@ style-with-noun =
        *[noun] { $noun } { $description }
     }
 
-style-filled-word = kīia
+style-filled-word = kī
 
 style-filled =
     { $parts ->
@@ -180,7 +180,7 @@ section-name =
     .part = Wāhanga
     .problem = Rapanga
     .problems = Rapanga
-    .proof = Whakamātautau
+    .proof = Whakaūnga
     .question = Pātai
     .section = Wāhanga
     .solution = Otinga
@@ -254,4 +254,4 @@ piecewise-condition-otherwise = ki te kore
 ion-name-oxidation-state = { $name } ({ $numeral })
 
 chemistry-invalid-symbol = Tohu matū muhu
-chemistry-invalid-ionic-compound = Ranunga kationga muhu
+chemistry-invalid-ionic-compound = Pūhui iona muhu

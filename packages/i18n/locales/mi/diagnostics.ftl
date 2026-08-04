@@ -24,9 +24,9 @@ line-segment-midpoint-offset-without-midpoint = Kāore he pānga o midpointOffse
 
 ## `<line>`
 
-line-points-undetermined-dimensions = He rārangi mā ngā ira kāore anō kia mōhiotia ō rātou āhuatanga.
+line-points-undetermined-dimensions = He rārangi mā ngā ira kāore anō kia mōhiotia ō rātou ahu.
 
-line-points-too-few-dimensions = Me haere te rārangi mā ngā ira e rua neke atu ō rātou āhuatanga.
+line-points-too-few-dimensions = Me haere te rārangi mā ngā ira e rua neke atu ō rātou ahu.
 
 line-points-depend-on-variables = Ka haere te rārangi mā ngā ira e whakawhirinaki ana ki ngā taurangi: { $variables }.
 
@@ -106,11 +106,11 @@ label-for-must-resolve-to-one = Me tohu te huanga `for` i runga i te `<label>` k
 
 label-for-unresolved = Kāore i taea e te huanga `for` i runga i te `<label>` te tohu ki tētahi wāhanga.
 
-label-for-answer-with-authored-inputs = Ka tohu te huanga `for` i runga i te `<label>` ki tētahi `<answer>` kua tuhia ōna urunga e te kaituhi; tohua tōtika te urunga.
+label-for-answer-with-authored-inputs = Ka tohu te huanga `for` i runga i te `<label>` ki tētahi `<answer>` kua tuhia ōna tāuru e te kaituhi; tohua tōtika te tāuru.
 
-label-for-answer-without-input = Ka tohu te huanga `for` i runga i te `<label>` ki tētahi `<answer>` kāore ōna urunga hei tapanga.
+label-for-answer-without-input = Ka tohu te huanga `for` i runga i te `<label>` ki tētahi `<answer>` kāore ōna tāuru hei tapanga.
 
-label-for-must-reference-input-or-answer = Me tohu te huanga `for` i runga i te `<label>` ki tētahi urunga, ki tētahi answer rānei.
+label-for-must-reference-input-or-answer = Me tohu te huanga `for` i runga i te `<label>` ki tētahi tāuru, ki tētahi answer rānei.
 
 ## Accessibility
 
@@ -120,7 +120,7 @@ accessibility-video-short-description = Mō te urunga, me whai whakaahuatanga po
 
 accessibility-input-short-description-or-label = Mō te urunga, me whai whakaahuatanga poto, tapanga rānei a `<{ $component }>`.
 
-accessibility-answer-input-short-description-or-label = Mō te urunga, me whai whakaahuatanga poto, tapanga rānei te `<answer>` e hanga ana i tētahi urunga.
+accessibility-answer-input-short-description-or-label = Mō te urunga, me whai whakaahuatanga poto, tapanga rānei te `<answer>` e hanga ana i tētahi tāuru.
 
 accessibility-short-description-contains-math = Kaua ngā whakaahuatanga poto e whai wāhanga pāngarau pēnei i `<{ $component }>`. Tuhia te pāngarau ki ngā kupu.
 
@@ -156,7 +156,7 @@ circle-change-center-non-numerical = Kāore anō kia hangaia te whakarerekē i t
 
 ## `<function>`
 
-function-domain-insufficient-dimensions = Kāore i te rawaka ngā āhuatanga o te rohe mō te taumahi. E { $intervals } ngā wāhanga o te rohe engari e { $inputs } ngā urunga o te taumahi.
+function-domain-insufficient-dimensions = Kāore i te rawaka ngā ahu o te rohe mō te taumahi. E { $intervals } ngā āwhe o te rohe engari e { $inputs } ngā tāuru o te taumahi.
 
 function-domain-invalid-format = He muhu te hōputu o te rohe mō te taumahi.
 
@@ -181,7 +181,7 @@ function-ignoring-empty =
 
 function-points-too-close = E rua ngā ira o te taumahi e tata rawa ana. Kāore e taea te tautuhi i te taumahi.
 
-function-iterates-input-output-mismatch = Ka taea ngā tukurua taumahi mēnā he ōrite te maha o ngā urunga ki te maha o ngā putanga. E { $inputs } ngā urunga me { $outputs } ngā putanga o tēnei taumahi.
+function-iterates-input-output-mismatch = Ka taea ngā tukurua taumahi mēnā he ōrite te maha o ngā tāuru ki te maha o ngā putanga. E { $inputs } ngā tāuru me { $outputs } ngā putanga o tēnei taumahi.
 
 ## `<sequence>`
 
@@ -227,9 +227,9 @@ intersection-too-many-items = Kāore anō kia hangaia te whakawhitinga mō ngā 
 
 ## Other math components
 
-ionic-compound-not-two-ions = Kāore anō te ranunga kationga kia hangaia mō tētahi atu i ngā kationga e rua.
+ionic-compound-not-two-ions = Kāore anō te pūhui iona kia hangaia mō tētahi atu i ngā iona e rua.
 
-ionic-compound-needs-cation-and-anion = Kua hangaia te ranunga kationga mō te kationga kotahi me te anionga kotahi anake.
+ionic-compound-needs-cation-and-anion = Kua hangaia te pūhui iona mō te kationga kotahi me te anionga kotahi anake.
 
 solve-equations-cannot-evaluate = Kāore e taea te whakaoti i te whārite nā te mea kāore i taea te aromatawai: { $equation }
 
@@ -243,7 +243,7 @@ matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: kāore te tawhā 
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: kāore e taea te whakamāori i te grid="{ $grid }". Me none, medium, dense, e rua rānei ngā tau tōraro-kore kua wehea e te mokowā, pēnei i te grid="1 0.5". Kāore he mātiti e tuhia ana.
+graph-grid-invalid = `<graph>`: kāore e taea te whakamāori i te grid="{ $grid }". Me none, medium, dense, e rua rānei ngā tau tōkeke kua wehea e te mokowā, pēnei i te grid="1 0.5". Kāore he mātiti e tuhia ana.
 
 ## PreFigure renderer
 
@@ -265,7 +265,7 @@ multiple-annotations-children = He maha ngā tamariki `<annotations>` i kitea i 
 
 ## Referring to other components
 
-copy-unrecognized-component-type = Kāore e taea te whakaroa, te tārua rānei i tētahi momo wāhanga kāore i te mōhiotia: { $type }.
+copy-unrecognized-component-type = Kāore e taea te whakawhānui, te tārua rānei i tētahi momo wāhanga kāore i te mōhiotia: { $type }.
 
 copy-prop-not-found = Kāore i kitea te prop { $property } i runga i te wāhanga momo { $component }
 
@@ -283,13 +283,13 @@ component-action-unavailable = Kāore e taea te karanga i te { $action } i runga
 
 data-frame-inconsistent-row-lengths = He muhu te āhua o ngā raraunga. Kāore ngā rārangi i te ōrite te roa. I kitea i te componentIdx :{ $componentIdx }
 
-data-frame-duplicate-column-names = He rite ngā ingoa tīwae o ngā raraunga. I kitea i te componentIdx :{ $componentIdx }
+data-frame-duplicate-column-names = Kua tuaruatia ētahi ingoa tīwae o ngā raraunga. I kitea i te componentIdx :{ $componentIdx }
 
 data-frame-missing-column-name = Kāore he ingoa tīwae o ngā raraunga. I kitea i te componentIdx :{ $componentIdx }
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Kei runga te award mō tēnei whakautu i te whakautu i tukuna e te answer anō, ā, ka puta he āhua ohorere.
+answer-award-depends-on-own-response = E whakawhirinaki ana tētahi award mō tēnei whakautu ki te whakautu i tukuna e te answer anō, ā, ka puta he āhua ohorere.
 
 answer-max-num-attempts-in-section-wide-check-work = Kāore he pānga o te whakatau i te `maxNumAttempts` i runga i te `<answer>` kei roto i tētahi ipu me te `sectionWideCheckWork`, nā te mea kei te ipu te mana ki te maha o ngā ngana. Whakatauria kētia te `maxNumAttempts` i runga i te ipu.
 
@@ -376,7 +376,7 @@ variant-attribute-not-number = kāore e taea te tautuhi i ngā variant motuhake 
 variant-attribute-wrong-type-for-sequence =
     kāore e taea te tautuhi i ngā variant motuhake o { $component } momo { $type } nā te mea ehara te { $attribute } i { $expected ->
         [letters-combination] te huinga pū
-        [math-expression] te whārite pāngarau tika
+        [math-expression] te kīanga pāngarau tika
         [integer] te tau tōpū
        *[number] te tau
     }.
@@ -582,7 +582,7 @@ select-from-sequence-index-excluded = Kua whakakorea te index i tautuhia mō sel
 
 select-from-sequence-indices-excluded-combination = He huinga kua whakakorea ngā indices i tautuhia mō selectfromsequence
 
-select-from-sequence-coprime-not-positive-integers = Kāore e taea te kōwhiri huinga coprime nā te mea ehara i ngā tau tōpū tōraro-kore e kōwhirihia ana.
+select-from-sequence-coprime-not-positive-integers = Kāore e taea te kōwhiri huinga coprime nā te mea ehara i ngā tau tōpū tōkeke e kōwhirihia ana.
 
 select-from-sequence-coprime-common-factor = Kāore e taea te kōwhiri tau coprime. He tauwehe ōrite tō ngā uara katoa ka taea. (Me coprime ngā uara "from", "to" rānei ki te "step".)
 

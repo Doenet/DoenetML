@@ -160,8 +160,8 @@ help-ref-is-reference =
 
 help-ref-derived-from =
     { $line ->
-        [none] ແນະນຳໂດຍ { $owner } ໃນຖານະ { $role }.
-       *[other] ແນະນຳໂດຍ { $owner } ຢູ່ແຖວທີ { $line } ໃນຖານະ { $role }.
+        [none] ສ້າງຂຶ້ນໂດຍ { $owner } ໃນຖານະ { $role }.
+       *[other] ສ້າງຂຶ້ນໂດຍ { $owner } ຢູ່ແຖວທີ { $line } ໃນຖານະ { $role }.
     }
 
 help-property-is-reference =

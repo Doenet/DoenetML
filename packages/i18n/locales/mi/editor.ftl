@@ -197,8 +197,8 @@ help-type = Momo:
 help-resolved-style = Tāera kua tautuhia (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Ingoa taumahi kua tautuhia:
-help-reset-list = Rārangi tautuhi anō mō tēnei urunga:
-help-added-on-input = I tāpirihia ki tēnei urunga:
-help-removed-on-input = I tangohia i tēnei urunga:
+help-reset-list = Rārangi tautuhi anō mō tēnei tāuru:
+help-added-on-input = I tāpirihia ki tēnei tāuru:
+help-removed-on-input = I tangohia i tēnei tāuru:
 
 help-reset-overrides = Ka hipa te { $reset } i te { $additional } me te { $removed }.

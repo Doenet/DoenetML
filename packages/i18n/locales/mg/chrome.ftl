@@ -28,11 +28,11 @@ answer-incorrect = Diso
 
 answer-response-saved = Voatahiry ny valiny
 
-answer-percent-credit = Isa { $percent }%
+answer-percent-credit = Naoty { $percent }%
 answer-percent-correct = Marina { $percent }%
 answer-percent-short = { $percent }%
 
-max-credit-available = Isa ambony indrindra azo: { $percent }%
+max-credit-available = Naoty ambony indrindra azo: { $percent }%
 
 attempts-remaining =
     { $count ->

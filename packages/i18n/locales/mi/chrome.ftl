@@ -81,7 +81,7 @@ matrix-remove-column = Tangohia te tīwae
 matrix-add-column = Tāpirihia he tīwae
 
 subset-add-remove-points = Tāpiri/Tango ira
-subset-toggle-points-intervals = Whakawhitia ngā ira me ngā wāhanga
+subset-toggle-points-intervals = Whakawhitia ngā ira me ngā āwhe
 subset-move-points = Nekehia ngā ira
 subset-clear = Ūkuia
 
@@ -102,9 +102,9 @@ summary-statistics-caption = Tauanga whakarāpopoto o { $column }
 
 ## Math input
 
-math-input-preview-region = arokite o te whārite pāngarau
+math-input-preview-region = arokite o te kīanga pāngarau
 math-input-preview = Arokite
-math-input-invalid-expression = Whārite muhu:
+math-input-invalid-expression = Kīanga muhu:
 
 
 ## Document status

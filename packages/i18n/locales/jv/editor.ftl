@@ -133,9 +133,9 @@ help-unsupported-ref-chain = Pitulung kanggo rujukan pirang-pirang pérangan kay
 
 help-unresolved-ref =
     { $reason ->
-        [notFound] Ora ketemu sing dituduh déning rujukan: { $ref }.
-        [multiple] Ketemu luwih saka siji sing dituduh déning rujukan: { $ref }.
-       *[indeterminate] Sing dituduh déning { $ref } ora bisa ditemtokaké.
+        [notFound] Ora ketemu sing dirujuk déning rujukan: { $ref }.
+        [multiple] Ketemu luwih saka siji sing dirujuk déning rujukan: { $ref }.
+       *[indeterminate] Sing dirujuk déning { $ref } ora bisa ditemtokaké.
     }
 
 help-learn-about-references = Sinaunana bab rujukan →
@@ -176,7 +176,7 @@ help-property-is-reference =
 
 help-kind-attribute = atribut
 help-kind-snippet = potongan
-help-kind-array-entry = èntri larik
+help-kind-array-entry = èntri array
 
 help-default = Baku:
 help-active-default = Baku sing aktif:

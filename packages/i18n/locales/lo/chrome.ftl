@@ -36,7 +36,7 @@ answer-percent-credit = ຄະແນນ { $percent }%
 answer-percent-correct = ຖືກຕ້ອງ { $percent }%
 answer-percent-short = { $percent }%
 
-max-credit-available = ຄະແນນສູງສຸດທີ່ໄດ້ຮັບ: { $percent }%
+max-credit-available = ຄະແນນສູງສຸດທີ່ສາມາດໄດ້ຮັບ: { $percent }%
 
 attempts-remaining =
     { $count ->

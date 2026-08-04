@@ -70,14 +70,14 @@ noun =
     .polyline = tsipika misesy
     .polygon = polygonina
     .triangle = telozoro
-    .rectangle = efamira
+    .rectangle = efajoro
     .circle = faribolana
     .region = faritra
     .point = teboka
-    .square = efajoro
+    .square = efamira
     .diamond = diamondra
     .cross = lakroa
-    .plus = marika fanampiana
+    .plus = marika plus
 
 # The side count follows the noun and precedes its adjectives, so it folds into
 # the head and there is no tail: «polygonina ara-dalàna { $numSides } lafiny».

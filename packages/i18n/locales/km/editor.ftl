@@ -149,7 +149,7 @@ help-suggestions-header =
        *[components] { " — អ្វីដែលអាចសាកល្បង៖" }
     }
 
-help-suggestions-footer = ចុច { $shortcut } ដើម្បីមើលធាតុទាំង { $total }។
+help-suggestions-footer = ចុច { $shortcut } ដើម្បីមើលសមាសភាគទាំង { $total }។
 
 help-name-summary = { $name } — { $summary }
 
@@ -201,4 +201,4 @@ help-reset-list = បញ្ជីកំណត់ឡើងវិញលើប្�
 help-added-on-input = បានបន្ថែមលើប្រអប់បញ្ចូលនេះ៖
 help-removed-on-input = បានដកចេញពីប្រអប់បញ្ចូលនេះ៖
 
-help-reset-overrides = { $reset } លុបលើ { $additional } និង { $removed }។
+help-reset-overrides = { $reset } មានអាទិភាពជាង { $additional } និង { $removed }។

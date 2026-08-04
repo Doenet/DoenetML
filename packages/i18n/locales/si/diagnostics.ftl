@@ -61,9 +61,9 @@ choice-input-label-position-ignored = inline නොවන choiceInput සඳහ�
 
 ## Ordering children by index
 
-choice-input-indices-count-mismatch = choiceInput සඳහා දක්වා ඇති indices නොසලකා හරිනු ලැබේ, indices ගණන choice ළමා ගණනට නොගැලපෙන බැවින්.
+choice-input-indices-count-mismatch = choiceInput සඳහා දක්වා ඇති indices නොසලකා හරිනු ලැබේ, indices ගණන choice උප මූලද්‍රව්‍ය ගණනට නොගැලපෙන බැවින්.
 
-pretzel-indices-count-mismatch = problem සඳහා දක්වා ඇති indices නොසලකා හරිනු ලැබේ, indices ගණන problem ළමා ගණනට නොගැලපෙන බැවින්.
+pretzel-indices-count-mismatch = problem සඳහා දක්වා ඇති indices නොසලකා හරිනු ලැබේ, indices ගණන problem උප මූලද්‍රව්‍ය ගණනට නොගැලපෙන බැවින්.
 
 shuffle-indices-count-mismatch = shuffle සඳහා දක්වා ඇති indices නොසලකා හරිනු ලැබේ, indices ගණන සංරචක ගණනට නොගැලපෙන බැවින්.
 
@@ -75,7 +75,7 @@ pretzel-circuit-first-index = circuit ආකාරයේ pretzel සඳහා �
 
 ## `<shuffle>` and `<sort>`
 
-string-children-need-type = `<{ $component }>` අක්ෂර ළමා සමඟ ක්‍රියා කිරීමට නම් `type` උපලක්ෂණය දැක්විය යුතුය.
+string-children-need-type = `<{ $component }>` අක්ෂර මාලා උප මූලද්‍රව්‍ය සමඟ ක්‍රියා කිරීමට නම් `type` උපලක්ෂණය දැක්විය යුතුය.
 
 invalid-type-defaulting-to-math = { $component } සංරචකය සඳහා { $type } යන type අවලංගුය. එය math, text, number හෝ boolean විය යුතුය. math වෙත පෙරනිමි වේ.
 
@@ -99,7 +99,7 @@ side-by-side-absolute-widths = නිරපේක්ෂ මිනුම් ස�
 
 side-by-side-absolute-margins = නිරපේක්ෂ මිනුම් සඳහා `<{ $component }>` ක්‍රියාත්මක කර නොමැත. මායිම් සාපේක්ෂ ලෙස සකසනු ලැබේ.
 
-side-by-side-no-block-child = අවලංගු `<{ $component }>`: එයට අවම වශයෙන් එක් බ්ලොක් ළමයෙකු තිබිය යුතුය.
+side-by-side-no-block-child = අවලංගු `<{ $component }>`: එයට අවම වශයෙන් එක් බ්ලොක් උප මූලද්‍රව්‍යයක් තිබිය යුතුය.
 
 ## `<label>`
 
@@ -264,7 +264,7 @@ prefigure-grid-spacing-too-fine = `<graph>`: අක්ෂ සීමා සඳහ
 
 prefigure-annotations-not-rendered = `<graph>`: PreFigure විදහාපාන්නා භාවිතා නොකරන විට විවරණ නොපෙන්වනු ලැබේ.
 
-multiple-annotations-children = `<graph>` තුළ `<annotations>` ළමා කිහිපයක් හමු විය; අවසාන එක හැර සියල්ල නොසලකා හරිනු ලැබේ.
+multiple-annotations-children = `<graph>` තුළ `<annotations>` උප මූලද්‍රව්‍ය කිහිපයක් හමු විය; අවසාන එක හැර සියල්ල නොසලකා හරිනු ලැබේ.
 
 ## Referring to other components
 
@@ -308,7 +308,7 @@ module-attribute-child-needs-name = `<{ $component }>` සංරචකයට න
 
 module-attribute-name-already-defined = `<{ $component } name="{ $name }">` සංරචකය module එකක උපලක්ෂණයක් ලෙස භාවිතා කළ නොහැක, `<module>` සංරචක වර්ගයට දැනටමත් "{ $name }" උපලක්ෂණයක් නිර්වචනය කර ඇති බැවින්.
 
-conditional-content-condition-ignored = case හෝ else ළමා සහිත `<conditionalContent>` සංරචකයක් මත `condition` උපලක්ෂණය නොසලකා හරිනු ලැබේ.
+conditional-content-condition-ignored = case හෝ else උප මූලද්‍රව්‍ය සහිත `<conditionalContent>` සංරචකයක් මත `condition` උපලක්ෂණය නොසලකා හරිනු ලැබේ.
 
 slider-markers-type-mismatch = සලකුණු වර්ගය slider වර්ගයට නොගැලපේ.
 
@@ -396,17 +396,17 @@ variant-non-constant-exclude-not-implemented = නියත නොවන exclude
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: ප්‍රස්තාර prefigure විදහාපාන්නා තුළ සහාය නොදක්වයි; පරම්පරාව මඟ හරිනු ලැබේ.
+prefigure-descendant-unsupported = { $subject }: ප්‍රස්තාර prefigure විදහාපාන්නා තුළ සහාය නොදක්වයි; පහළ මූලද්‍රව්‍යය මඟ හරිනු ලැබේ.
 
-prefigure-descendant-invalid-geometry = { $subject }: අනන්ත හෝ අසම්පූර්ණ ජ්‍යාමිතියකි; පරම්පරාව මඟ හරිනු ලැබේ.
+prefigure-descendant-invalid-geometry = { $subject }: අනන්ත හෝ අසම්පූර්ණ ජ්‍යාමිතියකි; පහළ මූලද්‍රව්‍යය මඟ හරිනු ලැබේ.
 
 prefigure-curve-label-omitted = { $subject }: පරිවර්තිත වක්‍ර මූලද්‍රව්‍ය මත ලේබල සහාය නොදක්වයි; ලේබලය ඉවත් කරනු ලැබේ.
 
-prefigure-curve-unsupported-definition-type = { $subject }: '{ $definitionType }' යන වක්‍ර ශ්‍රිත නිර්වචන වර්ගය සහාය නොදක්වයි; පරම්පරාව මඟ හරිනු ලැබේ.
+prefigure-curve-unsupported-definition-type = { $subject }: '{ $definitionType }' යන වක්‍ර ශ්‍රිත නිර්වචන වර්ගය සහාය නොදක්වයි; පහළ මූලද්‍රව්‍යය මඟ හරිනු ලැබේ.
 
-prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves මත flipFunctions උපලක්ෂණය සහාය නොදක්වයි; පරම්පරාව මඟ හරිනු ලැබේ.
+prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves මත flipFunctions උපලක්ෂණය සහාය නොදක්වයි; පහළ මූලද්‍රව්‍යය මඟ හරිනු ලැබේ.
 
-prefigure-region-non-formula-child = { $subject }: regionBetweenCurves මත සහාය දක්වන්නේ සූත්‍ර වර්ගයේ ළමා ශ්‍රිත පමණි; පරම්පරාව මඟ හරිනු ලැබේ.
+prefigure-region-non-formula-child = { $subject }: regionBetweenCurves මත සහාය දක්වන්නේ සූත්‍ර වර්ගයේ උප මූලද්‍රව්‍ය ශ්‍රිත පමණි; පහළ මූලද්‍රව්‍යය මඟ හරිනු ලැබේ.
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
@@ -414,7 +414,7 @@ prefigure-label-position-unsupported =
        *[point] ලක්ෂ්‍ය ලේබලය
     } සඳහා '{ $labelPosition }' යන labelPosition සහාය නොදක්වයි; පෙරනිමි PreFigure පෙළගැස්ම භාවිතා වේ.
 
-prefigure-fill-style-unsupported = { $subject }: '{ $fillStyle }' යන පිරවුම් ශෛලියට PreFigure සහාය නොදක්වයි; ඝන පිරවුමකට යොමු වේ.
+prefigure-fill-style-unsupported = { $subject }: '{ $fillStyle }' යන පිරවුම් ශෛලියට PreFigure සහාය නොදක්වයි; ඒ වෙනුවට ඝන පිරවුමක් භාවිතා වේ.
 
 prefigure-line-style-unknown = { $subject }: '{ $lineStyle }' යන නොදන්නා රේඛා ශෛලිය PreFigure ප්‍රතිදානයෙන් ඉවත් කරන ලදී.
 
@@ -450,7 +450,7 @@ reference-multiple-referents = යොමුව සඳහා යොමු වන 
 
 children-invalid-attribute-format = `<{ $componentType }>` හි { $attribute } උපලක්ෂණයේ ආකෘතිය අවලංගුය.
 
-children-invalid = `<{ $componentType }>` සඳහා අවලංගු ළමා: අවලංගු ළමා හමු විය: { $children }
+children-invalid = `<{ $componentType }>` සඳහා අවලංගු උප මූලද්‍රව්‍ය: අවලංගු උප මූලද්‍රව්‍ය හමු විය: { $children }
 
 ## Falling back to a default
 
@@ -461,7 +461,7 @@ attribute-value-invalid-using-default = `{ $attribute }` උපලක්ෂණ�
 doenetml-version-not-found =
     { $fallback ->
         [none] DoenetML අනුවාදය { $version } හමු නොවීය.
-       *[other] DoenetML අනුවාදය { $version } හමු නොවීය. { $fallback } අනුවාදයට යොමු වේ
+       *[other] DoenetML අනුවාදය { $version } හමු නොවීය. ඒ වෙනුවට { $fallback } අනුවාදය භාවිතා වේ
     }
 
 ## Reading the DoenetML
@@ -516,7 +516,7 @@ answer-video-watched-missing-video = videoWatched වර්ගයේ answer එ�
 
 answer-video-watched-video-not-reference = videoWatched වර්ගයේ answer එකක video උපලක්ෂණය යොමුවක් විය යුතුය
 
-answer-name-not-single-text = answer හි name උපලක්ෂණයට තනි පෙළ ළමයෙකු තිබිය යුතුය
+answer-name-not-single-text = answer හි name උපලක්ෂණයට තනි පෙළ උප මූලද්‍රව්‍යයක් තිබිය යුතුය
 
 ## Referencing another document
 
@@ -585,15 +585,15 @@ select-from-sequence-index-excluded = selectfromsequence හි දක්වා 
 
 select-from-sequence-indices-excluded-combination = selectfromsequence හි දක්වා ඇති indices බැහැර කළ සංයෝගයක් විය
 
-select-from-sequence-coprime-not-positive-integers = ධන පූර්ණ සංඛ්‍යා තෝරා නොගන්නා බැවින් සහඅනුඛණ්ඩ සංයෝග තෝරාගත නොහැක.
+select-from-sequence-coprime-not-positive-integers = ධන පූර්ණ සංඛ්‍යා තෝරා නොගන්නා බැවින් සාපේක්ෂ ප්‍රථමක සංයෝග තෝරාගත නොහැක.
 
-select-from-sequence-coprime-common-factor = සහඅනුඛණ්ඩ සංඛ්‍යා තෝරාගත නොහැක. හැකි සියලු අගයන්ට පොදු සාධකයක් ඇත. (දක්වා ඇති "from" හෝ "to" අගයන් "step" සමඟ සහඅනුඛණ්ඩ විය යුතුය.)
+select-from-sequence-coprime-common-factor = සාපේක්ෂ ප්‍රථමක සංඛ්‍යා තෝරාගත නොහැක. හැකි සියලු අගයන්ට පොදු සාධකයක් ඇත. (දක්වා ඇති "from" හෝ "to" අගයන් "step" සමඟ සාපේක්ෂ ප්‍රථමක විය යුතුය.)
 
-select-from-sequence-coprime-single-number = 1 නොවන තනි සංඛ්‍යාවකින් සහඅනුඛණ්ඩ සංයෝග තෝරාගත නොහැක.
+select-from-sequence-coprime-single-number = 1 නොවන තනි සංඛ්‍යාවකින් සාපේක්ෂ ප්‍රථමක සංයෝග තෝරාගත නොහැක.
 
 select-from-sequence-excluded-too-many-combinations = selectFromSequence හි සංයෝගවලින් 70%කට වඩා බැහැර කර ඇත
 
-select-from-sequence-coprime-none-found = සහඅනුඛණ්ඩ සංඛ්‍යා තෝරාගත නොහැකි විය. හැකි සියලු අගයන්ට පොදු සාධකයක් ඇත.
+select-from-sequence-coprime-none-found = සාපේක්ෂ ප්‍රථමක සංඛ්‍යා තෝරාගත නොහැකි විය. හැකි සියලු අගයන්ට පොදු සාධකයක් ඇත.
 
 select-from-sequence-too-few-unique-values = දිග { $numPossibleValues } වන අනුක්‍රමයකින් අනන්‍ය අගයන් { $numToSelect }ක් තෝරාගත නොහැක
 

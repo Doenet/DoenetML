@@ -62,7 +62,7 @@ choice-input-indices-count-mismatch = មិនអើពើ indices ដែលប
 
 pretzel-indices-count-mismatch = មិនអើពើ indices ដែលបានកំណត់សម្រាប់ problem ព្រោះចំនួន indices មិនត្រូវនឹងចំនួនកូន problem។
 
-shuffle-indices-count-mismatch = មិនអើពើ indices ដែលបានកំណត់សម្រាប់ shuffle ព្រោះចំនួន indices មិនត្រូវនឹងចំនួនធាតុ។
+shuffle-indices-count-mismatch = មិនអើពើ indices ដែលបានកំណត់សម្រាប់ shuffle ព្រោះចំនួន indices មិនត្រូវនឹងចំនួនសមាសភាគ។
 
 indices-ignored-out-of-range = មិនអើពើ indices ដែលបានកំណត់សម្រាប់ { $component } ព្រោះមាន indices ខ្លះហួសដែន។
 
@@ -74,9 +74,9 @@ pretzel-circuit-first-index = មិនអើពើ indices ដែលបាន�
 
 string-children-need-type = ដើម្បីឱ្យ `<{ $component }>` ដំណើរការជាមួយកូនជាអក្សរ ត្រូវកំណត់អាត្រីប្យូត `type`។
 
-invalid-type-defaulting-to-math = type { $type } មិនត្រឹមត្រូវសម្រាប់ធាតុ { $component }។ ត្រូវតែជា math, text, number ឬ boolean។ នឹងប្រើ math ជាលំនាំដើម។
+invalid-type-defaulting-to-math = type { $type } មិនត្រឹមត្រូវសម្រាប់សមាសភាគ { $component }។ ត្រូវតែជា math, text, number ឬ boolean។ នឹងប្រើ math ជាលំនាំដើម។
 
-string-not-valid-component-to-arrange = អក្សរ "{ $value }" មិនមែនជាធាតុត្រឹមត្រូវសម្រាប់ { $component } ទេ។ នឹងមិនអើពើ។
+string-not-valid-component-to-arrange = អក្សរ "{ $value }" មិនមែនជាសមាសភាគត្រឹមត្រូវសម្រាប់ { $component } ទេ។ នឹងមិនអើពើ។
 
 ## Types and variables
 
@@ -102,9 +102,9 @@ side-by-side-no-block-child = `<{ $component }>` មិនត្រឹមត្�
 
 label-for-ignored-on-graphical = អាត្រីប្យូត `for` លើ `<label>` ក្នុងក្រាហ្វិកត្រូវបានមិនអើពើ។
 
-label-for-must-resolve-to-one = អាត្រីប្យូត `for` លើ `<label>` ត្រូវតែសំដៅទៅធាតុតែមួយ។
+label-for-must-resolve-to-one = អាត្រីប្យូត `for` លើ `<label>` ត្រូវតែសំដៅទៅសមាសភាគតែមួយ។
 
-label-for-unresolved = អាត្រីប្យូត `for` លើ `<label>` មិនអាចសំដៅទៅធាតុណាមួយបានទេ។
+label-for-unresolved = អាត្រីប្យូត `for` លើ `<label>` មិនអាចសំដៅទៅសមាសភាគណាមួយបានទេ។
 
 label-for-answer-with-authored-inputs = អាត្រីប្យូត `for` លើ `<label>` សំដៅទៅ `<answer>` ដែលមានប្រអប់បញ្ចូលសរសេរដោយអ្នកនិពន្ធ។ សូមសំដៅទៅប្រអប់បញ្ចូលដោយផ្ទាល់។
 
@@ -122,12 +122,12 @@ accessibility-input-short-description-or-label = ដើម្បីលទ្ធ�
 
 accessibility-answer-input-short-description-or-label = ដើម្បីលទ្ធភាពប្រើប្រាស់ `<answer>` ដែលបង្កើតប្រអប់បញ្ចូល ត្រូវតែមានការពិពណ៌នាខ្លី ឬស្លាក។
 
-accessibility-short-description-contains-math = ការពិពណ៌នាខ្លីមិនគួរមានធាតុគណិតវិទ្យាដូចជា `<{ $component }>` ទេ។ សូមសរសេរគណិតវិទ្យាជាពាក្យ។
+accessibility-short-description-contains-math = ការពិពណ៌នាខ្លីមិនគួរមានសមាសភាគគណិតវិទ្យាដូចជា `<{ $component }>` ទេ។ សូមសរសេរគណិតវិទ្យាជាពាក្យ។
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] { $colorName } មានកម្រិតកម្រាស់ពណ៌មិនគ្រប់គ្រាន់សម្រាប់អក្សរចំណងជើងផ្នែក (របៀបងងឹត) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។
-       *[other] { $colorName } មានកម្រិតកម្រាស់ពណ៌មិនគ្រប់គ្រាន់សម្រាប់អក្សរចំណងជើងផ្នែក ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។
+        [dark] { $colorName } មានកម្រិតផ្ទុយពណ៌មិនគ្រប់គ្រាន់សម្រាប់អក្សរចំណងជើងផ្នែក (របៀបងងឹត) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។
+       *[other] { $colorName } មានកម្រិតផ្ទុយពណ៌មិនគ្រប់គ្រាន់សម្រាប់អក្សរចំណងជើងផ្នែក ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។
     }
 
 ## `<circle>`
@@ -185,15 +185,15 @@ function-iterates-input-output-mismatch = ការធ្វើឡើងវិ�
 
 ## `<sequence>`
 
-sequence-invalid-length = ប្រវែងស៊េរីមិនត្រឹមត្រូវ។ ត្រូវតែជាចំនួនគត់មិនអវិជ្ជមាន។
+sequence-invalid-length = ប្រវែងលំដាប់មិនត្រឹមត្រូវ។ ត្រូវតែជាចំនួនគត់មិនអវិជ្ជមាន។
 
-sequence-invalid-step = ជំហានស៊េរីមិនត្រឹមត្រូវ។ ត្រូវតែជាចំនួនសម្រាប់ស៊េរីប្រភេទ { $type }។
+sequence-invalid-step = ជំហានលំដាប់មិនត្រឹមត្រូវ។ ត្រូវតែជាចំនួនសម្រាប់លំដាប់ប្រភេទ { $type }។
 
-sequence-invalid-endpoint-number = "{ $attribute }" នៃស៊េរីលេខមិនត្រឹមត្រូវ។ ត្រូវតែជាចំនួន។
+sequence-invalid-endpoint-number = "{ $attribute }" នៃលំដាប់លេខមិនត្រឹមត្រូវ។ ត្រូវតែជាចំនួន។
 
-sequence-invalid-endpoint-letters = "{ $attribute }" នៃស៊េរីអក្សរមិនត្រឹមត្រូវ។ ត្រូវតែជាបន្សំអក្សរ។
+sequence-invalid-endpoint-letters = "{ $attribute }" នៃលំដាប់អក្សរមិនត្រឹមត្រូវ។ ត្រូវតែជាបន្សំអក្សរ។
 
-sequence-invalid-endpoint = "{ $attribute }" នៃស៊េរីមិនត្រឹមត្រូវ។
+sequence-invalid-endpoint = "{ $attribute }" នៃលំដាប់មិនត្រឹមត្រូវ។
 
 select-from-sequence-coprime-not-numbers = coprime ត្រូវបានមិនអើពើ ព្រោះមិនកំពុងជ្រើសរើសលេខ
 
@@ -265,19 +265,19 @@ multiple-annotations-children = រកឃើញកូន `<annotations>` ច្�
 
 ## Referring to other components
 
-copy-unrecognized-component-type = មិនអាចពង្រីក ឬចម្លងប្រភេទធាតុដែលមិនស្គាល់៖ { $type }។
+copy-unrecognized-component-type = មិនអាចពង្រីក ឬចម្លងប្រភេទសមាសភាគដែលមិនស្គាល់៖ { $type }។
 
-copy-prop-not-found = រកមិនឃើញ prop { $property } លើធាតុប្រភេទ { $component }
+copy-prop-not-found = រកមិនឃើញ prop { $property } លើសមាសភាគប្រភេទ { $component }
 
 collect-no-source = រកមិនឃើញប្រភពសម្រាប់ collect។
 
-collect-invalid-component-type = មិនអាចប្រមូលធាតុប្រភេទ `<{ $component }>` បានទេ ព្រោះវាជាប្រភេទធាតុមិនត្រឹមត្រូវ។
+collect-invalid-component-type = មិនអាចប្រមូលសមាសភាគប្រភេទ `<{ $component }>` បានទេ ព្រោះវាជាប្រភេទសមាសភាគមិនត្រឹមត្រូវ។
 
 reference-index-unavailable = មិនអាចយោង index `{ $reference }` បានទេ
 
 ## `<callAction>`
 
-component-action-unavailable = មិនអាចហៅ { $action } លើធាតុ `{ $reference }` បានទេ
+component-action-unavailable = មិនអាចហៅ { $action } លើសមាសភាគ `{ $reference }` បានទេ
 
 ## `<dataFrame>`
 
@@ -291,9 +291,9 @@ data-frame-missing-column-name = ទិន្នន័យខ្វះឈ្ម�
 
 answer-award-depends-on-own-response = award សម្រាប់ចម្លើយនេះផ្អែកលើចម្លើយដែល answer ខ្លួនឯងបានដាក់ស្នើ ដែលនឹងនាំឱ្យមានឥរិយាបថមិនរំពឹងទុក។
 
-answer-max-num-attempts-in-section-wide-check-work = ការកំណត់ `maxNumAttempts` លើ `<answer>` ក្នុងធុងដែលមាន `sectionWideCheckWork` គ្មានឥទ្ធិពលទេ ព្រោះចំនួនឱកាសត្រូវបានគ្រប់គ្រងដោយធុងនោះ។ សូមកំណត់ `maxNumAttempts` លើធុងវិញ។
+answer-max-num-attempts-in-section-wide-check-work = ការកំណត់ `maxNumAttempts` លើ `<answer>` ក្នុងធាតុផ្ទុកដែលមាន `sectionWideCheckWork` គ្មានឥទ្ធិពលទេ ព្រោះចំនួនឱកាសត្រូវបានគ្រប់គ្រងដោយធាតុផ្ទុកនោះ។ សូមកំណត់ `maxNumAttempts` លើធាតុផ្ទុកវិញ។
 
-nested-section-wide-check-work-max-num-attempts = ការកំណត់ `maxNumAttempts` លើធុងដែលមាន `sectionWideCheckWork` ហើយស្ថិតក្នុងធុងមួយទៀតដែលមាន `sectionWideCheckWork` គ្មានឥទ្ធិពលទេ ព្រោះចំនួនឱកាសត្រូវបានគ្រប់គ្រងដោយធុងខាងក្រៅ។ សូមកំណត់ `maxNumAttempts` លើធុងខាងក្រៅវិញ។
+nested-section-wide-check-work-max-num-attempts = ការកំណត់ `maxNumAttempts` លើធាតុផ្ទុកដែលមាន `sectionWideCheckWork` ហើយស្ថិតក្នុងធាតុផ្ទុកមួយទៀតដែលមាន `sectionWideCheckWork` គ្មានឥទ្ធិពលទេ ព្រោះចំនួនឱកាសត្រូវបានគ្រប់គ្រងដោយធាតុផ្ទុកខាងក្រៅ។ សូមកំណត់ `maxNumAttempts` លើធាតុផ្ទុកខាងក្រៅវិញ។
 
 answer-attributes-need-symbolic-equality = អាត្រីប្យូត { $attributes } នឹងគ្មានឥទ្ធិពលទេ បើគ្មាន symbolicEquality។
 
@@ -301,11 +301,11 @@ answer-invalid-type = ប្រភេទមិនត្រឹមត្រូវ�
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
-module-attribute-child-needs-name = ដោយធាតុ `<{ $component }>` គ្មានឈ្មោះ វាមិនអាចប្រើជាអាត្រីប្យូតរបស់ module បានទេ
+module-attribute-child-needs-name = ដោយសមាសភាគ `<{ $component }>` គ្មានឈ្មោះ វាមិនអាចប្រើជាអាត្រីប្យូតរបស់ module បានទេ
 
-module-attribute-name-already-defined = ធាតុ `<{ $component } name="{ $name }">` មិនអាចប្រើជាអាត្រីប្យូតរបស់ module បានទេ ព្រោះប្រភេទធាតុ `<module>` មានអាត្រីប្យូត "{ $name }" រួចហើយ។
+module-attribute-name-already-defined = សមាសភាគ `<{ $component } name="{ $name }">` មិនអាចប្រើជាអាត្រីប្យូតរបស់ module បានទេ ព្រោះប្រភេទសមាសភាគ `<module>` មានអាត្រីប្យូត "{ $name }" រួចហើយ។
 
-conditional-content-condition-ignored = អាត្រីប្យូត `condition` ត្រូវបានមិនអើពើលើធាតុ `<conditionalContent>` ដែលមានកូន case ឬ else។
+conditional-content-condition-ignored = អាត្រីប្យូត `condition` ត្រូវបានមិនអើពើលើសមាសភាគ `<conditionalContent>` ដែលមានកូន case ឬ else។
 
 slider-markers-type-mismatch = ប្រភេទសញ្ញាសម្គាល់មិនត្រូវនឹងប្រភេទ slider។
 
@@ -323,18 +323,18 @@ math-input-invalid-function-names = <mathInput>៖ បានមិនអើព�
 
 ## Building components from the source
 
-component-type-invalid = ប្រភេទធាតុមិនត្រឹមត្រូវ៖ `<{ $componentType }>`
+component-type-invalid = ប្រភេទសមាសភាគមិនត្រឹមត្រូវ៖ `<{ $componentType }>`
 
 attribute-repeated = មិនអាចដាក់អាត្រីប្យូត { $attribute } ស្ទួនបានទេ។
 
-attribute-invalid-for-component = អាត្រីប្យូត "{ $attribute }" មិនត្រឹមត្រូវសម្រាប់ធាតុប្រភេទ `<{ $componentType }>`។
+attribute-invalid-for-component = អាត្រីប្យូត "{ $attribute }" មិនត្រឹមត្រូវសម្រាប់សមាសភាគប្រភេទ `<{ $componentType }>`។
 
 ## Style definition contrast
 
 style-definition-insufficient-contrast =
-    និយមន័យរចនាបថ { $styleNumber } មានកម្រិតកម្រាស់ពណ៌មិនគ្រប់គ្រាន់សម្រាប់{ $context ->
+    និយមន័យរចនាបថ { $styleNumber } មានកម្រិតផ្ទុយពណ៌មិនគ្រប់គ្រាន់សម្រាប់{ $context ->
         [text-on-background] ពណ៌អក្សរធៀបនឹងពណ៌ផ្ទៃខាងក្រោយ
-        [high-contrast] ពណ៌កម្រាស់ខ្ពស់ធៀបនឹងផ្ទាំង
+        [high-contrast] ពណ៌ដែលមានកម្រិតផ្ទុយខ្ពស់ធៀបនឹងផ្ទាំង
         [line] ពណ៌បន្ទាត់ធៀបនឹងផ្ទាំង
         [marker] ពណ៌សញ្ញាសម្គាល់ធៀបនឹងផ្ទាំង
        *[text-on-canvas] ពណ៌អក្សរធៀបនឹងផ្ទាំង
@@ -344,52 +344,52 @@ style-definition-insufficient-contrast =
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។
 
 style-definition-dark-mode-text-background-contrast =
-    ទោះបីនិយមន័យរចនាបថ { $styleNumber } បានកំណត់ពណ៌ដែលមានកម្រាស់គ្រប់គ្រាន់សម្រាប់របៀបភ្លឺក៏ដោយ ពណ៌សម្រាប់របៀបងងឹតដែលទាញចេញពីតម្លៃទាំងនោះមានកម្រាស់មិនគ្រប់គ្រាន់សម្រាប់ពណ៌អក្សរធៀបនឹងពណ៌ផ្ទៃខាងក្រោយ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។ { $suggestion ->
-        [available] ដើម្បីធានាកម្រាស់គ្រប់គ្រាន់ក្នុងរបៀបងងឹត សូមបង្កើនកម្រាស់ក្នុងរបៀបភ្លឺ (ឧ. កំណត់ { $lightAttribute }="{ $lightColor }") ឬជំនួសពណ៌របៀបងងឹត (ឧ. កំណត់ { $darkAttribute }="{ $darkColor }")។
-       *[none] ដើម្បីធានាកម្រាស់គ្រប់គ្រាន់ក្នុងរបៀបងងឹត សូមបង្កើនកម្រាស់ក្នុងរបៀបភ្លឺ ឬជំនួសពណ៌ដែលទាញចេញដោយ textColorDarkMode និង/ឬ backgroundColorDarkMode។
+    ទោះបីនិយមន័យរចនាបថ { $styleNumber } បានកំណត់ពណ៌ដែលមានកម្រិតផ្ទុយពណ៌គ្រប់គ្រាន់សម្រាប់របៀបភ្លឺក៏ដោយ ពណ៌សម្រាប់របៀបងងឹតដែលទាញចេញពីតម្លៃទាំងនោះមានកម្រិតផ្ទុយពណ៌មិនគ្រប់គ្រាន់សម្រាប់ពណ៌អក្សរធៀបនឹងពណ៌ផ្ទៃខាងក្រោយ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។ { $suggestion ->
+        [available] ដើម្បីធានាកម្រិតផ្ទុយពណ៌គ្រប់គ្រាន់ក្នុងរបៀបងងឹត សូមបង្កើនកម្រិតផ្ទុយពណ៌ក្នុងរបៀបភ្លឺ (ឧ. កំណត់ { $lightAttribute }="{ $lightColor }") ឬជំនួសពណ៌របៀបងងឹត (ឧ. កំណត់ { $darkAttribute }="{ $darkColor }")។
+       *[none] ដើម្បីធានាកម្រិតផ្ទុយពណ៌គ្រប់គ្រាន់ក្នុងរបៀបងងឹត សូមបង្កើនកម្រិតផ្ទុយពណ៌ក្នុងរបៀបភ្លឺ ឬជំនួសពណ៌ដែលទាញចេញដោយ textColorDarkMode និង/ឬ backgroundColorDarkMode។
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    ទោះបីនិយមន័យរចនាបថ { $styleNumber } បានកំណត់ពណ៌អក្សរដែលមានកម្រាស់គ្រប់គ្រាន់សម្រាប់របៀបភ្លឺក៏ដោយ ពណ៌អក្សរសម្រាប់របៀបងងឹតដែលទាញចេញពីតម្លៃនោះមានកម្រាស់មិនគ្រប់គ្រាន់ធៀបនឹងផ្ទាំង ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។ { $suggestion ->
-        [available] ដើម្បីធានាកម្រាស់គ្រប់គ្រាន់ក្នុងរបៀបងងឹត សូមបង្កើនកម្រាស់ក្នុងរបៀបភ្លឺ (ឧ. កំណត់ textColor="{ $lightColor }") ឬជំនួសពណ៌របៀបងងឹត (ឧ. កំណត់ textColorDarkMode="{ $darkColor }")។
-       *[none] ដើម្បីធានាកម្រាស់គ្រប់គ្រាន់ក្នុងរបៀបងងឹត សូមបង្កើនកម្រាស់ក្នុងរបៀបភ្លឺ ឬជំនួសពណ៌ដែលទាញចេញដោយ textColorDarkMode។
+    ទោះបីនិយមន័យរចនាបថ { $styleNumber } បានកំណត់ពណ៌អក្សរដែលមានកម្រិតផ្ទុយពណ៌គ្រប់គ្រាន់សម្រាប់របៀបភ្លឺក៏ដោយ ពណ៌អក្សរសម្រាប់របៀបងងឹតដែលទាញចេញពីតម្លៃនោះមានកម្រិតផ្ទុយពណ៌មិនគ្រប់គ្រាន់ធៀបនឹងផ្ទាំង ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ត្រូវការយ៉ាងតិច { $threshold }:1)។ { $suggestion ->
+        [available] ដើម្បីធានាកម្រិតផ្ទុយពណ៌គ្រប់គ្រាន់ក្នុងរបៀបងងឹត សូមបង្កើនកម្រិតផ្ទុយពណ៌ក្នុងរបៀបភ្លឺ (ឧ. កំណត់ textColor="{ $lightColor }") ឬជំនួសពណ៌របៀបងងឹត (ឧ. កំណត់ textColorDarkMode="{ $darkColor }")។
+       *[none] ដើម្បីធានាកម្រិតផ្ទុយពណ៌គ្រប់គ្រាន់ក្នុងរបៀបងងឹត សូមបង្កើនកម្រិតផ្ទុយពណ៌ក្នុងរបៀបភ្លឺ ឬជំនួសពណ៌ដែលទាញចេញដោយ textColorDarkMode។
     }
 
 section-multiple-style-palettes = ផ្នែកមួយអាចជ្រើសរើស <stylePalette> តែមួយប៉ុណ្ណោះ។ នឹងប្រើមួយចុងក្រោយ។
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = មិនអាចកំណត់ variant ដាច់ដោយឡែកនៃ { $component } បានទេ ព្រោះ numToSelect មិនមែនជាចំនួនគត់មិនអវិជ្ជមាន។
+variant-num-to-select-not-non-negative-integer = មិនអាចកំណត់ variant តែមួយគត់នៃ { $component } បានទេ ព្រោះ numToSelect មិនមែនជាចំនួនគត់មិនអវិជ្ជមាន។
 
-variant-num-to-select-not-constant-number = មិនអាចកំណត់ variant ដាច់ដោយឡែកនៃ { $component } បានទេ ព្រោះ numToSelect មិនមែនជាចំនួនថេរ។
+variant-num-to-select-not-constant-number = មិនអាចកំណត់ variant តែមួយគត់នៃ { $component } បានទេ ព្រោះ numToSelect មិនមែនជាចំនួនថេរ។
 
-variant-with-replacement-not-constant-boolean = មិនអាចកំណត់ variant ដាច់ដោយឡែកនៃ { $component } បានទេ ព្រោះ withReplacement មិនមែនជា boolean ថេរ។
+variant-with-replacement-not-constant-boolean = មិនអាចកំណត់ variant តែមួយគត់នៃ { $component } បានទេ ព្រោះ withReplacement មិនមែនជា boolean ថេរ។
 
-variant-select-weight-disables-unique = variant ដាច់ដោយឡែកសម្រាប់ select ត្រូវបានបិទ បើមាន option ណាមួយកំណត់ selectWeight ឬ selectForVariants
+variant-select-weight-disables-unique = variant តែមួយគត់សម្រាប់ select ត្រូវបានបិទ បើមាន option ណាមួយកំណត់ selectWeight ឬ selectForVariants
 
-variant-coprime-undetermined = មិនអាចកំណត់ variant ដាច់ដោយឡែកនៃ { $component } បានទេ ព្រោះមិនអាចកំណត់ថា coprime ជាមិនពិតជានិច្ច។
+variant-coprime-undetermined = មិនអាចកំណត់ variant តែមួយគត់នៃ { $component } បានទេ ព្រោះមិនអាចកំណត់ថា coprime ជាមិនពិតជានិច្ច។
 
-variant-attribute-not-constant = មិនអាចកំណត់ variant ដាច់ដោយឡែកនៃ { $component } បានទេ ព្រោះ { $attribute } មិនមែនជាតម្លៃថេរ។
+variant-attribute-not-constant = មិនអាចកំណត់ variant តែមួយគត់នៃ { $component } បានទេ ព្រោះ { $attribute } មិនមែនជាតម្លៃថេរ។
 
-variant-attribute-not-number = មិនអាចកំណត់ variant ដាច់ដោយឡែកនៃ { $component } បានទេ ព្រោះ { $attribute } មិនមែនជាចំនួន។
+variant-attribute-not-number = មិនអាចកំណត់ variant តែមួយគត់នៃ { $component } បានទេ ព្រោះ { $attribute } មិនមែនជាចំនួន។
 
 variant-attribute-wrong-type-for-sequence =
-    មិនអាចកំណត់ variant ដាច់ដោយឡែកនៃ { $component } ប្រភេទ { $type } បានទេ ព្រោះ { $attribute } មិនមែនជា{ $expected ->
+    មិនអាចកំណត់ variant តែមួយគត់នៃ { $component } ប្រភេទ { $type } បានទេ ព្រោះ { $attribute } មិនមែនជា{ $expected ->
         [letters-combination] បន្សំអក្សរ
         [math-expression] កន្សោមគណិតវិទ្យាត្រឹមត្រូវ
         [integer] ចំនួនគត់
        *[number] ចំនួន
     }។
 
-variant-length-not-integer = មិនអាចកំណត់ variant ដាច់ដោយឡែកនៃ { $component } បានទេ ព្រោះ length មិនមែនជាចំនួនគត់។
+variant-length-not-integer = មិនអាចកំណត់ variant តែមួយគត់នៃ { $component } បានទេ ព្រោះ length មិនមែនជាចំនួនគត់។
 
-variant-sort-not-implemented = មិនទាន់អនុវត្ត variant ដាច់ដោយឡែកនៃ { $component } ដែលមាន sort ទេ
+variant-sort-not-implemented = មិនទាន់អនុវត្ត variant តែមួយគត់នៃ { $component } ដែលមាន sort ទេ
 
-variant-exclude-combinations-not-implemented = មិនទាន់អនុវត្ត variant ដាច់ដោយឡែកនៃ { $component } ដែលមាន excludeCombinations ទេ
+variant-exclude-combinations-not-implemented = មិនទាន់អនុវត្ត variant តែមួយគត់នៃ { $component } ដែលមាន excludeCombinations ទេ
 
-variant-math-exclude-not-implemented = មិនទាន់អនុវត្ត variant ដាច់ដោយឡែកនៃ { $component } ប្រភេទ math ដែលមាន exclude ទេ
+variant-math-exclude-not-implemented = មិនទាន់អនុវត្ត variant តែមួយគត់នៃ { $component } ប្រភេទ math ដែលមាន exclude ទេ
 
-variant-non-constant-exclude-not-implemented = មិនទាន់អនុវត្ត variant ដាច់ដោយឡែកនៃ { $component } ដែលមាន exclude មិនថេរទេ
+variant-non-constant-exclude-not-implemented = មិនទាន់អនុវត្ត variant តែមួយគត់នៃ { $component } ដែលមាន exclude មិនថេរទេ
 
 ## PreFigure conversion
 
@@ -436,7 +436,7 @@ annotation-text-missing = `<annotation>`៖ `text` បាត់ ឬទទេ។ 
 composite-circular-dependency =
     { $componentType ->
         [none] រកឃើញភាពអាស្រ័យជារង្វង់។
-       *[other] រកឃើញភាពអាស្រ័យជារង្វង់ដែលពាក់ព័ន្ធនឹងធាតុ `<{ $componentType }>`។
+       *[other] រកឃើញភាពអាស្រ័យជារង្វង់ដែលពាក់ព័ន្ធនឹងសមាសភាគ `<{ $componentType }>`។
     }
 
 reference-no-referent = រកមិនឃើញអ្វីដែលការយោងសំដៅទៅ៖ `{ $reference }`
@@ -505,7 +505,7 @@ name-attribute-invalid =
        *[start] ឈ្មោះត្រូវតែចាប់ផ្ដើមដោយអក្សរ។
     }
 
-component-name-invalid-start = ឈ្មោះធាតុ "{ $name }" មិនត្រឹមត្រូវ។ ឈ្មោះត្រូវតែចាប់ផ្ដើមដោយអក្សរ។
+component-name-invalid-start = ឈ្មោះសមាសភាគ "{ $name }" មិនត្រឹមត្រូវ។ ឈ្មោះត្រូវតែចាប់ផ្ដើមដោយអក្សរ។
 
 ## `<answer>` sugar
 
@@ -521,7 +521,7 @@ external-doenetml-recursion-limit = មិនអាចទាញ DoenetML ខា�
 
 external-doenetml-unavailable = មិនអាចទាញ DoenetML ពី { $attribute }="{ $uri }" បានទេ
 
-external-doenetml-type-mismatch = DoenetML ដែលទាញពី { $attribute }="{ $uri }" មិនត្រឹមត្រូវ៖ វាមិនត្រូវនឹងប្រភេទធាតុ "{ $componentType }" ទេ
+external-doenetml-type-mismatch = DoenetML ដែលទាញពី { $attribute }="{ $uri }" មិនត្រឹមត្រូវ៖ វាមិនត្រូវនឹងប្រភេទសមាសភាគ "{ $componentType }" ទេ
 
 ## Deprecated syntax
 
@@ -570,9 +570,9 @@ select-variant-name-without-options = មាន variant ខ្លះត្រូ
 
 select-variant-name-not-possible = ឈ្មោះ variant { $variantName } ដែលបានកំណត់សម្រាប់ select មិនមែនជាឈ្មោះ variant ដែលអាចមានទេ។
 
-select-too-few-options = មិនអាចជ្រើសរើស { $numToSelect } ធាតុ ពីត្រឹមតែ { $numOptions } បានទេ។
+select-too-few-options = មិនអាចជ្រើសរើស { $numToSelect } សមាសភាគ ពីត្រឹមតែ { $numOptions } បានទេ។
 
-select-from-sequence-too-few-values = មិនអាចជ្រើសរើស { $numToSelect } តម្លៃ ពីស៊េរីប្រវែង { $length } បានទេ។
+select-from-sequence-too-few-values = មិនអាចជ្រើសរើស { $numToSelect } តម្លៃ ពីលំដាប់ប្រវែង { $length } បានទេ។
 
 select-from-sequence-indices-count-mismatch = ចំនួន indices ដែលកំណត់សម្រាប់ select ត្រូវតែស្មើនឹងចំនួនត្រូវជ្រើសរើស
 
@@ -592,7 +592,7 @@ select-from-sequence-excluded-too-many-combinations = បានដកចេញ�
 
 select-from-sequence-coprime-none-found = មិនអាចជ្រើសរើសលេខបឋមទៅវិញទៅមកបានទេ។ តម្លៃដែលអាចមានទាំងអស់មានកត្តារួម។
 
-select-from-sequence-too-few-unique-values = មិនអាចជ្រើសរើស { $numToSelect } តម្លៃខុសៗគ្នា ពីស៊េរីប្រវែង { $numPossibleValues } បានទេ
+select-from-sequence-too-few-unique-values = មិនអាចជ្រើសរើស { $numToSelect } តម្លៃខុសៗគ្នា ពីលំដាប់ប្រវែង { $numPossibleValues } បានទេ
 
 select-prime-numbers-too-few-values = មិនអាចជ្រើសរើស { $numToSelect } តម្លៃ ពីបញ្ជីលេខបឋមប្រវែង { $numValues } បានទេ
 

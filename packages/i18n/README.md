@@ -221,8 +221,9 @@ it.
 The other is **speech level**, and it is a decision a catalog cannot avoid
 making. Javanese and Sundanese choose a register for every sentence, and a
 file with two registers in it is wrong in both, so each of those two locales is
-written at the plain level throughout — ngoko for Javanese, loma for Sundanese
-— and every one of their eight file headers says so. Those are the levels
+written at its unmarked everyday level throughout — ngoko for Javanese, loma
+for Sundanese — and every one of their eight file headers says so. Those are
+the levels
 Javanese and Sundanese writing addressed to a general reader uses, and the
 polite registers would be derived from them rather than the other way round. A
 deployment that wants krama or lemes supplies its own catalog as

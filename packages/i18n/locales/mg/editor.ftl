@@ -19,8 +19,8 @@
 
 editor-update-viewer =
     { $action ->
-        [reset] Averina
-       *[update] Havaozina
+        [reset] Avereno
+       *[update] Havaozy
     }
 
 editor-update-viewer-title =
@@ -33,7 +33,7 @@ editor-update-viewer-title =
 ## The variant picker
 
 editor-variant = Karazany
-editor-variant-filter = Sivano...
+editor-variant-filter = Sivana...
 editor-variant-next = Fidio ny karazany manaraka
 editor-variant-previous = Fidio ny karazany teo aloha
 
@@ -77,7 +77,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = DoenetML dikan-teny { $version }
+editor-version-title = DoenetML dikan-drindrambaiko { $version }
 
 editor-tab-help = Fanampiana araka ny toe-javatra
 editor-tab-help-short = Toe-javatra
@@ -90,8 +90,8 @@ editor-tab-responses = Valiny nalefa
 editor-tab-with-count = { $label }: { $count }
 
 editor-options = Safidin'ny mpanova
-editor-format-as-doenetml = Endrehina ho DoenetML
-editor-format-as-xml = Endrehina ho XML
+editor-format-as-doenetml = Amboary ho endrika DoenetML
+editor-format-as-xml = Amboary ho endrika XML
 
 
 ## The diagnostics panel
@@ -118,7 +118,7 @@ editor-none-found = Tsy nisy hita
 editor-no-responses = Mbola tsy misy valiny nalefa
 editor-response-answer-id = Answer Id
 editor-response-response = Valiny
-editor-response-credit = Isa
+editor-response-credit = Naoty
 editor-response-submitted = Nalefa
 
 
@@ -190,7 +190,7 @@ help-suggested-values = Sanda atolotra:
 
 help-inserts = Mampiditra:
 
-help-coordinates = Fandrefesana:
+help-coordinates = Kaordone:
 
 help-type = Karazana:
 

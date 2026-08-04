@@ -105,15 +105,15 @@ side-by-side-no-block-child = `<{ $component }>` ora bener: kudu duwé paling se
 
 label-for-ignored-on-graphical = Atribut `for` ing `<label>` grafis ora digatèkaké.
 
-label-for-must-resolve-to-one = Atribut `for` ing `<label>` kudu nuduh menyang siji komponèn waé.
+label-for-must-resolve-to-one = Atribut `for` ing `<label>` kudu ngrujuk marang siji komponèn waé.
 
 label-for-unresolved = Atribut `for` ing `<label>` ora bisa ditemtokaké menyang komponèn apa waé.
 
-label-for-answer-with-authored-inputs = Atribut `for` ing `<label>` nuduh menyang `<answer>` sing inputé ditulis dhéwé déning panganggit; nuduha langsung menyang inputé.
+label-for-answer-with-authored-inputs = Atribut `for` ing `<label>` ngrujuk marang `<answer>` sing inputé ditulis dhéwé déning panganggit; rujuken langsung inputé.
 
-label-for-answer-without-input = Atribut `for` ing `<label>` nuduh menyang `<answer>` sing ora duwé input kanggo dilabeli.
+label-for-answer-without-input = Atribut `for` ing `<label>` ngrujuk marang `<answer>` sing ora duwé input kanggo dilabeli.
 
-label-for-must-reference-input-or-answer = Atribut `for` ing `<label>` kudu nuduh menyang input utawa answer.
+label-for-must-reference-input-or-answer = Atribut `for` ing `<label>` kudu ngrujuk marang input utawa answer.
 
 ## Accessibility
 
@@ -268,7 +268,7 @@ multiple-annotations-children = Ana anak `<annotations>` luwih saka siji ing `<g
 
 ## Referring to other components
 
-copy-unrecognized-component-type = Ora bisa nglanjutaké utawa nyalin jinis komponèn sing ora dikenal: { $type }.
+copy-unrecognized-component-type = Ora bisa ngembangaké utawa nyalin jinis komponèn sing ora dikenal: { $type }.
 
 copy-prop-not-found = prop { $property } ing komponèn jinis { $component } ora ketemu
 
@@ -276,7 +276,7 @@ collect-no-source = Sumber kanggo collect ora ketemu.
 
 collect-invalid-component-type = Ora bisa nglumpukaké komponèn jinis `<{ $component }>` amarga iku jinis komponèn sing ora bener.
 
-reference-index-unavailable = Ora bisa nuduh index `{ $reference }`
+reference-index-unavailable = Ora bisa ngrujuk index `{ $reference }`
 
 ## `<callAction>`
 
@@ -322,7 +322,7 @@ attribute-invalid-values = Nilai { $values } ora bener kanggo atribut `{ $attrib
 
 attribute-must-be-references = Nilai `{ $value }` ora bener kanggo atribut `{ $attribute }`. Atribut kudu kasusun saka rujukan sing diwiwiti nganggo `$`.
 
-math-input-invalid-function-names = <mathInput>: jeneng fungsi sing ora bener ing { $attribute } ora digatèkaké: { $names }. Pérangan tampilan saben jeneng kudu paling sethithik 2 aksara (huruf utawa garis-garis); pungkasan `|<mathspeak alternative>` kena ditambahaké.
+math-input-invalid-function-names = <mathInput>: jeneng fungsi sing ora bener ing { $attribute } ora digatèkaké: { $names }. Pérangan tampilan saben jeneng kudu paling sethithik 2 aksara (huruf utawa garis pethok); pungkasan `|<mathspeak alternative>` kena ditambahaké.
 
 ## Building components from the source
 
@@ -426,7 +426,7 @@ prefigure-marker-style-unsupported = { $subject }: gaya panandha '{ $markerStyle
 
 annotation-ref-unresolvable = `<annotation>`: `ref` ora bener; targeté ora ketemu. Anotasiné ditinggal.
 
-annotation-ref-multiple-targets = `<annotation>`: `ref` nuduh menyang pirang-pirang target; target kapisan sing dienggo.
+annotation-ref-multiple-targets = `<annotation>`: `ref` ngrujuk marang pirang-pirang target; target kapisan sing dienggo.
 
 annotation-ref-outside-graph = `<annotation>`: `ref` ora bener; targeté ana ing njaba grafik sing ngemot. Anotasiné ditinggal.
 
@@ -442,9 +442,9 @@ composite-circular-dependency =
        *[other] Ketemu gumantungan muter sing nglibataké komponèn `<{ $componentType }>`.
     }
 
-reference-no-referent = Ora ketemu sing dituduh déning rujukan: `{ $reference }`
+reference-no-referent = Ora ketemu sing dirujuk déning rujukan: `{ $reference }`
 
-reference-multiple-referents = Ketemu luwih saka siji sing dituduh déning rujukan: `{ $reference }`
+reference-multiple-referents = Ketemu luwih saka siji sing dirujuk déning rujukan: `{ $reference }`
 
 ## Children that do not match
 
@@ -488,7 +488,7 @@ parse-self-closing-tag-name-missing = DoenetML ora bener: Ketemu tag tanpa jenen
 
 parse-self-closing-tag-not-closed = DoenetML ora bener: Tag `{ $tag }` durung ditutup (kétoké kurang `/>`).
 
-parse-tag-invalid-attributes = DoenetML ora bener: Tag `{ $tag }` ora bener. Bisa waé atribute salah.
+parse-tag-invalid-attributes = DoenetML ora bener: Tag `{ $tag }` ora bener. Bisa waé atributé salah.
 
 parse-close-tag-name-missing = DoenetML ora bener: Ketemu tag panutup tanpa jeneng tag, contoné `</`
 

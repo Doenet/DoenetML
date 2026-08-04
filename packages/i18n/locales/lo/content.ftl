@@ -53,8 +53,8 @@ line-style =
 fill-style =
     .horizontal = ເສັ້ນນອນ
     .vertical = ເສັ້ນຕັ້ງ
-    .diagonal = ເສັ້ນຂວາງ
-    .backdiagonal = ເສັ້ນຂວາງກັບ
+    .diagonal = ເສັ້ນທະແຍງ
+    .backdiagonal = ເສັ້ນທະແຍງກັບ
     .dots = ຈຸດ
     .diamonds = ຮູບຂ້າວຫຼາມຕັດ
 

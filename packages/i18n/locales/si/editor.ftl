@@ -172,7 +172,7 @@ help-property-is-reference =
     }
 
 help-kind-attribute = උපලක්ෂණය
-help-kind-snippet = කොටස
+help-kind-snippet = කේත කැබැල්ල
 help-kind-array-entry = අරා ඇතුළත් කිරීම
 
 help-default = පෙරනිමිය:

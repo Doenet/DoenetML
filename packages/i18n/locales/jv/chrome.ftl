@@ -143,6 +143,6 @@ accessibility-heading-level-2 = Pènget aksesibilitas
 
 something-went-wrong = Ana sing salah.
 
-renderer-load-failed = ana perènder sing gagal dimuat. Mangga muat ulang kaca iki.
+renderer-load-failed = ana perènder sing gagal dimuat. Muat ulanga kaca iki.
 
-core-start-failed = Panampil dokumèn ora bisa diwiwiti. Mangga muat ulang kaca iki.
+core-start-failed = Panampil dokumèn ora bisa diwiwiti. Muat ulanga kaca iki.

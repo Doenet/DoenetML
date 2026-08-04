@@ -234,7 +234,7 @@ solve-equations-cannot-evaluate = ບໍ່ສາມາດແກ້ສົມຜ�
 
 math-operators-operand-number-required = ຕ້ອງກຳນົດ operandNumber ເມື່ອດຶງຕົວຖືກດຳເນີນການທາງຄະນິດສາດ.
 
-eigen-decomposition-failed = ບໍ່ສາມາດຄຳນວນຄ່າສະເພາະຂອງແມັດຊິກໄດ້
+eigen-decomposition-failed = ບໍ່ສາມາດຄຳນວນຄ່າສະເພາະຂອງມາຕຣິກໄດ້
 
 ## `<matchesPattern>`
 
@@ -581,23 +581,23 @@ select-from-sequence-index-excluded = index ທີ່ກຳນົດສຳລັ
 
 select-from-sequence-indices-excluded-combination = indices ທີ່ກຳນົດສຳລັບ selectfromsequence ເປັນການລວມທີ່ຖືກຕັດອອກ
 
-select-from-sequence-coprime-not-positive-integers = ບໍ່ສາມາດເລືອກການລວມທີ່ເປັນເສດສ່ວນເສີມກັນໄດ້ ເພາະບໍ່ໄດ້ເລືອກຈຳນວນເຕັມບວກ.
+select-from-sequence-coprime-not-positive-integers = ບໍ່ສາມາດເລືອກການລວມທີ່ເປັນເສີມສະນິດຊຶ່ງກັນແລະກັນໄດ້ ເພາະບໍ່ໄດ້ເລືອກຈຳນວນເຕັມບວກ.
 
-select-from-sequence-coprime-common-factor = ບໍ່ສາມາດເລືອກຕົວເລກທີ່ເປັນເສດສ່ວນເສີມກັນໄດ້. ຄ່າທີ່ເປັນໄປໄດ້ທັງໝົດມີຕົວປະກອບຮ່ວມ. (ຄ່າ "from" ຫຼື "to" ທີ່ກຳນົດຕ້ອງເປັນເສດສ່ວນເສີມກັນກັບ "step".)
+select-from-sequence-coprime-common-factor = ບໍ່ສາມາດເລືອກຈຳນວນທີ່ເປັນເສີມສະນິດຊຶ່ງກັນແລະກັນໄດ້. ຄ່າທີ່ເປັນໄປໄດ້ທັງໝົດມີຕົວປະກອບຮ່ວມ. (ຄ່າ "from" ຫຼື "to" ທີ່ກຳນົດຕ້ອງເປັນເສີມສະນິດກັບ "step".)
 
-select-from-sequence-coprime-single-number = ບໍ່ສາມາດເລືອກການລວມທີ່ເປັນເສດສ່ວນເສີມກັນຈາກຕົວເລກດຽວທີ່ບໍ່ແມ່ນ 1 ໄດ້.
+select-from-sequence-coprime-single-number = ບໍ່ສາມາດເລືອກການລວມທີ່ເປັນເສີມສະນິດຊຶ່ງກັນແລະກັນຈາກຈຳນວນດຽວທີ່ບໍ່ແມ່ນ 1 ໄດ້.
 
 select-from-sequence-excluded-too-many-combinations = ຕັດອອກຫຼາຍກວ່າ 70% ຂອງການລວມໃນ selectFromSequence
 
-select-from-sequence-coprime-none-found = ບໍ່ສາມາດເລືອກຕົວເລກທີ່ເປັນເສດສ່ວນເສີມກັນໄດ້. ຄ່າທີ່ເປັນໄປໄດ້ທັງໝົດມີຕົວປະກອບຮ່ວມ.
+select-from-sequence-coprime-none-found = ບໍ່ສາມາດເລືອກຈຳນວນທີ່ເປັນເສີມສະນິດຊຶ່ງກັນແລະກັນໄດ້. ຄ່າທີ່ເປັນໄປໄດ້ທັງໝົດມີຕົວປະກອບຮ່ວມ.
 
 select-from-sequence-too-few-unique-values = ບໍ່ສາມາດເລືອກ { $numToSelect } ຄ່າທີ່ບໍ່ຊ້ຳກັນ ຈາກລຳດັບຄວາມຍາວ { $numPossibleValues } ໄດ້
 
-select-prime-numbers-too-few-values = ບໍ່ສາມາດເລືອກ { $numToSelect } ຄ່າ ຈາກລາຍການຈຳນວນເສີມທີ່ມີຄວາມຍາວ { $numValues } ໄດ້
+select-prime-numbers-too-few-values = ບໍ່ສາມາດເລືອກ { $numToSelect } ຄ່າ ຈາກລາຍການຈຳນວນສະເພາະທີ່ມີຄວາມຍາວ { $numValues } ໄດ້
 
 select-prime-numbers-values-count-mismatch = ຈຳນວນຄ່າທີ່ກຳນົດສຳລັບ select ຕ້ອງເທົ່າກັບຈຳນວນທີ່ຕ້ອງເລືອກ
 
-select-prime-numbers-values-not-prime = ຄ່າທັງໝົດທີ່ກຳນົດສຳລັບ select ຈຳນວນເສີມ ຕ້ອງຢູ່ໃນລາຍການຈຳນວນເສີມ
+select-prime-numbers-values-not-prime = ຄ່າທັງໝົດທີ່ກຳນົດສຳລັບ select ຈຳນວນສະເພາະ ຕ້ອງຢູ່ໃນລາຍການຈຳນວນສະເພາະ
 
 select-prime-numbers-values-excluded-combination = ຄ່າທີ່ກຳນົດສຳລັບ selectPrimeNumbers ເປັນການລວມທີ່ຖືກຕັດອອກ
 
