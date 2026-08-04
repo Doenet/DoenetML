@@ -960,6 +960,8 @@ describe("a phrase rendered in two positions", () => {
     const bg = forLocale("bg");
     const ka = forLocale("ka");
     const is = forLocale("is");
+    const ceb = forLocale("ceb");
+    const km = forLocale("km");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1243,6 +1245,39 @@ describe("a phrase rendered in two positions", () => {
             textColor: "rauður",
             backgroundColor: "gulur",
             sentence: "rauður á gulum bakgrunni",
+        });
+    });
+
+    // Cebuano inflects nothing at all, and still does not read like English:
+    // its noun leads, and the linker «nga» stands between it and each of its
+    // adjectives. Both positions read alike, which is the point — the words
+    // that move here are the catalog's own linkers, not a case ending.
+    it("gives Cebuano a linker in every position and no case anywhere", () => {
+        expect(bothBorderForms(ceb)).toEqual({
+            standalone: "baga nga itom",
+            embedded:
+                "sirkulo nga puno nga asul uban ang utlanan nga baga nga itom",
+        });
+        expect(bothTextForms(ceb)).toEqual({
+            textColor: "pula",
+            backgroundColor: "dalag",
+            sentence: "pula uban ang luyo nga dalag",
+        });
+    });
+
+    // Khmer is the opposite extreme: no gender, no case, no article and no
+    // space inside a phrase either, so the adjectives sit flush against the
+    // noun in front of them. The space before «ជាមួយ» is a real phrase break
+    // rather than a word boundary, and it is the only one in the sentence.
+    it("gives Khmer a phrase that closes up around its placeables", () => {
+        expect(bothBorderForms(km)).toEqual({
+            standalone: "ក្រាស់ពណ៌ខ្មៅ",
+            embedded: "រង្វង់លាបពណ៌ខៀវ ជាមួយគែមក្រាស់ពណ៌ខ្មៅ",
+        });
+        expect(bothTextForms(km)).toEqual({
+            textColor: "ពណ៌ក្រហម",
+            backgroundColor: "ពណ៌លឿង",
+            sentence: "ពណ៌ក្រហមលើផ្ទៃខាងក្រោយពណ៌លឿង",
         });
     });
 

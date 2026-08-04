@@ -287,6 +287,25 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("líonadh gorm le poncanna");
     });
 
+    it("joins a Cebuano noun to its adjectives with the linker", async () => {
+        const values = await descriptions(styled, names, "ceb");
+        // Cebuano has no gender, no case and no article, and what shapes every
+        // description instead is the linker «nga»: it joins the noun to its
+        // adjectives and the adjectives to each other, so a description with
+        // three of them carries three linkers. Reported on its own, `st` is the
+        // adjectives with the linkers between them and no noun in front, which
+        // is what shows the linker is the catalog's own word rather than
+        // something the noun brings with it.
+        expect(values.st).eq("baga nga putol-putol nga pula");
+        expect(values.stn).eq("linya nga baga nga putol-putol nga pula");
+        expect(values.pt).eq("kwadrado nga lunhaw");
+        expect(values.sh).eq(
+            "sirkulo nga puno nga asul uban ang mga tuldok ug utlanan nga baga nga putol-putol nga pula",
+        );
+        expect(values.bd).eq("baga nga putol-putol nga pula");
+        expect(values.fd).eq("mga tuldok nga asul");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

@@ -67,22 +67,24 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
-`az`, `be`, `bg`, `bn`, `br`, `ca`, `cs`, `cy`, `da`, `de`, `el`, `es`, `et`,
-`eu`, `fa`, `fi`, `fil`, `fo`, `fr`, `ga`, `gd`, `gl`, `gu`, `ha`, `he`, `hi`,
-`hnj`, `hr`, `hu`, `hy`, `id`, `ig`, `is`, `it`, `ja`, `ka`, `kk`, `kn`, `ko`,
-`ky`, `lt`, `lv`, `mk`, `ml`, `mn`, `mr`, `ms`, `mt`, `my`, `nb`, `ne`, `nl`,
-`ny`, `om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`, `sd`, `sk`, `sl`,
-`so`, `sq`, `sr`, `sv`, `sw`, `ta`, `te`, `tg`, `th`, `tk`, `tr`, `tt`, `ug`,
-`uk`, `ur`, `uz`, `vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an
+`az`, `be`, `bg`, `bn`, `br`, `ca`, `ceb`, `cs`, `cy`, `da`, `de`, `el`, `es`,
+`et`, `eu`, `fa`, `fi`, `fil`, `fo`, `fr`, `ga`, `gd`, `gl`, `gu`, `ha`, `haw`,
+`he`, `hi`, `hnj`, `hr`, `hu`, `hy`, `id`, `ig`, `is`, `it`, `ja`, `jv`, `ka`,
+`kk`, `km`, `kn`, `ko`, `ky`, `lo`, `lt`, `lv`, `mg`, `mi`, `mk`, `ml`, `mn`,
+`mr`, `ms`, `mt`, `my`, `nb`, `ne`, `nl`, `ny`, `om`, `or`, `pa`, `pl`, `ps`,
+`pt`, `ro`, `ru`, `rw`, `sd`, `si`, `sk`, `sl`, `sm`, `so`, `sq`, `sr`, `su`,
+`sv`, `sw`, `ta`, `te`, `tg`, `th`, `tk`, `tr`, `tt`, `ug`, `uk`, `ur`, `uz`,
+`vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an
 **unreviewed machine-generated seed**, which each file's own header says at the
 top, and which is what #1521's translation platform is for. None has
 been read by a speaker. Correcting one needs no permission and no coordination:
 a wrong string is just wrong, and the English is one key away.
 
-Twenty-one of them are deliberately partial, all in the same place: Somali,
+Twenty-nine of them are deliberately partial, all in the same place: Somali,
 Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
 Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
-Hausa, Yoruba, Igbo and Oromo leave `element-name` and `element-anion-name`
+Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano, Malagasy, Māori,
+Samoan and Hawaiian leave `element-name` and `element-anion-name`
 out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
@@ -97,6 +99,28 @@ The eight from the sub-Saharan batch are that same case for a different
 reason: secondary science is taught in English, French or Afrikaans across all
 of them, so the fallback *is* the curriculum. Afrikaans and Swahili are the two
 of that batch that do have a settled list and supply it.
+
+The eight from the Southeast Asian and Pacific batch split three ways, and the
+split is worth keeping straight because only one of the three is a claim about
+the language. Cebuano is the Filipino case again and for the same school
+system, and Malagasy the French-medium case; Samoan and Hawaiian have no
+settled list of all 118 to seed from, and neither does Māori, whose
+kura-taught science coins terms without having reached the whole table.
+Khmer, Lao and Sinhala are the one group where the language *does* have the
+names — all three are taught chemistry in their own language, out of textbooks
+that print their own transcriptions — and what is missing is a convention this
+seed could reproduce rather than invent. An unreviewed guess written in a
+script the reader cannot check against the English beside it is worse than the
+English, so those three are the first place a speaker should look, and the
+catalogs say so in their own headers.
+
+Javanese and Sundanese are the two of that batch that supply the names, and
+they are a case of their own: their schools teach chemistry out of
+Indonesian-language textbooks, so the scientific names are the Indonesian ones
+`locales/id` already carries. Both keep their own words for the substances
+known long before the elements were — «wesi» and «beusi» for iron, «walirang»
+for sulfur, «warangan» for arsenic — which is where the two catalogs differ
+from `id` and from each other.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -185,6 +209,25 @@ ten are Latin-script languages with one settled orthography apiece, and every
 regional tag over them — `ga-IE`, `gd-GB`, `cy-GB`, `br-FR`, `is-IS`, `fo-FO`,
 `eu-ES`, `ca-ES`, `ca-AD`, `gl-ES`, `mt-MT` — filters to its catalog with no
 alias.
+
+The Southeast Asian and Pacific batch adds one script case and one that is not
+about script at all. `jv` is Javanese in Latin letters, which is what Javanese
+schooling, publishing and CLDR all use, so a reader arriving under `jv-Java` —
+the Javanese script — reaches it and gets Latin, the same asymmetry `pa` and
+`sr` already have and with the same answer: a second catalog beside the first
+rather than a rename of it.
+
+The other is **speech level**, and it is a decision a catalog cannot avoid
+making. Javanese and Sundanese choose a register for every sentence, and a
+file with two registers in it is wrong in both, so each of those two locales is
+written at the plain level throughout — ngoko for Javanese, loma for Sundanese
+— and every one of their eight file headers says so. Those are the levels
+Javanese and Sundanese writing addressed to a general reader uses, and the
+polite registers would be derived from them rather than the other way round. A
+deployment that wants krama or lemes supplies its own catalog as
+`localeResources`, which wins over the shipped one; correcting these files
+sentence by sentence toward a different level is what would leave the locale in
+two registers at once.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
