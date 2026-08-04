@@ -462,6 +462,54 @@ describe("Vector Tag Tests @group4", function () {
         await common_test_process({ core, resolvePathToNodeIdx });
     });
 
+    // Regression, introduced by the move to the Rust math-expressions engine —
+    // this passes on `main`. Reduced from the drag sequences above, which reach
+    // the same bug only after several moves and report it as an arithmetic
+    // mismatch deep in a helper.
+    //
+    // Dragging a point that extends `$v.head` is discarded outright: no error,
+    // and neither the point, the head, nor the displacement changes. It only
+    // happens when the extended variable has to *invert through* another one —
+    // here `head` is computed from `displacement`, so setting it means setting
+    // the displacement. Extending `.tail`, or a vector declared with `head` and
+    // `tail`, both work, as does `moveVector` on the vector itself.
+    //
+    // See VECTOR_UPDATE_DROP.md for the trace and what it rules out.
+    it("dragging a point that extends the head of a displacement-defined vector", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <vector name="v" displacement="(-4,2)" />
+  <point extend="$v.head" name="copy" />
+  `,
+        });
+
+        const trees = async (name: string, variable: string) => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues[
+                variable
+            ].map((v: any) => v.simplify().tree);
+        };
+
+        expect(await trees("v", "head")).eqls([-4, 2]);
+        expect(await trees("v", "displacement")).eqls([-4, 2]);
+
+        await movePoint({
+            core,
+            componentIdx: await resolvePathToNodeIdx("copy"),
+            x: 7,
+            y: 9,
+        });
+
+        // The tail stays at the origin, so the displacement must absorb the move.
+        expect(await trees("copy", "xs")).eqls([7, 9]);
+        expect(await trees("v", "head")).eqls([7, 9]);
+        expect(await trees("v", "tail")).eqls([0, 0]);
+        expect(await trees("v", "displacement")).eqls([7, 9]);
+    });
+
     it("vector with just displacement and label, head/tail/displacement copied", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

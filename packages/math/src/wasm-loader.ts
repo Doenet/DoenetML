@@ -25,14 +25,13 @@
  * is the same hazard `CoreWorker.ts` documents for the DoenetML core (#1466).
  */
 import * as glue from "math-expressions-wasm-glue";
-// Deliberately the leaf module, not the `math-expressions-js-compat` barrel.
-// The barrel's `Context` literal contains `_assumptionsHandle: new
-// wasm.Assumptions()`, which touches the WASM *while the barrel's module body
-// is evaluating* — so importing `setWasmModule` from the barrel would force that
-// body to run before we could ever call it, and the injection would always lose
-// the race to compat's node fallback. `lib/_wasm` imports nothing but a type, so
-// depending on it directly leaves us upstream of the eager handle.
-import { setWasmModule } from "math-expressions-js-compat/lib/_wasm";
+// The barrel's own export. This used to have to come from the leaf `lib/_wasm`
+// instead: `Context._assumptionsHandle` was an eager `new wasm.Assumptions()`,
+// which touched the WASM while the barrel's module body was still evaluating,
+// so importing from the barrel forced the load before injection could happen and
+// it silently lost the race to compat's node fallback. The handle is a lazy
+// getter now, so nothing here loads the WASM until a method is actually called.
+import { setWasmModule } from "math-expressions-js-compat";
 import type { WasmModule } from "math-expressions-rs-wasm";
 import { WASM_BASE64, WASM_BYTE_LENGTH } from "./generated/wasm-bytes";
 
