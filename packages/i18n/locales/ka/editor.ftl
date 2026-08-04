@@ -14,6 +14,13 @@
 # Georgian counts in the same two categories English does, so every selection
 # below keeps both branches — though a noun after a numeral stays singular, so
 # the two read alike.
+#
+# An affix is never welded to a placeable where it would have to agree with the
+# value. The genitive alternates on the sound before it — «-ის» after a
+# consonant, «-ს» after a vowel — so a genitive goes on a word this catalog
+# writes («{ $component } კომპონენტის», «{ $element } ელემენტის») and the value
+# stays bare. The postpositions «-ზე», «-ში» and «-დან» and the dative «-ს» do
+# not alternate, so those still sit directly on a value.
 
 
 ## The viewer's controls
@@ -26,8 +33,8 @@ editor-update-viewer =
 
 editor-update-viewer-title =
     { $shortcut ->
-        [none] მაჩვენებლის { $word }
-       *[other] მაჩვენებლის { $word } { $shortcut }
+        [none] დამთვალიერებლის { $word }
+       *[other] დამთვალიერებლის { $word } { $shortcut }
     }
 
 
@@ -133,13 +140,13 @@ editor-response-submitted = გაგზავნილია
 
 help-placeholder = დოკუმენტაციისთვის დააყენეთ კურსორი ტეგის სახელზე, ატრიბუტზე ან { $ref }-ზე.
 
-help-unsupported-ref-chain = { $example }-ის მსგავსი მრავალნაწილიანი მიმართვების დახმარება ჯერ არ არის მხარდაჭერილი.
+help-unsupported-ref-chain = მრავალნაწილიანი მიმართვების, როგორიცაა { $example }, დახმარება ჯერ არ არის მხარდაჭერილი.
 
 help-unresolved-ref =
     { $reason ->
         [notFound] მიმართვისთვის ობიექტი ვერ მოიძებნა: { $ref }.
         [multiple] მიმართვისთვის რამდენიმე ობიექტი მოიძებნა: { $ref }.
-       *[indeterminate] { $ref }-ის ობიექტის დადგენა ვერ მოხერხდა.
+       *[indeterminate] { $ref } მიმართვის ობიექტის დადგენა ვერ მოხერხდა.
     }
 
 help-learn-about-references = გაიგეთ მეტი მიმართვების შესახებ →
@@ -147,7 +154,7 @@ help-reference-page = საცნობარო გვერდი →
 
 help-suggestions-header =
     { $location ->
-        [inside] { $element }-ის შიგნით
+        [inside] { $element } ელემენტის შიგნით
        *[top] ზედა დონეზე
     }{ $allowed ->
         [none] { " — აქ არაფერი ჯდება." }
@@ -168,14 +175,14 @@ help-ref-is-reference =
 
 help-ref-derived-from =
     { $line ->
-        [none] შემოტანილია { $owner }-ის მიერ, როგორც { $role }.
-       *[other] შემოტანილია { $owner }-ის მიერ { $line } სტრიქონში, როგორც { $role }.
+        [none] შემოტანილია { $owner } ელემენტის მიერ, როგორც { $role }.
+       *[other] შემოტანილია { $owner } ელემენტის მიერ { $line } სტრიქონში, როგორც { $role }.
     }
 
 help-property-is-reference =
     { $line ->
-        [none] { $ref } არის მიმართვა { $element }-ის { $property } თვისებაზე.
-       *[other] { $ref } არის მიმართვა { $element }-ის { $property } თვისებაზე ({ $line } სტრიქონი).
+        [none] { $ref } არის მიმართვა { $element } ელემენტის { $property } თვისებაზე.
+       *[other] { $ref } არის მიმართვა { $element } ელემენტის { $property } თვისებაზე ({ $line } სტრიქონი).
     }
 
 help-kind-attribute = ატრიბუტი
@@ -212,4 +219,4 @@ help-reset-list = ამ ველის აღდგენის სია:
 help-added-on-input = ამ ველზე დამატებული:
 help-removed-on-input = ამ ველიდან წაშლილი:
 
-help-reset-overrides = { $reset } უპირატესია { $additional }-სა და { $removed }-ზე.
+help-reset-overrides = { $reset } გადაფარავს { $additional }-სა და { $removed }-ს.

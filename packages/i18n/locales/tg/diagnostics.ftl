@@ -143,7 +143,7 @@ accessibility-short-description-contains-math = Тавсифҳои кӯтоҳ н
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] { $colorName } барои матни сарлавҳаи боб контрасти кофӣ намедиҳад (мавзӯи торик) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ҳадди ақал { $threshold }:1 лозим аст).
+        [dark] { $colorName } барои матни сарлавҳаи боб контрасти кофӣ намедиҳад (реҷаи торик) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ҳадди ақал { $threshold }:1 лозим аст).
        *[other] { $colorName } барои матни сарлавҳаи боб контрасти кофӣ намедиҳад ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ҳадди ақал { $threshold }:1 лозим аст).
     }
 
@@ -246,9 +246,9 @@ target-state-variable-not-found = target-и нодуруст барои `<{ $sou
 
 ode-system-variables-match-independent = Тағйирёбандаҳои `<odeSystem>` бояд аз тағйирёбандаи мустақил фарқ кунанд.
 
-ode-system-duplicate-variable-names = Функсияҳои тарафи рости МД-ро бо номҳои такрории тағйирёбандаҳои вобаста муайян кардан мумкин нест.
+ode-system-duplicate-variable-names = Функсияҳои тарафи рости муодилаи дифференсиалиро бо номҳои такрории тағйирёбандаҳои вобаста муайян кардан мумкин нест.
 
-ode-system-rhs-function-error = Функсияи тарафи рости МД-ро муайян кардан мумкин нест. Хато ҳангоми сохтани функсияи mathjs.
+ode-system-rhs-function-error = Функсияи тарафи рости муодилаи дифференсиалиро муайян кардан мумкин нест. Хато ҳангоми сохтани функсияи mathjs.
 
 ## `<angle>`, `<parabola>`, and `<intersection>`
 
@@ -322,11 +322,11 @@ component-action-unavailable = Дар ҷузъи `{ $reference }` { $action }-р
 
 ## `<dataFrame>`
 
-data-frame-inconsistent-row-lengths = Шакли маълумот нодуруст аст. Дарозии сатрҳо гуногун аст. Ёфт шуд componentIdx :{ $componentIdx }
+data-frame-inconsistent-row-lengths = Шакли маълумот нодуруст аст. Дарозии сатрҳо гуногун аст. Дар componentIdx :{ $componentIdx } ёфт шуд
 
-data-frame-duplicate-column-names = Дар маълумот номҳои такрории сутунҳо ҳастанд. Ёфт шуд componentIdx :{ $componentIdx }
+data-frame-duplicate-column-names = Дар маълумот номҳои такрории сутунҳо ҳастанд. Дар componentIdx :{ $componentIdx } ёфт шуд
 
-data-frame-missing-column-name = Дар маълумот номи сутун намерасад. Ёфт шуд componentIdx :{ $componentIdx }
+data-frame-missing-column-name = Дар маълумот номи сутун намерасад. Дар componentIdx :{ $componentIdx } ёфт шуд
 
 ## `<answer>` and scoring
 
@@ -352,7 +352,7 @@ module-attribute-name-already-defined = Ҷузъи `<{ $component } name="{ $nam
 
 conditional-content-condition-ignored = Атрибути `condition` дар ҷузъи `<conditionalContent>`-и дорои фарзандони case ё else ба эътибор гирифта намешавад.
 
-slider-markers-type-mismatch = Навъи маркерҳо ба навъи ҷобаҷокунанда мувофиқат намекунад.
+slider-markers-type-mismatch = Навъи маркерҳо ба навъи лағжанда мувофиқат намекунад.
 
 pretzel-problem-needs-statement-and-answer = pretzel-и нодуруст: ҳар `<problem>` бояд як `<statement>` ва як `<answer>` дошта бошад.
 
@@ -383,25 +383,25 @@ attribute-invalid-for-component = Атрибути нодурусти «{ $attri
 style-definition-insufficient-contrast =
     Таърифи услуби { $styleNumber } контрасти нокофӣ дорад барои { $context ->
         [text-on-background] ранги матн нисбат ба ранги замина
-        [high-contrast] ранги контрасти баланд нисбат ба рӯйхат
-        [line] ранги хат нисбат ба рӯйхат
-        [marker] ранги маркер нисбат ба рӯйхат
-       *[text-on-canvas] ранги матн нисбат ба рӯйхат
+        [high-contrast] ранги контрасти баланд нисбат ба майдони расм
+        [line] ранги хат нисбат ба майдони расм
+        [marker] ранги маркер нисбат ба майдони расм
+       *[text-on-canvas] ранги матн нисбат ба майдони расм
     }{ $mode ->
-        [dark] { " (мавзӯи торик)" }
+        [dark] { " (реҷаи торик)" }
        *[light] { "" }
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ҳадди ақал { $threshold }:1 лозим аст).
 
 style-definition-dark-mode-text-background-contrast =
-    Ҳарчанд рангҳои дар таърифи услуби { $styleNumber } додашуда барои мавзӯи равшан контрасти кофӣ медиҳанд, рангҳои мавзӯи торики аз онҳо ҳосилшуда байни матн ва замина контрасти нокофӣ медиҳанд ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ҳадди ақал { $threshold }:1 лозим аст). { $suggestion ->
-        [available] Барои контрасти кофӣ дар мавзӯи торик ё контрастро дар мавзӯи равшан зиёд кунед (масалан { $lightAttribute }="{ $lightColor }"), ё ранги мавзӯи торикро иваз кунед (масалан { $darkAttribute }="{ $darkColor }").
-       *[none] Барои контрасти кофӣ дар мавзӯи торик контрастро дар мавзӯи равшан зиёд кунед ё рангҳои ҳосилшударо бо textColorDarkMode ва/ё backgroundColorDarkMode иваз кунед.
+    Ҳарчанд рангҳои дар таърифи услуби { $styleNumber } додашуда барои реҷаи равшан контрасти кофӣ медиҳанд, рангҳои реҷаи торики аз онҳо ҳосилшуда байни матн ва замина контрасти нокофӣ медиҳанд ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ҳадди ақал { $threshold }:1 лозим аст). { $suggestion ->
+        [available] Барои контрасти кофӣ дар реҷаи торик ё контрастро дар реҷаи равшан зиёд кунед (масалан { $lightAttribute }="{ $lightColor }"), ё ранги реҷаи торикро иваз кунед (масалан { $darkAttribute }="{ $darkColor }").
+       *[none] Барои контрасти кофӣ дар реҷаи торик контрастро дар реҷаи равшан зиёд кунед ё рангҳои ҳосилшударо бо textColorDarkMode ва/ё backgroundColorDarkMode иваз кунед.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    Ҳарчанд ранги матни дар таърифи услуби { $styleNumber } додашуда барои мавзӯи равшан контрасти кофӣ медиҳад, ранги матни мавзӯи торики аз он ҳосилшуда нисбат ба рӯйхат контрасти нокофӣ медиҳад ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ҳадди ақал { $threshold }:1 лозим аст). { $suggestion ->
-        [available] Барои контрасти кофӣ дар мавзӯи торик ё контрастро дар мавзӯи равшан зиёд кунед (масалан textColor="{ $lightColor }"), ё ранги мавзӯи торикро иваз кунед (масалан textColorDarkMode="{ $darkColor }").
-       *[none] Барои контрасти кофӣ дар мавзӯи торик контрастро дар мавзӯи равшан зиёд кунед ё ранги ҳосилшударо бо textColorDarkMode иваз кунед.
+    Ҳарчанд ранги матни дар таърифи услуби { $styleNumber } додашуда барои реҷаи равшан контрасти кофӣ медиҳад, ранги матни реҷаи торики аз он ҳосилшуда нисбат ба майдони расм контрасти нокофӣ медиҳад ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ҳадди ақал { $threshold }:1 лозим аст). { $suggestion ->
+        [available] Барои контрасти кофӣ дар реҷаи торик ё контрастро дар реҷаи равшан зиёд кунед (масалан textColor="{ $lightColor }"), ё ранги реҷаи торикро иваз кунед (масалан textColorDarkMode="{ $darkColor }").
+       *[none] Барои контрасти кофӣ дар реҷаи торик контрастро дар реҷаи равшан зиёд кунед ё ранги ҳосилшударо бо textColorDarkMode иваз кунед.
     }
 
 section-multiple-style-palettes = Боб танҳо як <stylePalette> интихоб карда метавонад; охирин истифода мешавад.
@@ -458,7 +458,7 @@ prefigure-label-position-unsupported =
     { $subject }: labelPosition-и дастгиринашавандаи «{ $labelPosition }» барои { $labelKind ->
         [line-family] нишонаи оилаи хатҳо
        *[point] нишонаи нуқта
-    }; ҳамвории пешфарзи PreFigure истифода мешавад.
+    }; ҷобаҷогузории пешфарзи PreFigure истифода мешавад.
 
 prefigure-fill-style-unsupported = { $subject }: услуби пуркунии «{ $fillStyle }» аз ҷониби PreFigure дастгирӣ намешавад; ба пуркунии яклухт гузашта мешавад.
 

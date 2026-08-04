@@ -118,8 +118,8 @@ error-heading = Хата
 
 error-found-at =
     { $span ->
-        [line] { $startLine } нче юлда табылды.
-       *[lines] { $startLine }–{ $endLine } нче юлларда табылды.
+        [line] Табылган юл: { $startLine }.
+       *[lines] Табылган юллар: { $startLine }–{ $endLine }.
     }
 
 document-contains-errors = Бу документта хаталар бар!

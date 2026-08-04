@@ -34,7 +34,7 @@ editor-update-viewer-title =
 ## The variant picker
 
 editor-variant = Wariant
-editor-variant-filter = Süz…
+editor-variant-filter = Süzgüç…
 editor-variant-next = Indiki warianty saýla
 editor-variant-previous = Öňki warianty saýla
 
@@ -103,7 +103,7 @@ editor-format-as-xml = XML hökmünde formatla
 
 ## The diagnostics panel
 
-editor-diagnostic-line = { $line }-nji setir
+editor-diagnostic-line = Setir #{ $line }
 
 editor-no-errors = Ýalňyşlyk ýok
 editor-no-warnings = Duýduryş ýok
@@ -126,7 +126,7 @@ editor-no-responses = Entek iberilen jogap ýok
 editor-response-answer-id = Jogabyň Id-si
 editor-response-response = Jogap
 editor-response-credit = Bal
-editor-response-submitted = Iberildi
+editor-response-submitted = Iberilen
 
 
 ## The context-help panel
@@ -163,19 +163,19 @@ help-name-summary = { $name } — { $summary }
 help-ref-is-reference =
     { $line ->
         [none] { $ref } — { $target } obýektine salgylanma.
-       *[other] { $ref } — { $target } obýektine salgylanma ({ $line }-nji setir).
+       *[other] { $ref } — { $target } obýektine salgylanma ({ $line } setir).
     }
 
 help-ref-derived-from =
     { $line ->
         [none] Ony { $owner } { $role } hökmünde girizdi.
-       *[other] Ony { $owner } { $line }-nji setirde { $role } hökmünde girizdi.
+       *[other] Ony { $owner } { $line } setirde { $role } hökmünde girizdi.
     }
 
 help-property-is-reference =
     { $line ->
         [none] { $ref } — { $element } elementiniň { $property } häsiýetine salgylanma.
-       *[other] { $ref } — { $element } elementiniň { $property } häsiýetine salgylanma ({ $line }-nji setir).
+       *[other] { $ref } — { $element } elementiniň { $property } häsiýetine salgylanma ({ $line } setir).
     }
 
 help-kind-attribute = atribut

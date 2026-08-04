@@ -143,7 +143,7 @@ help-unresolved-ref =
     }
 
 help-learn-about-references = İstinadlar haqqında öyrənin →
-help-reference-page = Sorğu səhifəsi →
+help-reference-page = İstinad səhifəsi →
 
 help-suggestions-header =
     { $location ->

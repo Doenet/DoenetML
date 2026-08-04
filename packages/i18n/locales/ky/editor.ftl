@@ -12,8 +12,16 @@
 # name are identifiers, not prose, and stay as written.
 #
 # Kyrgyz counts in the same two categories English does, so every selection
-# below keeps both branches — though a noun after a numeral stays singular, so
-# the two read alike.
+# below keeps both branches. A noun after a numeral stays singular, which is
+# why the two branches of `editor-accessibility-label` read alike;
+# `help-coordinates` prints no numeral beside its noun and so does take a
+# plural in `other`.
+#
+# `editor-diagnostic-line` and the line references in the help panel write
+# «{ $line }-сап», the ordinal-style form Kyrgyz uses for a numbered line. That
+# is an invariant affix standing beside a placeable rather than agreement with
+# one — `$line` is always a number, so nothing has to harmonize with a word the
+# catalog cannot see.
 
 
 ## The viewer's controls

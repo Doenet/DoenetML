@@ -156,7 +156,7 @@ boolean-false = ýalňyş
 ## Answer buttons
 
 answer-submit-label = Barla
-answer-submit-label-no-correctness = Jogaby ibermek
+answer-submit-label-no-correctness = Jogaby iber
 
 
 ## Sectional blocks
@@ -200,16 +200,16 @@ hint-title = Maslahat
 
 table-name =
     { $parts ->
-        [numbered] { $enumeration }-nji tablisa
-        [numbered-title] { $enumeration }-nji tablisa{ ". " }
+        [numbered] Tablisa { $enumeration }
+        [numbered-title] Tablisa { $enumeration }{ ". " }
         [unnumbered-title] Tablisa{ ". " }
        *[unnumbered] Tablisa
     }
 
 figure-name =
     { $parts ->
-        [numbered] { $enumeration }-nji surat
-        [numbered-caption] { $enumeration }-nji surat{ ". " }
+        [numbered] Surat { $enumeration }
+        [numbered-caption] Surat { $enumeration }{ ". " }
         [unnumbered-caption] Surat{ ". " }
        *[unnumbered] Surat
     }

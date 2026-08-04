@@ -434,17 +434,17 @@ variant-non-constant-exclude-not-implemented = sabit olmayan exclude olan { $com
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: qrafikin prefigure göstəricisində dəstəklənmir; törəmə buraxıldı.
+prefigure-descendant-unsupported = { $subject }: qrafikin prefigure göstəricisində dəstəklənmir; alt element buraxıldı.
 
-prefigure-descendant-invalid-geometry = { $subject }: sonsuz və ya natamam həndəsə; törəmə buraxıldı.
+prefigure-descendant-invalid-geometry = { $subject }: sonsuz və ya natamam həndəsə; alt element buraxıldı.
 
 prefigure-curve-label-omitted = { $subject }: çevrilmiş əyri elementlərində etiketlər dəstəklənmir; etiket buraxıldı.
 
-prefigure-curve-unsupported-definition-type = { $subject }: dəstəklənməyən əyri funksiyası təyinat tipi „{ $definitionType }“; törəmə buraxıldı.
+prefigure-curve-unsupported-definition-type = { $subject }: dəstəklənməyən əyri funksiyası təyinat tipi „{ $definitionType }“; alt element buraxıldı.
 
-prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves üzərində flipFunctions atributu dəstəklənmir; törəmə buraxıldı.
+prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves üzərində flipFunctions atributu dəstəklənmir; alt element buraxıldı.
 
-prefigure-region-non-formula-child = { $subject }: regionBetweenCurves yalnız düsturla verilmiş övlad funksiyaları dəstəkləyir; törəmə buraxıldı.
+prefigure-region-non-formula-child = { $subject }: regionBetweenCurves yalnız düsturla verilmiş övlad funksiyaları dəstəkləyir; alt element buraxıldı.
 
 prefigure-label-position-unsupported =
     { $subject }: dəstəklənməyən labelPosition „{ $labelPosition }“ { $labelKind ->

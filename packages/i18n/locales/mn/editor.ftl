@@ -91,8 +91,8 @@ editor-accessibility-badge = WCAG
 
 editor-version-title = DoenetML хувилбар { $version }
 
-editor-tab-help = Нөхцөл байдлын тусламж
-editor-tab-help-short = Нөхцөл
+editor-tab-help = Контекстээс хамаарсан тусламж
+editor-tab-help-short = Контекст
 editor-tab-errors = Алдаанууд
 editor-tab-warnings = Анхааруулгууд
 editor-tab-info = Мэдээлэл

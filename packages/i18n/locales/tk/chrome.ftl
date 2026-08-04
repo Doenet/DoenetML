@@ -118,8 +118,8 @@ error-heading = Ýalňyşlyk
 
 error-found-at =
     { $span ->
-        [line] { $startLine }-nji setirde tapyldy.
-       *[lines] { $startLine }–{ $endLine }-nji setirlerde tapyldy.
+        [line] { $startLine } setirde tapyldy.
+       *[lines] { $startLine }–{ $endLine } setirlerde tapyldy.
     }
 
 document-contains-errors = Bu resminamada ýalňyşlyklar bar!

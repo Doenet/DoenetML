@@ -89,8 +89,8 @@ orbital-add-row = Сап кошуу
 orbital-remove-row = Сапты өчүрүү
 orbital-add-box = Уяча кошуу
 orbital-remove-box = Уячаны өчүрүү
-orbital-add-up-arrow = Жогорку жебе кошуу
-orbital-add-down-arrow = Төмөнкү жебе кошуу
+orbital-add-up-arrow = Өйдө караган жебе кошуу
+orbital-add-down-arrow = Ылдый караган жебе кошуу
 orbital-remove-arrow = Жебени өчүрүү
 
 orbital-row-label = { $row } сабынын белгиси

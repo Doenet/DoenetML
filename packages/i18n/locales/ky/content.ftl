@@ -10,7 +10,11 @@
 # keep the English order.
 #
 # The two clauses are marked by a suffix on the *noun* — «жээктүү», «фондо» — and
-# that noun is one this catalog writes, so nothing is welded to a placeable.
+# that noun is one this catalog writes, so no suffix has to agree with a
+# placeable. `noun-regular-polygon`, `table-name` and `figure-name` do write a
+# word directly against one — «{ $numSides }-бурчтук», «{ $enumeration }-таблица» —
+# but that is adjacency rather than agreement: both arguments are numbers, so
+# the word after the hyphen is the same whatever lands in front of it.
 # `locales/kk` is the closest parallel text to this file: the grammar is the
 # same and the vocabulary is not, so a correction to the *shape* of a message
 # here is usually a correction to that file too, while a correction to a word

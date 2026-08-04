@@ -200,16 +200,16 @@ hint-title = Киңәш
 
 table-name =
     { $parts ->
-        [numbered] { $enumeration } нче таблица
-        [numbered-title] { $enumeration } нче таблица{ ". " }
+        [numbered] Таблица { $enumeration }
+        [numbered-title] Таблица { $enumeration }{ ". " }
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
 
 figure-name =
     { $parts ->
-        [numbered] { $enumeration } нче рәсем
-        [numbered-caption] { $enumeration } нче рәсем{ ". " }
+        [numbered] Рәсем { $enumeration }
+        [numbered-caption] Рәсем { $enumeration }{ ". " }
         [unnumbered-caption] Рәсем{ ". " }
        *[unnumbered] Рәсем
     }
@@ -266,7 +266,7 @@ element-name =
     .zn = Цинк
     .ga = Галлий
     .ge = Германий
-    .as = Мышьяк
+    .as = Күшән
     .se = Селен
     .br = Бром
     .kr = Криптон
@@ -284,7 +284,7 @@ element-name =
     .cd = Кадмий
     .in = Индий
     .sn = Калай
-    .sb = Сурьма
+    .sb = Сөрмә
     .te = Теллур
     .i = Йод
     .xe = Ксенон

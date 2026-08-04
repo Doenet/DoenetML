@@ -13,6 +13,14 @@
 # differ in nothing but the number they print.
 #
 # Register: the second-person plural imperative — «Թարմացրեք էջը».
+#
+# An affix is never welded to a placeable. The definite article alternates on
+# the sound before it — «-ը» after a consonant, «-ն» after a vowel — and the
+# value is unknown here, so where the sentence wants a determined noun the
+# article goes on a word this catalog writes («{ $attribute } ատրիբուտը»,
+# «{ $action } գործողությունը») and the value stays bare. The genitive «-ի»,
+# the dative «-ին», the ablative «-ից» and the locative «-ում» do not
+# alternate, so those still sit directly on a value.
 
 
 ## Answer submission

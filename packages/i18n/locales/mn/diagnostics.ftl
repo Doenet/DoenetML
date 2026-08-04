@@ -33,11 +33,11 @@ line-segment-attributes-ignored-with-endpoints =
 
 line-segment-attributes-ignored-with-endpoint-and-midpoint =
     { $attributesCount ->
-        [one] төгсгөлийн цэг ба дундаж цэг хоёулаа өгөгдсөн үед { $attributes } тооцогдохгүй
-       *[other] төгсгөлийн цэг ба дундаж цэг хоёулаа өгөгдсөн үед { $attributes } тооцогдохгүй
+        [one] төгсгөлийн цэг ба дунд цэг хоёулаа өгөгдсөн үед { $attributes } тооцогдохгүй
+       *[other] төгсгөлийн цэг ба дунд цэг хоёулаа өгөгдсөн үед { $attributes } тооцогдохгүй
     }
 
-line-segment-midpoint-offset-without-midpoint = дундаж цэггүйгээр midpointOffset нөлөөлөхгүй
+line-segment-midpoint-offset-without-midpoint = дунд цэггүйгээр midpointOffset нөлөөлөхгүй
 
 ## `<line>`
 
@@ -75,9 +75,9 @@ choice-input-label-position-ignored = мөр дотор биш choiceInput-д la
 
 ## Ordering children by index
 
-choice-input-indices-count-mismatch = choiceInput-д өгсөн индексүүд тооцогдохгүй, учир нь тэдгээрийн тоо choice удмуудын тоотой таарахгүй байна.
+choice-input-indices-count-mismatch = choiceInput-д өгсөн индексүүд тооцогдохгүй, учир нь тэдгээрийн тоо choice хүү элементүүдийн тоотой таарахгүй байна.
 
-pretzel-indices-count-mismatch = problem-д өгсөн индексүүд тооцогдохгүй, учир нь тэдгээрийн тоо problem удмуудын тоотой таарахгүй байна.
+pretzel-indices-count-mismatch = problem-д өгсөн индексүүд тооцогдохгүй, учир нь тэдгээрийн тоо problem хүү элементүүдийн тоотой таарахгүй байна.
 
 shuffle-indices-count-mismatch = shuffle-д өгсөн индексүүд тооцогдохгүй, учир нь тэдгээрийн тоо бүрэлдэхүүнүүдийн тоотой таарахгүй байна.
 
@@ -89,7 +89,7 @@ pretzel-circuit-first-index = circuit горимд pretzel-д өгсөн инд�
 
 ## `<shuffle>` and `<sort>`
 
-string-children-need-type = `<{ $component }>` текст удмуудтай ажиллахын тулд `type` атрибутыг заах ёстой.
+string-children-need-type = `<{ $component }>` текст хүү элементүүдтэй ажиллахын тулд `type` атрибутыг заах ёстой.
 
 invalid-type-defaulting-to-math = { $component } бүрэлдэхүүнд буруу төрөл { $type }. Энэ нь math, text, number эсвэл boolean байх ёстой. math ашиглагдана.
 
@@ -113,7 +113,7 @@ side-by-side-absolute-widths = `<{ $component }>` нь үнэмлэхүй хэм
 
 side-by-side-absolute-margins = `<{ $component }>` нь үнэмлэхүй хэмжээст зориулж хэрэгжүүлэгдээгүй. Захын зайнууд харьцангуй болно.
 
-side-by-side-no-block-child = Буруу `<{ $component }>`: түүнд дор хаяж нэг блок удам байх ёстой.
+side-by-side-no-block-child = Буруу `<{ $component }>`: түүнд дор хаяж нэг блок хүү элемент байх ёстой.
 
 ## `<label>`
 
@@ -302,7 +302,7 @@ prefigure-grid-spacing-too-fine = `<graph>`: торны алхам тэнхлэ�
 
 prefigure-annotations-not-rendered = `<graph>`: PreFigure дүрслэгч ашиглагдаагүй үед тайлбарууд зурагдахгүй.
 
-multiple-annotations-children = `<graph>` дотор хэд хэдэн `<annotations>` удам олдлоо; сүүлчийнхээс бусад нь тооцогдохгүй.
+multiple-annotations-children = `<graph>` дотор хэд хэдэн `<annotations>` хүү элемент олдлоо; сүүлчийнхээс бусад нь тооцогдохгүй.
 
 ## Referring to other components
 
@@ -322,11 +322,11 @@ component-action-unavailable = `{ $reference }` бүрэлдэхүүн дээр 
 
 ## `<dataFrame>`
 
-data-frame-inconsistent-row-lengths = Өгөгдлийн хэлбэр буруу. Мөрүүдийн урт өөр өөр байна. Олдлоо componentIdx :{ $componentIdx }
+data-frame-inconsistent-row-lengths = Өгөгдлийн хэлбэр буруу. Мөрүүдийн урт өөр өөр байна. componentIdx :{ $componentIdx } дотор олдлоо
 
-data-frame-duplicate-column-names = Өгөгдөлд давхардсан баганын нэр байна. Олдлоо componentIdx :{ $componentIdx }
+data-frame-duplicate-column-names = Өгөгдөлд давхардсан баганын нэр байна. componentIdx :{ $componentIdx } дотор олдлоо
 
-data-frame-missing-column-name = Өгөгдөлд баганын нэр дутуу байна. Олдлоо componentIdx :{ $componentIdx }
+data-frame-missing-column-name = Өгөгдөлд баганын нэр дутуу байна. componentIdx :{ $componentIdx } дотор олдлоо
 
 ## `<answer>` and scoring
 
@@ -350,7 +350,7 @@ module-attribute-child-needs-name = `<{ $component }>` бүрэлдэхүүн н
 
 module-attribute-name-already-defined = `<{ $component } name="{ $name }">` бүрэлдэхүүнийг модулийн атрибут болгон ашиглах боломжгүй, учир нь `<module>` бүрэлдэхүүний төрөлд «{ $name }» атрибут аль хэдийн тодорхойлогдсон.
 
-conditional-content-condition-ignored = case эсвэл else удамтай `<conditionalContent>` бүрэлдэхүүн дээр `condition` атрибут тооцогдохгүй.
+conditional-content-condition-ignored = case эсвэл else хүү элементтэй `<conditionalContent>` бүрэлдэхүүн дээр `condition` атрибут тооцогдохгүй.
 
 slider-markers-type-mismatch = Маркеруудын төрөл гүйлгэгчийн төрөлтэй таарахгүй байна.
 
@@ -452,7 +452,7 @@ prefigure-curve-unsupported-definition-type = { $subject }: дэмжигдэхг
 
 prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves дээрх flipFunctions атрибут дэмжигдэхгүй; удам алгасагдлаа.
 
-prefigure-region-non-formula-child = { $subject }: regionBetweenCurves зөвхөн томьёогоор өгөгдсөн удам функцүүдийг дэмждэг; удам алгасагдлаа.
+prefigure-region-non-formula-child = { $subject }: regionBetweenCurves зөвхөн томьёогоор өгөгдсөн хүү функцүүдийг дэмждэг; удам алгасагдлаа.
 
 prefigure-label-position-unsupported =
     { $subject }: дэмжигдэхгүй labelPosition «{ $labelPosition }» { $labelKind ->
@@ -484,8 +484,8 @@ annotation-text-missing = `<annotation>`: `text` алга эсвэл хоосо�
 
 composite-circular-dependency =
     { $componentType ->
-        [none] Тойрог хамаарал илрүүлэв.
-       *[other] `<{ $componentType }>` бүрэлдэхүүнийг хамарсан тойрог хамаарал илрүүлэв.
+        [none] Мөчлөгт хамаарал илрүүлэв.
+       *[other] `<{ $componentType }>` бүрэлдэхүүнийг хамарсан мөчлөгт хамаарал илрүүлэв.
     }
 
 reference-no-referent = Лавлагаанд тохирох объект олдсонгүй: `{ $reference }`
@@ -496,7 +496,7 @@ reference-multiple-referents = Лавлагаанд тохирох хэд хэд
 
 children-invalid-attribute-format = `<{ $componentType }>` бүрэлдэхүүний { $attribute } атрибутын хэлбэр буруу.
 
-children-invalid = `<{ $componentType }>` бүрэлдэхүүнд буруу удмууд: буруу удмууд олдлоо: { $children }
+children-invalid = `<{ $componentType }>` бүрэлдэхүүнд буруу хүү элементүүд: буруу хүү элементүүд олдлоо: { $children }
 
 ## Falling back to a default
 
@@ -562,11 +562,11 @@ answer-video-watched-missing-video = videoWatched төрлийн answer нь vid
 
 answer-video-watched-video-not-reference = videoWatched төрлийн answer-ийн video атрибут лавлагаа байх ёстой
 
-answer-name-not-single-text = answer-ийн name атрибут яг нэг текст удамтай байх ёстой
+answer-name-not-single-text = answer-ийн name атрибут яг нэг текст хүү элементтэй байх ёстой
 
 ## Referencing another document
 
-external-doenetml-recursion-limit = Рекурсийн түвшин хэт олон тул гадаад DoenetML-ийг авч чадсангүй. Тойрог лавлагаа байна уу?
+external-doenetml-recursion-limit = Рекурсийн түвшин хэт олон тул гадаад DoenetML-ийг авч чадсангүй. Мөчлөгт лавлагаа байна уу?
 
 external-doenetml-unavailable = { $attribute }="{ $uri }" хаягаас DoenetML-ийг авч чадсангүй
 
@@ -621,7 +621,7 @@ select-variant-name-not-possible = select-д заасан { $variantName } ху�
 
 select-too-few-options = Ердөө { $numOptions } сонголтоос { $numToSelect } бүрэлдэхүүн сонгох боломжгүй.
 
-select-from-sequence-too-few-values = Урт нь { $length } дараалалаас { $numToSelect } утга сонгох боломжгүй.
+select-from-sequence-too-few-values = Урт нь { $length } дарааллаас { $numToSelect } утга сонгох боломжгүй.
 
 select-from-sequence-indices-count-mismatch = select-д заасан индексүүдийн тоо сонгох тоотой таарах ёстой
 
@@ -641,7 +641,7 @@ select-from-sequence-excluded-too-many-combinations = selectFromSequence дот�
 
 select-from-sequence-coprime-none-found = Харилцан анхны тоонуудыг сонгож чадсангүй. Бүх боломжит утгууд нийтлэг хуваагчтай.
 
-select-from-sequence-too-few-unique-values = Урт нь { $numPossibleValues } дараалалаас { $numToSelect } өөр утга сонгох боломжгүй
+select-from-sequence-too-few-unique-values = Урт нь { $numPossibleValues } дарааллаас { $numToSelect } өөр утга сонгох боломжгүй
 
 select-prime-numbers-too-few-values = Урт нь { $numValues } анхны тоонуудын жагсаалтаас { $numToSelect } утга сонгох боломжгүй
 

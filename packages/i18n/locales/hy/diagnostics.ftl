@@ -14,6 +14,14 @@
 # Armenian counts in the same two categories English does, so every selection
 # below keeps both branches — but a noun after a numeral stays singular, so the
 # two branches usually differ only in the number they print.
+#
+# An affix is never welded to a placeable. The definite article alternates on
+# the sound before it — «-ը» after a consonant, «-ն» after a vowel — and the
+# value is unknown here, so where the sentence wants a determined noun the
+# article goes on a word this catalog writes («{ $attribute } ատրիբուտը»,
+# «{ $action } գործողությունը») and the value stays bare. The genitive «-ի»,
+# the dative «-ին», the ablative «-ից» and the locative «-ում» do not
+# alternate, so those still sit directly on a value.
 
 ## `<lineSegment>`
 
@@ -310,7 +318,7 @@ reference-index-unavailable = Հնարավոր չէ հղում անել `{ $refe
 
 ## `<callAction>`
 
-component-action-unavailable = Հնարավոր չէ կանչել { $action }-ը `{ $reference }` բաղադրիչի վրա
+component-action-unavailable = Հնարավոր չէ կանչել { $action } գործողությունը `{ $reference }` բաղադրիչի վրա
 
 ## `<dataFrame>`
 
@@ -324,9 +332,9 @@ data-frame-missing-column-name = Տվյալներում բացակայում է 
 
 answer-award-depends-on-own-response = Այս պատասխանի award-ը հիմնված է answer պիտակի սեփական ուղարկված պատասխանի վրա, ինչը կհանգեցնի անսպասելի վարքի։
 
-answer-max-num-attempts-in-section-wide-check-work = `maxNumAttempts`-ի նշումը `<answer>`-ի վրա `sectionWideCheckWork` ունեցող տարայի ներսում չի ազդում, քանի որ փորձերի թիվը որոշում է տարան։ Նշեք `maxNumAttempts`-ը տարայի վրա։
+answer-max-num-attempts-in-section-wide-check-work = `maxNumAttempts`-ի նշումը `<answer>`-ի վրա `sectionWideCheckWork` ունեցող կոնտեյների ներսում չի ազդում, քանի որ փորձերի թիվը որոշում է կոնտեյները։ Նշեք `maxNumAttempts`-ը կոնտեյների վրա։
 
-nested-section-wide-check-work-max-num-attempts = `maxNumAttempts`-ի նշումը `sectionWideCheckWork` ունեցող տարայի վրա, որն ինքը գտնվում է `sectionWideCheckWork` ունեցող մեկ այլ տարայի ներսում, չի ազդում, քանի որ փորձերի թիվը որոշում է արտաքին տարան։ Նշեք `maxNumAttempts`-ը արտաքին տարայի վրա։
+nested-section-wide-check-work-max-num-attempts = `maxNumAttempts`-ի նշումը `sectionWideCheckWork` ունեցող կոնտեյների վրա, որն ինքը գտնվում է `sectionWideCheckWork` ունեցող մեկ այլ կոնտեյների ներսում, չի ազդում, քանի որ փորձերի թիվը որոշում է արտաքին կոնտեյները։ Նշեք `maxNumAttempts`-ը արտաքին կոնտեյների վրա։
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
@@ -334,7 +342,7 @@ answer-attributes-need-symbolic-equality =
        *[other] { $attributes } ատրիբուտները չեն ազդի առանց նշված symbolicEquality-ի։
     }
 
-answer-invalid-type = Answer-ի անվավեր տեսակ՝ { $type }
+answer-invalid-type = Անվավեր տեսակ answer-ի համար՝ { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
@@ -410,12 +418,12 @@ variant-select-weight-disables-unique = select-ի եզակի տարբերակն�
 
 variant-coprime-undetermined = հնարավոր չէ որոշել { $component }-ի եզակի տարբերակները, քանի որ հնարավոր չէ պարզել, թե coprime-ը միշտ կեղծ է։
 
-variant-attribute-not-constant = հնարավոր չէ որոշել { $component }-ի եզակի տարբերակները, քանի որ { $attribute }-ը հաստատուն չէ։
+variant-attribute-not-constant = հնարավոր չէ որոշել { $component }-ի եզակի տարբերակները, քանի որ { $attribute } ատրիբուտը հաստատուն չէ։
 
-variant-attribute-not-number = հնարավոր չէ որոշել { $component }-ի եզակի տարբերակները, քանի որ { $attribute }-ը թիվ չէ։
+variant-attribute-not-number = հնարավոր չէ որոշել { $component }-ի եզակի տարբերակները, քանի որ { $attribute } ատրիբուտը թիվ չէ։
 
 variant-attribute-wrong-type-for-sequence =
-    հնարավոր չէ որոշել { $type } տեսակի { $component }-ի եզակի տարբերակները, քանի որ { $attribute }-ը { $expected ->
+    հնարավոր չէ որոշել { $type } տեսակի { $component }-ի եզակի տարբերակները, քանի որ { $attribute } ատրիբուտը { $expected ->
         [letters-combination] տառերի համակցություն
         [math-expression] վավեր մաթեմատիկական արտահայտություն
         [integer] ամբողջ թիվ

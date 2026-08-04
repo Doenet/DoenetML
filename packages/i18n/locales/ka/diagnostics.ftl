@@ -14,6 +14,13 @@
 # Georgian counts in the same two categories English does, so every selection
 # below keeps both branches — but a noun after a numeral stays singular, so the
 # two usually differ only in the number they print.
+#
+# An affix is never welded to a placeable where it would have to agree with the
+# value. The genitive alternates on the sound before it — «-ის» after a
+# consonant, «-ს» after a vowel — so a genitive goes on a word this catalog
+# writes («{ $component } კომპონენტის», «{ $element } ელემენტის») and the value
+# stays bare. The postpositions «-ზე», «-ში» and «-დან» and the dative «-ს» do
+# not alternate, so those still sit directly on a value.
 
 ## `<lineSegment>`
 
@@ -73,7 +80,7 @@ pretzel-indices-count-mismatch = problem-ისთვის მითითე�
 
 shuffle-indices-count-mismatch = shuffle-ისთვის მითითებული ინდექსები იგნორირდება, რადგან მათი რაოდენობა არ ემთხვევა კომპონენტების რაოდენობას.
 
-indices-ignored-out-of-range = { $component }-ისთვის მითითებული ინდექსები იგნორირდება, რადგან ზოგი მათგანი დიაპაზონს სცილდება.
+indices-ignored-out-of-range = { $component } კომპონენტისთვის მითითებული ინდექსები იგნორირდება, რადგან ზოგი მათგანი დიაპაზონს სცილდება.
 
 pretzel-indices-repeated = pretzel-ისთვის მითითებული ინდექსები იგნორირდება, რადგან ზოგი მათგანი მეორდება.
 
@@ -81,11 +88,11 @@ pretzel-circuit-first-index = circuit რეჟიმში pretzel-ისთვ
 
 ## `<shuffle>` and `<sort>`
 
-string-children-need-type = იმისათვის, რომ `<{ $component }>` იმუშაოს ტექსტურ შვილებთან, უნდა მიეთითოს `type` ატრიბუტი.
+string-children-need-type = იმისათვის, რომ `<{ $component }>` იმუშაოს სტრიქონულ შვილებთან, უნდა მიეთითოს `type` ატრიბუტი.
 
 invalid-type-defaulting-to-math = არასწორი ტიპი { $type } { $component } კომპონენტისთვის. უნდა იყოს math, text, number ან boolean. გამოიყენება math.
 
-string-not-valid-component-to-arrange = სტრიქონი „{ $value }“ არ არის ვარგისი კომპონენტი { $component }-ისთვის. იგნორირდება.
+string-not-valid-component-to-arrange = სტრიქონი „{ $value }“ არ არის ვარგისი კომპონენტი { $component } ოპერაციისთვის. იგნორირდება.
 
 ## Types and variables
 
@@ -135,8 +142,8 @@ accessibility-short-description-contains-math = მოკლე აღწერ�
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] { $colorName }-ის კონტრასტი არასაკმარისია სექციის სათაურის ტექსტისთვის (მუქი თემა) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1).
-       *[other] { $colorName }-ის კონტრასტი არასაკმარისია სექციის სათაურის ტექსტისთვის ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1).
+        [dark] { $colorName } ფერის კონტრასტი არასაკმარისია სექციის სათაურის ტექსტისთვის (მუქი თემა) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1).
+       *[other] { $colorName } ფერის კონტრასტი არასაკმარისია სექციის სათაურის ტექსტისთვის ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1).
     }
 
 ## `<circle>`
@@ -310,7 +317,7 @@ reference-index-unavailable = ინდექსზე `{ $reference }` მი�
 
 ## `<callAction>`
 
-component-action-unavailable = კომპონენტ `{ $reference }`-ზე { $action }-ის გამოძახება შეუძლებელია
+component-action-unavailable = კომპონენტ `{ $reference }`-ზე { $action } მოქმედების გამოძახება შეუძლებელია
 
 ## `<dataFrame>`
 
@@ -373,7 +380,7 @@ attribute-invalid-for-component = არასწორი ატრიბუტ
 ## Style definition contrast
 
 style-definition-insufficient-contrast =
-    სტილის აღწერას { $styleNumber } აქვს არასაკმარისი კონტრასტი { $context ->
+    სტილის განსაზღვრებას { $styleNumber } აქვს არასაკმარისი კონტრასტი { $context ->
         [text-on-background] ტექსტის ფერისთვის ფონის ფერთან
         [high-contrast] მაღალკონტრასტული ფერისთვის ტილოსთან
         [line] ხაზის ფერისთვის ტილოსთან
@@ -385,13 +392,13 @@ style-definition-insufficient-contrast =
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1).
 
 style-definition-dark-mode-text-background-contrast =
-    თუმცა სტილის აღწერაში { $styleNumber } მითითებული ფერები საკმარის კონტრასტს იძლევა ღია თემისთვის, მათგან მიღებული მუქი თემის ფერები ტექსტსა და ფონს შორის არასაკმარის კონტრასტს იძლევა ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1). { $suggestion ->
+    თუმცა სტილის განსაზღვრებაში { $styleNumber } მითითებული ფერები საკმარის კონტრასტს იძლევა ღია თემისთვის, მათგან მიღებული მუქი თემის ფერები ტექსტსა და ფონს შორის არასაკმარის კონტრასტს იძლევა ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1). { $suggestion ->
         [available] მუქ თემაში საკმარისი კონტრასტისთვის ან გაზარდეთ კონტრასტი ღია თემაში (მაგალითად { $lightAttribute }="{ $lightColor }"), ან გადააწერეთ მუქი თემის ფერი (მაგალითად { $darkAttribute }="{ $darkColor }").
        *[none] მუქ თემაში საკმარისი კონტრასტისთვის გაზარდეთ კონტრასტი ღია თემაში ან გადააწერეთ მიღებული ფერები textColorDarkMode-ითა და/ან backgroundColorDarkMode-ით.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    თუმცა სტილის აღწერაში { $styleNumber } მითითებული ტექსტის ფერი საკმარის კონტრასტს იძლევა ღია თემისთვის, მისგან მიღებული მუქი თემის ტექსტის ფერი ტილოსთან არასაკმარის კონტრასტს იძლევა ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1). { $suggestion ->
+    თუმცა სტილის განსაზღვრებაში { $styleNumber } მითითებული ტექსტის ფერი საკმარის კონტრასტს იძლევა ღია თემისთვის, მისგან მიღებული მუქი თემის ტექსტის ფერი ტილოსთან არასაკმარის კონტრასტს იძლევა ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; საჭიროა სულ მცირე { $threshold }:1). { $suggestion ->
         [available] მუქ თემაში საკმარისი კონტრასტისთვის ან გაზარდეთ კონტრასტი ღია თემაში (მაგალითად textColor="{ $lightColor }"), ან გადააწერეთ მუქი თემის ფერი (მაგალითად textColorDarkMode="{ $darkColor }").
        *[none] მუქ თემაში საკმარისი კონტრასტისთვის გაზარდეთ კონტრასტი ღია თემაში ან გადააწერეთ მიღებული ფერი textColorDarkMode-ით.
     }
@@ -400,37 +407,37 @@ section-multiple-style-palettes = სექციას შეუძლია �
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = { $component }-ის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან numToSelect არ არის არაუარყოფითი მთელი რიცხვი.
+variant-num-to-select-not-non-negative-integer = { $component } კომპონენტის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან numToSelect არ არის არაუარყოფითი მთელი რიცხვი.
 
-variant-num-to-select-not-constant-number = { $component }-ის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან numToSelect არ არის მუდმივი რიცხვი.
+variant-num-to-select-not-constant-number = { $component } კომპონენტის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან numToSelect არ არის მუდმივი რიცხვი.
 
-variant-with-replacement-not-constant-boolean = { $component }-ის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან withReplacement არ არის მუდმივი ლოგიკური მნიშვნელობა.
+variant-with-replacement-not-constant-boolean = { $component } კომპონენტის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან withReplacement არ არის მუდმივი ლოგიკური მნიშვნელობა.
 
 variant-select-weight-disables-unique = select-ის უნიკალური ვარიანტები გამორთულია, თუ რომელიმე ვარიანტს აქვს მითითებული selectWeight ან selectForVariants
 
-variant-coprime-undetermined = { $component }-ის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან ვერ დგინდება, რომ coprime ყოველთვის მცდარია.
+variant-coprime-undetermined = { $component } კომპონენტის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან ვერ დგინდება, რომ coprime ყოველთვის მცდარია.
 
-variant-attribute-not-constant = { $component }-ის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან { $attribute } არ არის მუდმივი.
+variant-attribute-not-constant = { $component } კომპონენტის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან { $attribute } არ არის მუდმივი.
 
-variant-attribute-not-number = { $component }-ის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან { $attribute } არ არის რიცხვი.
+variant-attribute-not-number = { $component } კომპონენტის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან { $attribute } არ არის რიცხვი.
 
 variant-attribute-wrong-type-for-sequence =
-    { $type } ტიპის { $component }-ის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან { $attribute } არ არის { $expected ->
+    { $type } ტიპის { $component } კომპონენტის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან { $attribute } არ არის { $expected ->
         [letters-combination] ასოების კომბინაცია
         [math-expression] ვარგისი მათემატიკური გამოსახულება
         [integer] მთელი რიცხვი
        *[number] რიცხვი
     }.
 
-variant-length-not-integer = { $component }-ის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან length არ არის მთელი რიცხვი.
+variant-length-not-integer = { $component } კომპონენტის უნიკალური ვარიანტების დადგენა შეუძლებელია, რადგან length არ არის მთელი რიცხვი.
 
-variant-sort-not-implemented = sort-ის მქონე { $component }-ის უნიკალური ვარიანტები არ არის რეალიზებული
+variant-sort-not-implemented = sort-ის მქონე { $component } კომპონენტის უნიკალური ვარიანტები არ არის რეალიზებული
 
-variant-exclude-combinations-not-implemented = excludeCombinations-ის მქონე { $component }-ის უნიკალური ვარიანტები არ არის რეალიზებული
+variant-exclude-combinations-not-implemented = excludeCombinations-ის მქონე { $component } კომპონენტის უნიკალური ვარიანტები არ არის რეალიზებული
 
-variant-math-exclude-not-implemented = exclude-ის მქონე math ტიპის { $component }-ის უნიკალური ვარიანტები არ არის რეალიზებული
+variant-math-exclude-not-implemented = exclude-ის მქონე math ტიპის { $component } კომპონენტის უნიკალური ვარიანტები არ არის რეალიზებული
 
-variant-non-constant-exclude-not-implemented = არამუდმივი exclude-ის მქონე { $component }-ის უნიკალური ვარიანტები არ არის რეალიზებული
+variant-non-constant-exclude-not-implemented = არამუდმივი exclude-ის მქონე { $component } კომპონენტის უნიკალური ვარიანტები არ არის რეალიზებული
 
 ## PreFigure conversion
 

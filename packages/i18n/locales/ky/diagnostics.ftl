@@ -135,7 +135,7 @@ accessibility-short-description-contains-math = Кыскача сүрөттөм�
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] { $colorName } бөлүмдүн аталышынын тексти үчүн жетиштүү контраст бербейт (караңгы тема) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; жок дегенде { $threshold }:1 талап кылынат).
+        [dark] { $colorName } бөлүмдүн аталышынын тексти үчүн жетиштүү контраст бербейт (караңгы режим) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; жок дегенде { $threshold }:1 талап кылынат).
        *[other] { $colorName } бөлүмдүн аталышынын тексти үчүн жетиштүү контраст бербейт ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; жок дегенде { $threshold }:1 талап кылынат).
     }
 
@@ -380,20 +380,20 @@ style-definition-insufficient-contrast =
         [marker] маркердин түсү менен кенептин
        *[text-on-canvas] тексттин түсү менен кенептин
     } ортосундагы контраст жетишсиз{ $mode ->
-        [dark] { " (караңгы тема)" }
+        [dark] { " (караңгы режим)" }
        *[light] { "" }
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; жок дегенде { $threshold }:1 талап кылынат).
 
 style-definition-dark-mode-text-background-contrast =
-    { $styleNumber } стиль аныктамасында берилген түстөр ачык тема үчүн жетиштүү контраст берсе да, алардан алынган караңгы теманын түстөрү текст менен фондун ортосунда жетишсиз контраст берет ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; жок дегенде { $threshold }:1 талап кылынат). { $suggestion ->
-        [available] Караңгы темада жетиштүү контраст үчүн же ачык темадагы контрастты жогорулатыңыз (мисалы { $lightAttribute }="{ $lightColor }"), же караңгы теманын түсүн алмаштырыңыз (мисалы { $darkAttribute }="{ $darkColor }").
-       *[none] Караңгы темада жетиштүү контраст үчүн ачык темадагы контрастты жогорулатыңыз же алынган түстөрдү textColorDarkMode жана/же backgroundColorDarkMode менен алмаштырыңыз.
+    { $styleNumber } стиль аныктамасында берилген түстөр ачык режим үчүн жетиштүү контраст берсе да, алардан алынган караңгы режимдин түстөрү текст менен фондун ортосунда жетишсиз контраст берет ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; жок дегенде { $threshold }:1 талап кылынат). { $suggestion ->
+        [available] Караңгы режимде жетиштүү контраст үчүн же ачык режимдеги контрастты жогорулатыңыз (мисалы { $lightAttribute }="{ $lightColor }"), же караңгы режимдин түсүн алмаштырыңыз (мисалы { $darkAttribute }="{ $darkColor }").
+       *[none] Караңгы режимде жетиштүү контраст үчүн ачык режимдеги контрастты жогорулатыңыз же алынган түстөрдү textColorDarkMode жана/же backgroundColorDarkMode менен алмаштырыңыз.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    { $styleNumber } стиль аныктамасында берилген тексттин түсү ачык тема үчүн жетиштүү контраст берсе да, андан алынган караңгы теманын текст түсү кенеп менен жетишсиз контраст берет ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; жок дегенде { $threshold }:1 талап кылынат). { $suggestion ->
-        [available] Караңгы темада жетиштүү контраст үчүн же ачык темадагы контрастты жогорулатыңыз (мисалы textColor="{ $lightColor }"), же караңгы теманын түсүн алмаштырыңыз (мисалы textColorDarkMode="{ $darkColor }").
-       *[none] Караңгы темада жетиштүү контраст үчүн ачык темадагы контрастты жогорулатыңыз же алынган түстү textColorDarkMode менен алмаштырыңыз.
+    { $styleNumber } стиль аныктамасында берилген тексттин түсү ачык режим үчүн жетиштүү контраст берсе да, андан алынган караңгы режимдин текст түсү кенеп менен жетишсиз контраст берет ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; жок дегенде { $threshold }:1 талап кылынат). { $suggestion ->
+        [available] Караңгы режимде жетиштүү контраст үчүн же ачык режимдеги контрастты жогорулатыңыз (мисалы textColor="{ $lightColor }"), же караңгы режимдин түсүн алмаштырыңыз (мисалы textColorDarkMode="{ $darkColor }").
+       *[none] Караңгы режимде жетиштүү контраст үчүн ачык режимдеги контрастты жогорулатыңыз же алынган түстү textColorDarkMode менен алмаштырыңыз.
     }
 
 section-multiple-style-palettes = Бөлүм бир гана <stylePalette> тандай алат; акыркысы колдонулат.

@@ -14,6 +14,13 @@
 #
 # Georgian has no letter case, so a button's word is spelled the way it is
 # spelled anywhere else.
+#
+# An affix is never welded to a placeable where it would have to agree with the
+# value. The genitive alternates on the sound before it — «-ის» after a
+# consonant, «-ს» after a vowel — so a genitive goes on a word this catalog
+# writes («{ $component } კომპონენტის», «{ $element } ელემენტის») and the value
+# stays bare. The postpositions «-ზე», «-ში» and «-დან» and the dative «-ს» do
+# not alternate, so those still sit directly on a value.
 
 
 ## Answer submission
@@ -48,8 +55,8 @@ validation-partially-correct = (ნაწილობრივ სწორი�
 
 answer-show-responses =
     { $count ->
-        [one] { $answerId }-ის { $count } პასუხის ჩვენება
-       *[other] { $answerId }-ის { $count } პასუხის ჩვენება
+        [one] { $count } პასუხის ჩვენება { $answerId }-ზე
+       *[other] { $count } პასუხის ჩვენება { $answerId }-ზე
     }
 
 
@@ -76,7 +83,7 @@ slider-next = შემდეგი
 keyboard-open = კლავიატურის გახსნა
 keyboard-close = კლავიატურის დახურვა
 
-choice-input-remove-choice = { $choice }-ის მოშორება
+choice-input-remove-choice = { $choice } არჩევანის წაშლა
 
 matrix-remove-row = სტრიქონის წაშლა
 matrix-add-row = სტრიქონის დამატება
@@ -139,4 +146,4 @@ something-went-wrong = რაღაც შეცდომა მოხდა.
 
 renderer-load-failed = გამომსახველის ჩატვირთვა ვერ მოხერხდა. გთხოვთ, განაახლოთ გვერდი.
 
-core-start-failed = დოკუმენტის მაჩვენებლის გაშვება ვერ მოხერხდა. გთხოვთ, განაახლოთ გვერდი.
+core-start-failed = დოკუმენტის დამთვალიერებლის გაშვება ვერ მოხერხდა. გთხოვთ, განაახლოთ გვერდი.

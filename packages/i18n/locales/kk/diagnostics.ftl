@@ -385,15 +385,15 @@ style-definition-insufficient-contrast =
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; кемінде { $threshold }:1 қажет).
 
 style-definition-dark-mode-text-background-contrast =
-    { $styleNumber } стиль анықтамасында берілген түстер ашық тақырып үшін жеткілікті контраст берсе де, олардан алынған қараңғы режим түстері мәтін мен фонның арасында жеткіліксіз контраст береді ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; кемінде { $threshold }:1 қажет). { $suggestion ->
-        [available] Қараңғы тақырыпта жеткілікті контраст үшін не ашық режимдеғы контрастты арттырыңыз (мысалы { $lightAttribute }="{ $lightColor }"), не қараңғы режим түсін ауыстырыңыз (мысалы { $darkAttribute }="{ $darkColor }").
-       *[none] Қараңғы тақырыпта жеткілікті контраст үшін ашық режимдеғы контрастты арттырыңыз немесе алынған түстерді textColorDarkMode және/немесе backgroundColorDarkMode арқылы ауыстырыңыз.
+    { $styleNumber } стиль анықтамасында берілген түстер ашық режим үшін жеткілікті контраст берсе де, олардан алынған қараңғы режим түстері мәтін мен фонның арасында жеткіліксіз контраст береді ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; кемінде { $threshold }:1 қажет). { $suggestion ->
+        [available] Қараңғы режимде жеткілікті контраст үшін не ашық режимдегі контрастты арттырыңыз (мысалы { $lightAttribute }="{ $lightColor }"), не қараңғы режим түсін ауыстырыңыз (мысалы { $darkAttribute }="{ $darkColor }").
+       *[none] Қараңғы режимде жеткілікті контраст үшін ашық режимдегі контрастты арттырыңыз немесе алынған түстерді textColorDarkMode және/немесе backgroundColorDarkMode арқылы ауыстырыңыз.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    { $styleNumber } стиль анықтамасында берілген мәтін түсі ашық тақырып үшін жеткілікті контраст берсе де, одан алынған қараңғы режим мәтін түсі кенеппен жеткіліксіз контраст береді ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; кемінде { $threshold }:1 қажет). { $suggestion ->
-        [available] Қараңғы тақырыпта жеткілікті контраст үшін не ашық режимдеғы контрастты арттырыңыз (мысалы textColor="{ $lightColor }"), не қараңғы режим түсін ауыстырыңыз (мысалы textColorDarkMode="{ $darkColor }").
-       *[none] Қараңғы тақырыпта жеткілікті контраст үшін ашық режимдеғы контрастты арттырыңыз немесе алынған түсті textColorDarkMode арқылы ауыстырыңыз.
+    { $styleNumber } стиль анықтамасында берілген мәтін түсі ашық режим үшін жеткілікті контраст берсе де, одан алынған қараңғы режим мәтін түсі кенеппен жеткіліксіз контраст береді ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; кемінде { $threshold }:1 қажет). { $suggestion ->
+        [available] Қараңғы режимде жеткілікті контраст үшін не ашық режимдегі контрастты арттырыңыз (мысалы textColor="{ $lightColor }"), не қараңғы режим түсін ауыстырыңыз (мысалы textColorDarkMode="{ $darkColor }").
+       *[none] Қараңғы режимде жеткілікті контраст үшін ашық режимдегі контрастты арттырыңыз немесе алынған түсті textColorDarkMode арқылы ауыстырыңыз.
     }
 
 section-multiple-style-palettes = Бөлім тек бір <stylePalette> таңдай алады; соңғысы қолданылады.

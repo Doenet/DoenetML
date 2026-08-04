@@ -15,9 +15,14 @@
 # keep the English order.
 #
 # The two clauses are marked by a suffix on the *noun* — «жиекті», «фонда» —
-# and that noun is one this catalog writes, so nothing is welded to a placeable.
-# Which vowels the suffix takes depends on the word it attaches to, which is why
-# each is spelled out rather than derived.
+# and that noun is one this catalog writes, so no suffix has to agree with a
+# placeable. Which vowels the suffix takes depends on the word it attaches to,
+# which is why each is spelled out rather than derived.
+#
+# `noun-regular-polygon`, `table-name` and `figure-name` do write a word
+# directly against a placeable — «{ $numSides }-бұрыш», «{ $enumeration }-кесте».
+# That is adjacency rather than agreement: both arguments are numbers, so the
+# word after the hyphen is the same whatever lands in front of it.
 
 
 ## Style vocabulary

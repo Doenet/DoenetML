@@ -111,15 +111,15 @@ side-by-side-no-block-child = Nädogry `<{ $component }>`: onuň iň azyndan bir
 
 label-for-ignored-on-graphical = Grafiki `<label>` elementindäki `for` atributy hasaba alynmaýar.
 
-label-for-must-resolve-to-one = `<label>` elementindäki `for` atributy takyk bir komponente görkezmeli.
+label-for-must-resolve-to-one = `<label>` elementindäki `for` atributy takyk bir komponente salgylanmaly.
 
 label-for-unresolved = `<label>` elementindäki `for` atributyny komponent bilen baglanyşdyrmak başartmady.
 
-label-for-answer-with-authored-inputs = `<label>` elementindäki `for` atributy awtoryň ýazan giriş meýdanlary bolan `<answer>` elementine görkezýär; meýdana göni görkeziň.
+label-for-answer-with-authored-inputs = `<label>` elementindäki `for` atributy awtoryň ýazan giriş meýdanlary bolan `<answer>` elementine salgylanýar; meýdana göni salgylanyň.
 
-label-for-answer-without-input = `<label>` elementindäki `for` atributy belgilenmeli giriş meýdany bolmadyk `<answer>` elementine görkezýär.
+label-for-answer-without-input = `<label>` elementindäki `for` atributy belgilenmeli giriş meýdany bolmadyk `<answer>` elementine salgylanýar.
 
-label-for-must-reference-input-or-answer = `<label>` elementindäki `for` atributy giriş meýdanyna ýa-da jogaba görkezmeli.
+label-for-must-reference-input-or-answer = `<label>` elementindäki `for` atributy giriş meýdanyna ýa-da jogaba salgylanmaly.
 
 ## Accessibility
 
@@ -375,10 +375,10 @@ attribute-invalid-for-component = `<{ $componentType }>` görnüşli komponent �
 style-definition-insufficient-contrast =
     { $styleNumber } stil kesgitlemesinde { $context ->
         [text-on-background] tekstiň reňki bilen fonuň reňkiniň
-        [high-contrast] ýokary kontrastly reňk bilen kendiriň
-        [line] çyzygyň reňki bilen kendiriň
-        [marker] markeriň reňki bilen kendiriň
-       *[text-on-canvas] tekstiň reňki bilen kendiriň
+        [high-contrast] ýokary kontrastly reňk bilen kanwanyň
+        [line] çyzygyň reňki bilen kanwanyň
+        [marker] markeriň reňki bilen kanwanyň
+       *[text-on-canvas] tekstiň reňki bilen kanwanyň
     } arasyndaky kontrast ýeterlik däl{ $mode ->
         [dark] { " (garaňky tema)" }
        *[light] { "" }
@@ -391,7 +391,7 @@ style-definition-dark-mode-text-background-contrast =
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    { $styleNumber } stil kesgitlemesinde berlen tekstiň reňki açyk tema üçin ýeterlik kontrast berse-de, ondan alnan garaňky tema tekst reňki kendir bilen ýeterlik kontrast bermeýär ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; iň azyndan { $threshold }:1 gerek). { $suggestion ->
+    { $styleNumber } stil kesgitlemesinde berlen tekstiň reňki açyk tema üçin ýeterlik kontrast berse-de, ondan alnan garaňky tema tekst reňki kanwa bilen ýeterlik kontrast bermeýär ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; iň azyndan { $threshold }:1 gerek). { $suggestion ->
         [available] Garaňky temada ýeterlik kontrast üçin ýa açyk temadaky kontrasty ýokarlandyryň (mysal üçin textColor="{ $lightColor }"), ýa-da garaňky tema reňkini çalşyň (mysal üçin textColorDarkMode="{ $darkColor }").
        *[none] Garaňky temada ýeterlik kontrast üçin açyk temadaky kontrasty ýokarlandyryň ýa-da alnan reňki textColorDarkMode bilen çalşyň.
     }
@@ -434,17 +434,17 @@ variant-non-constant-exclude-not-implemented = hemişelik däl exclude bolan { $
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: grafigiň prefigure şekillendirijisinde goldanylmaýar; nesil geçirildi.
+prefigure-descendant-unsupported = { $subject }: grafigiň prefigure şekillendirijisinde goldanylmaýar; nesil taşlandy.
 
-prefigure-descendant-invalid-geometry = { $subject }: çäksiz ýa-da doly däl geometriýa; nesil geçirildi.
+prefigure-descendant-invalid-geometry = { $subject }: çäksiz ýa-da doly däl geometriýa; nesil taşlandy.
 
 prefigure-curve-label-omitted = { $subject }: öwrülen egri elementlerinde belgiler goldanylmaýar; belgi taşlandy.
 
-prefigure-curve-unsupported-definition-type = { $subject }: goldanylmaýan egri funksiýa kesgitlemesiniň görnüşi «{ $definitionType }»; nesil geçirildi.
+prefigure-curve-unsupported-definition-type = { $subject }: goldanylmaýan egri funksiýa kesgitlemesiniň görnüşi «{ $definitionType }»; nesil taşlandy.
 
-prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves elementindäki flipFunctions atributy goldanylmaýar; nesil geçirildi.
+prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves elementindäki flipFunctions atributy goldanylmaýar; nesil taşlandy.
 
-prefigure-region-non-formula-child = { $subject }: regionBetweenCurves diňe formula bilen berlen çaga funksiýalary goldaýar; nesil geçirildi.
+prefigure-region-non-formula-child = { $subject }: regionBetweenCurves diňe formula bilen berlen çaga funksiýalary goldaýar; nesil taşlandy.
 
 prefigure-label-position-unsupported =
     { $subject }: goldanylmaýan labelPosition «{ $labelPosition }» { $labelKind ->

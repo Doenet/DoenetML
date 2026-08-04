@@ -73,7 +73,7 @@ pretzel-indices-count-mismatch = problem өчен бирелгән индекс�
 
 shuffle-indices-count-mismatch = shuffle өчен бирелгән индекслар исәпкә алынмый, чөнки аларның саны компонентлар санына туры килми.
 
-indices-ignored-out-of-range = { $component } өчен бирелгән индекслар исәпкә алынмый, чөнки кайберләре чиктән тыш.
+indices-ignored-out-of-range = { $component } өчен бирелгән индекслар исәпкә алынмый, чөнки кайберләре чикләрдән чыга.
 
 pretzel-indices-repeated = pretzel өчен бирелгән индекслар исәпкә алынмый, чөнки кайберләре кабатлана.
 
@@ -220,7 +220,7 @@ sequence-invalid-step = Эзлеклелекнең адымы дөрес түг�
 
 sequence-invalid-endpoint-number = Сан эзлеклелегенең «{ $attribute }» кыйммәте дөрес түгел. Ул сан булырга тиеш.
 
-sequence-invalid-endpoint-letters = Хәреф эзлеклелегенең «{ $attribute }» кыйммәте дөрес түгел. Ул хәрефләр кушылмасы булырга тиеш.
+sequence-invalid-endpoint-letters = Хәреф эзлеклелегенең «{ $attribute }» кыйммәте дөрес түгел. Ул хәрефләр комбинациясе булырга тиеш.
 
 sequence-invalid-endpoint = Эзлеклелекнең «{ $attribute }» кыйммәте дөрес түгел.
 
@@ -416,7 +416,7 @@ variant-attribute-not-number = { $component } өчен кабатланмас в
 
 variant-attribute-wrong-type-for-sequence =
     { $type } төрендәге { $component } өчен кабатланмас вариантларны билгеләп булмый, чөнки { $attribute } { $expected ->
-        [letters-combination] хәрефләр кушылмасы
+        [letters-combination] хәрефләр комбинациясе
         [math-expression] яраклы математик аңлатма
         [integer] бөтен сан
        *[number] сан
@@ -621,15 +621,15 @@ select-from-sequence-indices-not-integers = select өчен бирелгән б�
 
 select-from-sequence-index-excluded = selectfromsequence өчен бирелгән индекс чыгарылган иде
 
-select-from-sequence-indices-excluded-combination = selectfromsequence өчен бирелгән индекслар чыгарылган кушылма иде
+select-from-sequence-indices-excluded-combination = selectfromsequence өчен бирелгән индекслар чыгарылган комбинация иде
 
-select-from-sequence-coprime-not-positive-integers = Уңай бөтен саннар сайланмаганга үзара гади кушылмаларны сайлап булмый.
+select-from-sequence-coprime-not-positive-integers = Уңай бөтен саннар сайланмаганга үзара гади комбинацияләрне сайлап булмый.
 
 select-from-sequence-coprime-common-factor = Үзара гади саннарны сайлап булмый. Барлык мөмкин кыйммәтләрнең уртак бүлүчесе бар. (Бирелгән "from" яки "to" кыйммәтләре "step" белән үзара гади булырга тиеш.)
 
-select-from-sequence-coprime-single-number = 1 булмаган бердәнбер саннан үзара гади кушылмаларны сайлап булмый.
+select-from-sequence-coprime-single-number = 1 булмаган бердәнбер саннан үзара гади комбинацияләрне сайлап булмый.
 
-select-from-sequence-excluded-too-many-combinations = selectFromSequence эчендә кушылмаларның 70%-тан артыгы чыгарылган
+select-from-sequence-excluded-too-many-combinations = selectFromSequence эчендә комбинацияләрнең 70%-тан артыгы чыгарылган
 
 select-from-sequence-coprime-none-found = Үзара гади саннарны сайлап булмады. Барлык мөмкин кыйммәтләрнең уртак бүлүчесе бар.
 
@@ -641,10 +641,10 @@ select-prime-numbers-values-count-mismatch = select өчен бирелгән к
 
 select-prime-numbers-values-not-prime = select prime number өчен бирелгән барлык кыйммәтләр гади саннар исемлегендә булырга тиеш
 
-select-prime-numbers-values-excluded-combination = selectPrimeNumbers өчен бирелгән кыйммәтләр чыгарылган кушылма иде
+select-prime-numbers-values-excluded-combination = selectPrimeNumbers өчен бирелгән кыйммәтләр чыгарылган комбинация иде
 
-select-prime-numbers-excluded-too-many-combinations = selectPrimeNumbers эчендә кушылмаларның 70%-тан артыгы чыгарылган
+select-prime-numbers-excluded-too-many-combinations = selectPrimeNumbers эчендә комбинацияләрнең 70%-тан артыгы чыгарылган
 
-select-random-combination-fluke = Гаять ихтималсыз очраклылык аркасында очраклы кыйммәтләр кушылмасын сайлап булмады
+select-random-combination-fluke = Гаять ихтималсыз очраклылык аркасында очраклы кыйммәтләр комбинациясен сайлап булмады
 
 select-random-value-fluke = Гаять ихтималсыз очраклылык аркасында очраклы кыйммәтне сайлап булмады

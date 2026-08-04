@@ -14,6 +14,14 @@
 # Armenian counts in the same two categories English does, so every selection
 # below keeps both branches — though a noun after a numeral stays singular, so
 # the two often read alike.
+#
+# An affix is never welded to a placeable. The definite article alternates on
+# the sound before it — «-ը» after a consonant, «-ն» after a vowel — and the
+# value is unknown here, so where the sentence wants a determined noun the
+# article goes on a word this catalog writes («{ $attribute } ատրիբուտը»,
+# «{ $action } գործողությունը») and the value stays bare. The genitive «-ի»,
+# the dative «-ին», the ablative «-ից» and the locative «-ում» do not
+# alternate, so those still sit directly on a value.
 
 
 ## The viewer's controls
@@ -34,7 +42,7 @@ editor-update-viewer-title =
 ## The variant picker
 
 editor-variant = Տարբերակ
-editor-variant-filter = Զտել…
+editor-variant-filter = Զտում…
 editor-variant-next = Ընտրել հաջորդ տարբերակը
 editor-variant-previous = Ընտրել նախորդ տարբերակը
 
@@ -131,7 +139,7 @@ editor-response-submitted = Ուղարկված է
 
 ## The context-help panel
 
-help-placeholder = Փաստաթղթերը տեսնելու համար կուրսորը դրեք պիտակի անվան, ատրիբուտի կամ { $ref }-ի վրա։
+help-placeholder = Փաստաթղթավորումը տեսնելու համար կուրսորը դրեք պիտակի անվան, ատրիբուտի կամ { $ref }-ի վրա։
 
 help-unsupported-ref-chain = { $example } տեսքի բազմամաս հղումների օգնությունը դեռ չի աջակցվում։
 
@@ -162,8 +170,8 @@ help-name-summary = { $name } — { $summary }
 
 help-ref-is-reference =
     { $line ->
-        [none] { $ref }-ը հղում է { $target }-ին։
-       *[other] { $ref }-ը հղում է { $target }-ին ({ $line } տող)։
+        [none] { $ref } հղումը ցույց է տալիս { $target }-ին։
+       *[other] { $ref } հղումը ցույց է տալիս { $target }-ին ({ $line } տող)։
     }
 
 help-ref-derived-from =
@@ -174,8 +182,8 @@ help-ref-derived-from =
 
 help-property-is-reference =
     { $line ->
-        [none] { $ref }-ը հղում է { $element }-ի { $property } հատկությանը։
-       *[other] { $ref }-ը հղում է { $element }-ի { $property } հատկությանը ({ $line } տող)։
+        [none] { $ref } հղումը ցույց է տալիս { $element }-ի { $property } հատկությանը։
+       *[other] { $ref } հղումը ցույց է տալիս { $element }-ի { $property } հատկությանը ({ $line } տող)։
     }
 
 help-kind-attribute = ատրիբուտ
@@ -212,4 +220,4 @@ help-reset-list = Այս դաշտի վերականգնման ցանկը՝
 help-added-on-input = Այս դաշտում ավելացվածը՝
 help-removed-on-input = Այս դաշտից հեռացվածը՝
 
-help-reset-overrides = { $reset }-ը գերակայում է { $additional }-ի և { $removed }-ի նկատմամբ։
+help-reset-overrides = { $reset } ատրիբուտը գերակայում է { $additional }-ի և { $removed }-ի նկատմամբ։

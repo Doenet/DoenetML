@@ -97,7 +97,7 @@ orbital-row-label = { $row } qatorining yorligʻi
 
 pretzel-answer = Javob
 
-summary-statistics-caption = { $column } ustunining yakuniy statistikasi
+summary-statistics-caption = { $column } ustunining jamlovchi statistikasi
 
 
 ## Math input

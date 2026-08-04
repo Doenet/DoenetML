@@ -103,7 +103,7 @@ editor-format-as-xml = XML буларак форматлау
 
 ## The diagnostics panel
 
-editor-diagnostic-line = { $line } нче юл
+editor-diagnostic-line = Юл №{ $line }
 
 editor-no-errors = Хаталар юк
 editor-no-warnings = Кисәтүләр юк
@@ -163,7 +163,7 @@ help-name-summary = { $name } — { $summary }
 help-ref-is-reference =
     { $line ->
         [none] { $ref } — { $target } объектына сылтама.
-       *[other] { $ref } — { $target } объектына сылтама ({ $line } юл).
+       *[other] { $ref } — { $target } объектына сылтама (юл { $line }).
     }
 
 help-ref-derived-from =
@@ -175,7 +175,7 @@ help-ref-derived-from =
 help-property-is-reference =
     { $line ->
         [none] { $ref } — { $element } элементының { $property } үзлегенә сылтама.
-       *[other] { $ref } — { $element } элементының { $property } үзлегенә сылтама ({ $line } юл).
+       *[other] { $ref } — { $element } элементының { $property } үзлегенә сылтама (юл { $line }).
     }
 
 help-kind-attribute = атрибут
