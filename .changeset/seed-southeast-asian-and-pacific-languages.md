@@ -8,7 +8,7 @@
 
 Add message catalogs for Khmer, Lao, Sinhala, Javanese, Sundanese, Cebuano, Malagasy, Māori, Samoan and Hawaiian.
 
-Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="km"` and `<document lang="haw">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete with their names in their own spelling.
+Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="km"` and `<document lang="haw">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete, named there the way CLDR names them.
 
 These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
 

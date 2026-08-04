@@ -74,8 +74,8 @@ English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
 `mr`, `ms`, `mt`, `my`, `nb`, `ne`, `nl`, `ny`, `om`, `or`, `pa`, `pl`, `ps`,
 `pt`, `ro`, `ru`, `rw`, `sd`, `si`, `sk`, `sl`, `sm`, `so`, `sq`, `sr`, `su`,
 `sv`, `sw`, `ta`, `te`, `tg`, `th`, `tk`, `tr`, `tt`, `ug`, `uk`, `ur`, `uz`,
-`vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an
-**unreviewed machine-generated seed**, which each file's own header says at the
+`vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed
+machine-generated seed**, which each file's own header says at the
 top, and which is what #1521's translation platform is for. None has
 been read by a speaker. Correcting one needs no permission and no coordination:
 a wrong string is just wrong, and the English is one key away.
@@ -84,8 +84,8 @@ Twenty-nine of them are deliberately partial, all in the same place: Somali,
 Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
 Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
 Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano, Malagasy, Māori,
-Samoan and Hawaiian leave `element-name` and `element-anion-name`
-out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
+Samoan and Hawaiian leave `element-name` and `element-anion-name` out, so those
+130 keys fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
@@ -114,8 +114,8 @@ script the reader cannot check against the English beside it is worse than the
 English, so those three are the first place a speaker should look, and the
 catalogs say so in their own headers.
 
-Javanese and Sundanese are the two of that batch that supply the names, and
-they are a case of their own: their schools teach chemistry out of
+Javanese and Sundanese are the two of that batch's ten that supply the names,
+and they are a case of their own: their schools teach chemistry out of
 Indonesian-language textbooks, so the scientific names are the Indonesian ones
 `locales/id` already carries. Both keep their own words for the substances
 known long before the elements were — «wesi» and «beusi» for iron, «walirang»
@@ -211,11 +211,12 @@ regional tag over them — `ga-IE`, `gd-GB`, `cy-GB`, `br-FR`, `is-IS`, `fo-FO`,
 alias.
 
 The Southeast Asian and Pacific batch adds one script case and one that is not
-about script at all. `jv` is Javanese in Latin letters, which is what Javanese
-schooling, publishing and CLDR all use, so a reader arriving under `jv-Java` —
-the Javanese script — reaches it and gets Latin, the same asymmetry `pa` and
-`sr` already have and with the same answer: a second catalog beside the first
-rather than a rename of it.
+about script at all. `jv` and `su` are Javanese and Sundanese in Latin letters,
+which is what the schooling, the publishing and CLDR of both use, so a reader
+arriving under `jv-Java` or `su-Sund` — the Javanese and Sundanese scripts —
+reaches them and gets Latin, the same asymmetry `pa` and `sr` already have and
+with the same answer: a second catalog beside the first rather than a rename of
+it.
 
 The other is **speech level**, and it is a decision a catalog cannot avoid
 making. Javanese and Sundanese choose a register for every sentence, and a
