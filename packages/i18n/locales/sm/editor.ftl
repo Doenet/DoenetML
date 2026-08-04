@@ -33,7 +33,7 @@ editor-update-viewer-title =
 ## The variant picker
 
 editor-variant = Ituaiga
-editor-variant-filter = Faʻamama...
+editor-variant-filter = Faʻamamā...
 editor-variant-next = Filifili le ituaiga sosoʻo
 editor-variant-previous = Filifili le ituaiga muamua
 

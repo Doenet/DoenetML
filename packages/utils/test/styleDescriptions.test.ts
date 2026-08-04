@@ -962,6 +962,7 @@ describe("a phrase rendered in two positions", () => {
     const is = forLocale("is");
     const ceb = forLocale("ceb");
     const km = forLocale("km");
+    const si = forLocale("si");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1278,6 +1279,25 @@ describe("a phrase rendered in two positions", () => {
             textColor: "ពណ៌ក្រហម",
             backgroundColor: "ពណ៌លឿង",
             sentence: "ពណ៌ក្រហមលើផ្ទៃខាងក្រោយពណ៌លឿង",
+        });
+    });
+
+    // Sinhala is the third shape this batch brings, and the one whose reason
+    // for reading alike in both positions is not English's. It *does* mark
+    // case — but with a postposition after the noun, «සමඟ» for the border and
+    // «මත» for the background, and neither ever touches the adjective in front
+    // of it. So the adjectives this catalog hands to a clause are the same
+    // words in both positions, while the words that move are the postpositions
+    // the clause itself writes, after what they govern rather than before it.
+    it("gives Sinhala a postposition after the phrase and no case on the adjectives", () => {
+        expect(bothBorderForms(si)).toEqual({
+            standalone: "ඝන කළු",
+            embedded: "පිරවූ නිල් වෘත්තය ඝන කළු මායිමක් සමඟ",
+        });
+        expect(bothTextForms(si)).toEqual({
+            textColor: "රතු",
+            backgroundColor: "කහ",
+            sentence: "කහ පසුබිමක් මත රතු",
         });
     });
 

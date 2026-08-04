@@ -14,8 +14,13 @@
 #
 # Malagasy has a definite article, «ny», but these descriptions are not
 # definite: they say what a thing is like rather than pointing at a known one.
-# So the two `-article` branches read like the ones without, and no «ny» is
-# written into a description.
+# So the two `-article` branches read like the ones without, and nothing being
+# described is introduced by «ny». The «ny» inside «amin'ny» — the border and
+# background clauses — is not that article standing on its own: the preposition
+# «amin'» fuses with it, and this seed writes the fused form throughout rather
+# than switching to the indefinite «amina» in front of an indefinite noun. A
+# speaker who wants «amina» there should change it in those clauses; it is a
+# choice about the preposition, not about the descriptions being definite.
 #
 # The 118 element names and the 12 anion names are left out, so those keys fall
 # back to English — see the note above `ion-name-oxidation-state`.

@@ -128,7 +128,7 @@ document-contains-errors = ເອກະສານນີ້ມີຂໍ້ຜິ�
 diagnostic-heading-error = ຂໍ້ຜິດພາດ
 diagnostic-heading-warning = ຄຳເຕືອນ
 diagnostic-heading-information = ຂໍ້ມູນ
-diagnostic-heading-hint = ຄຳແນະນຳ
+diagnostic-heading-hint = ຄຳໃບ້
 
 accessibility-heading-level-1 = ການລະເມີດການເຂົ້າເຖິງ WCAG AA
 accessibility-heading-level-2 = ການແຈ້ງເຕືອນການເຂົ້າເຖິງ

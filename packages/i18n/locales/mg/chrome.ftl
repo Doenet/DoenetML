@@ -86,9 +86,9 @@ orbital-add-row = Ampio andalana
 orbital-remove-row = Esory ny andalana
 orbital-add-box = Ampio boaty
 orbital-remove-box = Esory ny boaty
-orbital-add-up-arrow = Ampio zana-tsipìka miakatra
-orbital-add-down-arrow = Ampio zana-tsipìka midina
-orbital-remove-arrow = Esory ny zana-tsipìka
+orbital-add-up-arrow = Ampio zana-tsipika miakatra
+orbital-add-down-arrow = Ampio zana-tsipika midina
+orbital-remove-arrow = Esory ny zana-tsipika
 
 orbital-row-label = Marika ho an'ny andalana { $row }
 
