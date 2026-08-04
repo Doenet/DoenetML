@@ -462,19 +462,18 @@ describe("Vector Tag Tests @group4", function () {
         await common_test_process({ core, resolvePathToNodeIdx });
     });
 
-    // Regression, introduced by the move to the Rust math-expressions engine —
-    // this passes on `main`. Reduced from the drag sequences above, which reach
-    // the same bug only after several moves and report it as an arithmetic
-    // mismatch deep in a helper.
+    // Regression guard for the move to the Rust math-expressions engine, kept
+    // in its reduced form: the drag sequences above reach the same bug only
+    // after several moves, and report it as an arithmetic mismatch deep in a
+    // helper rather than as the update never happening.
     //
-    // Dragging a point that extends `$v.head` is discarded outright: no error,
-    // and neither the point, the head, nor the displacement changes. It only
-    // happens when the extended variable has to *invert through* another one —
-    // here `head` is computed from `displacement`, so setting it means setting
-    // the displacement. Extending `.tail`, or a vector declared with `head` and
-    // `tail`, both work, as does `moveVector` on the vector itself.
-    //
-    // See VECTOR_UPDATE_DROP.md for the trace and what it rules out.
+    // Setting `head` on a displacement-defined vector means setting the
+    // displacement, so one component at a time arrives and the inverse builds a
+    // partial vector — an AST array with a hole for the component it is
+    // deliberately leaving alone. A hole does not survive `me.fromAst` on an
+    // engine that serializes the tree, and the throw aborted the whole update:
+    // no error surfaced, and neither the point, the head, nor the displacement
+    // moved. See VECTOR_UPDATE_DROP.md.
     it("dragging a point that extends the head of a displacement-defined vector", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

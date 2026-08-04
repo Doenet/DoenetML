@@ -9,6 +9,7 @@ import { ensureStateVariableMaterialized } from "./StateVariableInitializer";
 import {
     preprocessMathInverseDefinition,
     removeFunctionsMathExpressionClass,
+    isUnspecifiedComponentValue,
 } from "../utils/math";
 
 /**
@@ -1510,8 +1511,13 @@ function spreadMathOverArrayKeys(
         // was therefore both dead and wrong — a scalar would have written a
         // wrong value into the slot instead of skipping it. `getComponent`
         // restores the legacy contract on either engine.
+        //
+        // An `UNSPECIFIED_COMPONENT` marker is skipped for the same reason: it
+        // is a component the producing inverse definition deliberately left
+        // alone, and it reaches here as a symbol only because a hole cannot
+        // survive the engine's JSON round trip.
         const component = getComponent(value, ind);
-        if (component !== undefined) {
+        if (!isUnspecifiedComponentValue(component)) {
             desiredValuesForArray[arrayKey] = component;
         }
     }

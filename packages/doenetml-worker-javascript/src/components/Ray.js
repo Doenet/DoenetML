@@ -12,6 +12,7 @@ import {
 } from "../utils/numberDisplay";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { markUnspecifiedComponents } from "../utils/math";
 
 export default class Ray extends GraphicalComponent {
     constructor(args) {
@@ -917,7 +918,9 @@ export default class Ray extends GraphicalComponent {
                         desiredDirection.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "directionShadow",
-                            desiredValue: me.fromAst(desiredDirection),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredDirection),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&
@@ -1141,7 +1144,9 @@ export default class Ray extends GraphicalComponent {
                         desiredThrough.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "throughShadow",
-                            desiredValue: me.fromAst(desiredThrough),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredThrough),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&
@@ -1405,7 +1410,9 @@ export default class Ray extends GraphicalComponent {
                         desiredEndpoint.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "endpointShadow",
-                            desiredValue: me.fromAst(desiredEndpoint),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredEndpoint),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&

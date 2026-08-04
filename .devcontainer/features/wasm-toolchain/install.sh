@@ -32,4 +32,16 @@ cargo install wasm-bindgen-cli --version "${VERSION}" --locked
 # Root installed them; every user needs to run them.
 chmod -R a+rX "${CARGO_HOME}/bin"
 
+# The install above also populated the *shared* CARGO_HOME download caches with
+# root-owned directories at mode 0755. `CARGO_HOME` itself is group-writable and
+# setgid (`drwxrwsr-x root rustlang`), but that only fixes the group of new
+# entries, not their write bit — so the container user, who is in `rustlang` but
+# does not own these, cannot write there. Cargo needs to write the registry on
+# every build (the repo compiles both `math-expressions-rs-wasm` and
+# `doenetml-worker-rust`), and failed with `Permission denied (os error 13)`
+# updating the index. Nothing needs the downloaded crates to survive the image
+# build — only the installed binary — so drop them and let the user's first
+# build create the caches as itself. Trims a few hundred MB from the image too.
+rm -rf "${CARGO_HOME}/registry" "${CARGO_HOME}/git"
+
 wasm-bindgen --version

@@ -931,6 +931,72 @@ export function removeFunctionsMathExpressionClass(value: any) {
 }
 
 /**
+ * Marks a vector component that an inverse definition is deliberately leaving
+ * alone, so that `preprocessMathInverseDefinition` can fill it back in from the
+ * workspace or the current value.
+ *
+ * This used to be a hole in the AST array (`["vector", , 9]`), detected with
+ * `tree.includes()`. That only worked because the old JavaScript engine stored
+ * the AST array by reference; the Rust engine round-trips `.tree` through JSON,
+ * where a hole becomes `null` and `from_ast` rejects it outright ("unexpected
+ * value null"), aborting the whole update. A symbol survives the round trip
+ * unchanged.
+ *
+ * Deliberately *not* `＿` (U+FF3F), which already means a blank the student
+ * typed and must keep flowing through untouched.
+ */
+export const UNSPECIFIED_COMPONENT = "unspecifiedComponent";
+
+/** Whether an AST node marks a component no inverse instruction has set. */
+function isUnspecifiedComponent(value: unknown) {
+    // `undefined` covers holes in trees that never went through the engine.
+    return value === undefined || value === UNSPECIFIED_COMPONENT;
+}
+
+/**
+ * Whether any operand of `tree` is unspecified. Indexed rather than
+ * `.some()`, which skips holes.
+ */
+function hasUnspecifiedComponent(tree: any[]) {
+    for (let ind = 1; ind < tree.length; ind++) {
+        if (isUnspecifiedComponent(tree[ind])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Whether a math expression pulled out of a vector is a component that no
+ * inverse instruction set, and so should be skipped rather than assigned.
+ *
+ * The `undefined` tree is the legacy hole; `UNSPECIFIED_COMPONENT` is the same
+ * thing after a round trip through the engine.
+ */
+export function isUnspecifiedComponentValue(expression: any) {
+    return (
+        expression == null ||
+        expression.tree === undefined ||
+        expression.tree === UNSPECIFIED_COMPONENT
+    );
+}
+
+/**
+ * Replace the unset slots of a vector AST being built component-by-component
+ * with `UNSPECIFIED_COMPONENT`, so it can be handed to `me.fromAst`.
+ *
+ * Operates on operands only — index 0 is the operator.
+ */
+export function markUnspecifiedComponents(tree: any[]) {
+    for (let ind = 1; ind < tree.length; ind++) {
+        if (tree[ind] === undefined) {
+            tree[ind] = UNSPECIFIED_COMPONENT;
+        }
+    }
+    return tree;
+}
+
+/**
  * Preprocess the desired value within the inverse definition of a math state variable
  * to fill in any any vector components.
  *
@@ -970,7 +1036,7 @@ export async function preprocessMathInverseDefinition({
 
     if (
         !vectorOperators.includes(desiredValue.tree[0]) ||
-        !desiredValue.tree.includes()
+        !hasUnspecifiedComponent(desiredValue.tree)
     ) {
         return { desiredValue };
     }
@@ -1027,7 +1093,7 @@ export async function preprocessMathInverseDefinition({
         let vectorComponentsNotAffected = [];
         let foundNotAffected = false;
         for (let [ind, value] of desiredValue.tree.entries()) {
-            if (value === undefined) {
+            if (ind > 0 && isUnspecifiedComponent(value)) {
                 foundNotAffected = true;
                 vectorComponentsNotAffected.push(ind);
             } else {
@@ -1052,7 +1118,7 @@ export async function preprocessMathInverseDefinition({
         // fill in with \uff3f
         let desiredOperands = [];
         for (let val of desiredValue.tree.slice(1)) {
-            if (val === undefined) {
+            if (isUnspecifiedComponent(val)) {
                 desiredOperands.push("\uff3f");
             } else {
                 desiredOperands.push(val);

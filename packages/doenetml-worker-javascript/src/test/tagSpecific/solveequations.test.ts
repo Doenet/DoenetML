@@ -13,6 +13,13 @@ async function check_solutions(
     core: PublicDoenetMLCore,
     resolvePathToNodeIdx: ResolvePathToNodeIdx,
     solutions: number[],
+    // The rendered text, for the cases where it cannot be derived from
+    // `solutions`: a numerically-found root and the exact literal it
+    // approximates can sit on opposite sides of a display-rounding boundary,
+    // so rounding the ideal value is not always what the component shows.
+    expectedText = `Solutions: ${solutions
+        .map((x) => me.round_numbers_to_precision_plus_decimals(x, 5))
+        .join(", ")}`,
 ) {
     const numSolutions = solutions.length;
     const stateVariables = await core.returnAllStateVariables(false, true);
@@ -35,9 +42,7 @@ async function check_solutions(
     ).eq(numSolutions);
     expect(
         stateVariables[await resolvePathToNodeIdx("sols")].stateValues.text,
-    ).eq(
-        `Solutions: ${solutions.map((x) => me.round_numbers_to_precision_plus_decimals(x, 5)).join(", ")}`,
-    );
+    ).eq(expectedText);
 }
 
 describe("SolveEquations tag tests @group2", async () => {
@@ -261,10 +266,16 @@ describe("SolveEquations tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("equation"),
             core,
         });
+        // `-4.52365` is a display-rounding tie at 5 significant digits: the
+        // literal is stored as -4.52364999999999995 and rounds to -4.5236,
+        // while the root the solver finds is a hair above the tie and rounds
+        // to -4.5237. Both are correctly rounded; they are just not the same
+        // number, so the rendered text is given explicitly here.
         await check_solutions(
             core,
             resolvePathToNodeIdx,
             [-4.52365, -4.52352, 8.5823, 8.58263],
+            "Solutions: -4.5237, -4.5235, 8.5823, 8.5826",
         );
 
         await updateMathInputValue({
@@ -276,6 +287,8 @@ describe("SolveEquations tag tests @group2", async () => {
             core,
             resolvePathToNodeIdx,
             [-4.52365, -4.52352, 8.5823, 8.58263],
+            // Same rounding tie as above.
+            "Solutions: -4.5237, -4.5235, 8.5823, 8.5826",
         );
 
         await updateMathInputValue({

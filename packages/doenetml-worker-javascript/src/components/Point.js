@@ -14,7 +14,11 @@ import {
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
-import { roundForDisplay } from "../utils/math";
+import {
+    roundForDisplay,
+    markUnspecifiedComponents,
+    isUnspecifiedComponentValue,
+} from "../utils/math";
 import {
     returnConstraintDefinitions,
     returnStickyGroupDefinitions,
@@ -924,7 +928,9 @@ export default class Point extends GraphicalComponent {
                         desiredCoords = me.fromAst(coordsTree[1]);
                     } else {
                         coordsTree[0] = "vector";
-                        desiredCoords = me.fromAst(coordsTree);
+                        desiredCoords = me.fromAst(
+                            markUnspecifiedComponents(coordsTree),
+                        );
                     }
                     let instruction = {
                         setDependency: coordsDependency,
@@ -1154,7 +1160,7 @@ export default class Point extends GraphicalComponent {
                     for (let i = 0; i < coordsTree.length - 1; i++) {
                         let desiredValue =
                             desiredStateVariableValues.coords.get_component(i);
-                        if (desiredValue.tree !== undefined) {
+                        if (!isUnspecifiedComponentValue(desiredValue)) {
                             desiredXValues[i] = desiredValue;
                         }
                     }
