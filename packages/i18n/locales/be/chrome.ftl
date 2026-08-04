@@ -9,8 +9,12 @@
 #
 # Belarusian counts in four plural categories — `one`, `few`, `many` and
 # `other` — so every `{ $count -> … }` below has four branches where English
-# has two. `many` covers five and up as well as the teens, and it takes the
-# genitive plural: «5 спроб», not «5 спробы».
+# has two. `many` covers five and up, the teens and the round tens, and it
+# takes the genitive plural: «5 спроб», not «5 спробы».
+#
+# Zero falls to `many` as well, which is why the wording for zero is spelled
+# out in `[0]` rather than left to a category: the English changes more than
+# the noun there.
 #
 # Register: the second-person plural imperative — «Перазагрузіце старонку».
 

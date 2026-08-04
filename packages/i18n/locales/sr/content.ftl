@@ -23,8 +23,9 @@
 #   text-clause         nominative masculine, agreeing with «текст»
 #
 # `locales/hr` is the near-identical grammar with a different word for the
-# border: «руб» is masculine there and takes `-им` in the same position where
-# «ивица» takes `-ом` here. Neither catalog had to know that about the other,
+# border: «rub», in Croatian's Latin script, is masculine there and takes `-im`
+# in the same position where «ивица» takes `-ом` here. Neither catalog had to
+# know that about the other,
 # which is what `noun-gender` answering per catalog buys.
 
 
