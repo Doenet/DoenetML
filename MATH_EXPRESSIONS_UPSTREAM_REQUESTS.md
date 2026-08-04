@@ -1,72 +1,100 @@
-# math-expressions: exactly what DoenetML needs
+# math-expressions: what DoenetML needs
 
 **For:** maintainers of [`Doenet/math-expressions`](https://github.com/Doenet/math-expressions)
 **Against:** `siefkenj/math-expressions@doenet`, `cdc5343`
-**Date:** 2026-08-01
-**Supersedes:** the 2026-07-31 revision written against `8ccd98d`
+**Date:** 2026-08-03
 
-**DoenetML has switched permanently to the Rust engine.** The branch no longer builds the JavaScript
-library by default; `DOENET_MATH_ENGINE=js` survives only as a differential-debugging tool. This
-document is the list of things still standing between us and a clean suite.
+DoenetML has switched permanently to the Rust engine. There is no JavaScript engine to fall back to,
+so everything below is on the path to shipping.
 
-## First: `cdc5343` was a big step
+Every engine claim in this document was verified by calling the built package directly, not inferred
+from test output. Where we could not reproduce a failure at the library boundary we say so and keep
+it on our side of the line — see [§9](#9-what-is-ours-not-a-request).
 
-Measured on DoenetML's full worker test suite, one variable changed at a time:
+## Current state
 
-| Pin | Failures | Pass rate |
-| --- | ---: | ---: |
-| `8ccd98d` (previous) | 969 | 70.9% |
-| `cdc5343`, no other change | 577 | 82.2% |
-| + our test-expectation update (spacing) | 535 | 84.3% |
-| + our `fromAst` unwrap (§1 below) | **465** | **85.5%** |
+`packages/doenetml-worker-javascript` is the suite that exercises the engine hardest:
 
-Everything we asked for in the previous revision landed and works. Verified by **deleting our local
-patches** and re-running: `perform_vector_matrix_additions_scalar_multiplications` (which alone was
-44.5% of the old failures), the `astReplacer` for `NaN`/`±Infinity`, `{"$":"None"}` round-tripping,
-render options on `toText`/`toLatex`, `free()`/`dispose()`, `interner_size()`, the `setWasmModule`
-injection point, and `dopri`. The `evaluate_to_constant` hole guard fixed the undefined-slope case
-we could not diagnose last time.
+**448 failures out of 3,435 tests executed — 87.0% passing.**
 
-Two notes on things we adopted rather than requested:
+The suite runs in four tag groups because it exhausts the heap in a single process. That is a
+DoenetML memory problem, not an engine difference.
 
-- **`evaluate_numbers({skip_ordering:true})` now throws** instead of silently reordering. That is
-  the right call — but see §4; we need the feature, not just the honest failure.
-- **`setWasmModule` has an ordering trap.** The `Context` object literal contains
-  `_assumptionsHandle: new wasm.Assumptions()`, which touches the WASM *while the barrel's module
-  body evaluates*. So any consumer that imports `setWasmModule` from the package root forces that
-  body to run first, and the injection can never win — it silently falls through to the node
-  loader. We import from `lib/_wasm` instead, which works but reaches past your public surface.
-  Making the handle lazy would make the documented usage actually usable.
+Failures by signature, for scale:
+
+| Count | Signature |
+| ---: | --- |
+| 63 | coordinate/array mismatch (`vector` 21, `ray` 9, then `point`, `subsetofreals`, `circle`, …) |
+| 22 | `evaluate_numbers({skip_ordering:true})` throws |
+| 16 | `matchesPattern` over-matching |
+| 11 | tagged `{"$":"Inf"}` / `{"$":"NaN"}` reaching `.tree` consumers |
+| 9 | `avoidScientificNotation` |
+| 9 | sparse arrays rejected by `fromAst` |
 
 ---
 
-## 1. `fromAst` must unwrap an `Expression` — 95 hard errors
+## 1. A throw across the WASM boundary aborts the Rust core
 
-**The single highest-impact item, and cheap for you.** Legacy accepted an `Expression` anywhere a
-tree was expected and unwrapped it:
+**Severity: highest. This is a crash, not a wrong answer.**
+
+Two of `doenetml-worker-rust`'s browser tests die with a bare WASM trap:
+
+```
+Test simplify_math failed with message: unreachable
+Test arithmetic_on_math failed with message: unreachable
+```
+
+`simplify_math` is explained. It exercises `MathSimplify::NumbersPreserveOrder`, which our Rust core
+bridges to JavaScript as:
+
+```js
+mode === "numberspreserveorder"
+    ? expr.evaluate_numbers({ skip_ordering: true })   // ← throws
+    : …
+```
+
+That call throws by design (see §6). The exception unwinds into Rust, which is built
+`panic = "abort"`, and the trap takes the whole core with it. In production that is a student losing
+their session mid-problem.
+
+So the `skip_ordering` throw is not only a missing feature we could route around — **it is reachable
+as a crash.**
+
+`arithmetic_on_math` traps too and we have **not** diagnosed it. It uses `NormalizeParams::default()`,
+which the same test asserts is equivalent to `MathSimplify::Full`, so `skip_ordering` is not
+involved. Reported here because the failure mode is identical and the two are worth investigating
+together.
+
+Independent of the specific cause: while `panic = "abort"` stands, any reachable `throw` in the
+compat layer is a crash for us. Either a `Result`-shaped return, or simply not throwing for a mode we
+are documented to support, would fix this one.
+
+---
+
+## 2. `fromAst` must unwrap an `Expression`
+
+**The highest-value item you could hand back, and it is three lines.**
 
 ```js
 const e = me.fromText("3");
-me.fromAst(e).tree           // legacy: 3        compat: throws
-me.fromAst(e).evaluate_to_constant()  // legacy: 3
+me.fromAst(e).tree                      // legacy: 3        current: throws
 ```
 
-Compat serializes the object as-is, so the `Expression` arrives at Rust as a bare JSON object with
-no `$` key and `try_from_js` rejects it.
+Compat serializes the `Expression` as-is, so it reaches Rust as a bare JSON object with no `$` key
+and `try_from_js` rejects it.
 
-**The error message is actively misleading.** It reads `unknown special None` — but that `None` is
-the `Option<&str>` from `value.get("$").and_then(Value::as_str)`, *not* the `{"$":"None"}` special
-you just added. `{"$":"None"}` works correctly. We spent real time chasing the wrong feature; a
-message that distinguishes "no `$` key" from "unrecognized `$` value" would have saved it.
+**The error message is actively misleading.** It reads `unknown special None`, but that `None` is the
+`Option<&str>` from `value.get("$").and_then(Value::as_str)` — not the `{"$":"None"}` special, which
+works correctly. We spent real time chasing the wrong feature. A message that distinguishes "no `$`
+key" from "unrecognized `$` value" would have saved it.
 
-**This is not a DoenetML test-hygiene problem.** We assumed it was, and checked: our *source*
-depends on it in `PiecewiseFunction.js`, `StateVariableEvaluator.ts` and `Dependency.ts`. A
-math-valued state variable *holds* an `Expression`, and code that re-wraps one hands it straight
-back to `fromAst`. With ~675 `fromAst` call sites we are not confident we could find them all by
-inspection.
+This is not test hygiene on our side. `PiecewiseFunction.js`, `StateVariableEvaluator.ts` and
+`Dependency.ts` all depend on the behaviour: a math-valued state variable *holds* an `Expression`,
+and code that re-wraps one hands it straight back to `fromAst`. With ~675 call sites we cannot find
+them all by inspection.
 
-**Where it belongs.** `astReplacer` already visits every node on the way through `JSON.stringify`,
-so unwrapping there is free:
+`astReplacer` already visits every node on the way through `JSON.stringify`, so unwrapping there is
+free:
 
 ```js
 function astReplacer(_key, value) {
@@ -76,146 +104,217 @@ function astReplacer(_key, value) {
 }
 ```
 
-We have implemented the equivalent in our seam, but ours costs a second full traversal because we
-cannot hook yours. Nesting matters: an `Expression` can also sit *inside* a tree under
-construction (`["+", someExpr, 2]`).
+We have the equivalent in our seam, but ours costs a second full traversal because we cannot hook
+yours. Nesting matters: an `Expression` can also sit *inside* a tree under construction
+(`["+", someExpr, 2]`).
 
 ---
 
-## 2. `simplify()` folds no numeric-function applications — ~109 failures
+## 3. `simplify()` folds no numeric-function applications
 
-Legacy evaluated an application of a numeric function to constant arguments; Rust leaves the node
-symbolic. Confirmed through DoenetML's own parser configuration:
+```js
+me.fromText("floor(55.33)").simplify().tree   // → ["apply","floor",55.33]   legacy: 55
+me.fromText("log10(10^3)").simplify().tree    // → ["apply","log10",1000]    legacy: 3
+```
 
-| input | legacy `simplify()` | Rust `simplify()` |
-| --- | --- | --- |
-| `floor(55.33)` | `55` | `["apply","floor",55.33]` |
-| `ceil(2.1)` | `3` | `["apply","ceil",2.1]` |
-| `abs(-3)` | `3` | `["apply","abs",-3]` |
-| `sum(3,17,5-4)` | `21` | `["apply","sum",["tuple",3,17,1]]` |
-| `prod(2,3,4)` | `51`¹ | `["apply","prod",…]` |
-| `mean(1,2,3)` | `7`¹ | `["apply","mean",…]` |
-| `variance(1,2,3)` | `76`¹ | `["apply","variance",…]` |
-| `std(1,2,3)` | `12`¹ | `["apply","std",…]` |
-| `count(1,2,3)` | `3` | `["apply","count",…]` |
-| `max(1,17,3)` | `17` | `["apply","max",…]` |
-| `median`, `min`, `log` | folded | not folded |
+The same holds for `ceil`, `abs`, `sum`, `prod`, `mean`, `variance`, `std`, `count`, `max`, `median`,
+`min` and `log`.
 
-¹ values as asserted by our suite against the specific inputs in `mathoperators.test.ts`.
-
-Note `evaluate_to_constant()` handles `floor`/`ceil`/`abs`/`log` **identically on both engines** — so
-the capability is present, it is simply not reached from `simplify`. The aggregates
-(`sum`/`mean`/`std`/…) return `null` from `evaluate_to_constant` on both engines, so those need the
-evaluation itself.
+`evaluate_to_constant()` handles `floor`/`ceil`/`abs`/`log` correctly — so the capability is present,
+it is simply not reached from `simplify`. The aggregates (`sum`/`mean`/`std`/…) return `null` from
+`evaluate_to_constant` as well, so those need the evaluation itself.
 
 This surfaces directly to students: `<math simplify>sum(3,17,5-4)</math>` renders the unevaluated
 application instead of `21`.
 
 ---
 
-## 3. `0/0` simplifies to `0`; it must be `NaN`
+## 4. `0/0` simplifies to `0`; it must be `NaN`
 
-```
-me.fromText("0/0").simplify().tree          // legacy: NaN      Rust: 0
-me.fromText("(3-3)/(2-2)").simplify().tree  // legacy: NaN      Rust: 0
-me.fromText("1/0").simplify().tree          // both: Inf   ✓ correct
+```js
+me.fromText("0/0").simplify().tree   // → 0             legacy: NaN
+me.fromText("1/0").simplify().tree   // → {"$":"Inf"}   ✓ correct
 ```
 
-`evaluate_to_constant` inherits it: `0/0` → `0` instead of `null`.
+`evaluate_to_constant` inherits it.
 
 This is how DoenetML computes an undefined slope, so a degenerate line reports slope `0` — a wrong
-number rather than a visible failure, which is the worst shape for a grading path. Your new
-`has_undefined_leaf` guard fixed the *blank* case (`0*＿`, `(＿-＿)/(＿-＿)`) correctly; this is the
-same class, reached through arithmetic rather than through a hole.
+number rather than a visible failure, which is the worst possible shape for a grading path. The
+`has_undefined_leaf` guard handles the *blank* case (`0*＿`, `(＿-＿)/(＿-＿)`) correctly; this is the
+same class reached through arithmetic rather than through a hole.
 
 ---
 
-## 4. `evaluate_numbers({skip_ordering:true})` — 22 failures
+## 5. `evaluate_numbers` combines like symbolic terms
 
-Backs DoenetML's `simplify="numberspreserveorder"`, a documented public attribute. It currently
-throws by design.
+```js
+me.fromText("x^2+3x^2").evaluate_numbers().tree   // → ["*",4,["^","x",2]]
+me.fromText("1x+4x").evaluate_numbers().tree      // → ["*",5,"x"]
+```
 
-Throwing is better than silently reordering — `1+x+2` coming back `x+3` was the bug it replaced —
-but we need an order-preserving numeric fold: combine adjacent numeric terms without applying the
-canonical `cmp`. Concentrated in `parabola.test.ts` (13), `symbolicEquality.test.ts` (3).
+Folding `x² + 3x²` into `4x²` is a correct simplification, but it is not a *numeric* one, and it
+erases a distinction DoenetML exposes as a documented public attribute. `simplify="numbers"` is
+specified as "fold numeric constants, leave the symbolic structure alone". With this behaviour it has
+become indistinguishable from `simplify="full"`.
+
+Our suite pins the difference directly: one test asserts that under `simplify="numbers"` the response
+`sin(2π+5x+π+6)` should *not* match a target written `sin(2π+1x+4x+π+6)`, while the very next test
+asserts that under full simplification it *should*. Both now return the same answer.
+
+Related to §6 but distinct — that one is an unimplemented mode, this one is an implemented mode doing
+too much.
 
 ---
 
-## 5. Symbolic simplify misses log/combinatoric/inverse-trig identities — 19 failures
+## 6. `evaluate_numbers({skip_ordering:true})` is unimplemented — 22 failures
 
-All in `symbolicEquality simplifyOnCompare`. Each of these **passes numerically** — only the
-simplify path fails:
+```
+Error: math-expressions-js-compat: evaluate_numbers({skip_ordering:true}) is not implemented
+       — the core pass always orders; only the ordering form is available
+```
+
+This backs DoenetML's `simplify="numberspreserveorder"`, a documented public attribute.
+
+Throwing beats silently reordering — `1+x+2` coming back as `x+3` would be worse — but we need the
+feature: combine adjacent numeric terms without applying the canonical `cmp`. Concentrated in
+`parabola.test.ts` (13) and `symbolicEquality.test.ts` (3).
+
+**See §1**: this throw is also a hard crash when reached from the Rust core.
+
+---
+
+## 7. Symbolic simplify misses log, combinatoric and inverse-trig identities
+
+```js
+me.fromText("sin^(-1)(1)").simplify().tree   // → ["apply","asin",1]
+```
 
 ```
 sin^(-1)(1) = pi/2      cos^(-1)(1) = 0      tan^(-1)(1) = pi/4
 log10(10^3) = 3         log_2(2^3) = 3       log_7(7^3) = 3
+log_b(a) = log(a)/log(b)
 nCr(5,3) = 10           nPr(5,3) = 60        binom(5,3) = 10
 ```
 
-Rust's `simplify` leaves `asin(1)`, `log_2(8)`, `nCr(5, 3)`. Legacy folded them.
+Each of these passes numerically; only the `simplifyOnCompare` path fails.
 
-Worth noting your **parse is better here**: legacy read `sin^(-1)(1)` as `(1/sin)(1)` — reciprocal,
-not inverse. We would rather keep your reading and have simplify evaluate it.
+Worth saying that your **parse is better here**: legacy read `sin^(-1)(1)` as `(1/sin)(1)` —
+reciprocal, not inverse. We would rather keep your reading and have simplify evaluate it.
 
 ---
 
-## 6. Two decisions to settle, not bugs
+## 8. Two smaller asks
 
-**Scientific notation — 34 failures.** Rust never uses it; legacy switched at a magnitude threshold.
+**`setWasmModule` has an ordering trap.** The `Context` object literal contains
+`_assumptionsHandle: new wasm.Assumptions()`, which touches the WASM *while the barrel's module body
+is evaluating*. Any consumer that imports `setWasmModule` from the package root therefore forces that
+body to run first, and the injection can never win — it silently falls through to the node loader. We
+import from `lib/_wasm` instead, which works but reaches past your public surface. Making the handle
+lazy would make the documented usage actually usable.
+
+**`panic = "abort"` and WASM32 stack safety.** Beyond §1: deep expressions can overflow the ~1 MB
+shadow stack, including on `Drop`, and student input is adversarial by construction.
+`STACK_SAFETY_PLAN` items 21 and 23–26 are open. The `Number::parse` fallback in `decimal.rs` is
+exactly the right shape — it needs to be the rule rather than the exception.
+
+---
+
+## 9. What is ours, not a request
+
+Listed so it is not mistaken for a complaint. In several of these we were ready to file against you
+until a direct probe said otherwise.
+
+**Blank comparisons scoring full credit.** Three tests fail because an *empty* answer scores 1 — the
+awards are shaped like `$mi1 < 1 and $mi2 < 1`, and with blank input they evaluate true. The engine
+is not at fault:
+
+```js
+me.fromText("＿<1").evaluate_to_constant()    // → null            ✓
+me.fromText("＿<1").simplify().tree           // → ["<","＿",1]    ✓ left symbolic
+me.fromText("abs(＿)<1").simplify().tree      // → ["<",["apply","abs","＿"],1]  ✓
+me.fromText("＿-1").evaluate_to_constant()    // → null            ✓
+```
+
+Every probe we can construct at the library boundary behaves correctly. The wrong answer is produced
+in DoenetML's `booleanLogic.js` / `checkEquality.js` path.
+
+**Numeric equality losing discrimination.** Two tests now say `e^(10x)` equals `e^(10x)+0.0000001`.
+Also not reproducible at the boundary: `a.equals(c)` returns `false` at default tolerance and at
+`relative_tolerance` of both `1e-12` and `1e-6`. Whatever makes these compare equal is in our
+comparison plumbing.
+
+**`matchesPattern` over-matching — 16 failures.** Blanks are matched literally where the test expects
+no match. We have not probed the pattern API directly and are not filing it against you until we do.
+
+**Coordinate/array mismatches — 63 failures.** Head/tail/displacement updates returning the wrong
+pair (`[-9, 8]` where `[-12, -1]` is expected), concentrated in `vector.test.ts` (21) and
+`ray.test.ts` (9). An inverse-direction problem in our update logic is as likely as an engine one.
+This is the largest single cluster remaining and it is unattributed — help welcome, but not yet a
+request.
+
+**Sparse arrays reaching `fromAst` — 9 failures.** `Point.js` builds `Array(n+1)` and fills only the
+components being set; `JSON.stringify` turns the holes into `null`, which you correctly reject with
+`unexpected value null`.
+
+**Tagged values reaching users — 11 failures.** `.tree` returns `{"$":"Inf"}` / `{"$":"NaN"}` where
+legacy gave JS `Infinity` / `NaN`. We accept the symmetry argument; our `.tree` consumers do
+`typeof x === "number"` and that is ours to fix.
+
+**Float-precision assertions.** Our ODE tests compare two independent integrations with exact `.eq()`
+and now differ by 2 ULP.
+
+---
+
+## 10. Where the engine is better
+
+We updated our expectations to match:
+
+- **The Pythagorean identity under full simplification.** A response of `(2x-3)(4-x) + 1` now matches
+  a target of `(2x-3)(4-x) + sin(x)^2+cos(x)^2`.
+- **Factor cancellation in vector expressions.** `vec(x)*vec(x)vec(y)/(vec(x)*vec(x))` now compares
+  equal to `vec(y)` under `simplifyOnCompare`. Our test table had carried the note
+  `// with improved simplification, these should compare as true` since before the migration.
+- **Exact-constant equality**, and **the more aggressive `simplify`** generally.
+- **Printer spacing.** Legacy padded inside delimiters, the Rust printer does not: `( 0, 0 )` →
+  `(0, 0)`. Yours is the better output.
+
+---
+
+## 11. Open questions, not defects
+
+**Scientific notation — 9 failures** named `avoidScientificNotation` outright, plus an unseparated
+share of the number-formatting failures in `math.test.ts` and `mathinput.test.ts`. The Rust printer
+never uses scientific notation; legacy switched at a magnitude threshold:
 
 ```
-5.252*10^(-13)  →  legacy "5.252 * 10^(-13)"   Rust "0.0000000000005252"
-2*10^21         →  legacy "2 * 10^21"          Rust "2000000000000000000000"
+5.252*10^(-13)  →  legacy "5.252 * 10^(-13)"   current "0.0000000000005252"
+2*10^21         →  legacy "2 * 10^21"          current "2000000000000000000000"
 ```
 
-DoenetML has an `avoidScientificNotation` attribute, which presumes scientific *is* the default —
-so we cannot simply absorb this. Is a notation threshold something you would take as a render
-option, or should we implement it in our display layer?
+DoenetML has an `avoidScientificNotation` attribute, which presumes scientific *is* the default, so
+we cannot simply absorb this. Would you take a notation threshold as a render option, or should we
+implement it in our display layer?
 
-**Terminating rationals — 3 failures.** `5/2` renders `2.5` while `1/3` correctly stays
-`\frac{1}{3}`. We accept this as ours per your notes. One caveat we raised before and still hold: if
-the structural criteria (`ReducedFraction`, `ExactValue`, …) are meant to be usable *after*
-`simplify`, this stops being a display question. Worth settling before F1 ships.
+**Terminating rationals.** `5/2` renders `2.5` while `1/3` correctly stays `\frac{1}{3}`. We accept
+this as ours — with one caveat: if the structural criteria (`ReducedFraction`, `ExactValue`, …) are
+meant to be usable *after* `simplify`, this stops being a display question. Worth settling before F1
+ships.
 
----
-
-## 7. Still open from the previous revision
-
-- **`panic = "abort"` and WASM32 stack safety.** A reachable panic kills the worker and takes the
-  student's session with it. `STACK_SAFETY_PLAN` items 21 and 23–26 remain open; deep expressions
-  can overflow the ~1 MB shadow stack, including on `Drop`. Student input is adversarial by
-  construction. The `Number::parse` fallback you added in `decimal.rs` is exactly the right shape —
-  it just needs to be the rule rather than the exception.
-- **Handle lifetime.** `free()`/`dispose()` landed and we are using them. `interner_size()` gives us
-  the gauge we asked for. We still owe you growth-rate numbers from a long session; we have not
-  measured yet.
-- **Normalization passes that no-op** (`default_order`, `normalize_negative_numbers`, …). Returning
-  `this` rather than throwing was the right call given it kept ~170 idempotent-input specs alive.
-  Our residual `term/factor ordering` failures (10) trace here.
+**Handle lifetime.** `free()` / `dispose()` work and we use them; `interner_size()` gives us the
+gauge we needed. We still owe you growth-rate numbers from a long session — not yet measured.
 
 ---
 
-## What we are taking on ourselves
+## Notes for anyone else migrating
 
-Recorded so it is not mistaken for a request:
+Two things cost us a debugging cycle each and are not obvious:
 
-- **Printer spacing — done, 42 tests updated.** Legacy padded inside delimiters, Rust does not:
-  `( 0, 0 )` → `(0, 0)`. Yours is the better output; we changed our expectations. For anyone else
-  doing this: `toLatex` is byte-identical on both engines — `\left( 1, 2 \right)` keeps its padding
-  — so a naive whitespace sweep over test files will corrupt LaTeX assertions.
-- **Sparse arrays reaching `fromAst` — 9 failures.** `Point.js` builds `Array(n+1)` and fills only
-  the components being set; `JSON.stringify` turns the holes into `null`, which you reject with
-  `unexpected value null`. Correctly rejected — the bug is ours. We are deciding whether a hole
-  should become `{"$":"None"}` or whether the call site should not produce one.
-- **Tagged values reaching users — ~37 failures.** `.tree` returns `{"$":"Inf"}` / `{"$":"NaN"}`
-  where legacy gave JS `Infinity` / `NaN`, and the text printer spells a blank `＿` where legacy
-  printed `NaN`. We understand the symmetry argument in your `astReplacer` note and are not asking
-  you to change it; our `.tree` consumers do `typeof x === "number"` and that is ours to fix.
-- **Float-precision assertions.** Our ODE tests compare two independent integrations with exact
-  `.eq()`; they now differ by 2 ULP. Ours.
-- **The more aggressive `simplify`** and **exact-constant equality** — both improvements.
-- **Formatter-coupled assertions.** Renormalizing toward comparing parsed trees or `equals` rather
-  than exact strings.
+- **Do not run a whitespace sweep over test files.** The text printer dropped its delimiter padding,
+  but `toLatex` did not: `me.fromText("(1,2)").toString()` is `"(1, 2)"` while
+  `me.fromText("(1,2)").toLatex()` is `"\left( 1, 2 \right)"`, padding intact. A naive sweep corrupts
+  every LaTeX assertion you have.
+- **The delimiter set includes `⟨ ⟩`.** Angle-bracket vector notation unpads exactly like `( )`,
+  `[ ]` and `{ }`. We missed it.
 
 ---
 
@@ -223,16 +322,21 @@ Recorded so it is not mistaken for a request:
 
 ```bash
 git submodule update --init --recursive          # vendor/math-expressions @ cdc5343
-npm run build -w packages/math                   # Rust is now the default
-npx vitest run --root packages/doenetml-worker-javascript --shard=1/8   # ×8; see note
+npm run build -w packages/math
+cd packages/doenetml-worker-javascript
+npx vitest run -t '@group1'                      # and @group2, @group3
+npx vitest run -t '^(?!.*@(?:group1|group2|group3))'   # group4
 ```
 
-The full suite exhausts the heap in one process — a pre-existing DoenetML memory problem, not an
-engine difference (the JavaScript engine OOMs identically), which is why it is sharded.
+Every engine-level claim in §3–§7 and §9 is reproducible in isolation, without DoenetML:
 
-- `scripts/analyze-math-divergences.py <report>...` reproduces the attribution table.
-- `scripts/compare-test-runs.py --before <a>... --after <b>...` diffs two runs test-by-test. Every
-  number in this document was verified with it; both of our changes came in at **0 broken**.
+```js
+import me from "math-expressions";
+console.log(me.fromText("0/0").simplify().tree);
+```
 
-**The most useful thing you can send back is §1** — three lines in `astReplacer`, and it is the
-difference between 465 failures and 560.
+That is the form we would want in a bug report, and it is the form that moved four items out of the
+request list and into §9.
+
+**The two most useful things you can send back are §1 and §2** — a crash, and three lines in
+`astReplacer`.
