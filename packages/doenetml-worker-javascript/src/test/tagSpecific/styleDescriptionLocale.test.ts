@@ -227,6 +227,46 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("sinine täide punktidega");
     });
 
+    it("inflects Georgian in the one position that takes a case", async () => {
+        const values = await descriptions(styled, names, "ka");
+        // Georgian has seven cases and no gender, and an attributive adjective
+        // drops its -ი in the dative and nowhere else. Only the background is a
+        // dative here — «ფონზე» is dative plus the postposition -ზე — so the
+        // catalog writes out one `$role` branch and the border, which sits in
+        // an instrumental, reads the same in both of its positions. The case
+        // below is the one that shows the fork.
+        expect(values.st).eq("სქელი წყვეტილი წითელი");
+        expect(values.stn).eq("სქელი წყვეტილი წითელი წრფე");
+        expect(values.pt).eq("მწვანე კვადრატი");
+        expect(values.sh).eq(
+            "ლურჯი შევსებული წრეწირი წერტილებით და სქელი წყვეტილი წითელი ჩარჩოთი",
+        );
+        expect(values.bd).eq("სქელი წყვეტილი წითელი");
+        expect(values.fd).eq("ლურჯი შევსება წერტილებით");
+    });
+
+    it("truncates a Georgian background and leaves the text colour alone", async () => {
+        // The `$role` fork through the whole worker path: «ყვითელი» standing
+        // alone loses its -ი to «ყვითელ» in front of -ზე, while the text colour
+        // beside it stays nominative. The fixture above cannot show this — no
+        // position in it is a dative — which is why this reads the two colours
+        // off a text instead.
+        const doenetML = `
+        <setup>
+          <styleDefinition styleNumber="1" textColor="red" backgroundColor="yellow" />
+        </setup>
+        <text name="t" styleNumber="1">გამარჯობა</text>
+        <text name="c" extend="$t.textColor" />
+        <text name="b" extend="$t.backgroundColor" />
+        <text name="d" extend="$t.textStyleDescription" />
+        `;
+        expect(await descriptions(doenetML, ["c", "b", "d"], "ka")).toEqual({
+            c: "წითელი",
+            b: "ყვითელი",
+            d: "ყვითელ ფონზე წითელი",
+        });
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

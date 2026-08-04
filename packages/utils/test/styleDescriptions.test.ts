@@ -672,6 +672,62 @@ describe("Pashto", () => {
     });
 });
 
+describe("Tajik", () => {
+    const tg: Translator = createTranslatorFromLocaleData(
+        { locale: "tg", resources: { tg: readCatalog("tg", "content") } },
+        "tg",
+    );
+
+    // Tajik is Persian in Cyrillic, so its adjectives follow the noun and the
+    // link between them is the izafat. Persian's is an unwritten vowel after a
+    // consonant and the space carries it; Tajik writes it as «-и», the same
+    // «-и» whatever the word ends in, so `style-with-noun` welds it onto the
+    // placeable. That is allowed for the reason `{ $numSides }-kulmio` is
+    // allowed in Finnish — the ending is adjacent to the word rather than
+    // agreeing with it — and this is what holds it: the same suffix lands on a
+    // consonant-final «хат» and a vowel-final «доира» without changing shape.
+    it("links a noun to its adjectives with the izafat", () => {
+        expect(
+            describeStrokedShape(
+                tg,
+                {
+                    colorWord: "red",
+                    lineWidthWord: "thick",
+                    lineStyleWord: "dashed",
+                },
+                { noun: { key: "line" }, withNoun: true },
+            ),
+        ).toBe("хати сурх хат-хат ғафс");
+        expect(
+            describeClosedShape(
+                tg,
+                {
+                    colorWord: "black",
+                    lineWidthWord: "thick",
+                    fillColorWord: "blue",
+                },
+                { filled: true, noun: { key: "circle" }, withNoun: true },
+            ),
+        ).toBe("доираи пуршудаи кабуд бо ҳошияи сиёҳ ғафс");
+    });
+
+    // The side count follows the adjectives rather than standing in front of
+    // the noun, so `noun-regular-polygon` splits in two the way Spanish's does
+    // and the izafat lands on the head alone.
+    it("puts a regular polygon's side count after its adjectives", () => {
+        expect(
+            describeStrokedShape(
+                tg,
+                { colorWord: "red", lineWidthWord: "thick" },
+                {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                },
+            ),
+        ).toBe("бисёркунҷаи мунтазами сурх ғафс бо 5 тараф");
+    });
+});
+
 /**
  * `$gender` is a token set, not a gender (#1641).
  *
@@ -846,6 +902,7 @@ describe("a phrase rendered in two positions", () => {
     const zu = forLocale("zu");
     const et = forLocale("et");
     const bg = forLocale("bg");
+    const ka = forLocale("ka");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1097,6 +1154,25 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Georgian is the narrowest fork any catalog here writes: it inflects an
+    // attributive adjective for case, but only the dative truncates the -ი, and
+    // only one of the four positions is a dative — the background, in front of
+    // the postposition -ზე. So `background-clause` is the single branch its
+    // catalog spells out and the border reads alike in both of its positions,
+    // which is the shape `locales/pa` arrived at from an entirely different
+    // grammar. The instrumental «ჩარჩოთი» leaves its adjectives nominative.
+    it("gives Georgian a truncated background and an unmoved border", () => {
+        expect(bothBorderForms(ka)).toEqual({
+            standalone: "სქელი შავი",
+            embedded: "ლურჯი შევსებული წრეწირი სქელი შავი ჩარჩოთი",
+        });
+        expect(bothTextForms(ka)).toEqual({
+            textColor: "წითელი",
+            backgroundColor: "ყვითელი",
+            sentence: "ყვითელ ფონზე წითელი",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
@@ -1116,8 +1192,9 @@ describe("a phrase rendered in two positions", () => {
         // background whose colour is spelled alike in the two positions, per
         // the cases above. Marathi spells its feminine oblique differently and
         // so belongs here, and so does Punjabi, whose background is masculine.
-        // Estonian belongs here too: its background goes adessive.
-        for (const t of [de, ru, pl, mr, pa, et]) {
+        // Estonian belongs here too: its background goes adessive, and Georgian
+        // because its background is the one position that truncates.
+        for (const t of [de, ru, pl, mr, pa, et, ka]) {
             const text = bothTextForms(t);
             expect(text.sentence).not.toContain(text.backgroundColor);
         }

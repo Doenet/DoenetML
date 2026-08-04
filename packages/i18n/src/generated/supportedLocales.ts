@@ -11,6 +11,7 @@ export type SupportedLocale =
     | "am"
     | "ar"
     | "as"
+    | "az"
     | "be"
     | "bg"
     | "bn"
@@ -31,16 +32,21 @@ export type SupportedLocale =
     | "hnj"
     | "hr"
     | "hu"
+    | "hy"
     | "id"
     | "ig"
     | "it"
     | "ja"
+    | "ka"
+    | "kk"
     | "kn"
     | "ko"
+    | "ky"
     | "lt"
     | "lv"
     | "mk"
     | "ml"
+    | "mn"
     | "mr"
     | "ms"
     | "my"
@@ -67,11 +73,15 @@ export type SupportedLocale =
     | "sw"
     | "ta"
     | "te"
+    | "tg"
     | "th"
+    | "tk"
     | "tr"
+    | "tt"
     | "ug"
     | "uk"
     | "ur"
+    | "uz"
     | "vi"
     | "xh"
     | "yo"
@@ -139,6 +149,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Assamese",
         endonym: "অসমীয়া",
         label: "Assamese (অসমীয়া)",
+    },
+    {
+        locale: "az",
+        englishName: "Azerbaijani",
+        endonym: "azərbaycan",
+        label: "Azerbaijani (azərbaycan)",
     },
     {
         locale: "be",
@@ -256,6 +272,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Hungarian (magyar)",
     },
     {
+        locale: "hy",
+        englishName: "Armenian",
+        endonym: "հայերեն",
+        label: "Armenian (հայերեն)",
+    },
+    {
         locale: "id",
         englishName: "Indonesian",
         endonym: "Indonesia",
@@ -275,6 +297,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Japanese (日本語)",
     },
     {
+        locale: "ka",
+        englishName: "Georgian",
+        endonym: "ქართული",
+        label: "Georgian (ქართული)",
+    },
+    {
+        locale: "kk",
+        englishName: "Kazakh",
+        endonym: "қазақ тілі",
+        label: "Kazakh (қазақ тілі)",
+    },
+    {
         locale: "kn",
         englishName: "Kannada",
         endonym: "ಕನ್ನಡ",
@@ -285,6 +319,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Korean",
         endonym: "한국어",
         label: "Korean (한국어)",
+    },
+    {
+        locale: "ky",
+        englishName: "Kyrgyz",
+        endonym: "кыргызча",
+        label: "Kyrgyz (кыргызча)",
     },
     {
         locale: "lt",
@@ -309,6 +349,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Malayalam",
         endonym: "മലയാളം",
         label: "Malayalam (മലയാളം)",
+    },
+    {
+        locale: "mn",
+        englishName: "Mongolian",
+        endonym: "монгол",
+        label: "Mongolian (монгол)",
     },
     {
         locale: "mr",
@@ -461,12 +507,30 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "తెలుగు",
         label: "Telugu (తెలుగు)",
     },
+    {
+        locale: "tg",
+        englishName: "Tajik",
+        endonym: "тоҷикӣ",
+        label: "Tajik (тоҷикӣ)",
+    },
     { locale: "th", englishName: "Thai", endonym: "ไทย", label: "Thai (ไทย)" },
+    {
+        locale: "tk",
+        englishName: "Turkmen",
+        endonym: "türkmen dili",
+        label: "Turkmen (türkmen dili)",
+    },
     {
         locale: "tr",
         englishName: "Turkish",
         endonym: "Türkçe",
         label: "Turkish (Türkçe)",
+    },
+    {
+        locale: "tt",
+        englishName: "Tatar",
+        endonym: "татар",
+        label: "Tatar (татар)",
     },
     {
         locale: "ug",
@@ -485,6 +549,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Urdu",
         endonym: "اردو",
         label: "Urdu (اردو)",
+    },
+    {
+        locale: "uz",
+        englishName: "Uzbek",
+        endonym: "o‘zbek",
+        label: "Uzbek (o‘zbek)",
     },
     {
         locale: "vi",
