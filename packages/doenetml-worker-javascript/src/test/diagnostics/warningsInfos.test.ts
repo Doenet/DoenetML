@@ -99,6 +99,36 @@ describe("Warning Tests @group4", async () => {
         ).eq(true);
     });
 
+    it("Deprecated description attribute names the component it was written on", async () => {
+        // `descriptionAttributeSugar` covers ten component types and puts the
+        // one the attribute was written on into the message, so exercise a
+        // couple of them together. `<image>` is covered in `image.test.ts`,
+        // which also checks that the rewritten child still supplies the alt
+        // text.
+        const { core } = await createTestCore({
+            doenetML: `
+<mathInput description="Enter a number" />
+<graph description="A graph" />
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
+
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).contains(
+            "[deprecation] Attribute `description` on `<mathInput>` is deprecated; use a `<shortDescription>` child instead.",
+        );
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).contains(
+            "[deprecation] Attribute `description` on `<graph>` is deprecated; use a `<shortDescription>` child instead.",
+        );
+    });
+
     it("From state variable definitions", async () => {
         let { core } = await createTestCore({
             doenetML: `

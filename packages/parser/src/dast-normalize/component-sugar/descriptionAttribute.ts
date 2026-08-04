@@ -1,6 +1,14 @@
 import { codedDastError } from "../../coded-dast-error";
 import { DastElement, DastError } from "../../types";
 
+/** The deprecated attribute this sugar consumes. */
+const ATTRIBUTE_NAME = "description";
+/**
+ * The child it becomes. Named once so the element that is inserted, the
+ * warning's English, and the argument a translation reads cannot drift apart.
+ */
+const CHILD_NAME = "shortDescription";
+
 /**
  * If there is a `description` attribute, turn it into a `<shortDescription>` child.
  *
@@ -38,13 +46,13 @@ export function descriptionAttributeSugar(node: DastElement) {
         );
     }
 
-    const descriptionAttribute = node.attributes["description"];
+    const descriptionAttribute = node.attributes[ATTRIBUTE_NAME];
 
     if (descriptionAttribute) {
-        delete node.attributes["description"];
+        delete node.attributes[ATTRIBUTE_NAME];
         const shortDescriptionChild: DastElement = {
             type: "element",
-            name: "shortDescription",
+            name: CHILD_NAME,
             children: descriptionAttribute.children,
             position: descriptionAttribute.position,
             source_doc: descriptionAttribute.source_doc,
@@ -53,11 +61,11 @@ export function descriptionAttributeSugar(node: DastElement) {
         const deprecation: DastError = codedDastError({
             code: "doenet-w0120",
             error_type: "warning",
-            message: `[deprecation] Attribute \`description\` on \`<${node.name}>\` is deprecated; use a \`<shortDescription>\` child instead.`,
+            message: `[deprecation] Attribute \`${ATTRIBUTE_NAME}\` on \`<${node.name}>\` is deprecated; use a \`<${CHILD_NAME}>\` child instead.`,
             args: {
-                attribute: "description",
-                child: "shortDescription",
-                // The component the author actually wrote, since this sugar
+                attribute: ATTRIBUTE_NAME,
+                child: CHILD_NAME,
+                // The component the attribute was written on, since this sugar
                 // covers ten of them.
                 component: node.name,
             },
