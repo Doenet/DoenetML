@@ -306,6 +306,34 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("mga tuldok nga asul");
     });
 
+    it("agrees each Luganda word with its own noun's class", async () => {
+        const values = await descriptions(styled, names, "lg");
+        // Luganda carries six noun classes, and this fixture reaches three of
+        // them: «olunyiriri» a line is class 11, «ekyenkanyi» a square is class
+        // 7 and «enkulungo» a circle is class 9. The same adjective stems come
+        // out «olunene»/«olumyufu» on the line and «enjjuvu» on the circle,
+        // which is what would break if `noun-gender` were flattened to one
+        // answer.
+        //
+        // «olukugiro», the border, is class 11 like the line, so `bd` and `st`
+        // agree here — the two are the same string for a reason rather than by
+        // accident, and the circle standing beside them in `sh` is what shows
+        // the border is not taking the shape's class.
+        //
+        // Only the three colours with a native adjective stem inflect; the
+        // rest are invariable nouns («bbululu», «kiragala») and stay put in
+        // every position, which is why the square shows its class in its own
+        // prefix and nowhere else.
+        expect(values.st).eq("olunene olumyufu olw'obutundutundu");
+        expect(values.stn).eq("olunyiriri olunene olumyufu olw'obutundutundu");
+        expect(values.pt).eq("ekyenkanyi kiragala");
+        expect(values.sh).eq(
+            "enkulungo enjjuvu bbululu n'obutonnyeze n'olukugiro olunene olumyufu olw'obutundutundu",
+        );
+        expect(values.bd).eq("olunene olumyufu olw'obutundutundu");
+        expect(values.fd).eq("obutonnyeze bbululu");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

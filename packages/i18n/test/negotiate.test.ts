@@ -139,6 +139,29 @@ describe("negotiateLocales", () => {
     });
 
     /**
+     * Akan's catalog is named `ak` and is written in Asante Twi. `tw` is the
+     * retired code for Twi and the one an author is as likely to type;
+     * `Intl.getCanonicalLocales` leaves it alone, so nothing connects the two
+     * without the alias. Asserted against the real roster, so that removing the
+     * entry fails here rather than quietly serving English.
+     */
+    describe("Akan, whose catalog is named for the macrolanguage", () => {
+        it.each(["tw", "tw-GH", "ak", "ak-GH"])(
+            "serves Akan to %s",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).toEqual([
+                    "ak",
+                    "en",
+                ]);
+            },
+        );
+
+        it("leaves Fante to fall back to English", () => {
+            expect(negotiateLocales(["fat"], available)).toEqual(["en"]);
+        });
+    });
+
+    /**
      * Filipino's catalog is named `fil`, and `tl` — the code an author is as
      * likely to type — needs no alias of its own: `Intl.Locale` canonicalizes
      * it, so `normalizeLocaleTag` has already rewritten it before negotiation

@@ -24,8 +24,15 @@ export type NegotiateLocalesOptions = {
  * and would fall to English with nothing to say why. `nn` is deliberately
  * absent: Nynorsk is a written standard of its own, and answering it with
  * Bokmål would be a substitution rather than a canonicalization.
+ *
+ * `tw` is the retired ISO 639-1 code for Twi, and `ak` — Akan, which Twi is a
+ * variety of — is the catalog it should reach. `Intl.getCanonicalLocales`
+ * leaves `tw` alone, so without this entry a hand-typed `<document lang="tw">`
+ * falls to English. `fat` is deliberately absent: Fante is a written standard
+ * of its own and `locales/ak` is written in Asante Twi, so answering Fante
+ * with it would be the substitution `nn` is kept out for.
  */
-const LANGUAGE_ALIASES: Record<string, string> = { no: "nb" };
+const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
 
 /** Rewrite a request's language subtag if it is one no catalog is named after. */
 function applyLanguageAlias(tag: string): string {

@@ -64968,6 +64968,10 @@
                             "description": "Afrikaans"
                         },
                         {
+                            "value": "ak",
+                            "description": "Akan"
+                        },
+                        {
                             "value": "am",
                             "description": "Amharic (አማርኛ)"
                         },
@@ -64990,6 +64994,10 @@
                         {
                             "value": "bg",
                             "description": "Bulgarian (български)"
+                        },
+                        {
+                            "value": "bm",
+                            "description": "Bambara (bamanakan)"
                         },
                         {
                             "value": "bn",
@@ -65022,6 +65030,10 @@
                         {
                             "value": "de",
                             "description": "German (Deutsch)"
+                        },
+                        {
+                            "value": "ee",
+                            "description": "Ewe (eʋegbe)"
                         },
                         {
                             "value": "el",
@@ -65156,6 +65168,14 @@
                             "description": "Kyrgyz (кыргызча)"
                         },
                         {
+                            "value": "lg",
+                            "description": "Ganda (Luganda)"
+                        },
+                        {
+                            "value": "ln",
+                            "description": "Lingala (lingála)"
+                        },
+                        {
                             "value": "lo",
                             "description": "Lao (ລາວ)"
                         },
@@ -65276,6 +65296,10 @@
                             "description": "Samoan"
                         },
                         {
+                            "value": "sn",
+                            "description": "Shona (chiShona)"
+                        },
+                        {
                             "value": "so",
                             "description": "Somali (Soomaali)"
                         },
@@ -65286,6 +65310,10 @@
                         {
                             "value": "sr",
                             "description": "Serbian (српски)"
+                        },
+                        {
+                            "value": "st",
+                            "description": "Southern Sotho (Sesotho)"
                         },
                         {
                             "value": "su",
@@ -65316,8 +65344,16 @@
                             "description": "Thai (ไทย)"
                         },
                         {
+                            "value": "ti",
+                            "description": "Tigrinya (ትግርኛ)"
+                        },
+                        {
                             "value": "tk",
                             "description": "Turkmen (türkmen dili)"
+                        },
+                        {
+                            "value": "tn",
+                            "description": "Tswana (Setswana)"
                         },
                         {
                             "value": "tr",
@@ -65346,6 +65382,10 @@
                         {
                             "value": "vi",
                             "description": "Vietnamese (Tiếng Việt)"
+                        },
+                        {
+                            "value": "wo",
+                            "description": "Wolof"
                         },
                         {
                             "value": "xh",

@@ -963,6 +963,8 @@ describe("a phrase rendered in two positions", () => {
     const ceb = forLocale("ceb");
     const km = forLocale("km");
     const si = forLocale("si");
+    const lg = forLocale("lg");
+    const ti = forLocale("ti");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1298,6 +1300,42 @@ describe("a phrase rendered in two positions", () => {
             textColor: "රතු",
             backgroundColor: "කහ",
             sentence: "කහ පසුබිමක් මත රතු",
+        });
+    });
+
+    // Luganda carries the widest concord table in the repository — six noun
+    // classes — and this case is here because the border and the shape it
+    // surrounds are in different ones: «olukugiro» is class 11 and takes
+    // «olu-», «enkulungo» is class 9 and takes «en-». The two adjectives are
+    // built from the same stems and come out spelled differently, which is
+    // exactly what would break if `noun-gender` were ever flattened.
+    it("agrees Luganda's border with its own class, not the shape's", () => {
+        expect(bothBorderForms(lg)).toEqual({
+            standalone: "olunene oluddugavu",
+            embedded:
+                "enkulungo enjjuvu bbululu n'olukugiro olunene oluddugavu",
+        });
+        expect(bothTextForms(lg)).toEqual({
+            textColor: "erimyufu",
+            backgroundColor: "kyenvu",
+            sentence: "erimyufu ku mabega kyenvu",
+        });
+    });
+
+    // Tigrinya is the only language in the sub-Saharan batch that uses
+    // `$gender` for a gender, and the only one there whose adjectives *precede*
+    // the noun. Both positions read alike, because Tigrinya marks a clause
+    // position on the noun rather than on the adjective in front of it — so
+    // what this pins is the agreement and the order, not a case.
+    it("puts Tigrinya's adjectives in front and agrees them for gender", () => {
+        expect(bothBorderForms(ti)).toEqual({
+            standalone: "ረጒድ ጸሊም",
+            embedded: "ምልእቲ ሰማያዊ ክቢ ምስ ረጒድ ጸሊም ዶብ",
+        });
+        expect(bothTextForms(ti)).toEqual({
+            textColor: "ቀይሕ",
+            backgroundColor: "ብጫ",
+            sentence: "ቀይሕ ምስ ብጫ ድሕረ-ባይታ",
         });
     });
 

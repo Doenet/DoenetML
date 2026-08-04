@@ -66,26 +66,28 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
-`az`, `be`, `bg`, `bn`, `br`, `ca`, `ceb`, `cs`, `cy`, `da`, `de`, `el`, `es`,
-`et`, `eu`, `fa`, `fi`, `fil`, `fo`, `fr`, `ga`, `gd`, `gl`, `gu`, `ha`, `haw`,
-`he`, `hi`, `hnj`, `hr`, `hu`, `hy`, `id`, `ig`, `is`, `it`, `ja`, `jv`, `ka`,
-`kk`, `km`, `kn`, `ko`, `ky`, `lo`, `lt`, `lv`, `mg`, `mi`, `mk`, `ml`, `mn`,
-`mr`, `ms`, `mt`, `my`, `nb`, `ne`, `nl`, `ny`, `om`, `or`, `pa`, `pl`, `ps`,
-`pt`, `ro`, `ru`, `rw`, `sd`, `si`, `sk`, `sl`, `sm`, `so`, `sq`, `sr`, `su`,
-`sv`, `sw`, `ta`, `te`, `tg`, `th`, `tk`, `tr`, `tt`, `ug`, `uk`, `ur`, `uz`,
-`vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the
-top, and which is what #1521's translation platform is for. None has
-been read by a speaker. Correcting one needs no permission and no coordination:
-a wrong string is just wrong, and the English is one key away.
+English is the source of truth. Every translation — `af`, `ak`, `am`, `ar`,
+`as`, `az`, `be`, `bg`, `bm`, `bn`, `br`, `ca`, `ceb`, `cs`, `cy`, `da`, `de`,
+`ee`, `el`, `es`, `et`, `eu`, `fa`, `fi`, `fil`, `fo`, `fr`, `ga`, `gd`, `gl`,
+`gu`, `ha`, `haw`, `he`, `hi`, `hnj`, `hr`, `hu`, `hy`, `id`, `ig`, `is`, `it`,
+`ja`, `jv`, `ka`, `kk`, `km`, `kn`, `ko`, `ky`, `lg`, `ln`, `lo`, `lt`, `lv`,
+`mg`, `mi`, `mk`, `ml`, `mn`, `mr`, `ms`, `mt`, `my`, `nb`, `ne`, `nl`, `ny`,
+`om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`, `sd`, `si`, `sk`, `sl`,
+`sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`, `ta`, `te`, `tg`, `th`,
+`ti`, `tk`, `tn`, `tr`, `tt`, `ug`, `uk`, `ur`, `uz`, `vi`, `wo`, `xh`, `yo`,
+`zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which
+each file's own header says at the top, and which is what #1521's translation
+platform is for. None has been read by a speaker. Correcting one needs no
+permission and no coordination: a wrong string is just wrong, and the English
+is one key away.
 
-Twenty-nine of them are deliberately partial, all in the same place: Somali,
+Thirty-nine of them are deliberately partial, all in the same place: Somali,
 Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
 Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
 Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano, Malagasy, Māori,
-Samoan and Hawaiian leave `element-name` and `element-anion-name` out, so those
-130 keys fall back to English and `lint:i18n` reports the gap.
+Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona, Southern Sotho,
+Setswana, Tigrinya and Ganda leave `element-name` and `element-anion-name`
+out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
@@ -95,7 +97,7 @@ current one is English: Punjabi secondary chemistry uses the English terms, the
 Philippines teaches science in English from the intermediate grades, and
 Vietnamese school chemistry has moved from the transliterated names to the
 IUPAC forms, so in each case the fallback is already what the curriculum uses.
-The eight from the sub-Saharan batch are that same case for a different
+The eight from the first sub-Saharan batch are that same case for a different
 reason: secondary science is taught in English, French or Afrikaans across all
 of them, so the fallback *is* the curriculum. Afrikaans and Swahili are the two
 of that batch that do have a settled list and supply it.
@@ -121,6 +123,16 @@ Indonesian-language textbooks, so the scientific names are the Indonesian ones
 known long before the elements were — «wesi» and «beusi» for iron, «walirang»
 for sulfur, «warangan» for arsenic — which is where the two catalogs differ
 from `id` and from each other.
+
+All ten of the second sub-Saharan batch — Wolof, Bambara, Akan, Ewe, Lingala,
+Shona, Southern Sotho, Setswana, Tigrinya and Ganda — are partial too, and
+unlike the batches above them they split no ways at all: every one of the ten
+is the school-system case. Secondary science is taught in English across
+Ghana, Zimbabwe, Botswana, Lesotho, Uganda, Eritrea and Tigray, and in French
+across Senegal, Mali and both Congos, so in all ten the fallback *is* the
+curriculum. That is a fact about ten education ministries rather than about ten
+languages, which is why it reads as one sentence here and takes a sentence of
+its own in each catalog's header.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -230,6 +242,41 @@ deployment that wants krama or lemes supplies its own catalog as
 `localeResources`, which wins over the shipped one; correcting these files
 sentence by sentence toward a different level is what would leave the locale in
 two registers at once.
+
+The second sub-Saharan batch adds three naming cases and no direction case:
+nine of the ten are Latin-script, and Tigrinya's Ge'ez runs left to right, so
+none of them needs anything from `direction.ts`.
+
+`lg` appears in `<document lang>`'s autocomplete as **Ganda** rather than
+Luganda, for the same reason Chichewa appears as Nyanja: `Intl.DisplayNames`
+renders it that way and `supportedLocales.ts` is derived rather than
+hand-written. `st` is likewise **Southern Sotho** and not Sesotho, and `tn` is
+**Tswana** and not Setswana. In all three the two names are one language, and
+all three catalogs' headers say so.
+
+`ak` is the macrolanguage, and the catalog is written in **Asante Twi** — the
+variety Ghanaian schooling and publishing use and what CLDR fills a bare `ak`
+in as. It is the one locale in this batch that needs an entry in
+`LANGUAGE_ALIASES`, and it is the Norwegian case a second time: `tw` is the
+retired code for Twi, `Intl.getCanonicalLocales` leaves it alone rather than
+rewriting it the way it rewrites `iw` and `in`, and a hand-typed
+`<document lang="tw">` would otherwise fall to English with nothing to say why.
+So `negotiate.ts` maps `tw` to `ak`. Fante is deliberately left out, exactly as
+Nynorsk is: it is a written standard of its own, and answering `fat` with an
+Asante Twi catalog would be a substitution rather than a canonicalization.
+`negotiate.test.ts` holds both halves against the real roster.
+
+None of the other nine needs an alias — `wo-SN`, `bm-ML`, `ee-GH`, `ee-TG`,
+`ln-CD`, `sn-ZW`, `st-LS`, `st-ZA`, `tn-BW`, `ti-ER`, `ti-ET` and `lg-UG` all
+filter to their catalogs unaided.
+
+Setswana and Southern Sotho are close enough that it is worth recording why
+they are two files rather than one with a script tag: they are two standard
+languages with two orthographies and two vocabularies. `locales/tn` writes
+«kgotsa» where `locales/st` writes «kapa», «boammaaruri» where it writes
+«nnete», and «-hibidu» where it writes «-fubedu». Copying either over the other
+would be wrong in both, which is the same reason `hr` is a directory of its own
+rather than a script of `sr`.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
