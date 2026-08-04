@@ -10,9 +10,9 @@ import { DastElement, DastError } from "../../types";
  *
  * The warning is emitted here rather than from `DEPRECATION_REGISTRY`, which
  * knows how to rename an attribute and how to drop one but not how to turn one
- * into a child. Teaching it that shape would put the knowledge of which child
- * `description` becomes in two places, since this function still has to do the
- * splice. Sugar emitting its own coded diagnostics is established — see
+ * into a child. Teaching it that shape would split the knowledge of which child
+ * `description` becomes across two places, since this function still has to
+ * insert it. Sugar emitting its own coded diagnostics is established — see
  * `answerSugar` — and `convertNormalizedDast` lifts a warning node into a
  * diagnostic wherever in the tree it sits, so it need not be hoisted to the
  * `<document>` the way the deprecation pass hoists its own.
@@ -50,8 +50,6 @@ export function descriptionAttributeSugar(node: DastElement) {
             source_doc: descriptionAttribute.source_doc,
             attributes: {},
         };
-        node.children.splice(0, 0, shortDescriptionChild);
-
         const deprecation: DastError = codedDastError({
             code: "doenet-w0120",
             error_type: "warning",
@@ -66,6 +64,7 @@ export function descriptionAttributeSugar(node: DastElement) {
             position: descriptionAttribute.position ?? node.position,
             source_doc: descriptionAttribute.source_doc ?? node.source_doc,
         });
-        node.children.unshift(deprecation);
+
+        node.children.unshift(deprecation, shortDescriptionChild);
     }
 }
