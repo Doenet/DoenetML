@@ -235,6 +235,8 @@ jobs:
               run: |
                   echo "=== Preview Server Log ===" && cat /tmp/preview-server.log || true
                   echo "=== Server processes ===" && ps aux | grep "node\|npm" || true
+                  
+            - name: Debug browser environment
               run: |
                 echo "=== Browser executables ==="
                 which google-chrome || true
