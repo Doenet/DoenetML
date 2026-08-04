@@ -30,8 +30,11 @@
 # for exactly this reason. The `color` table is picked the same way, because
 # `style-stroke` chains an izafat onto a colour: «хокистарранг», «норинҷранг»,
 # «фирӯза» and «гулгун» stand where «хокистарӣ», «норинҷӣ», «фирӯзаӣ» and
-# «гулобӣ» would have needed the ӣ shortened. See "An affix cannot be welded to
-# a placeable" in the README.
+# «гулобӣ» would have needed the ӣ shortened. The `line-style` and `line-width`
+# tables are in the same frame — `style-stroke` chains an izafat onto those two
+# as well — and every entry in them is consonant-final, so the same check
+# applies when one is added. See "An affix cannot be welded to a placeable" in
+# the README.
 #
 # This is not the only Tajik affix that meets a placeable — `tg/editor.ftl` and
 # `tg/diagnostics.ftl` write the hyphenated «-ро» and «-и» onto identifiers in
