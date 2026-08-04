@@ -64980,6 +64980,10 @@
                             "description": "Assamese (অসমীয়া)"
                         },
                         {
+                            "value": "az",
+                            "description": "Azerbaijani (azərbaycan)"
+                        },
+                        {
                             "value": "be",
                             "description": "Belarusian (беларуская)"
                         },
@@ -65060,6 +65064,10 @@
                             "description": "Hungarian (magyar)"
                         },
                         {
+                            "value": "hy",
+                            "description": "Armenian (հայերեն)"
+                        },
+                        {
                             "value": "id",
                             "description": "Indonesian (Indonesia)"
                         },
@@ -65076,12 +65084,24 @@
                             "description": "Japanese (日本語)"
                         },
                         {
+                            "value": "ka",
+                            "description": "Georgian (ქართული)"
+                        },
+                        {
+                            "value": "kk",
+                            "description": "Kazakh (қазақ тілі)"
+                        },
+                        {
                             "value": "kn",
                             "description": "Kannada (ಕನ್ನಡ)"
                         },
                         {
                             "value": "ko",
                             "description": "Korean (한국어)"
+                        },
+                        {
+                            "value": "ky",
+                            "description": "Kyrgyz (кыргызча)"
                         },
                         {
                             "value": "lt",
@@ -65098,6 +65118,10 @@
                         {
                             "value": "ml",
                             "description": "Malayalam (മലയാളം)"
+                        },
+                        {
+                            "value": "mn",
+                            "description": "Mongolian (монгол)"
                         },
                         {
                             "value": "mr",
@@ -65204,12 +65228,24 @@
                             "description": "Telugu (తెలుగు)"
                         },
                         {
+                            "value": "tg",
+                            "description": "Tajik (тоҷикӣ)"
+                        },
+                        {
                             "value": "th",
                             "description": "Thai (ไทย)"
                         },
                         {
+                            "value": "tk",
+                            "description": "Turkmen (türkmen dili)"
+                        },
+                        {
                             "value": "tr",
                             "description": "Turkish (Türkçe)"
+                        },
+                        {
+                            "value": "tt",
+                            "description": "Tatar (татар)"
                         },
                         {
                             "value": "ug",
@@ -65222,6 +65258,10 @@
                         {
                             "value": "ur",
                             "description": "Urdu (اردو)"
+                        },
+                        {
+                            "value": "uz",
+                            "description": "Uzbek (o‘zbek)"
                         },
                         {
                             "value": "vi",
