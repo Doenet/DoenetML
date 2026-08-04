@@ -475,6 +475,7 @@ export type MessageKey =
     | "deprecated-attribute-renamed"
     | "deprecated-attribute-renamed-conflict"
     | "deprecated-attribute-ignored"
+    | "deprecated-attribute-to-child"
     | "pluralize-english-only"
     | "schema-element-unrecognized"
     | "schema-element-not-allowed-at-root"
@@ -1038,6 +1039,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "deprecated-attribute-renamed",
     "deprecated-attribute-renamed-conflict",
     "deprecated-attribute-ignored",
+    "deprecated-attribute-to-child",
     "pluralize-english-only",
     "schema-element-unrecognized",
     "schema-element-not-allowed-at-root",

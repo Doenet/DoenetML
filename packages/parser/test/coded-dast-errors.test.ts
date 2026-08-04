@@ -208,8 +208,13 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             ),
             // An attribute that is dropped rather than renamed.
             ...normalizedErrors(`<description weight="2">hi</description>`),
+            // An attribute replaced by a child element, warned about by the
+            // sugar that rewrites it rather than by the deprecation registry.
+            ...normalizedErrors(
+                `<image description="a tree" source="t.png" />`,
+            ),
         ];
-        expect(codedErrors(errors).length).toBe(4);
+        expect(codedErrors(errors).length).toBe(5);
         expectRoundTrip(errors);
     });
 

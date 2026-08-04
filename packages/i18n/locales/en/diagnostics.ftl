@@ -723,7 +723,7 @@ external-doenetml-type-mismatch = Invalid DoenetML retrieved from { $attribute }
 # as written. $component is `none` for a rename that applies to every component
 # accepting the attribute, where naming one would be wrong.
 #
-# The `[deprecation]` opening is a literal marker shared by all three messages,
+# The `[deprecation]` opening is a literal marker shared by all four messages,
 # not a word: leave it as it is.
 
 deprecated-attribute-renamed =
@@ -739,6 +739,12 @@ deprecated-attribute-renamed-conflict =
     }
 
 deprecated-attribute-ignored = [deprecation] Attribute `{ $attribute }` on `<{ $component }>` is deprecated and ignored.
+
+# An attribute replaced by a child element rather than by another attribute:
+# $attribute and $component stay as written, and so does $child, which is the
+# tag name of the child to write instead.
+
+deprecated-attribute-to-child = [deprecation] Attribute `{ $attribute }` on `<{ $component }>` is deprecated; use a `<{ $child }>` child instead.
 
 
 ## Language coverage
