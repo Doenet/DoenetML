@@ -6,8 +6,9 @@
 #
 # The same four cases and three genders `locales/is` has, and the same shape of
 # catalog: adjectives precede the noun, so the composition messages keep the
-# English order, and every describing word selects on `$role` first and then on
-# `$gender`.
+# English order, and every describing word that inflects selects on `$role`
+# first and then on `$gender`. «lilla» is the one that does not inflect at all,
+# and it is written as a bare word.
 #
 #   standalone          nominative: `-ur` m, `-∅` f, `-t` n
 #   border-clause       after «við», which governs the dative, of «kantur» —
@@ -232,13 +233,13 @@ noun =
     .parabola = parabul
     .polyline = brotlinja
     .polygon = mangahyrningur
-    .triangle = trihyrningur
+    .triangle = tríhyrningur
     .rectangle = rætthyrningur
     .circle = ringur
     .region = øki
     .point = punktur
     .square = ferningur
-    .diamond = rutur
+    .diamond = ruta
     .cross = kross
     .plus = plus
 
@@ -250,9 +251,10 @@ noun-regular-polygon =
        *[head] regluligur { $numSides }-hyrningur
     }
 
-# Besides the nouns above, `$noun` can be `regular-polygon` (mangahyrningur, m)
-# or the head of a phrase the description never names: `border` (kantur, m),
-# `fill` (fylling, f), `text` (tekstur, m), `background` (bakgrund, f).
+# Besides the nouns above, `$noun` can be `regular-polygon`, whose head is
+# «-hyrningur» and so masculine, or the head of a phrase the description never
+# names: `border` (kantur, m), `fill` (fylling, f), `text` (tekstur, m),
+# `background` (bakgrund, f).
 noun-gender =
     { $noun ->
         [line] f
@@ -260,10 +262,12 @@ noun-gender =
         [function] f
         [parabola] f
         [polyline] f
+        [diamond] f
         [fill] f
         [background] f
         [line-segment] n
         [region] n
+        [plus] n
        *[other] m
     }
 
@@ -321,6 +325,10 @@ style-border-clause =
        *[with] við { $border } kanti
     }
 
+# The fill-pattern words are dative plurals, because their other use is the
+# «við { $pattern }» clause above. So this message supplies a noun for them to
+# hang off — «fylling», feminine, which is the gender `noun-gender` already
+# answers for `fill`, so the colour agrees with it in both variants.
 style-fill =
     { $parts ->
         [pattern] { $color } fylling við { $pattern }

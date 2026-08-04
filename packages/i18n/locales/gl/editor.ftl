@@ -155,7 +155,7 @@ help-suggestions-header =
        *[components] { " — cousas para probar:" }
     }
 
-help-suggestions-footer = Prema { $shortcut } para ver os { $total } compoñentes.
+help-suggestions-footer = Prema { $shortcut } para ver todos os { $total } compoñentes.
 
 help-name-summary = { $name } — { $summary }
 

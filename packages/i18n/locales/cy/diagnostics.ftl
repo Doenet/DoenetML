@@ -11,23 +11,17 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Welsh counts in six plural categories, but nothing below counts high enough
-# to separate them, so the selections keep the two branches the English source
-# has.
+# Welsh counts in six plural categories, but most of the counted messages
+# below need no select at all: the impersonal «anwybyddir» reads alike for one
+# attribute and for several, and a noun after a numeral stays singular. Where
+# the count is a list length and the noun itself changes — «paramedr» against
+# «paramedrau» — the two branches the English source has are kept.
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] anwybyddir { $attributes } pan bennir dau bwynt terfyn
-       *[other] anwybyddir { $attributes } pan bennir dau bwynt terfyn
-    }
+line-segment-attributes-ignored-with-endpoints = anwybyddir { $attributes } pan bennir dau bwynt terfyn
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] anwybyddir { $attributes } pan bennir pwynt terfyn a chanolbwynt gyda'i gilydd
-       *[other] anwybyddir { $attributes } pan bennir pwynt terfyn a chanolbwynt gyda'i gilydd
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = anwybyddir { $attributes } pan bennir pwynt terfyn a chanolbwynt gyda'i gilydd
 
 line-segment-midpoint-offset-without-midpoint = nid oes gan midpointOffset unrhyw effaith heb ganolbwynt
 
@@ -85,7 +79,7 @@ string-children-need-type = Er mwyn i `<{ $component }>` weithio gyda phlant lli
 
 invalid-type-defaulting-to-math = Math annilys { $type } ar gyfer y gydran { $component }. Rhaid iddo fod yn un o math, text, number neu boolean. Yn dychwelyd i math.
 
-string-not-valid-component-to-arrange = Nid yw'r llinyn "{ $value }" yn gydran ddilys i'w { $component }. Yn ei anwybyddu.
+string-not-valid-component-to-arrange = Nid yw'r llinyn "{ $value }" yn gydran ddilys ar gyfer { $component }. Yn ei anwybyddu.
 
 ## Types and variables
 
@@ -165,17 +159,7 @@ circle-change-center-non-numerical = Nid yw newid canol cylch drwy bwyntiau heb 
 
 ## `<function>`
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] Dimensiynau annigonol ar gyfer parth y ffwythiant. Mae gan y parth { $intervals } cyfwng ond mae gan y ffwythiant { $inputs ->
-            [one] { $inputs } mewnbwn
-           *[other] { $inputs } mewnbwn
-        }.
-       *[other] Dimensiynau annigonol ar gyfer parth y ffwythiant. Mae gan y parth { $intervals } cyfwng ond mae gan y ffwythiant { $inputs ->
-            [one] { $inputs } mewnbwn
-           *[other] { $inputs } mewnbwn
-        }.
-    }
+function-domain-insufficient-dimensions = Dimensiynau annigonol ar gyfer parth y ffwythiant. Mae gan y parth { $intervals } cyfwng ond mae gan y ffwythiant { $inputs } mewnbwn.
 
 function-domain-invalid-format = Fformat annilys ar gyfer parth y ffwythiant.
 
@@ -200,17 +184,10 @@ function-ignoring-empty =
 
 function-points-too-close = Mae gan y ffwythiant ddau bwynt sy'n rhy agos at ei gilydd. Ni ellir diffinio'r ffwythiant.
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] Dim ond pan fo nifer mewnbynnau'r ffwythiant yn hafal i nifer ei allbynnau y mae iteriadau'n bosibl. Mae gan y ffwythiant hwn { $inputs } mewnbwn a { $outputs ->
-            [one] { $outputs } allbwn
-           *[other] { $outputs } allbwn
-        }.
-       *[other] Dim ond pan fo nifer mewnbynnau'r ffwythiant yn hafal i nifer ei allbynnau y mae iteriadau'n bosibl. Mae gan y ffwythiant hwn { $inputs } mewnbwn a { $outputs ->
-            [one] { $outputs } allbwn
-           *[other] { $outputs } allbwn
-        }.
-    }
+# «ond» rather than «a» joins the two counts: «a» becomes «ac» before a vowel,
+# and whether the numeral after it is read with one is the value's business
+# rather than this catalog's.
+function-iterates-input-output-mismatch = Dim ond pan fo nifer mewnbynnau'r ffwythiant yn hafal i nifer ei allbynnau y mae iteriadau'n bosibl. Mae gan y ffwythiant hwn { $inputs } mewnbwn ond { $outputs } allbwn.
 
 ## `<sequence>`
 
@@ -252,7 +229,7 @@ parabola-vertex-too-many-points = Nid yw parabola â fertig drwy fwy nag un pwyn
 
 parabola-too-many-points = Nid yw parabola drwy fwy na 3 phwynt wedi'i weithredu.
 
-intersection-too-many-items = Nid yw croestoriad ar gyfer mwy na dau eitem wedi'i weithredu
+intersection-too-many-items = Nid yw croestoriad ar gyfer mwy na dwy eitem wedi'i weithredu
 
 ## Other math components
 

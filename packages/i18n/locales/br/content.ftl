@@ -17,6 +17,12 @@
 #
 # `l`, `n`, `r`, `s` and a vowel do not move, so «ruz» and «roz» read alike in
 # both branches.
+#
+# Among the postnominal adjectives themselves the order is size and quality
+# first and colour last — «ur c'harr bras ruz», so «ul linenn dev diret ruz» —
+# which is the order Irish and Gaelic take too, and which leaves `style-stroke`
+# reading in the same sequence English writes. Welsh is the one of the four
+# that runs the other way and puts the colour first.
 
 
 ## Style vocabulary
@@ -148,9 +154,9 @@ noun-gender =
 
 style-stroke =
     { $parts ->
-        [width-style-color] { $color } { $width } { $lineStyle }
-        [width-color] { $color } { $width }
-        [style-color] { $color } { $lineStyle }
+        [width-style-color] { $width } { $lineStyle } { $color }
+        [width-color] { $width } { $color }
+        [style-color] { $lineStyle } { $color }
         [width-style] { $width } { $lineStyle }
         [width] { $width }
         [style] { $lineStyle }

@@ -24,7 +24,7 @@ answer-submitting-status = It-tweġiba qed tintbagħat
 answer-correct = Korretta
 answer-incorrect = Mhux korretta
 
-answer-response-saved = It-tweġiba ġiet issejvjata
+answer-response-saved = It-tweġiba ġiet salvata
 
 answer-percent-credit = { $percent }% tal-punteġġ
 answer-percent-correct = { $percent }% korrett
@@ -89,7 +89,7 @@ matrix-add-column = Żid kolonna
 subset-add-remove-points = Żid/neħħi punti
 subset-toggle-points-intervals = Aqleb bejn punti u intervalli
 subset-move-points = Mexxi l-punti
-subset-clear = Naddaf
+subset-clear = Ħassar
 
 orbital-add-row = Żid ringiela
 orbital-remove-row = Neħħi ringiela
@@ -140,6 +140,6 @@ accessibility-heading-level-2 = Twissija dwar l-aċċessibbiltà
 
 something-went-wrong = Xi ħaġa marret ħażin.
 
-renderer-load-failed = renderer ma setax jitgħabba. Erġa' agħbi l-paġna.
+renderer-load-failed = renderer ma setax jitgħabba. Jekk jogħġbok, erġa' għabbi l-paġna.
 
-core-start-failed = Il-viewer tad-dokument ma setax jinbeda. Erġa' agħbi l-paġna.
+core-start-failed = Il-viewer tad-dokument ma setax jinbeda. Jekk jogħġbok, erġa' għabbi l-paġna.

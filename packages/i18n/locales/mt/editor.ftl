@@ -18,9 +18,8 @@
 # branches the English source has.
 #
 # `help-suggestions-footer` puts its count in brackets rather than before the
-# noun: the definite article assimilates to the word after it, and which form
-# `l-` takes before a spelled-out numeral is not something this catalog can
-# know from a digit.
+# noun, so that «il-komponenti kollha» reads as one settled phrase instead of
+# forcing a five-way select on `$total` for a number the reader can see anyway.
 
 
 ## The viewer's controls
@@ -66,22 +65,22 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Instab ksur tal-aċċessibbiltà WCAG AA. Instab { $count ->
-            [one] { $count } ksur ta' WCAG AA
-            [two] { $count } każijiet ta' ksur ta' WCAG AA
-            [few] { $count } każijiet ta' ksur ta' WCAG AA
-            [many] { $count }-il ksur ta' WCAG AA
-           *[other] { $count } ksur ta' WCAG AA
+        [violations] Instab ksur tal-aċċessibbiltà WCAG AA. { $count ->
+            [one] Instab { $count } ksur ta' WCAG AA
+            [two] Instabu { $count } każijiet ta' ksur ta' WCAG AA
+            [few] Instabu { $count } każijiet ta' ksur ta' WCAG AA
+            [many] Instabu { $count }-il ksur ta' WCAG AA
+           *[other] Instabu { $count } ksur ta' WCAG AA
         }. Ikklikkja biex { $action ->
             [close] tagħlaq
            *[open] tiftaħ
         } ir-rapport tal-aċċessibbiltà.
-        [advisories] Ma nstab l-ebda ksur ta' WCAG AA. Instab { $count ->
-            [one] { $count } rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
-            [two] { $count } rakkomandazzjonijiet addizzjonali dwar l-aċċessibbiltà
-            [few] { $count } rakkomandazzjonijiet addizzjonali dwar l-aċċessibbiltà
-            [many] { $count }-il rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
-           *[other] { $count } rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
+        [advisories] Ma nstab l-ebda ksur ta' WCAG AA. { $count ->
+            [one] Instabet { $count } rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
+            [two] Instabu { $count } rakkomandazzjonijiet addizzjonali dwar l-aċċessibbiltà
+            [few] Instabu { $count } rakkomandazzjonijiet addizzjonali dwar l-aċċessibbiltà
+            [many] Instabu { $count }-il rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
+           *[other] Instabu { $count } rakkomandazzjoni addizzjonali dwar l-aċċessibbiltà
         }. Ikklikkja biex { $action ->
             [close] tagħlaq
            *[open] tiftaħ
@@ -221,8 +220,8 @@ help-type = Tip:
 help-resolved-style = Stil riżolt (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Ismijiet ta' funzjonijiet riżolti:
-help-reset-list = Irrisettja l-lista f'din l-input:
-help-added-on-input = Miżjud f'din l-input:
-help-removed-on-input = Imneħħi f'din l-input:
+help-reset-list = Irrisettja l-lista f'dan l-input:
+help-added-on-input = Miżjud f'dan l-input:
+help-removed-on-input = Imneħħi f'dan l-input:
 
 help-reset-overrides = { $reset } jieħu preċedenza fuq { $additional } u { $removed }.

@@ -10,9 +10,10 @@
 # Irish counts in five plural categories — `one`, `two`, `few`, `many` and
 # `other` — so every `{ $count -> … }` below is written out in full. What
 # distinguishes them is not the ending on the noun but what the numeral does to
-# the front of it: a noun after a numeral stays singular, and after «seacht» to
-# «deich» it is eclipsed, so 7 to 10 is the `many` branch and is where the
-# eclipsis shows: `n-` before a vowel, `bhf-` before `f`.
+# the front of it: a noun after a numeral stays singular, is left alone after 1,
+# is lenited after 2 to 6, and is eclipsed after «seacht» to «deich», which is
+# the `many` branch. «iarracht» begins with a vowel, so only the eclipsis shows
+# on it, as `n-`; «freagra» shows both, as «fhreagra» and «bhfreagra».
 
 ## Answer submission
 
@@ -49,7 +50,7 @@ validation-partially-correct = (Ceart go páirteach)
 
 answer-show-responses =
     { $count ->
-        [one] Taispeáin { $count } fhreagra ar { $answerId }
+        [one] Taispeáin { $count } freagra ar { $answerId }
         [two] Taispeáin { $count } fhreagra ar { $answerId }
         [few] Taispeáin { $count } fhreagra ar { $answerId }
         [many] Taispeáin { $count } bhfreagra ar { $answerId }

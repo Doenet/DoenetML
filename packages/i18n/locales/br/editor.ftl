@@ -11,11 +11,14 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Breton counts in five plural categories, so the counted messages below are
-# written out in all five; the noun after a numeral stays singular and it is
-# the mutation on it that moves. `two` softens after daou/div; `few` covers 3,
-# 4 and 9, of which only 3 mutates, so it keeps the base form; `many` is for
-# multiples of a million, where «a» takes a plural.
+# Breton counts in five plural categories, so `editor-accessibility-label` —
+# the one message here that prints a noun beside a count — writes all five. The
+# noun after a numeral stays singular and it is the mutation on it that moves:
+# `two` softens after daou/div; `few` covers 3, 4 and 9, of which only 3
+# mutates, so it keeps the base form; `many` is for multiples of a million,
+# where «a» takes a plural. `help-coordinates` keeps two branches, because no
+# numeral stands beside its noun — it is a bare heading, and only one against
+# more than one is at stake.
 
 
 ## The viewer's controls
@@ -158,7 +161,7 @@ help-suggestions-header =
         [inside] E-barzh { $element }
        *[top] War al live uhelañ
     }{ $allowed ->
-        [none] { " — netra ne da amañ." }
+        [none] { " — n'eus netra da lakaat amañ." }
         [text] { " — skrivit testenn amañ." }
         [text-and-components] { " — skrivit testenn amañ, pe klaskit:" }
        *[components] { " — traoù da glask:" }

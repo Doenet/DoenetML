@@ -487,6 +487,14 @@ three: a handful of its adjectives have a feminine form of their own before the
 mutation applies, so «gwyn» becomes «gwen» and only then «wen», and its
 feminine branch is that finished word rather than the mutation by itself.
 
+Sharing a family does not settle the word order either. Irish, Gaelic and
+Breton run a string of postnominal adjectives in the order English writes them
+— size or texture first and colour last, «cù mòr dubh» — so `style-stroke`
+reads width, dash, colour in all three. Welsh runs it the other way round, the
+most closely defining word nearest the noun («ci du mawr»), so `locales/cy`
+puts the colour first and says so above the message, since the difference is
+the kind a later reader would otherwise "fix".
+
 Basque is the clean case of the opposite: it has a great many cases and selects
 on neither argument, because a Basque case is a suffix on the *last word of the
 whole noun phrase*. What a position asks for lands on a word `locales/eu`

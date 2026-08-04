@@ -11,8 +11,11 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Basque counts in the same two categories English does, so every selection
-# below keeps both branches.
+# Basque counts in the same two categories English does — `one` and `other` —
+# but a noun after a numeral stays singular and only the verb agrees, so a
+# branch is kept only where the verb or some other word actually changes.
+# `function-iterates-input-output-mismatch` is the one place where nothing
+# changes and the selection is dropped.
 
 ## `<lineSegment>`
 
@@ -42,9 +45,9 @@ line-equation-invalid-format = Formatu baliogabea { $variable1 } eta { $variable
 
 ## `<ray>`
 
-ray-overprescribed-through = Izpia through, endpoint eta direction bidez zehaztuta dago.  Zehaztutako through ez da kontuan hartzen.
+ray-overprescribed-through = Zuzenerdia through, endpoint eta direction bidez zehaztuta dago.  Zehaztutako through ez da kontuan hartzen.
 
-ray-dimension-mismatch = numDimensions ez dator bat izpian.
+ray-dimension-mismatch = numDimensions ez dator bat zuzenerdian.
 
 ## `<vector>`
 
@@ -167,13 +170,13 @@ circle-change-center-non-numerical = Ez dago inplementatuta balio zenbakizkorik 
 function-domain-insufficient-dimensions =
     { $intervals ->
         [one] Dimentsio gutxiegi funtzioaren domeinurako. Domeinuak { $intervals } tarte du baina funtzioak { $inputs ->
-            [one] sarrera { $inputs }
-           *[other] { $inputs } sarrera
-        } ditu.
+            [one] { $inputs } sarrera du.
+           *[other] { $inputs } sarrera ditu.
+        }
        *[other] Dimentsio gutxiegi funtzioaren domeinurako. Domeinuak { $intervals } tarte ditu baina funtzioak { $inputs ->
-            [one] sarrera { $inputs }
-           *[other] { $inputs } sarrera
-        } ditu.
+            [one] { $inputs } sarrera du.
+           *[other] { $inputs } sarrera ditu.
+        }
     }
 
 function-domain-invalid-format = Formatu baliogabea funtzioaren domeinurako.
@@ -199,17 +202,10 @@ function-ignoring-empty =
 
 function-points-too-close = Funtzioak elkarrengandik hurbilegi dauden bi puntu ditu. Ezin da funtzioa definitu.
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] Funtzio baten iterazioak sarrera-kopurua eta irteera-kopurua berdinak direnean bakarrik dira posible. Funtzio honek sarrera { $inputs } eta { $outputs ->
-            [one] irteera { $outputs }
-           *[other] { $outputs } irteera
-        } ditu.
-       *[other] Funtzio baten iterazioak sarrera-kopurua eta irteera-kopurua berdinak direnean bakarrik dira posible. Funtzio honek { $inputs } sarrera eta { $outputs ->
-            [one] irteera { $outputs }
-           *[other] { $outputs } irteera
-        } ditu.
-    }
+# A Basque noun after a numeral stays singular and only the verb agrees, and the
+# verb here is plural whatever the two counts are — a coordinated «X sarrera eta
+# Y irteera» is plural even when both are one. So neither count needs a branch.
+function-iterates-input-output-mismatch = Funtzio baten iterazioak sarrera-kopurua eta irteera-kopurua berdinak direnean bakarrik dira posible. Funtzio honek { $inputs } sarrera eta { $outputs } irteera ditu.
 
 ## `<sequence>`
 
@@ -610,7 +606,7 @@ select-variant-name-without-options = select-erako aldaerak zehaztu dira baina e
 
 select-variant-name-not-possible = select-erako zehaztutako { $variantName } aldaera-izena ez da aldaera-izen posible bat.
 
-select-too-few-options = Ezin dira { $numToSelect } osagai hautatu { $numOptions } soiletik.
+select-too-few-options = Ezin dira { $numToSelect } osagai hautatu, { $numOptions } baino ez baitaude.
 
 select-from-sequence-too-few-values = Ezin dira { $numToSelect } balio hautatu { $length } luzerako segida batetik.
 

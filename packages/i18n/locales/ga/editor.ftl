@@ -12,8 +12,10 @@
 # name are identifiers, not prose, and stay as written.
 #
 # Irish counts in five plural categories, so the counted messages below are
-# written out in all five. The noun stays singular after a numeral; 7 to 10
-# eclipse it, which is the `many` branch.
+# written out in all five. The noun stays singular after a numeral, is left
+# alone after 1, and is lenited after 2 to 6 — «shárú», «mholadh». Neither
+# «sárú» nor «moladh» can be eclipsed, so the `many` branch (7 to 10) carries
+# the plain word, the same as `one` and `other`.
 
 
 ## The viewer's controls
@@ -70,7 +72,7 @@ editor-accessibility-label =
            *[open] oscailt
         }.
         [advisories] Níor aimsíodh aon sárú WCAG AA. Aimsíodh { $count ->
-            [one] { $count } mholadh inrochtaineachta breise
+            [one] { $count } moladh inrochtaineachta breise
             [two] { $count } mholadh inrochtaineachta breise
             [few] { $count } mholadh inrochtaineachta breise
             [many] { $count } moladh inrochtaineachta breise

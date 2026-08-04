@@ -277,13 +277,13 @@ describe("style descriptions follow the document locale @group4", () => {
         // the border is feminine «imlíne» whatever it surrounds, so its
         // adjectives lenite there too. The h- «le» prefixes to that vowel is
         // absent in the `agus` branch, which is the one this fixture reaches.
-        expect(values.st).eq("dhearg thiubh bhriste");
-        expect(values.stn).eq("líne dhearg thiubh bhriste");
+        expect(values.st).eq("thiubh bhriste dhearg");
+        expect(values.stn).eq("líne thiubh bhriste dhearg");
         expect(values.pt).eq("cearnóg ghlas");
         expect(values.sh).eq(
-            "ciorcal gorm líonta le poncanna agus imlíne dhearg thiubh bhriste",
+            "ciorcal gorm líonta le poncanna agus imlíne thiubh bhriste dhearg",
         );
-        expect(values.bd).eq("dhearg thiubh bhriste");
+        expect(values.bd).eq("thiubh bhriste dhearg");
         expect(values.fd).eq("líonadh gorm le poncanna");
     });
 

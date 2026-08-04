@@ -6,21 +6,31 @@
 #
 # Icelandic keeps four cases and three genders, and an attributive adjective
 # agrees with its noun in both. Adjectives precede the noun as they do in
-# English, so the composition messages keep the English order — and every
-# describing word selects on `$role` first and then on `$gender`, which is the
-# shape `locales/de` and `locales/hr` already have:
+# English, so the composition messages keep the English order — and a
+# describing word selects on `$role` first and then, in the position where the
+# noun is not fixed, on `$gender`. That is the shape `locales/de` already has,
+# with two Icelandic differences noted below:
 #
 #   standalone          nominative: `-ur` m, `-∅` f, `-t` n
 #   border-clause       after «með», which governs the dative, of «jaðar» —
 #                       masculine: `-um`
 #   background-clause   after «á», dative here, of «bakgrunnur» — masculine:
 #                       `-um`
-#   text-clause         nominative masculine, agreeing with «texti»
 #
-# The last three need no gender branch: each is only ever used of one noun, and
-# that noun's gender is fixed. Both dative positions land on the same `-um`,
-# which is a fact about Icelandic and not a duplicated branch — «með» and «á»
-# simply govern the same case here.
+# The two clause positions need no gender branch: each is only ever used of one
+# noun, and that noun's gender is fixed. Both land on the same `-um`, which is a
+# fact about Icelandic and not a duplicated branch — «með» and «á» simply govern
+# the same case here.
+#
+# `text-clause` is written nowhere, and that is the first difference from
+# German. German goes uninflected there («rot») while its standalone masculine
+# is «roter»; Icelandic wants the plain nominative masculine agreeing with
+# «texti», which is exactly what the `$gender` fork underneath already gives,
+# so a branch for it would only restate the default.
+#
+# The second: only `describeColor` ever asks for `background-clause`, so
+# `line-width` and `line-style` carry `border-clause` alone. A stroke width is
+# never said of a background or of text.
 
 
 ## Style vocabulary
@@ -30,7 +40,6 @@ color =
         { $role ->
             [border-clause] svörtum
             [background-clause] svörtum
-            [text-clause] svartur
            *[standalone]
                 { $gender ->
                     [f] svört
@@ -42,7 +51,6 @@ color =
         { $role ->
             [border-clause] hvítum
             [background-clause] hvítum
-            [text-clause] hvítur
            *[standalone]
                 { $gender ->
                     [f] hvít
@@ -54,7 +62,6 @@ color =
         { $role ->
             [border-clause] gráum
             [background-clause] gráum
-            [text-clause] grár
            *[standalone]
                 { $gender ->
                     [f] grá
@@ -66,7 +73,6 @@ color =
         { $role ->
             [border-clause] rauðum
             [background-clause] rauðum
-            [text-clause] rauður
            *[standalone]
                 { $gender ->
                     [f] rauð
@@ -78,7 +84,6 @@ color =
         { $role ->
             [border-clause] appelsínugulum
             [background-clause] appelsínugulum
-            [text-clause] appelsínugulur
            *[standalone]
                 { $gender ->
                     [f] appelsínugul
@@ -90,7 +95,6 @@ color =
         { $role ->
             [border-clause] gulum
             [background-clause] gulum
-            [text-clause] gulur
            *[standalone]
                 { $gender ->
                     [f] gul
@@ -102,7 +106,6 @@ color =
         { $role ->
             [border-clause] grænum
             [background-clause] grænum
-            [text-clause] grænn
            *[standalone]
                 { $gender ->
                     [f] græn
@@ -114,7 +117,6 @@ color =
         { $role ->
             [border-clause] blágrænum
             [background-clause] blágrænum
-            [text-clause] blágrænn
            *[standalone]
                 { $gender ->
                     [f] blágræn
@@ -126,7 +128,6 @@ color =
         { $role ->
             [border-clause] bláum
             [background-clause] bláum
-            [text-clause] blár
            *[standalone]
                 { $gender ->
                     [f] blá
@@ -138,7 +139,6 @@ color =
         { $role ->
             [border-clause] fjólubláum
             [background-clause] fjólubláum
-            [text-clause] fjólublár
            *[standalone]
                 { $gender ->
                     [f] fjólublá
@@ -150,7 +150,6 @@ color =
         { $role ->
             [border-clause] bleikum
             [background-clause] bleikum
-            [text-clause] bleikur
            *[standalone]
                 { $gender ->
                     [f] bleik
@@ -162,7 +161,6 @@ color =
         { $role ->
             [border-clause] brúnum
             [background-clause] brúnum
-            [text-clause] brúnn
            *[standalone]
                 { $gender ->
                     [f] brún
@@ -175,8 +173,6 @@ line-width =
     .thick =
         { $role ->
             [border-clause] þykkum
-            [background-clause] þykkum
-            [text-clause] þykkur
            *[standalone]
                 { $gender ->
                     [f] þykk
@@ -187,8 +183,6 @@ line-width =
     .thin =
         { $role ->
             [border-clause] þunnum
-            [background-clause] þunnum
-            [text-clause] þunnur
            *[standalone]
                 { $gender ->
                     [f] þunn
@@ -201,8 +195,6 @@ line-style =
     .dashed =
         { $role ->
             [border-clause] strikuðum
-            [background-clause] strikuðum
-            [text-clause] strikaður
            *[standalone]
                 { $gender ->
                     [f] strikuð
@@ -213,8 +205,6 @@ line-style =
     .dotted =
         { $role ->
             [border-clause] punktuðum
-            [background-clause] punktuðum
-            [text-clause] punktaður
            *[standalone]
                 { $gender ->
                     [f] punktuð
@@ -359,12 +349,16 @@ boolean-false = ósatt
 
 ## Answer buttons
 
-answer-submit-label = Athuga
+answer-submit-label = Athuga svar
 answer-submit-label-no-correctness = Senda svar
 
 
 ## Sectional blocks
 
+# «Verkefni» is the ordinary Icelandic word for both an activity and a problem,
+# so the two are kept apart here: an activity holds the problems, and a heading
+# «Verkefni» over «Verkefni 1» and «Verkefni 2» would say nothing. A problem is
+# «þraut», the word Icelandic schools use for one worked-at question.
 section-name =
     .activity = Verkefni
     .aside = Hliðargrein
@@ -378,8 +372,8 @@ section-name =
     .objectives = Markmið
     .paragraphs = Málsgreinar
     .part = Hluti
-    .problem = Verkefni
-    .problems = Verkefni
+    .problem = Þraut
+    .problems = Þrautir
     .proof = Sönnun
     .question = Spurning
     .section = Kafli

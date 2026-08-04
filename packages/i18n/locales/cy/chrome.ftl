@@ -25,7 +25,7 @@ answer-submitting-status = Yn cyflwyno'r ateb
 answer-correct = Cywir
 answer-incorrect = Anghywir
 
-answer-response-saved = Ateb wedi'i gadw
+answer-response-saved = Ymateb wedi'i gadw
 
 answer-percent-credit = { $percent }% o'r marciau
 answer-percent-correct = { $percent }% yn gywir
@@ -33,10 +33,13 @@ answer-percent-short = { $percent } %
 
 max-credit-available = Uchafswm y marciau sydd ar gael: { $percent }%
 
+# The numeral decides the mutation on «cynnig»: «dau gynnig», «tri chynnig»,
+# «chwe chynnig», and the radical everywhere else. `[0]` catches none by
+# number, as the English does, so the `zero` category it would otherwise
+# select is not written out.
 attempts-remaining =
     { $count ->
         [0] dim cynnig ar ôl
-        [zero] dim cynnig ar ôl
         [one] { $count } cynnig ar ôl
         [two] { $count } gynnig ar ôl
         [few] { $count } chynnig ar ôl
@@ -48,7 +51,9 @@ validation-correct = (Cywir)
 validation-incorrect = (Anghywir)
 validation-partially-correct = (Yn rhannol gywir)
 
-answer-show-responses = Dangos { $count } ateb i { $answerId }
+# «ar gyfer» rather than «i»: `i` softens the word after it, and the word
+# after it here is an authored name the catalog never sees.
+answer-show-responses = Dangos { $count } ymateb ar gyfer { $answerId }
 
 
 ## Disclosure panels
@@ -98,7 +103,8 @@ orbital-row-label = Label ar gyfer rhes { $row }
 
 pretzel-answer = Ateb
 
-summary-statistics-caption = Ystadegau crynhoi { $column }
+# «ar gyfer» again, for the same reason: «o» would soften the column's name.
+summary-statistics-caption = Ystadegau crynodeb ar gyfer { $column }
 
 
 ## Math input

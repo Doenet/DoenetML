@@ -10,14 +10,14 @@
 # a case an attributive adjective could take. So every describing word selects
 # on `$gender` and nothing selects on `$role`.
 #
-# Where Gaelic parts company with Irish is in the words and in the spelling of
-# the mutation. Irish writes the h- it prefixes to a vowel after «le» without a
-# hyphen — «le himlíne» — and Gaelic writes it with one: «le h-iomall». Both
-# are the same rule seen twice.
+# Where Gaelic parts company with Irish is in the words and in what the
+# prepositions do. Irish prefixes h- to a vowel after «le» — «le himlíne» —
+# and Gaelic does not: «le iomall» is written plain, and the h- Gaelic does
+# prefix belongs to «na h-», «a h-» and «gu h-» instead.
 #
 # `l`, `n`, `r` and a vowel have no lenited form, and neither does an `s`
-# before another consonant — `sg-`, `sm-`, `sp-`, `st-`. So «uaine»,
-# «loidhne» and «strìochagach» are identical in both branches, which is a fact
+# before another consonant — `sg-`, `sm-`, `sp-`, `st-`. So «uaine» and
+# «strìochagach» are written with no `$gender` select at all, which is a fact
 # about Gaelic spelling and not an untranslated string.
 
 
@@ -31,8 +31,8 @@ color =
         }
     .white =
         { $gender ->
-            [f] bhàn
-           *[m] bàn
+            [f] gheal
+           *[m] geal
         }
     .gray =
         { $gender ->
@@ -53,8 +53,8 @@ color =
     .green = uaine
     .cyan =
         { $gender ->
-            [f] chian
-           *[m] cian
+            [f] ghorm-uaine
+           *[m] gorm-uaine
         }
     .blue =
         { $gender ->
@@ -115,7 +115,7 @@ noun =
     .function = foincsean
     .parabola = parabola
     .polyline = ioma-loidhne
-    .polygon = poileagan
+    .polygon = ioma-cheàrnach
     .triangle = triantan
     .rectangle = ceart-cheàrnach
     .circle = cearcall
@@ -127,14 +127,18 @@ noun =
     .plus = plus
 
 # The side count follows the style adjectives, so the head and the tail split
-# around them.
+# around them. Three to ten take a plural noun in Gaelic and every other count
+# leaves it singular, so the tail branches on `few` alone.
 noun-regular-polygon =
     { $part ->
-        [tail] le { $numSides } taobh
-       *[head] poileagan riaghailteach
+        [tail] le { $numSides } { $numSides ->
+            [few] taobhan
+           *[other] taobh
+        }
+       *[head] ioma-cheàrnach riaghailteach
     }
 
-# Besides the nouns above, `$noun` can be `regular-polygon` (poileagan, m) or
+# Besides the nouns above, `$noun` can be `regular-polygon` (ioma-cheàrnach, m) or
 # the head of a phrase the description never names: `border` (iomall, m),
 # `fill` (lìonadh, m), `text` (teacsa, m), `background` (cùlaibh, m).
 noun-gender =
@@ -154,11 +158,15 @@ noun-gender =
 
 ## Style composition
 
+# The adjectives follow their noun, and among themselves Gaelic keeps the
+# order English has: a size or texture word before a colour word, as «cù mòr
+# dubh» does — so «loidhne thiugh dhotagach dhearg». Each of them lenites
+# after a feminine noun, not only the first.
 style-stroke =
     { $parts ->
-        [width-style-color] { $color } { $width } { $lineStyle }
-        [width-color] { $color } { $width }
-        [style-color] { $color } { $lineStyle }
+        [width-style-color] { $width } { $lineStyle } { $color }
+        [width-color] { $width } { $color }
+        [style-color] { $lineStyle } { $color }
         [width-style] { $width } { $lineStyle }
         [width] { $width }
         [style] { $lineStyle }
@@ -189,16 +197,16 @@ style-filled-with-noun =
        *[plain] { $noun } { $color } { $filled }
     }
 
-# «iomall» is masculine and begins with a vowel: «le» prefixes a hyphenated h-
-# to it and «agus» leaves it alone, so the noun is spelled two ways in the four
-# branches. Gaelic has no indefinite article, so the `-article` branches read
-# like the others.
+# «iomall» is masculine, so the border's adjectives are unlenited after it
+# whatever the shape around it is. Gaelic prefixes nothing to it after «le»,
+# and has no indefinite article, so all four branches differ only in the
+# conjunction English needs.
 style-border-clause =
     { $parts ->
-        [with-article] le h-iomall { $border }
+        [with-article] le iomall { $border }
         [and] agus iomall { $border }
         [and-article] agus iomall { $border }
-       *[with] le h-iomall { $border }
+       *[with] le iomall { $border }
     }
 
 style-fill =

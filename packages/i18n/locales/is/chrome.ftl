@@ -97,7 +97,7 @@ orbital-row-label = Merki fyrir röð { $row }
 
 pretzel-answer = Svar
 
-summary-statistics-caption = Samantekt tölfræði fyrir { $column }
+summary-statistics-caption = Tölfræðileg samantekt fyrir { $column }
 
 
 ## Math input

@@ -11,23 +11,19 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Gaelic counts in four plural categories. Nothing below counts high enough to
-# reach the dual, so the selections that remain keep the two branches the
-# English source has.
+# Gaelic counts in four plural categories, but only `few` — three to ten —
+# takes a plural noun after a numeral; `one`, `two` and `other` all leave it
+# singular. So a counted noun below branches on `few` against a default rather
+# than on the English one/other split, and a message whose two English branches
+# would read alike in Gaelic drops the select entirely.
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] thathar a' leigeil seachad { $attributes } nuair a shònraichear dà cheann-phuing
-       *[other] thathar a' leigeil seachad { $attributes } nuair a shònraichear dà cheann-phuing
-    }
+# Gaelic covers "is ignored" and "are ignored" with the one form, so the
+# English count select has nothing to choose between and is dropped.
+line-segment-attributes-ignored-with-endpoints = thathar a' leigeil seachad { $attributes } nuair a shònraichear dà cheann-phuing
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] thathar a' leigeil seachad { $attributes } nuair a shònraichear ceann-phuing agus meadhan-phuing le chèile
-       *[other] thathar a' leigeil seachad { $attributes } nuair a shònraichear ceann-phuing agus meadhan-phuing le chèile
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = thathar a' leigeil seachad { $attributes } nuair a shònraichear ceann-phuing agus meadhan-phuing le chèile
 
 line-segment-midpoint-offset-without-midpoint = chan eil buaidh aig midpointOffset gun mheadhan-phuing
 
@@ -167,13 +163,13 @@ circle-change-center-non-numerical = Cha deach atharrachadh meadhan cearcaill tr
 
 function-domain-insufficient-dimensions =
     { $intervals ->
-        [one] Chan eil tomhasan gu leòr san raon-cleachdaidh airson na foincsein. Tha { $intervals } eadaramh aig an raon-cleachdaidh ach tha { $inputs ->
-            [one] { $inputs } ion-chur
-           *[other] { $inputs } ion-chuir
+        [few] Chan eil tomhasan gu leòr san raon-cleachdaidh airson na foincsein. Tha { $intervals } eadaramhan aig an raon-cleachdaidh ach tha { $inputs ->
+            [few] { $inputs } ion-chuir
+           *[other] { $inputs } ion-chur
         } aig an fhoincsean.
-       *[other] Chan eil tomhasan gu leòr san raon-cleachdaidh airson na foincsein. Tha { $intervals } eadaramhan aig an raon-cleachdaidh ach tha { $inputs ->
-            [one] { $inputs } ion-chur
-           *[other] { $inputs } ion-chuir
+       *[other] Chan eil tomhasan gu leòr san raon-cleachdaidh airson na foincsein. Tha { $intervals } eadaramh aig an raon-cleachdaidh ach tha { $inputs ->
+            [few] { $inputs } ion-chuir
+           *[other] { $inputs } ion-chur
         } aig an fhoincsean.
     }
 
@@ -202,13 +198,13 @@ function-points-too-close = Tha dà phuing san fhoincsean a tha ro fhaisg air a 
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-        [one] Chan eil ath-obrachaidhean foincsein comasach ach nuair a tha an aon àireamh de ion-chuir agus de às-chuir aig an fhoincsean. Tha { $inputs } ion-chur agus { $outputs ->
-            [one] { $outputs } às-chur
-           *[other] { $outputs } às-chuir
+        [few] Chan eil ath-obrachaidhean foincsein comasach ach nuair a tha an aon àireamh de ion-chuir agus de às-chuir aig an fhoincsean. Tha { $inputs } ion-chuir agus { $outputs ->
+            [few] { $outputs } às-chuir
+           *[other] { $outputs } às-chur
         } aig an fhoincsean seo.
-       *[other] Chan eil ath-obrachaidhean foincsein comasach ach nuair a tha an aon àireamh de ion-chuir agus de às-chuir aig an fhoincsean. Tha { $inputs } ion-chuir agus { $outputs ->
-            [one] { $outputs } às-chur
-           *[other] { $outputs } às-chuir
+       *[other] Chan eil ath-obrachaidhean foincsein comasach ach nuair a tha an aon àireamh de ion-chuir agus de às-chuir aig an fhoincsean. Tha { $inputs } ion-chur agus { $outputs ->
+            [few] { $outputs } às-chuir
+           *[other] { $outputs } às-chur
         } aig an fhoincsean seo.
     }
 
@@ -292,7 +288,7 @@ prefigure-invalid-aspect-ratio = `<graph>`: aspectRatio mì-dhligheach airson ti
 
 prefigure-grid-spacing-too-fine = `<graph>`: tha beàrnadh a' ghriod ro mhìn airson crìochan na h-aise; fàgar an griod a-mach san reandaraiche prefigure.
 
-prefigure-annotations-not-rendered = `<graph>`: cha tèid nòtaichean a reandaradh mur eil an reandaraiche PreFigure 'ga chleachdadh.
+prefigure-annotations-not-rendered = `<graph>`: cha tèid nòtaichean a reandaradh mur eil an reandaraiche PreFigure ga chleachdadh.
 
 multiple-annotations-children = Chaidh iomadh leanabh `<annotations>` a lorg ann an `<graph>`; thathar a' leigeil seachad a h-uile gin ach an tè mu dheireadh.
 
@@ -324,9 +320,9 @@ data-frame-missing-column-name = Tha ainm cuilbh a dhìth san dàta.  Air a lorg
 
 answer-award-depends-on-own-response = Tha duais airson na freagairt seo stèidhichte air an fhreagairt a chuir an taga answer fhèin, rud a bheir giùlan ris nach eilear an dùil.
 
-answer-max-num-attempts-in-section-wide-check-work = Chan eil buaidh sam bith aig `maxNumAttempts` air `<answer>` taobh a-staigh soithich le `sectionWideCheckWork`, on as e an soitheach a stiùireas àireamh nan oidhirpean. Suidhich `maxNumAttempts` air an t-soitheach 'na àite.
+answer-max-num-attempts-in-section-wide-check-work = Chan eil buaidh sam bith aig `maxNumAttempts` air `<answer>` taobh a-staigh soithich le `sectionWideCheckWork`, on as e an soitheach a stiùireas àireamh nan oidhirpean. Suidhich `maxNumAttempts` air an t-soitheach na àite.
 
-nested-section-wide-check-work-max-num-attempts = Chan eil buaidh sam bith aig `maxNumAttempts` air soitheach le `sectionWideCheckWork` a tha taobh a-staigh soithich eile le `sectionWideCheckWork`, on as e an soitheach a-muigh a stiùireas àireamh nan oidhirpean. Suidhich `maxNumAttempts` air an t-soitheach a-muigh 'na àite.
+nested-section-wide-check-work-max-num-attempts = Chan eil buaidh sam bith aig `maxNumAttempts` air soitheach le `sectionWideCheckWork` a tha taobh a-staigh soithich eile le `sectionWideCheckWork`, on as e an soitheach a-muigh a stiùireas àireamh nan oidhirpean. Suidhich `maxNumAttempts` air an t-soitheach a-muigh na àite.
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
@@ -354,8 +350,8 @@ pretzel-circuit-first-problem-distractor = Pretzel mì-dhligheach: ann am mode="
 
 attribute-invalid-values =
     { $valuesCount ->
-        [one] Luach mì-dhligheach { $values } airson na buaidh `{ $attribute }`; 'ga leigeil seachad.
-       *[other] Luachan mì-dhligheach { $values } airson na buaidh `{ $attribute }`; 'gan leigeil seachad.
+        [one] Luach mì-dhligheach { $values } airson na buaidh `{ $attribute }`; ga leigeil seachad.
+       *[other] Luachan mì-dhligheach { $values } airson na buaidh `{ $attribute }`; gan leigeil seachad.
     }
 
 attribute-must-be-references = Luach mì-dhligheach `{ $value }` airson na buaidh `{ $attribute }`. Feumaidh a' bhuadh a bhith air a dèanamh de dh'iomraidhean a thòisicheas le `$`.
@@ -568,17 +564,17 @@ external-doenetml-type-mismatch = DoenetML mì-dhligheach air fhaighinn o { $att
 
 deprecated-attribute-renamed =
     { $component ->
-        [none] [deprecation] Tha a' bhuadh `{ $from }` o fheum; cleachd `{ $to }` 'na h-àite.
-       *[other] [deprecation] Tha a' bhuadh `{ $from }` air `<{ $component }>` o fheum; cleachd `{ $to }` 'na h-àite.
+        [none] [deprecation] Tha a' bhuadh `{ $from }` o fheum; cleachd `{ $to }` na h-àite.
+       *[other] [deprecation] Tha a' bhuadh `{ $from }` air `<{ $component }>` o fheum; cleachd `{ $to }` na h-àite.
     }
 
 deprecated-attribute-renamed-conflict =
     { $component ->
-        [none] [deprecation] Tha a' bhuadh `{ $from }` o fheum agus thathar 'ga leigeil seachad on a chaidh `{ $to }` a shònrachadh cuideachd.
-       *[other] [deprecation] Tha a' bhuadh `{ $from }` air `<{ $component }>` o fheum agus thathar 'ga leigeil seachad on a chaidh `{ $to }` a shònrachadh cuideachd.
+        [none] [deprecation] Tha a' bhuadh `{ $from }` o fheum agus thathar ga leigeil seachad on a chaidh `{ $to }` a shònrachadh cuideachd.
+       *[other] [deprecation] Tha a' bhuadh `{ $from }` air `<{ $component }>` o fheum agus thathar ga leigeil seachad on a chaidh `{ $to }` a shònrachadh cuideachd.
     }
 
-deprecated-attribute-ignored = [deprecation] Tha a' bhuadh `{ $attribute }` air `<{ $component }>` o fheum agus thathar 'ga leigeil seachad.
+deprecated-attribute-ignored = [deprecation] Tha a' bhuadh `{ $attribute }` air `<{ $component }>` o fheum agus thathar ga leigeil seachad.
 
 
 ## Language coverage

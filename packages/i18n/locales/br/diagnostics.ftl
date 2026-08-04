@@ -11,23 +11,18 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Breton counts in five plural categories, but nothing below counts high enough
-# to separate them, so the selections keep the two branches the English source
-# has.
+# Breton counts in five plural categories, so a message that has to agree with
+# a count writes all five. Most of these do not have to: where English separates
+# a singular from a plural in the verb alone — "is ignored" against "are
+# ignored" — Breton covers both with one form, and the select is dropped rather
+# than written out identically five times. It stays where the *noun* changes:
+# «arventenn»/«arventennoù», «doareenn»/«doareennoù», «talvoud»/«talvoudoù».
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] ne vez ket kemeret { $attributes } e kont pa vez spisaet daou boent-dibenn
-       *[other] ne vez ket kemeret { $attributes } e kont pa vez spisaet daou boent-dibenn
-    }
+line-segment-attributes-ignored-with-endpoints = ne vez ket kemeret { $attributes } e kont pa vez spisaet daou boent-dibenn
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] ne vez ket kemeret { $attributes } e kont pa vez spisaet ur poent-dibenn hag ur c'hreizboent asambles
-       *[other] ne vez ket kemeret { $attributes } e kont pa vez spisaet ur poent-dibenn hag ur c'hreizboent asambles
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = ne vez ket kemeret { $attributes } e kont pa vez spisaet ur poent-dibenn hag ur c'hreizboent asambles
 
 line-segment-midpoint-offset-without-midpoint = n'en deus ket midpointOffset a efed hep kreizboent
 
@@ -165,17 +160,7 @@ circle-change-center-non-numerical = N'eo ket bet kefloueret cheñch kreiz ur c'
 
 ## `<function>`
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] Mentoù re nebeut evit domani an arc'hwel. { $intervals } spas en deus an domani met { $inputs ->
-            [one] { $inputs } enankad
-           *[other] { $inputs } enankad
-        } en deus an arc'hwel.
-       *[other] Mentoù re nebeut evit domani an arc'hwel. { $intervals } spas en deus an domani met { $inputs ->
-            [one] { $inputs } enankad
-           *[other] { $inputs } enankad
-        } en deus an arc'hwel.
-    }
+function-domain-insufficient-dimensions = Mentoù re nebeut evit domani an arc'hwel. { $intervals } spas en deus an domani met { $inputs } enankad en deus an arc'hwel.
 
 function-domain-invalid-format = Furmad direizh evit domani an arc'hwel.
 
@@ -200,17 +185,7 @@ function-ignoring-empty =
 
 function-points-too-close = Daou boent re dost an eil d'egile a zo en arc'hwel. N'haller ket termeniñ an arc'hwel.
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] N'eo posupl azgraat un arc'hwel nemet pa vez kevatal niver e enankadoù ha niver e ezankadoù. { $inputs } enankad ha { $outputs ->
-            [one] { $outputs } ezankad
-           *[other] { $outputs } ezankad
-        } en deus an arc'hwel-mañ.
-       *[other] N'eo posupl azgraat un arc'hwel nemet pa vez kevatal niver e enankadoù ha niver e ezankadoù. { $inputs } enankad ha { $outputs ->
-            [one] { $outputs } ezankad
-           *[other] { $outputs } ezankad
-        } en deus an arc'hwel-mañ.
-    }
+function-iterates-input-output-mismatch = N'eo posupl azgraat un arc'hwel nemet pa vez kevatal niver e enankadoù ha niver e ezankadoù. { $inputs } enankad ha { $outputs } ezankad en deus an arc'hwel-mañ.
 
 ## `<sequence>`
 
@@ -280,9 +255,9 @@ graph-grid-invalid = `<graph>`: n'haller ket kompren grid="{ $grid }". Ret eo de
 
 ## PreFigure renderer
 
-prefigure-x-label-position-unsupported = `<graph>`: n'eo ket skoret xLabelPosition="left" er c'hempouezer prefigure; oc'h implijout emzalc'h al lec'hiadur dehou.
+prefigure-x-label-position-unsupported = `<graph>`: n'eo ket skoret xLabelPosition="left" en treser prefigure; oc'h implijout emzalc'h al lec'hiadur dehou.
 
-prefigure-y-label-position-unsupported = `<graph>`: n'eo ket skoret yLabelPosition="bottom" er c'hempouezer prefigure; oc'h implijout emzalc'h al lec'hiadur krec'h.
+prefigure-y-label-position-unsupported = `<graph>`: n'eo ket skoret yLabelPosition="bottom" en treser prefigure; oc'h implijout emzalc'h al lec'hiadur krec'h.
 
 prefigure-invalid-axis-bounds = `<graph>`: bevennoù ahel direizh evit an treuzfurmadur prefigure; oc'h implijout ar bbox dre ziouer (-10,-10,10,10).
 
@@ -290,9 +265,9 @@ prefigure-invalid-width = `<graph>`: ledander direizh evit an treuzfurmadur pref
 
 prefigure-invalid-aspect-ratio = `<graph>`: aspectRatio direizh evit an treuzfurmadur prefigure; oc'h implijout an dregantad neuz dre ziouer 1.
 
-prefigure-grid-spacing-too-fine = `<graph>`: re voan eo esaouiñ ar gael evit bevennoù an ahel; laosket e vo ar gael er-maez er c'hempouezer prefigure.
+prefigure-grid-spacing-too-fine = `<graph>`: re voan eo esaouiñ ar gael evit bevennoù an ahel; laosket e vo ar gael er-maez en treser prefigure.
 
-prefigure-annotations-not-rendered = `<graph>`: ne vo ket kempouezet an notennoù ma n'implijer ket ar c'hempouezer PreFigure.
+prefigure-annotations-not-rendered = `<graph>`: ne vo ket treset an notennoù ma n'implijer ket an treser PreFigure.
 
 multiple-annotations-children = Meur a vugel `<annotations>` a zo bet kavet en un `<graph>`; ne vo kemeret e kont nemet an hini diwezhañ.
 
@@ -434,7 +409,7 @@ variant-non-constant-exclude-not-implemented = n'eo ket bet kefloueret an doareo
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: n'eo ket skoret er c'hempouezer prefigure eus ar grafik; tremenet eo bet an diskennad.
+prefigure-descendant-unsupported = { $subject }: n'eo ket skoret en treser prefigure eus ar grafik; tremenet eo bet an diskennad.
 
 prefigure-descendant-invalid-geometry = { $subject }: mentoniezh anvevennet pe diglok; tremenet eo bet an diskennad.
 

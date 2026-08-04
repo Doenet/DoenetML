@@ -741,7 +741,7 @@ describe("Irish", () => {
 
     // The Celtic answer to agreement: a feminine singular noun does not give
     // its adjectives an ending, it softens the front of them. «líne» is
-    // feminine, so «dearg tiubh briste» comes out «dhearg thiubh bhriste»; «ga»
+    // feminine, so «tiubh briste dearg» comes out «thiubh bhriste dhearg»; «ga»
     // is masculine and leaves the same words alone. `$gender` carries the whole
     // of that, which is why no Celtic catalog writes a `$role` branch.
     it("lenites a feminine noun's adjectives and leaves a masculine one's", () => {
@@ -755,13 +755,13 @@ describe("Irish", () => {
                 noun: { key: "line" },
                 withNoun: true,
             }),
-        ).toBe("líne dhearg thiubh bhriste");
+        ).toBe("líne thiubh bhriste dhearg");
         expect(
             describeStrokedShape(ga, words, {
                 noun: { key: "ray" },
                 withNoun: true,
             }),
-        ).toBe("ga dearg tiubh briste");
+        ).toBe("ga tiubh briste dearg");
     });
 
     // «imlíne» begins with a vowel and «le» prefixes h- to one, so the border
@@ -780,7 +780,7 @@ describe("Irish", () => {
                 },
                 { filled: true, noun: { key: "circle" }, withNoun: true },
             ),
-        ).toBe("ciorcal gorm líonta le himlíne dhubh thiubh");
+        ).toBe("ciorcal gorm líonta le himlíne thiubh dhubh");
     });
 });
 

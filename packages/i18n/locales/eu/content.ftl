@@ -58,12 +58,12 @@ fill-style =
 noun =
     .line = marra
     .line-segment = segmentu
-    .ray = izpi
+    .ray = zuzenerdi
     .vector = bektore
     .curve = kurba
     .function = funtzio
     .parabola = parabola
-    .polyline = polimarra
+    .polyline = marra poligonal
     .polygon = poligono
     .triangle = triangelu
     .rectangle = laukizuzen
@@ -159,7 +159,7 @@ style-background-none = bat ere ez
 ## Boolean words
 
 boolean-true = egia
-boolean-false = faltsua
+boolean-false = gezurra
 
 
 ## Answer buttons
@@ -192,14 +192,17 @@ section-name =
     .task = Zeregina
     .theorem = Teorema
 
+# Basque counts a numbered heading the way `table-name` and `figure-name`
+# already do: the ordinal comes first and the word follows it, «1.3. Atala»
+# rather than «Atala 1.3».
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
         [number] { $sectionNumber }
         [name-title] { $sectionName }{ ": " }
         [number-title] { $sectionNumber }{ ". " }
-        [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
-       *[name-number] { $sectionName } { $sectionNumber }
+        [name-number-title] { $sectionNumber }. { $sectionName }{ ": " }
+       *[name-number] { $sectionNumber }. { $sectionName }
     }
 
 hint-title = Laguntza

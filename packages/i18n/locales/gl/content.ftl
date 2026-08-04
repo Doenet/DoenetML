@@ -4,14 +4,14 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Two genders and no case, so every describing word selects on `$gender` and
-# nothing selects on `$role` — the shape `locales/es`, `locales/pt` and
-# `locales/ca` already have. Adjectives follow their noun, so the composition
-# messages are reordered from the English and the noun leads.
+# Two genders and no case, so every describing word that inflects selects on
+# `$gender` and nothing selects on `$role` — the shape `locales/es`,
+# `locales/pt` and `locales/ca` already have. Adjectives follow their noun, so
+# the composition messages are reordered from the English and the noun leads.
 #
 # «gris», «laranxa», «verde», «cian», «azul», «rosa» and «marrón» are
-# invariable, so they read alike in both branches. That is Galician spelling
-# and not an untranslated string.
+# invariable, so each is written once rather than as a select. That is Galician
+# spelling and not an untranslated string.
 #
 # «cun» in the border and background clauses is «con» plus the article «un»,
 # written as one word — so `with-article` differs from `with` by a letter,
@@ -184,6 +184,9 @@ style-border-clause =
        *[with] con bordo { $border }
     }
 
+# Naming «recheo» keeps the colour agreeing with a masculine singular noun the
+# catalog writes, instead of with the plural pattern word beside it: «recheo
+# azul con rombos» rather than «rombos azuis».
 style-fill =
     { $parts ->
         [pattern] recheo { $color } con { $pattern }

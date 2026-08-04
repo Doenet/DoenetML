@@ -11,8 +11,11 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Basque counts in the same two categories English does, so every selection
-# below keeps both branches.
+# Basque counts in the same two categories English does — `one` and `other` —
+# but a noun after a numeral stays singular and only the verb agrees, so the
+# counted branches in `editor-accessibility-label` differ in «aurkitu da»
+# against «aurkitu dira» rather than in the noun. `help-coordinates` counts
+# nothing out loud and takes the ordinary plural, «Koordenatuak».
 
 
 ## The viewer's controls
@@ -59,14 +62,14 @@ editor-accessibility-title =
 editor-accessibility-label =
     { $status ->
         [violations] WCAG AA irisgarritasun-urraketa bat aurkitu da. { $count ->
-            [one] WCAG AA urraketa { $count } aurkitu da
+            [one] { $count } WCAG AA urraketa aurkitu da
            *[other] { $count } WCAG AA urraketa aurkitu dira
         }. Egin klik irisgarritasun-txostena { $action ->
             [close] ixteko
            *[open] irekitzeko
         }.
         [advisories] Ez da WCAG AA urraketarik aurkitu. { $count ->
-            [one] irisgarritasun-gomendio gehigarri { $count } aurkitu da
+            [one] { $count } irisgarritasun-gomendio gehigarri aurkitu da
            *[other] { $count } irisgarritasun-gomendio gehigarri aurkitu dira
         }. Egin klik irisgarritasun-txostena { $action ->
             [close] ixteko
@@ -136,7 +139,7 @@ help-unsupported-ref-chain = { $example } bezalako erreferentzia konposatuentzak
 
 help-unresolved-ref =
     { $reason ->
-        [notFound] Ez da erreferentearik aurkitu erreferentzia honentzat: { $ref }.
+        [notFound] Ez da erreferenterik aurkitu erreferentzia honentzat: { $ref }.
         [multiple] Erreferente bat baino gehiago aurkitu dira erreferentzia honentzat: { $ref }.
        *[indeterminate] Ezin izan da { $ref } erreferentziaren erreferentea zehaztu.
     }
@@ -155,7 +158,7 @@ help-suggestions-header =
        *[components] { " — probatzeko gauzak:" }
     }
 
-help-suggestions-footer = Sakatu { $shortcut } { $total } osagai guztiak ikusteko.
+help-suggestions-footer = Sakatu { $shortcut } osagai guztiak ({ $total }) ikusteko.
 
 help-name-summary = { $name } — { $summary }
 
@@ -167,8 +170,8 @@ help-ref-is-reference =
 
 help-ref-derived-from =
     { $line ->
-        [none] { $owner } elementuak sartua { $role } gisa.
-       *[other] { $owner } elementuak { $line }. lerroan sartua { $role } gisa.
+        [none] { $owner } elementuak { $role } gisa sartua.
+       *[other] { $owner } elementuak { $line }. lerroan { $role } gisa sartua.
     }
 
 help-property-is-reference =
@@ -178,11 +181,11 @@ help-property-is-reference =
     }
 
 help-kind-attribute = atributua
-help-kind-snippet = zatia
+help-kind-snippet = kode-zatia
 help-kind-array-entry = array-sarrera
 
 help-default = Lehenetsia:
-help-active-default = Lehenetsi aktiboa:
+help-active-default = Balio lehenetsi aktiboa:
 
 help-style-number-annotation = { " " }(styleNumber { $styleNumber })
 

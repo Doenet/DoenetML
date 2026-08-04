@@ -6,15 +6,17 @@
 #
 # Maltese is the one Semitic language this repository writes in the Latin
 # alphabet, and it behaves here like its Romance neighbours: two genders, no
-# case, adjectives after the noun. So every describing word selects on
-# `$gender`, nothing selects on `$role`, and the composition messages are
-# reordered from the English with the noun leading.
+# case, adjectives after the noun. So every describing word that inflects
+# selects on `$gender` — the borrowed colours «blu», «vjola», «roża»,
+# «kannella», «oranġjo» and «ċjan» do not inflect and are written once —
+# nothing selects on `$role`, and the composition messages are reordered from
+# the English with the noun leading.
 #
 # What is Semitic about the agreement is the *shape* of it. A Maltese adjective
 # does not take a suffix for the feminine, it changes its vowels: «iswed»
 # becomes «sewda», «aħmar» becomes «ħamra», «oħxon» becomes «ħoxna». The two
 # branches below are therefore two spellings of one root rather than a stem and
-# an ending, which is why none of them can be derived from the other.
+# an ending, which is why neither can be derived from the other.
 #
 # The definite article `il-` assimilates to a following sun letter — `id-`,
 # `is-`, `ir-` and the rest. No style description writes it: such a description
@@ -23,10 +25,12 @@
 # this file it sits in front of a word written here, never in front of an
 # argument.
 #
-# `bi` keeps its vowel before a word starting with the same letter and loses it
-# elsewhere, which is why the border clause reads «bi bordura» and the fill
-# patterns «b'linji», «b'tikek», «b'rombi» — every word that can land behind it
-# is one this catalog chose.
+# `bi` keeps its vowel before a word beginning with the same letter or with a
+# consonant cluster and elides to `b'` elsewhere, which is why the border clause
+# reads «bi bordura» while the fill patterns give «b'linji», «b'tikek» and
+# «b'rombi» — every word that can land behind it is one this catalog chose. The
+# side count of a regular polygon is a value this catalog does not choose, so
+# it is introduced by «ta'», which never changes shape.
 
 
 ## Style vocabulary
@@ -126,7 +130,7 @@ noun =
 # they agree with.
 noun-regular-polygon =
     { $part ->
-        [tail] b'{ $numSides } naħat
+        [tail] ta' { $numSides } naħat
        *[head] poligonu regolari
     }
 
@@ -147,11 +151,13 @@ noun-gender =
 
 ## Style composition
 
+# Quality before colour, which is the ordinary Maltese order: a thick dashed
+# red line is «linja ħoxna maqtugħa ħamra».
 style-stroke =
     { $parts ->
-        [width-style-color] { $color } { $width } { $lineStyle }
-        [width-color] { $color } { $width }
-        [style-color] { $color } { $lineStyle }
+        [width-style-color] { $width } { $lineStyle } { $color }
+        [width-color] { $width } { $color }
+        [style-color] { $lineStyle } { $color }
         [width-style] { $width } { $lineStyle }
         [width] { $width }
         [style] { $lineStyle }
@@ -172,16 +178,16 @@ style-filled-word =
 
 style-filled =
     { $parts ->
-        [pattern] { $color } { $filled } b'{ $pattern }
-       *[plain] { $color } { $filled }
+        [pattern] { $filled } { $color } b'{ $pattern }
+       *[plain] { $filled } { $color }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $noun } { $color } { $filled } b'{ $pattern }
-        [plain-tail] { $noun } { $color } { $filled } { $nounTail }
-        [pattern-tail] { $noun } { $color } { $filled } { $nounTail } b'{ $pattern }
-       *[plain] { $noun } { $color } { $filled }
+        [pattern] { $noun } { $filled } { $color } b'{ $pattern }
+        [plain-tail] { $noun } { $filled } { $color } { $nounTail }
+        [pattern-tail] { $noun } { $filled } { $color } { $nounTail } b'{ $pattern }
+       *[plain] { $noun } { $filled } { $color }
     }
 
 # «bordura» is feminine, so the border's adjectives agree with it and not with

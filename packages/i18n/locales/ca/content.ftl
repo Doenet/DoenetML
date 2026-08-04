@@ -140,13 +140,13 @@ noun-gender =
 
 ## Style composition
 
-# The adjectives follow their noun, colour first: «línia vermella gruixuda
-# discontínua».
+# The adjectives follow their noun, and the colour closes the run: «línia
+# gruixuda discontínua vermella».
 style-stroke =
     { $parts ->
-        [width-style-color] { $color } { $width } { $lineStyle }
-        [width-color] { $color } { $width }
-        [style-color] { $color } { $lineStyle }
+        [width-style-color] { $width } { $lineStyle } { $color }
+        [width-color] { $width } { $color }
+        [style-color] { $lineStyle } { $color }
         [width-style] { $width } { $lineStyle }
         [width] { $width }
         [style] { $lineStyle }
@@ -430,7 +430,7 @@ element-anion-name =
     .br = Bromur
     .i = Iodur
     .at = Astatur
-    .ts = Tennessur
+    .ts = Tennesur
 
 ion-name-oxidation-state = { $name } ({ $numeral })
 

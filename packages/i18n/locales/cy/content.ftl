@@ -165,6 +165,12 @@ noun-gender =
 
 # The adjectives follow their noun, colour first: «llinell goch drwchus
 # doredig».
+#
+# The colour leads on purpose, and it is not English's order carried over: a
+# Welsh string of adjectives runs in roughly the reverse of the English one,
+# the most closely defining word nearest the noun — «ci du mawr» for "a big
+# black dog". Do not reorder these to width-style-colour to match the English
+# or the other Celtic catalogs.
 style-stroke =
     { $parts ->
         [width-style-color] { $color } { $width } { $lineStyle }
@@ -182,9 +188,15 @@ style-with-noun =
        *[noun] { $noun } { $description }
     }
 
-# A past-participle phrase rather than an adjective, so it neither mutates nor
-# takes a feminine form and needs no branch.
-style-filled-word = wedi'i lenwi
+# The infixed pronoun in this phrase agrees with what is filled: the masculine
+# «ei» softens «llenwi» to «lenwi» and the feminine leaves it alone. So this
+# selects on `$gender` like the adjectives, even though it is a
+# past-participle phrase rather than an adjective.
+style-filled-word =
+    { $gender ->
+        [f] wedi'i llenwi
+       *[m] wedi'i lenwi
+    }
 
 style-filled =
     { $parts ->
@@ -219,7 +231,11 @@ style-fill =
        *[plain] { $color }
     }
 
-style-unfilled = heb ei lenwi
+# This one is given no `$gender`, so it cannot agree with the shape it
+# describes. «heb lenwad» — "without a fill" — reads the same whatever that
+# shape turns out to be, where «heb ei lenwi» would have committed to a
+# masculine pronoun.
+style-unfilled = heb lenwad
 
 # «â» takes the aspirate mutation, and «cefndir» begins with `c`, so it is
 # «â chefndir» here and «cefndir» anywhere else. The colour after it is
@@ -242,7 +258,7 @@ boolean-false = gau
 ## Answer buttons
 
 answer-submit-label = Gwirio
-answer-submit-label-no-correctness = Cyflwyno'r ateb
+answer-submit-label-no-correctness = Cyflwyno'r ymateb
 
 
 ## Sectional blocks
@@ -340,7 +356,7 @@ element-name =
     .ar = Argon
     .k = Potasiwm
     .ca = Calsiwm
-    .sc = Scandiwm
+    .sc = Sgandiwm
     .ti = Titaniwm
     .v = Fanadiwm
     .cr = Cromiwm

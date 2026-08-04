@@ -130,7 +130,7 @@ accessibility-input-short-description-or-label = Por accesibilidade, `<{ $compon
 
 accessibility-answer-input-short-description-or-label = Por accesibilidade, un `<answer>` que crea unha entrada debe ter unha descrición breve ou unha etiqueta.
 
-accessibility-short-description-contains-math = As descricións breves non deberían conter compoñentes matemáticos como `<{ $component }>`. Escriba calquera matemática con palabras.
+accessibility-short-description-contains-math = As descricións breves non deberían conter compoñentes matemáticos como `<{ $component }>`. Escriba con palabras calquera contido matemático.
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
@@ -269,13 +269,13 @@ eigen-decomposition-failed = Non se puideron calcular os autovalores da matriz
 
 matches-pattern-parameter-not-in-pattern =
     { $parametersCount ->
-        [one] `<matchesPattern>`: o parámetro { $parameters } non aparece no patrón, polo que sempre coincidirá cun oco.
-       *[other] `<matchesPattern>`: os parámetros { $parameters } non aparecen no patrón, polo que sempre coincidirán cun oco.
+        [one] `<matchesPattern>`: o parámetro { $parameters } non aparece no patrón, polo que sempre coincidirá cun espazo en branco.
+       *[other] `<matchesPattern>`: os parámetros { $parameters } non aparecen no patrón, polo que sempre coincidirán cun espazo en branco.
     }
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: non se pode interpretar grid="{ $grid }". Debe ser none, medium, dense, ou dous números positivos separados por un espazo, como grid="1 0.5". Non se debuxa ningunha grade.
+graph-grid-invalid = `<graph>`: non se pode interpretar grid="{ $grid }". Debe ser none, medium, dense ou dous números positivos separados por un espazo, como grid="1 0.5". Non se debuxa ningunha grade.
 
 ## PreFigure renderer
 
@@ -321,7 +321,7 @@ data-frame-missing-column-name = Aos datos fáltalles un nome de columna.  Atopa
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Un premio desta resposta baséase na resposta enviada pola propia etiqueta answer, o que provocará un comportamento inesperado.
+answer-award-depends-on-own-response = Un award desta resposta baséase na resposta enviada pola propia etiqueta answer, o que provocará un comportamento inesperado.
 
 answer-max-num-attempts-in-section-wide-check-work = Establecer `maxNumAttempts` nun `<answer>` dentro dun contedor con `sectionWideCheckWork` non ten ningún efecto, porque é o contedor quen controla o número de intentos. Estableza `maxNumAttempts` no contedor.
 

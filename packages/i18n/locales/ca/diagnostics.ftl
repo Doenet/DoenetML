@@ -140,7 +140,7 @@ accessibility-section-title-insufficient-contrast =
 
 ## `<circle>`
 
-circle-through-points-non-numerical = `<circle>` a través de { $count } punts no està implementat quan els punts no tenen valors numèrics.
+circle-through-points-non-numerical = No s'ha implementat `<circle>` que passi per { $count } punts quan els punts no tenen valors numèrics.
 
 circle-too-many-through-points = No es pot calcular un cercle que passi per més de 3 punts.
 
@@ -321,7 +321,7 @@ data-frame-missing-column-name = A les dades els falta un nom de columna.  Troba
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Un premi d'aquesta resposta es basa en la resposta enviada per la mateixa etiqueta answer, cosa que provocarà un comportament inesperat.
+answer-award-depends-on-own-response = Un award d'aquesta resposta es basa en la resposta enviada per la mateixa etiqueta answer, cosa que provocarà un comportament inesperat.
 
 answer-max-num-attempts-in-section-wide-check-work = Establir `maxNumAttempts` en un `<answer>` dins d'un contenidor amb `sectionWideCheckWork` no té cap efecte, perquè és el contenidor qui controla el nombre d'intents. Establiu `maxNumAttempts` al contenidor.
 

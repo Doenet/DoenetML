@@ -11,8 +11,10 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Icelandic counts in the same two categories English does, so every selection
-# below keeps both branches.
+# Icelandic counts in the same two categories English does, `one` and `other`,
+# and keeps both branches wherever the wording differs. `help-coordinates` is
+# the one that does not: `hnit` is a neuter noun spelled the same in the plural,
+# so its select is dropped rather than written out twice.
 
 
 ## The viewer's controls
@@ -25,8 +27,8 @@ editor-update-viewer =
 
 editor-update-viewer-title =
     { $shortcut ->
-        [none] { $word } skoðara
-       *[other] { $word } skoðara { $shortcut }
+        [none] { $word } skoðarann
+       *[other] { $word } skoðarann { $shortcut }
     }
 
 
@@ -167,8 +169,8 @@ help-ref-is-reference =
 
 help-ref-derived-from =
     { $line ->
-        [none] Kynnt til sögunnar af { $owner } sem { $role }.
-       *[other] Kynnt til sögunnar af { $owner } í línu { $line } sem { $role }.
+        [none] Skilgreint af { $owner } sem { $role }.
+       *[other] Skilgreint af { $owner } í línu { $line } sem { $role }.
     }
 
 help-property-is-reference =
@@ -196,11 +198,7 @@ help-suggested-values = Tillögur að gildum:
 
 help-inserts = Setur inn:
 
-help-coordinates =
-    { $count ->
-        [one] Hnit:
-       *[other] Hnit:
-    }
+help-coordinates = Hnit:
 
 help-type = Tegund:
 

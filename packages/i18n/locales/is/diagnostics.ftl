@@ -11,8 +11,11 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Icelandic counts in the same two categories English does, so every selection
-# below keeps both branches.
+# Icelandic counts in the same two categories English does, `one` and `other`,
+# and keeps both branches wherever the wording differs. Where it does not, the
+# select is dropped rather than written out twice: `bil` is a neuter noun
+# spelled the same in the plural, so counting intervals changes nothing but the
+# numeral in front of it.
 
 ## `<lineSegment>`
 
@@ -54,11 +57,11 @@ vector-dimension-mismatch = Ósamræmi í numDimensions í vigri.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Ekki er hægt að draga að `<{ $component }>` þar sem hann hefur ekki ástandsbreytuna nearestPoint.
+attract-to-without-nearest-point = Ekki er hægt að draga að `<{ $component }>` þar sem einingin hefur ekki ástandsbreytuna nearestPoint.
 
-constrain-to-without-nearest-point = Ekki er hægt að þvinga að `<{ $component }>` þar sem hann hefur ekki ástandsbreytuna nearestPoint.
+constrain-to-without-nearest-point = Ekki er hægt að þvinga að `<{ $component }>` þar sem einingin hefur ekki ástandsbreytuna nearestPoint.
 
-constrain-to-interior-without-nearest-point = Ekki er hægt að þvinga að innra svæði `<{ $component }>` þar sem hann hefur ekki ástandsbreytuna nearestPoint.
+constrain-to-interior-without-nearest-point = Ekki er hægt að þvinga að innra svæði `<{ $component }>` þar sem einingin hefur ekki ástandsbreytuna nearestPoint.
 
 ## `<choiceInput>`
 
@@ -134,8 +137,8 @@ accessibility-short-description-contains-math = Stuttar lýsingar ættu ekki að
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] { $colorName } hefur ekki nægilega birtuskil fyrir texta kaflafyrirsagnar (dökkur hamur) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; krefst að minnsta kosti { $threshold }:1).
-       *[other] { $colorName } hefur ekki nægilega birtuskil fyrir texta kaflafyrirsagnar ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; krefst að minnsta kosti { $threshold }:1).
+        [dark] { $colorName } hefur ekki nægileg birtuskil fyrir texta kaflafyrirsagnar (dökkur hamur) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; krefst að minnsta kosti { $threshold }:1).
+       *[other] { $colorName } hefur ekki nægileg birtuskil fyrir texta kaflafyrirsagnar ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; krefst að minnsta kosti { $threshold }:1).
     }
 
 ## `<circle>`
@@ -165,16 +168,10 @@ circle-change-center-non-numerical = Ekki hefur verið útfært að breyta miðj
 ## `<function>`
 
 function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] Ónógar víddir fyrir formengi falls. Formengið hefur { $intervals } bil en fallið hefur { $inputs ->
-            [one] { $inputs } inntak
-           *[other] { $inputs } inntök
-        }.
-       *[other] Ónógar víddir fyrir formengi falls. Formengið hefur { $intervals } bil en fallið hefur { $inputs ->
-            [one] { $inputs } inntak
-           *[other] { $inputs } inntök
-        }.
-    }
+    Ónógar víddir fyrir formengi falls. Formengið hefur { $intervals } bil en fallið hefur { $inputs ->
+        [one] { $inputs } inntak
+       *[other] { $inputs } inntök
+    }.
 
 function-domain-invalid-format = Ógilt snið á formengi falls.
 
@@ -321,7 +318,7 @@ data-frame-missing-column-name = Dálkanafn vantar í gögnin.  Fannst í compon
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Verðlaun fyrir þetta svar byggja á svarinu sem answer-merkið sjálft sendi inn, sem leiðir til óvæntrar hegðunar.
+answer-award-depends-on-own-response = `<award>` fyrir þetta svar byggir á svarinu sem `<answer>`-merkið sjálft sendi inn, sem leiðir til óvæntrar hegðunar.
 
 answer-max-num-attempts-in-section-wide-check-work = Það hefur engin áhrif að setja `maxNumAttempts` á `<answer>` inni í íláti með `sectionWideCheckWork`, þar sem ílátið stýrir fjölda tilrauna. Settu `maxNumAttempts` á ílátið í staðinn.
 

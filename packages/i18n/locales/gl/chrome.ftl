@@ -54,7 +54,7 @@ feedback-heading = Comentarios
 collapsible-click-to-open = (prema para abrir)
 collapsible-click-to-close = (prema para pechar)
 
-collapsible-initializing = Iniciando…
+collapsible-initializing = Inicializando…
 
 footnote-show = Amosar a nota ao pé
 footnote-hide = Agochar a nota ao pé
@@ -94,7 +94,7 @@ orbital-row-label = Etiqueta da fila { $row }
 
 pretzel-answer = Resposta
 
-summary-statistics-caption = Estatísticas resumo de { $column }
+summary-statistics-caption = Resumo estatístico de { $column }
 
 
 ## Math input
@@ -106,7 +106,7 @@ math-input-invalid-expression = Expresión non válida:
 
 ## Document status
 
-viewer-initializing = Iniciando…
+viewer-initializing = Inicializando…
 
 
 ## Errors

@@ -11,9 +11,11 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Gaelic counts in four plural categories, so the counted messages below are
-# written out in all four; the `two` branch is the dual, which leaves the noun
-# singular and lenites it.
+# Gaelic counts in four plural categories, and each counted message below
+# writes out as many of them as its own wording distinguishes: `one` and `two`
+# both leave the noun singular and lenite it, `few` takes a plural, and `other`
+# leaves it singular and unlenited. Where a numeral is not shown beside the
+# noun there is nothing to lenite, so only `few` differs from the default.
 
 
 ## The viewer's controls
@@ -127,7 +129,7 @@ editor-none-found = Cha deach gin a lorg
 ## Submitted responses
 
 editor-no-responses = Cha deach freagairt a chur fhathast
-editor-response-answer-id = Aithnichear na freagairt
+editor-response-answer-id = Aithnichear na freagairte
 editor-response-response = Freagairt
 editor-response-credit = Creideas
 editor-response-submitted = Air a chur
@@ -203,8 +205,8 @@ help-inserts = Cuiridh e a-steach:
 
 help-coordinates =
     { $count ->
-        [one] Co-chomharra:
-       *[other] Co-chomharran:
+        [few] Co-chomharran:
+       *[other] Co-chomharra:
     }
 
 help-type = Seòrsa:

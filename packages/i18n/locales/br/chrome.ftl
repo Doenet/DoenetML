@@ -141,6 +141,6 @@ accessibility-heading-level-2 = Kemenn haezadusted
 
 something-went-wrong = Un dra bennak a zo aet a-dreuz.
 
-renderer-load-failed = ur c'hempouezer n'en deus ket gallet kargañ. Adkargit ar bajenn.
+renderer-load-failed = un treser n'en deus ket gallet kargañ. Adkargit ar bajenn.
 
 core-start-failed = N'eus ket bet gallet kregiñ gant gweler an teul. Adkargit ar bajenn.

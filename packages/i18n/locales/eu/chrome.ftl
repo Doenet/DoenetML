@@ -7,8 +7,11 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Basque counts in the same two plural categories English does, so every
-# `{ $count -> … }` below keeps the shape it had.
+# Basque counts in the same two plural categories English does — `one` and
+# `other` — but a noun after a numeral stays singular and only the verb agrees.
+# So `attempts-remaining` keeps its branches, for «geratzen da» against
+# «geratzen dira», and `answer-show-responses`, which has no verb after the
+# count, needs none.
 
 ## Answer submission
 
@@ -32,7 +35,7 @@ max-credit-available = Eskuragarri dagoen gehieneko puntuazioa: % { $percent }
 attempts-remaining =
     { $count ->
         [0] ez da saiakerarik geratzen
-        [one] saiakera { $count } geratzen da
+        [one] { $count } saiakera geratzen da
        *[other] { $count } saiakera geratzen dira
     }
 
@@ -40,11 +43,10 @@ validation-correct = (Zuzena)
 validation-incorrect = (Okerra)
 validation-partially-correct = (Partzialki zuzena)
 
-answer-show-responses =
-    { $count ->
-        [one] Erakutsi { $answerId } atalaren erantzun { $count }
-       *[other] Erakutsi { $answerId } atalaren { $count } erantzun
-    }
+# The genitive lands on «izeneko erantzunaren», words this catalog writes, so
+# nothing is welded to `$answerId`. The noun stays singular after the numeral
+# and no verb follows it, so the count needs no branch.
+answer-show-responses = Erakutsi { $answerId } izeneko erantzunaren { $count } erantzun
 
 
 ## Disclosure panels

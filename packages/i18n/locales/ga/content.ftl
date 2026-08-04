@@ -17,14 +17,15 @@
 #
 # Not every word can show it: `l`, `n`, `r` and a vowel have no lenited form,
 # and neither do `sc-`, `sm-`, `sp-` and `st-`. «liath» and «oráiste» are
-# therefore identical in both branches, which is a fact about Irish spelling
-# and not an untranslated string.
+# therefore written once with no select at all, which is a fact about Irish
+# spelling and not an untranslated string.
 #
 # Nothing here selects on `$role`. Irish has a genitive and a vocative but no
 # case that an attributive adjective takes from the position of the phrase it
 # sits in: what a position does to a Celtic adjective is done by the noun in
-# front of it, and that noun's gender is already the token. The three clause
-# roles therefore fall through to `standalone` in every word.
+# front of it, and that noun's gender is already the token. No message below
+# mentions `$role`, so the three clause positions render exactly as
+# `standalone` does.
 
 
 ## Style vocabulary
@@ -140,6 +141,11 @@ noun =
 # «polagán rialta» is the noun and its own adjective; the side count follows
 # the style adjectives as a prepositional phrase, so the head and the tail
 # split around them the way Spanish's does.
+#
+# «taobh» stays singular after the numeral, as any counted noun does, and stays
+# unlenited: 2 to 6 would lenite it and 7 to 10 would leave it alone, and the
+# side count is a value this catalog never sees, so no mutation can be welded
+# onto it.
 noun-regular-polygon =
     { $part ->
         [tail] le { $numSides } taobh
@@ -166,13 +172,14 @@ noun-gender =
 
 ## Style composition
 
-# The adjectives follow their noun, and among themselves Irish puts the colour
-# first: «líne dhearg thiubh bhriste», not the English order.
+# The adjectives follow their noun rather than preceding it, and among
+# themselves they keep the order English uses, with the colour last:
+# «líne thiubh bhriste dhearg», as «carr beag dearg» puts size before colour.
 style-stroke =
     { $parts ->
-        [width-style-color] { $color } { $width } { $lineStyle }
-        [width-color] { $color } { $width }
-        [style-color] { $color } { $lineStyle }
+        [width-style-color] { $width } { $lineStyle } { $color }
+        [width-color] { $width } { $color }
+        [style-color] { $lineStyle } { $color }
         [width-style] { $width } { $lineStyle }
         [width] { $width }
         [style] { $lineStyle }
@@ -248,7 +255,7 @@ boolean-false = bréagach
 
 ## Answer buttons
 
-answer-submit-label = Ceartaigh
+answer-submit-label = Seiceáil an obair
 answer-submit-label-no-correctness = Seol an freagra
 
 
@@ -256,7 +263,7 @@ answer-submit-label-no-correctness = Seol an freagra
 
 section-name =
     .activity = Gníomhaíocht
-    .aside = Seachfhocal
+    .aside = Nóta Taoibh
     .cascade = Cascáid
     .definition = Sainmhíniú
     .example = Sampla

@@ -10,16 +10,16 @@
 # Gaelic counts in four plural categories — `one`, `two`, `few` and `other` —
 # one fewer than Irish, which keeps a separate `many` for the eclipsing
 # numerals seven to ten. What separates `two` here is the dual: «dà» leaves the
-# noun singular and lenites it, so the branch differs from the others in the
-# shape of the word and not in an ending.
+# noun singular and lenites it, exactly as «aon» does — so the `two` branch
+# reads like `one` rather than like `few`, and only `few` takes a plural noun.
 
 ## Answer submission
 
-answer-checking = 'Ga dhearbhadh…
-answer-submitting = 'Ga chur…
+answer-checking = Ga dhearbhadh…
+answer-submitting = Ga chur…
 
-answer-checking-status = A' dearbhadh na freagairt
-answer-submitting-status = A' cur na freagairt
+answer-checking-status = A' dearbhadh na freagairte
+answer-submitting-status = A' cur na freagairte
 
 answer-correct = Ceart
 answer-incorrect = Ceàrr
@@ -61,7 +61,7 @@ feedback-heading = Beachdan
 collapsible-click-to-open = (briog gus a fhosgladh)
 collapsible-click-to-close = (briog gus a dhùnadh)
 
-collapsible-initializing = 'Ga thòiseachadh…
+collapsible-initializing = Ga thòiseachadh…
 
 footnote-show = Seall am bun-nòta
 footnote-hide = Falaich am bun-nòta
@@ -113,7 +113,7 @@ math-input-invalid-expression = Abairt mhì-dhligheach:
 
 ## Document status
 
-viewer-initializing = 'Ga thòiseachadh…
+viewer-initializing = Ga thòiseachadh…
 
 
 ## Errors

@@ -25,6 +25,9 @@ editor-update-viewer =
        *[update] Diweddaru
     }
 
+# «y gwyliwr» rather than «'r gwyliwr»: which of the two the article takes
+# depends on whether the word before it ends in a vowel, and that word is
+# `$word` — the button's own label, which this message never sees.
 editor-update-viewer-title =
     { $shortcut ->
         [none] { $word } y gwyliwr
@@ -44,7 +47,7 @@ editor-variant-previous = Dewis yr amrywiad blaenorol
 
 editor-accessibility-title =
     { $status ->
-        [violations] Canfuwyd tramgwydd hygyrchedd WCAG AA. Cliciwch i { $action ->
+        [violations] Nodwyd tramgwydd hygyrchedd WCAG AA. Cliciwch i { $action ->
             [close] gau
            *[open] agor
         } yr adroddiad hygyrchedd.
@@ -60,7 +63,7 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Canfuwyd tramgwydd hygyrchedd WCAG AA. Canfuwyd { $count ->
+        [violations] Nodwyd tramgwydd hygyrchedd WCAG AA. Canfuwyd { $count ->
             [zero] { $count } tramgwydd WCAG AA
             [one] { $count } tramgwydd WCAG AA
             [two] { $count } dramgwydd WCAG AA
@@ -94,7 +97,7 @@ editor-tab-errors = Gwallau
 editor-tab-warnings = Rhybuddion
 editor-tab-info = Gwybodaeth
 editor-tab-accessibility = Hygyrchedd
-editor-tab-responses = Atebion a gyflwynwyd
+editor-tab-responses = Ymatebion a gyflwynwyd
 
 editor-tab-with-count = { $label }: { $count }
 
@@ -124,9 +127,9 @@ editor-none-found = Ni chanfuwyd yr un
 
 ## Submitted responses
 
-editor-no-responses = Ni chyflwynwyd unrhyw ateb eto
+editor-no-responses = Ni chyflwynwyd unrhyw ymateb eto
 editor-response-answer-id = Dynodydd yr ateb
-editor-response-response = Ateb
+editor-response-response = Ymateb
 editor-response-credit = Marciau
 editor-response-submitted = Cyflwynwyd
 

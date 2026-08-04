@@ -13,8 +13,9 @@
 #
 # Irish counts in five plural categories. A message whose numeral stands
 # directly in front of a noun is written out in all five, because the numeral
-# decides the noun's initial: it stays singular throughout, is lenited after 2
-# to 6 and eclipsed after `seacht` to `deich`, which is the `many` branch.
+# decides the noun's initial: it stays singular throughout, is left alone after
+# 1, is lenited after 2 to 6 — «chomhpháirt» — and is eclipsed after `seacht`
+# to `deich` — «gcomhpháirt» — which is the `many` branch.
 # Where English distinguishes only a singular verb from a plural one and Irish
 # uses one form for both, the select is dropped rather than written out twice
 # identically; where only the noun changes, `one` and `other` are enough, since
@@ -590,7 +591,7 @@ select-variant-name-not-possible = Ní ainm leagain féideartha é an t-ainm lea
 
 select-too-few-options =
     { $numToSelect ->
-        [one] Ní féidir { $numToSelect } chomhpháirt a roghnú as { $numOptions } amháin.
+        [one] Ní féidir { $numToSelect } comhpháirt a roghnú as { $numOptions } amháin.
         [two] Ní féidir { $numToSelect } chomhpháirt a roghnú as { $numOptions } amháin.
         [few] Ní féidir { $numToSelect } chomhpháirt a roghnú as { $numOptions } amháin.
         [many] Ní féidir { $numToSelect } gcomhpháirt a roghnú as { $numOptions } amháin.

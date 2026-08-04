@@ -27,7 +27,7 @@ answer-percent-credit = { $percent }% av stigunum
 answer-percent-correct = { $percent }% rætt
 answer-percent-short = { $percent } %
 
-max-credit-available = Hægst møgulig stig: { $percent }%
+max-credit-available = Hægst møguligt stig: { $percent }%
 
 attempts-remaining =
     { $count ->
@@ -86,9 +86,9 @@ orbital-add-row = Legg rað afturat
 orbital-remove-row = Tak rað burtur
 orbital-add-box = Legg kassa afturat
 orbital-remove-box = Tak kassa burtur
-orbital-add-up-arrow = Legg pil upp afturat
-orbital-add-down-arrow = Legg pil niður afturat
-orbital-remove-arrow = Tak pil burtur
+orbital-add-up-arrow = Legg píl upp afturat
+orbital-add-down-arrow = Legg píl niður afturat
+orbital-remove-arrow = Tak píl burtur
 
 orbital-row-label = Merki fyri rað { $row }
 
