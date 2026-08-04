@@ -15,14 +15,9 @@
 # the *noun* after the indefinite article as well, which is why «bevenn» is
 # written «ur vevenn» in the border clause below and never bare.
 #
-# `l`, `n`, `r`, `s` and a vowel do not move, so «ruz» and «roz» read alike in
-# both branches.
-#
-# Among the postnominal adjectives themselves the order is size and quality
-# first and colour last — «ur c'harr bras ruz», so «ul linenn dev diret ruz» —
-# which is the order Irish and Gaelic take too, and which leaves `style-stroke`
-# reading in the same sequence English writes. Welsh is the one of the four
-# that runs the other way and puts the colour first.
+# `l`, `n`, `r`, `s` and a vowel do not move, so «ruz», «roz», «limestra» and
+# «orañjez» are written with no `$gender` select at all, which is a fact about
+# Breton spelling and not an untranslated string.
 
 
 ## Style vocabulary
@@ -152,6 +147,11 @@ noun-gender =
 
 ## Style composition
 
+# The adjectives follow their noun, and among themselves the order is size and
+# quality first and colour last — «ur c'harr bras ruz», so «ul linenn dev diret
+# ruz». That is the order Irish and Gaelic take too, so `style-stroke` reads in
+# the sequence English writes; Welsh is the one of the four that runs the other
+# way and puts the colour first.
 style-stroke =
     { $parts ->
         [width-style-color] { $width } { $lineStyle } { $color }

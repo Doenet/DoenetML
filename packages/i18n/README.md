@@ -493,7 +493,11 @@ Breton run a string of postnominal adjectives in the order English writes them
 reads width, dash, colour in all three. Welsh runs it the other way round, the
 most closely defining word nearest the noun («ci du mawr»), so `locales/cy`
 puts the colour first and says so above the message, since the difference is
-the kind a later reader would otherwise "fix".
+the kind a later reader would otherwise "fix". Welsh is not alone in that:
+`locales/eu` orders its postnominal adjectives the same way, and `locales/gl`
+puts the dash word ahead of the width word as `es` and `pt` do while `ca` keeps
+width first. Each of those says so above its own `style-stroke`, for the same
+reason.
 
 Basque is the clean case of the opposite: it has a great many cases and selects
 on neither argument, because a Basque case is a suffix on the *last word of the

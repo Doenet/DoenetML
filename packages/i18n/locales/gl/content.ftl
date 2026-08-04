@@ -134,6 +134,11 @@ noun-gender =
 
 ## Style composition
 
+# The adjectives follow their noun, and the colour closes the run. The dash
+# word comes ahead of the width word — «liña descontinua grosa vermella» —
+# which is the order `locales/es` and `locales/pt` take and not the English
+# one; `locales/ca` is the Romance catalog that keeps width first. Do not
+# reorder these to match the English or Catalan.
 style-stroke =
     { $parts ->
         [width-style-color] { $lineStyle } { $width } { $color }

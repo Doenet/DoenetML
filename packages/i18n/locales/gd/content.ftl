@@ -16,9 +16,9 @@
 # prefix belongs to «na h-», «a h-» and «gu h-» instead.
 #
 # `l`, `n`, `r` and a vowel have no lenited form, and neither does an `s`
-# before another consonant — `sg-`, `sm-`, `sp-`, `st-`. So «uaine» and
-# «strìochagach» are written with no `$gender` select at all, which is a fact
-# about Gaelic spelling and not an untranslated string.
+# before another consonant — `sg-`, `sm-`, `sp-`, `st-`. So «uaine»,
+# «orainds» and «strìochagach» are written with no `$gender` select at all,
+# which is a fact about Gaelic spelling and not an untranslated string.
 
 
 ## Style vocabulary

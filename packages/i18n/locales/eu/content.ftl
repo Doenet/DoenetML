@@ -91,6 +91,10 @@ noun-gender = neuter
 
 ## Style composition
 
+# The adjectives follow their noun, colour first: «marra gorri lodi eten». A
+# Basque string of adjectives puts the most closely defining word nearest the
+# noun, so the colour leads and the English order is not carried over — the
+# same call `locales/cy` makes. Do not reorder these to width-style-colour.
 style-stroke =
     { $parts ->
         [width-style-color] { $color } { $width } { $lineStyle }
