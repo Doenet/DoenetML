@@ -11,12 +11,15 @@ export type SupportedLocale =
     | "am"
     | "ar"
     | "as"
+    | "be"
+    | "bg"
     | "bn"
     | "cs"
     | "da"
     | "de"
     | "el"
     | "es"
+    | "et"
     | "fa"
     | "fi"
     | "fil"
@@ -26,6 +29,7 @@ export type SupportedLocale =
     | "he"
     | "hi"
     | "hnj"
+    | "hr"
     | "hu"
     | "id"
     | "ig"
@@ -33,6 +37,9 @@ export type SupportedLocale =
     | "ja"
     | "kn"
     | "ko"
+    | "lt"
+    | "lv"
+    | "mk"
     | "ml"
     | "mr"
     | "ms"
@@ -52,7 +59,10 @@ export type SupportedLocale =
     | "rw"
     | "sd"
     | "sk"
+    | "sl"
     | "so"
+    | "sq"
+    | "sr"
     | "sv"
     | "sw"
     | "ta"
@@ -131,6 +141,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Assamese (অসমীয়া)",
     },
     {
+        locale: "be",
+        englishName: "Belarusian",
+        endonym: "беларуская",
+        label: "Belarusian (беларуская)",
+    },
+    {
+        locale: "bg",
+        englishName: "Bulgarian",
+        endonym: "български",
+        label: "Bulgarian (български)",
+    },
+    {
         locale: "bn",
         englishName: "Bangla",
         endonym: "বাংলা",
@@ -165,6 +187,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Spanish",
         endonym: "español",
         label: "Spanish (español)",
+    },
+    {
+        locale: "et",
+        englishName: "Estonian",
+        endonym: "eesti",
+        label: "Estonian (eesti)",
     },
     {
         locale: "fa",
@@ -216,6 +244,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Hmong Njua",
     },
     {
+        locale: "hr",
+        englishName: "Croatian",
+        endonym: "hrvatski",
+        label: "Croatian (hrvatski)",
+    },
+    {
         locale: "hu",
         englishName: "Hungarian",
         endonym: "magyar",
@@ -251,6 +285,24 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Korean",
         endonym: "한국어",
         label: "Korean (한국어)",
+    },
+    {
+        locale: "lt",
+        englishName: "Lithuanian",
+        endonym: "lietuvių",
+        label: "Lithuanian (lietuvių)",
+    },
+    {
+        locale: "lv",
+        englishName: "Latvian",
+        endonym: "latviešu",
+        label: "Latvian (latviešu)",
+    },
+    {
+        locale: "mk",
+        englishName: "Macedonian",
+        endonym: "македонски",
+        label: "Macedonian (македонски)",
     },
     {
         locale: "ml",
@@ -362,10 +414,28 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Slovak (slovenčina)",
     },
     {
+        locale: "sl",
+        englishName: "Slovenian",
+        endonym: "slovenščina",
+        label: "Slovenian (slovenščina)",
+    },
+    {
         locale: "so",
         englishName: "Somali",
         endonym: "Soomaali",
         label: "Somali (Soomaali)",
+    },
+    {
+        locale: "sq",
+        englishName: "Albanian",
+        endonym: "shqip",
+        label: "Albanian (shqip)",
+    },
+    {
+        locale: "sr",
+        englishName: "Serbian",
+        endonym: "српски",
+        label: "Serbian (српски)",
     },
     {
         locale: "sv",

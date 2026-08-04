@@ -206,6 +206,27 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("vitone buluu");
     });
 
+    it("inflects Estonian for position with no gender to agree with", async () => {
+        const values = await descriptions(styled, names, "et");
+        // Estonian marks the clause with an ending on the noun rather than
+        // with a preposition, so nothing stands in front of the colour in
+        // `sh`: «äärisega» is the comitative of «ääris» and carries the "with"
+        // itself. Why the catalog is shaped that way is in its own header and
+        // in `@doenet/utils`' suite; what this checks is that the locale
+        // reaches the definitions.
+        expect(values.st).eq("paks katkendlik punane");
+        expect(values.stn).eq("paks katkendlik punane sirge");
+        expect(values.pt).eq("roheline ruut");
+        expect(values.sh).eq(
+            "täidetud sinine ringjoon punktidega ja paksu katkendliku punase äärisega",
+        );
+        // Standing alone the border's words are nominative; inside the clause
+        // above they are genitive, which is the whole distinction `$role`
+        // carries for a language with nothing else to agree for.
+        expect(values.bd).eq("paks katkendlik punane");
+        expect(values.fd).eq("sinine täide punktidega");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

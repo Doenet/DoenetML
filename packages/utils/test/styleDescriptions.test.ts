@@ -844,6 +844,8 @@ describe("a phrase rendered in two positions", () => {
     const pa = forLocale("pa");
     const sw = forLocale("sw");
     const zu = forLocale("zu");
+    const et = forLocale("et");
+    const bg = forLocale("bg");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1060,6 +1062,41 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Estonian is the clean case for `$role` on its own: it has fourteen cases
+    // and no gender at all, so every one of its describing words forks on the
+    // position and none of them consults `$gender`. It marks the two clauses
+    // with an ending on the noun rather than with a preposition, which is why
+    // nothing stands between the colour and «äärisega» or «taustal».
+    it("gives Estonian a case in each position and no gender anywhere", () => {
+        expect(bothBorderForms(et)).toEqual({
+            standalone: "paks must",
+            embedded: "täidetud sinine ringjoon paksu musta äärisega",
+        });
+        expect(bothTextForms(et)).toEqual({
+            textColor: "punane",
+            backgroundColor: "kollane",
+            sentence: "punane kollasel taustal",
+        });
+    });
+
+    // Bulgarian is the exact mirror, and the pair is why the two arguments are
+    // two arguments: it has three genders and no cases at all, so it forks on
+    // `$gender` and never on `$role`, and both of its positions read alike.
+    // What the gender buys it is the same thing it buys Gujarati — agreement
+    // with the right noun, feminine «граница» for the border against the
+    // feminine «окръжност» it surrounds, and masculine «фон» in the sentence.
+    it("gives Bulgarian a gender in each position and no case anywhere", () => {
+        expect(bothBorderForms(bg)).toEqual({
+            standalone: "дебела черна",
+            embedded: "запълнена синя окръжност с дебела черна граница",
+        });
+        expect(bothTextForms(bg)).toEqual({
+            textColor: "червен",
+            backgroundColor: "жълт",
+            sentence: "червен на жълт фон",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
@@ -1068,8 +1105,10 @@ describe("a phrase rendered in two positions", () => {
         // positions read alike. Asserted as exact strings in the two cases
         // above, which is what holds them there. Swahili and Zulu are absent
         // for a different reason: they agree for noun class rather than for
-        // case, so no position moves anything.
-        for (const t of [de, ru, pl, hi, mr]) {
+        // case, so no position moves anything. Bulgarian is absent for that
+        // same reason with a gender instead of a class, and Estonian is here
+        // because case is the only thing it has.
+        for (const t of [de, ru, pl, hi, mr, et]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);
         }
@@ -1077,7 +1116,8 @@ describe("a phrase rendered in two positions", () => {
         // background whose colour is spelled alike in the two positions, per
         // the cases above. Marathi spells its feminine oblique differently and
         // so belongs here, and so does Punjabi, whose background is masculine.
-        for (const t of [de, ru, pl, mr, pa]) {
+        // Estonian belongs here too: its background goes adessive.
+        for (const t of [de, ru, pl, mr, pa, et]) {
             const text = bothTextForms(t);
             expect(text.sentence).not.toContain(text.backgroundColor);
         }

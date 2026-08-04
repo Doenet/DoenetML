@@ -64980,6 +64980,14 @@
                             "description": "Assamese (অসমীয়া)"
                         },
                         {
+                            "value": "be",
+                            "description": "Belarusian (беларуская)"
+                        },
+                        {
+                            "value": "bg",
+                            "description": "Bulgarian (български)"
+                        },
+                        {
                             "value": "bn",
                             "description": "Bangla (বাংলা)"
                         },
@@ -65002,6 +65010,10 @@
                         {
                             "value": "es",
                             "description": "Spanish (español)"
+                        },
+                        {
+                            "value": "et",
+                            "description": "Estonian (eesti)"
                         },
                         {
                             "value": "fa",
@@ -65040,6 +65052,10 @@
                             "description": "Hmong Njua"
                         },
                         {
+                            "value": "hr",
+                            "description": "Croatian (hrvatski)"
+                        },
+                        {
                             "value": "hu",
                             "description": "Hungarian (magyar)"
                         },
@@ -65066,6 +65082,18 @@
                         {
                             "value": "ko",
                             "description": "Korean (한국어)"
+                        },
+                        {
+                            "value": "lt",
+                            "description": "Lithuanian (lietuvių)"
+                        },
+                        {
+                            "value": "lv",
+                            "description": "Latvian (latviešu)"
+                        },
+                        {
+                            "value": "mk",
+                            "description": "Macedonian (македонски)"
                         },
                         {
                             "value": "ml",
@@ -65144,8 +65172,20 @@
                             "description": "Slovak (slovenčina)"
                         },
                         {
+                            "value": "sl",
+                            "description": "Slovenian (slovenščina)"
+                        },
+                        {
                             "value": "so",
                             "description": "Somali (Soomaali)"
+                        },
+                        {
+                            "value": "sq",
+                            "description": "Albanian (shqip)"
+                        },
+                        {
+                            "value": "sr",
+                            "description": "Serbian (српски)"
                         },
                         {
                             "value": "sv",
