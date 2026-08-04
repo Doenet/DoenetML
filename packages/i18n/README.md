@@ -67,11 +67,12 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
-`bn`, `cs`, `da`, `de`, `el`, `es`, `fa`, `fi`, `fil`, `fr`, `gu`, `ha`, `he`,
-`hi`, `hnj`, `hu`, `id`, `ig`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `ms`, `my`,
-`nb`, `ne`, `nl`, `ny`, `om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`,
-`sd`, `sk`, `so`, `sv`, `sw`, `ta`, `te`, `th`, `tr`, `ug`, `uk`, `ur`, `vi`,
-`xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
+`be`, `bg`, `bn`, `cs`, `da`, `de`, `el`, `es`, `et`, `fa`, `fi`, `fil`, `fr`,
+`gu`, `ha`, `he`, `hi`, `hnj`, `hr`, `hu`, `id`, `ig`, `it`, `ja`, `kn`, `ko`,
+`lt`, `lv`, `mk`, `ml`, `mr`, `ms`, `my`, `nb`, `ne`, `nl`, `ny`, `om`, `or`,
+`pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`, `sd`, `sk`, `sl`, `so`, `sq`, `sr`,
+`sv`, `sw`, `ta`, `te`, `th`, `tr`, `ug`, `uk`, `ur`, `vi`, `xh`, `yo`,
+`zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
 seed**, which each file's own header says at the top, and
 which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
@@ -156,6 +157,15 @@ Hausa is the same case again: `ha` is Boko, the Latin orthography its schools,
 its publishing and CLDR all use, and a reader arriving under `ha-Arab` reaches
 it and gets Boko. Ajami is still written, so if it is ever seeded it is a
 `ha-Arab` catalog beside this one rather than a rename of it.
+
+Serbian is that same shape a fourth time. `sr` is written in Cyrillic, which is
+what CLDR fills a bare `sr` in as, and a reader arriving under `sr-Latn` reaches
+it and gets Cyrillic. `sh` — the retired Serbo-Croatian code — needs no entry in
+`LANGUAGE_ALIASES` either: `Intl.getCanonicalLocales` maps it to `sr-Latn` on
+its own, and that lands on the same catalog. Croatian is a directory of its
+own rather than a script of Serbian's, because the two are separate standard
+languages with separate vocabularies; `locales/hr` and `locales/sr` pick
+different words for the same border and so inflect it differently.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
