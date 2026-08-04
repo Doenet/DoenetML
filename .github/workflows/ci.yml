@@ -236,6 +236,12 @@ jobs:
                   echo "=== Preview Server Log ===" && cat /tmp/preview-server.log || true
                   echo "=== Server processes ===" && ps aux | grep "node\|npm" || true
 
+            - name: Debug browser environment
+            run: |
+                which google-chrome || true
+                google-chrome --version || true
+                npx cypress info || true
+
             - name: Cypress run ${{ matrix.test-group }}
               run: npm run test:${{ matrix.test-group }}
               env:
@@ -306,6 +312,21 @@ jobs:
                   devcontainer exec --workspace-folder . /bin/bash -c '
                       set -eu
                       bash .devcontainer/npm-install-with-rollup-check.sh npm ci
+
+                      # Debug browser environment on fork -- temporary.
+                      echo "=== Browser executables ==="
+                      which google-chrome || true
+                      which google-chrome-stable || true
+                      which chromium || true
+                      which chromium-browser || true
+
+                      echo "=== Browser versions ==="
+                      google-chrome --version || true
+                      google-chrome-stable --version || true
+                      chromium --version || true
+                      chromium-browser --version || true                      
+                      # End temporary.
+
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext

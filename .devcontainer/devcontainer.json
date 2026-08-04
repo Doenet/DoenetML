@@ -11,7 +11,7 @@
         },
         // Install vim from apt using an existing community feature.
         "ghcr.io/devcontainers-extra/features/apt-packages:1": {
-            "packages": "vim"
+            "packages": "vim libgtk-3-0 xvfb"
         },
         // Install files needed for WebDriver tests (e.g. doenetml-to-prefigure tests)
         "./features/webdriver-libs": {},
