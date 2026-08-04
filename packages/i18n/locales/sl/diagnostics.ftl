@@ -1,4 +1,4 @@
-# Slovene diagnostics. Translated from `locales/en/diagnostics.ftl`, which is
+# Slovenian diagnostics. Translated from `locales/en/diagnostics.ftl`, which is
 # the source of truth: `lint:i18n` rejects a key that does not exist there, and
 # reports a key that exists there but not here as missing coverage.
 #
@@ -11,12 +11,12 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# Slovene counts in four plural categories, `two` among them, and which of them
-# a message needs depends on what the count does in it. A message that prints
-# the number next to a noun agrees that noun with it and so spells out `one`,
-# `two` and `few`. A message where the number never appears — the list
+# Slovenian counts in four plural categories, `two` among them, and which of
+# them a message needs depends on what the count does in it. A message that
+# prints the number next to a noun agrees that noun with it and so spells out
+# `one`, `two` and `few`. A message where the number never appears — the list
 # messages, whose count only decides whether a verb is singular or plural — has
-# the two forms Slovene offers there, so `one` and `*[other]` are the whole
+# the two forms Slovenian offers there, so `one` and `*[other]` are the whole
 # selection.
 
 ## `<lineSegment>`

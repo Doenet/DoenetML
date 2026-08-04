@@ -1,4 +1,4 @@
-# Slovene viewer chrome. Translated from `locales/en/chrome.ftl`, which is the
+# Slovenian viewer chrome. Translated from `locales/en/chrome.ftl`, which is the
 # source of truth: `lint:i18n` rejects a key that does not exist there, and
 # reports a key that exists there but not here as missing coverage.
 #
@@ -7,8 +7,8 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Slovene counts in four plural categories, `two` among them — only
-# `locales/ar` and `locales/he` need that one too. Slovene has a living dual,
+# Slovenian counts in four plural categories, `two` among them — only
+# `locales/ar` and `locales/he` need that one too. Slovenian has a living dual,
 # so two attempts are «2 poskusa» and neither the singular nor any plural will
 # do. `few` covers 3 and 4, and `other` everything from 5 up. Every
 # `{ $count -> … }` below that prints its number therefore has four branches

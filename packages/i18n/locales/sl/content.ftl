@@ -1,10 +1,10 @@
-# Slovene content catalog: the prose the core computes into the document.
+# Slovenian content catalog: the prose the core computes into the document.
 # Selected by `documentLocale` — the language the activity was written in.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Slovene inflects for six cases and has three genders, so every describing
+# Slovenian inflects for six cases and has three genders, so every describing
 # word below selects on `$role` first and only then, where it matters, on
 # `$gender`:
 #
@@ -14,14 +14,14 @@
 #   background-clause   after «na», locative here, of «ozadje» — neuter: `-em`
 #   text-clause         nominative neuter, agreeing with «besedilo»
 #
-# Slovene is the one in this batch whose text and background are *both* neuter,
-# so its `text-clause` is a plain nominative neuter and its
+# Slovenian is the one in this batch whose text and background are *both*
+# neuter, so its `text-clause` is a plain nominative neuter and its
 # `background-clause` a locative of the same gender. `locales/hr` and
 # `locales/sr` both have a feminine background and a masculine text, and
 # `locales/ru` a masculine background; four Slavic catalogs, four arrangements,
 # none of which anything outside them had to know.
 #
-# The fill patterns carry their own preposition. Slovene picks «z» or «s» by
+# The fill patterns carry their own preposition. Slovenian picks «z» or «s» by
 # the sound that follows — «s pikami» but «z rombi» — and nothing in Fluent can
 # compute that from a placeable, so the choice is made once per pattern where
 # the word itself is, and the messages that place them supply no preposition of
@@ -260,7 +260,7 @@ noun =
     .cross = križ
     .plus = plus
 
-# Slovene keeps the side count in front of the noun, so the whole of it is one
+# Slovenian keeps the side count in front of the noun, so the whole of it is one
 # head and there is no tail.
 noun-regular-polygon =
     { $part ->
@@ -333,7 +333,7 @@ style-filled-with-noun =
     }
 
 # «rob» is masculine, so the border's adjectives agree with it and not with the
-# shape it surrounds. Slovene has no article, so the two `-article` branches
+# shape it surrounds. Slovenian has no article, so the two `-article` branches
 # read like the two without.
 style-border-clause =
     { $parts ->

@@ -1,4 +1,4 @@
-# Slovene editor and language-server surfaces. Translated from
+# Slovenian editor and language-server surfaces. Translated from
 # `locales/en/editor.ftl`, which is the source of truth: `lint:i18n` rejects a
 # key that does not exist there, and reports a key that exists there but not
 # here as missing coverage.
@@ -11,7 +11,7 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Slovene counts in four plural categories, `two` among them, but only a
+# Slovenian counts in four plural categories, `two` among them, but only a
 # message that prints the number beside a noun needs all four.
 # `help-coordinates` never shows its count — it decides a heading's singular
 # against its plural — so `one` and `*[other]` are the whole selection there.

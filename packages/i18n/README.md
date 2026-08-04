@@ -72,11 +72,11 @@ English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
 `lt`, `lv`, `mk`, `ml`, `mr`, `ms`, `my`, `nb`, `ne`, `nl`, `ny`, `om`, `or`,
 `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`, `sd`, `sk`, `sl`, `so`, `sq`, `sr`,
 `sv`, `sw`, `ta`, `te`, `th`, `tr`, `ug`, `uk`, `ur`, `vi`, `xh`, `yo`,
-`zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
-seed**, which each file's own header says at the top, and
-which is what #1521's translation platform is for. None has been read by a
-speaker. Correcting one needs no permission and no coordination: a wrong string
-is just wrong, and the English is one key away.
+`zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which
+each file's own header says at the top, and which is what #1521's translation
+platform is for. None has been read by a speaker. Correcting one needs no
+permission and no coordination: a wrong string is just wrong, and the English
+is one key away.
 
 Twenty-one of them are deliberately partial, all in the same place: Somali,
 Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
