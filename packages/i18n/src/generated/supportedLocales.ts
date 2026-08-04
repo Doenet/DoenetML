@@ -8,12 +8,14 @@
 export type SupportedLocale =
     | "en"
     | "af"
+    | "ak"
     | "am"
     | "ar"
     | "as"
     | "az"
     | "be"
     | "bg"
+    | "bm"
     | "bn"
     | "br"
     | "ca"
@@ -22,6 +24,7 @@ export type SupportedLocale =
     | "cy"
     | "da"
     | "de"
+    | "ee"
     | "el"
     | "es"
     | "et"
@@ -55,6 +58,8 @@ export type SupportedLocale =
     | "kn"
     | "ko"
     | "ky"
+    | "lg"
+    | "ln"
     | "lo"
     | "lt"
     | "lv"
@@ -85,9 +90,11 @@ export type SupportedLocale =
     | "sk"
     | "sl"
     | "sm"
+    | "sn"
     | "so"
     | "sq"
     | "sr"
+    | "st"
     | "su"
     | "sv"
     | "sw"
@@ -95,7 +102,9 @@ export type SupportedLocale =
     | "te"
     | "tg"
     | "th"
+    | "ti"
     | "tk"
+    | "tn"
     | "tr"
     | "tt"
     | "ug"
@@ -103,6 +112,7 @@ export type SupportedLocale =
     | "ur"
     | "uz"
     | "vi"
+    | "wo"
     | "xh"
     | "yo"
     | "zh-Hans"
@@ -152,6 +162,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Afrikaans",
         label: "Afrikaans",
     },
+    { locale: "ak", englishName: "Akan", endonym: "Akan", label: "Akan" },
     {
         locale: "am",
         englishName: "Amharic",
@@ -187,6 +198,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Bulgarian",
         endonym: "български",
         label: "Bulgarian (български)",
+    },
+    {
+        locale: "bm",
+        englishName: "Bambara",
+        endonym: "bamanakan",
+        label: "Bambara (bamanakan)",
     },
     {
         locale: "bn",
@@ -235,6 +252,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "German",
         endonym: "Deutsch",
         label: "German (Deutsch)",
+    },
+    {
+        locale: "ee",
+        englishName: "Ewe",
+        endonym: "eʋegbe",
+        label: "Ewe (eʋegbe)",
     },
     {
         locale: "el",
@@ -424,6 +447,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "кыргызча",
         label: "Kyrgyz (кыргызча)",
     },
+    {
+        locale: "lg",
+        englishName: "Ganda",
+        endonym: "Luganda",
+        label: "Ganda (Luganda)",
+    },
+    {
+        locale: "ln",
+        englishName: "Lingala",
+        endonym: "lingála",
+        label: "Lingala (lingála)",
+    },
     { locale: "lo", englishName: "Lao", endonym: "ລາວ", label: "Lao (ລາວ)" },
     {
         locale: "lt",
@@ -585,6 +620,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     { locale: "sm", englishName: "Samoan", endonym: "Samoan", label: "Samoan" },
     {
+        locale: "sn",
+        englishName: "Shona",
+        endonym: "chiShona",
+        label: "Shona (chiShona)",
+    },
+    {
         locale: "so",
         englishName: "Somali",
         endonym: "Soomaali",
@@ -601,6 +642,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Serbian",
         endonym: "српски",
         label: "Serbian (српски)",
+    },
+    {
+        locale: "st",
+        englishName: "Southern Sotho",
+        endonym: "Sesotho",
+        label: "Southern Sotho (Sesotho)",
     },
     {
         locale: "su",
@@ -640,10 +687,22 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     { locale: "th", englishName: "Thai", endonym: "ไทย", label: "Thai (ไทย)" },
     {
+        locale: "ti",
+        englishName: "Tigrinya",
+        endonym: "ትግርኛ",
+        label: "Tigrinya (ትግርኛ)",
+    },
+    {
         locale: "tk",
         englishName: "Turkmen",
         endonym: "türkmen dili",
         label: "Turkmen (türkmen dili)",
+    },
+    {
+        locale: "tn",
+        englishName: "Tswana",
+        endonym: "Setswana",
+        label: "Tswana (Setswana)",
     },
     {
         locale: "tr",
@@ -687,6 +746,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Tiếng Việt",
         label: "Vietnamese (Tiếng Việt)",
     },
+    { locale: "wo", englishName: "Wolof", endonym: "Wolof", label: "Wolof" },
     {
         locale: "xh",
         englishName: "Xhosa",
