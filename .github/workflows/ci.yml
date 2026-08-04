@@ -235,11 +235,20 @@ jobs:
               run: |
                   echo "=== Preview Server Log ===" && cat /tmp/preview-server.log || true
                   echo "=== Server processes ===" && ps aux | grep "node\|npm" || true
-
-            - name: Debug browser environment
-            run: |
+              run: |
+                echo "=== Browser executables ==="
                 which google-chrome || true
+                which google-chrome-stable || true
+                which chromium || true
+                which chromium-browser || true
+
+                echo "=== Browser versions ==="
                 google-chrome --version || true
+                google-chrome-stable --version || true
+                chromium --version || true
+                chromium-browser --version || true
+
+                echo "=== Cypress browser detection ==="
                 npx cypress info || true
 
             - name: Cypress run ${{ matrix.test-group }}
