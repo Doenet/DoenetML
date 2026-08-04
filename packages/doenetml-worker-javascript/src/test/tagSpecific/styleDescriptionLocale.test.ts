@@ -267,6 +267,26 @@ describe("style descriptions follow the document locale @group4", () => {
         });
     });
 
+    it("mutates Irish adjectives after the noun they follow", async () => {
+        const values = await descriptions(styled, names, "ga");
+        // The Celtic fork through the whole worker path: adjectives come after
+        // their noun, and a feminine noun softens the first consonant of each.
+        // «líne» is feminine, so its words are lenited whether or not the noun
+        // is printed beside them — `st` carries the line's own gender exactly
+        // as `stn` does. «ciorcal» is masculine and leaves «gorm» alone, and
+        // the border is feminine «imlíne» whatever it surrounds, so its
+        // adjectives lenite there too. The h- «le» prefixes to that vowel is
+        // absent in the `agus` branch, which is the one this fixture reaches.
+        expect(values.st).eq("dhearg thiubh bhriste");
+        expect(values.stn).eq("líne dhearg thiubh bhriste");
+        expect(values.pt).eq("cearnóg ghlas");
+        expect(values.sh).eq(
+            "ciorcal gorm líonta le poncanna agus imlíne dhearg thiubh bhriste",
+        );
+        expect(values.bd).eq("dhearg thiubh bhriste");
+        expect(values.fd).eq("líonadh gorm le poncanna");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

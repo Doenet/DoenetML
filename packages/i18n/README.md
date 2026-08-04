@@ -67,13 +67,13 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `af`, `am`, `ar`, `as`,
-`az`, `be`, `bg`, `bn`, `cs`, `da`, `de`, `el`, `es`, `et`, `fa`, `fi`, `fil`,
-`fr`, `gu`, `ha`, `he`, `hi`, `hnj`, `hr`, `hu`, `hy`, `id`, `ig`, `it`, `ja`,
-`ka`, `kk`, `kn`, `ko`, `ky`, `lt`, `lv`, `mk`, `ml`, `mn`, `mr`, `ms`, `my`,
-`nb`, `ne`, `nl`, `ny`, `om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`,
-`sd`, `sk`, `sl`, `so`, `sq`, `sr`, `sv`, `sw`, `ta`, `te`, `tg`, `th`, `tk`,
-`tr`, `tt`, `ug`, `uk`, `ur`, `uz`, `vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`,
-`zu` — is an **unreviewed machine-generated seed**, which each file's own header
+`az`, `be`, `bg`, `bn`, `br`, `ca`, `cs`, `cy`, `da`, `de`, `el`, `es`, `et`,
+`eu`, `fa`, `fi`, `fil`, `fo`, `fr`, `ga`, `gd`, `gl`, `gu`, `ha`, `he`, `hi`,
+`hnj`, `hr`, `hu`, `hy`, `id`, `ig`, `is`, `it`, `ja`, `ka`, `kk`, `kn`, `ko`,
+`ky`, `lt`, `lv`, `mk`, `ml`, `mn`, `mr`, `ms`, `mt`, `my`, `nb`, `ne`, `nl`,
+`ny`, `om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`, `sd`, `sk`, `sl`,
+`so`, `sq`, `sr`, `sv`, `sw`, `ta`, `te`, `tg`, `th`, `tk`, `tr`, `tt`, `ug`,
+`uk`, `ur`, `uz`, `vi`, `xh`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's own header
 says at the top, and which is what #1521's translation platform is for. None has
 been read by a speaker. Correcting one needs no permission and no coordination:
 a wrong string is just wrong, and the English is one key away.
@@ -178,6 +178,12 @@ to the mismatch is a second catalog beside the first rather than a rename of it.
 None of the ten needs an entry in `LANGUAGE_ALIASES`: every regional tag over
 them — `az-AZ`, `uz-UZ`, `kk-KZ`, `mn-MN`, `hy-AM`, `ka-GE` — filters to its
 catalog unaided.
+
+The Celtic, North Atlantic and western-European batch raises none of this: all
+ten are Latin-script languages with one settled orthography apiece, and every
+regional tag over them — `ga-IE`, `gd-GB`, `cy-GB`, `br-FR`, `is-IS`, `fo-FO`,
+`eu-ES`, `ca-ES`, `ca-AD`, `gl-ES`, `mt-MT` — filters to its catalog with no
+alias.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
@@ -448,12 +454,12 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and `be`, `cs`, `de`, `el`, `et`, `fi`, `hi`, `hr`, `ka`, `lt`,
-`lv`, `mr`, `pa`, `pl`, `ps`, `ro`, `ru`, `sd`, `sk`, `sl`, `sq`, `sr`, `uk`
-and `ur` are the catalogs that select on them. Sharing a script does not imply
-sharing the fork: Marathi and Hindi both take an oblique adjective before a
-postposition and Nepali, written in the same letters, takes none. Nor is the fork
-all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and
+positions, and `be`, `cs`, `de`, `el`, `et`, `fi`, `fo`, `hi`, `hr`, `is`,
+`ka`, `lt`, `lv`, `mr`, `pa`, `pl`, `ps`, `ro`, `ru`, `sd`, `sk`, `sl`, `sq`,
+`sr`, `uk` and `ur` are the catalogs that select on them. Sharing a script does
+not imply sharing the fork: Marathi and Hindi both take an oblique adjective
+before a postposition and Nepali, written in the same letters, takes none. Nor
+is the fork all-or-nothing: Pashto marks the oblique on a feminine adjective in ـه and
 nowhere else, and Punjabi only where the position's own noun is masculine, so
 each branches on one position out of the four and leaves the rest to the
 default. Georgian is the third of that kind and the narrowest: an attributive
@@ -468,6 +474,23 @@ neither argument, because what carries a clause there is a suffix on the noun
 and an attributive adjective in front of it never moves. Armenian and Mongolian
 land in the same place by different routes. Which words a language happens to
 inflect decides this, not whether it has cases.
+
+The **Celtic four** — `ga`, `gd`, `cy`, `br` — reach that same answer from the
+other end. They mark an adjective heavily, but by mutating the front of it
+rather than by inflecting the end: a feminine singular noun softens whatever
+follows it, so «dearg» is «dhearg» in Irish, «coch» is «goch» in Welsh, and
+«du» is «zu» in Breton. That trigger is the *noun*, and the noun's gender is
+already a token these messages carry — so all four select on `$gender` alone
+and none of them writes a `$role` branch. Welsh goes one step past the other
+three: a handful of its adjectives have a feminine form of their own before the
+mutation applies, so «gwyn» becomes «gwen» and only then «wen», and its
+feminine branch is that finished word rather than the mutation by itself.
+
+Basque is the clean case of the opposite: it has a great many cases and selects
+on neither argument, because a Basque case is a suffix on the *last word of the
+whole noun phrase*. What a position asks for lands on a word `locales/eu`
+writes — «batekin», «planoarekin» — rather than on the adjective, so the
+description reads the same in all four positions.
 
 Whether a language inflects is not on its own the question. Gujarati has the
 same oblique Punjabi has and still selects on `$gender` alone, because the
