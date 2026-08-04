@@ -7,12 +7,12 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Latvian is the one language in any of these catalogs with a CLDR `zero`
-# category, and it does not mean "none": it covers every number ending in 0 and
-# the whole of the teens, all of which take a bare noun («10 mēģinājumu»,
-# «11 mēģinājumu»). `one` is any number ending in 1 except 11, so 21 and 101
-# take the singular. Every `{ $count -> … }` below that prints its number
-# therefore spells out all three.
+# Latvian has a CLDR `zero` category — `locales/ar` is the only other catalog
+# here that does — and it does not mean "none": it covers every number ending
+# in 0 and the whole of the teens, all of which take a bare noun
+# («10 mēģinājumu», «11 mēģinājumu»). `one` is any number ending in 1 except
+# 11, so 21 and 101 take the singular. Every `{ $count -> … }` below that
+# prints its number therefore spells out all three.
 #
 # The explicit `[0]` branch is still needed, and this is the language that
 # shows why most clearly: zero does select `zero`, but the English wording

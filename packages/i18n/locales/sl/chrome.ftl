@@ -7,11 +7,12 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Slovene counts in four plural categories, and it is the only language in any
-# of these catalogs that needs `two`: it has a living dual, so two attempts are
-# «2 poskusa» and neither the singular nor any plural will do. `few` covers 3
-# and 4, and `other` everything from 5 up. Every `{ $count -> … }` below that
-# prints its number therefore has four branches where English has two.
+# Slovene counts in four plural categories, `two` among them — only
+# `locales/ar` and `locales/he` need that one too. Slovene has a living dual,
+# so two attempts are «2 poskusa» and neither the singular nor any plural will
+# do. `few` covers 3 and 4, and `other` everything from 5 up. Every
+# `{ $count -> … }` below that prints its number therefore has four branches
+# where English has two.
 #
 # The categories go by the last two digits, so 101 is `one`, 102 is `two` and
 # 105 is `other`; zero falls to `other`, which is why the wording for zero is
