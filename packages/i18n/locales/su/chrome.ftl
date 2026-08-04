@@ -66,7 +66,7 @@ collapsible-initializing = Ngamimitian...
 footnote-show = Témbongkeun catetan suku
 footnote-hide = Nyumputkeun catetan suku
 
-description-more-information = katerangan leuwih jero
+description-more-information = leuwih loba katerangan
 
 
 ## Controls

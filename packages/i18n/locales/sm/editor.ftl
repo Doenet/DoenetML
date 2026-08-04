@@ -33,7 +33,11 @@ editor-update-viewer-title =
 ## The variant picker
 
 editor-variant = Ituaiga
-editor-variant-filter = Faʻamamā...
+# «faʻamama», to strain or sift, and not «faʻamamā», to clean, which is what
+# `chrome.ftl` renders `subset-clear` as. The two differ only by the macron and
+# they are different words; this is a box that narrows a list, not a button
+# that empties one, and collapsing them would leave the filter reading "Clear".
+editor-variant-filter = Faʻamama...
 editor-variant-next = Filifili le ituaiga sosoʻo
 editor-variant-previous = Filifili le ituaiga muamua
 

@@ -103,7 +103,9 @@ style-with-noun =
        *[noun] { $noun } { $description }
     }
 
-style-filled-word = eusi
+# The participle, matching `style-unfilled`'s «teu dieusian» below; «eusi» on
+# its own is the noun for the contents rather than a word describing the shape.
+style-filled-word = dieusian
 
 style-filled =
     { $parts ->
@@ -120,13 +122,15 @@ style-filled-with-noun =
     }
 
 # Sundanese needs no article, so the `-article` branches read like the ones
-# without.
+# without. The border is «pinggir», the rim, and not «sisi»: «sisi» is the word
+# `noun-regular-polygon` above counts, so a bordered pentagon would otherwise
+# describe its outline with the same word as the five sides it is drawn from.
 style-border-clause =
     { $parts ->
-        [with-article] jeung sisi { $border }
-        [and] jeung sisi { $border }
-        [and-article] jeung sisi { $border }
-       *[with] jeung sisi { $border }
+        [with-article] jeung pinggir { $border }
+        [and] jeung pinggir { $border }
+        [and-article] jeung pinggir { $border }
+       *[with] jeung pinggir { $border }
     }
 
 # The pattern is a noun and the colour follows it, as everywhere else.

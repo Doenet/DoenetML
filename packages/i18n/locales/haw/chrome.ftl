@@ -64,7 +64,9 @@ collapsible-initializing = Ke hoʻomaka nei...
 footnote-show = E hōʻike i ka memo wāwae
 footnote-hide = E hūnā i ka memo wāwae
 
-description-more-information = ʻikepili hou aku
+# «ʻike», knowledge, rather than «ʻikepili», which is this catalog's word for
+# data and would read as "more data" on an affordance that reveals prose.
+description-more-information = ʻike hou aku
 
 
 ## Controls

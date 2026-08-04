@@ -208,12 +208,14 @@ hint-title = Timailhan
 
 ## Tables and figures
 
+# «talaan», a tabulation, and not «lamesa», which is the Spanish-derived word
+# for the piece of furniture.
 table-name =
     { $parts ->
-        [numbered] Lamesa { $enumeration }
-        [numbered-title] Lamesa { $enumeration }{ ": " }
-        [unnumbered-title] Lamesa{ ": " }
-       *[unnumbered] Lamesa
+        [numbered] Talaan { $enumeration }
+        [numbered-title] Talaan { $enumeration }{ ": " }
+        [unnumbered-title] Talaan{ ": " }
+       *[unnumbered] Talaan
     }
 
 figure-name =
