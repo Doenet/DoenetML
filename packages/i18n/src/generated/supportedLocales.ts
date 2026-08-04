@@ -15,16 +15,24 @@ export type SupportedLocale =
     | "be"
     | "bg"
     | "bn"
+    | "br"
+    | "ca"
     | "cs"
+    | "cy"
     | "da"
     | "de"
     | "el"
     | "es"
     | "et"
+    | "eu"
     | "fa"
     | "fi"
     | "fil"
+    | "fo"
     | "fr"
+    | "ga"
+    | "gd"
+    | "gl"
     | "gu"
     | "ha"
     | "he"
@@ -35,6 +43,7 @@ export type SupportedLocale =
     | "hy"
     | "id"
     | "ig"
+    | "is"
     | "it"
     | "ja"
     | "ka"
@@ -49,6 +58,7 @@ export type SupportedLocale =
     | "mn"
     | "mr"
     | "ms"
+    | "mt"
     | "my"
     | "nb"
     | "ne"
@@ -175,10 +185,28 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Bangla (বাংলা)",
     },
     {
+        locale: "br",
+        englishName: "Breton",
+        endonym: "brezhoneg",
+        label: "Breton (brezhoneg)",
+    },
+    {
+        locale: "ca",
+        englishName: "Catalan",
+        endonym: "català",
+        label: "Catalan (català)",
+    },
+    {
         locale: "cs",
         englishName: "Czech",
         endonym: "čeština",
         label: "Czech (čeština)",
+    },
+    {
+        locale: "cy",
+        englishName: "Welsh",
+        endonym: "Cymraeg",
+        label: "Welsh (Cymraeg)",
     },
     {
         locale: "da",
@@ -211,6 +239,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Estonian (eesti)",
     },
     {
+        locale: "eu",
+        englishName: "Basque",
+        endonym: "euskara",
+        label: "Basque (euskara)",
+    },
+    {
         locale: "fa",
         englishName: "Persian",
         endonym: "فارسی",
@@ -229,10 +263,34 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Filipino",
     },
     {
+        locale: "fo",
+        englishName: "Faroese",
+        endonym: "føroyskt",
+        label: "Faroese (føroyskt)",
+    },
+    {
         locale: "fr",
         englishName: "French",
         endonym: "français",
         label: "French (français)",
+    },
+    {
+        locale: "ga",
+        englishName: "Irish",
+        endonym: "Gaeilge",
+        label: "Irish (Gaeilge)",
+    },
+    {
+        locale: "gd",
+        englishName: "Scottish Gaelic",
+        endonym: "Gàidhlig",
+        label: "Scottish Gaelic (Gàidhlig)",
+    },
+    {
+        locale: "gl",
+        englishName: "Galician",
+        endonym: "galego",
+        label: "Galician (galego)",
     },
     {
         locale: "gu",
@@ -284,6 +342,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Indonesian (Indonesia)",
     },
     { locale: "ig", englishName: "Igbo", endonym: "Igbo", label: "Igbo" },
+    {
+        locale: "is",
+        englishName: "Icelandic",
+        endonym: "íslenska",
+        label: "Icelandic (íslenska)",
+    },
     {
         locale: "it",
         englishName: "Italian",
@@ -367,6 +431,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Malay",
         endonym: "Melayu",
         label: "Malay (Melayu)",
+    },
+    {
+        locale: "mt",
+        englishName: "Maltese",
+        endonym: "Malti",
+        label: "Maltese (Malti)",
     },
     {
         locale: "my",

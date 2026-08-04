@@ -64996,8 +64996,20 @@
                             "description": "Bangla (বাংলা)"
                         },
                         {
+                            "value": "br",
+                            "description": "Breton (brezhoneg)"
+                        },
+                        {
+                            "value": "ca",
+                            "description": "Catalan (català)"
+                        },
+                        {
                             "value": "cs",
                             "description": "Czech (čeština)"
+                        },
+                        {
+                            "value": "cy",
+                            "description": "Welsh (Cymraeg)"
                         },
                         {
                             "value": "da",
@@ -65020,6 +65032,10 @@
                             "description": "Estonian (eesti)"
                         },
                         {
+                            "value": "eu",
+                            "description": "Basque (euskara)"
+                        },
+                        {
                             "value": "fa",
                             "description": "Persian (فارسی)"
                         },
@@ -65032,8 +65048,24 @@
                             "description": "Filipino"
                         },
                         {
+                            "value": "fo",
+                            "description": "Faroese (føroyskt)"
+                        },
+                        {
                             "value": "fr",
                             "description": "French (français)"
+                        },
+                        {
+                            "value": "ga",
+                            "description": "Irish (Gaeilge)"
+                        },
+                        {
+                            "value": "gd",
+                            "description": "Scottish Gaelic (Gàidhlig)"
+                        },
+                        {
+                            "value": "gl",
+                            "description": "Galician (galego)"
                         },
                         {
                             "value": "gu",
@@ -65074,6 +65106,10 @@
                         {
                             "value": "ig",
                             "description": "Igbo"
+                        },
+                        {
+                            "value": "is",
+                            "description": "Icelandic (íslenska)"
                         },
                         {
                             "value": "it",
@@ -65130,6 +65166,10 @@
                         {
                             "value": "ms",
                             "description": "Malay (Melayu)"
+                        },
+                        {
+                            "value": "mt",
+                            "description": "Maltese (Malti)"
                         },
                         {
                             "value": "my",

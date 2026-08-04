@@ -733,6 +733,57 @@ describe("Tajik", () => {
     });
 });
 
+describe("Irish", () => {
+    const ga: Translator = createTranslatorFromLocaleData(
+        { locale: "ga", resources: { ga: readCatalog("ga", "content") } },
+        "ga",
+    );
+
+    // The Celtic answer to agreement: a feminine singular noun does not give
+    // its adjectives an ending, it softens the front of them. «líne» is
+    // feminine, so «tiubh briste dearg» comes out «thiubh bhriste dhearg»; «ga»
+    // is masculine and leaves the same words alone. `$gender` carries the whole
+    // of that, which is why no Celtic catalog writes a `$role` branch.
+    it("lenites a feminine noun's adjectives and leaves a masculine one's", () => {
+        const words = {
+            colorWord: "red",
+            lineWidthWord: "thick",
+            lineStyleWord: "dashed",
+        };
+        expect(
+            describeStrokedShape(ga, words, {
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("líne thiubh bhriste dhearg");
+        expect(
+            describeStrokedShape(ga, words, {
+                noun: { key: "ray" },
+                withNoun: true,
+            }),
+        ).toBe("ga tiubh briste dearg");
+    });
+
+    // «imlíne» begins with a vowel and «le» prefixes h- to one, so the border
+    // noun is spelled two ways depending on which word introduces the clause.
+    // It is also feminine whatever the shape around it is, so its adjectives
+    // lenite while the shape's own colour, agreeing with masculine «ciorcal»,
+    // does not.
+    it("prefixes h- to the border noun after «le»", () => {
+        expect(
+            describeClosedShape(
+                ga,
+                {
+                    colorWord: "black",
+                    lineWidthWord: "thick",
+                    fillColorWord: "blue",
+                },
+                { filled: true, noun: { key: "circle" }, withNoun: true },
+            ),
+        ).toBe("ciorcal gorm líonta le himlíne thiubh dhubh");
+    });
+});
+
 /**
  * `$gender` is a token set, not a gender (#1641).
  *
@@ -908,6 +959,7 @@ describe("a phrase rendered in two positions", () => {
     const et = forLocale("et");
     const bg = forLocale("bg");
     const ka = forLocale("ka");
+    const is = forLocale("is");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1175,6 +1227,22 @@ describe("a phrase rendered in two positions", () => {
             textColor: "წითელი",
             backgroundColor: "ყვითელი",
             sentence: "ყვითელ ფონზე წითელი",
+        });
+    });
+
+    // Icelandic marks both clause positions with the same `-um`, because «með»
+    // and «á» happen to govern the same case over two masculine nouns. That is
+    // one dative reached twice, not a collapsed fork: the nominative standing
+    // alone is a different word in both pairs.
+    it("gives Icelandic a dative in both clauses and a nominative alone", () => {
+        expect(bothBorderForms(is)).toEqual({
+            standalone: "þykkur svartur",
+            embedded: "fylltur blár hringur með þykkum svörtum jaðri",
+        });
+        expect(bothTextForms(is)).toEqual({
+            textColor: "rauður",
+            backgroundColor: "gulur",
+            sentence: "rauður á gulum bakgrunni",
         });
     });
 
