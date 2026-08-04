@@ -65004,6 +65004,10 @@
                             "description": "Catalan (català)"
                         },
                         {
+                            "value": "ceb",
+                            "description": "Cebuano"
+                        },
+                        {
                             "value": "cs",
                             "description": "Czech (čeština)"
                         },
@@ -65076,6 +65080,10 @@
                             "description": "Hausa"
                         },
                         {
+                            "value": "haw",
+                            "description": "Hawaiian (ʻŌlelo Hawaiʻi)"
+                        },
+                        {
                             "value": "he",
                             "description": "Hebrew (עברית)"
                         },
@@ -65120,12 +65128,20 @@
                             "description": "Japanese (日本語)"
                         },
                         {
+                            "value": "jv",
+                            "description": "Javanese (Jawa)"
+                        },
+                        {
                             "value": "ka",
                             "description": "Georgian (ქართული)"
                         },
                         {
                             "value": "kk",
                             "description": "Kazakh (қазақ тілі)"
+                        },
+                        {
+                            "value": "km",
+                            "description": "Khmer (ខ្មែរ)"
                         },
                         {
                             "value": "kn",
@@ -65140,12 +65156,24 @@
                             "description": "Kyrgyz (кыргызча)"
                         },
                         {
+                            "value": "lo",
+                            "description": "Lao (ລາວ)"
+                        },
+                        {
                             "value": "lt",
                             "description": "Lithuanian (lietuvių)"
                         },
                         {
                             "value": "lv",
                             "description": "Latvian (latviešu)"
+                        },
+                        {
+                            "value": "mg",
+                            "description": "Malagasy"
+                        },
+                        {
+                            "value": "mi",
+                            "description": "Māori"
                         },
                         {
                             "value": "mk",
@@ -65232,12 +65260,20 @@
                             "description": "Sindhi (سنڌي)"
                         },
                         {
+                            "value": "si",
+                            "description": "Sinhala (සිංහල)"
+                        },
+                        {
                             "value": "sk",
                             "description": "Slovak (slovenčina)"
                         },
                         {
                             "value": "sl",
                             "description": "Slovenian (slovenščina)"
+                        },
+                        {
+                            "value": "sm",
+                            "description": "Samoan"
                         },
                         {
                             "value": "so",
@@ -65250,6 +65286,10 @@
                         {
                             "value": "sr",
                             "description": "Serbian (српски)"
+                        },
+                        {
+                            "value": "su",
+                            "description": "Sundanese (Basa Sunda)"
                         },
                         {
                             "value": "sv",

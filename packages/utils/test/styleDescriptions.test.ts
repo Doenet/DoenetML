@@ -960,6 +960,9 @@ describe("a phrase rendered in two positions", () => {
     const bg = forLocale("bg");
     const ka = forLocale("ka");
     const is = forLocale("is");
+    const ceb = forLocale("ceb");
+    const km = forLocale("km");
+    const si = forLocale("si");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1243,6 +1246,58 @@ describe("a phrase rendered in two positions", () => {
             textColor: "rauður",
             backgroundColor: "gulur",
             sentence: "rauður á gulum bakgrunni",
+        });
+    });
+
+    // Cebuano inflects nothing at all, and still does not read like English:
+    // its noun leads, and the linker «nga» stands between it and each of its
+    // adjectives. Both positions read alike, which is the point — the words
+    // that move here are the catalog's own linkers, not a case ending.
+    it("gives Cebuano a linker in every position and no case anywhere", () => {
+        expect(bothBorderForms(ceb)).toEqual({
+            standalone: "baga nga itom",
+            embedded:
+                "sirkulo nga puno nga asul uban ang utlanan nga baga nga itom",
+        });
+        expect(bothTextForms(ceb)).toEqual({
+            textColor: "pula",
+            backgroundColor: "dalag",
+            sentence: "pula uban ang luyo nga dalag",
+        });
+    });
+
+    // Khmer is the opposite extreme: no gender, no case, no article and no
+    // space inside a phrase either, so the adjectives sit flush against the
+    // noun in front of them. The space before «ជាមួយ» is a real phrase break
+    // rather than a word boundary, and it is the only one in the sentence.
+    it("gives Khmer a phrase that closes up around its placeables", () => {
+        expect(bothBorderForms(km)).toEqual({
+            standalone: "ក្រាស់ពណ៌ខ្មៅ",
+            embedded: "រង្វង់លាបពណ៌ខៀវ ជាមួយគែមក្រាស់ពណ៌ខ្មៅ",
+        });
+        expect(bothTextForms(km)).toEqual({
+            textColor: "ពណ៌ក្រហម",
+            backgroundColor: "ពណ៌លឿង",
+            sentence: "ពណ៌ក្រហមលើផ្ទៃខាងក្រោយពណ៌លឿង",
+        });
+    });
+
+    // Sinhala is the third shape this batch brings, and the one whose reason
+    // for reading alike in both positions is not English's. It *does* mark
+    // case — but with a postposition after the noun, «සමඟ» for the border and
+    // «මත» for the background, and neither ever touches the adjective in front
+    // of it. So the adjectives this catalog hands to a clause are the same
+    // words in both positions, while the words that move are the postpositions
+    // the clause itself writes, after what they govern rather than before it.
+    it("gives Sinhala a postposition after the phrase and no case on the adjectives", () => {
+        expect(bothBorderForms(si)).toEqual({
+            standalone: "ඝන කළු",
+            embedded: "පිරවූ නිල් වෘත්තය ඝන කළු මායිමක් සමඟ",
+        });
+        expect(bothTextForms(si)).toEqual({
+            textColor: "රතු",
+            backgroundColor: "කහ",
+            sentence: "කහ පසුබිමක් මත රතු",
         });
     });
 
