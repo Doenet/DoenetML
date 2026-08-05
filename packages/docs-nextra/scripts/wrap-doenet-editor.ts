@@ -54,7 +54,8 @@ export const wrapDoenetEditor: Plugin<void[], MdastRoot, MdastRoot> =
 
 /**
  * Wraps codeblocks of type `doenet-editor-horiz` with a JSX element that renders the editor with the output
- * where the editor defaults to being at the left.
+ * where the editor defaults to being at the start (its left in a
+ * left-to-right document).
  */
 export const wrapDoenetEditorHorizontal: Plugin<void[], MdastRoot, MdastRoot> =
     function () {

@@ -1,5 +1,8 @@
 import BaseComponent from "./abstract/BaseComponent";
 import {
+    BORDER_VALUES,
+    HALIGN_VALUES,
+    VALIGN_VALUES,
     returnBorderValidValues,
     returnHalignValidValues,
     returnValignValidValues,
@@ -136,9 +139,7 @@ export default class Row extends BaseComponent {
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.halignAttr !== null) {
                     let halign = dependencyValues.halignAttr.stateValues.value;
-                    if (
-                        !["start", "center", "end", "justify"].includes(halign)
-                    ) {
+                    if (!HALIGN_VALUES.includes(halign)) {
                         halign = "start";
                     }
                     return { setValue: { halign } };
@@ -178,7 +179,7 @@ export default class Row extends BaseComponent {
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.valignAttr !== null) {
                     let valign = dependencyValues.valignAttr.stateValues.value;
-                    if (!["top", "middle", "bottom"].includes(valign)) {
+                    if (!VALIGN_VALUES.includes(valign)) {
                         valign = "middle";
                     }
                     return { setValue: { valign } };
@@ -220,11 +221,7 @@ export default class Row extends BaseComponent {
                 if (dependencyValues.startBorderAttr !== null) {
                     let startBorder =
                         dependencyValues.startBorderAttr.stateValues.value;
-                    if (
-                        !["none", "minor", "medium", "major"].includes(
-                            startBorder,
-                        )
-                    ) {
+                    if (!BORDER_VALUES.includes(startBorder)) {
                         startBorder = "none";
                     }
                     return { setValue: { startBorder } };
@@ -268,11 +265,7 @@ export default class Row extends BaseComponent {
                 if (dependencyValues.bottomBorderAttr !== null) {
                     let bottomBorder =
                         dependencyValues.bottomBorderAttr.stateValues.value;
-                    if (
-                        !["none", "minor", "medium", "major"].includes(
-                            bottomBorder,
-                        )
-                    ) {
+                    if (!BORDER_VALUES.includes(bottomBorder)) {
                         bottomBorder = "none";
                     }
                     return { setValue: { bottomBorder } };

@@ -148,8 +148,9 @@ describe("Warning Tests @group4", async () => {
         expect(messages).contains(
             "[deprecation] Value `left` of attribute `labelPosition` on `<textInput>` is deprecated; use `start` instead.",
         );
-        // Written in another casing: the attribute is `toLowerCase`, so the
-        // deprecated value is recognized however the author capitalized it.
+        // Written in another casing: the migration matches the deprecated
+        // value case-insensitively, so it is recognized however the author
+        // capitalized it, and the message names it in canonical casing.
         expect(messages).contains(
             "[deprecation] Value `right` of attribute `labelPosition` on `<booleanInput>` is deprecated; use `end` instead.",
         );

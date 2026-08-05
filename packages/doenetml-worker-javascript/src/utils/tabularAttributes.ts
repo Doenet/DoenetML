@@ -7,6 +7,13 @@
  * on the inner one. Declaring them in one place is also what puts them in the
  * schema, which is where autocomplete and the editor's help panel read the
  * allowed values from.
+ *
+ * The `return*ValidValues()` functions supply the attribute declarations. The
+ * `*_VALUES` arrays are the same vocabularies as bare strings, for the state
+ * variable definitions on `<row>` and `<cell>`: those attributes carry no
+ * `createStateVariable`, so their definitions read the authored value through
+ * an `attributeComponent` dependency and check it against the vocabulary
+ * themselves.
  */
 
 type ValueEntry = { value: string; description: string };
@@ -15,50 +22,64 @@ type ValueEntry = { value: string; description: string };
  * The border weights, inherited from PreTeXt's `<tabular>` along with the
  * attributes that carry them.
  */
-export function returnBorderValidValues(): ValueEntry[] {
-    return [
-        { value: "none", description: "Do not render a border." },
-        { value: "minor", description: "Render a thin border line." },
-        {
-            value: "medium",
-            description: "Render a medium-weight border line.",
-        },
-        { value: "major", description: "Render a thick border line." },
-    ];
-}
+const BORDER_VALUE_ENTRIES: ValueEntry[] = [
+    { value: "none", description: "Do not render a border." },
+    { value: "minor", description: "Render a thin border line." },
+    { value: "medium", description: "Render a medium-weight border line." },
+    { value: "major", description: "Render a thick border line." },
+];
 
 /**
  * Horizontal alignment of cell content. `start` and `end` follow the writing
  * direction rather than naming a physical side.
  */
-export function returnHalignValidValues(): ValueEntry[] {
-    return [
-        {
-            value: "start",
-            description:
-                "Align cell content to the leading edge: the left in a left-to-right document, the right in a right-to-left one.",
-        },
-        {
-            value: "center",
-            description: "Center cell content horizontally.",
-        },
-        {
-            value: "end",
-            description:
-                "Align cell content to the trailing edge: the right in a left-to-right document, the left in a right-to-left one.",
-        },
-        {
-            value: "justify",
-            description: "Justify cell content across the full cell width.",
-        },
-    ];
-}
+const HALIGN_VALUE_ENTRIES: ValueEntry[] = [
+    {
+        value: "start",
+        description:
+            "Align cell content to the leading edge: the left in a left-to-right document, the right in a right-to-left one.",
+    },
+    {
+        value: "center",
+        description: "Center cell content horizontally.",
+    },
+    {
+        value: "end",
+        description:
+            "Align cell content to the trailing edge: the right in a left-to-right document, the left in a right-to-left one.",
+    },
+    {
+        value: "justify",
+        description: "Justify cell content across the full cell width.",
+    },
+];
 
 /** Vertical alignment of cell content. */
+const VALIGN_VALUE_ENTRIES: ValueEntry[] = [
+    { value: "top", description: "Align cell content to the top." },
+    { value: "middle", description: "Center cell content vertically." },
+    { value: "bottom", description: "Align cell content to the bottom." },
+];
+
+export const BORDER_VALUES = BORDER_VALUE_ENTRIES.map((entry) => entry.value);
+export const HALIGN_VALUES = HALIGN_VALUE_ENTRIES.map((entry) => entry.value);
+export const VALIGN_VALUES = VALIGN_VALUE_ENTRIES.map((entry) => entry.value);
+
+// Each caller gets its own array of its own entry objects: attribute
+// preprocessing (`preprocessAttributesObject`) rewrites the `validValues` it
+// is handed when the attribute sets `toLowerCase`.
+function copyEntries(entries: ValueEntry[]): ValueEntry[] {
+    return entries.map((entry) => ({ ...entry }));
+}
+
+export function returnBorderValidValues(): ValueEntry[] {
+    return copyEntries(BORDER_VALUE_ENTRIES);
+}
+
+export function returnHalignValidValues(): ValueEntry[] {
+    return copyEntries(HALIGN_VALUE_ENTRIES);
+}
+
 export function returnValignValidValues(): ValueEntry[] {
-    return [
-        { value: "top", description: "Align cell content to the top." },
-        { value: "middle", description: "Center cell content vertically." },
-        { value: "bottom", description: "Align cell content to the bottom." },
-    ];
+    return copyEntries(VALIGN_VALUE_ENTRIES);
 }

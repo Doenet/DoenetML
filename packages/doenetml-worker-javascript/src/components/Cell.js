@@ -3,6 +3,8 @@ import me from "math-expressions";
 import { preprocessMathInverseDefinition, textToAst } from "../utils/math";
 import { textFromChildren } from "../utils/text";
 import {
+    BORDER_VALUES,
+    HALIGN_VALUES,
     returnBorderValidValues,
     returnHalignValidValues,
 } from "../utils/tabularAttributes";
@@ -120,9 +122,7 @@ export default class Cell extends BaseComponent {
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.halignAttr !== null) {
                     let halign = dependencyValues.halignAttr.stateValues.value;
-                    if (
-                        !["start", "center", "end", "justify"].includes(halign)
-                    ) {
+                    if (!HALIGN_VALUES.includes(halign)) {
                         halign = "start";
                     }
                     return { setValue: { halign } };
@@ -178,11 +178,7 @@ export default class Cell extends BaseComponent {
                 if (dependencyValues.bottomBorderAttr !== null) {
                     let bottomBorder =
                         dependencyValues.bottomBorderAttr.stateValues.value;
-                    if (
-                        !["none", "minor", "medium", "major"].includes(
-                            bottomBorder,
-                        )
-                    ) {
+                    if (!BORDER_VALUES.includes(bottomBorder)) {
                         bottomBorder = "none";
                     }
                     return { setValue: { bottomBorder } };
@@ -241,11 +237,7 @@ export default class Cell extends BaseComponent {
                 if (dependencyValues.endBorderAttr !== null) {
                     let endBorder =
                         dependencyValues.endBorderAttr.stateValues.value;
-                    if (
-                        !["none", "minor", "medium", "major"].includes(
-                            endBorder,
-                        )
-                    ) {
+                    if (!BORDER_VALUES.includes(endBorder)) {
                         endBorder = "none";
                     }
                     return { setValue: { endBorder } };
