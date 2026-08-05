@@ -19,7 +19,7 @@
 
 ## `<lineSegment>`
 
-# No select: «-kuna» is dropped after a count and «qhawarisqachu» does not agree
+# No select: «-kuna» is dropped after a count and «hap'isqachu» does not agree
 # with the number of what is ignored, so one string covers both English
 # categories. The count still arrives.
 line-segment-attributes-ignored-with-endpoints = iskay puchukay churasqa kaptin { $attributes } mana hap'isqachu

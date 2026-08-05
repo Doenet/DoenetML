@@ -14,29 +14,27 @@
 # Written in the Fiero double-vowel orthography; see `content.ftl`'s header for
 # the dialect spread and the animate/inanimate gender.
 #
-# The counted selects are kept here, unlike in the rest of this batch: Ojibwe
-# marks the inanimate plural and the verb agrees with it, so «bezhig» and several
-# really are two sentences. See `chrome.ftl`'s header.
+# The counted selects are mostly kept here, unlike in the rest of this batch:
+# Ojibwe marks the inanimate plural and the verb agrees with it, so «bezhig» and
+# several really are two sentences. See `chrome.ftl`'s header.
 #
 # Ojibwe negates with a particle and a verb ending together — «gaawiin …
 # -sinoon» — so a negated sentence is framed rather than prefixed, and that frame
-# is what most of these messages are built on.
+# is what most of these messages are built on. The negated frame is also where a
+# select is dropped: it carries no number of its own, so a message that is
+# nothing but the frame and a placeable has no second form to select, and a
+# comment marks each such site.
 
 
 ## `<lineSegment>`
 
-# The select stays: «-an» is marked on the plural and the verb agrees with it.
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] { $attributes } gaawiin odaapinigaadesinoon apii niizh ishkwaandeg gii-asigaadeg
-       *[other] { $attributes } gaawiin odaapinigaadesinoon apii niizh ishkwaandeg gii-asigaadeg
-    }
+# No select, unlike most counted messages here: the whole sentence is the
+# negated frame «gaawiin … -sinoon», the only noun in it is the placeable, and a
+# negated verb of this shape does not mark the number of an inanimate subject.
+# So one string covers both English categories. The count still arrives.
+line-segment-attributes-ignored-with-endpoints = { $attributes } gaawiin odaapinigaadesinoon apii niizh ishkwaandeg gii-asigaadeg
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] { $attributes } gaawiin odaapinigaadesinoon apii bezhig ishkwaandeg gaye bezhig naawayi'ii gii-asigaadeg
-       *[other] { $attributes } gaawiin odaapinigaadesinoon apii bezhig ishkwaandeg gaye bezhig naawayi'ii gii-asigaadeg
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = { $attributes } gaawiin odaapinigaadesinoon apii bezhig ishkwaandeg gaye bezhig naawayi'ii gii-asigaadeg
 
 line-segment-midpoint-offset-without-midpoint = midpointOffset gaawiin gegoo izhichigesinoon naawayi'ii gaawiin ayaamagasinoon
 
@@ -362,11 +360,10 @@ pretzel-circuit-first-problem-distractor = Gaawiin gwayak pretzel: mode="circuit
 
 ## Attribute values
 
-attribute-invalid-values =
-    { $valuesCount ->
-        [one] Gaawiin gwayak { $values } `{ $attribute }` ozhibii'igaans onji; gaawiin odaapinigaadesinoon.
-       *[other] Gaawiin gwayak { $values } `{ $attribute }` ozhibii'igaans onji; gaawiin odaapinigaadesinoon.
-    }
+# No select, for the `<lineSegment>` reason at the head of this file: both
+# clauses are negated frames whose only nouns are placeables, so there is
+# nothing here for «-an» to land on.
+attribute-invalid-values = Gaawiin gwayak { $values } `{ $attribute }` ozhibii'igaans onji; gaawiin odaapinigaadesinoon.
 
 attribute-must-be-references = Gaawiin gwayak `{ $value }` `{ $attribute }` ozhibii'igaans onji. Ozhibii'igaans izhi-wiindamaagewinan `$` gaye maajitaajig onji da-ozhitoowin.
 

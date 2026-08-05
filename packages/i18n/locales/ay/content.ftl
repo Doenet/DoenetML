@@ -27,7 +27,7 @@
 # The instrumental «-mpi» cannot be welded to `$pattern` in `style-filled`, so
 # that message names the value instead — «saltanakapa { $pattern }», after the
 # Aymara word for the woven figures in a textile. Elsewhere every suffix lands on
-# a word written here: «jarphinimpi» for the border, «laphimpi» for the
+# a word written here: «jarphini» for the border, «laphimpi» for the
 # background, «laphinakata» for the page count.
 
 
@@ -140,7 +140,9 @@ style-filled-with-noun =
        *[plain] { $filled } { $color } { $noun }
     }
 
-# «-ni», "having", lands on «jarpha» — the border — and the adjectives precede it.
+# «-ni», "having", lands on «jarpha» again — the same word `noun-regular-polygon`
+# counts, since Aymara's word for a polygon's side is its word for an edge — and
+# the adjectives precede it.
 # Aymara has no articles, so English's four branches are two distinct strings; all
 # four are written out because they are four positions.
 style-border-clause =

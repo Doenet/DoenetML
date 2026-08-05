@@ -20,7 +20,7 @@
 # with «rukʼ», the free comitative, and nothing is welded.
 #
 # `noun-regular-polygon` collapses to English's shape: the side count is a
-# prenominal modifier, «job' uxukut», so the head holds it and the `[tail]` branch
+# prenominal modifier, «jobʼ uxukut», so the head holds it and the `[tail]` branch
 # is empty.
 #
 # **The colour table has the same seam `locales/gn` and `locales/ay` have.**

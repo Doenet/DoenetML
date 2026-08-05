@@ -13,8 +13,10 @@
 #
 # Creole has no plural suffix, so a counted message whose only difference in
 # English is the noun's number renders one string here and the select is
-# dropped. Where the verb or the surrounding sentence differs — «li inyore»
-# against «yo inyore» — the select stays, because that difference is real.
+# dropped. Where the verb or the surrounding sentence differs — «y ap inyore l»
+# against «y ap inyore yo» — the select stays, because that difference is real:
+# «l» and «yo» are the singular and plural object pronouns, and Creole does mark
+# those.
 #
 # Creole punctuates as English does: no space before `:`, `;`, `?` or `!`.
 
