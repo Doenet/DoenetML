@@ -14,5 +14,7 @@ every platform, but macOS claims Control+Space for "Select the previous input
 source", so the keystroke is swallowed before the editor sees it. CodeMirror
 ships mac-only alternates for that reason, and the panel now points at one of
 them (Option+I) when running on a Mac; other platforms still see Ctrl+Space.
+The authoring guides that point at the autocomplete menu name the Mac
+alternate too.
 
 Closes #1537.

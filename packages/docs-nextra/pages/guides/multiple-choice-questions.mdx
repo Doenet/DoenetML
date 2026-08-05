@@ -30,7 +30,7 @@ A few things are worth noticing:
 - **The `<label>{:dn}` is the question.** Putting the prompt in a `<label>{:dn}` makes it visible *and* ties it to the choices, so a screen reader announces the question when the reader reaches the input. When the question instead lives in the surrounding sentence, use a `<shortDescription>{:dn}` — see [Inline, inside a sentence](#inline-inside-a-sentence) below.
 
 <Callout type="info">
-**Shortcut:** in the Doenet editor, open the autocomplete menu (**Ctrl+Space**) anywhere an `<answer>{:dn}` can go and choose the **`multiple-choice-answer`** template. It drops in a filled-out `<answer>{:dn}` with a `<label>{:dn}` and five `<choice>{:dn}` elements for you to edit.
+**Shortcut:** in the Doenet editor, open the autocomplete menu (**Ctrl+Space**, or **Option+I** on a Mac) anywhere an `<answer>{:dn}` can go and choose the **`multiple-choice-answer`** template. It drops in a filled-out `<answer>{:dn}` with a `<label>{:dn}` and five `<choice>{:dn}` elements for you to edit.
 </Callout>
 
 Each section below takes this same basic recipe and adds a single attribute, showing what it changes.
@@ -91,7 +91,7 @@ Add `selectMultiple{:dn}` and the radio buttons become checkboxes: the reader ca
 By default this is all-or-nothing: to earn full credit the reader must check every choice marked `credit="1"{:dn}` and leave every other choice unchecked. Selecting one wrong option, or missing one correct option, scores 0. To soften that, add partial credit — next.
 
 <Callout type="info">
-**Shortcut:** the **`multiple-choice-select-multiple-answer`** template in the autocomplete menu (**Ctrl+Space**, where an `<answer>{:dn}` is allowed) drops in a `selectMultiple{:dn}` answer with two correct choices already marked, ready to edit.
+**Shortcut:** the **`multiple-choice-select-multiple-answer`** template in the autocomplete menu (**Ctrl+Space**, or **Option+I** on a Mac, where an `<answer>{:dn}` is allowed) drops in a `selectMultiple{:dn}` answer with two correct choices already marked, ready to edit.
 </Callout>
 
 ---
@@ -210,7 +210,7 @@ Put all three together (here with `shuffleOrder{:dn}` so the layout varies):
 Try it: pick a wrong option and it grays out while you keep going; reach the correct one and the question locks. The score reflects how many tries it took.
 
 <Callout type="info">
-**Shortcut:** the autocomplete menu (**Ctrl+Space**, where an `<answer>{:dn}` is allowed) includes an **`if-at-(immediate-feedback-assessment-technique)-answer`** template that drops in this exact combination of attributes, ready for you to fill in the question and choices.
+**Shortcut:** the autocomplete menu (**Ctrl+Space**, or **Option+I** on a Mac, where an `<answer>{:dn}` is allowed) includes an **`if-at-(immediate-feedback-assessment-technique)-answer`** template that drops in this exact combination of attributes, ready for you to fill in the question and choices.
 </Callout>
 
 ---
