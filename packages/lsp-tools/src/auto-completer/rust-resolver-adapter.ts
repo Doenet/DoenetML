@@ -1035,9 +1035,9 @@ export class RustResolverAdapter {
      *
      * Resolves the FULL path (unlike member-container resolution, which chops
      * the last segment), with empty bracket indices — matching how
-     * `_resolveRefMemberContainer` builds its flat path. Mirrors
-     * `isNameAddressableFromOffset`'s origin selection so the scope probed
-     * matches what a reference typed at `offset` would actually see.
+     * `_resolveRefMemberContainer` builds its flat path. Picks its origin with
+     * `_referenceOriginIndex`, like the other reference lookups, so the scope
+     * probed matches what a reference typed at `offset` would actually see.
      */
     async classifyReferenceFromOffset(
         offset: number,
