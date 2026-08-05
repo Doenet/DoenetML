@@ -113,4 +113,44 @@ describe("Tabular tag tests @group3", async () => {
                 .endBorder,
         ).eq("medium");
     });
+
+    it("unrecognized values fall back to the default; macro-supplied values are read", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<text name="align">end</text>
+<tabular>
+  <row name="r1" valign="sideways" startBorder="dotted">
+    <cell name="c1" halign="middle" endBorder="dashed">A</cell>
+  </row>
+  <row name="r2">
+    <cell name="c2" halign="$align">B</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r1")].stateValues.valign,
+        ).eq("middle");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r1")].stateValues
+                .startBorder,
+        ).eq("none");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.halign,
+        ).eq("start");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues
+                .endBorder,
+        ).eq("none");
+
+        // The value arrives from a macro rather than being written out, so the
+        // parser's value migration never sees it and the state variable
+        // definition is what reads it against the vocabulary.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
+        ).eq("end");
+    });
 });

@@ -65,9 +65,10 @@ export const BORDER_VALUES = BORDER_VALUE_ENTRIES.map((entry) => entry.value);
 export const HALIGN_VALUES = HALIGN_VALUE_ENTRIES.map((entry) => entry.value);
 export const VALIGN_VALUES = VALIGN_VALUE_ENTRIES.map((entry) => entry.value);
 
-// Each caller gets its own array of its own entry objects: attribute
-// preprocessing (`preprocessAttributesObject`) rewrites the `validValues` it
-// is handed when the attribute sets `toLowerCase`.
+// Each caller gets its own array of its own entry objects, so that the
+// attributes object a component hands to the core owns its `validValues`
+// outright and nothing a component does to its own declaration can reach
+// another component's.
 function copyEntries(entries: ValueEntry[]): ValueEntry[] {
     return entries.map((entry) => ({ ...entry }));
 }
