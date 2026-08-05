@@ -15,7 +15,15 @@ import type {
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import { getStylePalettes, getStylePalette } from "@doenet/utils";
 import type { StylePaletteInfo } from "@doenet/utils";
-import { fetchLocaleLoaders, setLocaleLoaders } from "@doenet/i18n";
+// From the same entry point the viewer above comes from, not from
+// `@doenet/i18n` directly: this bundle would otherwise hold two instances of
+// that module — one built here from source, one already compiled into
+// `@doenet/doenetml` — and the loaders installed on the first would not be the
+// ones the second reads. See the re-export in `@doenet/doenetml`'s `index.ts`.
+import {
+    fetchLocaleLoaders,
+    setLocaleLoaders,
+} from "@doenet/doenetml/doenetml-external-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { ResizeWatcher } from "./resize-watcher";

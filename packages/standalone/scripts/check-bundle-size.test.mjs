@@ -7,8 +7,10 @@ import {
     catalogsInScript,
     collectCatalogProbes,
     countBigBlobs,
+    duplicateI18nProblems,
     findProblems,
     loadBudgets,
+    loaderRegistryMarker,
     servedCatalogProblems,
 } from "./check-bundle-size.mjs";
 
@@ -422,5 +424,62 @@ describe("servedCatalogProblems", () => {
         const problems = servedCatalogProblems(["en", "es"], null);
         expect(problems).toHaveLength(1);
         expect(problems[0]).toContain("dist/locales/ was not emitted");
+    });
+});
+
+describe("loaderRegistryMarker", () => {
+    it("finds the pattern in the committed load.ts", () => {
+        // The whole duplicate-instance check rests on this being findable in
+        // the real module: a marker that stopped matching would leave every
+        // script counted as zero instances and the check passing on anything.
+        const marker = loaderRegistryMarker();
+        expect(marker).toBeTypeOf("string");
+        expect(marker).toContain("locales");
+        expect(marker).toContain("ftl");
+    });
+
+    it("reports no marker when load.ts is not where it should be", () => {
+        expect(loaderRegistryMarker("/no/such/load.ts")).toBe(null);
+    });
+});
+
+describe("duplicateI18nProblems", () => {
+    /** Emitted scripts holding the given instance counts. */
+    function build(counts) {
+        return new Map(
+            Object.entries(counts).map(([name, i18nInstances]) => [
+                name,
+                { ...script(500), i18nInstances },
+            ]),
+        );
+    }
+
+    it("accepts one copy per script", () => {
+        expect(
+            duplicateI18nProblems(
+                build({ [STANDALONE]: 1, [WASM_CORE_SCRIPT]: 1 }),
+            ),
+        ).toEqual([]);
+    });
+
+    it("accepts a script that carries none at all", () => {
+        // Most emitted scripts have nothing to do with i18n; only holding more
+        // than one copy is a problem, and holding none is the normal case.
+        expect(duplicateI18nProblems(build({ [STANDALONE]: 0 }))).toEqual([]);
+    });
+
+    it("reports the 0.7.22 failure: two copies in the standalone bundle", () => {
+        const problems = duplicateI18nProblems(build({ [STANDALONE]: 2 }));
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain(STANDALONE);
+        expect(problems[0]).toContain("2 copies");
+    });
+
+    it("reports every script that holds more than one", () => {
+        expect(
+            duplicateI18nProblems(
+                build({ [STANDALONE]: 3, [WASM_CORE_SCRIPT]: 2 }),
+            ),
+        ).toHaveLength(2);
     });
 });
