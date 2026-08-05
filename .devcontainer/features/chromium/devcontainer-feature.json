@@ -1,0 +1,7 @@
+{
+    "id": "chromium",
+    "version": "1.0.0",
+    "name": "Chromium",
+    "description": "Installs Chromium and supporting dependencies for Cypress browser testing.",
+    "installsAfter": ["ghcr.io/devcontainers/features/common-utils"]
+}

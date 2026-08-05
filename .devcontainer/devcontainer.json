@@ -22,7 +22,7 @@
         "./features/shell-init-rc": {},
         // Install files needed for Python bundling
         "./features/python": {},
-        // Install files needed for Chrome Cypress testing.
+        // Install files needed for Chrome for Cypress testing.
         "./features/chrome": {}
     },
     "containerEnv": {

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
 
