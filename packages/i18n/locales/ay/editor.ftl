@@ -198,8 +198,9 @@ help-suggested-values = Amuyt'ayata chaninaka:
 
 help-inserts = Uchi:
 
-# No select: «chiqanchawi» takes no plural suffix after a numeral, so both
-# categories would render the same string.
+# No select: no numeral stands here, and this label heads a list whatever
+# `$count` is, so «chiqanchawinaka» is written for both categories and they
+# would render the same string.
 help-coordinates = Chiqanchawinaka:
 
 help-type = Kasta:

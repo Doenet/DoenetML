@@ -195,8 +195,9 @@ help-suggested-values = Tepy ñemoñe'ẽ:
 
 help-inserts = Omoĩ:
 
-# No select: «kyta rendaguã» takes no plural suffix after a numeral, so both
-# categories would render the same string.
+# No select: no numeral stands here, and «-kuéra» is optional rather than
+# obligatory, so «kyta rendaguã» is written bare for both categories and they
+# would render the same string.
 help-coordinates = Kyta rendaguã:
 
 help-type = Mba'eichagua:

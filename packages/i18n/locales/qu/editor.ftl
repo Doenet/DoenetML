@@ -199,8 +199,9 @@ help-suggested-values = Yuyaychasqa chanikuna:
 
 help-inserts = Churan:
 
-# No select: «chiqan» takes no plural suffix after a numeral, so both categories
-# would render the same string.
+# No select: no numeral stands here, and this label heads a list whatever
+# `$count` is, so «chiqankuna» is written for both categories and they would
+# render the same string.
 help-coordinates = Chiqankuna:
 
 help-type = Niray:

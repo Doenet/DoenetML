@@ -201,8 +201,9 @@ help-suggested-values = Gülamngen falin:
 
 help-inserts = Konümtukuy:
 
-# No select: «troy adkünun» takes no plural marker after a numeral, so both
-# categories would render the same string.
+# No select: no numeral stands here, and the free «pu» is optional rather than
+# obligatory, so «troy adkünun» is written bare for both categories and they
+# would render the same string.
 help-coordinates = Troy adkünun:
 
 help-type = Adkünun:
