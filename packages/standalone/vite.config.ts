@@ -85,6 +85,11 @@ export default defineConfig({
     },
     define: {
         "process.env.NODE_ENV": '"production"',
+        // Load-bearing, not just informational: `src/index.tsx` pins the URLs
+        // it resolves the core worker and `locales/` against to this version,
+        // so a build carrying a stale one would send every embed to the
+        // previous release's assets. Hence `package.json` among this build's
+        // declared wireit inputs — a version bump has to rebuild.
         STANDALONE_VERSION: JSON.stringify(version),
         // See the `locales/` copy target above: this bundle is one file, so
         // the catalogs have to be served beside it rather than split out of

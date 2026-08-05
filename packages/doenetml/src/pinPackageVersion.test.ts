@@ -59,7 +59,7 @@ describe("pinPackageVersion", () => {
         );
     });
 
-    it("supplies a version where the URL names none", () => {
+    it("supplies a version under jsDelivr's /npm/ prefix, which names none", () => {
         // jsDelivr reads a bare package name as its latest release — floating,
         // so it has to be pinned like any other tag.
         expect(
@@ -114,6 +114,12 @@ describe("pinPackageVersion", () => {
         for (const url of [
             // Serving `node_modules` straight through.
             "https://example.org/node_modules/@doenet/standalone/doenet-standalone.js",
+            // The same tree mapped onto the web root, which is unpkg's shape
+            // exactly but for the missing version — so a versionless package
+            // name at the root is never read as a CDN's. (unpkg redirects such
+            // a URL to its exact version, so a bundle actually loaded from
+            // unpkg has an exact `import.meta.url` before this ever runs.)
+            "https://example.org/@doenet/standalone/doenet-standalone.js",
             // A vendored copy of one specific release, mirroring the CDN layout
             // under a prefix. It is already exact — and exact at a version this
             // bundle need not be.

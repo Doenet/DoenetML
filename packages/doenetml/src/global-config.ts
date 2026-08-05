@@ -136,10 +136,10 @@ function getWorkerUrl() {
  *   `"@doenet/standalone"`.
  * @param version The exact version to pin to — the bundle's compiled-in one.
  * @returns `url` with the `@<spec>` following `packageName` replaced by
- *   `@<version>`, supplied outright where a CDN-shaped path names the package
- *   but no version. Every other URL comes back unchanged — self-hosted copies,
- *   `blob:`/`data:` bases, anything unparseable — because a URL that carries no
- *   CDN version to correct is left alone rather than guessed at.
+ *   `@<version>`, and supplied outright under jsDelivr's `/npm/` prefix where
+ *   the path names none. Every other URL comes back unchanged — self-hosted
+ *   copies, `blob:`/`data:` bases, anything unparseable — because a URL that
+ *   carries no CDN version to correct is left alone rather than guessed at.
  */
 export function pinPackageVersion(
     url: string,
@@ -167,18 +167,37 @@ export function pinPackageVersion(
     // `@doenet/standalone` from matching inside `@doenet/standalone-foo`.
     //
     // The anchor carries as much weight as the bounds. A self-hosted deployment
-    // that serves `node_modules` through
-    // (`https://host/node_modules/@doenet/standalone/doenet-standalone.js`) has
+    // that serves `node_modules` through —
+    // `https://host/node_modules/@doenet/standalone/doenet-standalone.js` — has
     // the package name in its path too, and *inserting* a version there would
     // send every sibling to a path that does not exist — turning a working
     // deploy into the very failure this function prevents elsewhere. Only a URL
     // already laid out like a CDN's is rewritten; anything else is left alone.
     const escaped = packageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const segment = new RegExp(`^(/npm)?(/${escaped})(@[^/]*)?(?=/)`);
-    const pinned = parsed.pathname.replace(segment, `$1$2@${version}`);
-    if (pinned === parsed.pathname) {
+    const match = new RegExp(`^(/npm)?(/${escaped})(@[^/]*)?(?=/)`).exec(
+        parsed.pathname,
+    );
+    if (match === null) {
         return url;
     }
-    parsed.pathname = pinned;
+    const [matched, npmPrefix, pkgPath, spec] = match;
+    if (npmPrefix === undefined && spec === undefined) {
+        // The same hazard one step further in: at the path root, a package name
+        // carrying no version is as much that `node_modules` tree mapped onto
+        // the web root as it is unpkg, and only one of those two readings can
+        // survive a guess. Declining costs nothing — unpkg redirects a
+        // versionless URL to its exact version before the module runs, so a
+        // bundle loaded that way already sees an exact `import.meta.url`.
+        // jsDelivr's `/npm/` prefix names the registry outright and does not
+        // redirect, so a missing version there is supplied.
+        return url;
+    }
+    if (spec === `@${version}`) {
+        // Already this release's. Hand back the caller's own string: callers
+        // compare the result against what they passed to detect "nothing to
+        // pin" (see `@doenet/standalone`'s entry).
+        return url;
+    }
+    parsed.pathname = `${npmPrefix ?? ""}${pkgPath}@${version}${parsed.pathname.slice(matched.length)}`;
     return parsed.href;
 }
