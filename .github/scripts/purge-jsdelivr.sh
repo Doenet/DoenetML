@@ -22,5 +22,16 @@ curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}" || exit 1
 echo "Purging key standalone assets for @${TAG} tag..."
 curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}/doenet-standalone.js" || exit 1
 curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}/style.css" || exit 1
+# The core worker is fetched as its own URL rather than carried inside the
+# bundle (#1465), so it has to be refreshed alongside the bundle: on a floating
+# tag, a fresh bundle paired with the previous release's core is a broken embed.
+curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}/doenetml-worker/index.js" || exit 1
+# Host pages load the activity coordinator directly by URL, so it is stale on a
+# floating tag until purged too.
+curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}/coordinator.js" || exit 1
+
+# The several hundred message catalogs under `locales/` are deliberately left
+# out: a stale catalog costs old wording until the edge TTL expires, not a
+# broken embed, which is not worth hundreds of purge requests per release.
 
 echo "Successfully purged jsDelivr cache for tag @${TAG}"
