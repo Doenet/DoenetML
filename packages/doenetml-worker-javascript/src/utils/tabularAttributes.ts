@@ -13,7 +13,7 @@
  * variable definitions on `<row>` and `<cell>`: those attributes carry no
  * `createStateVariable`, so their definitions read the authored value through
  * an `attributeComponent` dependency and check it against the vocabulary
- * themselves.
+ * themselves, via `readVocabularyValue`.
  */
 
 type ValueEntry = { value: string; description: string };
@@ -82,4 +82,25 @@ export function returnHalignValidValues(): ValueEntry[] {
 
 export function returnValignValidValues(): ValueEntry[] {
     return copyEntries(VALIGN_VALUE_ENTRIES);
+}
+
+/**
+ * Read an authored value against one of the vocabularies, falling back to
+ * `fallback` when it is not in the vocabulary.
+ *
+ * The `<tabular>` versions of these attributes declare `createStateVariable`,
+ * so the attribute machinery applies the `toLowerCase` and trimming their
+ * declarations ask for before matching. The `<row>` and `<cell>` versions have
+ * no `createStateVariable` and reach their state variables as a raw text
+ * component, so they normalize here instead and all three components accept
+ * `halign="Center"` and `halign="center"` alike.
+ */
+export function readVocabularyValue(
+    value: unknown,
+    vocabulary: string[],
+    fallback: string,
+): string {
+    const normalized =
+        typeof value === "string" ? value.trim().toLowerCase() : "";
+    return vocabulary.includes(normalized) ? normalized : fallback;
 }

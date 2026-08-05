@@ -5,6 +5,7 @@ import { textFromChildren } from "../utils/text";
 import {
     BORDER_VALUES,
     HALIGN_VALUES,
+    readVocabularyValue,
     returnBorderValidValues,
     returnHalignValidValues,
 } from "../utils/tabularAttributes";
@@ -121,10 +122,11 @@ export default class Cell extends BaseComponent {
             }),
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.halignAttr !== null) {
-                    let halign = dependencyValues.halignAttr.stateValues.value;
-                    if (!HALIGN_VALUES.includes(halign)) {
-                        halign = "start";
-                    }
+                    const halign = readVocabularyValue(
+                        dependencyValues.halignAttr.stateValues.value,
+                        HALIGN_VALUES,
+                        "start",
+                    );
                     return { setValue: { halign } };
                 } else if (
                     !usedDefault.parentHalign &&
@@ -176,11 +178,11 @@ export default class Cell extends BaseComponent {
             }),
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.bottomBorderAttr !== null) {
-                    let bottomBorder =
-                        dependencyValues.bottomBorderAttr.stateValues.value;
-                    if (!BORDER_VALUES.includes(bottomBorder)) {
-                        bottomBorder = "none";
-                    }
+                    const bottomBorder = readVocabularyValue(
+                        dependencyValues.bottomBorderAttr.stateValues.value,
+                        BORDER_VALUES,
+                        "none",
+                    );
                     return { setValue: { bottomBorder } };
                 } else if (
                     !usedDefault.parentBottomBorder &&
@@ -235,11 +237,11 @@ export default class Cell extends BaseComponent {
             }),
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.endBorderAttr !== null) {
-                    let endBorder =
-                        dependencyValues.endBorderAttr.stateValues.value;
-                    if (!BORDER_VALUES.includes(endBorder)) {
-                        endBorder = "none";
-                    }
+                    const endBorder = readVocabularyValue(
+                        dependencyValues.endBorderAttr.stateValues.value,
+                        BORDER_VALUES,
+                        "none",
+                    );
                     return { setValue: { endBorder } };
                 } else if (
                     !usedDefault.tabularEndBorder &&

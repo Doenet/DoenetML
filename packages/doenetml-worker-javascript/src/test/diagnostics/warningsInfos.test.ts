@@ -212,7 +212,7 @@ describe("Warning Tests @group4", async () => {
     it("Deprecated tabular border attributes are migrated to logical names", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<tabular name="t" top="minor" left="medium">
+<tabular name="t" top="minor" left="medium" halign="right">
   <row name="r" left="major">
     <cell name="c" right="minor" bottom="medium">hello</cell>
   </row>
@@ -223,7 +223,7 @@ describe("Warning Tests @group4", async () => {
         const diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(5);
+        expect(diagnosticsByType.warnings.length).eq(6);
 
         const messages = diagnosticsByType.warnings.map(
             (warning) => warning.message,
@@ -243,12 +243,26 @@ describe("Warning Tests @group4", async () => {
         expect(messages).contains(
             "[deprecation] Attribute `left` on `<tabular>` is deprecated; use `startBorder` instead.",
         );
+        // On the same element as the `left` → `startBorder` rename: the
+        // attribute rename and the value rename are applied in one visit, and
+        // `left` as an attribute name and `left` as a `halign` value are
+        // migrated independently of each other.
+        expect(messages).contains(
+            "[deprecation] Value `right` of attribute `halign` on `<tabular>` is deprecated; use `end` instead.",
+        );
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("t")].stateValues
                 .topBorder,
         ).eq("minor");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .startBorder,
+        ).eq("medium");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.halign,
+        ).eq("end");
         expect(
             stateVariables[await resolvePathToNodeIdx("r")].stateValues
                 .startBorder,

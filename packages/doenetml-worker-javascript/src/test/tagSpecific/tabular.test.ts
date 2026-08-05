@@ -77,4 +77,40 @@ describe("Tabular tag tests @group3", async () => {
                 .bottomBorder,
         ).eq("medium");
     });
+
+    it("border and alignment values are read case-insensitively on every component", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t" halign="End" topBorder="Minor">
+  <row name="r" valign="Top" startBorder="Major">
+    <cell name="c" halign="Center" endBorder="Medium">A</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.halign,
+        ).eq("end");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .topBorder,
+        ).eq("minor");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r")].stateValues.valign,
+        ).eq("top");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r")].stateValues
+                .startBorder,
+        ).eq("major");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues.halign,
+        ).eq("center");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .endBorder,
+        ).eq("medium");
+    });
 });

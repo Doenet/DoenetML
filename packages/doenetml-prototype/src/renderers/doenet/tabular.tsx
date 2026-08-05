@@ -58,10 +58,10 @@ type TabularData = {
 </tabular>
 
 <tabular
-  left="minor"
-  right="minor"
-  top="minor"
-  bottom="minor"
+  startBorder="minor"
+  endBorder="minor"
+  topBorder="minor"
+  bottomBorder="minor"
   height="200"
   vAlign="top"
 >
