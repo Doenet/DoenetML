@@ -550,8 +550,8 @@ The third way a served catalog goes unread has its own check, `check:instances`
 in this package (`npm run check:i18n-instances` from the root): the loaders are
 module-level state, so a bundle holding two copies of this package installs them
 on an instance the viewer never reads, sees an empty registry, and falls back to
-English in silence. Every built `packages/*/dist/` is scanned, not the bundle
-that has been bitten, because any build combining a prebuilt `@doenet/doenetml`
+English in silence. Every built `packages/*/dist/` is scanned, not only the
+bundle that has been bitten, because any build combining a prebuilt `@doenet/doenetml`
 with a source build of this package can hit it — counted per emitted script,
 since a script is what shares a module registry, and a package that emits both a
 bundle and a worker holds a copy in each quite correctly.

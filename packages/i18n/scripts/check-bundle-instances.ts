@@ -36,19 +36,23 @@ if (marker === null) {
 const scanned = marker === null ? [] : collectDistScripts(marker);
 const packages = new Set(scanned.map(({ file }) => file.split("/")[1]));
 
-if (marker !== null && scanned.length === 0) {
-    problems.push(
-        `No built scripts found under packages/*/dist/. Build before running this ` +
-            `(npm run build:all-no-docs); a scan of nothing passes trivially.`,
-    );
-}
-if (!scanned.some(({ file }) => file === SINGLE_INSTANCE_SCRIPT)) {
-    // A note rather than a problem: the standalone bundle is the one held to
-    // exactly one copy, but plenty of local builds legitimately do not produce
-    // it, and CI fails on its absence a step earlier at `check:size`.
-    console.log(
-        `note: ${SINGLE_INSTANCE_SCRIPT} was not built, so not checked`,
-    );
+// Only worth saying anything about the scan when there was a marker to scan
+// with; without one nothing was counted, and that is already the problem.
+if (marker !== null) {
+    if (scanned.length === 0) {
+        problems.push(
+            `No built scripts found under packages/*/dist/. Build before running this ` +
+                `(npm run build:all-no-docs); a scan of nothing passes trivially.`,
+        );
+    } else if (!scanned.some(({ file }) => file === SINGLE_INSTANCE_SCRIPT)) {
+        // A note rather than a problem: the standalone bundle is the one held
+        // to exactly one copy, but plenty of local builds legitimately do not
+        // produce it, and CI fails on its absence a step earlier at
+        // `check:size`.
+        console.log(
+            `note: ${SINGLE_INSTANCE_SCRIPT} was not built, so not checked`,
+        );
+    }
 }
 
 problems.push(...instanceProblems(scanned));
