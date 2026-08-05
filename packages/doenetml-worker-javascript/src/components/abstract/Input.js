@@ -33,18 +33,20 @@ export default class Input extends InlineComponent {
         attributes.labelPosition = {
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
-            defaultValue: "left",
+            defaultValue: "start",
             public: true,
             forRenderer: true,
             toLowerCase: true,
             validValues: [
                 {
-                    value: "left",
-                    description: "Place the label to the left of the input.",
+                    value: "start",
+                    description:
+                        "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one.",
                 },
                 {
-                    value: "right",
-                    description: "Place the label to the right of the input.",
+                    value: "end",
+                    description:
+                        "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one.",
                 },
             ],
             description: "Position of the label relative to the input.",

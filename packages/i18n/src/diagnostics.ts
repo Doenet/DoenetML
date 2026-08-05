@@ -205,6 +205,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0118": "prefigure-grid-spacing-too-fine",
     "doenet-w0119": "graph-grid-invalid",
     "doenet-w0120": "deprecated-attribute-to-child",
+    "doenet-w0121": "deprecated-attribute-value-renamed",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

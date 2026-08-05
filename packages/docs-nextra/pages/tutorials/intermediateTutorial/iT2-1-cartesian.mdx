@@ -22,26 +22,26 @@ DoenetML has attributes to adjust various features of a graph: the range of $x$ 
 Rather than listing out all of the possible attributes and values, documentation-style, you can learn these options by experimenting with the controls below. Try adjusting values and see how the graph changes. Doenet also provides you with the corresponding code to create the graph; you can copy and paste that code into your own documents.
 
 ```doenet-example
- <tabular top="minor" bottom="minor">
+ <tabular topBorder="minor" bottomBorder="minor">
     <row>
-      <cell halign="right"><c>xmin=</c></cell>
-      <cell halign="left"><mathInput name="xMin" prefill="-1" /></cell>
-      <cell halign="right"><c>xmax</c></cell>
-      <cell halign="left"><mathInput name="xMax" prefill="6" /></cell>
-      <cell halign="right"><c>grid</c></cell>
-      <cell halign="left"><booleanInput name="showGrid" /></cell>
+      <cell halign="end"><c>xmin=</c></cell>
+      <cell halign="start"><mathInput name="xMin" prefill="-1" /></cell>
+      <cell halign="end"><c>xmax</c></cell>
+      <cell halign="start"><mathInput name="xMax" prefill="6" /></cell>
+      <cell halign="end"><c>grid</c></cell>
+      <cell halign="start"><booleanInput name="showGrid" /></cell>
     </row>
     <row>
-      <cell halign="right"><c>ymin=</c></cell>
-      <cell halign="left"><mathInput name="yMin" prefill="-2" /></cell>
-      <cell halign="right"><c>ymax</c></cell>
-      <cell halign="left"><mathInput name="yMax" prefill="10" /></cell>
-      <cell halign="right"><c>fix axes</c></cell>
-      <cell halign="left"><booleanInput name="fixAxes" prefill="false" /></cell>
+      <cell halign="end"><c>ymin=</c></cell>
+      <cell halign="start"><mathInput name="yMin" prefill="-2" /></cell>
+      <cell halign="end"><c>ymax</c></cell>
+      <cell halign="start"><mathInput name="yMax" prefill="10" /></cell>
+      <cell halign="end"><c>fix axes</c></cell>
+      <cell halign="start"><booleanInput name="fixAxes" prefill="false" /></cell>
     </row>
     <row>
-      <cell halign="right"><c>size</c></cell>
-      <cell halign="left">
+      <cell halign="end"><c>size</c></cell>
+      <cell halign="start">
         <choiceInput name="sizeChoice" inline preselectChoice="3">
           <choice>tiny</choice>
           <choice>small</choice>
@@ -50,16 +50,16 @@ Rather than listing out all of the possible attributes and values, documentation
           <choice>full</choice>
         </choiceInput>
       </cell> 
-      <cell halign="right"><c>align</c></cell>
-      <cell halign="left">
+      <cell halign="end"><c>align</c></cell>
+      <cell halign="start">
         <choiceInput name="alignChoice" inline preselectChoice="2">
           <choice>left</choice>
           <choice>center</choice>
           <choice>right</choice>
         </choiceInput>
       </cell> 
-      <cell halign="right"><c>border</c></cell>
-      <cell halign="left"><booleanInput name="showBorder" prefill="true" /></cell>  
+      <cell halign="end"><c>border</c></cell>
+      <cell halign="start"><booleanInput name="showBorder" prefill="true" /></cell>  
     </row>
   </tabular>
   <p><alert>Resulting <tag>graph</tag><tag>/graph</tag> tag and graph</alert>:</p>

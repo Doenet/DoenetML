@@ -22,9 +22,15 @@ import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
-import type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+import type {
+    DoenetEditorHandle,
+    ViewerLocation,
+} from "./EditorViewer/EditorViewer";
 import type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
-export type { DoenetEditorHandle } from "./EditorViewer/EditorViewer";
+export type {
+    DoenetEditorHandle,
+    ViewerLocation,
+} from "./EditorViewer/EditorViewer";
 export type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
@@ -504,7 +510,7 @@ type DoenetEditorProps = {
     answerResponseCounts?: Record<string, number>;
     width?: string;
     height?: string;
-    viewerLocation?: "left" | "right" | "top" | "bottom";
+    viewerLocation?: ViewerLocation | "left" | "right";
     backgroundColor?: string;
     showViewer?: boolean;
     doenetmlChangeCallback?: Function;

@@ -42,8 +42,12 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     }
 
     let styledChildren = [];
-    const marginLeft = SVs.margins[0];
-    const marginRight = SVs.margins[1];
+    // The two entries of `margins` are applied to every panel: the first on the
+    // panel's leading side and the second on its trailing side. They are read in
+    // the direction the panels are laid out, so they mirror with the writing
+    // direction along with the panels.
+    const marginStart = SVs.margins[0];
+    const marginEnd = SVs.margins[1];
     const listItemInlineAlignment =
         SVs.listItemInlineAlignment === "none"
             ? null
@@ -73,19 +77,15 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
         }
 
         let width = SVs.widths[currentPanelIndex];
-        // console.log(">>>marginLeft",marginLeft)
-        // console.log(">>>width",width)
-        // console.log(">>>marginRight",marginRight)
-        // console.log(">>>gap",SVs.gapWidth)
 
-        let thisMarginLeft = marginLeft;
-        let thisMarginRight = marginRight;
+        let thisMarginStart = marginStart;
+        let thisMarginEnd = marginEnd;
 
         if (currentPanelIndex > 0) {
-            thisMarginLeft += SVs.gapWidth / 2;
+            thisMarginStart += SVs.gapWidth / 2;
         }
         if (currentPanelIndex < numColumns - 1) {
-            thisMarginRight += SVs.gapWidth / 2;
+            thisMarginEnd += SVs.gapWidth / 2;
         }
 
         styledChildren.push(
@@ -95,14 +95,8 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
                         display: "flex",
                         alignItems: "flex-start",
                     }),
-                    // Physical, because `<sideBySide margins="…">` is: the
-                    // author wrote a left margin and a right margin, and the
-                    // panels themselves reorder under `rtl` while these
-                    // percentages stay where they were put. Giving the
-                    // attribute logical `start`/`end` values is tracked
-                    // in #1627.
-                    marginLeft: `${thisMarginLeft}%`,
-                    marginRight: `${thisMarginRight}%`,
+                    marginInlineStart: `${thisMarginStart}%`,
+                    marginInlineEnd: `${thisMarginEnd}%`,
                     width: `${width}%`,
                 }}
                 key={child.key}

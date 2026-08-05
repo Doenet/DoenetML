@@ -21,7 +21,7 @@ data inside a `<table>{:dn}`.
 
 ```doenet-editor-horiz
  <table>
-    <tabular top="minor">
+    <tabular topBorder="minor">
       <row>
         <cell>A</cell>
         <cell>B</cell>
@@ -49,7 +49,7 @@ Each `<cell>{:dn}` component defines a single entry in the `<table>{:dn}`.
 
 ```doenet-editor-horiz
 <table>
-    <tabular top="minor" bottom="minor" left="minor" right="minor">
+    <tabular topBorder="minor" bottomBorder="minor" startBorder="minor" endBorder="minor">
       <row>
         <cell>A</cell>
         <cell>B</cell>
@@ -82,18 +82,18 @@ visually wider "columns" within a table.
 
 ```doenet-editor-horiz
  <table><title><attr>hAlign</attr> examples</title>
-    <tabular top="minor" bottom="minor" left="minor" right="minor">
+    <tabular topBorder="minor" bottomBorder="minor" startBorder="minor" endBorder="minor">
       <row>
-        <cell>left</cell>
+        <cell>start</cell>
         <cell>center</cell>
         <cell>justify</cell>
-        <cell>right</cell>
+        <cell>end</cell>
       </row>
       <row>
-        <cell hAlign="left">🟣</cell>
+        <cell hAlign="start">🟣</cell>
         <cell hAlign="center">🔴</cell>
         <cell hAlign="justify">🟢</cell>
-        <cell hAlign="right">🔵</cell>
+        <cell hAlign="end">🔵</cell>
       </row>
     </tabular>
   </table>    
@@ -102,26 +102,29 @@ visually wider "columns" within a table.
 
 
 The `hAlign` attribute governs the horizontal alignment of 
-content within the `<cell>{:dn}`. The default horizontal alignment is `left`.
+content within the `<cell>{:dn}`. Valid values are `start` (default), `center`,
+`end`, and `justify`. `start` and `end` follow the writing direction: `start` is
+the left edge in a left-to-right document and the right edge in a right-to-left
+one.
 
 
 
 ---
 
-### Attribute Example: bottom
+### Attribute Example: bottomBorder
 
 
 ```doenet-editor-horiz
-<table><title><attr>bottom</attr> examples</title>
-    <tabular top="minor">
+<table><title><attr>bottomBorder</attr> examples</title>
+    <tabular topBorder="minor">
       <row>
         <cell>minor line</cell>
         <cell>major line</cell>
         <cell>none</cell>
       </row>
       <row>
-        <cell bottom="minor">🟣</cell>
-        <cell bottom="major">🔴</cell>
+        <cell bottomBorder="minor">🟣</cell>
+        <cell bottomBorder="major">🔴</cell>
         <cell>🟢</cell>
       </row>
     </tabular>
@@ -130,26 +133,26 @@ content within the `<cell>{:dn}`. The default horizontal alignment is `left`.
 
 
 
-The `bottom` attribute specifies a bounding line at the bottom of the `<cell>{:dn}`.
+The `bottomBorder` attribute specifies a bounding line at the bottom of the `<cell>{:dn}`.
 
 
 
 ---
 
-### Attribute Example: right
+### Attribute Example: endBorder
 
 
 ```doenet-editor-horiz
-<table><title><attr>right</attr> examples</title>
-    <tabular top="minor">
+<table><title><attr>endBorder</attr> examples</title>
+    <tabular topBorder="minor">
       <row>
         <cell>minor line</cell>
         <cell>major line</cell>
         <cell>none</cell>
       </row>
       <row>
-        <cell right="minor">🟣</cell>
-        <cell right="major">🔴</cell>
+        <cell endBorder="minor">🟣</cell>
+        <cell endBorder="major">🔴</cell>
         <cell>🟢</cell>
       </row>
     </tabular>
@@ -158,7 +161,9 @@ The `bottom` attribute specifies a bounding line at the bottom of the `<cell>{:d
 
 
 
-The `right` attribute specifies a bounding line at the right edge of the `<cell>{:dn}`.
+The `endBorder` attribute specifies a bounding line at the trailing edge of the
+`<cell>{:dn}`: its right edge in a left-to-right document, its left edge in a
+right-to-left one.
 
 
 
@@ -169,7 +174,7 @@ The `right` attribute specifies a bounding line at the right edge of the `<cell>
 
 ```doenet-editor-horiz
   <table><title><attr>prefill</attr> examples</title>
-    <tabular top="minor">
+    <tabular topBorder="minor">
       <row>
         <cell prefill="A"/>
         <cell prefill="B"/>
@@ -191,17 +196,17 @@ The `prefill` attribute provides another way to specify content within the cell.
 
 ```doenet-editor-horiz
   <table>
-    <tabular top="minor">
+    <tabular topBorder="minor">
       <row>
-        <cell name="c1" bottom="major" hAlign="center"><math>pi/4</math></cell>
-        <cell name="c2" right="minor" prefill="A"/>
+        <cell name="c1" bottomBorder="major" hAlign="center"><math>pi/4</math></cell>
+        <cell name="c2" endBorder="minor" prefill="A"/>
       </row>
     </tabular>
   </table> 
   <p>First cell, <c>colSpan</c> = $c1.colSpan</p>
   <p>First cell, <c>hAlign</c> = $c1.hAlign</p>
-  <p>First cell, <c>bottom</c> = $c1.bottom</p>
-  <p>Second cell, <c>right</c> = $c2.right</p>
+  <p>First cell, <c>bottomBorder</c> = $c1.bottomBorder</p>
+  <p>Second cell, <c>endBorder</c> = $c2.endBorder</p>
   <p>Second cell, <c>prefill</c> = $c2.prefill</p>
 ```
 
@@ -247,7 +252,7 @@ whether the `<cell>{:dn}` occurs within a header `<row>{:dn}`.
 
 ```doenet-example
   <table>
-    <tabular top="minor">
+    <tabular topBorder="minor">
       <row>
         <cell name="c1">A</cell>
         <cell>B</cell>
@@ -270,7 +275,7 @@ The `text` property returns the text value stored within the `<cell>{:dn}`.
 
 ```doenet-example
   <table>
-    <tabular top="minor">
+    <tabular topBorder="minor">
       <row>
         <cell name="c1"><math>pi/4</math></cell>
         <cell><math>3/5 x</math></cell>
@@ -293,7 +298,7 @@ The `math` property returns the math value stored within the `<cell>{:dn}`.
 
 ```doenet-example
   <table>
-    <tabular top="minor">
+    <tabular topBorder="minor">
       <row>
         <cell name="c1"><math>pi/4</math></cell>
         <cell><math>3/5</math></cell>

@@ -26,7 +26,7 @@ export function CypressTest() {
         render: boolean;
         darkMode: "light" | "dark";
         showEditor: boolean;
-        viewerLocation: "left" | "right" | "bottom" | "top";
+        viewerLocation: "start" | "end" | "bottom" | "top";
         includeVariantSelector: boolean;
     } = {
         updateNumber: 0,
@@ -45,7 +45,7 @@ export function CypressTest() {
         render: true,
         darkMode: "light",
         showEditor: false,
-        viewerLocation: "right",
+        viewerLocation: "end",
         includeVariantSelector: false,
     };
 
@@ -599,8 +599,8 @@ export function CypressTest() {
                                 setUpdateNumber((was: number) => was + 1);
                             }}
                         >
-                            <option value="right">right</option>
-                            <option value="left">left</option>
+                            <option value="end">end</option>
+                            <option value="start">start</option>
                             <option value="top">top</option>
                             <option value="bottom">bottom</option>
                         </select>

@@ -108,14 +108,14 @@ export default class CodeEditor extends BlockComponent {
                     description: "Place the results panel below the editor.",
                 },
                 {
-                    value: "left",
+                    value: "start",
                     description:
-                        "Place the results panel to the left of the editor.",
+                        "Place the results panel before the editor: to its left in a left-to-right document, to its right in a right-to-left one.",
                 },
                 {
-                    value: "right",
+                    value: "end",
                     description:
-                        "Place the results panel to the right of the editor.",
+                        "Place the results panel after the editor: to its right in a left-to-right document, to its left in a right-to-left one.",
                 },
             ],
         };

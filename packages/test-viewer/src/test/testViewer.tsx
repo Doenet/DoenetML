@@ -15,7 +15,7 @@ export default function TestViewer() {
         showFeedback: boolean;
         showHints: boolean;
         showEditor: boolean;
-        viewerLocation: "left" | "right" | "bottom" | "top";
+        viewerLocation: "start" | "end" | "bottom" | "top";
     } = {
         requestedVariantIndex: 1,
         showCorrectness: true,
@@ -23,7 +23,7 @@ export default function TestViewer() {
         showFeedback: true,
         showHints: true,
         showEditor: false,
-        viewerLocation: "right",
+        viewerLocation: "end",
     };
 
     const [controlsVisible, setControlsVisible] = useState(false);
@@ -165,8 +165,8 @@ export default function TestViewer() {
                                 });
                             }}
                         >
-                            <option value="right">right</option>
-                            <option value="left">left</option>
+                            <option value="end">end</option>
+                            <option value="start">start</option>
                             <option value="top">top</option>
                             <option value="bottom">bottom</option>
                         </select>

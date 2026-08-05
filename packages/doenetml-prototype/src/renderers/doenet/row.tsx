@@ -5,7 +5,7 @@ import classNames from "classnames";
 
 type RowData = {
     props: {
-        left: BorderStyle;
+        startBorder: BorderStyle;
         valign: "top" | "center" | "bottom";
     };
 };
@@ -19,7 +19,8 @@ export const Row: BasicComponentWithPassthroughChildren<RowData> = ({
         <tr
             id={htmlId}
             className={classNames({
-                [`border-left-${node.data.props.left}`]: node.data.props.left,
+                [`border-inline-start-${node.data.props.startBorder}`]:
+                    node.data.props.startBorder,
                 [`vertical-align-${node.data.props.valign}`]:
                     node.data.props.valign,
             })}

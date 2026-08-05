@@ -10,7 +10,7 @@ type TabularData = {
     props: {
         width?: { size: string; isAbsolute: boolean };
         height?: { size: string; isAbsolute: boolean };
-        top?: BorderStyle;
+        topBorder?: BorderStyle;
     };
 };
 
@@ -33,7 +33,7 @@ type TabularData = {
   </row>
 </tabular>
 
-<tabular top="minor" bottom="minor" left="minor" right="minor">
+<tabular topBorder="minor" bottomBorder="minor" startBorder="minor" endBorder="minor">
   <row header="true">
     <cell>Name</cell>
     <cell>Occupation</cell>
@@ -44,24 +44,24 @@ type TabularData = {
   </row>
 </tabular>
 
-<tabular top="major" bottom="minor" left="medium" right="minor">
+<tabular topBorder="major" bottomBorder="minor" startBorder="medium" endBorder="minor">
   <row>
-    <cell right="medium">🟣</cell>
+    <cell endBorder="medium">🟣</cell>
     <cell>🔵</cell>
     <cell>🔴</cell>
   </row>
-  <row bottom="medium">
+  <row bottomBorder="medium">
     <cell>😆</cell>
-    <cell bottom="minor">🥲</cell>
-    <cell bottom="major">😠</cell>
+    <cell bottomBorder="minor">🥲</cell>
+    <cell bottomBorder="major">😠</cell>
   </row>
 </tabular>
 
 <tabular
-  left="minor"
-  right="minor"
-  top="minor"
-  bottom="minor"
+  startBorder="minor"
+  endBorder="minor"
+  topBorder="minor"
+  bottomBorder="minor"
   height="200"
   vAlign="top"
 >
@@ -77,8 +77,8 @@ type TabularData = {
   </row>
 </tabular>
 
-<tabular top="minor" bottom="minor" left="minor" right="minor">
-  <row halign="left">
+<tabular topBorder="minor" bottomBorder="minor" startBorder="minor" endBorder="minor">
+  <row halign="start">
     <cell>1</cell>
     <cell>2</cell>
   </row>
@@ -86,7 +86,7 @@ type TabularData = {
     <cell>3</cell>
     <cell>4</cell>
   </row>
-  <row halign="right">
+  <row halign="end">
     <cell>5</cell>
     <cell>6</cell>
   </row>
@@ -106,8 +106,9 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
                 height: sizeToCSS(node.data.props.height),
             }}
             className={classNames({
-                [`border-top-${node.data.props.top}`]:
-                    node.data.props.top && node.data.props.top !== "none",
+                [`border-top-${node.data.props.topBorder}`]:
+                    node.data.props.topBorder &&
+                    node.data.props.topBorder !== "none",
             })}
         >
             <tbody>{children}</tbody>

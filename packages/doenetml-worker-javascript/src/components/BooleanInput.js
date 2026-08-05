@@ -69,7 +69,7 @@ export default class BooleanInput extends Input {
 
         Object.assign(attributes, returnAnchorAttributes());
 
-        attributes.labelPosition.defaultValue = "right";
+        attributes.labelPosition.defaultValue = "end";
 
         return attributes;
     }

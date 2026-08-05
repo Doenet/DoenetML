@@ -14,7 +14,7 @@ type BooleanInputData = {
         immediateValue: boolean;
         label: string;
         labelHasLatex: boolean;
-        labelPosition: "left" | "right";
+        labelPosition: "start" | "end";
         disabled?: boolean;
         shortDescription?: string;
     };
@@ -28,7 +28,7 @@ type BooleanInputData = {
  * ```
    Some stuff <booleanInput><label>Hello there!</label></booleanInput> and more
   <booleanInput asToggleButton><label>Hello there!</label></booleanInput>
-  <booleanInput labelPosition="left"><label>Hello there!</label></booleanInput>
+  <booleanInput labelPosition="start"><label>Hello there!</label></booleanInput>
   ```
  */
 export const BooleanInput: BasicComponent<BooleanInputData> = ({
