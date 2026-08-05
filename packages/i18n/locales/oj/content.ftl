@@ -255,14 +255,20 @@ style-filled-with-noun =
 
 # «jiigaatigwaan», the border, is inanimate, so the border's own describing verbs
 # agree with *it* rather than with the shape it surrounds — which is exactly what
-# the `border` entry in `noun-gender` is for. Ojibwe has no article, so English's
-# four branches are two distinct strings; all four are written out because they
-# are four positions.
+# the `border` entry in `noun-gender` is for.
+#
+# Ojibwe has no article, so English's article distinction collapses; what does
+# not collapse is the `and` one. `style-filled-with-noun` already joins the fill
+# pattern with «gaye», so a border reached by the `[and]` branches is the *second*
+# thing joined to the same sentence, and repeating «gaye» there would read as one
+# list of two rather than as two clauses. «miinawaa» — "and furthermore" — is what
+# the language uses for that, and it is why these four branches are two distinct
+# strings rather than one.
 style-border-clause =
     { $parts ->
         [with-article] gaye { $border } jiigaatigwaan
-        [and] gaye { $border } jiigaatigwaan
-        [and-article] gaye { $border } jiigaatigwaan
+        [and] miinawaa { $border } jiigaatigwaan
+        [and-article] miinawaa { $border } jiigaatigwaan
        *[with] gaye { $border } jiigaatigwaan
     }
 

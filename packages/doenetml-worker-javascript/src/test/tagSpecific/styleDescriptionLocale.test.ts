@@ -355,6 +355,55 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("emplenatge blau amb punts");
     });
 
+    it("carries Ojibwe animacy through the worker path", async () => {
+        const values = await descriptions(styled, names, "oj");
+        // The third thing `$gender` has been asked to carry, after a gender and
+        // a Bantu noun class: Ojibwe's is animate against inanimate, and the
+        // words describing a thing are verbs agreeing with it. The agreement
+        // itself is pinned across four nouns by `@doenet/utils`' "Ojibwe
+        // animacy" suite; what this checks is that the token survives
+        // `setLocaleData`, the document's locale and the `translator`
+        // dependency.
+        //
+        // This document reaches both values. «jiigaatig» (line),
+        // «niiyoowiikwaan» (square) and «jiigaatigwaan» (border) are inanimate,
+        // so their verbs end in -aa; «waawiyeyaa» (circle) is animate, and shows
+        // as «mooshkinezi» and «ozhaawashko-gizhigizi» in `sh`.
+        expect(values.st).eq("gipagaa bakwezhigaa miskwaa");
+        expect(values.stn).eq("gipagaa bakwezhigaa miskwaa jiigaatig");
+        expect(values.pt).eq("ozhaawashkwaa niiyoowiikwaan");
+        // Two animacies in one sentence, and two connectives: «gaye» joins the
+        // fill pattern and «miinawaa» the border clause behind it, because a
+        // second «gaye» would read as one list of two rather than as two
+        // clauses.
+        expect(values.sh).eq(
+            "mooshkinezi ozhaawashko-gizhigizi waawiyeyaa, gaye agwaawaadeg miinawaa gipagaa bakwezhigaa miskwaa jiigaatigwaan",
+        );
+        // The border's verbs agree with «jiigaatigwaan», not with the circle
+        // they surround, which is why `bd` and the clause inside `sh` read
+        // alike: Ojibwe agrees for animacy and not for the position a phrase
+        // lands in.
+        expect(values.bd).eq("gipagaa bakwezhigaa miskwaa");
+        expect(values.fd).eq("ozhaawashko-gizhigaa agwaawaadeg");
+    });
+
+    it("puts Haitian Creole's adjectives after the noun with nothing to agree", async () => {
+        const values = await descriptions(styled, names, "ht");
+        // The other end of the range from Ojibwe, and the reason both are here:
+        // Creole inflects nothing at all — no gender, no case, no agreement — so
+        // every word below is cited once and the whole of the work is ordering.
+        // The adjectives follow the noun, which is the opposite of English, and
+        // that is the only thing separating `stn` from `st`.
+        expect(values.st).eq("epè an tirè wouj");
+        expect(values.stn).eq("liy epè an tirè wouj");
+        expect(values.pt).eq("kare vèt");
+        expect(values.sh).eq(
+            "sèk ranpli ble ak pwen epi yon bòdi epè an tirè wouj",
+        );
+        expect(values.bd).eq("epè an tirè wouj");
+        expect(values.fd).eq("pwen ble");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

@@ -64980,12 +64980,20 @@
                             "description": "Arabic (العربية)"
                         },
                         {
+                            "value": "arn",
+                            "description": "Mapuche"
+                        },
+                        {
                             "value": "as",
                             "description": "Assamese (অসমীয়া)"
                         },
                         {
                             "value": "ast",
                             "description": "Asturian (asturianu)"
+                        },
+                        {
+                            "value": "ay",
+                            "description": "Aymara"
                         },
                         {
                             "value": "az",
@@ -65100,6 +65108,10 @@
                             "description": "Galician (galego)"
                         },
                         {
+                            "value": "gn",
+                            "description": "Guarani"
+                        },
+                        {
                             "value": "gu",
                             "description": "Gujarati (ગુજરાતી)"
                         },
@@ -65126,6 +65138,10 @@
                         {
                             "value": "hr",
                             "description": "Croatian (hrvatski)"
+                        },
+                        {
+                            "value": "ht",
+                            "description": "Haitian Creole"
                         },
                         {
                             "value": "hu",
@@ -65244,6 +65260,10 @@
                             "description": "Burmese (မြန်မာ)"
                         },
                         {
+                            "value": "nah",
+                            "description": "nah"
+                        },
+                        {
                             "value": "nb",
                             "description": "Norwegian Bokmål (norsk bokmål)"
                         },
@@ -65268,6 +65288,10 @@
                             "description": "Occitan (occitan)"
                         },
                         {
+                            "value": "oj",
+                            "description": "Ojibwa"
+                        },
+                        {
                             "value": "om",
                             "description": "Oromo (Oromoo)"
                         },
@@ -65290,6 +65314,14 @@
                         {
                             "value": "pt",
                             "description": "Portuguese (português)"
+                        },
+                        {
+                            "value": "qu",
+                            "description": "Quechua (Runasimi)"
+                        },
+                        {
+                            "value": "quc",
+                            "description": "Kʼicheʼ"
                         },
                         {
                             "value": "rm",

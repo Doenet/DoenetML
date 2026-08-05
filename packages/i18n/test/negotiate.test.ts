@@ -229,6 +229,128 @@ describe("negotiateLocales", () => {
             ).toEqual(["se", "en"]);
         });
     });
+
+    /**
+     * The Indigenous Americas batch, which is the first to seed
+     * **macrolanguages** — `qu`, `ay`, `gn`, `nah`, `oj` are all ISO 639-3
+     * macrolanguages rather than individual languages — and the first to need
+     * `MACROLANGUAGE_MEMBERS` because of it.
+     *
+     * The bug these assertions pin is specific and was invisible until a
+     * macrolanguage had a catalog: **CLDR's likely-subtags folds exactly one
+     * member of a macrolanguage to it and leaves the rest unresolvable.** So
+     * `quz` reached `qu` on ICU data alone while `quh` fell to English, with a
+     * `qu` catalog sitting right there. The pairs below assert both halves —
+     * the member CLDR already folds and several it does not — so that removing
+     * the map, or a change in ICU data, fails here rather than quietly serving
+     * English to a reader whose language is on disk.
+     */
+    describe("the Indigenous Americas batch and its macrolanguages", () => {
+        it.each([
+            // Quechuan. `quz` is the one CLDR folds on its own; the rest are
+            // the map's work. `qvi` is Ecuadorian Kichwa, the furthest of these
+            // from the Southern Quechua the catalog is written in, and it is
+            // still a better answer than English.
+            ["quz", "qu"],
+            ["quh", "qu"],
+            ["qvi", "qu"],
+            ["qwh", "qu"],
+            ["quy-PE", "qu"],
+            // Aymaran.
+            ["ayr", "ay"],
+            ["ayc", "ay"],
+            // Guaranian. `gug` is Paraguayan Guarani, which is what the catalog
+            // is; `gui` and `gun` are Bolivian and Mbya.
+            ["gug", "gn"],
+            ["gui", "gn"],
+            ["gun", "gn"],
+            // Nahuatl. Not one of these folds without the map, including `nci`
+            // — Classical Nahuatl — which is the code a historical text is most
+            // likely to arrive under.
+            ["nci", "nah"],
+            ["nhe", "nah"],
+            ["azz", "nah"],
+            ["nci-MX", "nah"],
+            // Ojibwa. `ojg` is the one CLDR folds; `otw` is Odawa and `alq`
+            // Algonquin, both members of `oj` in ISO 639-3.
+            ["ojg", "oj"],
+            ["ojb", "oj"],
+            ["otw", "oj"],
+            ["alq", "oj"],
+        ])("serves %s from the catalog named %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        it.each([
+            // These need no alias: `Intl.Locale` canonicalizes the ISO 639-3
+            // code of an *individual* language to its 639-1 code, which is the
+            // Filipino case the group above this one describes.
+            ["hat", "ht"],
+            ["grn", "gn"],
+            ["que", "qu"],
+            ["aym", "ay"],
+            ["oji", "oj"],
+        ])(
+            "folds the three-letter code %s to %s without an alias",
+            (requested, expected) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual([expected, "en"]);
+            },
+        );
+
+        it.each([
+            ["ht-HT", "ht"],
+            ["qu-PE", "qu"],
+            ["qu-BO", "qu"],
+            ["ay-BO", "ay"],
+            ["gn-PY", "gn"],
+            ["nah-MX", "nah"],
+            ["quc-GT", "quc"],
+            ["arn-CL", "arn"],
+            ["oj-CA", "oj"],
+            // Ojibwe is written in both the Latin orthography this catalog uses
+            // and in syllabics, so a syllabics tag reaches the Latin catalog and
+            // gets Latin. That is the asymmetry `bs-Cyrl` and `pa` already have,
+            // and the answer to it is a second catalog rather than a rename.
+            ["oj-Cans", "oj"],
+        ])(
+            "strips the region or script from %s to reach %s",
+            (requested, expected) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual([expected, "en"]);
+            },
+        );
+
+        /**
+         * The negative control, and the reason the map keys on ISO 639-3
+         * membership rather than on how close two languages sound. Kʼicheʼ and
+         * Mapudungun are individual languages with catalogs of their own, and
+         * neither is a member of anything — so no other Mayan or Araucanian code
+         * may be folded onto them. `cak` is Kaqchikel, `arn`'s neighbour `pdt`
+         * is nothing of the sort; both must miss.
+         */
+        it.each(["cak", "quh-Latn-x-private", "myn"])(
+            "does not invent a fold for %s",
+            (requested) => {
+                const chain = negotiateLocales(
+                    [normalizeLocaleTag(requested)],
+                    available,
+                );
+                expect(chain).not.toContain("quc");
+                expect(chain).not.toContain("arn");
+            },
+        );
+    });
 });
 
 describe("resolveDocumentLocale", () => {
