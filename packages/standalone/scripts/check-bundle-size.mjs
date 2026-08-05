@@ -434,8 +434,11 @@ export function duplicateI18nProblems(
  * build, and `dist/style.css` legitimately carries a ~1 MB base64 run of its
  * own (an inlined SVG webfont) that the blob heuristic cannot tell apart from
  * wasm. Only a script can actually execute a duplicated Rust core.
+ *
+ * @param probes `[locale, probe]` pairs, from {@link collectCatalogProbes}.
+ * @param marker from {@link loaderRegistryMarker}, `null` if unreadable.
  */
-function collectEmittedScripts(probes = [], marker = loaderRegistryMarker()) {
+function collectEmittedScripts(probes, marker) {
     const scripts = new Map();
     if (!fs.existsSync(DIST_DIR)) {
         return scripts;
