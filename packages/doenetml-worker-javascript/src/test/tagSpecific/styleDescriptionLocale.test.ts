@@ -334,6 +334,27 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("obutonnyeze bbululu");
     });
 
+    it("inverts the order and splits the noun in Occitan", async () => {
+        const values = await descriptions(styled, names, "oc");
+        // Occitan's adjectives follow the noun, so `stn`, `pt` and `sh` come
+        // out the other way round from English. «bordadura» is feminine and
+        // «carrat» masculine, which is why the same three stroke words are
+        // «espessa discontinua roja» on the border and «verd» agrees the other
+        // way on the marker.
+        //
+        // `fd` is the head-noun case: the pattern words are what follows «amb»
+        // in the shape, so standing alone they need «emplenatge» to hang off,
+        // and the colour agrees with that rather than with the circle.
+        expect(values.st).eq("espessa discontinua roja");
+        expect(values.stn).eq("linha espessa discontinua roja");
+        expect(values.pt).eq("carrat verd");
+        expect(values.sh).eq(
+            "cercle emplenat blau amb punts e una bordadura espessa discontinua roja",
+        );
+        expect(values.bd).eq("espessa discontinua roja");
+        expect(values.fd).eq("emplenatge blau amb punts");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

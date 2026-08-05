@@ -182,6 +182,53 @@ describe("negotiateLocales", () => {
             },
         );
     });
+
+    /**
+     * The European regional and minority batch adds no entry to
+     * `LANGUAGE_ALIASES`, and this is what says so out loud. Yiddish is the
+     * Filipino case again — `ji` is the retired code and `Intl.Locale`
+     * canonicalizes it, so nothing has to be listed — and the rest reach their
+     * catalogs through plain filtering, including the two whose incoming tag
+     * names a script or a region the directory does not.
+     *
+     * `sme` — the ISO 639-3 code for Northern Sami — needs no entry either,
+     * for the Filipino reason a third time: `Intl.Locale` folds it to `se`
+     * before negotiation is reached. Asserted below so that a change to the
+     * normalization step is what fails rather than a Sami reader quietly
+     * getting English.
+     */
+    describe("the European regional and minority batch, which needs no alias", () => {
+        it.each([
+            ["ji", "yi"],
+            ["ji-US", "yi"],
+            ["yi-US", "yi"],
+            ["bs-BA", "bs"],
+            // Bosnian is written in Latin, so a Cyrillic tag reaches the Latin
+            // catalog. That is the asymmetry `pa` and `sr` already have, and
+            // the answer to it is a second catalog rather than a rename.
+            ["bs-Cyrl", "bs"],
+            ["nds-NL", "nds"],
+            ["rm-CH", "rm"],
+            ["oc-FR", "oc"],
+            ["sc-IT", "sc"],
+            ["scn-IT", "scn"],
+            ["co-FR", "co"],
+            ["se-NO", "se"],
+            ["fy-NL", "fy"],
+            ["lb-LU", "lb"],
+            ["ast-ES", "ast"],
+        ])("serves %s from the catalog named %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        it("folds the three-letter code for Northern Sami to `se`", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("sme")], available),
+            ).toEqual(["se", "en"]);
+        });
+    });
 });
 
 describe("resolveDocumentLocale", () => {

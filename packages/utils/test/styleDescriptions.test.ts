@@ -965,6 +965,9 @@ describe("a phrase rendered in two positions", () => {
     const si = forLocale("si");
     const lg = forLocale("lg");
     const ti = forLocale("ti");
+    const bs = forLocale("bs");
+    const oc = forLocale("oc");
+    const se = forLocale("se");
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1339,6 +1342,59 @@ describe("a phrase rendered in two positions", () => {
         });
     });
 
+    // Bosnian forks on `$role` the way Croatian does, and the fork lands on a
+    // different word: `locales/hr` calls a border «rub», which is masculine and
+    // takes the instrumental `-im`, while `locales/bs` calls it «ivica», which
+    // is feminine and takes `-om`. So this pins the case *and* the choice of
+    // noun — a catalog copied over from Croatian would fail here rather than
+    // read plausibly.
+    it("agrees Bosnian's border with its own feminine noun", () => {
+        expect(bothBorderForms(bs)).toEqual({
+            standalone: "debela crna",
+            embedded: "ispunjena plava kružnica sa debelom crnom ivicom",
+        });
+        expect(bothTextForms(bs)).toEqual({
+            textColor: "crven",
+            backgroundColor: "žuta",
+            sentence: "crven na žutoj pozadini",
+        });
+    });
+
+    // Occitan is the batch's postnominal case: the adjectives follow the noun,
+    // so `style-with-noun` inverts the English order and the border clause
+    // reads «amb una bordadura espessa negra». Nothing forks on `$role`,
+    // because a preposition carries the position and the adjective never moves.
+    it("puts Occitan's adjectives after the noun in both positions", () => {
+        expect(bothBorderForms(oc)).toEqual({
+            standalone: "espessa negra",
+            embedded: "cercle emplenat blau amb una bordadura espessa negra",
+        });
+        expect(bothTextForms(oc)).toEqual({
+            textColor: "roge",
+            backgroundColor: "jaune",
+            sentence: "roge sus un fons jaune",
+        });
+    });
+
+    // Northern Sami is here for the opposite reason to every case above it:
+    // the two positions are *deliberately* the same string. A Sami adjective
+    // in front of a noun takes an attributive form that agrees with nothing —
+    // not with case, not with number, and there is no gender — so «asse
+    // čáhppes» is the phrase wherever it lands, and the comitative «ravddain»
+    // is what carries "with". This is the assertion that would catch someone
+    // "fixing" the catalog by adding a `$role` fork it has no use for.
+    it("leaves Northern Sami's attributive form alone in every position", () => {
+        expect(bothBorderForms(se)).toEqual({
+            standalone: "asse čáhppes",
+            embedded: "devdojuvvon alit sirkkel asse čáhppes ravddain",
+        });
+        expect(bothTextForms(se)).toEqual({
+            textColor: "rukses",
+            backgroundColor: "fiskes",
+            sentence: "rukses fiskes duogážiin",
+        });
+    });
+
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.
     it("keeps the two positions distinct wherever a language inflects", () => {
@@ -1350,7 +1406,7 @@ describe("a phrase rendered in two positions", () => {
         // case, so no position moves anything. Bulgarian is absent for that
         // same reason with a gender instead of a class, and Estonian is here
         // because case is the only thing it has.
-        for (const t of [de, ru, pl, hi, mr, et]) {
+        for (const t of [de, ru, pl, hi, mr, et, bs]) {
             const border = bothBorderForms(t);
             expect(border.embedded).not.toContain(border.standalone);
         }
@@ -1360,7 +1416,7 @@ describe("a phrase rendered in two positions", () => {
         // so belongs here, and so does Punjabi, whose background is masculine.
         // Estonian belongs here too: its background goes adessive, and Georgian
         // because its background is the one position that truncates.
-        for (const t of [de, ru, pl, mr, pa, et, ka]) {
+        for (const t of [de, ru, pl, mr, pa, et, ka, bs]) {
             const text = bothTextForms(t);
             expect(text.sentence).not.toContain(text.backgroundColor);
         }

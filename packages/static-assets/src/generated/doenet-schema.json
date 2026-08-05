@@ -64984,6 +64984,10 @@
                             "description": "Assamese (অসমীয়া)"
                         },
                         {
+                            "value": "ast",
+                            "description": "Asturian (asturianu)"
+                        },
+                        {
                             "value": "az",
                             "description": "Azerbaijani (azərbaycan)"
                         },
@@ -65008,12 +65012,20 @@
                             "description": "Breton (brezhoneg)"
                         },
                         {
+                            "value": "bs",
+                            "description": "Bosnian (bosanski)"
+                        },
+                        {
                             "value": "ca",
                             "description": "Catalan (català)"
                         },
                         {
                             "value": "ceb",
                             "description": "Cebuano"
+                        },
+                        {
+                            "value": "co",
+                            "description": "Corsican"
                         },
                         {
                             "value": "cs",
@@ -65070,6 +65082,10 @@
                         {
                             "value": "fr",
                             "description": "French (français)"
+                        },
+                        {
+                            "value": "fy",
+                            "description": "Western Frisian (Frysk)"
                         },
                         {
                             "value": "ga",
@@ -65168,6 +65184,10 @@
                             "description": "Kyrgyz (кыргызча)"
                         },
                         {
+                            "value": "lb",
+                            "description": "Luxembourgish (Lëtzebuergesch)"
+                        },
+                        {
                             "value": "lg",
                             "description": "Ganda (Luganda)"
                         },
@@ -65228,6 +65248,10 @@
                             "description": "Norwegian Bokmål (norsk bokmål)"
                         },
                         {
+                            "value": "nds",
+                            "description": "Low German (Neddersass’sch)"
+                        },
+                        {
                             "value": "ne",
                             "description": "Nepali (नेपाली)"
                         },
@@ -65238,6 +65262,10 @@
                         {
                             "value": "ny",
                             "description": "Nyanja"
+                        },
+                        {
+                            "value": "oc",
+                            "description": "Occitan (occitan)"
                         },
                         {
                             "value": "om",
@@ -65264,6 +65292,10 @@
                             "description": "Portuguese (português)"
                         },
                         {
+                            "value": "rm",
+                            "description": "Romansh (rumantsch)"
+                        },
+                        {
                             "value": "ro",
                             "description": "Romanian (română)"
                         },
@@ -65276,8 +65308,20 @@
                             "description": "Kinyarwanda (Ikinyarwanda)"
                         },
                         {
+                            "value": "sc",
+                            "description": "Sardinian (sardu)"
+                        },
+                        {
+                            "value": "scn",
+                            "description": "Sicilian (sicilianu)"
+                        },
+                        {
                             "value": "sd",
                             "description": "Sindhi (سنڌي)"
+                        },
+                        {
+                            "value": "se",
+                            "description": "Northern Sami (davvisámegiella)"
                         },
                         {
                             "value": "si",
@@ -65390,6 +65434,10 @@
                         {
                             "value": "xh",
                             "description": "Xhosa (IsiXhosa)"
+                        },
+                        {
+                            "value": "yi",
+                            "description": "Yiddish (ייִדיש)"
                         },
                         {
                             "value": "yo",
