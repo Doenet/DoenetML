@@ -34,7 +34,8 @@ export class SideBySide extends BlockComponent {
 
         attributes.margins = {
             createComponentOfType: "_componentSizeList",
-            description: "List of margin widths between panels.",
+            description:
+                "Margin widths outside the row of panels: the first before the row and the second after it, following the writing direction.",
         };
 
         attributes.valign = {
@@ -1306,7 +1307,8 @@ export class SbsGroup extends BlockComponent {
 
         attributes.margins = {
             createComponentOfType: "_componentSizeList",
-            description: "List of margin widths between panels.",
+            description:
+                "Margin widths outside the row of panels: the first before the row and the second after it, following the writing direction.",
         };
 
         attributes.valign = {

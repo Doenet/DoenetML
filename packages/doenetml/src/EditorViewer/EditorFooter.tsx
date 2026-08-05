@@ -98,7 +98,7 @@ function TabTrigger({
  *
  * `reserveKeyboardButtonSpace` shifts the three-dot menu inward to clear the
  * virtual keyboard's open-keyboard tab when the footer's right edge meets it
- * (showViewer={false} or viewerLocation in {"left","top"} with the keyboard
+ * (showViewer={false} or viewerLocation in {"start","top"} with the keyboard
  * enabled). Narrow viewports may still let the menu collide with the keyboard
  * tab; that's accepted for now.
  */

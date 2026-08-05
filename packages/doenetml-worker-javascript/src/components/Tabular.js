@@ -53,21 +53,23 @@ export default class Tabular extends BlockComponent {
             description: "Default horizontal alignment for cells.",
             createComponentOfType: "text",
             createStateVariable: "halign",
-            defaultValue: "left",
+            defaultValue: "start",
             public: true,
             toLowerCase: true,
             validValues: [
                 {
-                    value: "left",
-                    description: "Left-align cell content.",
+                    value: "start",
+                    description:
+                        "Align cell content to the leading edge: the left in a left-to-right document, the right in a right-to-left one.",
                 },
                 {
                     value: "center",
                     description: "Center cell content horizontally.",
                 },
                 {
-                    value: "right",
-                    description: "Right-align cell content.",
+                    value: "end",
+                    description:
+                        "Align cell content to the trailing edge: the right in a left-to-right document, the left in a right-to-left one.",
                 },
                 {
                     value: "justify",
@@ -98,10 +100,10 @@ export default class Tabular extends BlockComponent {
                 },
             ],
         };
-        attributes.top = {
+        attributes.topBorder = {
             description: "Border style for the top edge of the layout.",
             createComponentOfType: "text",
-            createStateVariable: "top",
+            createStateVariable: "topBorder",
             defaultValue: "none",
             public: true,
             toLowerCase: true,
@@ -125,10 +127,11 @@ export default class Tabular extends BlockComponent {
             ],
             forRenderer: true,
         };
-        attributes.left = {
-            description: "Border style for the left edge of the layout.",
+        attributes.startBorder = {
+            description:
+                "Border style for the leading edge of the layout: its left edge in a left-to-right document, its right edge in a right-to-left one.",
             createComponentOfType: "text",
-            createStateVariable: "left",
+            createStateVariable: "startBorder",
             defaultValue: "none",
             public: true,
             toLowerCase: true,
@@ -151,10 +154,10 @@ export default class Tabular extends BlockComponent {
                 },
             ],
         };
-        attributes.bottom = {
+        attributes.bottomBorder = {
             description: "Border style for the bottom edge of the layout.",
             createComponentOfType: "text",
-            createStateVariable: "bottom",
+            createStateVariable: "bottomBorder",
             defaultValue: "none",
             public: true,
             toLowerCase: true,
@@ -177,10 +180,11 @@ export default class Tabular extends BlockComponent {
                 },
             ],
         };
-        attributes.right = {
-            description: "Border style for the right edge of the layout.",
+        attributes.endBorder = {
+            description:
+                "Border style for the trailing edge of the layout: its right edge in a left-to-right document, its left edge in a right-to-left one.",
             createComponentOfType: "text",
-            createStateVariable: "right",
+            createStateVariable: "endBorder",
             defaultValue: "none",
             public: true,
             toLowerCase: true,

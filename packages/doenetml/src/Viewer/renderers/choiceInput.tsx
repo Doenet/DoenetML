@@ -572,9 +572,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 htmlFor={inlineInputId}
                 style={{
                     marginInlineEnd:
-                        SVs.labelPosition === "right" ? undefined : "4px",
+                        SVs.labelPosition === "end" ? undefined : "4px",
                     marginInlineStart:
-                        SVs.labelPosition === "right" ? "4px" : undefined,
+                        SVs.labelPosition === "end" ? "4px" : undefined,
                 }}
             >
                 {label}
@@ -619,7 +619,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     }
                 }}
             >
-                {SVs.labelPosition === "right" ? (
+                {SVs.labelPosition === "end" ? (
                     <>
                         {inputRow}
                         {labelComponent}

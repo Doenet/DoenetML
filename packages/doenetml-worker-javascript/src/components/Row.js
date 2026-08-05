@@ -43,11 +43,12 @@ export default class Row extends BaseComponent {
             createComponentOfType: "text",
             description: "Default vertical alignment for cells in this row.",
         };
-        attributes.left = {
+        attributes.startBorder = {
             createComponentOfType: "text",
-            description: "Border style for the left edge of this row.",
+            description:
+                "Border style for the leading edge of this row: its left edge in a left-to-right document, its right edge in a right-to-left one.",
         };
-        attributes.bottom = {
+        attributes.bottomBorder = {
             createComponentOfType: "text",
             description: "Border style for the bottom edge of this row.",
         };
@@ -106,7 +107,7 @@ export default class Row extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
-            defaultValue: "left",
+            defaultValue: "start",
             hasEssential: true,
             returnDependencies: () => ({
                 halignAttr: {
@@ -123,9 +124,9 @@ export default class Row extends BaseComponent {
                 if (dependencyValues.halignAttr !== null) {
                     let halign = dependencyValues.halignAttr.stateValues.value;
                     if (
-                        !["left", "center", "right", "justify"].includes(halign)
+                        !["start", "center", "end", "justify"].includes(halign)
                     ) {
-                        halign = "left";
+                        halign = "start";
                     }
                     return { setValue: { halign } };
                 } else if (
@@ -181,8 +182,9 @@ export default class Row extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.left = {
-            description: "Border style for the left edge of the row.",
+        stateVariableDefinitions.startBorder = {
+            description:
+                "Border style for the leading edge of the row: its left edge in a left-to-right document, its right edge in a right-to-left one.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -191,35 +193,46 @@ export default class Row extends BaseComponent {
             defaultValue: "none",
             hasEssential: true,
             returnDependencies: () => ({
-                leftAttr: {
+                startBorderAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "left",
+                    attributeName: "startBorder",
                     variableNames: ["value"],
                 },
-                parentLeft: {
+                parentStartBorder: {
                     dependencyType: "parentStateVariable",
-                    variableName: "left",
+                    variableName: "startBorder",
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                if (dependencyValues.leftAttr !== null) {
-                    let left = dependencyValues.leftAttr.stateValues.value;
-                    if (!["none", "minor", "medium", "major"].includes(left)) {
-                        left = "none";
+                if (dependencyValues.startBorderAttr !== null) {
+                    let startBorder =
+                        dependencyValues.startBorderAttr.stateValues.value;
+                    if (
+                        !["none", "minor", "medium", "major"].includes(
+                            startBorder,
+                        )
+                    ) {
+                        startBorder = "none";
                     }
-                    return { setValue: { left } };
+                    return { setValue: { startBorder } };
                 } else if (
-                    dependencyValues.parentLeft !== null &&
-                    !usedDefault.parentLeft
+                    dependencyValues.parentStartBorder !== null &&
+                    !usedDefault.parentStartBorder
                 ) {
-                    return { setValue: { left: dependencyValues.parentLeft } };
+                    return {
+                        setValue: {
+                            startBorder: dependencyValues.parentStartBorder,
+                        },
+                    };
                 } else {
-                    return { useEssentialOrDefaultValue: { left: true } };
+                    return {
+                        useEssentialOrDefaultValue: { startBorder: true },
+                    };
                 }
             },
         };
 
-        stateVariableDefinitions.bottom = {
+        stateVariableDefinitions.bottomBorder = {
             description: "Border style for the bottom edge of the row.",
             public: true,
             shadowingInstructions: {
@@ -228,34 +241,41 @@ export default class Row extends BaseComponent {
             defaultValue: "none",
             hasEssential: true,
             returnDependencies: () => ({
-                bottomAttr: {
+                bottomBorderAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "bottom",
+                    attributeName: "bottomBorder",
                     variableNames: ["value"],
                 },
-                parentBottom: {
+                parentBottomBorder: {
                     dependencyType: "parentStateVariable",
-                    variableName: "bottom",
+                    variableName: "bottomBorder",
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                if (dependencyValues.bottomAttr !== null) {
-                    let bottom = dependencyValues.bottomAttr.stateValues.value;
+                if (dependencyValues.bottomBorderAttr !== null) {
+                    let bottomBorder =
+                        dependencyValues.bottomBorderAttr.stateValues.value;
                     if (
-                        !["none", "minor", "medium", "major"].includes(bottom)
+                        !["none", "minor", "medium", "major"].includes(
+                            bottomBorder,
+                        )
                     ) {
-                        bottom = "none";
+                        bottomBorder = "none";
                     }
-                    return { setValue: { bottom } };
+                    return { setValue: { bottomBorder } };
                 } else if (
-                    dependencyValues.parentBottom !== null &&
-                    !usedDefault.parentBottom
+                    dependencyValues.parentBottomBorder !== null &&
+                    !usedDefault.parentBottomBorder
                 ) {
                     return {
-                        setValue: { bottom: dependencyValues.parentBottom },
+                        setValue: {
+                            bottomBorder: dependencyValues.parentBottomBorder,
+                        },
                     };
                 } else {
-                    return { useEssentialOrDefaultValue: { bottom: true } };
+                    return {
+                        useEssentialOrDefaultValue: { bottomBorder: true },
+                    };
                 }
             },
         };

@@ -123,6 +123,25 @@ export type DoenetEditorHandle = {
     updateRenderedView: () => void;
 };
 
+export type ViewerLocation = "start" | "end" | "top" | "bottom";
+
+/**
+ * `left` and `right` name the sides `start` and `end` fall on in a
+ * left-to-right document, which is what they have always meant here: the two
+ * panels are placed in DOM order and mirror with the writing direction.
+ */
+export function normalizeViewerLocation(
+    location: ViewerLocation | "left" | "right",
+): ViewerLocation {
+    if (location === "left") {
+        return "start";
+    }
+    if (location === "right") {
+        return "end";
+    }
+    return location;
+}
+
 type EditorViewerProps = {
     doenetML: string;
     activityId?: string;
@@ -144,7 +163,16 @@ type EditorViewerProps = {
     width?: string;
     height?: string;
     showViewer?: boolean;
-    viewerLocation?: "left" | "right" | "top" | "bottom";
+    /**
+     * Which side of the editor the viewer sits on. `start` and `end` follow
+     * the writing direction: the viewer panel is laid out in DOM order, so in
+     * a right-to-left document `start` is the right-hand side, the way every
+     * other pane in the editor mirrors.
+     *
+     * `left` and `right` are the former names of `start` and `end`, still
+     * accepted so hosts passing them keep the layout they had.
+     */
+    viewerLocation?: ViewerLocation | "left" | "right";
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
@@ -162,7 +190,7 @@ type EditorViewerProps = {
      * Used by the footer to decide whether to reserve space on its right edge
      * for the virtual keyboard's open-keyboard tab. Mirrors the same prop on
      * `DoenetEditor`. Has no effect when the footer doesn't touch the
-     * container's right edge (default `viewerLocation="right"` with the
+     * container's trailing edge (default `viewerLocation="end"` with the
      * viewer shown).
      */
     addVirtualKeyboard?: boolean;
@@ -237,7 +265,7 @@ export const EditorViewer = React.forwardRef<
         width = "100%",
         height = "500px",
         showViewer = true,
-        viewerLocation = "right",
+        viewerLocation = "end",
         doenetmlChangeCallback,
         immediateDoenetmlChangeCallback,
         documentStructureCallback,
@@ -269,6 +297,8 @@ export const EditorViewer = React.forwardRef<
     const [activityId, setActivityId] = useState(specifiedActivityId ?? id);
 
     const [codeChanged, setCodeChanged] = useState(false);
+    const panelLocation = normalizeViewerLocation(viewerLocation);
+
     const [documentInteracted, setDocumentInteracted] = useState(false);
     // Which of the two states the button is in, not the word it shows. The
     // word is translated at render, so a language change mid-session cannot
@@ -1231,8 +1261,8 @@ export const EditorViewer = React.forwardRef<
                 reserveKeyboardButtonSpace={
                     addVirtualKeyboard &&
                     (!showViewer ||
-                        viewerLocation === "left" ||
-                        viewerLocation === "top")
+                        panelLocation === "start" ||
+                        panelLocation === "top")
                 }
                 diagnosticsSummary={{
                     warningsCount,
@@ -1399,7 +1429,7 @@ export const EditorViewer = React.forwardRef<
         </div>
     );
 
-    const viewerFirst = viewerLocation === "left" || viewerLocation === "top";
+    const viewerFirst = panelLocation === "start" || panelLocation === "top";
 
     return (
         // A third provider, between the one `doenetml.tsx` mounts from the
@@ -1414,7 +1444,7 @@ export const EditorViewer = React.forwardRef<
                     panelA={viewerFirst ? viewerPanel : editorPanel}
                     panelB={viewerFirst ? editorPanel : viewerPanel}
                     preferredDirection={
-                        viewerLocation === "bottom" || viewerLocation === "top"
+                        panelLocation === "bottom" || panelLocation === "top"
                             ? "vertical"
                             : "horizontal"
                     }

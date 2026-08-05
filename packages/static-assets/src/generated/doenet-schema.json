@@ -59613,7 +59613,7 @@
                 },
                 {
                     "name": "margins",
-                    "description": "List of margin widths between panels.",
+                    "description": "Margin widths outside the row of panels: the first before the row and the second after it, following the writing direction.",
                     "type": "_componentSizeList"
                 },
                 {
@@ -59875,7 +59875,7 @@
                 },
                 {
                     "name": "margins",
-                    "description": "List of margin widths between panels.",
+                    "description": "Margin widths outside the row of panels: the first before the row and the second after it, following the writing direction.",
                     "type": "_componentSizeList"
                 },
                 {
@@ -62924,19 +62924,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -63546,19 +63546,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -83151,19 +83151,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -83994,19 +83994,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -84555,19 +84555,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "right",
+                    "defaultValue": "end",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -84934,19 +84934,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -92463,19 +92463,19 @@
                 },
                 {
                     "name": "halign",
-                    "description": "Horizontal alignment for the cell's content (left, center, or right).",
-                    "defaultValue": "left",
+                    "description": "Horizontal alignment for the cell's content (start, center, end, or justify).",
+                    "defaultValue": "start",
                     "type": "text"
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "description": "Border style for the bottom edge of the cell.",
                     "defaultValue": "none",
                     "type": "text"
                 },
                 {
-                    "name": "right",
-                    "description": "Border style for the right edge of the cell.",
+                    "name": "endBorder",
+                    "description": "Border style for the trailing edge of the cell: its right edge in a left-to-right document, its left edge in a right-to-left one.",
                     "defaultValue": "none",
                     "type": "text"
                 },
@@ -92570,19 +92570,19 @@
                     "name": "halign",
                     "type": "text",
                     "isArray": false,
-                    "description": "Horizontal alignment of the cell's content (left, center, or right)."
+                    "description": "Horizontal alignment of the cell's content (start, center, end, or justify)."
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the cell."
                 },
                 {
-                    "name": "right",
+                    "name": "endBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the right edge of the cell."
+                    "description": "Border style for the trailing edge of the cell: its right edge in a left-to-right document, its left edge in a right-to-left one."
                 },
                 {
                     "name": "inHeader",
@@ -92717,7 +92717,7 @@
                 {
                     "name": "halign",
                     "description": "Default horizontal alignment for cells in this row.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "type": "text"
                 },
                 {
@@ -92727,13 +92727,13 @@
                     "type": "text"
                 },
                 {
-                    "name": "left",
-                    "description": "Border style for the left edge of this row.",
+                    "name": "startBorder",
+                    "description": "Border style for the leading edge of this row: its left edge in a left-to-right document, its right edge in a right-to-left one.",
                     "defaultValue": "none",
                     "type": "text"
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "description": "Border style for the bottom edge of this row.",
                     "defaultValue": "none",
                     "type": "text"
@@ -92846,13 +92846,13 @@
                     "description": "Default vertical alignment for cells in this row."
                 },
                 {
-                    "name": "left",
+                    "name": "startBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the left edge of the row."
+                    "description": "Border style for the leading edge of the row: its left edge in a left-to-right document, its right edge in a right-to-left one."
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the row."
@@ -93324,25 +93324,25 @@
                 {
                     "name": "halign",
                     "description": "Default horizontal alignment for cells.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
+                        "start",
                         "center",
-                        "right",
+                        "end",
                         "justify"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Left-align cell content."
+                            "value": "start",
+                            "description": "Align cell content to the leading edge: the left in a left-to-right document, the right in a right-to-left one."
                         },
                         {
                             "value": "center",
                             "description": "Center cell content horizontally."
                         },
                         {
-                            "value": "right",
-                            "description": "Right-align cell content."
+                            "value": "end",
+                            "description": "Align cell content to the trailing edge: the right in a left-to-right document, the left in a right-to-left one."
                         },
                         {
                             "value": "justify",
@@ -93377,7 +93377,7 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "top",
+                    "name": "topBorder",
                     "description": "Border style for the top edge of the layout.",
                     "defaultValue": "none",
                     "values": [
@@ -93407,8 +93407,8 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "left",
-                    "description": "Border style for the left edge of the layout.",
+                    "name": "startBorder",
+                    "description": "Border style for the leading edge of the layout: its left edge in a left-to-right document, its right edge in a right-to-left one.",
                     "defaultValue": "none",
                     "values": [
                         "none",
@@ -93437,7 +93437,7 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "description": "Border style for the bottom edge of the layout.",
                     "defaultValue": "none",
                     "values": [
@@ -93467,8 +93467,8 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "right",
-                    "description": "Border style for the right edge of the layout.",
+                    "name": "endBorder",
+                    "description": "Border style for the trailing edge of the layout: its right edge in a left-to-right document, its left edge in a right-to-left one.",
                     "defaultValue": "none",
                     "values": [
                         "none",
@@ -93548,31 +93548,31 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "top",
+                    "name": "topBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the top edge of the layout.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "left",
+                    "name": "startBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the left edge of the layout.",
+                    "description": "Border style for the leading edge of the layout: its left edge in a left-to-right document, its right edge in a right-to-left one.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the layout.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "right",
+                    "name": "endBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the right edge of the layout.",
+                    "description": "Border style for the trailing edge of the layout: its right edge in a left-to-right document, its left edge in a right-to-left one.",
                     "fromAttribute": true
                 },
                 {
@@ -114397,8 +114397,8 @@
                     "defaultValue": "bottom",
                     "values": [
                         "bottom",
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
@@ -114406,12 +114406,12 @@
                             "description": "Place the results panel below the editor."
                         },
                         {
-                            "value": "left",
-                            "description": "Place the results panel to the left of the editor."
+                            "value": "start",
+                            "description": "Place the results panel before the editor: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the results panel to the right of the editor."
+                            "value": "end",
+                            "description": "Place the results panel after the editor: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"

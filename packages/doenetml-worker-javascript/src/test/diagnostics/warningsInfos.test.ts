@@ -129,6 +129,169 @@ describe("Warning Tests @group4", async () => {
         );
     });
 
+    it("Deprecated physical labelPosition values are migrated to start/end", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<textInput name="ti" labelPosition="left"><label>Text</label></textInput>
+<booleanInput name="bi" labelPosition="RIGHT"><label>Boolean</label></booleanInput>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
+
+        const messages = diagnosticsByType.warnings.map(
+            (warning) => warning.message,
+        );
+        expect(messages).contains(
+            "[deprecation] Value `left` of attribute `labelPosition` on `<textInput>` is deprecated; use `start` instead.",
+        );
+        // Written in another casing: the attribute is `toLowerCase`, so the
+        // deprecated value is recognized however the author capitalized it.
+        expect(messages).contains(
+            "[deprecation] Value `right` of attribute `labelPosition` on `<booleanInput>` is deprecated; use `end` instead.",
+        );
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .labelPosition,
+        ).eq("start");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues
+                .labelPosition,
+        ).eq("end");
+    });
+
+    it("Deprecated resultsLocation values are migrated to start/end", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<codeEditor name="ce" resultsLocation="left" />
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).contains(
+            "[deprecation] Value `left` of attribute `resultsLocation` on `<codeEditor>` is deprecated; use `start` instead.",
+        );
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ce")].stateValues
+                .resultsLocation,
+        ).eq("start");
+    });
+
+    it("labelPosition on a graph component keeps its physical values", async () => {
+        // A point's label sits in coordinate space, which does not mirror, so
+        // `upperLeft` is not up for renaming and must not draw a deprecation.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph><point name="P" labelPosition="upperLeft">(1,2)<label>A</label></point></graph>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                .labelPosition,
+        ).eq("upperleft");
+    });
+
+    it("Deprecated tabular border attributes are migrated to logical names", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t" top="minor" left="medium">
+  <row name="r" left="major">
+    <cell name="c" right="minor" bottom="medium">hello</cell>
+  </row>
+</tabular>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(5);
+
+        const messages = diagnosticsByType.warnings.map(
+            (warning) => warning.message,
+        );
+        expect(messages).contains(
+            "[deprecation] Attribute `left` on `<row>` is deprecated; use `startBorder` instead.",
+        );
+        expect(messages).contains(
+            "[deprecation] Attribute `right` on `<cell>` is deprecated; use `endBorder` instead.",
+        );
+        expect(messages).contains(
+            "[deprecation] Attribute `bottom` on `<cell>` is deprecated; use `bottomBorder` instead.",
+        );
+        expect(messages).contains(
+            "[deprecation] Attribute `top` on `<tabular>` is deprecated; use `topBorder` instead.",
+        );
+        expect(messages).contains(
+            "[deprecation] Attribute `left` on `<tabular>` is deprecated; use `startBorder` instead.",
+        );
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .topBorder,
+        ).eq("minor");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r")].stateValues
+                .startBorder,
+        ).eq("major");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .endBorder,
+        ).eq("minor");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .bottomBorder,
+        ).eq("medium");
+    });
+
+    it("Deprecated halign values are migrated to start/end", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular halign="right">
+  <row><cell name="c" halign="left">hello</cell></row>
+</tabular>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
+
+        const messages = diagnosticsByType.warnings.map(
+            (warning) => warning.message,
+        );
+        expect(messages).contains(
+            "[deprecation] Value `right` of attribute `halign` on `<tabular>` is deprecated; use `end` instead.",
+        );
+        expect(messages).contains(
+            "[deprecation] Value `left` of attribute `halign` on `<cell>` is deprecated; use `start` instead.",
+        );
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues.halign,
+        ).eq("start");
+    });
+
     it("From state variable definitions", async () => {
         let { core } = await createTestCore({
             doenetML: `

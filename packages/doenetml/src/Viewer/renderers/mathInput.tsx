@@ -1246,8 +1246,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
 
         // Label & drag handle placement inside the graph. The handle sits beside
-        // the field (to its left by default, or its right when
-        // `labelPosition="right"`), never above it.
+        // the field (before it by default, or after it when
+        // `labelPosition="end"`), never above it.
         // - A label (when present) is shown beside the field and, when the input
         //   is draggable, doubles as the grab region (mirroring native
         //   <textInput>). It keeps `id={labelId}` so the field's aria-labelledby
@@ -1281,7 +1281,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
             );
         }
 
-        const labelOnRight = hasLabel && SVs.labelPosition === "right";
+        const labelAtEnd = hasLabel && SVs.labelPosition === "end";
 
         return (
             <>
@@ -1298,14 +1298,14 @@ export default function MathInput(props: UseDoenetRendererProps) {
                                     {shortDescription}
                                 </span>
                             )}
-                            {!labelOnRight && graphHandle}
+                            {!labelAtEnd && graphHandle}
                             <div
                                 className="mathInputGraphField"
                                 ref={graphFieldRefCallback}
                             >
                                 {mathFieldElement}
                             </div>
-                            {labelOnRight && graphHandle}
+                            {labelAtEnd && graphHandle}
                         </div>,
                         textJXG.current.rendNode,
                     )}
@@ -1331,9 +1331,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             htmlFor={inputKey}
             style={{
                 marginInlineEnd:
-                    SVs.labelPosition === "right" ? undefined : "2px",
+                    SVs.labelPosition === "end" ? undefined : "2px",
                 marginInlineStart:
-                    SVs.labelPosition === "right" ? "2px" : undefined,
+                    SVs.labelPosition === "end" ? "2px" : undefined,
             }}
         >
             {label}
@@ -1400,7 +1400,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     display: "inline",
                 }}
             >
-                {SVs.labelPosition === "right" ? (
+                {SVs.labelPosition === "end" ? (
                     <>
                         {inputRow}
                         {labelComponent}

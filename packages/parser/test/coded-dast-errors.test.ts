@@ -213,8 +213,12 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             ...normalizedErrors(
                 `<image description="a tree" source="t.png" />`,
             ),
+            // A deprecated *value* of an attribute that itself stays.
+            ...normalizedErrors(
+                `<textInput labelPosition="left"><label>x</label></textInput>`,
+            ),
         ];
-        expect(codedErrors(errors).length).toBe(5);
+        expect(codedErrors(errors).length).toBe(6);
         expectRoundTrip(errors);
     });
 

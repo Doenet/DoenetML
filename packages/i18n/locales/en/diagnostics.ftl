@@ -746,6 +746,12 @@ deprecated-attribute-ignored = [deprecation] Attribute `{ $attribute }` on `<{ $
 
 deprecated-attribute-to-child = [deprecation] Attribute `{ $attribute }` on `<{ $component }>` is deprecated; use a `<{ $child }>` child instead.
 
+# One value of an attribute is deprecated while the attribute itself stays:
+# $value is what the author wrote and $to what to write instead, with
+# $attribute and $component naming where. All four stay as written.
+
+deprecated-attribute-value-renamed = [deprecation] Value `{ $value }` of attribute `{ $attribute }` on `<{ $component }>` is deprecated; use `{ $to }` instead.
+
 
 ## Language coverage
 

@@ -155,20 +155,20 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
             .and("not.have.attr", "aria-labelledby");
     });
 
-    it("labelPosition left and right", () => {
+    it("labelPosition start and end", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
     <p>
-    <matrixInput name="ml" labelPosition="left">
-      <label>left</label>
+    <matrixInput name="ml" labelPosition="start">
+      <label>start</label>
     </matrixInput>
     </p>
 
     <p>
-    <matrixInput name="mr" labelPosition="right">
-      <label>right</label>
+    <matrixInput name="mr" labelPosition="end">
+      <label>end</label>
     </matrixInput>
     </p>
     `,
@@ -177,13 +177,13 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.log("Left matrixInput: label before matrix input row");
+        cy.log("Start matrixInput: label before matrix input row");
         cy.get("#ml-container")
             .children()
             .eq(0)
             .should("have.attr", "id", "ml-label");
 
-        cy.log("Right matrixInput: label after matrix input row");
+        cy.log("End matrixInput: label after matrix input row");
         cy.get("#mr-container")
             .children()
             .last()

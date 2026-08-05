@@ -2,7 +2,7 @@
     .text-input {
         label {
             @apply max-w-full gap-1 inline-flex items-baseline;
-            &.input-label-right {
+            &.input-label-end {
                 flex-direction: row-reverse;
             }
         }

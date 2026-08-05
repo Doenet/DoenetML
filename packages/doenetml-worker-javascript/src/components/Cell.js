@@ -43,15 +43,16 @@ export default class Cell extends BaseComponent {
         attributes.halign = {
             createComponentOfType: "text",
             description:
-                "Horizontal alignment for the cell's content (left, center, or right).",
+                "Horizontal alignment for the cell's content (start, center, end, or justify).",
         };
-        attributes.bottom = {
+        attributes.bottomBorder = {
             createComponentOfType: "text",
             description: "Border style for the bottom edge of the cell.",
         };
-        attributes.right = {
+        attributes.endBorder = {
             createComponentOfType: "text",
-            description: "Border style for the right edge of the cell.",
+            description:
+                "Border style for the trailing edge of the cell: its right edge in a left-to-right document, its left edge in a right-to-left one.",
         };
         attributes.prefill = {
             createComponentOfType: "text",
@@ -82,14 +83,14 @@ export default class Cell extends BaseComponent {
 
         stateVariableDefinitions.halign = {
             description:
-                "Horizontal alignment of the cell's content (left, center, or right).",
+                "Horizontal alignment of the cell's content (start, center, end, or justify).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
             forRenderer: true,
             hasEssential: true,
-            defaultValue: "left",
+            defaultValue: "start",
             returnDependencies: () => ({
                 halignAttr: {
                     dependencyType: "attributeComponent",
@@ -111,9 +112,9 @@ export default class Cell extends BaseComponent {
                 if (dependencyValues.halignAttr !== null) {
                     let halign = dependencyValues.halignAttr.stateValues.value;
                     if (
-                        !["left", "center", "right", "justify"].includes(halign)
+                        !["start", "center", "end", "justify"].includes(halign)
                     ) {
-                        halign = "left";
+                        halign = "start";
                     }
                     return { setValue: { halign } };
                 } else if (
@@ -139,7 +140,7 @@ export default class Cell extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.bottom = {
+        stateVariableDefinitions.bottomBorder = {
             description: "Border style for the bottom edge of the cell.",
             public: true,
             shadowingInstructions: {
@@ -149,55 +150,64 @@ export default class Cell extends BaseComponent {
             hasEssential: true,
             defaultValue: "none",
             returnDependencies: () => ({
-                bottomAttr: {
+                bottomBorderAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "bottom",
+                    attributeName: "bottomBorder",
                     variableNames: ["value"],
                 },
-                parentBottom: {
+                parentBottomBorder: {
                     dependencyType: "parentStateVariable",
-                    variableName: "bottom",
+                    variableName: "bottomBorder",
                 },
-                tabularBottom: {
+                tabularBottomBorder: {
                     dependencyType: "ancestor",
                     componentType: "tabular",
-                    variableNames: ["bottom"],
+                    variableNames: ["bottomBorder"],
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                if (dependencyValues.bottomAttr !== null) {
-                    let bottom = dependencyValues.bottomAttr.stateValues.value;
+                if (dependencyValues.bottomBorderAttr !== null) {
+                    let bottomBorder =
+                        dependencyValues.bottomBorderAttr.stateValues.value;
                     if (
-                        !["none", "minor", "medium", "major"].includes(bottom)
+                        !["none", "minor", "medium", "major"].includes(
+                            bottomBorder,
+                        )
                     ) {
-                        bottom = "none";
+                        bottomBorder = "none";
                     }
-                    return { setValue: { bottom } };
+                    return { setValue: { bottomBorder } };
                 } else if (
-                    !usedDefault.parentBottom &&
-                    dependencyValues.parentBottom
-                ) {
-                    return {
-                        setValue: { bottom: dependencyValues.parentBottom },
-                    };
-                } else if (
-                    !usedDefault.tabularBottom &&
-                    dependencyValues.tabularBottom
+                    !usedDefault.parentBottomBorder &&
+                    dependencyValues.parentBottomBorder
                 ) {
                     return {
                         setValue: {
-                            bottom: dependencyValues.tabularBottom.stateValues
-                                .bottom,
+                            bottomBorder: dependencyValues.parentBottomBorder,
+                        },
+                    };
+                } else if (
+                    !usedDefault.tabularBottomBorder &&
+                    dependencyValues.tabularBottomBorder
+                ) {
+                    return {
+                        setValue: {
+                            bottomBorder:
+                                dependencyValues.tabularBottomBorder.stateValues
+                                    .bottomBorder,
                         },
                     };
                 } else {
-                    return { useEssentialOrDefaultValue: { bottom: true } };
+                    return {
+                        useEssentialOrDefaultValue: { bottomBorder: true },
+                    };
                 }
             },
         };
 
-        stateVariableDefinitions.right = {
-            description: "Border style for the right edge of the cell.",
+        stateVariableDefinitions.endBorder = {
+            description:
+                "Border style for the trailing edge of the cell: its right edge in a left-to-right document, its left edge in a right-to-left one.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -206,37 +216,43 @@ export default class Cell extends BaseComponent {
             hasEssential: true,
             defaultValue: "none",
             returnDependencies: () => ({
-                rightAttr: {
+                endBorderAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "right",
+                    attributeName: "endBorder",
                     variableNames: ["value"],
                 },
-                // TODO: get right for corresponding col
-                tabularRight: {
+                // TODO: get endBorder for corresponding col
+                tabularEndBorder: {
                     dependencyType: "ancestor",
                     componentType: "tabular",
-                    variableNames: ["right"],
+                    variableNames: ["endBorder"],
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                if (dependencyValues.rightAttr !== null) {
-                    let right = dependencyValues.rightAttr.stateValues.value;
-                    if (!["none", "minor", "medium", "major"].includes(right)) {
-                        right = "none";
+                if (dependencyValues.endBorderAttr !== null) {
+                    let endBorder =
+                        dependencyValues.endBorderAttr.stateValues.value;
+                    if (
+                        !["none", "minor", "medium", "major"].includes(
+                            endBorder,
+                        )
+                    ) {
+                        endBorder = "none";
                     }
-                    return { setValue: { right } };
+                    return { setValue: { endBorder } };
                 } else if (
-                    !usedDefault.tabularRight &&
-                    dependencyValues.tabularRight
+                    !usedDefault.tabularEndBorder &&
+                    dependencyValues.tabularEndBorder
                 ) {
                     return {
                         setValue: {
-                            right: dependencyValues.tabularRight.stateValues
-                                .right,
+                            endBorder:
+                                dependencyValues.tabularEndBorder.stateValues
+                                    .endBorder,
                         },
                     };
                 } else {
-                    return { useEssentialOrDefaultValue: { right: true } };
+                    return { useEssentialOrDefaultValue: { endBorder: true } };
                 }
             },
         };

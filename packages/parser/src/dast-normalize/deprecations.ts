@@ -36,9 +36,37 @@ type AttributeRemovalRule = {
     component: string;
 };
 
+/**
+ * A rename of one *value* of an attribute, leaving the attribute name alone.
+ *
+ * Scoped to a component because the same attribute name can name different
+ * things on different components: `labelPosition` on an input picks a side of
+ * the input in DOM order, and `left`/`right` there deserve the logical
+ * `start`/`end`, while `labelPosition` on a `<point>` places a label in
+ * coordinate space, where left is left in every writing direction.
+ */
+type AttributeValueRenameRule = {
+    /** The attribute the value belongs to, in the casing to show. */
+    attribute: string;
+    /** The deprecated value, in the casing the message should show. */
+    from: string;
+    /** The value that replaces it. */
+    to: string;
+    /** The component the message names. */
+    component: string;
+};
+
 type DeprecationRegistry = {
     attributeRenames: Record<string, Record<string, AttributeRenameRule>>;
     attributeRemovals: Record<string, Record<string, AttributeRemovalRule>>;
+    /**
+     * Keyed by component, then by lower-cased attribute name, then by
+     * lower-cased deprecated value.
+     */
+    attributeValueRenames: Record<
+        string,
+        Record<string, Record<string, AttributeValueRenameRule>>
+    >;
 };
 
 /**
@@ -127,16 +155,110 @@ function ignoredAttributes(
     );
 }
 
+/**
+ * Every component type that takes the input `labelPosition` attribute
+ * (the components extending `Input`). Graph components also have a
+ * `labelPosition`, and it stays physical — see AttributeValueRenameRule.
+ */
+const INPUT_COMPONENT_TYPES = [
+    "booleanInput",
+    "choiceInput",
+    "fractionInput",
+    "mathInput",
+    "matrixInput",
+    "textInput",
+];
+
+/** Components taking the tabular `halign` attribute. */
+const TABULAR_HALIGN_COMPONENT_TYPES = ["cell", "row", "tabular"];
+
+/**
+ * The tabular border attributes, per component, in the physical names Doenet
+ * inherited from PreTeXt's `<tabular>` and the logical names that replace them.
+ * Doenet renders these with logical CSS, so `left` on a row is the row's
+ * leading edge, which in a right-to-left document is its right edge — the
+ * physical name says the opposite of what it does.
+ */
+const TABULAR_BORDER_RENAMES: Record<string, string[]> = {
+    cell: ["right", "bottom"],
+    row: ["left", "bottom"],
+    tabular: ["top", "left", "bottom", "right"],
+};
+
+const BORDER_ATTRIBUTE_REPLACEMENTS: Record<string, string> = {
+    left: "startBorder",
+    right: "endBorder",
+    top: "topBorder",
+    bottom: "bottomBorder",
+};
+
+function tabularBorderRenames(): Record<
+    string,
+    Record<string, AttributeRenameRule>
+> {
+    return Object.fromEntries(
+        Object.entries(TABULAR_BORDER_RENAMES).map(([component, edges]) => [
+            component,
+            Object.fromEntries(
+                edges.map((edge) => [
+                    edge,
+                    {
+                        from: edge,
+                        to: BORDER_ATTRIBUTE_REPLACEMENTS[edge],
+                        component,
+                    },
+                ]),
+            ),
+        ]),
+    );
+}
+
+/**
+ * Build value-rename rules for one attribute on one component from a
+ * deprecated-value → replacement-value mapping.
+ */
+function renamedAttributeValues(
+    component: string,
+    attribute: string,
+    mapping: Record<string, string>,
+): Record<string, Record<string, AttributeValueRenameRule>> {
+    return {
+        [attribute]: Object.fromEntries(
+            Object.entries(mapping).map(([from, to]) => [
+                from,
+                { attribute, from, to, component },
+            ]),
+        ),
+    };
+}
+
+/** The same value renames applied to each of several component types. */
+function renamedAttributeValuesAcross(
+    components: string[],
+    attribute: string,
+    mapping: Record<string, string>,
+): DeprecationRegistry["attributeValueRenames"] {
+    return Object.fromEntries(
+        components.map((component) => [
+            component,
+            renamedAttributeValues(component, attribute, mapping),
+        ]),
+    );
+}
+
 const SCORED_SECTION_COLORING_RENAMES = renamedScoredSectionAttribute(
     "forceIndividualAnswerColoring",
     "colorAnswersSeparately",
 );
+
+const TABULAR_BORDER_ATTRIBUTE_RENAMES = tabularBorderRenames();
 
 const DEPRECATION_REGISTRY: DeprecationRegistry = {
     attributeRenames: {
         // Merge per-component rules, spreading scored-section rename rules
         // first so component-specific rules take precedence on conflict.
         ...SCORED_SECTION_COLORING_RENAMES,
+        ...TABULAR_BORDER_ATTRIBUTE_RENAMES,
         document: {
             // document already has a scored-section rename (spread above) plus
             // its own documentWideCheckWork rename.
@@ -208,6 +330,29 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
             "positionFromAnchor",
         ]),
     },
+    attributeValueRenames: {
+        // The label sits beside the input in DOM order, which mirrors with the
+        // writing direction, so `left`/`right` name the side wrongly in a
+        // right-to-left document.
+        ...renamedAttributeValuesAcross(
+            INPUT_COMPONENT_TYPES,
+            "labelPosition",
+            { left: "start", right: "end" },
+        ),
+        // The results panel and the editor are placed in DOM order and mirror
+        // with the writing direction, the way panes conventionally do.
+        codeEditor: renamedAttributeValues("codeEditor", "resultsLocation", {
+            left: "start",
+            right: "end",
+        }),
+        // `halign` becomes `text-align`, whose `left`/`right` do not mirror
+        // while everything around them does.
+        ...renamedAttributeValuesAcross(
+            TABULAR_HALIGN_COMPONENT_TYPES,
+            "halign",
+            { left: "start", right: "end" },
+        ),
+    },
 };
 
 function lowerKeys<T>(o: Record<string, T>): Record<string, T> {
@@ -234,6 +379,24 @@ function buildDeprecationIndex(
                 comp,
                 lowerKeys(rules),
             ]),
+        ),
+        // Attribute values are matched case-insensitively too: every attribute
+        // carrying a value rename is declared `toLowerCase` in the worker, so
+        // `labelPosition="Left"` is as much the deprecated value as `left` is.
+        attributeValueRenames: Object.fromEntries(
+            Object.entries(registry.attributeValueRenames).map(
+                ([comp, attrRules]) => [
+                    comp,
+                    lowerKeys(
+                        Object.fromEntries(
+                            Object.entries(attrRules).map(([attr, rules]) => [
+                                attr,
+                                lowerKeys(rules),
+                            ]),
+                        ),
+                    ),
+                ],
+            ),
         ),
     };
 }
@@ -281,6 +444,7 @@ export const pluginApplyDeprecations: Plugin<[], DastRoot, DastRoot> = () => {
 
             applyAttributeRenames(node, warnings);
             applyAttributeRemovals(node, warnings);
+            applyAttributeValueRenames(node, warnings);
         });
 
         if (warnings.length > 0) {
@@ -371,6 +535,51 @@ function applyAttributeRemovals(node: DastElement, warnings: DastError[]) {
                 },
                 position,
                 source_doc,
+            }),
+        );
+    }
+}
+
+function applyAttributeValueRenames(node: DastElement, warnings: DastError[]) {
+    const attributeRules = DEPRECATION_INDEX.attributeValueRenames[node.name];
+    if (!attributeRules) {
+        return;
+    }
+
+    for (const [lowerAttrName, valueRules] of Object.entries(attributeRules)) {
+        const actualKey = findAttributeKey(node, lowerAttrName);
+        if (!actualKey) {
+            continue;
+        }
+
+        const attribute = node.attributes[actualKey];
+
+        // Only a value written out literally can be recognized. An attribute
+        // built from a macro is not known until the document runs, and by then
+        // the worker's own validation is what sees it.
+        const [child, ...rest] = attribute.children;
+        if (rest.length > 0 || child?.type !== "text") {
+            continue;
+        }
+
+        const rule = valueRules[child.value.trim().toLowerCase()];
+        if (!rule) {
+            continue;
+        }
+
+        child.value = rule.to;
+        warnings.push(
+            deprecationWarning({
+                code: "doenet-w0121",
+                message: `[deprecation] Value \`${rule.from}\` of attribute \`${rule.attribute}\` on \`<${rule.component}>\` is deprecated; use \`${rule.to}\` instead.`,
+                args: {
+                    value: rule.from,
+                    attribute: rule.attribute,
+                    component: rule.component,
+                    to: rule.to,
+                },
+                position: attribute.position ?? node.position,
+                source_doc: attribute.source_doc ?? node.source_doc,
             }),
         );
     }

@@ -6,7 +6,7 @@ import useDoenetRenderer, {
 interface RowSVs {
     [key: string]: any;
     hidden: boolean;
-    left?: any;
+    startBorder?: any;
     valign?: any;
 }
 
@@ -22,17 +22,14 @@ export default React.memo(function Row(props: UseDoenetRendererProps) {
     if (SVs.valign !== null) {
         style.verticalAlign = SVs.valign;
     }
-    // Physical, because the attribute is: an author writes `<row left="…">` and
-    // means the left-hand edge. Adding a logical `start`/`end` vocabulary to
-    // the table attributes is tracked in #1627.
-    if (SVs.left !== "none") {
-        style.borderLeftStyle = "solid";
-        if (SVs.left === "minor") {
-            style.borderLeftWidth = "thin";
-        } else if (SVs.left === "medium") {
-            style.borderLeftWidth = "medium";
+    if (SVs.startBorder !== "none") {
+        style.borderInlineStartStyle = "solid";
+        if (SVs.startBorder === "minor") {
+            style.borderInlineStartWidth = "thin";
+        } else if (SVs.startBorder === "medium") {
+            style.borderInlineStartWidth = "medium";
         } else {
-            style.borderLeftWidth = "thick";
+            style.borderInlineStartWidth = "thick";
         }
     }
     return (

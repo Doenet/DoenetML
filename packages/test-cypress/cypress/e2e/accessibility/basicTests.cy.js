@@ -1479,13 +1479,13 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
                 {
                     doenetML: `
     <p>
-    <textInput name="ti" labelPosition="right"><label>Text</label></textInput>
+    <textInput name="ti" labelPosition="end"><label>Text</label></textInput>
     </p>
     <p>
-    <mathInput name="mi" labelPosition="left"><label>Math</label></mathInput>
+    <mathInput name="mi" labelPosition="start"><label>Math</label></mathInput>
     </p>
     <p>
-    <booleanInput name="bi" labelPosition="right"><label>Boolean</label></booleanInput>
+    <booleanInput name="bi" labelPosition="end"><label>Boolean</label></booleanInput>
     </p>
                     `,
                 },
