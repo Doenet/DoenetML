@@ -1,3 +1,6 @@
+## Included for review purposes only. This file is not used in the devcontainer build process.
+## But it was a path explored for resolving the chrome-cypress issue.
+
 #!/usr/bin/env bash
 set -euo pipefail
 
