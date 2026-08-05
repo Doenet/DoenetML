@@ -626,9 +626,6 @@ export class RustResolverAdapter {
         const lookupParts = pathParts.slice(0, -1);
         if (lookupParts.length === 0) return null;
 
-        // Determine origin the same way bare-reference classification does:
-        // from a child of the enclosing element, so the resolver's
-        // parent-scope walk probes the enclosing element's own scope.
         const originIndex = this._referenceOriginIndex(offset);
         if (originIndex == null) return null;
 
