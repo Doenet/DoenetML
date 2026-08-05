@@ -253,9 +253,12 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
                 "have.length.greaterThan",
                 0,
             );
+            // The footer names the completion shortcut that actually works on
+            // the host platform: macOS swallows Control+Space for input-source
+            // switching, so the panel points Mac users at Option+I instead.
             cy.get(".help-suggestions-footer").should(
                 "contain.text",
-                "Ctrl+Space",
+                Cypress.platform === "darwin" ? "Option+I" : "Ctrl+Space",
             );
         });
     });
