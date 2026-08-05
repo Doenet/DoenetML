@@ -1,6 +1,6 @@
-# West Frisian viewer chrome. Translated from `locales/en/chrome.ftl`, which is
-# the source of truth: `lint:i18n` rejects a key that does not exist there, and
-# reports a key that exists there but not here as missing coverage.
+# Western Frisian viewer chrome. Translated from `locales/en/chrome.ftl`, which
+# is the source of truth: `lint:i18n` rejects a key that does not exist there,
+# and reports a key that exists there but not here as missing coverage.
 #
 # Message ids are never translated — only the text to the right of `=`.
 #

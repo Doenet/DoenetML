@@ -1,4 +1,4 @@
-# West Frisian editor and language-server surfaces. Translated from
+# Western Frisian editor and language-server surfaces. Translated from
 # `locales/en/editor.ftl`, which is the source of truth: `lint:i18n` rejects a
 # key that does not exist there, and reports a key that exists there but not
 # here as missing coverage.

@@ -89,8 +89,8 @@ Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano, Malagasy, Māori,
 Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona, Southern Sotho,
 Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low German,
 Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern Sami and
-Yiddish leave `element-name` and `element-anion-name`
-out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
+Yiddish leave `element-name` and `element-anion-name` out, so those 130 keys
+fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
@@ -1164,15 +1164,15 @@ headers, the graph-controls panel, the editor chrome.
 
 ### Writing a right-to-left catalog
 
-Eight ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd`, `ug` and `yi`. Nothing about the file
-format changes for any of them. A `.ftl` pattern is a sequence of characters in
-**logical** order — the order the text is spoken — and `dir` decides where each
-run is drawn, so a translation is written the way it is read and never reordered
-by hand to look right in an editor. Brackets, quotes and dashes are the same
-characters in every one of these scripts and are written opening-first; the bidi
-algorithm turns them around at render time. Digits stay Latin, as
-[everywhere else](#digits-are-latin-separators-are-not), which is why an Arabic
-sentence and the mathematics beside it count in the same characters.
+Eight ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd`, `ug` and `yi`. Nothing about the
+file format changes for any of them. A `.ftl` pattern is a sequence of
+characters in **logical** order — the order the text is spoken — and `dir`
+decides where each run is drawn, so a translation is written the way it is read
+and never reordered by hand to look right in an editor. Brackets, quotes and
+dashes are the same characters in every one of these scripts and are written
+opening-first; the bidi algorithm turns them around at render time. Digits stay
+Latin, as [everywhere else](#digits-are-latin-separators-are-not), which is why
+an Arabic sentence and the mathematics beside it count in the same characters.
 
 **Direction is not a language family.** These eight share a writing direction
 and almost nothing else, and the catalogs differ from each other far more than
