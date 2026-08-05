@@ -544,7 +544,10 @@ across. `packages/standalone/scripts/check-bundle-size.mjs` fails the build if
 a served catalog turns up inside an emitted script, and if any locale directory
 did not reach `dist/locales/` — the copy is of the whole directory, English
 included, so the second half stays meaningful whatever the inlining decision
-turns out to be.
+turns out to be. It also fails the build if the bundle holds more than one copy
+of this package, which is the third way a served catalog goes unread: the
+loaders are module-level state, so a viewer compiled against a second instance
+sees an empty registry and falls back to English in silence.
 
 Two lists have to agree for any of this to hold, and `lint:i18n` checks that
 they do: the locales excluded from the glob in `load.ts` are exactly
@@ -558,7 +561,11 @@ call `setLocaleLoaders(fetchLocaleLoaders(url, tags))`. The second replaces the
 loaders for the whole page rather than adding to them — a standalone bundle
 that calls it is no longer reading its own `locales/` — and `tags` is worth
 passing whenever the language is not one DoenetML ships, since the default list
-is `SUPPORTED_LOCALES`.
+is `SUPPORTED_LOCALES`. Import both functions from `@doenet/doenetml`, which
+re-exports them, rather than from `@doenet/i18n` directly: that reaches the same
+instance the viewer resolves a language through, and a host bundle that pulls in
+this package separately would otherwise install the loaders where nothing reads
+them.
 
 ## Keys
 
