@@ -1,5 +1,10 @@
 import BlockComponent from "./abstract/BlockComponent";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    returnBorderValidValues,
+    returnHalignValidValues,
+    returnValignValidValues,
+} from "../utils/tabularAttributes";
 
 export default class Tabular extends BlockComponent {
     constructor(args) {
@@ -56,27 +61,7 @@ export default class Tabular extends BlockComponent {
             defaultValue: "start",
             public: true,
             toLowerCase: true,
-            validValues: [
-                {
-                    value: "start",
-                    description:
-                        "Align cell content to the leading edge: the left in a left-to-right document, the right in a right-to-left one.",
-                },
-                {
-                    value: "center",
-                    description: "Center cell content horizontally.",
-                },
-                {
-                    value: "end",
-                    description:
-                        "Align cell content to the trailing edge: the right in a left-to-right document, the left in a right-to-left one.",
-                },
-                {
-                    value: "justify",
-                    description:
-                        "Justify cell content across the full cell width.",
-                },
-            ],
+            validValues: returnHalignValidValues(),
         };
         attributes.valign = {
             description: "Default vertical alignment for cells.",
@@ -85,20 +70,7 @@ export default class Tabular extends BlockComponent {
             defaultValue: "middle",
             public: true,
             toLowerCase: true,
-            validValues: [
-                {
-                    value: "top",
-                    description: "Align cell content to the top.",
-                },
-                {
-                    value: "middle",
-                    description: "Center cell content vertically.",
-                },
-                {
-                    value: "bottom",
-                    description: "Align cell content to the bottom.",
-                },
-            ],
+            validValues: returnValignValidValues(),
         };
         attributes.topBorder = {
             description: "Border style for the top edge of the layout.",
@@ -107,24 +79,7 @@ export default class Tabular extends BlockComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            validValues: [
-                {
-                    value: "none",
-                    description: "Do not render a border.",
-                },
-                {
-                    value: "minor",
-                    description: "Render a thin border line.",
-                },
-                {
-                    value: "medium",
-                    description: "Render a medium-weight border line.",
-                },
-                {
-                    value: "major",
-                    description: "Render a thick border line.",
-                },
-            ],
+            validValues: returnBorderValidValues(),
             forRenderer: true,
         };
         attributes.startBorder = {
@@ -135,24 +90,7 @@ export default class Tabular extends BlockComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            validValues: [
-                {
-                    value: "none",
-                    description: "Do not render a border.",
-                },
-                {
-                    value: "minor",
-                    description: "Render a thin border line.",
-                },
-                {
-                    value: "medium",
-                    description: "Render a medium-weight border line.",
-                },
-                {
-                    value: "major",
-                    description: "Render a thick border line.",
-                },
-            ],
+            validValues: returnBorderValidValues(),
         };
         attributes.bottomBorder = {
             description: "Border style for the bottom edge of the layout.",
@@ -161,24 +99,7 @@ export default class Tabular extends BlockComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            validValues: [
-                {
-                    value: "none",
-                    description: "Do not render a border.",
-                },
-                {
-                    value: "minor",
-                    description: "Render a thin border line.",
-                },
-                {
-                    value: "medium",
-                    description: "Render a medium-weight border line.",
-                },
-                {
-                    value: "major",
-                    description: "Render a thick border line.",
-                },
-            ],
+            validValues: returnBorderValidValues(),
         };
         attributes.endBorder = {
             description:
@@ -188,24 +109,7 @@ export default class Tabular extends BlockComponent {
             defaultValue: "none",
             public: true,
             toLowerCase: true,
-            validValues: [
-                {
-                    value: "none",
-                    description: "Do not render a border.",
-                },
-                {
-                    value: "minor",
-                    description: "Render a thin border line.",
-                },
-                {
-                    value: "medium",
-                    description: "Render a medium-weight border line.",
-                },
-                {
-                    value: "major",
-                    description: "Render a thick border line.",
-                },
-            ],
+            validValues: returnBorderValidValues(),
         };
         return attributes;
     }

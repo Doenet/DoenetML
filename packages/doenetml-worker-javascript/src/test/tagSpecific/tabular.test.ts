@@ -33,4 +33,48 @@ describe("Tabular tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Bottom: inHeader = false");
     });
+
+    it("border and alignment attributes take their declared values and inherit", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t" halign="end" topBorder="minor" startBorder="major" bottomBorder="medium">
+  <row name="r" valign="top" startBorder="minor">
+    <cell name="c1" halign="center" endBorder="major" bottomBorder="minor">A</cell>
+    <cell name="c2">B</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.halign,
+        ).eq("end");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .topBorder,
+        ).eq("minor");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r")].stateValues
+                .startBorder,
+        ).eq("minor");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.halign,
+        ).eq("center");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues
+                .endBorder,
+        ).eq("major");
+
+        // A cell with nothing of its own takes the alignment from the
+        // `<tabular>` and the bottom border from the `<row>`'s ancestor chain.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
+        ).eq("end");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                .bottomBorder,
+        ).eq("medium");
+    });
 });

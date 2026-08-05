@@ -2,6 +2,10 @@ import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
 import { preprocessMathInverseDefinition, textToAst } from "../utils/math";
 import { textFromChildren } from "../utils/text";
+import {
+    returnBorderValidValues,
+    returnHalignValidValues,
+} from "../utils/tabularAttributes";
 
 export default class Cell extends BaseComponent {
     static componentType = "cell";
@@ -42,15 +46,20 @@ export default class Cell extends BaseComponent {
         };
         attributes.halign = {
             createComponentOfType: "text",
-            description:
-                "Horizontal alignment for the cell's content (start, center, end, or justify).",
+            toLowerCase: true,
+            validValues: returnHalignValidValues(),
+            description: "Horizontal alignment for the cell's content.",
         };
         attributes.bottomBorder = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: returnBorderValidValues(),
             description: "Border style for the bottom edge of the cell.",
         };
         attributes.endBorder = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: returnBorderValidValues(),
             description:
                 "Border style for the trailing edge of the cell: its right edge in a left-to-right document, its left edge in a right-to-left one.",
         };

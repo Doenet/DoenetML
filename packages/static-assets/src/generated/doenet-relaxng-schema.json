@@ -111834,19 +111834,28 @@
                 "halign": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "start",
+                        "center",
+                        "end",
+                        "justify"
                     ]
                 },
                 "bottomBorder": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
                     ]
                 },
                 "endBorder": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
                     ]
                 },
                 "prefill": {
@@ -112740,25 +112749,36 @@
                 "halign": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "start",
+                        "center",
+                        "end",
+                        "justify"
                     ]
                 },
                 "valign": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "top",
+                        "middle",
+                        "bottom"
                     ]
                 },
                 "startBorder": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
                     ]
                 },
                 "bottomBorder": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
                     ]
                 },
                 "functionSymbols": {

@@ -1,4 +1,9 @@
 import BaseComponent from "./abstract/BaseComponent";
+import {
+    returnBorderValidValues,
+    returnHalignValidValues,
+    returnValignValidValues,
+} from "../utils/tabularAttributes";
 
 export default class Row extends BaseComponent {
     static componentType = "row";
@@ -37,19 +42,27 @@ export default class Row extends BaseComponent {
         };
         attributes.halign = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: returnHalignValidValues(),
             description: "Default horizontal alignment for cells in this row.",
         };
         attributes.valign = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: returnValignValidValues(),
             description: "Default vertical alignment for cells in this row.",
         };
         attributes.startBorder = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: returnBorderValidValues(),
             description:
                 "Border style for the leading edge of this row: its left edge in a left-to-right document, its right edge in a right-to-left one.",
         };
         attributes.bottomBorder = {
             createComponentOfType: "text",
+            toLowerCase: true,
+            validValues: returnBorderValidValues(),
             description: "Border style for the bottom edge of this row.",
         };
 
