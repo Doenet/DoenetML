@@ -546,6 +546,16 @@ did not reach `dist/locales/` — the copy is of the whole directory, English
 included, so the second half stays meaningful whatever the inlining decision
 turns out to be.
 
+The third way a served catalog goes unread has its own check, `check:instances`
+in this package (`npm run check:i18n-instances` from the root): the loaders are
+module-level state, so a bundle holding two copies of this package installs them
+on an instance the viewer never reads, sees an empty registry, and falls back to
+English in silence. Every built `packages/*/dist/` is scanned, not only the
+bundle that has been bitten, because any build combining a prebuilt `@doenet/doenetml`
+with a source build of this package can hit it — counted per emitted script,
+since a script is what shares a module registry, and a package that emits both a
+bundle and a worker holds a copy in each quite correctly.
+
 Two lists have to agree for any of this to hold, and `lint:i18n` checks that
 they do: the locales excluded from the glob in `load.ts` are exactly
 `BUNDLED_LOCALES`. A bundled locale left in the glob is imported both
@@ -558,7 +568,11 @@ call `setLocaleLoaders(fetchLocaleLoaders(url, tags))`. The second replaces the
 loaders for the whole page rather than adding to them — a standalone bundle
 that calls it is no longer reading its own `locales/` — and `tags` is worth
 passing whenever the language is not one DoenetML ships, since the default list
-is `SUPPORTED_LOCALES`.
+is `SUPPORTED_LOCALES`. Import both functions from `@doenet/doenetml`, which
+re-exports them, rather than from `@doenet/i18n` directly: that reaches the same
+instance the viewer resolves a language through, and a host bundle that pulls in
+this package separately would otherwise install the loaders where nothing reads
+them.
 
 ## Keys
 

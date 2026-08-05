@@ -27,7 +27,7 @@
  *    only inlined locale, so every other catalog this repository ships is one
  *    the first half probes for and the second half insists on finding.
  *  - The size budgets in `bundle-budgets.json` catch the general case the
- *    first two cannot see — a heavy dependency, a duplicated copy of
+ *    checks above cannot see — a heavy dependency, a duplicated copy of
  *    something that is not wasm. They are expected to be raised as the project
  *    grows; the point is that raising one lands in the diff.
  *
@@ -36,6 +36,11 @@
  * over budget, when a budgeted file is missing, when `bundle-budgets.json` is
  * unusable, when the core is not inlined exactly once in the right script, or
  * when a served catalog is in the wrong place or missing.
+ *
+ * A third way the catalogs can fail to arrive — served, and nothing reading
+ * them, because a bundle holds two copies of the module that decides what is
+ * loadable — is checked for every package rather than this one, by
+ * `packages/i18n/scripts/check-bundle-instances.ts`.
  *
  * The exported helpers exist so `check-bundle-size.test.mjs` can exercise the
  * decision logic without a build, against synthetic bundles and throwaway
@@ -338,8 +343,10 @@ export function servedCatalogProblems(sourceLocales, emittedLocales) {
  * build, and `dist/style.css` legitimately carries a ~1 MB base64 run of its
  * own (an inlined SVG webfont) that the blob heuristic cannot tell apart from
  * wasm. Only a script can actually execute a duplicated Rust core.
+ *
+ * @param probes `[locale, probe]` pairs, from {@link collectCatalogProbes}.
  */
-function collectEmittedScripts(probes = []) {
+function collectEmittedScripts(probes) {
     const scripts = new Map();
     if (!fs.existsSync(DIST_DIR)) {
         return scripts;

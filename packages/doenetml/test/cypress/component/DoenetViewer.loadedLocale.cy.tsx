@@ -1,6 +1,8 @@
 import React from "react";
-import { setLocaleLoaders } from "@doenet/i18n";
-import { DoenetViewer } from "../../../src/doenetml-inline-worker";
+import {
+    DoenetViewer,
+    setLocaleLoaders,
+} from "../../../src/doenetml-inline-worker";
 
 // A language that is not inlined has to travel further than a bundled one: the
 // main thread loads its catalog while the document is already rendering, and
