@@ -136,7 +136,7 @@ describe("resolveCssVariables", () => {
 });
 
 describe("completionShortcutLabel", () => {
-    it("names Ctrl+Space off a Mac", () => {
+    it("names Ctrl+Space on non-Mac platforms", () => {
         expect(completionShortcutLabel(false)).toBe("Ctrl+Space");
     });
 
