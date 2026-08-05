@@ -77,11 +77,10 @@ English is the source of truth. Every translation — `af`, `ak`, `am`, `ar`,
 `scn`, `sd`, `se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`,
 `sv`, `sw`, `ta`, `te`, `tg`, `th`, `ti`, `tk`, `tn`, `tr`, `tt`, `ug`, `uk`,
 `ur`, `uz`, `vi`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an
-**unreviewed machine-generated seed**, which
-each file's own header says at the top, and which is what #1521's translation
-platform is for. None has been read by a speaker. Correcting one needs no
-permission and no coordination: a wrong string is just wrong, and the English
-is one key away.
+**unreviewed machine-generated seed**, which each file's own header says at the
+top, and which is what #1521's translation platform is for. None has been read by
+a speaker. Correcting one needs no permission and no coordination: a wrong string
+is just wrong, and the English is one key away.
 
 Fifty-eight of them are deliberately partial, all in the same place: Somali,
 Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
@@ -372,25 +371,26 @@ English word — Afrikaans, Hausa, Igbo, Wolof. Nothing here hand-writes around
 either case, which is why the rule that makes `ny` read "Nyanja" is the rule
 that makes this read "Corsican".
 
-The Indigenous Americas batch is the first to seed **macrolanguages**, and doing
-so uncovered a real fallback bug rather than merely needing a note.
+The Indigenous Americas batch is the first to seed codes that stand for **more
+than one individual language**, and doing so uncovered a real fallback bug rather
+than merely needing a note.
 
-`qu`, `ay`, `gn`, `nah` and `oj` are ISO 639-3 macrolanguages: each covers a
-family of individual languages with codes of their own. **CLDR's likely-subtags
-folds exactly one member of a macrolanguage to it and leaves the rest
-unresolvable.** So `quz` reached `qu` on ICU data alone and `quh` did not; `ojg`
-reached `oj` and `ojb` did not; `gug` reached `gn` and `gui` did not. A Bolivian
-Quechua reader arriving under `quh` was getting English with a `qu` catalog
-sitting on disk, and nothing said why.
+`qu`, `ay`, `gn` and `oj` are ISO 639-3 macrolanguages and `nah` is an ISO 639-3
+_collection_ code: each covers a family of individual languages with codes of
+their own. **CLDR's likely-subtags folds exactly one member of a macrolanguage to
+it and leaves the rest unresolvable.** So `quz` reached `qu` on ICU data alone
+and `quh` did not; `ojg` reached `oj` and `ojb` did not; `gug` reached `gn` and
+`gui` did not. A Bolivian Quechua reader arriving under `quh` was getting English
+with a `qu` catalog sitting on disk, and nothing said why.
 
-`MACROLANGUAGE_MEMBERS` in `negotiate.ts` closes that. It keys on **ISO 639-3's
-own membership**, which is what makes it checkable rather than a matter of taste,
-and what distinguishes it from the `nn` and `fat` cases above — neither of those
-is a member of `nb` or `ak`, and both are deliberately left to miss. The member
-CLDR already folds is listed anyway, so the table reads as the whole of a
-macrolanguage rather than the leftovers of one, and so a change in ICU data
-cannot silently drop a code out of coverage. `negotiate.test.ts` asserts both
-halves.
+`MACROLANGUAGE_MEMBERS` in `negotiate.ts` closes that. It keys on **published
+membership** — ISO 639-3's for the four macrolanguages, ISO 639-5's grouping for
+`nah` — which is what makes it checkable rather than a matter of taste, and what
+distinguishes it from the `nn` and `fat` cases above: neither of those is a
+member of `nb` or `ak`, and both are deliberately left to miss. The member CLDR
+already folds is listed anyway, so each list reads as the whole of a group rather
+than the leftovers of one, and so a change in ICU data cannot silently drop a
+code out of coverage. `negotiate.test.ts` asserts both halves.
 
 Serving a related variety is a real compromise, and each of these catalogs says
 in its own header which written standard it is: Southern Quechua in the

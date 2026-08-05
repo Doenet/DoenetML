@@ -32,21 +32,38 @@ export type NegotiateLocalesOptions = {
  * of its own and `locales/ak` is written in Asante Twi, so answering Fante
  * with it would be the substitution `nn` is kept out for.
  *
- * Everything below `MACROLANGUAGE_MEMBERS` is there for a reason the entries
- * above did not raise, and it is worth stating once: **CLDR's likely-subtags
- * folds exactly one member of a macrolanguage to it, and leaves the rest
- * unresolvable.** `quz` reaches `qu` and `quh` does not; `ojg` reaches `oj` and
- * `ojb` does not; `gug` reaches `gn` and `gui` does not. So a Bolivian Quechua
- * reader arriving under `quh` was getting English with a `qu` catalog sitting
- * right there, which is the failure this map exists to prevent. It surfaced when
- * the Americas batch became the first to seed macrolanguages at scale, and it is
- * asserted from both sides in `negotiate.test.ts`.
+ * A member code of a macrolanguage is handled by {@link MACROLANGUAGE_MEMBERS}
+ * instead: there are hundreds of them, and membership is a published fact rather
+ * than a judgement made here.
+ */
+const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
+
+/**
+ * Individual-language codes folded onto the wider code this repository names a
+ * catalog after.
  *
- * The rule is ISO 639-3's own macrolanguage membership, not a judgement about
- * how close two varieties are — which is what makes it checkable rather than a
- * matter of taste, and what distinguishes it from the `nn` and `fat` cases
- * above. Those two are *not* members of `nb` and `ak`; every code below is a
- * member of the macrolanguage it maps to.
+ * **CLDR's likely-subtags folds exactly one member of a macrolanguage to it and
+ * leaves the rest unresolvable.** `quz` reaches `qu` and `quh` does not; `ojg`
+ * reaches `oj` and `ojb` does not; `gug` reaches `gn` and `gui` does not. So a
+ * Bolivian Quechua reader arriving under `quh` was served English with a `qu`
+ * catalog sitting right there, which is the failure this map exists to prevent.
+ * `negotiate.test.ts` asserts both halves — the member CLDR folds on its own and
+ * several it does not — so removing the map, or a change in ICU data, fails
+ * there.
+ *
+ * The rule is published membership rather than a judgement about how close two
+ * varieties are, which is what makes it checkable and what distinguishes it from
+ * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
+ * member of `nb` or `ak`, and both are deliberately left to miss. Four of the
+ * five keys — `qu`, `ay`, `gn`, `oj` — are ISO 639-3 macrolanguages and list
+ * their macrolanguage members; `nah` is an ISO 639-3 **collection** code rather
+ * than a macrolanguage, so it lists the individual Nahuan languages ISO 639-5
+ * groups under it.
+ *
+ * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
+ * `ayr` — so that each list reads as the whole of a group rather than as the
+ * leftovers of one, and so that a change in ICU data cannot silently drop a code
+ * out of coverage.
  *
  * Serving a related variety is a real compromise, and each of these catalogs
  * says in its own header which written standard it is — Southern Quechua,
@@ -54,18 +71,6 @@ export type NegotiateLocalesOptions = {
  * their own supplies it as `localeResources`. What this map buys is that they
  * get a language they can read rather than English, which is the same trade
  * region-stripping already makes for `es-MX`.
- */
-const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
-
-/**
- * ISO 639-3 macrolanguage members, folded onto the macrolanguage this repository
- * names a catalog after. See {@link LANGUAGE_ALIASES} for why this is needed at
- * all and why membership rather than similarity is the rule.
- *
- * Only the macrolanguages with catalogs are listed. The one member CLDR already
- * folds is included anyway — `quz`, `ojg`, `gug`, `ayr` — so that the table
- * reads as the whole of a macrolanguage rather than as the leftovers of one, and
- * so that a change in ICU data cannot silently drop a code out of coverage.
  */
 const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // Quechuan. The catalog is Southern Quechua (Cusco-Collao); the Central and
@@ -119,9 +124,12 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     ay: ["ayc", "ayr"],
     // Guaranian. The catalog is Paraguayan Guarani.
     gn: ["gnw", "gug", "gui", "gun", "nhd"],
-    // Nahuatl. The catalog is Central Nahuatl.
+    // Nahuan. The catalog is Central Nahuatl.
     nah: [
+        "azd",
+        "azn",
         "azz",
+        "naz",
         "nch",
         "nci",
         "ncj",
@@ -148,8 +156,9 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
         "nsu",
         "nuz",
     ],
-    // Ojibwa. The catalog is in the Fiero double-vowel orthography.
-    oj: ["alq", "ojb", "ojc", "ojg", "ojs", "ojw", "otw"],
+    // Ojibwa. The catalog is in the Fiero double-vowel orthography, which is
+    // closest to `ciw` — the variety the orthography was devised for.
+    oj: ["alq", "ciw", "ojb", "ojc", "ojg", "ojs", "ojw", "otw"],
 };
 
 /** Flattened once at module load rather than searched per request. */

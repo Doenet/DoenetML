@@ -231,10 +231,10 @@ describe("negotiateLocales", () => {
     });
 
     /**
-     * The Indigenous Americas batch, which is the first to seed
-     * **macrolanguages** — `qu`, `ay`, `gn`, `nah`, `oj` are all ISO 639-3
-     * macrolanguages rather than individual languages — and the first to need
-     * `MACROLANGUAGE_MEMBERS` because of it.
+     * The Indigenous Americas batch, which is the first to seed codes that
+     * stand for **more than one individual language** — `qu`, `ay`, `gn` and
+     * `oj` are ISO 639-3 macrolanguages and `nah` an ISO 639-3 collection — and
+     * the first to need `MACROLANGUAGE_MEMBERS` because of it.
      *
      * The bug these assertions pin is specific and was invisible until a
      * macrolanguage had a catalog: **CLDR's likely-subtags folds exactly one
@@ -264,19 +264,25 @@ describe("negotiateLocales", () => {
             ["gug", "gn"],
             ["gui", "gn"],
             ["gun", "gn"],
-            // Nahuatl. Not one of these folds without the map, including `nci`
+            // Nahuan. Not one of these folds without the map, including `nci`
             // — Classical Nahuatl — which is the code a historical text is most
-            // likely to arrive under.
+            // likely to arrive under. `naz` is Coatepec and `azn` Western
+            // Durango, at the two edges of the group.
             ["nci", "nah"],
             ["nhe", "nah"],
             ["azz", "nah"],
+            ["naz", "nah"],
+            ["azn", "nah"],
             ["nci-MX", "nah"],
             // Ojibwa. `ojg` is the one CLDR folds; `otw` is Odawa and `alq`
-            // Algonquin, both members of `oj` in ISO 639-3.
+            // Algonquin, both members of `oj` in ISO 639-3. `ciw` is Chippewa,
+            // the variety the Fiero orthography this catalog uses was devised
+            // for, so it is the member the catalog answers best.
             ["ojg", "oj"],
             ["ojb", "oj"],
             ["otw", "oj"],
             ["alq", "oj"],
+            ["ciw", "oj"],
         ])("serves %s from the catalog named %s", (requested, expected) => {
             expect(
                 negotiateLocales([normalizeLocaleTag(requested)], available),
@@ -332,12 +338,13 @@ describe("negotiateLocales", () => {
         );
 
         /**
-         * The negative control, and the reason the map keys on ISO 639-3
+         * The negative control, and the reason the map keys on published
          * membership rather than on how close two languages sound. Kʼicheʼ and
          * Mapudungun are individual languages with catalogs of their own, and
-         * neither is a member of anything — so no other Mayan or Araucanian code
-         * may be folded onto them. `cak` is Kaqchikel, `arn`'s neighbour `pdt`
-         * is nothing of the sort; both must miss.
+         * neither stands over any other code — so no other Mayan or Araucanian
+         * tag may be folded onto them. `cak` is Kaqchikel and `myn` the Mayan
+         * collection code; both must miss `quc`. `quh-Latn-x-private` folds to
+         * `qu` as the rows above require, and must reach neither.
          */
         it.each(["cak", "quh-Latn-x-private", "myn"])(
             "does not invent a fold for %s",
