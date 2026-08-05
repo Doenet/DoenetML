@@ -42,10 +42,10 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     }
 
     let styledChildren = [];
-    // The two entries of `margins` are the outer margins of the row of panels,
-    // read in the direction the panels themselves are laid out: the first
-    // precedes the row and the second follows it, so both mirror with the
-    // writing direction along with the panels.
+    // The two entries of `margins` are applied to every panel: the first on the
+    // panel's leading side and the second on its trailing side. They are read in
+    // the direction the panels are laid out, so they mirror with the writing
+    // direction along with the panels.
     const marginStart = SVs.margins[0];
     const marginEnd = SVs.margins[1];
     const listItemInlineAlignment =

@@ -5,10 +5,10 @@ import classNames from "classnames";
 
 type CellData = {
     props: {
-        bottom: BorderStyle;
-        right: BorderStyle;
+        bottomBorder: BorderStyle;
+        endBorder: BorderStyle;
         colspan: number;
-        halign: "left" | "center" | "right" | "justify";
+        halign: "start" | "center" | "end" | "justify";
         header: boolean;
     };
 };
@@ -34,10 +34,10 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
         <ContainerElement
             id={htmlId}
             className={classNames({
-                [`border-bottom-${node.data.props.bottom}`]:
-                    node.data.props.bottom,
-                [`border-right-${node.data.props.right}`]:
-                    node.data.props.right,
+                [`border-bottom-${node.data.props.bottomBorder}`]:
+                    node.data.props.bottomBorder,
+                [`border-inline-end-${node.data.props.endBorder}`]:
+                    node.data.props.endBorder,
                 [`text-align-${node.data.props.halign}`]:
                     node.data.props.halign,
             })}

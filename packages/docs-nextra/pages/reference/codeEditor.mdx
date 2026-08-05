@@ -70,14 +70,17 @@ starting documents, use children instead.
 
 
 ```doenet-example
-<codeEditor showResults resultsLocation="right">
+<codeEditor showResults resultsLocation="end">
   <m>e^{i \pi} + 1 = 0</m>
 </codeEditor>
 ```
 
 
 `showResults` toggles the live preview panel; `resultsLocation` places it
-relative to the editor (`bottom`, `right`, or `left`). The default is `bottom`.
+relative to the editor (`bottom`, `start`, or `end`). The default is `bottom`.
+`start` and `end` follow the writing direction: in a left-to-right document
+`start` puts the panel to the left of the editor and `end` to its right, and in
+a right-to-left document they swap.
 
 
 

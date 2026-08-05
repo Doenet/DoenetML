@@ -38,7 +38,7 @@
 
 /*
  * When the footer's trailing edge meets the virtual keyboard's open-keyboard
- * tab (showViewer={false} or viewerLocation in {"left","top"} with the
+ * tab (showViewer={false} or viewerLocation in {"start","top"} with the
  * keyboard enabled), push the last footer element inward so the icons stay
  * clickable. The reservation must match the keyboard tab's inline-end
  * footprint (`w-12` + `me-4` = 3rem + 1rem) defined in

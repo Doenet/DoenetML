@@ -35,7 +35,7 @@ export class SideBySide extends BlockComponent {
         attributes.margins = {
             createComponentOfType: "_componentSizeList",
             description:
-                "Margin widths outside the row of panels: the first before the row and the second after it, following the writing direction.",
+                "Two margin widths applied to every panel: the first on the panel's leading side and the second on its trailing side, following the writing direction.",
         };
 
         attributes.valign = {
@@ -638,7 +638,7 @@ export class SideBySide extends BlockComponent {
                         // 2. else, if there are any null margins,
                         //    define them to be the same value that makes the total 100%
                         // 3. else if there two or panels, set gapWidth to make the total 100%
-                        // 4. else if there is one panel, expand the right margin
+                        // 4. else if there is one panel, expand the trailing margin
                         // 5. do nothing (child groups aren't matched)
 
                         if (nWidthsUndefined > 0) {
@@ -1308,7 +1308,7 @@ export class SbsGroup extends BlockComponent {
         attributes.margins = {
             createComponentOfType: "_componentSizeList",
             description:
-                "Margin widths outside the row of panels: the first before the row and the second after it, following the writing direction.",
+                "Two margin widths applied to every panel: the first on the panel's leading side and the second on its trailing side, following the writing direction.",
         };
 
         attributes.valign = {
@@ -2013,7 +2013,7 @@ export class SbsGroup extends BlockComponent {
                         // 2. else, if there are any null margins,
                         //    define them to be the same value that makes the total 100%
                         // 3. else if there two or panels, set gapWidth to make the total 100%
-                        // 4. else if there is one panel, expand the right margin
+                        // 4. else if there is one panel, expand the trailing margin
                         // 5. do nothing (child groups aren't matched)
 
                         if (nWidthsUndefined > 0) {

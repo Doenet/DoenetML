@@ -47,52 +47,52 @@
             }
         }
 
-        .border-right-none {
-            border-right: none;
+        .border-inline-end-none {
+            border-inline-end: none;
         }
-        .border-right-minor,
-        .border-right-medium,
-        .border-right-major {
-            border-right-style: solid;
-            border-right-color: currentColor;
-            &.border-right-minor {
-                border-right-width: thin;
+        .border-inline-end-minor,
+        .border-inline-end-medium,
+        .border-inline-end-major {
+            border-inline-end-style: solid;
+            border-inline-end-color: currentColor;
+            &.border-inline-end-minor {
+                border-inline-end-width: thin;
             }
-            &.border-right-medium {
-                border-right-width: medium;
+            &.border-inline-end-medium {
+                border-inline-end-width: medium;
             }
-            &.border-right-major {
-                border-right-width: thick;
-            }
-        }
-
-        .border-left-none {
-            border-left: none;
-        }
-        .border-left-minor,
-        .border-left-medium,
-        .border-left-major {
-            border-left-style: solid;
-            border-left-color: currentColor;
-            &.border-left-minor {
-                border-left-width: thin;
-            }
-            &.border-left-medium {
-                border-left-width: medium;
-            }
-            &.border-left-major {
-                border-left-width: thick;
+            &.border-inline-end-major {
+                border-inline-end-width: thick;
             }
         }
 
-        .text-align-left {
-            text-align: left;
+        .border-inline-start-none {
+            border-inline-start: none;
+        }
+        .border-inline-start-minor,
+        .border-inline-start-medium,
+        .border-inline-start-major {
+            border-inline-start-style: solid;
+            border-inline-start-color: currentColor;
+            &.border-inline-start-minor {
+                border-inline-start-width: thin;
+            }
+            &.border-inline-start-medium {
+                border-inline-start-width: medium;
+            }
+            &.border-inline-start-major {
+                border-inline-start-width: thick;
+            }
+        }
+
+        .text-align-start {
+            text-align: start;
         }
         .text-align-center {
             text-align: center;
         }
-        .text-align-right {
-            text-align: right;
+        .text-align-end {
+            text-align: end;
         }
         .text-align-justify {
             text-align: justify;

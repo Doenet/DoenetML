@@ -48,16 +48,16 @@ A `<tabular>{:dn}` can be used alone, without attributes, simply to organize con
 
 ```doenet-editor-horiz
 <table>
-  <tabular top="major" bottom="minor" left="medium" right="minor">
+  <tabular topBorder="major" bottomBorder="minor" startBorder="medium" endBorder="minor">
     <row>
-      <cell right="medium">🟣</cell>
+      <cell endBorder="medium">🟣</cell>
       <cell>🔵</cell>
       <cell>🔴</cell>
     </row>
-    <row bottom="medium">
+    <row bottomBorder="medium">
       <cell>😆</cell>
-      <cell bottom="minor">🥲</cell>
-      <cell bottom="major">😠</cell>
+      <cell bottomBorder="minor">🥲</cell>
+      <cell bottomBorder="major">😠</cell>
     </row>
   </tabular>
 </table>
@@ -65,7 +65,7 @@ A `<tabular>{:dn}` can be used alone, without attributes, simply to organize con
 
 
 
-Borders and dividing lines within a `<table>{:dn}` can be specified within the `<tabular>{:dn}` component using the attributes: `top`, `bottom`, `left`, and `right`. If subsequent `<row>{:dn}` or `<cell>{:dn}` components also have the same attribute specified, the attribute corresponding to the lowest hierarchical level takes precedence.  All border/dividing line attributes accept either `major`, `medium`, `minor`, or `none` (default).
+Borders and dividing lines within a `<table>{:dn}` can be specified within the `<tabular>{:dn}` component using the attributes: `topBorder`, `bottomBorder`, `startBorder`, and `endBorder`. `startBorder` and `endBorder` follow the writing direction: in a left-to-right document `startBorder` is the left edge and `endBorder` the right, and in a right-to-left document they swap. If subsequent `<row>{:dn}` or `<cell>{:dn}` components also have the same attribute specified, the attribute corresponding to the lowest hierarchical level takes precedence.  All border/dividing line attributes accept either `major`, `medium`, `minor`, or `none` (default).
 
 
 
@@ -76,7 +76,7 @@ Borders and dividing lines within a `<table>{:dn}` can be specified within the `
 
 ```doenet-editor-horiz
 <table>
-  <tabular left="minor" right="minor" top="minor" bottom="minor" height="200" vAlign="top">
+  <tabular startBorder="minor" endBorder="minor" topBorder="minor" bottomBorder="minor" height="200" vAlign="top">
     <row>
       <cell>1</cell>
       <cell>2</cell>
@@ -104,7 +104,7 @@ The `height` and `vAlign` attributes within a `<tabular>{:dn}` can control the h
 
 ```doenet-editor-horiz
 <table>
-  <tabular left="minor" right="minor" top="minor" bottom="minor" width="100%" hAlign="right">
+  <tabular startBorder="minor" endBorder="minor" topBorder="minor" bottomBorder="minor" width="100%" hAlign="end">
     <row>
       <cell>1</cell>
       <cell>2</cell>
@@ -132,7 +132,7 @@ The `width` and `hAlign` attributes within a `<tabular>{:dn}` can control the wi
 
 ```doenet-editor-horiz
 <table>
-  <tabular top="minor" bottom="minor" left="minor" right="minor" width="100%" height="200">
+  <tabular topBorder="minor" bottomBorder="minor" startBorder="minor" endBorder="minor" width="100%" height="200">
     <row>
       <cell>🟣</cell>
       <cell>🔵</cell>
@@ -160,7 +160,7 @@ The `width` and `height` attributes for the `<tabular>{:dn}` component accept me
 
 ```doenet-editor-horiz
 <table>
-  <tabular left="minor" right="minor" top="minor" bottom="minor" width="100%" hAlign="right">
+  <tabular startBorder="minor" endBorder="minor" topBorder="minor" bottomBorder="minor" width="100%" hAlign="end">
     <row>
       <cell>1</cell>
       <cell>2</cell>
@@ -177,7 +177,7 @@ The `width` and `height` attributes for the `<tabular>{:dn}` component accept me
 
 
 
-The `hAlign` attribute within a `<tabular>{:dn}` controls the horizontal alignment of individual rows for the entire table. Valid values are `left` (default), `center`, `right`, and `justify`.
+The `hAlign` attribute within a `<tabular>{:dn}` controls the horizontal alignment of individual rows for the entire table. Valid values are `start` (default), `center`, `end`, and `justify`. `start` and `end` follow the writing direction: `start` is the left edge in a left-to-right document and the right edge in a right-to-left one.
 
 
 
@@ -188,7 +188,7 @@ The `hAlign` attribute within a `<tabular>{:dn}` controls the horizontal alignme
 
 ```doenet-editor-horiz
 <table>
-  <tabular left="minor" right="minor" top="minor" bottom="minor" height="200" vAlign="top">
+  <tabular startBorder="minor" endBorder="minor" topBorder="minor" bottomBorder="minor" height="200" vAlign="top">
     <row>
       <cell>1</cell>
       <cell>2</cell>
@@ -211,20 +211,20 @@ The `vAlign` attribute within a `<tabular>{:dn}` controls the vertical alignment
 
 ---
 
-### Attribute Example: top/bottom/left/right
+### Attribute Example: topBorder/bottomBorder/startBorder/endBorder
 
 
 ```doenet-editor-horiz
 <table>
-  <tabular left="major" right="major" top="major" bottom="major">
-    <row bottom="minor" >
-      <cell right="minor">1</cell>
-      <cell right="minor">2</cell>
+  <tabular startBorder="major" endBorder="major" topBorder="major" bottomBorder="major">
+    <row bottomBorder="minor" >
+      <cell endBorder="minor">1</cell>
+      <cell endBorder="minor">2</cell>
       <cell>3</cell>
     </row>
     <row>
-      <cell right="minor">a</cell>
-      <cell right="minor">b</cell>
+      <cell endBorder="minor">a</cell>
+      <cell endBorder="minor">b</cell>
       <cell>c</cell>
     </row>
   </tabular>
@@ -233,7 +233,7 @@ The `vAlign` attribute within a `<tabular>{:dn}` controls the vertical alignment
 
 
 
-Borders and dividing lines within a `<table>{:dn}` can be specified within the `<tabular>{:dn}` component using the attributes: `top`, `bottom`, `left`, and `right`. If subsequent `<row>{:dn}` or `<cell>{:dn}` components also have the same attribute specified, the attribute corresponding to the lowest hierarchical level takes precedence.  All border/dividing line attributes accept either `major`, `medium`, `minor`, or `none` (default).
+Borders and dividing lines within a `<table>{:dn}` can be specified within the `<tabular>{:dn}` component using the attributes: `topBorder`, `bottomBorder`, `startBorder`, and `endBorder`. `startBorder` and `endBorder` follow the writing direction: in a left-to-right document `startBorder` is the left edge and `endBorder` the right, and in a right-to-left document they swap. If subsequent `<row>{:dn}` or `<cell>{:dn}` components also have the same attribute specified, the attribute corresponding to the lowest hierarchical level takes precedence.  All border/dividing line attributes accept either `major`, `medium`, `minor`, or `none` (default).
 
 
 
@@ -244,7 +244,7 @@ Borders and dividing lines within a `<table>{:dn}` can be specified within the `
 
 ```doenet-editor-horiz
 <table>
-  <tabular name="tabular1" left="major" right="major" top="major" bottom="major" height="50">
+  <tabular name="tabular1" startBorder="major" endBorder="major" topBorder="major" bottomBorder="major" height="50">
     <row>
       <cell>1</cell>
       <cell>2</cell>

@@ -59613,7 +59613,7 @@
                 },
                 {
                     "name": "margins",
-                    "description": "Margin widths outside the row of panels: the first before the row and the second after it, following the writing direction.",
+                    "description": "Two margin widths applied to every panel: the first on the panel's leading side and the second on its trailing side, following the writing direction.",
                     "type": "_componentSizeList"
                 },
                 {
@@ -59875,7 +59875,7 @@
                 },
                 {
                     "name": "margins",
-                    "description": "Margin widths outside the row of panels: the first before the row and the second after it, following the writing direction.",
+                    "description": "Two margin widths applied to every panel: the first on the panel's leading side and the second on its trailing side, following the writing direction.",
                     "type": "_componentSizeList"
                 },
                 {

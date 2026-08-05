@@ -380,8 +380,7 @@ function buildDeprecationIndex(
                 lowerKeys(rules),
             ]),
         ),
-        // Attribute values are matched case-insensitively too: every attribute
-        // carrying a value rename is declared `toLowerCase` in the worker, so
+        // Attribute values are matched case-insensitively too, so
         // `labelPosition="Left"` is as much the deprecated value as `left` is.
         attributeValueRenames: Object.fromEntries(
             Object.entries(registry.attributeValueRenames).map(

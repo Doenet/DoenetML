@@ -84,10 +84,10 @@ column by column.
 ```doenet-editor-horiz
 <table>
   <tabular 
-    top="minor" 
-    bottom="minor" 
-    left="minor" 
-    right="minor">
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor">
       <row header="true">
         <cell>Name</cell>
         <cell>Occupation</cell>
@@ -114,11 +114,11 @@ The `header` attribute defines a `<row>{:dn}` with header styling.
 ```doenet-editor-horiz
 <table>
   <tabular 
-    top="minor" 
-    bottom="minor" 
-    left="minor" 
-    right="minor">
-      <row halign="left">
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor">
+      <row halign="start">
         <cell>1</cell>
         <cell>2</cell>
       </row>
@@ -126,7 +126,7 @@ The `header` attribute defines a `<row>{:dn}` with header styling.
         <cell>3</cell>
         <cell>4</cell>
       </row>
-      <row halign="right">
+      <row halign="end">
         <cell>5</cell>
         <cell>6</cell>
       </row>
@@ -138,7 +138,9 @@ The `header` attribute defines a `<row>{:dn}` with header styling.
 
 The `halign` attribute defines the horizontal alignment of content within 
 each `<cell>{:dn}` for the given `<row>{:dn}`. The available options 
-are `left` (default), `center`, and `right`.
+are `start` (default), `center`, `end`, and `justify`. `start` and `end` follow
+the writing direction: `start` is the left edge in a left-to-right document and
+the right edge in a right-to-left one.
 
 
 
@@ -150,10 +152,10 @@ are `left` (default), `center`, and `right`.
 ```doenet-editor-horiz
 <table>
   <tabular 
-    top="minor" 
-    bottom="minor" 
-    left="minor" 
-    right="minor"
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor"
     height="300">
       <row valign="top">
         <cell>1</cell>
@@ -181,18 +183,18 @@ are `top`, `center` (default), and `bottom`.
 
 ---
 
-### Attribute Example: left
+### Attribute Example: startBorder
 
 
 ```doenet-editor-horiz
 <table>
   <tabular 
-    top="minor" 
-    bottom="minor" 
-    left="minor" 
-    right="minor"
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor"
     height="300">
-      <row left="none">
+      <row startBorder="none">
         <cell>1</cell>
         <cell>2</cell>
       </row>
@@ -200,11 +202,11 @@ are `top`, `center` (default), and `bottom`.
         <cell>3</cell>
         <cell>4</cell>
       </row>
-      <row left="medium">
+      <row startBorder="medium">
         <cell>5</cell>
         <cell>6</cell>
       </row>
-      <row left="major">
+      <row startBorder="major">
         <cell>5</cell>
         <cell>6</cell>
       </row>
@@ -214,12 +216,13 @@ are `top`, `center` (default), and `bottom`.
 
 
 
-The `left` attribute defines the weight for the left border element of content 
-within each `<cell>{:dn}` for the given `<row>{:dn}`. The available options 
-are `none` (default), `minor`, `medium`, and `major`.
+The `startBorder` attribute defines the weight for the border on the leading edge
+of content within each `<cell>{:dn}` for the given `<row>{:dn}` — its left edge in
+a left-to-right document, its right edge in a right-to-left one. The available
+options are `none` (default), `minor`, `medium`, and `major`.
 
 
-Note that the `left` attribute can also be specified in the `<tabular>{:dn}`, which 
+Note that the `startBorder` attribute can also be specified in the `<tabular>{:dn}`, which 
 then applies to the entire table. If specified in both locations, the specification 
 within the individual `<row>{:dn}` takes precedence.
 
@@ -227,18 +230,18 @@ within the individual `<row>{:dn}` takes precedence.
 
 ---
 
-### Attribute Example: bottom
+### Attribute Example: bottomBorder
 
 
 ```doenet-editor-horiz
 <table>
   <tabular 
-    top="minor" 
-    bottom="minor" 
-    left="minor" 
-    right="minor"
+    topBorder="minor" 
+    bottomBorder="minor" 
+    startBorder="minor" 
+    endBorder="minor"
     height="300">
-      <row bottom="none">
+      <row bottomBorder="none">
         <cell>1</cell>
         <cell>2</cell>
       </row>
@@ -246,11 +249,11 @@ within the individual `<row>{:dn}` takes precedence.
         <cell>3</cell>
         <cell>4</cell>
       </row>
-      <row bottom="medium">
+      <row bottomBorder="medium">
         <cell>5</cell>
         <cell>6</cell>
       </row>
-      <row bottom="major">
+      <row bottomBorder="major">
         <cell>5</cell>
         <cell>6</cell>
       </row>
@@ -260,12 +263,12 @@ within the individual `<row>{:dn}` takes precedence.
 
 
 
-The `bottom` attribute defines the weight for the bottom border element of 
+The `bottomBorder` attribute defines the weight for the bottom border element of 
 content within each `<cell>{:dn}` for the given `<row>{:dn}`. The available 
 options are `none` (default), `minor`, `medium`, and `major`.
 
 
-Note that the `bottom` attribute can also be specified in the `<tabular>{:dn}`, which 
+Note that the `bottomBorder` attribute can also be specified in the `<tabular>{:dn}`, which 
 then applies to the entire table. If specified in both locations, the 
 specification within the individual `<row>{:dn}` takes precedence.
 

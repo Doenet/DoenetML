@@ -14,4 +14,6 @@ The tabular border attributes — `left`, `right`, `top` and `bottom` on `<cell>
 
 `resultsLocation` on `<codeEditor>` and the host-facing `viewerLocation` prop take `start`/`end` too. The editor and viewer panels are placed in DOM order and already mirrored with the writing direction, the way panes conventionally do in a right-to-left interface; only the names claimed otherwise. Hosts passing `left`/`right` to `viewerLocation` keep the layout they had.
 
+`<sideBySide>` panel margins are drawn with logical CSS as well. The two `margins` entries have always been read in the order the panels are laid out, and now the margins mirror with the panels under `dir="rtl"` instead of staying on fixed sides. The attribute keeps its name and values.
+
 Documents using the old names and values keep working: they are migrated with a deprecation warning naming the replacement. `labelPosition` on graph components such as `<point>` and `<line>` is unchanged — it places a label in coordinate space, which does not mirror.

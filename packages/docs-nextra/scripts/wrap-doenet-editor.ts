@@ -83,7 +83,7 @@ export const wrapDoenetEditorHorizontal: Plugin<void[], MdastRoot, MdastRoot> =
                         {
                             type: "mdxJsxAttribute",
                             name: "viewerLocation",
-                            value: "right",
+                            value: "end",
                         },
                         {
                             type: "mdxJsxAttribute",
