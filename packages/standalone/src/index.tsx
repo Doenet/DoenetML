@@ -58,29 +58,27 @@ export const version: string = STANDALONE_VERSION;
 // The paths are held in constants rather than written inline because Vite reads
 // a literal `new URL(..., import.meta.url)` as an asset reference and warns that
 // the target does not exist at build time. It does not — the build copies it in
-// afterwards — so the reference has to stay unanalyzed.
+// afterwards — so the reference has to stay unanalyzed. The core worker is
+// co-served the same way, hence the third path.
 const CATALOGS_BESIDE_BUNDLE = "./locales/";
 const CATALOGS_AT_ORIGIN = "/locales/";
 const WORKER_BESIDE_BUNDLE = "./doenetml-worker/index.js";
 
 /**
  * This file's own URL, with any floating CDN tag replaced by the exact version
- * it was built as.
+ * it was built as — the base every sibling below is resolved against.
  *
- * Everything served *beside* this bundle — the core worker, the catalogs below
- * — is fetched as its own URL at run time, so under `@doenet/standalone@latest`
- * each is independently cached (jsDelivr: seven days in the browser, twelve
- * hours at the edge) and can be left over from a different release than the
- * bundle asking for it. A bundle paired with the previous release's core worker
- * never finishes the handshake, and the viewer reports that it could not be
- * started; a purge cannot reach the browser copy, so it persists for days. See
- * `pinPackageVersion` for the whole story.
+ * Each of those siblings is fetched at run time as its own URL, so under a
+ * floating specifier each is cached independently of this bundle and can be
+ * left over from a different release than the one asking for it. A bundle
+ * paired with the previous release's core worker never finishes the handshake,
+ * and the viewer reports that it could not be started. `pinPackageVersion` has
+ * the full account; pinning makes every sibling URL immutable and this
+ * release's.
  *
- * Resolving siblings against the pinned URL instead removes the possibility:
- * an exact version is immutable on the CDN, so the worker and catalogs beside
- * it are necessarily this release's. A bundle that is not served from a CDN
- * path naming the package — self-hosted, or booted from a Blob URL as the
- * component tests do — is returned unchanged and behaves exactly as before.
+ * A URL not laid out like a CDN's — a self-hosted copy, or the Blob URL the
+ * component tests and the iframe dev harness boot from — comes back unchanged,
+ * and everything below behaves exactly as it did before.
  */
 const pinnedBundleUrl = pinPackageVersion(
     import.meta.url,
@@ -128,12 +126,11 @@ if (localeCatalogsBase) {
 // Re-point the core worker at the pinned copy, for the reason above. The
 // externalized-worker entry has already resolved it against this file's *own*
 // URL — its module body runs at import time, before anything here — so this
-// runs after and replaces the tag-relative answer with the pinned one.
+// runs after and replaces that answer.
 //
-// Only when pinning actually changed the URL: where it did not (a self-hosted
-// bundle, a Blob URL) the entry's own resolution, including its fallbacks for
-// bases nothing can be resolved against, is already the right answer and this
-// has nothing to add.
+// Skipped where pinning changed nothing (a self-hosted bundle, a Blob URL): the
+// entry's own resolution, including its fallbacks for bases nothing can be
+// resolved against, is then already the right answer.
 if (pinnedBundleUrl !== import.meta.url) {
     try {
         setExternalCoreWorkerUrl(
@@ -153,7 +150,10 @@ if (pinnedBundleUrl !== import.meta.url) {
 // obtain their cores from the coordinator's shared worker pool.
 const coordinatedMode = detectCoordinatedMode();
 if (coordinatedMode?.sharedCores) {
-    installCoordinatorSharedCorePortProvider();
+    // The pinned URL, not this file's own: the coordinator resolves the shared
+    // core worker beside whatever URL it is given, so it needs the same
+    // immutable base the dedicated-worker path above uses.
+    installCoordinatorSharedCorePortProvider(pinnedBundleUrl);
 }
 
 // Cache React roots per container so repeat calls to

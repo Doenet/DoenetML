@@ -30,6 +30,19 @@ describe("pinPackageVersion", () => {
         );
     });
 
+    it("normalizes the `v`-prefixed specifier the iframe wrapper builds", () => {
+        // `@doenet/doenetml-iframe` prefixes an autodetected version with "v"
+        // (`detectVersionFromDoenetML` -> `"v" + version`), which the CDN reads
+        // as a range rather than an exact version — so it caches like one.
+        expect(
+            pin(
+                "https://cdn.jsdelivr.net/npm/@doenet/standalone@v0.7.23/doenet-standalone.js",
+            ),
+        ).toBe(
+            "https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.23/doenet-standalone.js",
+        );
+    });
+
     it("supplies a version where the URL names none", () => {
         // jsDelivr reads a bare package name as its latest release — floating,
         // so it has to be pinned like any other tag.
@@ -75,6 +88,23 @@ describe("pinPackageVersion", () => {
         // host's own deployment at a CDN path that may not exist.
         const url = "https://example.org/assets/doenet-standalone.js";
         expect(pin(url)).toBe(url);
+    });
+
+    it("leaves a self-hosted copy that happens to name the package alone", () => {
+        // These paths contain the package name, but as a plain directory rather
+        // than a CDN's version segment. Rewriting one would send every sibling
+        // — the core worker above all — to a URL that does not exist, breaking
+        // a working deploy in exactly the way this function exists to prevent.
+        for (const url of [
+            // Serving `node_modules` straight through.
+            "https://example.org/node_modules/@doenet/standalone/doenet-standalone.js",
+            // A vendored copy of one specific release, mirroring the CDN layout
+            // under a prefix. It is already exact — and exact at a version this
+            // bundle need not be.
+            "https://example.org/vendor/@doenet/standalone@0.7.20/doenet-standalone.js",
+        ]) {
+            expect(pin(url)).toBe(url);
+        }
     });
 
     it("does not match a package whose name merely starts the same", () => {

@@ -88,8 +88,16 @@ export function postToCoordinator(
  * Must run after the standalone bundle's doenetml module has evaluated
  * (which creates `window.doenetGlobalConfig`) and before anything renders a
  * viewer; the entry module's top level satisfies both.
+ *
+ * @param standaloneUrl This bundle's own URL, version-pinned by the entry
+ *   module: the coordinator resolves the shared core worker co-served beside
+ *   whatever URL we send, and under a floating tag its cache could hand back a
+ *   different release's worker than this bundle can talk to (see
+ *   `pinPackageVersion` in `@doenet/doenetml`).
  */
-export function installCoordinatorSharedCorePortProvider() {
+export function installCoordinatorSharedCorePortProvider(
+    standaloneUrl: string,
+) {
     let coreCounter = 0;
     const childId = Math.random().toString(36).slice(2);
     (window as any).doenetGlobalConfig.createExternalCoreWorkerPort = () => {
@@ -101,9 +109,7 @@ export function installCoordinatorSharedCorePortProvider() {
                 data: {
                     type: "createSharedCore",
                     coreId,
-                    // The coordinator resolves the (version-matched) worker
-                    // co-served next to this bundle.
-                    standaloneUrl: import.meta.url,
+                    standaloneUrl,
                 },
             },
             window.location.origin,

@@ -101,41 +101,45 @@ function getWorkerUrl() {
 }
 
 /**
- * Pin the version specifier in a CDN URL that names a package, so a bundle
- * loaded through a floating tag fetches its sibling assets from the exact
- * release it was itself built as.
+ * Rewrite the version specifier in a CDN URL naming `packageName`, so a bundle
+ * loaded through a floating tag resolves its sibling assets at the exact
+ * release it was itself built as. This is the canonical account of why; callers
+ * point back here.
  *
  * `@doenet/standalone` is no longer one file: the core worker is served at
- * `doenetml-worker/index.js` beside the bundle (#1465) and the message
- * catalogs under `locales/` (#1656), both resolved against `import.meta.url`
- * at run time. On a floating tag — `@doenet/standalone@latest`, which is what
- * `@doenet/doenetml-iframe` builds when a host asks for "latest", and what
- * PreTeXt embeds — each of those is a *separate* URL under the same tag, with
- * its own cache lifetime: jsDelivr serves them `max-age=604800` to the browser
- * and `s-maxage=43200` to its edge, and the release only purges the edge.
+ * `doenetml-worker/index.js` beside the bundle (#1465) and the message catalogs
+ * under `locales/` (#1656), each fetched at run time as its own URL. Under a
+ * floating specifier — `@latest`, or a partial version such as `@0.7`, which
+ * jsDelivr resolves as an npm range — those URLs cache independently of the
+ * bundle's: jsDelivr serves `max-age=604800` to the browser and `s-maxage=43200`
+ * to its own edge, and a release purges only the edge.
  *
  * So the pieces can skew. A browser that fetched the bundle after a release and
  * the worker before it holds a new bundle paired with the previous release's
  * core, which never completes the Comlink handshake — the viewer retries and
  * then shows "The document viewer could not be started" (see
- * `Viewer/coreWorkerBoot.ts`), and only clearing the browser cache fixes it,
- * which no purge can do. That is not hypothetical: 0.7.22 shipped a changed
- * core worker on a tag whose worker URL the release did not purge.
+ * `Viewer/coreWorkerBoot.ts`). Only clearing the browser cache fixes that, which
+ * no purge can reach. It is not hypothetical: 0.7.22 shipped a changed core
+ * worker under a tag whose worker URL that release did not purge.
  *
- * Rewriting the tag to the bundle's own version closes the whole class. An
- * exact version is immutable on every npm CDN (`max-age=31536000, immutable`),
- * so a pinned sibling cannot be a different release's, whatever any cache
- * holds and whether or not the purge ran.
+ * Pinning closes the whole class. An exact version is immutable on jsDelivr and
+ * unpkg alike (`max-age=31536000, immutable`), so a sibling resolved beside a
+ * pinned bundle is necessarily that bundle's release, whatever any cache holds
+ * and whether or not the purge ran.
+ *
+ * (It lives in this module, rather than one of its own, so that Rollup keeps
+ * naming `@doenet/doenetml`'s big shared chunk `doenetml-<hash>.js` — the chunk
+ * takes its name from a module in it.)
  *
  * @param url The bundle's own URL, normally `import.meta.url`.
  * @param packageName The npm package whose version segment to rewrite, e.g.
  *   `"@doenet/standalone"`.
  * @param version The exact version to pin to — the bundle's compiled-in one.
- * @returns The URL with `<packageName>@<anything>` rewritten to
- *   `<packageName>@<version>`, or `url` unchanged when it does not name the
- *   package as a path segment. Self-hosted copies, `blob:` and `data:` URLs,
- *   and anything unparseable therefore pass through untouched: a URL that
- *   carries no version to correct is left alone rather than guessed at.
+ * @returns `url` with the `@<spec>` following `packageName` replaced by
+ *   `@<version>`, supplied outright where a CDN-shaped path names the package
+ *   but no version. Every other URL comes back unchanged — self-hosted copies,
+ *   `blob:`/`data:` bases, anything unparseable — because a URL that carries no
+ *   CDN version to correct is left alone rather than guessed at.
  */
 export function pinPackageVersion(
     url: string,
@@ -156,14 +160,22 @@ export function pinPackageVersion(
         // segment to rewrite.
         return url;
     }
-    // The package name must be a whole run of path segments: bounded by `/`
-    // ahead of it and, past the optional `@<spec>`, by `/` behind. That is what
-    // keeps `@doenet/standalone` from matching inside `@doenet/standalone-foo`,
-    // and it covers both CDN layouts — jsDelivr's `/npm/<pkg>@<spec>/…` and
-    // unpkg's `/<pkg>@<spec>/…`.
+    // Match the package name only where a CDN puts it: at the root of the path
+    // (unpkg's `/<pkg>@<spec>/…`) or directly under jsDelivr's `/npm/` prefix.
+    // It must also be a whole run of segments — bounded by `/` ahead of it and,
+    // past the optional `@<spec>`, by `/` behind — which is what keeps
+    // `@doenet/standalone` from matching inside `@doenet/standalone-foo`.
+    //
+    // The anchor carries as much weight as the bounds. A self-hosted deployment
+    // that serves `node_modules` through
+    // (`https://host/node_modules/@doenet/standalone/doenet-standalone.js`) has
+    // the package name in its path too, and *inserting* a version there would
+    // send every sibling to a path that does not exist — turning a working
+    // deploy into the very failure this function prevents elsewhere. Only a URL
+    // already laid out like a CDN's is rewritten; anything else is left alone.
     const escaped = packageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const segment = new RegExp(`(/${escaped})(@[^/]*)?(?=/)`);
-    const pinned = parsed.pathname.replace(segment, `$1@${version}`);
+    const segment = new RegExp(`^(/npm)?(/${escaped})(@[^/]*)?(?=/)`);
+    const pinned = parsed.pathname.replace(segment, `$1$2@${version}`);
     if (pinned === parsed.pathname) {
         return url;
     }
