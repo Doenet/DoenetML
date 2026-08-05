@@ -11,7 +11,7 @@
  * that puts the blob back into `doenet-standalone.js`, or emits it twice, would
  * be just as quiet.
  *
- * Four checks, doing different jobs:
+ * Three checks, doing different jobs:
  *
  *  - The placement check needs no threshold and never needs adjusting. The
  *    core is meant to sit in {@link WASM_CORE_SCRIPT} and nowhere else, and any
@@ -26,11 +26,6 @@
  *    (see {@link servedCatalogProblems}). Both halves are live: English is the
  *    only inlined locale, so every other catalog this repository ships is one
  *    the first half probes for and the second half insists on finding.
- *  - The duplicate-instance check (see {@link duplicateI18nProblems}) covers
- *    the third way the catalogs can fail to arrive, and the quietest: they are
- *    served, and nothing reads them, because the bundle holds two copies of the
- *    module that decides what is loadable. It is a placement check too — of a
- *    module rather than a blob — and needs no threshold for the same reason.
  *  - The size budgets in `bundle-budgets.json` catch the general case the
  *    checks above cannot see — a heavy dependency, a duplicated copy of
  *    something that is not wasm. They are expected to be raised as the project
@@ -39,9 +34,13 @@
  * Run via `npm run check:size -w packages/standalone`. Exits non-zero, and
  * prints every problem it found rather than just the first, when a bundle is
  * over budget, when a budgeted file is missing, when `bundle-budgets.json` is
- * unusable, when the core is not inlined exactly once in the right script, when
- * a served catalog is in the wrong place or missing, or when the standalone
- * bundle does not hold exactly one copy of `@doenet/i18n`.
+ * unusable, when the core is not inlined exactly once in the right script, or
+ * when a served catalog is in the wrong place or missing.
+ *
+ * A third way the catalogs can fail to arrive — served, and nothing reading
+ * them, because a bundle holds two copies of the module that decides what is
+ * loadable — is checked for every package rather than this one, by
+ * `packages/i18n/scripts/check-bundle-instances.ts`.
  *
  * The exported helpers exist so `check-bundle-size.test.mjs` can exercise the
  * decision logic without a build, against synthetic bundles and throwaway
@@ -65,13 +64,6 @@ const DIST_DIR = path.join(PACKAGE_ROOT, "dist");
  * matching one in `bundle-budgets.json` together.
  */
 export const WASM_CORE_SCRIPT = "dist/doenetml-worker/index.js";
-
-/**
- * The emitted script that carries the viewer and installs the locale loaders,
- * and so is the one that must hold exactly one copy of `@doenet/i18n` (see
- * {@link duplicateI18nProblems}).
- */
-export const STANDALONE_SCRIPT = "dist/doenet-standalone.js";
 
 /** `@doenet/i18n`'s catalogs, which this bundle serves rather than carries. */
 const I18N_ROOT = path.resolve(PACKAGE_ROOT, "..", "i18n");
@@ -343,89 +335,6 @@ export function servedCatalogProblems(sourceLocales, emittedLocales) {
 }
 
 /**
- * The regex literal `@doenet/i18n` matches catalog paths with, read out of
- * `load.ts` so the marker cannot drift away from the module it stands for.
- *
- * A regex literal makes a usable marker because a minifier renames the
- * bindings around it but copies the pattern through verbatim, so counting it
- * counts instances of the module that owns the loader registry.
- *
- * @returns the pattern's source text, or `null` if `load.ts` no longer spells
- *   it as a literal, which {@link duplicateI18nProblems} reports rather than
- *   passing on a marker it could not find.
- */
-export function loaderRegistryMarker(loadModuleFile = LOAD_MODULE_FILE) {
-    if (!fs.existsSync(loadModuleFile)) {
-        return null;
-    }
-    const source = fs.readFileSync(loadModuleFile, "utf-8");
-    const match = /^const CATALOG_PATH_PATTERN = (\/.+\/);$/m.exec(source);
-    return match ? match[1] : null;
-}
-
-/** Non-overlapping occurrences of a fixed string. */
-function countOccurrences(haystack, needle) {
-    return haystack.split(needle).length - 1;
-}
-
-/**
- * Problems with how many copies of `@doenet/i18n` a script ended up holding.
- *
- * More than one is not merely wasteful, it is broken. The loaders that reach
- * the catalogs served in `dist/locales/` are module-level state, installed once
- * at startup by `src/index.tsx`; a viewer compiled against a *second* instance
- * of that module reads that instance's registry, which nothing ever fills. It
- * judges no catalog loadable, and an unreachable catalog is a deliberate,
- * silent fall back to English, so the bundle renders every language in English
- * while behaving in every other way as though it were translated. That is what
- * shipped in 0.7.22: `src/index.tsx` imported the setter from `@doenet/i18n`
- * while the viewer carried the copy inside `@doenet/doenetml`. Nothing about
- * the failure shows up in a size budget (the second copy is a few KB), in a
- * source-built test (where there is only ever one instance), or on screen.
- *
- * Zero copies in {@link STANDALONE_SCRIPT}, or no marker to count at all, is
- * reported too: either means the count is measuring nothing, and a check that
- * passes whatever it is shown is the same silent failure one layer up.
- *
- * @param scripts emitted scripts, from {@link collectEmittedScripts}.
- * @param marker from {@link loaderRegistryMarker}, `null` if unreadable.
- */
-export function duplicateI18nProblems(
-    scripts,
-    marker = loaderRegistryMarker(),
-) {
-    const problems = [];
-    if (marker === null) {
-        return [
-            `the @doenet/i18n marker could not be read out of packages/i18n/src/load.ts,\n` +
-                `    so nothing checked how many copies of that module the bundle holds. The\n` +
-                `    marker is the CATALOG_PATH_PATTERN regex literal; if it was renamed or\n` +
-                `    reformatted, update loaderRegistryMarker in this script to match.`,
-        ];
-    }
-    for (const [relative, { i18nInstances }] of scripts) {
-        if (i18nInstances > 1) {
-            problems.push(
-                `${relative} holds ${i18nInstances} copies of @doenet/i18n, so the message\n` +
-                    `    catalogs installed by src/index.tsx are not the ones the viewer reads,\n` +
-                    `    and every language would silently render in English. Import\n` +
-                    `    setLocaleLoaders from the same @doenet/doenetml entry point the viewer\n` +
-                    `    comes from rather than from @doenet/i18n.`,
-            );
-        }
-    }
-    if (scripts.get(STANDALONE_SCRIPT)?.i18nInstances === 0) {
-        problems.push(
-            `${STANDALONE_SCRIPT} holds no copy of @doenet/i18n, which cannot be right:\n` +
-                `    it renders the viewer and installs the locale loaders. Either the marker\n` +
-                `    no longer survives the build — leaving the duplicate-copy check counting\n` +
-                `    nothing — or the bundle really did lose its message catalogs.`,
-        );
-    }
-    return problems;
-}
-
-/**
  * Every emitted script under `dist/`, keyed by its path relative to the
  * package root (matching the keys in `bundle-budgets.json`).
  *
@@ -436,9 +345,8 @@ export function duplicateI18nProblems(
  * wasm. Only a script can actually execute a duplicated Rust core.
  *
  * @param probes `[locale, probe]` pairs, from {@link collectCatalogProbes}.
- * @param marker from {@link loaderRegistryMarker}, `null` if unreadable.
  */
-function collectEmittedScripts(probes, marker) {
+function collectEmittedScripts(probes) {
     const scripts = new Map();
     if (!fs.existsSync(DIST_DIR)) {
         return scripts;
@@ -464,10 +372,6 @@ function collectEmittedScripts(probes, marker) {
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
             bigBlobs: countBigBlobs(contents),
             inlinedCatalogs: catalogsInScript(contents, probes),
-            // 0 when there is no marker to count; `duplicateI18nProblems`
-            // reports the missing marker itself rather than reading anything
-            // into the count.
-            i18nInstances: marker ? countOccurrences(contents, marker) : 0,
         });
     }
     return scripts;
@@ -655,8 +559,7 @@ export function findProblems(budgets, scripts) {
 function main() {
     const budgets = loadBudgets();
     const probes = collectCatalogProbes();
-    const marker = loaderRegistryMarker();
-    const scripts = collectEmittedScripts(probes, marker);
+    const scripts = collectEmittedScripts(probes);
     const { report, problems } = findProblems(budgets, scripts);
 
     // An unbuilt `dist/` has already been reported as such; only ask where the
@@ -667,7 +570,6 @@ function main() {
                 collectSourceLocales(),
                 collectEmittedLocales(),
             ),
-            ...duplicateI18nProblems(scripts, marker),
         );
     }
 
@@ -683,9 +585,8 @@ function main() {
     }
 
     console.log(
-        "\nwithin budget, the core is inlined exactly once, the message catalogs are\n" +
-            "served rather than carried, and one copy of @doenet/i18n decides what is\n" +
-            "loadable.",
+        "\nwithin budget, the core is inlined exactly once, and the message catalogs\n" +
+            "are served rather than carried.",
     );
 }
 

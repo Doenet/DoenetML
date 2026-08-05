@@ -14,4 +14,4 @@ The one file held two copies of `@doenet/i18n`: one built from source for `src/i
 
 `@doenet/doenetml` now re-exports `setLocaleLoaders` and `fetchLocaleLoaders`, and `@doenet/standalone` reaches them through the same entry point its viewer comes from, which makes the setter and the reader one instance. A host installing its own catalogs should import them from `@doenet/doenetml` for the same reason.
 
-Two guards, because neither half of this was visible: `npm run check:size -w packages/standalone` now fails the build unless the standalone bundle holds exactly one copy of `@doenet/i18n`, and a component spec renders a document in a language only a served catalog carries and asserts the request goes out.
+Two guards, because neither half of this was visible: `npm run check:i18n-instances` fails the build when any built package holds more than one copy of `@doenet/i18n` in one script, and a component spec renders a document in a language only a served catalog carries and asserts the request goes out.

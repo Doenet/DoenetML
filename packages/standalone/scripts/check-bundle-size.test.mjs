@@ -3,17 +3,16 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import {
-    STANDALONE_SCRIPT as STANDALONE,
     WASM_CORE_SCRIPT,
     catalogsInScript,
     collectCatalogProbes,
     countBigBlobs,
-    duplicateI18nProblems,
     findProblems,
     loadBudgets,
-    loaderRegistryMarker,
     servedCatalogProblems,
 } from "./check-bundle-size.mjs";
+
+const STANDALONE = "dist/doenet-standalone.js";
 
 /** Budgets in the shape `loadBudgets` returns: `[relativePath, budget]` pairs. */
 const BUDGETS = [
@@ -423,83 +422,5 @@ describe("servedCatalogProblems", () => {
         const problems = servedCatalogProblems(["en", "es"], null);
         expect(problems).toHaveLength(1);
         expect(problems[0]).toContain("dist/locales/ was not emitted");
-    });
-});
-
-describe("loaderRegistryMarker", () => {
-    it("finds the pattern in the committed load.ts", () => {
-        // The whole duplicate-instance check rests on this being findable in
-        // the real module: a marker that stopped matching would leave every
-        // script counted as zero instances and the check passing on anything.
-        const marker = loaderRegistryMarker();
-        expect(marker).toBeTypeOf("string");
-        expect(marker).toContain("locales");
-        expect(marker).toContain("ftl");
-    });
-
-    it("reports no marker when load.ts is not where it should be", () => {
-        expect(loaderRegistryMarker("/no/such/load.ts")).toBe(null);
-    });
-});
-
-describe("duplicateI18nProblems", () => {
-    /** Emitted scripts holding the given instance counts. */
-    function build(counts) {
-        return new Map(
-            Object.entries(counts).map(([name, i18nInstances]) => [
-                name,
-                { ...script(500), i18nInstances },
-            ]),
-        );
-    }
-
-    it("accepts one copy per script", () => {
-        expect(
-            duplicateI18nProblems(
-                build({ [STANDALONE]: 1, [WASM_CORE_SCRIPT]: 1 }),
-            ),
-        ).toEqual([]);
-    });
-
-    it("accepts another script that carries none at all", () => {
-        // Most emitted scripts have nothing to do with i18n, so holding none
-        // is their normal case.
-        expect(
-            duplicateI18nProblems(
-                build({ [STANDALONE]: 1, [WASM_CORE_SCRIPT]: 0 }),
-            ),
-        ).toEqual([]);
-    });
-
-    it("reports a standalone bundle that carries none at all", () => {
-        // Zero in the bundle that renders the viewer means the marker stopped
-        // surviving the build, and a check counting nothing passes anything.
-        const problems = duplicateI18nProblems(build({ [STANDALONE]: 0 }));
-        expect(problems).toHaveLength(1);
-        expect(problems[0]).toContain("no copy of @doenet/i18n");
-    });
-
-    it("reports a marker it could not read rather than passing", () => {
-        const problems = duplicateI18nProblems(
-            build({ [STANDALONE]: 0 }),
-            null,
-        );
-        expect(problems).toHaveLength(1);
-        expect(problems[0]).toContain("could not be read");
-    });
-
-    it("reports the 0.7.22 failure: two copies in the standalone bundle", () => {
-        const problems = duplicateI18nProblems(build({ [STANDALONE]: 2 }));
-        expect(problems).toHaveLength(1);
-        expect(problems[0]).toContain(STANDALONE);
-        expect(problems[0]).toContain("2 copies");
-    });
-
-    it("reports every script that holds more than one", () => {
-        expect(
-            duplicateI18nProblems(
-                build({ [STANDALONE]: 3, [WASM_CORE_SCRIPT]: 2 }),
-            ),
-        ).toHaveLength(2);
     });
 });

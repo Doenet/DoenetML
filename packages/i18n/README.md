@@ -544,10 +544,17 @@ across. `packages/standalone/scripts/check-bundle-size.mjs` fails the build if
 a served catalog turns up inside an emitted script, and if any locale directory
 did not reach `dist/locales/` — the copy is of the whole directory, English
 included, so the second half stays meaningful whatever the inlining decision
-turns out to be. It also fails the build if the bundle holds more than one copy
-of this package, which is the third way a served catalog goes unread: the
-loaders are module-level state, so a viewer compiled against a second instance
-sees an empty registry and falls back to English in silence.
+turns out to be.
+
+The third way a served catalog goes unread has its own check, `check:instances`
+in this package (`npm run check:i18n-instances` from the root): the loaders are
+module-level state, so a bundle holding two copies of this package installs them
+on an instance the viewer never reads, sees an empty registry, and falls back to
+English in silence. Every built `packages/*/dist/` is scanned, not the bundle
+that has been bitten, because any build combining a prebuilt `@doenet/doenetml`
+with a source build of this package can hit it — counted per emitted script,
+since a script is what shares a module registry, and a package that emits both a
+bundle and a worker holds a copy in each quite correctly.
 
 Two lists have to agree for any of this to hold, and `lint:i18n` checks that
 they do: the locales excluded from the glob in `load.ts` are exactly
