@@ -23,6 +23,8 @@ import type { StylePaletteInfo } from "@doenet/utils";
 import {
     fetchLocaleLoaders,
     setLocaleLoaders,
+    pinPackageVersion,
+    setExternalCoreWorkerUrl,
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
@@ -59,6 +61,32 @@ export const version: string = STANDALONE_VERSION;
 // afterwards — so the reference has to stay unanalyzed.
 const CATALOGS_BESIDE_BUNDLE = "./locales/";
 const CATALOGS_AT_ORIGIN = "/locales/";
+const WORKER_BESIDE_BUNDLE = "./doenetml-worker/index.js";
+
+/**
+ * This file's own URL, with any floating CDN tag replaced by the exact version
+ * it was built as.
+ *
+ * Everything served *beside* this bundle — the core worker, the catalogs below
+ * — is fetched as its own URL at run time, so under `@doenet/standalone@latest`
+ * each is independently cached (jsDelivr: seven days in the browser, twelve
+ * hours at the edge) and can be left over from a different release than the
+ * bundle asking for it. A bundle paired with the previous release's core worker
+ * never finishes the handshake, and the viewer reports that it could not be
+ * started; a purge cannot reach the browser copy, so it persists for days. See
+ * `pinPackageVersion` for the whole story.
+ *
+ * Resolving siblings against the pinned URL instead removes the possibility:
+ * an exact version is immutable on the CDN, so the worker and catalogs beside
+ * it are necessarily this release's. A bundle that is not served from a CDN
+ * path naming the package — self-hosted, or booted from a Blob URL as the
+ * component tests do — is returned unchanged and behaves exactly as before.
+ */
+const pinnedBundleUrl = pinPackageVersion(
+    import.meta.url,
+    "@doenet/standalone",
+    version,
+);
 
 /**
  * Where to fetch the message catalogs from, or `null` if nowhere can be worked
@@ -80,7 +108,7 @@ const CATALOGS_AT_ORIGIN = "/locales/";
  */
 function localeCatalogsUrl(): string | null {
     for (const [path, base] of [
-        [CATALOGS_BESIDE_BUNDLE, import.meta.url],
+        [CATALOGS_BESIDE_BUNDLE, pinnedBundleUrl],
         [CATALOGS_AT_ORIGIN, globalThis.window?.location?.href],
     ] as const) {
         try {
@@ -95,6 +123,28 @@ function localeCatalogsUrl(): string | null {
 const localeCatalogsBase = localeCatalogsUrl();
 if (localeCatalogsBase) {
     setLocaleLoaders(fetchLocaleLoaders(localeCatalogsBase));
+}
+
+// Re-point the core worker at the pinned copy, for the reason above. The
+// externalized-worker entry has already resolved it against this file's *own*
+// URL — its module body runs at import time, before anything here — so this
+// runs after and replaces the tag-relative answer with the pinned one.
+//
+// Only when pinning actually changed the URL: where it did not (a self-hosted
+// bundle, a Blob URL) the entry's own resolution, including its fallbacks for
+// bases nothing can be resolved against, is already the right answer and this
+// has nothing to add.
+if (pinnedBundleUrl !== import.meta.url) {
+    try {
+        setExternalCoreWorkerUrl(
+            new URL(WORKER_BESIDE_BUNDLE, pinnedBundleUrl).href,
+        );
+    } catch (e) {
+        // Leave whatever the entry resolved in place: a worker under a floating
+        // tag still works whenever the caches happen to agree, which is the
+        // behavior every release before this one had.
+        console.warn("Unable to pin the DoenetML core worker URL:", e);
+    }
 }
 
 // Parent-page coordinator support (see coordinated-mode.ts): when this

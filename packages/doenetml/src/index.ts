@@ -32,6 +32,11 @@ export type {
 
 export { CodeMirror } from "@doenet/codemirror";
 
+// For a bundle served from a CDN under a floating tag, whose sibling assets —
+// the core worker, the message catalogs — are separate URLs under that same
+// tag and can be cached from a different release than the bundle itself.
+export { pinPackageVersion } from "./global-config";
+
 // Where a host installs the message catalogs the viewer in *this* bundle reads.
 //
 // The loaders are module-level state, and a bundle can hold more than one
