@@ -1080,10 +1080,23 @@ describe.skipIf(!wasmAvailable)(
             const source = `<exercise><graph><point name="P">(3,4)</point></graph>$P.</exercise>\n<exercise><graph><point name="P" styleNumber="2">(2,2)</point></graph>$P.</exercise>`;
             const { completer } = await createCompleterWithAdapter(source);
 
-            for (const refOffset of [
-                source.indexOf("$P.") + 3,
-                source.lastIndexOf("$P.") + 3,
-            ]) {
+            const secondExerciseStart = source.lastIndexOf("<exercise>");
+            const cases = [
+                {
+                    refOffset: source.indexOf("$P.") + 3,
+                    pointOffset: source.indexOf("<point"),
+                },
+                {
+                    refOffset: source.lastIndexOf("$P.") + 3,
+                    pointOffset: source.lastIndexOf("<point"),
+                },
+            ];
+            // Guard the fixture: the two points really are in different
+            // exercises, so the offset assertions below can tell them apart.
+            expect(cases[0].pointOffset).toBeLessThan(secondExerciseStart);
+            expect(cases[1].pointOffset).toBeGreaterThan(secondExerciseStart);
+
+            for (const { refOffset, pointOffset } of cases) {
                 const resolved =
                     await completer.resolveRefMemberContainerAtOffset(
                         refOffset,
@@ -1091,6 +1104,10 @@ describe.skipIf(!wasmAvailable)(
                         [false, false],
                     );
                 expect(resolved.node?.name).toBe("point");
+                // The point in the *same* exercise as the reference, not the other.
+                expect(resolved.node?.position?.start?.offset).toBe(
+                    pointOffset,
+                );
                 expect(resolved.unresolvedPathParts).toEqual([]);
 
                 const items = await completer.getCompletionItems(refOffset);
