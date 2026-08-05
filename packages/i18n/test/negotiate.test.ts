@@ -274,14 +274,15 @@ describe("negotiateLocales", () => {
             ["naz", "nah"],
             ["azn", "nah"],
             ["nci-MX", "nah"],
-            // Ojibwa. `ojg` is the one CLDR folds; `otw` is Odawa and `alq`
-            // Algonquin, both members of `oj` in ISO 639-3. `ciw` is Chippewa,
-            // the variety the Fiero orthography this catalog uses was devised
-            // for, so it is the member the catalog answers best.
+            // `ppl` is Pipil, the one Nahuan language spoken outside Mexico.
+            ["ppl", "nah"],
+            // Ojibwa. `ojg` is the one CLDR folds; `otw` is Odawa, a member of
+            // `oj` in ISO 639-3. `ciw` is Chippewa, the variety the Fiero
+            // orthography this catalog uses was devised for, so it is the
+            // member the catalog answers best.
             ["ojg", "oj"],
             ["ojb", "oj"],
             ["otw", "oj"],
-            ["alq", "oj"],
             ["ciw", "oj"],
         ])("serves %s from the catalog named %s", (requested, expected) => {
             expect(
@@ -357,6 +358,21 @@ describe("negotiateLocales", () => {
                 expect(chain).not.toContain("arn");
             },
         );
+
+        /**
+         * The same control one step closer in, where the temptation is real.
+         * Algonquin is often described as a dialect of Ojibwe and is mutually
+         * intelligible with the Ontario varieties, but ISO 639-3 gives it `alq`
+         * outside the `oj` macrolanguage — so it is left to miss, exactly as
+         * Fante is by `LANGUAGE_ALIASES`. Folding it would be the judgement
+         * about closeness the map is built to avoid, and this is what would
+         * catch someone adding it.
+         */
+        it("leaves Algonquin out of the Ojibwe macrolanguage", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("alq")], available),
+            ).toEqual(["en"]);
+        });
     });
 });
 

@@ -124,7 +124,9 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     ay: ["ayc", "ayr"],
     // Guaranian. The catalog is Paraguayan Guarani.
     gn: ["gnw", "gug", "gui", "gun", "nhd"],
-    // Nahuan. The catalog is Central Nahuatl.
+    // Nahuan. The catalog is Central Nahuatl. `ppl` is Pipil (Nawat), the one
+    // member outside Mexico, and it is grouped here for the same published
+    // reason as the rest rather than for where it is spoken.
     nah: [
         "azd",
         "azn",
@@ -155,10 +157,14 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
         "npl",
         "nsu",
         "nuz",
+        "ppl",
     ],
     // Ojibwa. The catalog is in the Fiero double-vowel orthography, which is
-    // closest to `ciw` — the variety the orthography was devised for.
-    oj: ["alq", "ciw", "ojb", "ojc", "ojg", "ojs", "ojw", "otw"],
+    // closest to `ciw` — the variety the orthography was devised for. These
+    // seven are the whole of the macrolanguage; `alq` (Algonquin) is not among
+    // them, and is left to miss for the `fat` reason — ISO 639-3 gives it a code
+    // outside `oj`, so folding it here would be the judgement this map avoids.
+    oj: ["ciw", "ojb", "ojc", "ojg", "ojs", "ojw", "otw"],
 };
 
 /** Flattened once at module load rather than searched per request. */
