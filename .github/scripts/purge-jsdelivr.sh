@@ -31,9 +31,7 @@ curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}/doenetml-work
 curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}/coordinator.js" || exit 1
 
 # The several hundred message catalogs under `locales/` are deliberately left
-# out. A locale added in a release is a URL nothing has cached, so it cannot be
-# stale; only an edit to an existing translation can be, and that costs old
-# wording until the edge TTL expires rather than a broken embed — not worth
-# hundreds of purge requests per release.
+# out: a stale catalog costs old wording until the edge TTL expires, not a
+# broken embed, which is not worth hundreds of purge requests per release.
 
 echo "Successfully purged jsDelivr cache for tag @${TAG}"

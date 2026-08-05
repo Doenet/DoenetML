@@ -20,10 +20,10 @@ curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${TAG}" || exit 1
 
 echo "Purging key prefigure assets for @doenet/prefigure@${TAG}..."
 curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${TAG}/prefigure.js" || exit 1
-# The Pyodide runtime under `assets/` is fetched by URL at run time. Only the
-# fixed-name files need purging: the wheels carry their version in the filename
-# and the bundle's own chunks are content-hashed, so those URLs never change
-# meaning.
+# Pyodide loads its runtime from `assets/` by URL at run time. These are the
+# fixed-name files it fetches; everything else under `assets/` is already
+# immutable per build (wheels carry their version in the filename, the bundle's
+# own chunks are content-hashed), so no other URL can go stale.
 for asset in pyodide.mjs pyodide.asm.js pyodide.asm.wasm pyodide-lock.json python_stdlib.zip; do
     curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${TAG}/assets/${asset}" || exit 1
 done
