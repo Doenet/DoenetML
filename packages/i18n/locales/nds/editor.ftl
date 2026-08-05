@@ -63,7 +63,7 @@ editor-accessibility-label =
            *[open] optomaken
         }.
         [advisories] Dat sünd keen Verstöte na WCAG AA faststellt worrn. { $count ->
-            [one] Dat is { $count } wieder Anraad to de Togänglichkeit
+            [one] Dat is { $count } wiedere Anraad to de Togänglichkeit
            *[other] Dat sünd { $count } wiedere Anraden to de Togänglichkeit
         } funnen worrn. Klick, üm den Bericht över de Togänglichkeit { $action ->
             [close] totomaken

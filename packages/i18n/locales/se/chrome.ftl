@@ -8,17 +8,20 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Northern Sami is the first locale here to count in a **dual**. CLDR gives it
-# `one`, `two` and `other`, so every `{ $count -> … }` below that prints its
-# number has three branches, and the middle one is not a rounding of the
-# plural: two of a thing is its own number in Sami, as it is in the pronouns
-# and in the verb.
+# `one`, `two` and `other`, so a `{ $count -> … }` below that prints its number
+# writes three branches, and the middle one is not a rounding of the plural:
+# two of a thing is its own number in Sami, as it is in the pronouns and in the
+# verb.
 #
 # What the noun does across the three is not what English does either. It is in
 # the nominative singular after «okta», in the genitive singular after «guokte»
 # and every higher numeral — so `two` and `other` share a form that neither
-# shares with `one`. The two branches are written out anyway rather than
-# collapsed, because they are two categories and a later correction to one of
-# them is unlikely to be a correction to both.
+# shares with `one`. Where something else in the branch still differs, the two
+# are written out anyway rather than collapsed, because they are two categories
+# and a later correction to one of them is unlikely to be a correction to both.
+# Where nothing differs — `answer-show-responses`, whose whole branch would be
+# the same string three times — the select is dropped and a comment there says
+# so.
 #
 # `one` does not catch zero, so the wording for none is spelled out in `[0]`.
 
