@@ -1072,5 +1072,49 @@ describe.skipIf(!wasmAvailable)(
                 await adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
             ).toBe(true);
         });
+
+        it("member completion resolves a name that repeats once per sibling scope", async () => {
+            // The same `name="P"` appears in each <exercise>.  Resolution has
+            // to start from inside the exercise holding the cursor, or the
+            // parent-scope walk sees both points and throws NonUniqueReferent.
+            const source = `<exercise><graph><point name="P">(3,4)</point></graph>$P.</exercise>\n<exercise><graph><point name="P" styleNumber="2">(2,2)</point></graph>$P.</exercise>`;
+            const { completer } = await createCompleterWithAdapter(source);
+
+            const secondExerciseStart = source.lastIndexOf("<exercise>");
+            const cases = [
+                {
+                    refOffset: source.indexOf("$P.") + 3,
+                    pointOffset: source.indexOf("<point"),
+                },
+                {
+                    refOffset: source.lastIndexOf("$P.") + 3,
+                    pointOffset: source.lastIndexOf("<point"),
+                },
+            ];
+            // Guard the fixture: the two points really are in different
+            // exercises, so the offset assertions below can tell them apart.
+            expect(cases[0].pointOffset).toBeLessThan(secondExerciseStart);
+            expect(cases[1].pointOffset).toBeGreaterThan(secondExerciseStart);
+
+            for (const { refOffset, pointOffset } of cases) {
+                const resolved =
+                    await completer.resolveRefMemberContainerAtOffset(
+                        refOffset,
+                        ["P", ""],
+                        [false, false],
+                    );
+                expect(resolved.node?.name).toBe("point");
+                // The point in the *same* exercise as the reference, not the other.
+                expect(resolved.node?.position?.start?.offset).toBe(
+                    pointOffset,
+                );
+                expect(resolved.unresolvedPathParts).toEqual([]);
+
+                const items = await completer.getCompletionItems(refOffset);
+                expect(items.map((item) => item.label)).toContain(
+                    "styleDescription",
+                );
+            }
+        });
     },
 );
