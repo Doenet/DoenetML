@@ -42,7 +42,7 @@ is the text that needs updating. We confirmed all three of your points against `
 `tear_down` call site, `MAX_PARSE_DEPTH` enforced only in `shared_grammar.rs`, `try_from_js`
 uncapped.
 
-## Still open — seven items
+## Still open — ten items
 
 **1. [WASM32 stack safety](upstream_requests/03-wasm32-stack-safety.md)** — unchanged in severity, and
 we can add to it. Your two vectors, plus a third:
@@ -121,9 +121,34 @@ so the semantics are already in there. `⟨a,b⟩ + (c,d)` does not fold althoug
 right — only the both-operands-blank case. `_` is our authoring syntax for a free slot in
 `excludeCombinations="(2 2 _)"`.
 
+**8. [Display rounding turns exact rationals into decimals](upstream_requests/16-rounding-destroys-exact-rationals.md)**
+— 7 tests, same function family as the fix you shipped. `round_numbers_to_precision(5/2, 3)` is
+`2.5` where legacy kept `\frac{5}{2}`; `1/3 → 0.333` is already right, so we think the rule is just
+"if rounding would not change the value, return it unchanged". `displayDigits` defaults to 3, so
+every rational a student sees goes through it, and in a fractions lesson the fraction *is* the point.
+
+**9. Root and complex simplification gaps** — 4 tests, not filed separately yet.
+`cbrt(x^3)`, `nthroot(x^3,3)` and `sqrt(16x²y⁴)` keep their radicals (only the numeric factor comes
+out of the last), and `i^2` stays `["^","i",2]` rather than folding to `-1`. Say the word and we will
+write it up properly with the corpus.
+
+**10. [Two printer defects: `(-3) x`, and `∫` losing its glyph](upstream_requests/17-printer-negative-coefficients-and-integrals.md)**
+— 6 tests, and the only two we would not absorb. We went through every printer difference this round
+and changed *our* expectations wherever the new output was a legitimate style choice: canonical term
+and factor ordering (`a+mn` now prints `mn+a`), and parentheses that were never needed
+(`(x²)/2` → `x²/2`). These two are different.
+
+```js
+me.fromAst(["+", "a", ["*", -3, "b"]]).toString();   // "a + (-3) b"   expected "a - 3 b"
+me.fromLatex("\\int_{a}^{b} f(x) dx").toString();     // "int_a^b(f(x) dx)"  expected "∫_a^b f(x) dx"
+```
+
+`simplify()` fixes the first, so it only shows on unsimplified output — which is where a lot of what
+a student reads lives, including our test literally named "display fraction with negative out front".
+
 ## Where we are
 
-`packages/doenetml-worker-javascript`: **250 failures of 3,436 executed — 92.7% passing**, from 448
+`packages/doenetml-worker-javascript`: **237 failures of 3,436 executed — 93.1% passing**, from 448
 when we started.
 
 | Pin | Failures | Fixed | Broken |
@@ -132,7 +157,7 @@ when we started.
 | `02293bf` | 412 | 36 | 0 |
 | `08bd4dc` | 403 | 10 | 0 |
 | `970c1c3` | 343 | 59 | 0 |
-| `7a18c9c` + our fixes | **250** | **93** | **0** |
+| `7a18c9c` + our fixes | **237** | **106** | **0** |
 
 No pin has ever broken anything. `02293bf` also let us delete the last two workarounds in our seam —
 with **no change in results either way**, which is how we verify an upstream fix actually covers our
@@ -140,30 +165,40 @@ usage. `packages/math/src/engine-rust.ts` is now a straight re-export.
 
 The last row is *combined*, and we would rather say so than claim it: the `7a18c9c` bump and our own
 sparse-AST fix landed in the same commit, so that data cannot separate them. Measured in isolation
-against an unchanged pin, our two fixes were **34 fixed / 0 broken** (sparse AST, across
-`vector`/`ray`/`point`) and **14 fixed / 0 broken** (`Number.isNaN(null)`, suite-wide).
+against an unchanged pin, our fixes were **34 / 0** (sparse AST, across `vector`/`ray`/`point`),
+**14 / 0** (`Number.isNaN(null)`, suite-wide) and **6 / 0** (piecewise `otherwise`).
 
-Two bugs of ours are worth naming, because both were *caused* by the migration rather than merely
-revealed by it — and neither is your fault:
+Three bugs of ours are worth naming, because all three were *caused* by the migration rather than
+merely revealed by it — and none is your fault:
 
 - **Sparse AST arrays.** Our inverse definitions encoded "leave this vector component alone" as a
   *hole* in the AST array, detected with `tree.includes()`. The old engine stored the array by
   reference so the hole survived `fromAst(...).tree`; yours round-trips through JSON, where a hole
   becomes `null` and `from_ast` rightly rejects it. The throw aborted the entire update transaction,
-  so dragging a point changed nothing and reported nothing. We replaced the hole with an explicit
-  sentinel.
-- **`Number.isNaN(null)` is `false`.** Nine places in our code tested an `evaluate_to_constant()`
-  result for `NaN` alone. `null` sails straight through and then coerces to `0`: `＿ < 1` became
-  `null < 1`, which is `true`, so a blank answer scored full credit, and `<sort>` compared
-  `null - null` for every pair and returned its input order. This is item 5 above seen from our side.
+  so dragging a point changed nothing and reported nothing.
+- **`Number.isNaN(null)` is `false`.** Nine places tested an `evaluate_to_constant()` result for
+  `NaN` alone. `null` sails straight through and coerces to `0`: `＿ < 1` became `null < 1`, which is
+  `true`, so a blank answer scored full credit, and `<sort>` compared `null - null` for every pair
+  and returned its input order.
+- **Reading a `.tree` leaf with `=== -Infinity`.** `PiecewiseFunction` decides which branch is the
+  catch-all by testing whether its domain is `(-∞, ∞)`. Against the tagged form that test is simply
+  always false, so every piecewise function printed an explicit final condition instead of
+  "otherwise". We read leaves through a tolerant helper now, so it holds whichever way item 2
+  settles.
 
-Both are the same shape as the hazard worth warning any other migrator about: a representation whose
-meaning lived in JavaScript reference or type semantics, silently becoming something else.
+All three are the same shape, and it is the shape worth warning the next migrator about: a
+representation whose meaning lived in JavaScript reference or type semantics, silently becoming
+something else.
 
-Of the 250 left, roughly 95 are items 4–7, 11 are item 2, ~18 are printing differences we have not
-yet triaged one by one, ~10 are variant selection in `select*`/`conditionalContent`, and 2 are
-`doenetml-worker-rust` asserts whose panic text our headless harness discards. The per-cluster ledger
-is in [`upstream_requests/README.md`](upstream_requests/README.md).
+We also hardened `MathBaseOperator`. `median([1,4,5,null])` throws inside mathjs and took the whole
+document down; `median([1,4,5,NaN])` degrades quietly. That is downstream of item 5, and it is the
+sharpest illustration of why `None` arriving as a JS `null` is worse than a NaN.
+
+The remaining 237 are fully triaged, cluster by cluster, in
+[`upstream_requests/README.md`](upstream_requests/README.md) — each confirmed by an engine-level
+probe rather than inferred from the test name. Roughly 145 are items 2–8, 6 are item 10, and the rest is a
+long tail of two or three per file. The cosmetic bucket is gone: we worked through it and moved our
+expectations to the new printer wherever the difference was style rather than substance.
 
 ### How we check your fixes now
 

@@ -342,7 +342,7 @@ describe("Evaluate tag tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("result")].stateValues
                     .latex,
             ),
-        ).eq("f(u)=f(cq^{2})=acq^{2}+bc^{2}q^{4}");
+        ).eq("f(u)=f(cq^{2})=bc^{2}q^{4}+acq^{2}");
     });
 
     it("evaluate function when input is replaced", async () => {
@@ -4805,7 +4805,7 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp10")].stateValues.text,
-        ).eq("\uff3f + 1");
+        ).eq("1 + \uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp11")].stateValues.text,
         ).eq("2");
@@ -4814,11 +4814,11 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("5");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp13")].stateValues.text,
-        ).eq("\uff3f + 1");
+        ).eq("1 + \uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp1a0")].stateValues
                 .text,
-        ).eq("\uff3f + 1");
+        ).eq("1 + \uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp1a1")].stateValues
                 .text,
@@ -4830,7 +4830,7 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fp1a3")].stateValues
                 .text,
-        ).eq("\uff3f + 1");
+        ).eq("1 + \uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1p10")].stateValues
                 .text,
@@ -4842,11 +4842,11 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1p12")].stateValues
                 .text,
-        ).eq("\uff3f + 1");
+        ).eq("1 + \uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1p13")].stateValues
                 .text,
-        ).eq("\uff3f + 1");
+        ).eq("1 + \uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("fm0")].stateValues.text,
         ).eq("0");

@@ -425,7 +425,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("b")].stateValues
                     .latex,
             ),
-        ).eq("sinu＿");
+        ).eq("insu＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("formata")].stateValues
                 .value,
@@ -462,7 +462,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("b")].stateValues
                     .latex,
             ),
-        ).eq("\\sin(u)＿");
+        ).eq("＿\\sin(u)");
         expect(
             stateVariables[await resolvePathToNodeIdx("formata")].stateValues
                 .value,
@@ -562,7 +562,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m5")].stateValues
                     .latex,
             ),
-        ).eq("-2x^{2}+x^{2}+5x^{2}-2");
+        ).eq("x^{2}-2x^{2}+5x^{2}-2");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m6")].stateValues
@@ -574,7 +574,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m7")].stateValues
                     .latex,
             ),
-        ).eq("-2x^{2}+0x^{2}+1x^{2}+5x^{2}-3-3+4");
+        ).eq("1x^{2}-3+0x^{2}+4-2x^{2}-3+5x^{2}");
 
         let originalTree = [
             "+",
@@ -6589,13 +6589,13 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22sm22bSimp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}mn+a&mo+b\\\\mp+c&mq+d\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22sm22bExpSimp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}mn+a&mo+b\\\\mp+c&mq+d\\end{bmatrix}");
     });
 
     it("matrix multiplication", async () => {
@@ -6643,7 +6643,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22am22bExp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}ae+bg&af+bh\\\\ce+dg&cf+dh\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}bg+ae&af+bh\\\\dg+ce&cf+dh\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22bm22a")]
@@ -6657,13 +6657,13 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22bm22aExp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}ae+cf&be+df\\\\ag+ch&bg+dh\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}cf+ae&df+be\\\\ag+ch&bg+dh\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22aSq")].stateValues
                     .latex,
             ),
-        ).eq("(\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix})^{2}");
+        ).eq("\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}^{2}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22aSqExp")]
@@ -6729,7 +6729,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m12am21aExp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}im+jn\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}jn+im\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("longmult")]
@@ -6744,7 +6744,7 @@ describe("Math tag tests @group3", async () => {
                     .stateValues.latex,
             ),
         ).eq(
-            "\\begin{bmatrix}aeikmo+afilmo+agikno+ahilno+bejkmo+bfjlmo+bgjkno+bhjlno&aeikmp+afilmp+agiknp+ahilnp+bejkmp+bfjlmp+bgjknp+bhjlnp\\\\ceikmo+cfilmo+cgikno+chilno+dejkmo+dfjlmo+dgjkno+dhjlno&ceikmp+cfilmp+cgiknp+chilnp+dejkmp+dfjlmp+dgjknp+dhjlnp\\end{bmatrix}",
+            "\\begin{bmatrix}bfjlmo+bgjkno+bhjlno+afilmo+agikno+ahilno+bejkmo+aeikmo&bfjlmp+bgjknp+bhjlnp+afilmp+agiknp+ahilnp+bejkmp+aeikmp\\\\dfjlmo+dgjkno+dhjlno+cfilmo+cgikno+chilno+dejkmo+ceikmo&dfjlmp+dgjknp+dhjlnp+cfilmp+cgiknp+chilnp+dejkmp+ceikmp\\end{bmatrix}",
         );
         expect(
             cleanLatex(

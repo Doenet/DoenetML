@@ -298,6 +298,33 @@ export function isNumericConstant(value: unknown): value is number {
     return typeof value === "number" && !Number.isNaN(value);
 }
 
+/**
+ * A numeric AST leaf, with the engine's tagged non-finite forms decoded.
+ *
+ * `.tree` hands back `{"$":"Inf"}` / `{"$":"-Inf"}` / `{"$":"NaN"}` rather than
+ * the JS scalars, deliberately — one tagged wire format in both directions, so
+ * that `fromAst(x).tree` is a fixpoint and `{"$":"None"}`, which has no JS
+ * scalar at all, can travel the same road. Consumers that compare a leaf
+ * against `-Infinity` or run `typeof x === "number"` therefore silently stop
+ * matching. Read leaves through here instead; it accepts both spellings, so it
+ * keeps working whichever way that contract settles.
+ *
+ * Returns the value unchanged when it is not a tagged form.
+ */
+export function numericLeaf(value: unknown): unknown {
+    if (value && typeof value === "object" && "$" in (value as object)) {
+        switch ((value as { $: string }).$) {
+            case "Inf":
+                return Infinity;
+            case "-Inf":
+                return -Infinity;
+            case "NaN":
+                return NaN;
+        }
+    }
+    return value;
+}
+
 export function returnNVariables(n: number, variablesSpecified: any[]) {
     // console.log(`return N variables`, n, variablesSpecified)
 

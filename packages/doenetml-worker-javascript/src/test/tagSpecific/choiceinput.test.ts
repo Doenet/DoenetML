@@ -1166,7 +1166,7 @@ describe("ChoiceInput tag tests @group4", async () => {
     `,
         });
 
-        let originalChoices = ["(x²)/2", "y", "∂f/∂x", "3", "1/(e^x)"];
+        let originalChoices = ["x²/2", "y", "∂ f/∂ x", "3", "1/(e^x)"];
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
