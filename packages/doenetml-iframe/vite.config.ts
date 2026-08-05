@@ -65,6 +65,11 @@ export default defineConfig({
     },
     define: {
         "process.env.NODE_ENV": '"production"',
+        // Load-bearing, not just informational: this is `latestDoenetmlVersion`
+        // in `src/index.tsx`, the `@doenet/standalone@<version>` a host that
+        // names no version gets. A build carrying a stale one would point every
+        // embed at the previous release's bundle. Hence `package.json` among
+        // this build's declared wireit inputs — a version bump has to rebuild.
         IFRAME_VERSION: JSON.stringify(version),
     },
 });

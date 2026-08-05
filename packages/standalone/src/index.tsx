@@ -55,11 +55,12 @@ export const version: string = STANDALONE_VERSION;
 // A host that serves this bundle without `locales/` beside it loses nothing it
 // has today: those fetches fail quietly and every locale falls back to English.
 //
-// The paths are held in constants rather than written inline because Vite reads
-// a literal `new URL(..., import.meta.url)` as an asset reference and warns that
-// the target does not exist at build time. It does not — the build copies it in
-// afterwards — so the reference has to stay unanalyzed. The core worker is
-// co-served the same way, hence the third path.
+// The paths are held in constants, and resolved against a variable base rather
+// than against `import.meta.url` directly, so that Vite leaves them alone: it
+// reads a literal `new URL("./x", import.meta.url)` as a build-time asset
+// reference and warns that the target does not exist. It does not — the build
+// copies these in afterwards. The core worker is co-served the same way, hence
+// the third path.
 const CATALOGS_BESIDE_BUNDLE = "./locales/";
 const CATALOGS_AT_ORIGIN = "/locales/";
 const WORKER_BESIDE_BUNDLE = "./doenetml-worker/index.js";
@@ -120,10 +121,10 @@ if (localeCatalogsBase) {
     setLocaleLoaders(fetchLocaleLoaders(localeCatalogsBase));
 }
 
-// Re-point the core worker at the pinned copy, for the reason above. The
-// externalized-worker entry has already resolved it against this file's *own*
-// URL — its module body runs at import time, before anything here — so this
-// runs after and replaces that answer.
+// Re-point the core worker at the pinned copy, for the same reason as the
+// catalogs above. The externalized-worker entry has already resolved it against
+// this file's *own* URL — its module body runs at import time, before anything
+// here — so this runs after and replaces that answer.
 //
 // Skipped where pinning changed nothing (a self-hosted bundle, a Blob URL): the
 // entry's own resolution, including its fallbacks for bases nothing can be

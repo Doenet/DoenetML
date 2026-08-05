@@ -162,9 +162,9 @@ export function pinPackageVersion(
     }
     // Match the package name only where a CDN puts it: at the root of the path
     // (unpkg's `/<pkg>@<spec>/…`) or directly under jsDelivr's `/npm/` prefix.
-    // It must also be a whole run of segments — bounded by `/` ahead of it and,
-    // past the optional `@<spec>`, by `/` behind — which is what keeps
-    // `@doenet/standalone` from matching inside `@doenet/standalone-foo`.
+    // It must also be a whole run of segments — a `/` before it, and past the
+    // optional `@<spec>` a `/` after — which is what keeps `@doenet/standalone`
+    // from matching inside `@doenet/standalone-foo`.
     //
     // The anchor carries as much weight as the bounds. A self-hosted deployment
     // that serves `node_modules` through —

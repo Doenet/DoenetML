@@ -62,6 +62,7 @@
                 "src/**/*.tsx",
                 "tsconfig.json",
                 "vite.config.ts",
+                "package.json",
                 "dist/iframe-viewer/*",
                 "dist/iframe-editor/*"
             ],
