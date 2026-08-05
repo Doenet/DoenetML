@@ -1737,7 +1737,7 @@ describe("a regular polygon's side count", () => {
         // branch exists for: the adjectives stay against the head and the
         // sides follow them.
         expect(described("oc", polygon)).toBe(
-            "poligòn regular espès roge amb 5 costats",
+            "poligòn regular espès roge de 5 costats",
         );
         expect(described("ast", polygon)).toBe(
             "polígonu regular gruesu coloráu de 5 llaos",
@@ -1753,6 +1753,22 @@ describe("a regular polygon's side count", () => {
         );
         expect(described("rm", polygon)).toBe(
             "poligon regular grass cotschen da 5 lats",
+        );
+    });
+
+    // The tail lands directly in front of the fill pattern's own preposition,
+    // so a language whose two prepositions are the same word says it twice and
+    // the sides read as part of the pattern clause. Occitan is the one whose
+    // «amb» would have collided; the catalog says «de N costats» for that
+    // reason, and this is what holds it there.
+    it("keeps the side count from colliding with the fill clause", () => {
+        const filled = describeClosedShape(
+            forLocale("oc"),
+            { fillColorWord: "blue", fillStyleWord: "dots" },
+            { filled: true, noun: polygon, withNoun: true },
+        );
+        expect(filled).toBe(
+            "poligòn regular emplenat blau de 5 costats amb punts",
         );
     });
 });

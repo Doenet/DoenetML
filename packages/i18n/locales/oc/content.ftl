@@ -18,8 +18,13 @@
 #
 # `noun-regular-polygon` is the case the `$part` split exists for: the side
 # count follows the adjectives rather than sitting in front of the noun, so the
-# head is «poligòn regular» and the tail «amb N costats», and
-# `style-with-noun` places the two around the description.
+# head is «poligòn regular» and the tail «de N costats», and `style-with-noun`
+# places the two around the description. The tail says «de» and not «amb», even
+# though «amb» is the preposition that counts a shape's sides in isolation:
+# `style-filled-with-noun` puts the fill pattern's own «amb» right behind the
+# tail, and «amb 5 costats amb punts» reads as one clause listing two things.
+# «de N costats» is the construction Catalan and Spanish use in the same slot
+# and it cannot collide with the clause that follows it.
 
 
 ## Style vocabulary
@@ -130,7 +135,7 @@ noun =
 
 noun-regular-polygon =
     { $part ->
-        [tail] amb { $numSides } costats
+        [tail] de { $numSides } costats
        *[head] poligòn regular
     }
 
