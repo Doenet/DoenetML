@@ -69,12 +69,9 @@ const WORKER_BESIDE_BUNDLE = "./doenetml-worker/index.js";
  * it was built as — the base every sibling below is resolved against.
  *
  * Each of those siblings is fetched at run time as its own URL, so under a
- * floating specifier each is cached independently of this bundle and can be
- * left over from a different release than the one asking for it. A bundle
- * paired with the previous release's core worker never finishes the handshake,
- * and the viewer reports that it could not be started. `pinPackageVersion` has
- * the full account; pinning makes every sibling URL immutable and this
- * release's.
+ * floating specifier each caches independently of this bundle and can be left
+ * over from a different release than the one asking for it — see
+ * `pinPackageVersion` for what that costs and why an exact version fixes it.
  *
  * A URL not laid out like a CDN's — a self-hosted copy, or the Blob URL the
  * component tests and the iframe dev harness boot from — comes back unchanged,
@@ -150,9 +147,6 @@ if (pinnedBundleUrl !== import.meta.url) {
 // obtain their cores from the coordinator's shared worker pool.
 const coordinatedMode = detectCoordinatedMode();
 if (coordinatedMode?.sharedCores) {
-    // The pinned URL, not this file's own: the coordinator resolves the shared
-    // core worker beside whatever URL it is given, so it needs the same
-    // immutable base the dedicated-worker path above uses.
     installCoordinatorSharedCorePortProvider(pinnedBundleUrl);
 }
 

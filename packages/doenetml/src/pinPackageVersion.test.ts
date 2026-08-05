@@ -20,6 +20,22 @@ describe("pinPackageVersion", () => {
         );
     });
 
+    it("puts the assets resolved beside the bundle at that version too", () => {
+        // The point of the rewrite: the three siblings `@doenet/standalone`
+        // resolves against its own URL — the core worker, the message
+        // catalogs, and the base it hands the coordinator for the shared core
+        // worker — all land on immutable, same-release URLs.
+        const pinned = pin(
+            "https://cdn.jsdelivr.net/npm/@doenet/standalone@latest/doenet-standalone.js",
+        );
+        expect(new URL("./doenetml-worker/index.js", pinned).href).toBe(
+            "https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.23/doenetml-worker/index.js",
+        );
+        expect(new URL("./locales/", pinned).href).toBe(
+            "https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.23/locales/",
+        );
+    });
+
     it("rewrites a partial version, which is a range the CDN resolves", () => {
         expect(
             pin(
