@@ -873,6 +873,217 @@ describe("Swahili noun classes", () => {
     });
 });
 
+describe("Ojibwe animacy", () => {
+    const oj: Translator = createTranslatorFromLocaleData(
+        { locale: "oj", resources: { oj: readCatalog("oj", "content") } },
+        "oj",
+    );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    // The third mechanism `$gender` has been asked to carry, after a gender and
+    // a noun class: Ojibwe's is **animate against inanimate**, and the words
+    // that describe a thing are verbs that agree with it. So the stems are the
+    // same throughout — gipag- "thick", misk- "red" — and only the final
+    // syllable moves, `-zi` for an animate subject and `-aa` for an inanimate
+    // one.
+    //
+    // Which shapes are which is a fact about the Ojibwe words rather than about
+    // the shapes, and `locales/oj`'s own `noun-gender` is the guess this pins.
+    const byAnimacy: [string, NounKey, string][] = [
+        ["animate", "circle", "gipagizi bakwezhigizi miskozi waawiyeyaa"],
+        ["inanimate", "line", "gipagaa bakwezhigaa miskwaa jiigaatig"],
+        ["animate", "point", "gipagizi bakwezhigizi miskozi mazina'igaans"],
+        ["inanimate", "square", "gipagaa bakwezhigaa miskwaa niiyoowiikwaan"],
+    ];
+
+    for (const [animacy, key, expected] of byAnimacy) {
+        it(`agrees with ${animacy} «${key}»`, () => {
+            expect(
+                describeStrokedShape(oj, words, {
+                    noun: { key },
+                    withNoun: true,
+                }),
+            ).toBe(expected);
+        });
+    }
+
+    // The rows above would each still pass if `$gender` were ignored and every
+    // shape read alike, since none of them looks at another. This is the case
+    // that would not: with the noun withheld, the two animacies are two
+    // different strings, and there is no noun left to carry the difference.
+    it("gives each animacy a different verb phrase", () => {
+        const adjectives = [
+            ...new Set(
+                byAnimacy.map(([, key]) =>
+                    describeStrokedShape(oj, words, {
+                        noun: { key },
+                        withNoun: false,
+                    }),
+                ),
+            ),
+        ];
+        expect(adjectives).toEqual([
+            "gipagizi bakwezhigizi miskozi",
+            "gipagaa bakwezhigaa miskwaa",
+        ]);
+    });
+
+    // One sentence carrying both animacies, which is the Swahili «mpaka» case
+    // in a two-token system: the *filled* verb agrees with the shape — animate
+    // «mooshkinezi» for the circle — while the border's own adjectives agree
+    // with «jiigaatigwaan», which `noun-gender` answers `inan` for whatever the
+    // shape is. Swapping the shape moves only the first of them.
+    it("agrees the fill with the shape and the border with «jiigaatigwaan»", () => {
+        const filled = {
+            lineWidthWord: "thick",
+            lineStyleWord: "dashed",
+            colorWord: "black",
+            fillColorWord: "blue",
+            fillStyleWord: "",
+        };
+        const shape = (key: NounKey) =>
+            describeClosedShape(oj, filled, {
+                filled: true,
+                noun: { key },
+                withNoun: true,
+            });
+        expect(shape("circle")).toBe(
+            "mooshkinezi ozhaawashko-gizhigizi waawiyeyaa gaye gipagaa bakwezhigaa makadewaa jiigaatigwaan",
+        );
+        expect(shape("square")).toBe(
+            "mooshkinebii ozhaawashko-gizhigaa niiyoowiikwaan gaye gipagaa bakwezhigaa makadewaa jiigaatigwaan",
+        );
+    });
+});
+
+describe("the Indigenous Americas batch's word order", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    /**
+     * Six of the eight put their adjectives **in front of** the noun, which is
+     * English's order — and after six Romance catalogs in the previous batch
+     * that all had to invert it, that is the useful thing to pin. The
+     * `$part` split collapses with it: a side count is a prenominal modifier in
+     * all six, so the head carries it and `noun-regular-polygon`'s `[tail]`
+     * branch renders empty.
+     *
+     * Asserted as an **identity** rather than as a difference, the way
+     * `locales/se`'s attributive form is: what this catches is someone
+     * "correcting" one of these catalogs by moving its adjectives behind the
+     * noun on the assumption that a non-European language must want them there.
+     */
+    const prenominal: [string, string, string][] = [
+        ["qu", "rakhu t'aqasqa puka siq'i", "rakhu t'aqasqa puka"],
+        ["ay", "lanqu t'aqata chupika siqi", "lanqu t'aqata chupika"],
+        [
+            "nah",
+            "tomāhuac tlacotōctic chīchīltic tlīlli",
+            "tomāhuac tlacotōctic chīchīltic",
+        ],
+        ["quc", "pim qʼatom kyaq juchʼ", "pim qʼatom kyaq"],
+        ["arn", "motrin katrüntuku kelü wirin", "motrin katrüntuku kelü"],
+        [
+            "oj",
+            "gipagaa bakwezhigaa miskwaa jiigaatig",
+            "gipagaa bakwezhigaa miskwaa",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun is appended to the adjectives rather than woven into
+            // them, which is what makes this English's shape and not merely
+            // English's sequence.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    it("keeps the side count in the head for all six, leaving no tail", () => {
+        for (const [locale] of prenominal) {
+            const t = forLocale(locale);
+            const description = describeStrokedShape(t, words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            });
+            // The count is present, and it is inside the noun rather than
+            // trailing after the adjectives.
+            expect(description).toContain("5");
+            expect(description.trimEnd()).toBe(description);
+            expect(description).not.toContain("  ");
+        }
+    });
+
+    /**
+     * The two that do invert it, and they are the ones that reach
+     * `style-with-noun`'s `[noun-tail]` branch — which the previous batch
+     * exercised only from Romance. Haitian Creole gets there with **no
+     * agreement to protect**: it has no gender, no case and no adjective
+     * inflection at all, and it splits the noun anyway, purely so the side
+     * count does not sit between the noun and the words describing it. That is
+     * what shows the `$part` argument to be about word order and not only about
+     * agreement.
+     */
+    it("puts Haitian Creole's adjectives after the noun and its side count last", () => {
+        const ht = forLocale("ht");
+        expect(
+            describeStrokedShape(ht, words, {
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("liy epè an tirè wouj");
+        expect(
+            describeStrokedShape(ht, words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            }),
+        ).toBe("poligòn regilye epè an tirè wouj ki gen 5 kote");
+    });
+
+    it("does the same for Guarani", () => {
+        const gn = forLocale("gn");
+        expect(
+            describeStrokedShape(gn, words, {
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("tairũ anambusu kytĩmby pytã");
+        expect(
+            describeStrokedShape(gn, words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            }),
+        ).toBe("heta hakua joja anambusu kytĩmby pytã 5 hakuáva");
+    });
+});
+
 describe("a partly translated locale", () => {
     // A translation is allowed to lag: every key it does not define falls
     // through to English. The split noun is the case where that matters, since
@@ -968,6 +1179,29 @@ describe("a phrase rendered in two positions", () => {
     const bs = forLocale("bs");
     const oc = forLocale("oc");
     const se = forLocale("se");
+
+    /**
+     * The whole Indigenous Americas batch, and every one of the eight is on the
+     * identity side: not one selects on `$role`. The reason is the same in all
+     * eight and it is not that they lack morphology — Quechua and Aymara have a
+     * dozen case suffixes each and Kʼicheʼ has an ergative prefix. It is that
+     * every one of them marks a clause position on something *other* than the
+     * describing word: on a postposition that is a separate word («mew»,
+     * «ndive», «īca», «rukʼ»), or on the head noun the phrase attaches to
+     * («manyayuq», «jarphini»), or on the verb. So a `$role` fork would write
+     * one string twice, and the assertions below are what would catch someone
+     * adding one.
+     */
+    const americas = {
+        ht: forLocale("ht"),
+        qu: forLocale("qu"),
+        gn: forLocale("gn"),
+        ay: forLocale("ay"),
+        nah: forLocale("nah"),
+        quc: forLocale("quc"),
+        arn: forLocale("arn"),
+        oj: forLocale("oj"),
+    } as const;
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
     const shapeWords = { ...borderWords, fillColorWord: "blue" };
@@ -1394,6 +1628,29 @@ describe("a phrase rendered in two positions", () => {
             sentence: "rukses fiskes duogážiin",
         });
     });
+
+    // Every one of the eight Americas catalogs, asserted as an identity: the
+    // adjective phrase the border reports on its own is exactly the one the
+    // clause embeds. Adding a `$role` fork to any of them would write one string
+    // twice, and this is what would say so.
+    //
+    // Ojibwe is in here for a reason worth keeping straight: it *does* select on
+    // `$gender`, and the two adjectives in its embedded sentence are inanimate
+    // because they describe «jiigaatigwaan» rather than the animate circle. So
+    // the substring holds even though two animacies are in play — which is the
+    // same shape Swahili's «mpaka» case has, and why neither language needs
+    // `$role`.
+    it.each(Object.entries(americas))(
+        "leaves %s's adjectives unchanged between the two positions",
+        (_locale, t) => {
+            const border = bothBorderForms(t);
+            expect(border.embedded).toContain(border.standalone);
+
+            const text = bothTextForms(t);
+            expect(text.sentence).toContain(text.textColor);
+            expect(text.sentence).toContain(text.backgroundColor);
+        },
+    );
 
     // The guard that keeps this from rotting: if a catalog ever collapses the
     // two positions again, these differ where they should not.

@@ -67,29 +67,30 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `af`, `ak`, `am`, `ar`,
-`as`, `ast`, `az`, `be`, `bg`, `bm`, `bn`, `br`, `bs`, `ca`, `ceb`, `co`, `cs`,
-`cy`, `da`, `de`, `ee`, `el`, `es`, `et`, `eu`, `fa`, `fi`, `fil`, `fo`, `fr`,
-`fy`, `ga`, `gd`, `gl`, `gu`, `ha`, `haw`, `he`, `hi`, `hnj`, `hr`, `hu`, `hy`,
-`id`, `ig`, `is`, `it`, `ja`, `jv`, `ka`, `kk`, `km`, `kn`, `ko`, `ky`, `lb`,
-`lg`, `ln`, `lo`, `lt`, `lv`, `mg`, `mi`, `mk`, `ml`, `mn`, `mr`, `ms`, `mt`,
-`my`, `nb`, `nds`, `ne`, `nl`, `ny`, `oc`, `om`, `or`, `pa`, `pl`, `ps`, `pt`,
-`rm`, `ro`, `ru`, `rw`, `sc`, `scn`, `sd`, `se`, `si`, `sk`, `sl`, `sm`, `sn`,
-`so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`, `ta`, `te`, `tg`, `th`, `ti`, `tk`,
-`tn`, `tr`, `tt`, `ug`, `uk`, `ur`, `uz`, `vi`, `wo`, `xh`, `yi`, `yo`,
-`zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which
-each file's own header says at the top, and which is what #1521's translation
-platform is for. None has been read by a speaker. Correcting one needs no
-permission and no coordination: a wrong string is just wrong, and the English
-is one key away.
+`arn`, `as`, `ast`, `ay`, `az`, `be`, `bg`, `bm`, `bn`, `br`, `bs`, `ca`, `ceb`,
+`co`, `cs`, `cy`, `da`, `de`, `ee`, `el`, `es`, `et`, `eu`, `fa`, `fi`, `fil`,
+`fo`, `fr`, `fy`, `ga`, `gd`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hnj`,
+`hr`, `ht`, `hu`, `hy`, `id`, `ig`, `is`, `it`, `ja`, `jv`, `ka`, `kk`, `km`,
+`kn`, `ko`, `ky`, `lb`, `lg`, `ln`, `lo`, `lt`, `lv`, `mg`, `mi`, `mk`, `ml`,
+`mn`, `mr`, `ms`, `mt`, `my`, `nah`, `nb`, `nds`, `ne`, `nl`, `ny`, `oc`, `oj`,
+`om`, `or`, `pa`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `ro`, `ru`, `rw`, `sc`,
+`scn`, `sd`, `se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`,
+`sv`, `sw`, `ta`, `te`, `tg`, `th`, `ti`, `tk`, `tn`, `tr`, `tt`, `ug`, `uk`,
+`ur`, `uz`, `vi`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an
+**unreviewed machine-generated seed**, which each file's own header says at the
+top, and which is what #1521's translation platform is for. None has been read by
+a speaker. Correcting one needs no permission and no coordination: a wrong string
+is just wrong, and the English is one key away.
 
-Fifty of them are deliberately partial, all in the same place: Somali,
+Fifty-eight of them are deliberately partial, all in the same place: Somali,
 Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
 Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
 Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano, Malagasy, Māori,
 Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona, Southern Sotho,
 Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low German,
-Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern Sami and
-Yiddish leave `element-name` and `element-anion-name` out, so those 130 keys
+Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern Sami,
+Yiddish, Haitian Creole, Quechua, Guarani, Aymara, Nahuatl, Kʼicheʼ, Mapudungun
+and Ojibwe leave `element-name` and `element-anion-name` out, so those 130 keys
 fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
@@ -156,6 +157,34 @@ schools teach chemistry in it out of textbooks that print the whole table. The
 list is close to `locales/hr`'s without being a copy — «kalaj» against
 Croatian's «kositar», «hlor» against «klor», and, in the two messages at the
 foot of the file, «hemijski» for «kemijski» and «jonski» for «ionski».
+
+**All eight of the Indigenous Americas batch are partial, and it is the first
+batch with no complete catalog in it at all.** That is not eight languages
+failing a test; it is one fact about eight education ministries, and the split
+inside it is worth keeping because only part of it is about the languages.
+
+Seven of the eight are the colonial-medium case, told in three school systems.
+Quechua, Aymara, Guarani, Nahuatl, Kʼicheʼ and Mapudungun are taught out of
+Spanish textbooks once the periodic table appears — in Peru, Bolivia, Paraguay,
+Mexico, Guatemala, Chile and Argentina — and Haitian Creole out of French ones.
+Every one of those seven reaches real classrooms, and Guarani reaches further
+than any other language in the batch, being co-official in Paraguay; but
+bilingual education in all seven is the primary grades and the language
+classroom, and secondary chemistry is not. So in all seven the fallback *is* the
+curriculum, which is the same sentence the two sub-Saharan batches earned and
+for the same reason.
+
+Ojibwe is the eighth and a different case: its schooling is immersion and
+language revitalization, and it stops below the grades where the table is
+taught. It is also the one where coining a list would be hardest rather than
+merely unreviewed — a Nahuatl or Quechua coinage is a name, and an Ojibwe one is
+a whole descriptive verb, so 118 of them would be 118 sentences invented by a
+machine. That is the Samoan case with an extra reason on top of it.
+
+None of the eight is the Kannada case of having two lists and having to pick,
+and none is the Khmer case of having the names but no convention to reproduce.
+They simply do not have the table, and the catalogs say so in their own headers
+rather than leaving a reader to infer it from a gap.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -341,6 +370,57 @@ already read that way, and so do the several whose endonym genuinely *is* the
 English word — Afrikaans, Hausa, Igbo, Wolof. Nothing here hand-writes around
 either case, which is why the rule that makes `ny` read "Nyanja" is the rule
 that makes this read "Corsican".
+
+The Indigenous Americas batch is the first to seed codes that stand for **more
+than one individual language**, and doing so uncovered a real fallback bug rather
+than merely needing a note.
+
+`qu`, `ay`, `gn` and `oj` are ISO 639-3 macrolanguages and `nah` is an ISO 639-3
+*collection* code: each covers a family of individual languages with codes of
+their own. **CLDR's likely-subtags folds exactly one member of a macrolanguage to
+it and leaves the rest unresolvable.** So `quz` reached `qu` on ICU data alone
+and `quh` did not; `ojg` reached `oj` and `ojb` did not; `gug` reached `gn` and
+`gui` did not. A Bolivian Quechua reader arriving under `quh` was getting English
+with a `qu` catalog sitting on disk, and nothing said why.
+
+`MACROLANGUAGE_MEMBERS` in `negotiate.ts` closes that. It keys on **published
+membership** — ISO 639-3's for the four macrolanguages, ISO 639-5's grouping for
+`nah` — which is what makes it checkable rather than a matter of taste, and what
+distinguishes it from the `nn` and `fat` cases above: neither of those is a
+member of `nb` or `ak`, and both are deliberately left to miss. The member CLDR
+already folds is listed anyway, so each list reads as the whole of a group rather
+than the leftovers of one, and so a change in ICU data cannot silently drop a
+code out of coverage. `negotiate.test.ts` asserts both halves.
+
+Algonquin is the nearest miss and the one worth naming: it is often called a
+dialect of Ojibwe and is mutually intelligible with the Ontario varieties, but
+ISO 639-3 gives it `alq` outside the `oj` macrolanguage, so it falls to English
+like Fante does. That is the rule doing its job rather than a gap in the list —
+the moment membership becomes a judgement about how close two varieties sound,
+nothing in the map is checkable any more. `negotiate.test.ts` pins the exclusion
+too.
+
+Serving a related variety is a real compromise, and each of these catalogs says
+in its own header which written standard it is: Southern Quechua in the
+trivocalic orthography, Paraguayan Guarani in the *jopara* register, Central
+Nahuatl in the SEP/INALI orthography, Ojibwe in the Fiero double-vowel
+orthography, Mapudungun in the Alfabeto Mapuche Unificado — which is a choice
+among three live orthographies rather than a neutral default, and its header says
+so. A reader who wants their own supplies it as `localeResources`. What the map
+buys is that they get a language they can read instead of English, which is the
+same trade region-stripping already makes for `es-MX`.
+
+`oj` adds a script asymmetry of the kind `bs` and `pa` already have: Ojibwe is
+written both in the Latin orthography this catalog uses and in syllabics, so a
+reader arriving under `oj-Cans` reaches it and gets Latin.
+
+`nah` is the first locale in the roster that CLDR has **no name for in either
+language**. `supportedLocales.ts` gets the tag back from `Intl.DisplayNames` for
+both the English name and the endonym, so `<document lang>`'s autocomplete offers
+"nah" and nothing else. That is the documented fallback for a tag ICU does not
+know — see the note on `localeNames` in `catalogUtils.ts` — and nothing here
+hand-writes around it, which is the same rule that leaves `co` reading
+"Corsican" twice. It is a gap in CLDR, and until it closes the label is the tag.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.

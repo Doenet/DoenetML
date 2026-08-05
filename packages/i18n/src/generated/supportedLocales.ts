@@ -11,8 +11,10 @@ export type SupportedLocale =
     | "ak"
     | "am"
     | "ar"
+    | "arn"
     | "as"
     | "ast"
+    | "ay"
     | "az"
     | "be"
     | "bg"
@@ -41,6 +43,7 @@ export type SupportedLocale =
     | "ga"
     | "gd"
     | "gl"
+    | "gn"
     | "gu"
     | "ha"
     | "haw"
@@ -48,6 +51,7 @@ export type SupportedLocale =
     | "hi"
     | "hnj"
     | "hr"
+    | "ht"
     | "hu"
     | "hy"
     | "id"
@@ -77,18 +81,22 @@ export type SupportedLocale =
     | "ms"
     | "mt"
     | "my"
+    | "nah"
     | "nb"
     | "nds"
     | "ne"
     | "nl"
     | "ny"
     | "oc"
+    | "oj"
     | "om"
     | "or"
     | "pa"
     | "pl"
     | "ps"
     | "pt"
+    | "qu"
+    | "quc"
     | "rm"
     | "ro"
     | "ru"
@@ -188,6 +196,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Arabic (العربية)",
     },
     {
+        locale: "arn",
+        englishName: "Mapuche",
+        endonym: "Mapuche",
+        label: "Mapuche",
+    },
+    {
         locale: "as",
         englishName: "Assamese",
         endonym: "অসমীয়া",
@@ -199,6 +213,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "asturianu",
         label: "Asturian (asturianu)",
     },
+    { locale: "ay", englishName: "Aymara", endonym: "Aymara", label: "Aymara" },
     {
         locale: "az",
         englishName: "Azerbaijani",
@@ -368,6 +383,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Galician (galego)",
     },
     {
+        locale: "gn",
+        englishName: "Guarani",
+        endonym: "Guarani",
+        label: "Guarani",
+    },
+    {
         locale: "gu",
         englishName: "Gujarati",
         endonym: "ગુજરાતી",
@@ -403,6 +424,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Croatian",
         endonym: "hrvatski",
         label: "Croatian (hrvatski)",
+    },
+    {
+        locale: "ht",
+        englishName: "Haitian Creole",
+        endonym: "Haitian Creole",
+        label: "Haitian Creole",
     },
     {
         locale: "hu",
@@ -563,6 +590,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "မြန်မာ",
         label: "Burmese (မြန်မာ)",
     },
+    { locale: "nah", englishName: "nah", endonym: "nah", label: "nah" },
     {
         locale: "nb",
         englishName: "Norwegian Bokmål",
@@ -594,6 +622,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "occitan",
         label: "Occitan (occitan)",
     },
+    { locale: "oj", englishName: "Ojibwa", endonym: "Ojibwa", label: "Ojibwa" },
     {
         locale: "om",
         englishName: "Oromo",
@@ -629,6 +658,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Portuguese",
         endonym: "português",
         label: "Portuguese (português)",
+    },
+    {
+        locale: "qu",
+        englishName: "Quechua",
+        endonym: "Runasimi",
+        label: "Quechua (Runasimi)",
+    },
+    {
+        locale: "quc",
+        englishName: "Kʼicheʼ",
+        endonym: "Kʼicheʼ",
+        label: "Kʼicheʼ",
     },
     {
         locale: "rm",
