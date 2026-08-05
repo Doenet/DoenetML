@@ -626,8 +626,10 @@ export class RustResolverAdapter {
         const lookupParts = pathParts.slice(0, -1);
         if (lookupParts.length === 0) return null;
 
-        // Determine origin: the Rust index of the enclosing element.
-        const originIndex = this._getOriginIndex(offset);
+        // Determine origin the same way bare-reference classification does:
+        // from a child of the enclosing element, so the resolver's
+        // parent-scope walk probes the enclosing element's own scope.
+        const originIndex = this._referenceOriginIndex(offset);
         if (originIndex == null) return null;
 
         const effectivePathPartHasIndex =
@@ -864,20 +866,6 @@ export class RustResolverAdapter {
             // Resolution error (NoReferent, NonUniqueReferent, etc.)
             return null;
         }
-    }
-
-    /**
-     * Get the Rust flat index to use as the origin for resolve_path.
-     * Uses the nearest enclosing element of the given offset, falling
-     * back to a mapped top-level element when the cursor is at root level.
-     */
-    _getOriginIndex(offset: number): number | null {
-        const containingElement = this._sourceObj.elementAtOffset(offset);
-        if (containingElement) {
-            const idx = this._dastElementToRustIndex.get(containingElement);
-            if (idx != null) return idx;
-        }
-        return this._getRootOriginIndex();
     }
 
     /**
