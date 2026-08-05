@@ -60,7 +60,8 @@ export const version: string = STANDALONE_VERSION;
 // reads a literal `new URL("./x", import.meta.url)` as a build-time asset
 // reference and warns that the target does not exist. It does not — the build
 // copies these in afterwards. The core worker is co-served the same way, hence
-// the third path.
+// the third path — which has to stay in step with the one `@doenet/doenetml`'s
+// externalized-worker entry resolves, since that is the copy this one replaces.
 const CATALOGS_BESIDE_BUNDLE = "./locales/";
 const CATALOGS_AT_ORIGIN = "/locales/";
 const WORKER_BESIDE_BUNDLE = "./doenetml-worker/index.js";

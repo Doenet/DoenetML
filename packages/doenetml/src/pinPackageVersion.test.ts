@@ -48,8 +48,12 @@ describe("pinPackageVersion", () => {
 
     it("normalizes the `v`-prefixed specifier the iframe wrapper builds", () => {
         // `@doenet/doenetml-iframe` prefixes an autodetected version with "v"
-        // (`detectVersionFromDoenetML` -> `"v" + version`), which the CDN reads
-        // as a range rather than an exact version — so it caches like one.
+        // (`detectVersionFromDoenetML` -> `"v" + version`). jsDelivr resolves
+        // that to the same immutable release as the bare version, so there is
+        // no skew to correct here — but it is a *different* URL, and folding
+        // the two together is what lets a page mixing autodetected and
+        // default-version viewers of one release fetch the ~15 MB worker once
+        // rather than twice.
         expect(
             pin(
                 "https://cdn.jsdelivr.net/npm/@doenet/standalone@v0.7.23/doenet-standalone.js",
@@ -120,9 +124,11 @@ describe("pinPackageVersion", () => {
             // a URL to its exact version, so a bundle actually loaded from
             // unpkg has an exact `import.meta.url` before this ever runs.)
             "https://example.org/@doenet/standalone/doenet-standalone.js",
-            // A vendored copy of one specific release, mirroring the CDN layout
-            // under a prefix. It is already exact — and exact at a version this
-            // bundle need not be.
+            // A vendored copy mirroring the CDN layout under a prefix of the
+            // host's own. The `@0.7.20` is deliberately not this bundle's
+            // version: only the path root (and jsDelivr's `/npm/`) is read as
+            // a version specifier, so the segment survives as the host wrote
+            // it rather than being rewritten to the bundle's release.
             "https://example.org/vendor/@doenet/standalone@0.7.20/doenet-standalone.js",
         ]) {
             expect(pin(url)).toBe(url);

@@ -108,11 +108,12 @@ function getWorkerUrl() {
  *
  * `@doenet/standalone` is no longer one file: the core worker is served at
  * `doenetml-worker/index.js` beside the bundle (#1465) and the message catalogs
- * under `locales/` (#1656), each fetched at run time as its own URL. Under a
- * floating specifier — `@latest`, or a partial version such as `@0.7`, which
- * jsDelivr resolves as an npm range — those URLs cache independently of the
- * bundle's: jsDelivr serves `max-age=604800` to the browser and `s-maxage=43200`
- * to its own edge, and a release purges only the edge.
+ * under `locales/` (#1603, wired to the viewer in #1656), each fetched at run
+ * time as its own URL. Under a floating specifier — `@latest`, or a partial
+ * version such as `@0.7`, which jsDelivr resolves as an npm range — those URLs
+ * cache independently of the bundle's: jsDelivr serves `max-age=604800` to the
+ * browser and `s-maxage=43200` to its own edge, and a release purges only the
+ * edge.
  *
  * So the pieces can skew. A browser that fetched the bundle after a release and
  * the worker before it holds a new bundle paired with the previous release's
@@ -122,10 +123,11 @@ function getWorkerUrl() {
  * no purge can reach. It is not hypothetical: 0.7.22 shipped a changed core
  * worker under a tag whose worker URL that release did not purge.
  *
- * Pinning closes the whole class. An exact version is immutable on jsDelivr and
- * unpkg alike (`max-age=31536000, immutable`), so a sibling resolved beside a
- * pinned bundle is necessarily that bundle's release, whatever any cache holds
- * and whether or not the purge ran.
+ * Pinning closes the whole class. An exact-version URL names one immutable npm
+ * release, so a sibling resolved beside a pinned bundle is necessarily that
+ * bundle's own release, whatever any cache holds and whether or not the purge
+ * ran — and both CDNs say as much, serving it `max-age=31536000` (jsDelivr adds
+ * `immutable`) rather than a week.
  *
  * (It lives in this module, rather than one of its own, so that Rollup keeps
  * naming `@doenet/doenetml`'s big shared chunk `doenetml-<hash>.js` — the chunk
