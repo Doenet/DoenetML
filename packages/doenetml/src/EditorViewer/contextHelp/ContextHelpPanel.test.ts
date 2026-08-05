@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { resolveCssVariables, valueListLabel } from "./ContextHelpPanel";
+import {
+    completionShortcutLabel,
+    resolveCssVariables,
+    valueListLabel,
+} from "./ContextHelpPanel";
 
 describe("valueListLabel", () => {
     // A translator standing in for a catalog that has none of these keys, so
@@ -128,5 +132,18 @@ describe("resolveCssVariables", () => {
         expect(resolveCssVariables("var(--lightGreen)")).toBe(
             "var(--lightGreen)",
         );
+    });
+});
+
+describe("completionShortcutLabel", () => {
+    it("names Ctrl+Space on non-Mac platforms", () => {
+        expect(completionShortcutLabel(false)).toBe("Ctrl+Space");
+    });
+
+    it("names Option+I on a Mac (#1537)", () => {
+        // CodeMirror binds a literal Ctrl-Space everywhere, but macOS eats
+        // Control+Space for input-source switching, so the panel must point
+        // at the mac-only alternate that actually reaches the editor.
+        expect(completionShortcutLabel(true)).toBe("Option+I");
     });
 });
