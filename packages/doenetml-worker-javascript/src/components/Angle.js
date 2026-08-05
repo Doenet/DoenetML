@@ -1,6 +1,6 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { roundForDisplay } from "../utils/math";
+import { roundForDisplay, isNumericConstant } from "../utils/math";
 import {
     buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
@@ -596,7 +596,10 @@ export default class Angle extends GraphicalComponent {
                         dependencyValues.points[i][0].evaluate_to_constant(),
                         dependencyValues.points[i][1].evaluate_to_constant(),
                     ]);
-                    if (Number.isNaN(ps[i][0]) || Number.isNaN(ps[i][1])) {
+                    if (
+                        !isNumericConstant(ps[i][0]) ||
+                        !isNumericConstant(ps[i][1])
+                    ) {
                         foundNaN = true;
                     }
                 }

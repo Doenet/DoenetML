@@ -42,7 +42,7 @@ is the text that needs updating. We confirmed all three of your points against `
 `tear_down` call site, `MAX_PARSE_DEPTH` enforced only in `shared_grammar.rs`, `try_from_js`
 uncapped.
 
-## Still open — three items
+## Still open — seven items
 
 **1. [WASM32 stack safety](upstream_requests/03-wasm32-stack-safety.md)** — unchanged in severity, and
 we can add to it. Your two vectors, plus a third:
@@ -79,38 +79,91 @@ severity for us — one test, authored content — but it is the same theme as t
 found in the rounding fix, where `round_numbers_to_decimals(-0.001, 2)` now returns `+0` where legacy
 returned `-0`.
 
+**4. [Three compat methods accept an options object and ignore it](upstream_requests/12-compat-methods-drop-their-options.md)**
+— new this round, ~50 tests, and the largest thing left. `equalsViaSyntax`, `match` and
+`evaluate_numbers` take options that never reach the Rust core. They do not throw and do not warn;
+they answer confidently with the defaults.
+
+```js
+me.fromText("/a").equals(me.fromText("/a"), { allow_blanks: true });          // true   ✓
+me.fromText("/a").equalsViaSyntax(me.fromText("/a"), { allow_blanks: true }); // false  ✗
+me.fromText("3.2").equalsViaSyntax(me.fromText("3.2001"), { allowed_error_in_numbers: 0.001 }); // false  ✗
+```
+
+`match(pattern, _options)` has the underscore in your source: every symbol in the pattern is a
+placeholder regardless of `variables`, and `allow_permutations` is inert. `evaluate_numbers` reads
+only `skip_ordering`, so `evaluate_functions: true` leaves `sin(0)` unevaluated and our
+`simplify="full"` comparison never converges.
+
+The general ask matters more than the three patches: **where an option cannot be honoured, throw.**
+You already do exactly this for the legacy no-backing methods, "so calls fail loudly, not as
+`undefined is not a function` surprises" — this is the same instinct one level down. Silent
+acceptance cost us several sessions and produced wrong equality answers, which for us are wrong
+grades.
+
+**5. [`evaluate_to_constant` reports NaN as `None`](upstream_requests/14-evaluate-to-constant-reports-nan-as-none.md)**
+— 32 tests, measured against an unchanged pin. This is item 2 above seen at a different exit, and it
+stands whichever way item 2 goes: `evaluate_to_constant`'s contract is a JS number, so a tag has
+nowhere to go there.
+
+Your own argument for returning `±∞` applies verbatim — `None` reads downstream as `0`, because
+`Math.abs(null)` is `0`. A horizontal line's x-intercept is genuinely undefined and we render it at
+the origin. `0/0` *evaluates*; it is not undecided in the way a free variable or a `＿` hole is, and
+we are not asking you to weaken `has_undefined_leaf`.
+
+**6. [`simplify` leaves unit arithmetic and mixed-container vector sums unfolded](upstream_requests/13-simplify-does-not-fold-units-or-mixed-vectors.md)**
+— 9 tests. `$3+$2` stays `["+",["unit","$",2],["unit","$",3]]` while `equals` answers it correctly,
+so the semantics are already in there. `⟨a,b⟩ + (c,d)` does not fold although `(a,b)+(c,d)` does —
+`altvector` and `tuple` are the same object in our authoring.
+
+**7. [A bare `_` parses as a subscript operator instead of a blank](upstream_requests/15-bare-underscore-parses-as-subscript.md)**
+— 6 tests. `me.fromText("_").tree` is `["_","＿","＿"]`; we expect `"＿"`. `x_1`, `a_` and `_b` are all
+right — only the both-operands-blank case. `_` is our authoring syntax for a free slot in
+`excludeCombinations="(2 2 _)"`.
+
 ## Where we are
 
-`packages/doenetml-worker-javascript`: **265 failures of 3,436 executed — 92.3% passing.**
+`packages/doenetml-worker-javascript`: **250 failures of 3,436 executed — 92.7% passing**, from 448
+when we started.
 
-Five pins in a row of progress with no regressions: `cdc5343` → `02293bf` fixed 36 tests,
-`02293bf` → `08bd4dc` fixed 10, `08bd4dc` → `970c1c3` fixed 59, `970c1c3` → `7a18c9c` fixed 14. None
-broke anything. `02293bf` also let us delete the last two workarounds in our seam — with **no change
-in results either way**, which is how we verify an upstream fix actually covers our usage.
-`packages/math/src/engine-rust.ts` is now a straight re-export.
+| Pin | Failures | Fixed | Broken |
+| --- | ---: | ---: | ---: |
+| `cdc5343` | 448 | — | — |
+| `02293bf` | 412 | 36 | 0 |
+| `08bd4dc` | 403 | 10 | 0 |
+| `970c1c3` | 343 | 59 | 0 |
+| `7a18c9c` + our fixes | **250** | **93** | **0** |
 
-On top of that, one fix on our side cleared **65 more, breaking none**: the coordinate/array cluster
-and most of the `unexpected value null` cluster turned out to be a single bug of ours, and not one we
-need anything from you for. Our inverse definitions encode "this vector component is deliberately
-unset" as a **hole** in the AST array. The old engine stored that array by reference, so the hole
-survived `fromAst(...).tree`; yours round-trips through JSON, where a hole becomes `null` and
-`from_ast` rejects it — correctly. The throw aborted the whole update transaction, so dragging a point
-reported nothing and changed nothing. We replaced the hole with an explicit sentinel. Flagging it only
-because it is the cleanest example of a hazard worth warning the next migrator about: a representation
-whose meaning lived in JS reference semantics, silently becoming by-value.
+No pin has ever broken anything. `02293bf` also let us delete the last two workarounds in our seam —
+with **no change in results either way**, which is how we verify an upstream fix actually covers our
+usage. `packages/math/src/engine-rust.ts` is now a straight re-export.
 
-What is left is ours except for items 2 and 3 above: 16 unattributed `matchesPattern` cases, 7
-residual `unexpected value null` call sites, 12 tagged-value/signed-zero failures, and 230 not yet
-re-triaged since the coordinate fix landed. The per-cluster ledger is in
-[`upstream_requests/README.md`](upstream_requests/README.md).
+The last row is *combined*, and we would rather say so than claim it: the `7a18c9c` bump and our own
+sparse-AST fix landed in the same commit, so that data cannot separate them. Measured in isolation
+against an unchanged pin, our two fixes were **34 fixed / 0 broken** (sparse AST, across
+`vector`/`ray`/`point`) and **14 fixed / 0 broken** (`Number.isNaN(null)`, suite-wide).
 
-One test of ours went red on the bump, and it is worth reading because it is not a regression. Our
-`solveequations` text assertion compared a numerically-found root with the ideal literal `-4.52365`,
-which is a display-rounding tie at 5 significant digits. The literal is stored as
-`-4.52364999999999995` and rounds to `-4.5236`; the root the solver finds sits a hair above the tie
-and rounds to `-4.5237`. The old code computed `v · 10⁴` as *exactly* `-45236.5` and rounded both of
-them up, so two errors cancelled and the test passed. Correct rounding pulled them apart. Fixed on our
-side by asserting the rendered text explicitly.
+Two bugs of ours are worth naming, because both were *caused* by the migration rather than merely
+revealed by it — and neither is your fault:
+
+- **Sparse AST arrays.** Our inverse definitions encoded "leave this vector component alone" as a
+  *hole* in the AST array, detected with `tree.includes()`. The old engine stored the array by
+  reference so the hole survived `fromAst(...).tree`; yours round-trips through JSON, where a hole
+  becomes `null` and `from_ast` rightly rejects it. The throw aborted the entire update transaction,
+  so dragging a point changed nothing and reported nothing. We replaced the hole with an explicit
+  sentinel.
+- **`Number.isNaN(null)` is `false`.** Nine places in our code tested an `evaluate_to_constant()`
+  result for `NaN` alone. `null` sails straight through and then coerces to `0`: `＿ < 1` became
+  `null < 1`, which is `true`, so a blank answer scored full credit, and `<sort>` compared
+  `null - null` for every pair and returned its input order. This is item 5 above seen from our side.
+
+Both are the same shape as the hazard worth warning any other migrator about: a representation whose
+meaning lived in JavaScript reference or type semantics, silently becoming something else.
+
+Of the 250 left, roughly 95 are items 4–7, 11 are item 2, ~18 are printing differences we have not
+yet triaged one by one, ~10 are variant selection in `select*`/`conditionalContent`, and 2 are
+`doenetml-worker-rust` asserts whose panic text our headless harness discards. The per-cluster ledger
+is in [`upstream_requests/README.md`](upstream_requests/README.md).
 
 ### How we check your fixes now
 

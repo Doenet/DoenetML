@@ -1,7 +1,7 @@
 import BooleanComponent from "./Boolean";
 import { numberToLetters } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { isValidVariable } from "../utils/math";
+import { isValidVariable, isNumericConstant } from "../utils/math";
 import me from "math-expressions";
 
 const BLANK = "\uff3f";
@@ -398,7 +398,7 @@ export default class MatchesPattern extends BooleanComponent {
                 let variables = {};
                 if (dependencyValues.requireNumericMatches) {
                     let isNumeric = (m) =>
-                        !Number.isNaN(me.fromAst(m).evaluate_to_constant());
+                        isNumericConstant(me.fromAst(m).evaluate_to_constant());
                     dependencyValues.patternVariables.forEach(
                         (v) => (variables[v] = isNumeric),
                     );

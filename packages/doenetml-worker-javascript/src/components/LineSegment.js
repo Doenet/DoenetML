@@ -23,6 +23,7 @@ import {
     getNumericEndpointPair,
     mergePointCoords,
 } from "../utils/lineSegment";
+import { isNumericConstant } from "../utils/math";
 
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
@@ -2005,7 +2006,7 @@ export default class LineSegment extends GraphicalComponent {
                 if (m instanceof me.class) {
                     m = m.evaluate_to_constant();
                 }
-                if (Number.isNaN(m)) {
+                if (!isNumericConstant(m)) {
                     return { success: false };
                 }
 

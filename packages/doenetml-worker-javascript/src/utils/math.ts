@@ -279,6 +279,25 @@ export function findFiniteNumericalValue(value: any) {
     return null;
 }
 
+/**
+ * Whether `evaluate_to_constant()` produced a number we can actually compute
+ * with.
+ *
+ * It reports `null` — not `NaN` — for everything it cannot evaluate: a free
+ * variable, a blank `＿`, an unevaluable head. `Number.isNaN(null)` is `false`
+ * and `null` coerces to `0` in arithmetic and comparisons, so testing only for
+ * `NaN` lets an unevaluable expression pass as numeric and then silently behave
+ * like zero. `＿ < 1` became `null < 1`, which is `true`, and a blank answer
+ * scored full credit.
+ *
+ * Use this anywhere the result feeds arithmetic, a comparison, or a sort.
+ * `±Infinity` passes deliberately: it is a value, and ordering against it is
+ * meaningful.
+ */
+export function isNumericConstant(value: unknown): value is number {
+    return typeof value === "number" && !Number.isNaN(value);
+}
+
 export function returnNVariables(n: number, variablesSpecified: any[]) {
     // console.log(`return N variables`, n, variablesSpecified)
 

@@ -5,6 +5,7 @@ import {
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
+import { isNumericConstant } from "../utils/math";
 
 export default class PeriodicSet extends MathComponent {
     static componentType = "periodicSet";
@@ -201,7 +202,7 @@ export default class PeriodicSet extends MathComponent {
                 if (dependencyValues.period !== null) {
                     let periodValue =
                         dependencyValues.period.evaluate_to_constant();
-                    if (!Number.isNaN(periodValue)) {
+                    if (isNumericConstant(periodValue)) {
                         for (
                             let ind1 = 0;
                             ind1 < dependencyValues.numOffsets;
@@ -267,14 +268,14 @@ export default class PeriodicSet extends MathComponent {
                 if (dependencyValues.period !== null) {
                     let periodValue =
                         dependencyValues.period.evaluate_to_constant();
-                    if (!Number.isNaN(periodValue)) {
+                    if (isNumericConstant(periodValue)) {
                         let period = dependencyValues.period.simplify();
 
                         let allFinite = true;
                         let shiftedOffsetsWithNumeric = [];
                         for (let offset of dependencyValues.uniqueOffsets) {
                             let offsetValue = offset.evaluate_to_constant();
-                            if (Number.isNaN(offsetValue)) {
+                            if (!isNumericConstant(offsetValue)) {
                                 allFinite = false;
                                 break;
                             } else {

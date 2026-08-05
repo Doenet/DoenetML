@@ -7,6 +7,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { isNumericConstant } from "../utils/math";
 
 export default class FunctionIterates extends InlineComponent {
     static componentType = "functionIterates";
@@ -206,7 +207,7 @@ export default class FunctionIterates extends InlineComponent {
                         let numericalf =
                             functionComp.stateValues.numericalfs[0];
                         let value = initialValue.evaluate_to_constant();
-                        if (Number.isNaN(value)) {
+                        if (!isNumericConstant(value)) {
                             allIterates = Array(numIterates).fill(
                                 me.fromAst("\uff3f"),
                             );
