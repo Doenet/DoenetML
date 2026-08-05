@@ -365,15 +365,7 @@ export function loaderRegistryMarker(loadModuleFile = LOAD_MODULE_FILE) {
 
 /** Non-overlapping occurrences of a fixed string. */
 function countOccurrences(haystack, needle) {
-    let count = 0;
-    for (
-        let at = haystack.indexOf(needle);
-        at !== -1;
-        at = haystack.indexOf(needle, at + needle.length)
-    ) {
-        count += 1;
-    }
-    return count;
+    return haystack.split(needle).length - 1;
 }
 
 /**

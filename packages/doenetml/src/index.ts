@@ -34,14 +34,12 @@ export { CodeMirror } from "@doenet/codemirror";
 
 // Where a host installs the message catalogs the viewer in *this* bundle reads.
 //
-// Re-exported rather than left to `@doenet/i18n` because the loaders are
-// module-level state and a bundle can hold more than one instance of that
-// module: `@doenet/standalone` builds its own copy from source while the viewer
-// it renders carries the copy compiled into this package's `dist/`. Installing
-// loaders on the first leaves the second — the one that resolves a document's
-// language — with none, and an unreachable catalog is a silent fall back to
-// English. Reaching the setter through the same entry point the viewer comes
-// from makes the two one instance.
+// The loaders are module-level state, and a bundle can hold more than one
+// instance of `@doenet/i18n` — one built from the host's own source tree, one
+// compiled into this package's `dist/`. Only the latter resolves a document's
+// language, so a host must reach the setter through the entry point its viewer
+// comes from; installing loaders on any other instance leaves the viewer with
+// none, and an unreachable catalog falls back to English in silence.
 export {
     setLocaleLoaders,
     fetchLocaleLoaders,

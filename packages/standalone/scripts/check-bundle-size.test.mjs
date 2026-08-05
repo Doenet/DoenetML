@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import {
+    STANDALONE_SCRIPT as STANDALONE,
     WASM_CORE_SCRIPT,
     catalogsInScript,
     collectCatalogProbes,
@@ -13,8 +14,6 @@ import {
     loaderRegistryMarker,
     servedCatalogProblems,
 } from "./check-bundle-size.mjs";
-
-const STANDALONE = "dist/doenet-standalone.js";
 
 /** Budgets in the shape `loadBudgets` returns: `[relativePath, budget]` pairs. */
 const BUDGETS = [
