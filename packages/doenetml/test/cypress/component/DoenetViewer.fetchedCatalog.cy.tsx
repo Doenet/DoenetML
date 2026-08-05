@@ -11,20 +11,16 @@ import {
 // words come back.
 //
 // Both halves are imported from *this package's* entry point rather than from
-// `@doenet/i18n`, and that is the point of the spec rather than an incidental
-// tidiness. The loaders are module-level state. A bundle that holds two copies
-// of `@doenet/i18n` — which `@doenet/standalone` did in 0.7.22, one built from
-// source for the setter and one compiled into `@doenet/doenetml` for the viewer
-// — installs them on an instance the viewer never reads, and then never
-// requests a catalog at all. Nothing said so: an unreachable catalog is a
-// deliberate, silent fall back to English, so every language rendered in
-// English while `lang`/`dir` and locale negotiation went on working perfectly.
+// `@doenet/i18n`, which is the point of the spec. The loaders are module-level
+// state, so a bundle holding two copies of `@doenet/i18n` — as
+// `@doenet/standalone` did in 0.7.22 — installs them on an instance the viewer
+// never reads and then requests no catalog at all, silently falling back to
+// English.
 //
-// A source-built spec cannot reproduce the two instances (there is only ever
-// one here); what it can do is hold the seam that fix rests on — the setter and
-// the viewer reached through one entry point — and assert the request that no
-// other test looks for. `packages/standalone/scripts/check-bundle-size.mjs`
-// counts the copies in the built bundle, which is the half this cannot see.
+// A source-built spec cannot reproduce the two instances; what it can do is
+// hold the seam the fix rests on and assert the request that no other test
+// looks for. `packages/standalone/scripts/check-bundle-size.mjs` counts the
+// copies in the built bundle, which is the half this cannot see.
 
 const VIEWER_TIMEOUT = 15_000;
 

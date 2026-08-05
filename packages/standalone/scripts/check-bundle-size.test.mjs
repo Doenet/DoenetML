@@ -462,10 +462,31 @@ describe("duplicateI18nProblems", () => {
         ).toEqual([]);
     });
 
-    it("accepts a script that carries none at all", () => {
-        // Most emitted scripts have nothing to do with i18n; only holding more
-        // than one copy is a problem, and holding none is the normal case.
-        expect(duplicateI18nProblems(build({ [STANDALONE]: 0 }))).toEqual([]);
+    it("accepts another script that carries none at all", () => {
+        // Most emitted scripts have nothing to do with i18n, so holding none
+        // is their normal case.
+        expect(
+            duplicateI18nProblems(
+                build({ [STANDALONE]: 1, [WASM_CORE_SCRIPT]: 0 }),
+            ),
+        ).toEqual([]);
+    });
+
+    it("reports a standalone bundle that carries none at all", () => {
+        // Zero in the bundle that renders the viewer means the marker stopped
+        // surviving the build, and a check counting nothing passes anything.
+        const problems = duplicateI18nProblems(build({ [STANDALONE]: 0 }));
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("no copy of @doenet/i18n");
+    });
+
+    it("reports a marker it could not read rather than passing", () => {
+        const problems = duplicateI18nProblems(
+            build({ [STANDALONE]: 0 }),
+            null,
+        );
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("could not be read");
     });
 
     it("reports the 0.7.22 failure: two copies in the standalone bundle", () => {
