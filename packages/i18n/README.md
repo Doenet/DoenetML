@@ -67,27 +67,30 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `af`, `ak`, `am`, `ar`,
-`as`, `az`, `be`, `bg`, `bm`, `bn`, `br`, `ca`, `ceb`, `cs`, `cy`, `da`, `de`,
-`ee`, `el`, `es`, `et`, `eu`, `fa`, `fi`, `fil`, `fo`, `fr`, `ga`, `gd`, `gl`,
-`gu`, `ha`, `haw`, `he`, `hi`, `hnj`, `hr`, `hu`, `hy`, `id`, `ig`, `is`, `it`,
-`ja`, `jv`, `ka`, `kk`, `km`, `kn`, `ko`, `ky`, `lg`, `ln`, `lo`, `lt`, `lv`,
-`mg`, `mi`, `mk`, `ml`, `mn`, `mr`, `ms`, `mt`, `my`, `nb`, `ne`, `nl`, `ny`,
-`om`, `or`, `pa`, `pl`, `ps`, `pt`, `ro`, `ru`, `rw`, `sd`, `si`, `sk`, `sl`,
-`sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`, `ta`, `te`, `tg`, `th`,
-`ti`, `tk`, `tn`, `tr`, `tt`, `ug`, `uk`, `ur`, `uz`, `vi`, `wo`, `xh`, `yo`,
+`as`, `ast`, `az`, `be`, `bg`, `bm`, `bn`, `br`, `bs`, `ca`, `ceb`, `co`, `cs`,
+`cy`, `da`, `de`, `ee`, `el`, `es`, `et`, `eu`, `fa`, `fi`, `fil`, `fo`, `fr`,
+`fy`, `ga`, `gd`, `gl`, `gu`, `ha`, `haw`, `he`, `hi`, `hnj`, `hr`, `hu`, `hy`,
+`id`, `ig`, `is`, `it`, `ja`, `jv`, `ka`, `kk`, `km`, `kn`, `ko`, `ky`, `lb`,
+`lg`, `ln`, `lo`, `lt`, `lv`, `mg`, `mi`, `mk`, `ml`, `mn`, `mr`, `ms`, `mt`,
+`my`, `nb`, `nds`, `ne`, `nl`, `ny`, `oc`, `om`, `or`, `pa`, `pl`, `ps`, `pt`,
+`rm`, `ro`, `ru`, `rw`, `sc`, `scn`, `sd`, `se`, `si`, `sk`, `sl`, `sm`, `sn`,
+`so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`, `ta`, `te`, `tg`, `th`, `ti`, `tk`,
+`tn`, `tr`, `tt`, `ug`, `uk`, `ur`, `uz`, `vi`, `wo`, `xh`, `yi`, `yo`,
 `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which
 each file's own header says at the top, and which is what #1521's translation
 platform is for. None has been read by a speaker. Correcting one needs no
 permission and no coordination: a wrong string is just wrong, and the English
 is one key away.
 
-Thirty-nine of them are deliberately partial, all in the same place: Somali,
+Fifty of them are deliberately partial, all in the same place: Somali,
 Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
 Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
 Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano, Malagasy, Māori,
 Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona, Southern Sotho,
-Setswana, Tigrinya and Ganda leave `element-name` and `element-anion-name`
-out, so those 130 keys fall back to English and `lint:i18n` reports the gap.
+Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low German,
+Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern Sami and
+Yiddish leave `element-name` and `element-anion-name` out, so those 130 keys
+fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
@@ -133,6 +136,26 @@ across Senegal, Mali and both Congos, so in all ten the fallback *is* the
 curriculum. That is a fact about ten education ministries rather than about ten
 languages, which is why it reads as one sentence here and takes a sentence of
 its own in each catalog's header.
+
+Eleven of the twelve European regional and minority languages are partial for
+the school-system reason as well, and the eleven are not one story but the same
+story told in six school systems: Occitan and Corsican are taught out of French
+textbooks, Asturian out of Spanish, Sardinian and Sicilian out of Italian,
+Western Frisian out of Dutch, Low German and Luxembourgish out of German —
+Luxembourg's upper grades in French as well — and Romansh-medium schooling
+stops below the grades where the periodic table is taught. Northern Sami is the
+one of the eleven where the schooling *is* in the language and the table still
+does not settle: a Sami pupil meets the Norwegian, Swedish or Finnish names
+depending on which side of a border the school is, and those three differ, so
+choosing any of them would report a fact about a border. Yiddish has the
+vocabulary in its scientific writing and no school system teaching secondary
+chemistry in it, which is the Samoan case rather than the French one.
+
+Bosnian is that batch's one complete catalog, and it is the Swahili case: its
+schools teach chemistry in it out of textbooks that print the whole table. The
+list is close to `locales/hr`'s without being a copy — «kalaj» against
+Croatian's «kositar», «hlor» against «klor», and, in the two messages at the
+foot of the file, «hemijski» for «kemijski» and «jonski» for «ionski».
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -277,6 +300,47 @@ languages with two orthographies and two vocabularies. `locales/tn` writes
 «nnete», and «-hibidu» where it writes «-fubedu». Copying either over the other
 would be wrong in both, which is the same reason `hr` is a directory of its own
 rather than a script of `sr`.
+
+The European regional and minority batch adds two script asymmetries, one
+direction case that costs nothing, and no alias at all.
+
+`bs` is Bosnian in Latin letters, which is what CLDR fills a bare tag in as and
+what its schools and publishing use, so a reader arriving under `bs-Cyrl`
+reaches it and gets Latin — the same asymmetry `pa` and `sr` already have, with
+the same answer: a second catalog beside it rather than a rename of it. `nds` is
+Northern Low Saxon in the German-based orthography, so a reader arriving under
+`nds-NL` — Dutch Low Saxon, written in a Dutch-based one — reaches it and gets
+the German-based spelling.
+
+`yi` is the batch's right-to-left catalog and needed nothing from
+`direction.ts`, which already listed both `yi` and the retired `ji`. See
+[Writing a right-to-left catalog](#writing-a-right-to-left-catalog).
+
+None of the twelve needs an entry in `LANGUAGE_ALIASES`. `ji` is the Filipino
+case — `Intl.Locale` canonicalizes it to `yi` before negotiation is reached —
+and so is `sme`, the ISO 639-3 code for Northern Sami, which folds to `se`.
+`negotiate.test.ts` holds both against the real roster, along with the region
+and script tags above.
+
+Two of the twelve are written standards over a spread of varieties, and both
+catalogs say which one they are. `sc` is the **Limba Sarda Comuna**, the
+standard the Regione Autònoma de Sardigna publishes in, and `rm` is **Rumantsch
+Grischun**, the common written standard rather than any of the five idioms. In
+both, a deployment that wants a variety supplies its own catalog as
+`localeResources`; correcting the shipped file toward Campidanese or Vallader
+sentence by sentence is what would leave it in two standards at once, which is
+the trade `locales/jv` and `locales/su` already make with speech level.
+
+`co` is the batch's one locale whose **endonym comes back as its English
+name**. `supportedLocales.ts` asks `Intl.DisplayNames` for a language's name in
+itself, CLDR has no Corsican-language data to answer with, and the fallback is
+English — so `endonym` equals `englishName`, the label drops its parenthesis,
+and the roster reads "Corsican" once rather than "Corsican (Corsican)". It is
+not the first to do that: `ak`, `ceb`, `fil`, `hnj`, `mg`, `mi`, `ny` and `sm`
+already read that way, and so do the several whose endonym genuinely *is* the
+English word — Afrikaans, Hausa, Igbo, Wolof. Nothing here hand-writes around
+either case, which is why the rule that makes `ny` read "Nyanja" is the rule
+that makes this read "Corsican".
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
@@ -1104,17 +1168,17 @@ headers, the graph-controls panel, the editor chrome.
 
 ### Writing a right-to-left catalog
 
-Seven ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd` and `ug`. Nothing about the file
-format changes for any of them. A `.ftl` pattern is a sequence of characters in
-**logical** order — the order the text is spoken — and `dir` decides where each
-run is drawn, so a translation is written the way it is read and never reordered
-by hand to look right in an editor. Brackets, quotes and dashes are the same
-characters in every one of these scripts and are written opening-first; the bidi
-algorithm turns them around at render time. Digits stay Latin, as
-[everywhere else](#digits-are-latin-separators-are-not), which is why an Arabic
-sentence and the mathematics beside it count in the same characters.
+Eight ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd`, `ug` and `yi`. Nothing about the
+file format changes for any of them. A `.ftl` pattern is a sequence of
+characters in **logical** order — the order the text is spoken — and `dir`
+decides where each run is drawn, so a translation is written the way it is read
+and never reordered by hand to look right in an editor. Brackets, quotes and
+dashes are the same characters in every one of these scripts and are written
+opening-first; the bidi algorithm turns them around at render time. Digits stay
+Latin, as [everywhere else](#digits-are-latin-separators-are-not), which is why
+an Arabic sentence and the mathematics beside it count in the same characters.
 
-**Direction is not a language family.** These seven share a writing direction
+**Direction is not a language family.** These eight share a writing direction
 and almost nothing else, and the catalogs differ from each other far more than
 they differ from `de` or `es`:
 
@@ -1125,10 +1189,19 @@ they differ from `de` or `es`:
 | `fa` | follow the noun | none | two |
 | `ur`, `ps`, `sd` | precede the noun | m/f | two |
 | `ug` | precede the noun | none | two |
+| `yi` | precede the noun | m/f/n | two |
 
 `ur` is the outlier worth knowing about: its grammar is `hi`'s, so
 `locales/hi` is the closest thing to a parallel text for it and a correction to
 one is usually a correction to both. `ug` is Turkic and agrees with nothing.
+`yi` is Germanic and the only one of the eight that forks on `$role`: its
+adjectives take a dative after «מיט» and «אויף», so its catalog has the shape
+`locales/de` and `locales/bs` have rather than the shape of the six beside it —
+which is the paragraph above put as sharply as it goes. Its one spelling
+convention worth stating is that Yiddish's three digraphs are written as **two
+letters each** — «וו», «וי», «יי» — and never as the precomposed ligatures
+U+05F0–U+05F2, which render identically and compare unequal. CLDR spells the
+endonym «ייִדיש» that way, so the roster's own label and the catalogs match.
 
 Three things recur across them, none a property of the direction:
 
