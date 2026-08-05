@@ -60,18 +60,18 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Utvrđeno je kršenje pristupačnosti prema WCAG AA. Pronađeno je { $count ->
-            [one] { $count } kršenje prema WCAG AA
-            [few] { $count } kršenja prema WCAG AA
-           *[other] { $count } kršenja prema WCAG AA
+        [violations] Utvrđeno je kršenje pristupačnosti prema WCAG AA. { $count ->
+            [one] Pronađeno je { $count } kršenje prema WCAG AA
+            [few] Pronađena su { $count } kršenja prema WCAG AA
+           *[other] Pronađeno je { $count } kršenja prema WCAG AA
         }. Kliknite da biste { $action ->
             [close] zatvorili
            *[open] otvorili
         } izvještaj o pristupačnosti.
-        [advisories] Nisu utvrđena kršenja prema WCAG AA. Pronađena je { $count ->
-            [one] { $count } dodatna preporuka o pristupačnosti
-            [few] { $count } dodatne preporuke o pristupačnosti
-           *[other] { $count } dodatnih preporuka o pristupačnosti
+        [advisories] Nisu utvrđena kršenja prema WCAG AA. { $count ->
+            [one] Pronađena je { $count } dodatna preporuka o pristupačnosti
+            [few] Pronađene su { $count } dodatne preporuke o pristupačnosti
+           *[other] Pronađeno je { $count } dodatnih preporuka o pristupačnosti
         }. Kliknite da biste { $action ->
             [close] zatvorili
            *[open] otvorili

@@ -507,7 +507,7 @@ parse-tag-missing-close-tag = DoenetML nunvalid: il tag `{ $tag }` n'ha nagin ta
 
 parse-tag-error = DoenetML nunvalid: errur en il tag `<{ $tagName }>`
 
-parse-attribute-missing-value = DoenetML nunvalid: al attribut nunvalid `{ $attribute }` para da mancar ina valur.
+parse-attribute-missing-value = DoenetML nunvalid: a l'attribut nunvalid `{ $attribute }` para da mancar ina valur.
 
 parse-attribute-invalid = DoenetML nunvalid: attribut nunvalid `{ $attribute }`
 

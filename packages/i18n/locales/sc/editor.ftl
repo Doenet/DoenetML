@@ -55,16 +55,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] S'est agatada una violatzione de s'atzessibilidade segundu WCAG AA. S'sunt agatadas { $count ->
-            [one] { $count } violatzione WCAG AA
-           *[other] { $count } violatziones WCAG AA
+        [violations] S'est agatada una violatzione de s'atzessibilidade segundu WCAG AA. { $count ->
+            [one] S'est agatada { $count } violatzione WCAG AA
+           *[other] Si sunt agatadas { $count } violatziones WCAG AA
         }. Crica pro { $action ->
             [close] serrare
            *[open] abèrrere
         } su rapportu de atzessibilidade.
-        [advisories] No s'est agatada peruna violatzione WCAG AA. S'sunt agatadas { $count ->
-            [one] { $count } racumandatzione de atzessibilidade in prus
-           *[other] { $count } racumandatziones de atzessibilidade in prus
+        [advisories] No s'est agatada peruna violatzione WCAG AA. { $count ->
+            [one] S'est agatada { $count } racumandatzione de atzessibilidade in prus
+           *[other] Si sunt agatadas { $count } racumandatziones de atzessibilidade in prus
         }. Crica pro { $action ->
             [close] serrare
            *[open] abèrrere
@@ -134,11 +134,11 @@ help-unsupported-ref-chain = S'agiudu pro riferimentos de prus partes comente { 
 help-unresolved-ref =
     { $reason ->
         [notFound] No s'est agatadu perunu referente pro su riferimentu: { $ref }.
-        [multiple] S'sunt agatados prus referentes pro su riferimentu: { $ref }.
+        [multiple] Si sunt agatados prus referentes pro su riferimentu: { $ref }.
        *[indeterminate] No s'est pòdidu determinare unu referente pro { $ref }.
     }
 
-help-learn-about-references = Àpere de prus subra sos riferimentos →
+help-learn-about-references = Impara de prus subra sos riferimentos →
 help-reference-page = Pàgina de riferimentu →
 
 help-suggestions-header =

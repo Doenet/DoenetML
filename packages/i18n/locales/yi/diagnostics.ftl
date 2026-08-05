@@ -279,7 +279,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: מען קען ניט פֿאַרשטיין grid="{ $grid }". עס מוז זייַן none, medium, dense אָדער צוויי positive צאָלן געשיידט מיט אַ ליידיקן אָרט, למשל grid="1 0.5". קיין נעץ ווערט ניט געצייכנט.
+graph-grid-invalid = `<graph>`: מען קען ניט פֿאַרשטיין grid="{ $grid }". עס מוז זייַן none, medium, dense אָדער צוויי פּאָזיטיווע צאָלן געשיידט מיט אַ ליידיקן אָרט, למשל grid="1 0.5". קיין נעץ ווערט ניט געצייכנט.
 
 ## PreFigure renderer
 
@@ -630,7 +630,7 @@ select-from-sequence-index-excluded = אַן אָנגעגעבענער אינדע
 
 select-from-sequence-indices-excluded-combination = די אָנגעגעבענע אינדעקסן פֿון selectfromsequence זייַנען געווען אַן אויסגעשלאָסענע קאָמבינאַציע
 
-select-from-sequence-coprime-not-positive-integers = מען קען ניט קלייַבן קיין רעלאַטיוו פּרימע קאָמבינאַציעס ווייַל מען קלייַבט ניט קיין positive גאַנצע צאָלן.
+select-from-sequence-coprime-not-positive-integers = מען קען ניט קלייַבן קיין רעלאַטיוו פּרימע קאָמבינאַציעס ווייַל מען קלייַבט ניט קיין פּאָזיטיווע גאַנצע צאָלן.
 
 select-from-sequence-coprime-common-factor = מען קען ניט קלייַבן קיין רעלאַטיוו פּרימע צאָלן. אַלע מעגלעכע ווערטן האָבן אַ געמיינזאַמען פֿאַקטאָר. (די אָנגעגעבענע ווערטן פֿון "from" אָדער "to" מוזן זייַן רעלאַטיוו פּרים מיט "step".)
 

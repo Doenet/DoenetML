@@ -277,7 +277,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: grid="{ $grid }" kann net interpretéiert ginn. Et muss none, medium, dense oder zwou positiv Zuelen, duerch e Espace getrennt, sinn, zum Beispill grid="1 0.5". Et gëtt keng Grid gezeechent.
+graph-grid-invalid = `<graph>`: grid="{ $grid }" kann net interpretéiert ginn. Et muss none, medium, dense oder zwou positiv Zuelen, duerch en Espace getrennt, sinn, zum Beispill grid="1 0.5". Et gëtt keng Grid gezeechent.
 
 ## PreFigure renderer
 
@@ -327,7 +327,7 @@ answer-award-depends-on-own-response = En award fir dës Äntwert baséiert op d
 
 answer-max-num-attempts-in-section-wide-check-work = `maxNumAttempts` op engem `<answer>` bannent engem Container mat `sectionWideCheckWork` ze setzen huet keng Wierkung, well d'Zuel vun de Versich vum Container gesteiert gëtt. Setzt `maxNumAttempts` amplaz um Container.
 
-nested-section-wide-check-work-max-num-attempts = `maxNumAttempts` op engem Container mat `sectionWideCheckWork` ze setzen, deen a engem anere Container mat `sectionWideCheckWork` läit, huet keng Wierkung, well d'Zuel vun de Versich vum baussenzege Container gesteiert gëtt. Setzt `maxNumAttempts` um baussenzege Container.
+nested-section-wide-check-work-max-num-attempts = `maxNumAttempts` op engem Container mat `sectionWideCheckWork` ze setzen, deen an engem anere Container mat `sectionWideCheckWork` läit, huet keng Wierkung, well d'Zuel vun de Versich vum baussenzege Container gesteiert gëtt. Setzt `maxNumAttempts` um baussenzege Container.
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
@@ -544,10 +544,10 @@ parser-node-unconvertible = De Knuet { $node } konnt net an e Dast-Knuet ëmgewa
 name-attribute-invalid =
     Ongëltegen Attributnumm name='{ $name }'. { $reason ->
         [characters] Nimm dierfe just Buschtawen, Zuelen, Ënnerstrécher oder Bindestrécher enthalen.
-       *[start] Nimm mussen mat engem Buschtaf ufänken.
+       *[start] Nimm musse mat engem Buschtaf ufänken.
     }
 
-component-name-invalid-start = Ongëltege Komponentnumm "{ $name }". Nimm mussen mat engem Buschtaf ufänken.
+component-name-invalid-start = Ongëltege Komponentnumm "{ $name }". Nimm musse mat engem Buschtaf ufänken.
 
 ## `<answer>` sugar
 
@@ -612,9 +612,9 @@ schema-attribute-value-not-allowed =
 
 select-variant-name-option-count-mismatch = Ongëltege Variantnumm fir select. De Variantnumm { $variantName } kënnt an { $numOptions } Optioune vir, mä d'Zuel, déi ausgewielt gi soll, ass { $numToSelect }.
 
-select-variant-name-without-options = Fir select sinn e puer Variantten uginn, mä et sinn keng Optioune fir de méigleche Variantnumm uginn: { $variantName }.
+select-variant-name-without-options = Fir select sinn e puer Varianten uginn, mä et si keng Optioune fir de méigleche Variantnumm uginn: { $variantName }.
 
-select-variant-name-not-possible = De Variantnumm { $variantName }, deen fir select uginn ass, ass kee méigleche Variantnumm.
+select-variant-name-not-possible = De Variantnumm { $variantName }, dee fir select uginn ass, ass kee méigleche Variantnumm.
 
 select-too-few-options = { $numToSelect } Komponente kënnen net aus nëmmen { $numOptions } ausgewielt ginn.
 

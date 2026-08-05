@@ -171,13 +171,13 @@ circle-change-center-non-numerical = Sirkkela guovddáža rievdadeapmi čuoggái
 
 function-domain-insufficient-dimensions =
     { $intervals ->
-        [one] Ii doarvái dimenšuvnnat funkšuvnna definišuvdnaguovllu várás. Definišuvdnaguovllus lea { $intervals } gaska, muhto funkšuvnnas leat { $inputs ->
-            [one] { $inputs } sisabidjan
-           *[other] { $inputs } sisabidjama
+        [one] Ii doarvái dimenšuvnnat funkšuvnna definišuvdnaguovllu várás. Definišuvdnaguovllus lea { $intervals } gaska, muhto funkšuvnnas { $inputs ->
+            [one] lea { $inputs } sisabidjan
+           *[other] leat { $inputs } sisabidjama
         }.
-       *[other] Ii doarvái dimenšuvnnat funkšuvnna definišuvdnaguovllu várás. Definišuvdnaguovllus leat { $intervals } gaska, muhto funkšuvnnas leat { $inputs ->
-            [one] { $inputs } sisabidjan
-           *[other] { $inputs } sisabidjama
+       *[other] Ii doarvái dimenšuvnnat funkšuvnna definišuvdnaguovllu várás. Definišuvdnaguovllus leat { $intervals } gaskka, muhto funkšuvnnas { $inputs ->
+            [one] lea { $inputs } sisabidjan
+           *[other] leat { $inputs } sisabidjama
         }.
     }
 
@@ -234,7 +234,7 @@ select-from-sequence-coprime-with-exclude-combinations = coprime ii váldojuvvo 
 
 ## Resolving a `target`
 
-target-not-found = Gustohis target dása `<{ $source }>`: ulbmila ii gávdno.
+target-not-found = Gustohis target dása `<{ $source }>`: ulbmil ii gávdno.
 
 target-state-variable-not-found = Gustohis target dása `<{ $source }>`: ii gávdno stáhtavariábel nammii "{ $property }" dán alde: `<{ $component }>`.
 
@@ -256,7 +256,7 @@ parabola-vertex-too-many-points = Parabola čohkáin eanet go 1 čuoggá čađa 
 
 parabola-too-many-points = Parabola eanet go 3 čuoggá čađa ii leat čađahuvvon.
 
-intersection-too-many-items = Guovtti diŋgga eanet čuohppaseapmi ii leat čađahuvvon
+intersection-too-many-items = Eanet go guovtti diŋgga čuohppaseapmi ii leat čađahuvvon
 
 ## Other math components
 
@@ -298,7 +298,7 @@ prefigure-grid-spacing-too-fine = `<graph>`: ruvttu gaskkat leat beare unnit aks
 
 prefigure-annotations-not-rendered = `<graph>`: mearkkašumit eai čájehuvvo go PreFigure-čájeheaddji ii geavahuvvo.
 
-multiple-annotations-children = Máŋga `<annotations>`-mánáid gávdnojedje `<graph>`:s; buot earát go maŋimuš eai váldojuvvo vuhtii.
+multiple-annotations-children = Máŋga `<annotations>`-máná gávdnui `<graph>`:s; buot earát go maŋimuš eai váldojuvvo vuhtii.
 
 ## Referring to other components
 

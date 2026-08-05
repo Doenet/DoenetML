@@ -83,21 +83,21 @@ keyboard-close = פֿאַרמאַך די קלאַוויאַטור
 choice-input-remove-choice = נעם אַרויס { $choice }
 
 matrix-remove-row = נעם אַרויס אַ רייע
-matrix-add-row = צו אַ רייע
+matrix-add-row = גיב צו אַ רייע
 matrix-remove-column = נעם אַרויס אַ זייַל
-matrix-add-column = צו אַ זייַל
+matrix-add-column = גיב צו אַ זייַל
 
-subset-add-remove-points = צו/נעם אַרויס פּונקטן
+subset-add-remove-points = גיב צו/נעם אַרויס פּונקטן
 subset-toggle-points-intervals = בייַט צווישן פּונקטן און אינטערוואַלן
 subset-move-points = רוק די פּונקטן
 subset-clear = רייניק אויס
 
-orbital-add-row = צו אַ רייע
+orbital-add-row = גיב צו אַ רייע
 orbital-remove-row = נעם אַרויס אַ רייע
-orbital-add-box = צו אַ קעסטל
+orbital-add-box = גיב צו אַ קעסטל
 orbital-remove-box = נעם אַרויס אַ קעסטל
-orbital-add-up-arrow = צו אַ פֿייַל אַרויף
-orbital-add-down-arrow = צו אַ פֿייַל אַראָפּ
+orbital-add-up-arrow = גיב צו אַ פֿייַל אַרויף
+orbital-add-down-arrow = גיב צו אַ פֿייַל אַראָפּ
 orbital-remove-arrow = נעם אַרויס אַ פֿייַל
 
 orbital-row-label = צייכן פֿאַר רייע { $row }

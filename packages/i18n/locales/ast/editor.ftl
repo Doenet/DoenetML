@@ -55,16 +55,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Identificóse una vulneración d'accesibilidá según WCAG AA. Alcontráronse { $count ->
-            [one] { $count } vulneración WCAG AA
-           *[other] { $count } vulneraciones WCAG AA
+        [violations] Identificóse una vulneración d'accesibilidá según WCAG AA. { $count ->
+            [one] Alcontróse { $count } vulneración WCAG AA
+           *[other] Alcontráronse { $count } vulneraciones WCAG AA
         }. Calca pa { $action ->
             [close] zarrar
            *[open] abrir
         } l'informe d'accesibilidá.
-        [advisories] Nun s'identificó denguna vulneración WCAG AA. Alcontráronse { $count ->
-            [one] { $count } recomendación d'accesibilidá adicional
-           *[other] { $count } recomendaciones d'accesibilidá adicionales
+        [advisories] Nun s'identificó denguna vulneración WCAG AA. { $count ->
+            [one] Alcontróse { $count } recomendación d'accesibilidá adicional
+           *[other] Alcontráronse { $count } recomendaciones d'accesibilidá adicionales
         }. Calca pa { $action ->
             [close] zarrar
            *[open] abrir
@@ -134,7 +134,7 @@ help-unsupported-ref-chain = L'ayuda pa referencies de más d'una parte como { $
 help-unresolved-ref =
     { $reason ->
         [notFound] Nun s'alcontró dengún referente pa la referencia: { $ref }.
-        [multiple] Alcontráronse más d'un referente pa la referencia: { $ref }.
+        [multiple] Alcontróse más d'un referente pa la referencia: { $ref }.
        *[indeterminate] Nun se pudo determinar un referente pa { $ref }.
     }
 

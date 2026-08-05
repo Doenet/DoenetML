@@ -21,7 +21,7 @@
 
 editor-update-viewer =
     { $action ->
-        [reset] אָפּשטעל
+        [reset] שטעל צוריק
        *[update] דערפֿריש
     }
 
@@ -68,8 +68,8 @@ editor-accessibility-label =
            *[open] עפֿענען
         } דעם באַריכט וועגן צוטריטלעכקייט.
         [advisories] קיין איבערטרעטונגען לויט WCAG AA זייַנען ניט געפֿונען געוואָרן. געפֿונען { $count ->
-            [one] { $count } נאָך אַ רעקאָמענדאַציע וועגן צוטריטלעכקייט
-           *[other] { $count } נאָך רעקאָמענדאַציעס וועגן צוטריטלעכקייט
+            [one] נאָך { $count } רעקאָמענדאַציע וועגן צוטריטלעכקייט
+           *[other] נאָך { $count } רעקאָמענדאַציעס וועגן צוטריטלעכקייט
         }. קליקט צו { $action ->
             [close] פֿאַרמאַכן
            *[open] עפֿענען
@@ -113,7 +113,7 @@ editor-no-info = קיין אינפֿאָרמאַטיווע מעלדונגען נ
 editor-show-info-annotations = ווייַז אינפֿאָרמאַטיווע מעלדונגען אין רעדאַקטאָר
 editor-show-accessibility-annotations = ווייַז מעלדונגען וועגן צוטריטלעכקייט אין רעדאַקטאָר
 
-editor-accessibility-learn-more = ווי אַזוי Doenet גייט צו צו צוטריטלעכקייט
+editor-accessibility-learn-more = ווי אַזוי Doenet באַהאַנדלט צוטריטלעכקייט
 
 editor-accessibility-violations-heading = איבערטרעטונגען פֿון צוטריטלעכקייט ({ $standard })
 
@@ -209,8 +209,8 @@ help-type = טיפּ:
 help-resolved-style = דער אויסגערעכנטער סטיל (styleNumber { $styleNumber }):
 
 help-resolved-function-names = די אויסגערעכנטע פֿונקציע־נעמען:
-help-reset-list = רשימה פֿאַר אָפּשטעלן אויף דעם פֿעלד:
+help-reset-list = רשימה פֿאַר צוריקשטעלן אויף דעם פֿעלד:
 help-added-on-input = צוגעגעבן אויף דעם פֿעלד:
 help-removed-on-input = אַרויסגענומען אויף דעם פֿעלד:
 
-help-reset-overrides = { $reset } גובֿר איז אויף { $additional } און { $removed }.
+help-reset-overrides = { $reset } איז גובֿר אויף { $additional } און { $removed }.

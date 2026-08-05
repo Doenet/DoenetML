@@ -55,16 +55,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Der is in skeining fan 'e tagonklikens neffens WCAG AA fêststeld. Der binne { $count ->
-            [one] { $count } skeining neffens WCAG AA
-           *[other] { $count } skeiningen neffens WCAG AA
+        [violations] Der is in skeining fan 'e tagonklikens neffens WCAG AA fêststeld. { $count ->
+            [one] Der is { $count } skeining neffens WCAG AA
+           *[other] Der binne { $count } skeiningen neffens WCAG AA
         } fûn. Klik om it rapport oer tagonklikens { $action ->
             [close] ticht te dwaan
            *[open] iepen te dwaan
         }.
-        [advisories] Der binne gjin skeiningen neffens WCAG AA fêststeld. Der binne { $count ->
-            [one] { $count } oanfoljende oanbefelling oer tagonklikens
-           *[other] { $count } oanfoljende oanbefellings oer tagonklikens
+        [advisories] Der binne gjin skeiningen neffens WCAG AA fêststeld. { $count ->
+            [one] Der is { $count } oanfoljende oanbefelling oer tagonklikens
+           *[other] Der binne { $count } oanfoljende oanbefellings oer tagonklikens
         } fûn. Klik om it rapport oer tagonklikens { $action ->
             [close] ticht te dwaan
            *[open] iepen te dwaan

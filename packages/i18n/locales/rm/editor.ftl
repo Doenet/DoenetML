@@ -55,16 +55,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Ina violaziun da l'accessibladad tenor WCAG AA è vegnida identifitgada. Èn vegnidas chattadas { $count ->
-            [one] { $count } violaziun WCAG AA
-           *[other] { $count } violaziuns WCAG AA
+        [violations] Ina violaziun da l'accessibladad tenor WCAG AA è vegnida identifitgada. { $count ->
+            [one] È vegnida chattada { $count } violaziun WCAG AA
+           *[other] Èn vegnidas chattadas { $count } violaziuns WCAG AA
         }. Cliccai per { $action ->
             [close] serrar
            *[open] avrir
         } il rapport d'accessibladad.
-        [advisories] Naginas violaziuns WCAG AA n'èn vegnidas identifitgadas. Èn vegnidas chattadas { $count ->
-            [one] { $count } ulteriura recumandaziun d'accessibladad
-           *[other] { $count } ulteriuras recumandaziuns d'accessibladad
+        [advisories] Naginas violaziuns WCAG AA n'èn vegnidas identifitgadas. { $count ->
+            [one] È vegnida chattada { $count } ulteriura recumandaziun d'accessibladad
+           *[other] Èn vegnidas chattadas { $count } ulteriuras recumandaziuns d'accessibladad
         }. Cliccai per { $action ->
             [close] serrar
            *[open] avrir
@@ -138,7 +138,7 @@ help-unresolved-ref =
        *[indeterminate] In referent per { $ref } n'ha betg pudì vegnir determinà.
     }
 
-help-learn-about-references = Ludar dapli davart las referenzas →
+help-learn-about-references = Emprender dapli davart las referenzas →
 help-reference-page = Pagina da referenza →
 
 help-suggestions-header =

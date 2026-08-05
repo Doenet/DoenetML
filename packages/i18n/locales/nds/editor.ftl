@@ -55,16 +55,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] En Verstoot gegen de Togänglichkeit na WCAG AA is faststellt worrn. Dat sünd { $count ->
-            [one] { $count } Verstoot na WCAG AA
-           *[other] { $count } Verstöte na WCAG AA
+        [violations] En Verstoot gegen de Togänglichkeit na WCAG AA is faststellt worrn. { $count ->
+            [one] Dat is { $count } Verstoot na WCAG AA
+           *[other] Dat sünd { $count } Verstöte na WCAG AA
         } funnen worrn. Klick, üm den Bericht över de Togänglichkeit { $action ->
             [close] totomaken
            *[open] optomaken
         }.
-        [advisories] Dat sünd keen Verstöte na WCAG AA faststellt worrn. Dat sünd { $count ->
-            [one] { $count } wiedere Anraad to de Togänglichkeit
-           *[other] { $count } wiedere Anraden to de Togänglichkeit
+        [advisories] Dat sünd keen Verstöte na WCAG AA faststellt worrn. { $count ->
+            [one] Dat is { $count } wieder Anraad to de Togänglichkeit
+           *[other] Dat sünd { $count } wiedere Anraden to de Togänglichkeit
         } funnen worrn. Klick, üm den Bericht över de Togänglichkeit { $action ->
             [close] totomaken
            *[open] optomaken

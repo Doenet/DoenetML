@@ -386,13 +386,13 @@ style-definition-insufficient-contrast =
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; op syn minst { $threshold }:1 nedich).
 
 style-definition-dark-mode-text-background-contrast =
-    Al hat de styldefinysje { $styleNumber } kleuren opjûn dy't yn 'e ljochte modus genôch kontrast jouwe, de dêrfan ôflate kleuren foar de donkere modus hawwe net genôch kontrast fan 'e tekstkleur tsjin de eftergrûnkleur ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; op syn minst { $threshold }:1 nedich). { $suggestion ->
+    Al hat de styldefinysje { $styleNumber } kleuren opjûn dy't yn 'e ljochte modus genôch kontrast jouwe, hawwe de dêrfan ôflate kleuren foar de donkere modus net genôch kontrast fan 'e tekstkleur tsjin de eftergrûnkleur ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; op syn minst { $threshold }:1 nedich). { $suggestion ->
         [available] Om yn 'e donkere modus genôch kontrast te garandearjen, ferheegje of it kontrast yn 'e ljochte modus (bygelyks { $lightAttribute }="{ $lightColor }") of oerskriuw de kleur foar de donkere modus (bygelyks { $darkAttribute }="{ $darkColor }").
        *[none] Om yn 'e donkere modus genôch kontrast te garandearjen, ferheegje it kontrast yn 'e ljochte modus of oerskriuw de ôflate kleuren mei textColorDarkMode en/of backgroundColorDarkMode.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    Al hat de styldefinysje { $styleNumber } in tekstkleur opjûn dy't yn 'e ljochte modus genôch kontrast jout, de dêrfan ôflate tekstkleur foar de donkere modus hat net genôch kontrast tsjin it tekenflak ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; op syn minst { $threshold }:1 nedich). { $suggestion ->
+    Al hat de styldefinysje { $styleNumber } in tekstkleur opjûn dy't yn 'e ljochte modus genôch kontrast jout, hat de dêrfan ôflate tekstkleur foar de donkere modus net genôch kontrast tsjin it tekenflak ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; op syn minst { $threshold }:1 nedich). { $suggestion ->
         [available] Om yn 'e donkere modus genôch kontrast te garandearjen, ferheegje of it kontrast yn 'e ljochte modus (bygelyks textColor="{ $lightColor }") of oerskriuw de kleur foar de donkere modus (bygelyks textColorDarkMode="{ $darkColor }").
        *[none] Om yn 'e donkere modus genôch kontrast te garandearjen, ferheegje it kontrast yn 'e ljochte modus of oerskriuw de ôflate kleur mei textColorDarkMode.
     }

@@ -261,7 +261,7 @@ solve-equations-cannot-evaluate = Non si podet resòlvere s'ecuatzione ca no s'e
 
 math-operators-operand-number-required = Depet èssere indicadu unu operandNumber cando s'estraet unu operandu matemàticu.
 
-eigen-decomposition-failed = Non s'sunt pòdidos carculare sos autovalores de sa matritze
+eigen-decomposition-failed = Non si sunt pòdidos carculare sos autovalores de sa matritze
 
 ## `<matchesPattern>`
 
@@ -291,7 +291,7 @@ prefigure-grid-spacing-too-fine = `<graph>`: s'ispàtziu de sa grìllia est trop
 
 prefigure-annotations-not-rendered = `<graph>`: sas annotatziones no ant a èssere ammustradas cando non s'impreat su motore PreFigure.
 
-multiple-annotations-children = S'sunt agatados prus fìgios `<annotations>` in `<graph>`; totus francu s'ùrtimu benint ignorados.
+multiple-annotations-children = Si sunt agatados prus fìgios `<annotations>` in `<graph>`; totus francu s'ùrtimu benint ignorados.
 
 ## Referring to other components
 
@@ -382,7 +382,7 @@ style-definition-insufficient-contrast =
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; serbit a su mancu { $threshold }:1).
 
 style-definition-dark-mode-text-background-contrast =
-    Fintzas si sa definitzione de istile { $styleNumber } indicat colores cun contrastu bastante pro sa modalidade craru, sos colores de sa modalidade iscura derivados dae custos valores non tenent contrastu bastante intre su colore de su testu e su colore de fundu ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; serbit a su mancu { $threshold }:1). { $suggestion ->
+    Fintzas si sa definitzione de istile { $styleNumber } indicat colores cun contrastu bastante pro sa modalidade crara, sos colores de sa modalidade iscura derivados dae custos valores non tenent contrastu bastante intre su colore de su testu e su colore de fundu ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; serbit a su mancu { $threshold }:1). { $suggestion ->
         [available] Pro assegurare contrastu bastante in sa modalidade iscura, aumenta su contrastu de sa modalidade crara (pro esèmpiu { $lightAttribute }="{ $lightColor }") o cambia su colore de sa modalidade iscura (pro esèmpiu { $darkAttribute }="{ $darkColor }").
        *[none] Pro assegurare contrastu bastante in sa modalidade iscura, aumenta su contrastu de sa modalidade crara o cambia sos colores derivados cun textColorDarkMode e/o backgroundColorDarkMode.
     }
@@ -479,13 +479,13 @@ composite-circular-dependency =
 
 reference-no-referent = No s'est agatadu perunu referente pro su riferimentu: `{ $reference }`
 
-reference-multiple-referents = S'sunt agatados prus referentes pro su riferimentu: `{ $reference }`
+reference-multiple-referents = Si sunt agatados prus referentes pro su riferimentu: `{ $reference }`
 
 ## Children that do not match
 
 children-invalid-attribute-format = Formadu non vàlidu pro s'atributu { $attribute } de `<{ $componentType }>`.
 
-children-invalid = Fìgios non vàlidos pro `<{ $componentType }>`: s'sunt agatados fìgios non vàlidos: { $children }
+children-invalid = Fìgios non vàlidos pro `<{ $componentType }>`: si sunt agatados fìgios non vàlidos: { $children }
 
 ## Falling back to a default
 
@@ -632,7 +632,7 @@ select-from-sequence-coprime-single-number = Non si podent seberare cumbinatzion
 
 select-from-sequence-excluded-too-many-combinations = Prus de su 70% de sas cumbinatziones est esclùidu in selectFromSequence
 
-select-from-sequence-coprime-none-found = Non s'sunt pòdidos seberare nùmeros coprimos. Totu sos valores possìbiles tenent unu fatore comunu.
+select-from-sequence-coprime-none-found = Non si sunt pòdidos seberare nùmeros coprimos. Totu sos valores possìbiles tenent unu fatore comunu.
 
 select-from-sequence-too-few-unique-values = Non si podent seberare { $numToSelect } valores ùnicos dae una sucessione de longària { $numPossibleValues }
 

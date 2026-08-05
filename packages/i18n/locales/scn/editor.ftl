@@ -12,10 +12,10 @@
 # name are identifiers, not prose, and stay as written.
 #
 # Sicilian's third plural category is unreachable here; see `chrome.ftl`'s
-# header. The two counted phrases in `editor-accessibility-label` write no
-# select at all: «viulazzioni» and «raccumannazzioni» are the same word in the
-# singular and the plural, so a branch would choose between two identical
-# strings.
+# header. In the two counted phrases in `editor-accessibility-label`,
+# «viulazzioni» and «raccumannazzioni» are the same word in the singular and
+# the plural, so the branches differ only in the passive verb in front of them
+# — «fu truvata» against «foru truvati» — which is what the select is carrying.
 
 
 ## The viewer's controls
@@ -61,11 +61,17 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Fu truvata na viulazzioni di l'accissibbilità secunnu WCAG AA. Foru truvati { $count } viulazzioni WCAG AA. Clicca pi { $action ->
+        [violations] Fu truvata na viulazzioni di l'accissibbilità secunnu WCAG AA. { $count ->
+            [one] Fu truvata { $count } viulazzioni WCAG AA
+           *[other] Foru truvati { $count } viulazzioni WCAG AA
+        }. Clicca pi { $action ->
             [close] chiuiri
            *[open] grapiri
         } u rapportu d'accissibbilità.
-        [advisories] Nun fu truvata nudda viulazzioni WCAG AA. Foru truvati { $count } raccumannazzioni d'accissibbilità n chiù. Clicca pi { $action ->
+        [advisories] Nun fu truvata nudda viulazzioni WCAG AA. { $count ->
+            [one] Fu truvata { $count } raccumannazzioni d'accissibbilità n chiù
+           *[other] Foru truvati { $count } raccumannazzioni d'accissibbilità n chiù
+        }. Clicca pi { $action ->
             [close] chiuiri
            *[open] grapiri
         } u rapportu d'accissibbilità.
@@ -105,8 +111,8 @@ editor-no-errors = Nuddu erruri
 editor-no-warnings = Nuddu avvisu
 editor-no-info = Nuddu missaggiu nfurmativu
 
-editor-show-info-annotations = Ammustra i missaggi nfurmativi ntâ l'edituri
-editor-show-accessibility-annotations = Ammustra i missaggi d'accissibbilità ntâ l'edituri
+editor-show-info-annotations = Ammustra i missaggi nfurmativi nta l'edituri
+editor-show-accessibility-annotations = Ammustra i missaggi d'accissibbilità nta l'edituri
 
 editor-accessibility-learn-more = Comu Doenet affronta l'accissibbilità
 
@@ -204,8 +210,8 @@ help-type = Tipu:
 help-resolved-style = Stili risurvutu (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Nomi di funzioni risurvuti:
-help-reset-list = Lista di rimpustazzioni ntô stu campu:
-help-added-on-input = Junciutu ntô stu campu:
-help-removed-on-input = Livatu ntô stu campu:
+help-reset-list = Lista di rimpustazzioni nta stu campu:
+help-added-on-input = Junciutu nta stu campu:
+help-removed-on-input = Livatu nta stu campu:
 
 help-reset-overrides = { $reset } passa nnanzi a { $additional } e { $removed }.

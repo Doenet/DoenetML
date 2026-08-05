@@ -32,7 +32,7 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset nun havi effettu 
 
 line-points-undetermined-dimensions = Retta ca passa pi punti di dimensioni nun determinati.
 
-line-points-too-few-dimensions = A retta havi a passari pi punti d'armenu du dimensioni.
+line-points-too-few-dimensions = A retta havi a passari pi punti d'armenu dui dimensioni.
 
 line-points-depend-on-variables = A retta passa pi punti ca dipènnunu di variàbbili: { $variables }.
 
@@ -505,7 +505,7 @@ parse-invalid-doenetml = DoenetML non vàlidu: { $content }
 
 parse-tag-missing-close-tag = DoenetML non vàlidu: l'etichetta `{ $tag }` nun havi etichetta di chiusura. S'aspittava na etichetta ca si chiui d'idda o na etichetta `</{ $tagName }>`.
 
-parse-tag-error = DoenetML non vàlidu: erruri ntâ l'etichetta `<{ $tagName }>`
+parse-tag-error = DoenetML non vàlidu: erruri nta l'etichetta `<{ $tagName }>`
 
 parse-attribute-missing-value = DoenetML non vàlidu: pari ca a l'attribbutu non vàlidu `{ $attribute }` ci manca un valuri.
 

@@ -55,16 +55,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Hè stata identificata una viulazione di l'accessibilità secondu WCAG AA. Sò state trove { $count ->
-            [one] { $count } viulazione WCAG AA
-           *[other] { $count } viulazioni WCAG AA
+        [violations] Hè stata identificata una viulazione di l'accessibilità secondu WCAG AA. { $count ->
+            [one] Hè stata trova { $count } viulazione WCAG AA
+           *[other] Sò state trove { $count } viulazioni WCAG AA
         }. Clicca per { $action ->
             [close] chjude
            *[open] apre
         } u rapportu d'accessibilità.
-        [advisories] Ùn hè stata identificata nisuna viulazione WCAG AA. Sò state trove { $count ->
-            [one] { $count } raccomandazione d'accessibilità in più
-           *[other] { $count } raccomandazioni d'accessibilità in più
+        [advisories] Ùn hè stata identificata nisuna viulazione WCAG AA. { $count ->
+            [one] Hè stata trova { $count } raccomandazione d'accessibilità in più
+           *[other] Sò state trove { $count } raccomandazioni d'accessibilità in più
         }. Clicca per { $action ->
             [close] chjude
            *[open] apre

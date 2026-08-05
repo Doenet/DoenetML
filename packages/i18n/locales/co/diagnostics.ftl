@@ -200,11 +200,11 @@ function-points-too-close = A funzione cuntene dui punti troppu vicini l'unu à 
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-        [one] L'iterazioni d'una funzione sò pussibule solu se u numeru d'entrate hè uguale à quellu d'uscite. Sta funzione hà { $inputs } entrata è { $outputs ->
+        [one] L'iterazioni d'una funzione sò pussibuli solu se u numeru d'entrate hè uguale à quellu d'uscite. Sta funzione hà { $inputs } entrata è { $outputs ->
             [one] { $outputs } uscita
            *[other] { $outputs } uscite
         }.
-       *[other] L'iterazioni d'una funzione sò pussibule solu se u numeru d'entrate hè uguale à quellu d'uscite. Sta funzione hà { $inputs } entrate è { $outputs ->
+       *[other] L'iterazioni d'una funzione sò pussibuli solu se u numeru d'entrate hè uguale à quellu d'uscite. Sta funzione hà { $inputs } entrate è { $outputs ->
             [one] { $outputs } uscita
            *[other] { $outputs } uscite
         }.
@@ -260,7 +260,7 @@ ionic-compound-needs-cation-and-anion = Un cumpostu ionicu hè implementatu solu
 
 solve-equations-cannot-evaluate = Ùn si pò risolve l'equazione perchè ùn s'hè pussuta valutà: { $equation }
 
-math-operators-operand-number-required = Deve esse specificatu un operandNumber quandu si estrae un operandu maticu.
+math-operators-operand-number-required = Deve esse specificatu un operandNumber quandu si estrae un operandu matematicu.
 
 eigen-decomposition-failed = Ùn s'hè pussutu calculà l'autovalori di a matrice
 
@@ -556,7 +556,7 @@ answer-name-not-single-text = L'attributu name d'un answer deve avè un solu fig
 
 ## Referencing another document
 
-external-doenetml-recursion-limit = Ùn si pò ricuperà u DoenetML esternu perchè ci sò troppu livelli di ricursione. Ci sarebbe una riferenza circulare?
+external-doenetml-recursion-limit = Ùn si pò ricuperà u DoenetML esternu perchè ci sò troppu livelli di ricursione. Ci saria una riferenza circulare?
 
 external-doenetml-unavailable = Ùn si pò ricuperà DoenetML da { $attribute }="{ $uri }"
 

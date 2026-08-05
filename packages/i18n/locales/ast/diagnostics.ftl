@@ -291,7 +291,7 @@ prefigure-grid-spacing-too-fine = `<graph>`: l'espaciáu de la rexella ye percen
 
 prefigure-annotations-not-rendered = `<graph>`: les anotaciones nun se van amosar cuando nun s'use'l motor PreFigure.
 
-multiple-annotations-children = Alcontráronse más d'un fíu `<annotations>` en `<graph>`; inórense toos sacante'l últimu.
+multiple-annotations-children = Alcontróse más d'un fíu `<annotations>` en `<graph>`; inórense toos sacante l'últimu.
 
 ## Referring to other components
 
@@ -370,12 +370,12 @@ attribute-invalid-for-component = Atributu "{ $attribute }" inválidu pa un comp
 ## Style definition contrast
 
 style-definition-insufficient-contrast =
-    La definición d'estilu { $styleNumber } nun tien contraste bastante pa { $context ->
-        [text-on-background] el color del testu escontra'l color de fondu
-        [high-contrast] el color d'altu contraste escontra'l llenzu
-        [line] el color de la llinia escontra'l llenzu
-        [marker] el color del marcador escontra'l llenzu
-       *[text-on-canvas] el color del testu escontra'l llenzu
+    La definición d'estilu { $styleNumber } nun tien contraste bastante { $context ->
+        [text-on-background] pal color del testu escontra'l color de fondu
+        [high-contrast] pal color d'altu contraste escontra'l llenzu
+        [line] pal color de la llinia escontra'l llenzu
+        [marker] pal color del marcador escontra'l llenzu
+       *[text-on-canvas] pal color del testu escontra'l llenzu
     }{ $mode ->
         [dark] { " (mou escuru)" }
        *[light] { "" }
@@ -479,7 +479,7 @@ composite-circular-dependency =
 
 reference-no-referent = Nun s'alcontró dengún referente pa la referencia: `{ $reference }`
 
-reference-multiple-referents = Alcontráronse más d'un referente pa la referencia: `{ $reference }`
+reference-multiple-referents = Alcontróse más d'un referente pa la referencia: `{ $reference }`
 
 ## Children that do not match
 

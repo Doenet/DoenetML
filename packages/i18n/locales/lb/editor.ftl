@@ -55,16 +55,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] E Verstouss géint d'Accessibilitéit no WCAG AA gouf festgestallt. Et goufen { $count ->
-            [one] { $count } Verstouss no WCAG AA
-           *[other] { $count } Verstéiss no WCAG AA
+        [violations] E Verstouss géint d'Accessibilitéit no WCAG AA gouf festgestallt. { $count ->
+            [one] Et gouf { $count } Verstouss no WCAG AA
+           *[other] Et goufen { $count } Verstéiss no WCAG AA
         } fonnt. Klickt fir de Bericht iwwer d'Accessibilitéit { $action ->
             [close] zouzemaachen
            *[open] opzemaachen
         }.
-        [advisories] Et goufe keng Verstéiss no WCAG AA festgestallt. Et goufen { $count ->
-            [one] { $count } weider Empfehlung zur Accessibilitéit
-           *[other] { $count } weider Empfehlungen zur Accessibilitéit
+        [advisories] Et goufe keng Verstéiss no WCAG AA festgestallt. { $count ->
+            [one] Et gouf { $count } weider Empfehlung zur Accessibilitéit
+           *[other] Et goufen { $count } weider Empfehlungen zur Accessibilitéit
         } fonnt. Klickt fir de Bericht iwwer d'Accessibilitéit { $action ->
             [close] zouzemaachen
            *[open] opzemaachen
@@ -138,7 +138,7 @@ help-unresolved-ref =
        *[indeterminate] En Objet fir { $ref } konnt net bestëmmt ginn.
     }
 
-help-learn-about-references = Méi iwwer Referenzen enthalen →
+help-learn-about-references = Méi iwwer Referenze léieren →
 help-reference-page = Referenzsäit →
 
 help-suggestions-header =

@@ -64,7 +64,7 @@ constrain-to-interior-without-nearest-point = Impossible de restrénher a l'inte
 
 ## `<choiceInput>`
 
-choice-input-label-position-ignored = labelPosition es ignorat per un choiceInput que non es inline
+choice-input-label-position-ignored = labelPosition es ignorat per un choiceInput qu'es pas inline
 
 ## Ordering children by index
 
