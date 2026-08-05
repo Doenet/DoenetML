@@ -135,15 +135,21 @@ noun =
     .cross = Krüüz
     .plus = Plus
 
+# Low German keeps the side count in front of the noun, as a compound, so the
+# whole of it is one head and there is no tail. The head noun is `-Eck`, which
+# is neuter, so the adjective inside it is the bare stem — and `noun-gender`
+# has to answer `n` for `regular-polygon`, or the adjectives the description
+# puts around this phrase would take the `-e` the other two genders share.
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
-       *[head] regelmatige { $numSides }-Eck
+       *[head] regelmatig { $numSides }-Eck
     }
 
-# Besides the nouns above, `$noun` can be `regular-polygon` (Polygon, m) or the
-# head of a phrase the description never names: `border` (Rand, m), `fill`
-# (Füllung, f), `text` (Text, m), `background` (Achtergrund, m).
+# Besides the nouns above, `$noun` can be `regular-polygon` (which is
+# `{ $numSides }-Eck`, n) or the head of a phrase the description never names:
+# `border` (Rand, m), `fill` (Füllung, f), `text` (Text, m), `background`
+# (Achtergrund, m).
 #
 # The `f` token is answered and never selected on, because masculine and
 # feminine share a form. It is kept so that a later correction distinguishing
@@ -163,6 +169,8 @@ noun-gender =
         [square] n
         [cross] n
         [plus] n
+        [polygon] n
+        [regular-polygon] n
        *[other] m
     }
 

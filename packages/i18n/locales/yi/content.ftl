@@ -11,6 +11,13 @@
 # reordered by hand. `direction.ts` already lists both `yi` and the retired
 # `ji`, so this catalog needed no change there.
 #
+# The three digraphs are written as **two letters each** — «וו», «וי», «יי» —
+# and never as the precomposed ligature characters U+05F0–U+05F2, which render
+# the same and compare unequal. That is the spelling CLDR itself uses for the
+# endonym «ייִדיש», so a search across these four files and the roster's own
+# label find the same characters. The pointed digraph follows the same rule:
+# the pasekh sits on the second of the two yuds, as in «ווייַס».
+#
 # Adjectives *precede* their noun, as in English, so the composition messages
 # at the foot of the file keep the English order — the one thing here that is
 # unlike `locales/he` and `locales/ar`, whose adjectives follow.
@@ -55,13 +62,13 @@ color =
         }
     .white =
         { $role ->
-            [border-clause] װײַסן
-            [background-clause] װײַסן
-            [text-clause] װײַסער
+            [border-clause] ווייַסן
+            [background-clause] ווייַסן
+            [text-clause] ווייַסער
            *[standalone]
                 { $gender ->
-                    [f] װײַסע
-                   *[m] װײַסער
+                    [f] ווייַסע
+                   *[m] ווייַסער
                 }
         }
     .gray =
@@ -144,13 +151,13 @@ color =
     .purple = לילאַ
     .pink =
         { $role ->
-            [border-clause] ראָזעװען
-            [background-clause] ראָזעװען
-            [text-clause] ראָזעװער
+            [border-clause] ראָזעווען
+            [background-clause] ראָזעווען
+            [text-clause] ראָזעווער
            *[standalone]
                 { $gender ->
-                    [f] ראָזעװע
-                   *[m] ראָזעװער
+                    [f] ראָזעווע
+                   *[m] ראָזעווער
                 }
         }
     .brown =
@@ -233,9 +240,9 @@ noun =
     .parabola = פּאַראַבאָלע
     .polyline = געבראָכענע ליניע
     .polygon = פּאָליגאָן
-    .triangle = דרײַעק
+    .triangle = דרייַעק
     .rectangle = רעכטעק
-    .circle = קרײַז
+    .circle = קרייַז
     .region = געגנט
     .point = פּונקט
     .square = קוואַדראַט
@@ -248,7 +255,7 @@ noun =
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
-       *[head] רעגולערער { $numSides }-זײַטיקער פּאָליגאָן
+       *[head] רעגולערער { $numSides }-זייַטיקער פּאָליגאָן
     }
 
 # Besides the nouns above, `$noun` can be `regular-polygon` (פּאָליגאָן, m) or the
@@ -356,10 +363,10 @@ answer-submit-label-no-correctness = שיק דעם ענטפֿער
 
 section-name =
     .activity = אַקטיוויטעט
-    .aside = זײַטיקע באַמערקונג
+    .aside = זייַטיקע באַמערקונג
     .cascade = קאַסקאַד
     .definition = דעפֿיניציע
-    .example = בײַשפּיל
+    .example = בייַשפּיל
     .exercise = געניטונג
     .exercises = געניטונגען
     .given-answer = ענטפֿער
@@ -369,7 +376,7 @@ section-name =
     .part = טייל
     .problem = אויפֿגאַבע
     .problems = אויפֿגאַבעס
-    .proof = באַווײַז
+    .proof = באַווייַז
     .question = פֿראַגע
     .section = אָפּטייל
     .solution = לייזונג
@@ -386,7 +393,7 @@ section-title-prefix =
        *[name-number] { $sectionName } { $sectionNumber }
     }
 
-hint-title = אָנווײַז
+hint-title = אָנווייַז
 
 
 ## Tables and figures
@@ -412,7 +419,7 @@ figure-name =
 
 paginator-previous = פֿריִערדיקע
 paginator-next = קומענדיקע
-paginator-page = זײַט
+paginator-page = זייַט
 
 paginator-page-status = { $pageLabel } { $currentPage } פֿון { $numPages }
 

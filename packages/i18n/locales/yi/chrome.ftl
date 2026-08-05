@@ -31,7 +31,7 @@ answer-submitting-status = שיקן דעם ענטפֿער
 answer-correct = ריכטיק
 answer-incorrect = ניט ריכטיק
 
-answer-response-saved = דער ענטפֿער איז אײַנגעהיט
+answer-response-saved = דער ענטפֿער איז אייַנגעהיט
 
 answer-percent-credit = { $percent }% קרעדיט
 answer-percent-correct = { $percent }% ריכטיק
@@ -41,19 +41,19 @@ max-credit-available = מאַקסימאַלער מעגלעכער קרעדיט: {
 
 attempts-remaining =
     { $count ->
-        [0] קיין פּרוּוון זײַנען ניט געבליבן
+        [0] קיין פּרוּוון זייַנען ניט געבליבן
         [one] עס איז געבליבן { $count } פּרוּוו
-       *[other] עס זײַנען געבליבן { $count } פּרוּוון
+       *[other] עס זייַנען געבליבן { $count } פּרוּוון
     }
 
 validation-correct = (ריכטיק)
 validation-incorrect = (ניט ריכטיק)
-validation-partially-correct = (טיילווײַז ריכטיק)
+validation-partially-correct = (טיילווייַז ריכטיק)
 
 answer-show-responses =
     { $count ->
-        [one] ווײַז { $count } ענטפֿער אויף { $answerId }
-       *[other] ווײַז { $count } ענטפֿערס אויף { $answerId }
+        [one] ווייַז { $count } ענטפֿער אויף { $answerId }
+       *[other] ווייַז { $count } ענטפֿערס אויף { $answerId }
     }
 
 
@@ -66,7 +66,7 @@ collapsible-click-to-close = (קליק צו פֿאַרמאַכן)
 
 collapsible-initializing = אָנהייבן…
 
-footnote-show = ווײַז די פֿוסנאָטע
+footnote-show = ווייַז די פֿוסנאָטע
 footnote-hide = באַהאַלט די פֿוסנאָטע
 
 description-more-information = מער אינפֿאָרמאַציע
@@ -75,7 +75,7 @@ description-more-information = מער אינפֿאָרמאַציע
 ## Controls
 
 slider-previous = צוריק
-slider-next = ווײַטער
+slider-next = ווייַטער
 
 keyboard-open = עפֿן די קלאַוויאַטור
 keyboard-close = פֿאַרמאַך די קלאַוויאַטור
@@ -84,11 +84,11 @@ choice-input-remove-choice = נעם אַרויס { $choice }
 
 matrix-remove-row = נעם אַרויס אַ רייע
 matrix-add-row = צו אַ רייע
-matrix-remove-column = נעם אַרויס אַ זײַל
-matrix-add-column = צו אַ זײַל
+matrix-remove-column = נעם אַרויס אַ זייַל
+matrix-add-column = צו אַ זייַל
 
 subset-add-remove-points = צו/נעם אַרויס פּונקטן
-subset-toggle-points-intervals = בײַט צווישן פּונקטן און אינטערוואַלן
+subset-toggle-points-intervals = בייַט צווישן פּונקטן און אינטערוואַלן
 subset-move-points = רוק די פּונקטן
 subset-clear = רייניק אויס
 
@@ -96,9 +96,9 @@ orbital-add-row = צו אַ רייע
 orbital-remove-row = נעם אַרויס אַ רייע
 orbital-add-box = צו אַ קעסטל
 orbital-remove-box = נעם אַרויס אַ קעסטל
-orbital-add-up-arrow = צו אַ פֿײַל אַרויף
-orbital-add-down-arrow = צו אַ פֿײַל אַראָפּ
-orbital-remove-arrow = נעם אַרויס אַ פֿײַל
+orbital-add-up-arrow = צו אַ פֿייַל אַרויף
+orbital-add-down-arrow = צו אַ פֿייַל אַראָפּ
+orbital-remove-arrow = נעם אַרויס אַ פֿייַל
 
 orbital-row-label = צייכן פֿאַר רייע { $row }
 
@@ -134,13 +134,13 @@ document-contains-errors = דער דאָקומענט אַנטהאַלט טעות
 diagnostic-heading-error = טעות
 diagnostic-heading-warning = וואָרענונג
 diagnostic-heading-information = אינפֿאָרמאַציע
-diagnostic-heading-hint = אָנווײַז
+diagnostic-heading-hint = אָנווייַז
 
 accessibility-heading-level-1 = איבערטרעטונג פֿון צוטריטלעכקייט לויט WCAG AA
 accessibility-heading-level-2 = וואָרענונג וועגן צוטריטלעכקייט
 
 something-went-wrong = עפּעס איז ניט געגאַנגען ווי געהעריק.
 
-renderer-load-failed = אַ מאָדול פֿאַרן ווײַזן האָט זיך ניט אַרויפֿגעלאָדן. לאָדט איבער די בלאַט.
+renderer-load-failed = אַ מאָדול פֿאַרן ווייַזן האָט זיך ניט אַרויפֿגעלאָדן. לאָדט איבער די בלאַט.
 
-core-start-failed = דער דאָקומענט־ווײַזער האָט זיך ניט געקענט אָנהייבן. לאָדט איבער די בלאַט.
+core-start-failed = דער דאָקומענט־ווייַזער האָט זיך ניט געקענט אָנהייבן. לאָדט איבער די בלאַט.

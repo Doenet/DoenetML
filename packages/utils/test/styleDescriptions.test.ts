@@ -1692,3 +1692,67 @@ describe("the role argument", () => {
         ).toEqual([]);
     });
 });
+
+/**
+ * `noun-regular-polygon` is the one noun that is not a word but a phrase, and
+ * the two ways of building it each have a failure mode a plausible-looking
+ * catalog can walk into.
+ *
+ * A language that folds the side count into a compound has to answer
+ * `noun-gender` for the *compound's* head rather than for its word for
+ * "polygon" — Luxembourgish and Low German both build on `-Eck`, which is
+ * neuter, while their word «Polygon» would fall to the default. A language
+ * that cannot fold it has to split the phrase, so that the complement closes
+ * it behind the adjectives rather than stranding them behind the sides.
+ */
+describe("a regular polygon's side count", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const polygon: NounSpec = { key: "regular-polygon", numSides: 5 };
+    const words = { colorWord: "red", lineWidthWord: "thick" };
+
+    const described = (locale: string, noun: NounSpec) =>
+        describeStrokedShape(forLocale(locale), words, {
+            noun,
+            withNoun: true,
+        });
+
+    it("takes the compound head's gender, not the word for polygon", () => {
+        // Both would read as plausible prose with the wrong gender — the
+        // masculine endings are the ones every other noun in the table takes —
+        // which is why this is asserted beside a masculine noun of each
+        // language rather than alone.
+        expect(described("lb", polygon)).toBe("déckt rout regelméissegt 5-Eck");
+        expect(described("lb", { key: "circle" })).toBe("décke route Krees");
+        expect(described("nds", polygon)).toBe("dick root regelmatig 5-Eck");
+        expect(described("nds", { key: "circle" })).toBe("dicke rode Krink");
+    });
+
+    it("closes the phrase behind the adjectives in the postnominal catalogs", () => {
+        // The six that split it, which is what `style-with-noun`'s `noun-tail`
+        // branch exists for: the adjectives stay against the head and the
+        // sides follow them.
+        expect(described("oc", polygon)).toBe(
+            "poligòn regular espès roge amb 5 costats",
+        );
+        expect(described("ast", polygon)).toBe(
+            "polígonu regular gruesu coloráu de 5 llaos",
+        );
+        expect(described("sc", polygon)).toBe(
+            "polìgonu regulare grussu ruju de 5 lados",
+        );
+        expect(described("scn", polygon)).toBe(
+            "pulìgunu rigulari grossu russu di 5 lati",
+        );
+        expect(described("co", polygon)).toBe(
+            "puligonu regulare grossu rossu di 5 lati",
+        );
+        expect(described("rm", polygon)).toBe(
+            "poligon regular grass cotschen da 5 lats",
+        );
+    });
+});

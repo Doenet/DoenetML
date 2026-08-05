@@ -22,14 +22,14 @@
 
 line-segment-attributes-ignored-with-endpoints =
     { $attributesCount ->
-        [one] { $attributes } ווערט איגנאָרירט ווען ביידע עקפּונקטן זײַנען אָנגעגעבן
-       *[other] { $attributes } ווערן איגנאָרירט ווען ביידע עקפּונקטן זײַנען אָנגעגעבן
+        [one] { $attributes } ווערט איגנאָרירט ווען ביידע עקפּונקטן זייַנען אָנגעגעבן
+       *[other] { $attributes } ווערן איגנאָרירט ווען ביידע עקפּונקטן זייַנען אָנגעגעבן
     }
 
 line-segment-attributes-ignored-with-endpoint-and-midpoint =
     { $attributesCount ->
-        [one] { $attributes } ווערט איגנאָרירט ווען אַן עקפּונקט און אַ מיטלפּונקט זײַנען ביידע אָנגעגעבן
-       *[other] { $attributes } ווערן איגנאָרירט ווען אַן עקפּונקט און אַ מיטלפּונקט זײַנען ביידע אָנגעגעבן
+        [one] { $attributes } ווערט איגנאָרירט ווען אַן עקפּונקט און אַ מיטלפּונקט זייַנען ביידע אָנגעגעבן
+       *[other] { $attributes } ווערן איגנאָרירט ווען אַן עקפּונקט און אַ מיטלפּונקט זייַנען ביידע אָנגעגעבן
     }
 
 line-segment-midpoint-offset-without-midpoint = midpointOffset האָט קיין ווירקונג ניט אָן אַ מיטלפּונקט
@@ -42,7 +42,7 @@ line-points-too-few-dimensions = אַ ליניע מוז גיין דורך פּו
 
 line-points-depend-on-variables = די ליניע גייט דורך פּונקטן וואָס הענגען אָפּ פֿון וואַריאַבלען: { $variables }.
 
-line-equation-invalid-format = אומגילטיקער פֿאָרמאַט פֿאַר דער גלײַכונג פֿון אַ ליניע אין די וואַריאַבלען { $variable1 } און { $variable2 }.
+line-equation-invalid-format = אומגילטיקער פֿאָרמאַט פֿאַר דער גלייַכונג פֿון אַ ליניע אין די וואַריאַבלען { $variable1 } און { $variable2 }.
 
 ## `<ray>`
 
@@ -58,11 +58,11 @@ vector-dimension-mismatch = ניט־שטימיקער numDimensions אין vector
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = מען קען ניט צוציִען צו אַ `<{ $component }>` ווײַל ער האָט ניט קיין nearestPoint סטאַט־וואַריאַבל.
+attract-to-without-nearest-point = מען קען ניט צוציִען צו אַ `<{ $component }>` ווייַל ער האָט ניט קיין nearestPoint סטאַט־וואַריאַבל.
 
-constrain-to-without-nearest-point = מען קען ניט באַגרענעצן צו אַ `<{ $component }>` ווײַל ער האָט ניט קיין nearestPoint סטאַט־וואַריאַבל.
+constrain-to-without-nearest-point = מען קען ניט באַגרענעצן צו אַ `<{ $component }>` ווייַל ער האָט ניט קיין nearestPoint סטאַט־וואַריאַבל.
 
-constrain-to-interior-without-nearest-point = מען קען ניט באַגרענעצן צום אינעווייניקסטן פֿון אַ `<{ $component }>` ווײַל ער האָט ניט קיין nearestPoint סטאַט־וואַריאַבל.
+constrain-to-interior-without-nearest-point = מען קען ניט באַגרענעצן צום אינעווייניקסטן פֿון אַ `<{ $component }>` ווייַל ער האָט ניט קיין nearestPoint סטאַט־וואַריאַבל.
 
 ## `<choiceInput>`
 
@@ -70,23 +70,23 @@ choice-input-label-position-ignored = labelPosition ווערט איגנאָרי�
 
 ## Ordering children by index
 
-choice-input-indices-count-mismatch = די אָנגעגעבענע אינדעקסן פֿאַר choiceInput ווערן איגנאָרירט ווײַל די צאָל אינדעקסן שטימט ניט מיט דער צאָל choice־קינדער.
+choice-input-indices-count-mismatch = די אָנגעגעבענע אינדעקסן פֿאַר choiceInput ווערן איגנאָרירט ווייַל די צאָל אינדעקסן שטימט ניט מיט דער צאָל choice־קינדער.
 
-pretzel-indices-count-mismatch = די אָנגעגעבענע אינדעקסן פֿאַר problem ווערן איגנאָרירט ווײַל די צאָל אינדעקסן שטימט ניט מיט דער צאָל problem־קינדער.
+pretzel-indices-count-mismatch = די אָנגעגעבענע אינדעקסן פֿאַר problem ווערן איגנאָרירט ווייַל די צאָל אינדעקסן שטימט ניט מיט דער צאָל problem־קינדער.
 
-shuffle-indices-count-mismatch = די אָנגעגעבענע אינדעקסן פֿאַר shuffle ווערן איגנאָרירט ווײַל די צאָל אינדעקסן שטימט ניט מיט דער צאָל קאָמפּאָנענטן.
+shuffle-indices-count-mismatch = די אָנגעגעבענע אינדעקסן פֿאַר shuffle ווערן איגנאָרירט ווייַל די צאָל אינדעקסן שטימט ניט מיט דער צאָל קאָמפּאָנענטן.
 
-indices-ignored-out-of-range = די אָנגעגעבענע אינדעקסן פֿאַר { $component } ווערן איגנאָרירט ווײַל טייל אינדעקסן זײַנען אַרויס פֿון תּחום.
+indices-ignored-out-of-range = די אָנגעגעבענע אינדעקסן פֿאַר { $component } ווערן איגנאָרירט ווייַל טייל אינדעקסן זייַנען אַרויס פֿון תּחום.
 
-pretzel-indices-repeated = די אָנגעגעבענע אינדעקסן פֿאַר pretzel ווערן איגנאָרירט ווײַל טייל אינדעקסן חזרן זיך איבער.
+pretzel-indices-repeated = די אָנגעגעבענע אינדעקסן פֿאַר pretzel ווערן איגנאָרירט ווייַל טייל אינדעקסן חזרן זיך איבער.
 
-pretzel-circuit-first-index = די אָנגעגעבענע אינדעקסן פֿאַר pretzel אין mode="circuit" ווערן איגנאָרירט ווײַל דער ערשטער אינדעקס מוז זײַן 1.
+pretzel-circuit-first-index = די אָנגעגעבענע אינדעקסן פֿאַר pretzel אין mode="circuit" ווערן איגנאָרירט ווייַל דער ערשטער אינדעקס מוז זייַן 1.
 
 ## `<shuffle>` and `<sort>`
 
-string-children-need-type = כּדי `<{ $component }>` זאָל אַרבעטן מיט טעקסט־קינדער מוז אַן אַטריבוט `type` זײַן אָנגעגעבן.
+string-children-need-type = כּדי `<{ $component }>` זאָל אַרבעטן מיט טעקסט־קינדער מוז אַן אַטריבוט `type` זייַן אָנגעגעבן.
 
-invalid-type-defaulting-to-math = אומגילטיקער type { $type } פֿאַר דער קאָמפּאָנענט { $component }. עס מוז זײַן math, text, number אָדער boolean. עס ווערט געשטעלט אויף math.
+invalid-type-defaulting-to-math = אומגילטיקער type { $type } פֿאַר דער קאָמפּאָנענט { $component }. עס מוז זייַן math, text, number אָדער boolean. עס ווערט געשטעלט אויף math.
 
 string-not-valid-component-to-arrange = דער טעקסט "{ $value }" איז ניט קיין גילטיקע קאָמפּאָנענט פֿאַר { $component }. ער ווערט איגנאָרירט.
 
@@ -98,9 +98,9 @@ invalid-variable-value = אומגילטיקער ווערט פֿון אַ ווא�
 
 ## Variants
 
-variant-index-must-be-number = דער וואַריאַנט־אינדעקס { $index } מוז זײַן אַ צאָל
+variant-index-must-be-number = דער וואַריאַנט־אינדעקס { $index } מוז זייַן אַ צאָל
 
-variant-index-must-be-integer = דער וואַריאַנט־אינדעקס { $index } מוז זײַן אַ גאַנצע צאָל
+variant-index-must-be-integer = דער וואַריאַנט־אינדעקס { $index } מוז זייַן אַ גאַנצע צאָל
 
 ## `<sideBySide>`
 
@@ -118,23 +118,23 @@ label-for-must-resolve-to-one = דער אַטריבוט `for` אויף `<label>`
 
 label-for-unresolved = דער אַטריבוט `for` אויף `<label>` האָט זיך ניט געלאָזט אויסלייזן אין אַ קאָמפּאָנענט.
 
-label-for-answer-with-authored-inputs = דער אַטריבוט `for` אויף `<label>` ווײַזט אויף אַן `<answer>` מיט בפֿירוש געשריבענע אַרײַנפֿירן; ווײַזט בעסער אויף דעם אַרײַנפֿיר אַליין.
+label-for-answer-with-authored-inputs = דער אַטריבוט `for` אויף `<label>` ווייַזט אויף אַן `<answer>` מיט בפֿירוש געשריבענע אַרייַנפֿירן; ווייַזט בעסער אויף דעם אַרייַנפֿיר אַליין.
 
-label-for-answer-without-input = דער אַטריבוט `for` אויף `<label>` ווײַזט אויף אַן `<answer>` אָן אַן אַרײַנפֿיר צו באַצייכענען.
+label-for-answer-without-input = דער אַטריבוט `for` אויף `<label>` ווייַזט אויף אַן `<answer>` אָן אַן אַרייַנפֿיר צו באַצייכענען.
 
-label-for-must-reference-input-or-answer = דער אַטריבוט `for` אויף `<label>` מוז ווײַזן אויף אַן אַרײַנפֿיר אָדער אויף אַן answer.
+label-for-must-reference-input-or-answer = דער אַטריבוט `for` אויף `<label>` מוז ווייַזן אויף אַן אַרייַנפֿיר אָדער אויף אַן answer.
 
 ## Accessibility
 
-accessibility-short-description-or-decorative = צוליב צוטריטלעכקייט מוז `<{ $component }>` האָבן אַ קורצע באַשרײַבונג אָדער זײַן אָנגעגעבן װי אַ באַפּוצנדיקער.
+accessibility-short-description-or-decorative = צוליב צוטריטלעכקייט מוז `<{ $component }>` האָבן אַ קורצע באַשרייַבונג אָדער זייַן אָנגעגעבן ווי אַ באַפּוצנדיקער.
 
-accessibility-video-short-description = צוליב צוטריטלעכקייט מוז `<video>` האָבן אַ קורצע באַשרײַבונג.
+accessibility-video-short-description = צוליב צוטריטלעכקייט מוז `<video>` האָבן אַ קורצע באַשרייַבונג.
 
-accessibility-input-short-description-or-label = צוליב צוטריטלעכקייט מוז `<{ $component }>` האָבן אַ קורצע באַשרײַבונג אָדער אַ צייכן.
+accessibility-input-short-description-or-label = צוליב צוטריטלעכקייט מוז `<{ $component }>` האָבן אַ קורצע באַשרייַבונג אָדער אַ צייכן.
 
-accessibility-answer-input-short-description-or-label = צוליב צוטריטלעכקייט מוז אַן `<answer>` וואָס שאַפֿט אַן אַרײַנפֿיר האָבן אַ קורצע באַשרײַבונג אָדער אַ צייכן.
+accessibility-answer-input-short-description-or-label = צוליב צוטריטלעכקייט מוז אַן `<answer>` וואָס שאַפֿט אַן אַרייַנפֿיר האָבן אַ קורצע באַשרייַבונג אָדער אַ צייכן.
 
-accessibility-short-description-contains-math = קורצע באַשרײַבונגען זאָלן ניט אַנטהאַלטן מאַטעמאַטישע קאָמפּאָנענטן װי `<{ $component }>`. שרײַבט די מאַטעמאַטיק אויס מיט ווערטער.
+accessibility-short-description-contains-math = קורצע באַשרייַבונגען זאָלן ניט אַנטהאַלטן מאַטעמאַטישע קאָמפּאָנענטן ווי `<{ $component }>`. שרייַבט די מאַטעמאַטיק אויס מיט ווערטער.
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
@@ -146,37 +146,37 @@ accessibility-section-title-insufficient-contrast =
 
 circle-through-points-non-numerical = אַ `<circle>` דורך { $count } פּונקטן איז ניט אויסגעפֿירט אין דעם פֿאַל וווּ די פּונקטן האָבן ניט קיין נומערישע ווערטן.
 
-circle-too-many-through-points = מען קען ניט אויסרעכענען אַ קרײַז דורך מער ווי 3 פּונקטן.
+circle-too-many-through-points = מען קען ניט אויסרעכענען אַ קרייַז דורך מער ווי 3 פּונקטן.
 
-circle-overprescribed-radius-center-points = מען קען ניט אויסרעכענען אַ קרײַז מיט אַן אָנגעגעבענעם ראַדיוס, צענטער און פּונקטן.
+circle-overprescribed-radius-center-points = מען קען ניט אויסרעכענען אַ קרייַז מיט אַן אָנגעגעבענעם ראַדיוס, צענטער און פּונקטן.
 
-circle-center-with-multiple-points = מען קען ניט אויסרעכענען אַ קרײַז מיט אַן אָנגעגעבענעם צענטער דורך מער ווי 1 פּונקט.
+circle-center-with-multiple-points = מען קען ניט אויסרעכענען אַ קרייַז מיט אַן אָנגעגעבענעם צענטער דורך מער ווי 1 פּונקט.
 
-circle-radius-too-small = מען קען ניט אויסרעכענען דעם קרײַז: אַזוי ווי דער אָפּשטאַנד צווישן די צוויי פּונקטן איז { $distance }, איז דער אָנגעגעבענער ראַדיוס { $radius } צו קליין.
+circle-radius-too-small = מען קען ניט אויסרעכענען דעם קרייַז: אַזוי ווי דער אָפּשטאַנד צווישן די צוויי פּונקטן איז { $distance }, איז דער אָנגעגעבענער ראַדיוס { $radius } צו קליין.
 
-circle-radius-with-many-points = מען קען ניט שאַפֿן אַ קרײַז דורך מער ווי צוויי פּונקטן מיט אַן אָנגעגעבענעם ראַדיוס.
+circle-radius-with-many-points = מען קען ניט שאַפֿן אַ קרייַז דורך מער ווי צוויי פּונקטן מיט אַן אָנגעגעבענעם ראַדיוס.
 
-circle-invalid-center-or-through-points = אומגילטיקער צענטער אָדער אומגילטיקע פּונקטן פֿונעם קרײַז.
+circle-invalid-center-or-through-points = אומגילטיקער צענטער אָדער אומגילטיקע פּונקטן פֿונעם קרייַז.
 
-circle-radius-center-with-multiple-points = מען קען ניט אויסרעכענען דעם ראַדיוס פֿון אַ קרײַז מיט אַן אָנגעגעבענעם צענטער דורך מער ווי 1 פּונקט.
+circle-radius-center-with-multiple-points = מען קען ניט אויסרעכענען דעם ראַדיוס פֿון אַ קרייַז מיט אַן אָנגעגעבענעם צענטער דורך מער ווי 1 פּונקט.
 
-circle-change-radius-non-numerical = מען קען ניט בײַטן דעם ראַדיוס פֿון אַ קרײַז מיט ניט־נומערישע פּונקטן
+circle-change-radius-non-numerical = מען קען ניט בייַטן דעם ראַדיוס פֿון אַ קרייַז מיט ניט־נומערישע פּונקטן
 
-circle-radius-with-points-non-numerical = מען קען ניט שאַפֿן אַ קרײַז דורך מער ווי איין פּונקט מיט אַן אָנגעגעבענעם ראַדיוס ווען די ווערטן זײַנען ניט נומעריש.
+circle-radius-with-points-non-numerical = מען קען ניט שאַפֿן אַ קרייַז דורך מער ווי איין פּונקט מיט אַן אָנגעגעבענעם ראַדיוס ווען די ווערטן זייַנען ניט נומעריש.
 
-circle-change-center-non-numerical = דאָס בײַטן פֿונעם צענטער פֿון אַ קרײַז דורך פּונקטן מיט ניט־נומערישע ווערטן איז ניט אויסגעפֿירט.
+circle-change-center-non-numerical = דאָס בייַטן פֿונעם צענטער פֿון אַ קרייַז דורך פּונקטן מיט ניט־נומערישע ווערטן איז ניט אויסגעפֿירט.
 
 ## `<function>`
 
 function-domain-insufficient-dimensions =
     { $intervals ->
         [one] ניט גענוג דימענסיעס פֿאַרן געביט פֿון דער פֿונקציע. דאָס געביט האָט { $intervals } אינטערוואַל, און די פֿונקציע האָט { $inputs ->
-            [one] { $inputs } אַרײַנפֿיר
-           *[other] { $inputs } אַרײַנפֿירן
+            [one] { $inputs } אַרייַנפֿיר
+           *[other] { $inputs } אַרייַנפֿירן
         }.
        *[other] ניט גענוג דימענסיעס פֿאַרן געביט פֿון דער פֿונקציע. דאָס געביט האָט { $intervals } אינטערוואַלן, און די פֿונקציע האָט { $inputs ->
-            [one] { $inputs } אַרײַנפֿיר
-           *[other] { $inputs } אַרײַנפֿירן
+            [one] { $inputs } אַרייַנפֿיר
+           *[other] { $inputs } אַרייַנפֿירן
         }.
     }
 
@@ -188,7 +188,7 @@ function-ignoring-non-numerical =
         [minimum] דער ניט־נומערישער מינימום פֿון דער פֿונקציע ווערט איגנאָרירט.
         [extremum] דער ניט־נומערישער עקסטרעמום פֿון דער פֿונקציע ווערט איגנאָרירט.
         [point] דער ניט־נומערישער פּונקט פֿון דער פֿונקציע ווערט איגנאָרירט.
-        [slope] דער ניט־נומערישער נײַג פֿון דער פֿונקציע ווערט איגנאָרירט.
+        [slope] דער ניט־נומערישער נייַג פֿון דער פֿונקציע ווערט איגנאָרירט.
        *[other] דער ניט־נומערישער { $type } פֿון דער פֿונקציע ווערט איגנאָרירט.
     }
 
@@ -205,11 +205,11 @@ function-points-too-close = די פֿונקציע אַנטהאַלט צוויי 
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-        [one] איטעראַציעס פֿון אַ פֿונקציע זײַנען מעגלעך בלויז אויב די צאָל אַרײַנפֿירן איז גלײַך צו דער צאָל אַרויספֿירן. די פֿונקציע האָט { $inputs } אַרײַנפֿיר און { $outputs ->
+        [one] איטעראַציעס פֿון אַ פֿונקציע זייַנען מעגלעך בלויז אויב די צאָל אַרייַנפֿירן איז גלייַך צו דער צאָל אַרויספֿירן. די פֿונקציע האָט { $inputs } אַרייַנפֿיר און { $outputs ->
             [one] { $outputs } אַרויספֿיר
            *[other] { $outputs } אַרויספֿירן
         }.
-       *[other] איטעראַציעס פֿון אַ פֿונקציע זײַנען מעגלעך בלויז אויב די צאָל אַרײַנפֿירן איז גלײַך צו דער צאָל אַרויספֿירן. די פֿונקציע האָט { $inputs } אַרײַנפֿירן און { $outputs ->
+       *[other] איטעראַציעס פֿון אַ פֿונקציע זייַנען מעגלעך בלויז אויב די צאָל אַרייַנפֿירן איז גלייַך צו דער צאָל אַרויספֿירן. די פֿונקציע האָט { $inputs } אַרייַנפֿירן און { $outputs ->
             [one] { $outputs } אַרויספֿיר
            *[other] { $outputs } אַרויספֿירן
         }.
@@ -217,19 +217,19 @@ function-iterates-input-output-mismatch =
 
 ## `<sequence>`
 
-sequence-invalid-length = אומגילטיקע לענג פֿון דער סעקווענץ. עס מוז זײַן אַ ניט־נעגאַטיווע גאַנצע צאָל.
+sequence-invalid-length = אומגילטיקע לענג פֿון דער סעקווענץ. עס מוז זייַן אַ ניט־נעגאַטיווע גאַנצע צאָל.
 
-sequence-invalid-step = אומגילטיקער טראָט פֿון דער סעקווענץ. עס מוז זײַן אַ צאָל פֿאַר אַ סעקווענץ פֿון טיפּ { $type }.
+sequence-invalid-step = אומגילטיקער טראָט פֿון דער סעקווענץ. עס מוז זייַן אַ צאָל פֿאַר אַ סעקווענץ פֿון טיפּ { $type }.
 
-sequence-invalid-endpoint-number = אומגילטיקער "{ $attribute }" פֿון אַ נומערישער סעקווענץ. עס מוז זײַן אַ צאָל.
+sequence-invalid-endpoint-number = אומגילטיקער "{ $attribute }" פֿון אַ נומערישער סעקווענץ. עס מוז זייַן אַ צאָל.
 
-sequence-invalid-endpoint-letters = אומגילטיקער "{ $attribute }" פֿון אַ בוכשטאַבן־סעקווענץ. עס מוז זײַן אַ קאָמבינאַציע פֿון בוכשטאַבן.
+sequence-invalid-endpoint-letters = אומגילטיקער "{ $attribute }" פֿון אַ בוכשטאַבן־סעקווענץ. עס מוז זייַן אַ קאָמבינאַציע פֿון בוכשטאַבן.
 
 sequence-invalid-endpoint = אומגילטיקער "{ $attribute }" פֿון דער סעקווענץ.
 
-select-from-sequence-coprime-not-numbers = coprime ווערט איגנאָרירט ווײַל מען קלײַבט ניט קיין צאָלן
+select-from-sequence-coprime-not-numbers = coprime ווערט איגנאָרירט ווייַל מען קלייַבט ניט קיין צאָלן
 
-select-from-sequence-coprime-with-exclude-combinations = coprime ווערט איגנאָרירט ווײַל excludeCombinations איז אָנגעגעבן
+select-from-sequence-coprime-with-exclude-combinations = coprime ווערט איגנאָרירט ווייַל excludeCombinations איז אָנגעגעבן
 
 ## Resolving a `target`
 
@@ -239,11 +239,11 @@ target-state-variable-not-found = אומגילטיקער target פֿאַר `<{ $
 
 ## `<odeSystem>`
 
-ode-system-variables-match-independent = די וואַריאַבלען פֿון `<odeSystem>` מוזן זײַן אַנדערע ווי די אומאָפּהענגיקע וואַריאַבל.
+ode-system-variables-match-independent = די וואַריאַבלען פֿון `<odeSystem>` מוזן זייַן אַנדערע ווי די אומאָפּהענגיקע וואַריאַבל.
 
-ode-system-duplicate-variable-names = מען קען ניט דעפֿינירן די רעכטע זײַטן פֿון אַ דיפֿערענציאַל־גלײַכונג מיט איבערגעחזרטע נעמען פֿון אָפּהענגיקע וואַריאַבלען.
+ode-system-duplicate-variable-names = מען קען ניט דעפֿינירן די רעכטע זייַטן פֿון אַ דיפֿערענציאַל־גלייַכונג מיט איבערגעחזרטע נעמען פֿון אָפּהענגיקע וואַריאַבלען.
 
-ode-system-rhs-function-error = מען קען ניט דעפֿינירן די רעכטע זײַט פֿון דער דיפֿערענציאַל־גלײַכונג. אַ טעות בײַם שאַפֿן דער mathjs־פֿונקציע.
+ode-system-rhs-function-error = מען קען ניט דעפֿינירן די רעכטע זייַט פֿון דער דיפֿערענציאַל־גלייַכונג. אַ טעות בייַם שאַפֿן דער mathjs־פֿונקציע.
 
 ## `<angle>`, `<parabola>`, and `<intersection>`
 
@@ -255,7 +255,7 @@ parabola-vertex-too-many-points = אַ פּאַראַבאָלע מיט אַ שפ
 
 parabola-too-many-points = אַ פּאַראַבאָלע דורך מער ווי 3 פּונקטן איז ניט אויסגעפֿירט.
 
-intersection-too-many-items = אַ שנײַדונג פֿון מער ווי צוויי אָביעקטן איז ניט אויסגעפֿירט
+intersection-too-many-items = אַ שנייַדונג פֿון מער ווי צוויי אָביעקטן איז ניט אויסגעפֿירט
 
 ## Other math components
 
@@ -263,9 +263,9 @@ ionic-compound-not-two-ions = אַ יאָנישע פֿאַרבינדונג אי�
 
 ionic-compound-needs-cation-and-anion = אַ יאָנישע פֿאַרבינדונג איז אויסגעפֿירט בלויז פֿאַר איין קאַטיאָן און איין אַניאָן.
 
-solve-equations-cannot-evaluate = מען קען די גלײַכונג ניט לייזן ווײַל מען האָט זי ניט געקענט אויסרעכענען: { $equation }
+solve-equations-cannot-evaluate = מען קען די גלייַכונג ניט לייזן ווייַל מען האָט זי ניט געקענט אויסרעכענען: { $equation }
 
-math-operators-operand-number-required = בײַם אַרויסציִען אַ מאַטעמאַטישן אָפּעראַנד מוז מען אָנגעבן אַן operandNumber.
+math-operators-operand-number-required = בייַם אַרויסציִען אַ מאַטעמאַטישן אָפּעראַנד מוז מען אָנגעבן אַן operandNumber.
 
 eigen-decomposition-failed = מען האָט ניט געקענט אויסרעכענען די אייגנווערטן פֿון דער מאַטריצע
 
@@ -279,13 +279,13 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: מען קען ניט פֿאַרשטיין grid="{ $grid }". עס מוז זײַן none, medium, dense אָדער צוויי positive צאָלן געשיידט מיט אַ ליידיקן אָרט, למשל grid="1 0.5". קיין נעץ ווערט ניט געצייכנט.
+graph-grid-invalid = `<graph>`: מען קען ניט פֿאַרשטיין grid="{ $grid }". עס מוז זייַן none, medium, dense אָדער צוויי positive צאָלן געשיידט מיט אַ ליידיקן אָרט, למשל grid="1 0.5". קיין נעץ ווערט ניט געצייכנט.
 
 ## PreFigure renderer
 
-prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" איז ניט געשטיצט אינעם prefigure־ווײַזער; עס ווערט גענוצט דאָס אויפֿפֿירן פֿון דער רעכטער פּאָזיציע.
+prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" איז ניט געשטיצט אינעם prefigure־ווייַזער; עס ווערט גענוצט דאָס אויפֿפֿירן פֿון דער רעכטער פּאָזיציע.
 
-prefigure-y-label-position-unsupported = `<graph>`: yLabelPosition="bottom" איז ניט געשטיצט אינעם prefigure־ווײַזער; עס ווערט גענוצט דאָס אויפֿפֿירן פֿון דער אויבערשטער פּאָזיציע.
+prefigure-y-label-position-unsupported = `<graph>`: yLabelPosition="bottom" איז ניט געשטיצט אינעם prefigure־ווייַזער; עס ווערט גענוצט דאָס אויפֿפֿירן פֿון דער אויבערשטער פּאָזיציע.
 
 prefigure-invalid-axis-bounds = `<graph>`: אומגילטיקע גרענעצן פֿון די אַקסן פֿאַר דער prefigure־איבערזעצונג; עס ווערט גענוצט דער פֿאַרפֿעלטער bbox (-10,-10,10,10).
 
@@ -293,9 +293,9 @@ prefigure-invalid-width = `<graph>`: אומגילטיקע ברייט פֿאַר 
 
 prefigure-invalid-aspect-ratio = `<graph>`: אומגילטיקער aspectRatio פֿאַר דער prefigure־איבערזעצונג; עס ווערט גענוצט די פֿאַרפֿעלטע פּראָפּאָרציע 1.
 
-prefigure-grid-spacing-too-fine = `<graph>`: דער אָפּשטאַנד פֿון דער נעץ איז צו קליין פֿאַר די גרענעצן פֿון די אַקסן; די נעץ ווערט אויסגעלאָזט אינעם prefigure־ווײַזער.
+prefigure-grid-spacing-too-fine = `<graph>`: דער אָפּשטאַנד פֿון דער נעץ איז צו קליין פֿאַר די גרענעצן פֿון די אַקסן; די נעץ ווערט אויסגעלאָזט אינעם prefigure־ווייַזער.
 
-prefigure-annotations-not-rendered = `<graph>`: אָנמערקונגען וועלן ניט געוויזן ווערן ווען מען נוצט ניט דעם PreFigure־ווײַזער.
+prefigure-annotations-not-rendered = `<graph>`: אָנמערקונגען וועלן ניט געוויזן ווערן ווען מען נוצט ניט דעם PreFigure־ווייַזער.
 
 multiple-annotations-children = מער ווי איין `<annotations>`־קינד איז געפֿונען געוואָרן אין `<graph>`; אַלע חוץ דעם לעצטן ווערן איגנאָרירט.
 
@@ -307,9 +307,9 @@ copy-prop-not-found = מען האָט ניט געפֿונען די אייגנש�
 
 collect-no-source = מען האָט ניט געפֿונען קיין מקור פֿאַר collect.
 
-collect-invalid-component-type = מען קען ניט זאַמלען קאָמפּאָנענטן פֿון טיפּ `<{ $component }>` ווײַל דאָס איז אַן אומגילטיקער קאָמפּאָנענט־טיפּ.
+collect-invalid-component-type = מען קען ניט זאַמלען קאָמפּאָנענטן פֿון טיפּ `<{ $component }>` ווייַל דאָס איז אַן אומגילטיקער קאָמפּאָנענט־טיפּ.
 
-reference-index-unavailable = מען קען ניט ווײַזן אויפֿן אינדעקס `{ $reference }`
+reference-index-unavailable = מען קען ניט ווייַזן אויפֿן אינדעקס `{ $reference }`
 
 ## `<callAction>`
 
@@ -317,19 +317,19 @@ component-action-unavailable = מען קען ניט רופֿן { $action } או�
 
 ## `<dataFrame>`
 
-data-frame-inconsistent-row-lengths = די דאַטן האָבן אַן אומגילטיקע פֿאָרעם. די רייען זײַנען ניט פֿון גלײַכער לענג. געפֿונען אין componentIdx :{ $componentIdx }
+data-frame-inconsistent-row-lengths = די דאַטן האָבן אַן אומגילטיקע פֿאָרעם. די רייען זייַנען ניט פֿון גלייַכער לענג. געפֿונען אין componentIdx :{ $componentIdx }
 
-data-frame-duplicate-column-names = די דאַטן האָבן איבערגעחזרטע זײַל־נעמען. געפֿונען אין componentIdx :{ $componentIdx }
+data-frame-duplicate-column-names = די דאַטן האָבן איבערגעחזרטע זייַל־נעמען. געפֿונען אין componentIdx :{ $componentIdx }
 
-data-frame-missing-column-name = די דאַטן פֿעלט אַ זײַל־נאָמען. געפֿונען אין componentIdx :{ $componentIdx }
+data-frame-missing-column-name = די דאַטן פֿעלט אַ זייַל־נאָמען. געפֿונען אין componentIdx :{ $componentIdx }
 
 ## `<answer>` and scoring
 
 answer-award-depends-on-own-response = אַן award פֿאַר דעם ענטפֿער שטיצט זיך אויפֿן אייגענעם געשיקטן ענטפֿער פֿון דער answer־טעג, וואָס וועט פֿירן צו ניט־דערוואַרטן אויפֿפֿירן.
 
-answer-max-num-attempts-in-section-wide-check-work = דאָס שטעלן `maxNumAttempts` אויף אַן `<answer>` אינעווייניק אין אַ בעהעלטער מיט `sectionWideCheckWork` האָט קיין ווירקונג ניט, ווײַל די צאָל פּרוּוון ווערט געפֿירט פֿונעם בעהעלטער. שטעלט `maxNumAttempts` אויפֿן בעהעלטער.
+answer-max-num-attempts-in-section-wide-check-work = דאָס שטעלן `maxNumAttempts` אויף אַן `<answer>` אינעווייניק אין אַ בעהעלטער מיט `sectionWideCheckWork` האָט קיין ווירקונג ניט, ווייַל די צאָל פּרוּוון ווערט געפֿירט פֿונעם בעהעלטער. שטעלט `maxNumAttempts` אויפֿן בעהעלטער.
 
-nested-section-wide-check-work-max-num-attempts = דאָס שטעלן `maxNumAttempts` אויף אַ בעהעלטער מיט `sectionWideCheckWork` וואָס געפֿינט זיך אינעווייניק אין אַן אַנדער בעהעלטער מיט `sectionWideCheckWork` האָט קיין ווירקונג ניט, ווײַל די צאָל פּרוּוון ווערט געפֿירט פֿונעם אויסווייניקסטן בעהעלטער. שטעלט `maxNumAttempts` אויפֿן אויסווייניקסטן בעהעלטער.
+nested-section-wide-check-work-max-num-attempts = דאָס שטעלן `maxNumAttempts` אויף אַ בעהעלטער מיט `sectionWideCheckWork` וואָס געפֿינט זיך אינעווייניק אין אַן אַנדער בעהעלטער מיט `sectionWideCheckWork` האָט קיין ווירקונג ניט, ווייַל די צאָל פּרוּוון ווערט געפֿירט פֿונעם אויסווייניקסטן בעהעלטער. שטעלט `maxNumAttempts` אויפֿן אויסווייניקסטן בעהעלטער.
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
@@ -343,7 +343,7 @@ answer-invalid-type = אומגילטיקער טיפּ פֿאַרן ענטפֿע�
 
 module-attribute-child-needs-name = אַזוי ווי די קאָמפּאָנענט `<{ $component }>` האָט ניט קיין נאָמען, קען זי ניט גענוצט ווערן פֿאַר אַן אַטריבוט פֿון אַ מאָדול
 
-module-attribute-name-already-defined = די קאָמפּאָנענט `<{ $component } name="{ $name }">` קען ניט גענוצט ווערן װי אַן אַטריבוט פֿאַר אַ מאָדול ווײַל דער קאָמפּאָנענט־טיפּ `<module>` האָט שוין אַן אַטריבוט "{ $name }".
+module-attribute-name-already-defined = די קאָמפּאָנענט `<{ $component } name="{ $name }">` קען ניט גענוצט ווערן ווי אַן אַטריבוט פֿאַר אַ מאָדול ווייַל דער קאָמפּאָנענט־טיפּ `<module>` האָט שוין אַן אַטריבוט "{ $name }".
 
 conditional-content-condition-ignored = דער אַטריבוט `condition` ווערט איגנאָרירט אויף אַ `<conditionalContent>` מיט case־ אָדער else־קינדער.
 
@@ -351,7 +351,7 @@ slider-markers-type-mismatch = דער טיפּ פֿון די צייכנס שטי
 
 pretzel-problem-needs-statement-and-answer = אומגילטיקער pretzel: יעדער `<problem>` מוז אַנטהאַלטן איין `<statement>` און איין `<answer>`.
 
-pretzel-circuit-first-problem-distractor = אומגילטיקער pretzel: אין mode="circuit" קען דער ערשטער `<problem>` ניט זײַן קיין אָפּנאַרער.
+pretzel-circuit-first-problem-distractor = אומגילטיקער pretzel: אין mode="circuit" קען דער ערשטער `<problem>` ניט זייַן קיין אָפּנאַרער.
 
 ## Attribute values
 
@@ -361,9 +361,9 @@ attribute-invalid-values =
        *[other] אומגילטיקע ווערטן { $values } פֿאַרן אַטריבוט `{ $attribute }`; זיי ווערן איגנאָרירט.
     }
 
-attribute-must-be-references = אומגילטיקער ווערט `{ $value }` פֿאַרן אַטריבוט `{ $attribute }`. דער אַטריבוט מוז זײַן צונויפֿגעשטעלט פֿון רעפֿערענצן וואָס הייבן זיך אָן מיט אַ `$`.
+attribute-must-be-references = אומגילטיקער ווערט `{ $value }` פֿאַרן אַטריבוט `{ $attribute }`. דער אַטריבוט מוז זייַן צונויפֿגעשטעלט פֿון רעפֿערענצן וואָס הייבן זיך אָן מיט אַ `$`.
 
-math-input-invalid-function-names = <mathInput>: אומגילטיקע פֿונקציע־נעמען אין { $attribute } זײַנען איגנאָרירט געוואָרן: { $names }. דער ווײַז־טייל פֿון יעדן נאָמען מוז זײַן לפּחות 2 צייכנס (בוכשטאַבן אָדער שטריכן); נאָך אים מעג קומען אַ באַגלייטיקער סופֿיקס `|<mathspeak אַלטערנאַטיוו>`.
+math-input-invalid-function-names = <mathInput>: אומגילטיקע פֿונקציע־נעמען אין { $attribute } זייַנען איגנאָרירט געוואָרן: { $names }. דער ווייַז־טייל פֿון יעדן נאָמען מוז זייַן לפּחות 2 צייכנס (בוכשטאַבן אָדער שטריכן); נאָך אים מעג קומען אַ באַגלייטיקער סופֿיקס `|<mathspeak אַלטערנאַטיוו>`.
 
 ## Building components from the source
 
@@ -378,10 +378,10 @@ attribute-invalid-for-component = אומגילטיקער אַטריבוט "{ $at
 style-definition-insufficient-contrast =
     די סטיל־דעפֿיניציע { $styleNumber } האָט ניט גענוג קאָנטראַסט פֿאַר { $context ->
         [text-on-background] דער טעקסט־קאָליר קעגן דעם הינטערגרונט־קאָליר
-        [high-contrast] דעם הויך־קאָנטראַסטיקן קאָליר קעגן דער לײַוונט
-        [line] דעם ליניע־קאָליר קעגן דער לײַוונט
-        [marker] דעם צייכן־קאָליר קעגן דער לײַוונט
-       *[text-on-canvas] דעם טעקסט־קאָליר קעגן דער לײַוונט
+        [high-contrast] דעם הויך־קאָנטראַסטיקן קאָליר קעגן דער לייַוונט
+        [line] דעם ליניע־קאָליר קעגן דער לייַוונט
+        [marker] דעם צייכן־קאָליר קעגן דער לייַוונט
+       *[text-on-canvas] דעם טעקסט־קאָליר קעגן דער לייַוונט
     }{ $mode ->
         [dark] { " (טונקעלער מאָדע)" }
        *[light] { "" }
@@ -389,71 +389,71 @@ style-definition-insufficient-contrast =
 
 style-definition-dark-mode-text-background-contrast =
     כאָטש די סטיל־דעפֿיניציע { $styleNumber } האָט אָנגעגעבענע קאָלירן מיט גענוג קאָנטראַסט פֿאַר דער ליכטיקער מאָדע, האָבן די קאָלירן פֿאַר דער טונקעלער מאָדע וואָס ווערן דערפֿון אויסגערעכנט ניט גענוג קאָנטראַסט פֿונעם טעקסט־קאָליר קעגן דעם הינטערגרונט־קאָליר ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; עס פֿאָדערט זיך לפּחות { $threshold }:1). { $suggestion ->
-        [available] כּדי צו פֿאַרזיכערן גענוג קאָנטראַסט אין דער טונקעלער מאָדע, פֿאַרגרעסערט דעם קאָנטראַסט פֿון דער ליכטיקער מאָדע (למשל שטעלט { $lightAttribute }="{ $lightColor }") אָדער זײַט גובֿר אויפֿן קאָליר פֿון דער טונקעלער מאָדע (למשל שטעלט { $darkAttribute }="{ $darkColor }").
-       *[none] כּדי צו פֿאַרזיכערן גענוג קאָנטראַסט אין דער טונקעלער מאָדע, פֿאַרגרעסערט דעם קאָנטראַסט פֿון דער ליכטיקער מאָדע אָדער זײַט גובֿר אויף די אויסגערעכנטע קאָלירן מיט textColorDarkMode און/אָדער backgroundColorDarkMode.
+        [available] כּדי צו פֿאַרזיכערן גענוג קאָנטראַסט אין דער טונקעלער מאָדע, פֿאַרגרעסערט דעם קאָנטראַסט פֿון דער ליכטיקער מאָדע (למשל שטעלט { $lightAttribute }="{ $lightColor }") אָדער זייַט גובֿר אויפֿן קאָליר פֿון דער טונקעלער מאָדע (למשל שטעלט { $darkAttribute }="{ $darkColor }").
+       *[none] כּדי צו פֿאַרזיכערן גענוג קאָנטראַסט אין דער טונקעלער מאָדע, פֿאַרגרעסערט דעם קאָנטראַסט פֿון דער ליכטיקער מאָדע אָדער זייַט גובֿר אויף די אויסגערעכנטע קאָלירן מיט textColorDarkMode און/אָדער backgroundColorDarkMode.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    כאָטש די סטיל־דעפֿיניציע { $styleNumber } האָט אַן אָנגעגעבענעם טעקסט־קאָליר מיט גענוג קאָנטראַסט פֿאַר דער ליכטיקער מאָדע, האָט דער טעקסט־קאָליר פֿאַר דער טונקעלער מאָדע וואָס ווערט דערפֿון אויסגערעכנט ניט גענוג קאָנטראַסט קעגן דער לײַוונט ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; עס פֿאָדערט זיך לפּחות { $threshold }:1). { $suggestion ->
-        [available] כּדי צו פֿאַרזיכערן גענוג קאָנטראַסט אין דער טונקעלער מאָדע, פֿאַרגרעסערט דעם קאָנטראַסט פֿון דער ליכטיקער מאָדע (למשל שטעלט textColor="{ $lightColor }") אָדער זײַט גובֿר אויפֿן קאָליר פֿון דער טונקעלער מאָדע (למשל שטעלט textColorDarkMode="{ $darkColor }").
-       *[none] כּדי צו פֿאַרזיכערן גענוג קאָנטראַסט אין דער טונקעלער מאָדע, פֿאַרגרעסערט דעם קאָנטראַסט פֿון דער ליכטיקער מאָדע אָדער זײַט גובֿר אויפֿן אויסגערעכנטן קאָליר מיט textColorDarkMode.
+    כאָטש די סטיל־דעפֿיניציע { $styleNumber } האָט אַן אָנגעגעבענעם טעקסט־קאָליר מיט גענוג קאָנטראַסט פֿאַר דער ליכטיקער מאָדע, האָט דער טעקסט־קאָליר פֿאַר דער טונקעלער מאָדע וואָס ווערט דערפֿון אויסגערעכנט ניט גענוג קאָנטראַסט קעגן דער לייַוונט ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; עס פֿאָדערט זיך לפּחות { $threshold }:1). { $suggestion ->
+        [available] כּדי צו פֿאַרזיכערן גענוג קאָנטראַסט אין דער טונקעלער מאָדע, פֿאַרגרעסערט דעם קאָנטראַסט פֿון דער ליכטיקער מאָדע (למשל שטעלט textColor="{ $lightColor }") אָדער זייַט גובֿר אויפֿן קאָליר פֿון דער טונקעלער מאָדע (למשל שטעלט textColorDarkMode="{ $darkColor }").
+       *[none] כּדי צו פֿאַרזיכערן גענוג קאָנטראַסט אין דער טונקעלער מאָדע, פֿאַרגרעסערט דעם קאָנטראַסט פֿון דער ליכטיקער מאָדע אָדער זייַט גובֿר אויפֿן אויסגערעכנטן קאָליר מיט textColorDarkMode.
     }
 
-section-multiple-style-palettes = אַן אָפּטייל קען אויסקלײַבן בלויז איין <stylePalette>; עס ווערט גענוצט דער לעצטער.
+section-multiple-style-palettes = אַן אָפּטייל קען אויסקלייַבן בלויז איין <stylePalette>; עס ווערט גענוצט דער לעצטער.
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווײַל numToSelect איז ניט קיין ניט־נעגאַטיווע גאַנצע צאָל.
+variant-num-to-select-not-non-negative-integer = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווייַל numToSelect איז ניט קיין ניט־נעגאַטיווע גאַנצע צאָל.
 
-variant-num-to-select-not-constant-number = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווײַל numToSelect איז ניט קיין קאָנסטאַנטע צאָל.
+variant-num-to-select-not-constant-number = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווייַל numToSelect איז ניט קיין קאָנסטאַנטע צאָל.
 
-variant-with-replacement-not-constant-boolean = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווײַל withReplacement איז ניט קיין קאָנסטאַנטער boolean.
+variant-with-replacement-not-constant-boolean = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווייַל withReplacement איז ניט קיין קאָנסטאַנטער boolean.
 
-variant-select-weight-disables-unique = אייגנאַרטיקע וואַריאַנטן פֿאַר select זײַנען אָפּגעשטעלט אויב אַן אָפּציע האָט אַן אָנגעגעבענעם selectWeight אָדער selectForVariants
+variant-select-weight-disables-unique = אייגנאַרטיקע וואַריאַנטן פֿאַר select זייַנען אָפּגעשטעלט אויב אַן אָפּציע האָט אַן אָנגעגעבענעם selectWeight אָדער selectForVariants
 
-variant-coprime-undetermined = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווײַל מען קען ניט באַשטימען אַז coprime איז שטענדיק פֿאַלש.
+variant-coprime-undetermined = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווייַל מען קען ניט באַשטימען אַז coprime איז שטענדיק פֿאַלש.
 
-variant-attribute-not-constant = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווײַל { $attribute } איז ניט קיין קאָנסטאַנטע.
+variant-attribute-not-constant = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווייַל { $attribute } איז ניט קיין קאָנסטאַנטע.
 
-variant-attribute-not-number = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווײַל { $attribute } איז ניט קיין צאָל.
+variant-attribute-not-number = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווייַל { $attribute } איז ניט קיין צאָל.
 
 variant-attribute-wrong-type-for-sequence =
-    מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } פֿון טיפּ { $type } ווײַל { $attribute } איז ניט { $expected ->
+    מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } פֿון טיפּ { $type } ווייַל { $attribute } איז ניט { $expected ->
         [letters-combination] קיין קאָמבינאַציע פֿון בוכשטאַבן
         [math-expression] קיין גילטיקער מאַטעמאַטישער אויסדרוק
         [integer] קיין גאַנצע צאָל
        *[number] קיין צאָל
     }.
 
-variant-length-not-integer = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווײַל length איז ניט קיין גאַנצע צאָל.
+variant-length-not-integer = מען קען ניט באַשטימען די אייגנאַרטיקע וואַריאַנטן פֿון { $component } ווייַל length איז ניט קיין גאַנצע צאָל.
 
-variant-sort-not-implemented = אייגנאַרטיקע וואַריאַנטן פֿון אַ { $component } מיט sort זײַנען ניט אויסגעפֿירט
+variant-sort-not-implemented = אייגנאַרטיקע וואַריאַנטן פֿון אַ { $component } מיט sort זייַנען ניט אויסגעפֿירט
 
-variant-exclude-combinations-not-implemented = אייגנאַרטיקע וואַריאַנטן פֿון אַ { $component } מיט excludeCombinations זײַנען ניט אויסגעפֿירט
+variant-exclude-combinations-not-implemented = אייגנאַרטיקע וואַריאַנטן פֿון אַ { $component } מיט excludeCombinations זייַנען ניט אויסגעפֿירט
 
-variant-math-exclude-not-implemented = אייגנאַרטיקע וואַריאַנטן פֿון אַ { $component } פֿון טיפּ math מיט exclude זײַנען ניט אויסגעפֿירט
+variant-math-exclude-not-implemented = אייגנאַרטיקע וואַריאַנטן פֿון אַ { $component } פֿון טיפּ math מיט exclude זייַנען ניט אויסגעפֿירט
 
-variant-non-constant-exclude-not-implemented = אייגנאַרטיקע וואַריאַנטן פֿון אַ { $component } מיט אַ ניט־קאָנסטאַנטן exclude זײַנען ניט אויסגעפֿירט
+variant-non-constant-exclude-not-implemented = אייגנאַרטיקע וואַריאַנטן פֿון אַ { $component } מיט אַ ניט־קאָנסטאַנטן exclude זייַנען ניט אויסגעפֿירט
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: ניט געשטיצט אינעם prefigure־ווײַזער פֿאַרן גראַף; דער אָפּשטאַמיקער ווערט איבערגעהיפּט.
+prefigure-descendant-unsupported = { $subject }: ניט געשטיצט אינעם prefigure־ווייַזער פֿאַרן גראַף; דער אָפּשטאַמיקער ווערט איבערגעהיפּט.
 
 prefigure-descendant-invalid-geometry = { $subject }: ניט־ענדלעכע אָדער ניט־פֿולע געאָמעטריע; דער אָפּשטאַמיקער ווערט איבערגעהיפּט.
 
-prefigure-curve-label-omitted = { $subject }: צייכנס זײַנען ניט געשטיצט אויף פֿאַרוואַנדלטע קרומע־עלעמענטן; דער צייכן ווערט אויסגעלאָזט.
+prefigure-curve-label-omitted = { $subject }: צייכנס זייַנען ניט געשטיצט אויף פֿאַרוואַנדלטע קרומע־עלעמענטן; דער צייכן ווערט אויסגעלאָזט.
 
 prefigure-curve-unsupported-definition-type = { $subject }: ניט־געשטיצטער טיפּ פֿון קרומע־פֿונקציע־דעפֿיניציע '{ $definitionType }'; דער אָפּשטאַמיקער ווערט איבערגעהיפּט.
 
 prefigure-region-flip-functions-unsupported = { $subject }: ניט־געשטיצטער אַטריבוט flipFunctions אויף regionBetweenCurves; דער אָפּשטאַמיקער ווערט איבערגעהיפּט.
 
-prefigure-region-non-formula-child = { $subject }: אויף regionBetweenCurves זײַנען געשטיצט בלויז קינד־פֿונקציעס וואָס זײַנען געגעבן מיט אַ פֿאָרמל; דער אָפּשטאַמיקער ווערט איבערגעהיפּט.
+prefigure-region-non-formula-child = { $subject }: אויף regionBetweenCurves זייַנען געשטיצט בלויז קינד־פֿונקציעס וואָס זייַנען געגעבן מיט אַ פֿאָרמל; דער אָפּשטאַמיקער ווערט איבערגעהיפּט.
 
 prefigure-label-position-unsupported =
     { $subject }: ניט־געשטיצטער labelPosition '{ $labelPosition }' פֿאַר { $labelKind ->
         [line-family] אַ צייכן פֿון דער ליניע־משפּחה
        *[point] אַ פּונקט־צייכן
-    }; עס ווערט גענוצט די פֿאַרפֿעלטע PreFigure־אויסגלײַכונג.
+    }; עס ווערט גענוצט די פֿאַרפֿעלטע PreFigure־אויסגלייַכונג.
 
 prefigure-fill-style-unsupported = { $subject }: דער אָנפֿיל־סטיל '{ $fillStyle }' איז ניט געשטיצט פֿון PreFigure; עס ווערט גענוצט אַ פֿולער אָנפֿיל.
 
@@ -577,8 +577,8 @@ deprecated-attribute-renamed =
 
 deprecated-attribute-renamed-conflict =
     { $component ->
-        [none] [deprecation] דער אַטריבוט `{ $from }` איז פֿאַרעלטערט און ווערט איגנאָרירט ווײַל `{ $to }` איז אויך אָנגעגעבן.
-       *[other] [deprecation] דער אַטריבוט `{ $from }` אויף `<{ $component }>` איז פֿאַרעלטערט און ווערט איגנאָרירט ווײַל `{ $to }` איז אויך אָנגעגעבן.
+        [none] [deprecation] דער אַטריבוט `{ $from }` איז פֿאַרעלטערט און ווערט איגנאָרירט ווייַל `{ $to }` איז אויך אָנגעגעבן.
+       *[other] [deprecation] דער אַטריבוט `{ $from }` אויף `<{ $component }>` איז פֿאַרעלטערט און ווערט איגנאָרירט ווייַל `{ $to }` איז אויך אָנגעגעבן.
     }
 
 deprecated-attribute-ignored = [deprecation] דער אַטריבוט `{ $attribute }` אויף `<{ $component }>` איז פֿאַרעלטערט און ווערט איגנאָרירט.
@@ -590,14 +590,14 @@ deprecated-attribute-value-renamed = [deprecation] דער ווערט `{ $value }
 
 ## Language coverage
 
-pluralize-english-only = `<pluralize>` קען שאַפֿן אַ מערצאָל בלויז אויף ענגליש, טאָ בלײַבט זײַן טעקסט אומבאַטן אין אַ דאָקומענט געשריבן אויף { $locale }. שרײַבט די מערצאָל־פֿאָרעם דירעקט, אָדער גיט זי אָן מיטן אַטריבוט `pluralForm`.
+pluralize-english-only = `<pluralize>` קען שאַפֿן אַ מערצאָל בלויז אויף ענגליש, טאָ בלייַבט זייַן טעקסט אומבאַטן אין אַ דאָקומענט געשריבן אויף { $locale }. שרייַבט די מערצאָל־פֿאָרעם דירעקט, אָדער גיט זי אָן מיטן אַטריבוט `pluralForm`.
 
 
 ## Checking against the schema
 
 schema-element-unrecognized = דער עלעמענט `<{ $tag }>` איז ניט קיין דערקענטער Doenet־עלעמענט.
 
-schema-element-not-allowed-at-root = דער עלעמענט `<{ $tag }>` איז ניט דערלויבט בײַם וואָרצל פֿונעם דאָקומענט.
+schema-element-not-allowed-at-root = דער עלעמענט `<{ $tag }>` איז ניט דערלויבט בייַם וואָרצל פֿונעם דאָקומענט.
 
 schema-element-not-allowed-inside = דער עלעמענט `<{ $tag }>` איז ניט דערלויבט אינעווייניק אין `<{ $parent }>`.
 
@@ -605,53 +605,53 @@ schema-attribute-unrecognized = דער עלעמענט `<{ $tag }>` האָט ני
 
 schema-attribute-value-not-allowed =
     { $isList ->
-        [true] דער אַטריבוט `{ $attribute }` פֿונעם עלעמענט `<{ $tag }>` מוז זײַן אַ רשימה וווּ יעדער גליד איז איינס פֿון: { $allowed }
-       *[other] דער אַטריבוט `{ $attribute }` פֿונעם עלעמענט `<{ $tag }>` מוז זײַן איינס פֿון: { $allowed }
+        [true] דער אַטריבוט `{ $attribute }` פֿונעם עלעמענט `<{ $tag }>` מוז זייַן אַ רשימה וווּ יעדער גליד איז איינס פֿון: { $allowed }
+       *[other] דער אַטריבוט `{ $attribute }` פֿונעם עלעמענט `<{ $tag }>` מוז זייַן איינס פֿון: { $allowed }
     }
 
 
 ## The `<select>` family's error boxes
 
-select-variant-name-option-count-mismatch = אומגילטיקער וואַריאַנט־נאָמען פֿאַר select. דער וואַריאַנט־נאָמען { $variantName } קומט פֿאָר אין { $numOptions } אָפּציעס, און די צאָל צו קלײַבן איז { $numToSelect }.
+select-variant-name-option-count-mismatch = אומגילטיקער וואַריאַנט־נאָמען פֿאַר select. דער וואַריאַנט־נאָמען { $variantName } קומט פֿאָר אין { $numOptions } אָפּציעס, און די צאָל צו קלייַבן איז { $numToSelect }.
 
-select-variant-name-without-options = פֿאַר select זײַנען אָנגעגעבן טייל וואַריאַנטן, אָבער קיין אָפּציעס זײַנען ניט אָנגעגעבן פֿאַרן מעגלעכן וואַריאַנט־נאָמען: { $variantName }.
+select-variant-name-without-options = פֿאַר select זייַנען אָנגעגעבן טייל וואַריאַנטן, אָבער קיין אָפּציעס זייַנען ניט אָנגעגעבן פֿאַרן מעגלעכן וואַריאַנט־נאָמען: { $variantName }.
 
 select-variant-name-not-possible = דער וואַריאַנט־נאָמען { $variantName } וואָס איז אָנגעגעבן פֿאַר select איז ניט קיין מעגלעכער וואַריאַנט־נאָמען.
 
-select-too-few-options = מען קען ניט קלײַבן { $numToSelect } קאָמפּאָנענטן פֿון בלויז { $numOptions }.
+select-too-few-options = מען קען ניט קלייַבן { $numToSelect } קאָמפּאָנענטן פֿון בלויז { $numOptions }.
 
-select-from-sequence-too-few-values = מען קען ניט קלײַבן { $numToSelect } ווערטן פֿון אַ סעקווענץ פֿון לענג { $length }.
+select-from-sequence-too-few-values = מען קען ניט קלייַבן { $numToSelect } ווערטן פֿון אַ סעקווענץ פֿון לענג { $length }.
 
-select-from-sequence-indices-count-mismatch = די צאָל אינדעקסן אָנגעגעבן פֿאַר select מוז שטימען מיט דער צאָל צו קלײַבן
+select-from-sequence-indices-count-mismatch = די צאָל אינדעקסן אָנגעגעבן פֿאַר select מוז שטימען מיט דער צאָל צו קלייַבן
 
-select-from-sequence-indices-not-integers = אַלע אינדעקסן אָנגעגעבן פֿאַר select מוזן זײַן גאַנצע צאָלן
+select-from-sequence-indices-not-integers = אַלע אינדעקסן אָנגעגעבן פֿאַר select מוזן זייַן גאַנצע צאָלן
 
 select-from-sequence-index-excluded = אַן אָנגעגעבענער אינדעקס פֿון selectfromsequence איז אויסגעשלאָסן געוואָרן
 
-select-from-sequence-indices-excluded-combination = די אָנגעגעבענע אינדעקסן פֿון selectfromsequence זײַנען געווען אַן אויסגעשלאָסענע קאָמבינאַציע
+select-from-sequence-indices-excluded-combination = די אָנגעגעבענע אינדעקסן פֿון selectfromsequence זייַנען געווען אַן אויסגעשלאָסענע קאָמבינאַציע
 
-select-from-sequence-coprime-not-positive-integers = מען קען ניט קלײַבן קיין רעלאַטיוו פּרימע קאָמבינאַציעס ווײַל מען קלײַבט ניט קיין positive גאַנצע צאָלן.
+select-from-sequence-coprime-not-positive-integers = מען קען ניט קלייַבן קיין רעלאַטיוו פּרימע קאָמבינאַציעס ווייַל מען קלייַבט ניט קיין positive גאַנצע צאָלן.
 
-select-from-sequence-coprime-common-factor = מען קען ניט קלײַבן קיין רעלאַטיוו פּרימע צאָלן. אַלע מעגלעכע ווערטן האָבן אַ געמיינזאַמען פֿאַקטאָר. (די אָנגעגעבענע ווערטן פֿון "from" אָדער "to" מוזן זײַן רעלאַטיוו פּרים מיט "step".)
+select-from-sequence-coprime-common-factor = מען קען ניט קלייַבן קיין רעלאַטיוו פּרימע צאָלן. אַלע מעגלעכע ווערטן האָבן אַ געמיינזאַמען פֿאַקטאָר. (די אָנגעגעבענע ווערטן פֿון "from" אָדער "to" מוזן זייַן רעלאַטיוו פּרים מיט "step".)
 
-select-from-sequence-coprime-single-number = מען קען ניט קלײַבן קיין רעלאַטיוו פּרימע קאָמבינאַציעס פֿון איין צאָל וואָס איז ניט 1.
+select-from-sequence-coprime-single-number = מען קען ניט קלייַבן קיין רעלאַטיוו פּרימע קאָמבינאַציעס פֿון איין צאָל וואָס איז ניט 1.
 
-select-from-sequence-excluded-too-many-combinations = אין selectFromSequence זײַנען אויסגעשלאָסן געוואָרן מער ווי 70% פֿון די קאָמבינאַציעס
+select-from-sequence-excluded-too-many-combinations = אין selectFromSequence זייַנען אויסגעשלאָסן געוואָרן מער ווי 70% פֿון די קאָמבינאַציעס
 
-select-from-sequence-coprime-none-found = מען האָט ניט געקענט קלײַבן קיין רעלאַטיוו פּרימע צאָלן. אַלע מעגלעכע ווערטן האָבן אַ געמיינזאַמען פֿאַקטאָר.
+select-from-sequence-coprime-none-found = מען האָט ניט געקענט קלייַבן קיין רעלאַטיוו פּרימע צאָלן. אַלע מעגלעכע ווערטן האָבן אַ געמיינזאַמען פֿאַקטאָר.
 
-select-from-sequence-too-few-unique-values = מען קען ניט קלײַבן { $numToSelect } אייגנאַרטיקע ווערטן פֿון אַ סעקווענץ פֿון לענג { $numPossibleValues }
+select-from-sequence-too-few-unique-values = מען קען ניט קלייַבן { $numToSelect } אייגנאַרטיקע ווערטן פֿון אַ סעקווענץ פֿון לענג { $numPossibleValues }
 
-select-prime-numbers-too-few-values = מען קען ניט קלײַבן { $numToSelect } ווערטן פֿון אַ רשימה פּרימצאָלן פֿון לענג { $numValues }
+select-prime-numbers-too-few-values = מען קען ניט קלייַבן { $numToSelect } ווערטן פֿון אַ רשימה פּרימצאָלן פֿון לענג { $numValues }
 
-select-prime-numbers-values-count-mismatch = די צאָל ווערטן אָנגעגעבן פֿאַר select מוז שטימען מיט דער צאָל צו קלײַבן
+select-prime-numbers-values-count-mismatch = די צאָל ווערטן אָנגעגעבן פֿאַר select מוז שטימען מיט דער צאָל צו קלייַבן
 
-select-prime-numbers-values-not-prime = אַלע ווערטן אָנגעגעבן פֿאַר select פֿון פּרימצאָלן מוזן זײַן אין דער רשימה פּרימצאָלן
+select-prime-numbers-values-not-prime = אַלע ווערטן אָנגעגעבן פֿאַר select פֿון פּרימצאָלן מוזן זייַן אין דער רשימה פּרימצאָלן
 
-select-prime-numbers-values-excluded-combination = די אָנגעגעבענע ווערטן פֿון selectPrimeNumbers זײַנען געווען אַן אויסגעשלאָסענע קאָמבינאַציע
+select-prime-numbers-values-excluded-combination = די אָנגעגעבענע ווערטן פֿון selectPrimeNumbers זייַנען געווען אַן אויסגעשלאָסענע קאָמבינאַציע
 
-select-prime-numbers-excluded-too-many-combinations = אין selectPrimeNumbers זײַנען אויסגעשלאָסן געוואָרן מער ווי 70% פֿון די קאָמבינאַציעס
+select-prime-numbers-excluded-too-many-combinations = אין selectPrimeNumbers זייַנען אויסגעשלאָסן געוואָרן מער ווי 70% פֿון די קאָמבינאַציעס
 
-select-random-combination-fluke = דורך אַ העכסט אומגלייבלעכן צופֿאַל האָט מען ניט געקענט קלײַבן קיין קאָמבינאַציע פֿון צופֿעליקע ווערטן
+select-random-combination-fluke = דורך אַ העכסט אומגלייבלעכן צופֿאַל האָט מען ניט געקענט קלייַבן קיין קאָמבינאַציע פֿון צופֿעליקע ווערטן
 
-select-random-value-fluke = דורך אַ העכסט אומגלייבלעכן צופֿאַל האָט מען ניט געקענט קלײַבן קיין צופֿעליקן ווערט
+select-random-value-fluke = דורך אַ העכסט אומגלייבלעכן צופֿאַל האָט מען ניט געקענט קלייַבן קיין צופֿעליקן ווערט

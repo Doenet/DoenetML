@@ -449,8 +449,9 @@ piecewise-condition-otherwise = inače
 ## Bosnian is the one locale in its batch that supplies these, because it is
 ## the one whose schools teach chemistry in it out of textbooks that print the
 ## whole table. The list is close to `locales/hr`'s and not identical to it:
-## «kalaj» for tin against Croatian's «kositar», and «hemijski» rather than
-## «kemijski» in the two messages at the foot of the file.
+## «kalaj» for tin against Croatian's «kositar», «Hlor» against «Klor», and —
+## in the two messages at the foot of the file — «hemijski» for «kemijski» and
+## «jonski» for «ionski».
 
 element-name =
     .h = Vodik

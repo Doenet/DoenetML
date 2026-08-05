@@ -27,8 +27,8 @@ editor-update-viewer =
 
 editor-update-viewer-title =
     { $shortcut ->
-        [none] { $word } דעם ווײַזער
-       *[other] { $word } דעם ווײַזער { $shortcut }
+        [none] { $word } דעם ווייַזער
+       *[other] { $word } דעם ווייַזער { $shortcut }
     }
 
 
@@ -36,8 +36,8 @@ editor-update-viewer-title =
 
 editor-variant = וואַריאַנט
 editor-variant-filter = פֿילטער…
-editor-variant-next = קלײַב אויס דעם קומענדיקן וואַריאַנט
-editor-variant-previous = קלײַב אויס דעם פֿריִערדיקן וואַריאַנט
+editor-variant-next = קלייַב אויס דעם קומענדיקן וואַריאַנט
+editor-variant-previous = קלייַב אויס דעם פֿריִערדיקן וואַריאַנט
 
 
 ## The accessibility status button
@@ -51,11 +51,11 @@ editor-accessibility-title =
         [advisories] קליקט צו { $action ->
             [close] פֿאַרמאַכן
            *[open] עפֿענען
-        } דעם באַריכט וועגן צוטריטלעכקייט. קיין איבערטרעטונגען לויט WCAG AA זײַנען ניט געפֿונען געוואָרן, אָבער עס זײַנען פֿאַראַן נאָך רעקאָמענדאַציעס וועגן צוטריטלעכקייט.
+        } דעם באַריכט וועגן צוטריטלעכקייט. קיין איבערטרעטונגען לויט WCAG AA זייַנען ניט געפֿונען געוואָרן, אָבער עס זייַנען פֿאַראַן נאָך רעקאָמענדאַציעס וועגן צוטריטלעכקייט.
        *[clean] קליקט צו { $action ->
             [close] פֿאַרמאַכן
            *[open] עפֿענען
-        } דעם באַריכט וועגן צוטריטלעכקייט. קיין פּראָבלעמען מיט צוטריטלעכקייט זײַנען ניט געפֿונען געוואָרן.
+        } דעם באַריכט וועגן צוטריטלעכקייט. קיין פּראָבלעמען מיט צוטריטלעכקייט זייַנען ניט געפֿונען געוואָרן.
     }
 
 editor-accessibility-label =
@@ -67,14 +67,14 @@ editor-accessibility-label =
             [close] פֿאַרמאַכן
            *[open] עפֿענען
         } דעם באַריכט וועגן צוטריטלעכקייט.
-        [advisories] קיין איבערטרעטונגען לויט WCAG AA זײַנען ניט געפֿונען געוואָרן. געפֿונען { $count ->
+        [advisories] קיין איבערטרעטונגען לויט WCAG AA זייַנען ניט געפֿונען געוואָרן. געפֿונען { $count ->
             [one] { $count } נאָך אַ רעקאָמענדאַציע וועגן צוטריטלעכקייט
            *[other] { $count } נאָך רעקאָמענדאַציעס וועגן צוטריטלעכקייט
         }. קליקט צו { $action ->
             [close] פֿאַרמאַכן
            *[open] עפֿענען
         } דעם באַריכט וועגן צוטריטלעכקייט.
-       *[clean] קיין איבערטרעטונגען לויט WCAG AA זײַנען ניט געפֿונען געוואָרן. קליקט צו { $action ->
+       *[clean] קיין איבערטרעטונגען לויט WCAG AA זייַנען ניט געפֿונען געוואָרן. קליקט צו { $action ->
             [close] פֿאַרמאַכן
            *[open] עפֿענען
         } דעם באַריכט וועגן צוטריטלעכקייט.
@@ -85,7 +85,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = DoenetML װערסיע { $version }
+editor-version-title = DoenetML ווערסיע { $version }
 
 editor-tab-help = הילף לויטן קאָנטעקסט
 editor-tab-help-short = קאָנטעקסט
@@ -97,9 +97,9 @@ editor-tab-responses = געשיקטע ענטפֿערס
 
 editor-tab-with-count = { $label }: { $count }
 
-editor-options = אײַנשטעלונגען פֿונעם רעדאַקטאָר
-editor-format-as-doenetml = פֿאָרמאַטיר װי DoenetML
-editor-format-as-xml = פֿאָרמאַטיר װי XML
+editor-options = אייַנשטעלונגען פֿונעם רעדאַקטאָר
+editor-format-as-doenetml = פֿאָרמאַטיר ווי DoenetML
+editor-format-as-xml = פֿאָרמאַטיר ווי XML
 
 
 ## The diagnostics panel
@@ -110,8 +110,8 @@ editor-no-errors = קיין טעותן ניטאָ
 editor-no-warnings = קיין וואָרענונגען ניטאָ
 editor-no-info = קיין אינפֿאָרמאַטיווע מעלדונגען ניטאָ
 
-editor-show-info-annotations = ווײַז אינפֿאָרמאַטיווע מעלדונגען אין רעדאַקטאָר
-editor-show-accessibility-annotations = ווײַז מעלדונגען וועגן צוטריטלעכקייט אין רעדאַקטאָר
+editor-show-info-annotations = ווייַז אינפֿאָרמאַטיווע מעלדונגען אין רעדאַקטאָר
+editor-show-accessibility-annotations = ווייַז מעלדונגען וועגן צוטריטלעכקייט אין רעדאַקטאָר
 
 editor-accessibility-learn-more = ווי אַזוי Doenet גייט צו צו צוטריטלעכקייט
 
@@ -169,8 +169,8 @@ help-ref-is-reference =
 
 help-ref-derived-from =
     { $line ->
-        [none] אַרײַנגעפֿירט דורך { $owner } װי { $role }.
-       *[other] אַרײַנגעפֿירט דורך { $owner } אויף ליניע { $line } װי { $role }.
+        [none] אַרייַנגעפֿירט דורך { $owner } ווי { $role }.
+       *[other] אַרייַנגעפֿירט דורך { $owner } אויף ליניע { $line } ווי { $role }.
     }
 
 help-property-is-reference =
@@ -196,7 +196,7 @@ help-allowed-values =
 
 help-suggested-values = פֿאָרגעלייגטע ווערטן:
 
-help-inserts = לייגט אַרײַן:
+help-inserts = לייגט אַרייַן:
 
 help-coordinates =
     { $count ->

@@ -11,11 +11,13 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Sami counts in three categories, `one`, `two` and `other`, but a select is
-# written out only where the three actually differ. `help-coordinates` never
-# prints its count — it decides a heading's singular against its plural — so it
-# has the two forms Sami offers there and no dual branch, which would be a
-# variant nothing could tell apart.
+# Sami counts in three categories, `one`, `two` and `other`. A message that
+# prints its count writes all three, as `chrome.ftl` explains — `two` and
+# `other` carry the same genitive singular today, and are kept apart because a
+# later correction to one of them is unlikely to be a correction to both.
+# `help-coordinates` is the message that does not: it never prints a count, it
+# decides a heading's singular against its plural, and Sami's plural is one
+# form, so a dual branch there would be a variant nothing could tell apart.
 
 
 ## The viewer's controls

@@ -154,8 +154,8 @@ chemistry in it, which is the Samoan case rather than the French one.
 Bosnian is that batch's one complete catalog, and it is the Swahili case: its
 schools teach chemistry in it out of textbooks that print the whole table. The
 list is close to `locales/hr`'s without being a copy — «kalaj» against
-Croatian's «kositar», «hlor» against «klor», and «hemijski» rather than
-«kemijski» in the two messages at the foot of the file.
+Croatian's «kositar», «hlor» against «klor», and, in the two messages at the
+foot of the file, «hemijski» for «kemijski» and «jonski» for «ionski».
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -331,12 +331,16 @@ both, a deployment that wants a variety supplies its own catalog as
 sentence by sentence is what would leave it in two standards at once, which is
 the trade `locales/jv` and `locales/su` already make with speech level.
 
-`co` is the one locale in the roster whose **endonym is its English name**.
-`supportedLocales.ts` asks `Intl.DisplayNames` for a language's name in itself,
-and CLDR has no Corsican-language data to answer with, so the roster offers
-«Corsican» twice. That is a gap in CLDR rather than in this repository, and
-nothing here hand-writes around it — the same rule that makes `ny` read
-"Nyanja" makes this read "Corsican".
+`co` is the batch's one locale whose **endonym comes back as its English
+name**. `supportedLocales.ts` asks `Intl.DisplayNames` for a language's name in
+itself, CLDR has no Corsican-language data to answer with, and the fallback is
+English — so `endonym` equals `englishName`, the label drops its parenthesis,
+and the roster reads "Corsican" once rather than "Corsican (Corsican)". It is
+not the first to do that: `ak`, `ceb`, `fil`, `hnj`, `mg`, `mi`, `ny` and `sm`
+already read that way, and so do the several whose endonym genuinely *is* the
+English word — Afrikaans, Hausa, Igbo, Wolof. Nothing here hand-writes around
+either case, which is why the rule that makes `ny` read "Nyanja" is the rule
+that makes this read "Corsican".
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
@@ -1193,7 +1197,11 @@ one is usually a correction to both. `ug` is Turkic and agrees with nothing.
 `yi` is Germanic and the only one of the eight that forks on `$role`: its
 adjectives take a dative after «מיט» and «אויף», so its catalog has the shape
 `locales/de` and `locales/bs` have rather than the shape of the six beside it —
-which is the paragraph above put as sharply as it goes.
+which is the paragraph above put as sharply as it goes. Its one spelling
+convention worth stating is that Yiddish's three digraphs are written as **two
+letters each** — «וו», «וי», «יי» — and never as the precomposed ligatures
+U+05F0–U+05F2, which render identically and compare unequal. CLDR spells the
+endonym «ייִדיש» that way, so the roster's own label and the catalogs match.
 
 Three things recur across them, none a property of the direction:
 

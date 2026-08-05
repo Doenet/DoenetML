@@ -18,10 +18,10 @@
 # Adjectives precede the noun, so the composition messages keep the English
 # order.
 #
-# The two dash words are past participles that already end in `-e`, which is
-# why `dotted` writes no select: «stippele» is «stippele» in both genders, and
-# a `[n]` branch would repeat its default. `dashed` does inflect, so it keeps
-# one.
+# Both dash words are past participles, and they part company on their stems.
+# «stippele» already ends in `-e`, so it is that in both genders and `dotted`
+# writes no select: a `[n]` branch would repeat its default. «streept» does
+# not, so `dashed` keeps one.
 
 
 ## Style vocabulary
@@ -136,10 +136,10 @@ noun-regular-polygon =
        *[head] regelmjittige { $numSides }-hoek
     }
 
-# Besides the nouns above, `$noun` can be `regular-polygon` (polygoan, common)
-# or the head of a phrase the description never names: `border` (râne, common),
-# `fill` (folling, common), `text` (tekst, common), `background` (eftergrûn,
-# common).
+# Besides the nouns above, `$noun` can be `regular-polygon` (which is
+# `{ $numSides }-hoek`, common) or the head of a phrase the description never
+# names: `border` (râne, common), `fill` (folling, common), `text` (tekst,
+# common), `background` (eftergrûn, common).
 noun-gender =
     { $noun ->
         [line-segment] n
