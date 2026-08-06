@@ -70,7 +70,8 @@ export default class Integer extends NumberComponent {
             inverseDefinition({ desiredStateVariableValues }) {
                 let desiredValue = desiredStateVariableValues.value;
                 if (desiredValue instanceof me.class) {
-                    desiredValue = desiredValue.evaluate_to_constant();
+                    // `null` — an unevaluable expression — must not round to 0.
+                    desiredValue = desiredValue.evaluate_to_constant() ?? NaN;
                 } else {
                     desiredValue = Number(desiredValue);
                 }

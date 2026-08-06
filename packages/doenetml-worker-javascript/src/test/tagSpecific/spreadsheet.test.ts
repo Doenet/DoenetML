@@ -1462,6 +1462,11 @@ describe("Spreadsheet tag tests @group1", async () => {
             }
             let m1 = me.fromAst(["+", A1tree, 1]);
             let m2 = me.fromAst(["+", A1tree, A2tree]);
+            // A `<number>` reports "not a number" as `NaN`. Its source here is
+            // `evaluate_to_constant()`, which reports an expression it cannot
+            // evaluate — an empty cell parses to a blank — as `null`, so the
+            // expectation has to make the same translation the component does.
+            const asNumber = (m: any) => m.evaluate_to_constant() ?? NaN;
             let stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -1477,7 +1482,7 @@ describe("Spreadsheet tag tests @group1", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("number1")]
                     .stateValues.value,
-            ).eqls(m1.evaluate_to_constant());
+            ).eqls(asNumber(m1));
             expect(
                 stateVariables[await resolvePathToNodeIdx("text1")].stateValues
                     .value,
@@ -1489,7 +1494,7 @@ describe("Spreadsheet tag tests @group1", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("number2")]
                     .stateValues.value,
-            ).eqls(m2.evaluate_to_constant());
+            ).eqls(asNumber(m2));
             expect(
                 stateVariables[await resolvePathToNodeIdx("text2")].stateValues
                     .value,

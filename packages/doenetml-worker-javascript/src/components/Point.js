@@ -18,6 +18,7 @@ import {
     roundForDisplay,
     markUnspecifiedComponents,
     isUnspecifiedComponentValue,
+    evaluateToNumber,
 } from "../utils/math";
 import {
     returnConstraintDefinitions,
@@ -1271,11 +1272,11 @@ export default class Point extends GraphicalComponent {
                 for (let arrayKey of arrayKeys) {
                     let x = dependencyValuesByKey[arrayKey].x;
                     if (x) {
-                        x =
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].x.evaluate_to_constant();
-                        numericalXs[arrayKey] = Number(x);
+                        // `Number(null)` is `0`, so an unevaluable
+                        // coordinate has to be mapped to `NaN` explicitly.
+                        numericalXs[arrayKey] = evaluateToNumber(
+                            dependencyValuesByKey[arrayKey].x,
+                        );
                     } else {
                         numericalXs[arrayKey] = NaN;
                     }

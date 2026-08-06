@@ -1,8 +1,8 @@
 # math-expressions: what DoenetML still needs
 
 **For:** maintainers of [`Doenet/math-expressions`](https://github.com/Doenet/math-expressions)
-**Against:** `siefkenj/math-expressions@doenet`, `264be80`
-**Date:** 2026-08-05
+**Against:** `siefkenj/math-expressions@doenet`, `66a3bc1`
+**Date:** 2026-08-06
 
 The detail lives in [`upstream_requests/`](upstream_requests/), one file per request, each
 self-contained enough to file as an issue. This page is the cover note. Nothing that has already been
@@ -120,9 +120,9 @@ rather than NaN — `Number.isNaN(null)` is `false`, so it flowed past the NaN b
 the wildcard machinery in `excludeCombinations.js` represents wildcards as `NaN`, so no combination
 ever matched.
 
-**Item 1 (WASM32 stack safety) is the one thing still open on your side**, unchanged in severity, and
-the caret handler building deep `Pow` trees in a loop is still the vector that worries us most,
-because `^` is a character a student types.
+**Item 1 (WASM32 stack safety) was the one thing still open on your side at the time of writing.**
+It is fixed in `1d8fe27` and verified — see "This round" below. Nothing is open on the engine side
+now.
 
 **Items 8, 9 and 10 you resolved in `264be80`** (display rounding keeping exact rationals, the
 numeric root convention, and both printer defects). We verified all five through the JS API before
@@ -154,10 +154,172 @@ literally named "indeterminate forms give NaN". It is one predicate
 Neighbours that must not move — `2^0`, `x^0`, `1^x`, `0^3`, `∞+∞` — are unchanged and pinned.
 
 
+## This round: your stack fix verified, and a performance regression we found in ourselves
+
+**Item 1 (WASM32 stack safety) is fixed and we have confirmed it.** We re-ran the proven repro from
+the last round against `1d8fe27` (`7f8365c "Prevent overflow on bad input"`). All three claims are
+resolved:
+
+| | before | at `1d8fe27` |
+| --- | --- | --- |
+| `^`×6000 through `fromLatex` | `RuntimeError: memory access out of bounds` | `Error: Expression too deeply nested (at 61)` |
+| engine usable afterwards | 0 of 5 operations | 5 of 5 |
+| process exit code | 1 (uncatchable finalizer crash) | 0 |
+
+A clean error at every depth we tried up to `^`×200,000, on all four caret paths (`fromLatex`,
+`fromText`, `toString`, `simplify`), and the `FinalizationRegistry` no longer takes the process down
+on the way out. **The crash class is gone from our suite.** One residual, and it is not that class:
+`me.utils.unflattenLeft` on a width-5,000 sum throws a JS `RangeError` from the compat layer rather
+than a wasm trap — catchable, and the engine survives it (verified). Worth a bound eventually; it
+cannot take a worker down.
+
+**A performance regression, and it was ours to find.** Two of our tests began timing out against
+vitest's 180s limit, intermittently, which read as flakiness for a while. It was not: the engine is
+much more expensive per `fromAst` than the JS one was, and one test sat right at the boundary so
+machine load decided the outcome. Instrumenting every compat entry point found **2,139,268 `fromAst`
+calls in a single test, every one of them an atom** — 1,394,421 of those the *same* blank `"＿"` that
+a domain miss returns.
+
+We fixed it in the compat layer, not in DoenetML: `fromAst` now shares one immutable handle per
+recurring atom, and `.tree` memoizes when the result is a primitive (a composite tree is still handed
+out fresh per read, because callers mutate what they get). A cached handle outlives any one wrapper,
+so `free()` skips it — otherwise one wrapper's disposal dangles every other.
+
+The part worth passing on is what we got wrong first. Caching *every* atom made things worse, badly:
+
+| | cache nothing | cache every atom | cache strings + small ints |
+| --- | ---: | ---: | ---: |
+| blank-driven test (`＿` in a loop) | 173s | 105s | **4s** |
+| sampler-driven test (distinct floats) | 77s | 153s | **78s** |
+
+An interpolated function is evaluated at millions of *distinct* floats. Caching those is not a wash —
+every call is a miss plus table churn, and each holds a wasm handle alive until the next sweep. The
+working rule is that symbols, blanks and small integers recur and sampled coordinates do not.
+
+**Two engine gaps we closed on the `doenet` branch this round.**
+
+- **Assumption-gated root extraction.** `rule_assumptions` handled `sqrt` of fully-even powers only,
+  so `cbrt(x³)` did not reduce even under `x ∈ R`. It is now general over the root degree with partial
+  extraction — `sqrt(32x²y⁵) → 4xy²√(2y)`, `nthroot(a⁷b⁶c²⁸,5) → abc⁵·nthroot(a²bc³,5)`. The two
+  soundness cases are kept apart deliberately: for an **even** degree the extracted part is an even
+  power of a real and therefore `≥ 0`, so pulling it out of a principal root is valid whatever the
+  residual is, and what comes out is the magnitude (`|x|` unless the sign is pinned); for an **odd**
+  degree the extracted part keeps its sign, so the residual has to stay real — `cbrt(x³·i) ≠ x·cbrt(i)`
+  for `x < 0`, the two principal branches differing by a third of a turn. Tests in
+  `tests/doenet_root_assumptions.rs`, including the no-assumption rows that must keep declining.
+
+- **A product's sign is never moved into one of its factors.** `simplify(-(1-x))` returned
+  `-(-x+1)` rather than `x-1`. This was the root cause of our whole factoring-grader cluster, which
+  tests `tree[0] === "*"` and saw `"-"`.
+
+  Two things are easy to conflate here, and our first attempt at this rule conflated them and came
+  out too narrow as a result. Moving the **sign** of a product into a factor — `-2(1-x)` is
+  `2(x-1)`, and the `2` never moves — is not distributing its **coefficient**, `2(1-x)` to `2-2x`,
+  which is `expand`'s job. Restricting the rule to a bare `-1` coefficient therefore left a
+  redundant sign on every richer product: `-2(1-x)`, `-(1-x)/2`, `-y(1-x)` and `-(1-x)(1-y)` all
+  kept one.
+
+  The rule now applies to any `Mul` whose numeric coefficient is negative. The sign goes into
+  exactly *one* factor — into two it would cancel — so where several could take it we pick the one
+  that sheds the most signs, ties going to the earliest, which canonical ordering makes
+  deterministic. A sum can always take a sign; a power can when its exponent is an **odd integer**,
+  since `(-b)^m = -(b^m)` there, which also carries `-1/(1-x)` to `1/(x-1)`. The two guards that
+  matter are the exponent ones, because they are the cases that would be silently wrong without
+  them: `-(1-x)^2` is *not* `(x-1)^2`, and a non-integer exponent keeps the rule away from
+  `-sqrt(1-x)`.
+
+  Worth doing iff it does not add signs: with `n` negated terms out of `k`, the product costs
+  `1 + n` as written and `k - n` with the sign pushed in, so it fires iff `2n >= k`. Counting signs
+  rather than reading the leading term keeps it independent of sum order, so `-(1-x)` and `-(-x+1)`
+  behave alike. Tests in `tests/doenet_sign_distribution.rs`: that table, a fixpoint check (the
+  rewrite always leaves a positive coefficient, so it cannot fire on its own output), and a
+  value-preservation check over every row.
+
+## Two functions we added to the engine
+
+Both come out of profiling DoenetML's extrema search, which spends ~60s on one document. The
+finding that mattered was that the cost is not the algorithm: evaluating `x^2-3x+1` at a point
+costs **6ns** of arithmetic and **1,200-2,000ns** of overhead, whichever route you take.
+
+| evaluating `x^2-3x+1` at one point | |
+| --- | ---: |
+| hand-written JS | 6 ns |
+| `.evaluate({x})` — one crossing per point | 1,287 ns |
+| mathjs-compiled `.f()` — what we were using | 2,060 ns |
+| **`.evaluate_many(var, xs)` — new** | **359 ns** |
+
+- **`evaluate_many(var, values) -> Float64Array`.** One crossing for the whole batch: the
+  environment is built once and the variable names are marshalled once. **5.7x** faster than the
+  mathjs path we had been using, and it lets a consumer drop mathjs from the hot loop entirely.
+  Any other variable is left unbound — substitute it first. A point with no finite real value (a
+  pole, a complex branch, an unbound variable) comes back as `NaN` rather than being dropped, so
+  the result lines up index-for-index with the input.
+
+  It does not help a *sequential* optimizer — Brent's method needs point `n` before it can ask for
+  `n+1` — so it targets grid scans, plotting and root bracketing. The remaining 359ns is the tree
+  walk in `eval_complex`; a compiled evaluator would go further, and we have not built one.
+
+- **`critical_points(var) -> Option<Vec<Expr>>`.** The real solutions of `f'(x) = 0`, exactly, in
+  increasing order, wherever the derivative is a rational function — no sampling at all. Rational
+  roots come back as numbers, irrational ones as `RootOf` carrying the defining polynomial, and a
+  repeated root is listed once (`x^3` has one critical point, not a double).
+
+  The contract is deliberately three-valued, because a caller keeping a numerical fallback has to
+  tell "none" from "don't know": `Some(points)`, `Some(vec![])` meaning provably none, and `None`
+  meaning undecided. Undecided is a derivative that is not rational in `var` (`sin(x)`, with
+  infinitely many roots anyway), one carrying a free parameter (`d/dx a*x^2`, whose roots depend on
+  `a`), or a constant-zero derivative, where every point is critical and no finite list says so.
+  Points where `f'` does not *exist* — the corner of `|x|` — are not reported; they are critical in
+  the textbook sense, but finding them is not rational root-finding, and including them would make
+  the `Some` case a claim we cannot back.
+
+  A pole cannot masquerade as a root: the derivative is put over a common denominator and reduced
+  first, so `x^2/(x-1)` gives `[0, 2]` and never `1`.
+
+  Tests are in `tests/doenet_sampling_and_critical_points.rs`. Soundness (every reported point
+  zeroes `f'`) is only half of it — a list that silently drops a root is worse than no list — so
+  completeness is checked too, by scanning densely and requiring every sign change of `f'` to sit
+  beside a reported point.
+
+**Both are wired into our extrema search.** `find_local_global_minima` (which the maxima side
+reuses via a flipped function) now reads its derivative grid with one `evaluate_many` call instead
+of ~1,000 mathjs evaluations, and seeds root refinement from `critical_points` instead of running
+`fzero` towards the root. On the rational-function test that is 2 batched calls covering 2,006 grid
+points, 2 exact critical-point solves, and ~2,900 fewer per-point mathjs evaluations. The failing
+set is **unchanged**, which is the property we wanted: exact roots and batched sampling agree with
+what bracketing was computing, they just cost less and do not drift.
+
+It also fixed a bug our own test had frozen in place. `extrema of rational function` asserted a
+spurious minimum at `4.999999948194912` next to the double pole of
+`(x+8)(x-8)/((x-2)(x+4)(x-5)^2)`, with a comment naming it as a numerical artifact (issue #940).
+`critical_points` answers `-11.66601734921, -2.29152990292, 3.18454272065, 9.77300453148` — the four
+values the test itself credits to Sage, and nothing near 5. The expectation is corrected and the
+test passes.
+
+Where the derivative is *not* rational the fallback is untouched, so the two extrema tests that go
+through an interpolated function are unaffected — those need the routing fix described above, not
+this one.
+
+**What we deliberately did not add: a `find_extrema`.** It would not have helped the case that
+prompted this. The 60s document takes extrema of `$$f(x)` where `f` is a JS spline, which the
+engine cannot represent, so a built-in would have to call back into JS per sample — reintroducing
+the crossing in the worse direction. And the remaining 900 lines of our extrema code are Doenet
+policy rather than mathematics: truncating an infinite domain to 200*xscale, buffer widths,
+"intervals of extrema are not counted", prescribed heights. That belongs with us. Exact critical
+points and a cheap way to sample are the parts that were yours.
+
 ## Where we are
 
-`packages/doenetml-worker-javascript`: **99 failures of 3,428 executed — 97.1% passing**, from 448
+`packages/doenetml-worker-javascript`: **64 failures of 3,475 executed — 98.2% passing**, from 448
 when we started.
+
+One of those 65 is a **timeout rather than a wrong answer**, and it moves between runs: `evaluate
+functions based on interpolated function` lands at 169s and 193s on either side of vitest's 180s
+limit under full-suite parallelism, while running at 61s on its own — faster than the 68s it took
+before this migration. We are reporting it as a failure because that is what the run says, but it is
+a scheduling artefact of our own test setup, not an engine defect. See the performance note above:
+single-threaded time is now *better* than the JS engine's on this test and wall-clock under parallel
+load is worse, which points at per-worker wasm memory pressure rather than at any one operation.
 
 | Pin | Failures | Fixed | Broken |
 | --- | ---: | ---: | ---: |
@@ -167,7 +329,10 @@ when we started.
 | `970c1c3` | 343 | 59 | 0 |
 | `7a18c9c` + our fixes | 237 | 106 | 0 |
 | `264be80` | 229 | 9 | 1 |
-| `264be80` + the work below | **99** | **138** | **0** |
+| `264be80` + the work below | 99 | 138 | 0 |
+| `1d8fe27` | 91 | 8 | 0 |
+| `1d8fe27` + this round | 65 | 26 | 0 |
+| `66a3bc1` | **64** | **1** | **0** |
 
 The `264be80` row is the only one that ever broke a test, and it was a stale expectation of ours
 rather than a defect: `point.test.ts` built its own expectation from `me.fromText("sqrt(-1)").tree`
@@ -176,7 +341,12 @@ rather than a defect: `point.test.ts` built its own expectation from `me.fromTex
 as a break anyway, because the rule that has served us here is to diff the failing *set* and report
 what it says.
 
-The last row is this round's work, measured against `264be80` with nothing else changed.
+The last three rows are this round. `1d8fe27` is your pin bump alone, measured with nothing else
+changed; the row below it is our work on top of it, measured the same way. `66a3bc1` is your pin
+bump again, on top of both — the atom-cache handle lifetime, the branch-cut fix in `eval_complex`
+(a zero imaginary part is now forced to `+0.0`, so `sqrt(-1/4)` no longer depends on how the
+radicand was spelled), and rational radicands in the radical rules. It fixed `functionTag > extrema
+of rational function` and broke nothing. None of the three broke a test.
 
 No pin has ever broken anything. `02293bf` also let us delete the last two workarounds in our seam —
 with **no change in results either way**, which is how we verify an upstream fix actually covers our
@@ -213,13 +383,26 @@ We also hardened `MathBaseOperator`. `median([1,4,5,null])` throws inside mathjs
 document down; `median([1,4,5,NaN])` degrades quietly. That is downstream of item 5, and it is the
 sharpest illustration of why `None` arriving as a JS `null` is worse than a NaN.
 
-The remaining 99 are bucketed by symptom in
-[`upstream_requests/README.md`](upstream_requests/README.md). None of them is a filed request any
-more: the largest cluster (32) is assumption-gated simplification, where the tests agree with your
-`ROOT_SIMPLIFICATION_SPEC.md` for the no-assumption case and only diverge under `x > 0` / `x ∈ R`;
-19 are printer and display strings we have not yet walked one at a time; and 5 are the last of our
-own `null`-handling sites. The cosmetic bucket is gone: we worked through it and moved our
-expectations to the new printer wherever the difference was style rather than substance.
+The remaining 64 are bucketed by symptom in
+[`upstream_requests/README.md`](upstream_requests/README.md). None of them is a filed request. The
+assumption-gated simplification cluster, which was the largest at 32, is gone — that was the root
+extraction described above. What is left is 14 grading and equality differences, 14 of our own
+component logic, 11 printer and display strings we have not yet walked one at a time, 9 numeric
+tolerances in ODE integration and root finding, 9 tree shapes, and 7 of one specific kind: a sign
+that stays outside a function application where the test expects it folded into the argument
+(`-sin(2)` where it wants `sin(-2)`).
+
+Two of those buckets have a known shared cause we have not yet acted on, and we would rather name
+them than let them read as a mystery:
+
+- **`evaluate_numbers` does not evaluate exact constants.** `2π + π + 6` stays symbolic, where the
+  legacy pass folded any variable-free subtree to a float. Four `allowedErrorInNumbers` tests depend
+  on it, because a response that typed `6.28318` cannot be compared term-by-term against a target
+  that still holds `2π`. We have not changed it because folding π to a float on every
+  `simplifyOnCompare="numbers"` is a wide blast radius that deserves its own measured round.
+- **Float-versus-exact provenance on our input path.** `round(0.5555, 3)` gives `0.555` because the
+  value reaching `<round>` is already an f64 `0.55549…`; the engine is correct on the exact rational.
+  That is ours to chase, not yours.
 
 ### How we check your fixes now
 
@@ -237,7 +420,7 @@ The pattern that produced this round, and the one we will keep using:
 ## Reproducing
 
 ```bash
-git submodule update --init --recursive          # vendor/math-expressions @ 7a18c9c
+git submodule update --init --recursive          # vendor/math-expressions @ 66a3bc1
 npm run build -w packages/math
 cd packages/doenetml-worker-javascript
 npx vitest run -t '@group1'                      # and @group2, @group3

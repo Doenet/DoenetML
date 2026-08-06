@@ -11,7 +11,11 @@ import {
     returnTextPieceStateVariableDefinitions,
     textFromChildren,
 } from "../utils/text";
-import { textToMathFactory, latexToMathFactory } from "../utils/math";
+import {
+    textToMathFactory,
+    latexToMathFactory,
+    evaluateToNumber,
+} from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 
@@ -340,7 +344,7 @@ export default class Text extends InlineComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        number: dependencyValues.math.evaluate_to_constant(),
+                        number: evaluateToNumber(dependencyValues.math),
                     },
                 };
             },

@@ -299,6 +299,30 @@ export function isNumericConstant(value: unknown): value is number {
 }
 
 /**
+ * `expr.evaluate_to_constant()` as a plain number, with everything that is not
+ * one reported as `NaN`.
+ *
+ * The engine distinguishes two failures the legacy one did not: `NaN` for an
+ * expression that *evaluates to* NaN (`0/0`), and `null` for one it cannot
+ * evaluate at all — a free variable, a blank `＿`. That distinction is worth
+ * having, but a *number* state variable has only one way to say "not a number",
+ * and it is `NaN`. Passing `null` on instead is worse than useless:
+ * `Number.isNaN(null)` is `false`, so every guard waves it through, and it then
+ * coerces to `0` — a blank input silently reading as zero.
+ *
+ * Use this at the boundary where an expression becomes a numeric state
+ * variable. Code that needs to tell the two apart should call
+ * `evaluate_to_constant()` directly. A complex result is also `NaN` here: it is
+ * a value, but not one a real-valued state variable can hold.
+ */
+export function evaluateToNumber(expr: {
+    evaluate_to_constant: () => unknown;
+}): number {
+    const value = expr.evaluate_to_constant();
+    return typeof value === "number" ? value : NaN;
+}
+
+/**
  * A numeric AST leaf, with the engine's tagged non-finite forms decoded.
  *
  * `.tree` hands back `{"$":"Inf"}` / `{"$":"-Inf"}` / `{"$":"NaN"}` rather than
@@ -574,7 +598,12 @@ export function mathStateVariableFromNumberStateVariable({
 
             let desiredNumber;
             if (desiredMath instanceof me.class) {
-                desiredNumber = desiredMath.evaluate_to_constant();
+                // `null` is "cannot be evaluated" — a free variable, a blank.
+                // The number side of this bridge spells that `NaN`; leaving it
+                // as `null` makes every `Number.isNaN` guard downstream miss it
+                // and the value settle at `0`. A complex result passes through:
+                // components that accept one test `re`/`im` themselves.
+                desiredNumber = desiredMath.evaluate_to_constant() ?? NaN;
             } else if (typeof desiredMath === "number") {
                 desiredNumber = desiredMath;
             } else {

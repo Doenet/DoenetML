@@ -13228,15 +13228,18 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
                 .tree,
-        ).eqls(["*", -2, ["apply", "cbrt", ["*", 3, ["^", "x", 6]]]]);
+            // A negative product is spelled `-(2·…)` rather than `(-2)·…`: the
+            // sign rides on a unary minus so that a sum renders with a `−` between
+            // its terms. Same value, one less numeric literal in the tree.
+        ).eqls(["-", ["*", 2, ["apply", "cbrt", ["*", 3, ["^", "x", 6]]]]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
                 .tree,
-        ).eqls(["*", -2, ["^", "x", 2], ["apply", "cbrt", 3]]);
+        ).eqls(["-", ["*", 2, ["^", "x", 2], ["apply", "cbrt", 3]]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m2c")].stateValues.value
                 .tree,
-        ).eqls(["*", -2, ["^", "x", 2], ["apply", "cbrt", 3]]);
+        ).eqls(["-", ["*", 2, ["^", "x", 2], ["apply", "cbrt", 3]]]);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value

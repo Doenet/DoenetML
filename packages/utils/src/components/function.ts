@@ -398,7 +398,11 @@ export function returnNumericalFunctionFromReevaluatedFormula({
                     let input = inputFs.map((f: any) =>
                         me.fromAst(f(argsForInputs)),
                     );
-                    fArgs[code] = childF(input).evaluate_to_constant();
+                    // A child that lands outside its own domain evaluates to a
+                    // blank, which `evaluate_to_constant()` declines with
+                    // `null`. Binding `null` into the formula would make it
+                    // arithmetic on zero; "no numeric value here" is NaN.
+                    fArgs[code] = childF(input).evaluate_to_constant() ?? NaN;
                 } catch (e) {
                     return NaN;
                 }
