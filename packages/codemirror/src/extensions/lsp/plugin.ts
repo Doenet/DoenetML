@@ -97,13 +97,16 @@ const MACRO_IDENTIFIER_BARE_VALUE_REGEX = /^[A-Za-z0-9_-]+$/;
 const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
 
 /**
- * Whether the `.` following `textBeforeDot` continues a `$`-rooted reference
- * path — making it a property accessor the completion popup should open on —
- * rather than a period ending a sentence.
+ * Whether the `.` following `textBeforeDot` continues a reference path —
+ * making it a property accessor the completion popup should open on — rather
+ * than a period ending a sentence.
  *
- * Accepts every base the language server resolves members from: `$name`,
- * `$name.prop`, `$name[1]`, the still-unclosed `$(name`, the closed `$(name)`,
- * and the parenthesized member form `$name.(prop`.
+ * The two rootings are the two macro forms the grammar has (see
+ * `packages/parser/src/macros/macros.peggy`): a bare `$name`, whose path runs
+ * to the first character that can't be part of it, and a parenthesized
+ * `$(name`, whose path runs to the closing `)`. So `$P.`, `$P.coords.`,
+ * `$rep[1].` and `$(P.` are property accessors, while the `.` in `$(P).` is
+ * not — that macro already ended at its `)`.
  */
 function isReferenceDot(textBeforeDot: string): boolean {
     // Walk back over the path characters the `.` would extend; the character
@@ -115,45 +118,28 @@ function isReferenceDot(textBeforeDot: string): boolean {
     ) {
         pathStart--;
     }
+    if (pathStart === textBeforeDot.length) {
+        // Nothing to extend — a `.` needs a path in front of it.
+        return false;
+    }
     const beforePath = textBeforeDot[pathStart - 1];
-    // `$name`, `$name.prop`, `$name[1]`
-    if (beforePath === "$") {
-        return true;
-    }
-    if (beforePath === "(") {
-        const beforeParen = textBeforeDot[pathStart - 2];
-        // `$(name`, `$(name.prop`
-        if (beforeParen === "$") {
-            return true;
-        }
-        // `$name.(prop`: the group is a member of whatever precedes its `.`,
-        // so that `.` has to be a reference dot in its own right.
-        return (
-            beforeParen === "." &&
-            isReferenceDot(textBeforeDot.slice(0, pathStart - 2))
-        );
-    }
-    // `$(name)`, `$(name).prop`
-    if (beforePath === ")") {
-        const openParen = textBeforeDot.lastIndexOf("(", pathStart - 2);
-        return openParen > 0 && textBeforeDot[openParen - 1] === "$";
-    }
-    return false;
+    return (
+        // `$name`, `$name.prop`, `$name[1]`
+        beforePath === "$" ||
+        // `$(name`, `$(name.prop` — still inside the parenthesized form
+        (beforePath === "(" && textBeforeDot[pathStart - 2] === "$")
+    );
 }
 
 /**
  * Whether the text up to `column` in `lineText` ends in a reference property
- * accessor: the `.` of `$name.`, or — one keystroke later, in the
- * `$name.(prop)` member form — the `(` that follows it.
+ * accessor — the `.` of `$name.`.
  */
 function endsWithReferencePropertyDot(lineText: string, column: number) {
-    if (lineText[column - 1] === ".") {
-        return isReferenceDot(lineText.slice(0, column - 1));
-    }
-    if (lineText[column - 1] === "(" && lineText[column - 2] === ".") {
-        return isReferenceDot(lineText.slice(0, column - 2));
-    }
-    return false;
+    return (
+        lineText[column - 1] === "." &&
+        isReferenceDot(lineText.slice(0, column - 1))
+    );
 }
 
 /** Escape a string for safe interpolation into an HTML context. */
@@ -545,10 +531,7 @@ export class LSPPlugin implements PluginValue {
             line.text,
             pos - line.from,
         );
-        const isProseDot =
-            !isReferencePropertyDot &&
-            (charBeforeCursor === "." ||
-                (charBeforeCursor === "(" && charBeforeParen === "."));
+        const isProseDot = charBeforeCursor === "." && !isReferencePropertyDot;
         const precedingServerTriggerCharacter =
             !isClosingQuoteTrigger &&
             !isProseDot &&

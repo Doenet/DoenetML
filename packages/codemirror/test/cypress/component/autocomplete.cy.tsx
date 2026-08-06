@@ -673,11 +673,11 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-tooltip-autocomplete").should("be.visible");
     });
 
-    it("opens member autocomplete on a period after a parenthesized ref", () => {
+    it("opens member autocomplete on a period inside a parenthesized ref", () => {
         cy.mount(
             <AutocompleteTestHarness
                 initialValue={
-                    '<point name="P"><math name="coords">(3,4)</math></point>\n$(P)'
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$(P'
                 }
             />,
         );
@@ -693,6 +693,32 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
             "coords",
         );
+    });
+
+    it("does not reopen autocomplete on a parenthesized property name", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$P'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type(".", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "coords",
+        );
+        cy.get(".cm-content").type("{esc}", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+
+        // `$P.(coords)` is not a reference — the macro grammar has no
+        // parenthesized property form — so the `(` is no more a trigger than
+        // any other character that cannot continue the path.
+        cy.get(".cm-content").type("(", { force: true });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
     });
 
     it("opens member autocomplete on a period after an indexed ref", () => {
