@@ -587,6 +587,13 @@ function toRefSegmentInsertText(label: string, indexSuffix = "") {
  * and there is no `$P.(my-p)` form to fall back on. What is expressible is the
  * parenthesized macro, so accepting such a member replaces the macro typed so
  * far rather than just the member prefix.
+ *
+ * That reach back to the `$` is why the item needs a `filterText`. A client
+ * filters an item by matching the text from the start of its edit to the
+ * cursor — here `$base.my`, not `my` — against `filterText`, falling back to
+ * the label. Left to the label, every rewriting item would be filtered out of
+ * the menu (the same reason `createCloseTagCompletionItem` carries one), so
+ * the filter text spells the path as the author typed it.
  */
 function rewriteAsParenthesizedMacro(
     item: CompletionItem,
@@ -597,6 +604,7 @@ function rewriteAsParenthesizedMacro(
 ): CompletionItem {
     return {
         ...item,
+        filterText: `$${pathSoFar}${item.label}`,
         textEdit: {
             range: createTextEditRange(sourceObj, macroStartOffset, endOffset),
             newText: `$(${pathSoFar}${item.label})`,

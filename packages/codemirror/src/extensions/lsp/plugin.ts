@@ -286,7 +286,6 @@ type RangeLike = {
 };
 
 type ExtendedCompletion = Completion & {
-    filterText: string;
     sortText?: string;
     _lspTextEditRange?: {
         start: { line: number; character: number };
@@ -632,6 +631,10 @@ export class LSPPlugin implements PluginValue {
             "items" in result ? result.items : result
         ) as LSPCompletionItemWithDisplayLabel[];
 
+        // An item's `filterText` is deliberately dropped: CodeMirror matches an
+        // option by its `label` (and renders `displayLabel`), so a filter text
+        // is only meaningful to clients that read it, and one may be spelled
+        // for a wider edit range than the label covers.
         let options = items.map((rawItem) => {
             const {
                 detail,
@@ -640,7 +643,6 @@ export class LSPPlugin implements PluginValue {
                 textEdit,
                 documentation,
                 sortText,
-                filterText,
                 data,
                 displayLabel,
             } = rawItem;
@@ -650,7 +652,6 @@ export class LSPPlugin implements PluginValue {
                 apply: textEdit?.newText ?? label,
                 type: deriveCompletionType(rawItem),
                 sortText: sortText ?? label,
-                filterText: filterText ?? label,
             };
             if (displayLabel) {
                 completion.displayLabel = displayLabel;
@@ -669,10 +670,6 @@ export class LSPPlugin implements PluginValue {
             return completion;
         });
 
-        const token = context.matchBefore(
-            prefixMatch(options.map((option) => option.filterText)),
-        );
-
         // Element/tag-name completions match the typed text as a *substring*
         // (e.g. `<num` offers `isNumber`), while every other completion type
         // keeps prefix matching. Prefix-first ordering is left to CodeMirror's
@@ -687,12 +684,23 @@ export class LSPPlugin implements PluginValue {
                     option.type === COMPLETION_TYPES.closeTag,
             );
 
+        const token = context.matchBefore(
+            prefixMatch(
+                options.map((option) => option.label),
+                // An element menu is anchored on the tag being typed, so its
+                // token has to reach across the `<` (and the `/` and `>` of
+                // neighbouring tags) that the block below trims back off. No
+                // label carries them.
+                isElementNameMenu ? "</>" : "",
+            ),
+        );
+
         function filterOptionsForWord(wordLower: string) {
-            options = options.filter(({ filterText }) => {
-                const filterLower = filterText.toLowerCase();
+            options = options.filter(({ label }) => {
+                const labelLower = label.toLowerCase();
                 return isElementNameMenu
-                    ? filterLower.includes(wordLower)
-                    : filterLower.startsWith(wordLower);
+                    ? labelLower.includes(wordLower)
+                    : labelLower.startsWith(wordLower);
             });
         }
 
@@ -725,11 +733,11 @@ export class LSPPlugin implements PluginValue {
             );
             if (bareElementToken) {
                 // Explicit Ctrl+Space can open an element menu before any `<`
-                // has been typed, and the menu's filter texts may all start
-                // with one (snippets and close tags carry it), leaving
-                // `prefixMatch` unable to anchor `from` to a bare word like
-                // `num`. Anchor and filter it here so accepting `<number>`
-                // replaces `num` instead of appending after it.
+                // has been typed. `prefixMatch` anchors on the characters the
+                // labels are made of, so it finds no token when none of them
+                // starts with the first letter of a bare word like `num`.
+                // Anchor and filter it here so accepting `<number>` replaces
+                // `num` instead of appending after it.
                 pos = bareElementToken.from;
                 filterOptionsForWord(bareElementToken.text.toLowerCase());
             }
@@ -1130,7 +1138,8 @@ function getAutocompleteReopenState({
               if (immediatePrefix !== "(") {
                   return immediatePrefix;
               }
-              // Treat `$(name` and `.(` member forms as ref-prefix contexts.
+              // The name inside `$(name` is a ref token like any other, so
+              // read the `$` in front of the paren as its prefix.
               return update.state.doc.sliceString(
                   Math.max(0, currentToken.from - 2),
                   Math.max(0, currentToken.from - 1),
@@ -1268,16 +1277,25 @@ function setToRegex(chars: Set<string>) {
  * Build the regex that locates the token the completion list is anchored to —
  * the run of text before the cursor that the options are matched against.
  *
- * The strings to pass are the options' *filter* texts, not their insert texts.
- * The two usually agree, but an option may insert something that is not a
- * continuation of what was typed: accepting a hyphenated member rewrites the
- * whole macro (`$base.my` → `$(base.my-p)`). Widening the token to cover the
- * characters such an edit introduces would drag the anchor back over `$base.`,
- * and every option would then be matched against text none of them start with.
+ * The strings to pass are the options' *labels*, which is what CodeMirror
+ * matches an option by. Neither of the other two texts an option carries will
+ * do:
+ * - its insert text may be something other than a continuation of what was
+ *   typed, since accepting a hyphenated member rewrites the whole macro
+ *   (`$base.my` → `$(base.my-p)`);
+ * - its `filterText` is an LSP field CodeMirror never reads, and a rewriting
+ *   item spells it from the start of its edit (`$base.my-p`) so that clients
+ *   which do read it keep the item in the menu.
+ *
+ * Either would widen the token to cover `$`, `(` and `.`, dragging the anchor
+ * back over `$base.` — and every option would then be matched against text
+ * none of them start with.
+ *
+ * `extraChars` are characters the token may span that no label contains.
  */
-function prefixMatch(matchTexts: string[]) {
-    const first: string[] = [];
-    const rest: string[] = [];
+function prefixMatch(matchTexts: string[], extraChars = "") {
+    const first: string[] = [...extraChars];
+    const rest: string[] = [...extraChars];
 
     for (const matchText of matchTexts) {
         if (matchText.length === 0) {

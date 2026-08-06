@@ -1504,6 +1504,11 @@ describe("AutoCompleter", () => {
                     character: 0,
                 });
             }
+            // The text a client filters this item by is the text over the
+            // edit's range — `$base.my` — so it has to be the path as typed.
+            // Against the bare label `my-p` the item would be filtered out of
+            // the menu the moment it was offered.
+            expect(hyphenItem?.filterText).toBe("$base.my-p");
 
             // An underscore needs no rewrite: `$base.my_p` is already a
             // reference, so only the typed member prefix is replaced.
@@ -1520,6 +1525,8 @@ describe("AutoCompleter", () => {
                     character: 6,
                 });
             }
+            // and the label is what filters it, as for any ordinary item.
+            expect(underscoreItem?.filterText).toBeUndefined();
         });
 
         it("Rewrites the whole macro when the base carries an index", async () => {
@@ -1542,6 +1549,7 @@ describe("AutoCompleter", () => {
                     character: 0,
                 });
             }
+            expect(hyphenItem?.filterText).toBe("$sel[$i].my-p");
         });
 
         it("Rewrites the macro for a member typed inside an attribute value", async () => {
