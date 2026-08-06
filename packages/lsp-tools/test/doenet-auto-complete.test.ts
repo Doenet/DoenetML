@@ -1645,6 +1645,60 @@ describe("AutoCompleter", () => {
             }
         });
 
+        it("Keeps every ref item matchable by the text its own edit replaces", async () => {
+            // A client that filters items itself — VS Code — matches the
+            // document text from the start of an item's edit to the cursor
+            // against the item's `filterText`, falling back to its label. An
+            // item whose edit reaches back past the word being typed (the
+            // macro rewrite does, back to the `$`) is filtered out of the menu
+            // unless it carries a filter text spelled over that same reach.
+            const prelude = `<section name="base"><p name="my-p" /><p name="my_p" /><section name="sub-sec"><p name="p1" /></section></section><select name="sel"><p name="my-p" /></select>\n`;
+            const typedTails = [
+                "$",
+                "$s",
+                "$se",
+                "$(",
+                "$(b",
+                "$base.",
+                "$base.my",
+                "$base.sub-sec.",
+                "$base.sub-sec.p",
+                "$sel[1].my",
+                "$sel[$i].my",
+                "$(base.my",
+                "$(base.sub-sec.p",
+                `<p extend="$base.`,
+                `<p extend="$base.my`,
+            ];
+
+            for (const tail of typedTails) {
+                const source = prelude + tail;
+                const autoCompleter = createRefAutoCompleter(source);
+                const items = await autoCompleter.getCompletionItems(
+                    source.length,
+                );
+                expect(items.length, tail).toBeGreaterThan(0);
+
+                for (const item of items) {
+                    const textEdit = item.textEdit;
+                    if (!textEdit || !("range" in textEdit)) continue;
+                    const editStart = autoCompleter.sourceObj.rowColToOffset(
+                        textEdit.range.start,
+                    );
+                    const replacedText = source.slice(editStart);
+                    const matchedAgainst = item.filterText ?? item.label;
+                    expect(
+                        matchedAgainst
+                            .toLowerCase()
+                            .startsWith(replacedText.toLowerCase()),
+                        `${tail} → ${item.label} (filters by ${JSON.stringify(
+                            matchedAgainst,
+                        )}, edit replaces ${JSON.stringify(replacedText)})`,
+                    ).toBe(true);
+                }
+            }
+        });
+
         it("Returns no ref-member completion when no resolver is configured", async () => {
             const pointSchema = {
                 elements: [

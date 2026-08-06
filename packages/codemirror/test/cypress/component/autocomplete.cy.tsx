@@ -805,6 +805,52 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         );
     });
 
+    it("opens member autocomplete on a period after a ref indexed by a ref", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<repeatForSequence name="rep" valueName="v" indexName="i"><math name="myMath">$v</math></repeatForSequence>\n$rep[$i]'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-content").type("{esc}", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+
+        // The idiomatic form inside a repeat, and the one whose index holds a
+        // `$` of its own: the `.` after it still reads as a property accessor
+        // on `$rep[$i]`.
+        cy.get(".cm-content").type(".", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "myMath",
+        );
+    });
+
+    it("closes autocomplete on a second period in a ref path", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$P'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type(".", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "coords",
+        );
+
+        // No reference has an empty segment, so `$P..` is not one, and the
+        // member list it was opened on no longer applies.
+        cy.get(".cm-content").type(".", { force: true });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
     it("rewrites the macro when a hyphenated member is accepted", () => {
         cy.mount(
             <AutocompleteTestHarness

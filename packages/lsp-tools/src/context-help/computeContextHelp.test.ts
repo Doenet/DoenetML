@@ -1088,6 +1088,9 @@ describe("computeContextHelp — hyphenated names in $(...) macros", () => {
         expect(help).toMatchObject({
             kind: "refName",
             refName: "my-p",
+            // The parentheses go around the whole path, which is the only
+            // spelling of it that is a reference.
+            displayPath: "(base.my-p)",
             targetElementName: "p",
         });
     });

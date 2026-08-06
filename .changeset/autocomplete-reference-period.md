@@ -8,7 +8,7 @@
 
 Editor: suggest, describe, and insert only text that is actually a reference.
 
-Autocomplete opened on every `.`, including one ending a sentence. It now opens only when the period continues an unfinished reference path — `$P.`, `$P.coords.`, `$rep[1].`, `$(P.` — and a list that is already open closes as soon as the reference ends, so typing `$P.(`, `$P."` or `$P. ` no longer leaves the members of `$P.` on screen.
+Autocomplete opened on every `.`, including one ending a sentence. It now opens only when the period continues an unfinished reference path — `$P.`, `$P.coords.`, `$rep[$i].`, `$(P.` — and a list that is already open closes as soon as the reference ends, so typing `$P.(`, `$P."`, `$P. ` or a second `.` no longer leaves the members of `$P.` on screen.
 
 Three places also offered the forms `$(P).coords` and `$P.(coords)`, which read as a reference followed by literal text: a macro ends at the `)` of `$(P)`, and the grammar has no parenthesized property form. Member completions, the help panel, and the annotation skeleton snippet now all use the form that works.
 

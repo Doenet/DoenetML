@@ -131,26 +131,38 @@ function endsWithReferencePath(text: string): boolean {
 /**
  * Whether the text up to `column` in `lineText` ends in a reference property
  * accessor — the `.` of `$name.`, as opposed to a period ending a sentence.
+ *
+ * A path already ending in `.` takes no second one: no reference has an empty
+ * segment, so the `.` of `$P..` opens no member list.
  */
 function endsWithReferencePropertyDot(lineText: string, column: number) {
+    const beforeDot = lineText.slice(0, column - 1);
     return (
         lineText[column - 1] === "." &&
-        endsWithReferencePath(lineText.slice(0, column - 1))
+        !beforeDot.endsWith(".") &&
+        endsWithReferencePath(beforeDot)
     );
 }
 
 /**
  * Whether the character just typed at `column` ended the reference path it was
  * typed into: `$P.(`, `$P."`, `$P. `. Anything a path is made of continues it
- * instead, and `(` right after the `$` opens the parenthesized form rather
- * than ending anything.
+ * instead — bar the second `.` of `$P..`, which no segment can follow — and
+ * `(` right after the `$` opens the parenthesized form rather than ending
+ * anything.
  */
 function typedCharacterEndsReferencePath(lineText: string, column: number) {
     const typedChar = lineText[column - 1];
+    if (typedChar === undefined) {
+        return false;
+    }
+    const beforeChar = lineText.slice(0, column - 1);
+    if (!endsWithReferencePath(beforeChar)) {
+        return false;
+    }
     return (
-        typedChar !== undefined &&
-        !MACRO_PATH_CHAR_REGEX.test(typedChar) &&
-        endsWithReferencePath(lineText.slice(0, column - 1))
+        !MACRO_PATH_CHAR_REGEX.test(typedChar) ||
+        (typedChar === "." && beforeChar.endsWith("."))
     );
 }
 
