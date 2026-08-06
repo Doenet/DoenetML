@@ -1,8 +1,8 @@
 # math-expressions: what DoenetML still needs
 
 **For:** maintainers of [`Doenet/math-expressions`](https://github.com/Doenet/math-expressions)
-**Against:** `siefkenj/math-expressions@doenet`, `7a18c9c`
-**Date:** 2026-08-04
+**Against:** `siefkenj/math-expressions@doenet`, `264be80`
+**Date:** 2026-08-05
 
 The detail lives in [`upstream_requests/`](upstream_requests/), one file per request, each
 self-contained enough to file as an issue. This page is the cover note. Nothing that has already been
@@ -42,113 +42,121 @@ is the text that needs updating. We confirmed all three of your points against `
 `tear_down` call site, `MAX_PARSE_DEPTH` enforced only in `shared_grammar.rs`, `try_from_js`
 uncapped.
 
-## Still open — ten items
+## What this round changed
 
-**1. [WASM32 stack safety](upstream_requests/03-wasm32-stack-safety.md)** — unchanged in severity, and
-we can add to it. Your two vectors, plus a third:
+We implemented the open items in the subrepo rather than only filing them, so this section is now a
+description of patches on the `doenet` branch, not a request list. Each was measured against
+`264be80` with nothing else changed; the totals are in the table below.
 
-- `unflatten_left` / `unflatten_right` — **this one is on a path we exercise.** We call
-  `me.utils.unflattenLeft` in
-  `packages/doenetml-worker-javascript/src/components/Math.js:1486`, on an authored expression, in
-  the inverse-definition path for a `<math>` with modifiable children.
-- `substitute_var` composing — reachable for us only through nested `<substitute>` components, which
-  is authored rather than student input.
-- **The caret handler builds deep `Pow` trees in a loop, bypassing `MAX_PARSE_DEPTH`.** Your
-  `tests/parse_adversarial.rs` already documents it, as the `#[ignore]`d
-  `superscript_nesting_overflows_known_bug`. This is the one that worries us: `^` is a character a
-  student types into a math input, and nothing between the keystroke and the recursion bounds it. It
-  also means "the cap bounds parser-produced trees" is too generous — it does not bound all of them.
+**Items 4, 5 and 2 are implemented.** These were the three biggest clusters.
 
-**2. [`.tree` hands back `{"$":"Inf"}` where legacy handed back `Infinity`](upstream_requests/10-tree-returns-tagged-non-finite.md)**
-— the case you asked us to send. Eleven of our twelve are that shape, and it is wider than the
-rounding functions: `me.fromText("oo").tree` is `{"$":"Inf"}` on a plain parse, with nothing
-round-tripped through `fromAst`. Thirteen of your own 1,384 are the same assertion in four spec
-files, including all three `quick_rounding.spec.ts` entry points.
+- **[Item 4 — options accepted and ignored](upstream_requests/12-compat-methods-drop-their-options.md).**
+  `equalsViaSyntax` now takes options, through a new `structural_equality_with_options` wasm entry;
+  the grading-options decoder is factored into one `eq_options_from_json` so the numeric and
+  syntactic paths cannot drift apart again. `equals_syntactic` honours `allowed_error_in_numbers`
+  via the `fuzzy_tree_eq` that `equals` already used, so a tolerance means the same thing on both.
+  `evaluate_numbers` honours `evaluate_functions` through a new core pass. `match` honours
+  `variables`, `allow_permutations` and `allow_implicit_identities`.
 
-The counter-argument is in your source — tagged in both directions, because `{"$":"None"}` has no JS
-scalar. Coming *out*, we think it inverts: `None` never had a legacy scalar to lose,
-`evaluate_to_constant()` already untags, and the `fromAst(x).tree` fixpoint survives because
-`from_ast` still reads both spellings. If you would rather not, say so and we will adapt our consumers
-and close it — they are our `typeof x === "number"` checks.
+  On your general ask — *where an option cannot be honoured, throw* — we took it, with one
+  refinement. `max_digits` is accepted at `Infinity`, because "no cap" is a constraint the exact
+  core genuinely satisfies, and throws on a finite value, which it cannot. All four of our call
+  sites pass `Infinity`, and one passes it alone, so a blanket throw would have broken them. A
+  predicate passed as a `variables` kind now throws too, naming the three declarative kinds
+  instead.
 
-**3. [Signed zero is dropped](upstream_requests/11-negative-zero-not-preserved.md)** — the twelfth
-failure, and a value rather than a tag. `(0)(-1)` folds to exact `0`, so `1/((0)(-1))` is `+∞` where
-legacy gave `−∞`. Three of your `slow_simplify` specs pin the legacy behaviour and currently fail,
-one with the division left unevaluated: `expected [ '/', 6, +0 ] to deeply equal -Infinity`. Low
-severity for us — one test, authored content — but it is the same theme as the single residual we
-found in the rounding fix, where `round_numbers_to_decimals(-0.001, 2)` now returns `+0` where legacy
-returned `-0`.
+- **[Item 5 — `evaluate_to_constant` reports NaN as `None`](upstream_requests/14-evaluate-to-constant-reports-nan-as-none.md).**
+  Implemented, and deliberately *not* by relaxing `finite()` as our report suggested. A NaN that
+  simplification derived is a conclusion; a NaN falling out of `eval_complex` may only mean the
+  sampler could not evaluate there, and returning that as a value would turn "cannot decide" into a
+  confident wrong answer. It reads the simplified tree instead — the same shape as `signed_infinity`
+  right above it. Free variables and the holes `has_undefined_leaf` rejects still return `None`.
 
-**4. [Three compat methods accept an options object and ignore it](upstream_requests/12-compat-methods-drop-their-options.md)**
-— new this round, ~50 tests, and the largest thing left. `equalsViaSyntax`, `match` and
-`evaluate_numbers` take options that never reach the Rust core. They do not throw and do not warn;
-they answer confidently with the defaults.
+- **[Item 2 — `.tree` hands back `{"$":"Inf"}`](upstream_requests/10-tree-returns-tagged-non-finite.md).**
+  `.tree` untags `Inf`/`-Inf`/`NaN` to the JS scalars through a `JSON.parse` reviver; `{"$":"None"}`
+  stays tagged, having no scalar to become. The *wire* stays tagged in both directions — JSON cannot
+  hold these three — so what changed is the value a caller sees, not the format. `fromAst(x).tree`
+  is still a fixpoint because `astReplacer` re-tags on the way in.
 
-```js
-me.fromText("/a").equals(me.fromText("/a"), { allow_blanks: true });          // true   ✓
-me.fromText("/a").equalsViaSyntax(me.fromText("/a"), { allow_blanks: true }); // false  ✗
-me.fromText("3.2").equalsViaSyntax(me.fromText("3.2001"), { allowed_error_in_numbers: 0.001 }); // false  ✗
-```
+  One trap worth recording, because it bit us immediately: `astReplacer` unwraps a nested
+  `Expression` by returning `held.tree`, and once `.tree` untags, that return is a bare JS `NaN`
+  that `JSON.stringify` writes as `null` — straight back into "unexpected value null". Both unwrap
+  paths now go through `tagNonFinite`. Anyone else making this change needs the same edit.
 
-`match(pattern, _options)` has the underscore in your source: every symbol in the pattern is a
-placeholder regardless of `variables`, and `allow_permutations` is inert. `evaluate_numbers` reads
-only `skip_ordering`, so `evaluate_functions: true` leaves `sin(0)` unevaluated and our
-`simplify="full"` comparison never converges.
+**Item 3 (signed zero) was fixed by you in `264be80`, and we could not see it.** The sign is correct
+all the way through `1/((-1)(0))` now, but the test still failed, because `.tree` handed back
+`{"$":"-Inf"}` where it asserts `-Infinity` — item 2 standing in front of item 3. It is worth saying
+plainly: a fix you shipped bought zero tests until a second one landed. That is the strongest
+argument we have for item 2, and we did not have it when we filed.
 
-The general ask matters more than the three patches: **where an option cannot be honoured, throw.**
-You already do exactly this for the legacy no-backing methods, "so calls fail loudly, not as
-`undefined is not a function` surprises" — this is the same instinct one level down. Silent
-acceptance cost us several sessions and produced wrong equality answers, which for us are wrong
-grades.
+**[Item 6 — units and mixed-container vectors](upstream_requests/13-simplify-does-not-fold-units-or-mixed-vectors.md)
+is implemented.** A `fold_units` pass in `full_simplify` combines like units under `+`/`-` and moves
+scalar factors and divisors inside a single unit. Both boundaries you asked us to hold are held:
+unlike units never combine, and a unit never combines with a bare scalar.
 
-**5. [`evaluate_to_constant` reports NaN as `None`](upstream_requests/14-evaluate-to-constant-reports-nan-as-none.md)**
-— 32 tests, measured against an unchanged pin. This is item 2 above seen at a different exit, and it
-stands whichever way item 2 goes: `evaluate_to_constant`'s contract is a JS number, so a tag has
-nowhere to go there.
+For the mixed containers we departed from the spec in one place. You asked for the left operand's
+container; `Add` is commutative and canonically sorted, so by the time the rule runs there is no
+left operand to read, and keying off position would make `u + v` and `v + u` canonicalize to
+different trees. It takes the members' own kind when they agree and the class's canonical container
+otherwise. `tuple`/`vector`/`altvector` are one class; `array` is its own, because `createIntervals`
+reads `[a,b]` as an interval and your `equals` already keeps tuple↔array coercion a separate opt-in
+from tuple↔vector.
 
-Your own argument for returning `±∞` applies verbatim — `None` reads downstream as `0`, because
-`Math.abs(null)` is `0`. A horizontal line's x-intercept is genuinely undefined and we render it at
-the origin. `0/0` *evaluates*; it is not undecided in the way a free variable or a `＿` hole is, and
-we are not asking you to weaken `has_undefined_leaf`.
+**[Item 7 — a bare `_`](upstream_requests/15-bare-underscore-parses-as-subscript.md) is withdrawn.
+Please do not build it.** We implemented it, measured it, and reverted it.
 
-**6. [`simplify` leaves unit arithmetic and mixed-container vector sums unfolded](upstream_requests/13-simplify-does-not-fold-units-or-mixed-vectors.md)**
-— 9 tests. `$3+$2` stays `["+",["unit","$",2],["unit","$",3]]` while `equals` answers it correctly,
-so the semantics are already in there. `⟨a,b⟩ + (c,d)` does not fold although `(a,b)+(c,d)` does —
-`altvector` and `tuple` are the same object in our authoring.
+The report's premise does not hold for us. `excludeCombinations="(1 1 _)"` is split into lists by
+our own sugar before any of it reaches you, so each `_` is parsed **alone** — the `2 2 _`
+token-swallowing case the whole report is built on is never on a path we exercise. The parse of a
+bare `_` as `["_","＿","＿"]` is cosmetic.
 
-**7. [A bare `_` parses as a subscript operator instead of a blank](upstream_requests/15-bare-underscore-parses-as-subscript.md)**
-— 6 tests. `me.fromText("_").tree` is `["_","＿","＿"]`; we expect `"＿"`. `x_1`, `a_` and `_b` are all
-right — only the both-operands-blank case. `_` is our authoring syntax for a free slot in
-`excludeCombinations="(2 2 _)"`.
+Measured, the change fixed **0** tests and broke **1**: `'-_^` is `["^",["_","＿","＿"],"＿"]` and
+renders `_{}^{}`, which is what `displayBlanks` should show for what the author typed; collapsing
+the `_` makes it `["^","＿","＿"]` and the subscript slot disappears. A real cost for no benefit.
 
-**8. [Display rounding turns exact rationals into decimals](upstream_requests/16-rounding-destroys-exact-rationals.md)**
-— 7 tests, same function family as the fix you shipped. `round_numbers_to_precision(5/2, 3)` is
-`2.5` where legacy kept `\frac{5}{2}`; `1/3 → 0.333` is already right, so we think the rule is just
-"if rounding would not change the value, return it unchanged". `displayDigits` defaults to 3, so
-every rational a student sees goes through it, and in a fractions lesson the fraction *is* the point.
+The 13 tests we had attributed to this were **ours**, and are now fixed: a tenth instance of the
+`Number.isNaN(null)` family in `Number.js`. A blank evaluates to `null` — correctly, it is undecided
+rather than NaN — `Number.isNaN(null)` is `false`, so it flowed past the NaN branch as `null`, and
+the wildcard machinery in `excludeCombinations.js` represents wildcards as `NaN`, so no combination
+ever matched.
 
-**9. Root and complex simplification gaps** — 4 tests, not filed separately yet.
-`cbrt(x^3)`, `nthroot(x^3,3)` and `sqrt(16x²y⁴)` keep their radicals (only the numeric factor comes
-out of the last), and `i^2` stays `["^","i",2]` rather than folding to `-1`. Say the word and we will
-write it up properly with the corpus.
+**Item 1 (WASM32 stack safety) is the one thing still open on your side**, unchanged in severity, and
+the caret handler building deep `Pow` trees in a loop is still the vector that worries us most,
+because `^` is a character a student types.
 
-**10. [Two printer defects: `(-3) x`, and `∫` losing its glyph](upstream_requests/17-printer-negative-coefficients-and-integrals.md)**
-— 6 tests, and the only two we would not absorb. We went through every printer difference this round
-and changed *our* expectations wherever the new output was a legitimate style choice: canonical term
-and factor ordering (`a+mn` now prints `mn+a`), and parentheses that were never needed
-(`(x²)/2` → `x²/2`). These two are different.
+**Items 8, 9 and 10 you resolved in `264be80`** (display rounding keeping exact rationals, the
+numeric root convention, and both printer defects). We verified all five through the JS API before
+counting them.
 
-```js
-me.fromAst(["+", "a", ["*", -3, "b"]]).toString();   // "a + (-3) b"   expected "a - 3 b"
-me.fromLatex("\\int_{a}^{b} f(x) dx").toString();     // "int_a^b(f(x) dx)"  expected "∫_a^b f(x) dx"
-```
+## One thing we found on your side, which is a soundness bug rather than a gap
 
-`simplify()` fixes the first, so it only shows on unsimplified output — which is where a lot of what
-a student reads lives, including our test literally named "display fraction with negative out front".
+Probing indeterminate forms while implementing item 5 turned up three results that are wrong rather
+than merely unsimplified:
+
+| | `264be80` | now |
+| --- | --- | --- |
+| `Infinity/Infinity` | `1` | `NaN` |
+| `Infinity^0` | `1` | `NaN` |
+| `1^Infinity` | `1` | `NaN` |
+| `0^0` | `1` | `NaN` |
+
+Two rules in the `pow` constructor: `x^0 → 1` fired for a zero or non-finite base, and `1^x → 1` for
+an infinite exponent. `∞/∞` reached `1` through the first, by collecting to `∞^(1−1)`. Folding an
+indeterminate form to a value asserts a limit that does not exist, and `∞/∞ = 1` is the kind of
+answer a student can quote back at a teacher.
+
+`0^0` is the debatable member. Combinatorics and IEEE `pow` both take it as 1; Mathematica says
+`Indeterminate`. We went with NaN because as a *limit* form it is indeterminate (`x^0 → 1` but
+`0^x → 0`), that is the reading a mathematics course teaches, and our `number.test.ts` group is
+literally named "indeterminate forms give NaN". It is one predicate
+(`is_indeterminate_power_base`) if you would rather keep `0^0 = 1`.
+
+Neighbours that must not move — `2^0`, `x^0`, `1^x`, `0^3`, `∞+∞` — are unchanged and pinned.
+
 
 ## Where we are
 
-`packages/doenetml-worker-javascript`: **237 failures of 3,436 executed — 93.1% passing**, from 448
+`packages/doenetml-worker-javascript`: **99 failures of 3,428 executed — 97.1% passing**, from 448
 when we started.
 
 | Pin | Failures | Fixed | Broken |
@@ -157,7 +165,18 @@ when we started.
 | `02293bf` | 412 | 36 | 0 |
 | `08bd4dc` | 403 | 10 | 0 |
 | `970c1c3` | 343 | 59 | 0 |
-| `7a18c9c` + our fixes | **237** | **106** | **0** |
+| `7a18c9c` + our fixes | 237 | 106 | 0 |
+| `264be80` | 229 | 9 | 1 |
+| `264be80` + the work below | **99** | **138** | **0** |
+
+The `264be80` row is the only one that ever broke a test, and it was a stale expectation of ours
+rather than a defect: `point.test.ts` built its own expectation from `me.fromText("sqrt(-1)").tree`
+— an *unsimplified* parse — while the component now folds the radicand to `i`. Both are correct and
+`equals` answers `true` between them; the test now compares against `.simplify().tree`. Counting it
+as a break anyway, because the rule that has served us here is to diff the failing *set* and report
+what it says.
+
+The last row is this round's work, measured against `264be80` with nothing else changed.
 
 No pin has ever broken anything. `02293bf` also let us delete the last two workarounds in our seam —
 with **no change in results either way**, which is how we verify an upstream fix actually covers our
@@ -194,10 +213,12 @@ We also hardened `MathBaseOperator`. `median([1,4,5,null])` throws inside mathjs
 document down; `median([1,4,5,NaN])` degrades quietly. That is downstream of item 5, and it is the
 sharpest illustration of why `None` arriving as a JS `null` is worse than a NaN.
 
-The remaining 237 are fully triaged, cluster by cluster, in
-[`upstream_requests/README.md`](upstream_requests/README.md) — each confirmed by an engine-level
-probe rather than inferred from the test name. Roughly 145 are items 2–8, 6 are item 10, and the rest is a
-long tail of two or three per file. The cosmetic bucket is gone: we worked through it and moved our
+The remaining 99 are bucketed by symptom in
+[`upstream_requests/README.md`](upstream_requests/README.md). None of them is a filed request any
+more: the largest cluster (32) is assumption-gated simplification, where the tests agree with your
+`ROOT_SIMPLIFICATION_SPEC.md` for the no-assumption case and only diverge under `x > 0` / `x ∈ R`;
+19 are printer and display strings we have not yet walked one at a time; and 5 are the last of our
+own `null`-handling sites. The cosmetic bucket is gone: we worked through it and moved our
 expectations to the new printer wherever the difference was style rather than substance.
 
 ### How we check your fixes now

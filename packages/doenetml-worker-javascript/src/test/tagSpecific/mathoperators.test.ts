@@ -5353,16 +5353,21 @@ describe("Math operator tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
+        // The *Product forms collapse to a single value (`251`), and a single
+        // observation has no sample variance: the n-1 denominator is zero, so
+        // the quantity is undefined rather than 0 (R gives NA, numpy nan). The
+        // engine declines to fold it rather than assert a spread of zero, so
+        // the application stays as written and `isNumber` is false.
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "variance", 251]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
@@ -5396,12 +5401,12 @@ describe("Math operator tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("numberComponentsProductSimplify")
             ].stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "variance", 51]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberComponentsProductSimplify")
             ].stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosCommas")]
@@ -5430,11 +5435,11 @@ describe("Math operator tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "variance", 51]);
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("group")].stateValues
@@ -6101,16 +6106,21 @@ describe("Math operator tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
+        // The *Product forms collapse to a single value (`1621`), and a single
+        // observation has no sample variance: the n-1 denominator is zero, so
+        // the quantity is undefined rather than 0 (R gives NA, numpy nan). The
+        // engine declines to fold it rather than assert a spread of zero, so
+        // the application stays as written and `isNumber` is false.
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "std", 1621]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
@@ -6144,12 +6154,12 @@ describe("Math operator tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("numberComponentsProductSimplify")
             ].stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "std", 325]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberComponentsProductSimplify")
             ].stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosCommas")]
@@ -6178,11 +6188,11 @@ describe("Math operator tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "std", 325]);
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("group")].stateValues

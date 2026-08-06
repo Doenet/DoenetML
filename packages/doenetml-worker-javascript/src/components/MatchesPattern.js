@@ -1,7 +1,7 @@
 import BooleanComponent from "./Boolean";
 import { numberToLetters } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { isValidVariable, isNumericConstant } from "../utils/math";
+import { isValidVariable } from "../utils/math";
 import me from "math-expressions";
 
 const BLANK = "\uff3f";
@@ -395,23 +395,21 @@ export default class MatchesPattern extends BooleanComponent {
                     };
                 }
 
-                let variables = {};
+                // The kind each parameter is allowed to bind. These used to be
+                // JS predicates, which the engine could not carry across the
+                // wasm boundary and silently dropped — every parameter then
+                // matched anything, so `requireNumericMatches` did nothing.
+                // "number" and "variable" are the same two tests, declared.
+                let kind = "any";
                 if (dependencyValues.requireNumericMatches) {
-                    let isNumeric = (m) =>
-                        isNumericConstant(me.fromAst(m).evaluate_to_constant());
-                    dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = isNumeric),
-                    );
+                    kind = "number";
                 } else if (dependencyValues.requireVariableMatches) {
-                    let isString = (m) => typeof m === "string";
-                    dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = isString),
-                    );
-                } else {
-                    dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = true),
-                    );
+                    kind = "variable";
                 }
+                let variables = {};
+                dependencyValues.patternVariables.forEach(
+                    (v) => (variables[v] = kind),
+                );
 
                 let params = {
                     variables,

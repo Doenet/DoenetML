@@ -650,8 +650,17 @@ export default class CobwebPolyline extends Polyline {
                                 globalDependencyValues.attractThreshold ||
                         globalDependencyValues.lockToSolution
                     ) {
-                        vertices[pointInd + ",0"] = me.fromAst(attractPoint[0]);
-                        vertices[pointInd + ",1"] = me.fromAst(attractPoint[1]);
+                        // `evaluate_to_constant()` on a non-numeric vertex, or
+                        // `f` at such a point, yields `null` — which `fromAst`
+                        // rejects and which would abort the whole update. A
+                        // vertex we cannot place is NaN, not a hard error.
+                        const coord = (v) => (typeof v === "number" ? v : NaN);
+                        vertices[pointInd + ",0"] = me.fromAst(
+                            coord(attractPoint[0]),
+                        );
+                        vertices[pointInd + ",1"] = me.fromAst(
+                            coord(attractPoint[1]),
+                        );
                         prelimCorrectVertices[pointInd + ",0"] = true;
                     } else {
                         vertices[pointInd + ",0"] =

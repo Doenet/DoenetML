@@ -24,6 +24,30 @@ import {
     roundForDisplay,
 } from "../utils/math";
 
+/**
+ * The numeric value of an expression carrying scaling units — `$5` is `5`,
+ * `25%` is `0.25`, `60 deg` is `π/3`.
+ *
+ * `evaluate_to_constant()` declines on these: `%` and `deg` desugar to
+ * arithmetic only in the unit-aware pass, and `$` deliberately desugars to a
+ * *free factor* so that `$5` never compares equal to a bare `5`. Asking
+ * `<number>` for a value is exactly the place where that marker should be
+ * dropped, so it is substituted with 1 here and nowhere else.
+ *
+ * Returns `null` when the expression has no numeric value for other reasons
+ * (a free variable), leaving the caller's own handling in charge.
+ */
+function valueIgnoringUnits(expr) {
+    try {
+        return expr
+            .remove_scaling_units()
+            .substitute({ $: 1 })
+            .evaluate_to_constant();
+    } catch (e) {
+        return null;
+    }
+}
+
 export default class NumberComponent extends InlineComponent {
     constructor(args) {
         super(args);
@@ -535,13 +559,15 @@ export default class NumberComponent extends InlineComponent {
                         );
                         if (Number.isNaN(number)) {
                             try {
-                                number = me
-                                    .fromAst(
-                                        textToAst.convert(
-                                            dependencyValues.stringChild[0],
-                                        ),
-                                    )
-                                    .evaluate_to_constant();
+                                const parsed = me.fromAst(
+                                    textToAst.convert(
+                                        dependencyValues.stringChild[0],
+                                    ),
+                                );
+                                number = parsed.evaluate_to_constant();
+                                if (number === null) {
+                                    number = valueIgnoringUnits(parsed);
+                                }
 
                                 if (typeof number === "boolean") {
                                     if (dependencyValues.convertBoolean) {
@@ -549,7 +575,14 @@ export default class NumberComponent extends InlineComponent {
                                     } else {
                                         number = dependencyValues.valueOnNaN;
                                     }
-                                } else if (Number.isNaN(number)) {
+                                    // `null` is "could not evaluate" — a blank
+                                    // `_`, or a free variable. `Number.isNaN(null)`
+                                    // is `false`, so without this it flows on as
+                                    // `null` and coerces to `0` downstream.
+                                } else if (
+                                    number === null ||
+                                    Number.isNaN(number)
+                                ) {
                                     if (dependencyValues.convertBoolean) {
                                         let parsedExpression =
                                             buildParsedExpression({
@@ -658,13 +691,15 @@ export default class NumberComponent extends InlineComponent {
                         let number;
 
                         try {
-                            number = me
-                                .fromAst(
-                                    replaceMath(
-                                        dependencyValues.parsedExpression.tree,
-                                    ),
-                                )
-                                .evaluate_to_constant();
+                            const parsed = me.fromAst(
+                                replaceMath(
+                                    dependencyValues.parsedExpression.tree,
+                                ),
+                            );
+                            number = parsed.evaluate_to_constant();
+                            if (number === null) {
+                                number = valueIgnoringUnits(parsed);
+                            }
                         } catch (e) {
                             number = dependencyValues.valueOnNaN;
                         }

@@ -165,6 +165,13 @@ function clamp({ value, lowerValue, upperValue }) {
     if (numericValue instanceof me.class) {
         numericValue = numericValue.evaluate_to_constant();
     }
+    // `evaluate_to_constant()` returns `null` for anything it cannot evaluate —
+    // a free variable, a blank. `Math.min(40, null)` is `0`, so without this a
+    // symbolic input clamps to the *lower bound* and reads as a real answer.
+    // There is nothing to clamp, so the result is not a number.
+    if (numericValue === null || !Number.isFinite(numericValue)) {
+        return me.fromAst(NaN);
+    }
     return me.fromAst(Math.max(lowerValue, Math.min(upperValue, numericValue)));
 }
 

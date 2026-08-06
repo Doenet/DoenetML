@@ -240,8 +240,12 @@ function contained_in(tree, i_set, match_partial) {
     // normalize to period 1
     offset0 = me.fromAst(["/", offset0, period0]).evaluate_to_constant();
 
-    // if(!(typeof offset0 === 'number'))
-    //   return false;
+    // A symbolic offset does not normalize to a number: `evaluate_to_constant`
+    // reports that as `null`, which then reaches `fromAst` further down and is
+    // rejected there ("unexpected value null"), taking the document with it.
+    // The same guard the period below already has — an offset we cannot place
+    // on the number line simply means "not contained".
+    if (typeof offset0 !== "number" || Number.isNaN(offset0)) return false;
 
     var tuples = i_set.slice(1);
 
@@ -265,6 +269,9 @@ function contained_in(tree, i_set, match_partial) {
             .evaluate_to_constant();
 
         if (typeof period !== "number" || Number.isNaN(period)) return false;
+        // Same reasoning as `offset0` above: a non-numeric offset cannot be
+        // compared, and must not reach `fromAst` as `null`.
+        if (typeof offset !== "number" || Number.isNaN(offset)) return false;
 
         let frac = fraction(period);
         let p = mathNumber(frac.n);

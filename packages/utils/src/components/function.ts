@@ -1059,7 +1059,14 @@ export function returnNumericFunctionForEvaluate({
 
         let numericInput = input.map((x: any) => x.evaluate_to_constant());
 
-        let components = numericalfs.map((f) => f(...numericInput));
+        // A numerical function fed a non-numeric input can hand back `null`
+        // (or `undefined`), which `fromAst` rejects outright — a thrown error
+        // out of a state-variable definition takes the whole document down.
+        // "Could not evaluate numerically" is NaN, which the tree can hold and
+        // every downstream finiteness check already handles.
+        let components = numericalfs
+            .map((f) => f(...numericInput))
+            .map((c: any) => (typeof c === "number" ? c : NaN));
 
         let value;
         if (components.length === 1) {

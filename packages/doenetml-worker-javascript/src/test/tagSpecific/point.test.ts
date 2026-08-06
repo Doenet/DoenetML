@@ -6733,7 +6733,10 @@ describe("Point tag tests @group4", async () => {
             ).eqls(y2);
         }
 
-        let x1 = me.fromText("sqrt(-1)").tree;
+        // The engine folds a numeric radicand to its principal value, so the
+        // stored coordinate is `i` rather than the unevaluated `sqrt(-1)`.
+        // Compare against the canonical form rather than the raw parse.
+        let x1 = me.fromText("sqrt(-1)").simplify().tree;
         let y1 = 1;
         let x2 = 1;
         let y2 = x1;
