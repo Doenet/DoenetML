@@ -3,13 +3,22 @@
     cursor: pointer;
 }
 
+/*
+ * Both description surfaces paint the canvas color rather than a surface of
+ * their own. Style-definition contrast is checked statically against the canvas
+ * (see `styleContrastAccessibility.ts`), so authored colors only carry their
+ * WCAG AA guarantee onto a background the check actually knows about. Borders
+ * and shadows, which no text sits on, still carry the raised-panel look.
+ */
 .description[open] {
-    background-color: var(--revealButtonSurface);
+    background-color: var(--canvas);
     color: var(--canvasText);
 }
 .description .details-content {
-    background-color: var(--revealButtonSurface);
+    background-color: var(--canvas);
     color: var(--canvasText);
+    border: 1px solid var(--panelBorder);
+    border-radius: var(--mainBorderRadius);
     padding: 10px;
 }
 
@@ -31,9 +40,9 @@
     border-width: 1px;
     border-style: solid;
     border-color: hsl(204 20% 88%);
-    background-color: white;
+    background-color: var(--canvas);
     padding: 1rem;
-    color: black;
+    color: var(--canvasText);
     box-shadow:
         0 10px 15px -3px rgb(0 0 0 / 0.1),
         0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -47,21 +56,29 @@
 
 .description-popover:where([data-theme="dark"], [data-theme="dark"] *) {
     border-color: hsl(204 4% 24%);
-    background-color: hsl(204 4% 16%);
-    color: white;
     box-shadow:
         0 10px 15px -3px rgb(0 0 0 / 0.25),
         0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 .description-popover .arrow > svg {
-    fill: white;
+    fill: var(--canvas);
     stroke: hsl(204 20% 88%);
 }
 
 .description-popover
     .arrow:where([data-theme="dark"], [data-theme="dark"] *)
     > svg {
-    fill: hsl(204 4% 16%);
     stroke: hsl(204 4% 24%);
+}
+
+/*
+ * Links in description content. Without this the attribution's author, subject,
+ * and license anchors fall through to the user agent's `#0000EE` (and `#551A8B`
+ * once visited), neither of which changes with the theme.
+ */
+.description .details-content a,
+.description-popover a,
+a.attribution-link {
+    color: var(--linkText);
 }

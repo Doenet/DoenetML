@@ -213,6 +213,13 @@ describe(
                 settle: "#ul",
             },
             {
+                name: "external and internal reference links",
+                doenetML: `
+<p name="rp">See <ref to="http://doenet.org">Doenet</ref> and
+<ref to="http://example.com">an example</ref>.</p>`,
+                settle: "#rp",
+            },
+            {
                 name: "subsetOfRealsInput number line",
                 doenetML: `
 <subsetOfRealsInput name="sri" variable="t" prefill="t > 0" />`,

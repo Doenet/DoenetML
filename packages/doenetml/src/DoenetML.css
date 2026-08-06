@@ -76,6 +76,13 @@ html {
     --lightGreen: #a6f19f;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #6d4445;
+    /* Link text. Distinct from --mainBlue, which is a surface color (button
+       backgrounds) and so must stay dark in both themes. */
+    --linkText: #1a5a99;
+    /* Border for panels that paint the canvas color and so have no fill of
+       their own to set them apart. Meets WCAG's 3:1 non-text contrast against
+       the canvas, which a surface-toned border does not. */
+    --panelBorder: #949494;
     --mainYellow: #94610a;
     --lightOrange: #efab34;
     --mainOrange: #a36600;
@@ -107,6 +114,8 @@ html {
     --lightGreen: #1a5e20;
     --lightYellow: #f5ed85;
     --whiteBlankLink: #a9abe5;
+    --linkText: #8ab4f8;
+    --panelBorder: #6b6b6b;
     --mainYellow: #efab34;
     --lightOrange: #7a3e00;
     --mainOrange: #a36600;
