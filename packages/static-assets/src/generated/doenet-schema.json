@@ -64964,6 +64964,10 @@
                             "description": "English"
                         },
                         {
+                            "value": "ace",
+                            "description": "Acehnese"
+                        },
+                        {
                             "value": "af",
                             "description": "Afrikaans"
                         },
@@ -65000,12 +65004,20 @@
                             "description": "Azerbaijani (azərbaycan)"
                         },
                         {
+                            "value": "ban",
+                            "description": "Balinese"
+                        },
+                        {
                             "value": "be",
                             "description": "Belarusian (беларуская)"
                         },
                         {
                             "value": "bg",
                             "description": "Bulgarian (български)"
+                        },
+                        {
+                            "value": "bik",
+                            "description": "Bikol"
                         },
                         {
                             "value": "bm",
@@ -65030,6 +65042,10 @@
                         {
                             "value": "ceb",
                             "description": "Cebuano"
+                        },
+                        {
+                            "value": "ch",
+                            "description": "Chamorro"
                         },
                         {
                             "value": "co",
@@ -65084,6 +65100,10 @@
                             "description": "Filipino"
                         },
                         {
+                            "value": "fj",
+                            "description": "Fijian"
+                        },
+                        {
                             "value": "fo",
                             "description": "Faroese (føroyskt)"
                         },
@@ -65132,6 +65152,10 @@
                             "description": "Hindi (हिन्दी)"
                         },
                         {
+                            "value": "hil",
+                            "description": "Hiligaynon"
+                        },
+                        {
                             "value": "hnj",
                             "description": "Hmong Njua"
                         },
@@ -65158,6 +65182,10 @@
                         {
                             "value": "ig",
                             "description": "Igbo"
+                        },
+                        {
+                            "value": "ilo",
+                            "description": "Iloko"
                         },
                         {
                             "value": "is",
@@ -65224,12 +65252,20 @@
                             "description": "Latvian (latviešu)"
                         },
                         {
+                            "value": "mad",
+                            "description": "Madurese"
+                        },
+                        {
                             "value": "mg",
                             "description": "Malagasy"
                         },
                         {
                             "value": "mi",
                             "description": "Māori"
+                        },
+                        {
+                            "value": "min",
+                            "description": "Minangkabau"
                         },
                         {
                             "value": "mk",
@@ -65302,6 +65338,10 @@
                         {
                             "value": "pa",
                             "description": "Punjabi (ਪੰਜਾਬੀ)"
+                        },
+                        {
+                            "value": "pam",
+                            "description": "Pampanga"
                         },
                         {
                             "value": "pl",
@@ -65412,6 +65452,10 @@
                             "description": "Telugu (తెలుగు)"
                         },
                         {
+                            "value": "tet",
+                            "description": "Tetum"
+                        },
+                        {
                             "value": "tg",
                             "description": "Tajik (тоҷикӣ)"
                         },
@@ -65432,12 +65476,24 @@
                             "description": "Tswana (Setswana)"
                         },
                         {
+                            "value": "to",
+                            "description": "Tongan (lea fakatonga)"
+                        },
+                        {
+                            "value": "tpi",
+                            "description": "Tok Pisin"
+                        },
+                        {
                             "value": "tr",
                             "description": "Turkish (Türkçe)"
                         },
                         {
                             "value": "tt",
                             "description": "Tatar (татар)"
+                        },
+                        {
+                            "value": "ty",
+                            "description": "Tahitian"
                         },
                         {
                             "value": "ug",
@@ -65458,6 +65514,10 @@
                         {
                             "value": "vi",
                             "description": "Vietnamese (Tiếng Việt)"
+                        },
+                        {
+                            "value": "war",
+                            "description": "Waray"
                         },
                         {
                             "value": "wo",

@@ -1084,6 +1084,178 @@ describe("the Indigenous Americas batch's word order", () => {
     });
 });
 
+describe("the Austronesian batch's word order", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    /**
+     * Fifteen languages of one region and two orders, which is the useful thing
+     * to pin: the five Philippine catalogs and Tok Pisin put their adjectives
+     * **in front of** the noun, and the nine others put them **behind** it. A
+     * batch is not a word order, and neither is a family — `ilo` and `ban` are
+     * both Austronesian and disagree.
+     *
+     * The linker is the other half of the prenominal rows. Each of the five
+     * Philippine languages joins the adjective to what it describes with a
+     * ligature this catalog writes out — «a» in Ilocano and Kapampangan, «nga»
+     * in Waray and Hiligaynon, «na» in Bikol — and these strings are what pins
+     * which form each one chose. See the header of each `content.ftl` for why
+     * only two of the five could pick a form that is right in every position.
+     */
+    const prenominal: [string, string, string][] = [
+        [
+            "ilo",
+            "napuskol a naguris-guris a nalabaga a linia",
+            "napuskol a naguris-guris a nalabaga",
+        ],
+        [
+            "war",
+            "baga nga putol-putol nga pula nga linya",
+            "baga nga putol-putol nga pula",
+        ],
+        [
+            "hil",
+            "madamol nga putol-putol nga pula nga linya",
+            "madamol nga putol-putol nga pula",
+        ],
+        [
+            "pam",
+            "makapal a putul-putul a malutu a linya",
+            "makapal a putul-putul a malutu",
+        ],
+        [
+            "bik",
+            "makapal na putol-putol na pula na linya",
+            "makapal na putol-putol na pula",
+        ],
+        // Tok Pisin, whose adjectives precede the noun because each carries the
+        // attributive suffix «-pela» and cannot be postposed while it does. See
+        // `locales/tpi/content.ftl` for why the predicative form, which drops
+        // the suffix, is unreachable from `$role`.
+        ["tpi", "patpela brukbruk retpela lain", "patpela brukbruk retpela"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const postnominal: [string, string, string][] = [
+        ["ban", "garis tebel putus-putus barak", "tebel putus-putus barak"],
+        ["min", "garih taba putuih-putuih sirah", "taba putuih-putuih sirah"],
+        ["ace", "garéh teubai putôh-putôh mirah", "teubai putôh-putôh mirah"],
+        ["mad", "garis kandel pote'-pote' mera", "kandel pote'-pote' mera"],
+        ["tet", "liña grosu traku-traku mean", "grosu traku-traku mean"],
+        ["to", "laine matolu motumotu kulokula", "matolu motumotu kulokula"],
+        ["fj", "laini levu musumusu damudamu", "levu musumusu damudamu"],
+        ["ty", "reni mātotoru motumotu ʻuteʻute", "mātotoru motumotu ʻuteʻute"],
+        ["ch", "liña damo' ma'ipe'-ipe' agaga'", "damo' ma'ipe'-ipe' agaga'"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * **All fifteen reach `[noun-tail]`, including the six prenominal ones** —
+     * a combination no earlier batch produced. The Americas batch's six
+     * prenominal catalogs fold the side count into the head and leave the tail
+     * empty, because a count is a modifier there; in every language here it is
+     * a relative clause («nga addaan iti 5 a sikigan», «i gat 5 sait wankain»),
+     * which has to follow the whole phrase whichever side the adjectives sit
+     * on. So the `$part` split is not the postnominal languages' property: it
+     * belongs to the shape of the complement, which is what these rows hold.
+     */
+    it.each([
+        [
+            "ilo",
+            "napuskol a naguris-guris a nalabaga a regular a poligono nga addaan iti 5 a sikigan",
+        ],
+        [
+            "war",
+            "baga nga putol-putol nga pula nga regular nga poligono nga may 5 nga kilid",
+        ],
+        [
+            "hil",
+            "madamol nga putol-putol nga pula nga regular nga poligono nga may 5 nga kilid",
+        ],
+        [
+            "pam",
+            "makapal a putul-putul a malutu a regular a poligono a atin 5 a gilid",
+        ],
+        [
+            "bik",
+            "makapal na putol-putol na pula na regular na poligono na may 5 na gilid",
+        ],
+        ["tpi", "patpela brukbruk retpela poligon i gat 5 sait wankain"],
+        ["ban", "poligon beraturan tebel putus-putus barak ane ngelah 5 sisi"],
+        ["min", "poligon baraturan taba putuih-putuih sirah nan basisi 5"],
+        ["ace", "poligon beuratura teubai putôh-putôh mirah nyang na 5 sagoë"],
+        ["mad", "poligon beraturan kandel pote'-pote' mera se badâ 5 essèna"],
+        ["tet", "polígonu regulár grosu traku-traku mean ho sorin 5"],
+        ["to", "polikoni tatau matolu motumotu kulokula ʻoku tapa 5"],
+        ["fj", "poligani veitautauvata levu musumusu damudamu e 5 na yasana"],
+        ["ty", "poligone ʻaifaito mātotoru motumotu ʻuteʻute e 5 hiti tōna"],
+        [
+            "ch",
+            "poligono regulåt damo' ma'ipe'-ipe' agaga' ni guaha 5 na kanton",
+        ],
+    ])(
+        "closes %s's phrase with the side count behind it",
+        (locale, expected) => {
+            const description = describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            });
+            expect(description).toBe(expected);
+            // The complement trails the whole phrase rather than sitting between
+            // the noun and the words describing it, which is the whole point of the
+            // split — and it leaves no doubled space behind.
+            expect(description).toContain("5");
+            expect(description).not.toContain("  ");
+            expect(description.trimEnd()).toBe(description);
+        },
+    );
+});
+
 describe("a partly translated locale", () => {
     // A translation is allowed to lag: every key it does not define falls
     // through to English. The split noun is the case where that matters, since
@@ -1201,6 +1373,34 @@ describe("a phrase rendered in two positions", () => {
         quc: forLocale("quc"),
         arn: forLocale("arn"),
         oj: forLocale("oj"),
+    } as const;
+
+    /**
+     * The Austronesian batch, all fifteen on the identity side. Not one of them
+     * inflects an adjective for the position its phrase goes into: nine have no
+     * adjective morphology at all, the five Philippine languages carry a linker
+     * rather than a case, and Tok Pisin's «-pela» is attributive-against-
+     * predicative rather than positional — and the one place that distinction
+     * would show is unreachable, because `standalone` covers both the citation
+     * form and the attributive use. So a `$role` fork in any of the fifteen
+     * would write one string twice, and this is what would catch it.
+     */
+    const austronesian = {
+        ilo: forLocale("ilo"),
+        war: forLocale("war"),
+        hil: forLocale("hil"),
+        pam: forLocale("pam"),
+        bik: forLocale("bik"),
+        ban: forLocale("ban"),
+        min: forLocale("min"),
+        ace: forLocale("ace"),
+        mad: forLocale("mad"),
+        tet: forLocale("tet"),
+        to: forLocale("to"),
+        fj: forLocale("fj"),
+        ty: forLocale("ty"),
+        ch: forLocale("ch"),
+        tpi: forLocale("tpi"),
     } as const;
 
     const borderWords = { colorWord: "black", lineWidthWord: "thick" };
@@ -1640,7 +1840,7 @@ describe("a phrase rendered in two positions", () => {
     // the substring holds even though two animacies are in play — which is the
     // same shape Swahili's «mpaka» case has, and why neither language needs
     // `$role`.
-    it.each(Object.entries(americas))(
+    it.each(Object.entries({ ...americas, ...austronesian }))(
         "leaves %s's adjectives unchanged between the two positions",
         (_locale, t) => {
             const border = bothBorderForms(t);
