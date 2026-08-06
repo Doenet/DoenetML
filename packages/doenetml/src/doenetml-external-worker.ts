@@ -55,8 +55,11 @@ let ownedBootstrapUrl: string | null = null;
  * copy of itself — see `pinPackageVersion` there, which explains why the URL
  * this module resolves is not always the one to use. It has to be a call an
  * importer makes afterwards rather than something configured ahead of time: the
- * resolution below runs in this module's body, before any importer's. Replacing
- * the URL later is safe, since no worker exists until a viewer mounts.
+ * resolution below runs in this module's body, before any importer's. Both
+ * calls land at module evaluation, and must: a second call revokes the Blob URL
+ * the first wrapped the worker in, and past the first viewer mount that URL can
+ * already be held elsewhere — a mounted editor hands `doenetWorkerUrl` to the
+ * LSP, which spawns its own core from it later.
  */
 export function setExternalCoreWorkerUrl(workerUrl: string) {
     // Same-origin needs no wrapper: `new Worker(url)` works directly, and every
