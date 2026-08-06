@@ -141,7 +141,8 @@ style-filled-with-noun =
 # Ilocano has no article, so the two `-article` branches say what the other two
 # say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «nga addaan iti» against
-# «ken».
+# «ken». The ligature in front of «igid» is «nga» and is fixed, because «igid»
+# is vowel-initial and this catalog writes it.
 style-border-clause =
     { $parts ->
         [with-article] nga addaan iti { $border } nga igid
@@ -150,7 +151,6 @@ style-border-clause =
        *[with] nga addaan iti { $border } nga igid
     }
 
-# «igid» is vowel-initial, so its ligature is «nga» and is fixed.
 style-fill =
     { $parts ->
         [pattern] { $color } a { $pattern }
@@ -262,8 +262,8 @@ piecewise-condition-otherwise = no saan
 ## English. Philippine secondary science is taught in English from the
 ## intermediate grades, so the periodic table an Ilocano pupil meets is the
 ## English one — the same reason `locales/fil` and `locales/ceb` leave these
-## keys out, and a fact about one school system rather than about three
-## languages.
+## keys out, and a fact about one school system rather than about the seven
+## Philippine languages the roster now carries.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
 

@@ -15,8 +15,10 @@
 # a consonant-final word and with the enclitic «-ng» welded onto a vowel-final
 # one, and which applies is decided by the word *before* the linker — which at
 # most of the sites below is a placeable. There is no form that is right in both
-# places, so every linker here is written «na»: correct after «itom», wanted as
-# «-ng» after «pula». That is the same constraint `locales/pam` records, and the
+# places, so every linker that lands beside a placeable is written «na»:
+# correct after «itom», wanted as «-ng» after «pula». Where the catalog writes
+# both words around the linker it writes whichever form the preceding one
+# takes, as «balidong simbolong kemikal» does. That is the same constraint `locales/pam` records, and the
 # mirror image of `locales/ilo`'s, whose «a»/«nga» is decided by the word that
 # follows instead. `locales/war` and `locales/hil` escape it, because Bisayan
 # «nga» is grammatical in both positions.

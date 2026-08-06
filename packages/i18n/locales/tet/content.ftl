@@ -18,9 +18,10 @@
 # composition message inverts the English order.
 #
 # The geometry vocabulary is Portuguese-derived, which is what Timorese
-# schooling carries; the colours and the everyday words are Tetum's own, and
-# `.blue` is the one colour in the table that is a loan, because Tetum's own
-# «matak» covers blue and green together. This catalog assigns «matak» to green
+# schooling carries. Several colours are Portuguese loans as Tetun Dili writes
+# them — «sinza», «laranja», «roxu», «rosa», «kastañu» — but `.blue` is the one
+# whose loan stands in for a word Tetum has, because Tetum's own «matak» covers
+# blue and green together. This catalog assigns «matak» to green
 # and the loan «azúl» to blue, which is what Timorese school materials do, and
 # it is a partition of the spectrum rather than a translation of two English
 # words — the same shape `locales/gn` and `locales/oj` record for their own

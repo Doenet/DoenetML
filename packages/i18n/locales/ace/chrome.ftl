@@ -10,9 +10,9 @@
 # Written in the **Latin** orthography Acehnese publishing and schooling use,
 # with the diacritics that spell the language's own vowels — «putéh», «titék»,
 # «jaweueb». Acehnese is also written in Jawi, the Arabic script, so a reader
-# arriving under `ace-Arab` reaches this and gets Latin: the asymmetry `ha` and
-# `pa` already have, and the answer to it is a second catalog beside this one
-# rather than a rename of it.
+# arriving under `ace-Arab` reaches this and gets Latin: the asymmetry `pa`,
+# `sr`, `jv` and `su` already have, and the answer to it is a second catalog
+# beside this one rather than a rename of it.
 #
 # Acehnese marks no number on the noun, so a `{ $count -> … }` whose two English
 # branches differ only in the noun renders one string here and the select is

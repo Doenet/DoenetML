@@ -14,8 +14,10 @@
 # is a placeable at most of the sites below — a colour this file supplies, or an
 # author's own `lineColorWord`, which passes through untranslated and which the
 # catalog has never seen. There is no form that is right in both places, so
-# every linker here is written «a»: correct after «matuling» and «maputi»,
-# wanted as «-ng» after «malutu» and «madilo». That is the affix rule of the
+# every linker that lands beside a placeable is written «a»: correct after
+# «matuling» and «abwan», wanted as «-ng» after «maputi», «malutu» and
+# «madilo». Where the catalog writes both words around the linker it writes
+# whichever form the preceding one takes, as «simbolong kemikal» does. That is the affix rule of the
 # README biting on a *ligature* rather than on a case ending, and it is the
 # mirror image of `locales/ilo`'s, whose «a»/«nga» is decided by the word that
 # follows, and it is `locales/bik`'s exactly. `locales/war` and `locales/hil`

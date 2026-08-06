@@ -21,8 +21,8 @@
 # dropped; the count still arrives and is still formatted. A `[0]` branch stays
 # wherever English has one.
 #
-# The linker «na»/«-ng» is written as the free «na» throughout; see
-# `content.ftl` for what that gets right and what it does not.
+# The linker «na»/«-ng» is written as the free «na» wherever it lands beside a
+# placeable; see `content.ftl` for what that gets right and what it does not.
 
 
 ## Answer submission

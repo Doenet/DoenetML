@@ -18,10 +18,10 @@
 # its own sentence rather than a form of the sentence beside it.
 #
 # The **linker** is this catalog's one recurring decision. An attributive
-# adjective is joined to its noun by «nga» after a vowel and «a» after a
-# consonant, and which one is right is decided by the word *before* it. Where
+# adjective is joined to its noun by «nga» before a vowel and «a» before a
+# consonant, and which one is right is decided by the word *after* it. Where
 # that word is one this catalog writes, the linker is written out; where it
-# would land against a placeable — an author's own answer name, a choice's
+# would land in front of a placeable — an author's own answer name, a choice's
 # text — the sentence is built so that no linker is needed at all. See the
 # header of `content.ftl`, where the same constraint decides the shape of every
 # composition message.
