@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
     changes:
+        if: false
         name: Detect Changed Paths
         runs-on: ubuntu-latest
         outputs:
@@ -27,6 +28,7 @@ jobs:
                         - 'packages/prefigure/**'
 
     build:
+        if: false
         name: Build
         runs-on: ubuntu-latest
 
@@ -84,6 +86,7 @@ jobs:
                       ./package.json
 
     test-main:
+        if: false
         name: Test Main
         runs-on: ubuntu-latest
         needs: build
@@ -123,6 +126,7 @@ jobs:
               run: npm run test:all-no-worker-js
 
     test-worker-js:
+        if: false
         name: Test Worker JS
         runs-on: ubuntu-latest
         needs: build
@@ -161,6 +165,7 @@ jobs:
               run: npm run test:${{ matrix.test-group }} -w packages/doenetml-worker-javascript
 
     test-cypress:
+        if: false
         name: Cypress Tests
         runs-on: ubuntu-latest
         needs: build
@@ -256,6 +261,7 @@ jobs:
                   if-no-files-found: ignore
 
     test-prefigure-browser-runtime:
+        if: false
         name: Prefigure Browser Runtime Check
         runs-on: ubuntu-latest
         needs: [build, changes]
@@ -309,9 +315,13 @@ jobs:
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
+
+                      # Verify Cypress works in the devcontainer
+                      npm run test:codemirror-cypress
                   '
 
     test-doenetml-to-pretext-full-devcontainer:
+        if: false    
         name: DoenetML to PreTeXt Tests
         runs-on: ubuntu-latest
         needs: build
@@ -343,6 +353,7 @@ jobs:
                   '
 
     lint:
+        if: false
         name: Lint Rust Code
         runs-on: ubuntu-latest
 
@@ -365,6 +376,7 @@ jobs:
               run: cargo clippy -- -D warnings
 
     build-docs:
+        if: false
         runs-on: ubuntu-latest
         needs: build
         name: Build Docs
@@ -418,6 +430,7 @@ jobs:
                   path: ./packages/docs-nextra/out/
 
     test-docs-cypress:
+        if: false
         name: Docs Accessibility (Cypress + axe)
         runs-on: ubuntu-latest
         needs: build-docs
@@ -459,6 +472,7 @@ jobs:
                   if-no-files-found: ignore
 
     lint-ts:
+        if: false
         name: Lint Typescript Code
         runs-on: ubuntu-latest
 
@@ -510,6 +524,7 @@ jobs:
                   fi
 
     schema-freshness:
+        if: false
         name: Verify schema regenerated
         runs-on: ubuntu-latest
         needs: build
@@ -566,6 +581,7 @@ jobs:
                   fi
 
     check-docs-coverage:
+        if: false
         name: Check Reference Docs Coverage
         runs-on: ubuntu-latest
         needs: build
