@@ -145,13 +145,20 @@ function endsWithReferencePropertyDot(lineText: string, column: number) {
 }
 
 /**
- * Whether the character just typed at `column` ended the reference path it was
- * typed into: `$P.(`, `$P."`, `$P. `. Anything a path is made of continues it
- * instead — bar the second `.` of `$P..`, which no segment can follow — and
+ * Whether the character just typed at `column` moved the cursor out of the
+ * name the open suggestion list is a list of names for.
+ *
+ * Most such characters end the reference outright — `$P.(`, `$P."`, `$P. ` —
+ * as does the second `.` of `$P..`, which no segment can follow. A `[` and its
+ * `]` do not: they open and close an index, which is part of the path. But an
+ * index holds no name to complete — only a macro of its own, whose `$` opens a
+ * fresh list — and closing one lands the cursor on a position where nothing
+ * but a `.` can follow. So the list has to come down for those too.
+ *
  * `(` right after the `$` opens the parenthesized form rather than ending
- * anything.
+ * anything, and is excluded by the `endsWithReferencePath` check below.
  */
-function typedCharacterEndsReferencePath(lineText: string, column: number) {
+function typedCharacterEndsReferenceName(lineText: string, column: number) {
     const typedChar = lineText[column - 1];
     if (typedChar === undefined) {
         return false;
@@ -162,6 +169,8 @@ function typedCharacterEndsReferencePath(lineText: string, column: number) {
     }
     return (
         !MACRO_PATH_CHAR_REGEX.test(typedChar) ||
+        typedChar === "[" ||
+        typedChar === "]" ||
         (typedChar === "." && beforeChar.endsWith("."))
     );
 }
@@ -1128,18 +1137,18 @@ function getAutocompleteReopenState({
     // A popup opened on a reference is started explicitly (below), and an
     // explicit completion keeps re-querying whatever the author types next —
     // the trigger rules in `getCompletions` no longer gate it. So the
-    // character that ends the path is where the member list has to go: none
-    // of `$P.(`, `$P."` or `$P. ` is a reference the suggestions could still
-    // apply to.
+    // character that leaves the name being completed is where the list has to
+    // go: none of `$P.(`, `$P."`, `$P. ` or `$rep[` is a name the suggestions
+    // could still apply to.
     //
     // Unless that character opens a menu of its own. `<` starts an element,
     // and the running query for it is what closing here would cancel; `$` and
     // `$(` start another reference — `$a$b`, or the index of `$rep[$i]` — and
     // are handled by giving the restart rules below priority over the close.
-    const endedReferencePath =
+    const leftReferenceName =
         !isDeleteEvent &&
         charBefore !== "<" &&
-        typedCharacterEndsReferencePath(line.text, head - line.from);
+        typedCharacterEndsReferenceName(line.text, head - line.from);
     const currentToken = getCurrentWordToken(update.state.doc, head);
     const tokenPrefixChar = currentToken
         ? (() => {
@@ -1222,7 +1231,7 @@ function getAutocompleteReopenState({
         // Ending one reference and starting another is a single keystroke:
         // the `$` that ends the path it sits in opens a name list for the new
         // reference, and that list is the one to keep.
-        shouldCloseCompletion: endedReferencePath && !shouldRestartCompletion,
+        shouldCloseCompletion: leftReferenceName && !shouldRestartCompletion,
     };
 }
 

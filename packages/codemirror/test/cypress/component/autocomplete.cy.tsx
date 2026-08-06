@@ -851,6 +851,52 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-tooltip-autocomplete").should("not.exist");
     });
 
+    it("closes autocomplete when a reference index is opened", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<p><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>$rep'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains("rep");
+
+        // `[` puts the cursor inside the index, where the only reference that
+        // can be written is a fresh one — whose own `$` opens a list for it.
+        // The names of `$rep` do not apply there, and a session left running
+        // answers a cursor inside an index with the whole element menu.
+        cy.get(".cm-content").type("[", { force: true });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("closes autocomplete when a reference index is closed", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<p><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>$rep[$re'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains("rep");
+
+        // `]` closes the index, putting the cursor back on the outer path,
+        // where only a `.` can follow — nothing the name list inside the index
+        // applies to. Left running in an element body, it answers with that
+        // element's children.
+        cy.get(".cm-content").type("]", { force: true });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
     it("rewrites the macro when a hyphenated member is accepted", () => {
         cy.mount(
             <AutocompleteTestHarness
