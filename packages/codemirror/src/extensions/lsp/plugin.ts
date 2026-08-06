@@ -92,19 +92,68 @@ const MACRO_IDENTIFIER_SEGMENT_REGEX = /[A-Za-z0-9_-]+$/;
 // `"`, no `>`). Used by the live-preview wrap-in-quotes hint to decide
 // whether the user is still inside an unquoted attribute value.
 const MACRO_IDENTIFIER_BARE_VALUE_REGEX = /^[A-Za-z0-9_-]+$/;
-// Matches the reference path that must precede a `.` for that `.` to be a
-// property accessor, e.g. `$name`, `$(name`, `$name.prop`. Anchored at the
-// end of the text *before* the dot, so a `.` ending a sentence — where no
-// `$`-rooted path precedes it — does not open the completion popup.
-const MACRO_REFERENCE_PATH_REGEX =
-    /\$\(?[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*(?:\.\([A-Za-z0-9_-]+\))?$/;
+// What a reference path is made of once past its `$`: identifier characters,
+// the `.` joining segments, and `[…]` index brackets.
+const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
 
 /**
- * Whether the `.` ending `textBeforeDot + "."` is a reference property
- * accessor (`$name.`) rather than ordinary prose punctuation.
+ * Whether the `.` following `textBeforeDot` continues a `$`-rooted reference
+ * path — making it a property accessor the completion popup should open on —
+ * rather than a period ending a sentence.
+ *
+ * Accepts every base the language server resolves members from: `$name`,
+ * `$name.prop`, `$name[1]`, the still-unclosed `$(name`, the closed `$(name)`,
+ * and the parenthesized member form `$name.(prop`.
  */
-function isReferenceDot(textBeforeDot: string) {
-    return MACRO_REFERENCE_PATH_REGEX.test(textBeforeDot);
+function isReferenceDot(textBeforeDot: string): boolean {
+    // Walk back over the path characters the `.` would extend; the character
+    // in front of that run says what, if anything, the path is rooted in.
+    let pathStart = textBeforeDot.length;
+    while (
+        pathStart > 0 &&
+        MACRO_PATH_CHAR_REGEX.test(textBeforeDot[pathStart - 1])
+    ) {
+        pathStart--;
+    }
+    const beforePath = textBeforeDot[pathStart - 1];
+    // `$name`, `$name.prop`, `$name[1]`
+    if (beforePath === "$") {
+        return true;
+    }
+    if (beforePath === "(") {
+        const beforeParen = textBeforeDot[pathStart - 2];
+        // `$(name`, `$(name.prop`
+        if (beforeParen === "$") {
+            return true;
+        }
+        // `$name.(prop`: the group is a member of whatever precedes its `.`,
+        // so that `.` has to be a reference dot in its own right.
+        return (
+            beforeParen === "." &&
+            isReferenceDot(textBeforeDot.slice(0, pathStart - 2))
+        );
+    }
+    // `$(name)`, `$(name).prop`
+    if (beforePath === ")") {
+        const openParen = textBeforeDot.lastIndexOf("(", pathStart - 2);
+        return openParen > 0 && textBeforeDot[openParen - 1] === "$";
+    }
+    return false;
+}
+
+/**
+ * Whether the text up to `column` in `lineText` ends in a reference property
+ * accessor: the `.` of `$name.`, or — one keystroke later, in the
+ * `$name.(prop)` member form — the `(` that follows it.
+ */
+function endsWithReferencePropertyDot(lineText: string, column: number) {
+    if (lineText[column - 1] === ".") {
+        return isReferenceDot(lineText.slice(0, column - 1));
+    }
+    if (lineText[column - 1] === "(" && lineText[column - 2] === ".") {
+        return isReferenceDot(lineText.slice(0, column - 2));
+    }
+    return false;
 }
 
 /** Escape a string for safe interpolation into an HTML context. */
@@ -492,13 +541,14 @@ export class LSPPlugin implements PluginValue {
         // A `.` is only a trigger when it continues a reference path
         // (`$name.`, `$name.prop.`); a `.` in prose ends a sentence and must
         // not open the popup.
-        const cursorColumn = pos - line.from;
+        const isReferencePropertyDot = endsWithReferencePropertyDot(
+            line.text,
+            pos - line.from,
+        );
         const isProseDot =
-            (charBeforeCursor === "." &&
-                !isReferenceDot(line.text.slice(0, cursorColumn - 1))) ||
-            (charBeforeCursor === "(" &&
-                charBeforeParen === "." &&
-                !isReferenceDot(line.text.slice(0, cursorColumn - 2)));
+            !isReferencePropertyDot &&
+            (charBeforeCursor === "." ||
+                (charBeforeCursor === "(" && charBeforeParen === "."));
         const precedingServerTriggerCharacter =
             !isClosingQuoteTrigger &&
             !isProseDot &&
@@ -506,11 +556,9 @@ export class LSPPlugin implements PluginValue {
                 charBeforeCursor,
             );
         const precedingLocalRefTriggerCharacter =
-            !isProseDot &&
-            (charBeforeCursor === "$" ||
-                charBeforeCursor === "." ||
-                (charBeforeCursor === "(" &&
-                    (charBeforeParen === "$" || charBeforeParen === ".")));
+            charBeforeCursor === "$" ||
+            (charBeforeCursor === "(" && charBeforeParen === "$") ||
+            isReferencePropertyDot;
 
         // `<math simplify= ` and similar: when the cursor sits on whitespace
         // that immediately follows `=`, we still want the LSP to suggest
@@ -1049,13 +1097,10 @@ function getAutocompleteReopenState({
         charBefore === "(" ? line.text.charAt(head - line.from - 2) : "";
     // Same rule as in `getCompletions`: only a `.` continuing a reference
     // path restarts completion; a sentence-ending `.` does not.
-    const headColumn = head - line.from;
-    const isReferenceDotAtHead =
-        charBefore === "."
-            ? isReferenceDot(line.text.slice(0, headColumn - 1))
-            : charBefore === "(" && charBeforeParen === "."
-              ? isReferenceDot(line.text.slice(0, headColumn - 2))
-              : false;
+    const isReferencePropertyDot = endsWithReferencePropertyDot(
+        line.text,
+        head - line.from,
+    );
     const { isDeleteEvent, deletedCount, insertedCount } =
         getTransactionChangeSummary(update);
     const currentToken = getCurrentWordToken(update.state.doc, head);
@@ -1131,10 +1176,8 @@ function getAutocompleteReopenState({
         keepReopenLatchForNextChange,
         shouldRestartCompletion:
             charBefore === "$" ||
-            (charBefore === "." && isReferenceDotAtHead) ||
-            (charBefore === "(" &&
-                (charBeforeParen === "$" ||
-                    (charBeforeParen === "." && isReferenceDotAtHead))) ||
+            (charBefore === "(" && charBeforeParen === "$") ||
+            isReferencePropertyDot ||
             latchEvaluation.shouldReopenFromLatch,
     };
 }

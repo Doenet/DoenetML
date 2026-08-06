@@ -673,6 +673,48 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-tooltip-autocomplete").should("be.visible");
     });
 
+    it("opens member autocomplete on a period after a parenthesized ref", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$(P)'
+                }
+            />,
+        );
+
+        // Warm the language server up, then dismiss, so the assertion below
+        // sees a popup opened by the `.` alone.
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-content").type("{esc}", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+
+        cy.get(".cm-content").type(".", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "coords",
+        );
+    });
+
+    it("opens member autocomplete on a period after an indexed ref", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep[1]'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-content").type("{esc}", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+
+        cy.get(".cm-content").type(".", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "myMath",
+        );
+    });
+
     it("shows member autocomplete after delete-then-dot on a completed ref", () => {
         cy.mount(
             <AutocompleteTestHarness
