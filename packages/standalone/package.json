@@ -53,6 +53,7 @@
                 "src/**/*.tsx",
                 "tsconfig.json",
                 "vite.config.ts",
+                "package.json",
                 "../i18n/locales/**/*.ftl"
             ],
             "output": [

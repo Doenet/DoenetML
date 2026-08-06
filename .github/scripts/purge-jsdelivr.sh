@@ -25,6 +25,8 @@ curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}/style.css" ||
 # The core worker is fetched as its own URL rather than carried inside the
 # bundle (#1465), so it has to be refreshed alongside the bundle: on a floating
 # tag, a fresh bundle paired with the previous release's core is a broken embed.
+# Bundles from #1659 on resolve the worker at their own exact version and no
+# longer rely on this; keep it for the ones already cached from before that.
 curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${TAG}/doenetml-worker/index.js" || exit 1
 # Host pages load the activity coordinator directly by URL, so it is stale on a
 # floating tag until purged too.

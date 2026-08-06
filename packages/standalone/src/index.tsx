@@ -23,9 +23,11 @@ import type { StylePaletteInfo } from "@doenet/utils";
 import {
     fetchLocaleLoaders,
     setLocaleLoaders,
+    setExternalCoreWorkerUrl,
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
+import { pinPackageVersion } from "./pinPackageVersion";
 import { ResizeWatcher } from "./resize-watcher";
 import {
     detectCoordinatedMode,
@@ -53,12 +55,35 @@ export const version: string = STANDALONE_VERSION;
 // A host that serves this bundle without `locales/` beside it loses nothing it
 // has today: those fetches fail quietly and every locale falls back to English.
 //
-// The paths are held in constants rather than written inline because Vite reads
-// a literal `new URL(..., import.meta.url)` as an asset reference and warns that
-// the target does not exist at build time. It does not — the build copies it in
-// afterwards — so the reference has to stay unanalyzed.
+// Vite reads a literal `new URL("./x", import.meta.url)` as a build-time asset
+// reference and warns that the target does not exist. It does not — the build
+// copies these in afterwards — so holding the paths in constants and resolving
+// them against a variable base keeps them out of that analysis. The core worker
+// is co-served the same way, hence the third path — which has to stay in step
+// with the one `@doenet/doenetml`'s externalized-worker entry resolves, since
+// that is the copy this one replaces.
 const CATALOGS_BESIDE_BUNDLE = "./locales/";
 const CATALOGS_AT_ORIGIN = "/locales/";
+const WORKER_BESIDE_BUNDLE = "./doenetml-worker/index.js";
+
+/**
+ * This file's own URL, with any floating CDN tag replaced by the exact version
+ * it was built as — the base every sibling below is resolved against.
+ *
+ * Each of those siblings is fetched at run time as its own URL, so under a
+ * floating specifier each caches independently of this bundle and can be left
+ * over from a different release than the one asking for it — see
+ * `pinPackageVersion` for what that costs and why an exact version fixes it.
+ *
+ * A URL not laid out like a CDN's — a self-hosted copy, or the Blob URL the
+ * component tests and the iframe dev harness boot from — comes back unchanged,
+ * and everything below behaves exactly as it did before.
+ */
+const pinnedBundleUrl = pinPackageVersion(
+    import.meta.url,
+    "@doenet/standalone",
+    version,
+);
 
 /**
  * Where to fetch the message catalogs from, or `null` if nowhere can be worked
@@ -80,7 +105,7 @@ const CATALOGS_AT_ORIGIN = "/locales/";
  */
 function localeCatalogsUrl(): string | null {
     for (const [path, base] of [
-        [CATALOGS_BESIDE_BUNDLE, import.meta.url],
+        [CATALOGS_BESIDE_BUNDLE, pinnedBundleUrl],
         [CATALOGS_AT_ORIGIN, globalThis.window?.location?.href],
     ] as const) {
         try {
@@ -97,13 +122,34 @@ if (localeCatalogsBase) {
     setLocaleLoaders(fetchLocaleLoaders(localeCatalogsBase));
 }
 
+// Re-point the core worker at the pinned copy, for the same reason as the
+// catalogs above. The externalized-worker entry has already resolved it against
+// this file's *own* URL — its module body runs at import time, before anything
+// here — so this runs after and replaces that answer.
+//
+// Skipped where pinning changed nothing (a self-hosted bundle, a Blob URL): the
+// entry's own resolution, including its fallbacks for bases nothing can be
+// resolved against, is then already the right answer.
+if (pinnedBundleUrl !== import.meta.url) {
+    try {
+        setExternalCoreWorkerUrl(
+            new URL(WORKER_BESIDE_BUNDLE, pinnedBundleUrl).href,
+        );
+    } catch (e) {
+        // Leave whatever the entry resolved in place: a worker under a floating
+        // tag still works whenever the caches happen to agree, which is the
+        // behavior every release before this one had.
+        console.warn("Unable to pin the DoenetML core worker URL:", e);
+    }
+}
+
 // Parent-page coordinator support (see coordinated-mode.ts): when this
 // page's URL carries the coordinator's fragment token, viewers rendered
 // here report their lifecycle to the parent and (with the `sc` variant)
 // obtain their cores from the coordinator's shared worker pool.
 const coordinatedMode = detectCoordinatedMode();
 if (coordinatedMode?.sharedCores) {
-    installCoordinatorSharedCorePortProvider();
+    installCoordinatorSharedCorePortProvider(pinnedBundleUrl);
 }
 
 // Cache React roots per container so repeat calls to

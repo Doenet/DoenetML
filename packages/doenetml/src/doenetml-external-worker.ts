@@ -41,6 +41,51 @@ function resolveWorkerUrl(): string | null {
 }
 
 /**
+ * The bootstrap Blob URL this module created for the current worker URL, so a
+ * later call can revoke it instead of leaking it. `null` while the worker URL
+ * in force needs no wrapper.
+ */
+let ownedBootstrapUrl: string | null = null;
+
+/**
+ * Point the viewer's core worker at `workerUrl`, wrapping it for cross-origin
+ * loading where that is needed.
+ *
+ * Exported so `@doenet/standalone` can redirect the worker to a version-pinned
+ * copy of itself — see `pinPackageVersion` there, which explains why the URL
+ * this module resolves is not always the one to use. It has to be a call an
+ * importer makes afterwards rather than something configured ahead of time: the
+ * resolution below runs in this module's body, before any importer's. Both
+ * calls land at module evaluation, and must: a second call revokes the Blob URL
+ * the first wrapped the worker in, and past the first viewer mount that URL can
+ * already be held elsewhere — a mounted editor hands `doenetWorkerUrl` to the
+ * LSP, which spawns its own core from it later.
+ */
+export function setExternalCoreWorkerUrl(workerUrl: string) {
+    // Same-origin needs no wrapper: `new Worker(url)` works directly, and every
+    // worker created from that URL shares the browser's HTTP + compiled-script
+    // cache. Cross-origin (the CDN case, as PreTeXt and doenet.org load it) a
+    // dedicated `new Worker(crossOriginUrl)` is blocked, so wrap the worker in a
+    // tiny SAME-ORIGIN classic-worker bootstrap that `importScripts()` the real
+    // (CORS-served) worker. `importScripts` is allowed cross-origin in classic
+    // workers — which is exactly what `createCoreWorker` (`utils/docUtils.ts`)
+    // creates — so this realm holds only the ~100-byte bootstrap instead of the
+    // ~15 MB worker, which is fetched and parsed on the worker thread.
+    const bootstrapUrl = isSameOrigin(workerUrl)
+        ? null
+        : URL.createObjectURL(
+              new Blob([`importScripts(${JSON.stringify(workerUrl)});`], {
+                  type: "text/javascript",
+              }),
+          );
+    if (ownedBootstrapUrl !== null) {
+        URL.revokeObjectURL(ownedBootstrapUrl);
+    }
+    ownedBootstrapUrl = bootstrapUrl;
+    doenetGlobalConfig.doenetWorkerUrl = bootstrapUrl ?? workerUrl;
+}
+
+/**
  * Is `url` same-origin with the realm that loaded this bundle? Blob/data URLs
  * are same-origin to their realm.
  */
@@ -61,26 +106,7 @@ function isSameOrigin(url: string): boolean {
 try {
     const workerUrl = resolveWorkerUrl();
     if (workerUrl !== null) {
-        if (isSameOrigin(workerUrl)) {
-            // Same-origin: `new Worker(url)` works directly, and every worker
-            // created from the same URL shares the browser's HTTP +
-            // compiled-script cache.
-            doenetGlobalConfig.doenetWorkerUrl = workerUrl;
-        } else {
-            // Cross-origin (e.g. the bundle is loaded from a CDN, as PreTeXt
-            // and doenet.org do): a dedicated `new Worker(crossOriginUrl)` is
-            // blocked. Wrap the worker in a tiny SAME-ORIGIN classic-worker
-            // bootstrap that `importScripts()` the real (CORS-served) worker.
-            // `importScripts` is allowed cross-origin in classic workers —
-            // which is exactly what `createCoreWorker` (`utils/docUtils.ts`)
-            // creates — so the realm holds only this ~100-byte bootstrap
-            // instead of the ~15 MB worker, while the worker code is fetched
-            // and parsed in the worker thread.
-            const bootstrap = `importScripts(${JSON.stringify(workerUrl)});`;
-            doenetGlobalConfig.doenetWorkerUrl = URL.createObjectURL(
-                new Blob([bootstrap], { type: "text/javascript" }),
-            );
-        }
+        setExternalCoreWorkerUrl(workerUrl);
     }
     // workerUrl === null: keep the default from global-config.ts.
 } catch (e) {
