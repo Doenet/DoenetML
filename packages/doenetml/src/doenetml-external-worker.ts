@@ -52,9 +52,9 @@ let ownedBootstrapUrl: string | null = null;
  * loading where that is needed.
  *
  * Exported so `@doenet/standalone` can redirect the worker to a version-pinned
- * copy of itself — see `pinPackageVersion`, which explains why the URL this
- * module resolves is not always the one to use. It has to be a call an importer
- * makes afterwards rather than something configured ahead of time: the
+ * copy of itself — see `pinPackageVersion` there, which explains why the URL
+ * this module resolves is not always the one to use. It has to be a call an
+ * importer makes afterwards rather than something configured ahead of time: the
  * resolution below runs in this module's body, before any importer's. Replacing
  * the URL later is safe, since no worker exists until a viewer mounts.
  */

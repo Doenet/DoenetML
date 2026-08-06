@@ -93,7 +93,7 @@ export function postToCoordinator(
  *   module: the coordinator resolves the shared core worker co-served beside
  *   whatever URL we send, and under a floating tag its cache could hand back a
  *   different release's worker than this bundle can talk to (see
- *   `pinPackageVersion` in `@doenet/doenetml`).
+ *   `pinPackageVersion`).
  */
 export function installCoordinatorSharedCorePortProvider(
     standaloneUrl: string,

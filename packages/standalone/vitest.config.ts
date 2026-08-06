@@ -1,8 +1,9 @@
 import { defineConfig } from "vitest/config";
 
-// The package ships no source tests — it is a bundling target. The one suite
-// here covers `scripts/check-bundle-size.mjs`, the guard that keeps the built
-// bundles from growing silently.
+// This package is mostly a bundling target, so there is little here to unit
+// test: `scripts/check-bundle-size.mjs`, the guard that keeps the built bundles
+// from growing silently, and the handful of source modules that hold logic of
+// their own rather than wiring up the viewer.
 //
 // This file exists mostly so the test run does not fall back to `vite.config.ts`,
 // which is the lib build: `vite-plugin-dts` and `vite-plugin-static-copy` have no
@@ -11,6 +12,6 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
     test: {
         environment: "node",
-        include: ["scripts/**/*.test.mjs"],
+        include: ["scripts/**/*.test.mjs", "src/**/*.test.ts"],
     },
 });

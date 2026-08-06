@@ -23,11 +23,11 @@ import type { StylePaletteInfo } from "@doenet/utils";
 import {
     fetchLocaleLoaders,
     setLocaleLoaders,
-    pinPackageVersion,
     setExternalCoreWorkerUrl,
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
+import { pinPackageVersion } from "./pinPackageVersion";
 import { ResizeWatcher } from "./resize-watcher";
 import {
     detectCoordinatedMode,

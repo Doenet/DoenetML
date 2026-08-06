@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pinPackageVersion } from "./global-config";
+import { pinPackageVersion } from "./pinPackageVersion";
 
 const PKG = "@doenet/standalone";
 const V = "0.7.23";
@@ -21,10 +21,10 @@ describe("pinPackageVersion", () => {
     });
 
     it("puts the assets resolved beside the bundle at that version too", () => {
-        // The point of the rewrite: the three siblings `@doenet/standalone`
-        // resolves against its own URL — the core worker, the message
-        // catalogs, and the base it hands the coordinator for the shared core
-        // worker — all land on immutable, same-release URLs.
+        // The point of the rewrite: the three siblings this bundle resolves
+        // against its own URL — the core worker, the message catalogs, and the
+        // base it hands the coordinator for the shared core worker — all land
+        // on immutable, same-release URLs.
         const pinned = pin(
             "https://cdn.jsdelivr.net/npm/@doenet/standalone@latest/doenet-standalone.js",
         );
