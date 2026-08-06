@@ -78,11 +78,10 @@ English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
 `se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`,
 `ta`, `te`, `tet`, `tg`, `th`, `ti`, `tk`, `tn`, `to`, `tpi`, `tr`, `tt`, `ty`,
 `ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`,
-`zh-Hant`, `zu` — is an
-**unreviewed machine-generated seed**, which each file's own header says at the
-top, and which is what #1521's translation platform is for. None has been read by
-a speaker. Correcting one needs no permission and no coordination: a wrong string
-is just wrong, and the English is one key away.
+`zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's
+own header says at the top, and which is what #1521's translation platform is
+for. None has been read by a speaker. Correcting one needs no permission and no
+coordination: a wrong string is just wrong, and the English is one key away.
 
 Seventy-three of them are deliberately partial, all in the same place: Somali,
 Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
@@ -191,13 +190,11 @@ They simply do not have the table, and the catalogs say so in their own headers
 rather than leaving a reader to infer it from a gap.
 
 **All fifteen of the Austronesian batch are partial too, and they split four
-ways.** Three of the four are a fact about a school system rather than about a
-language, which is the split worth keeping straight. Ilocano, Waray,
+ways**, only one of which is a claim about a language. Ilocano, Waray,
 Hiligaynon, Kapampangan, Bikol, Chamorro and Tok Pisin are the English-medium
 case — the Philippines from the intermediate grades, Guam and the Northern
 Marianas, Papua New Guinea — which is the `fil` and `ceb` case those two
-catalogs already record, and a fact about four education ministries rather than
-about seven languages. Balinese, Minangkabau, Acehnese and Madurese are the
+catalogs already record. Balinese, Minangkabau, Acehnese and Madurese are the
 Indonesian-medium case, and they differ from `jv` and `su` in an instructive
 way: those two *supply* the Indonesian names, because their own vocabulary for
 the substances agrees with Indonesian's often enough that the table reads as
@@ -207,12 +204,14 @@ chose to carry the table, these choose to leave it. Tetum and Tahitian are the
 colonial-medium case a third and fourth time, Portuguese and French, which is
 `locales/ht`'s exactly.
 
-Tongan and Fijian are the fourth case, and the one that is not about a
-ministry: both are schooled in English, but neither has a settled list of all
-118 that stops short of inventing one, which is the Samoan and Hawaiian case in
-`locales/sm` and `locales/haw` — Pacific languages naming the substances known
-long before the elements were and no table over them. That the Pacific catalogs
-keep landing there is worth saying once rather than four times.
+Tongan and Fijian are the fourth case and the one about the languages: both are
+schooled in English, but neither has a settled list of all 118 to seed from
+without inventing one, which is the Samoan and Hawaiian case in `locales/sm`
+and `locales/haw` — Pacific languages naming the substances known long before
+the elements were, with no table over them. Chamorro's header records that
+second reason beside its school system, since Guam's periodic table arrived
+through English rather than through the Spanish the rest of its vocabulary came
+from.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -451,8 +450,8 @@ hand-writes around it, which is the same rule that leaves `co` reading
 "Corsican" twice. It is a gap in CLDR, and until it closes the label is the tag.
 
 The Austronesian batch adds one macrolanguage, two script asymmetries and three
-naming cases. Its finding about the affix rule — the batch's real contribution —
-belongs beside that rule rather than here, and is in
+naming cases. What it adds to the affix rule belongs beside that rule rather
+than here, and is in
 [A ligature is an affix too](#a-ligature-is-an-affix-too).
 
 `bik` is an ISO 639-3 macrolanguage over the eight Bikol languages of the Bicol
@@ -938,7 +937,8 @@ There are five ways out, and every catalog here takes one of them:
 - **Prefer the free allomorph over the bound one.** Where the affix has a
   free-standing counterpart that is grammatical in every position, write that:
   Kʼicheʼ's relational «rech» in place of the possessive prefix «u-»/«r-», and
-  the Bisayan linker «nga» in place of the enclitic `-ng` — see
+  the Bisayan linker «nga» in place of the enclitic `-ng`, which is what
+  `locales/ceb` already does — see
   [A ligature is an affix too](#a-ligature-is-an-affix-too).
 
 A select whose variants would land against such an affix carries the affix into
@@ -946,12 +946,18 @@ each variant: Fluent does not care where a select sits inside a pattern.
 
 ### A ligature is an affix too
 
-The Austronesian batch's finding. A Philippine language joins an attributive
-adjective to what it describes with a **linker**, and a linker has two forms.
-Which one is right is decided by a neighbouring word — which, in these messages,
-is often a placeable. So the constraint that turned up first as a case ending in
-Arabic and a preposition in Czech turns up here as a ligature, and the five
-Philippine catalogs do not all resolve it the same way:
+A Philippine language joins an attributive adjective to what it describes with a
+**linker**, and a linker has two forms. Which one is right is decided by a
+neighbouring word — which, in these messages, is often a placeable. So the
+constraint that turned up first as a case ending in Arabic and a preposition in
+Czech turns up here as a ligature.
+
+`locales/ceb` and `locales/fil` reached it first and one at a time: Cebuano's
+header calls writing the uncontracted «nga» everywhere "the one place this seed
+is deliberately stiff", and `fil` escapes the ligature outright by selecting on
+the side count, whose two CLDR plural categories *are* its two linkers. What the
+Austronesian batch adds is the five Philippine catalogs side by side, which is
+what shows that they do not all resolve it the same way:
 
 | | The linker | Decided by | Resolution |
 | --- | --- | --- | --- |
@@ -962,10 +968,11 @@ Philippine catalogs do not all resolve it the same way:
 
 Two of the five escape it outright, which is the useful half: Bisayan «nga» is a
 free word in both positions, so writing it out is not a compromise but the form
-that can be written without knowing what stands beside it. That is the same move
-`locales/quc` makes when it writes the free relational «rech» instead of the
-possessive prefix «u-»/«r-», and it is the fifth way out listed above — *prefer
-the free allomorph over the bound one*.
+that can be written without knowing what stands beside it — the move `locales/ceb`
+already makes, and the same move `locales/quc` makes when it writes the free
+relational «rech» instead of the possessive prefix «u-»/«r-». That is the fifth
+way out listed above — *prefer the free allomorph over the bound one* — and it
+is stated as a rule here because three catalogs now take it.
 
 The other three cannot, and each header says exactly where its choice comes out
 wrong rather than leaving a reader to find it. Ilocano's is the sharpest and is

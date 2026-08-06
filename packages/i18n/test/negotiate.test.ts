@@ -382,7 +382,7 @@ describe("negotiateLocales", () => {
      * needs `MACROLANGUAGE_MEMBERS` for the same reason `qu` and `oj` do. The
      * other fourteen are individual languages and need nothing.
      */
-    describe("the Austronesian batch", () => {
+    describe("the Austronesian batch and its macrolanguage", () => {
         it.each([
             // Bikol. The catalog is Central Bikol, which is `bcl` itself; the
             // rest are Bikol languages of the peninsula that would otherwise

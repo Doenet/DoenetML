@@ -1153,6 +1153,9 @@ describe("the Austronesian batch's word order", () => {
                     withNoun: true,
                 }),
             ).toBe(withNoun);
+            // The same relation the Americas batch above pins: the noun is
+            // appended to the adjectives rather than woven into them, so the
+            // two rows of each pair have to stay in step when either is edited.
             expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
             expect(
                 describeStrokedShape(t, words, {
@@ -1184,6 +1187,8 @@ describe("the Austronesian batch's word order", () => {
                     withNoun: true,
                 }),
             ).toBe(withNoun);
+            // The mirror of the prenominal check: the noun is prepended whole,
+            // with nothing of it reaching in among the adjectives.
             expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
             expect(
                 describeStrokedShape(t, words, {
