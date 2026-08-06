@@ -143,13 +143,15 @@ describe("pinPackageVersion", () => {
 
     it("rewrites only the segment that names the package", () => {
         // The name appearing again further down the path — as a directory, or
-        // in a query — is not a version specifier and must survive.
+        // in a query — is not a version specifier and must survive. The query
+        // also pins down that only the path is rewritten, which a host's
+        // cache-busting `?v=…` on the bundle URL depends on.
         expect(
             pin(
-                "https://cdn.jsdelivr.net/npm/@doenet/standalone@latest/vendor/@doenet/standalone@latest/x.js",
+                "https://cdn.jsdelivr.net/npm/@doenet/standalone@latest/vendor/@doenet/standalone@latest/x.js?from=@doenet/standalone@latest",
             ),
         ).toBe(
-            "https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.23/vendor/@doenet/standalone@latest/x.js",
+            "https://cdn.jsdelivr.net/npm/@doenet/standalone@0.7.23/vendor/@doenet/standalone@latest/x.js?from=@doenet/standalone@latest",
         );
     });
 
