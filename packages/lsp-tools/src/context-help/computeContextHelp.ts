@@ -6,6 +6,8 @@ import type { DastElement } from "@doenet/parser";
 import { buildEffectiveMathInputFunctionNames } from "@doenet/utils/components/mathInputFunctionNames";
 import {
     AutoCompleter,
+    isParenthesizedRefMacro,
+    segmentFitsBareMacro,
     type AliasedElementSchema,
     type CompletionContext,
     type RefMemberCompletionContext,
@@ -495,8 +497,6 @@ function isParenthesizedMacroName(source: string, nameOffset: number): boolean {
     );
 }
 
-const SIMPLE_IDENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])*$/;
 /** Global match for individual `[...]` groups so we can count them per segment. */
 const BRACKET_INDEX_ALL_REGEX = /\[[^\]]*\]/g;
 
@@ -513,17 +513,6 @@ function countBracketIndices(rawSegment: string | undefined): number {
 }
 
 /**
- * Whether `segment`'s name needs the `$(…)` form's richer identifier syntax —
- * a hyphen, say, or a leading digit. A trailing bracket index never does:
- * `rep[1]` is a SimpleIdent segment with an index on it.
- */
-function segmentNeedsParens(segment: string): boolean {
-    const bracketSuffix = segment.match(BRACKET_INDEX_SUFFIX_REGEX)?.[0] ?? "";
-    const baseName = segment.slice(0, segment.length - bracketSuffix.length);
-    return !SIMPLE_IDENT_REGEX.test(baseName);
-}
-
-/**
  * Render a whole macro path the way the author would have to type it.
  *
  * Parentheses go around the *path*, not around a segment: the grammar's
@@ -532,7 +521,7 @@ function segmentNeedsParens(segment: string): boolean {
  */
 function formatMacroPath(segments: readonly string[]): string {
     const path = segments.join(".");
-    return segments.some(segmentNeedsParens) ? `(${path})` : path;
+    return segments.every(segmentFitsBareMacro) ? path : `(${path})`;
 }
 
 /**
@@ -1010,9 +999,9 @@ async function helpForRefMember(
         completer.source,
         ctx.replaceFromOffset,
         offset,
-        // Only the parenthesized form puts two characters (`$(`) in front of
-        // its path, and every segment of it reads with the richer char class.
-        ctx.pathStartOffset > ctx.macroStartOffset + 1,
+        // Every segment of the parenthesized form reads with the richer
+        // `Ident` char class, members included.
+        isParenthesizedRefMacro(ctx),
     );
     if (!memberName) return NONE;
     return await helpForRefMemberByName(completer, offset, ctx, memberName);

@@ -3,9 +3,11 @@ import {
     ATTR_VALUE_CHAR,
     scanBareValueRun,
 } from "../../doenet-source-object/methods/attribute-helpers";
-import type {
-    CompletionContext,
-    RefMemberCompletionContext,
+import {
+    isParenthesizedRefMacro,
+    segmentFitsBareMacro,
+    type CompletionContext,
+    type RefMemberCompletionContext,
 } from "./get-completion-context";
 import type {
     CompletionItem,
@@ -839,9 +841,8 @@ function createQuoteWrapCompletionItems({
             // from the live document on every keystroke. Without this, the
             // cached `label`/`displayLabel` go stale (CodeMirror filters the
             // option out the moment the typed prefix exceeds the cached label
-            // length) and the plugin's default `prefixMatch` anchors `from`
-            // past the first typed character (because the apply text starts
-            // with `"`, which the user has not actually typed).
+            // length) and `from` lands at the start of the typed word rather
+            // than at the `=` this edit reaches back to.
             data: {
                 livePreviewQuoteWrap: {
                     bareValueStartOffset: typedValueStart,
@@ -1071,18 +1072,23 @@ export async function getCompletionItems(
         // fits once the whole macro becomes `$(P.my-p)` — which is what
         // accepting it rewrites, since `$P.(my-p)` is not a reference.
         const { macroStartOffset, pathStartOffset } = completionContext;
-        // Only the parenthesized form puts two characters (`$(`) in front of
-        // its path.
-        const isParenthesizedMacro = pathStartOffset > macroStartOffset + 1;
+        const isParenthesizedMacro = isParenthesizedRefMacro(completionContext);
         const pathSoFar = this.sourceObj.source.slice(
             pathStartOffset,
             completionContext.replaceFromOffset,
         );
+        // A segment already typed can be the one that doesn't fit: after
+        // `$s.sub-sec.`, the bare form ended back at `$s.sub`, so every
+        // member offered here has to rewrite, whatever its own name is.
+        const typedPathFitsBareMacro = completionContext.rawPathParts
+            .slice(0, -1)
+            .every(segmentFitsBareMacro);
         const applyMemberInsertionPolicy = (items: CompletionItem[]) =>
             isParenthesizedMacro
                 ? items
                 : items.map((item) =>
-                      SIMPLE_IDENTIFIER_REGEX.test(String(item.label))
+                      typedPathFitsBareMacro &&
+                      segmentFitsBareMacro(String(item.label))
                           ? item
                           : rewriteAsParenthesizedMacro(
                                 item,

@@ -669,8 +669,9 @@ export class LSPPlugin implements PluginValue {
             return completion;
         });
 
-        const [span, match] = prefixMatch(options);
-        const token = context.matchBefore(match);
+        const token = context.matchBefore(
+            prefixMatch(options.map((option) => option.filterText)),
+        );
 
         // Element/tag-name completions match the typed text as a *substring*
         // (e.g. `<num` offers `isNumber`), while every other completion type
@@ -724,11 +725,11 @@ export class LSPPlugin implements PluginValue {
             );
             if (bareElementToken) {
                 // Explicit Ctrl+Space can open an element menu before any `<`
-                // has been typed. In that case the completion `apply` strings
-                // start with `<`, so `prefixMatch` cannot anchor `from` to a
-                // bare filter word like `num`. Anchor and filter it here so
-                // accepting `<number>` replaces `num` instead of appending after
-                // it.
+                // has been typed, and the menu's filter texts may all start
+                // with one (snippets and close tags carry it), leaving
+                // `prefixMatch` unable to anchor `from` to a bare word like
+                // `num`. Anchor and filter it here so accepting `<number>`
+                // replaces `num` instead of appending after it.
                 pos = bareElementToken.from;
                 filterOptionsForWord(bareElementToken.text.toLowerCase());
             }
@@ -795,13 +796,10 @@ export class LSPPlugin implements PluginValue {
         // the option synchronously on every transaction via `update`.
         //
         // We also override `from` with the bare-value start offset supplied
-        // by the LSP. The plugin's default `pos` comes from `prefixMatch`,
-        // which builds its regex from `option.apply`. Since our apply text
-        // starts with a literal `"` and the user has not typed one, the
-        // regex match fails and `pos` defaults to `context.pos` -- which
-        // sits one past the first typed character. Anchoring `from` there
-        // would shift the result's view of the bare value by one slot, so
-        // subsequent typing reads "ello" instead of "hello".
+        // by the LSP, which knows where the value began -- back at the `=`,
+        // across any whitespace the edit swallows. The token `prefixMatch`
+        // finds stops at the first character a word cannot contain, so it
+        // cannot see that far back on its own.
         //
         // The mixed case -- a result that contains both a live-preview
         // option and ordinary options -- doesn't occur today; the LSP
@@ -1266,22 +1264,32 @@ function setToRegex(chars: Set<string>) {
     return `[${preamble}${flat.replace(/[^\w\s]/g, "\\$&")}]`;
 }
 
-function prefixMatch(options: Completion[]) {
+/**
+ * Build the regex that locates the token the completion list is anchored to —
+ * the run of text before the cursor that the options are matched against.
+ *
+ * The strings to pass are the options' *filter* texts, not their insert texts.
+ * The two usually agree, but an option may insert something that is not a
+ * continuation of what was typed: accepting a hyphenated member rewrites the
+ * whole macro (`$base.my` → `$(base.my-p)`). Widening the token to cover the
+ * characters such an edit introduces would drag the anchor back over `$base.`,
+ * and every option would then be matched against text none of them start with.
+ */
+function prefixMatch(matchTexts: string[]) {
     const first: string[] = [];
     const rest: string[] = [];
 
-    for (const completion of options) {
-        const textToAnalyze = completion.apply;
-        if (typeof textToAnalyze !== "string" || textToAnalyze.length === 0) {
+    for (const matchText of matchTexts) {
+        if (matchText.length === 0) {
             continue;
         }
-        first.push(textToAnalyze.charAt(0));
-        rest.push(...textToAnalyze.slice(1).split(""));
+        first.push(matchText.charAt(0));
+        rest.push(...matchText.slice(1).split(""));
     }
 
-    const source =
-        setToRegex(new Set(first)) + setToRegex(new Set(rest)) + "*$";
-    return [new RegExp("^" + source), new RegExp(source)];
+    return new RegExp(
+        setToRegex(new Set(first)) + setToRegex(new Set(rest)) + "*$",
+    );
 }
 
 /**

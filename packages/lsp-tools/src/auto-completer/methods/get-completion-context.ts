@@ -10,7 +10,8 @@ type MacroNode = DastMacro;
 const SIMPLE_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_]/;
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const MACRO_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_-]/;
-const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
+/** What a path is made of outside its `[…]` indices: `Ident` chars and `.`. */
+const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.-]/;
 
 /** Regex matching one or more bracket indices at the end, e.g. `[1]`, `[2][3]`. */
 const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])+$/;
@@ -45,15 +46,87 @@ function stripIndicesFromPathParts(parts: string[]): {
  * Consumers read the form off the gap between them, and an edit that has to
  * rewrite the whole macro (rather than just the member) starts at the `$`.
  *
- * Both are recorded here because a member's own offset is not enough to find
- * them again: scanning left over path characters walks straight past the `$`
- * of a macro used as an index, so `$rep[$i].member` would be read as starting
- * at that inner `$`.
+ * Both are recorded here because this is where they are known: from the
+ * parsed macro node when there is one, and otherwise from the scan that
+ * classified the cursor. Rescanning downstream is what produced
+ * `$rep[$(i].my-p)` — a scan that reads the `$` of a macro used as an index
+ * as the start of the one the member sits in.
  */
 type MacroOffsets = {
     macroStartOffset: number;
     pathStartOffset: number;
 };
+
+/**
+ * Whether the macro a member sits in is the parenthesized `$(a.b` form —
+ * the only one that puts two characters in front of its path.
+ *
+ * The form decides which identifiers the path can hold: `$(a.my-b)` reads
+ * with `Ident`, the bare `$a.b` with `SimpleIdent`.
+ */
+export function isParenthesizedRefMacro(macroOffsets: MacroOffsets): boolean {
+    return macroOffsets.pathStartOffset > macroOffsets.macroStartOffset + 1;
+}
+
+/**
+ * Whether a path segment as authored — its name plus any `[…]` indices — fits
+ * the bare `$name` form, whose segments are `SimpleIdent`. A hyphen or a
+ * leading digit does not fit and needs `$(…)`; an index always fits, since it
+ * hangs off the name rather than being part of it.
+ */
+export function segmentFitsBareMacro(segment: string): boolean {
+    return SIMPLE_IDENTIFIER_REGEX.test(
+        segment.replace(BRACKET_INDEX_SUFFIX_REGEX, ""),
+    );
+}
+
+/**
+ * Walk left from `offset` to the first character of the reference path that
+ * ends there, returning `offset` itself when no path does.
+ *
+ * A `[…]` index is stepped over whole rather than character by character,
+ * because its contents can hold a macro of its own: the path of
+ * `$rep[$i].member` starts at `rep`, and a scan that read the `$` of `$i` as
+ * a macro's start would anchor the member on it.
+ */
+function findPathStartLeftOf(source: string, offset: number): number {
+    let pathStart = offset;
+    while (pathStart > 0) {
+        const char = source.charAt(pathStart - 1);
+        if (char === "]") {
+            const openBracket = findMatchingOpenBracket(source, pathStart - 1);
+            // An unbalanced `]` is not an index, so the path stops here.
+            if (openBracket < 0) {
+                return pathStart;
+            }
+            pathStart = openBracket;
+        } else if (MACRO_PATH_CHAR_REGEX.test(char)) {
+            pathStart--;
+        } else {
+            // Includes an unbalanced `[`, which means `offset` is *inside* an
+            // index rather than after one.
+            return pathStart;
+        }
+    }
+    return pathStart;
+}
+
+/** Offset of the `[` matching the `]` at `closeOffset`, or `-1` if unmatched. */
+function findMatchingOpenBracket(source: string, closeOffset: number): number {
+    let depth = 0;
+    for (let i = closeOffset; i >= 0; i--) {
+        const char = source.charAt(i);
+        if (char === "]") {
+            depth++;
+        } else if (char === "[") {
+            depth--;
+            if (depth === 0) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
 
 /**
  * High-level cursor contexts used to choose between XML completions and
@@ -289,13 +362,8 @@ export function getCompletionContext(
     // Neither gets member completions — suggesting into them would be
     // suggesting something that is not a reference.
     if (prevChar === "." || source.charAt(macroTokenStart - 1) === ".") {
-        let pathStart = macroTokenStart - 1;
-        while (
-            pathStart > 0 &&
-            MACRO_PATH_CHAR_REGEX.test(source.charAt(pathStart - 1))
-        ) {
-            pathStart--;
-        }
+        // `macroTokenStart - 1` is the `.` in front of the member.
+        const pathStart = findPathStartLeftOf(source, macroTokenStart - 1);
 
         // Pattern: `$identifier.member`
         if (source.charAt(pathStart - 1) === "$") {
@@ -335,38 +403,6 @@ export function getCompletionContext(
                 typedPrefix,
                 replaceFromOffset: tokenStart,
             };
-        }
-    }
-
-    // Edge case: check for incomplete `$identifier.path` after `$` without parens
-    if (
-        prevChar === "." &&
-        source.charAt(tokenStart - 1) === "." &&
-        tokenStart > 1
-    ) {
-        // Walk back to after the `$`
-        let dollarPos = tokenStart - 2;
-        while (
-            dollarPos > 0 &&
-            /[A-Za-z0-9_.[\]-]/.test(source.charAt(dollarPos - 1))
-        ) {
-            dollarPos--;
-        }
-        if (source.charAt(dollarPos - 1) === "$") {
-            const pathStart = dollarPos;
-            const pathStr = source.slice(pathStart, offset).trim();
-            const pathParts = pathStr.split(".");
-            if (pathParts.length > 0 && /^[A-Za-z0-9_]/.test(pathStr)) {
-                return makeValidatedRefMemberContext(
-                    typedPrefix,
-                    tokenStart,
-                    pathParts,
-                    {
-                        macroStartOffset: pathStart - 1,
-                        pathStartOffset: pathStart,
-                    },
-                );
-            }
         }
     }
 

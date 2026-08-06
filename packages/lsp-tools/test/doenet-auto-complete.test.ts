@@ -1567,6 +1567,52 @@ describe("AutoCompleter", () => {
             }
         });
 
+        it("Rewrites an indexed macro typed inside an attribute value", async () => {
+            // A macro in an attribute value is not found as a parsed node, so
+            // the context comes from the text scan. That scan has to step over
+            // the `[$i]` index whole; reading the `$` inside it as the macro's
+            // start makes the path `i].my` — which resolves to nothing, and
+            // would anchor the rewrite in the middle of the index.
+            const source = `<select name="sel"><p name="my-p" /></select>\n<p extend="$sel[$i].my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            expect(
+                autoCompleter.getCompletionContext(source.length),
+            ).toMatchObject({
+                cursorPos: "refMember",
+                pathParts: ["sel", "my"],
+            });
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+            expect(hyphenItem).toBeDefined();
+
+            const textEdit = hyphenItem?.textEdit;
+            expect(textEdit && "newText" in textEdit).toBe(true);
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("$(sel[$i].my-p)");
+                // The `$`, eleven characters into `<p extend="$sel[$i].my`.
+                expect(textEdit.range.start).toEqual({
+                    line: 1,
+                    character: 11,
+                });
+            }
+        });
+
+        it("Offers nothing after a dot that follows a stray `)`", async () => {
+            // `$base)` is the macro `$base` and then literal text, so the `.`
+            // after it opens a sentence, not a member.
+            const source = `<section name="base"><p name="myP" /></section>\n$base).`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            expect(
+                autoCompleter.getCompletionContext(source.length),
+            ).not.toMatchObject({ cursorPos: "refMember" });
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            expect(items.some((item) => item.label === "myP")).toBe(false);
+        });
+
         it("Inserts a hyphenated member as typed inside a parenthesized ref", async () => {
             // `$(base.my-p)` holds the hyphen already, so there is nothing to
             // rewrite — the member goes in as its plain name.

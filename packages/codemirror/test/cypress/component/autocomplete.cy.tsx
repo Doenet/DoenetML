@@ -805,6 +805,36 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         );
     });
 
+    it("rewrites the macro when a hyphenated member is accepted", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="my-coords">(3,4)</math></point>\n'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type("$P.my", { force: true, delay: 200 });
+
+        // The member list has to survive the hyphenated item being in it: the
+        // item inserts a whole macro (`$(P.my-coords)`), which is not a
+        // continuation of the typed `$P.my`, and anchoring the list on that
+        // text would leave every option matched against `$P.my`.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains("my-coords")
+            .click();
+
+        // A member cannot be parenthesized on its own, so the accepted item
+        // replaces back to the `$`.
+        cy.get(".cm-content")
+            .invoke("text")
+            .then((text) => {
+                expect(text).to.contain("$(P.my-coords)");
+                expect(text).to.not.contain("$P.my-coords");
+            });
+    });
+
     it("shows member autocomplete after delete-then-dot on a completed ref", () => {
         cy.mount(
             <AutocompleteTestHarness
