@@ -177,10 +177,10 @@
 }
 
 /*
- * The inline padding that insets the panel text from the editor's edges lives
- * here rather than on `.diagnostics-response-tabs-container` so that the
- * scrolling element (`.diagnostics-response-tabs-panels`) spans the full width
- * and its scrollbar sits flush against the resizer.
+ * Each tab panel carries its own inline padding to inset the panel text from
+ * the editor's edges. That keeps the scrolling element
+ * (`.diagnostics-response-tabs-panels`) spanning the full width, so its
+ * scrollbar sits flush against the resizer.
  */
 .editor-panel .diagnostic-panel {
     padding: 0.75rem 0.65rem 1rem;
