@@ -6,7 +6,7 @@
 "doenet-vscode-extension": patch
 ---
 
-Fix illegible link and text contrast in an image's description panel, especially in dark mode.
+Fix illegible link and text contrast in description panels, especially in dark mode. The panel is the info button/popover (inline) or expandable `<details>` (block) attached to an image, video, graph, or input, so the fix reaches all of them; the link color change reaches every `<ref>` link as well.
 
 The attribution links generated from `licenseCodes` (and from `authorName`/`imageName`) were plain anchors with no color of their own, so they fell through to the browser's `#0000EE` — 1.2:1 against the dark panel, and worse once visited. `<ref>` links used `--mainBlue`, which is identical in both themes and reached only 1.6:1. Links now use a new `--linkText` custom property that differs per theme.
 

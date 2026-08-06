@@ -1,3 +1,5 @@
+import { expectNoColorContrastViolations } from "../../support/colorContrast";
+
 /**
  * Accessibility coverage for the description panel.
  *
@@ -32,43 +34,23 @@ describe(
             cy.get(`[data-theme="${darkMode}"]`).should("exist");
         }
 
-        /** Open the panel, whichever variant this document produced. */
+        /**
+         * Open the panel, whichever variant this document produced.
+         *
+         * The `<details>` element is "visible" whether or not it is open, so
+         * that variant waits on its content instead: a scan that ran against a
+         * collapsed panel would pass without checking anything.
+         */
         function openDescription(variant) {
             if (variant === "inline") {
                 cy.get('[data-test="Description Button"]').click();
+                cy.get('[data-test="Description"]').should("be.visible");
             } else {
                 cy.get('[data-test="Description Summary"]').click();
+                cy.get('[data-test="Description"] .details-content').should(
+                    "be.visible",
+                );
             }
-            cy.get('[data-test="Description"]').should("be.visible");
-        }
-
-        function expectNoColorContrastViolations() {
-            cy.checkA11y(
-                ['[data-test="Description"]'],
-                {
-                    runOnly: { type: "rule", values: ["color-contrast"] },
-                    includedImpacts: [
-                        "critical",
-                        "serious",
-                        "moderate",
-                        "minor",
-                    ],
-                },
-                (violations) => {
-                    expect(
-                        violations,
-                        JSON.stringify(
-                            violations.map((v) => ({
-                                id: v.id,
-                                nodes: v.nodes.map((n) => n.html),
-                            })),
-                            null,
-                            2,
-                        ),
-                    ).to.have.length(0);
-                },
-                true,
-            );
         }
 
         const cases = [
@@ -126,7 +108,9 @@ describe(
                         load(doenetML, darkMode);
                         cy.get("#im").should("exist");
                         openDescription(variant);
-                        expectNoColorContrastViolations();
+                        expectNoColorContrastViolations(
+                            '[data-test="Description"]',
+                        );
                     });
                 }
             }
