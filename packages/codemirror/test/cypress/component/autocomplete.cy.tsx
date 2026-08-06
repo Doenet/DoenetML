@@ -573,6 +573,106 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         );
     });
 
+    it("does not open autocomplete on a period ending a sentence", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type("Here is a sentence.", {
+            force: true,
+            delay: 200,
+        });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("does not open autocomplete on a period after a word with no ref prefix", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        // `P.` looks like a member access but has no `$`, so it is prose.
+        cy.get(".cm-content").type("P.", { force: true, delay: 200 });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("does not open autocomplete on a period after a closing tag", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type("<text>hi</text>.", {
+            force: true,
+            delay: 200,
+        });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("still opens member autocomplete on a period after prose ending in a ref", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        // Warm the language server up on the ref itself, then dismiss, so the
+        // assertion below sees a popup opened by the `.` alone.
+        cy.get(".cm-content").type("The point is $P", {
+            force: true,
+            delay: 200,
+        });
+        openAutocomplete();
+        cy.get(".cm-content").type("{esc}", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+
+        cy.get(".cm-content").type(".", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "coords",
+        );
+    });
+
+    it("opens member autocomplete on a second period in a ref path", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type("$P.coords", { force: true, delay: 200 });
+        openAutocomplete();
+        cy.get(".cm-content").type("{esc}", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+
+        cy.get(".cm-content").type(".", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+    });
+
     it("shows member autocomplete after delete-then-dot on a completed ref", () => {
         cy.mount(
             <AutocompleteTestHarness
