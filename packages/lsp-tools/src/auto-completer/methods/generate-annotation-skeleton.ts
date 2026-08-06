@@ -62,11 +62,20 @@ function capitalize(value: string) {
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 /**
- * Return the macro prefix for a component name: `$name` for SimpleIdent names
- * and `$(name)` for names that contain hyphens, start with a digit, etc.
+ * Build macro references to a component: `macroRef("P")()` is `$P` and
+ * `macroRef("P")("x")` is `$P.x`.
+ *
+ * A name that isn't a SimpleIdent needs the parenthesized form, and the
+ * parentheses go around the whole path — `$(my-seg.endpoints[1].x)`. The macro
+ * ends at its `)`, so `$(my-seg).endpoints[1].x` would be a reference to the
+ * segment followed by literal text (`packages/parser/src/macros/macros.peggy`).
  */
-function macroBase(name: string): string {
-    return SIMPLE_IDENTIFIER_REGEX.test(name) ? `$${name}` : `$(${name})`;
+function macroRef(name: string): (path?: string) => string {
+    const simple = SIMPLE_IDENTIFIER_REGEX.test(name);
+    return (path = "") => {
+        const fullPath = path ? `${name}.${path}` : name;
+        return simple ? `$${fullPath}` : `$(${fullPath})`;
+    };
 }
 
 type ComponentLabelInfo = {
@@ -147,35 +156,35 @@ export function getDescriptionTemplate(
 
     const normalizedType = componentType.toLowerCase();
 
-    const m = macroBase(componentName);
+    const m = macroRef(componentName);
 
     switch (normalizedType) {
         case "point":
-            return `A point with x-coordinate ${m}.x and y-coordinate ${m}.y.${unnamedHint}`;
+            return `A point with x-coordinate ${m("x")} and y-coordinate ${m("y")}.${unnamedHint}`;
         case "endpoint":
-            return `An endpoint with x-coordinate ${m}.x and y-coordinate ${m}.y.${unnamedHint}`;
+            return `An endpoint with x-coordinate ${m("x")} and y-coordinate ${m("y")}.${unnamedHint}`;
         case "equilibriumpoint":
-            return `An equilibrium point with x-coordinate ${m}.x and y-coordinate ${m}.y.${unnamedHint}`;
+            return `An equilibrium point with x-coordinate ${m("x")} and y-coordinate ${m("y")}.${unnamedHint}`;
         case "circle":
-            return `A circle with radius ${m}.radius centered at x-coordinate ${m}.center.x and y-coordinate ${m}.center.y.${unnamedHint}`;
+            return `A circle with radius ${m("radius")} centered at x-coordinate ${m("center.x")} and y-coordinate ${m("center.y")}.${unnamedHint}`;
         case "function":
             return `A function.${unnamedHint}`;
         case "line":
             return `A line.${unnamedHint}`;
         case "linesegment":
-            return `A line segment from a point with x-coordinate ${m}.endpoints[1].x and y-coordinate ${m}.endpoints[1].y to a point with x-coordinate ${m}.endpoints[2].x and y-coordinate ${m}.endpoints[2].y.${unnamedHint}`;
+            return `A line segment from a point with x-coordinate ${m("endpoints[1].x")} and y-coordinate ${m("endpoints[1].y")} to a point with x-coordinate ${m("endpoints[2].x")} and y-coordinate ${m("endpoints[2].y")}.${unnamedHint}`;
         case "ray":
-            return `A ray starting at a point with x-coordinate ${m}.endpoint.x and y-coordinate ${m}.endpoint.y, passing through a point with x-coordinate ${m}.through.x and y-coordinate ${m}.through.y.${unnamedHint}`;
+            return `A ray starting at a point with x-coordinate ${m("endpoint.x")} and y-coordinate ${m("endpoint.y")}, passing through a point with x-coordinate ${m("through.x")} and y-coordinate ${m("through.y")}.${unnamedHint}`;
         case "vector":
-            return `A vector with tail at x-coordinate ${m}.tail.x and y-coordinate ${m}.tail.y, and head at x-coordinate ${m}.head.x and y-coordinate ${m}.head.y.${unnamedHint}`;
+            return `A vector with tail at x-coordinate ${m("tail.x")} and y-coordinate ${m("tail.y")}, and head at x-coordinate ${m("head.x")} and y-coordinate ${m("head.y")}.${unnamedHint}`;
         case "polyline":
-            return `A polyline with ${m}.numVertices vertices.${unnamedHint}`;
+            return `A polyline with ${m("numVertices")} vertices.${unnamedHint}`;
         case "polygon":
-            return `A polygon with ${m}.numVertices vertices.${unnamedHint}`;
+            return `A polygon with ${m("numVertices")} vertices.${unnamedHint}`;
         case "triangle":
             return `A triangle.${unnamedHint}`;
         case "rectangle":
-            return `A rectangle of width ${m}.width and height ${m}.height.${unnamedHint}`;
+            return `A rectangle of width ${m("width")} and height ${m("height")}.${unnamedHint}`;
         case "angle":
             return `An angle.${unnamedHint}`;
         case "curve":
@@ -293,7 +302,7 @@ export function buildAnnotationTree(
 
             return {
                 type: "annotation",
-                ref: macroBase(componentName),
+                ref: macroRef(componentName)(),
                 text: getDescriptionTemplate(
                     component.type,
                     componentName,

@@ -447,6 +447,9 @@ async function helpForReferenceUnit(
 //   Ident       = [A-Za-z0-9_-]+          — parenthesized `$(foo-bar)`
 const SIMPLE_IDENT_CHAR_REGEX = /[A-Za-z0-9_]/;
 const MACRO_IDENT_CHAR_REGEX = /[A-Za-z0-9_-]/;
+// A whole path inside `$(…)`: `Ident` characters, the `.` joining segments,
+// and `[…]` indices.
+const PARENTHESIZED_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
 
 /**
  * The completion context's `typedPrefix` only captures identifier chars BEFORE
@@ -487,7 +490,19 @@ function isParenthesizedSegment(
     source: string,
     replaceFromOffset: number,
 ): boolean {
-    return source.charAt(replaceFromOffset - 1) === "(";
+    // Hyphens are legal for every segment of `$(a.my-b)`, not just the one
+    // right after the `(`, so walk back over the path to find what opened it.
+    let pathStart = replaceFromOffset;
+    while (
+        pathStart > 0 &&
+        PARENTHESIZED_PATH_CHAR_REGEX.test(source.charAt(pathStart - 1))
+    ) {
+        pathStart--;
+    }
+    return (
+        source.charAt(pathStart - 1) === "(" &&
+        source.charAt(pathStart - 2) === "$"
+    );
 }
 
 const SIMPLE_IDENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -521,6 +536,25 @@ function formatPathSegment(segment: string): string {
     return SIMPLE_IDENT_REGEX.test(baseName)
         ? segment
         : `(${baseName})${bracketSuffix}`;
+}
+
+/** Whether `segment`'s name needs the `$(…)` form's richer identifier syntax. */
+function segmentNeedsParens(segment: string): boolean {
+    const bracketSuffix = segment.match(BRACKET_INDEX_SUFFIX_REGEX)?.[0] ?? "";
+    const baseName = segment.slice(0, segment.length - bracketSuffix.length);
+    return !SIMPLE_IDENT_REGEX.test(baseName);
+}
+
+/**
+ * Render a whole macro path the way the author would have to type it.
+ *
+ * Parentheses go around the *path*, not around a segment: the grammar's
+ * parenthesized form is `$(a.my-b)`, and neither `$a.(my-b)` nor `$(a).my-b`
+ * is a reference. So one hyphenated segment anywhere parenthesizes everything.
+ */
+function formatMacroPath(segments: readonly string[]): string {
+    const path = segments.join(".");
+    return segments.some(segmentNeedsParens) ? `(${path})` : path;
 }
 
 /**
@@ -1023,10 +1057,7 @@ function buildMemberDisplayPath(
     rawPathParts: readonly string[],
     memberName: string,
 ): string {
-    return [
-        ...rawPathParts.slice(0, -1).map(formatPathSegment),
-        formatPathSegment(memberName),
-    ].join(".");
+    return formatMacroPath([...rawPathParts.slice(0, -1), memberName]);
 }
 
 /**
@@ -1046,7 +1077,7 @@ async function unresolvedRefForChain(
     if (reason !== "notFound" && reason !== "multiple") return null;
     return {
         kind: "unresolvedRef",
-        displayPath: ctx.rawPathParts.map(formatPathSegment).join("."),
+        displayPath: formatMacroPath(ctx.rawPathParts),
         reason,
     };
 }
@@ -1267,7 +1298,7 @@ async function helpForRefNameByName(
         return {
             kind: "refName",
             refName,
-            displayPath: formatPathSegment(refName),
+            displayPath: formatMacroPath([refName]),
             targetElementName: referent.name,
             line,
         };
@@ -1281,7 +1312,7 @@ async function helpForRefNameByName(
         return {
             kind: "refName",
             refName,
-            displayPath: formatPathSegment(refName),
+            displayPath: formatMacroPath([refName]),
             // `targetElementName` is the binding's introducer — the only static,
             // always-correct answer (the iteration value's type is dynamic).
             targetElementName: derived.owner.name,
@@ -1307,7 +1338,7 @@ async function helpForRefNameByName(
     if (reason === "found") return NONE;
     return {
         kind: "unresolvedRef",
-        displayPath: formatPathSegment(refName),
+        displayPath: formatMacroPath([refName]),
         reason,
     };
 }

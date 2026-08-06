@@ -812,7 +812,7 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             .should("be.greaterThan", 0);
     });
 
-    it("shows member autocomplete after .( transition on a completed ref", () => {
+    it("offers nothing inside a parenthesized member segment", () => {
         cy.mount(
             <AutocompleteTestHarness
                 initialValue={
@@ -821,12 +821,16 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             />,
         );
 
+        // `$P.(coords)` is not a reference, so typing into the parentheses is
+        // typing into ordinary text — the language server has no members to
+        // offer there.
         cy.get(".cm-content")
             .click()
             .type("{ctrl}{end}(co", { force: true, delay: 200 });
 
-        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
-            "coords",
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "not.exist",
         );
     });
 

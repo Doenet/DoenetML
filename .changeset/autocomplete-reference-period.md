@@ -6,8 +6,10 @@
 "doenet-vscode-extension": patch
 ---
 
-Editor: open autocomplete on `.` only when the period continues a reference like `$name.prop`, not when it ends a sentence, and close it once the reference ends.
+Editor: suggest, describe, and insert only text that is actually a reference.
 
-The `.` was treated as a completion trigger unconditionally, both when deciding whether to request completions and when deciding whether to reopen a closed popup. Both places now require the period to continue an unfinished reference path, so a period closing a sentence leaves the popup shut while `$P.`, `$P.coords.`, `$rep[1].` and `$(P.` still offer properties.
+Autocomplete opened on every `.`, including one ending a sentence. It now opens only when the period continues an unfinished reference path — `$P.`, `$P.coords.`, `$rep[1].`, `$(P.` — and a list that is already open closes as soon as the reference ends, so typing `$P.(`, `$P."` or `$P. ` no longer leaves the members of `$P.` on screen.
 
-A property list that is already open now closes as soon as the reference ends. Typing anything a path cannot contain — `$P.(`, `$P."`, `$P. ` — used to leave the members of `$P.` on screen, offering to complete them into text that is not a reference.
+Three places also offered the forms `$(P).coords` and `$P.(coords)`, which read as a reference followed by literal text: a macro ends at the `)` of `$(P)`, and the grammar has no parenthesized property form. Member completions, the help panel, and the annotation skeleton snippet now all use the form that works.
+
+Completing a member whose name needs the richer `$(…)` identifier syntax — a hyphen, say — rewrites the macro instead of parenthesizing the segment: accepting `my-p` after `$base.my` now gives `$(base.my-p)`. The help panel names paths the same way, and the annotation skeleton writes `$(my-seg.endpoints[1].x)`.

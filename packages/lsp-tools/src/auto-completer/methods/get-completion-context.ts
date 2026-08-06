@@ -146,20 +146,9 @@ function getIdentifierPrefixInfo(
 }
 
 function normalizeMacroPathForMemberResolution(pathSource: string) {
-    // Normalize `$(a).b`, `$(a).(b)`, and mixed forms into dot-delimited parts.
-    let normalized = pathSource
-        .replace(/\)\.\(/g, ".")
-        .replace(/\)\./g, ".")
-        .replace(/\.\(/g, ".");
-
-    if (normalized.startsWith("(")) {
-        normalized = normalized.slice(1);
-    }
-    if (normalized.endsWith(")")) {
-        normalized = normalized.slice(0, -1);
-    }
-
-    return normalized;
+    // The path of `$(a.b)` is read from inside its parentheses, so drop the
+    // closing one when the cursor sits past it.
+    return pathSource.endsWith(")") ? pathSource.slice(0, -1) : pathSource;
 }
 
 /**
@@ -213,12 +202,7 @@ export function getCompletionContext(
             ? macroTypedPrefix
             : typedPrefix;
 
-        if (
-            prevChar === "." ||
-            source.charAt(activeTokenStart - 1) === "." ||
-            (source.charAt(activeTokenStart - 1) === "(" &&
-                source.charAt(activeTokenStart - 2) === ".")
-        ) {
+        if (prevChar === "." || source.charAt(activeTokenStart - 1) === ".") {
             const pathSource = normalizeMacroPathForMemberResolution(
                 source.slice(
                     macroStartOffset + (isParenthesizedMacro ? 2 : 1),
@@ -270,13 +254,15 @@ export function getCompletionContext(
         };
     }
 
-    // Check for macro path member access: `$(foo.` or `$(foo-bar).member`
-    if (
-        prevChar === "." ||
-        source.charAt(macroTokenStart - 1) === "." ||
-        (source.charAt(macroTokenStart - 1) === "(" &&
-            source.charAt(macroTokenStart - 2) === ".")
-    ) {
+    // Check for macro path member access: `$foo.member` or `$(foo-bar.member`.
+    //
+    // Those are the only two shapes a member can be typed into. A macro ends
+    // at the `)` of `$(foo-bar)`, so the `.` in `$(foo-bar).member` starts
+    // ordinary text, and the grammar has no parenthesized property form, so
+    // `$foo.(member)` is text as well (`packages/parser/src/macros/macros.peggy`).
+    // Neither gets member completions — suggesting into them would be
+    // suggesting something that is not a reference.
+    if (prevChar === "." || source.charAt(macroTokenStart - 1) === ".") {
         let pathStart = macroTokenStart - 1;
         while (
             pathStart > 0 &&
@@ -294,7 +280,7 @@ export function getCompletionContext(
             );
         }
 
-        // Pattern: `$(identifier.member` or `$(identifier).member`
+        // Pattern: `$(identifier.member`, still inside the parenthesized form
         if (
             source.charAt(pathStart - 1) === "(" &&
             source.charAt(pathStart - 2) === "$"
@@ -304,72 +290,6 @@ export function getCompletionContext(
                 macroTokenStart,
                 source.slice(pathStart, offset).split("."),
             );
-        }
-
-        // Pattern: `$(identifier).member`
-        if (source.charAt(pathStart - 1) === ")") {
-            const macroOpenParen = source.lastIndexOf("(", pathStart - 1);
-            if (
-                macroOpenParen > 0 &&
-                source.charAt(macroOpenParen - 1) === "$"
-            ) {
-                const basePath = source.slice(
-                    macroOpenParen + 1,
-                    pathStart - 1,
-                );
-                const suffix = source.slice(pathStart, offset);
-                return makeValidatedRefMemberContext(
-                    macroTypedPrefix,
-                    macroTokenStart,
-                    `${basePath}${suffix}`.split("."),
-                );
-            }
-        }
-
-        // Pattern: `$identifier.(member` or `$(identifier).(member`
-        if (
-            source.charAt(pathStart - 1) === "(" &&
-            source.charAt(pathStart - 2) === "."
-        ) {
-            // Non-parenthesized base: `$identifier.(member`
-            let baseStart = pathStart - 2;
-            while (
-                baseStart > 0 &&
-                MACRO_PATH_CHAR_REGEX.test(source.charAt(baseStart - 1))
-            ) {
-                baseStart--;
-            }
-            if (source.charAt(baseStart - 1) === "$") {
-                const basePath = source.slice(baseStart, pathStart - 2);
-                return makeValidatedRefMemberContext(
-                    macroTypedPrefix,
-                    macroTokenStart,
-                    `${basePath}.${source
-                        .slice(pathStart, offset)
-                        .replace(/^\(/, "")}`.split("."),
-                );
-            }
-
-            // Parenthesized base: `$(identifier).(member`
-            if (source.charAt(baseStart - 1) === ")") {
-                const macroOpenParen = source.lastIndexOf("(", baseStart - 1);
-                if (
-                    macroOpenParen > 0 &&
-                    source.charAt(macroOpenParen - 1) === "$"
-                ) {
-                    const basePath = source.slice(
-                        macroOpenParen + 1,
-                        baseStart - 1,
-                    );
-                    return makeValidatedRefMemberContext(
-                        macroTypedPrefix,
-                        macroTokenStart,
-                        `${basePath}.${source
-                            .slice(pathStart, offset)
-                            .replace(/^\(/, "")}`.split("."),
-                    );
-                }
-            }
         }
     }
 

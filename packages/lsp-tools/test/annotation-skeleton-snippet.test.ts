@@ -227,11 +227,15 @@ describe("Annotation skeleton snippet generation", () => {
         // ref attributes use parenthesized form
         expect(snippet?.snippet).toContain('ref="$(my-seg)"');
         expect(snippet?.snippet).toContain('ref="$(1stPoint)"');
-        // text macros use parenthesized form with property paths
-        expect(snippet?.snippet).toContain("$(my-seg).endpoints[1].x");
-        expect(snippet?.snippet).toContain("$(my-seg).endpoints[2].y");
-        expect(snippet?.snippet).toContain("$(1stPoint).x");
-        expect(snippet?.snippet).toContain("$(1stPoint).y");
+        // Text macros parenthesize the whole path: the macro ends at its
+        // `)`, so `$(my-seg).endpoints[1].x` would name the segment and then
+        // trail literal text.
+        expect(snippet?.snippet).toContain("$(my-seg.endpoints[1].x)");
+        expect(snippet?.snippet).toContain("$(my-seg.endpoints[2].y)");
+        expect(snippet?.snippet).toContain("$(1stPoint.x)");
+        expect(snippet?.snippet).toContain("$(1stPoint.y)");
+        expect(snippet?.snippet).not.toContain("$(my-seg).");
+        expect(snippet?.snippet).not.toContain("$(1stPoint).");
         // bare $ form must not appear for these names
         expect(snippet?.snippet).not.toContain("$my-seg");
         expect(snippet?.snippet).not.toContain("$1stPoint");

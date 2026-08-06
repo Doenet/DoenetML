@@ -35,6 +35,9 @@ type DoenetCompletionItem = CompletionItem & { displayLabel?: string };
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+// - what a path is made of: Ident characters, the `.` joining segments, and
+//   `[…]` indices
+const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
 
 /**
  * Wrap schema description text as markdown so LSP clients render inline code
@@ -555,12 +558,66 @@ function createReferenceCompletionItems(
 }
 
 /**
- * Segment insertion policy for ref completion after `$` and `.`:
+ * Segment insertion policy for ref completion after `$`:
  * - Simple identifiers insert as-is.
- * - Hyphenated or otherwise non-simple identifiers insert parenthesized.
+ * - Hyphenated or otherwise non-simple identifiers insert parenthesized, since
+ *   the bare `$name` form only accepts SimpleIdent.
+ *
+ * This is for the name right after the `$`, where wrapping the segment wraps
+ * the whole macro. A *member* cannot be wrapped this way — `$P.(my-p)` is not
+ * a reference — so members go through {@link rewriteAsParenthesizedMacro}.
  */
 function toRefSegmentInsertText(label: string) {
     return SIMPLE_IDENTIFIER_REGEX.test(label) ? label : `(${label})`;
+}
+
+/**
+ * The offsets a `$…` macro occupies around a member being typed: where the
+ * `$` is, and where the path after it starts.
+ *
+ * `replaceFromOffset` points at the typed member prefix (`$P.my|` → at `my`),
+ * so walking left over path characters lands on the start of the path and the
+ * character before that says which macro form this is.
+ */
+function locateMacroAroundMember(source: string, replaceFromOffset: number) {
+    let pathStart = replaceFromOffset;
+    while (
+        pathStart > 0 &&
+        MACRO_PATH_CHAR_REGEX.test(source.charAt(pathStart - 1))
+    ) {
+        pathStart--;
+    }
+    const isParenthesized = source.charAt(pathStart - 1) === "(";
+    return {
+        pathStart,
+        isParenthesized,
+        macroStart: isParenthesized ? pathStart - 2 : pathStart - 1,
+    };
+}
+
+/**
+ * Rewrite a bare `$P.my` into `$(P.my-p)` so a member whose name needs the
+ * richer `$(…)` identifier syntax can still be completed.
+ *
+ * The bare form's path segments are SimpleIdent, with no room for a hyphen,
+ * and there is no `$P.(my-p)` form to fall back on. What is expressible is the
+ * parenthesized macro, so accepting such a member replaces the macro typed so
+ * far rather than just the member prefix.
+ */
+function rewriteAsParenthesizedMacro(
+    item: CompletionItem,
+    sourceObj: DoenetSourceObject,
+    macroStart: number,
+    pathSoFar: string,
+    endOffset: number,
+): CompletionItem {
+    return {
+        ...item,
+        textEdit: {
+            range: createTextEditRange(sourceObj, macroStart, endOffset),
+            newText: `$(${pathSoFar}${item.label})`,
+        },
+    };
 }
 
 /**
@@ -1007,9 +1064,13 @@ export async function getCompletionItems(
         for (const name of filteredNames) {
             const info = referentInfoByName.get(name);
             if (!info?.takesIndex) continue;
-            const insertText = isParenthesizedContext
-                ? `${name}[]`
-                : `${toRefSegmentInsertText(name)}[]`;
+            // The index is part of the path segment, so it goes inside the
+            // parentheses a non-simple name needs: `$(foo-bar[])`, not
+            // `$(foo-bar)[]`, which would end the macro before the index.
+            const insertText =
+                isParenthesizedContext || SIMPLE_IDENTIFIER_REGEX.test(name)
+                    ? `${name}[]`
+                    : `(${name}[])`;
             const item: CompletionItem = {
                 label: `${name}[]`,
                 kind: CompletionItemKind.Reference,
@@ -1020,7 +1081,9 @@ export async function getCompletionItems(
                 },
                 data: {
                     snippetCursor: {
-                        caretOffset: insertText.length - 1,
+                        // Between the brackets, which the closing `)` follows
+                        // in the parenthesized form.
+                        caretOffset: insertText.lastIndexOf("]"),
                     },
                 } satisfies CompletionSnippetCompletionItemData,
             };
@@ -1037,11 +1100,34 @@ export async function getCompletionItems(
         // Resolve the ref chain up to the container of the member currently
         // being typed, then merge named descendants with schema properties.
         const source = this.sourceObj.source;
-        const isParenthesizedMemberContext =
-            source.charAt(completionContext.replaceFromOffset - 1) === "(" &&
-            source.charAt(completionContext.replaceFromOffset - 2) === ".";
-        const toRefMemberInsertText = (name: string) =>
-            isParenthesizedMemberContext ? name : toRefSegmentInsertText(name);
+        // A member is typed into one of two macro forms. Inside `$(P.` every
+        // name is expressible as typed, hyphens included. In the bare `$P.`
+        // form the segments are SimpleIdent, so a name with a hyphen only
+        // fits once the whole macro becomes `$(P.my-p)` — which is what
+        // accepting it rewrites, since `$P.(my-p)` is not a reference.
+        const macroAroundMember = locateMacroAroundMember(
+            source,
+            completionContext.replaceFromOffset,
+        );
+        const pathSoFar = source.slice(
+            macroAroundMember.pathStart,
+            completionContext.replaceFromOffset,
+        );
+        const toRefMemberInsertText = (name: string) => name;
+        const applyMemberInsertionPolicy = (items: CompletionItem[]) =>
+            macroAroundMember.isParenthesized
+                ? items
+                : items.map((item) =>
+                      SIMPLE_IDENTIFIER_REGEX.test(String(item.label))
+                          ? item
+                          : rewriteAsParenthesizedMacro(
+                                item,
+                                this.sourceObj,
+                                macroAroundMember.macroStart,
+                                pathSoFar,
+                                offset,
+                            ),
+                  );
 
         const resolved = await this.resolveRefMemberContainerAtOffset(
             offset,
@@ -1067,7 +1153,7 @@ export async function getCompletionItems(
                 offset,
                 toRefMemberInsertText,
             );
-            if (aliasItems) return aliasItems;
+            if (aliasItems) return applyMemberInsertionPolicy(aliasItems);
             return [];
         }
 
@@ -1131,7 +1217,7 @@ export async function getCompletionItems(
             }
         }
 
-        return [
+        return applyMemberInsertionPolicy([
             ...createReferenceCompletionItems(
                 this,
                 filteredDescendantNames,
@@ -1149,7 +1235,7 @@ export async function getCompletionItems(
                 toRefMemberInsertText,
                 propertyDescriptions,
             ),
-        ];
+        ]);
     }
 
     if (!containingNode && cursorPosition === "unknown" && showElementMenu) {

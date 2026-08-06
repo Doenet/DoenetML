@@ -1441,28 +1441,45 @@ describe("AutoCompleter", () => {
             expect(items.some((item) => item.label === "myP")).toBe(true);
         });
 
-        it("Suggests member completions after dot on completed parenthesized macros", async () => {
+        it("Offers nothing after a dot on a completed parenthesized macro", async () => {
+            // `$(foo-bar)` is a whole macro, so the `.` after it starts
+            // ordinary text — `$(foo-bar).myP` is not a reference and must not
+            // be suggested as though it were.
             const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar).`;
             const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
-            const completionContext =
-                autoCompleter.getCompletionContext(offset);
-            expect(completionContext).toMatchObject({
-                cursorPos: "refMember",
-                typedPrefix: "",
-            });
+            expect(
+                autoCompleter.getCompletionContext(offset),
+            ).not.toMatchObject({ cursorPos: "refMember" });
 
             const items = await autoCompleter.getCompletionItems(offset);
 
-            // Descendant and property suggestions should both be present.
-            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.some((item) => item.label === "myP")).toBe(false);
             expect(items.some((item) => item.label === "sectionProp")).toBe(
-                true,
+                false,
             );
         });
 
-        it("Inserts parenthesized member text for hyphenated names after dot", async () => {
+        it("Offers nothing inside a parenthesized member segment", async () => {
+            // There is no `$base.(my-p)` form in the macro grammar, so the
+            // text after `.(` is not a member being typed.
+            const source = `<section name="base"><p name="my-p" /></section>\n$base.(my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            expect(
+                autoCompleter.getCompletionContext(source.length),
+            ).not.toMatchObject({ cursorPos: "refMember" });
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+
+            expect(items.some((item) => item.label === "my-p")).toBe(false);
+        });
+
+        it("Rewrites the macro to insert a hyphenated member after dot", async () => {
+            // The bare `$base.` form's segments are SimpleIdent, with no room
+            // for a hyphen, so accepting `my-p` replaces the macro typed so
+            // far with the parenthesized form that can hold it.
             const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$base.my`;
             const autoCompleter = createRefAutoCompleter(source);
 
@@ -1474,18 +1491,38 @@ describe("AutoCompleter", () => {
             expect(underscoreItem).toBeDefined();
 
             const hyphenTextEdit = hyphenItem?.textEdit;
+            expect(hyphenTextEdit && "newText" in hyphenTextEdit).toBe(true);
             if (hyphenTextEdit && "newText" in hyphenTextEdit) {
-                expect(hyphenTextEdit.newText).toBe("(my-p)");
+                expect(hyphenTextEdit.newText).toBe("$(base.my-p)");
+                // The edit reaches back to the `$` of `$base.my`, which
+                // starts the second line.
+                expect(hyphenTextEdit.range.start).toEqual({
+                    line: 1,
+                    character: 0,
+                });
             }
 
+            // An underscore needs no rewrite: `$base.my_p` is already a
+            // reference, so only the typed member prefix is replaced.
             const underscoreTextEdit = underscoreItem?.textEdit;
+            expect(underscoreTextEdit && "newText" in underscoreTextEdit).toBe(
+                true,
+            );
             if (underscoreTextEdit && "newText" in underscoreTextEdit) {
                 expect(underscoreTextEdit.newText).toBe("my_p");
+                // Only `my`, the typed member prefix, six characters into
+                // the second line.
+                expect(underscoreTextEdit.range.start).toEqual({
+                    line: 1,
+                    character: 6,
+                });
             }
         });
 
-        it("Applies same member insertion policy after dot in parenthesized refs", async () => {
-            const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$(base).my`;
+        it("Inserts a hyphenated member as typed inside a parenthesized ref", async () => {
+            // `$(base.my-p)` holds the hyphen already, so there is nothing to
+            // rewrite — the member goes in as its plain name.
+            const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$(base.my`;
             const autoCompleter = createRefAutoCompleter(source);
 
             const items = await autoCompleter.getCompletionItems(source.length);
@@ -1497,39 +1534,12 @@ describe("AutoCompleter", () => {
 
             const hyphenTextEdit = hyphenItem?.textEdit;
             if (hyphenTextEdit && "newText" in hyphenTextEdit) {
-                expect(hyphenTextEdit.newText).toBe("(my-p)");
+                expect(hyphenTextEdit.newText).toBe("my-p");
             }
 
             const underscoreTextEdit = underscoreItem?.textEdit;
             if (underscoreTextEdit && "newText" in underscoreTextEdit) {
                 expect(underscoreTextEdit.newText).toBe("my_p");
-            }
-        });
-
-        it("Classifies parenthesized member-segment syntax after dot as refMember", async () => {
-            const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
-            const autoCompleter = createRefAutoCompleter(source);
-
-            const completionContext = autoCompleter.getCompletionContext(
-                source.length,
-            );
-            expect(completionContext).toMatchObject({
-                cursorPos: "refMember",
-                typedPrefix: "my",
-            });
-        });
-
-        it("Does not double-parenthesize insertion in .(member) contexts", async () => {
-            const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
-            const autoCompleter = createRefAutoCompleter(source);
-
-            const items = await autoCompleter.getCompletionItems(source.length);
-            const hyphenItem = items.find((item) => item.label === "my-p");
-
-            expect(hyphenItem).toBeDefined();
-            const textEdit = hyphenItem?.textEdit;
-            if (textEdit && "newText" in textEdit) {
-                expect(textEdit.newText).toBe("my-p");
             }
         });
 
