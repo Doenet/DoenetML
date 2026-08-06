@@ -71,14 +71,14 @@ English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
 `br`, `bs`, `ca`, `ceb`, `ch`, `co`, `cs`, `cy`, `da`, `de`, `ee`, `el`, `es`,
 `et`, `eu`, `fa`, `fi`, `fil`, `fj`, `fo`, `fr`, `fy`, `ga`, `gd`, `gl`, `gn`,
 `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`,
-`ilo`, `is`, `it`, `ja`,
-`jv`, `ka`, `kk`, `km`, `kn`, `ko`, `ky`, `lb`, `lg`, `ln`, `lo`, `lt`, `lv`,
-`mad`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mr`, `ms`, `mt`, `my`, `nah`, `nb`,
-`nds`, `ne`, `nl`, `ny`, `oc`, `oj`, `om`, `or`, `pa`, `pam`, `pl`, `ps`, `pt`,
-`qu`, `quc`, `rm`, `ro`, `ru`, `rw`, `sc`, `scn`, `sd`, `se`, `si`, `sk`, `sl`,
-`sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`, `ta`, `te`, `tet`, `tg`,
-`th`, `ti`, `tk`, `tn`, `to`, `tpi`, `tr`, `tt`, `ty`, `ug`, `uk`, `ur`, `uz`,
-`vi`, `war`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an
+`ilo`, `is`, `it`, `ja`, `jv`, `ka`, `kk`, `km`, `kn`, `ko`, `ky`, `lb`, `lg`,
+`ln`, `lo`, `lt`, `lv`, `mad`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mr`, `ms`,
+`mt`, `my`, `nah`, `nb`, `nds`, `ne`, `nl`, `ny`, `oc`, `oj`, `om`, `or`, `pa`,
+`pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `ro`, `ru`, `rw`, `sc`, `scn`, `sd`,
+`se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`,
+`ta`, `te`, `tet`, `tg`, `th`, `ti`, `tk`, `tn`, `to`, `tpi`, `tr`, `tt`, `ty`,
+`ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`,
+`zh-Hant`, `zu` — is an
 **unreviewed machine-generated seed**, which each file's own header says at the
 top, and which is what #1521's translation platform is for. None has been read by
 a speaker. Correcting one needs no permission and no coordination: a wrong string
@@ -94,8 +94,8 @@ Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern Sami,
 Yiddish, Haitian Creole, Quechua, Guarani, Aymara, Nahuatl, Kʼicheʼ, Mapudungun,
 Ojibwe, Ilocano, Waray, Hiligaynon, Kapampangan, Bikol, Balinese, Minangkabau,
 Acehnese, Madurese, Tetum, Tongan, Fijian, Tahitian, Chamorro and Tok Pisin
-leave `element-name` and `element-anion-name` out, so those 130 keys
-fall back to English and `lint:i18n` reports the gap.
+leave `element-name` and `element-anion-name` out, so those 130 keys fall back
+to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
@@ -190,8 +190,9 @@ and none is the Khmer case of having the names but no convention to reproduce.
 They simply do not have the table, and the catalogs say so in their own headers
 rather than leaving a reader to infer it from a gap.
 
-**All fifteen of the Austronesian batch are partial too, and they split three
-ways along the languages the school systems teach science in.** Ilocano, Waray,
+**All fifteen of the Austronesian batch are partial too, and they split four
+ways.** Three of the four are a fact about a school system rather than about a
+language, which is the split worth keeping straight. Ilocano, Waray,
 Hiligaynon, Kapampangan, Bikol, Chamorro and Tok Pisin are the English-medium
 case — the Philippines from the intermediate grades, Guam and the Northern
 Marianas, Papua New Guinea — which is the `fil` and `ceb` case those two
@@ -206,12 +207,12 @@ chose to carry the table, these choose to leave it. Tetum and Tahitian are the
 colonial-medium case a third and fourth time, Portuguese and French, which is
 `locales/ht`'s exactly.
 
-Tongan and Fijian are the fifteenth and sixteenth languages in this roster whose
-schooling is in a colonial language *and* whose own vocabulary stops well short
-of 118, which is the Samoan and Hawaiian case in `locales/sm` and `locales/haw`
-— Polynesian languages naming the substances known long before the elements were
-and no table over them. That the Pacific catalogs keep landing there is worth
-saying once rather than four times.
+Tongan and Fijian are the fourth case, and the one that is not about a
+ministry: both are schooled in English, but neither has a settled list of all
+118 that stops short of inventing one, which is the Samoan and Hawaiian case in
+`locales/sm` and `locales/haw` — Pacific languages naming the substances known
+long before the elements were and no table over them. That the Pacific catalogs
+keep landing there is worth saying once rather than four times.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -449,9 +450,10 @@ know — see the note on `localeNames` in `catalogUtils.ts` — and nothing here
 hand-writes around it, which is the same rule that leaves `co` reading
 "Corsican" twice. It is a gap in CLDR, and until it closes the label is the tag.
 
-The Austronesian batch adds one macrolanguage, two script asymmetries, three
-naming cases, and a finding about the affix rule that is the batch's real
-contribution.
+The Austronesian batch adds one macrolanguage, two script asymmetries and three
+naming cases. Its finding about the affix rule — the batch's real contribution —
+belongs beside that rule rather than here, and is in
+[A ligature is an affix too](#a-ligature-is-an-affix-too).
 
 `bik` is an ISO 639-3 macrolanguage over the eight Bikol languages of the Bicol
 peninsula, so it joins `MACROLANGUAGE_MEMBERS` for the same published reason
@@ -479,39 +481,6 @@ scale: `to` is the only one of the fifteen whose **endonym** CLDR knows — the
 roster reads "Tongan (lea fakatonga)" — and the other fourteen read their
 English name once. None of the fifteen is right-to-left, so `direction.ts` is
 untouched.
-
-### A ligature is an affix too
-
-The batch's finding, and it belongs beside
-[An affix cannot be welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable)
-rather than under naming. A Philippine language joins an attributive adjective
-to what it describes with a **linker**, and a linker has two forms. Which one is
-right is decided by a neighbouring word — which, in these messages, is often a
-placeable. So the constraint that turned up first as a case ending in Arabic and
-a preposition in Czech turns up here as a ligature, and the five Philippine
-catalogs do not all resolve it the same way:
-
-| | The linker | Decided by | Resolution |
-| --- | --- | --- | --- |
-| `war`, `hil` | «nga» / `-ng` | the word **before** it | write the free «nga», which is grammatical in both positions |
-| `ilo` | «a» / «nga» | the word **after** it | no invariant form exists; write «a» and name the exception |
-| `pam` | «a» / `-ng` | the word **before** it | no invariant form exists; write «a» and name the exception |
-| `bik` | «na» / `-ng` | the word **before** it | no invariant form exists; write «na» and name the exception |
-
-Two of the five escape it outright, which is the useful half: Bisayan «nga» is a
-free word in both positions, so writing it out is not a compromise but the form
-that can be written without knowing what stands beside it. That is the same move
-`locales/quc` makes when it writes the free relational «rech» instead of the
-possessive prefix «u-»/«r-», and it is a **fifth way out** to add to the four
-that section lists — *prefer the free allomorph over the bound one*.
-
-The other three cannot, and each header says exactly where its choice comes out
-wrong rather than leaving a reader to find it. Ilocano's is the sharpest and is
-**pinned as a test**: every word in its own tables is consonant-initial but
-«asul», so `styleDescriptionLocale.test.ts` asserts the string «napunno a asul a
-sirkulo» — the one place the rule misfires — rather than hiding it. A fix is a
-change to what the composition messages are handed, not a change to that string,
-and the test is what would notice the day it becomes possible.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
@@ -954,7 +923,7 @@ meet is one the ending merely sits beside. `locales/tg`'s own header records
 that, because a new entry in its `noun` or `color` table has to be checked
 against it.
 
-There are four ways out, and every catalog here takes one of them:
+There are five ways out, and every catalog here takes one of them:
 
 - **Name what the value is.** «للمكوّن { $component }» — "for the component X"
   — puts the affix on a word the catalog writes.
@@ -966,9 +935,45 @@ There are four ways out, and every catalog here takes one of them:
   have wanted «ve».
 - **Write both forms.** Hungarian's «a(z)» is the standard orthographic answer
   to exactly this problem, and predates software by a long way.
+- **Prefer the free allomorph over the bound one.** Where the affix has a
+  free-standing counterpart that is grammatical in every position, write that:
+  Kʼicheʼ's relational «rech» in place of the possessive prefix «u-»/«r-», and
+  the Bisayan linker «nga» in place of the enclitic `-ng` — see
+  [A ligature is an affix too](#a-ligature-is-an-affix-too).
 
 A select whose variants would land against such an affix carries the affix into
 each variant: Fluent does not care where a select sits inside a pattern.
+
+### A ligature is an affix too
+
+The Austronesian batch's finding. A Philippine language joins an attributive
+adjective to what it describes with a **linker**, and a linker has two forms.
+Which one is right is decided by a neighbouring word — which, in these messages,
+is often a placeable. So the constraint that turned up first as a case ending in
+Arabic and a preposition in Czech turns up here as a ligature, and the five
+Philippine catalogs do not all resolve it the same way:
+
+| | The linker | Decided by | Resolution |
+| --- | --- | --- | --- |
+| `war`, `hil` | «nga» / `-ng` | the word **before** it | write the free «nga», which is grammatical in both positions |
+| `ilo` | «a» / «nga» | the word **after** it | no invariant form exists; write «a» and name the exception |
+| `pam` | «a» / `-ng` | the word **before** it | no invariant form exists; write «a» and name the exception |
+| `bik` | «na» / `-ng` | the word **before** it | no invariant form exists; write «na» and name the exception |
+
+Two of the five escape it outright, which is the useful half: Bisayan «nga» is a
+free word in both positions, so writing it out is not a compromise but the form
+that can be written without knowing what stands beside it. That is the same move
+`locales/quc` makes when it writes the free relational «rech» instead of the
+possessive prefix «u-»/«r-», and it is the fifth way out listed above — *prefer
+the free allomorph over the bound one*.
+
+The other three cannot, and each header says exactly where its choice comes out
+wrong rather than leaving a reader to find it. Ilocano's is the sharpest and is
+**pinned as a test**: every word in its own tables is consonant-initial but
+«asul», so `styleDescriptionLocale.test.ts` asserts the string «napunno a asul a
+sirkulo» — the one place the rule misfires — rather than hiding it. A fix is a
+change to what the composition messages are handed, not a change to that string,
+and the test is what would notice the day it becomes possible.
 
 ## Diagnostics
 

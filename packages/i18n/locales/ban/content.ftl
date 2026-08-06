@@ -13,9 +13,10 @@
 #
 # The adjectives **follow** the noun — «garis barak», a red line — so every
 # composition message inverts the English order. That is the first thing this
-# batch does not share: the five Philippine catalogs beside it all put their
-# adjectives in front, and the three Malayic ones and the Polynesian ones put
-# them behind. Sharing a region settles nothing here.
+# batch does not share: the five Philippine catalogs beside it and `locales/tpi`
+# put their adjectives in front, and the eight others — the rest of Indonesia,
+# Tetum and the Pacific — put them behind. Sharing a region settles nothing here,
+# and neither does sharing a family.
 #
 # There is no linker: a Balinese adjective sits directly behind its noun with
 # nothing between them, so none of the constraint `locales/ilo`, `locales/pam`

@@ -31,7 +31,7 @@
 # use it.
 #
 # The adjectives therefore **precede** the noun, as in English and as in the
-# five Philippine catalogs of this batch, and unlike the eight others.
+# five Philippine catalogs of this batch, and unlike the nine others.
 #
 # The geometry vocabulary is largely English-derived, because PNG teaches
 # mathematics in English; where Tok Pisin has its own word it is written.

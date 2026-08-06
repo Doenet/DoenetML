@@ -10,8 +10,8 @@
 # token for every noun and nothing here selects on `$gender` or on `$role`.
 #
 # The adjectives **follow** the noun — «laine kulokula», a red line — so every
-# composition message inverts the English order, as the other two Polynesian
-# catalogs in this batch do.
+# composition message inverts the English order, as `locales/ty` and
+# `locales/fj` do.
 #
 # **The colour table is where Tongan does not fit English's twelve keys**, and
 # it fails to fit in the way a great many Pacific languages do: «lanu» plus a

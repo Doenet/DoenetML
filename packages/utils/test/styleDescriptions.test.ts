@@ -1246,12 +1246,6 @@ describe("the Austronesian batch's word order", () => {
                 withNoun: true,
             });
             expect(description).toBe(expected);
-            // The complement trails the whole phrase rather than sitting between
-            // the noun and the words describing it, which is the whole point of the
-            // split — and it leaves no doubled space behind.
-            expect(description).toContain("5");
-            expect(description).not.toContain("  ");
-            expect(description.trimEnd()).toBe(description);
         },
     );
 });

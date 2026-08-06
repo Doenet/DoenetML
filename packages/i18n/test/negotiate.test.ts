@@ -439,11 +439,13 @@ describe("negotiateLocales", () => {
          * with catalogs of their own and are members of nothing: `tl`
          * canonicalizes to `fil` before negotiation is reached (see the
          * Filipino case above) and must not touch `bik`, and `ceb` must reach
-         * its own catalog rather than a neighbour's. `pag` is Pangasinan, which
-         * has no catalog and belongs to no macrolanguage that does — it falls
-         * to English, which is the rule working rather than a gap.
+         * its own catalog rather than a neighbour's. `phi` is the ISO 639-5
+         * collection code for the Philippine languages as a group, which is not
+         * a macrolanguage and folds onto nothing, unlike the one collection
+         * code `MACROLANGUAGE_MEMBERS` does carry (`nah`, whose members are
+         * listed there deliberately).
          */
-        it.each(["tl", "ceb", "pag", "phi"])(
+        it.each(["tl", "ceb", "phi"])(
             "does not fold %s onto a neighbouring Philippine catalog",
             (requested) => {
                 const chain = negotiateLocales(
@@ -456,6 +458,9 @@ describe("negotiateLocales", () => {
             },
         );
 
+        // Pangasinan is a Philippine language with no catalog that belongs to
+        // no macrolanguage with one, so it falls all the way to English — the
+        // rule working rather than a gap in it.
         it("leaves Pangasinan on English rather than guessing", () => {
             expect(
                 negotiateLocales([normalizeLocaleTag("pag")], available),
