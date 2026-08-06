@@ -67,25 +67,28 @@ export default function useGridAndAxesSync({
             displayYAxisTicks: SVs.displayYAxisTicks,
         });
 
-        const displayXAxisChanged = SVs.displayXAxis
+        const showXAxis = SVs.displayXAxis !== "none";
+        const showYAxis = SVs.displayYAxis !== "none";
+
+        const displayXAxisChanged = showXAxis
             ? !Boolean(xaxisRef.current)
             : Boolean(xaxisRef.current);
-        const displayYAxisChanged = SVs.displayYAxis
+        const displayYAxisChanged = showYAxis
             ? !Boolean(yaxisRef.current)
             : Boolean(yaxisRef.current);
 
-        if (displayYAxisChanged && !displayXAxisChanged && SVs.displayXAxis) {
+        if (displayYAxisChanged && !displayXAxisChanged && showXAxis) {
             board.removeObject(xaxisRef.current);
             xaxisRef.current = null;
         }
 
-        if (displayXAxisChanged && !displayYAxisChanged && SVs.displayYAxis) {
+        if (displayXAxisChanged && !displayYAxisChanged && showYAxis) {
             board.removeObject(yaxisRef.current);
             yaxisRef.current = null;
         }
 
         // Reconcile x-axis existence and label/tick presentation.
-        if (SVs.displayXAxis) {
+        if (showXAxis) {
             if (xaxisRef.current) {
                 const xaxisWithLabel = Boolean(SVs.xLabel);
 
@@ -132,7 +135,7 @@ export default function useGridAndAxesSync({
         }
 
         // Reconcile y-axis existence and label/tick presentation.
-        if (SVs.displayYAxis) {
+        if (showYAxis) {
             if (yaxisRef.current) {
                 const yaxisWithLabel = Boolean(SVs.yLabel);
 
