@@ -38,6 +38,24 @@ function stripIndicesFromPathParts(parts: string[]): {
 }
 
 /**
+ * Where the macro a member is being typed into begins.
+ *
+ * `macroStartOffset` is its `$`; `pathStartOffset` is the first character of
+ * its path — one past the `$`, or two for the parenthesized `$(a.b` form.
+ * Consumers read the form off the gap between them, and an edit that has to
+ * rewrite the whole macro (rather than just the member) starts at the `$`.
+ *
+ * Both are recorded here because a member's own offset is not enough to find
+ * them again: scanning left over path characters walks straight past the `$`
+ * of a macro used as an index, so `$rep[$i].member` would be read as starting
+ * at that inner `$`.
+ */
+type MacroOffsets = {
+    macroStartOffset: number;
+    pathStartOffset: number;
+};
+
+/**
  * High-level cursor contexts used to choose between XML completions and
  * ref-specific completions.
  *
@@ -55,7 +73,7 @@ export type CompletionContext =
           typedPrefix: string;
           replaceFromOffset: number;
       }
-    | {
+    | ({
           cursorPos: "refMember";
           typedPrefix: string;
           replaceFromOffset: number;
@@ -73,7 +91,13 @@ export type CompletionContext =
            * `pathPartHasIndex` flag instead.
            */
           rawPathParts: string[];
-      };
+      } & MacroOffsets);
+
+/** The {@link CompletionContext} for a member being typed into a macro. */
+export type RefMemberCompletionContext = Extract<
+    CompletionContext,
+    { cursorPos: "refMember" }
+>;
 
 /**
  * Build a `refMember` context, stripping bracket indices from path parts.
@@ -82,7 +106,8 @@ function makeRefMemberContext(
     typedPrefix: string,
     replaceFromOffset: number,
     rawPathParts: string[],
-): CompletionContext & { cursorPos: "refMember" } {
+    macroOffsets: MacroOffsets,
+): RefMemberCompletionContext {
     const { parts, pathPartHasIndex } = stripIndicesFromPathParts(rawPathParts);
     return {
         cursorPos: "refMember",
@@ -91,6 +116,7 @@ function makeRefMemberContext(
         pathParts: parts,
         pathPartHasIndex,
         rawPathParts,
+        ...macroOffsets,
     };
 }
 
@@ -118,12 +144,18 @@ function makeValidatedRefMemberContext(
     typedPrefix: string,
     replaceFromOffset: number,
     rawPathParts: string[],
+    macroOffsets: MacroOffsets,
 ): CompletionContext {
     if (!hasValidRefMemberPathSyntax(rawPathParts)) {
         return { cursorPos: "body" };
     }
 
-    return makeRefMemberContext(typedPrefix, replaceFromOffset, rawPathParts);
+    return makeRefMemberContext(
+        typedPrefix,
+        replaceFromOffset,
+        rawPathParts,
+        macroOffsets,
+    );
 }
 
 /**
@@ -200,14 +232,13 @@ export function getCompletionContext(
             // The path starts after the `$` of `$a.b`, or after the `$(` of
             // `$(a.b` — the parenthesized form's path is read from inside its
             // parentheses.
-            const pathSource = source.slice(
-                macroStartOffset + (isParenthesizedMacro ? 2 : 1),
-                offset,
-            );
+            const pathStartOffset =
+                macroStartOffset + (isParenthesizedMacro ? 2 : 1);
             return makeValidatedRefMemberContext(
                 activeTypedPrefix,
                 activeTokenStart,
-                pathSource.split("."),
+                source.slice(pathStartOffset, offset).split("."),
+                { macroStartOffset, pathStartOffset },
             );
         }
 
@@ -272,6 +303,10 @@ export function getCompletionContext(
                 macroTypedPrefix,
                 macroTokenStart,
                 source.slice(pathStart, offset).split("."),
+                {
+                    macroStartOffset: pathStart - 1,
+                    pathStartOffset: pathStart,
+                },
             );
         }
 
@@ -284,6 +319,10 @@ export function getCompletionContext(
                 macroTypedPrefix,
                 macroTokenStart,
                 source.slice(pathStart, offset).split("."),
+                {
+                    macroStartOffset: pathStart - 2,
+                    pathStartOffset: pathStart,
+                },
             );
         }
     }
@@ -322,6 +361,10 @@ export function getCompletionContext(
                     typedPrefix,
                     tokenStart,
                     pathParts,
+                    {
+                        macroStartOffset: pathStart - 1,
+                        pathStartOffset: pathStart,
+                    },
                 );
             }
         }

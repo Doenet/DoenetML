@@ -8,6 +8,7 @@ import {
     AutoCompleter,
     type AliasedElementSchema,
     type CompletionContext,
+    type RefMemberCompletionContext,
     type ElementSchema,
     type SchemaAttribute,
     type SchemaProperty,
@@ -447,9 +448,6 @@ async function helpForReferenceUnit(
 //   Ident       = [A-Za-z0-9_-]+          — parenthesized `$(foo-bar)`
 const SIMPLE_IDENT_CHAR_REGEX = /[A-Za-z0-9_]/;
 const MACRO_IDENT_CHAR_REGEX = /[A-Za-z0-9_-]/;
-// A whole path inside `$(…)`: `Ident` characters, the `.` joining segments,
-// and `[…]` indices.
-const PARENTHESIZED_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
 
 /**
  * The completion context's `typedPrefix` only captures identifier chars BEFORE
@@ -481,27 +479,19 @@ function fullIdentifierAtOffset(
 }
 
 /**
- * Detect whether the segment under the cursor sits inside a `$(...)` macro,
- * which decides the char class its name is read with — hyphens are legal for
- * every segment of `$(a.my-b)`, and for none of `$a.b`.
+ * Detect whether the name starting at `nameOffset` is the one right after a
+ * macro's `$(`, which decides the char class it is read with — hyphens are
+ * legal in `$(foo-bar)` and not in `$foo`.
  *
- * Walk back over the whole path to find what opened it: the `(` is in front of
- * the first segment, not in front of the one under the cursor.
+ * Only ever asked of the first segment of a path, where the macro's opening
+ * punctuation is the character in front. A *member* segment reads its form off
+ * the completion context instead, since the `(` is several segments to its
+ * left and the path in between can contain a `$` of its own (`$(rep[$i].x`).
  */
-function isParenthesizedSegment(
-    source: string,
-    replaceFromOffset: number,
-): boolean {
-    let pathStart = replaceFromOffset;
-    while (
-        pathStart > 0 &&
-        PARENTHESIZED_PATH_CHAR_REGEX.test(source.charAt(pathStart - 1))
-    ) {
-        pathStart--;
-    }
+function isParenthesizedMacroName(source: string, nameOffset: number): boolean {
     return (
-        source.charAt(pathStart - 1) === "(" &&
-        source.charAt(pathStart - 2) === "$"
+        source.charAt(nameOffset - 1) === "(" &&
+        source.charAt(nameOffset - 2) === "$"
     );
 }
 
@@ -1014,19 +1004,15 @@ function tryArrayEntryHelp(
 async function helpForRefMember(
     completer: AutoCompleter,
     offset: number,
-    ctx: {
-        typedPrefix: string;
-        replaceFromOffset: number;
-        pathParts: string[];
-        pathPartHasIndex: boolean[];
-        rawPathParts: string[];
-    },
+    ctx: RefMemberCompletionContext,
 ): Promise<HelpContent> {
     const memberName = fullIdentifierAtOffset(
         completer.source,
         ctx.replaceFromOffset,
         offset,
-        isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
+        // Only the parenthesized form puts two characters (`$(`) in front of
+        // its path, and every segment of it reads with the richer char class.
+        ctx.pathStartOffset > ctx.macroStartOffset + 1,
     );
     if (!memberName) return NONE;
     return await helpForRefMemberByName(completer, offset, ctx, memberName);
@@ -1261,7 +1247,7 @@ async function helpForRefName(
         completer.source,
         ctx.replaceFromOffset,
         offset,
-        isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
+        isParenthesizedMacroName(completer.source, ctx.replaceFromOffset),
     );
     if (!refName) return NONE;
     return await helpForRefNameByName(completer, offset, refName);

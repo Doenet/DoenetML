@@ -1025,6 +1025,9 @@ describe("AutoCompleter", () => {
                 pathParts: ["foo", ""],
                 pathPartHasIndex: [true, false],
                 rawPathParts: ["foo[1]", ""],
+                // The `$` of ` $foo[1].`, and the `f` its path starts at.
+                macroStartOffset: source.indexOf("$"),
+                pathStartOffset: source.indexOf("$") + 1,
             });
         }
     });
@@ -1515,6 +1518,51 @@ describe("AutoCompleter", () => {
                 expect(underscoreTextEdit.range.start).toEqual({
                     line: 1,
                     character: 6,
+                });
+            }
+        });
+
+        it("Rewrites the whole macro when the base carries an index", async () => {
+            // The rewrite has to start at the macro's own `$`. Scanning left
+            // from the member for one would stop at the `$` of the `$i`
+            // inside the index and produce `$sel[$(i].my-p)`.
+            const source = `<select name="sel"><p name="my-p" /></select>\n$sel[$i].my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+            expect(hyphenItem).toBeDefined();
+
+            const textEdit = hyphenItem?.textEdit;
+            expect(textEdit && "newText" in textEdit).toBe(true);
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("$(sel[$i].my-p)");
+                expect(textEdit.range.start).toEqual({
+                    line: 1,
+                    character: 0,
+                });
+            }
+        });
+
+        it("Rewrites the macro for a member typed inside an attribute value", async () => {
+            // The macro starts partway into the line, after the opening
+            // quote, and the rewrite must replace it without reaching back
+            // over the quote.
+            const source = `<section name="base"><p name="my-p" /></section>\n<p extend="$base.my`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = await autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+            expect(hyphenItem).toBeDefined();
+
+            const textEdit = hyphenItem?.textEdit;
+            expect(textEdit && "newText" in textEdit).toBe(true);
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("$(base.my-p)");
+                // The `$`, eleven characters into `<p extend="$base.my`.
+                expect(textEdit.range.start).toEqual({
+                    line: 1,
+                    character: 11,
                 });
             }
         });

@@ -365,8 +365,8 @@ describe.skipIf(!wasmAvailable)(
                     expect(textEdit.newText).toBe("(my-rep[])");
                 }
                 expect(snippetItem!.data).toEqual({
-                    // `(my-rep[]` is 8 characters — the caret lands between
-                    // the brackets, with the closing `)` after them.
+                    // Offset 8 of `(my-rep[])` is its `]`, so the caret lands
+                    // between the brackets, with the closing `)` after them.
                     snippetCursor: { caretOffset: 8 },
                 });
             }
