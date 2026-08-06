@@ -404,6 +404,51 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("pwen ble");
     });
 
+    it("carries Ilocano's linker through the worker path", async () => {
+        const values = await descriptions(styled, names, "ilo");
+        // The Austronesian batch's prenominal end, and the language whose
+        // ligature is the batch's one unresolved constraint. Ilocano joins an
+        // adjective to what it describes with «a» before a consonant and «nga»
+        // before a vowel — a shape the *following* word decides — so a ligature
+        // in front of a placeable cannot be chosen, and `locales/ilo` writes
+        // «a», which is right for every word its own tables supply but one.
+        expect(values.st).eq("napuskol a naguris-guris a nalabaga");
+        expect(values.stn).eq("napuskol a naguris-guris a nalabaga a linia");
+        expect(values.pt).eq("berde a kuadrado");
+        // That one word is «asul», and this is it: the shape's colour is
+        // vowel-initial, so «napunno a asul» is where the rule the catalog's
+        // header records comes out wrong. It is pinned rather than hidden,
+        // because the fix is a change to how `$part` or a new argument reaches
+        // the ligature rather than a change to this string.
+        expect(values.sh).eq(
+            "napunno a asul a sirkulo nga addaan iti tuldek ken napuskol a naguris-guris a nalabaga nga igid",
+        );
+        // «igid» is vowel-initial too, and there the ligature is «nga» and
+        // fixed, because the catalog writes both words around it.
+        expect(values.bd).eq("napuskol a naguris-guris a nalabaga");
+        expect(values.fd).eq("asul a tuldek");
+    });
+
+    it("puts Tongan's adjectives after the noun", async () => {
+        const values = await descriptions(styled, names, "to");
+        // The other end of the batch's range: the adjectives follow the noun,
+        // nothing agrees with anything, and there is no ligature at all. What
+        // this checks past the word order is that the fakauʻa «ʻ» — U+02BB, a
+        // letter of the Tongan alphabet rather than an apostrophe — survives
+        // `setLocaleData` and the `translator` dependency unchanged.
+        expect(values.st).eq("matolu motumotu kulokula");
+        expect(values.stn).eq("laine matolu motumotu kulokula");
+        expect(values.pt).eq("sikuea lanumata");
+        expect(values.sh).eq(
+            "fuopotopoto fonu lanumoana mo e tongi pea mo e kapa matolu motumotu kulokula",
+        );
+        // «mo e» opens the first clause and «pea mo e» the second, which is the
+        // distinction English draws with "with" against "and" and the only work
+        // `style-border-clause` does in a language with no article.
+        expect(values.bd).eq("matolu motumotu kulokula");
+        expect(values.fd).eq("tongi lanumoana");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which

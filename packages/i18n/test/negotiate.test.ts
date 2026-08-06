@@ -374,6 +374,99 @@ describe("negotiateLocales", () => {
             ).toEqual(["en"]);
         });
     });
+
+    /**
+     * The Austronesian batch — five Philippine languages, four of Indonesia,
+     * Tetum, three Polynesian, Chamorro and Tok Pisin. One of the fifteen is a
+     * macrolanguage: `bik` stands over eight individual Bikol languages, so it
+     * needs `MACROLANGUAGE_MEMBERS` for the same reason `qu` and `oj` do. The
+     * other fourteen are individual languages and need nothing.
+     */
+    describe("the Austronesian batch and its macrolanguage", () => {
+        it.each([
+            // Bikol. The catalog is Central Bikol, which is `bcl` itself; the
+            // rest are Bikol languages of the peninsula that would otherwise
+            // fall to English with a catalog they can read sitting on disk.
+            ["bcl", "bik"],
+            ["bto", "bik"],
+            ["cts", "bik"],
+            ["ubl", "bik"],
+            ["rbl", "bik"],
+            ["bcl-PH", "bik"],
+        ])("folds the Bikol member %s to %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        it.each([
+            ["ilo-PH", "ilo"],
+            ["war-PH", "war"],
+            ["hil-PH", "hil"],
+            ["pam-PH", "pam"],
+            ["bik-PH", "bik"],
+            ["min-ID", "min"],
+            ["mad-ID", "mad"],
+            ["tet-TL", "tet"],
+            ["to-TO", "to"],
+            ["fj-FJ", "fj"],
+            ["ty-PF", "ty"],
+            ["ch-GU", "ch"],
+            ["ch-MP", "ch"],
+            ["tpi-PG", "tpi"],
+            // Both of these are written in more than one script, and both
+            // catalogs are the Latin one — so a reader arriving under the other
+            // script reaches it and gets Latin. That is the asymmetry `pa`,
+            // `sr`, `jv` and `su` already have, and the answer to it is a second
+            // catalog beside the first rather than a rename of it.
+            ["ban-Bali", "ban"],
+            ["ace-Arab", "ace"],
+        ])(
+            "strips the region or script from %s to reach %s",
+            (requested, expected) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual([expected, "en"]);
+            },
+        );
+
+        /**
+         * The negative controls, and the reason the Bikol list keys on
+         * published membership. Tagalog and Cebuano are Philippine languages
+         * with catalogs of their own and are members of nothing: `tl`
+         * canonicalizes to `fil` before negotiation is reached (see the
+         * Filipino case above) and must not touch `bik`, and `ceb` must reach
+         * its own catalog rather than a neighbour's. `phi` is the ISO 639-5
+         * collection code for the Philippine languages as a group, which is not
+         * a macrolanguage and folds onto nothing, unlike the one collection
+         * code `MACROLANGUAGE_MEMBERS` does carry (`nah`, whose members are
+         * listed there deliberately).
+         */
+        it.each(["tl", "ceb", "phi"])(
+            "does not fold %s onto a neighbouring Philippine catalog",
+            (requested) => {
+                const chain = negotiateLocales(
+                    [normalizeLocaleTag(requested)],
+                    available,
+                );
+                expect(chain).not.toContain("bik");
+                expect(chain).not.toContain("ilo");
+                expect(chain).not.toContain("hil");
+            },
+        );
+
+        // Pangasinan is a Philippine language with no catalog that belongs to
+        // no macrolanguage with one, so it falls all the way to English — the
+        // rule working rather than a gap in it.
+        it("leaves Pangasinan on English rather than guessing", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("pag")], available),
+            ).toEqual(["en"]);
+        });
+    });
 });
 
 describe("resolveDocumentLocale", () => {

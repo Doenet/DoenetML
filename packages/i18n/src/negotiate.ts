@@ -54,11 +54,11 @@ const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Four of the
- * five keys — `qu`, `ay`, `gn`, `oj` — are ISO 639-3 macrolanguages and list
- * their macrolanguage members; `nah` is an ISO 639-3 **collection** code rather
- * than a macrolanguage, so it lists the individual Nahuan languages ISO 639-5
- * groups under it.
+ * member of `nb` or `ak`, and both are deliberately left to miss. Five of the
+ * six keys — `qu`, `ay`, `gn`, `oj`, `bik` — are ISO 639-3 macrolanguages and
+ * list their macrolanguage members; `nah` is an ISO 639-3 **collection** code
+ * rather than a macrolanguage, so it lists the individual Nahuan languages ISO
+ * 639-5 groups under it.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
  * `ayr` — so that each list reads as the whole of a group rather than as the
@@ -165,6 +165,12 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // them, and is left to miss for the `fat` reason — ISO 639-3 gives it a code
     // outside `oj`, so folding it here would be the judgement this map avoids.
     oj: ["ciw", "ojb", "ojc", "ojg", "ojs", "ojw", "otw"],
+    // Bikol. The catalog is Central Bikol (Naga), which is `bcl` — the variety
+    // Bikol publishing, broadcasting and the mother-tongue materials use. These
+    // eight are the whole of the macrolanguage. Tagalog is not among them and
+    // must not be added: `fil` is a language of its own with a catalog of its
+    // own, and folding it here would serve a Tagalog reader Bikol.
+    bik: ["bcl", "bln", "bto", "cts", "fbl", "lbl", "rbl", "ubl"],
 };
 
 /** Flattened once at module load rather than searched per request. */
