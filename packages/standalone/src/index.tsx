@@ -55,13 +55,13 @@ export const version: string = STANDALONE_VERSION;
 // A host that serves this bundle without `locales/` beside it loses nothing it
 // has today: those fetches fail quietly and every locale falls back to English.
 //
-// The paths are held in constants, and resolved against a variable base rather
-// than against `import.meta.url` directly, so that Vite leaves them alone: it
-// reads a literal `new URL("./x", import.meta.url)` as a build-time asset
+// Vite reads a literal `new URL("./x", import.meta.url)` as a build-time asset
 // reference and warns that the target does not exist. It does not — the build
-// copies these in afterwards. The core worker is co-served the same way, hence
-// the third path — which has to stay in step with the one `@doenet/doenetml`'s
-// externalized-worker entry resolves, since that is the copy this one replaces.
+// copies these in afterwards — so holding the paths in constants and resolving
+// them against a variable base keeps them out of that analysis. The core worker
+// is co-served the same way, hence the third path — which has to stay in step
+// with the one `@doenet/doenetml`'s externalized-worker entry resolves, since
+// that is the copy this one replaces.
 const CATALOGS_BESIDE_BUNDLE = "./locales/";
 const CATALOGS_AT_ORIGIN = "/locales/";
 const WORKER_BESIDE_BUNDLE = "./doenetml-worker/index.js";
