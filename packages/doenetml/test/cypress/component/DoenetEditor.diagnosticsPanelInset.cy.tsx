@@ -42,13 +42,19 @@ describe("DoenetEditor diagnostics panel inset", () => {
     });
 
     it("insets the panel text without insetting the scrolling element", () => {
-        cy.get(".diagnostics-response-tabs-panels").then(($panels) => {
-            const style = window.getComputedStyle($panels[0]);
+        // Inline padding on either the scrolling element or the container
+        // around it would push the scrollbar in from the editor's edge.
+        for (const selector of [
+            ".diagnostics-response-tabs-container",
+            ".diagnostics-response-tabs-panels",
+        ]) {
+            cy.get(selector).then(($el) => {
+                const style = window.getComputedStyle($el[0]);
 
-            // Inline padding here would push the scrollbar off the edge.
-            expect(parseFloat(style.paddingLeft)).to.equal(0);
-            expect(parseFloat(style.paddingRight)).to.equal(0);
-        });
+                expect(parseFloat(style.paddingLeft), selector).to.equal(0);
+                expect(parseFloat(style.paddingRight), selector).to.equal(0);
+            });
+        }
 
         cy.get(".diagnostic-panel:visible").then(($panel) => {
             const style = window.getComputedStyle($panel[0]);
