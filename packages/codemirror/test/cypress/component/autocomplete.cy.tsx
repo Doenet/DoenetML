@@ -750,12 +750,39 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             />,
         );
 
+        // Warm the language server up on the ref itself, then dismiss, so the
+        // assertion below sees a popup opened by the `<` alone.
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-content").type("{esc}", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+
         // Ending the ref path closes its popup, but `<` is a trigger in its
         // own right and must still open the element menu.
-        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
         cy.get(".cm-content").type("<", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "point",
+        );
+    });
+
+    it("opens ref-name autocomplete on a $ that starts a second ref", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={'<math name="myMath">x</math>\n$myMath'}
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
         openAutocomplete();
-        cy.get(".cm-tooltip-autocomplete").should("be.visible");
+        cy.get(".cm-content").type("{esc}", { force: true });
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+
+        // `$myMath$` is two references back to back: the `$` ends the path it
+        // was typed into and opens a name list in the same keystroke.
+        cy.get(".cm-content").type("$", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "myMath",
+        );
     });
 
     it("opens member autocomplete on a period after an indexed ref", () => {

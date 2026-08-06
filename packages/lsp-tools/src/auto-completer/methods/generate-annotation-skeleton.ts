@@ -62,20 +62,19 @@ function capitalize(value: string) {
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 /**
- * Build macro references to a component: `macroRef("P")()` is `$P` and
- * `macroRef("P")("x")` is `$P.x`.
+ * Build a macro reference to a component: `macroRef("P")` is `$P` and
+ * `macroRef("P", "x")` is `$P.x`.
  *
  * A name that isn't a SimpleIdent needs the parenthesized form, and the
  * parentheses go around the whole path — `$(my-seg.endpoints[1].x)`. The macro
  * ends at its `)`, so `$(my-seg).endpoints[1].x` would be a reference to the
  * segment followed by literal text (`packages/parser/src/macros/macros.peggy`).
  */
-function macroRef(name: string): (path?: string) => string {
-    const simple = SIMPLE_IDENTIFIER_REGEX.test(name);
-    return (path = "") => {
-        const fullPath = path ? `${name}.${path}` : name;
-        return simple ? `$${fullPath}` : `$(${fullPath})`;
-    };
+function macroRef(name: string, path?: string): string {
+    const fullPath = path ? `${name}.${path}` : name;
+    return SIMPLE_IDENTIFIER_REGEX.test(name)
+        ? `$${fullPath}`
+        : `$(${fullPath})`;
 }
 
 type ComponentLabelInfo = {
@@ -156,7 +155,7 @@ export function getDescriptionTemplate(
 
     const normalizedType = componentType.toLowerCase();
 
-    const m = macroRef(componentName);
+    const m = (path?: string) => macroRef(componentName, path);
 
     switch (normalizedType) {
         case "point":
@@ -302,7 +301,7 @@ export function buildAnnotationTree(
 
             return {
                 type: "annotation",
-                ref: macroRef(componentName)(),
+                ref: macroRef(componentName),
                 text: getDescriptionTemplate(
                     component.type,
                     componentName,

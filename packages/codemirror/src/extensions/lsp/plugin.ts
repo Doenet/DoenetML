@@ -1113,8 +1113,14 @@ function getAutocompleteReopenState({
     // character that ends the path is where the member list has to go: none
     // of `$P.(`, `$P."` or `$P. ` is a reference the suggestions could still
     // apply to.
+    //
+    // Unless that character opens a menu of its own. `<` starts an element,
+    // and the running query for it is what closing here would cancel; `$` and
+    // `$(` start another reference — `$a$b`, or the index of `$rep[$i]` — and
+    // are handled by giving the restart rules below priority over the close.
     const endedReferencePath =
         !isDeleteEvent &&
+        charBefore !== "<" &&
         typedCharacterEndsReferencePath(line.text, head - line.from);
     const currentToken = getCurrentWordToken(update.state.doc, head);
     const tokenPrefixChar = currentToken
@@ -1184,16 +1190,20 @@ function getAutocompleteReopenState({
         keepReopenLatchForNextChange = true;
     }
 
+    const shouldRestartCompletion =
+        charBefore === "$" ||
+        (charBefore === "(" && charBeforeParen === "$") ||
+        isReferencePropertyDot ||
+        latchEvaluation.shouldReopenFromLatch;
+
     return {
         reopenLatch: nextReopenLatch,
         keepReopenLatchForNextChange,
-        shouldRestartCompletion:
-            !endedReferencePath &&
-            (charBefore === "$" ||
-                (charBefore === "(" && charBeforeParen === "$") ||
-                isReferencePropertyDot ||
-                latchEvaluation.shouldReopenFromLatch),
-        shouldCloseCompletion: endedReferencePath,
+        shouldRestartCompletion,
+        // Ending one reference and starting another is a single keystroke:
+        // the `$` that ends the path it sits in opens a name list for the new
+        // reference, and that list is the one to keep.
+        shouldCloseCompletion: endedReferencePath && !shouldRestartCompletion,
     };
 }
 

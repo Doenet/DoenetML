@@ -482,16 +482,16 @@ function fullIdentifierAtOffset(
 
 /**
  * Detect whether the segment under the cursor sits inside a `$(...)` macro,
- * by checking whether the char immediately before `replaceFromOffset` is `(`.
- * This is the same signal `getCompletionContext` uses to choose the macro
- * char class for `replaceFromOffset` and `typedPrefix`.
+ * which decides the char class its name is read with — hyphens are legal for
+ * every segment of `$(a.my-b)`, and for none of `$a.b`.
+ *
+ * Walk back over the whole path to find what opened it: the `(` is in front of
+ * the first segment, not in front of the one under the cursor.
  */
 function isParenthesizedSegment(
     source: string,
     replaceFromOffset: number,
 ): boolean {
-    // Hyphens are legal for every segment of `$(a.my-b)`, not just the one
-    // right after the `(`, so walk back over the path to find what opened it.
     let pathStart = replaceFromOffset;
     while (
         pathStart > 0 &&
@@ -523,22 +523,10 @@ function countBracketIndices(rawSegment: string | undefined): number {
 }
 
 /**
- * Wrap a path segment's name in parens if it isn't a SimpleIdent (e.g.,
- * contains hyphens), mirroring the grammar that requires `$(foo-bar)` over
- * `$foo-bar`. Trailing bracket-index suffixes are kept outside the parens
- * (`rep[1]` stays as `rep[1]`, never `(rep[1])`). Used to format
- * `displayPath` for the help-panel sentence so it renders the same syntax
- * the author would type.
+ * Whether `segment`'s name needs the `$(…)` form's richer identifier syntax —
+ * a hyphen, say, or a leading digit. A trailing bracket index never does:
+ * `rep[1]` is a SimpleIdent segment with an index on it.
  */
-function formatPathSegment(segment: string): string {
-    const bracketSuffix = segment.match(BRACKET_INDEX_SUFFIX_REGEX)?.[0] ?? "";
-    const baseName = segment.slice(0, segment.length - bracketSuffix.length);
-    return SIMPLE_IDENT_REGEX.test(baseName)
-        ? segment
-        : `(${baseName})${bracketSuffix}`;
-}
-
-/** Whether `segment`'s name needs the `$(…)` form's richer identifier syntax. */
 function segmentNeedsParens(segment: string): boolean {
     const bracketSuffix = segment.match(BRACKET_INDEX_SUFFIX_REGEX)?.[0] ?? "";
     const baseName = segment.slice(0, segment.length - bracketSuffix.length);
@@ -1000,13 +988,11 @@ function tryArrayEntryHelp(
     // rather than `points[…].x`, and `arr[0][2].z` rather than collapsing
     // both indices). `rawPathParts` is position-aligned with `pathParts`,
     // so slicing from `arrayPropPathIndex` picks the array-prop segment
-    // through the cursor's `memberName`. Hyphenated names are paren-wrapped
-    // by `formatPathSegment` so the rendering matches what the author
-    // would actually have to type.
-    const displayTail = ctx.rawPathParts
-        .slice(arrayPropPathIndex)
-        .map(formatPathSegment)
-        .join(".");
+    // through the cursor's `memberName`. This is a tail of a path rather
+    // than a whole one — it is rendered on its own, without a `$` — so no
+    // parentheses go around it; every segment here is a schema property or
+    // index alias, all of which are SimpleIdents anyway.
+    const displayTail = ctx.rawPathParts.slice(arrayPropPathIndex).join(".");
 
     return {
         kind: "arrayEntry",
@@ -1049,9 +1035,7 @@ async function helpForRefMember(
 /**
  * Build the `displayPath` for a member-help payload by joining the raw path
  * prefix (with authored bracket indices preserved) and replacing the final
- * segment with the resolved `memberName`. Every segment is passed through
- * `formatPathSegment` so hyphenated names get re-wrapped in parens
- * (`getCompletionContext` strips parens during normalization).
+ * segment with the resolved `memberName`.
  */
 function buildMemberDisplayPath(
     rawPathParts: readonly string[],

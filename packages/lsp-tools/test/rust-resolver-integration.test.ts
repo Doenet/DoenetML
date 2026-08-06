@@ -348,6 +348,28 @@ describe.skipIf(!wasmAvailable)(
                 expect(labels).toContain("sec");
                 expect(labels).not.toContain("sec[]");
             }
+
+            // A hyphenated name needs the `$(…)` form, and the index is part
+            // of the path segment, so it goes inside the parentheses:
+            // `$(my-rep[])`. `$(my-rep)[]` would end the macro at its `)` and
+            // leave `[]` as literal text.
+            {
+                const source = `<section name="sec"><repeat name="my-rep"><math name="inside">x</math></repeat></section>\n$my`;
+                const { completer } = await createCompleterWithAdapter(source);
+                const items = await completer.getCompletionItems(source.length);
+                const snippetItem = items.find((i) => i.label === "my-rep[]");
+                expect(snippetItem).toBeDefined();
+                const textEdit = snippetItem!.textEdit;
+                expect(textEdit && "newText" in textEdit).toBe(true);
+                if (textEdit && "newText" in textEdit) {
+                    expect(textEdit.newText).toBe("(my-rep[])");
+                }
+                expect(snippetItem!.data).toEqual({
+                    // `(my-rep[]` is 8 characters — the caret lands between
+                    // the brackets, with the closing `)` after them.
+                    snippetCursor: { caretOffset: 8 },
+                });
+            }
         });
 
         it("repeat valueName/indexName appear in completions inside repeat", async () => {

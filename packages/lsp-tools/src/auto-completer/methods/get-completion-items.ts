@@ -675,7 +675,6 @@ function createPropertyCompletionItems(
     startOffset: number,
     endOffset: number,
     componentType: string,
-    toNewText: (label: string) => string = (label) => label,
     propertyDescriptions?: Map<string, string>,
 ): CompletionItem[] {
     return labels.map((label) => {
@@ -689,7 +688,7 @@ function createPropertyCompletionItems(
                     startOffset,
                     endOffset,
                 ),
-                newText: toNewText(label),
+                newText: label,
             },
         };
         const description = propertyDescriptions?.get(label);
@@ -723,7 +722,6 @@ function indexAliasCompletionItems(
         replaceFromOffset: number;
     },
     offset: number,
-    toRefMemberInsertText: (name: string) => string,
 ): CompletionItem[] | null {
     if (!containerNode || unresolvedPathParts.length === 0) return null;
 
@@ -809,7 +807,7 @@ function indexAliasCompletionItems(
                 completionContext.replaceFromOffset,
                 offset,
             ),
-            newText: toRefMemberInsertText(label),
+            newText: label,
         },
     }));
 }
@@ -1113,7 +1111,6 @@ export async function getCompletionItems(
             macroAroundMember.pathStart,
             completionContext.replaceFromOffset,
         );
-        const toRefMemberInsertText = (name: string) => name;
         const applyMemberInsertionPolicy = (items: CompletionItem[]) =>
             macroAroundMember.isParenthesized
                 ? items
@@ -1151,7 +1148,6 @@ export async function getCompletionItems(
                 resolved.unresolvedPathParts,
                 completionContext,
                 offset,
-                toRefMemberInsertText,
             );
             if (aliasItems) return applyMemberInsertionPolicy(aliasItems);
             return [];
@@ -1224,7 +1220,6 @@ export async function getCompletionItems(
                 completionContext.replaceFromOffset,
                 offset,
                 "Descendant reference name",
-                toRefMemberInsertText,
             ),
             ...createPropertyCompletionItems(
                 this,
@@ -1232,7 +1227,6 @@ export async function getCompletionItems(
                 completionContext.replaceFromOffset,
                 offset,
                 resolvedNode.name,
-                toRefMemberInsertText,
                 propertyDescriptions,
             ),
         ]);

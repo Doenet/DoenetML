@@ -145,12 +145,6 @@ function getIdentifierPrefixInfo(
     };
 }
 
-function normalizeMacroPathForMemberResolution(pathSource: string) {
-    // The path of `$(a.b)` is read from inside its parentheses, so drop the
-    // closing one when the cursor sits past it.
-    return pathSource.endsWith(")") ? pathSource.slice(0, -1) : pathSource;
-}
-
 /**
  * Classify the cursor location for completion routing.
  *
@@ -203,11 +197,12 @@ export function getCompletionContext(
             : typedPrefix;
 
         if (prevChar === "." || source.charAt(activeTokenStart - 1) === ".") {
-            const pathSource = normalizeMacroPathForMemberResolution(
-                source.slice(
-                    macroStartOffset + (isParenthesizedMacro ? 2 : 1),
-                    offset,
-                ),
+            // The path starts after the `$` of `$a.b`, or after the `$(` of
+            // `$(a.b` — the parenthesized form's path is read from inside its
+            // parentheses.
+            const pathSource = source.slice(
+                macroStartOffset + (isParenthesizedMacro ? 2 : 1),
+                offset,
             );
             return makeValidatedRefMemberContext(
                 activeTypedPrefix,
