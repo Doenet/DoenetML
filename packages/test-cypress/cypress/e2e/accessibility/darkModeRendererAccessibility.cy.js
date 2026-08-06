@@ -1,3 +1,5 @@
+import { expectNoColorContrastViolations } from "../../support/colorContrast";
+
 /**
  * Dark-mode accessibility coverage for renderers.
  *
@@ -37,35 +39,6 @@ describe(
             }
             // Let JSXGraph / MathJax settle.
             cy.wait(200);
-        }
-
-        function expectNoColorContrastViolations() {
-            cy.checkA11y(
-                [".doenet-viewer"],
-                {
-                    runOnly: { type: "rule", values: ["color-contrast"] },
-                    includedImpacts: [
-                        "critical",
-                        "serious",
-                        "moderate",
-                        "minor",
-                    ],
-                },
-                (violations) => {
-                    expect(
-                        violations,
-                        JSON.stringify(
-                            violations.map((v) => ({
-                                id: v.id,
-                                nodes: v.nodes.map((n) => n.html),
-                            })),
-                            null,
-                            2,
-                        ),
-                    ).to.have.length(0);
-                },
-                true,
-            );
         }
 
         const cases = [
@@ -213,6 +186,13 @@ describe(
                 settle: "#ul",
             },
             {
+                name: "external and internal reference links",
+                doenetML: `
+<p name="rp">See <ref to="http://doenet.org">Doenet</ref> and
+<ref to="http://example.com">an example</ref>.</p>`,
+                settle: "#rp",
+            },
+            {
                 name: "subsetOfRealsInput number line",
                 doenetML: `
 <subsetOfRealsInput name="sri" variable="t" prefill="t > 0" />`,
@@ -266,7 +246,7 @@ and <tagc>section</tagc> to close one.</p>`,
         for (const testCase of cases) {
             it(`dark mode: ${testCase.name}`, () => {
                 loadInDarkMode(testCase.doenetML, testCase.settle);
-                expectNoColorContrastViolations();
+                expectNoColorContrastViolations(".doenet-viewer");
             });
         }
     },

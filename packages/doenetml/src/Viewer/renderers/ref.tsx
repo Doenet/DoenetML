@@ -106,7 +106,7 @@ export default React.memo(function Ref(props: UseDoenetRendererProps) {
         return (
             <a
                 style={{
-                    color: "var(--mainBlue)",
+                    color: "var(--linkText)",
                     borderRadius: "5px",
                 }}
                 target={targetForATag || undefined}
