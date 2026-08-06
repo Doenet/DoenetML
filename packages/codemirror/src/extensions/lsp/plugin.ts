@@ -53,6 +53,7 @@ import {
     Completion,
     CompletionResult,
     completionStatus,
+    closeCompletion,
     startCompletion,
 } from "@codemirror/autocomplete";
 import {
@@ -97,48 +98,59 @@ const MACRO_IDENTIFIER_BARE_VALUE_REGEX = /^[A-Za-z0-9_-]+$/;
 const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
 
 /**
- * Whether the `.` following `textBeforeDot` continues a reference path —
- * making it a property accessor the completion popup should open on — rather
- * than a period ending a sentence.
+ * Whether `text` ends inside an unfinished reference path — the state in which
+ * the next character either continues the path or ends the reference.
  *
  * The two rootings are the two macro forms the grammar has (see
  * `packages/parser/src/macros/macros.peggy`): a bare `$name`, whose path runs
  * to the first character that can't be part of it, and a parenthesized
- * `$(name`, whose path runs to the closing `)`. So `$P.`, `$P.coords.`,
- * `$rep[1].` and `$(P.` are property accessors, while the `.` in `$(P).` is
- * not — that macro already ended at its `)`.
+ * `$(name`, whose path runs to the closing `)`. So `$P`, `$P.coords` and
+ * `$(P.` are unfinished paths, while `$(P)` is a finished macro and `the end`
+ * is prose.
  */
-function isReferenceDot(textBeforeDot: string): boolean {
-    // Walk back over the path characters the `.` would extend; the character
-    // in front of that run says what, if anything, the path is rooted in.
-    let pathStart = textBeforeDot.length;
-    while (
-        pathStart > 0 &&
-        MACRO_PATH_CHAR_REGEX.test(textBeforeDot[pathStart - 1])
-    ) {
+function endsWithReferencePath(text: string): boolean {
+    // Walk back over the path characters; the character in front of that run
+    // says what, if anything, the path is rooted in.
+    let pathStart = text.length;
+    while (pathStart > 0 && MACRO_PATH_CHAR_REGEX.test(text[pathStart - 1])) {
         pathStart--;
     }
-    if (pathStart === textBeforeDot.length) {
-        // Nothing to extend — a `.` needs a path in front of it.
+    if (pathStart === text.length) {
+        // Nothing in front — there is no path here to continue.
         return false;
     }
-    const beforePath = textBeforeDot[pathStart - 1];
+    const beforePath = text[pathStart - 1];
     return (
         // `$name`, `$name.prop`, `$name[1]`
         beforePath === "$" ||
         // `$(name`, `$(name.prop` — still inside the parenthesized form
-        (beforePath === "(" && textBeforeDot[pathStart - 2] === "$")
+        (beforePath === "(" && text[pathStart - 2] === "$")
     );
 }
 
 /**
  * Whether the text up to `column` in `lineText` ends in a reference property
- * accessor — the `.` of `$name.`.
+ * accessor — the `.` of `$name.`, as opposed to a period ending a sentence.
  */
 function endsWithReferencePropertyDot(lineText: string, column: number) {
     return (
         lineText[column - 1] === "." &&
-        isReferenceDot(lineText.slice(0, column - 1))
+        endsWithReferencePath(lineText.slice(0, column - 1))
+    );
+}
+
+/**
+ * Whether the character just typed at `column` ended the reference path it was
+ * typed into: `$P.(`, `$P."`, `$P. `. Anything a path is made of continues it
+ * instead, and `(` right after the `$` opens the parenthesized form rather
+ * than ending anything.
+ */
+function typedCharacterEndsReferencePath(lineText: string, column: number) {
+    const typedChar = lineText[column - 1];
+    return (
+        typedChar !== undefined &&
+        !MACRO_PATH_CHAR_REGEX.test(typedChar) &&
+        endsWithReferencePath(lineText.slice(0, column - 1))
     );
 }
 
@@ -351,12 +363,20 @@ export class LSPPlugin implements PluginValue {
 
             this.reopenLatch = reopenState.reopenLatch;
 
-            if (reopenState.shouldRestartCompletion) {
+            if (
+                reopenState.shouldRestartCompletion ||
+                reopenState.shouldCloseCompletion
+            ) {
+                const close = reopenState.shouldCloseCompletion;
                 setTimeout(() => {
                     if (!this.view || this.view !== update.view) {
                         return;
                     }
-                    startCompletion(update.view);
+                    if (close) {
+                        closeCompletion(update.view);
+                    } else {
+                        startCompletion(update.view);
+                    }
                 }, 0);
             }
 
@@ -1001,6 +1021,7 @@ type AutocompleteReopenState = {
     reopenLatch: ReopenLatch | null;
     keepReopenLatchForNextChange: boolean;
     shouldRestartCompletion: boolean;
+    shouldCloseCompletion: boolean;
 };
 
 /**
@@ -1086,6 +1107,15 @@ function getAutocompleteReopenState({
     );
     const { isDeleteEvent, deletedCount, insertedCount } =
         getTransactionChangeSummary(update);
+    // A popup opened on a reference is started explicitly (below), and an
+    // explicit completion keeps re-querying whatever the author types next —
+    // the trigger rules in `getCompletions` no longer gate it. So the
+    // character that ends the path is where the member list has to go: none
+    // of `$P.(`, `$P."` or `$P. ` is a reference the suggestions could still
+    // apply to.
+    const endedReferencePath =
+        !isDeleteEvent &&
+        typedCharacterEndsReferencePath(line.text, head - line.from);
     const currentToken = getCurrentWordToken(update.state.doc, head);
     const tokenPrefixChar = currentToken
         ? (() => {
@@ -1158,10 +1188,12 @@ function getAutocompleteReopenState({
         reopenLatch: nextReopenLatch,
         keepReopenLatchForNextChange,
         shouldRestartCompletion:
-            charBefore === "$" ||
-            (charBefore === "(" && charBeforeParen === "$") ||
-            isReferencePropertyDot ||
-            latchEvaluation.shouldReopenFromLatch,
+            !endedReferencePath &&
+            (charBefore === "$" ||
+                (charBefore === "(" && charBeforeParen === "$") ||
+                isReferencePropertyDot ||
+                latchEvaluation.shouldReopenFromLatch),
+        shouldCloseCompletion: endedReferencePath,
     };
 }
 

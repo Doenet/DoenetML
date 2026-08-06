@@ -695,7 +695,7 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         );
     });
 
-    it("does not reopen autocomplete on a parenthesized property name", () => {
+    it("closes autocomplete when a character ends the reference path", () => {
         cy.mount(
             <AutocompleteTestHarness
                 initialValue={
@@ -709,16 +709,53 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
             "coords",
         );
-        cy.get(".cm-content").type("{esc}", { force: true });
-        cy.get(".cm-tooltip-autocomplete").should("not.exist");
 
         // `$P.(coords)` is not a reference — the macro grammar has no
-        // parenthesized property form — so the `(` is no more a trigger than
-        // any other character that cannot continue the path.
+        // parenthesized property form — so the `(` ends the path, and the
+        // members of `$P.` no longer apply to what is being typed.
         cy.get(".cm-content").type("(", { force: true });
 
         cy.wait(300);
         cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("closes autocomplete when a quote ends the reference path", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$P'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type(".", { force: true });
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "coords",
+        );
+
+        // Same for every other character a path cannot contain.
+        cy.get(".cm-content").type('"', { force: true });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("still opens element completions when a tag starts right after a ref", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$P'
+                }
+            />,
+        );
+
+        // Ending the ref path closes its popup, but `<` is a trigger in its
+        // own right and must still open the element menu.
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type("<", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete").should("be.visible");
     });
 
     it("opens member autocomplete on a period after an indexed ref", () => {
