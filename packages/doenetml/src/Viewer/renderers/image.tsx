@@ -594,13 +594,7 @@ function maybeLink(
     key?: number,
 ): React.ReactNode {
     return url && isSafeHref(url) ? (
-        <a
-            key={key}
-            className="attribution-link"
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-        >
+        <a key={key} href={url} target="_blank" rel="noopener noreferrer">
             {text}
         </a>
     ) : (

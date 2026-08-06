@@ -39,7 +39,7 @@
     border-radius: 0.5rem;
     border-width: 1px;
     border-style: solid;
-    border-color: hsl(204 20% 88%);
+    border-color: var(--panelBorder);
     background-color: var(--canvas);
     padding: 1rem;
     color: var(--canvasText);
@@ -55,7 +55,6 @@
 }
 
 .description-popover:where([data-theme="dark"], [data-theme="dark"] *) {
-    border-color: hsl(204 4% 24%);
     box-shadow:
         0 10px 15px -3px rgb(0 0 0 / 0.25),
         0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -63,22 +62,16 @@
 
 .description-popover .arrow > svg {
     fill: var(--canvas);
-    stroke: hsl(204 20% 88%);
-}
-
-.description-popover
-    .arrow:where([data-theme="dark"], [data-theme="dark"] *)
-    > svg {
-    stroke: hsl(204 4% 24%);
+    stroke: var(--panelBorder);
 }
 
 /*
- * Links in description content. Without this the attribution's author, subject,
- * and license anchors fall through to the user agent's `#0000EE` (and `#551A8B`
- * once visited), neither of which changes with the theme.
+ * Links in description content, both the attribution's author, subject, and
+ * license anchors and any authored `<ref>`. Without this the generated anchors
+ * fall through to the user agent's `#0000EE` (and `#551A8B` once visited),
+ * neither of which changes with the theme.
  */
 .description .details-content a,
-.description-popover a,
-a.attribution-link {
+.description-popover a {
     color: var(--linkText);
 }
