@@ -30,20 +30,83 @@ type LineLikeJXG = {
     [key: string]: any;
 };
 
+/** The mantissa of `value`, i.e. the `m` of `m * 10**k` with `1 <= m < 10`. */
+function tickMantissa(value: number, scale: number): number {
+    return value / (10 ** Math.floor(Math.log10(value)) * scale);
+}
+
+/**
+ * How many minor ticks a major-tick interval of `tickInterval` wants, so that
+ * the minor ticks land on readable numbers: a 2·10^k interval divides into
+ * halves, everything else into fifths.
+ */
+function preferredMinorTicks(tickInterval: number, scale: number): number {
+    if (!(tickInterval > 0) || !Number.isFinite(tickInterval)) {
+        return 4;
+    }
+    return Math.abs(tickMantissa(tickInterval, scale) - 2) < 1e-14 ? 3 : 4;
+}
+
+/** Whether minor ticks spaced `step` apart land on readable numbers. */
+function isReadableMinorStep(step: number, scale: number): boolean {
+    if (!(step > 0) || !Number.isFinite(step)) {
+        return false;
+    }
+    const mantissa = tickMantissa(step, scale);
+    return [1, 2, 2.5, 5].some((nice) => Math.abs(mantissa - nice) < 1e-12);
+}
+
+/**
+ * Pick the number of minor ticks for `axis` and apply it.
+ *
+ * The two quantities involved define each other. JSXGraph derives the
+ * major-tick interval from `minorticks` — it keeps at least `minTicksDistance`
+ * pixels between *minor* ticks, so the interval it settles on scales with the
+ * minor count — while the interval is what tells us how many minor ticks read
+ * well. At some board scales the two never agree: writing 3 yields an interval
+ * that asks for 4, and writing 4 yields one that asks for 3. Since the graph
+ * renderer re-runs this on every render, an unresolved disagreement surfaces as
+ * tick spacing flickering between two values for as long as renders keep
+ * coming — e.g. throughout a point drag.
+ *
+ * So evaluate the candidates rather than iterating toward a fixed point that
+ * may not exist: take the count that agrees with the interval it produces, and
+ * when neither does, settle it in favor of the more readable minor ticks.
+ */
 export function setMinorTicks(axis: AxisJXG): void {
     const ticks = axis.defaultTicks;
-    const tickInterval = ticks.getDistanceMajorTicks();
+    const scale = ticks.visProp.scale;
 
-    const mag =
-        10 ** Math.floor(Math.log10(tickInterval)) * ticks.visProp.scale;
+    const candidates = [4, 3].map((minorTicks) => {
+        // `getDistanceMajorTicks` reads `minorticks` off visProp, so this is how
+        // we ask what each candidate would produce. It has no side effects.
+        ticks.visProp.minorticks = minorTicks;
+        return { minorTicks, tickInterval: ticks.getDistanceMajorTicks() };
+    });
 
-    let minorTicks = 4;
+    let chosen = candidates.find(
+        (candidate) =>
+            preferredMinorTicks(candidate.tickInterval, scale) ===
+            candidate.minorTicks,
+    );
 
-    if (Math.abs(tickInterval / mag - 2) < 1e-14) {
-        minorTicks = 3;
+    if (!chosen) {
+        // No self-consistent pairing exists at this scale. Both candidates
+        // leave the axis in a state its own interval would argue with, so pick
+        // by how the minor ticks read, and fall back to the coarser interval.
+        const readable = candidates.filter((candidate) =>
+            isReadableMinorStep(
+                candidate.tickInterval / (candidate.minorTicks + 1),
+                scale,
+            ),
+        );
+        const pool = readable.length > 0 ? readable : candidates;
+        chosen = pool.reduce((best, candidate) =>
+            candidate.tickInterval > best.tickInterval ? candidate : best,
+        );
     }
 
-    ticks.visProp.minorticks = minorTicks;
+    ticks.visProp.minorticks = chosen.minorTicks;
     ticks.fullUpdate();
 }
 

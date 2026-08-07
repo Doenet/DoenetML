@@ -4,7 +4,6 @@ import {
     applyAxisTickHeights,
     createXAxis,
     createYAxis,
-    setMinorTicks,
     type AxisJXG,
 } from "./jsxgraph";
 import type { JXGBoard } from "../jsxgraph-distrib/types";
@@ -99,7 +98,6 @@ export default function useGridAndAxesSync({
                 xaxisRef.current.defaultTicks.setAttribute({
                     drawLabels: SVs.displayXAxisTickLabels,
                 });
-                setMinorTicks(xaxisRef.current);
                 // Invariant: JSXgraph keeps `hasLabel` and `label` in lockstep,
                 // so the second clause only narrows the type — it never gates
                 // out a state that should be reachable.
@@ -146,7 +144,6 @@ export default function useGridAndAxesSync({
                 yaxisRef.current.defaultTicks.setAttribute({
                     drawLabels: SVs.displayYAxisTickLabels,
                 });
-                setMinorTicks(yaxisRef.current);
                 // Invariant: see x-axis above — `hasLabel` ⇒ `label` defined.
                 if (yaxisRef.current.hasLabel && yaxisRef.current.label) {
                     let position = "rt";
