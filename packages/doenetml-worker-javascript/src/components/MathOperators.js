@@ -338,11 +338,16 @@ export class Round extends MathBaseOperatorOneInput {
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     mathOperator: function (value) {
-                        // first convert all numbers and constants (such as pi) to floating point numbers
-                        let valueWithNumbers = value.evaluate_numbers({
-                            max_digits: Infinity,
-                            evaluate_functions: true,
-                        });
+                        // Resolve constants (π, e) and function applications to
+                        // numbers, but *not* the digit budget: `max_digits:
+                        // Infinity` also turns an exact decimal into the nearest
+                        // f64, and rounding that is not the same question.
+                        // `0.5555` is stored as `0.55549999999999999…`, so
+                        // rounding the float to 3 places gives `0.555` where
+                        // rounding the value the author wrote gives `0.556`.
+                        let valueWithNumbers = value
+                            .constants_to_floats()
+                            .evaluate_numbers({ evaluate_functions: true });
 
                         if (dependencyValues.numDigits !== null) {
                             return valueWithNumbers.round_numbers_to_precision(

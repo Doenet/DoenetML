@@ -5927,11 +5927,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("t3v3sumSimp")]
                     .stateValues.latex,
             ),
-            // `l+i`, not `i+l`: `i` is the imaginary unit, a constant, and
-            // terms sort by degree in *variables* first — the same ordering
-            // that puts `b f` before `a e` when `e` is Euler's number. The sum
-            // itself is right; only the spelling of the third component moves.
-        ).eq("(g+j,h+k,l+i)");
+        ).eq("(g+j,h+k,i+l)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("v3t3sum")]
@@ -5943,11 +5939,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("v3t3sumSimp")]
                     .stateValues.latex,
             ),
-            // `l+i`, not `i+l`: `i` is the imaginary unit, a constant, and
-            // terms sort by degree in *variables* first — the same ordering
-            // that puts `b f` before `a e` when `e` is Euler's number. The sum
-            // itself is right; only the spelling of the third component moves.
-        ).eq("(g+j,h+k,l+i)");
+        ).eq("(g+j,h+k,i+l)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t3a3sum")]
@@ -5959,7 +5951,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("t3a3sumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g+r,h+s,t+i)");
+        ).eq("(g+r,h+s,i+t)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("a3t3sum")]
@@ -5971,7 +5963,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a3t3sumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g+r,h+s,t+i)");
+        ).eq("(g+r,h+s,i+t)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("v3a3sum")]
@@ -6007,7 +5999,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("t3v3diffSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g-j,h-k,-l+i)");
+        ).eq("(g-j,h-k,i-l)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("v3t3diff")]
@@ -6019,7 +6011,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("v3t3diffSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(-g+j,-h+k,l-i)");
+        ).eq("(-g+j,-h+k,-i+l)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t3a3diff")]
@@ -6031,7 +6023,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("t3a3diffSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g-r,h-s,-t+i)");
+        ).eq("(g-r,h-s,i-t)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("a3t3diff")]
@@ -6043,7 +6035,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a3t3diffSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(-g+r,-h+s,t-i)");
+        ).eq("(-g+r,-h+s,-i+t)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("v3a3diff")]
@@ -6187,13 +6179,13 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("st3v3ssumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(gm+jn,hm+kn,ln+im)");
+        ).eq("(gm+jn,hm+kn,im+ln)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st3v3ssumExp")]
                     .stateValues.latex,
             ),
-        ).eq("(gm+jn,hm+kn,ln+im)");
+        ).eq("(gm+jn,hm+kn,im+ln)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st3a3ssum")]
@@ -6205,13 +6197,13 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("st3a3ssumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(gm+nr,hm+ns,nt+im)");
+        ).eq("(gm+nr,hm+ns,im+nt)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st3a3ssumExp")]
                     .stateValues.latex,
             ),
-        ).eq("(gm+nr,hm+ns,nt+im)");
+        ).eq("(gm+nr,hm+ns,im+nt)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("sv3a3ssum")]
@@ -6658,7 +6650,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22am22bExp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}bg+ae&af+bh\\\\dg+ce&cf+dh\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}ae+bg&af+bh\\\\ce+dg&cf+dh\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22bm22a")]
@@ -6672,7 +6664,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22bm22aExp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}cf+ae&df+be\\\\ag+ch&bg+dh\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}ae+cf&be+df\\\\ag+ch&bg+dh\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22aSq")].stateValues
@@ -6744,7 +6736,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m12am21aExp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}jn+im\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}im+jn\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("longmult")]
@@ -6759,7 +6751,7 @@ describe("Math tag tests @group3", async () => {
                     .stateValues.latex,
             ),
         ).eq(
-            "\\begin{bmatrix}bfjlmo+bgjkno+bhjlno+afilmo+agikno+ahilno+bejkmo+aeikmo&bfjlmp+bgjknp+bhjlnp+afilmp+agiknp+ahilnp+bejkmp+aeikmp\\\\dfjlmo+dgjkno+dhjlno+cfilmo+cgikno+chilno+dejkmo+ceikmo&dfjlmp+dgjknp+dhjlnp+cfilmp+cgiknp+chilnp+dejkmp+ceikmp\\end{bmatrix}",
+            "\\begin{bmatrix}aeikmo+bejkmo+afilmo+agikno+ahilno+bfjlmo+bgjkno+bhjlno&aeikmp+bejkmp+afilmp+agiknp+ahilnp+bfjlmp+bgjknp+bhjlnp\\\\ceikmo+dejkmo+cfilmo+cgikno+chilno+dfjlmo+dgjkno+dhjlno&ceikmp+dejkmp+cfilmp+cgiknp+chilnp+dfjlmp+dgjknp+dhjlnp\\end{bmatrix}",
         );
         expect(
             cleanLatex(
@@ -6806,12 +6798,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22t2Exp")]
                     .stateValues.latex,
             ),
-            // `bf` before `ae` because `e` is Euler's number, not a variable:
-            // terms display in descending degree *in variables*, so `b·f` (two)
-            // outranks `a·e` (one). The vector cases below use `g,h` and `p,q`
-            // and keep the alphabetical order. Only the spelling differs — the
-            // contraction itself is `(ae+bf, ce+df)`.
-        ).eq("(bf+ae,df+ce)");
+        ).eq("(ae+bf,ce+df)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t2m22")].stateValues
@@ -11517,7 +11504,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("e6")].stateValues
                     .latex,
             ),
-        ).eq("ac+adi+bci-bd");
+        ).eq("adi+bci+ac-bd");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("e7")].stateValues
