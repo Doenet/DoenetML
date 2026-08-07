@@ -105,3 +105,35 @@ export function verifyListItemNumberGutterSide(id, direction, minGutterPx = 1) {
         ).to.be.greaterThan(minGutterPx);
     });
 }
+
+/**
+ * Assert that a real `<li>`'s visible content starts right at the `<li>`'s own
+ * top edge, i.e. that nothing (an unsuppressed top margin, a `<legend>`'s
+ * special layout treatment, …) pushes the content down away from where the
+ * browser's native `::marker` renders.
+ *
+ * A native marker has no queryable box of its own (it isn't part of the DOM),
+ * so this measures the outcome that matters: if the content's top edge sits
+ * at the `<li>`'s own top edge, the marker — which the browser aligns to the
+ * first line box — necessarily lines up with that content too. This is the
+ * vertical-axis analogue of {@link verifyListItemNumbersAlign}'s horizontal,
+ * geometry-based approach.
+ *
+ * @param {string} liId Doenet component id of the `<li>`.
+ * @param {number} [maxDriftPx=2] Allowed top-edge drift in px.
+ */
+export function verifyListItemContentTopAligned(liId, maxDriftPx = 2) {
+    cy.get(`#${cesc(liId)}`).should(($li) => {
+        const li = $li[0];
+        const liTop = li.getBoundingClientRect().top;
+
+        const range = li.ownerDocument.createRange();
+        range.selectNodeContents(li);
+        const contentTop = range.getBoundingClientRect().top;
+
+        expect(
+            contentTop - liTop,
+            `${liId} content-to-marker vertical drift`,
+        ).to.be.within(-maxDriftPx, maxDriftPx);
+    });
+}

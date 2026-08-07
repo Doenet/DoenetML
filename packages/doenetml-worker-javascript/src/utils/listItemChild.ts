@@ -1,4 +1,37 @@
 /**
+ * Whether a child puts anything on the screen: a non-blank string always does,
+ * a component only if its class declares a `rendererType`.
+ *
+ * A list item delegates its inline first-line rendering, and the alignment of
+ * its hanging number (or, for a real `<li>`, its native marker), to its first
+ * visible child, so a child that renders nothing must never be picked as that
+ * child — doing so strands the child that actually renders first, which then
+ * keeps its top margin and never gets to report the alignment it needs.
+ * `<setup>` and `<variantControl>` are the common offenders and are typically
+ * already excluded as configuration children; this covers the rest
+ * (`<animateFromSequence>`, `<solveEquations>`, …).
+ *
+ * Composites are not a loophole even though none of them declares a
+ * `rendererType`: a composite is replaced by its replacements in
+ * `activeChildren` unless the parent names its component type in a child group
+ * (see `findChildGroup()`), and `<setup>` — which really does render nothing —
+ * is the only composite typically named this way.
+ */
+export function childRendersSomething(
+    child: any,
+    componentInfoObjects: any,
+): boolean {
+    if (typeof child !== "object") {
+        return child.trim() !== "";
+    }
+
+    return Boolean(
+        componentInfoObjects.allComponentClasses[child.componentType]
+            ?.rendererType,
+    );
+}
+
+/**
  * Adds list-item inline-rendering state variables for components that may suppress
  * their top margin when they are the first visible child in a list item.
  */

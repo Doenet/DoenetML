@@ -914,11 +914,20 @@ export default class Answer extends InlineComponent {
             additionalStateVariablesDefined: [
                 { variableName: "listItemInlineAlignment", forRenderer: true },
                 { variableName: "childrenToRenderInlineForListItem" },
+                { variableName: "listItemHasNativeMarker" },
             ],
             returnDependencies: () => ({
                 parentChildrenToRenderInlineForListItem: {
                     dependencyType: "parentStateVariable",
                     variableName: "childrenToRenderInlineForListItem",
+                },
+                // Distinguishes a real `<li>` (native `::marker`) from a
+                // `<problem asList>` section forwarding the same
+                // `childrenToRenderInlineForListItem` signal for its own,
+                // unrelated `::before`/grid numbering — see `Lists.js`.
+                parentListItemHasNativeMarker: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "listItemHasNativeMarker",
                 },
                 inputChildren: {
                     dependencyType: "child",
@@ -940,6 +949,7 @@ export default class Answer extends InlineComponent {
                             renderInlineForListItem: false,
                             listItemInlineAlignment: "none",
                             childrenToRenderInlineForListItem: [],
+                            listItemHasNativeMarker: false,
                         },
                     };
                 }
@@ -962,6 +972,9 @@ export default class Answer extends InlineComponent {
                         childrenToRenderInlineForListItem: firstBlockChoiceInput
                             ? [firstBlockChoiceInput]
                             : [],
+                        listItemHasNativeMarker: Boolean(
+                            dependencyValues.parentListItemHasNativeMarker,
+                        ),
                     },
                 };
             },

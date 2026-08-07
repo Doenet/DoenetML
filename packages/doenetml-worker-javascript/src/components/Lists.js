@@ -6,6 +6,7 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
+import { childRendersSomething } from "../utils/listItemChild";
 
 export class Ol extends BlockComponent {
     constructor(args) {
@@ -235,6 +236,51 @@ export class Li extends BaseComponent {
             forRenderer: true,
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { item: true } }),
+        };
+
+        // A real `<li>` renders a native browser `::marker`, unlike a
+        // `<problem asList>` section (which shares `childrenToRenderInlineForListItem`
+        // for margin suppression but draws its own number via a `::before`/grid
+        // column in section.tsx). Consumers that need to distinguish "my
+        // list-item ancestor has a native marker to keep aligned" from the
+        // generic "I was selected for inline alignment" signal — for example
+        // ChoiceInput's <legend>/<div> choice, see choiceInput.tsx — read this.
+        stateVariableDefinitions.listItemHasNativeMarker = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { listItemHasNativeMarker: true } }),
+        };
+
+        stateVariableDefinitions.childrenToRenderInlineForListItem = {
+            returnDependencies: () => ({
+                children: {
+                    dependencyType: "child",
+                    childGroups: ["anything"],
+                },
+            }),
+            definition({ dependencyValues, componentInfoObjects }) {
+                // Every real `<li>` is unconditionally "a list item" — unlike
+                // `<problem asList>` (SectioningComponent's
+                // `nonBoxedListItemWithoutTitle` gate) or a wrapper component
+                // (`returnPassThroughListItemChildStateVariableDefinitions`'s
+                // `shouldRenderInline` gate), there's no parent-selection
+                // concept here: an `<li>`'s first visible child always gets a
+                // chance to suppress its top margin and top-align with the
+                // native list marker.
+                const firstVisibleChild = dependencyValues.children.find(
+                    (child) =>
+                        childRendersSomething(child, componentInfoObjects),
+                );
+
+                return {
+                    setValue: {
+                        childrenToRenderInlineForListItem:
+                            firstVisibleChild &&
+                            typeof firstVisibleChild === "object"
+                                ? [firstVisibleChild]
+                                : [],
+                    },
+                };
+            },
         };
 
         stateVariableDefinitions.text = {

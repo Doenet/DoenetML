@@ -89,6 +89,7 @@ interface ChoiceInputSVs {
     immediateValue: any;
     placeHolder: any;
     renderInlineForListItem: boolean;
+    listItemHasNativeMarker: boolean;
     selectedIndices: any;
 }
 
@@ -788,8 +789,32 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 }
             });
 
+        // A native <legend> gets special layout treatment: when this fieldset
+        // is the first child of a real <li>, the browser aligns the <li>'s
+        // ::marker with the content AFTER the legend (the choices list)
+        // instead of with the legend text itself, and this isn't fixable via
+        // CSS on the fieldset (tested display: flex and grid, no effect). A
+        // <div> avoids the quirk. The accessible name is unaffected: the
+        // aria-labelledby on the fieldset below already associates this label
+        // explicitly, independent of which tag holds labelId.
+        //
+        // Only swap when there's actually a native marker to protect:
+        // `renderInlineForListItem` also fires for a <problem asList> section
+        // (which draws its own number and has no <legend> quirk at all), so
+        // `listItemHasNativeMarker` narrows this to a real <li> specifically.
+        // This keeps native <legend> semantics everywhere else, including the
+        // far more common case where this choiceInput isn't a list item's
+        // first child at all.
+        const useDivInsteadOfLegend =
+            SVs.renderInlineForListItem &&
+            !SVs.inline &&
+            SVs.listItemHasNativeMarker;
         const nonInlineLabelComponent = hasLabel ? (
-            <legend id={labelId}>{label}</legend>
+            useDivInsteadOfLegend ? (
+                <div id={labelId}>{label}</div>
+            ) : (
+                <legend id={labelId}>{label}</legend>
+            )
         ) : null;
 
         return (
