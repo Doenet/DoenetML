@@ -12,7 +12,8 @@ const MIN_TICKS_DISTANCE = 5;
  * so the major interval it settles on scales with the minor count.
  *
  * `unit` is the board's pixels per user unit along the axis, and `range` the
- * extent of the axis in user units.
+ * extent of the axis in user units. The real axis trims that extent slightly to
+ * keep ticks out of its arrow heads, which only feeds the `maxDist` term below.
  */
 function fakeAxis({
     unit,
@@ -107,6 +108,25 @@ describe("setMinorTicks", () => {
         // Of the two reachable states, minor ticks every 0.25 read better than
         // every 0.4, so that is the one to settle on.
         expect(settled).toEqual({ minorTicks: 3, interval: 1 });
+    });
+
+    it("takes the coarser interval where neither pairing reads well", () => {
+        // An 80 px axis over a range of 20, the scale of a `size="tiny"` graph.
+        // Again neither pairing agrees with itself, and this time neither divides
+        // into readable minor ticks either: 4 minor ticks give an interval of 2
+        // (minors every 0.4) and 3 give one of 5 (minors every 1.25). The coarser
+        // interval wins, which is also the only one whose minor ticks clear
+        // JSXGraph's 5 px minimum — under the finer one they would sit 1.6 px
+        // apart. Note that here the *smaller* minor count carries the coarser
+        // interval, so the two candidates cannot be ordered in advance.
+        const axis = fakeAxis({ unit: 4, range: 20 });
+
+        setMinorTicks(axis);
+        const settled = tickState(axis);
+        setMinorTicks(axis);
+
+        expect(tickState(axis)).toEqual(settled);
+        expect(settled).toEqual({ minorTicks: 3, interval: 5 });
     });
 
     it("is idempotent across board scales", () => {

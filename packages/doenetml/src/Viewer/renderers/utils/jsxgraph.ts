@@ -105,10 +105,14 @@ export function setMinorTicks(axis: AxisJXG): void {
     // calling it is how we ask what that candidate would give; the write at the
     // end of this function leaves visProp holding the count we settle on.
     //
-    // 4 comes first because a larger minor count forces a larger major interval:
-    // when both candidates agree with their own interval, taking the first keeps
-    // the coarser spacing — the same answer the old code reached, since it read
-    // the interval with JSXGraph's default of 4 already in place.
+    // 4 comes first so that when both candidates agree with their own interval,
+    // taking the first keeps the coarser spacing. A larger minor count normally
+    // forces a larger interval; the exception is that JSXGraph rounds the gap it
+    // needs to a power of ten times 1, 2, or 5, which can leave the 3 candidate
+    // on the coarser interval instead — but only ever on a 5·10^k one, and that
+    // asks for 4 minor ticks, so it is never self-consistent with 3. Taking the
+    // first is also the answer the old code reached, since it read the interval
+    // with JSXGraph's default of 4 already in place.
     const candidates = [4, 3].map((minorTicks) => {
         ticks.visProp.minorticks = minorTicks;
         return { minorTicks, tickInterval: ticks.getDistanceMajorTicks() };
@@ -123,7 +127,11 @@ export function setMinorTicks(axis: AxisJXG): void {
     if (!chosen) {
         // No self-consistent pairing exists at this scale. Both candidates
         // leave the axis in a state its own interval would argue with, so pick
-        // by how the minor ticks read, and fall back to the coarser interval.
+        // by how the minor ticks read, and fall back to the coarser interval —
+        // where neither reads well, that is the pairing whose minor ticks still
+        // clear `minTicksDistance`, which JSXGraph's rounding of that gap can
+        // otherwise undershoot. Which of the two is coarser has to be measured
+        // rather than assumed, for the reason given above.
         const readable = candidates.filter((candidate) =>
             isReadableMinorStep(
                 candidate.tickInterval / (candidate.minorTicks + 1),
