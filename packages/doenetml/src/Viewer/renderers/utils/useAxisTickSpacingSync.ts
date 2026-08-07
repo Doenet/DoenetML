@@ -10,25 +10,58 @@ interface UseAxisTickSpacingSyncParams {
 }
 
 /**
- * Everything the tick spacing depends on: the region the board shows, and the
- * pixels it is shown in. While these hold still, so does `setMinorTicks`.
+ * Everything the minor-tick count is derived from: the region the board shows,
+ * the pixels it is shown in, and the axis objects the ticks belong to. While
+ * all of these hold still, so does the answer `setMinorTicks` gives.
+ *
+ * The axes themselves count because `setMinorTicks` writes to the axis it is
+ * handed, so a recorded signature only vouches for the axes it was applied to.
+ * Toggling `displayXAxis`/`displayYAxis` destroys and rebuilds them without
+ * moving the board — `createXAxis`/`createYAxis` set the ticks on what they
+ * build, and keying on identity is what keeps this hook from silently relying
+ * on that.
  */
-function tickGeometrySignature(board: JXGBoard): string {
+export function tickSpacingSignature({
+    board,
+    xaxis,
+    yaxis,
+}: {
+    board: JXGBoard;
+    xaxis: AxisJXG | null | undefined;
+    yaxis: AxisJXG | null | undefined;
+}): unknown[] {
     return [
+        xaxis,
+        yaxis,
         board.canvasWidth,
         board.canvasHeight,
         ...board.getBoundingBox(),
-    ].join(",");
+    ];
+}
+
+/**
+ * Whether two `tickSpacingSignature` results describe the same state, with a
+ * null `previous` meaning nothing has been applied yet.
+ */
+export function tickSpacingUnchanged(
+    previous: unknown[] | null,
+    next: unknown[],
+): boolean {
+    return (
+        previous !== null &&
+        previous.length === next.length &&
+        previous.every((value, index) => Object.is(value, next[index]))
+    );
 }
 
 /**
  * Keep the minor-tick count on both axes matched to the board's current scale.
  *
  * Runs after the bounding box has been synchronized, so it sees the region the
- * board actually ended up showing, and does nothing while that region and the
- * canvas hold still. A point drag re-renders the graph every frame without
- * moving either, and reworking the ticks on each of those frames buys nothing
- * but a redraw of every tick on the board.
+ * board actually ended up showing, and does nothing while the inputs to the
+ * tick spacing hold still. A point drag re-renders the graph every frame
+ * without moving any of them, and reworking the ticks on each of those frames
+ * buys nothing but a redraw of every tick on the board.
  */
 export default function useAxisTickSpacingSync({
     enabled,
@@ -36,18 +69,22 @@ export default function useAxisTickSpacingSync({
     xaxisRef,
     yaxisRef,
 }: UseAxisTickSpacingSyncParams) {
-    const previousTickGeometryRef = useRef<string | null>(null);
+    const appliedSignatureRef = useRef<unknown[] | null>(null);
 
     useEffect(() => {
         if (!enabled || !board) {
             return;
         }
 
-        const tickGeometry = tickGeometrySignature(board);
-        if (tickGeometry === previousTickGeometryRef.current) {
+        const signature = tickSpacingSignature({
+            board,
+            xaxis: xaxisRef.current,
+            yaxis: yaxisRef.current,
+        });
+        if (tickSpacingUnchanged(appliedSignatureRef.current, signature)) {
             return;
         }
-        previousTickGeometryRef.current = tickGeometry;
+        appliedSignatureRef.current = signature;
 
         if (xaxisRef.current) {
             setMinorTicks(xaxisRef.current);

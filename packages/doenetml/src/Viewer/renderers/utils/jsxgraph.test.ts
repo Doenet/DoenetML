@@ -1,35 +1,37 @@
 import { describe, expect, it } from "vitest";
 import { setMinorTicks, type AxisJXG } from "./jsxgraph";
 
+/** JSXGraph's `minTicksDistance` default for axis ticks (`src/options.js`). */
+const MIN_TICKS_DISTANCE = 5;
+
 /**
  * A stand-in for a JSXGraph axis whose `getDistanceMajorTicks` reproduces the
  * arithmetic of the real one (jsxgraph `src/base/ticks.js`) for an axis-aligned
  * axis with `insertTicks: true`. The point of interest is that it reads
  * `minorticks`: JSXGraph keeps `minTicksDistance` pixels between *minor* ticks,
  * so the major interval it settles on scales with the minor count.
+ *
+ * `unit` is the board's pixels per user unit along the axis, and `range` the
+ * extent of the axis in user units.
  */
 function fakeAxis({
     unit,
     range,
     scale = 1,
-    minTicksDistance = 5,
-    minorTicks = 4,
 }: {
     unit: number;
     range: number;
     scale?: number;
-    minTicksDistance?: number;
-    minorTicks?: number;
 }): AxisJXG {
-    let fullUpdateCount = 0;
-    const visProp: Record<string, any> = { scale, minorticks: minorTicks };
+    // JSXGraph's own default; `setMinorTicks` overwrites it before reading.
+    const visProp: Record<string, any> = { scale, minorticks: 4 };
 
     const ticks = {
         visProp,
         getDistanceMajorTicks() {
             const maxDist = range / 6 / scale;
             const minDist =
-                (minTicksDistance / scale / unit) * (visProp.minorticks + 1);
+                (MIN_TICKS_DISTANCE / scale / unit) * (visProp.minorticks + 1);
 
             let delta = 10 ** Math.floor(Math.log10(minDist));
             if (2 * delta >= minDist) {
@@ -48,12 +50,7 @@ function fakeAxis({
             return Math.max(delta, delta2);
         },
         setAttribute() {},
-        fullUpdate() {
-            fullUpdateCount++;
-        },
-        get fullUpdateCount() {
-            return fullUpdateCount;
-        },
+        fullUpdate() {},
     };
 
     return { defaultTicks: ticks } as unknown as AxisJXG;
@@ -119,9 +116,12 @@ describe("setMinorTicks", () => {
         }
     });
 
-    it("is idempotent when a tick scale factor is in play", () => {
+    it("settles a tick scale factor on 4 minor ticks at every height", () => {
         // <graph yTickScaleFactor="pi"> measures the interval in multiples of
-        // pi, which shifts where the two candidates disagree.
+        // pi. The readability test divides the interval by that factor, so on a
+        // scaled axis it never matches a round number and 4 minor ticks is
+        // always the self-consistent answer — see `tickMantissa`. Pinned here so
+        // that revisiting how scaled axes are measured is a deliberate change.
         for (let height = 100; height <= 800; height += 1) {
             const axis = fakeAxis({
                 unit: height / 12,
@@ -134,6 +134,7 @@ describe("setMinorTicks", () => {
             setMinorTicks(axis);
 
             expect(tickState(axis), `height ${height}`).toEqual(settled);
+            expect(settled.minorTicks, `height ${height}`).toBe(4);
         }
     });
 });
