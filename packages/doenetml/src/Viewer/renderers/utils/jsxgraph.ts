@@ -38,21 +38,29 @@ type LineLikeJXG = {
 const MANTISSA_TOLERANCE = 1e-12;
 
 /**
- * The mantissa of `value` — the `m` of `m * 10**k` with `1 <= m < 10` — divided
- * by `scale`. Returns `NaN` for values that have no mantissa, so the
- * round-number comparisons below reject those without needing their own guard.
+ * Whether the mantissa of `value` — the `m` of `m * 10**k` with `1 <= m < 10`,
+ * divided by `scale` — is one of `targets`. A value with no mantissa (zero,
+ * negative, non-finite) matches nothing.
  *
  * Dividing by `scale` means an axis carrying an `xTickScaleFactor` /
- * `yTickScaleFactor` never matches a round number, so every test below comes
- * out false there: such an axis always takes 4 minor ticks. That is longstanding
- * behavior, preserved here — changing it would move the major-tick interval on
- * scaled axes, which is a separate question from the flicker this fixes.
+ * `yTickScaleFactor` never matches a round number, so both predicates below
+ * come out false there: such an axis always takes 4 minor ticks. That is
+ * longstanding behavior, preserved here — changing it would move the major-tick
+ * interval on scaled axes, which is a separate question from the flicker this
+ * fixes.
  */
-function tickMantissa(value: number, scale: number): number {
+function scaledMantissaIsOneOf(
+    value: number,
+    scale: number,
+    targets: number[],
+): boolean {
     if (!(value > 0) || !Number.isFinite(value)) {
-        return NaN;
+        return false;
     }
-    return value / (10 ** Math.floor(Math.log10(value)) * scale);
+    const mantissa = value / (10 ** Math.floor(Math.log10(value)) * scale);
+    return targets.some(
+        (target) => Math.abs(mantissa - target) < MANTISSA_TOLERANCE,
+    );
 }
 
 /**
@@ -61,17 +69,12 @@ function tickMantissa(value: number, scale: number): number {
  * halves, everything else into fifths.
  */
 function preferredMinorTicks(tickInterval: number, scale: number): number {
-    return Math.abs(tickMantissa(tickInterval, scale) - 2) < MANTISSA_TOLERANCE
-        ? 3
-        : 4;
+    return scaledMantissaIsOneOf(tickInterval, scale, [2]) ? 3 : 4;
 }
 
 /** Whether minor ticks spaced `step` apart land on readable numbers. */
 function isReadableMinorStep(step: number, scale: number): boolean {
-    const mantissa = tickMantissa(step, scale);
-    return [1, 2, 2.5, 5].some(
-        (nice) => Math.abs(mantissa - nice) < MANTISSA_TOLERANCE,
-    );
+    return scaledMantissaIsOneOf(step, scale, [1, 2, 2.5, 5]);
 }
 
 /**
@@ -82,24 +85,31 @@ function isReadableMinorStep(step: number, scale: number): boolean {
  * pixels between *minor* ticks, so the interval it settles on scales with the
  * minor count — while the interval is what tells us how many minor ticks read
  * well. At some board scales the two never agree: writing 3 yields an interval
- * that asks for 4, and writing 4 yields one that asks for 3. Since the graph
- * renderer re-runs this on every render, an unresolved disagreement surfaces as
- * tick spacing flickering between two values for as long as renders keep
- * coming — e.g. throughout a point drag.
+ * that asks for 4, and writing 4 yields one that asks for 3. This used to be
+ * re-run on every render of the graph, so an unresolved disagreement surfaced
+ * as tick spacing flickering between two values for as long as renders kept
+ * coming — throughout a point drag, say.
  *
  * So evaluate the candidates rather than iterating toward a fixed point that
  * may not exist: take the count that agrees with the interval it produces, and
- * when neither does, settle it in favor of the more readable minor ticks.
+ * when neither does, settle it in favor of the more readable minor ticks. The
+ * answer then depends only on the board's geometry, so repeating the call
+ * cannot move the ticks.
  */
 export function setMinorTicks(axis: AxisJXG): void {
     const ticks = axis.defaultTicks;
     const scale = ticks.visProp.scale;
 
+    // What each candidate count would produce. `getDistanceMajorTicks` only
+    // reads state, `minorticks` included, so writing a candidate to visProp and
+    // calling it is how we ask what that candidate would give; the write at the
+    // end of this function leaves visProp holding the count we settle on.
+    //
+    // 4 comes first because a larger minor count forces a larger major interval:
+    // when both candidates agree with their own interval, taking the first keeps
+    // the coarser spacing — the same answer the old code reached, since it read
+    // the interval with JSXGraph's default of 4 already in place.
     const candidates = [4, 3].map((minorTicks) => {
-        // `getDistanceMajorTicks` only reads state, `minorticks` included, so
-        // writing a candidate to visProp and calling it is how we ask what that
-        // candidate would produce. The write at the end of this function leaves
-        // visProp holding the count we settle on.
         ticks.visProp.minorticks = minorTicks;
         return { minorTicks, tickInterval: ticks.getDistanceMajorTicks() };
     });

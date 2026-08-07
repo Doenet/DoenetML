@@ -78,6 +78,16 @@ describe("setMinorTicks", () => {
         expect(tickState(axis)).toEqual({ minorTicks: 4, interval: 1 });
     });
 
+    it("keeps the coarser spacing where both pairings agree with themselves", () => {
+        // At 11 px per unit, 4 minor ticks yield an interval of 2·5 = 5, which
+        // asks for 4, and 3 minor ticks yield 2, which asks for 3: both agree
+        // with themselves. The coarser one wins, matching what the old code
+        // produced from JSXGraph's default of 4 minor ticks.
+        const axis = fakeAxis({ unit: 11, range: 12 });
+        setMinorTicks(axis);
+        expect(tickState(axis)).toEqual({ minorTicks: 4, interval: 5 });
+    });
+
     it("settles a scale where no pairing agrees with itself", () => {
         // 595x298 px with y from -6 to 6 — <graph aspectRatio="2" size="large">.
         // Here 4 minor ticks produce an interval of 2, which asks for 3, which
@@ -120,8 +130,9 @@ describe("setMinorTicks", () => {
         // <graph yTickScaleFactor="pi"> measures the interval in multiples of
         // pi. The readability test divides the interval by that factor, so on a
         // scaled axis it never matches a round number and 4 minor ticks is
-        // always the self-consistent answer — see `tickMantissa`. Pinned here so
-        // that revisiting how scaled axes are measured is a deliberate change.
+        // always the self-consistent answer — see `scaledMantissaIsOneOf`.
+        // Pinned here so that revisiting how scaled axes are measured is a
+        // deliberate change.
         for (let height = 100; height <= 800; height += 1) {
             const axis = fakeAxis({
                 unit: height / 12,

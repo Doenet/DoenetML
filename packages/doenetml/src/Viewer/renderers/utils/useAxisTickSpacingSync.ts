@@ -10,9 +10,23 @@ interface UseAxisTickSpacingSyncParams {
 }
 
 /**
- * Everything the minor-tick count is derived from: the region the board shows,
- * the pixels it is shown in, and the axis objects the ticks belong to. While
+ * Everything the minor-tick count is derived from: the axis objects the ticks
+ * belong to, the pixels the board is drawn in, and the region it shows. While
  * all of these hold still, so does the answer `setMinorTicks` gives.
+ */
+export type TickSpacingSignature = readonly [
+    xaxis: AxisJXG | null | undefined,
+    yaxis: AxisJXG | null | undefined,
+    canvasWidth: number,
+    canvasHeight: number,
+    xMin: number,
+    yMax: number,
+    xMax: number,
+    yMin: number,
+];
+
+/**
+ * Record the state above for `board` and its axes.
  *
  * The axes themselves count because `setMinorTicks` writes to the axis it is
  * handed, so a recorded signature only vouches for the axes it was applied to.
@@ -29,12 +43,13 @@ export function tickSpacingSignature({
     board: JXGBoard;
     xaxis: AxisJXG | null | undefined;
     yaxis: AxisJXG | null | undefined;
-}): unknown[] {
+}): TickSpacingSignature {
     return [
         xaxis,
         yaxis,
         board.canvasWidth,
         board.canvasHeight,
+        // JSXGraph orders the bounding box [xMin, yMax, xMax, yMin].
         ...board.getBoundingBox(),
     ];
 }
@@ -44,12 +59,11 @@ export function tickSpacingSignature({
  * null `previous` meaning nothing has been applied yet.
  */
 export function tickSpacingUnchanged(
-    previous: unknown[] | null,
-    next: unknown[],
+    previous: TickSpacingSignature | null,
+    next: TickSpacingSignature,
 ): boolean {
     return (
         previous !== null &&
-        previous.length === next.length &&
         previous.every((value, index) => Object.is(value, next[index]))
     );
 }
@@ -62,6 +76,11 @@ export function tickSpacingUnchanged(
  * tick spacing hold still. A point drag re-renders the graph every frame
  * without moving any of them, and reworking the ticks on each of those frames
  * buys nothing but a redraw of every tick on the board.
+ *
+ * That test is made inside the effect rather than through a dependency array,
+ * because both the axes and the bounding box are written by the effects that
+ * run before this one: read during render, they would still describe the
+ * previous frame.
  */
 export default function useAxisTickSpacingSync({
     enabled,
@@ -69,7 +88,7 @@ export default function useAxisTickSpacingSync({
     xaxisRef,
     yaxisRef,
 }: UseAxisTickSpacingSyncParams) {
-    const appliedSignatureRef = useRef<unknown[] | null>(null);
+    const appliedSignatureRef = useRef<TickSpacingSignature | null>(null);
 
     useEffect(() => {
         if (!enabled || !board) {
