@@ -6,22 +6,18 @@ describe("ODESystem Tag Tests", { tags: ["@group2"] }, function () {
         cy.visit("/");
     });
 
-    // The ODE solver (`dopri`) comes from numeric.js, bundled inside
-    // math-expressions. numeric builds most of its helpers at load time with the
-    // `Function` constructor, and the generated bodies reference a bare
-    // `numeric` — resolvable only if numeric registered itself on the global
-    // object. It used to do that solely through Node's `global`, so a browser
-    // and a web worker both got `ReferenceError: numeric is not defined` on the
-    // first call, and an `<odeSystem>` document rendered as an error banner
-    // instead of a document (math-expressions 2.0.0-alpha95 fixes it).
+    // Regression test for `ReferenceError: numeric is not defined`, which turned
+    // every `<odeSystem>` document into an error banner. The solver comes from
+    // numeric.js, whose generated helpers reference a bare `numeric` and so need
+    // numeric registered on the global object; it used to register itself only
+    // through Node's `global` (fixed in math-expressions 2.0.0-alpha95).
     //
-    // A Vitest test cannot catch that: it runs under Node, where `global`
-    // exists and numeric registers itself. Only a real browser reproduces it,
-    // which is why this lives in Cypress. Both sides of the boundary have to be
-    // exercised — the worker evaluates `$$f(1)`, and the main-thread renderer
-    // samples the same solution to draw the curve.
+    // That makes this a Cypress test by necessity: under Vitest `global` exists,
+    // numeric registers itself, and nothing fails. Both sides of the worker
+    // boundary have to be exercised — the worker evaluates `$$f(1)`, and the
+    // main-thread renderer samples the same solution to draw the curve.
     it("solves and plots in the browser", () => {
-        cy.window().then(async (win) => {
+        cy.window().then((win) => {
             win.postMessage(
                 {
                     doenetML: `
