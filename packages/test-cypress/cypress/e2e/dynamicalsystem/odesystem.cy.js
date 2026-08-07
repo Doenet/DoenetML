@@ -45,20 +45,22 @@ describe("ODESystem Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#pVal").should("have.text", "value at 1: 518.99");
 
         // Main-thread side: JSXGraph samples the solution to draw the curve, so
-        // a plotted path proves the renderer reached numeric too. Axes and their
-        // ticks are paths as well, hence the length floor — a curve spanning the
-        // graph is far longer than any tick mark.
-        cy.get(".jxgbox path").should(($paths) => {
-            const longest = Math.max(
-                ...$paths
+        // a plotted path proves the renderer reached numeric too. The axes and
+        // their ticks are paths as well, but they are the only ones stroked in
+        // the axis color, so excluding that color leaves just the curve.
+        cy.get(`.jxgbox path:not([stroke="var(--canvasText)"])`).should(
+            ($paths) => {
+                const segments = $paths
                     .toArray()
-                    .map((p) => (p.getAttribute("d") || "").length),
-            );
-            expect(
-                longest,
-                "length of the longest plotted path",
-            ).to.be.greaterThan(5000);
-        });
+                    .map((p) => (p.getAttribute("d") || "").split("L").length);
+                // A sampled curve is hundreds of segments; anything the
+                // renderer draws without reaching the solver is a handful.
+                expect(
+                    Math.max(...segments),
+                    "segments in the longest non-axis path",
+                ).to.be.greaterThan(100);
+            },
+        );
 
         cy.window().then((win) => {
             const { errors } = getDiagnosticsByType(win.returnDiagnostics1());
