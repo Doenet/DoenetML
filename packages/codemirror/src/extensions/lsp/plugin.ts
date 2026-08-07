@@ -98,50 +98,58 @@ const MACRO_IDENTIFIER_BARE_VALUE_REGEX = /^[A-Za-z0-9_-]+$/;
 const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
 
 /**
- * Whether `text` ends inside an unfinished reference path — the state in which
- * the next character either continues the path or ends the reference.
+ * Where the reference path `text` ends in starts, or `-1` when `text` does not
+ * end inside a reference at all.
  *
  * The two rootings are the two macro forms the grammar has (see
  * `packages/parser/src/macros/macros.peggy`): a bare `$name`, whose path runs
  * to the first character that can't be part of it, and a parenthesized
  * `$(name`, whose path runs to the closing `)`. So `$P`, `$P.coords` and
- * `$(P.` are unfinished paths, while `$(P)` is a finished macro and `the end`
- * is prose.
+ * `$(P.` end inside a path, while `$(P)` is a finished macro and `the end` is
+ * prose.
+ *
+ * The path may be empty: a `$` or `$(` with nothing after it yet is a
+ * reference whose name is still to come, which is exactly the state the name
+ * list opens in. Callers that need a segment to have been typed compare the
+ * returned offset against `text.length`.
  */
-function endsWithReferencePath(text: string): boolean {
+function referencePathStart(text: string): number {
     // Walk back over the path characters; the character in front of that run
     // says what, if anything, the path is rooted in.
     let pathStart = text.length;
     while (pathStart > 0 && MACRO_PATH_CHAR_REGEX.test(text[pathStart - 1])) {
         pathStart--;
     }
-    if (pathStart === text.length) {
-        // Nothing in front — there is no path here to continue.
-        return false;
-    }
     const beforePath = text[pathStart - 1];
-    return (
-        // `$name`, `$name.prop`, `$name[1]`
+    if (
+        // `$`, `$name`, `$name.prop`, `$name[1]`
         beforePath === "$" ||
-        // `$(name`, `$(name.prop` — still inside the parenthesized form
+        // `$(`, `$(name`, `$(name.prop` — still inside the parenthesized form
         (beforePath === "(" && text[pathStart - 2] === "$")
-    );
+    ) {
+        return pathStart;
+    }
+    return -1;
 }
 
 /**
  * Whether the text up to `column` in `lineText` ends in a reference property
  * accessor — the `.` of `$name.`, as opposed to a period ending a sentence.
  *
- * A path already ending in `.` takes no second one: no reference has an empty
- * segment, so the `.` of `$P..` opens no member list.
+ * A `.` needs a segment in front of it: no reference has an empty segment, so
+ * neither the `.` of `$.` nor the second one of `$P..` opens a member list.
  */
 function endsWithReferencePropertyDot(lineText: string, column: number) {
+    if (lineText[column - 1] !== ".") {
+        return false;
+    }
     const beforeDot = lineText.slice(0, column - 1);
-    return (
-        lineText[column - 1] === "." &&
-        !beforeDot.endsWith(".") &&
-        endsWithReferencePath(beforeDot)
-    );
+    const pathStart = referencePathStart(beforeDot);
+    if (pathStart < 0) {
+        return false;
+    }
+    const path = beforeDot.slice(pathStart);
+    return path.length > 0 && !path.endsWith(".");
 }
 
 /**
@@ -149,14 +157,16 @@ function endsWithReferencePropertyDot(lineText: string, column: number) {
  * name the open suggestion list is a list of names for.
  *
  * Most such characters end the reference outright — `$P.(`, `$P."`, `$P. ` —
- * as does the second `.` of `$P..`, which no segment can follow. A `[` and its
- * `]` do not: they open and close an index, which is part of the path. But an
- * index holds no name to complete — only a macro of its own, whose `$` opens a
- * fresh list — and closing one lands the cursor on a position where nothing
- * but a `.` can follow. So the list has to come down for those too.
+ * as does a `.` with no segment in front of it, which is the second one of
+ * `$P..` or the only one of `$.`. A `[` and its `]` do not: they open and
+ * close an index, which is part of the path. But an index holds no name to
+ * complete — only a macro of its own, whose `$` opens a fresh list — and
+ * closing one lands the cursor on a position where nothing but a `.` can
+ * follow. So the list has to come down for those too.
  *
- * `(` right after the `$` opens the parenthesized form rather than ending
- * anything, and is excluded by the `endsWithReferencePath` check below.
+ * The name may be empty, since the list opens on the bare `$`: `$ ` and `$"`
+ * end that reference just as `$P. ` ends a longer one. The one character that
+ * does not is the `(` opening the parenthesized form.
  */
 function typedCharacterEndsReferenceName(lineText: string, column: number) {
     const typedChar = lineText[column - 1];
@@ -164,14 +174,19 @@ function typedCharacterEndsReferenceName(lineText: string, column: number) {
         return false;
     }
     const beforeChar = lineText.slice(0, column - 1);
-    if (!endsWithReferencePath(beforeChar)) {
+    const pathStart = referencePathStart(beforeChar);
+    if (pathStart < 0) {
+        return false;
+    }
+    const path = beforeChar.slice(pathStart);
+    if (typedChar === "(" && path.length === 0 && beforeChar.endsWith("$")) {
         return false;
     }
     return (
         !MACRO_PATH_CHAR_REGEX.test(typedChar) ||
         typedChar === "[" ||
         typedChar === "]" ||
-        (typedChar === "." && beforeChar.endsWith("."))
+        (typedChar === "." && (path.length === 0 || path.endsWith(".")))
     );
 }
 

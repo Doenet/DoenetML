@@ -897,6 +897,54 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-tooltip-autocomplete").should("not.exist");
     });
 
+    it("closes autocomplete when a reference has no name yet", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={'<p><math name="myMath">x</math>$'}
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "myMath",
+        );
+
+        // The list opens on the bare `$`, before any name has been typed, and
+        // a space ends that reference exactly as it ends `$P.`. Left running
+        // in an element body, it answers with that element's children.
+        cy.get(".cm-content").type(" ", { force: true });
+
+        cy.wait(300);
+        cy.get(".cm-tooltip-autocomplete").should("not.exist");
+    });
+
+    it("keeps the member list on the hyphen that reaches a hyphenated name", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="my-coords">(3,4)</math></point>\n$P.my'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        openAutocomplete();
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "my-coords",
+        );
+
+        // A hyphen is the one path character that neither ends the path nor
+        // opens an index — it is how `$P.my` reaches `$(P.my-coords)` — so it
+        // must leave the list up, and the list must still anchor on the `my-`
+        // that was typed rather than on the macro the item would insert.
+        cy.get(".cm-content").type("-", { force: true });
+
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "my-coords",
+        );
+    });
+
     it("rewrites the macro when a hyphenated member is accepted", () => {
         cy.mount(
             <AutocompleteTestHarness
