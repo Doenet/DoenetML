@@ -65,8 +65,9 @@ function scaledMantissaIsOneOf(
 
 /**
  * How many minor ticks a major-tick interval of `tickInterval` wants, so that
- * the minor ticks land on readable numbers: a 2·10^k interval divides into
- * halves, everything else into fifths.
+ * the minor ticks land on readable numbers. JSXGraph draws `minorticks` ticks
+ * between neighboring majors, so the interval is cut into `minorticks + 1`
+ * steps: a 2·10^k interval divides into quarters, everything else into fifths.
  */
 function preferredMinorTicks(tickInterval: number, scale: number): number {
     return scaledMantissaIsOneOf(tickInterval, scale, [2]) ? 3 : 4;

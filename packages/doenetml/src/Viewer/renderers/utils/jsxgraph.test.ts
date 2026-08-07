@@ -80,7 +80,7 @@ describe("setMinorTicks", () => {
     });
 
     it("keeps the coarser spacing where both pairings agree with themselves", () => {
-        // At 11 px per unit, 4 minor ticks yield an interval of 2·5 = 5, which
+        // At 11 px per unit, 4 minor ticks yield an interval of 5, which
         // asks for 4, and 3 minor ticks yield 2, which asks for 3: both agree
         // with themselves. The coarser one wins, matching what the old code
         // produced from JSXGraph's default of 4 minor ticks.
