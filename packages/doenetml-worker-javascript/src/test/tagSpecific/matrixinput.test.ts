@@ -2101,13 +2101,13 @@ describe("MathInput tag tests @group3", async () => {
 
         let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
 
-        let mi1 = "[ [ \uff3f ] ]",
+        let mi1 = "[[\uff3f]]",
             mi2 = "[[x], [y]]",
-            mi3 = "[ [ \uff3f ] ]",
+            mi3 = "[[\uff3f]]",
             mi4 = "[[x], [y]]";
-        let mi1iv = "[ [ \uff3f ] ]",
+        let mi1iv = "[[\uff3f]]",
             mi2iv = "[[x], [y]]",
-            mi3iv = "[ [ \uff3f ] ]",
+            mi3iv = "[[\uff3f]]",
             mi4iv = "[[x], [y]]";
         let mi1changed = false,
             mi2changed = false,
@@ -2271,13 +2271,13 @@ describe("MathInput tag tests @group3", async () => {
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({ doenetML }));
 
-        mi1 = "[ [ \uff3f ] ]";
+        mi1 = "[[\uff3f]]";
         mi2 = "[[x], [y]]";
-        mi3 = "[ [ \uff3f ] ]";
+        mi3 = "[[\uff3f]]";
         mi4 = "[[x], [y]]";
-        mi1iv = "[ [ \uff3f ] ]";
+        mi1iv = "[[\uff3f]]";
         mi2iv = "[[x], [y]]";
-        mi3iv = "[ [ \uff3f ] ]";
+        mi3iv = "[[\uff3f]]";
         mi4iv = "[[x], [y]]";
         mi1changed = false;
         mi2changed = false;
@@ -2372,13 +2372,13 @@ describe("MathInput tag tests @group3", async () => {
         // reload
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({ doenetML }));
-        mi1 = "[ [ \uff3f ] ]";
+        mi1 = "[[\uff3f]]";
         mi2 = "[[x], [y]]";
-        mi3 = "[ [ \uff3f ] ]";
+        mi3 = "[[\uff3f]]";
         mi4 = "[[x], [y]]";
-        mi1iv = "[ [ \uff3f ] ]";
+        mi1iv = "[[\uff3f]]";
         mi2iv = "[[x], [y]]";
-        mi3iv = "[ [ \uff3f ] ]";
+        mi3iv = "[[\uff3f]]";
         mi4iv = "[[x], [y]]";
         mi1changed = false;
         mi2changed = false;
@@ -2398,7 +2398,7 @@ describe("MathInput tag tests @group3", async () => {
 
         // adding row to first marks first value/immediateValue as changed
 
-        mi1 = mi3 = mi3iv = mi1iv = "[ [ \uff3f ], [ \uff3f ] ]";
+        mi1 = mi3 = mi3iv = mi1iv = "[[\uff3f], [\uff3f]]";
         mi1changed = mi1ivchanged = true;
         await updateMatrixInputNumRows({
             numRows: 2,
@@ -2414,7 +2414,7 @@ describe("MathInput tag tests @group3", async () => {
 
         // adding column to second marks second value/immediateValue as changed
 
-        mi2 = mi4 = mi4iv = mi2iv = "[ [ x, \uff3f ], [ y, \uff3f ] ]";
+        mi2 = mi4 = mi4iv = mi2iv = "[[x, \uff3f], [y, \uff3f]]";
         mi2changed = mi2ivchanged = true;
         await updateMatrixInputNumColumns({
             numColumns: 2,
@@ -2431,13 +2431,13 @@ describe("MathInput tag tests @group3", async () => {
         // reload
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({ doenetML }));
-        mi1 = "[ [ \uff3f ] ]";
+        mi1 = "[[\uff3f]]";
         mi2 = "[[x], [y]]";
-        mi3 = "[ [ \uff3f ] ]";
+        mi3 = "[[\uff3f]]";
         mi4 = "[[x], [y]]";
-        mi1iv = "[ [ \uff3f ] ]";
+        mi1iv = "[[\uff3f]]";
         mi2iv = "[[x], [y]]";
-        mi3iv = "[ [ \uff3f ] ]";
+        mi3iv = "[[\uff3f]]";
         mi4iv = "[[x], [y]]";
         mi1changed = false;
         mi2changed = false;
@@ -2456,7 +2456,7 @@ describe("MathInput tag tests @group3", async () => {
         );
 
         // adding column to third marks first and third value/immediateValue as changed
-        mi1 = mi3 = mi3iv = mi1iv = "[ [ \uff3f ], [ \uff3f ] ]";
+        mi1 = mi3 = mi3iv = mi1iv = "[[\uff3f], [\uff3f]]";
         mi3changed = mi3ivchanged = mi1changed = mi1ivchanged = true;
         await updateMatrixInputNumRows({
             numRows: 2,

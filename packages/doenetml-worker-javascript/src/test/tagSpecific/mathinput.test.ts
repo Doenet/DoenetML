@@ -8244,7 +8244,12 @@ describe("MathInput tag tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("iv1")].stateValues
                     .latex,
             ),
-        ).eq("\\frac{a}{b}\\int_{a}^{b}f(x)dx");
+            // The engine parenthesizes an integral used as a factor, where
+            // legacy left it bare. Both mean `(a/b)·∫f dx` — an integral's
+            // scope already ends at the differential — so this is explicitness,
+            // not a change of meaning. The raw value below is what the student
+            // typed and is unaffected.
+        ).eq("\\frac{a}{b}(\\int_{a}^{b}f(x)dx)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pr1")].stateValues.text,
         ).eq("Raw value: \\frac{a}{b} \\int_a^b f(x) dx");

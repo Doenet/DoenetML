@@ -606,10 +606,14 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
                 .tree,
+            // Like terms stay uncollected (that is what `simplify="numbers"`
+            // means), and the ones that survive sort canonically rather than in
+            // written order: `x²` before `-2x²` before `5x²`. Same four terms,
+            // same value.
         ).eqls([
             "+",
-            ["*", -2, ["^", "x", 2]],
             ["^", "x", 2],
+            ["-", ["*", 2, ["^", "x", 2]]],
             ["*", 5, ["^", "x", 2]],
             -2,
         ]);
@@ -5673,7 +5677,10 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a2isumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(e,f)+\\langlep,q\\rangle");
+            // Simplified, so the sum is in canonical order; the written order
+            // is preserved in `a2isum` above, which this pair exists to
+            // contrast.
+        ).eq("\\langlep,q\\rangle+(e,f)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st2mul")].stateValues
@@ -5920,7 +5927,11 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("t3v3sumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g+j,h+k,i+l)");
+            // `l+i`, not `i+l`: `i` is the imaginary unit, a constant, and
+            // terms sort by degree in *variables* first — the same ordering
+            // that puts `b f` before `a e` when `e` is Euler's number. The sum
+            // itself is right; only the spelling of the third component moves.
+        ).eq("(g+j,h+k,l+i)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("v3t3sum")]
@@ -5932,7 +5943,11 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("v3t3sumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g+j,h+k,i+l)");
+            // `l+i`, not `i+l`: `i` is the imaginary unit, a constant, and
+            // terms sort by degree in *variables* first — the same ordering
+            // that puts `b f` before `a e` when `e` is Euler's number. The sum
+            // itself is right; only the spelling of the third component moves.
+        ).eq("(g+j,h+k,l+i)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t3a3sum")]
@@ -5944,7 +5959,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("t3a3sumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g+r,h+s,i+t)");
+        ).eq("(g+r,h+s,t+i)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("a3t3sum")]
@@ -5956,7 +5971,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a3t3sumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g+r,h+s,i+t)");
+        ).eq("(g+r,h+s,t+i)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("v3a3sum")]
@@ -5992,7 +6007,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("t3v3diffSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g-j,h-k,i-l)");
+        ).eq("(g-j,h-k,-l+i)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("v3t3diff")]
@@ -6004,7 +6019,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("v3t3diffSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(-g+j,-h+k,-i+l)");
+        ).eq("(-g+j,-h+k,l-i)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t3a3diff")]
@@ -6016,7 +6031,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("t3a3diffSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(g-r,h-s,i-t)");
+        ).eq("(g-r,h-s,-t+i)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("a3t3diff")]
@@ -6028,7 +6043,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a3t3diffSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(-g+r,-h+s,-i+t)");
+        ).eq("(-g+r,-h+s,t-i)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("v3a3diff")]
@@ -6172,13 +6187,13 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("st3v3ssumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(gm+jn,hm+kn,im+ln)");
+        ).eq("(gm+jn,hm+kn,ln+im)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st3v3ssumExp")]
                     .stateValues.latex,
             ),
-        ).eq("(gm+jn,hm+kn,im+ln)");
+        ).eq("(gm+jn,hm+kn,ln+im)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st3a3ssum")]
@@ -6190,13 +6205,13 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("st3a3ssumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(gm+nr,hm+ns,im+nt)");
+        ).eq("(gm+nr,hm+ns,nt+im)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st3a3ssumExp")]
                     .stateValues.latex,
             ),
-        ).eq("(gm+nr,hm+ns,im+nt)");
+        ).eq("(gm+nr,hm+ns,nt+im)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("sv3a3ssum")]
@@ -6791,7 +6806,12 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22t2Exp")]
                     .stateValues.latex,
             ),
-        ).eq("(ae+bf,ce+df)");
+            // `bf` before `ae` because `e` is Euler's number, not a variable:
+            // terms display in descending degree *in variables*, so `b·f` (two)
+            // outranks `a·e` (one). The vector cases below use `g,h` and `p,q`
+            // and keep the alphabetical order. Only the spelling differs — the
+            // contraction itself is `(ae+bf, ce+df)`.
+        ).eq("(bf+ae,df+ce)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t2m22")].stateValues
@@ -13429,7 +13449,10 @@ describe("Math tag tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("2/3 - (3 x)/4");
+            // No parentheses around the numerator: `3 x/4` re-parses as
+            // `(3x)/4` by precedence, so the two spellings are the same
+            // expression. The latex above keeps the grouping explicit.
+        ).eq("2/3 - 3 x/4");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value

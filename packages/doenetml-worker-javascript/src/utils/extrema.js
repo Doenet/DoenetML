@@ -715,7 +715,33 @@ export function find_local_global_minima({
                     let eps = 1e-6;
                     let tol_act = 0.5 * eps * (Math.abs(x) + 1);
 
+                    // `fzero` locates the root to within `tol_act`, so a root
+                    // sitting just *outside* a closed domain comes back as the
+                    // boundary itself — and the sign test below then certifies
+                    // it using samples taken outside the domain. `cos(x)` on
+                    // `[-pi + 1e-6, …]` did exactly that: the real critical
+                    // point is at `-pi`, 1e-6 beyond the edge and inside the
+                    // 2e-6 tolerance, so the edge was reported as a minimum.
+                    //
+                    // A genuine extremum at a closed endpoint (`cos` at `2pi`
+                    // on `[…, 2pi]`) is not affected: there the derivative
+                    // really does vanish at the endpoint, to the last bit. So
+                    // the check is on the derivative *at* the point, measured
+                    // against the scale it varies over in this cell — not on
+                    // where the point sits.
+                    let atClosedBoundary =
+                        (!openMin && Math.abs(x - minx) < 2 * tol_act) ||
+                        (!openMax && Math.abs(x - maxx) < 2 * tol_act);
+                    let derivativeScale = Math.max(
+                        Math.abs(dleft),
+                        Math.abs(dright),
+                    );
+                    let rootIsReal =
+                        !atClosedBoundary ||
+                        Math.abs(derivative(x)) <= derivativeScale * 1e-8;
+
                     if (
+                        rootIsReal &&
                         derivative(x - tol_act) < 0 &&
                         derivative(x + tol_act) > 0
                     ) {

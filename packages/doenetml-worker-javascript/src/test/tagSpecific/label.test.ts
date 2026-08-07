@@ -409,10 +409,13 @@ describe("Label tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("latex2"),
             core,
         });
+        // The space before `dx` is the engine's; legacy dropped it. Both render
+        // the same integral, and a thin space before the differential is the
+        // conventional typography, so the expectation follows the engine.
         await check_items(
-            "\\(\\int_{a}^{b} f\\left(x\\right)dx\\)",
+            "\\(\\int_{a}^{b} f\\left(x\\right) dx\\)",
             "∫_a^b f(x) dx",
-            "\\int_{a}^{b} f\\left(x\\right)dx",
+            "\\int_{a}^{b} f\\left(x\\right) dx",
         );
     });
 
