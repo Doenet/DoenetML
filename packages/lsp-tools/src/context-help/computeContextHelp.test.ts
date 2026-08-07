@@ -1079,19 +1079,46 @@ describe("computeContextHelp — hyphenated names in $(...) macros", () => {
         });
     });
 
-    it("resolves a hyphenated descendant name in $(base).(my-p) with cursor mid-identifier", async () => {
-        // `$(base).(my-p)` should resolve to the descendant `<p name="my-p"/>`,
+    it("resolves a hyphenated descendant name in $(base.my-p) with cursor mid-identifier", async () => {
+        // `$(base.my-p)` should resolve to the descendant `<p name="my-p"/>`,
         // not truncate at the hyphen and fall through to property lookup.
-        // Only the hyphenated segment is wrapped in parens.
-        const source = `<section name="base"><p name="my-p"/></section>\n$(base).(my-p)`;
+        const source = `<section name="base"><p name="my-p"/></section>\n$(base.my-p)`;
         const offset = source.indexOf("my-p)") + 2; // between 'my' and '-p'
         const help = await helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "my-p",
-            displayPath: "base.(my-p)",
+            // The parentheses go around the whole path, which is the only
+            // spelling of it that is a reference.
+            displayPath: "(base.my-p)",
             targetElementName: "p",
         });
+    });
+
+    it("resolves a hyphenated member of $(base[$i].my-p), whose index holds a ref", async () => {
+        // Which char class the member reads with comes from the macro the
+        // completion context found. Scanning left from `my-p` for the `(`
+        // instead would stop at the `$` of the `$i` inside the index, read
+        // the member with the bare class, and truncate it to `my`.
+        const source = `<section name="base"><p name="my-p"/></section>\n$(base[$i].my-p)`;
+        const offset = source.indexOf("my-p)") + 2; // between 'my' and '-p'
+        const help = await helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "my-p",
+            targetElementName: "p",
+        });
+    });
+
+    it("does not resolve $(base).(my-p), which is not a reference", async () => {
+        // A macro ends at its `)`, and there is no parenthesized member form,
+        // so this text is `$(base)` followed by `.(my-p)`. Reporting it as a
+        // reference to `<p name="my-p"/>` would tell the author that a form
+        // DoenetML does not read is one it does.
+        const source = `<section name="base"><p name="my-p"/></section>\n$(base).(my-p)`;
+        const offset = source.indexOf("my-p)") + 2; // between 'my' and '-p'
+        const help = await helpAt(source, offset);
+        expect(help).not.toMatchObject({ kind: "refName" });
     });
 });
 

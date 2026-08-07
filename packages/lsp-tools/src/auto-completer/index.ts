@@ -9,7 +9,10 @@ import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
 import {
     getCompletionContext,
+    isParenthesizedRefMacro,
+    segmentFitsBareMacro,
     type CompletionContext,
+    type RefMemberCompletionContext,
 } from "./methods/get-completion-context";
 import {
     COMPOSITE_WRAPPER_NAMES,
@@ -26,7 +29,12 @@ import {
 // Re-exported so consumers (notably `@doenet/lsp`'s context-help feature)
 // can type a precomputed completion context they thread into
 // `computeContextHelp` to avoid a redundant schema walk per RPC.
-export { type CompletionContext };
+export {
+    type CompletionContext,
+    type RefMemberCompletionContext,
+    isParenthesizedRefMacro,
+    segmentFitsBareMacro,
+};
 
 /**
  * Per-attribute fields surfaced in autocomplete and the help panel.
