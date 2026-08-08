@@ -147,17 +147,15 @@ export default class Choiceinput extends Input {
         // wrapper, and any component that forgot would silently reintroduce the
         // bug one level deeper.
         //
-        // Note the name: *inside* an `<li>`, which is deliberately a hair wider
-        // than *leads* the `<li>`. The two come apart only when a list-item
-        // section sits inside a real `<li>`
-        // (`<li><problem><task><choiceInput>`), where the `<choiceInput>` leads
-        // the `<task>` and not the `<li>`, so the swap fires with no marker of
-        // its own to protect. It is inert there rather than merely harmless: the
-        // `<div>` reproduces the `<legend>`'s inset (see `choiceInput.tsx`) so
-        // the two render identically, and the accessible name comes from
-        // `aria-labelledby` in both cases. Narrowing it would cost a depth
-        // comparison between the two ancestors. `lists.test.ts` pins the
-        // behavior down.
+        // Note the name: *inside* an `<li>`, deliberately a hair wider than
+        // *leads* the `<li>`. The two come apart only for a list-item section
+        // inside a real `<li>` (`<li><problem><task><choiceInput>`), where the
+        // `<choiceInput>` leads the `<task>` and the swap fires with no marker
+        // of its own to protect. It is inert there: the `<div>` reproduces the
+        // `<legend>`'s inset (see `choiceInput.tsx`), so the label renders in
+        // the same place, and the accessible name comes from `aria-labelledby`
+        // either way. Narrowing it would cost a depth comparison between the
+        // two ancestors. `lists.test.ts` pins the behavior down.
         stateVariableDefinitions.insideNativeListItem = {
             forRenderer: true,
             returnDependencies: () => ({

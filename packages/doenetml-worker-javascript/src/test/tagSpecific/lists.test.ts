@@ -135,7 +135,7 @@ describe("List tag tests @group4", async () => {
     // section nested inside a real `<li>`. The `<choiceInput>` leads the
     // `<task>`, so both state variables are true and the label renders in a
     // `<div>`. That is inert — the `<div>` reproduces the `<legend>`'s inset so
-    // the two render identically, the accessible name comes from
+    // the label renders in the same place, the accessible name comes from
     // `aria-labelledby` either way, and the section draws its own number in CSS
     // — and it is cheaper than comparing how deep the two ancestors are. See
     // the `insideNativeListItem` definition in `ChoiceInput.js`.
@@ -329,20 +329,13 @@ describe("List tag tests @group4", async () => {
     // `childRendersSomething` nor `SectioningComponent`'s `firstVisibleChild`
     // consults a child's own `hidden`, so a `<p hide>` wins the lead of its list
     // item and strands the child after it — `<li><p hide/><answer><choiceInput>`
-    // still reproduces the original marker bug. The renderer half does not share
-    // the blind spot (`markLeadingParagraphOfListItem()` in `list.tsx` skips the
-    // `null` the core sends for an unrendered child, asserted by
-    // `accessibility/listItemParagraphRoles.cy.js`), so core and renderer
-    // disagree here. Confirmed user-visible, not just a state-variable oddity:
-    // the marker renders beside the first choice.
-    //
-    // Left unfixed on purpose rather than deferred — consulting a child's
-    // `hidden` here risks a circular dependency on the section side, and a
-    // `<li>`-only fix would make `<li>` and `<task>` diverge, which the second
-    // half of this test checks they do not. `childRendersSomething()` in
-    // `utils/listItemChild.ts` carries the analysis and the `hiddenIgnoreParent`
-    // route for whoever picks this up.
-    it("documents current behavior for a hidden first child (li vs. task)", async () => {
+    // still reproduces the original marker bug, confirmed in a real build and
+    // not just as a state-variable oddity. `childRendersSomething()` in
+    // `utils/listItemChild.ts` carries the analysis and the route for whoever
+    // picks it up; this test pins down all three facts that analysis rests on:
+    // `<li>` and `<task>` share the gap exactly (so a fix belongs in both), and
+    // moving the hidden child off the front is the documented workaround.
+    it("documents current behavior for a hidden first child (li, task, and the workaround)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <ol>
@@ -366,7 +359,18 @@ describe("List tag tests @group4", async () => {
       </choiceInput>
     </answer>
   </task>
-</problem>`,
+</problem>
+<ol>
+  <li name="li2">
+    <answer name="ans3">
+      <choiceInput name="ci3">
+        <choice credit="1">A</choice>
+        <choice>B</choice>
+      </choiceInput>
+    </answer>
+    <p name="hiddenP3" hide>Hidden setup text</p>
+  </li>
+</ol>`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -379,6 +383,10 @@ describe("List tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("task1")].stateValues;
         const ci2 =
             stateVariables[await resolvePathToNodeIdx("ci2")].stateValues;
+        const li2 =
+            stateVariables[await resolvePathToNodeIdx("li2")].stateValues;
+        const ci3 =
+            stateVariables[await resolvePathToNodeIdx("ci3")].stateValues;
 
         // `<li>` picks the hidden <p> as its first visible child, so the
         // choiceInput after it does NOT get list-item alignment.
@@ -389,5 +397,12 @@ describe("List tag tests @group4", async () => {
         // same shared limitation, not something this change made worse.
         expect(task1.firstVisibleChild.componentType).eq("p");
         expect(ci2.renderInlineForListItem).eq(false);
+
+        // The workaround the changeset documents: with the hidden child after
+        // the answer instead of before it, alignment lands where it should.
+        expect(li2.childrenToRenderInlineForListItem[0].componentType).eq(
+            "answer",
+        );
+        expect(ci3.renderInlineForListItem).eq(true);
     });
 });

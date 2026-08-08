@@ -258,6 +258,9 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         });
 
         cy.get(".doenet-viewer").should("contain.text", "apple");
+        // Positively, so a stale id would fail here rather than make the
+        // `not.exist` below pass for the wrong reason.
+        cy.get("#ciInLi > div#ciInLi-label").should("exist");
         cy.get("#ciInLi > legend").should("not.exist");
 
         cy.checkAccessibility([".doenet-viewer"], {

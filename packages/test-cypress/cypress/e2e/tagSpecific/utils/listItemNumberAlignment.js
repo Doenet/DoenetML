@@ -170,7 +170,7 @@ function findMarkerBand(li) {
     if (!list) {
         return {
             problem: "noList",
-            detail: "the item is not inside an <ol>/<ul>, so it has no native marker and no gutter to scan",
+            detail: "the item is not inside an <ol>/<ul>, so there is no list padding to scan (a section's list item, which has no native marker at all, lands here too)",
         };
     }
     const listBox = list.getBoundingClientRect();

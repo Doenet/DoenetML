@@ -89,9 +89,10 @@ export default React.memo(function P(props: PProps) {
             // from the `<li>` renderer rather than from
             // `SVs.renderInlineForListItem` below: the latter is the core's
             // margin-collapsing signal, which answers a related but different
-            // question — it fires for a `<p>` leading either a real `<li>` or
-            // a section rendered as a list item — and does not track what the
-            // renderer actually puts in the accessibility tree.
+            // question — it fires for a `<p>` that leads a list item, be that a
+            // real `<li>` or a section rendered as one, and even from behind a
+            // wrapping `<div>` — and does not track what the renderer actually
+            // puts in the accessibility tree.
             role={
                 props.isLeadingListItemParagraph ? "presentation" : "paragraph"
             }
