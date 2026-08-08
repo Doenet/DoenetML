@@ -40,10 +40,26 @@
         "test": "vitest",
         "build": "wireit",
         "build:assets": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-completion-snippets.ts && vite-node ./scripts/generate-math-assets.ts",
-        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts",
-        "check:docs-coverage": "vite-node ./scripts/check-docs-coverage.ts"
+        "build:schema": "wireit",
+        "check:docs-coverage": "wireit"
     },
     "wireit": {
+        "build:schema": {
+            "command": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts",
+            "dependencies": [
+                "../i18n:build",
+                "../utils:build",
+                "../parser:build"
+            ]
+        },
+        "check:docs-coverage": {
+            "command": "vite-node ./scripts/check-docs-coverage.ts",
+            "dependencies": [
+                "../i18n:build",
+                "../utils:build",
+                "../parser:build"
+            ]
+        },
         "build": {
             "command": "vite build",
             "files": [
