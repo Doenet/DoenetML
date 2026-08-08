@@ -11,22 +11,50 @@
 #
 # The lexicon is **not** as bare as a first look suggests, and this file's
 # earlier drafts got that wrong. Okrand has released a mathematics register
-# over the years, mostly through the new-word lists at `qep'a'` and `qepHom`
-# and through answers relayed by the Klingon Language Institute: «mI'QeD»
-# (mathematics), «gho» (circle, already in TKD), «mey'» (polygon), «ra'Duch»
-# (triangle), «letbaQ» (rectangle), «meyrI'» (square), «vI'» (point, geometry),
-# «baSta'» (vector), «chav» (function, mathematics), «reD» (side, geometry).
-# Those are used below. So are «wa'chaw» (spreadsheet, table), «wev» (row) and
-# «war» (column), «tenwal» (page in a book) and «vorgh» (be previous).
+# over the years, well after *The Klingon Dictionary*.
+#
+# ## Where each word below comes from, and why the difference matters
+#
+# "Canon" is not one thing, and this file names which kind it means every time
+# it makes a claim, because the three kinds carry different weight:
+#
+#   1. **TKD and the other published books** — *The Klingon Dictionary*, *The
+#      Klingon Way*, *Klingon for the Galactic Traveler*. Edited, in print, and
+#      as settled as Klingon vocabulary gets. «gho» (circle), «tlhegh» (line),
+#      «'ay'» (section), «tIH» (ray), «qIj», «chIS», «Doq», «SuD» and most of
+#      the grammar this file leans on are here.
+#   2. **Okrand's later releases** — the new-word lists he hands out at the
+#      `qep'a'` and `qepHom'a'` gatherings, and his postings to the old
+#      `startrek.klingon` newsgroup. Okrand's own words, published in a smaller
+#      venue and recorded second-hand. «meyrI'» (square, `qep'a'` 12),
+#      «me'cheD» (cross, `qep'a'` 25), «baSta'» (vector, `qep'a'` 27), «chav»
+#      in its mathematical sense (`qep'a'` 31), «vorgh» (be previous, `qep'a'`
+#      23), «vI'» as a geometric point, «wa'chaw», «wev», «war», «tenwal»,
+#      «tamler» and «nItlh 'echlet» (all `qepHom'a'` 2014–2022).
+#   3. **A single relayed answer on the KLI mailing list** — one message, one
+#      date, no second source. The Klingon Language Institute does not coin
+#      vocabulary; it relays Okrand's answers, so these are still his words,
+#      but a reader has one post's paraphrase to go on and nothing to check it
+#      against. Three of this file's geometry nouns are in this class and are
+#      marked where they are used: «mey'» (polygon), «ra'Duch» (triangle) and
+#      «letbaQ» (rectangle), all from the post of 2014.01.27. So are «mI'QeD»
+#      (mathematics, 2014.11.26) and «ghantoH» (model, example, 2012.01.26).
+#
+# All three are used. Class 3 is not hidden behind the word *canon*, because a
+# speaker deciding whether to overrule an entry should know which of the three
+# they are overruling.
 #
 # What is genuinely missing is narrower than "mathematics": *parabola*,
-# *polyline*, *curve* as a noun, *diamond* as a shape, and the vocabulary of a
-# document editor — *attribute*, *variant*, *matrix*, *interval*, *snippet*,
-# *accessibility*, *theorem*, *proof*, *exercise*. For those this file draws a
-# line and states it once, because every omission below is an application of it:
+# *polyline*, *curve* as a noun, and the vocabulary of a document editor —
+# *attribute*, *variant*, *matrix*, *interval*, *snippet*, *accessibility*,
+# *theorem*, *proof*, *exercise*. For those this file draws a line and states it
+# once, because every omission below is an application of it:
 #
 #   **A compound of canon words whose sense a speaker could work out is a
 #   description, and is written. A new root is an invention, and is not.**
+#
+# *Canon* there means any of the three classes above, and the compounds this
+# file builds are marked as its own where it builds them.
 #
 # Under that rule «nagHom» — «nagh» (rock) with the canon diminutive «-Hom» —
 # is a fair way to say *dot*, and a word for *parabola* is not a translation of
@@ -54,12 +82,13 @@
 # extension rather than an attested pattern: «'ej» joins sentences, a relative
 # clause is one, and no canon example strings three of them together. It is the
 # defensible way to say what `style-stroke` has to say, not the only one.
-# So the tables below hold **bare
-# verbs** and the composition messages weld «-bogh» on. That keeps each table
-# entry usable as the citation form a state variable reports, where a bare verb
-# of quality is a whole Klingon sentence answering «what colour is it?», and it
-# is why this catalog needs no `$role` fork: the *position* is handled by the
-# message that composes the phrase rather than by the word inside it.
+#
+# So the tables below hold **bare verbs** and the composition messages weld
+# «-bogh» on. That keeps each table entry usable as the citation form a state
+# variable reports, where a bare verb of quality is a whole Klingon sentence
+# answering «what colour is it?», and it is why this catalog needs no `$role`
+# fork: the *position* is handled by the message that composes the phrase
+# rather than by the word inside it.
 #
 # **Welding «-bogh» onto a placeable is sound here, and that is a fact about
 # Klingon rather than a liberty.** The README's affix rule forbids it in Arabic,
@@ -91,13 +120,15 @@
 # **Four words for twelve keys, and this is the catalog's central fact.**
 # Klingon's basic colour terms are «qIj» (black), «chIS» (white), «Doq» (be
 # red, be orange) and «SuD» (be green, be blue, be yellow — one term across all
-# three). The twelve keys English distinguishes collapse onto those four.
+# three). All four are TKD entries. The twelve keys English distinguishes
+# collapse onto those four.
 #
 # `.brown` under «Doq» is not part of the collapse's cost: Okrand says «Doq»
-# covers what English calls brown, and the canon way to narrow it is the phrase
-# «Doq 'ej wovbe'» (red and not bright). Only `.purple` and `.pink` are this
-# file choosing the nearest of the four with nothing canon behind the choice,
-# and they are the first entries a speaker should overrule.
+# covers what English calls brown, and the way he gives to narrow it is the
+# phrase «Doq 'ej wovbe'» (red and not bright), from a newsgroup posting rather
+# than from TKD. Only `.purple` and `.pink` are this file choosing the nearest
+# of the four with nothing published behind the choice, and they are the first
+# entries a speaker should overrule.
 #
 # The collapse is left standing rather than repaired, and the reason is the one
 # `locales/oj` gives for leaving the periodic table alone: coined colour words
@@ -113,7 +144,8 @@
 # them in front of every reader of every document instead.
 #
 # `.gray` is the one entry whose canon answer this file cannot use. Okrand
-# gives the phrase «qIj 'ej wov» (black and bright) for gray, and a phrase
+# gives the phrase «qIj 'ej wov» (black and bright) for gray — a published
+# phrase, from the same class as the colour terms themselves — and a phrase
 # cannot go in this table: `style-stroke` welds «-bogh» onto whatever the table
 # supplies, and «-bogh» belongs on each verb of a pair rather than on the
 # second. So «Hurgh» (be dark) stands in — a canon word doing a job it was not
@@ -132,8 +164,8 @@ color =
     .pink = Doq
     .brown = Doq
 
-# «jeD» is «be thick, be dense» and «lang» is «be thin, be narrow» — canon
-# verbs of quality, so «-bogh» welds onto them as onto any other.
+# «jeD» is «be thick, be dense» (KGT) and «lang» is «be thin, be narrow» (TKD)
+# — published verbs of quality, so «-bogh» welds onto them as onto any other.
 line-width =
     .thick = jeD
     .thin = lang
@@ -147,9 +179,9 @@ line-style =
 
 # Nouns, placed after the colour by `style-fill`. «yav» (ground) and «chal»
 # (sky) carry the horizontal/vertical contrast, and «nIH» (right) and «poS»
-# (left) which way a diagonal leans; all four are canon words, and the compounds
-# are this file's own. `.diamonds` is left to English: a shape name is a root,
-# not a description, which is the rule this file opened with.
+# (left) which way a diagonal leans; all four are TKD entries, and the compounds
+# are this file's own. `.diamonds` is left to English for the reason `noun`'s
+# `.diamond` is: see the note there.
 fill-style =
     .horizontal = yav tlheghmey
     .vertical = chal tlheghmey
@@ -158,24 +190,46 @@ fill-style =
     .dots = nagHommey
 
 # Fourteen of the eighteen, and all fourteen are Okrand's rather than this
-# file's. «tlhegh» is «line, rope» and «'ay'» «section, part», both from TKD, so
-# a line segment is a compound of two canon words. «gho» (circle) is TKD too.
-# The geometry vocabulary released since is where the rest come from: «mey'»
-# (polygon), «ra'Duch» (triangle), «letbaQ» (rectangle), «meyrI'» (square),
-# «vI'» (point, in the geometric sense rather than «Daq», a site), «baSta'»
-# (vector), «chav» (function, in its mathematical sense rather than its TKD
-# sense of an achievement) and «me'cheD», which is one word for both the cross
-# (+) and the ex (×) and so answers `.cross` and `.plus` alike.
+# file's — but they are not all Okrand's in the same way, so this table is where
+# the three classes in the header have to be read off word by word.
 #
-# «tIH» is «ray, beam», and Okrand's note makes it an energy beam; using it for
-# a geometric ray is the nearest canon word rather than an exact one.
+# From TKD: «tlhegh» (line, rope), «'ay'» (section, part) — so a line segment is
+# a compound of two dictionary words — and «gho» (circle). «tIH» is TKD as well,
+# glossed «ray, beam», but its note makes it an *energy* beam; using it for a
+# geometric ray is the nearest published word rather than an exact one.
 #
-# The other four — curve, parabola, polyline, and diamond as a shape — are left
-# to English. Each would be a new root: «'ob» is «be curved» and gives no noun,
-# and «chanmon» is the gemstone. `noun-regular-polygon` is left to English too,
-# because nothing canon says *regular*; a corrector who wants it has «reD»
-# (side, geometry) and the canon pattern «loS reD mey'» — a four-sided polygon —
-# to build the rest of it from.
+# From Okrand's later releases: «meyrI'» (square, `qep'a'` 12), «vI'» in the
+# geometric sense rather than «Daq», a site (`qepHom'a'` 2022), «baSta'»
+# (vector, `qep'a'` 27), «chav» in its mathematical sense rather than its TKD
+# sense of an achievement (`qep'a'` 31), and «me'cheD» (`qep'a'` 25), which is
+# one word for both the cross (+) and the ex (×) and so answers `.cross` and
+# `.plus` alike.
+#
+# **From one KLI mailing-list post and nothing else: «mey'» (polygon),
+# «ra'Duch» (triangle) and «letbaQ» (rectangle)**, all three relayed in the
+# message of 2014.01.27. They are Okrand's answers rather than the list's own
+# coinages, which is why they are used here; a corrector should know they rest
+# on a single paraphrase, and they are the entries in this table most likely to
+# be superseded by a printed source.
+#
+# «yer» is «domain, holdings, territory» — a newsgroup posting, later reused in
+# *Klingon Monopoly* for a square of the board. Nothing published names a region
+# of the plane, so `.region` stretches the territory sense.
+#
+# The other four are left to English. *Curve*, *parabola* and *polyline* would
+# each be a new root: «'ob» is «be curved» and gives no noun. `.diamond` is a
+# different case and worth stating exactly, because it is not a gap: Okrand's
+# note on «chanmon» (the gemstone) says the *shape* is «meyrI'» — the same word
+# this table already spends on `.square`. Writing it would make a square marker
+# and a diamond marker report identically, which is the one distinction these
+# strings exist to carry, so `.diamond` falls back rather than collapsing. That
+# is the opposite call from the colour table above, and the difference is that
+# the colour collapse is Klingon's own and this one would be this file's.
+#
+# `noun-regular-polygon` is left to English too, because nothing published says
+# *regular*; a corrector who wants it has «reD» (side, geometry) and the pattern
+# «loS reD mey'» — a four-sided polygon — to build the rest of it from, both
+# from the same 2014.01.27 post as «mey'» itself.
 noun =
     .line = tlhegh
     .line-segment = tlhegh 'ay'
@@ -291,10 +345,11 @@ answer-submit-label-no-correctness = yIngeH
 ## Sectional blocks
 ##
 ## Five of the twenty. «'ay'» (section, part), «Qu'» (task, mission), «ngoQ»
-## (goal), «QIn» (message) and «ghantoH» (model, example, pattern) are canon
-## words that mean what their keys mean; the other fifteen name a kind of
-## writing Klingon has no word for — theorem, corollary, proof, exercise — and
-## are left to English rather than coined.
+## (goal) and «QIn» (message) are TKD or KGT entries that mean what their keys
+## mean. «ghantoH» (model, example, pattern) is the weakest word in this file:
+## a single KLI mailing-list post of 2012.01.26 and nothing since. The other
+## fifteen name a kind of writing Klingon has no word for — theorem, corollary,
+## proof, exercise — and are left to English rather than coined.
 
 section-name =
     .example = ghantoH
@@ -323,8 +378,9 @@ hint-title = boQ
 
 ## Tables and figures
 ##
-## Only half of this is a lexical gap. «wa'chaw» is canon for a table of ruled
-## data — it is Okrand's word for a spreadsheet — so `table-name` is written.
+## Only half of this is a lexical gap. «wa'chaw» is Okrand's word for a
+## spreadsheet or a table of ruled data, from the `qepHom'a'` list of 2015, so
+## `table-name` is written.
 ## Klingon has no word for a *figure* in the sense of an illustration, and
 ## coining one would be coining a root, so `figure-name` falls back to English.
 ## The number follows what it counts, as in `section-title-prefix`.
@@ -340,9 +396,10 @@ table-name =
 
 ## Paginator controls
 
-# «veb» is «be next» and «vorgh» is «be previous»; both are canon, and an
+# «veb» is «be next» (KGT) and «vorgh» is «be previous» (`qep'a'` 23); an
 # earlier draft of this file coined «vebHa'» for the second before finding it.
-# «tenwal» is a page in a book, which is exactly what a paginator turns.
+# «tenwal» is a page in a book (`qepHom'a'` 2015), which is exactly what a
+# paginator turns.
 paginator-previous = vorgh
 paginator-next = veb
 paginator-page = tenwal
@@ -372,8 +429,8 @@ piecewise-condition-otherwise = latlhDaq
 ##
 ## The 118 element names, the 12 anion names and the two error messages are all
 ## left to English, and the reason is arithmetic rather than absence. Klingon
-## has «tamler» (element, in chemistry) and «tamler wa'chaw» (the periodic
-## table), and Okrand has named roughly thirty of the elements — «bIQSIp»
+## has «tamler» (element, in chemistry, `qepHom'a'` 2015) and «tamler wa'chaw»
+## (the periodic table), and Okrand has named roughly thirty of the elements — «bIQSIp»
 ## (hydrogen), «Sorpuq» (copper), «tarngeb» (uranium), «letbIng» (mercury) and
 ## the rest. Thirty of 118 is a table that would read in two languages down its
 ## own length, and the missing eighty-eight are exactly the coinage

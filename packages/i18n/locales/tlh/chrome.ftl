@@ -8,8 +8,11 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # See `locales/tlh/content.ftl` for the rule this catalog is built on — a
-# compound of canon words is written, a new root is not — and for why the roster
-# has a constructed language in it at all.
+# compound of published words is written, a new root is not — for the three
+# classes of source that rule means by *canon*, and for why the roster has a
+# constructed language in it at all. Every word used here is from the first two
+# classes: TKD and the other books, or Okrand's later `qep'a'`/`qepHom'a'`
+# releases. Nothing in this file rests on a lone mailing-list post.
 #
 # **This file is the most complete of the four, and that is not an accident.**
 # Klingon's lexicon is rich in verbs of acting and judging, and thin in nouns
@@ -103,31 +106,33 @@ description-more-information = De' latlh
 
 ## Controls
 
-# «veb» is «be next» and «vorgh» «be previous». Both are canon; an earlier
+# «veb» is «be next» (KGT) and «vorgh» «be previous» (`qep'a'` 23); an earlier
 # draft coined «vebHa'» for the second, which `content.ftl`'s paginator keys no
 # longer do either.
 slider-previous = vorgh
 slider-next = veb
 
-# «nItlh 'echlet» — «finger tablet» — is Okrand's word for a computer keyboard.
+# «nItlh 'echlet» — «finger board» — is Okrand's own word for a computer
+# keyboard, from the `qepHom'a'` list of 2014 rather than from TKD.
 keyboard-open = nItlh 'echlet yIpoSmoH
 keyboard-close = nItlh 'echlet yISoQmoH
 
 choice-input-remove-choice = { $choice } yIteq
 
-# «wev» and «war» are canon for a row and a column of a table or spreadsheet,
-# which is what a matrix is made of.
+# «wev» and «war» are Okrand's words for a row and a column of a table or
+# spreadsheet (`qepHom'a'` 2015), which is what a matrix is made of.
 matrix-remove-row = wev yIteq
 matrix-add-row = wev yIchel
 matrix-remove-column = war yIteq
 matrix-add-column = war yIchel
 
 # Left to English. Klingon has a mathematics register — see `content.ftl` — but
-# not this part of it: nothing canon names an interval, a union or a
+# not this part of it: nothing published names an interval, a union or a
 # complement, and the four controls name operations on those.
 
-# «ngaSwI'» is «container», formed from the canon «ngaS» (contain). «Dung» and
-# «bIng» are the areas above and below, which is which way an arrow points;
+# «ngaSwI'» is «container» — «ngaS» (contain) with the agentive «-wI'», and
+# attested in its own right rather than derived here. «Dung» and «bIng» are the
+# TKD nouns for the areas above and below, which is which way an arrow points;
 # «tIH» is an energy beam, standing in for the arrow itself.
 orbital-add-row = wev yIchel
 orbital-remove-row = wev yIteq
@@ -170,9 +175,9 @@ error-found-at =
 
 document-contains-errors = Qaghmey ngaS ghItlhvam!
 
-# «ghuHmoHwI'» — «that which warns» — is this file's own, from the canon
-# «ghuHmoH» (warn). The two accessibility headings are left to English: there is
-# no canon word for accessibility, and WCAG AA is the standard's name and would
+# «ghuHmoHwI'» — «that which warns» — is this file's own, from the TKD
+# «ghuHmoH» (warn). The two accessibility headings are left to English: nothing
+# published names accessibility, and WCAG AA is the standard's name and would
 # stay as it is in any case.
 diagnostic-heading-error = Qagh
 diagnostic-heading-warning = ghuHmoHwI'

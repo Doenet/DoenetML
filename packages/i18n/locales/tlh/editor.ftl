@@ -4,17 +4,18 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# See `locales/tlh/content.ftl` for the rule every omission here follows: a
-# compound of canon words is written, a new root is not.
+# See `locales/tlh/content.ftl` for the rule every omission here follows — a
+# compound of published words is written, a new root is not — and for the three
+# classes of source it means by *canon*.
 #
 # **What this file leaves out is almost everything about accessibility, and
 # every sentence of the context-help panel.** Klingon has no word for
 # *accessibility*, none for *attribute*, *default* or *snippet*, and those four
 # nouns are what the help panel is made of. («nompuq» does cover *reference* in
 # the sense of a citation, so that one is a gap in the sentences rather than in
-# the lexicon.) The messages that
-# survive are the ones built out of finding, showing and choosing, which Klingon
-# has verbs for. WCAG AA is the standard's name and would stay as written in any
+# the lexicon — though it comes from a single KLI mailing-list post of
+# 2018.02.17 and nothing since.) The messages that survive are the ones built
+# out of finding, showing and choosing, which Klingon has verbs for. WCAG AA is the standard's name and would stay as written in any
 # language, so the messages around it fall back whole rather than in halves.
 #
 # Klingon is object–verb–subject, and the imperative prefix «yI-» marks a
@@ -43,12 +44,15 @@ editor-update-viewer-title =
 
 ## The variant picker
 
-# «pImwI'» — «that which differs» — is this file's own, from the canon «pIm» (be
-# different). «nej» is «seek», which is what the filter box does.
+# «pImwI'» — «that which differs» — is this file's own, from the TKD «pIm» (be
+# different). «nej» is «seek», which is what the filter box does. «veb» (be
+# next) and «vorgh» (be previous) are the pair `chrome.ftl` and `content.ftl`
+# also use; «vebHa'», which an earlier draft coined for the second, is not a
+# published word and is used nowhere in this catalog.
 editor-variant = pImwI'
 editor-variant-filter = yInej…
 editor-variant-next = pImwI' veb yIwIv
-editor-variant-previous = pImwI' vebHa' yIwIv
+editor-variant-previous = pImwI' vorgh yIwIv
 
 
 ## The accessibility status button
@@ -77,7 +81,7 @@ editor-tab-responses = ngeHlu'ta'bogh
 
 editor-tab-with-count = { $label }: { $count }
 
-# «DuH» is canon both as the verb «be possible» and as the noun «possibility,
+# «DuH» is TKD both as the verb «be possible» and as the noun «possibility,
 # option», which is what a menu of them holds. «lIS» is «adjust», which is what
 # reformatting the source is.
 editor-options = DuHmey

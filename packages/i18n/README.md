@@ -522,18 +522,42 @@ from one table to a whole catalog.
 
 **The gap is much narrower than a first look suggests, and getting that wrong is
 the mistake this catalog was drafted around before review caught it.** Okrand
-has released a mathematics register over the years — mostly through the new-word
-lists at `qep'a'` and `qepHom`, and through answers relayed by the Klingon
-Language Institute — so «gho» (circle, in TKD itself), «mey'» (polygon),
-«ra'Duch» (triangle), «letbaQ» (rectangle), «meyrI'» (square), «vI'» (point),
-«baSta'» (vector) and «chav» (function) all exist and are all used. So are
-«wa'chaw» (table), «wev» and «war» (row and column), «tenwal» (page) and
+has released a mathematics register over the years, well after TKD, so «mey'»
+(polygon), «ra'Duch» (triangle), «letbaQ» (rectangle), «meyrI'» (square), «vI'»
+(point), «baSta'» (vector) and «chav» (function) all exist and are all used. So
+are «wa'chaw» (table), «wev» and «war» (row and column), «tenwal» (page) and
 «vorgh» (be previous), each of which an earlier draft either coined around or
 left to English. What is genuinely absent is smaller and stranger: *parabola*,
-*polyline*, *diamond*, *curve* as a noun, and the vocabulary of a document
-editor — *attribute*, *variant*, *matrix*, *snippet*, *accessibility*. **The
-lesson generalizes past Klingon: "this language has no word for X" is a claim
-about a word list, and it needs checking against the word list.**
+*polyline*, *curve* as a noun, and the vocabulary of a document editor —
+*attribute*, *variant*, *matrix*, *snippet*, *accessibility*. **The lesson
+generalizes past Klingon: "this language has no word for X" is a claim about a
+word list, and it needs checking against the word list.**
+
+**"Canon" is three different things, and `locales/tlh` says which one it means
+every time it makes a claim.** The word list those geometry nouns come from
+records a source for each entry, and the sources are not equivalent. Some words
+are in the printed books — «gho» (circle), «tlhegh» (line), «tIH» (ray) and all
+four colour terms are TKD entries. Some are Okrand's own but were released at a
+`qep'a'` or `qepHom'a'` gathering or posted to the old `startrek.klingon`
+newsgroup: «meyrI'», «me'cheD», «baSta'», «chav» in its mathematical sense,
+«vorgh», «wa'chaw», «wev», «war», «tenwal» and «nItlh 'echlet» (keyboard). And
+three of the geometry nouns — «mey'», «ra'Duch», «letbaQ» — rest on a *single*
+relayed answer on the KLI mailing list, one post of 2014.01.27, with no second
+attestation; «ghantoH» (example) and «nompuq» (reference) are the same. All
+three classes are used and none is removed, but the catalogs mark the third
+where it appears rather than presenting it flat as canon. That matters
+precisely because of the argument the catalog makes for using these words at
+all: the KLI does not coin vocabulary, it relays Okrand's — so the third class
+is still his, and what a reader has to go on is one paraphrase. Telling them
+which entries those are is what lets a speaker overrule the right ones.
+
+`.diamond` is the instructive omission, because it is not a lexical gap at all.
+Okrand's note on «chanmon» (the gemstone) says the diamond *shape* is «meyrI'»,
+which the catalog already spends on `square`. Writing it would make a square
+marker and a diamond marker report identically — the one distinction a shape
+noun exists to carry — so the key falls back to English instead. That is the
+opposite call from the colour table below, and the difference is that the colour
+collapse is Klingon's own and this one would have been the catalog's.
 
 The four files are lopsided as a result and instructively so: `chrome.ftl` is
 nearly complete, because a button is a verb and Klingon is rich in verbs of

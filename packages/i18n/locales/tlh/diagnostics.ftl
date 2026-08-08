@@ -9,18 +9,21 @@
 # holds a little over two hundred messages, and almost every one of them is
 # built out of nouns Klingon does not have: *attribute*, *variant*, *matrix*,
 # *interval*, *dimension*, *expression*. Under the rule
-# `locales/tlh/content.ftl` opens with — a compound of canon words is written, a
-# new root is not — translating them would mean coining most of a technical
-# vocabulary, which is the thing this seed refuses to do.
+# `locales/tlh/content.ftl` opens with — a compound of published words is
+# written, a new root is not — translating them would mean coining most of a
+# technical vocabulary, which is the thing this seed refuses to do. That file's
+# header also sets out the three classes of source it means by *canon*, which
+# the notes below name rather than blur together.
 #
 # Not every noun in those messages is missing, and a corrector should not read
-# the gap as one: «'ay'» covers *component* in its canon sense of a part, and
-# «nompuq» is *reference* in the sense of a citation. What kept the messages
-# around them in English is the rest of each sentence rather than that word.
+# the gap as one: «'ay'» covers *component* in its TKD sense of a part, and
+# «nompuq» is *reference* in the sense of a citation, on the strength of a
+# single KLI mailing-list post of 2018.02.17. What kept the messages around
+# them in English is the rest of each sentence rather than that word.
 #
 # What is written here is the part that is about *finding* and *being wrong*,
-# which Klingon has words for: «tu'lu'» (one finds it), «muj» (be wrong), «Qagh»
-# (error), «'oS» (represent), «Hal» (source).
+# which Klingon has words for, all of them TKD entries: «tu'lu'» (one finds
+# it), «muj» (be wrong), «Qagh» (error), «'oS» (represent), «Hal» (source).
 #
 # The parser's messages come first among them on purpose. They are what a
 # beginner meets before anything runs, and usually the first Doenet message
