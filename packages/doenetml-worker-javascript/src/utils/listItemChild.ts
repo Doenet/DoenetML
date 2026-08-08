@@ -43,56 +43,6 @@ export function childRendersSomething(
 }
 
 /**
- * A state variable definition that relays "the list-item context I sit in draws a
- * native browser `::marker`" down from the parent.
- *
- * `renderInlineForListItem` cannot answer that question: it is shared by a real
- * `<ol>/<ul>` `<li>` and by a `<problem asList>` section, which draws its own
- * number with a `::before`/grid column (see `section.tsx`) and needs no help
- * beyond the top-margin suppression that signal already buys it. Only `<li>`
- * defines `listItemHasNativeMarker` as `true` (see `Lists.js`); everything that
- * forwards `childrenToRenderInlineForListItem` must forward this alongside it
- * (`<answer>`, `<sideBySide>`, and every pass-through wrapper), or the chain
- * stops there and a nested `<choiceInput>` reports `false`. Anything else — a
- * section, or any unrelated parent — has no such state variable, and
- * `parentStateVariable` dependencies are optional, so the value comes back
- * `null` and reads as `false`.
- *
- * The value is deliberately *not* gated on this component being the child the
- * list item selected for inline alignment, so it means exactly one thing:
- * "a native marker exists somewhere up my list-item chain". Consumers that act
- * on it combine it with their own `renderInlineForListItem` — see the
- * `<legend>`/`<div>` choice in `choiceInput.tsx`, the one place that needs the
- * distinction.
- */
-export function returnListItemHasNativeMarkerDefinition({
-    forRenderer = false,
-}: { forRenderer?: boolean } = {}) {
-    return {
-        forRenderer,
-        returnDependencies: () => ({
-            parentListItemHasNativeMarker: {
-                dependencyType: "parentStateVariable",
-                variableName: "listItemHasNativeMarker",
-            },
-        }),
-        definition({
-            dependencyValues,
-        }: {
-            dependencyValues: Record<string, any>;
-        }) {
-            return {
-                setValue: {
-                    listItemHasNativeMarker: Boolean(
-                        dependencyValues.parentListItemHasNativeMarker,
-                    ),
-                },
-            };
-        },
-    };
-}
-
-/**
  * Adds list-item inline-rendering state variables for components that may suppress
  * their top margin when they are the first visible child in a list item.
  */
@@ -154,15 +104,9 @@ export function returnListItemChildStateVariableDefinitions({
  * Wrappers forward list-item inline rendering to the first non-blank,
  * non-label child component so nested block components can adjust spacing
  * and alignment.
- *
- * `listItemHasNativeMarker` is relayed too, so a `<choiceInput>` nested a wrapper
- * deep (`<li><div><choiceInput>`, `<li><blockQuote><answer><choiceInput>`, …) still
- * learns that a native `::marker` is at stake.
  */
 export function returnPassThroughListItemChildStateVariableDefinitions() {
     const stateVariableDefinitions: Record<string, any> = {};
-    stateVariableDefinitions.listItemHasNativeMarker =
-        returnListItemHasNativeMarkerDefinition();
     stateVariableDefinitions.renderInlineForListItem = {
         forRenderer: true,
         returnDependencies: () => ({

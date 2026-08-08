@@ -238,16 +238,6 @@ export class Li extends BaseComponent {
             definition: () => ({ setValue: { item: true } }),
         };
 
-        // A real `<li>` renders a native browser `::marker`, unlike a
-        // `<problem asList>` section (which shares `childrenToRenderInlineForListItem`
-        // for margin suppression but draws its own number via a `::before`/grid
-        // column in section.tsx). This is the root of that signal; descendants
-        // relay it via `returnListItemHasNativeMarkerDefinition()`.
-        stateVariableDefinitions.listItemHasNativeMarker = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { listItemHasNativeMarker: true } }),
-        };
-
         stateVariableDefinitions.childrenToRenderInlineForListItem = {
             returnDependencies: () => ({
                 children: {

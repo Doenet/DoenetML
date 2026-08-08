@@ -2,7 +2,7 @@ import { cesc } from "@doenet/utils";
 import { verifyListItemMarkerSharesRowWith } from "./utils/listItemNumberAlignment";
 
 /*
- * Issue #1668: a real `<ol>/<ul>` `<li>` whose first child is a labeled block
+ * Fixed in #1668: a real `<ol>/<ul>` `<li>` whose first child is a labeled block
  * `<choiceInput>` rendered its "1." beside the first choice instead of beside
  * the question label.
  *
@@ -80,7 +80,9 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
     // `childrenToRenderInlineForListItem`: the pass-through wrappers
     // (`<div>`, `<blockQuote>`, `<stack>`, …) and `<sideBySide>`, which hands it
     // to its panels. Each of these reproduced the original bug at some point
-    // during development, one level deeper than the last.
+    // during development, one level deeper than the last, which is why this
+    // asserts the rendered outcome at every depth rather than trusting the
+    // forwarding chain.
     it("aligns the marker through a wrapper and through a <sideBySide> panel", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -194,11 +196,16 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
-    // The swap must stay narrow. `renderInlineForListItem` is shared with a
-    // `<problem asList>` section, which draws its own `::before`/grid number and
-    // never had the `<legend>` quirk, so swapping there would silently change
-    // already-working behavior for a case this fix was never meant to touch.
-    it("keeps a native <legend> where there is no native marker", () => {
+    // The swap must stay narrow: it fires only where a native `::marker` is at
+    // stake *and* the `<choiceInput>` is the one the marker lines up with. Each
+    // arm below fails one of those two conditions, so all three keep a native
+    // `<legend>`. The `<problem asList>` arm matters most — it shares
+    // `renderInlineForListItem` for its own `::before`/grid number and never had
+    // the `<legend>` quirk, so swapping there would change already-working
+    // behavior for a case this fix was never meant to touch. The
+    // not-leading-the-item arm is the other direction: a `<choiceInput>` deeper
+    // in a list item is inside an `<li>`, but the marker is not on its row.
+    it("keeps a native <legend> outside a list item, in a section, and away from the marker's row", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -223,13 +230,25 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         </answer>
       </task>
     </problem>
+    <ol>
+      <li name="liLate">
+        <p>Some intro text</p>
+        <answer name="ansLate">
+          <choiceInput name="ciLate">
+            <label>Pick one</label>
+            <choice credit="1">A</choice>
+            <choice>B</choice>
+          </choiceInput>
+        </answer>
+      </li>
+    </ol>
     `,
                 },
                 "*",
             );
         });
 
-        cy.get(`#${cesc("task1")}`).should("be.visible");
+        cy.get(`#${cesc("liLate")}`).should("be.visible");
 
         // Not a list item's first child: native `<legend>` semantics are kept,
         // and the fieldset's top margin is not suppressed.
@@ -247,6 +266,15 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
             "have.css",
             "margin-top",
             "0px",
+        );
+
+        // Inside a real `<li>` but behind a leading `<p>`, so the marker sits on
+        // the paragraph's row and the `<legend>` cannot disturb it.
+        cy.get(`#${cesc("ansLate")} fieldset > legend`).should("exist");
+        cy.get(`#${cesc("ansLate")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "16px",
         );
     });
 

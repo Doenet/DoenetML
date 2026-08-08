@@ -38,62 +38,19 @@ describe("List tag tests @group4", async () => {
         expect(ci1.listItemHasNativeMarker).eq(true);
     });
 
-    // Regression test: `renderInlineForListItem`/`childrenToRenderInlineForListItem`
-    // is shared between a real `<li>` (native `::marker`) and a `<problem
-    // asList>` section (its own `::before`/grid number, no `<legend>` quirk
-    // to work around). `listItemHasNativeMarker` must tell them apart so
-    // choiceInput's <legend>-vs-<div> choice only fires for a real `<li>`.
-    it("listItemHasNativeMarker is true under a real <li> and false under a <problem asList> section", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-<ol>
-  <li name="li1">
-    <answer name="ansLi">
-      <choiceInput name="ciLi">
-        <label>Pick one</label>
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-      </choiceInput>
-    </answer>
-  </li>
-</ol>
-<problem>
-  <task name="task1">
-    <answer name="ansTask">
-      <choiceInput name="ciTask">
-        <label>Pick one</label>
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-      </choiceInput>
-    </answer>
-  </task>
-</problem>`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        const ciLi =
-            stateVariables[await resolvePathToNodeIdx("ciLi")].stateValues;
-        const ciTask =
-            stateVariables[await resolvePathToNodeIdx("ciTask")].stateValues;
-
-        // Real <li>: both flags true, <legend> should be swapped for <div>.
-        expect(ciLi.renderInlineForListItem).eq(true);
-        expect(ciLi.listItemHasNativeMarker).eq(true);
-
-        // <problem asList> section: still gets margin suppression
-        // (renderInlineForListItem true, matching pre-existing behavior),
-        // but no native marker, so <legend> must NOT be swapped.
-        expect(ciTask.renderInlineForListItem).eq(true);
-        expect(ciTask.listItemHasNativeMarker).eq(false);
-    });
-
-    // `listItemHasNativeMarker` has to survive every component that forwards
+    // `renderInlineForListItem` has to survive every component that forwards
     // `childrenToRenderInlineForListItem` — the pass-through wrappers and
-    // `<sideBySide>` — or the `<legend>` stays put and the original bug
-    // reproduces one level deeper. Covers both spellings of the chain: with an
-    // `<answer>` in the middle and without.
-    it("relays listItemHasNativeMarker through everything that forwards the alignment signal", async () => {
+    // `<sideBySide>`, which uses its own definition rather than the shared
+    // wrapper mixin — or the `<choiceInput>` never learns it leads a list item
+    // and the original bug reproduces one level deeper. Covers both spellings
+    // of the chain: with an `<answer>` in the middle and without.
+    //
+    // `listItemHasNativeMarker` is asserted alongside it because the two must
+    // agree for the `<legend>`/`<div>` swap to fire. It tells a real `<li>`
+    // (native `::marker`) apart from a `<problem asList>` section (its own
+    // `::before`/grid number, no `<legend>` quirk), which is why the section
+    // arm at the bottom must report `false` however deeply the wrapper nests.
+    it("reaches a choiceInput through wrappers and a <sideBySide> panel, but reports no native marker under a section", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <ol>
@@ -162,14 +119,12 @@ describe("List tag tests @group4", async () => {
         expect(ciQuote.renderInlineForListItem).eq(true);
         expect(ciQuote.listItemHasNativeMarker).eq(true);
 
-        // `<sideBySide>` forwards the alignment signal to its panels with its
-        // own definition rather than the shared wrapper mixin, so it needs its
-        // own relay; the `<legend>` quirk does apply inside a panel.
         expect(ciSbs.renderInlineForListItem).eq(true);
         expect(ciSbs.listItemHasNativeMarker).eq(true);
 
-        // The same wrapper under a `<problem asList>` section must still report
-        // no native marker — the relay must not invent one.
+        // Under a `<problem asList>` section the alignment signal still arrives
+        // (pre-existing behavior, and what suppresses the top margin), but there
+        // is no native marker to protect, so the `<legend>` must stay.
         expect(ciTaskDiv.renderInlineForListItem).eq(true);
         expect(ciTaskDiv.listItemHasNativeMarker).eq(false);
     });

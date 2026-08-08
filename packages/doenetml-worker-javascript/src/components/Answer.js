@@ -11,7 +11,6 @@ import {
     returnLabelStateVariableDefinitions,
 } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { returnListItemHasNativeMarkerDefinition } from "../utils/listItemChild";
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -909,9 +908,6 @@ export default class Answer extends InlineComponent {
          *
          * For other input configurations (for example inline choiceInput or mathInput),
          * <answer> returns "none" and the section keeps baseline alignment.
-         *
-         * Forwarding `childrenToRenderInlineForListItem` obliges <answer> to
-         * forward `listItemHasNativeMarker` too, which it does just below.
          */
         stateVariableDefinitions.renderInlineForListItem = {
             forRenderer: true,
@@ -970,9 +966,6 @@ export default class Answer extends InlineComponent {
                 };
             },
         };
-
-        stateVariableDefinitions.listItemHasNativeMarker =
-            returnListItemHasNativeMarkerDefinition();
 
         const labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);

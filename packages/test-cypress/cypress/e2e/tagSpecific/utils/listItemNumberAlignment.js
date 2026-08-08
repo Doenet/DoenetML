@@ -107,8 +107,17 @@ export function verifyListItemNumberGutterSide(id, direction, minGutterPx = 1) {
 }
 
 /**
+ * How far above and below the `<li>`'s own box the marker scan reaches. The
+ * marker's box is at most a line tall and starts on a line of the item's
+ * content, so a margin of a few px is enough to contain any overhang while
+ * still proving the band was not cut off at the edge of the scan (see
+ * {@link findMarkerBand}).
+ */
+const MARKER_SCAN_MARGIN_PX = 8;
+
+/**
  * Find the vertical band a real `<li>`'s native `::marker` is painted in, in
- * viewport coordinates, or `null` if no marker was found.
+ * viewport coordinates.
  *
  * A native marker is not in the DOM, and — unlike a section's `::before` number,
  * which shares a layout row with the content — it perturbs no queryable rect:
@@ -124,31 +133,74 @@ export function verifyListItemNumberGutterSide(id, direction, minGutterPx = 1) {
  * DOM-visible trace of the marker's position (measured in Chrome). Scanning the
  * gutter row by row recovers the band.
  *
- * Hit testing only reaches what is on screen, so the caller must have the rows
- * of interest scrolled into view.
+ * Everything the scan could get wrong is reported rather than absorbed, because
+ * a marker helper that quietly finds nothing is a helper that passes on a
+ * broken page — the failure mode this list-alignment work keeps hitting:
+ *
+ * - The x probes step across the whole gutter in 2px steps, finer than any
+ *   marker box can be, so no marker glyph can slip between two of them. If the
+ *   gutter is too narrow to hold an on-screen probe at all, `noGutter` says so,
+ *   and if the item is not in a list at all, `noList` does.
+ * - Hit testing only reaches what is on screen, so the item is centred in the
+ *   viewport first — inside the caller's retried assertion, so that late layout
+ *   (MathJax typesetting a choice, say) is re-centred rather than measured where
+ *   it used to be. The scan window ({@link MARKER_SCAN_MARGIN_PX} beyond the
+ *   item on both sides) still has to fit; `offscreen` says when an item taller
+ *   than the viewport does not, rather than silently measuring the visible part
+ *   of a clipped marker.
+ * - A band that touches an edge of the scan window may have been cut off there,
+ *   so its center means nothing; `clipped` says so.
+ *
+ * @returns {{band: {top: number, bottom: number}}
+ *   | {problem: "noList"|"noGutter"|"offscreen"|"clipped"|"notFound",
+ *        detail: string}}
  */
 function findMarkerBand(li) {
     const doc = li.ownerDocument;
     const view = doc.defaultView;
+    li.scrollIntoView({ block: "center" });
     const liBox = li.getBoundingClientRect();
-    const listBox = li.parentElement.getBoundingClientRect();
+    // `closest`, not `parentElement`: a composite's replacements are wrapped in
+    // a `<span>` inside the list (see `addCommasForCompositeRanges`).
+    const list = li.closest("ol, ul");
+    if (!list) {
+        return {
+            problem: "noList",
+            detail: "the item is not inside an <ol>/<ul>, so it has no native marker and no gutter to scan",
+        };
+    }
+    const listBox = list.getBoundingClientRect();
     const rtl = view.getComputedStyle(li).direction === "rtl";
     const gutter = rtl
         ? listBox.right - liBox.right
         : liBox.left - listBox.left;
 
     const xs = [];
-    for (let inset = 3; inset < gutter; inset += 3) {
+    for (let inset = 2; inset < gutter; inset += 2) {
         const x = rtl ? liBox.right + inset : liBox.left - inset;
         if (x >= 0 && x < view.innerWidth) {
             xs.push(x);
         }
     }
+    if (xs.length === 0) {
+        return {
+            problem: "noGutter",
+            detail: `no on-screen probe point fits in the ${gutter.toFixed(1)}px gutter between the list and the item`,
+        };
+    }
+
+    const scanTop = Math.floor(liBox.top) - MARKER_SCAN_MARGIN_PX;
+    const scanBottom = Math.ceil(liBox.bottom) + MARKER_SCAN_MARGIN_PX;
+    if (scanTop < 0 || scanBottom > view.innerHeight) {
+        return {
+            problem: "offscreen",
+            detail: `rows ${scanTop}-${scanBottom} do not fit in the ${view.innerHeight}px viewport; scroll the item into view or shorten the fixture`,
+        };
+    }
 
     let top = null;
     let bottom = null;
-    const lastRow = Math.min(liBox.bottom, view.innerHeight);
-    for (let y = Math.max(Math.ceil(liBox.top), 0); y < lastRow; y += 1) {
+    for (let y = scanTop; y <= scanBottom; y += 1) {
         if (xs.some((x) => doc.elementFromPoint(x, y) === li)) {
             if (top === null) {
                 top = y;
@@ -157,17 +209,32 @@ function findMarkerBand(li) {
         }
     }
 
-    return top === null ? null : { top, bottom };
+    if (top === null) {
+        return {
+            problem: "notFound",
+            detail: `nothing in the gutter at x=${xs[0].toFixed(0)}..${xs[xs.length - 1].toFixed(0)} hit the item on any row`,
+        };
+    }
+    if (top === scanTop || bottom === scanBottom) {
+        return {
+            problem: "clipped",
+            detail: `band ${top}-${bottom} reaches the edge of the scanned rows ${scanTop}-${scanBottom}`,
+        };
+    }
+
+    return { band: { top, bottom } };
 }
 
 /**
  * Assert that a real `<li>`'s native `::marker` is painted on the same row as
  * `targetSelector` — e.g. that item 1's "1." sits beside a question label rather
- * than beside the first choice below it (issue #1668).
+ * than beside the first choice below it, the misalignment fixed in #1668.
  *
  * This is the vertical-axis, outcome-based analogue of
  * {@link verifyListItemNumbersAlign}: it measures where the marker actually
  * rendered (see {@link findMarkerBand}) rather than the mechanisms that place it.
+ * It works in either direction, taking the gutter from the side the text starts
+ * from, for the same reason the helpers above do.
  *
  * @param {string} liId Doenet component id of the `<li>`.
  * @param {string} targetSelector CSS selector for the element whose row the
@@ -176,28 +243,28 @@ function findMarkerBand(li) {
  */
 export function verifyListItemMarkerSharesRowWith(liId, targetSelector) {
     cy.get(targetSelector).should("be.visible");
-    // The marker is found by hit testing, which only sees the viewport.
-    cy.get(`#${cesc(liId)}`).scrollIntoView();
     cy.get(`#${cesc(liId)}`).should(($li) => {
         const li = $li[0];
         const target = li.ownerDocument.querySelector(targetSelector);
         expect(target, `${targetSelector} exists`).to.not.be.null;
 
-        const band = findMarkerBand(li);
-        expect(band, `a native ::marker was found beside ${liId}`).to.not.be
-            .null;
+        const { band, problem, detail } = findMarkerBand(li);
+        expect(
+            problem,
+            `${liId}'s native ::marker could not be measured (${problem}: ${detail})`,
+        ).to.be.undefined;
 
         const liTop = li.getBoundingClientRect().top;
         const targetBox = target.getBoundingClientRect();
         const markerCenter = (band.top + band.bottom) / 2;
         const relative = (y) => (y - liTop).toFixed(0);
-        const detail =
+        const bands =
             `marker rows ${relative(band.top)}-${relative(band.bottom)}px into ${liId}, ` +
             `${targetSelector} occupies ${relative(targetBox.top)}-${relative(targetBox.bottom)}px`;
 
         expect(
             markerCenter,
-            `${liId} marker is on the row of ${targetSelector} [${detail}]`,
+            `${liId} marker is on the row of ${targetSelector} [${bands}]`,
         ).to.be.within(targetBox.top, targetBox.bottom);
     });
 }

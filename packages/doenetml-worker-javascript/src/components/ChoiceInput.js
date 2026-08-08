@@ -2,10 +2,7 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import {
-    returnListItemChildStateVariableDefinitions,
-    returnListItemHasNativeMarkerDefinition,
-} from "../utils/listItemChild";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
@@ -132,12 +129,35 @@ export default class Choiceinput extends Input {
             }),
         );
 
-        // choiceInput is the one consumer that has to tell a real `<li>`'s
-        // native `::marker` apart from a `<problem asList>` section's own
-        // `::before`/grid number, because only the former is thrown off by a
-        // `<legend>` — see `choiceInput.tsx`.
-        stateVariableDefinitions.listItemHasNativeMarker =
-            returnListItemHasNativeMarkerDefinition({ forRenderer: true });
+        // `renderInlineForListItem` says "I lead a list item", but it does not
+        // say which kind: it is shared by a real `<ol>/<ul>` `<li>`, which the
+        // browser gives a native `::marker`, and by a `<problem asList>`
+        // section, which draws its own number with a `::before`/grid column
+        // (see `section.tsx`). Only the native marker is thrown off by a
+        // `<legend>`, so `choiceInput.tsx` needs the two told apart, and
+        // `choiceInput` is the only component that does.
+        //
+        // Asking for the nearest `<li>` ancestor answers it in one place.
+        // Threading a signal down from `<li>` through each intervening
+        // component instead would have to be repeated in `<answer>`,
+        // `<sideBySide>`, and every pass-through wrapper, and any component
+        // that forgot would silently reintroduce the bug one level deeper.
+        stateVariableDefinitions.listItemHasNativeMarker = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                listItemAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "li",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    listItemHasNativeMarker: Boolean(
+                        dependencyValues.listItemAncestor,
+                    ),
+                },
+            }),
+        };
 
         stateVariableDefinitions.inline = {
             description:
