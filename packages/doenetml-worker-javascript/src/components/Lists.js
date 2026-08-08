@@ -6,6 +6,7 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
+import { childRendersSomething } from "../utils/listItemChild";
 
 export class Ol extends BlockComponent {
     constructor(args) {
@@ -235,6 +236,44 @@ export class Li extends BaseComponent {
             forRenderer: true,
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { item: true } }),
+        };
+
+        stateVariableDefinitions.childrenToRenderInlineForListItem = {
+            returnDependencies: () => ({
+                children: {
+                    dependencyType: "child",
+                    childGroups: ["anything"],
+                },
+            }),
+            definition({ dependencyValues, componentInfoObjects }) {
+                // Every real `<li>` is unconditionally "a list item" — unlike
+                // `<problem asList>` (SectioningComponent's
+                // `nonBoxedListItemWithoutTitle` gate) or a wrapper component
+                // (whose forwarding is gated on being selected by its own
+                // parent), there is no parent-selection concept here: an
+                // `<li>`'s first visible child always gets the signal, which
+                // suppresses its top margin and, for a labeled `<choiceInput>`,
+                // keeps the native marker on the label's row.
+                //
+                // `childRendersSomething` judges a child's component type, not
+                // whether that particular child is rendered — a `<p hide>` still
+                // wins the lead. See its doc comment for why that blind spot is
+                // left alone here.
+                const firstVisibleChild = dependencyValues.children.find(
+                    (child) =>
+                        childRendersSomething(child, componentInfoObjects),
+                );
+
+                return {
+                    setValue: {
+                        childrenToRenderInlineForListItem:
+                            firstVisibleChild &&
+                            typeof firstVisibleChild === "object"
+                                ? [firstVisibleChild]
+                                : [],
+                    },
+                };
+            },
         };
 
         stateVariableDefinitions.text = {
