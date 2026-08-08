@@ -28,16 +28,20 @@ export function createFunctionFromDefinition(
     } else if (fDefinition.functionType === "reevaluatedFormula") {
         let evaluateChildrenToReevaluate: any = {};
         for (let code in fDefinition.evaluateChildrenToReevaluate) {
+            // These are compiled numeric evaluators, not expression builders —
+            // numbers in, number out — so they serve as both routes here.
+            const inputFs = fDefinition.evaluateChildrenToReevaluate[
+                code
+            ].inputMaths.map((x: any) =>
+                me.fromAst(x).subscripts_to_strings().f(),
+            );
             evaluateChildrenToReevaluate[code] = {
                 fReevaluate: createFunctionFromDefinition(
                     fDefinition.evaluateChildrenToReevaluate[code]
                         .fReevaluateDefinition,
                 ),
-                inputMathFs: fDefinition.evaluateChildrenToReevaluate[
-                    code
-                ].inputMaths.map((x: any) =>
-                    me.fromAst(x).subscripts_to_strings().f(),
-                ),
+                inputMathFs: inputFs,
+                inputNumericFs: inputFs,
             };
         }
 
@@ -392,17 +396,11 @@ export function returnNumericalFunctionFromReevaluatedFormula({
             let fArgs: any = { [varString]: x };
 
             for (let code in evaluateChildrenToReevaluate) {
-                let childF = evaluateChildrenToReevaluate[code].fReevaluate;
-                let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
                 try {
-                    let input = inputFs.map((f: any) =>
-                        me.fromAst(f(argsForInputs)),
+                    fArgs[code] = evaluateChildToNumber(
+                        evaluateChildrenToReevaluate[code],
+                        argsForInputs,
                     );
-                    // A child that lands outside its own domain evaluates to a
-                    // blank, which `evaluate_to_constant()` declines with
-                    // `null`. Binding `null` into the formula would make it
-                    // arithmetic on zero; "no numeric value here" is NaN.
-                    fArgs[code] = childF(input).evaluate_to_constant() ?? NaN;
                 } catch (e) {
                     return NaN;
                 }
@@ -494,13 +492,11 @@ export function returnNumericalFunctionFromReevaluatedFormula({
 
         let argsForInputs: any = { ...fArgs };
         for (let code in evaluateChildrenToReevaluate) {
-            let childF = evaluateChildrenToReevaluate[code].fReevaluate;
-            let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
             try {
-                let input = inputFs.map((f: any) =>
-                    me.fromAst(f(argsForInputs)),
+                fArgs[code] = evaluateChildToNumber(
+                    evaluateChildrenToReevaluate[code],
+                    argsForInputs,
                 );
-                fArgs[code] = childF(input).evaluate_to_constant();
             } catch (e) {
                 return NaN;
             }
@@ -902,8 +898,8 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 let childF = evaluateChildrenToReevaluate[code].fReevaluate;
                 let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
                 try {
-                    let input = inputFs.map((f: any) =>
-                        me.fromAst(f(argsForInputs)),
+                    const input = inputFs.map((f: any) =>
+                        asExpression(f(argsForInputs)),
                     );
                     fArgs[code] = childF(input);
                 } catch (e) {
@@ -1019,7 +1015,7 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
             let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
             try {
                 let input = inputFs.map((f: any) =>
-                    me.fromAst(f(argsForInputs)),
+                    asExpression(f(argsForInputs)),
                 );
                 subArgs[code] = childF(input);
             } catch (e) {
@@ -1041,6 +1037,61 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
     };
 }
 
+/**
+ * A value that is already an `Expression` passed through untouched, anything
+ * else wrapped.
+ *
+ * `me.fromAst` accepts an `Expression` and quietly round-trips it — serialize
+ * to JSON, parse back — producing an equal but distinct object. That is one
+ * wasted crossing per input per sample in the evaluation loops below, which is
+ * where it stopped being affordable.
+ */
+function asExpression(value: any): any {
+    return value instanceof me.class ? value : me.fromAst(value);
+}
+
+/**
+ * Bind one `<evaluate>` child to a number, for callers that are themselves
+ * numeric.
+ *
+ * The expression route is the general one: it can spread a vector input across
+ * a multi-input function, and it keeps a symbolic function symbolic. The
+ * numeric route can do neither, so where it cannot answer it declines rather
+ * than guess, and we fall through — a wrong number is worse than a slow one.
+ *
+ * Taking the numeric route where it applies is the point of the split. A
+ * spline-backed function has no symbolic form at all, yet routing it through
+ * the expression route built an expression for each input, unwrapped it to a
+ * float, evaluated the spline, and wrapped the float back up — six crossings of
+ * the wasm boundary per sample to carry a number that never became symbolic.
+ * Extrema searches call this tens of thousands of times.
+ */
+function evaluateChildToNumber(child: any, argsForInputs: any): number {
+    const childF = child.fReevaluate;
+
+    if (childF.numeric && child.inputNumericFs) {
+        try {
+            const value = childF.numeric(
+                child.inputNumericFs.map((f: any) => f(argsForInputs)),
+            );
+            if (value !== undefined) {
+                return value;
+            }
+        } catch (e) {
+            // A vector input or an unbound symbol makes the compiled numeric
+            // evaluator throw. Both are cases the expression route handles.
+        }
+    }
+
+    const input = child.inputMathFs.map((f: any) =>
+        asExpression(f(argsForInputs)),
+    );
+    // A child that lands outside its own domain evaluates to a blank, which
+    // `evaluate_to_constant()` declines with `null`. Binding `null` into the
+    // formula would make it arithmetic on zero; "no numeric value here" is NaN.
+    return childF(input).evaluate_to_constant() ?? NaN;
+}
+
 export function returnSymbolicFunctionForEvaluate({
     symbolicfs,
     numInputs,
@@ -1048,7 +1099,7 @@ export function returnSymbolicFunctionForEvaluate({
     symbolicfs: SymbolicFunction[];
     numInputs: number;
 }): VariableFunction {
-    return function (input: any[]): any {
+    const f = function (input: any[]): any {
         // if have a single input, check if it is a vector
         if (input.length === 1) {
             let inputTree = input[0].tree;
@@ -1064,17 +1115,41 @@ export function returnSymbolicFunctionForEvaluate({
             return me.fromAst("\uFF3F");
         }
 
-        let components = symbolicfs.map((f) => f(...input).tree);
+        const results = symbolicfs.map((f) => f(...input));
 
-        let value;
-        if (components.length === 1) {
-            value = me.fromAst(components[0]);
-        } else {
-            value = me.fromAst(["vector", ...components]);
+        // One component is the overwhelmingly common case, and it is already
+        // the expression we want: taking `.tree` and handing it straight back
+        // to `fromAst` is a full JSON round-trip through wasm that cannot
+        // change the value. This runs once per sample inside the extrema
+        // search, so the round-trip was costing hundreds of thousands of
+        // serializations on a single interpolated function.
+        if (results.length === 1) {
+            return results[0];
         }
 
-        return value;
+        return me.fromAst(["vector", ...results.map((r) => r.tree)]);
     };
+
+    // Some "symbolic" functions have no symbolic form to preserve — an
+    // interpolated function is a spline, and its symbolic entry is the numeric
+    // one wrapped in an unwrap/rewrap pair. Where every component says so by
+    // naming its `numericalCounterpart`, a numeric caller can have the float
+    // directly. This is not an approximation of the symbolic route: it is the
+    // same function with the two wrappings removed.
+    const counterparts = symbolicfs.map(
+        (component: any) => component.numericalCounterpart,
+    );
+    if (counterparts.every((c: any) => typeof c === "function")) {
+        (f as any).numeric = function (input: number[]): number | undefined {
+            if (input.length !== numInputs || counterparts.length !== 1) {
+                return undefined;
+            }
+            const value = counterparts[0](...input);
+            return typeof value === "number" ? value : NaN;
+        };
+    }
+
+    return f;
 }
 
 export function returnNumericFunctionForEvaluate({
@@ -1084,7 +1159,7 @@ export function returnNumericFunctionForEvaluate({
     numericalfs: NumericalFunction[];
     numInputs: number;
 }): VariableFunction {
-    return function (input: any[]): any {
+    const f = function (input: any[]): any {
         // if have a single input, check if it is a vector
         if (input.length === 1) {
             let inputTree = input[0].tree;
@@ -1128,6 +1203,22 @@ export function returnNumericFunctionForEvaluate({
 
         return value;
     };
+
+    // Numbers in, number out — the same evaluation with no expression built at
+    // either end, for numeric callers (see `evaluateChildToNumber`).
+    //
+    // `undefined` means "I can't answer this one, use the general route": a
+    // vector-valued function has no single number to return, and an arity
+    // mismatch is the vector-spread case, which needs the input's tree.
+    (f as any).numeric = function (input: number[]): number | undefined {
+        if (input.length !== numInputs || numericalfs.length !== 1) {
+            return undefined;
+        }
+        const value = numericalfs[0](...input);
+        return typeof value === "number" ? value : NaN;
+    };
+
+    return f;
 }
 
 export function returnBezierFunctions({

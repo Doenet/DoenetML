@@ -1559,6 +1559,15 @@ export default class Function extends InlineComponent {
                                 }
                                 return me.fromAst(numericalf(val));
                             };
+                            // This "symbolic" function is the numeric one with
+                            // an unwrap in front and a rewrap behind — an
+                            // interpolated function has no symbolic form to
+                            // preserve. Naming the function underneath lets a
+                            // caller that only wants a number call it directly
+                            // and skip both wrappings; the result is the same
+                            // float, not merely an equal one.
+                            symbolicfs[arrayKey].numericalCounterpart =
+                                numericalf;
                         } else {
                             symbolicfs[arrayKey] = (x) => me.fromAst("\uff3f");
                         }
@@ -2067,19 +2076,23 @@ export default class Function extends InlineComponent {
                                     // In this case, we won't use the value state variable
                                     // but instead will reevaluate.
                                     // Create a data structure with the info we'll need to reevaluate on function evaluation
+                                    // Compiled numeric evaluators: numbers in,
+                                    // number out. They serve as both routes,
+                                    // and taking the numeric one keeps the
+                                    // whole sample out of the engine.
+                                    const inputFs =
+                                        mathGrandChild.stateValues.inputMaths.map(
+                                            (x) =>
+                                                x.subscripts_to_strings().f(),
+                                        );
                                     evaluateChildrenToReevaluate[
                                         codePre + ind
                                     ] = {
                                         fReevaluate:
                                             mathGrandChild.stateValues
                                                 .fReevaluate,
-                                        inputMathFs:
-                                            mathGrandChild.stateValues.inputMaths.map(
-                                                (x) =>
-                                                    x
-                                                        .subscripts_to_strings()
-                                                        .f(),
-                                            ),
+                                        inputMathFs: inputFs,
+                                        inputNumericFs: inputFs,
                                     };
                                     needToReevaluate = true;
                                 } else {
@@ -2182,15 +2195,18 @@ export default class Function extends InlineComponent {
 
                             // We create the same data structure for the reevaluation, as above
 
+                            // As above: these are numeric evaluators, so the
+                            // numeric route applies.
+                            const inputFs =
+                                mathChild.stateValues.inputMaths.map((x) =>
+                                    x.subscripts_to_strings().f(),
+                                );
                             let evaluateChildrenToReevaluate = {
                                 code: {
                                     fReevaluate:
                                         mathChild.stateValues.fReevaluate,
-                                    inputMathFs:
-                                        mathChild.stateValues.inputMaths.map(
-                                            (x) =>
-                                                x.subscripts_to_strings().f(),
-                                        ),
+                                    inputMathFs: inputFs,
+                                    inputNumericFs: inputFs,
                                 },
                             };
 

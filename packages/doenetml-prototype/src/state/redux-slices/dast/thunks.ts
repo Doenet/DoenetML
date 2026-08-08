@@ -9,12 +9,20 @@ import { coreThunks, getWorker } from "../core/thunks";
 import { DoenetMLFlags } from "../../../DoenetML";
 import { _coreReducerActions } from "../core";
 import type { CoreType } from "../core/slice";
+import { initMathWasm } from "math-expressions";
 
 export const dastThunks = {
     setSource: createLoggingAsyncThunk(
         "dast/setSource",
         async (source: string, { dispatch, getState }) => {
             dispatch(_dastReducerActions._setSource(source));
+
+            // `@doenet/math` cannot compile its WASM core synchronously on the
+            // browser main thread, so a renderer that reaches for math there —
+            // `graph-point` does — throws until someone awaits the async
+            // compile. Started here so it overlaps the parse and the worker
+            // boot, awaited below so no renderer can run ahead of it.
+            const mathWasmReady = initMathWasm();
 
             // We parse the source string to get the DAST tree.
             // This will get sent to the webworker
@@ -30,6 +38,8 @@ export const dastThunks = {
             if (worker == null) {
                 throw new Error("No worker loaded");
             }
+
+            await mathWasmReady;
 
             try {
                 await worker.setSource({ source, dast: newDast });
