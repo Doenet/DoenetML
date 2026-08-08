@@ -1,5 +1,63 @@
 # @doenet/doenetml
 
+## 0.7.24
+
+### Patch Changes
+
+- 78516e9: Editor: suggest, describe, and insert only text that is actually a reference.
+
+    Autocomplete opened on every `.`, including one ending a sentence. It now opens only when the period continues an unfinished reference path — `$P.`, `$P.coords.`, `$rep[$i].`, `$(P.` — and a list that is already open closes as soon as the cursor leaves the name it is a list of names for, so typing `$P.(`, `$P."`, `$P. `, a second `.`, the `[` and `]` of an index, or anything but a name after a bare `$`, no longer leaves a stale list — or, once the reference is behind the cursor, the whole element menu — on screen.
+
+    Three places also offered the forms `$(P).coords` and `$P.(coords)`, which read as a reference followed by literal text: a macro ends at the `)` of `$(P)`, and the grammar has no parenthesized property form. Member completions, the help panel, and the annotation skeleton snippet now all use the form that works.
+
+    Completing a member into a path that needs the richer `$(…)` identifier syntax — because of a hyphen, say — rewrites the macro instead of parenthesizing one segment: accepting `my-p` after `$base.my` now gives `$(base.my-p)`, and accepting `p1` after `$s.sub-sec.` gives `$(s.sub-sec.p1)`. The help panel names paths the same way, the annotation skeleton writes `$(my-seg.endpoints[1].x)`, and completing a hyphenated name that takes an index inserts `$(my-rep[])` rather than `$(my-rep)[]`, whose macro ends before the index.
+
+- 182de88: Fix illegible link and text contrast in description panels, especially in dark mode. The panel is the info button/popover (inline) or expandable `<details>` (block) attached to an image, video, graph, or input, so the fix reaches all of them; the link color change reaches every `<ref>` link as well.
+
+    The attribution links generated from `licenseCodes` (and from `authorName`/`imageName`) were plain anchors with no color of their own, so they fell through to the browser's `#0000EE` — 1.2:1 against the dark panel, and worse once visited. `<ref>` links used `--mainBlue`, which is identical in both themes and reached only 1.6:1. Links now use a new `--linkText` custom property that differs per theme.
+
+    The panel also painted surfaces of its own (`--revealButtonSurface` for `<details>`, a hardcoded `hsl(204 4% 16%)` for the popover) rather than the canvas. Style-definition contrast is checked statically against the canvas, so authored text colors could clear that check and still be unreadable inside the description. Both surfaces now use `--canvas`/`--canvasText`, which makes the existing guarantee hold there. Since neither panel has a fill to set it apart, both are outlined with a new `--panelBorder` custom property that meets WCAG's 3:1 non-text contrast against the canvas, replacing the popover's hardcoded near-canvas border (and its arrow's matching stroke), which was all but invisible in either theme.
+
+- e973402: Editor: remove the small gap between the diagnostics/help panel's scrollbar and the editor's trailing edge.
+
+    The inline padding that insets the panel text was applied to the panel's non-scrolling wrapper, so it pushed the scrolling element — and with it the scrollbar — in from the editor's edge. The padding now lives on the panel content instead, leaving the scrollbar flush against the resizer while the text keeps the same inset.
+
+- bb2b146: Graph: stop axis tick spacing from flickering between two values while a point is dragged.
+
+    The number of minor ticks was chosen from the major-tick interval, but JSXGraph derives that interval from the number of minor ticks — it keeps a minimum pixel gap between minor ticks, so a larger minor count pushes the interval up. At some board scales the two never agree, and because the choice was remade on every render, the axis kept alternating between the two answers for as long as renders kept arriving. `<graph aspectRatio="2" ymin="-6" ymax="6" size="large">` was one such scale: dragging a point flipped the y axis between ticks every 2 and ticks every 1.
+
+    The minor-tick count is now chosen by evaluating the candidates rather than iterating toward a fixed point that may not exist, so it settles; and it is recomputed only when something it depends on — the region the board shows, the canvas it is drawn in, or the axes themselves — actually changes, rather than on every render.
+
+- c9dd764: Fix `<ol>`/`<ul>` list markers misaligning with a labeled `<choiceInput>` first child.
+
+    An `<ol><li>` whose first child was a labeled `<choiceInput>` (on its own or inside an `<answer>`) drew its "1." beside the first choice instead of beside the question label. The label was rendered in a `<legend>`, which a browser treats specially inside a list item: it aligns the item's marker with the content _after_ the legend. A `<choiceInput>` that leads a list item now renders its label in an equivalent `<div>` instead — same accessible name, same position on the line — so the marker stays on the label's row. This applies inside a real `<li>` only, and reaches the `<choiceInput>` through an `<answer>` and through wrapping components such as `<div>`, `<blockQuote>`, `<stack>`, and `<sideBySide>` panels. A `<problem asList>` section outside a list draws its own number, never had the quirk, and is unchanged.
+
+    A list item's first child also gets the spacing a section's first child has always had: its top margin is suppressed. That is invisible in most lists, where the margin already collapsed into the 16px spacing around it. Where it shows is a list that mixes item shapes — an item of plain text followed by an item starting with a block (`<p>`, `<pre>`, `<blockQuote>`, `<graph>`, `<image>`, `<video>`, `<spreadsheet>`, `<tabular>`) no longer leaves a blank line between the two, matching the spacing two plain-text items already had. Likewise, a `<sideBySide>` leading a list item now top-aligns its panels the way it does inside a `<problem>`/`<task>` rather than stretching them.
+
+    Known limitation: a hidden first child still counts as the item's first child, so `<li><p hide/><answer><choiceInput/></answer></li>` still puts the marker beside the first choice. This is pre-existing and shared with `<problem>`/`<task>` sections; until it is fixed, keep hidden content off the front of a list item.
+
+- d21fbc5: Fix `<odeSystem>` failing with "numeric is not defined" in the browser.
+
+    Any document containing an `<odeSystem>` rendered as that error banner instead of a document, and any graph of a solution drew no curve. The solver, `dopri`, comes from numeric.js, bundled inside math-expressions. numeric builds most of its helpers at load time with the `Function` constructor, and the generated bodies reference a bare `numeric` — resolvable only if numeric has registered itself on the global object. It did that solely through Node's `global`, which neither a browser main thread nor a web worker has, so every generated helper threw the first time it was called, and `dopri` reaches them immediately. The worker's evaluation and the main-thread renderer's curve sampling both went through that path, so both failed.
+
+    Fixed upstream in math-expressions 2.0.0-alpha95, which registers numeric itself; this bumps to it.
+
+- c39e46d: Add message catalogs for Ilocano, Waray, Hiligaynon, Kapampangan, Bikol, Balinese, Minangkabau, Acehnese, Madurese, Tetum, Tongan, Fijian, Tahitian, Chamorro and Tok Pisin.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="ilo"` and `<document lang="to">` work with nothing configured, and all fifteen reach `<document lang>`'s autocomplete.
+
+    The batch takes the roster across the Philippines, the Indonesian archipelago, Timor-Leste, Polynesia, Micronesia and Papua New Guinea, and it brings the first Bikol macrolanguage fold: `bcl`, `bto`, `cts` and the other members reach the Central Bikol catalog rather than falling to English.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+- 3a3acd3: Add a message catalog for Klingon, the roster's first constructed language.
+
+    `documentLocale="tlh"` and `<document lang="tlh">` work with nothing configured, and Klingon reaches `<document lang>`'s autocomplete. `tlh` is a registered IANA primary subtag, so it negotiates like any other individual language; `tlh-Piqd` reaches the Latin catalog, since Unicode does not encode pIqaD.
+
+    This is an **unreviewed machine-generated seed**, and every file says so in its header. It is also the first catalog that is partial for a lexical rather than a curricular reason: Klingon's lexicon is closed — every word in it is one Marc Okrand has published — so words such as _parabola_, _attribute_ and _variant_ simply do not exist. It translates 160 of the 562 keys, using Okrand's published geometry vocabulary where it exists («gho» circle, «mey'» polygon, «chav» function) and leaving the rest to English rather than inventing roots, which is what makes seeding safe here as everywhere else.
+
+    Markers and regions now build their one-colour description through the same message a stroke does. Every catalog writes that branch as the identity, so no language's output changes.
+
 ## 0.7.23
 
 ### Patch Changes
