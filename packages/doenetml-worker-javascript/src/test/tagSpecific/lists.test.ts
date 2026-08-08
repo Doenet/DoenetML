@@ -624,9 +624,9 @@ describe("List tag tests @group4", async () => {
     // Only a child's own `hide` counts, which is why `childRendersSomething()`
     // reads `hiddenIgnoreParent` and not `hidden`. Hiding the `<ol>` marks every
     // child of every item `hidden`, and the lead must not move: nothing is on
-    // screen to realign, and reading the inherited `hidden` here would also make
-    // a section's `childrenToHide` depend on the value it feeds (see
-    // `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`).
+    // screen to realign, and the lead this item shows once it is revealed must
+    // not depend on having been hidden. This test is the guard on that choice —
+    // it fails if `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY` becomes `hidden`.
     it("keeps the lead of a list item whose container is hidden", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -652,5 +652,35 @@ describe("List tag tests @group4", async () => {
                 .childrenToRenderInlineForListItem[0].componentIdx,
         ).eq(await resolvePathToNodeIdx("p1"));
         expect(p1.renderInlineForListItem).eq(true);
+    });
+
+    // The `<li>` half of the cycle guard in `sectioning.test.ts`. Asking a child
+    // for its visibility reaches that child's `hide`, which an author may point
+    // at another component's `hidden` — and `hidden` reads its parent's
+    // `childrenToHide`. `Li` defines no `childrenToHide`, so nothing closes the
+    // loop here; this pins that, so adding one to `Li` without splitting the
+    // request the way `SectioningComponent` does fails as a document that will
+    // not load rather than as a puzzling lead.
+    it("loads a list item whose child's hide references another child's hidden", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<ol>
+  <li name="li1">
+    <p name="a" hide="$b.hidden">Hidden whenever b is</p>
+    <p name="b" hide>Hidden</p>
+    <p name="c">Lead</p>
+  </li>
+</ol>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.hidden,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("li1")].stateValues
+                .childrenToRenderInlineForListItem[0].componentIdx,
+        ).eq(await resolvePathToNodeIdx("c"));
     });
 });

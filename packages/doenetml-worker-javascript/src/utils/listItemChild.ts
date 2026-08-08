@@ -16,25 +16,26 @@
  * resolves them as primitives and never looks a variable up on them.
  *
  * `hiddenIgnoreParent`, not `hidden`: the question here is whether *this* child
- * took itself off the screen, not whether an ancestor took the whole subtree
- * off it. If a list item is hidden, nothing in it renders and which child leads
- * it stops mattering; whereas asking `hidden` would be both wrong and unusable.
+ * took itself off the screen, not whether an ancestor took the whole subtree off
+ * it. If a list item is hidden, nothing in it renders and which child leads it
+ * stops mattering — but the lead it will show when it is revealed must not
+ * depend on having been hidden. `hidden` would move it: `<ol hide>`, a hidden
+ * section, and a `<cascade>` step whose children stay hidden until it is
+ * revealed all set their descendants' `hidden` while leaving
+ * `hiddenIgnoreParent` alone, so revealing the container would shift a number
+ * that had settled. The `<cascade>` and hidden-container tests in
+ * `cascade.test.ts`, `lists.test.ts` and `sectioning.test.ts` fail if this
+ * becomes `hidden`, which is the guard on that reasoning.
  *
- * Wrong because hiding a *container* would then change which child leads the
- * items inside it. `<ol hide>`, a hidden section, and a `<cascade>` step whose
- * children stay hidden until it is revealed all set their descendants' `hidden`
- * while leaving `hiddenIgnoreParent` alone, so with `hiddenIgnoreParent` those
- * items keep the lead they had — see the `<cascade>` and hidden-container tests
- * in `cascade.test.ts`, `lists.test.ts`, and `sectioning.test.ts`.
- *
- * Unusable because `hidden` depends on the parent's `childrenToHide`
- * (`BaseComponent`) while a section's `childIndicesToRender`/`firstVisibleChild`
- * and its `childrenToHide` are fed by one shared dependency helper
- * (`returnSectionChildDependencies()`) — asking `hidden` there makes
- * `childrenToHide` depend on the `hidden` it feeds, and the core refuses to load
- * a `<problem><task>` document at all, reporting a circular dependency between
- * them. `hiddenIgnoreParent` depends on neither, so it cycles nowhere. See
- * `BaseComponent`'s `hiddenIgnoreParent` and its use by `<choice>`'s `text`.
+ * `hidden` also drags in a dependency this has no use for. It reads its parent's
+ * `childrenToHide` (`BaseComponent`), which for a section's child is the very
+ * section asking the question, so a caller has to keep the two apart to stay
+ * acyclic — see `returnSectionChildDependencies()`, where asking for *any*
+ * visibility variable from `childrenToHide` closes a cycle. Measured, for the
+ * record: with that request confined to `childIndicesToRender`, switching this to
+ * `hidden` does not cycle, it just fails the tests above. The cycle and the
+ * semantics are separate arguments, and the semantics is the one that decides it.
+ * See `BaseComponent`'s `hiddenIgnoreParent` and its use by `<choice>`'s `text`.
  */
 export const LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY = {
     variableNames: ["hiddenIgnoreParent"],

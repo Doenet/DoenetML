@@ -1880,6 +1880,36 @@ describe("Sectioning tag tests @group3", async () => {
         );
         expect(lead.renderInlineForListItem).eq(true);
     });
+
+    // Asking for a child's `hiddenIgnoreParent` is not free: it reaches the
+    // child's `hide`, an author may point `hide` at another component's `hidden`,
+    // and `hidden` reads its parent's `childrenToHide`. So only
+    // `childIndicesToRender` may ask (see `returnSectionChildDependencies()`); if
+    // `childrenToHide` asks too, this document stops loading at all with a
+    // circular dependency, having loaded fine before the lead was ever picked by
+    // visibility.
+    it("loads a section whose child's hide references another child's hidden", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problem name="prob">
+  <p name="a" hide="$b.hidden">Hidden whenever b is</p>
+  <p name="b" hide>Hidden</p>
+  <p name="c">Lead</p>
+</problem>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prob =
+            stateVariables[await resolvePathToNodeIdx("prob")].stateValues;
+
+        // Both of the first two children are off screen, so the third leads.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.hidden,
+        ).eq(true);
+        expect(prob.firstVisibleChild.componentIdx).eq(
+            await resolvePathToNodeIdx("c"),
+        );
+    });
 });
 
 describe("Section heading color accessibility diagnostics @group3", async () => {

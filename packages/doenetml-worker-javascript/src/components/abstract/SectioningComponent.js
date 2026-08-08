@@ -55,27 +55,33 @@ import {
  * `rendererType`. They keep their slot in `allChildren` so the positions stay
  * aligned, and `nonConfigurationChildEntries()` filters them back out.
  *
- * `allChildren` also carries {@link LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY} so
+ * `includeChildVisibility` adds {@link LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY} so
  * that `firstVisibleChild` can skip a child that hid itself. Only
- * `childIndicesToRender` reads it; `childrenToHide` requesting it too is a
- * deliberate cost, not an oversight. The variable must stay `hiddenIgnoreParent`
- * and never become `hidden` (see the constant for why), and sharing the request
- * is what makes a switch to `hidden` fail immediately and unmistakably:
- * `childrenToHide` would then depend on the `hidden` it feeds, and no
- * `<problem><task>` document would load at all. Requesting it from
- * `childIndicesToRender` alone would break that cycle, leaving the wrong
- * variable to fail only as a handful of wrong lead assertions (the
- * hidden-container tests in `sectioning.test.ts` and `cascade.test.ts`) that a
- * later refactor could mistake for tests needing an update. The price of sharing
- * is that `childrenToHide` recomputes — to the same value — when a child's `hide`
- * toggles, which is cheap next to losing that signal.
+ * `childIndicesToRender` may pass it, and `childrenToHide` must not: asking a
+ * child for any visibility variable reaches that child's `hide` attribute, an
+ * author may point `hide` at another component's `hidden` (`hide="$b.hidden"` is
+ * ordinary DoenetML), and `hidden` reads its parent's `childrenToHide`. Were
+ * `childrenToHide` to ask, that closes into a cycle and the document does not
+ * load at all — see the test in `sectioning.test.ts`, which loaded fine before
+ * the lead was ever picked by visibility.
+ *
+ * The cycle is about *which state variable asks*, not about which visibility
+ * variable it asks for: `hiddenIgnoreParent` closes it from `childrenToHide` just
+ * as `hidden` would, through an author's `hide="$b.hidden"`. Confining the request
+ * to `childIndicesToRender` is therefore the whole fix, and the reason to prefer
+ * `hiddenIgnoreParent` over `hidden` is a separate, semantic one — see the
+ * constant.
  */
-function returnSectionChildDependencies() {
+function returnSectionChildDependencies({
+    includeChildVisibility = false,
+} = {}) {
     return {
         allChildren: {
             dependencyType: "child",
             includeAllChildren: true,
-            ...LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
+            ...(includeChildVisibility
+                ? LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY
+                : {}),
         },
         configurationChildren: {
             dependencyType: "child",
@@ -548,7 +554,12 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "child",
                     childGroups: ["titles"],
                 },
-                ...returnSectionChildDependencies(),
+                // The only state variable that may ask for its children's
+                // visibility — `childrenToHide` asking too would cycle. See
+                // `returnSectionChildDependencies()`.
+                ...returnSectionChildDependencies({
+                    includeChildVisibility: true,
+                }),
                 titleChildName: {
                     dependencyType: "stateVariable",
                     variableName: "titleChildName",
