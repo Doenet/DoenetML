@@ -123,24 +123,32 @@ export function verifyListItemNumberGutterSide(id, direction, minGutterPx = 1) {
  * itself on the marker's row and the `<ol>`/`<ul>` on every other row — the one
  * DOM-visible trace of the marker's position (measured in Chrome). Scanning the
  * gutter row by row recovers the band.
+ *
+ * Hit testing only reaches what is on screen, so the caller must have the rows
+ * of interest scrolled into view.
  */
 function findMarkerBand(li) {
     const doc = li.ownerDocument;
+    const view = doc.defaultView;
     const liBox = li.getBoundingClientRect();
     const listBox = li.parentElement.getBoundingClientRect();
-    const rtl = doc.defaultView.getComputedStyle(li).direction === "rtl";
+    const rtl = view.getComputedStyle(li).direction === "rtl";
     const gutter = rtl
         ? listBox.right - liBox.right
         : liBox.left - listBox.left;
 
     const xs = [];
     for (let inset = 3; inset < gutter; inset += 3) {
-        xs.push(rtl ? liBox.right + inset : liBox.left - inset);
+        const x = rtl ? liBox.right + inset : liBox.left - inset;
+        if (x >= 0 && x < view.innerWidth) {
+            xs.push(x);
+        }
     }
 
     let top = null;
     let bottom = null;
-    for (let y = Math.ceil(liBox.top); y < liBox.bottom; y += 1) {
+    const lastRow = Math.min(liBox.bottom, view.innerHeight);
+    for (let y = Math.max(Math.ceil(liBox.top), 0); y < lastRow; y += 1) {
         if (xs.some((x) => doc.elementFromPoint(x, y) === li)) {
             if (top === null) {
                 top = y;
@@ -168,6 +176,8 @@ function findMarkerBand(li) {
  */
 export function verifyListItemMarkerSharesRowWith(liId, targetSelector) {
     cy.get(targetSelector).should("be.visible");
+    // The marker is found by hit testing, which only sees the viewport.
+    cy.get(`#${cesc(liId)}`).scrollIntoView();
     cy.get(`#${cesc(liId)}`).should(($li) => {
         const li = $li[0];
         const target = li.ownerDocument.querySelector(targetSelector);
