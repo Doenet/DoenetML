@@ -4,38 +4,31 @@
  * from one that renders. Callers spread this rather than naming the variable
  * themselves, so that all of them ask the same question of the same variable.
  *
- * `variablesOptional` is what lets {@link childRendersSomething} tell its two
- * failure modes apart. `hiddenIgnoreParent` is defined on `BaseComponent`, so
- * every component child has it today; if some class ever stopped defining it,
- * this flag degrades that child to "not hidden" (`stateValues` present,
- * `hiddenIgnoreParent` `undefined`) instead of failing the whole document on a
- * missing state variable. A child arriving with no `stateValues` at all then
- * means only one thing — a call site that did not spread this — which is why
- * that case throws. Without the flag the two would be indistinguishable core
- * errors. String children are unaffected either way: a `child` dependency
- * resolves them as primitives and never looks a variable up on them.
- *
  * `hiddenIgnoreParent`, not `hidden`: the question here is whether *this* child
  * took itself off the screen, not whether an ancestor took the whole subtree off
- * it. If a list item is hidden, nothing in it renders and which child leads it
- * stops mattering — but the lead it will show when it is revealed must not
- * depend on having been hidden. `hidden` would move it: `<ol hide>`, a hidden
- * section, and a `<cascade>` step whose children stay hidden until it is
- * revealed all set their descendants' `hidden` while leaving
- * `hiddenIgnoreParent` alone, so revealing the container would shift a number
- * that had settled. The `<cascade>` and hidden-container tests in
- * `cascade.test.ts`, `lists.test.ts` and `sectioning.test.ts` fail if this
- * becomes `hidden`, which is the guard on that reasoning.
+ * it. Nothing in a hidden list item renders, so which child leads it does not
+ * matter while it is hidden — but the lead it shows once revealed must not depend
+ * on having been hidden. `hidden` would move it: `<ol hide>`, a hidden section,
+ * and a `<cascade>` step held back until earlier ones are done all set their
+ * descendants' `hidden` while leaving `hiddenIgnoreParent` alone. The
+ * hidden-container tests in `lists.test.ts` and `sectioning.test.ts` are the
+ * guard on that choice: they are what fails if this becomes `hidden`.
  *
- * `hidden` also drags in a dependency this has no use for. It reads its parent's
- * `childrenToHide` (`BaseComponent`), which for a section's child is the very
- * section asking the question, so a caller has to keep the two apart to stay
- * acyclic — see `returnSectionChildDependencies()`, where asking for *any*
- * visibility variable from `childrenToHide` closes a cycle. Measured, for the
- * record: with that request confined to `childIndicesToRender`, switching this to
- * `hidden` does not cycle, it just fails the tests above. The cycle and the
- * semantics are separate arguments, and the semantics is the one that decides it.
- * See `BaseComponent`'s `hiddenIgnoreParent` and its use by `<choice>`'s `text`.
+ * Not a cycle argument, measured: `hidden`'s dependency on the parent's
+ * `childrenToHide` (`BaseComponent`) closes a loop only when `childrenToHide` is
+ * itself the state variable doing the asking, which
+ * `returnSectionChildDependencies()` prevents for either variable. With that
+ * request confined to `childIndicesToRender`, `hidden` loads fine and simply
+ * fails those two tests. See `BaseComponent`'s `hiddenIgnoreParent` and its use
+ * by `<choice>`'s `text`.
+ *
+ * `variablesOptional` covers a class that does not define `hiddenIgnoreParent` —
+ * none does today, since `BaseComponent` defines it for all of them — by reading
+ * it as "not hidden" rather than failing the document on a missing state
+ * variable. It also leaves "component child with no `stateValues` at all"
+ * meaning exactly one thing; see {@link childRendersSomething}. String children
+ * are unaffected either way: a `child` dependency resolves them as primitives
+ * and never looks a variable up on them.
  */
 export const LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY = {
     variableNames: ["hiddenIgnoreParent"],
@@ -76,13 +69,15 @@ export const LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY = {
  * something not on the screen.
  *
  * A component child that arrives without `stateValues` is a call site that did
- * not spread it, and throws rather than falling back to "not hidden": the
- * fallback would hand back the pre-fix answer — exactly the misjudgment this
- * test exists to prevent — and would do it silently, so a fourth call site added
- * later would look correct and be wrong. It cannot fire for a call site that did
- * spread it: a `child` dependency that requests any variable gives every
- * component child a `stateValues` object (`Dependency.getValueNoProxy()`), empty
- * at worst.
+ * not spread it, and throws. A throw from a state-variable definition is not
+ * cheap — it aborts the document, and `CoreWorker` hands the message to the
+ * viewer as a failure to load the activity — but it is reachable only from a
+ * mistake in this file's own callers, where the first test that renders a list
+ * item hits it. Falling back to "not hidden" instead would silently restore the
+ * pre-fix answer, so a fourth call site would look correct and be wrong. It
+ * cannot fire for a call site that did spread it: a `child` dependency that
+ * requests any variable gives every component child a `stateValues` object
+ * (`Dependency.getValueNoProxy()`), empty at worst.
  */
 export function childRendersSomething(
     child: any,

@@ -1850,12 +1850,10 @@ describe("Sectioning tag tests @group3", async () => {
     });
 
     // Only the child's own `hide` counts. Hiding the container leaves the lead
-    // where it was: nothing in a hidden section is on screen, so there is
-    // nothing to realign, and reading the inherited `hidden` here would both
-    // move the lead of every hidden section and — because `hidden` depends on the
-    // parent's `childrenToHide`, which is fed by the same dependency helper —
-    // make the document fail to load at all. See
-    // `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`.
+    // where it was: nothing in a hidden section is on screen to realign, and the
+    // lead it shows once revealed must not depend on having been hidden. This is
+    // the guard on reading `hiddenIgnoreParent` rather than `hidden` — it is what
+    // fails if that changes. See `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`.
     it("keeps the lead of a list-item section whose container is hidden", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -1886,8 +1884,8 @@ describe("Sectioning tag tests @group3", async () => {
     // and `hidden` reads its parent's `childrenToHide`. So only
     // `childIndicesToRender` may ask (see `returnSectionChildDependencies()`); if
     // `childrenToHide` asks too, this document stops loading at all with a
-    // circular dependency, having loaded fine before the lead was ever picked by
-    // visibility.
+    // circular dependency, having loaded fine both before the lead was picked by
+    // visibility and after.
     it("loads a section whose child's hide references another child's hidden", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

@@ -654,13 +654,11 @@ describe("List tag tests @group4", async () => {
         expect(p1.renderInlineForListItem).eq(true);
     });
 
-    // The `<li>` half of the cycle guard in `sectioning.test.ts`. Asking a child
-    // for its visibility reaches that child's `hide`, which an author may point
-    // at another component's `hidden` — and `hidden` reads its parent's
-    // `childrenToHide`. `Li` defines no `childrenToHide`, so nothing closes the
-    // loop here; this pins that, so adding one to `Li` without splitting the
-    // request the way `SectioningComponent` does fails as a document that will
-    // not load rather than as a puzzling lead.
+    // The `<li>` half of the cycle guard in `sectioning.test.ts`.
+    // `hide="$b.hidden"` is ordinary DoenetML, and `hidden` reads its parent's
+    // `childrenToHide` — which `Li` does not define, so asking its children for
+    // their visibility closes no loop. This pins both halves of that: the
+    // document loads, and the lead skips past both hidden children.
     it("loads a list item whose child's hide references another child's hidden", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

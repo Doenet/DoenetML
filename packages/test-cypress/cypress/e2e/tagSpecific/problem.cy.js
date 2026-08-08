@@ -1665,6 +1665,60 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         verifyBeforeContent("problem2", '"2."');
     });
 
+    // `<cascadeMessage>` is the one child a section hides while showing
+    // everything else: its rule is inverted, so it is on screen exactly while the
+    // step around it is *not* revealed. That makes it the child that hides
+    // neither by kind nor by its own `hide`, and the only one the renderer used
+    // to drop while the core still handed it the lead — leaving the `<answer>`
+    // behind it with the top margin the item wanted suppressed.
+    it("a revealed step's hidden cascadeMessage does not take the lead", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade name="cascade">
+                <problem name="problem1">
+                    <cascadeMessage name="msg1">Finish the previous problem first</cascadeMessage>
+                    <answer name="ans1">
+                        <choiceInput name="ci1">
+                            <label>Label behind a hidden message</label>
+                            <choice credit="1">A</choice>
+                            <choice>B</choice>
+                        </choiceInput>
+                    </answer>
+                </problem>
+                <problem name="problem2">
+                    <cascadeMessage name="msg2">Finish the previous problem first</cascadeMessage>
+                    <p name="lead2">Later step</p>
+                </problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#problem1").should("exist");
+
+        // The first step is revealed, so its message is hidden and the
+        // `<answer>` behind it is the child whose top margin is suppressed.
+        cy.get("#msg1").should("not.exist");
+        cy.get(`#${cesc("ans1")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+        verifyBeforeContent("problem1", '"1."');
+
+        // The step still to come is the mirror image: the message shows and the
+        // content does not, and with every child hidden there is no lead.
+        cy.get("#msg2").should("exist");
+        cy.get("#lead2").should("not.exist");
+        verifyBeforeContent("problem2", '"2."');
+    });
+
     // ---------------------------------------------------------------------
     // Outcome-based list-item number alignment (regression guard for #1482).
     //

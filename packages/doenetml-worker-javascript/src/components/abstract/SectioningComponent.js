@@ -61,16 +61,14 @@ import {
  * child for any visibility variable reaches that child's `hide` attribute, an
  * author may point `hide` at another component's `hidden` (`hide="$b.hidden"` is
  * ordinary DoenetML), and `hidden` reads its parent's `childrenToHide`. Were
- * `childrenToHide` to ask, that closes into a cycle and the document does not
- * load at all — see the test in `sectioning.test.ts`, which loaded fine before
- * the lead was ever picked by visibility.
+ * `childrenToHide` to ask, it would depend on the value it feeds and the document
+ * would not load at all — see the test in `sectioning.test.ts`, whose document
+ * loads on both sides of this change but not if the request is shared.
  *
- * The cycle is about *which state variable asks*, not about which visibility
- * variable it asks for: `hiddenIgnoreParent` closes it from `childrenToHide` just
- * as `hidden` would, through an author's `hide="$b.hidden"`. Confining the request
- * to `childIndicesToRender` is therefore the whole fix, and the reason to prefer
- * `hiddenIgnoreParent` over `hidden` is a separate, semantic one — see the
- * constant.
+ * That is about *which state variable asks*, not which visibility variable it
+ * asks for: `hiddenIgnoreParent` closes the loop from `childrenToHide` just as
+ * `hidden` would, through an author's `hide="$b.hidden"`. The reason to prefer
+ * `hiddenIgnoreParent` over `hidden` is separate and semantic — see the constant.
  */
 function returnSectionChildDependencies({
     includeChildVisibility = false,
@@ -599,11 +597,11 @@ export class SectioningComponent extends BlockComponent {
                 //     entirely, since a collapsed `<cascade>` step shows no child
                 //     at all.
                 //
-                // A child hidden by something *above* this section is a
-                // deliberate non-case: hiding the section, or the container
-                // around it, leaves the lead alone, because nothing in it is on
-                // screen to realign and because reading the inherited `hidden`
-                // here would cycle (see `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`).
+                // A child hidden from *above* — this section, or a container
+                // around it — is a deliberate non-case: nothing in it is on
+                // screen to realign, and the lead it shows once revealed must not
+                // depend on having been hidden. See
+                // `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`.
                 let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
@@ -787,7 +785,10 @@ export class SectioningComponent extends BlockComponent {
                 // is a component object (not plain text). `!= null` first,
                 // because `typeof null === "object"`: a section with no visible
                 // child at all — every child hidden, or none that renders — has
-                // no first child to adjust.
+                // no first child to adjust. The renderer reads this flag only
+                // where `useListItemGridLayout` is set, which is already false in
+                // that case, so the guard keeps the state variable honest rather
+                // than fixing anything visible today.
                 const firstVisibleChildAdjustedForListItem = Boolean(
                     dependencyValues.nonBoxedListItemWithoutTitle &&
                     dependencyValues.firstVisibleChild != null &&
