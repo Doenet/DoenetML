@@ -79,9 +79,9 @@
 # red, be orange) and «SuD» (be green, be blue, be yellow — one term across all
 # three). The twelve keys English distinguishes collapse onto those four.
 #
-# Two of the twelve go beyond even that. Canon «Doq» is the red-orange range,
-# and nothing canon covers brown, purple or pink; putting them under «Doq» is
-# this file choosing the nearest of the four rather than reporting a Klingon
+# Three of the twelve go beyond even that. Canon «Doq» is the red-orange range,
+# and nothing canon covers brown, purple or pink; putting all three under «Doq»
+# is this file choosing the nearest of the four rather than reporting a Klingon
 # fact, and it is the first thing a speaker should overrule.
 #
 # The collapse is left standing rather than repaired, and the reason is the one
@@ -306,7 +306,8 @@ paginator-page-status = { $pageLabel } { $currentPage }, Hoch { $numPages }
 ## Piecewise functions
 
 # «pagh» is the conjunction «or» that joins sentences, which is what a piecewise
-# condition is; «joq» is its noun-joining counterpart and would be wrong here.
+# condition is. Klingon keeps two sets of conjunctions, and the noun set —
+# «je», «joq», «ghap» — would be wrong here whichever of them was picked.
 # It is a homophone of the «pagh» (nothing) that `style-background-none` uses,
 # and the two are unrelated words.
 #

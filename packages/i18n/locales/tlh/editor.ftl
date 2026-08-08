@@ -84,9 +84,9 @@ editor-format-as-xml = XML yIlIS
 
 editor-diagnostic-line = { $line } tlhegh
 
-# «tu'lu'be'» is «one does not find it» — Klingon's way of saying *none*, with
-# the indefinite subject «-lu'» ahead of the negation «-be'», which is the order
-# the suffix types put them in.
+# «tu'lu'be'» is «one does not find it» — Klingon's way of saying *none*. «-be'»
+# is a rover, which is placed directly after whatever it negates, so it follows
+# the indefinite subject «-lu'» here rather than sitting at a fixed slot.
 editor-no-errors = Qagh tu'lu'be'
 editor-no-warnings = ghuHmoHwI' tu'lu'be'
 editor-no-info = De' tu'lu'be'

@@ -527,21 +527,19 @@ complete, because a button is a verb and Klingon is rich in verbs of acting and
 judging, while `diagnostics.ftl` is the emptiest file in the repository, because
 its two hundred messages are built out of nouns.
 
-**Four colour words for twelve keys** is the sharpest instance. Klingon's basic
-terms are «qIj» (black), «chIS» (white), «Doq» (be red, be orange) and «SuD»,
-which covers green, blue and yellow together. The twelve keys collapse onto
-those four, and `locales/tlh` leaves the collapse standing — and two of them go
-further than the four reach, since nothing canon covers brown, purple or pink
-and the catalog files them under the nearest term rather than coining three.
-Its header says so, which is the standard a seed is held to. Tongan, Fijian and Tahitian met the mild form of this, one key sitting
-inside a neighbour's word; this is the same thing at full size, and it costs
-something the milder cases did not: these descriptions exist so that a reader who
-cannot see a graph can tell its objects apart, and after the collapse a blue
-curve and a green one report the same word. A deployment that needs the
-distinction supplies coined terms as `localeResources`, which is where an
-invention belongs — in front of the readers who asked for it rather than in
-front of everyone. `styleDescriptions.test.ts` pins all twelve, so the day
-someone does coin them, the test says which distinctions they bought.
+**Four colour words for twelve keys** is the sharpest instance, and the one
+that costs something: Klingon's basic terms are «qIj», «chIS», «Doq» and «SuD»,
+so after the collapse a blue curve and a green one report the same word, in
+strings whose whole purpose is letting a reader who cannot see the graph tell
+its objects apart. Tongan, Fijian and Tahitian met the mild form of this — one
+key inside a neighbour's word — and this is the same thing at full size. The
+collapse is left standing anyway, because eight coined colour words would be
+eight inventions; a deployment that needs the distinction supplies them as
+`localeResources`, in front of the readers who asked for it rather than in
+front of everyone. `content.ftl`'s header gives the mapping and says which
+entries are a choice rather than a Klingon fact, and
+`styleDescriptions.test.ts` pins all twelve, so the day someone does coin them
+the test says which distinctions they bought.
 
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
@@ -907,14 +905,14 @@ existing catalog needs and this one would use on the day it lands.
 relative clause.** What English writes as an adjective is a verb of quality
 there, and TKD describes putting one of them directly after the noun it
 modifies — «tlhegh Doq», a red line — giving no way to chain three, which is
-what `style-stroke`'s widest branch needs. `locales/tlh` writes «-bogh» on each verb, «'ej»
-between them, and stands the whole clause in front of the noun:
+what `style-stroke`'s widest branch needs. `locales/tlh` writes «-bogh» on each
+verb, «'ej» between them, and stands the whole clause in front of the noun:
 «tInbogh 'ej pe'lu'bogh 'ej Doqbogh tlhegh». That puts Klingon on the prenominal
-side with the Philippine catalogs and for a reason none of them shares, and it
-is why the catalog needs no `$role` fork — the *position* is handled by the
-message that composes the phrase rather than by the word inside it, so its
-tables can hold bare verbs that double as the citation form a state variable
-reports.
+side with the Philippine catalogs and Tok Pisin, for a reason none of them
+shares, and it is why the catalog needs no `$role` fork — the *position* is
+handled by the message that composes the phrase rather than by the word inside
+it, so its tables can hold bare verbs that double as the citation form a state
+variable reports.
 
 It also turned an accident into an invariant. **`style-with-noun`'s
 `$description` is always `style-stroke`'s output, never a word looked up on its
@@ -979,12 +977,12 @@ Hungarian, Finnish, Czech, Slovak and Romanian.
 A placeable is a value the catalog never sees. So a message may not depend on
 what that value turns out to *be*:
 
-| The catalog wants                 | The language                       | Why it cannot                                                                              |
-| --------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------ |
-| a case ending on the value        | `ar`, `ug`, `hu`, `fi`, `ta`, `te` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
-| the definite article on the value | `ro`                               | the article is a suffix — «secțiune» → «secțiunea»                                         |
-| a preposition before the value    | `cs`, `sk`                         | «v»/«ve» and «s»/«se» vocalize according to what follows                                   |
-| a compound with the value         | `fi`                               | Finnish writes a compound as one word                                                      |
+| The catalog wants | The language | Why it cannot |
+| --- | --- | --- |
+| a case ending on the value | `ar`, `ug`, `hu`, `fi`, `ta`, `te` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
+| the definite article on the value | `ro` | the article is a suffix — «secțiune» → «secțiunea» |
+| a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
+| a compound with the value | `fi` | Finnish writes a compound as one word |
 
 Adjacency is not the problem. `{ $numSides }-kulmio` is correct Finnish for
 every side count, because `-kulmio` is the same whatever number lands in front
@@ -1055,12 +1053,12 @@ the side count, whose two CLDR plural categories *are* its two linkers. What the
 Austronesian batch adds is the five Philippine catalogs side by side, which is
 what shows that they do not all resolve it the same way:
 
-|              | The linker    | Decided by             | Resolution                                                   |
-| ------------ | ------------- | ---------------------- | ------------------------------------------------------------ |
+| | The linker | Decided by | Resolution |
+| --- | --- | --- | --- |
 | `war`, `hil` | «nga» / `-ng` | the word **before** it | write the free «nga», which is grammatical in both positions |
-| `ilo`        | «a» / «nga»   | the word **after** it  | no invariant form exists; write «a» and name the exception   |
-| `pam`        | «a» / `-ng`   | the word **before** it | no invariant form exists; write «a» and name the exception   |
-| `bik`        | «na» / `-ng`  | the word **before** it | no invariant form exists; write «na» and name the exception  |
+| `ilo` | «a» / «nga» | the word **after** it | no invariant form exists; write «a» and name the exception |
+| `pam` | «a» / `-ng` | the word **before** it | no invariant form exists; write «a» and name the exception |
+| `bik` | «na» / `-ng` | the word **before** it | no invariant form exists; write «na» and name the exception |
 
 Two of the five escape it outright, which is the useful half: Bisayan «nga» is a
 free word in both positions, so writing it out is not a compromise but the form
@@ -1497,14 +1495,14 @@ an Arabic sentence and the mathematics beside it count in the same characters.
 and almost nothing else, and the catalogs differ from each other far more than
 they differ from `de` or `es`:
 
-|                  | Adjectives       | Gender | Plural categories |
-| ---------------- | ---------------- | ------ | ----------------- |
-| `ar`             | follow the noun  | m/f    | six               |
-| `he`             | follow the noun  | m/f    | three             |
-| `fa`             | follow the noun  | none   | two               |
-| `ur`, `ps`, `sd` | precede the noun | m/f    | two               |
-| `ug`             | precede the noun | none   | two               |
-| `yi`             | precede the noun | m/f/n  | two               |
+| | Adjectives | Gender | Plural categories |
+| --- | --- | --- | --- |
+| `ar` | follow the noun | m/f | six |
+| `he` | follow the noun | m/f | three |
+| `fa` | follow the noun | none | two |
+| `ur`, `ps`, `sd` | precede the noun | m/f | two |
+| `ug` | precede the noun | none | two |
+| `yi` | precede the noun | m/f/n | two |
 
 `ur` is the outlier worth knowing about: its grammar is `hi`'s, so
 `locales/hi` is the closest thing to a parallel text for it and a correction to

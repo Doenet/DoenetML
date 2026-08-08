@@ -103,8 +103,8 @@ description-more-information = De' latlh
 slider-previous = vebHa'
 slider-next = veb
 
-# «ghItlhwI'» is «writing instrument», which is the nearest canon word to a
-# keyboard.
+# «ghItlhwI'» — «that which writes», from the canon «ghItlh» (write) with «-wI'»
+# — is this file's own for a keyboard. Klingon has no word for one.
 keyboard-open = ghItlhwI' yIpoSmoH
 keyboard-close = ghItlhwI' yISoQmoH
 

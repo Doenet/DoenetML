@@ -1372,13 +1372,6 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
     });
 
     /**
-     * The five nouns it does have, and the border clause built with «je» — the
-     * noun conjunction, which follows what it joins. Klingon has no article and
-     * «je» opens no clause, so `style-border-clause`'s four branches say one
-     * thing; this is the string that would change if someone gave three of them
-     * a distinction the language does not draw.
-     */
-    /**
      * The invariant `attachNoun` now documents, seen from the catalog's side. A
      * marker and a region look up one colour and nothing else, and before this
      * they handed that raw word to `style-with-noun` while a stroke handed over
@@ -1405,6 +1398,13 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
         ).toBe("SuDbogh yer");
     });
 
+    /**
+     * The border clause is built with «je» — the noun conjunction, which
+     * follows what it joins. Klingon has no article and «je» opens no clause,
+     * so `style-border-clause`'s four branches all say the same thing; this is
+     * the string that would change if someone gave three of them a distinction
+     * the language does not draw.
+     */
     it("closes a filled shape with the noun conjunction je", () => {
         expect(
             describeClosedShape(

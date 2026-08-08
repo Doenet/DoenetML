@@ -458,11 +458,12 @@ describe("style descriptions follow the document locale @group4", () => {
         // «'ej», and puts the whole clause in front of the noun.
         expect(values.st).eq("tInbogh 'ej pe'lu'bogh 'ej Doqbogh");
         expect(values.stn).eq("tInbogh 'ej pe'lu'bogh 'ej Doqbogh tlhegh");
-        // Two things this string pins at once. «SuD» covers green, blue,
-        // yellow and cyan together — four of the twelve colour keys collapsing
-        // onto one of Klingon's four basic terms — and «square» is one of the
-        // thirteen nouns the catalog leaves to English, because a word for it
-        // would be an invented root rather than a compound of canon words.
+        // Two things this string pins at once. Canon «SuD» is green, blue and
+        // yellow at once, and the catalog files cyan under it too — four of the
+        // twelve colour keys collapsing onto one of Klingon's four basic
+        // terms — and «square» is one of the thirteen nouns the catalog leaves
+        // to English, because a word for it would be an invented root rather
+        // than a compound of canon words.
         expect(values.pt).eq("SuDbogh square");
         expect(values.sh).eq(
             "buy'bogh 'ej SuDbogh 'ej nagHommey ngaSbogh circle tInbogh 'ej pe'lu'bogh 'ej Doqbogh HeH je",
