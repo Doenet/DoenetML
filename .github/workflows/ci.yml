@@ -318,6 +318,12 @@ jobs:
                       # This package runs tests in a headless browser. If it can run, the other tests should too.
                       npm run build -w packages/doenetml-to-pretext
                       npm run test -w packages/doenetml-to-pretext
+
+                      # Verify Cypress works in the devcontainer
+                      # Succeeds with system chrome install, but fails without it.
+                      # This is a sanity check that the devcontainer has all the dependencies needed to run Cypress
+                      # consistently with the GitHub Actions runner.
+                      npm run test:codemirror-cypress
                   '
 
     test-doenetml-to-pretext-full-devcontainer:
