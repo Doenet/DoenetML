@@ -6,8 +6,11 @@ import type { DastElement } from "@doenet/parser";
 import { buildEffectiveMathInputFunctionNames } from "@doenet/utils/components/mathInputFunctionNames";
 import {
     AutoCompleter,
+    isParenthesizedRefMacro,
+    segmentFitsBareMacro,
     type AliasedElementSchema,
     type CompletionContext,
+    type RefMemberCompletionContext,
     type ElementSchema,
     type SchemaAttribute,
     type SchemaProperty,
@@ -478,20 +481,22 @@ function fullIdentifierAtOffset(
 }
 
 /**
- * Detect whether the segment under the cursor sits inside a `$(...)` macro,
- * by checking whether the char immediately before `replaceFromOffset` is `(`.
- * This is the same signal `getCompletionContext` uses to choose the macro
- * char class for `replaceFromOffset` and `typedPrefix`.
+ * Detect whether the name starting at `nameOffset` is the one right after a
+ * macro's `$(`, which decides the char class it is read with — hyphens are
+ * legal in `$(foo-bar)` and not in `$foo`.
+ *
+ * Only ever asked of the first segment of a path, where the macro's opening
+ * punctuation is the character in front. A *member* segment reads its form off
+ * the completion context instead, since the `(` is several segments to its
+ * left and the path in between can contain a `$` of its own (`$(rep[$i].x`).
  */
-function isParenthesizedSegment(
-    source: string,
-    replaceFromOffset: number,
-): boolean {
-    return source.charAt(replaceFromOffset - 1) === "(";
+function isParenthesizedMacroName(source: string, nameOffset: number): boolean {
+    return (
+        source.charAt(nameOffset - 1) === "(" &&
+        source.charAt(nameOffset - 2) === "$"
+    );
 }
 
-const SIMPLE_IDENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])*$/;
 /** Global match for individual `[...]` groups so we can count them per segment. */
 const BRACKET_INDEX_ALL_REGEX = /\[[^\]]*\]/g;
 
@@ -508,19 +513,15 @@ function countBracketIndices(rawSegment: string | undefined): number {
 }
 
 /**
- * Wrap a path segment's name in parens if it isn't a SimpleIdent (e.g.,
- * contains hyphens), mirroring the grammar that requires `$(foo-bar)` over
- * `$foo-bar`. Trailing bracket-index suffixes are kept outside the parens
- * (`rep[1]` stays as `rep[1]`, never `(rep[1])`). Used to format
- * `displayPath` for the help-panel sentence so it renders the same syntax
- * the author would type.
+ * Render a whole macro path the way the author would have to type it.
+ *
+ * Parentheses go around the *path*, not around a segment: the grammar's
+ * parenthesized form is `$(a.my-b)`, and neither `$a.(my-b)` nor `$(a).my-b`
+ * is a reference. So one hyphenated segment anywhere parenthesizes everything.
  */
-function formatPathSegment(segment: string): string {
-    const bracketSuffix = segment.match(BRACKET_INDEX_SUFFIX_REGEX)?.[0] ?? "";
-    const baseName = segment.slice(0, segment.length - bracketSuffix.length);
-    return SIMPLE_IDENT_REGEX.test(baseName)
-        ? segment
-        : `(${baseName})${bracketSuffix}`;
+function formatMacroPath(segments: readonly string[]): string {
+    const path = segments.join(".");
+    return segments.every(segmentFitsBareMacro) ? path : `(${path})`;
 }
 
 /**
@@ -966,13 +967,11 @@ function tryArrayEntryHelp(
     // rather than `points[…].x`, and `arr[0][2].z` rather than collapsing
     // both indices). `rawPathParts` is position-aligned with `pathParts`,
     // so slicing from `arrayPropPathIndex` picks the array-prop segment
-    // through the cursor's `memberName`. Hyphenated names are paren-wrapped
-    // by `formatPathSegment` so the rendering matches what the author
-    // would actually have to type.
-    const displayTail = ctx.rawPathParts
-        .slice(arrayPropPathIndex)
-        .map(formatPathSegment)
-        .join(".");
+    // through the cursor's `memberName`. This is a tail of a path rather
+    // than a whole one — it is rendered on its own, without a `$` — so no
+    // parentheses go around it; every segment here is a schema property or
+    // index alias, all of which are SimpleIdents anyway.
+    const displayTail = ctx.rawPathParts.slice(arrayPropPathIndex).join(".");
 
     return {
         kind: "arrayEntry",
@@ -994,19 +993,15 @@ function tryArrayEntryHelp(
 async function helpForRefMember(
     completer: AutoCompleter,
     offset: number,
-    ctx: {
-        typedPrefix: string;
-        replaceFromOffset: number;
-        pathParts: string[];
-        pathPartHasIndex: boolean[];
-        rawPathParts: string[];
-    },
+    ctx: RefMemberCompletionContext,
 ): Promise<HelpContent> {
     const memberName = fullIdentifierAtOffset(
         completer.source,
         ctx.replaceFromOffset,
         offset,
-        isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
+        // Every segment of the parenthesized form reads with the richer
+        // `Ident` char class, members included.
+        isParenthesizedRefMacro(ctx),
     );
     if (!memberName) return NONE;
     return await helpForRefMemberByName(completer, offset, ctx, memberName);
@@ -1015,18 +1010,13 @@ async function helpForRefMember(
 /**
  * Build the `displayPath` for a member-help payload by joining the raw path
  * prefix (with authored bracket indices preserved) and replacing the final
- * segment with the resolved `memberName`. Every segment is passed through
- * `formatPathSegment` so hyphenated names get re-wrapped in parens
- * (`getCompletionContext` strips parens during normalization).
+ * segment with the resolved `memberName`.
  */
 function buildMemberDisplayPath(
     rawPathParts: readonly string[],
     memberName: string,
 ): string {
-    return [
-        ...rawPathParts.slice(0, -1).map(formatPathSegment),
-        formatPathSegment(memberName),
-    ].join(".");
+    return formatMacroPath([...rawPathParts.slice(0, -1), memberName]);
 }
 
 /**
@@ -1046,7 +1036,7 @@ async function unresolvedRefForChain(
     if (reason !== "notFound" && reason !== "multiple") return null;
     return {
         kind: "unresolvedRef",
-        displayPath: ctx.rawPathParts.map(formatPathSegment).join("."),
+        displayPath: formatMacroPath(ctx.rawPathParts),
         reason,
     };
 }
@@ -1246,7 +1236,7 @@ async function helpForRefName(
         completer.source,
         ctx.replaceFromOffset,
         offset,
-        isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
+        isParenthesizedMacroName(completer.source, ctx.replaceFromOffset),
     );
     if (!refName) return NONE;
     return await helpForRefNameByName(completer, offset, refName);
@@ -1267,7 +1257,7 @@ async function helpForRefNameByName(
         return {
             kind: "refName",
             refName,
-            displayPath: formatPathSegment(refName),
+            displayPath: formatMacroPath([refName]),
             targetElementName: referent.name,
             line,
         };
@@ -1281,7 +1271,7 @@ async function helpForRefNameByName(
         return {
             kind: "refName",
             refName,
-            displayPath: formatPathSegment(refName),
+            displayPath: formatMacroPath([refName]),
             // `targetElementName` is the binding's introducer — the only static,
             // always-correct answer (the iteration value's type is dynamic).
             targetElementName: derived.owner.name,
@@ -1307,7 +1297,7 @@ async function helpForRefNameByName(
     if (reason === "found") return NONE;
     return {
         kind: "unresolvedRef",
-        displayPath: formatPathSegment(refName),
+        displayPath: formatMacroPath([refName]),
         reason,
     };
 }

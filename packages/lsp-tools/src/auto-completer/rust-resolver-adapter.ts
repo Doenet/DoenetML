@@ -626,8 +626,7 @@ export class RustResolverAdapter {
         const lookupParts = pathParts.slice(0, -1);
         if (lookupParts.length === 0) return null;
 
-        // Determine origin: the Rust index of the enclosing element.
-        const originIndex = this._getOriginIndex(offset);
+        const originIndex = this._referenceOriginIndex(offset);
         if (originIndex == null) return null;
 
         const effectivePathPartHasIndex =
@@ -867,20 +866,6 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Get the Rust flat index to use as the origin for resolve_path.
-     * Uses the nearest enclosing element of the given offset, falling
-     * back to a mapped top-level element when the cursor is at root level.
-     */
-    _getOriginIndex(offset: number): number | null {
-        const containingElement = this._sourceObj.elementAtOffset(offset);
-        if (containingElement) {
-            const idx = this._dastElementToRustIndex.get(containingElement);
-            if (idx != null) return idx;
-        }
-        return this._getRootOriginIndex();
-    }
-
-    /**
      * Normalize parsed ref path metadata before resolver lookup.
      *
      * Some parser/fallback paths can drop the final empty segment when the
@@ -1050,9 +1035,9 @@ export class RustResolverAdapter {
      *
      * Resolves the FULL path (unlike member-container resolution, which chops
      * the last segment), with empty bracket indices — matching how
-     * `_resolveRefMemberContainer` builds its flat path. Mirrors
-     * `isNameAddressableFromOffset`'s origin selection so the scope probed
-     * matches what a reference typed at `offset` would actually see.
+     * `_resolveRefMemberContainer` builds its flat path. Picks its origin with
+     * `_referenceOriginIndex`, like the other reference lookups, so the scope
+     * probed matches what a reference typed at `offset` would actually see.
      */
     async classifyReferenceFromOffset(
         offset: number,

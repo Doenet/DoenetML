@@ -79176,8 +79176,8 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ]
                 },
                 "forAnswer": {
@@ -79651,8 +79651,8 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ]
                 },
                 "forAnswer": {
@@ -101439,8 +101439,8 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ]
                 },
                 "forAnswer": {
@@ -102321,8 +102321,8 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ]
                 },
                 "forAnswer": {
@@ -102923,8 +102923,8 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ]
                 },
                 "forAnswer": {
@@ -103490,8 +103490,8 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ]
                 },
                 "forAnswer": {
@@ -111834,19 +111834,28 @@
                 "halign": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "start",
+                        "center",
+                        "end",
+                        "justify"
                     ]
                 },
-                "bottom": {
+                "bottomBorder": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
                     ]
                 },
-                "right": {
+                "endBorder": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
                     ]
                 },
                 "prefill": {
@@ -112621,19 +112630,19 @@
                     "name": "halign",
                     "type": "text",
                     "isArray": false,
-                    "description": "Horizontal alignment of the cell's content (left, center, or right)."
+                    "description": "Horizontal alignment of the cell's content (start, center, end, or justify)."
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the cell."
                 },
                 {
-                    "name": "right",
+                    "name": "endBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the right edge of the cell."
+                    "description": "Border style for the trailing edge of the cell: its right edge in a left-to-right document, its left edge in a right-to-left one."
                 },
                 {
                     "name": "inHeader",
@@ -112740,25 +112749,36 @@
                 "halign": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "start",
+                        "center",
+                        "end",
+                        "justify"
                     ]
                 },
                 "valign": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "top",
+                        "middle",
+                        "bottom"
                     ]
                 },
-                "left": {
+                "startBorder": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
                     ]
                 },
-                "bottom": {
+                "bottomBorder": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
                     ]
                 },
                 "functionSymbols": {
@@ -112876,13 +112896,13 @@
                     "description": "Default vertical alignment for cells in this row."
                 },
                 {
-                    "name": "left",
+                    "name": "startBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the left edge of the row."
+                    "description": "Border style for the leading edge of the row: its left edge in a left-to-right document, its right edge in a right-to-left one."
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the row."
@@ -113295,9 +113315,9 @@
                 "halign": {
                     "optional": true,
                     "type": [
-                        "left",
+                        "start",
                         "center",
-                        "right",
+                        "end",
                         "justify"
                     ]
                 },
@@ -113309,7 +113329,7 @@
                         "bottom"
                     ]
                 },
-                "top": {
+                "topBorder": {
                     "optional": true,
                     "type": [
                         "none",
@@ -113318,7 +113338,7 @@
                         "major"
                     ]
                 },
-                "left": {
+                "startBorder": {
                     "optional": true,
                     "type": [
                         "none",
@@ -113327,7 +113347,7 @@
                         "major"
                     ]
                 },
-                "bottom": {
+                "bottomBorder": {
                     "optional": true,
                     "type": [
                         "none",
@@ -113336,7 +113356,7 @@
                         "major"
                     ]
                 },
-                "right": {
+                "endBorder": {
                     "optional": true,
                     "type": [
                         "none",
@@ -113406,31 +113426,31 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "top",
+                    "name": "topBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the top edge of the layout.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "left",
+                    "name": "startBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the left edge of the layout.",
+                    "description": "Border style for the leading edge of the layout: its left edge in a left-to-right document, its right edge in a right-to-left one.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the layout.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "right",
+                    "name": "endBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the right edge of the layout.",
+                    "description": "Border style for the trailing edge of the layout: its right edge in a left-to-right document, its left edge in a right-to-left one.",
                     "fromAttribute": true
                 },
                 {
@@ -141697,8 +141717,8 @@
                     "optional": true,
                     "type": [
                         "bottom",
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ]
                 },
                 "readOnly": {

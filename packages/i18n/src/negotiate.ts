@@ -24,13 +24,167 @@ export type NegotiateLocalesOptions = {
  * and would fall to English with nothing to say why. `nn` is deliberately
  * absent: Nynorsk is a written standard of its own, and answering it with
  * Bokmål would be a substitution rather than a canonicalization.
+ *
+ * `tw` is the retired ISO 639-1 code for Twi, and `ak` — Akan, which Twi is a
+ * variety of — is the catalog it should reach. `Intl.getCanonicalLocales`
+ * leaves `tw` alone, so without this entry a hand-typed `<document lang="tw">`
+ * falls to English. `fat` is deliberately absent: Fante is a written standard
+ * of its own and `locales/ak` is written in Asante Twi, so answering Fante
+ * with it would be the substitution `nn` is kept out for.
+ *
+ * A member code of a macrolanguage is handled by {@link MACROLANGUAGE_MEMBERS}
+ * instead: there are hundreds of them, and membership is a published fact rather
+ * than a judgement made here.
  */
-const LANGUAGE_ALIASES: Record<string, string> = { no: "nb" };
+const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
+
+/**
+ * Individual-language codes folded onto the wider code this repository names a
+ * catalog after.
+ *
+ * **CLDR's likely-subtags folds exactly one member of a macrolanguage to it and
+ * leaves the rest unresolvable.** `quz` reaches `qu` and `quh` does not; `ojg`
+ * reaches `oj` and `ojb` does not; `gug` reaches `gn` and `gui` does not. So a
+ * Bolivian Quechua reader arriving under `quh` was served English with a `qu`
+ * catalog sitting right there, which is the failure this map exists to prevent.
+ * `negotiate.test.ts` asserts both halves — the member CLDR folds on its own and
+ * several it does not — so removing the map, or a change in ICU data, fails
+ * there.
+ *
+ * The rule is published membership rather than a judgement about how close two
+ * varieties are, which is what makes it checkable and what distinguishes it from
+ * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
+ * member of `nb` or `ak`, and both are deliberately left to miss. Five of the
+ * six keys — `qu`, `ay`, `gn`, `oj`, `bik` — are ISO 639-3 macrolanguages and
+ * list their macrolanguage members; `nah` is an ISO 639-3 **collection** code
+ * rather than a macrolanguage, so it lists the individual Nahuan languages ISO
+ * 639-5 groups under it.
+ *
+ * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
+ * `ayr` — so that each list reads as the whole of a group rather than as the
+ * leftovers of one, and so that a change in ICU data cannot silently drop a code
+ * out of coverage.
+ *
+ * Serving a related variety is a real compromise, and each of these catalogs
+ * says in its own header which written standard it is — Southern Quechua,
+ * Paraguayan Guarani, Central Nahuatl, the Fiero orthography. A reader who wants
+ * their own supplies it as `localeResources`. What this map buys is that they
+ * get a language they can read rather than English, which is the same trade
+ * region-stripping already makes for `es-MX`.
+ */
+const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
+    // Quechuan. The catalog is Southern Quechua (Cusco-Collao); the Central and
+    // Northern varieties and Ecuadorian Kichwa are all members and all reach it.
+    qu: [
+        "qub",
+        "qud",
+        "quf",
+        "qug",
+        "quh",
+        "quk",
+        "qul",
+        "qup",
+        "qur",
+        "qus",
+        "quw",
+        "qux",
+        "quy",
+        "quz",
+        "qva",
+        "qvc",
+        "qve",
+        "qvh",
+        "qvi",
+        "qvj",
+        "qvl",
+        "qvm",
+        "qvn",
+        "qvo",
+        "qvp",
+        "qvs",
+        "qvw",
+        "qvz",
+        "qwa",
+        "qwc",
+        "qwh",
+        "qws",
+        "qxa",
+        "qxc",
+        "qxh",
+        "qxl",
+        "qxn",
+        "qxo",
+        "qxp",
+        "qxr",
+        "qxt",
+        "qxu",
+        "qxw",
+    ],
+    // Aymaran.
+    ay: ["ayc", "ayr"],
+    // Guaranian. The catalog is Paraguayan Guarani.
+    gn: ["gnw", "gug", "gui", "gun", "nhd"],
+    // Nahuan. The catalog is Central Nahuatl. `ppl` is Pipil (Nawat), the one
+    // member outside Mexico, and it is grouped here for the same published
+    // reason as the rest rather than for where it is spoken.
+    nah: [
+        "azd",
+        "azn",
+        "azz",
+        "naz",
+        "nch",
+        "nci",
+        "ncj",
+        "ncl",
+        "ncx",
+        "ngu",
+        "nhc",
+        "nhe",
+        "nhg",
+        "nhi",
+        "nhk",
+        "nhm",
+        "nhn",
+        "nhp",
+        "nhq",
+        "nht",
+        "nhv",
+        "nhw",
+        "nhx",
+        "nhy",
+        "nhz",
+        "nlv",
+        "npl",
+        "nsu",
+        "nuz",
+        "ppl",
+    ],
+    // Ojibwa. The catalog is in the Fiero double-vowel orthography, which is
+    // closest to `ciw` — the variety the orthography was devised for. These
+    // seven are the whole of the macrolanguage; `alq` (Algonquin) is not among
+    // them, and is left to miss for the `fat` reason — ISO 639-3 gives it a code
+    // outside `oj`, so folding it here would be the judgement this map avoids.
+    oj: ["ciw", "ojb", "ojc", "ojg", "ojs", "ojw", "otw"],
+    // Bikol. The catalog is Central Bikol (Naga), which is `bcl` — the variety
+    // Bikol publishing, broadcasting and the mother-tongue materials use. These
+    // eight are the whole of the macrolanguage. Tagalog is not among them and
+    // must not be added: `fil` is a language of its own with a catalog of its
+    // own, and folding it here would serve a Tagalog reader Bikol.
+    bik: ["bcl", "bln", "bto", "cts", "fbl", "lbl", "rbl", "ubl"],
+};
+
+/** Flattened once at module load rather than searched per request. */
+const MACROLANGUAGE_ALIASES: Record<string, string> = Object.fromEntries(
+    Object.entries(MACROLANGUAGE_MEMBERS).flatMap(([macro, members]) =>
+        members.map((member) => [member, macro]),
+    ),
+);
 
 /** Rewrite a request's language subtag if it is one no catalog is named after. */
 function applyLanguageAlias(tag: string): string {
     const [language, ...rest] = tag.split("-");
-    const alias = LANGUAGE_ALIASES[language.toLowerCase()];
+    const lowered = language.toLowerCase();
+    const alias = LANGUAGE_ALIASES[lowered] ?? MACROLANGUAGE_ALIASES[lowered];
     return alias === undefined ? tag : [alias, ...rest].join("-");
 }
 

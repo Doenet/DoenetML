@@ -5,18 +5,21 @@ import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 /**
- * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi and Uyghur — the set #1614
- * existed to make renderable, and the whole of it as of today.
+ * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur and Yiddish — the
+ * seven #1614 existed to make renderable, plus the one the European regional
+ * and minority batch added, and the whole of it as of today.
  *
  * Written out rather than derived, so that the two tests below can hold it
  * from opposite sides: one says these tags are right-to-left whether or not a
  * catalog exists, the other says the roster contains exactly these and no
- * other right-to-left locale.
+ * other right-to-left locale. Yiddish needed nothing from `direction.ts` —
+ * `yi` and the retired `ji` were already listed there — so this line is the
+ * only place seeding it had to be recorded.
  */
-const RTL_LANGUAGES = ["ar", "fa", "he", "ur", "ps", "sd", "ug"];
+const RTL_LANGUAGES = ["ar", "fa", "he", "ur", "ps", "sd", "ug", "yi"];
 
 describe("directionOf", () => {
-    it("reports the seven right-to-left languages RTL support unblocked", () => {
+    it("reports the right-to-left languages the roster ships catalogs for", () => {
         // Asserted by tag rather than off the roster: this is a claim about
         // the languages, and it holds for a tag with no catalog too.
         for (const tag of RTL_LANGUAGES) {
@@ -27,7 +30,7 @@ describe("directionOf", () => {
     it("agrees with the roster about which shipped catalogs run right to left", () => {
         // Not an assertion about the world — a statement about today's roster,
         // held from both sides so that adding a catalog has to say which way
-        // it runs. `dir` stopped being inert the moment these seven acquired
+        // it runs. `dir` stopped being inert the moment these acquired
         // catalogs of their own.
         const rtl = new Set(RTL_LANGUAGES);
         for (const { locale } of SUPPORTED_LOCALES) {

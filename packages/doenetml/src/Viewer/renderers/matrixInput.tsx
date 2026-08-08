@@ -227,9 +227,9 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
             id={labelId}
             style={{
                 marginInlineEnd:
-                    SVs.labelPosition === "right" ? undefined : "5px",
+                    SVs.labelPosition === "end" ? undefined : "5px",
                 marginInlineStart:
-                    SVs.labelPosition === "right" ? "5px" : undefined,
+                    SVs.labelPosition === "end" ? "5px" : undefined,
             }}
         >
             {label}
@@ -289,7 +289,7 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                 }}
                 id={`${id}-container`}
             >
-                {SVs.labelPosition === "right" ? (
+                {SVs.labelPosition === "end" ? (
                     <>
                         {matrixInputRow}
                         {labelComponent}

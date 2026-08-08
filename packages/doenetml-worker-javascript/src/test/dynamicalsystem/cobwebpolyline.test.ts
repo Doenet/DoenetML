@@ -282,7 +282,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Add fourth point and move to wrong location, submit
         latexResults.push("x_{ 2 } & = 2");
-        currentVertices.push(`( 1, 2 )`);
+        currentVertices.push(`(1, 2)`);
         submittedVertices = [...currentVertices];
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -351,7 +351,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add fifth point and move to correct location, submit
-        currentVertices.push(`( 2.4074, 2.4074 )`);
+        currentVertices.push(`(2.4074, 2.4074)`);
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.8;
         await updateValue({
@@ -371,7 +371,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Add sixth point and move to wrong location, submit
         latexResults.push("x_{ 3 } & = 3");
-        currentVertices.push(`( -1, 3 )`);
+        currentVertices.push(`(-1, 3)`);
         submittedVertices = [...currentVertices];
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -405,7 +405,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add seventh point and move to wrong location, submit
-        currentVertices.push(`( 3, 1 )`);
+        currentVertices.push(`(3, 1)`);
         submittedVertices = [...currentVertices];
         cobwebCredit = 5 / 6; // ~0.83
         await updateValue({

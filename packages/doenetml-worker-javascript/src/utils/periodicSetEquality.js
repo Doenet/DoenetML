@@ -268,10 +268,19 @@ function contained_in(tree, i_set, match_partial) {
             .fromAst(["apply", "abs", ["/", tuples[i][2], period0]])
             .evaluate_to_constant();
 
-        if (typeof period !== "number" || Number.isNaN(period)) return false;
-        // Same reasoning as `offset0` above: a non-numeric offset cannot be
-        // compared, and must not reach `fromAst` as `null`.
-        if (typeof offset !== "number" || Number.isNaN(offset)) return false;
+        // A tuple we cannot place on the number line — an unfilled offset, or
+        // one still symbolic — covers nothing, so it drops out of the covering
+        // set. It must not abort the test: these are the *containing* set's
+        // pieces, and one unusable piece among them says nothing about whether
+        // the others contain `tree`. Aborting here is what turned a partially
+        // correct answer into a zero, because a student who asks for ten offset
+        // boxes and fills four of them leaves six blanks in this list.
+        //
+        // (The `offset0`/`period0` guards above are different and do return
+        // `false`: those describe the piece being tested, and a piece we cannot
+        // place is not contained in anything.)
+        if (typeof period !== "number" || Number.isNaN(period)) continue;
+        if (typeof offset !== "number" || Number.isNaN(offset)) continue;
 
         let frac = fraction(period);
         let p = mathNumber(frac.n);
@@ -282,6 +291,11 @@ function contained_in(tree, i_set, match_partial) {
 
         let q = mathNumber(frac.d);
         data.push([p, q, offset, period]);
+    }
+
+    // Every piece of the containing set was unusable: it covers nothing.
+    if (data.length === 0) {
+        return false;
     }
 
     // sort by p

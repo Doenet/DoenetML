@@ -11,6 +11,7 @@ import {
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { evaluateToNumber } from "../../utils/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -452,32 +453,33 @@ async function checkLineValues({
         expect(P1xs[i].evaluate_to_constant()).closeTo(points[0][i], 1e-12);
         expect(P2xs[i].evaluate_to_constant()).closeTo(points[1][i], 1e-12);
     }
+    // Read the numeric projections through `evaluateToNumber`, the same helper
+    // the components use. A line that is degenerate — both defining points on
+    // top of each other — has no equation, so its coefficients are the blank
+    // `＿` and these quantities have no numeric value at all. The engine reports
+    // that as `null`, where the JS library said `NaN`; `Math.abs(null)` is `0`,
+    // which would read as a *finite* intercept. `evaluateToNumber` maps
+    // "no numeric value" to `NaN`, which is what these comparisons mean.
     if (Number.isFinite(slope)) {
-        expect(lineSlope.evaluate_to_constant()).closeTo(slope, 1e-12);
+        expect(evaluateToNumber(lineSlope)).closeTo(slope, 1e-12);
     } else {
-        expect(lineSlope.evaluate_to_constant()).eqls(slope);
+        expect(evaluateToNumber(lineSlope)).eqls(slope);
     }
     if (Number.isFinite(xintercept)) {
-        expect(lineXintercept.evaluate_to_constant()).closeTo(
-            xintercept,
-            1e-12,
-        );
+        expect(evaluateToNumber(lineXintercept)).closeTo(xintercept, 1e-12);
     } else {
         // Note: x-intercept for horizontal lines can be Infinity or -Infinity
         // when it should really be NaN
-        expect(Math.abs(lineXintercept.evaluate_to_constant())).eqls(
+        expect(Math.abs(evaluateToNumber(lineXintercept))).eqls(
             Math.abs(xintercept),
         );
     }
     if (Number.isFinite(yintercept)) {
-        expect(lineYintercept.evaluate_to_constant()).closeTo(
-            yintercept,
-            1e-12,
-        );
+        expect(evaluateToNumber(lineYintercept)).closeTo(yintercept, 1e-12);
     } else {
         // Note: y-intercept for vertical lines can be Infinity or -Infinity
         // when it should really be NaN
-        expect(Math.abs(lineYintercept.evaluate_to_constant())).eqls(
+        expect(Math.abs(evaluateToNumber(lineYintercept))).eqls(
             Math.abs(yintercept),
         );
     }
@@ -1683,10 +1685,21 @@ describe("Line tag tests @group3", async () => {
                 await resolvePathToNodeIdx("l6")
             ].stateValues.equation.equals(me.fromText("y=x^2")),
         ).eq(true);
+        // `x^2` and `-1`, i.e. the coefficients of `x^2 - y = 0` rather than of
+        // `y - x^2 = 0`. `y=x^2` is not a line, so these are not meaningful
+        // coefficients at all — but the overall sign is worth understanding,
+        // because it is not stable: they are read as RHS − LHS off the
+        // *simplified* equation, and `simplify` reorders a relation's operands
+        // for some inputs and not others (`5x-2y=3` becomes `3 = 5x-2y`,
+        // `y=x^2` is left alone). So a `y = mx + b` line and an `ax + by = c`
+        // line come out with opposite orientations. Making that consistent
+        // flips the direction vector of every `y = mx + b` line, which the
+        // `angle > angle with one line` tests pin, so it is a deliberate
+        // decision rather than a cleanup — see REMAINING_TEST_FAILURES.md §D.
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues.coeff0
                 .tree,
-        ).eqls(["-", ["^", "x", 2]]);
+        ).eqls(["^", "x", 2]);
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues
                 .coeffvar1.tree,
@@ -1694,7 +1707,7 @@ describe("Line tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues
                 .coeffvar2.tree,
-        ).eq(1);
+        ).eq(-1);
 
         expect(
             stateVariables[

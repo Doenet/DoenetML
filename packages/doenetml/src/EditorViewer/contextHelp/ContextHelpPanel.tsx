@@ -2,6 +2,7 @@ import React from "react";
 import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import { isMathDefaultValue } from "@doenet/static-assets/schema";
+import { isMacPlatform } from "@doenet/utils";
 import type {
     FunctionNamesBreakdownPayload,
     HelpContent,
@@ -10,6 +11,24 @@ import type { Translator } from "@doenet/i18n";
 import { useT } from "../../utils/i18n";
 import { fillSlots, slot } from "../slots";
 import "./context-help-panel.css";
+
+/**
+ * The key combination that opens the full element-completion menu, named for
+ * the platform the editor is running on.
+ *
+ * CodeMirror's `completionKeymap` binds a literal `Ctrl-Space` on every
+ * platform (it does not use `Mod-`, so this stays Control, not Cmd, on a Mac).
+ * But macOS itself claims Control+Space for "Select the previous input
+ * source", so on a Mac the keystroke is usually swallowed before the browser
+ * ever sees it. Upstream ships mac-only alternates for exactly that reason —
+ * `Alt-i` and ``Alt-` `` — so Mac users are pointed at Option+I, which does
+ * reach the editor.
+ */
+export function completionShortcutLabel(
+    isMac: boolean = isMacPlatform(),
+): string {
+    return isMac ? "Option+I" : "Ctrl+Space";
+}
 
 /**
  * Render schema description text, mapping the shared inline-markdown tokens
@@ -313,7 +332,7 @@ export function ContextHelpPanel({
                                     },
                                     `Press ${slot(0)} to see all ${totalAllowed} components.`,
                                 ),
-                                [<code>Ctrl+Space</code>],
+                                [<code>{completionShortcutLabel()}</code>],
                             )}
                         </p>
                     )}

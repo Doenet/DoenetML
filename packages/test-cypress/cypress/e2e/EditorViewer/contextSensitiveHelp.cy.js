@@ -1,3 +1,5 @@
+import { isMacPlatform } from "@doenet/utils";
+
 // End-to-end smoke tests for the context-sensitive help panel.
 //
 // Unit tests in packages/doenetml/src/EditorViewer/contextHelp/
@@ -253,9 +255,16 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
                 "have.length.greaterThan",
                 0,
             );
+            // The footer names the completion shortcut that actually works on
+            // the browser's platform: macOS swallows Control+Space for
+            // input-source switching, so the panel points Mac users at
+            // Option+I instead. Spec code runs in the same browser as the app,
+            // so reusing the app's own detection (rather than, say,
+            // `Cypress.platform`, which reports the OS of the machine running
+            // Cypress) asks exactly the question the panel asked.
             cy.get(".help-suggestions-footer").should(
                 "contain.text",
-                "Ctrl+Space",
+                isMacPlatform() ? "Option+I" : "Ctrl+Space",
             );
         });
     });

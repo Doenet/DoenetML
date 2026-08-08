@@ -203,15 +203,19 @@ export function textToMathFactory({
     splitSymbols?: boolean;
     parseScientificNotation?: boolean;
 } = {}) {
+    // Parses straight to an Expression rather than via `textToAstObj` +
+    // `fromAst`. The AST is JSON, so every number in it is an f64: the trip
+    // through it turned an exact user-typed decimal into the nearest float,
+    // and `35203423.02352343201` came back as `35203423.023523435`. The parser
+    // itself holds the decimal exactly, and skipping the round-trip is what
+    // lets it reach the display path intact.
     return (x: string) =>
-        me.fromAst(
-            new me.converters.textToAstObj({
-                appliedFunctionSymbols,
-                functionSymbols,
-                splitSymbols,
-                parseScientificNotation,
-            }).convert(x),
-        );
+        me.fromText(x, {
+            appliedFunctionSymbols,
+            functionSymbols,
+            splitSymbols,
+            parseScientificNotation,
+        });
 }
 
 export var latexToAst = new me.converters.latexToAstObj({
@@ -230,29 +234,18 @@ export function latexToMathFactory({
     splitSymbols?: boolean;
     parseScientificNotation?: boolean;
 } = {}) {
-    if (splitSymbols) {
-        return (x: string) =>
-            me.fromAst(
-                new me.converters.latexToAstObj({
-                    appliedFunctionSymbols,
-                    functionSymbols,
-                    allowedLatexSymbols,
-                    parseScientificNotation,
-                }).convert(
-                    wrapWordIncludingNumberWithVar(x, parseScientificNotation),
-                ),
-            );
-    } else {
-        return (x: string) =>
-            me.fromAst(
-                new me.converters.latexToAstObj({
-                    appliedFunctionSymbols,
-                    functionSymbols,
-                    allowedLatexSymbols,
-                    parseScientificNotation,
-                }).convert(wrapWordWithVar(x, parseScientificNotation)),
-            );
-    }
+    // Parses straight to an Expression, for the reason given on
+    // `textToMathFactory`: the AST is JSON and would float every decimal.
+    const opts = {
+        appliedFunctionSymbols,
+        functionSymbols,
+        allowedLatexSymbols,
+        parseScientificNotation,
+    };
+    const wrap = splitSymbols
+        ? wrapWordIncludingNumberWithVar
+        : wrapWordWithVar;
+    return (x: string) => me.fromLatex(wrap(x, parseScientificNotation), opts);
 }
 
 export function findFiniteNumericalValue(value: any) {
@@ -660,6 +653,18 @@ export function numberToMathExpression(
     return me.fromAst(mathTree);
 }
 
+/**
+ * Flatten a `list` nested directly inside another container: `(a, (b, c))`
+ * written as `["tuple", "a", ["list", "b", "c"]]` becomes
+ * `["tuple", "a", "b", "c"]`.
+ *
+ * Returns the *same* tree object when there is nothing to flatten, so callers
+ * can tell a no-op apart from a real change. That matters because the only way
+ * to apply the result is `me.fromAst`, and rebuilding an expression from its
+ * tree is lossy: the tree is JSON, so an exact user-typed decimal comes back as
+ * the nearest f64. Skipping the rebuild in the common case keeps the value
+ * exact.
+ */
 export function mergeListsWithOtherContainers(tree: any) {
     if (!Array.isArray(tree)) {
         return tree;
@@ -667,20 +672,46 @@ export function mergeListsWithOtherContainers(tree: any) {
 
     let operator = tree[0];
     let operands = tree.slice(1);
+    let changed = false;
 
     if ([...vectorOperators, "list", "set"].includes(operator)) {
-        operands = operands.reduce(
-            (a, c) =>
+        const flattened = operands.reduce(
+            (a: any[], c: any) =>
                 Array.isArray(c) && c[0] === "list"
                     ? [...a, ...c.slice(1)]
                     : [...a, c],
             [],
         );
+        if (flattened.length !== operands.length) {
+            operands = flattened;
+            changed = true;
+        }
     }
 
-    operands = operands.map((x) => mergeListsWithOtherContainers(x));
+    operands = operands.map((x) => {
+        const merged = mergeListsWithOtherContainers(x);
+        if (merged !== x) {
+            changed = true;
+        }
+        return merged;
+    });
 
-    return [operator, ...operands];
+    return changed ? [operator, ...operands] : tree;
+}
+
+/**
+ * [`mergeListsWithOtherContainers`] applied to an `Expression`, rebuilding it
+ * only if the flattening actually changed something.
+ *
+ * The rebuild has to go through `me.fromAst`, and a tree is JSON: an exact
+ * user-typed decimal comes back as the nearest f64, so `35203423.02352343201`
+ * would reach the display as `35203423.023523435`. Almost nothing has a nested
+ * list to flatten, so almost nothing should pay that.
+ */
+export function mergeListsIfNeeded(value: any): any {
+    const tree = value.tree;
+    const merged = mergeListsWithOtherContainers(tree);
+    return merged === tree ? value : me.fromAst(merged);
 }
 
 function wrapWordWithVar(string: string, parseScientificNotation: boolean) {

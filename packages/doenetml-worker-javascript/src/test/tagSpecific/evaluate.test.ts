@@ -2602,28 +2602,22 @@ describe("Evaluate tag tests @group2", async () => {
             core,
         });
 
+        // `-3sin(pi/(2w))`, not `3sin(pi + pi/(2w))`: simplify knows
+        // `sin(pi + x) = -sin(x)`. Legacy's did not, so the old expectation
+        // recorded the unreduced substitution. Same value, one fewer term.
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("result1")].stateValues
                 .value.tree,
-        ).eqls([
-            "*",
-            3,
-            ["apply", "sin", ["+", "pi", ["/", "pi", ["*", 2, "w"]]]],
-        ]);
+        ).eqls(["-", ["*", 3, ["apply", "sin", ["/", "pi", ["*", 2, "w"]]]]]);
         expect(stateVariables[result2Name].stateValues.value.tree).eqls([
-            "*",
-            3,
-            ["apply", "sin", ["+", "pi", ["/", "pi", ["*", 2, "w"]]]],
+            "-",
+            ["*", 3, ["apply", "sin", ["/", "pi", ["*", 2, "w"]]]],
         ]);
         expect(
             stateVariables[await resolvePathToNodeIdx("result3")].stateValues
                 .value.tree,
-        ).eqls([
-            "*",
-            3,
-            ["apply", "sin", ["+", "pi", ["/", "pi", ["*", 2, "w"]]]],
-        ]);
+        ).eqls(["-", ["*", 3, ["apply", "sin", ["/", "pi", ["*", 2, "w"]]]]]);
 
         // add 4th input
         await updateMathInputValue({
@@ -4107,7 +4101,7 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2r")].stateValues.text,
-        ).eq("sin(π)"); // eventually should be '0' once can simplify sin(pi)
+        ).eq("0"); // the engine simplifies sin(pi), which is the "eventually" this comment used to wait for
         expect(
             stateVariables[await resolvePathToNodeIdx("f2m")].stateValues.text,
         ).eq("0");
@@ -4116,10 +4110,10 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3l")].stateValues.text,
-        ).eq("sin(-π)"); // eventually should be '0' once can simplify sin(-pi)
+        ).eq("0"); // likewise for sin(-pi)
         expect(
             stateVariables[await resolvePathToNodeIdx("f3r")].stateValues.text,
-        ).eq("sin(π)"); // eventually should be '0' once can simplify sin(pi)
+        ).eq("0"); // the engine simplifies sin(pi), which is the "eventually" this comment used to wait for
         expect(
             stateVariables[await resolvePathToNodeIdx("f3m")].stateValues.text,
         ).eq("0");
@@ -4128,7 +4122,7 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4l")].stateValues.text,
-        ).eq("sin(-π)"); // eventually should be '0' once can simplify sin(-pi)
+        ).eq("0"); // likewise for sin(-pi)
         expect(
             stateVariables[await resolvePathToNodeIdx("f4r")].stateValues.text,
         ).eq("\uff3f");
@@ -4455,7 +4449,7 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("f1ly")].stateValues.text,
-        ).eq("sin(-π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f1rl")].stateValues.text,
         ).eq("\uff3f");
@@ -4467,7 +4461,7 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("f1ry")].stateValues.text,
-        ).eq("sin(π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f1ml")].stateValues.text,
         ).eq("\uff3f");
@@ -4482,10 +4476,10 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f1yl")].stateValues.text,
-        ).eq("sin(-π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f1yr")].stateValues.text,
-        ).eq("sin(π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f1ym")].stateValues.text,
         ).eq("sin(10 y)");
@@ -4503,25 +4497,25 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2ly")].stateValues.text,
-        ).eq("sin(-π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2rl")].stateValues.text,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2rr")].stateValues.text,
-        ).eq("sin(2 π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2rm")].stateValues.text,
-        ).eq("sin(π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2ry")].stateValues.text,
-        ).eq("sin(π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2ml")].stateValues.text,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2mr")].stateValues.text,
-        ).eq("sin(π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2mm")].stateValues.text,
         ).eq("0");
@@ -4530,10 +4524,10 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2yl")].stateValues.text,
-        ).eq("sin(-π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2yr")].stateValues.text,
-        ).eq("sin(π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f2ym")].stateValues.text,
         ).eq("sin(10 y)");
@@ -4542,34 +4536,34 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("sin(20 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3ll")].stateValues.text,
-        ).eq("sin(-2 π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3lr")].stateValues.text,
         ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3lm")].stateValues.text,
-        ).eq("sin(-π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3ly")].stateValues.text,
-        ).eq("sin(-π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3rl")].stateValues.text,
         ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3rr")].stateValues.text,
-        ).eq("sin(2 π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3rm")].stateValues.text,
-        ).eq("sin(π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3ry")].stateValues.text,
-        ).eq("sin(π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3ml")].stateValues.text,
-        ).eq("sin(-π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3mr")].stateValues.text,
-        ).eq("sin(π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3mm")].stateValues.text,
         ).eq("0");
@@ -4578,10 +4572,10 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3yl")].stateValues.text,
-        ).eq("sin(-π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3yr")].stateValues.text,
-        ).eq("sin(π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f3ym")].stateValues.text,
         ).eq("sin(10 y)");
@@ -4590,16 +4584,16 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("sin(20 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4ll")].stateValues.text,
-        ).eq("sin(-2 π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4lr")].stateValues.text,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4lm")].stateValues.text,
-        ).eq("sin(-π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4ly")].stateValues.text,
-        ).eq("sin(-π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4rl")].stateValues.text,
         ).eq("\uff3f");
@@ -4611,10 +4605,10 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4ry")].stateValues.text,
-        ).eq("sin(π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4ml")].stateValues.text,
-        ).eq("sin(-π)");
+        ).eq("0");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4mr")].stateValues.text,
         ).eq("\uff3f");
@@ -4626,10 +4620,10 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4yl")].stateValues.text,
-        ).eq("sin(-π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4yr")].stateValues.text,
-        ).eq("sin(π + 10 y)");
+        ).eq("-sin(10 y)");
         expect(
             stateVariables[await resolvePathToNodeIdx("f4ym")].stateValues.text,
         ).eq("sin(10 y)");
@@ -4805,7 +4799,7 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp10")].stateValues.text,
-        ).eq("1 + \uff3f");
+        ).eq("\uff3f + 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp11")].stateValues.text,
         ).eq("2");
@@ -4814,11 +4808,11 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("5");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp13")].stateValues.text,
-        ).eq("1 + \uff3f");
+        ).eq("\uff3f + 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp1a0")].stateValues
                 .text,
-        ).eq("1 + \uff3f");
+        ).eq("\uff3f + 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("fp1a1")].stateValues
                 .text,
@@ -4830,7 +4824,7 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fp1a3")].stateValues
                 .text,
-        ).eq("1 + \uff3f");
+        ).eq("\uff3f + 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1p10")].stateValues
                 .text,
@@ -4842,11 +4836,11 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1p12")].stateValues
                 .text,
-        ).eq("1 + \uff3f");
+        ).eq("\uff3f + 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1p13")].stateValues
                 .text,
-        ).eq("1 + \uff3f");
+        ).eq("\uff3f + 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("fm0")].stateValues.text,
         ).eq("0");

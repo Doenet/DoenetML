@@ -1,3 +1,5 @@
+import { expectNoColorContrastViolations } from "../../support/colorContrast";
+
 /**
  * Dark-mode accessibility coverage for the editor authoring UI.
  *
@@ -37,35 +39,6 @@ describe("Dark-mode editor accessibility checks", { tags: ["@group5"] }, () => {
         }
         // Allow MathJax / JSXGraph to settle.
         cy.wait(200);
-    }
-
-    /**
-     * Assert no color-contrast axe violations inside `selectors`.
-     * Defaults to the editor panel; pass viewer-control selectors when a test
-     * opens UI that is portaled outside the panel itself.
-     */
-    function expectNoColorContrastViolations(selectors = ".editor-panel") {
-        cy.checkA11y(
-            Array.isArray(selectors) ? selectors : [selectors],
-            {
-                runOnly: { type: "rule", values: ["color-contrast"] },
-                includedImpacts: ["critical", "serious", "moderate", "minor"],
-            },
-            (violations) => {
-                expect(
-                    violations,
-                    JSON.stringify(
-                        violations.map((v) => ({
-                            id: v.id,
-                            nodes: v.nodes.map((n) => n.html),
-                        })),
-                        null,
-                        2,
-                    ),
-                ).to.have.length(0);
-            },
-            true,
-        );
     }
 
     it("dark mode: CodeMirror editor area (editable)", () => {

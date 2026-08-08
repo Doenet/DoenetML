@@ -213,6 +213,16 @@ export default class PeriodicSet extends MathComponent {
                                 let offsetDiff = dependencyValues.offsets[ind1]
                                     .subtract(dependencyValues.offsets[ind2])
                                     .evaluate_to_constant();
+                                // An offset box the student has not filled in
+                                // cannot duplicate anything. Without this the
+                                // pair reads as redundant and the answer takes
+                                // the redundancy penalty: the difference of two
+                                // blanks has no value, and `null % period` is
+                                // `0` in JavaScript — a difference of zero,
+                                // which is exactly what "redundant" looks like.
+                                if (!isNumericConstant(offsetDiff)) {
+                                    continue;
+                                }
                                 if (
                                     Math.abs(offsetDiff % periodValue) <
                                     1e-10 * periodValue

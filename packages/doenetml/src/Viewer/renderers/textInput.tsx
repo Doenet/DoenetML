@@ -740,9 +740,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
             htmlFor={inputKey}
             style={{
                 marginInlineEnd:
-                    SVs.labelPosition === "right" ? undefined : "2px",
+                    SVs.labelPosition === "end" ? undefined : "2px",
                 marginInlineStart:
-                    SVs.labelPosition === "right" ? "2px" : undefined,
+                    SVs.labelPosition === "end" ? "2px" : undefined,
             }}
         >
             {label}
@@ -761,7 +761,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 display: "inline",
             }}
         >
-            {SVs.labelPosition === "right" ? (
+            {SVs.labelPosition === "end" ? (
                 <>
                     {inputRow}
                     {labelComponent}

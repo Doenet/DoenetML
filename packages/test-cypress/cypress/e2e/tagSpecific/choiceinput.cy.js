@@ -1557,22 +1557,22 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#ci input").should("not.have.attr", "aria-details");
     });
 
-    it("inline labelPosition left and right", () => {
+    it("inline labelPosition start and end", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-    <p>Left label:
-    <choiceInput name="cil" inline labelPosition="left">
-      <label>left</label>
+    <p>Start label:
+    <choiceInput name="cil" inline labelPosition="start">
+      <label>start</label>
       <choice>a</choice>
       <choice>b</choice>
     </choiceInput>
     </p>
 
-    <p>Right label:
-    <choiceInput name="cir" inline labelPosition="right">
-      <label>right</label>
+    <p>End label:
+    <choiceInput name="cir" inline labelPosition="end">
+      <label>end</label>
       <choice>a</choice>
       <choice>b</choice>
     </choiceInput>
@@ -1583,13 +1583,13 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.log("Left inline choiceInput: label before input row");
+        cy.log("Start inline choiceInput: label before input row");
         cy.get("#cil-container")
             .children()
             .eq(0)
             .should("have.attr", "id", "cil-label");
 
-        cy.log("Right inline choiceInput: label after input row");
+        cy.log("End inline choiceInput: label after input row");
         cy.get("#cir-container")
             .children()
             .last()

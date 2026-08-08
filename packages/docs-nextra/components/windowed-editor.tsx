@@ -19,7 +19,7 @@ import {
 type WindowedEditorProps = {
     source: string;
     showFormatter: boolean;
-    viewerLocation: "left" | "right" | "top" | "bottom";
+    viewerLocation: "start" | "end" | "top" | "bottom";
     height: string;
     /** `standaloneUrl`/`cssUrl` (dev) or `doenetmlVersion` (prod). */
     versionProps: Record<string, unknown>;

@@ -8,6 +8,14 @@ import {
 } from "../src/negotiate";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
+/**
+ * The real roster, which the catalog-naming groups below negotiate against
+ * rather than against a stand-in for it: renaming a catalog directory should
+ * turn them red instead of leaving them describing a layout the repository no
+ * longer has.
+ */
+const available = SUPPORTED_LOCALES.map((info) => info.locale);
+
 describe("negotiateLocales", () => {
     it("builds the regional -> language -> default chain", () => {
         expect(negotiateLocales(["es-MX"], ["es-MX", "es", "en"])).toEqual([
@@ -39,14 +47,8 @@ describe("negotiateLocales", () => {
      * Chinese is the one language this repository translates twice, and the
      * two catalogs are told apart by script rather than by region. Which
      * catalog a reader reaches is decided here, so it is asserted here.
-     *
-     * Against the real roster rather than a stand-in for it, so that renaming
-     * a catalog directory turns these red instead of leaving them describing a
-     * layout the repository no longer has.
      */
     describe("Chinese, whose catalogs are named by script", () => {
-        const available = SUPPORTED_LOCALES.map((info) => info.locale);
-
         it.each([
             ["zh-CN", "zh-Hans"],
             ["zh-SG", "zh-Hans"],
@@ -121,8 +123,6 @@ describe("negotiateLocales", () => {
      * against the real roster.
      */
     describe("Norwegian, whose catalog is named for one written standard", () => {
-        const available = SUPPORTED_LOCALES.map((info) => info.locale);
-
         it.each(["no", "no-NO", "nb", "nb-NO"])(
             "serves Bokmål to %s",
             (requested) => {
@@ -136,6 +136,380 @@ describe("negotiateLocales", () => {
         it("leaves Nynorsk to fall back to English", () => {
             expect(negotiateLocales(["nn"], available)).toEqual(["en"]);
         });
+    });
+
+    /**
+     * Akan's catalog is named `ak` and is written in Asante Twi. `tw` is the
+     * retired code for Twi and the one an author is as likely to type;
+     * `Intl.getCanonicalLocales` leaves it alone, so nothing connects the two
+     * without the alias. Asserted against the real roster, so that removing the
+     * entry fails here rather than quietly serving English.
+     */
+    describe("Akan, whose catalog is named for the macrolanguage", () => {
+        it.each(["tw", "tw-GH", "ak", "ak-GH"])(
+            "serves Akan to %s",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).toEqual([
+                    "ak",
+                    "en",
+                ]);
+            },
+        );
+
+        it("leaves Fante to fall back to English", () => {
+            expect(negotiateLocales(["fat"], available)).toEqual(["en"]);
+        });
+    });
+
+    /**
+     * Filipino's catalog is named `fil`, and `tl` — the code an author is as
+     * likely to type — needs no alias of its own: `Intl.Locale` canonicalizes
+     * it, so `normalizeLocaleTag` has already rewritten it before negotiation
+     * sees it. That is the same step that rewrites `iw` and `in`, which is why
+     * `LANGUAGE_ALIASES` lists neither. Asserted here so that a future change
+     * to the normalization step cannot silently drop Filipino to English.
+     */
+    describe("Filipino, whose catalog is named for the standard language", () => {
+        it.each(["tl", "tl-PH", "fil", "fil-PH"])(
+            "serves Filipino to %s",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["fil", "en"]);
+            },
+        );
+    });
+
+    /**
+     * The European regional and minority batch adds no entry to
+     * `LANGUAGE_ALIASES`, and this is what says so out loud. Yiddish is the
+     * Filipino case again — `ji` is the retired code and `Intl.Locale`
+     * canonicalizes it, so nothing has to be listed — and the rest reach their
+     * catalogs through plain filtering, including the two whose incoming tag
+     * names a script or a region the directory does not.
+     *
+     * `sme` — the ISO 639-3 code for Northern Sami — needs no entry either,
+     * for the Filipino reason a third time: `Intl.Locale` folds it to `se`
+     * before negotiation is reached. Asserted below so that a change to the
+     * normalization step is what fails rather than a Sami reader quietly
+     * getting English.
+     */
+    describe("the European regional and minority batch, which needs no alias", () => {
+        it.each([
+            ["ji", "yi"],
+            ["ji-US", "yi"],
+            ["yi-US", "yi"],
+            ["bs-BA", "bs"],
+            // Bosnian is written in Latin, so a Cyrillic tag reaches the Latin
+            // catalog. That is the asymmetry `pa` and `sr` already have, and
+            // the answer to it is a second catalog rather than a rename.
+            ["bs-Cyrl", "bs"],
+            ["nds-NL", "nds"],
+            ["rm-CH", "rm"],
+            ["oc-FR", "oc"],
+            ["sc-IT", "sc"],
+            ["scn-IT", "scn"],
+            ["co-FR", "co"],
+            ["se-NO", "se"],
+            ["fy-NL", "fy"],
+            ["lb-LU", "lb"],
+            ["ast-ES", "ast"],
+        ])("serves %s from the catalog named %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        it("folds the three-letter code for Northern Sami to `se`", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("sme")], available),
+            ).toEqual(["se", "en"]);
+        });
+    });
+
+    /**
+     * The Indigenous Americas batch, which is the first to seed codes that
+     * stand for **more than one individual language** — `qu`, `ay`, `gn` and
+     * `oj` are ISO 639-3 macrolanguages and `nah` an ISO 639-3 collection — and
+     * the first to need `MACROLANGUAGE_MEMBERS` because of it.
+     *
+     * The bug these assertions pin is specific and was invisible until a
+     * macrolanguage had a catalog: **CLDR's likely-subtags folds exactly one
+     * member of a macrolanguage to it and leaves the rest unresolvable.** So
+     * `quz` reached `qu` on ICU data alone while `quh` fell to English, with a
+     * `qu` catalog sitting right there. The pairs below assert both halves —
+     * the member CLDR already folds and several it does not — so that removing
+     * the map, or a change in ICU data, fails here rather than quietly serving
+     * English to a reader whose language is on disk.
+     */
+    describe("the Indigenous Americas batch and its macrolanguages", () => {
+        it.each([
+            // Quechuan. `quz` is the one CLDR folds on its own; the rest are
+            // the map's work. `qvi` is Ecuadorian Kichwa, the furthest of these
+            // from the Southern Quechua the catalog is written in, and it is
+            // still a better answer than English.
+            ["quz", "qu"],
+            ["quh", "qu"],
+            ["qvi", "qu"],
+            ["qwh", "qu"],
+            ["quy-PE", "qu"],
+            // Aymaran.
+            ["ayr", "ay"],
+            ["ayc", "ay"],
+            // Guaranian. `gug` is Paraguayan Guarani, which is what the catalog
+            // is; `gui` and `gun` are Bolivian and Mbya.
+            ["gug", "gn"],
+            ["gui", "gn"],
+            ["gun", "gn"],
+            // Nahuan. Not one of these folds without the map, including `nci`
+            // — Classical Nahuatl — which is the code a historical text is most
+            // likely to arrive under. `naz` is Coatepec and `azn` Western
+            // Durango, at the two edges of the group.
+            ["nci", "nah"],
+            ["nhe", "nah"],
+            ["azz", "nah"],
+            ["naz", "nah"],
+            ["azn", "nah"],
+            ["nci-MX", "nah"],
+            // `ppl` is Pipil, the one Nahuan language spoken outside Mexico.
+            ["ppl", "nah"],
+            // Ojibwa. `ojg` is the one CLDR folds; `otw` is Odawa, a member of
+            // `oj` in ISO 639-3. `ciw` is Chippewa, the variety the Fiero
+            // orthography this catalog uses was devised for, so it is the
+            // member the catalog answers best.
+            ["ojg", "oj"],
+            ["ojb", "oj"],
+            ["otw", "oj"],
+            ["ciw", "oj"],
+        ])("serves %s from the catalog named %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        it.each([
+            // These need no alias: `Intl.Locale` canonicalizes the ISO 639-3
+            // code of an *individual* language to its 639-1 code, which is the
+            // Filipino case the group above this one describes.
+            ["hat", "ht"],
+            ["grn", "gn"],
+            ["que", "qu"],
+            ["aym", "ay"],
+            ["oji", "oj"],
+        ])(
+            "folds the three-letter code %s to %s without an alias",
+            (requested, expected) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual([expected, "en"]);
+            },
+        );
+
+        it.each([
+            ["ht-HT", "ht"],
+            ["qu-PE", "qu"],
+            ["qu-BO", "qu"],
+            ["ay-BO", "ay"],
+            ["gn-PY", "gn"],
+            ["nah-MX", "nah"],
+            ["quc-GT", "quc"],
+            ["arn-CL", "arn"],
+            ["oj-CA", "oj"],
+            // Ojibwe is written in both the Latin orthography this catalog uses
+            // and in syllabics, so a syllabics tag reaches the Latin catalog and
+            // gets Latin. That is the asymmetry `bs-Cyrl` and `pa` already have,
+            // and the answer to it is a second catalog rather than a rename.
+            ["oj-Cans", "oj"],
+        ])(
+            "strips the region or script from %s to reach %s",
+            (requested, expected) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual([expected, "en"]);
+            },
+        );
+
+        /**
+         * The negative control, and the reason the map keys on published
+         * membership rather than on how close two languages sound. Kʼicheʼ and
+         * Mapudungun are individual languages with catalogs of their own, and
+         * neither stands over any other code — so no other Mayan or Araucanian
+         * tag may be folded onto them. `cak` is Kaqchikel and `myn` the Mayan
+         * collection code; both must miss `quc`. `quh-Latn-x-private` folds to
+         * `qu` as the rows above require, and must reach neither.
+         */
+        it.each(["cak", "quh-Latn-x-private", "myn"])(
+            "does not invent a fold for %s",
+            (requested) => {
+                const chain = negotiateLocales(
+                    [normalizeLocaleTag(requested)],
+                    available,
+                );
+                expect(chain).not.toContain("quc");
+                expect(chain).not.toContain("arn");
+            },
+        );
+
+        /**
+         * The same control one step closer in, where the temptation is real.
+         * Algonquin is often described as a dialect of Ojibwe and is mutually
+         * intelligible with the Ontario varieties, but ISO 639-3 gives it `alq`
+         * outside the `oj` macrolanguage — so it is left to miss, exactly as
+         * Fante is by `LANGUAGE_ALIASES`. Folding it would be the judgement
+         * about closeness the map is built to avoid, and this is what would
+         * catch someone adding it.
+         */
+        it("leaves Algonquin out of the Ojibwe macrolanguage", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("alq")], available),
+            ).toEqual(["en"]);
+        });
+    });
+
+    /**
+     * The Austronesian batch — five Philippine languages, four of Indonesia,
+     * Tetum, three Polynesian, Chamorro and Tok Pisin. One of the fifteen is a
+     * macrolanguage: `bik` stands over eight individual Bikol languages, so it
+     * needs `MACROLANGUAGE_MEMBERS` for the same reason `qu` and `oj` do. The
+     * other fourteen are individual languages and need nothing.
+     */
+    describe("the Austronesian batch and its macrolanguage", () => {
+        it.each([
+            // Bikol. The catalog is Central Bikol, which is `bcl` itself; the
+            // rest are Bikol languages of the peninsula that would otherwise
+            // fall to English with a catalog they can read sitting on disk.
+            ["bcl", "bik"],
+            ["bto", "bik"],
+            ["cts", "bik"],
+            ["ubl", "bik"],
+            ["rbl", "bik"],
+            ["bcl-PH", "bik"],
+        ])("folds the Bikol member %s to %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        it.each([
+            ["ilo-PH", "ilo"],
+            ["war-PH", "war"],
+            ["hil-PH", "hil"],
+            ["pam-PH", "pam"],
+            ["bik-PH", "bik"],
+            ["min-ID", "min"],
+            ["mad-ID", "mad"],
+            ["tet-TL", "tet"],
+            ["to-TO", "to"],
+            ["fj-FJ", "fj"],
+            ["ty-PF", "ty"],
+            ["ch-GU", "ch"],
+            ["ch-MP", "ch"],
+            ["tpi-PG", "tpi"],
+            // Both of these are written in more than one script, and both
+            // catalogs are the Latin one — so a reader arriving under the other
+            // script reaches it and gets Latin. That is the asymmetry `pa`,
+            // `sr`, `jv` and `su` already have, and the answer to it is a second
+            // catalog beside the first rather than a rename of it.
+            ["ban-Bali", "ban"],
+            ["ace-Arab", "ace"],
+        ])(
+            "strips the region or script from %s to reach %s",
+            (requested, expected) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual([expected, "en"]);
+            },
+        );
+
+        /**
+         * The negative controls, and the reason the Bikol list keys on
+         * published membership. Tagalog and Cebuano are Philippine languages
+         * with catalogs of their own and are members of nothing: `tl`
+         * canonicalizes to `fil` before negotiation is reached (see the
+         * Filipino case above) and must not touch `bik`, and `ceb` must reach
+         * its own catalog rather than a neighbour's. `phi` is the ISO 639-5
+         * collection code for the Philippine languages as a group, which is not
+         * a macrolanguage and folds onto nothing, unlike the one collection
+         * code `MACROLANGUAGE_MEMBERS` does carry (`nah`, whose members are
+         * listed there deliberately).
+         */
+        it.each(["tl", "ceb", "phi"])(
+            "does not fold %s onto a neighbouring Philippine catalog",
+            (requested) => {
+                const chain = negotiateLocales(
+                    [normalizeLocaleTag(requested)],
+                    available,
+                );
+                expect(chain).not.toContain("bik");
+                expect(chain).not.toContain("ilo");
+                expect(chain).not.toContain("hil");
+            },
+        );
+
+        // Pangasinan is a Philippine language with no catalog that belongs to
+        // no macrolanguage with one, so it falls all the way to English — the
+        // rule working rather than a gap in it.
+        it("leaves Pangasinan on English rather than guessing", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("pag")], available),
+            ).toEqual(["en"]);
+        });
+    });
+
+    /**
+     * Klingon, the roster's first constructed language. Nothing in negotiation
+     * treats it specially and nothing should: `tlh` is a registered IANA
+     * primary subtag with an ISO 639-3 code, so it filters like any other
+     * individual language, needs no entry in `LANGUAGE_ALIASES`, and belongs to
+     * no macrolanguage.
+     */
+    describe("a constructed language", () => {
+        it.each([
+            ["tlh", "tlh"],
+            // pIqaD is ISO 15924 `Piqd` — a registered script code for a script
+            // Unicode does not encode, so no catalog can ever be written in it.
+            // The Latin catalog is what a reader asking for it reaches, which
+            // is the `ban-Bali` and `ace-Arab` asymmetry with the extra twist
+            // that here the second catalog the answer usually points to cannot
+            // exist.
+            ["tlh-Piqd", "tlh"],
+        ])("reaches the Klingon catalog from %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The constructed languages with codes of their own and no catalog.
+         * Quenya and Sindarin are two languages rather than one "Elvish", and
+         * `art` is the ISO 639-2 collection code over constructed languages as
+         * a group — the `phi` case, and a collection nothing folds onto. All
+         * three fall to English, which is the rule working: membership is a
+         * published fact, and none of them is a member of `tlh`.
+         */
+        it.each(["qya", "sjn", "art"])(
+            "leaves %s on English rather than folding it onto Klingon",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
     });
 });
 

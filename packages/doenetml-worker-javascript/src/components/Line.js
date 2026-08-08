@@ -13,7 +13,11 @@ import {
 } from "../utils/numberDisplay";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
-import { returnNVariables, roundForDisplay } from "../utils/math";
+import {
+    evaluateToNumber,
+    returnNVariables,
+    roundForDisplay,
+} from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Line extends GraphicalComponent {
@@ -1734,8 +1738,12 @@ export default class Line extends GraphicalComponent {
                         ind < globalDependencyValues.numDimensions;
                         ind++
                     ) {
-                        let val = point[ind].evaluate_to_constant();
-                        numericalP.push(val);
+                        // `evaluate_to_constant` reports "no numeric value" as
+                        // `null`, and this array is `forRenderer`, where
+                        // `Number(null)` is `0` — an undefined point would be
+                        // drawn at the origin rather than not drawn. Map it to
+                        // `NaN` explicitly, as `Point.js`'s `numericalXs` does.
+                        numericalP.push(evaluateToNumber(point[ind]));
                     }
                     numericalPoints[arrayKey] = numericalP;
                 }

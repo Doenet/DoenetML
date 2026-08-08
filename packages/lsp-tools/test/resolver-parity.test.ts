@@ -156,6 +156,21 @@ describe("Resolver Parity - Member Completion Resolution", () => {
 
             // The child name should still resolve even with a hyphenated member segment.
             expect(items.some((item) => item.label === "p1")).toBe(true);
+
+            // The bare form ended back at `$s.sub`, so accepting `p1` has to
+            // rewrite the whole macro even though `p1` itself is a
+            // SimpleIdent — `$s.sub-sec.p1` would not be a reference.
+            const textEdit = items.find(
+                (item) => item.label === "p1",
+            )?.textEdit;
+            expect(textEdit && "newText" in textEdit).toBe(true);
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("$(s.sub-sec.p1)");
+                expect(textEdit.range.start).toEqual({
+                    line: 1,
+                    character: 0,
+                });
+            }
         });
 
         it("Stops resolution at unresolved path segment", async () => {

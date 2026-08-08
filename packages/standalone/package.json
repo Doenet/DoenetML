@@ -2,7 +2,7 @@
     "name": "@doenet/standalone",
     "type": "module",
     "description": "Standalone renderer for DoenetML suitable for being included in a web page",
-    "version": "0.7.21",
+    "version": "0.7.23",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -53,6 +53,7 @@
                 "src/**/*.tsx",
                 "tsconfig.json",
                 "vite.config.ts",
+                "package.json",
                 "../i18n/locales/**/*.ftl"
             ],
             "output": [

@@ -779,28 +779,28 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mi textarea").should("not.have.attr", "aria-details");
     });
 
-    it("labelPosition left and right", () => {
+    it("labelPosition start and end", () => {
         postDoenetMLWithMathJaxPrimed(`
-    <p>Left label:
-    <mathInput name="ml" labelPosition="left">
-      <label>left</label>
+    <p>Start label:
+    <mathInput name="ml" labelPosition="start">
+      <label>start</label>
     </mathInput>
     </p>
     
-    <p>Right label:
-    <mathInput name="mr" labelPosition="right">
-      <label>right</label>
+    <p>End label:
+    <mathInput name="mr" labelPosition="end">
+      <label>end</label>
     </mathInput>
     </p>
         `);
 
-        cy.log("Test left: label before input");
+        cy.log("Test start: label before input");
         cy.get("#ml")
             .children()
             .eq(0)
             .should("have.attr", "id", "ml-input-label");
 
-        cy.log("Test right: label after input");
+        cy.log("Test end: label after input");
         cy.get("#mr")
             .children()
             .last()

@@ -1,5 +1,850 @@
 ## v0.7.10
 
+## 0.7.23
+
+### Patch Changes
+
+- e8253e7: Fix `@doenet/standalone` rendering every language in English.
+
+    The bundle published as 0.7.22 never requested a message catalog. A document declaring `<document lang="ar">` was recognized in every visible way — it laid out right to left, negotiated its locale, labelled itself `lang="ar"` — and then read "Check Work", because the catalog that would have said otherwise sat unfetched beside the bundle.
+
+    The one file held two copies of `@doenet/i18n`: one built from source for `src/index.tsx`, which installs the loaders that fetch the served catalogs, and one already compiled into `@doenet/doenetml`, which is the copy the viewer resolves a language through. The loaders are module-level state and do not cross between instances, so the viewer's copy held none, judged every language unloadable, and fell back to English — which is exactly what it is supposed to do when a catalog cannot be reached, and therefore said nothing about it.
+
+    `@doenet/doenetml` now re-exports `setLocaleLoaders` and `fetchLocaleLoaders`, and `@doenet/standalone` reaches them through the same entry point its viewer comes from, which makes the setter and the reader one instance. A host installing its own catalogs should import them from `@doenet/doenetml` for the same reason.
+
+    Two guards, because neither half of this was visible: `npm run check:i18n-instances` fails the build when any built package holds more than one copy of `@doenet/i18n` in one script, and a component spec renders a document in a language only a served catalog carries and asserts the request goes out.
+
+## 0.7.22
+
+### Patch Changes
+
+- ca0e785: Keep the whole check-work widget in one language.
+
+    The button rested on a label in the document's language and then reported "Correct", "37% Credit" or "Response Saved" in the reader's, so an activity declaring `lang="es"` read with `uiLocale="en"` said "Revisar" and then "Correct" on the same control.
+
+    The button, its verdict, the attempts-remaining message beside it and the validation state announced on the input now all follow the document. An author can name that button from their own prose — "Pulsa el botón $ans.submitLabel" — and a sentence that names the button has to name what the button actually says, so the label, the prose pointing at it, and the verdict are all one language.
+
+    Nothing changes when the reader's language and the document's agree. Where they differ the whole widget is now the document's — including when an activity declares no language at all, which counts as English: a reader who set `uiLocale="es"` used to see a Spanish "Correcto" beside an English "Check Work", and now sees the control wholly in English. One language on one control is the trade.
+
+    Error boxes still follow the reader: a diagnostic is addressed to whoever is looking at the screen, and no authored prose ever refers to one.
+
+- 84e1ec6: Write the names the chemistry components generate in the document's language: all 118 element names, the name an ion takes, and the message shown where a symbol names nothing.
+
+    Symbols, formulas, and anything an author's `<award>` compares against by value are unchanged. Only what is displayed as prose moves. An element's periodic group, its phase at STP and its metal category read as words but are compared as values — `$atom.groupName = Noble Gas` — so they stay as the atom database spells them in every language.
+
+    An ion's name is now looked up rather than derived. English builds an anion's name by stripping a trailing "ine" and adding "ide", with a small table for the words that rule does not fit — that is English morphology, and no other language derives its anion names that way. Each language supplies its own names instead. A transition metal's oxidation state keeps its Roman numeral, which is international, but where it sits and how it is punctuated is now the catalog's to say.
+
+    A document that declares no language reads exactly as it did before.
+
+- fd3ee74: Translate Chinese into both scripts: `zh-Hans` for Simplified and `zh-Hant` for Traditional.
+
+    Catalogues the pair by script rather than leaving Simplified as a plain `zh`, which is what makes a Traditional reader reach Traditional text. Locale negotiation tries the region-stripped tag before it consults likely-subtags, so a catalog named `zh` would answer `zh-TW`, `zh-HK` and `zh-MO` ahead of `zh-Hant` — a reader in Taipei would be served Simplified. Named by script, `zh-CN` and `zh-SG` reach `zh-Hans`, the Traditional regions reach `zh-Hant`, and a bare `zh` reaches `zh-Hans`, which is what it means.
+
+    `<document lang="zh">` and `documentLocale="zh"` therefore render Simplified, as the tag says. `zh-Hans` and `zh-Hant` are what `<document lang>`'s autocomplete offers, as _Simplified Chinese (简体中文)_ and _Traditional Chinese (繁體中文)_.
+
+    The Traditional catalog is a full translation rather than a character conversion of the Simplified one, and follows Taiwan usage where the two diverge — 預設 over 默认, 變數 over 变量, 質數 over 素数, 元件 over 组件, 參照 over 引用. A table's rows and columns are 列 and 欄, the opposite assignment to the mainland's, so the matrix and data-frame messages are not a mistranslation of their Simplified counterparts. Several elements are named differently too, 矽 for silicon among them.
+
+    Both remain **unreviewed machine-generated seeds**, as their headers say. Both are complete, so neither leans on the other, and a Traditional reader never falls through to Simplified: `zh-Hant` and every region that implies it negotiate to `["zh-Hant", "en"]`.
+
+- 97d65a5: Editor: Add bidirectional click-to-navigate between the source editor and the rendered preview.
+
+    Clicking a rendered element now moves the editor's cursor to (and reveals/centers) its source location, and moving the editor's cursor scrolls the preview to follow, debounced so it doesn't fight active typing. Works in both the VS Code extension's preview panel and `DoenetEditor`'s built-in CodeMirror editor. Clicks on a graph navigate to the `<graph>` source, clicks on the graphical elements inside it (point, vector, line, ray, lineSegment, circle, polygon, polyline) navigate to the element's own source, and drag releases don't navigate.
+
+    Implementation notes: the core now includes each component's source `position` in its renderer instructions; `DocViewer` maintains an id-to-position map from that stream to power a delegated capture-phase click handler and a `scrollToSourceOffset` prop; the line-family renderers report clicks on their JSXGraph elements through a `DocContext` callback at the same click-vs-drag disambiguation point that powers `triggerWhenObjectsClicked`. Content brought in by a copy (e.g. `$g` or `<graph extend="$g">`) navigates to the copy the author wrote where it renders, not to the copied component's original definition.
+
+    Also fixes `@doenet/codemirror`'s library build, whose Vite config pointed `lib.entry` at `CodeMirror.tsx` instead of `index.ts` — silently dropping any runtime (non-type-only) export added to `index.ts` from the built bundle that `@doenet/doenetml` consumes.
+
+- 67835f6: Editor: click-to-navigate now requires Cmd+click (macOS) / Ctrl+click (Windows/Linux), like go-to-definition, so plain clicks interact with the document without moving the editor.
+
+    - Preview → editor (both the VS Code preview panel and `DoenetEditor`): navigation to an element's source fires only with the modifier held, including clicks on graph boards, margins, and individual graph elements (Cmd/Ctrl+Enter is the keyboard equivalent on a focused graph element). The element's normal click behavior still fires alongside navigation.
+    - `DoenetEditor` editor → preview: the debounced follow-the-cursor scroll is replaced by Cmd/Ctrl+click on a spot in the source, which scrolls the preview to the element rendered from that offset. Typing and plain cursor moves never scroll the preview. `Cmd/Ctrl+Alt+P` does the same for the cursor's position, so the gesture is reachable without a mouse. The code editor otherwise reads that same modifier as "add another selection range", so mouse-driven multiple selections are turned off in it: the gesture leaves a single cursor where you clicked, and extra cursors now come from `Cmd/Ctrl+D` instead.
+    - VS Code editor → preview keeps following the cursor, as it does today, since the VS Code API exposes no mouse modifiers for editor clicks and so has no way to spell the web editor's Cmd/Ctrl+click gesture. Two additions: a `Scroll Doenet Preview to Cursor` command bound to `Ctrl+Alt+P` (`Cmd+Alt+P` on macOS), rebindable from the Keyboard Shortcuts UI and the same chord as the web editor — on macOS that chord otherwise toggles the find widget's Preserve Case, which the new binding takes over while the text of a Doenet file has focus; and a `doenet.preview.scrollPreviewWithEditor` setting (default on, like VS Code's own `markdown.preview.scrollPreviewWithEditor`) that turns the cursor-following off, leaving the command as the only thing that moves the preview.
+    - For host apps driving `DoenetViewer` directly: `onSourcePositionClick` now fires only for modified clicks, so a host no longer has to filter plain ones out itself. `scrollToSourceOffset` is unchanged for hosts that drive it from a moving cursor, but a host that drives it from a discrete gesture should set it back to `null` between requests, so that repeating the same offset scrolls again.
+
+    Since touch devices have no modifier key, click-to-navigate is unavailable on touch.
+
+- becd31c: Context help now names the shortcut that works on a Mac: Option+I.
+
+    The panel's "Press Ctrl+Space to see all N components" footer named a key
+    combination Mac users cannot use. CodeMirror binds a literal Control+Space on
+    every platform, but macOS claims Control+Space for "Select the previous input
+    source", so the keystroke is swallowed before the editor sees it. CodeMirror
+    ships mac-only alternates for that reason, and the panel now points at one of
+    them (Option+I) when running on a Mac; other platforms still see Ctrl+Space.
+    The authoring guides that point at the autocomplete menu name the Mac
+    alternate too.
+
+    Closes #1537.
+
+- ca53727: Render the editor's context-help panel in the reader's language.
+
+    The panel that explains whatever the cursor is on was the last English surface left inside the editor. Its labels, its placeholder, and the sentences it writes about a reference — "`$m` is a reference to `<point>` (line 4)" — now come from the catalogs, with Spanish alongside.
+
+    Those sentences stay whole rather than being split at the markup inside them, so a translation decides where each quoted name sits and how the sentence is punctuated around it. Element names, attribute names and `styleNumber` stay as written, and the descriptions the panel shows still come from the schema, which is generated from the documentation and is not translated.
+
+- c205608: Editor: fix the code editor's text-selection highlight so highlighted (selected) text stays legible, especially in dark mode.
+
+    The selection highlight was rendering with CodeMirror's built-in light lavender (`#d7d4f0`) in every mode: the theme's own selection rule never took effect (CodeMirror's base theme targets the selection with a higher-specificity selector), and the editor was never told it was in dark mode, so it also fell back to CodeMirror's light-mode defaults. On the dark canvas the near-white and brightly-colored syntax tokens were then washed out under the pale highlight — and clicking away from the editor made it worse, reverting the blurred selection to the base light-gray default.
+
+    The dark-mode selection is now a dark navy (`#092c4d`) that keeps every syntax token — down to the dim comment gray — at WCAG AA contrast (≥ 4.5:1) while still reading as a selection, and light mode now correctly uses its intended neutral gray. The override matches CodeMirror's base-theme selector for both the focused and blurred states, and the theme now passes the real brightness to CodeMirror so its base defaults align.
+
+    The light-mode comment color is also darkened slightly (`#656d76` → `#5c636d`) so highlighted comments clear WCAG AA against the light selection background too (they previously sat at ~4.1:1); it remains above AA on the white canvas.
+
+    Adds `@doenet/codemirror` Cypress component tests (`selectionAccessibility.cy.tsx`) that select highlighted code and assert the WCAG contrast between each rendered token color and the actual selection-background color, in light mode, dark mode, and after the editor is blurred. (`cy.checkA11y` can't be used for this: axe-core cannot resolve CodeMirror's separate selection layer / `::selection` pseudo-element and instead compares tokens against a phantom white background.)
+
+- d798fb3: Warn that the `description` attribute is deprecated in favor of a `<shortDescription>` child.
+
+    `<image description="A tree" />` has quietly gone on working since version 0.6: normalization rewrites the attribute into a `<shortDescription>` child, so it still supplies the alt text. But the attribute is in neither the schema nor the documentation, which left old source being carried forward with no indication that it is writing something no longer supported. It now says so, on all ten components that accepted it — `<image>`, `<video>`, `<graph>`, `<answer>` and the `<*Input>`s — and keeps working exactly as before.
+
+- f363e32: Offer the languages DoenetML has translations for as autocomplete and help for `<document lang>`.
+
+    Typing `lang="` in the editor now lists each language by tag, named in English
+    and in itself — `es` as "Spanish (español)" — and the context-help panel shows
+    the same list under "Suggested values". The list comes from the catalogs in the
+    repository, so a language added later appears in both places without anyone
+    maintaining a second copy of it.
+
+    They are suggestions, not a constraint. `lang` still takes any BCP-47 tag, and
+    a document in a language nobody has translated the interface into is not a
+    mistake: its tag reaches the rendered `lang` attribute, where a screen reader
+    picks a voice and the browser hyphenates, with only the prose the core computes
+    falling back to English. So the editor draws no squiggle under a tag it does
+    not recognize, the help panel says "Suggested values" rather than "Allowed
+    values" so it does not claim a rule nothing enforces, and typing an unlisted
+    tag unquoted still gets the same offer to quote it that any free-text attribute
+    gets.
+
+- 164d88e: Render the editor's own chrome in the reader's language.
+
+    The viewer chrome was translated; the editor's was not, so a reader who set `uiLocale="es"` — or opened a document declaring `<document lang="es">` — got a Spanish document inside an English editor. It showed worst in the Diagnostics panel, where a translated message sat beside an untranslated `Line #2`.
+
+    The footer, the diagnostics and responses panels, the variant picker, the accessibility button and the update button all follow the same language now, and that language is the one the viewer resolved rather than the one the surrounding host chrome uses — so the two halves of the editor can never disagree. Spanish translations ship with it.
+
+- f630ca2: Show the editor's diagnostic tooltips in the reader's language: the message, the severity heading above it, and the accessibility headings.
+
+    Hovering a squiggle was the last place a diagnostic stayed English no matter who was reading. The checks the language server runs as you type — an unrecognized element, one in a parent that doesn't accept it, an unknown attribute, a value outside its enumeration — now read in the same language as the Diagnostics tab beside them.
+
+    The lint panel and what a screen reader announces follow the same text, so no surface of one diagnostic disagrees with another. A document that declares its own language is read in that language here too, the same as everywhere else the reader's language is left unset.
+
+    A language that arrives after the editor is already up — a host switching it, or a `<document lang>` the viewer has only just parsed — redraws the squiggles that are already marked, rather than leaving them in the previous language until the next edit.
+
+    Also fixes squiggles disappearing when the editor re-renders. Re-rendering `<DoenetEditor>` reconfigures the CodeMirror instance behind it, which used to discard every diagnostic on screen — and nothing brought them back until the language server next published. The editor now carries the lint state in its own configuration, so what is marked stays marked.
+
+    With no locale configured anywhere, every tooltip reads exactly as it did before.
+
+- b97857e: Render the red error box inside a document in the reader's language, instead of leaving it English beside a Diagnostics panel that was already translated.
+
+    The same error reported in two places used to read in two languages: the panel showed the reader's, the box in the document showed the English the worker wrote. The box now renders from the same code and arguments the panel does, so the two agree.
+
+    The line the error was found on follows the reader too. It is a message with a line number in it rather than a sentence the worker assembles, so a translation can put the number where its own language wants it.
+
+    An error that has no code yet still shows the English it arrived with, unchanged.
+
+- e8d9809: Editor: stop the hover from showing one problem twice, and let error messages
+  be translated like every other diagnostic.
+
+    Errors raised while the source is being turned into components are thrown, not
+    built, and the `_error` component they become had nowhere to keep the code
+    naming the situation — so an error was the one diagnostic that could only ever
+    reach the reader in English. It now carries the code and its arguments through,
+    and the invalid-component-type, repeated-attribute and invalid-attribute errors
+    are translatable wherever diagnostics are shown — the Diagnostics panel, the
+    editor hover, and a host's `setDiagnosticsCallback`. The error box drawn in the
+    document itself still reads in English; that is a separate step.
+
+    That also fixes what would have surfaced as duplicate squiggle text: the LSP
+    merges the parser's copy of a diagnostic with the worker's echo of it, and once
+    the echo is rendered in the reader's language the two are no longer the same
+    string. A record is now matched by its message and, when it has one, also by
+    its code plus the arguments filling it in — agreeing on either makes it the
+    same diagnostic, so a copy that has a code and one that doesn't still collapse
+    while they agree on the English. The arguments are part of the match because a
+    code names a message template rather than one occurrence of it: a single
+    component can report the same code twice with different values, and both still
+    reach the author.
+
+- abf2779: Graph: warn about an unusable `grid` value instead of failing.
+
+    A `grid` whose pieces could not be parsed — `grid="(1, 2)"`, where the space falls inside the parentheses — took the whole document down with a red `Expecting ) or ]` box. It is now reported as an invalid value like any other.
+
+    Values that were already ignored in silence, such as `grid="(1,2) (3,4)"`, `grid="0 1"`, and `grid="1"`, now say so: the warning names the value and the forms `grid` accepts. A value that comes from a reference stays quiet: `grid="$gx $gy"` is unusable until the reader fills the inputs in, and `grid="$choice"` is how a reader picks `none`, `medium`, or `dense` in the first place.
+
+    The editor's own description of `grid` was offering values it never accepted — `off`, `minor`, `major`. It now describes the values it does accept.
+
+- dd4f83e: Graphs: stop math drawn inside a graph from taking a keyboard tab stop.
+
+    A graph is presented to assistive technology as a single image named by its `<shortDescription>` — or hidden entirely, when it is `decorative` — so a label drawn inside it is not separately reachable. MathJax, though, marks every expression it renders as focusable, which put a tab stop on each math label in the graph: `<graph><label><m>A</m></label></graph>` made keyboard users stop on an `A` that is not in the accessibility tree and does nothing when focused.
+
+    Math drawn inside a graph is now skipped when tabbing. Math elsewhere on the page is unchanged, as are the graph's own keyboard-navigable objects and any input or button anchored in it — those still take focus as before.
+
+- 2049662: Agree the Hindi word joining a fill pattern to the shape it fills. `वाला` is itself an adjective that agrees with the shape, so a filled line with dots now describes itself as `बिंदुओं वाली हरी भरी हुई रेखा` rather than putting a masculine word in front of a feminine noun.
+- dd10466: Translate more of the words the core computes into a document: boolean words, the default submit-button labels, and the `if`, `or` and `otherwise` a piecewise function writes around its branch conditions.
+
+    A `<boolean>` or `<booleanInput>` in a Spanish activity now reads "verdadero" and "falso" where an author interpolates `$b.text` into their prose. The _value_ is untouched: `true` and `false` are DoenetML syntax, so an `<award>` comparing against them, and saved state holding them, work the same in every language. Where a boolean is read back out of text — `$b.text` bound to an input — both spellings are accepted.
+
+    An answer's submit button says "Revisar" instead of "Check Work" in a Spanish activity, and the same for a section-wide check-work button. Only the _default_ is translated: `submitLabel="Ready?"` is the author's own wording and passes through verbatim in every language, including when it happens to match the English default.
+
+    `<intComma>` groups by the document's own conventions rather than always in English — `25.236.501,35` in Spanish or German, `12,34,567` in Hindi. It still groups rather than rounds, so a value written with trailing zeros keeps them.
+
+    `<pluralize>` works by running an English model over its text, and there is no equivalent for an arbitrary language. In a document written in another language it now leaves the text alone and says so, rather than silently doing nothing — unless the author supplied a `pluralForm`, which needs no model and is used in every language, with `basedOnNumber` choosing between the two forms. `<lorem>` stays Latin in every language, which is what placeholder text is for.
+
+    Numbers inside mathematics keep `.` as their decimal separator in every language. A decimal comma is a real and wanted feature, but it has to arrive on the input side at the same time — until then, changing it would change what a grader compares rather than only how it looks.
+
+    An answer's or section's `showCorrectness` and `colorCorrectness` are now properties an author can reference as `$a.showCorrectness` and `$a.colorCorrectness`, reporting the resolved values after any enclosing section's setting, hand-grading and the activity-wide flag are taken into account. The raw attribute values behind them, and the raw value behind a submit label, are no longer reachable under their internal names.
+
+    With no locale configured, every one of these reads exactly as it did before.
+
+- ea07d40: Give stable codes and translatable messages to the remaining directly authored
+  diagnostics in the worker: the PreFigure renderer's fallbacks, `<updateValue>`,
+  `<copy>`, `<collect>`, `<dataFrame>`, `<answer>` and section-wide check work,
+  `<module>` attributes, `<conditionalContent>`, `<slider>`, pretzel validation,
+  `<mathInput>` function names, and invalid attribute values. Lists and counts in
+  these messages now agree through the catalog rather than through string
+  concatenation.
+- 0110575: Give stable codes and translatable messages to the diagnostics raised by the
+  math components: `<circle>`, `<function>`, `<sequence>` and
+  `<selectFromSequence>`, `<animateFromSequence>`, `<odeSystem>`, `<angle>`,
+  `<parabola>`, `<intersection>`, and the ionic-compound and eigendecomposition
+  helpers. Counts inside these messages now agree with their nouns through the
+  catalog rather than through string concatenation.
+- 5760bf2: Give stable codes and translatable messages to another 48 diagnostics, covering
+  accessibility checks, `<label>`'s `for` attribute, `<sideBySide>`, `<sort>` and
+  `<shuffle>`, attract and constrain targets, and index ordering. The
+  section-heading contrast warning now picks its dark-mode wording from the
+  catalog and formats its ratio for the reader's locale instead of assembling
+  English in the caller.
+- 5873ff7: Translate the diagnostics that explain why unique variants could not be
+  determined, and the warnings the PreFigure graph conversion raises.
+
+    These were the largest group of messages still reaching authors only in English.
+    Three helpers built them on their callers' behalf, so roughly sixty messages sat
+    behind three diagnostic constructions — invisible to the migration's own
+    progress count, and unreachable by any translation.
+
+    The English is otherwise unchanged. The one exception is a PreFigure warning
+    about a descendant with no component type, which now names it `<?>` rather than
+    `<unknown>`: the subject of these warnings is handed to the message as an
+    argument, so an English word there is one no translation can reach.
+
+- e2ddc2d: Stop reporting the core's broken invariants as diagnostics.
+
+    Eighteen messages raised when something inside the core does not add up — a
+    state variable that should exist and doesn't, an array index past the end of
+    its own array, a parent that vanished before its children were added — no
+    longer reach the diagnostics list. They name state variables and component
+    indices, never anything in the document, and there is nothing an author can do
+    about one. They are now plain English lines on the console, worded exactly as
+    before.
+
+    Three more named something an author had written, and those become two
+    translated warnings that say only that part: an index that cannot be applied
+    now reads ``Cannot reference index `$p.styleDescription[1]` `` and is marked on
+    the reference that wrote it rather than on whatever it pointed at, and a
+    `<callAction>` whose `actionName` the target does not have now reads
+    ``Cannot call submitAnswer on component `$p` `` rather than quoting a component
+    index no author has seen.
+
+- c021a4b: Translate the parser's diagnostics — the unclosed tags, mismatched quotes,
+  invalid names and deprecation notices an author sees before anything runs, and
+  usually the first Doenet message a beginner ever reads. Spanish included, so a
+  `uiLocale="es"` reader now gets them in Spanish rather than in English.
+
+    A parser error reaches the editor twice: once from the language server and once
+    as the worker's echo of it. Both copies now carry the same stable code, so the
+    editor recognizes them as one error and shows the translated one, instead of
+    the same problem twice in two languages.
+
+    The seventeen hand-written deprecation notices, which differed only in the
+    attribute and component names they mentioned, are now three messages — one per
+    shape — with the component name chosen in the catalog rather than pasted in
+    beforehand, so a translation can place or drop that clause as its own grammar
+    requires.
+
+- 79fedef: Add a `lang` attribute to `<document>` and `documentLocale` / `uiLocale` settings to the viewer and editor, laying the groundwork for translated activities.
+
+    `<document lang="es-MX">` declares what language the content is written in. The rendered activity then carries a matching `lang` attribute, so screen readers pronounce the content with the right voice and rules — an accessibility improvement that applies today, before any strings are translated.
+
+    `<document>` also gains a public `locale` property reporting the language tag actually in effect, whether that came from an authored `lang` or from the host.
+
+    Hosts can supply the same information from outside the document with the new `documentLocale` prop (`data-doenet-document-locale` on a standalone container), and can set the language of the surrounding interface separately with `uiLocale`, which defaults to following `documentLocale`. An authored `lang` always wins over the host's setting: the author knows what language they wrote in. Both settings are available through `DoenetViewer`, `DoenetEditor`, `@doenet/standalone`, and `@doenet/doenetml-iframe`; the React components additionally take a `localeResources` prop for supplying translated message catalogs.
+
+    Language tags are accepted in any casing (`ES-mx` works the same as `es-MX`), and a blank tag counts as not set.
+
+    Content itself is not translated yet. With the default locale, output is unchanged.
+
+    Also corrects two long-standing errors in the `@doenet/standalone` README: it showed `data-doenet-*` settings on the inner `<script type="text/doenetml">` element, when they are read from the container element only, so attributes written on the script have never taken effect; and its usage example called a global named `renderDoenetToContainer`, which does not exist — the exported globals are `renderDoenetViewerToContainer` and `renderDoenetEditorToContainer`.
+
+- e818298: Translate the viewer's own interface, and ship Spanish.
+
+    Buttons, panel headers, error messages, and screen-reader announcements — "Correct", "Response Saved", "Max credit available: 80%", "1 attempt remaining", "Show footnote", the "(click to open)" beside a solution, hint, or collapsible section heading, the "This document contains errors!" banner, the matrix input's row and column controls, the subset-of-reals input's mode buttons, the orbital diagram's row, box, and arrow buttons, the ⓘ tooltip on an input's description, the virtual keyboard's labels — now come from message catalogs instead of being written into the code. Setting `uiLocale="es"` (or `data-doenet-ui-locale="es"` on a standalone container) renders all of it in Spanish, with no other configuration. An activity that declares `<document lang="es">` gets the Spanish interface automatically, since the interface follows the content's language unless a host says otherwise.
+
+    Counts are pluralized by the rules of the language being rendered rather than by English's, so Spanish says "queda 1 intento" and "quedan 2 intentos" where English says "1 attempt remaining" and "2 attempts remaining".
+
+    Hosts can supply their own catalogs through `localeResources` to add a language or correct a translation DoenetML ships.
+
+    With no locale configured the interface is unchanged, apart from the startup message, which now reads "Initializing..." rather than "Initializing....".
+
+- 9ccf23a: Translate style descriptions, and ship the Spanish vocabulary.
+
+    "thick dashed blue line", "filled blue circle with a thick red border", "green square", "black with a yellow background" — the words `styleDescription`, `styleDescriptionWithNoun`, `borderStyleDescription`, `fillStyleDescription`, `textStyleDescription`, `textColor`, and `backgroundColor` report now come from message catalogs. An activity set to Spanish, by `documentLocale="es"` or by declaring `<document lang="es">`, describes its graphics in Spanish with nothing else configured.
+
+    These are the words authors interpolate into their prose with `$line.styleDescription`, and the words a screen reader announces for a graph, so they follow the language the activity was _written_ in rather than the reader's interface language.
+
+    Word order and agreement belong to the language, not to the code that assembles the sentence. Spanish puts adjectives after the noun and inflects them to match its gender, so it says "línea discontinua gruesa roja" where English says "thick dashed red line", and "círculo azul relleno con un borde grueso rojo" where English says "filled blue circle with a thick red border" — including agreeing the border's adjectives with the word for border rather than with the shape around it.
+
+    A word an author writes themselves — `lineColorWord="chartreuse"`, `markerStyleWord`, or a CSS color asked for by name like `rebeccapurple` — is left exactly as written.
+
+    A shape that names itself after another, such as a triangle or a rectangle, is now described with its own noun rather than by rewriting the finished English sentence, so `$triangle.styleDescriptionWithNoun` reads correctly in every language.
+
+    Hosts can supply their own catalogs through `localeResources` to describe graphics in a further language, or to correct a translation DoenetML ships — the same way they already could for the interface.
+
+    With no locale configured, every description reads exactly as it did before, with one exception: a `<regularPolygon>` reports its side count through the locale's own number formatting, so a thousand-sided one now reads "1,000-sided regular polygon" rather than "1000-sided regular polygon". Every side count anyone writes in practice is unaffected.
+
+- 0ccc589: Give warnings and errors stable codes, and translate the first of them.
+
+    Every diagnostic that has moved into the message catalogs now carries a permanent code — `doenet-w0001`, `doenet-i0001` — alongside its message. A code names one situation forever, whatever language the message is shown in and however the wording is later revised, so it is something to cite in a bug report or filter on. It reaches an embedding page on the diagnostic record, and the editor's language server publishes it in the standard LSP `code` field; nothing displays it on screen yet, which arrives with the documentation pages the codes will link to.
+
+    Because a diagnostic now carries its code and the values that fill its message in, rather than a finished sentence, it can be shown in the reader's language. Diagnostics follow `uiLocale`, not `documentLocale`: they are addressed to whoever is looking at the screen, so a Spanish-speaking student working a French activity reads the activity in French and its warnings in Spanish. Setting `uiLocale="es"` now reports `<line>`, `<lineSegment>`, `<ray>` and `<vector>` diagnostics in Spanish with nothing else configured.
+
+    Lists inside a message are assembled by whichever language ends up rendering it, rather than pieced together as English and handed over as a finished string. So the verb agrees with the list beside it — "slope is ignored" for one attribute against "slope and length are ignored" for two — and a message that has no translation yet keeps both its sentence and its list in English instead of mixing the two.
+
+    Also fixed: a host that files its `localeResources` under a locale tag `Intl` cannot parse — `en_US`, the POSIX spelling, rather than `en-US` — no longer renders that catalog's messages that count things as `{???}`. That covers the chrome's "attempts remaining" and submitted-response counts as well as the new diagnostics: the host's own wording is used, with English counting and number conventions.
+
+    The remaining messages still report in English and are unaffected. With no locale configured, every diagnostic reads exactly as it did.
+
+- ab82a9d: Translate the last of the worker's author-facing diagnostics: circular
+  dependencies in a copy or composite, references that resolve to nothing or to
+  several things, children that do not match what a component accepts, an
+  attribute value that falls back to its default, and the embed's
+  DoenetML-version failure.
+
+    Circular dependencies were reported by two components in two places with the
+    same wording; they now share one code, so a host filtering on it catches both.
+
+- 284ff85: Give the language server's schema checks stable diagnostic codes, so the squiggles the editor draws under an unrecognized element, a misplaced one, an unknown attribute, or a value outside its enumeration can be translated and cited.
+
+    These were the last author-facing diagnostics composing their English at the point they were raised, with no name a bug report could quote or a host could filter on. Each now carries a code and the values that fill its message in, alongside the English it has always shown, and the same sentences are in the message catalogs for translators.
+
+    The check for a name that does not start with a letter shares its code with the parser's identical check rather than taking a second name for one mistake, which also lets the editor collapse the two reports into one entry.
+
+    Every message reads exactly as it did before.
+
+- a23df7c: Viewer: show the right choice in an inline `<choiceInput>` that has a hidden choice.
+
+    A hidden choice still occupies an index, but the inline input looked its selected
+    choice up by position in the list of _visible_ options. Every choice after a
+    hidden one therefore displayed its neighbor's text — or, for the last choice,
+    fell back to the placeholder as though nothing were selected. Only the display
+    was wrong; the recorded answer was always correct.
+
+- 7725b8d: Viewer: announce inline `<choiceInput>` options by their text, not "[object Object]".
+
+    The inline choice input passed each choice's rendered content to react-select as
+    the option label. React-select stringifies that label for the announcements it
+    writes to its aria-live region (and for typeahead filtering), so screen readers
+    heard "[object Object], 1 of 3" instead of the choice text, and typing to filter
+    the list matched nothing.
+
+    Each option now carries its plain text alongside the rendered content: the text
+    supplies the accessible name and the filter string, while the rendered content —
+    which may contain math, images, or styled text — is still what is drawn in the
+    menu and in the displayed value.
+
+    With `selectMultiple`, the button that removes a selected choice was likewise
+    named "Remove [object Object]"; it is now named after the choice text too, in
+    the reader's language.
+
+    Closes #1613.
+
+- 11e7ba3: Write every number in Latin digits, whatever the locale counts in.
+
+    CLDR gives a locale a default numbering system, and for a number of languages it is not Latin. A warning's contrast ratio, a count in a message, and `<intComma>`'s output all went through `Intl` under the document's or the reader's own tag, so under such a locale they came back written in that locale's own digits.
+
+    What localizes is now the punctuation and never the ten characters: German still groups with periods, India still groups in twos, and `4.53` is `4.53` everywhere. Two things made this the answer rather than the reverse. A number in prose sits beside numbers that are not — a contrast ratio is written `4.53:1` with the `1` a literal in the message, a line number is read off a gutter the editor draws itself, an author's `styleNumber="3"` is quoted back at them — and localizing the digits split those across two scripts rather than moving them together. And mathematics is Latin-digit regardless, so a document whose prose counted one way and whose equations counted another would be worse than either alone.
+
+    In the Arabic script the separator moves with the digits, because CLDR pairs one set with the other: Persian writes `٬` and `٫` around its own digits and `,` and `.` around these, so a Persian document now writes `1,000.50` where it wrote `۱٬۰۰۰٫۵۰`. Everywhere else the separator is untouched. A tag that asks for a numbering system itself (`zh-u-nu-hanidec`) is overridden too — one answer per product, not per tag.
+
+    No currently shipped language moves: every catalog in the repository is one CLDR already counts in Latin digits, and each of the twenty renders byte-for-byte what it did. What changes is what the next languages will do — Bangla, Assamese, Marathi, Nepali and Burmese are all otherwise ready to seed, and this is what was standing in front of them.
+
+- 07b1f24: Graphing: add new ways to define a `<lineSegment>` via `slope`, `length`, `midpoint`, and `midpointOffset` attributes, plus a public `midpoint` property giving its actual midpoint.
+
+    A `<lineSegment>` can now be positioned without giving both endpoints explicitly:
+
+    - `midpoint` (attribute) — a reference point on the segment, located at its midpoint by default.
+    - `slope` and `length` — the segment's x-y direction and its signed defining length (a negative `length` flips the endpoints). The public `length` state variable still reports the Euclidean distance between the endpoints.
+    - `midpointOffset` (clamped to `[-1, 1]`) — where the `midpoint` point sits along the segment: `-1` = first endpoint, `0` = midpoint, `1` = second endpoint.
+    - `midpoint` (property) — a public state variable giving the segment's actual midpoint (the average of its endpoints), with `midpoint.x`/`midpoint.y` access and a translation inverse. It equals the `midpoint` attribute point when `midpointOffset` is `0` and differs from it when `midpointOffset` is nonzero.
+
+    These combine so a segment can be defined by an endpoint plus `midpoint`, an endpoint plus `slope`/`length`, `midpoint` plus `slope`/`length`, or `slope`/`length` alone. When one endpoint and `midpoint` are given, the second endpoint is placed so the given point sits at the `midpointOffset` position of the segment — by default the midpoint, so `endpoints="(1,2)" midpoint="(2,3)"` yields endpoints `(1,2)` and `(3,4)`. Dragging a graph handle keeps the opposite endpoint fixed while the midpoint tracks its position, and dragging a referenced endpoint translates the segment (for the slope/length cases). When none of the new attributes are given, behavior is unchanged. The generated schema recognizes the new attributes in editor diagnostics.
+
+    Closes #1376.
+
+- 5427160: List items: fix a leading child that renders nothing breaking the layout of a `<part>` or `<task>`.
+
+    A list item aligns its hanging number against its first visible child. Children that render nothing — `<setup>`, `<variantControl>`, `<animateFromSequence>`, `<solveEquations>` and the like — were still eligible to be chosen, so the child that actually rendered first kept its top margin and never reported the alignment it needs. A `<part>` starting with a `<setup>` followed by a `<graph>` (or image, video, tabular, spreadsheet, or block `<choiceInput>`) put its number at the bottom of that content instead of the top.
+
+    Also, a section no longer hides its `<setup>` and `<variantControl>` along with its content. Hiding a `<setup>` hid everything defined inside it, which stripped hidden pieces out of the text of those definitions — so text defined in the `<setup>` of an unrevealed `<cascade>` step came back incomplete.
+
+- 2e3bce0: Viewer: let screen readers read the list marker of an item that starts with a `<p>`.
+
+    A `<p>` renders as `<div class="para">`, and any wrapper element between the
+    `<li>` and its text stops a screen reader from folding the item's `::marker`
+    into the item's own text. VoiceOver then landed on the marker as a separate
+    object and announced "list marker" rather than "1. Apples, 1 of 3", so an
+    ordered list whose items each held a `<p>` lost its numbering out loud. The
+    paragraph that leads a list item is now presentational, which restores the
+    accessibility tree a plain `<li>Apples</li>` produces.
+
+    Paragraphs are also exposed as paragraphs now: a `<div>` carries no paragraph
+    semantics on its own, so every `<p>` — outside a list, and every one in a list
+    item beyond the leading one — gets an explicit `paragraph` role. Nothing about
+    the visual layout changes.
+
+    Closes #662.
+
+- 046bcc0: Load Spanish on demand like every other translation, leaving English as the only language carried inside the JavaScript.
+
+    Spanish was inlined back when it was the only translation there was. With more of them every release, a language earns its place in the bundle by being worth its weight to every consumer — including the ones who never read it — and no single language clears that bar. This takes about 116 KB off `@doenet/standalone`, which carried the Spanish catalogs in its bundle and again in its core worker, and moves them out of `@doenet/doenetml`'s entry chunk into code-split chunks of their own. It also makes the rule uniform: English terminates every fallback chain, everything else arrives on demand.
+
+    Nothing needs configuring. `documentLocale="es"` and `<document lang="es">` work exactly as before — `@doenet/doenetml` code-splits the Spanish catalogs into their own chunks, and `@doenet/standalone` serves them from the `locales/` directory beside the bundle, the same way it already served every other language.
+
+    What changes is when they arrive. A Spanish document now paints in English for as long as the catalog takes to load and then re-renders in Spanish, because a document's language is fixed for the lifetime of the core that renders it and is not known until the source has been parsed. That was already true of every other language; Spanish now behaves the same. A host that wants Spanish on the first frame can still pass the catalogs in as `localeResources`, which take precedence over anything shipped and are in hand before the first render.
+
+- 95c16a9: Load message catalogs for languages that are not inlined into the bundle.
+
+    Only English is carried inside the JavaScript. Every other language now arrives on demand: `@doenet/doenetml` code-splits each catalog into its own chunk, and `@doenet/standalone` — which is one file by construction, so it cannot code-split — serves them from a `locales/` directory beside the bundle. The viewer does the loading itself, so `documentLocale="de"` and `<document lang="de">` work with nothing configured, and a host's own `localeResources` still take precedence over anything shipped.
+
+    Adding a language is now a directory under `packages/i18n/locales/`: no bundling decision to make, and no registry of languages to keep in step with it. At roughly 16 KB gzipped per translation, inlining every language would have put the cost of all of them on everyone who uses one, or none.
+
+    `@doenet/standalone` therefore ships a new `locales/` directory, which should be served alongside `doenet-standalone.js`. Nothing breaks if it is not: those fetches fail quietly and the language falls back to English, which is what it does today.
+
+- 95c16a9: Stop a language switch from discarding the reader's work, and give a nested `<document lang>` the catalog it needs.
+
+    Two problems with loading catalogs on demand, both invisible while every language in use was inlined.
+
+    Changing `uiLocale` rebuilt the core. The catalogs for the reader's chrome and for the document's content live in one map, and the core was rebuilt whenever anything in that map changed — so a reader switching language pulled down a chrome catalog the core never reads, and lost every answer they had typed. The rebuild is now gated on the catalogs the core actually renders from: the content's. Switching the reader's language re-translates the chrome in place, as it always did for a language that happened to be inlined. The gate reacts only to a catalog _arriving_, so an activity whose `<document lang>` disagrees with the host's `documentLocale` — or a host that changes `documentLocale` mid-session — builds its core once rather than twice.
+
+    A nested `<document lang="es">` inside an activity written in another language never had its catalog requested, so its subtree rendered in English however long you waited. The languages a source declares are now read from the source itself, which is where an author wrote them — so the catalog is on its way before the core is built, rather than after the core has already computed that subtree's prose. `lang` takes a plain string and nothing else, so reading it this way finds every language the core could have rendered in. The exception is content that is not in the source yet: a _nested_ `<document lang>` inside DoenetML pulled in by an external reference still renders in English. An activity that is itself pulled in that way is unaffected — its language is read from the expanded source.
+
+    A viewer given `render={false}` — a document a host has asked about but is not showing — started a second core worker every time it re-rendered, and abandoned the one before it. A catalog finishing loading is one of the things that re-renders such a viewer, so the waste was easy to reach once catalogs load on demand. It now primes one worker and reuses it.
+
+    All three applied to every language that is not inlined, which today is every language but English.
+
+- 394bc01: Give the physical-side attributes on inputs and tabulars a logical `start`/`end` vocabulary.
+
+    `labelPosition` on `<textInput>`, `<mathInput>`, `<booleanInput>`, `<choiceInput>`, `<matrixInput>` and `<fractionInput>` now takes `start` and `end` instead of `left` and `right`. The label sits beside the input in DOM order, which mirrors with the writing direction, so under `dir="rtl"` the old names said the opposite of where the label went.
+
+    The tabular border attributes — `left`, `right`, `top` and `bottom` on `<cell>`, `<row>` and `<tabular>`, inherited from PreTeXt — become `startBorder`, `endBorder`, `topBorder` and `bottomBorder`, and are drawn with logical CSS so they follow the writing direction rather than staying pinned to a physical edge. `halign` takes `start` and `end` alongside `center` and `justify`. All three components now declare these vocabularies, so autocomplete and the editor's help panel offer the allowed values, and `<row>` and `<cell>` read them without regard to case the way `<tabular>` always has.
+
+    `resultsLocation` on `<codeEditor>` and the host-facing `viewerLocation` prop take `start`/`end` too. The editor and viewer panels are placed in DOM order and already mirrored with the writing direction, the way panes conventionally do in a right-to-left interface; only the names claimed otherwise. Hosts passing `left`/`right` to `viewerLocation` keep the layout they had.
+
+    `<sideBySide>` panel margins are drawn with logical CSS as well. The two `margins` entries have always been read in the order the panels are laid out, and now the margins mirror with the panels under `dir="rtl"` instead of staying on fixed sides. The attribute keeps its name and values.
+
+    Documents using the old names and values keep working: they are migrated with a deprecation warning naming the replacement. `labelPosition` on graph components such as `<point>` and `<line>` is unchanged — it places a label in coordinate space, which does not mirror.
+
+- a4ba205: Editor: cut the bundled DoenetML language server roughly in half.
+
+    The server reached `@doenet/utils` through its root barrel for a single
+    function, dragging math-expressions, the AST helpers and the URL utilities into
+    the bundle alongside it. Those math-input function-name helpers now have an
+    entry point of their own, taking the built server from 2.3 MB to 1.1 MB
+    minified (640 KB to 317 KB gzipped). The server ships inline inside the code
+    editor, so every package that embeds the editor downloads and parses that much
+    less before the first cursor-help request can be answered.
+
+- 79f138f: Give the Marathi fill description the noun its colour agrees with. `describeFill` hands the colour the gender of the fill, and the pattern words have genders of their own, so a shape filled with horizontal lines described itself as `निळे आडव्या रेषा` — a neuter adjective in front of a feminine plural noun. It now names «भरण» and hangs the pattern off वापरून: `आडव्या रेषा वापरून निळे भरण`.
+- e70ee64: Show angle brackets and norm bars in a math input whose `prefillLatex` writes them without `\left` and `\right`.
+
+    `<mathInput prefillLatex="\langle 2, 3 \rangle" />` rendered an empty field. The vector reached the input's `value` correctly — only the field the reader looks at was blank, so the prefill was invisible. MathQuill recognized `\langle` as a delimiter but had no rule for what follows it, so it took only the one block an ordinary LaTeX command takes — just the `2` — and had nothing left to give `\rangle`. That failed the parse of the whole expression, and a math field whose LaTeX will not parse renders as empty. `\left\langle 2, 3 \right\rangle` worked, but that is not how the brackets are usually written.
+
+    An opening delimiter written without `\left` now takes everything up to its matching partner, the way it behaves when typed: `\langle 2, 3 \rangle`, `\langle \rangle`, `\lVert x \rVert`, and nestings of them all render. One with no partner — `\langle 2, 3`, or `\langle` by itself — keeps all of its contents and shows the same half-open bracket typing one produces, rather than closing after the first term.
+
+    The closing delimiter no longer takes a term of its own either, which fixes anything written after a matched pair: `\lVert v \rVert^2` drew the `\rVert` around the exponent, rendering ‖v‖‖²‖, and now renders the norm squared. A closing delimiter with nothing to close still leaves the field blank, and now does so wherever it sits — `2 \rangle 3` used to render 2⟨3⟩, wrapping whatever followed the stray delimiter in a pair of its own.
+
+    Closes #1336.
+
+- 9fdb73f: Let a nested `<document lang>` reach the rendered page.
+
+    An inner `<document lang="es">` already resolved its language in the core and had its computed prose translated, but nothing in the DOM said so: the `lang` attribute was only ever written for the activity as a whole, so a screen reader read the Spanish subtree with an English voice.
+
+    The inner document now carries its own `lang` — but only when its language differs from the one already in effect around it. A nested document that merely restates the surrounding language adds no attribute, since the DOM already says it.
+
+- dd99082: Graph: draw the grid in the prefigure renderer.
+
+    `grid` was silently ignored when a `<graph>` rendered with `renderer="prefigure"`. It now draws, using PreFigure's own `<grid>` element:
+
+    - `grid` (or `grid="medium"`) lets PreFigure pick the spacing from the axis limits, so the grid follows the graph's bounds.
+    - `grid="dense"` subdivides that spacing to add the finer lines.
+    - `grid="dx dy"` places lines on multiples of `dx` and `dy`, as the Doenet renderer does.
+
+    The grid is drawn behind the axes and the graph's contents, and takes a dimmer stroke in dark mode. A spacing so fine that it would fill the graph with thousands of lines is dropped with a warning.
+
+- 59a0ded: VS Code extension: Keep the preview window's scroll position when the source is refreshed.
+
+    Previously, every refresh of the preview (saving the document, pressing Force
+    Refresh, or switching editors) rebuilt the rendered activity and reset the
+    preview's scroll position to the top. The preview now records its scroll
+    position when new source arrives and re-applies it while the viewer re-renders,
+    clamped to the content height (so a shorter document lands at its bottom rather
+    than jumping to the top). Restoration stops as soon as the user scrolls or
+    interacts with the preview, or after a few seconds.
+
+- b685d7a: Editor: Fix missing property autocomplete and context help for references to a name that is reused across sibling scopes.
+
+    Given two `<exercise>` sections that each contain a `<point name="P">`, `$P.styleDescription` resolved correctly at runtime, but typing `$P.` in the editor offered no property suggestions and the context-help panel said nothing about `styleDescription`. Both features now describe the point inside the same `<exercise>` as the reference, matching what the document renders.
+
+    Both features share one resolver lookup, which used to begin its search above the enclosing `<exercise>`, where both points named `P` are in view; the ambiguous name left the editor with nothing to offer. The lookup now starts from inside the enclosing element, the same place a bare `$P` reference was already resolved from.
+
+- d384b18: Lay documents out right-to-left when their language is written that way.
+
+    DoenetML emitted no `dir` anywhere, and a browser will not infer one from `lang`. An Arabic document therefore rendered right-to-left text in a left-to-right box: punctuation landed on the wrong end, and a run mixing Arabic with a Latin identifier came out in the wrong visual order. The stylesheets were written in left and right throughout, so every indent, gutter and hanging list number pointed away from the text it belonged to.
+
+    The viewer now labels the document with its direction beside its language, and the chrome around it with the reader's — two attributes rather than one, because a reader whose language runs the other way from the activity's is the case this exists for. A nested `<document lang>` carries its own. Where a piece of chrome drawn inside the document runs the opposite way to it, it re-declares itself; where the two agree, nothing is added.
+
+    Mathematical notation does not mirror. Graphs, the math input and its keyboard, matrices, the spreadsheet, sliders, number lines, orbital diagrams and the source editor all stay left-to-right inside a right-to-left document. What does mirror is the prose: indents, list numbering, the paginator, feedback and hint headers, the editor toolbar.
+
+    Translated chrome now isolates its interpolated values, which is what keeps a Latin identifier from scrambling the words around it. English is unchanged, byte for byte. Content computed in the worker is unchanged too — those strings become state variables an author can interpolate and an `<award>` can compare, where an invisible character would be a silent wrong answer.
+
+    No right-to-left catalog ships yet: `<document lang="ar">` turns the page around and leaves the words in English. Arabic and the six other languages this unblocks — Persian, Hebrew, Urdu, Pashto, Sindhi and Uyghur — follow separately.
+
+- 66127ee: Sections: fix children silently disappearing when a section contains a `<stylePalette>`, `<styleDefinition>`, or `<feedbackDefinition>`.
+
+    Each of those configuration children shifted the section's rendered-child indices by one, so content at the end of the section was silently dropped — one child for each configuration child present.
+
+- bbd7081: Write the word a sectional block calls itself in the document's language: section, example, problem, part, proof, solution, answer, hint, and the rest.
+
+    The heading a section builds around that word moves with it. "Section 2: Limits" used to be assembled by concatenation — the word, a space, the number, then a colon or a period before the title — which is English order and English punctuation written into the code. It is now one message per shape, so a translation can order and punctuate each one on its own terms.
+
+    The word is keyed by the element an author writes rather than by an internal class name, so `<subsection>` and `<subsubsection>` share the word for section, and a block whose name the author set with `renameTo` keeps their word in every language.
+
+    An unnumbered block such as `<proof>`, asked to include its number, used to render the word "null" where the number would have gone. It now renders no number, which is what it has.
+
+    A block whose `renameTo` is empty, or is nothing but blank space, likewise renders no name, rather than the space and colon that used to be written around the word that isn't there.
+
+    Apart from those, a document that declares no language reads exactly as it did before.
+
+- 2049662: Add a message catalog for Arabic, the first language DoenetML is translated into that is written right to left.
+
+    It covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="ar"` and `<document lang="ar">` work with nothing configured, and Arabic reaches `<document lang>`'s autocomplete under its own name. The page turns around with it: the words are Arabic and the layout runs the way they are read, while graphs, equations and math input stay left to right inside it.
+
+    This is an **unreviewed machine-generated seed**, and every file says so in its header. Nothing falls back silently: a key the translation is missing renders in English.
+
+    Arabic counts a phrase six ways where English counts it two, and is the first catalog to need a dual: a count of exactly two selects a form carrying no number at all, and none, three to ten, eleven to ninety-nine and everything above take four further forms of their own. Its adjectives follow the noun and agree with it in gender, so a styled line describes itself as `خط أحمر متقطع سميك`. Where English welds a preposition to an interpolated value, the Arabic message names what the value is instead, since a one-letter preposition cannot be attached to an argument.
+
+    Element and anion names are included: Arabic has a settled chemical nomenclature, and it is the one a student meets in their own textbook.
+
+- 342afad: Add message catalogs for Irish, Scottish Gaelic, Welsh, Breton, Icelandic, Faroese, Basque, Catalan, Galician and Maltese.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="cy"` and `<document lang="cy">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete with their names in their own spelling.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    Western Europe was the last of the map with holes in it, and the holes were not small ones: Catalan and Galician between them have more speakers than several languages already here. What the batch is really about, though, is the **Celtic four**. Irish, Scottish Gaelic, Welsh and Breton mark an adjective as heavily as any language in the repository and do it at the _front_ of the word rather than the end — a feminine noun softens whatever follows it, so «dearg» is «dhearg», «coch» is «goch», «du» is «zu». The trigger is the noun, and the noun's gender is already a token these messages carry, so all four select on `$gender` alone and not one of them writes a `$role` branch. Welsh goes a step further than the other three: some of its adjectives have a feminine form of their own before the mutation lands, so «gwyn» becomes «gwen» and only then «wen».
+
+    The other six are the counterweights. **Icelandic** and **Faroese** are the batch's case languages, and they part company on one noun: both dative clauses land on `-um` in Icelandic because «jaðar» and «bakgrunnur» are masculine, while Faroese «bakgrund» is feminine and takes `-ari`, making it the one catalog here whose two dative branches differ. **Basque** has more cases than either and selects on neither argument, because a Basque case is a suffix on the last word of the whole noun phrase — it lands on «batekin», a word the catalog writes, never on a placeable. **Maltese** is the one Semitic language written in Latin letters, and its feminine is a change of vowels rather than an ending: «aħmar» → «ħamra». **Catalan** and **Galician** are the plain gender-agreeing case, with the adjectives after the noun.
+
+    Also the largest spread of plural categories yet in one batch: Welsh has six, Irish, Breton and Maltese five, Scottish Gaelic four. Maltese's are not a scale — eleven to nineteen go back to a singular noun, so `many` there reads like `other` and not like `few`.
+
+- 69b72c5: Add message catalogs for Bulgarian, Croatian, Serbian, Slovenian, Macedonian, Albanian, Lithuanian, Latvian, Estonian and Belarusian.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="hr"` and `<document lang="hr">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete with their names in their own spelling.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    Central and Eastern Europe and the Balkans were the largest remaining gap on the map, and what makes the batch interesting is that it pulls `$gender` and `$role` apart. Every inflecting catalog before this one needed both at once, so nothing had yet shown that they are independent. Here **Estonian** has fourteen cases and no gender whatsoever — it forks on `$role` alone, and its `noun-gender` answers a single constant the way English's does — while **Bulgarian** and **Macedonian** have three genders and no cases at all, so they fork on `$gender` alone and consult `$role` nowhere. Neither catalog needed a change outside itself, which is the argument working as designed.
+
+    The remaining seven use both. Croatian, Serbian, Slovenian and Belarusian each pick their own nouns for the two clause heads and so land on four different arrangements: Croatian's border is masculine `rub` and Serbian's feminine `ивица`, so the same instrumental is `-im` in one and `-ом` in the other; Slovenian's text and background are _both_ neuter where Croatian's and Serbian's split across two genders. Lithuanian's four heads are all masculine and its clauses need no gender fork; Latvian splits them across two genders and needs a different case in each, and marks its background with a genitive after `uz` that happens to be spelled like the nominative feminine — a branch written out anyway so a correction to one does not silently move the other.
+
+    **Albanian** is the odd one and the batch's counterpart to Yoruba and Igbo: it puts its describing words after the noun, so `style-with-noun` and `style-filled-with-noun` reorder rather than substituting into the English frame. Its agreement is carried by a proclitic article — `i`, `e`, `të` — rather than by an ending, and half its colour vocabulary is unarticulated loans (`blu`, `gri`, `kafe`, `rozë`) that select on nothing at all. Which words fork is a fact about the word, not about the position.
+
+    Slovenian is the first European catalog to need CLDR's `two` — only Arabic and Hebrew needed it before — because it has a living dual, so two attempts are `2 poskusa` and neither the singular nor any plural will serve. **Latvian** needs `zero`, which only Arabic needed before and which does not mean "none" — it covers every number ending in 0 and the whole of the teens. Both still spell out `[0]` by number, because the English wording changes for zero as well as the noun and a category cannot say that. Slovenian and Belarusian carry four categories; Latvian, Croatian, Serbian and Lithuanian three; and Bulgarian, Macedonian, Albanian and Estonian the two English has.
+
+    All ten supply the 118 element names and 12 anion names, so the count of deliberately partial catalogs stays at twenty-one: every one of these school systems teaches chemistry in its own language with settled nomenclature.
+
+    Serbian is catalogued as `sr` in Cyrillic, which is what CLDR fills a bare `sr` in as; a reader arriving under `sr-Latn` reaches it and gets Cyrillic, the same asymmetry `pa-Arab` already has. No locale in this batch needs an entry in `LANGUAGE_ALIASES` — `sh`, the retired Serbo-Croatian code, is canonicalized to `sr-Latn` by `Intl.getCanonicalLocales` on its own and lands there too.
+
+- 046bcc0: Add message catalogs for eight more languages: French, German, Italian, Dutch, Russian, Somali, Chinese, and Hmong Njua.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the ~214 warnings and errors. `documentLocale="de"` and `<document lang="de">` now work with nothing configured, and all eight appear in `<document lang>`'s autocomplete with their names in their own script.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. So is Spanish, which shipped first and was never anything else; its four catalogs now carry the same header. English is the source of truth and the only language anyone has read. They are a starting point for the community translation platform (#1521), not finished translations: expect wording to be corrected. Nothing falls back silently — a key a translation is missing renders in English, which is what makes seeding safe.
+
+    The style descriptions are not word-for-word translations, because they cannot be. Each language declares the grammatical gender of every noun it describes and inflects its adjectives to agree: German and Russian across three genders, Dutch across _de_- and _het_-words, French and Italian across two, and Chinese, Somali and Hmong Njua across none. German and Russian also carry the case their border clause governs, so "with a thick border" comes out "mit einem dicken Rand" and "с толстой границей" rather than agreeing with the wrong thing.
+
+    Somali and Hmong Njua deliberately leave the 118 element names and 12 anion names untranslated rather than invent a chemical nomenclature; those render in English until a chemist who writes the language supplies them.
+
+- cc43fde: Add message catalogs for Bosnian, Yiddish, Northern Sami, Luxembourgish, Western Frisian, Low German, Romansh, Occitan, Asturian, Sardinian, Sicilian and Corsican.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="oc"` and `<document lang="bs">` work with nothing configured, and all twelve reach `<document lang>`'s autocomplete, eleven of them labelled with their endonym beside the English name.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    This is the roster's first batch of **European regional and minority languages**, and it is the largest gap left in a roster that already had every European national language. What it is not is one linguistic story: the twelve share a continent and almost nothing else, and the catalogs differ from each other more than any of them differs from `de` or `es`.
+
+    **Two answer `$role`, and only two.** `bs` forks on it the way `locales/hr` does — and the fork lands on a different word, because `locales/hr` calls a border «rub», which is masculine and takes the instrumental `-im`, while `locales/bs` calls it «ivica», which is feminine and takes `-om`. `yi` forks on it too, taking a dative after «מיט» and «אויף»; it is the only right-to-left catalog in the roster that does. Everything else in the batch marks a clause position on a preposition rather than on the adjective, so a fork would write one string twice.
+
+    **Yiddish is the roster's eighth right-to-left catalog, and it needed no code.** `direction.ts` already lists `yi` and the retired `ji`, and `Intl.Locale` canonicalizes `ji` on its own, so nothing was added to `LANGUAGE_ALIASES` either. It is also the odd one out among the eight: its adjectives _precede_ the noun and it has three genders, so its composition messages read like `locales/de`'s rather than like `locales/ar`'s. Its digraphs are written as two letters each — «וו», «וי», «יי» — rather than as the precomposed ligatures U+05F0–U+05F2, which render identically and compare unequal; that is how CLDR spells the endonym the roster labels it with.
+
+    **Northern Sami is the batch's dual.** CLDR gives it `one`, `two` and `other`, so its counted messages have three branches where English has two — and the noun does not do what English does across them either, standing in the nominative singular after «okta» and the genitive singular after «guokte» and every higher numeral, so that the dual and the plural share a form that neither shares with the singular. Wherever anything else in the branch still differs, both are written out anyway, because a later correction to one of them is unlikely to be a correction to both. Its adjectives are the opposite case from Yiddish's: the attributive form agrees with _nothing_ — not case, not number, and there is no gender — so «asse čáhppes» is the phrase in every position, and `styleDescriptions.test.ts` pins that as an identity rather than as a difference, which is what would catch someone adding a `$role` fork the language has no use for.
+
+    **Luxembourgish met the affix rule in a shape the README had not seen.** A masculine attributive is underlyingly `-en`, but the _Eifeler Regel_ drops the `n` before most consonants and at the end of a phrase — and whether it survives is decided by the _following_ word, which in `style-stroke` is `{ $color }` or nothing at all. That is "an affix cannot be welded to a placeable" met as a sandhi rule rather than as a case ending or an article, and the catalog writes the dropped form, which is right before every noun in its own table and right phrase-finally. It and `nds` are also the two that fold a regular polygon's side count into a compound — «regelméissegt 5-Eck», «regelmatig 5-Eck» — whose head is `-Eck` rather than their word «Polygon», so `noun-gender` answers neuter for `regular-polygon` and the adjectives wrapped around the phrase agree with the compound.
+
+    **The six Romance catalogs are where the `$part` split finally earns its keep.** `oc`, `ast`, `sc`, `scn`, `co` and `rm` all put their adjectives after the noun, and all six split `noun-regular-polygon` the way `locales/es` does — head «poligòn regular», tail «de 5 costats» — so `style-with-noun`'s `[noun-tail]` branch is now exercised by six catalogs rather than by the one the argument was designed for. The tail lands directly in front of the fill pattern's own preposition, so each of the six chose one that cannot be read as continuing it: Occitan counts a shape's sides with «amb» in isolation and the catalog still says «de N costats», because «amb 5 costats amb punts» would read as a single clause listing two things. `styleDescriptionLocale.test.ts` runs Occitan through the whole worker path for it.
+
+    **Plurals.** Bosnian keeps `few`; Sicilian's third category is `many`, which selects only for a large round number in compact notation and so is unreachable from these messages, and its header says so rather than leaving a reader to wonder. Where a language does not make a distinction English makes — Low German's «warrt övergahn» for one attribute and for several, Northern Sami's «vástádusa» after every numeral, Frisian's count of tries — the select is dropped rather than written out twice identically, and a comment says which.
+
+    **Scripts and tags.** `bs` is Latin, so a reader arriving under `bs-Cyrl` reaches it and gets Latin; `nds` is the German-based Northern Low Saxon orthography, so `nds-NL` reaches it and gets that. Both are the asymmetry `pa` and `sr` already have, and the answer to each is a second catalog beside the first rather than a rename of it. `negotiate.test.ts` holds all of this — plus `ji` → `yi` and `sme` → `se` — against the real roster.
+
+    **Two written standards over a spread of varieties**, and both catalogs say which they are: `sc` is the Limba Sarda Comuna and `rm` is Rumantsch Grischun. A deployment that wants Campidanese or Vallader supplies its own catalog as `localeResources`; correcting the shipped file toward one sentence by sentence is what would leave it in two standards at once, which is the trade `locales/jv` and `locales/su` already make with speech level.
+
+    **Corsican is the one of the twelve whose endonym comes back as its English name.** `supportedLocales.ts` asks `Intl.DisplayNames` for a language's name in itself, CLDR has no Corsican-language data to answer with, and the fallback is English — so the label drops its parenthesis and reads "Corsican" once rather than "Corsican (Corsican)". It is not the first to do that: `ak`, `ceb`, `fil`, `hnj`, `mg`, `mi`, `ny` and `sm` already read that way. Nothing here hand-writes around it — the same rule that makes `ny` read "Nyanja".
+
+    **Chemistry.** Bosnian supplies the 118 element names and the 12 anion names; the other eleven leave them to fall back to English. Bosnian is the Swahili case — its schools teach chemistry in it out of textbooks that print the whole table — and its list is close to `locales/hr`'s without being a copy: «kalaj» against Croatian's «kositar», «hlor» against «klor», «hemijski» rather than «kemijski». Of the eleven, nine are the school-system case in six different school systems (French for Occitan and Corsican, Spanish for Asturian, Italian for Sardinian and Sicilian, Dutch for Frisian, German for Low German and Luxembourgish, and German again for Romansh's upper grades). Northern Sami is the one where the schooling _is_ in the language and the table still does not settle: a pupil meets the Norwegian, Swedish or Finnish names depending on which side of a border the school is, and those three differ. Yiddish has the vocabulary in its scientific writing and no school system teaching secondary chemistry in it.
+
+- b9112d1: Add message catalogs for Bangla, Assamese, Marathi, Nepali and Burmese.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="bn"` and `<document lang="bn">` work with nothing configured, and all five reach `<document lang>`'s autocomplete with their names in their own script.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    All five count in their own digits by CLDR's reckoning, and none of them writes numbers that way here — that is the digit policy that had to land first, and it is why this batch could be seeded at all.
+
+    Marathi is the fullest test yet of the agreement machinery: three genders where Hindi has two, and an oblique adjective before a postposition, so a border reads `जाड काळी` standing alone and `जाड काळ्या किनारीसह` inside the clause. Nepali, written in the same script, forks neither way — its adjectives mark gender only for animate nouns and never go oblique. Bangla, Assamese and Burmese inflect none of this, and put their postpositions behind the noun where English puts them in front.
+
+    Assamese, Nepali and Burmese leave the 118 element names and 12 anion names untranslated, joining Somali, Hmong Njua and Amharic: there is no settled chemical nomenclature in any of the three to seed from, and the English fallback is what a student meets in a textbook. Bangla and Marathi do have one and supply it — so Bangla and Assamese part company here despite sharing a script, which is exactly why they are two catalogs.
+
+- fd3ee74: Add message catalogs for Japanese, Korean, Vietnamese and Indonesian.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="ja"` and `<document lang="ja">` work with nothing configured, and all four reach `<document lang>`'s autocomplete with their names in their own script.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    All four have a single plural category and no adjective agreement, so the style descriptions needed word order rather than inflection. Japanese and Korean put modifiers before the noun; Vietnamese and Indonesian put them after, as Spanish does. Japanese spells every style word as a noun and joins them with の, because an i-adjective would be ungrammatical in the one branch that has no noun to modify.
+
+    Vietnamese deliberately leaves the 118 element names and 12 anion names untranslated. Its school chemistry has moved from the transliterated names to the IUPAC forms, which are the English words already shipped, so the fallback is what the current curriculum uses; the older names can be added as keys by anyone who wants them.
+
+- c06508d: Add message catalogs for Haitian Creole, Quechua, Guarani, Aymara, Nahuatl, Kʼicheʼ, Mapudungun and Ojibwe.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="qu"` and `<document lang="ht">` work with nothing configured, and all eight reach `<document lang>`'s autocomplete.
+
+    These are the roster's first languages indigenous to the Americas, and they close the one whole continent a 124-locale roster had nothing from.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    Fix a fallback bug they uncovered: `qu`, `ay`, `gn` and `oj` are ISO 639-3 macrolanguages and `nah` an ISO 639-3 collection, and CLDR's likely-subtags folds exactly one member of a macrolanguage to it and leaves the rest unresolvable. A reader arriving under `quh` (Bolivian Quechua), `ciw` (Chippewa), `ojb` (Northwestern Ojibwa) or `gui` (Bolivian Guarani) was served English even where a catalog for their macrolanguage existed. Negotiation now folds every member code onto the wider code its catalog is named for.
+
+- 05bf701: Add message catalogs for Wolof, Bambara, Akan, Ewe, Lingala, Shona, Southern Sotho, Setswana, Tigrinya and Ganda.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="sn"` and `<document lang="lg">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete, eight of them labelled with their endonym beside the English name.
+
+    All ten also carry `deprecated-attribute-to-child`, the diagnostic added alongside them, so no locale in the batch lands already one key behind.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    This is the second sub-Saharan batch, and it goes back for the two largest things the first one left out: **Bantu south of the equator**, which the first reached only through Swahili, Zulu, Xhosa, Kinyarwanda and Nyanja, and **francophone West and Central Africa**, which it did not reach at all.
+
+    Five of the ten agree an adjective with its noun's **class**, and they use the `$gender` argument as a class token exactly the way `locales/sw` does — the whole reason that argument was named for a position rather than for a case. What is worth reading is how differently five languages do the same thing:
+
+    - **Shona** does not bolt a prefix onto an unchanged stem. In class 5 the stem's own first consonant changes with the prefix, so «-tema» is «dema», «-chena» is «jena» and «-kobvu» is «gobvu». The table cannot be derived from the stems and is written out in the header.
+    - **Luganda** carries six classes, the widest table here, because its own geometry words land where the others' do not: «olunyiriri», a line, is class 11, and «akasaale», a ray, and «akatonnyeze», a point, are class 12 — the diminutive, which is where a small thing goes whether or not it is small on purpose.
+    - **Southern Sotho** and **Setswana** additionally need a qualificative _particle_ — «mola _o_ motenya» — and both leave it out on purpose, because the same string is what `backgroundColor` reports standing alone, where a bare particle would be a fragment. That is the trade `locales/sw` already makes with its associative.
+    - **Lingala** is the case where the device barely reaches. Its inventory of true adjectives is small and no colour word is in it — most of them are invariable French loans, and the three native ones are cited in one shape — so the concord touches two adjective stems and one participle and no more. Recording that is the point: a smaller table here is a fact about Lingala, not an unfinished one.
+
+    **Tigrinya** is the one that uses `$gender` for a gender. It is Semitic, the agreement is internal rather than suffixed — «ጸሊም» → «ጸላም», «ረጒድ» → «ረጓድ» — and it is also the only language in the batch whose adjectives _precede_ the noun, so its composition messages keep the English order while the other nine invert it. Its Ge'ez runs left to right, so `direction.ts` needs nothing.
+
+    The four West African languages are the batch's counterweight, and they answer one question four ways: **what does a description do when the language inflects nothing?** **Wolof** has noun classes and still ignores `$gender`, because the class in Wolof rides on the determiner and the relative marker and never on the adjective. **Bambara** marks an adjective with the qualifier suffix `-man` rather than agreement. **Akan** and **Ewe** mark nothing at all on the adjective and put it after the noun.
+
+    Plurals split the batch too. CLDR gives Wolof and Bambara one category each, and Akan and Ewe have two that no counted message here can use — an Ewe noun takes no plural after a numeral, and the two nouns Akan counts carry their plural prefix in the singular already — so all four drop their selects rather than write a `[one]` that repeats its `[other]`. The five Bantu languages keep theirs and change the noun inside them, except that in Shona and Luganda it is decided per message by the class of the noun being counted: Shona's «edzo» is class 5 and takes «ma-», while «mhinduro» is class 9 and its plural is spelled the same; Luganda's «akabonero» becomes «obubonero», while «okumenya» is a class 15 verbal noun with no plural at all and «amagezi» is class 6 and already plural. So in both, some counted messages keep their selects and the rest drop them.
+
+    **Akan needs an alias, and Fante deliberately does not get one.** `ak` is the macrolanguage and the catalog is Asante Twi. `tw` is the retired code for Twi and the tag an author is as likely to type, and `Intl.getCanonicalLocales` leaves it alone rather than rewriting it the way it rewrites `iw` and `in` — so `negotiate.ts` maps `tw` to `ak`, the second entry `LANGUAGE_ALIASES` has ever needed. Fante is left out for the reason Nynorsk is: it is a written standard of its own, and answering `fat` with an Asante Twi catalog would be a substitution rather than a canonicalization. `negotiate.test.ts` holds both halves against the real roster.
+
+    **Chemistry.** All ten leave the 118 element names and the 12 anion names to fall back to English, and unlike the batches before them they split no ways at all: every one is the school-system case. Secondary science is taught in English across Ghana, Zimbabwe, Botswana, Lesotho, Uganda, Eritrea and Tigray, and in French across Senegal, Mali and both Congos, so in all ten the fallback _is_ the curriculum. That is a fact about ten education ministries rather than about ten languages.
+
+    **Naming.** `lg` appears in the roster as **Ganda**, `st` as **Southern Sotho** and `tn` as **Tswana**, because `Intl.DisplayNames` renders them that way and `supportedLocales.ts` is derived rather than hand-written — the same split `ny` already has between Nyanja and Chichewa. All three catalogs' headers say so.
+
+    Setswana and Southern Sotho are close enough to raise the question of why they are two files: they are two standard languages with two orthographies and two vocabularies, and `locales/tn` writes «kgotsa», «boammaaruri» and «-hibidu» where `locales/st` writes «kapa», «nnete» and «-fubedu». That is the same reason `hr` is a directory of its own rather than a script of `sr`.
+
+- 2049662: Add message catalogs for Persian, Hebrew, Urdu, Pashto, Sindhi and Uyghur, which with Arabic completes the set of right-to-left languages DoenetML is translated into.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="he"` and `<document lang="he">` work with nothing configured, and all six reach `<document lang>`'s autocomplete with their names in their own script.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English.
+
+    Direction turns out to be the only thing these six have in common. Hebrew counts in three plural categories and agrees its adjectives with the noun they follow; Persian agrees nothing with anything and has no gender at all; Urdu, Pashto and Sindhi put their adjectives in front of the noun and inflect them again in front of a postposition — Urdu and Sindhi in both genders, Pashto only in the feminine — so Urdu's catalog is closer to Hindi's than to Arabic's; Uyghur is Turkic and marks its cases with suffixes, which is a different reason for the same restructuring Arabic needed — an affix cannot be attached to an interpolated value, so the message names what the value is or reaches for a word that can stand beside it.
+
+    Pashto, Sindhi and Uyghur leave the 118 element names and 12 anion names untranslated, joining Somali, Hmong Njua, Amharic, Assamese, Nepali and Burmese: there is no settled chemical nomenclature in any of the three to seed from, and the English fallback is what a student meets in a textbook. Persian, Hebrew and Urdu do have one and supply it — so the line runs through the Arabic script rather than around it.
+
+- 79f138f: Add message catalogs for Tamil, Telugu, Kannada, Malayalam, Gujarati, Punjabi, Odia, Thai, Malay and Filipino.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="ta"` and `<document lang="ta">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete with their names in their own script.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    This batch covers the major languages of Indian schooling and adds the three of mainland and maritime Southeast Asia that a Doenet activity is likeliest to be read in. Eight of the ten have a script of digits recorded for them in CLDR — Tamil, Telugu, Kannada, Malayalam, Gujarati, Punjabi, Odia and Thai — and none of them writes a number that way here, which is the digit policy that had to land first.
+
+    Gujarati and Punjabi are the ones that exercise the agreement machinery. Gujarati has three genders, so a border reads `જાડી કાળી` — feminine, agreeing with `કિનારી` rather than with the shape the border surrounds — and a filled circle is `ભરેલું વાદળી વર્તુળ`, neuter, in the same sentence. It agrees on gender alone: it has an oblique, but every clause position its adjectives reach lands on a feminine noun or on none at all, so no position spells the word differently. Punjabi falls the opposite way round from Hindi: its feminine `ਕਿਨਾਰੀ` spells the border alike in both positions while its masculine `ਪਿਛੋਕੜ` sends the background colour oblique, so `ਪੀਲਾ` standing alone becomes `ਪੀਲੇ ਪਿਛੋਕੜ ਉੱਤੇ` inside the sentence — one clause position out of the four, which is the whole of Punjabi's `$role` fork. Both name the fill so that its colour has a noun of the right gender to agree with: a dotted blue circle reports its fill as `ટપકાં વાળી વાદળી ભરણી`. The other eight inflect none of this; Thai, Malay and Filipino put their adjectives after the noun, and the rest keep the English order and postpose the adposition instead. Tamil and Telugu mark a fill pattern with a free participle rather than a bound postposition, because joining one to a word the catalog never sees would have to reshape that word's ending.
+
+    Filipino is where a plural category is least like a count. CLDR splits `fil` by the linker a numeral takes — `one` is every number whose Tagalog word ends in a vowel and takes `-ng`, and `other` is 4, 6, 9 and anything ending in them, which take the separate `na` — so `one` catches five and `other` catches four. Every message that stands a count in front of a noun selects on it for that linker. Filipino marks number itself with the free word `mga` instead, and a message that wants a singular selects `[1]` by number.
+
+    The seven catalogs of India call a `<label>` a label rather than a name, following the four already here that do: `name` is a DoenetML attribute these same messages talk about, and "must have a short description or a name" sends an author to the wrong one.
+
+    Filipino is catalogued as `fil`, and `tl` reaches it without an alias because `Intl.Locale` canonicalizes the deprecated code before negotiation sees it — `negotiate.test.ts` now holds that against the real roster. Punjabi is `pa` in Gurmukhi, following the rule that a directory is named for a script only where two scripts of one language are translated separately.
+
+    Kannada, Punjabi and Filipino leave the 118 element names and 12 anion names untranslated, joining Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur and Vietnamese. Kannada has two nomenclatures a textbook may draw on in one chapter and picking either would misreport the other; Punjabi's secondary chemistry moves to English terminology; and Philippine science is taught in English from the intermediate grades, so there the English fallback is already the curriculum. Tamil, Telugu, Malayalam, Gujarati, Odia, Thai and Malay do have a settled set and supply it — so Tamil and Kannada part company here despite neighbouring school systems, which is exactly why they are two catalogs.
+
+- e8278da: Add message catalogs for Khmer, Lao, Sinhala, Javanese, Sundanese, Cebuano, Malagasy, Māori, Samoan and Hawaiian.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="km"` and `<document lang="haw">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete, named there the way CLDR names them.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    The batch closes the last large gaps in Asia and opens the Pacific. **Khmer** and **Lao** are isolating languages that inflect nothing at all and write no space inside a phrase, so their descriptions close up flush around every placeable; **Sinhala** marks case with a postposition that never touches the adjective in front of it, which is why it takes no `$role` branch for a reason English does not have. **Javanese** and **Sundanese** each had to choose a speech level, since a catalog cannot leave that open, and both are written at their unmarked everyday level throughout — ngoko for Javanese, loma for Sundanese — with the choice recorded in every file header. **Cebuano** turns on its linker «nga», which joins a noun to each of its adjectives, and on the fact that CLDR's plural rule for it (inherited from Filipino's, which splits on a numeral's linker) does not apply, because a Cebuano numeral takes the invariable «ka». **Malagasy**, **Māori**, **Samoan** and **Hawaiian** all put the adjective after the noun and mark number on the article rather than on the noun, so none of them selects on a count.
+
+    Only Javanese and Sundanese supply the 118 element names, taking the Indonesian scientific vocabulary their schools teach chemistry in while keeping their own words for the substances known long before the elements were — «wesi», «beusi», «walirang», «warangan». The other eight leave those 130 keys to fall back to English, each catalog stating its own reason.
+
+- b06cabb: Add message catalogs for Swahili, Zulu, Xhosa, Kinyarwanda, Chichewa, Hausa, Yoruba, Igbo, Oromo and Afrikaans.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="sw"` and `<document lang="sw">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete with their names in their own spelling.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    Sub-Saharan Africa was the largest region with no catalog at all, and five of these ten are Bantu — which is what makes the batch interesting rather than routine. A Bantu adjective agrees with its noun's **class**, not with a gender, and `$gender` turned out to carry that unchanged: `noun-gender` answers `c3`, `c5`, `c6`, `c7` or `c9`, and every describing word selects on it. Nothing outside the catalogs had to learn what a noun class is. Swahili gives each of the four classes a shape lands in its own pair of forms off the same two stems — `mstari mnene mwekundu`, `duara nene jekundu`, `kipande cha mstari kinene chekundu`, `pembenyingi nene nyekundu` — and Zulu and Xhosa need two concord tables rather than one, because whether a word takes the adjective concord or the relative concord is a fact about the word: `omkhulu` and `obomvu` describe the same class-3 line with different prefixes.
+
+    Hausa is the one whose `noun-gender` answers with a real masculine and feminine — the sense `$gender` was named for, agreed with a linking `-n`/`-r` — and it selects on it nowhere, because not one of the describing words it needs is a true adjective: the colours and the widths are the invariable `mai …` construction and the fill patterns are bare noun phrases. The genders are written into `noun-gender` anyway, so a translator reaching for `farin`/`farar` later finds them already decided. Oromo has gender too and answers `m` throughout, because every noun it names is a derived form or a loan; its header says which noun would have to arrive for a fork to be worth writing. Afrikaans is the mirror of both: Dutch splits its nouns into de-words and het-words and its catalog forks on every colour, and Afrikaans is that catalog with the split taken out.
+
+    Swahili and Kinyarwanda land on opposite sides of the same gap. An attributive colour noun wants an associative particle whose shape comes from the class, and the identical string is also what `backgroundColor` reports standing alone, where the particle would be wrong — and `$role` is `standalone` in both places. Swahili writes the colour bare; Kinyarwanda writes the particle in, because `icyatsi` without it does not read as a colour at all.
+
+    Only Afrikaans and Swahili supply the 118 element names and 12 anion names. The other eight join the thirteen catalogs that leave them to English: secondary science across those systems is taught in English, French or Afrikaans, so the fallback is what a learner meets in their own textbook rather than a gap in the translation. That line runs through a language family as well as through a script — Swahili supplies them and Zulu, Xhosa, Kinyarwanda and Chichewa do not.
+
+    Chichewa is catalogued as `ny` and shows in the roster as **Nyanja**, which is what CLDR renders that code as; the two names are one language. No locale in this batch needs an alias — `sw-KE`, `sw-TZ`, `af-ZA` and the rest all filter to their catalog on their own.
+
+- 3280643: Add message catalogs for Ukrainian, Czech, Slovak, Greek, Romanian, Hungarian, Finnish, Swedish, Danish and Norwegian Bokmål, which fills in Northern and Eastern Europe alongside the Western European languages DoenetML already had.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="uk"` and `<document lang="el">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete under their own names.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English.
+
+    All ten supply the element and anion names, so no locale in this batch is partial.
+
+    `no` reaches the Bokmål catalog as well as `nb` does. It is the macrolanguage tag, so no directory is named for it, but it is what a hand-typed `<document lang="no">` says and what several browsers still send — and filtering negotiation would otherwise have answered it with English. Nynorsk (`nn`) still falls back to English, being a written standard of its own rather than a spelling of this one.
+
+    What these ten have in common is a constraint the right-to-left work met first: an affix cannot be attached to an interpolated value. Hungarian and Finnish weld case endings whose shape depends on the word they land on, Romanian's definite article is a suffix, and Czech and Slovak vocalize a preposition according to what follows it — so several messages are restructured rather than translated in place, and `packages/i18n/README.md` now writes the constraint down once for every language rather than as a right-to-left curiosity.
+
+- cc5cb5e: Add message catalogs for Armenian, Georgian, Azerbaijani, Kazakh, Kyrgyz, Uzbek, Tajik, Turkmen, Mongolian and Tatar.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="kk"` and `<document lang="kk">` work with nothing configured, and all ten reach `<document lang>`'s autocomplete with their names in their own spelling.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+    The Caucasus, Central Asia and the Turkic belt were the largest remaining gap on the map, and the batch is the counterweight to the last one. Where Central and Eastern Europe pulled `$gender` and `$role` apart, nine of these ten select on **neither** — the Turkic languages and Mongolian inflect a great deal and never on the words a style description places, because what carries a clause there is a suffix on the noun and an attributive adjective in front of it does not move. **Armenian** is the same answer from an Indo-European grammar with seven cases.
+
+    Only **Georgian** forks, and it shows the argument at its narrowest: an adjective drops its final -ი in the dative and nowhere else, and only one of the four positions is a dative, so its catalog writes out a single `$role` branch — «წითელი» everywhere but «ყვითელ ფონზე». **Tajik** is the other pole, and it needs no fork at all to be interesting: it is Persian in Cyrillic, its adjectives follow the noun, so it reorders the composition messages, and the izafat linking them is written rather than left as an unwritten vowel, which makes it the one catalog anywhere that welds onto a placeable an affix whose shape that placeable decides. What keeps that sound is the words it puts in reach of the frame — «нур» rather than «шуоъ» for a ray — since the izafat does reshape a ъ- or ӣ-final word. The README now carries that case where the rule is stated.
+
+- 4a64c4a: Show the `<select>` family's error boxes in the reader's language.
+
+    `<select>`, `<selectFromSequence>` and `<selectPrimeNumbers>` replace themselves with a red box when nothing can be selected, and that box was built from a finished English sentence. It was the last error box that stayed English on a page rendering in any other language.
+
+    The twenty-two messages behind it now carry the same stable codes every other diagnostic does, with Spanish translations alongside. Two failures that read as one — a sequence whose values all share a factor, and a sequence that ran out of draws looking for a coprime pair — are separate codes, because they are separate situations.
+
+    The English text of every box is unchanged, except that a count of a thousand or more is now written the way the reader's language writes numbers — "Cannot select 1,500 components" rather than "1500".
+
+- 80877e0: Graphs: a labeled `<vector>` or `<polyline>` draws its label only once, instead of repeating it on every draggable handle.
+
+    A `<vector><label><m>x^2</m></label></vector>` in a graph drew three copies of its label: the intended one beside the arrow, plus one at the head and one at the tail. A `<polyline>` did the same at each vertex. Only the component's own copy was typeset, so with a `<m>` label the extra copies appeared as raw LaTeX — `\(x^2\)`.
+
+    The extra copies came from the invisible points each renderer creates as drag handles. Those points inherit the component's attributes, including its label text, and the instruction that switched the label back off was being silently dropped. `<vector>`, `<lineSegment>` and `<polyline>` now build their drag handles from one shared helper, so the suppression can no longer go missing from one of them.
+
+- 1eaa039: Fix the German and Russian style descriptions that were inflected for the wrong position, and add Portuguese, Turkish, Polish, Hindi and Amharic catalogs.
+
+    Style descriptions handed adjectives one token, the gender of the noun they describe. That is enough while a phrase is rendered in one place, but three of them are rendered in two — a border's adjectives, the background colour, and the text colour beside it — and a language that inflects for case needs a different form in each. German and Russian had one token to spend, so each fork came out right in one position and wrong in the other:
+
+    - `borderStyleDescription` read `dicken` and `толстой` instead of `dicker` and `толстая`
+    - `textStyleDescription` read `roter auf gelber Hintergrund` instead of `rot auf gelbem Hintergrund`, and `красный на жёлтый фоне` instead of `красный на жёлтом фоне`
+
+    Descriptions now carry the syntactic position alongside the gender, so a catalog can select on both. A language with no case ignores the new argument, so English, Spanish, French, Italian, Dutch, Chinese, Japanese, Korean, Vietnamese, Indonesian, Somali and Hmong Njua are byte-identical.
+
+    Five catalogs join, each covering all four namespaces. Portuguese is Brazilian, which is what a bare `pt` means; `pt-AO` and `pt-MZ` reach it too, and a European `pt-PT` could be added later without disturbing it. Its border is feminine where Spanish's is masculine, so the border clause reads `com uma borda grossa`. Turkish inflects none of this — its suffixes attach to the noun rather than to the adjectives in front of it — and a noun counted by a numeral stays singular.
+
+    Polish and Hindi are the two that needed the new argument. Polish style words land in three different cases, so from one set of words it now renders `grube`, `z grubym obramowaniem` and `czerwony na żółtym tle`. Hindi's marked adjectives — the ones ending in -ा — take the oblique before a postposition, so a border reads `मोटा` alone and `मोटे किनारे के साथ` in the clause, while unmarked ones like लाल never change.
+
+    Amharic is written in the Ge'ez script, which runs left to right, so it needs none of the right-to-left support DoenetML lacks. It leaves the element and anion names untranslated, as Somali and Hmong Njua do and for the same reason — there is no settled Amharic chemical nomenclature to seed from — so those names fall back to English and `lint:i18n` reports the gap.
+
+    Like the others, every one of the five is an **unreviewed machine-generated seed** and says so in every file's header.
+
+- bfe075d: Added style palettes: named, coordinated sets of style definitions selectable with the new `<stylePalette>` component. The six standard styles are now the `default` palette, joined by eight more — the colorblind-friendly `okabeIto` (Okabe-Ito), `tolBright`, `tolMuted`, and `tolHighContrast` (Paul Tol), and `ibm` (IBM Design Library); a pure-luminance `grayscale` for readers who distinguish styles by lightness alone; and `categorical` (ten maximally varied hues) and `grumpyNarwhal` (six saturated hues that go neon in dark mode) for documents that need many obviously different styles. Every palette is WCAG-checked in light and dark mode, varies marker shapes and line widths alongside colors, and carries curated style-description color words.
+
+    A palette selection scopes to its containing section and resets that subtree's base styles; `<styleDefinition>` overrides still apply on top, and style numbers beyond the palette's size cycle through the palette. Every palette has at least four styles, and the documentation now advises reserving style numbers 1-4 for the most important distinctions. Style number 1 always renders text in the ordinary document text color, so selecting a palette never recolors prose that specifies no style number. Palette names autocomplete in the editor, and the context-help panel resolves styles against the active palette.
+
+- 04a0dba: Punctuate a table's title and a figure's caption from the document's language.
+
+    `<table>` and `<figure>` already named themselves in the document's language, but the `": "` joining that name to the authored title or caption was written into the renderer, so a Spanish activity read **`Figura 2`: pie de foto** — the name from one language and the punctuation from another. The separator is part of the name the catalog composes now, so a language that joins the two differently can say so.
+
+    The English text is unchanged. The separator is emphasized along with the name it belongs to, so `<strong>Figure 2</strong>: caption` becomes `<strong>Figure 2: </strong>caption`.
+
+- d42f6dd: Write the words a `<table>`, a `<figure>`, and a `<paginatorControls>` name themselves with in the document's language.
+
+    "Table 2" and "Figure 3" are one message each rather than a word with a number stuck on the end, so a language that orders or punctuates them differently can say so.
+
+    The paginator's "Page 3 of 5" is now composed as a whole sentence in the document's language. It used to be half worker and half renderer — the word came from the document, the "of" joining the counts was English written into the viewer and unreachable — so a translated activity read "Página 3 of 5".
+
+    `previousLabel`, `nextLabel`, and `pageLabel` follow the document when the author leaves them unset, and pass through untouched when the author writes them — including when what they wrote is the English default.
+
+    A document that declares no language reads exactly as it did before.
+
+- c14705f: Style-contrast accessibility alerts can now be translated, as can the warning
+  that a section selected more than one `<stylePalette>`.
+
+    The contrast alerts named the colors they compared — "text color against
+    background color", " (dark mode)" — by building the sentence out of English
+    fragments, so no translation could reposition or reword them. The pair and the
+    mode are now data the message renders, and the dark-mode advice is a variant of
+    the message rather than a second sentence appended to it.
+
+    Translating them gives the style utilities a runtime dependency on the message
+    catalogs, and the DoenetML language server — embedded in the code editor as
+    well as in the VS Code extension — imports those utilities for something
+    unrelated. That would have added 20 KB gzipped of catalog text to it with none
+    of the code that reads it. The catalogs are declared side-effect-free instead,
+    so the language server is unchanged byte for byte, and a new build check fails
+    if they ever arrive.
+
+- d2fcb69: VS Code: Ctrl+Space now offers Doenet elements anywhere in a document.
+
+    Pressing Ctrl+Space (or Ctrl+I / Cmd+I) where no `<` has been typed used to
+    produce nothing from the language server, so VS Code fell back to its own
+    word-based suggestions — words scraped out of the file, which read as invented
+    tags and attributes. It now opens the element menu, the same as Ctrl+Space in
+    the web editor, and keeps narrowing it as you type. Word-based suggestions are
+    off by default in Doenet documents, where they only ever compete with the
+    schema; `"[doenet]": { "editor.wordBasedSuggestions": ... }` turns them back on.
+
+    Attribute suggestions no longer go missing. Typing `<math exp` reaches the
+    language server only if quick suggestions open the suggestion widget — unlike
+    `<`, which is a trigger character the server is always asked about — so an
+    editor configured to render them inline instead left element suggestions
+    working while attribute suggestions appeared to be missing entirely. Doenet
+    documents now ask for the widget by default; an explicit
+    `editor.quickSuggestions` setting still wins.
+
+    Both defaults are contributed under `[doenet]`, which raises the extension's
+    minimum VS Code version to 1.85 — the release where
+    `editor.wordBasedSuggestions` became an enum.
+
+    The language server also attaches to Doenet documents on any filesystem rather
+    than only `file:` and `untitled:` ones, so completions, diagnostics, hovers and
+    formatting work on vscode.dev, github.dev, and in virtual workspaces.
+
+    Two fixes alongside: the preview no longer throws when the last editor closes
+    or focus leaves the editor area, and the extension now publishes to the Open
+    VSX registry as well as the VS Code Marketplace, putting it within reach of
+    VS Code-compatible editors such as VSCodium (#1317).
+
+- 8157928: Always label the rendered activity with the language it was rendered in.
+
+    The container the viewer renders carries a `lang` attribute even when nobody declared a language — no `<document lang>`, no `documentLocale` from the host. Such an activity is labeled `en`, the language the core computes its prose in. Were the container left unlabeled, its subtree would inherit the embedding page's language instead, so a Spanish page could wrap an English "Check Work" and an English "thick red line" in a subtree the DOM called Spanish, and a screen reader would read them with a Spanish voice.
+
+    An author who wrote in another language and never said so should declare it — `<document lang="es">` — the same fix that already gets them Spanish style descriptions and Spanish chrome.
+
 ## 0.7.21
 
 ### Patch Changes

@@ -38,7 +38,7 @@
 
 /*
  * When the footer's trailing edge meets the virtual keyboard's open-keyboard
- * tab (showViewer={false} or viewerLocation in {"left","top"} with the
+ * tab (showViewer={false} or viewerLocation in {"start","top"} with the
  * keyboard enabled), push the last footer element inward so the icons stay
  * clickable. The reservation must match the keyboard tab's inline-end
  * footprint (`w-12` + `me-4` = 3rem + 1rem) defined in
@@ -174,11 +174,16 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 0rem 0.4rem;
 }
 
+/*
+ * Each tab panel carries its own inline padding to inset the panel text from
+ * the editor's edges. That keeps the scrolling element
+ * (`.diagnostics-response-tabs-panels`) spanning the full width, so its
+ * scrollbar sits flush against the resizer.
+ */
 .editor-panel .diagnostic-panel {
-    padding: 0.75rem 0.25rem 1rem;
+    padding: 0.75rem 0.65rem 1rem;
 }
 
 .editor-panel .diagnostic-list {

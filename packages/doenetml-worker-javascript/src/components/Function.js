@@ -29,7 +29,7 @@ import {
 import {
     returnNVariables,
     roundForDisplay,
-    mergeListsWithOtherContainers,
+    mergeListsIfNeeded,
     superSubscriptsToUnicode,
 } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
@@ -1547,6 +1547,16 @@ export default class Function extends InlineComponent {
                             });
                             symbolicfs[arrayKey] = function (x) {
                                 let val = x.evaluate_to_constant();
+                                // An interpolated function has no symbolic
+                                // form, so a symbolic input has no value here.
+                                // `evaluate_to_constant` reports that as
+                                // `null`, and `null` is `0` to arithmetic — so
+                                // `$$f(x)` with `x` unbound came back as *f(0)*
+                                // and became a constant in the caller's
+                                // formula, taking its extrema with it.
+                                if (typeof val !== "number") {
+                                    return me.fromAst(NaN);
+                                }
                                 return me.fromAst(numericalf(val));
                             };
                         } else {
@@ -1665,10 +1675,12 @@ export default class Function extends InlineComponent {
                                     );
                             }
 
-                            formulaExpressionWithCodes = me.fromAst(
-                                mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree,
-                                ),
+                            // Rebuild only if there was actually a nested list
+                            // to flatten: `me.fromAst` goes through JSON, which
+                            // would turn an exact user-typed decimal into the
+                            // nearest f64.
+                            formulaExpressionWithCodes = mergeListsIfNeeded(
+                                formulaExpressionWithCodes,
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
@@ -2101,10 +2113,12 @@ export default class Function extends InlineComponent {
                                     );
                             }
 
-                            formulaExpressionWithCodes = me.fromAst(
-                                mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree,
-                                ),
+                            // Rebuild only if there was actually a nested list
+                            // to flatten: `me.fromAst` goes through JSON, which
+                            // would turn an exact user-typed decimal into the
+                            // nearest f64.
+                            formulaExpressionWithCodes = mergeListsIfNeeded(
+                                formulaExpressionWithCodes,
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
@@ -2532,10 +2546,12 @@ export default class Function extends InlineComponent {
                                     );
                             }
 
-                            formulaExpressionWithCodes = me.fromAst(
-                                mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree,
-                                ),
+                            // Rebuild only if there was actually a nested list
+                            // to flatten: `me.fromAst` goes through JSON, which
+                            // would turn an exact user-typed decimal into the
+                            // nearest f64.
+                            formulaExpressionWithCodes = mergeListsIfNeeded(
+                                formulaExpressionWithCodes,
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from

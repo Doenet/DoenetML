@@ -267,8 +267,8 @@
 /*
  * "What can go here?" suggestions surfaced when the cursor sits in an
  * element body or at the top level. The header names the location, the list
- * shows curated starter components as links, and a muted footer points at
- * Ctrl+Space for the full set.
+ * shows curated starter components as links, and a muted footer points at the
+ * platform's completion shortcut for the full set.
  */
 .editor-panel .help-suggestions-header {
     margin: 0;

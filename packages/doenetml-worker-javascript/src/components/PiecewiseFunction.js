@@ -143,9 +143,19 @@ export default class PiecewiseFunction extends Function {
                         let intervalMinIsClosed = fDomain.tree[2][1];
                         let intervalMaxIsClosed = fDomain.tree[2][2];
 
+                        // `evaluate_to_constant` returns `null`, not `NaN`, for
+                        // an endpoint it cannot evaluate — a free variable in
+                        // `[a,a]` or `(s,t)` — and `Number.isNaN(null)` is
+                        // `false`, so testing for NaN alone read those pieces
+                        // as *numeric* with an unusable domain and dropped them
+                        // from the rendered `\begin{cases}` entirely. Same trap
+                        // `Sort.js` documents. ±Infinity is a legitimate
+                        // numeric endpoint and must not be caught here.
+                        const isNonNumeric = (v) =>
+                            typeof v !== "number" || Number.isNaN(v);
                         childrenWithNonNumericDomains.push(
-                            Number.isNaN(intervalMin) ||
-                                Number.isNaN(intervalMax),
+                            isNonNumeric(intervalMin) ||
+                                isNonNumeric(intervalMax),
                         );
 
                         if (

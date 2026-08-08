@@ -71,6 +71,15 @@ jobs:
             - name: Check language server bundle
               run: npm run check:size -w packages/lsp
 
+            # A bundle holding two copies of @doenet/i18n installs its locale
+            # loaders on an instance the viewer never reads, so every language
+            # renders in English and nothing says so — which is how 0.7.22
+            # shipped. Every built package is scanned, since any bundle that
+            # combines a prebuilt @doenet/doenetml with a source build of
+            # @doenet/i18n can hit it.
+            - name: Check for duplicate i18n instances
+              run: npm run check:i18n-instances
+
             - name: Debug Build Artifacts
               run: |
                   ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"

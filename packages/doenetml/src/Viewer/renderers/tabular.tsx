@@ -12,7 +12,7 @@ interface TabularSVs {
     renderInlineForListItem: boolean;
     width?: any;
     height?: any;
-    top?: any;
+    topBorder?: any;
 }
 
 export default React.memo(function Tabular(props: UseDoenetRendererProps) {
@@ -35,11 +35,11 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
         borderRadius: "var(--mainBorderRadius)",
         tableLayout: "fixed",
     };
-    if (SVs.top !== "none") {
+    if (SVs.topBorder !== "none") {
         tableStyle.borderTopStyle = "solid";
-        if (SVs.top === "minor") {
+        if (SVs.topBorder === "minor") {
             tableStyle.borderTopWidth = "thin";
-        } else if (SVs.top === "medium") {
+        } else if (SVs.topBorder === "medium") {
             tableStyle.borderTopWidth = "medium";
         } else {
             tableStyle.borderTopWidth = "thick";

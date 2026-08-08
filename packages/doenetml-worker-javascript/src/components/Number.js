@@ -48,6 +48,27 @@ function valueIgnoringUnits(expr) {
     }
 }
 
+/**
+ * A complex value as a plain `{re, im}` object.
+ *
+ * `evaluate_to_constant()` hands back a math.js `Complex`, which is right for
+ * callers doing math.js arithmetic with it — but this one is about to become a
+ * *state variable*, and a state variable is structured-cloned to the main
+ * thread, where the prototype does not survive. Storing the class instance
+ * promised methods that only exist on one side of that boundary.
+ */
+function plainComplex(value) {
+    if (
+        value &&
+        typeof value === "object" &&
+        typeof value.re === "number" &&
+        typeof value.im === "number"
+    ) {
+        return { re: value.re, im: value.im };
+    }
+    return value;
+}
+
 export default class NumberComponent extends InlineComponent {
     constructor(args) {
         super(args);
@@ -635,7 +656,7 @@ export default class NumberComponent extends InlineComponent {
                                 number = dependencyValues.valueOnNaN;
                             }
                         }
-                        return { setValue: { value: number } };
+                        return { setValue: { value: plainComplex(number) } };
                     } else {
                         let number =
                             dependencyValues.numberChild.length === 1
@@ -710,7 +731,9 @@ export default class NumberComponent extends InlineComponent {
                                 (typeof number?.re === "number" &&
                                     typeof number?.im === "number"))
                         ) {
-                            return { setValue: { value: number } };
+                            return {
+                                setValue: { value: plainComplex(number) },
+                            };
                         }
                     }
 
@@ -762,9 +785,11 @@ export default class NumberComponent extends InlineComponent {
                 let number = Number(value);
                 if (Number.isNaN(number)) {
                     try {
-                        number = me
-                            .fromAst(textToAst.convert(value))
-                            .evaluate_to_constant();
+                        number = plainComplex(
+                            me
+                                .fromAst(textToAst.convert(value))
+                                .evaluate_to_constant(),
+                        );
                     } catch (e) {
                         number = NaN;
                     }
@@ -783,7 +808,9 @@ export default class NumberComponent extends InlineComponent {
 
                 let desiredValue = desiredStateVariableValues.value;
                 if (desiredValue instanceof me.class) {
-                    desiredValue = desiredValue.evaluate_to_constant();
+                    desiredValue = plainComplex(
+                        desiredValue.evaluate_to_constant(),
+                    );
                     if (
                         Number.isNaN(desiredValue) ||
                         !(
@@ -839,9 +866,11 @@ export default class NumberComponent extends InlineComponent {
                         instructions = [
                             {
                                 setEssentialValue: "value",
-                                value: numberToMathExpression(
-                                    desiredValue,
-                                ).evaluate_to_constant(), // to normalize form
+                                value: plainComplex(
+                                    numberToMathExpression(
+                                        desiredValue,
+                                    ).evaluate_to_constant(),
+                                ), // to normalize form
                             },
                         ];
                     } else {
@@ -898,10 +927,12 @@ export default class NumberComponent extends InlineComponent {
             definition: function ({ dependencyValues }) {
                 // for display via latex and text, round any decimal numbers to the significant digits
                 // determined by displaydigits
-                let rounded = roundForDisplay({
-                    value: numberToMathExpression(dependencyValues.value),
-                    dependencyValues,
-                }).evaluate_to_constant();
+                let rounded = plainComplex(
+                    roundForDisplay({
+                        value: numberToMathExpression(dependencyValues.value),
+                        dependencyValues,
+                    }).evaluate_to_constant(),
+                );
 
                 return {
                     setValue: {

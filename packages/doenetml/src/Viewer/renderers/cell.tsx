@@ -8,11 +8,11 @@ interface CellSVs {
     [key: string]: any;
     hidden: boolean;
     _compositeReplacementActiveRange?: any;
-    bottom?: any;
+    bottomBorder?: any;
     colSpan: number;
     halign?: any;
     inHeader: boolean;
-    right?: any;
+    endBorder?: any;
     text: string;
 }
 
@@ -33,27 +33,24 @@ export default React.memo(function Cell(props: UseDoenetRendererProps) {
     if (SVs.halign !== null) {
         properties.style!.textAlign = SVs.halign;
     }
-    if (SVs.bottom !== "none") {
+    if (SVs.bottomBorder !== "none") {
         properties.style!.borderBottomStyle = "solid";
-        if (SVs.bottom === "minor") {
+        if (SVs.bottomBorder === "minor") {
             properties.style!.borderBottomWidth = "thin";
-        } else if (SVs.bottom === "medium") {
+        } else if (SVs.bottomBorder === "medium") {
             properties.style!.borderBottomWidth = "medium";
         } else {
             properties.style!.borderBottomWidth = "thick";
         }
     }
-    // Physical, because the attribute is: an author writes `<cell right="…">`
-    // and means the right-hand edge. `halign` above is the same case. Adding
-    // logical `start`/`end` values to both is tracked in #1627.
-    if (SVs.right !== "none") {
-        properties.style!.borderRightStyle = "solid";
-        if (SVs.right === "minor") {
-            properties.style!.borderRightWidth = "thin";
-        } else if (SVs.right === "medium") {
-            properties.style!.borderRightWidth = "medium";
+    if (SVs.endBorder !== "none") {
+        properties.style!.borderInlineEndStyle = "solid";
+        if (SVs.endBorder === "minor") {
+            properties.style!.borderInlineEndWidth = "thin";
+        } else if (SVs.endBorder === "medium") {
+            properties.style!.borderInlineEndWidth = "medium";
         } else {
-            properties.style!.borderRightWidth = "thick";
+            properties.style!.borderInlineEndWidth = "thick";
         }
     }
 

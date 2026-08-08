@@ -308,20 +308,20 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#ti_input").should("not.have.attr", "aria-details");
     });
 
-    it("labelPosition left and right", () => {
+    it("labelPosition start and end", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-    <p>Left label:
-    <textInput name="tl" labelPosition="left">
-      <label>left</label>
+    <p>Start label:
+    <textInput name="tl" labelPosition="start">
+      <label>start</label>
     </textInput>
     </p>
     
-    <p>Right label:
-    <textInput name="tr" labelPosition="right">
-      <label>right</label>
+    <p>End label:
+    <textInput name="tr" labelPosition="end">
+      <label>end</label>
     </textInput>
     </p>
                     `,
@@ -330,13 +330,13 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.log("Test left: label before input");
+        cy.log("Test start: label before input");
         cy.get("#tl")
             .children()
             .eq(0)
             .should("have.attr", "id", "tl-input-label");
 
-        cy.log("Test right: label after input");
+        cy.log("Test end: label after input");
         cy.get("#tr")
             .children()
             .last()

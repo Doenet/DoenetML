@@ -355,6 +355,42 @@ describe("Image tag tests @group3", async () => {
         ).eq("description");
     });
 
+    it("deprecated `description` attribute still becomes the short description, with a warning", async () => {
+        // A leftover from version 0.6: absent from the schema and the docs, so
+        // the only source still using it is old source being carried forward.
+        // `descriptionAttributeSugar` rewrites it to a `<shortDescription>`
+        // child and warns, rather than the deprecation registry, which has no
+        // rule shape for an attribute that becomes a child.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<image name="image1" description="A tree" />
+            `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("image1")].stateValues
+                .shortDescription,
+        ).eq("A tree");
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+
+        // The short description is supplied, so no accessibility diagnostic.
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].code).eq("doenet-w0120");
+        expect(diagnosticsByType.warnings[0].args).eqls({
+            attribute: "description",
+            child: "shortDescription",
+            component: "image",
+        });
+        expect(diagnosticsByType.warnings[0].message).eq(
+            "[deprecation] Attribute `description` on `<image>` is deprecated; use a `<shortDescription>` child instead.",
+        );
+    });
+
     it("license codes derive names and urls", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

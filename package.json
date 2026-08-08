@@ -47,6 +47,7 @@
         "dev": "npm run dev --workspace packages/doenetml",
         "docs": "npm run build --workspace packages/docs-nextra & npm run dev --workspace packages/docs-nextra",
         "lint:i18n": "npm run lint:i18n -w @doenet/i18n",
+        "check:i18n-instances": "npm run check:instances -w @doenet/i18n",
         "prettier:check": "prettier --check .",
         "prettier:format": "prettier --write .",
         "publish": "npm run publish -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07",
@@ -67,9 +68,6 @@
     },
     "prettier": {
         "tabWidth": 4
-    },
-    "lint-staged": {
-        "*.{js,jsx,ts,tsx,css,json}": "prettier --write"
     },
     "overrides": {
         "@qualified/lsp-connection": {

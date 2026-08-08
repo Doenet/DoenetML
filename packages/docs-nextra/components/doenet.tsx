@@ -83,12 +83,12 @@ export function DoenetViewer({
 export function DoenetEditor({
     source,
     showFormatter = false,
-    viewerLocation = "right",
+    viewerLocation = "end",
     height = "500px",
 }: React.PropsWithChildren<{
     source: string;
     showFormatter?: boolean;
-    viewerLocation?: "left" | "right" | "top" | "bottom";
+    viewerLocation?: "start" | "end" | "top" | "bottom";
     height?: string;
 }>) {
     // Editors have no built-in `mountPolicy`, so the docs-layer `WindowedEditor`

@@ -3972,7 +3972,7 @@ describe("ChoiceInput tag tests @group4", async () => {
     });
 
     it("warning if labelPosition is used on non-inline choiceInput, with attribute-level position", async () => {
-        const tagLine = `    <choiceInput name="ci" labelPosition="left">`;
+        const tagLine = `    <choiceInput name="ci" labelPosition="start">`;
 
         let { core } = await createTestCore({
             doenetML: `

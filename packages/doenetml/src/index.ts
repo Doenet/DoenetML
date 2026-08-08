@@ -31,3 +31,18 @@ export type {
 } from "@doenet/utils";
 
 export { CodeMirror } from "@doenet/codemirror";
+
+// Where a host installs the message catalogs the viewer in *this* bundle reads.
+//
+// The loaders are module-level state, and a bundle can hold more than one
+// instance of `@doenet/i18n` — one built from the host's own source tree, one
+// compiled into this package's `dist/`. Only the latter resolves a document's
+// language, so a host must reach the setter through the entry point its viewer
+// comes from; installing loaders on any other instance leaves the viewer with
+// none, and an unreachable catalog falls back to English in silence.
+export {
+    setLocaleLoaders,
+    fetchLocaleLoaders,
+    type LocaleLoader,
+    type LocaleLoaders,
+} from "@doenet/i18n";

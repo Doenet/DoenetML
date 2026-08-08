@@ -53,6 +53,7 @@ import {
     Completion,
     CompletionResult,
     completionStatus,
+    closeCompletion,
     startCompletion,
 } from "@codemirror/autocomplete";
 import {
@@ -92,6 +93,102 @@ const MACRO_IDENTIFIER_SEGMENT_REGEX = /[A-Za-z0-9_-]+$/;
 // `"`, no `>`). Used by the live-preview wrap-in-quotes hint to decide
 // whether the user is still inside an unquoted attribute value.
 const MACRO_IDENTIFIER_BARE_VALUE_REGEX = /^[A-Za-z0-9_-]+$/;
+// What a reference path is made of once past its `$`: identifier characters,
+// the `.` joining segments, and `[…]` index brackets.
+const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
+
+/**
+ * Where the reference path `text` ends in starts, or `-1` when `text` does not
+ * end inside a reference at all.
+ *
+ * The two rootings are the two macro forms the grammar has (see
+ * `packages/parser/src/macros/macros.peggy`): a bare `$name`, whose path runs
+ * to the first character that can't be part of it, and a parenthesized
+ * `$(name`, whose path runs to the closing `)`. So `$P`, `$P.coords` and
+ * `$(P.` end inside a path, while `$(P)` is a finished macro and `the end` is
+ * prose.
+ *
+ * The path may be empty: a `$` or `$(` with nothing after it yet is a
+ * reference whose name is still to come, which is exactly the state the name
+ * list opens in. Callers that need a segment to have been typed compare the
+ * returned offset against `text.length`.
+ */
+function referencePathStart(text: string): number {
+    // Walk back over the path characters; the character in front of that run
+    // says what, if anything, the path is rooted in.
+    let pathStart = text.length;
+    while (pathStart > 0 && MACRO_PATH_CHAR_REGEX.test(text[pathStart - 1])) {
+        pathStart--;
+    }
+    const beforePath = text[pathStart - 1];
+    if (
+        // `$`, `$name`, `$name.prop`, `$name[1]`
+        beforePath === "$" ||
+        // `$(`, `$(name`, `$(name.prop` — still inside the parenthesized form
+        (beforePath === "(" && text[pathStart - 2] === "$")
+    ) {
+        return pathStart;
+    }
+    return -1;
+}
+
+/**
+ * Whether the text up to `column` in `lineText` ends in a reference property
+ * accessor — the `.` of `$name.`, as opposed to a period ending a sentence.
+ *
+ * A `.` needs a segment in front of it: no reference has an empty segment, so
+ * neither the `.` of `$.` nor the second one of `$P..` opens a member list.
+ */
+function endsWithReferencePropertyDot(lineText: string, column: number) {
+    if (lineText[column - 1] !== ".") {
+        return false;
+    }
+    const beforeDot = lineText.slice(0, column - 1);
+    const pathStart = referencePathStart(beforeDot);
+    if (pathStart < 0) {
+        return false;
+    }
+    const path = beforeDot.slice(pathStart);
+    return path.length > 0 && !path.endsWith(".");
+}
+
+/**
+ * Whether the character just typed at `column` moved the cursor out of the
+ * name the open suggestion list is a list of names for.
+ *
+ * Most such characters end the reference outright — `$P.(`, `$P."`, `$P. ` —
+ * as does a `.` with no segment in front of it, which is the second one of
+ * `$P..` or the only one of `$.`. A `[` and its `]` do not: they open and
+ * close an index, which is part of the path. But an index holds no name to
+ * complete — only a macro of its own, whose `$` opens a fresh list — and
+ * closing one lands the cursor on a position where nothing but a `.` can
+ * follow. So the list has to come down for those too.
+ *
+ * The name may be empty, since the list opens on the bare `$`: `$ ` and `$"`
+ * end that reference just as `$P. ` ends a longer one. The one character that
+ * does not is the `(` opening the parenthesized form.
+ */
+function typedCharacterEndsReferenceName(lineText: string, column: number) {
+    const typedChar = lineText[column - 1];
+    if (typedChar === undefined) {
+        return false;
+    }
+    const beforeChar = lineText.slice(0, column - 1);
+    const pathStart = referencePathStart(beforeChar);
+    if (pathStart < 0) {
+        return false;
+    }
+    const path = beforeChar.slice(pathStart);
+    if (typedChar === "(" && path.length === 0 && beforeChar.endsWith("$")) {
+        return false;
+    }
+    return (
+        !MACRO_PATH_CHAR_REGEX.test(typedChar) ||
+        typedChar === "[" ||
+        typedChar === "]" ||
+        (typedChar === "." && (path.length === 0 || path.endsWith(".")))
+    );
+}
 
 /** Escape a string for safe interpolation into an HTML context. */
 function escapeHtml(str: string): string {
@@ -225,7 +322,6 @@ type RangeLike = {
 };
 
 type ExtendedCompletion = Completion & {
-    filterText: string;
     sortText?: string;
     _lspTextEditRange?: {
         start: { line: number; character: number };
@@ -302,12 +398,20 @@ export class LSPPlugin implements PluginValue {
 
             this.reopenLatch = reopenState.reopenLatch;
 
-            if (reopenState.shouldRestartCompletion) {
+            if (
+                reopenState.shouldRestartCompletion ||
+                reopenState.shouldCloseCompletion
+            ) {
+                const close = reopenState.shouldCloseCompletion;
                 setTimeout(() => {
                     if (!this.view || this.view !== update.view) {
                         return;
                     }
-                    startCompletion(update.view);
+                    if (close) {
+                        closeCompletion(update.view);
+                    } else {
+                        startCompletion(update.view);
+                    }
                 }, 0);
             }
 
@@ -475,16 +579,24 @@ export class LSPPlugin implements PluginValue {
             }
             isClosingQuoteTrigger = quoteCount % 2 === 1;
         }
+        // A `.` is only a trigger when it continues a reference path
+        // (`$name.`, `$name.prop.`); a `.` in prose ends a sentence and must
+        // not open the popup.
+        const isReferencePropertyDot = endsWithReferencePropertyDot(
+            line.text,
+            pos - line.from,
+        );
+        const isProseDot = charBeforeCursor === "." && !isReferencePropertyDot;
         const precedingServerTriggerCharacter =
             !isClosingQuoteTrigger &&
+            !isProseDot &&
             uniqueLanguageServerInstance.completionTriggers.includes(
                 charBeforeCursor,
             );
         const precedingLocalRefTriggerCharacter =
             charBeforeCursor === "$" ||
-            charBeforeCursor === "." ||
-            (charBeforeCursor === "(" &&
-                (charBeforeParen === "$" || charBeforeParen === "."));
+            (charBeforeCursor === "(" && charBeforeParen === "$") ||
+            isReferencePropertyDot;
 
         // `<math simplify= ` and similar: when the cursor sits on whitespace
         // that immediately follows `=`, we still want the LSP to suggest
@@ -555,6 +667,10 @@ export class LSPPlugin implements PluginValue {
             "items" in result ? result.items : result
         ) as LSPCompletionItemWithDisplayLabel[];
 
+        // An item's `filterText` is deliberately dropped: CodeMirror matches an
+        // option by its `label` (and renders `displayLabel`), so a filter text
+        // is only meaningful to clients that read it, and one may be spelled
+        // for a wider edit range than the label covers.
         let options = items.map((rawItem) => {
             const {
                 detail,
@@ -563,7 +679,6 @@ export class LSPPlugin implements PluginValue {
                 textEdit,
                 documentation,
                 sortText,
-                filterText,
                 data,
                 displayLabel,
             } = rawItem;
@@ -573,7 +688,6 @@ export class LSPPlugin implements PluginValue {
                 apply: textEdit?.newText ?? label,
                 type: deriveCompletionType(rawItem),
                 sortText: sortText ?? label,
-                filterText: filterText ?? label,
             };
             if (displayLabel) {
                 completion.displayLabel = displayLabel;
@@ -592,9 +706,6 @@ export class LSPPlugin implements PluginValue {
             return completion;
         });
 
-        const [span, match] = prefixMatch(options);
-        const token = context.matchBefore(match);
-
         // Element/tag-name completions match the typed text as a *substring*
         // (e.g. `<num` offers `isNumber`), while every other completion type
         // keeps prefix matching. Prefix-first ordering is left to CodeMirror's
@@ -609,12 +720,23 @@ export class LSPPlugin implements PluginValue {
                     option.type === COMPLETION_TYPES.closeTag,
             );
 
+        const token = context.matchBefore(
+            prefixMatch(
+                options.map((option) => option.label),
+                // An element menu is anchored on the tag being typed, so its
+                // token has to reach across the `<` (and the `/` and `>` of
+                // neighbouring tags) that the block below trims back off. No
+                // label carries them.
+                isElementNameMenu ? "</>" : "",
+            ),
+        );
+
         function filterOptionsForWord(wordLower: string) {
-            options = options.filter(({ filterText }) => {
-                const filterLower = filterText.toLowerCase();
+            options = options.filter(({ label }) => {
+                const labelLower = label.toLowerCase();
                 return isElementNameMenu
-                    ? filterLower.includes(wordLower)
-                    : filterLower.startsWith(wordLower);
+                    ? labelLower.includes(wordLower)
+                    : labelLower.startsWith(wordLower);
             });
         }
 
@@ -647,11 +769,11 @@ export class LSPPlugin implements PluginValue {
             );
             if (bareElementToken) {
                 // Explicit Ctrl+Space can open an element menu before any `<`
-                // has been typed. In that case the completion `apply` strings
-                // start with `<`, so `prefixMatch` cannot anchor `from` to a
-                // bare filter word like `num`. Anchor and filter it here so
-                // accepting `<number>` replaces `num` instead of appending after
-                // it.
+                // has been typed. `prefixMatch` anchors on the characters the
+                // labels are made of, so it finds no token when none of them
+                // starts with the first letter of a bare word like `num`.
+                // Anchor and filter it here so accepting `<number>` replaces
+                // `num` instead of appending after it.
                 pos = bareElementToken.from;
                 filterOptionsForWord(bareElementToken.text.toLowerCase());
             }
@@ -718,13 +840,10 @@ export class LSPPlugin implements PluginValue {
         // the option synchronously on every transaction via `update`.
         //
         // We also override `from` with the bare-value start offset supplied
-        // by the LSP. The plugin's default `pos` comes from `prefixMatch`,
-        // which builds its regex from `option.apply`. Since our apply text
-        // starts with a literal `"` and the user has not typed one, the
-        // regex match fails and `pos` defaults to `context.pos` -- which
-        // sits one past the first typed character. Anchoring `from` there
-        // would shift the result's view of the bare value by one slot, so
-        // subsequent typing reads "ello" instead of "hello".
+        // by the LSP, which knows where the value began -- back at the `=`,
+        // across any whitespace the edit swallows. The token `prefixMatch`
+        // finds stops at the first character a word cannot contain, so it
+        // cannot see that far back on its own.
         //
         // The mixed case -- a result that contains both a live-preview
         // option and ordinary options -- doesn't occur today; the LSP
@@ -944,6 +1063,7 @@ type AutocompleteReopenState = {
     reopenLatch: ReopenLatch | null;
     keepReopenLatchForNextChange: boolean;
     shouldRestartCompletion: boolean;
+    shouldCloseCompletion: boolean;
 };
 
 /**
@@ -1021,8 +1141,29 @@ function getAutocompleteReopenState({
     const charBefore = line.text.charAt(head - line.from - 1);
     const charBeforeParen =
         charBefore === "(" ? line.text.charAt(head - line.from - 2) : "";
+    // Same rule as in `getCompletions`: only a `.` continuing a reference
+    // path restarts completion; a sentence-ending `.` does not.
+    const isReferencePropertyDot = endsWithReferencePropertyDot(
+        line.text,
+        head - line.from,
+    );
     const { isDeleteEvent, deletedCount, insertedCount } =
         getTransactionChangeSummary(update);
+    // A popup opened on a reference is started explicitly (below), and an
+    // explicit completion keeps re-querying whatever the author types next —
+    // the trigger rules in `getCompletions` no longer gate it. So the
+    // character that leaves the name being completed is where the list has to
+    // go: none of `$P.(`, `$P."`, `$P. ` or `$rep[` is a name the suggestions
+    // could still apply to.
+    //
+    // Unless that character opens a menu of its own. `<` starts an element,
+    // and the running query for it is what closing here would cancel; `$` and
+    // `$(` start another reference — `$a$b`, or the index of `$rep[$i]` — and
+    // are handled by giving the restart rules below priority over the close.
+    const leftReferenceName =
+        !isDeleteEvent &&
+        charBefore !== "<" &&
+        typedCharacterEndsReferenceName(line.text, head - line.from);
     const currentToken = getCurrentWordToken(update.state.doc, head);
     const tokenPrefixChar = currentToken
         ? (() => {
@@ -1033,7 +1174,8 @@ function getAutocompleteReopenState({
               if (immediatePrefix !== "(") {
                   return immediatePrefix;
               }
-              // Treat `$(name` and `.(` member forms as ref-prefix contexts.
+              // The name inside `$(name` is a ref token like any other, so
+              // read the `$` in front of the paren as its prefix.
               return update.state.doc.sliceString(
                   Math.max(0, currentToken.from - 2),
                   Math.max(0, currentToken.from - 1),
@@ -1091,15 +1233,20 @@ function getAutocompleteReopenState({
         keepReopenLatchForNextChange = true;
     }
 
+    const shouldRestartCompletion =
+        charBefore === "$" ||
+        (charBefore === "(" && charBeforeParen === "$") ||
+        isReferencePropertyDot ||
+        latchEvaluation.shouldReopenFromLatch;
+
     return {
         reopenLatch: nextReopenLatch,
         keepReopenLatchForNextChange,
-        shouldRestartCompletion:
-            charBefore === "$" ||
-            charBefore === "." ||
-            (charBefore === "(" &&
-                (charBeforeParen === "$" || charBeforeParen === ".")) ||
-            latchEvaluation.shouldReopenFromLatch,
+        shouldRestartCompletion,
+        // Ending one reference and starting another is a single keystroke:
+        // the `$` that ends the path it sits in opens a name list for the new
+        // reference, and that list is the one to keep.
+        shouldCloseCompletion: leftReferenceName && !shouldRestartCompletion,
     };
 }
 
@@ -1162,22 +1309,41 @@ function setToRegex(chars: Set<string>) {
     return `[${preamble}${flat.replace(/[^\w\s]/g, "\\$&")}]`;
 }
 
-function prefixMatch(options: Completion[]) {
-    const first: string[] = [];
-    const rest: string[] = [];
+/**
+ * Build the regex that locates the token the completion list is anchored to —
+ * the run of text before the cursor that the options are matched against.
+ *
+ * The strings to pass are the options' *labels*, which is what CodeMirror
+ * matches an option by. Neither of the other two texts an option carries will
+ * do:
+ * - its insert text may be something other than a continuation of what was
+ *   typed, since accepting a hyphenated member rewrites the whole macro
+ *   (`$base.my` → `$(base.my-p)`);
+ * - its `filterText` is an LSP field CodeMirror never reads, and a rewriting
+ *   item spells it from the start of its edit (`$base.my-p`) so that clients
+ *   which do read it keep the item in the menu.
+ *
+ * Either would widen the token to cover `$`, `(` and `.`, dragging the anchor
+ * back over `$base.` — and every option would then be matched against text
+ * none of them start with.
+ *
+ * `extraChars` are characters the token may span that no label contains.
+ */
+function prefixMatch(matchTexts: string[], extraChars = "") {
+    const first: string[] = [...extraChars];
+    const rest: string[] = [...extraChars];
 
-    for (const completion of options) {
-        const textToAnalyze = completion.apply;
-        if (typeof textToAnalyze !== "string" || textToAnalyze.length === 0) {
+    for (const matchText of matchTexts) {
+        if (matchText.length === 0) {
             continue;
         }
-        first.push(textToAnalyze.charAt(0));
-        rest.push(...textToAnalyze.slice(1).split(""));
+        first.push(matchText.charAt(0));
+        rest.push(...matchText.slice(1).split(""));
     }
 
-    const source =
-        setToRegex(new Set(first)) + setToRegex(new Set(rest)) + "*$";
-    return [new RegExp("^" + source), new RegExp(source)];
+    return new RegExp(
+        setToRegex(new Set(first)) + setToRegex(new Set(rest)) + "*$",
+    );
 }
 
 /**

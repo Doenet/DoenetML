@@ -464,20 +464,20 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#bi_input").should("not.have.attr", "aria-details");
     });
 
-    it("labelPosition left and right", () => {
+    it("labelPosition start and end", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
-    <p>Left label:
-    <booleanInput name="bl" labelPosition="left">
-      <label>left</label>
+    <p>Start label:
+    <booleanInput name="bl" labelPosition="start">
+      <label>start</label>
     </booleanInput>
     </p>
     
-    <p>Right label:
-    <booleanInput name="br" labelPosition="right">
-      <label>right</label>
+    <p>End label:
+    <booleanInput name="br" labelPosition="end">
+      <label>end</label>
     </booleanInput>
     </p>
                     `,
@@ -486,11 +486,11 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.log("Test left: label before checkbox");
+        cy.log("Test start: label before checkbox");
         cy.get("#bl").children().eq(0).should("have.attr", "id", "bl-label");
 
         cy.log(
-            "Test right: label after checkbox (and checkWork/description if present)",
+            "Test end: label after checkbox (and checkWork/description if present)",
         );
         cy.get("#br").children().last().should("have.attr", "id", "br-label");
     });

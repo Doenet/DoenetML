@@ -59613,7 +59613,7 @@
                 },
                 {
                     "name": "margins",
-                    "description": "List of margin widths between panels.",
+                    "description": "Two margin widths applied to every panel: the first on the panel's leading side and the second on its trailing side, following the writing direction.",
                     "type": "_componentSizeList"
                 },
                 {
@@ -59875,7 +59875,7 @@
                 },
                 {
                     "name": "margins",
-                    "description": "List of margin widths between panels.",
+                    "description": "Two margin widths applied to every panel: the first on the panel's leading side and the second on its trailing side, following the writing direction.",
                     "type": "_componentSizeList"
                 },
                 {
@@ -62924,19 +62924,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -63546,19 +63546,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -64964,6 +64964,18 @@
                             "description": "English"
                         },
                         {
+                            "value": "ace",
+                            "description": "Acehnese"
+                        },
+                        {
+                            "value": "af",
+                            "description": "Afrikaans"
+                        },
+                        {
+                            "value": "ak",
+                            "description": "Akan"
+                        },
+                        {
                             "value": "am",
                             "description": "Amharic (አማርኛ)"
                         },
@@ -64972,16 +64984,80 @@
                             "description": "Arabic (العربية)"
                         },
                         {
+                            "value": "arn",
+                            "description": "Mapuche"
+                        },
+                        {
                             "value": "as",
                             "description": "Assamese (অসমীয়া)"
+                        },
+                        {
+                            "value": "ast",
+                            "description": "Asturian (asturianu)"
+                        },
+                        {
+                            "value": "ay",
+                            "description": "Aymara"
+                        },
+                        {
+                            "value": "az",
+                            "description": "Azerbaijani (azərbaycan)"
+                        },
+                        {
+                            "value": "ban",
+                            "description": "Balinese"
+                        },
+                        {
+                            "value": "be",
+                            "description": "Belarusian (беларуская)"
+                        },
+                        {
+                            "value": "bg",
+                            "description": "Bulgarian (български)"
+                        },
+                        {
+                            "value": "bik",
+                            "description": "Bikol"
+                        },
+                        {
+                            "value": "bm",
+                            "description": "Bambara (bamanakan)"
                         },
                         {
                             "value": "bn",
                             "description": "Bangla (বাংলা)"
                         },
                         {
+                            "value": "br",
+                            "description": "Breton (brezhoneg)"
+                        },
+                        {
+                            "value": "bs",
+                            "description": "Bosnian (bosanski)"
+                        },
+                        {
+                            "value": "ca",
+                            "description": "Catalan (català)"
+                        },
+                        {
+                            "value": "ceb",
+                            "description": "Cebuano"
+                        },
+                        {
+                            "value": "ch",
+                            "description": "Chamorro"
+                        },
+                        {
+                            "value": "co",
+                            "description": "Corsican"
+                        },
+                        {
                             "value": "cs",
                             "description": "Czech (čeština)"
+                        },
+                        {
+                            "value": "cy",
+                            "description": "Welsh (Cymraeg)"
                         },
                         {
                             "value": "da",
@@ -64992,12 +65068,24 @@
                             "description": "German (Deutsch)"
                         },
                         {
+                            "value": "ee",
+                            "description": "Ewe (eʋegbe)"
+                        },
+                        {
                             "value": "el",
                             "description": "Greek (Ελληνικά)"
                         },
                         {
                             "value": "es",
                             "description": "Spanish (español)"
+                        },
+                        {
+                            "value": "et",
+                            "description": "Estonian (eesti)"
+                        },
+                        {
+                            "value": "eu",
+                            "description": "Basque (euskara)"
                         },
                         {
                             "value": "fa",
@@ -65008,8 +65096,52 @@
                             "description": "Finnish (suomi)"
                         },
                         {
+                            "value": "fil",
+                            "description": "Filipino"
+                        },
+                        {
+                            "value": "fj",
+                            "description": "Fijian"
+                        },
+                        {
+                            "value": "fo",
+                            "description": "Faroese (føroyskt)"
+                        },
+                        {
                             "value": "fr",
                             "description": "French (français)"
+                        },
+                        {
+                            "value": "fy",
+                            "description": "Western Frisian (Frysk)"
+                        },
+                        {
+                            "value": "ga",
+                            "description": "Irish (Gaeilge)"
+                        },
+                        {
+                            "value": "gd",
+                            "description": "Scottish Gaelic (Gàidhlig)"
+                        },
+                        {
+                            "value": "gl",
+                            "description": "Galician (galego)"
+                        },
+                        {
+                            "value": "gn",
+                            "description": "Guarani"
+                        },
+                        {
+                            "value": "gu",
+                            "description": "Gujarati (ગુજરાતી)"
+                        },
+                        {
+                            "value": "ha",
+                            "description": "Hausa"
+                        },
+                        {
+                            "value": "haw",
+                            "description": "Hawaiian (ʻŌlelo Hawaiʻi)"
                         },
                         {
                             "value": "he",
@@ -65020,16 +65152,44 @@
                             "description": "Hindi (हिन्दी)"
                         },
                         {
+                            "value": "hil",
+                            "description": "Hiligaynon"
+                        },
+                        {
                             "value": "hnj",
                             "description": "Hmong Njua"
+                        },
+                        {
+                            "value": "hr",
+                            "description": "Croatian (hrvatski)"
+                        },
+                        {
+                            "value": "ht",
+                            "description": "Haitian Creole"
                         },
                         {
                             "value": "hu",
                             "description": "Hungarian (magyar)"
                         },
                         {
+                            "value": "hy",
+                            "description": "Armenian (հայերեն)"
+                        },
+                        {
                             "value": "id",
                             "description": "Indonesian (Indonesia)"
+                        },
+                        {
+                            "value": "ig",
+                            "description": "Igbo"
+                        },
+                        {
+                            "value": "ilo",
+                            "description": "Iloko"
+                        },
+                        {
+                            "value": "is",
+                            "description": "Icelandic (íslenska)"
                         },
                         {
                             "value": "it",
@@ -65040,20 +65200,112 @@
                             "description": "Japanese (日本語)"
                         },
                         {
+                            "value": "jv",
+                            "description": "Javanese (Jawa)"
+                        },
+                        {
+                            "value": "ka",
+                            "description": "Georgian (ქართული)"
+                        },
+                        {
+                            "value": "kk",
+                            "description": "Kazakh (қазақ тілі)"
+                        },
+                        {
+                            "value": "km",
+                            "description": "Khmer (ខ្មែរ)"
+                        },
+                        {
+                            "value": "kn",
+                            "description": "Kannada (ಕನ್ನಡ)"
+                        },
+                        {
                             "value": "ko",
                             "description": "Korean (한국어)"
+                        },
+                        {
+                            "value": "ky",
+                            "description": "Kyrgyz (кыргызча)"
+                        },
+                        {
+                            "value": "lb",
+                            "description": "Luxembourgish (Lëtzebuergesch)"
+                        },
+                        {
+                            "value": "lg",
+                            "description": "Ganda (Luganda)"
+                        },
+                        {
+                            "value": "ln",
+                            "description": "Lingala (lingála)"
+                        },
+                        {
+                            "value": "lo",
+                            "description": "Lao (ລາວ)"
+                        },
+                        {
+                            "value": "lt",
+                            "description": "Lithuanian (lietuvių)"
+                        },
+                        {
+                            "value": "lv",
+                            "description": "Latvian (latviešu)"
+                        },
+                        {
+                            "value": "mad",
+                            "description": "Madurese"
+                        },
+                        {
+                            "value": "mg",
+                            "description": "Malagasy"
+                        },
+                        {
+                            "value": "mi",
+                            "description": "Māori"
+                        },
+                        {
+                            "value": "min",
+                            "description": "Minangkabau"
+                        },
+                        {
+                            "value": "mk",
+                            "description": "Macedonian (македонски)"
+                        },
+                        {
+                            "value": "ml",
+                            "description": "Malayalam (മലയാളം)"
+                        },
+                        {
+                            "value": "mn",
+                            "description": "Mongolian (монгол)"
                         },
                         {
                             "value": "mr",
                             "description": "Marathi (मराठी)"
                         },
                         {
+                            "value": "ms",
+                            "description": "Malay (Melayu)"
+                        },
+                        {
+                            "value": "mt",
+                            "description": "Maltese (Malti)"
+                        },
+                        {
                             "value": "my",
                             "description": "Burmese (မြန်မာ)"
                         },
                         {
+                            "value": "nah",
+                            "description": "nah"
+                        },
+                        {
                             "value": "nb",
                             "description": "Norwegian Bokmål (norsk bokmål)"
+                        },
+                        {
+                            "value": "nds",
+                            "description": "Low German (Neddersass’sch)"
                         },
                         {
                             "value": "ne",
@@ -65062,6 +65314,34 @@
                         {
                             "value": "nl",
                             "description": "Dutch (Nederlands)"
+                        },
+                        {
+                            "value": "ny",
+                            "description": "Nyanja"
+                        },
+                        {
+                            "value": "oc",
+                            "description": "Occitan (occitan)"
+                        },
+                        {
+                            "value": "oj",
+                            "description": "Ojibwa"
+                        },
+                        {
+                            "value": "om",
+                            "description": "Oromo (Oromoo)"
+                        },
+                        {
+                            "value": "or",
+                            "description": "Odia (ଓଡ଼ିଆ)"
+                        },
+                        {
+                            "value": "pa",
+                            "description": "Punjabi (ਪੰਜਾਬੀ)"
+                        },
+                        {
+                            "value": "pam",
+                            "description": "Pampanga"
                         },
                         {
                             "value": "pl",
@@ -65076,6 +65356,18 @@
                             "description": "Portuguese (português)"
                         },
                         {
+                            "value": "qu",
+                            "description": "Quechua (Runasimi)"
+                        },
+                        {
+                            "value": "quc",
+                            "description": "Kʼicheʼ"
+                        },
+                        {
+                            "value": "rm",
+                            "description": "Romansh (rumantsch)"
+                        },
+                        {
                             "value": "ro",
                             "description": "Romanian (română)"
                         },
@@ -65084,24 +65376,128 @@
                             "description": "Russian (русский)"
                         },
                         {
+                            "value": "rw",
+                            "description": "Kinyarwanda (Ikinyarwanda)"
+                        },
+                        {
+                            "value": "sc",
+                            "description": "Sardinian (sardu)"
+                        },
+                        {
+                            "value": "scn",
+                            "description": "Sicilian (sicilianu)"
+                        },
+                        {
                             "value": "sd",
                             "description": "Sindhi (سنڌي)"
+                        },
+                        {
+                            "value": "se",
+                            "description": "Northern Sami (davvisámegiella)"
+                        },
+                        {
+                            "value": "si",
+                            "description": "Sinhala (සිංහල)"
                         },
                         {
                             "value": "sk",
                             "description": "Slovak (slovenčina)"
                         },
                         {
+                            "value": "sl",
+                            "description": "Slovenian (slovenščina)"
+                        },
+                        {
+                            "value": "sm",
+                            "description": "Samoan"
+                        },
+                        {
+                            "value": "sn",
+                            "description": "Shona (chiShona)"
+                        },
+                        {
                             "value": "so",
                             "description": "Somali (Soomaali)"
+                        },
+                        {
+                            "value": "sq",
+                            "description": "Albanian (shqip)"
+                        },
+                        {
+                            "value": "sr",
+                            "description": "Serbian (српски)"
+                        },
+                        {
+                            "value": "st",
+                            "description": "Southern Sotho (Sesotho)"
+                        },
+                        {
+                            "value": "su",
+                            "description": "Sundanese (Basa Sunda)"
                         },
                         {
                             "value": "sv",
                             "description": "Swedish (svenska)"
                         },
                         {
+                            "value": "sw",
+                            "description": "Swahili (Kiswahili)"
+                        },
+                        {
+                            "value": "ta",
+                            "description": "Tamil (தமிழ்)"
+                        },
+                        {
+                            "value": "te",
+                            "description": "Telugu (తెలుగు)"
+                        },
+                        {
+                            "value": "tet",
+                            "description": "Tetum"
+                        },
+                        {
+                            "value": "tg",
+                            "description": "Tajik (тоҷикӣ)"
+                        },
+                        {
+                            "value": "th",
+                            "description": "Thai (ไทย)"
+                        },
+                        {
+                            "value": "ti",
+                            "description": "Tigrinya (ትግርኛ)"
+                        },
+                        {
+                            "value": "tk",
+                            "description": "Turkmen (türkmen dili)"
+                        },
+                        {
+                            "value": "tlh",
+                            "description": "Klingon"
+                        },
+                        {
+                            "value": "tn",
+                            "description": "Tswana (Setswana)"
+                        },
+                        {
+                            "value": "to",
+                            "description": "Tongan (lea fakatonga)"
+                        },
+                        {
+                            "value": "tpi",
+                            "description": "Tok Pisin"
+                        },
+                        {
                             "value": "tr",
                             "description": "Turkish (Türkçe)"
+                        },
+                        {
+                            "value": "tt",
+                            "description": "Tatar (татар)"
+                        },
+                        {
+                            "value": "ty",
+                            "description": "Tahitian"
                         },
                         {
                             "value": "ug",
@@ -65116,8 +65512,32 @@
                             "description": "Urdu (اردو)"
                         },
                         {
+                            "value": "uz",
+                            "description": "Uzbek (o‘zbek)"
+                        },
+                        {
                             "value": "vi",
                             "description": "Vietnamese (Tiếng Việt)"
+                        },
+                        {
+                            "value": "war",
+                            "description": "Waray"
+                        },
+                        {
+                            "value": "wo",
+                            "description": "Wolof"
+                        },
+                        {
+                            "value": "xh",
+                            "description": "Xhosa (IsiXhosa)"
+                        },
+                        {
+                            "value": "yi",
+                            "description": "Yiddish (ייִדיש)"
+                        },
+                        {
+                            "value": "yo",
+                            "description": "Yoruba (Èdè Yorùbá)"
                         },
                         {
                             "value": "zh-Hans",
@@ -65126,6 +65546,10 @@
                         {
                             "value": "zh-Hant",
                             "description": "Traditional Chinese (繁體中文)"
+                        },
+                        {
+                            "value": "zu",
+                            "description": "Zulu (isiZulu)"
                         }
                     ],
                     "suggestedValuesOnly": true,
@@ -82871,19 +83295,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -83714,19 +84138,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -84275,19 +84699,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "right",
+                    "defaultValue": "end",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -84654,19 +85078,19 @@
                 {
                     "name": "labelPosition",
                     "description": "Position of the label relative to the input.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Place the label to the left of the input."
+                            "value": "start",
+                            "description": "Place the label before the input: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the label to the right of the input."
+                            "value": "end",
+                            "description": "Place the label after the input: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"
@@ -92183,21 +92607,93 @@
                 },
                 {
                     "name": "halign",
-                    "description": "Horizontal alignment for the cell's content (left, center, or right).",
-                    "defaultValue": "left",
-                    "type": "text"
+                    "description": "Horizontal alignment for the cell's content.",
+                    "defaultValue": "start",
+                    "values": [
+                        "start",
+                        "center",
+                        "end",
+                        "justify"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "start",
+                            "description": "Align cell content to the leading edge: the left in a left-to-right document, the right in a right-to-left one."
+                        },
+                        {
+                            "value": "center",
+                            "description": "Center cell content horizontally."
+                        },
+                        {
+                            "value": "end",
+                            "description": "Align cell content to the trailing edge: the right in a left-to-right document, the left in a right-to-left one."
+                        },
+                        {
+                            "value": "justify",
+                            "description": "Justify cell content across the full cell width."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "description": "Border style for the bottom edge of the cell.",
                     "defaultValue": "none",
-                    "type": "text"
+                    "values": [
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "none",
+                            "description": "Do not render a border."
+                        },
+                        {
+                            "value": "minor",
+                            "description": "Render a thin border line."
+                        },
+                        {
+                            "value": "medium",
+                            "description": "Render a medium-weight border line."
+                        },
+                        {
+                            "value": "major",
+                            "description": "Render a thick border line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
-                    "name": "right",
-                    "description": "Border style for the right edge of the cell.",
+                    "name": "endBorder",
+                    "description": "Border style for the trailing edge of the cell: its right edge in a left-to-right document, its left edge in a right-to-left one.",
                     "defaultValue": "none",
-                    "type": "text"
+                    "values": [
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "none",
+                            "description": "Do not render a border."
+                        },
+                        {
+                            "value": "minor",
+                            "description": "Render a thin border line."
+                        },
+                        {
+                            "value": "medium",
+                            "description": "Render a medium-weight border line."
+                        },
+                        {
+                            "value": "major",
+                            "description": "Render a thick border line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "prefill",
@@ -92290,19 +92786,19 @@
                     "name": "halign",
                     "type": "text",
                     "isArray": false,
-                    "description": "Horizontal alignment of the cell's content (left, center, or right)."
+                    "description": "Horizontal alignment of the cell's content (start, center, end, or justify)."
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the cell."
                 },
                 {
-                    "name": "right",
+                    "name": "endBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the right edge of the cell."
+                    "description": "Border style for the trailing edge of the cell: its right edge in a left-to-right document, its left edge in a right-to-left one."
                 },
                 {
                     "name": "inHeader",
@@ -92437,26 +92933,117 @@
                 {
                     "name": "halign",
                     "description": "Default horizontal alignment for cells in this row.",
-                    "defaultValue": "left",
-                    "type": "text"
+                    "defaultValue": "start",
+                    "values": [
+                        "start",
+                        "center",
+                        "end",
+                        "justify"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "start",
+                            "description": "Align cell content to the leading edge: the left in a left-to-right document, the right in a right-to-left one."
+                        },
+                        {
+                            "value": "center",
+                            "description": "Center cell content horizontally."
+                        },
+                        {
+                            "value": "end",
+                            "description": "Align cell content to the trailing edge: the right in a left-to-right document, the left in a right-to-left one."
+                        },
+                        {
+                            "value": "justify",
+                            "description": "Justify cell content across the full cell width."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "valign",
                     "description": "Default vertical alignment for cells in this row.",
                     "defaultValue": "middle",
-                    "type": "text"
+                    "values": [
+                        "top",
+                        "middle",
+                        "bottom"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "top",
+                            "description": "Align cell content to the top."
+                        },
+                        {
+                            "value": "middle",
+                            "description": "Center cell content vertically."
+                        },
+                        {
+                            "value": "bottom",
+                            "description": "Align cell content to the bottom."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
-                    "name": "left",
-                    "description": "Border style for the left edge of this row.",
+                    "name": "startBorder",
+                    "description": "Border style for the leading edge of this row: its left edge in a left-to-right document, its right edge in a right-to-left one.",
                     "defaultValue": "none",
-                    "type": "text"
+                    "values": [
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "none",
+                            "description": "Do not render a border."
+                        },
+                        {
+                            "value": "minor",
+                            "description": "Render a thin border line."
+                        },
+                        {
+                            "value": "medium",
+                            "description": "Render a medium-weight border line."
+                        },
+                        {
+                            "value": "major",
+                            "description": "Render a thick border line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "description": "Border style for the bottom edge of this row.",
                     "defaultValue": "none",
-                    "type": "text"
+                    "values": [
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "none",
+                            "description": "Do not render a border."
+                        },
+                        {
+                            "value": "minor",
+                            "description": "Render a thin border line."
+                        },
+                        {
+                            "value": "medium",
+                            "description": "Render a medium-weight border line."
+                        },
+                        {
+                            "value": "major",
+                            "description": "Render a thick border line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "functionSymbols",
@@ -92566,13 +93153,13 @@
                     "description": "Default vertical alignment for cells in this row."
                 },
                 {
-                    "name": "left",
+                    "name": "startBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the left edge of the row."
+                    "description": "Border style for the leading edge of the row: its left edge in a left-to-right document, its right edge in a right-to-left one."
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the row."
@@ -93044,25 +93631,25 @@
                 {
                     "name": "halign",
                     "description": "Default horizontal alignment for cells.",
-                    "defaultValue": "left",
+                    "defaultValue": "start",
                     "values": [
-                        "left",
+                        "start",
                         "center",
-                        "right",
+                        "end",
                         "justify"
                     ],
                     "autocompleteValues": [
                         {
-                            "value": "left",
-                            "description": "Left-align cell content."
+                            "value": "start",
+                            "description": "Align cell content to the leading edge: the left in a left-to-right document, the right in a right-to-left one."
                         },
                         {
                             "value": "center",
                             "description": "Center cell content horizontally."
                         },
                         {
-                            "value": "right",
-                            "description": "Right-align cell content."
+                            "value": "end",
+                            "description": "Align cell content to the trailing edge: the right in a left-to-right document, the left in a right-to-left one."
                         },
                         {
                             "value": "justify",
@@ -93097,7 +93684,7 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "top",
+                    "name": "topBorder",
                     "description": "Border style for the top edge of the layout.",
                     "defaultValue": "none",
                     "values": [
@@ -93127,8 +93714,8 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "left",
-                    "description": "Border style for the left edge of the layout.",
+                    "name": "startBorder",
+                    "description": "Border style for the leading edge of the layout: its left edge in a left-to-right document, its right edge in a right-to-left one.",
                     "defaultValue": "none",
                     "values": [
                         "none",
@@ -93157,7 +93744,7 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "description": "Border style for the bottom edge of the layout.",
                     "defaultValue": "none",
                     "values": [
@@ -93187,8 +93774,8 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "right",
-                    "description": "Border style for the right edge of the layout.",
+                    "name": "endBorder",
+                    "description": "Border style for the trailing edge of the layout: its right edge in a left-to-right document, its left edge in a right-to-left one.",
                     "defaultValue": "none",
                     "values": [
                         "none",
@@ -93268,31 +93855,31 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "top",
+                    "name": "topBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the top edge of the layout.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "left",
+                    "name": "startBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the left edge of the layout.",
+                    "description": "Border style for the leading edge of the layout: its left edge in a left-to-right document, its right edge in a right-to-left one.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "bottom",
+                    "name": "bottomBorder",
                     "type": "text",
                     "isArray": false,
                     "description": "Border style for the bottom edge of the layout.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "right",
+                    "name": "endBorder",
                     "type": "text",
                     "isArray": false,
-                    "description": "Border style for the right edge of the layout.",
+                    "description": "Border style for the trailing edge of the layout: its right edge in a left-to-right document, its left edge in a right-to-left one.",
                     "fromAttribute": true
                 },
                 {
@@ -114117,8 +114704,8 @@
                     "defaultValue": "bottom",
                     "values": [
                         "bottom",
-                        "left",
-                        "right"
+                        "start",
+                        "end"
                     ],
                     "autocompleteValues": [
                         {
@@ -114126,12 +114713,12 @@
                             "description": "Place the results panel below the editor."
                         },
                         {
-                            "value": "left",
-                            "description": "Place the results panel to the left of the editor."
+                            "value": "start",
+                            "description": "Place the results panel before the editor: to its left in a left-to-right document, to its right in a right-to-left one."
                         },
                         {
-                            "value": "right",
-                            "description": "Place the results panel to the right of the editor."
+                            "value": "end",
+                            "description": "Place the results panel after the editor: to its right in a left-to-right document, to its left in a right-to-left one."
                         }
                     ],
                     "type": "keyword"

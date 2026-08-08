@@ -11936,7 +11936,11 @@ describe("MathInput tag tests @group2", async () => {
                     stateVariables[await resolvePathToNodeIdx("p14")]
                         .stateValues.text,
                 ).eq(
-                    `Matrix: [ ${[...Array(numDimensions).keys()].map((i) => `[ ${math.get_component(i)} ]`).join(", ")} ]`,
+                    // The engine prints a matrix without the padding spaces
+                    // the JS library used (`[[1], [2]]`, not `[ [ 1 ], [ 2 ] ]`)
+                    // — a recorded, deliberate divergence
+                    // (`ast-output-known-divergences.json`).
+                    `Matrix: [${[...Array(numDimensions).keys()].map((i) => `[${math.get_component(i)}]`).join(", ")}]`,
                 );
                 expect(
                     stateVariables[
@@ -12023,7 +12027,12 @@ describe("MathInput tag tests @group2", async () => {
             }
 
             if (numDimensions === 1) {
-                let num = math.evaluate_to_constant();
+                // `<numberList>` reports "no number here" as `NaN`; the engine
+                // reports it as `null` (an unfilled `＿` has no value, as
+                // distinct from having the value NaN). Both are right for their
+                // own contract, so the expectation converts.
+                let evaluated = math.evaluate_to_constant();
+                let num = typeof evaluated === "number" ? evaluated : NaN;
 
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p20")]
@@ -12034,9 +12043,12 @@ describe("MathInput tag tests @group2", async () => {
                         .numbers,
                 ).eqls([num]);
             } else {
+                // As above: the engine's "no value" is `null`, the
+                // `<numberList>`'s is `NaN`.
                 let nums = math.tree
                     .slice(1)
-                    .map((v: Tree) => me.fromAst(v).evaluate_to_constant());
+                    .map((v: Tree) => me.fromAst(v).evaluate_to_constant())
+                    .map((v: unknown) => (typeof v === "number" ? v : NaN));
 
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p20")]

@@ -425,7 +425,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("b")].stateValues
                     .latex,
             ),
-        ).eq("insu＿");
+        ).eq("sinu＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("formata")].stateValues
                 .value,
@@ -462,7 +462,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("b")].stateValues
                     .latex,
             ),
-        ).eq("＿\\sin(u)");
+        ).eq("\\sin(u)＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("formata")].stateValues
                 .value,
@@ -574,7 +574,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m7")].stateValues
                     .latex,
             ),
-        ).eq("1x^{2}-3+0x^{2}+4-2x^{2}-3+5x^{2}");
+        ).eq("-2x^{2}+0x^{2}+1x^{2}+5x^{2}-3-3+4");
 
         let originalTree = [
             "+",
@@ -692,10 +692,16 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
         ).eqls(["*", ["+", "x", -3], ["+", ["*", 2, "x"], 4]]);
+        // `-(2x)`, not `(-2)x`: a product's sign is never moved into one of its
+        // factors — the parsers emit `Neg` and the canonical form keeps it, so
+        // `-2x` is `["-", ["*", 2, "x"]]` throughout. Legacy folded the sign
+        // into the coefficient once a term had been computed, which is why the
+        // written form above (`m1`) and this expanded one disagreed in spelling
+        // but not in value. The printer still renders it `-2x`.
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
                 .tree,
-        ).eqls(["+", ["*", 2, ["^", "x", 2]], ["*", -2, "x"], -12]);
+        ).eqls(["+", ["*", 2, ["^", "x", 2]], ["-", ["*", 2, "x"]], -12]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
                 .tree,
@@ -707,7 +713,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
                 .tree,
-        ).eqls(["+", ["*", 5, ["^", "x", 2]], ["*", -18, "x"], -47]);
+        ).eqls(["+", ["*", 5, ["^", "x", 2]], ["-", ["*", 18, "x"]], -47]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
                 .tree,
@@ -2494,7 +2500,11 @@ describe("Math tag tests @group3", async () => {
             ),
         ).eq("35203000");
 
-        // invalid both, no rounding
+        // invalid both, no rounding: the exact decimal as authored. Legacy
+        // could only show `35203423.023523435`, the shortest f64 that reads
+        // back as the same double, because it held the value as a float. The
+        // Rust engine parses a typed decimal to an exact rational, so "no
+        // rounding" now means no rounding at all.
         await updateMathInputValue({
             componentIdx: await resolvePathToNodeIdx("nDecimals"),
             latex: "y",
@@ -2506,7 +2516,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("na")].stateValues
                     .latex,
             ),
-        ).eq("35203423.023523435");
+        ).eq("35203423.02352343201");
 
         // only invalid nDecimals, falls back to digits
         await updateMathInputValue({

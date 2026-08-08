@@ -566,6 +566,17 @@ export function returnPiecewiseNumericalFunctionFromChildren({
     };
 }
 
+/**
+ * Is this what `evaluate_to_constant()` returns for an input with an actual
+ * numeric position on the line? `null` (no value), `NaN`, and a complex
+ * `{re, im}` are all "no" — and each of them, left to JavaScript's relational
+ * operators, would silently answer a domain question instead: `null >= -3` is
+ * `true`.
+ */
+function isFiniteNumber(v: unknown): v is number {
+    return typeof v === "number" && !Number.isNaN(v);
+}
+
 export function returnSymbolicFunctionFromFormula({
     formula,
     simplify,
@@ -643,8 +654,15 @@ export function returnSymbolicFunctionFromFormula({
             if (!overrideDomain) {
                 let xNum = x.evaluate_to_constant();
 
+                // Only a *number* can be outside the domain. An input that has
+                // no numeric value — `10y`, or anything else still symbolic —
+                // cannot be placed, so the domain has nothing to say about it
+                // and the substitution goes ahead. The engine reports "no
+                // value" as `null`, and `null` compares as `0` in `>=`/`<=`,
+                // so a bare `Number.isNaN` check let a symbolic input be judged
+                // against the interval as if it were the origin.
                 if (
-                    !Number.isNaN(xNum) &&
+                    isFiniteNumber(xNum) &&
                     (!(xNum >= minx) ||
                         !(xNum <= maxx) ||
                         (openMin && xNum === minx) ||
@@ -738,7 +756,10 @@ export function returnSymbolicFunctionFromFormula({
 
             if (haveDomain && allNumeric) {
                 let xNum = x.evaluate_to_constant();
-                if (Number.isNaN(xNum)) {
+                // See the note in the single-input case: "not a number" is how
+                // a symbolic input arrives, and it must switch off the domain
+                // check for the whole call rather than be compared as `0`.
+                if (!isFiniteNumber(xNum)) {
                     allNumeric = false;
                 } else {
                     let [minx, maxx] = domainIntervals[i];
@@ -763,7 +784,11 @@ export function returnSymbolicFunctionFromFormula({
 
         return normalizeMathExpression({
             value: formula_transformed
-                .substitute(subArgs)
+                // Simultaneously: an argument may mention another variable's
+                // name — `f(x,y) = sin(x+y)` evaluated at `(10y, -π)` — and a
+                // left-to-right pass would substitute into its own output and
+                // answer `sin(-11π)`.
+                .substitute_all(subArgs)
                 .strings_to_subscripts(),
             simplify,
             expand,
@@ -852,8 +877,15 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
             if (!overrideDomain) {
                 let xNum = x.evaluate_to_constant();
 
+                // Only a *number* can be outside the domain. An input that has
+                // no numeric value — `10y`, or anything else still symbolic —
+                // cannot be placed, so the domain has nothing to say about it
+                // and the substitution goes ahead. The engine reports "no
+                // value" as `null`, and `null` compares as `0` in `>=`/`<=`,
+                // so a bare `Number.isNaN` check let a symbolic input be judged
+                // against the interval as if it were the origin.
                 if (
-                    !Number.isNaN(xNum) &&
+                    isFiniteNumber(xNum) &&
                     (!(xNum >= minx) ||
                         !(xNum <= maxx) ||
                         (openMin && xNum === minx) ||
@@ -955,7 +987,10 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
 
             if (haveDomain && allNumeric) {
                 let xNum = x.evaluate_to_constant();
-                if (Number.isNaN(xNum)) {
+                // See the note in the single-input case: "not a number" is how
+                // a symbolic input arrives, and it must switch off the domain
+                // check for the whole call rather than be compared as `0`.
+                if (!isFiniteNumber(xNum)) {
                     allNumeric = false;
                 } else {
                     let [minx, maxx] = domainIntervals[i];
@@ -994,7 +1029,11 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
 
         return normalizeMathExpression({
             value: formula_transformed
-                .substitute(subArgs)
+                // Simultaneously: an argument may mention another variable's
+                // name — `f(x,y) = sin(x+y)` evaluated at `(10y, -π)` — and a
+                // left-to-right pass would substitute into its own output and
+                // answer `sin(-11π)`.
+                .substitute_all(subArgs)
                 .strings_to_subscripts(),
             simplify,
             expand,
@@ -1061,7 +1100,15 @@ export function returnNumericFunctionForEvaluate({
             return me.fromAst("\uFF3F");
         }
 
-        let numericInput = input.map((x: any) => x.evaluate_to_constant());
+        // An input with no numeric value is `NaN` here, never `null`: the
+        // engine reports "no value" as `null`, and `null` is `0` to every
+        // arithmetic operator downstream — so evaluating `$$f(x)` with `x`
+        // still symbolic silently returned *f(0)* and passed it off as the
+        // value of the call.
+        let numericInput = input.map((x: any) => {
+            const v = x.evaluate_to_constant();
+            return typeof v === "number" ? v : NaN;
+        });
 
         // A numerical function fed a non-numeric input can hand back `null`
         // (or `undefined`), which `fromAst` rejects outright — a thrown error

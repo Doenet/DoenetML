@@ -7,6 +7,23 @@ import me from "math-expressions";
 const BLANK = "\uff3f";
 
 /**
+ * Does this tree have an unfilled slot in it anywhere?
+ *
+ * Walks the tree rather than asking `variables()`, because a blank is not a
+ * variable and the engine does not list it as one — it is a node of its own.
+ * Reading it out of `variables()` (which the JS library did include it in)
+ * silently answered "no blanks here" for every expression, so
+ * `matchExpressionWithBlanks="false"` — the default — stopped rejecting
+ * anything and `3x+` matched a pattern for a completed sum.
+ */
+function treeContainsBlank(tree) {
+    if (Array.isArray(tree)) {
+        return tree.slice(1).some(treeContainsBlank);
+    }
+    return tree === BLANK;
+}
+
+/**
  * A string key for `tree` when `tree` names a variable, and `undefined` when it
  * does not. Two trees get the same key exactly when they are the same variable.
  *
@@ -386,7 +403,7 @@ export default class MatchesPattern extends BooleanComponent {
                     dependencyValues.mathChildren[0].stateValues.value;
 
                 if (
-                    mathValue.variables().includes(BLANK) &&
+                    treeContainsBlank(mathValue.tree) &&
                     !dependencyValues.matchExpressionWithBlanks
                 ) {
                     // don't match a math value with a blank

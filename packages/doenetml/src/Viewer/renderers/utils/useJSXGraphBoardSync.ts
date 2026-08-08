@@ -1,4 +1,5 @@
 import { useEffect, type RefObject } from "react";
+import useAxisTickSpacingSync from "./useAxisTickSpacingSync";
 import useGridAndAxesSync from "./useGridAndAxesSync";
 import useViewportAndNavigationSync from "./useViewportAndNavigationSync";
 import type { AxisJXG } from "./jsxgraph";
@@ -58,6 +59,15 @@ export default function useJSXGraphBoardSync({
         previousBoundingboxRef,
         settingBoundingBoxRef,
         previousShowNavigationRef,
+    });
+
+    // Declared last on purpose: tick spacing follows from the bounding box, so
+    // it is read only once the viewport sync above has applied it.
+    useAxisTickSpacingSync({
+        enabled,
+        board,
+        xaxisRef,
+        yaxisRef,
     });
 
     useEffect(() => {

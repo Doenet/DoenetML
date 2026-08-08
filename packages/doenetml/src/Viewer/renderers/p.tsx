@@ -20,7 +20,16 @@ interface PSVs {
     renderInlineForListItem: boolean;
 }
 
-export default React.memo(function P(props: UseDoenetRendererProps) {
+export type PProps = UseDoenetRendererProps & {
+    /**
+     * Set by the `<li>` renderer on the paragraph that leads a list item, so
+     * that the item's marker stays part of the item's text for screen readers.
+     * See `markLeadingParagraphOfListItem` in `list.tsx`.
+     */
+    isLeadingListItemParagraph?: boolean;
+};
+
+export default React.memo(function P(props: PProps) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<PSVs>(props);
 
@@ -73,6 +82,19 @@ export default React.memo(function P(props: UseDoenetRendererProps) {
             id={id}
             ref={ref}
             className="para"
+            // A `<div>` is exposed as an anonymous `generic` node, so paragraphs
+            // are not announced as paragraphs without an explicit role. The one
+            // paragraph that leads a list item is presentational instead, to
+            // keep the item's marker readable — see `list.tsx`. That flag comes
+            // from the `<li>` renderer rather than from
+            // `SVs.renderInlineForListItem` below: the latter is the core's
+            // margin-collapsing signal, which answers a related but different
+            // question (it is set only for a section rendered as a list item,
+            // not for a plain `<li>`) and does not track what the renderer
+            // actually puts in the accessibility tree.
+            role={
+                props.isLeadingListItemParagraph ? "presentation" : "paragraph"
+            }
             // Keep paragraph spacing contract intact and only collapse the top
             // margin when this paragraph is first in a list-item container.
             style={SVs.renderInlineForListItem ? { marginTop: 0 } : undefined}

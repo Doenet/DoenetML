@@ -123,6 +123,33 @@ export interface SimplifyOptions {
 }
 
 /**
+ * Parser parameters accepted by `fromText`/`fromLatex` — the same keys, in the
+ * same JS spellings, that `converters.textToAstObj`/`latexToAstObj` take.
+ * Passing them here parses straight to an `Expression`; going through a
+ * converter yields a JSON AST, which floats every exact decimal on the way.
+ */
+export interface ParserOptions {
+    /** Split multi-letter symbols into implicit products (`xy` → `x·y`) */
+    splitSymbols?: boolean;
+    /** Symbols exempt from splitting */
+    unsplitSymbols?: string[];
+    /** Names treated as functions when applied (`f(x)`) */
+    appliedFunctionSymbols?: string[];
+    /** Names always treated as functions */
+    functionSymbols?: string[];
+    /** Names treated as infix operators */
+    operatorSymbols?: string[];
+    /** LaTeX control sequences accepted as symbols (LaTeX only) */
+    allowedLatexSymbols?: string[];
+    /** Accept `1E5` as scientific notation rather than `1·E·5` */
+    parseScientificNotation?: boolean;
+    /** Allow `f x` to mean `f(x)` */
+    allowSimplifiedFunctionApplication?: boolean;
+    /** Read `dy/dx` as a derivative */
+    parseLeibnizNotation?: boolean;
+}
+
+/**
  * Options for derivative method
  */
 export interface DerivativeOptions {
@@ -301,6 +328,17 @@ export interface Expression {
      * @param substitutions Object mapping variable names to expressions
      */
     substitute(substitutions: {
+        [variable: string]: Expression | Tree;
+    }): Expression;
+
+    /**
+     * Substitute variables with expressions, **simultaneously** — no
+     * replacement is open to the other bindings. `substitute` applies them one
+     * at a time (which DoenetML's code-expansion relies on); this is what
+     * evaluating a multi-variable function at given arguments needs.
+     * @param substitutions Object mapping variable names to expressions
+     */
+    substitute_all(substitutions: {
         [variable: string]: Expression | Tree;
     }): Expression;
 
@@ -760,28 +798,28 @@ export interface Context {
      * Parse expression from text format
      * @param text Text representation (e.g., "x^2 + 2x + 1")
      */
-    fromText(text: string): Expression;
+    fromText(text: string, options?: ParserOptions): Expression;
 
     /**
      * Parse expression from LaTeX format
      * @param latex LaTeX representation (e.g., "\\frac{x+1}{2}")
      */
-    fromLatex(latex: string): Expression;
+    fromLatex(latex: string, options?: ParserOptions): Expression;
 
     /**
      * Alias for fromLatex (LaTeX with capital T)
      */
-    fromLaTeX(latex: string): Expression;
+    fromLaTeX(latex: string, options?: ParserOptions): Expression;
 
     /**
      * Alias for fromLatex (TeX)
      */
-    fromTeX(latex: string): Expression;
+    fromTeX(latex: string, options?: ParserOptions): Expression;
 
     /**
      * Alias for fromLatex (Tex)
      */
-    fromTex(latex: string): Expression;
+    fromTex(latex: string, options?: ParserOptions): Expression;
 
     /**
      * Alias for fromLatex (legacy)
@@ -809,7 +847,7 @@ export interface Context {
     /**
      * Alias for fromText
      */
-    parse(text: string): Expression;
+    parse(text: string, options?: ParserOptions): Expression;
 
     /**
      * Add assumption about a variable

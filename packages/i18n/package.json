@@ -20,7 +20,8 @@
         "test": "vitest",
         "build": "wireit",
         "codegen": "vite-node ./scripts/generate-message-keys.ts",
-        "lint:i18n": "vite-node ./scripts/lint-catalogs.ts"
+        "lint:i18n": "vite-node ./scripts/lint-catalogs.ts",
+        "check:instances": "vite-node ./scripts/check-bundle-instances.ts"
     },
     "wireit": {
         "build": {

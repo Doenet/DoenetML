@@ -611,7 +611,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 id={labelId}
                 htmlFor={inputKey}
                 style={
-                    SVs.labelPosition === "left"
+                    SVs.labelPosition === "start"
                         ? { marginInlineEnd: "2px" }
                         : { marginInlineStart: "2px" }
                 }
@@ -631,11 +631,11 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 display: "inline",
             }}
         >
-            {SVs.labelPosition === "left" ? labelComponent : null}
+            {SVs.labelPosition === "start" ? labelComponent : null}
             {input}
             {checkWorkComponent}
             {description}
-            {SVs.labelPosition !== "left" ? labelComponent : null}
+            {SVs.labelPosition !== "start" ? labelComponent : null}
         </span>
     );
 });

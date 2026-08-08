@@ -63,7 +63,7 @@ In the sample code above, the `<table>{:dn}` component is used without any addit
 
 ```doenet-editor-horiz
 <table><title>Fake Weather Statistics</title>
-  <tabular top="minor" bottom="minor" left="minor" right="minor">
+  <tabular topBorder="minor" bottomBorder="minor" startBorder="minor" endBorder="minor">
     <row header>
       <cell>Mon</cell>
       <cell>Tue</cell>
@@ -85,7 +85,7 @@ In the sample code above, the `<table>{:dn}` component is used without any addit
 
 
 
-In order to render dividing lines inside a `<table>{:dn}`, the relevant border attributes, `top`, `bottom`, `left`, and `right` are specified in either the `<tabular>{:dn}`, or `<row>{:dn}` children.
+In order to render dividing lines inside a `<table>{:dn}`, the relevant border attributes, `topBorder`, `bottomBorder`, `startBorder`, and `endBorder` are specified in either the `<tabular>{:dn}`, or `<row>{:dn}` children.
 
 
 
@@ -96,7 +96,7 @@ In order to render dividing lines inside a `<table>{:dn}`, the relevant border a
 
 ```doenet-editor-horiz
 <table>
-  <tabular left="minor" right="minor" top="minor" bottom="minor">
+  <tabular startBorder="minor" endBorder="minor" topBorder="minor" bottomBorder="minor">
     <row>
       <cell>1</cell>
       <cell colSpan="2">2...........3</cell>
@@ -128,8 +128,8 @@ Tables with varying widths are constructed by adjusting the `colSpan` attribute 
 
 ```doenet-editor-horiz
 <table>
-  <tabular top="minor">
-    <row bottom="medium" header>
+  <tabular topBorder="minor">
+    <row bottomBorder="medium" header>
       <cell>1</cell>
       <cell>2</cell>
       <cell>3</cell>
@@ -150,7 +150,7 @@ Tables with varying widths are constructed by adjusting the `colSpan` attribute 
 
 
 
-To render a thicker line below the header row, use the `bottom` attribute with the `medium` or `major` specification within the `<row>{:dn}` component.
+To render a thicker line below the header row, use the `bottomBorder` attribute with the `medium` or `major` specification within the `<row>{:dn}` component.
 
 
 
@@ -161,15 +161,15 @@ To render a thicker line below the header row, use the `bottom` attribute with t
 
 ```doenet-editor-horiz
 <table number="false">
-  <tabular top="medium" bottom="medium" left="medium" right="medium">
-    <row bottom="minor">
-      <cell right="minor">Data 1</cell>
-      <cell right="minor">Data 2</cell>
+  <tabular topBorder="medium" bottomBorder="medium" startBorder="medium" endBorder="medium">
+    <row bottomBorder="minor">
+      <cell endBorder="minor">Data 1</cell>
+      <cell endBorder="minor">Data 2</cell>
       <cell>Data 3</cell>
     </row>
     <row>
-      <cell right="minor">A</cell>
-      <cell right="minor">B</cell>
+      <cell endBorder="minor">A</cell>
+      <cell endBorder="minor">B</cell>
       <cell>C</cell>
     </row>
   </tabular>
@@ -191,15 +191,15 @@ In the sample code above, the `<table>{:dn}` component is used in combination wi
 <table suppressTableNameInTitle="true">
   <title>Title Only</title>
 
-  <tabular top="medium" bottom="medium" left="medium" right="medium">
-    <row bottom="minor">
-      <cell right="minor">Data 1</cell>
-      <cell right="minor">Data 2</cell>
+  <tabular topBorder="medium" bottomBorder="medium" startBorder="medium" endBorder="medium">
+    <row bottomBorder="minor">
+      <cell endBorder="minor">Data 1</cell>
+      <cell endBorder="minor">Data 2</cell>
       <cell>Data 3</cell>
     </row>
     <row>
-      <cell right="minor">A</cell>
-      <cell right="minor">B</cell>
+      <cell endBorder="minor">A</cell>
+      <cell endBorder="minor">B</cell>
       <cell>C</cell>
     </row>
   </tabular>

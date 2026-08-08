@@ -16,7 +16,7 @@ type TextInputData = {
         immediateValue: string;
         label: string;
         labelHasLatex: boolean;
-        labelPosition: "left" | "right";
+        labelPosition: "start" | "end";
         /**
          * Whether to use a textarea instead of an input.
          */
