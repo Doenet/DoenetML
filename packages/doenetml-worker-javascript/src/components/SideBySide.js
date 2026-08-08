@@ -1,4 +1,7 @@
-import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    returnListItemHasNativeMarkerDefinition,
+    returnPassThroughListItemChildStateVariableDefinitions,
+} from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
@@ -89,6 +92,15 @@ export class SideBySide extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Forwarding `childrenToRenderInlineForListItem` to the panels below
+        // obliges `<sideBySide>` to forward `listItemHasNativeMarker` alongside
+        // it: a `<choiceInput>` in a panel of a `<li>`'s leading `<sideBySide>`
+        // is thrown off by its `<legend>` exactly like one directly in the
+        // `<li>` (verified in the browser), and without this relay the chain
+        // stops here and the panel's contents report `false`.
+        stateVariableDefinitions.listItemHasNativeMarker =
+            returnListItemHasNativeMarkerDefinition();
 
         // listItemInlineAlignment and childrenToRenderInlineForListItem share the same
         // parent-list membership check, so they are computed together.

@@ -106,25 +106,88 @@ export function verifyListItemNumberGutterSide(id, direction, minGutterPx = 1) {
     });
 }
 
-/*
- * Note on the *vertical* axis, for a real `<ol>/<ul>` `<li>`: there is no
- * equivalent geometry-based helper here, and that is deliberate.
+/**
+ * Find the vertical band a real `<li>`'s native `::marker` is painted in, in
+ * viewport coordinates, or `null` if no marker was found.
  *
- * The horizontal helpers above work because a section's number is a `::before`
- * pseudo-element that shares a layout row with the content, so the content's own
- * box position reveals where the number went. A real `<li>`'s native `::marker`
- * shares nothing: it is painted in the `<ol>`'s padding, outside the `<li>`'s
- * box, and moving it does not perturb a single queryable rect. This was measured
- * for issue #1668 — with the `<li>`'s first child a labeled `<choiceInput>`, the
- * broken layout (`<legend>` kept) and the fixed one (`<div>`) produce *identical*
- * values for `li.getBoundingClientRect()`, the fieldset's rect, the label's rect,
- * the first choice row's rect, and `Range.getBoundingClientRect()` /
- * `getClientRects()` over the `<li>`'s contents. Only the marker moves, and only
- * a screenshot can see it.
+ * A native marker is not in the DOM, and — unlike a section's `::before` number,
+ * which shares a layout row with the content — it perturbs no queryable rect:
+ * with a labeled `<choiceInput>` leading an `<li>`, the `<li>`'s box, the
+ * fieldset's, the label's, the choices', and a `Range` over the `<li>`'s
+ * contents all measure the same whether the marker lands on the label's row or
+ * the row below it. So a "content top edge == `<li>` top edge" helper of the
+ * shape used for the horizontal axis above guards nothing here.
  *
- * An earlier version of `list.cy.js` did try a vertical helper of this shape
- * ("content top edge == `<li>` top edge"). It passed against the buggy build, so
- * it guarded nothing. `list.cy.js` therefore asserts the two mechanisms that
- * determine the marker's position instead — the suppressed top margin and the
- * absence of a `<legend>` — both of which were verified to fail before the fix.
+ * Hit testing does see the marker, though. Its box overflows the `<li>` into the
+ * list's start-side padding, so a point out in that gutter hits the `<li>`
+ * itself on the marker's row and the `<ol>`/`<ul>` on every other row — the one
+ * DOM-visible trace of the marker's position (measured in Chrome). Scanning the
+ * gutter row by row recovers the band.
  */
+function findMarkerBand(li) {
+    const doc = li.ownerDocument;
+    const liBox = li.getBoundingClientRect();
+    const listBox = li.parentElement.getBoundingClientRect();
+    const rtl = doc.defaultView.getComputedStyle(li).direction === "rtl";
+    const gutter = rtl
+        ? listBox.right - liBox.right
+        : liBox.left - listBox.left;
+
+    const xs = [];
+    for (let inset = 3; inset < gutter; inset += 3) {
+        xs.push(rtl ? liBox.right + inset : liBox.left - inset);
+    }
+
+    let top = null;
+    let bottom = null;
+    for (let y = Math.ceil(liBox.top); y < liBox.bottom; y += 1) {
+        if (xs.some((x) => doc.elementFromPoint(x, y) === li)) {
+            if (top === null) {
+                top = y;
+            }
+            bottom = y;
+        }
+    }
+
+    return top === null ? null : { top, bottom };
+}
+
+/**
+ * Assert that a real `<li>`'s native `::marker` is painted on the same row as
+ * `targetSelector` — e.g. that item 1's "1." sits beside a question label rather
+ * than beside the first choice below it (issue #1668).
+ *
+ * This is the vertical-axis, outcome-based analogue of
+ * {@link verifyListItemNumbersAlign}: it measures where the marker actually
+ * rendered (see {@link findMarkerBand}) rather than the mechanisms that place it.
+ *
+ * @param {string} liId Doenet component id of the `<li>`.
+ * @param {string} targetSelector CSS selector for the element whose row the
+ *   marker must share. Use a single-line element (a label, not a whole block) —
+ *   the assertion is that the marker band's center falls inside its box.
+ */
+export function verifyListItemMarkerSharesRowWith(liId, targetSelector) {
+    cy.get(targetSelector).should("be.visible");
+    cy.get(`#${cesc(liId)}`).should(($li) => {
+        const li = $li[0];
+        const target = li.ownerDocument.querySelector(targetSelector);
+        expect(target, `${targetSelector} exists`).to.not.be.null;
+
+        const band = findMarkerBand(li);
+        expect(band, `a native ::marker was found beside ${liId}`).to.not.be
+            .null;
+
+        const liTop = li.getBoundingClientRect().top;
+        const targetBox = target.getBoundingClientRect();
+        const markerCenter = (band.top + band.bottom) / 2;
+        const relative = (y) => (y - liTop).toFixed(0);
+        const detail =
+            `marker rows ${relative(band.top)}-${relative(band.bottom)}px into ${liId}, ` +
+            `${targetSelector} occupies ${relative(targetBox.top)}-${relative(targetBox.bottom)}px`;
+
+        expect(
+            markerCenter,
+            `${liId} marker is on the row of ${targetSelector} [${detail}]`,
+        ).to.be.within(targetBox.top, targetBox.bottom);
+    });
+}

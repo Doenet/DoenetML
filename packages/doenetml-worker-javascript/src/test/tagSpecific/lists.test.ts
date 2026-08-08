@@ -88,11 +88,12 @@ describe("List tag tests @group4", async () => {
         expect(ciTask.listItemHasNativeMarker).eq(false);
     });
 
-    // `listItemHasNativeMarker` has to survive a pass-through wrapper between
-    // the `<li>` and the choiceInput, or the `<legend>` stays put and the
-    // original bug reproduces one wrapper deep. Covers both spellings of the
-    // chain: with an `<answer>` in the middle and without.
-    it("relays listItemHasNativeMarker through a wrapper between <li> and choiceInput", async () => {
+    // `listItemHasNativeMarker` has to survive every component that forwards
+    // `childrenToRenderInlineForListItem` — the pass-through wrappers and
+    // `<sideBySide>` — or the `<legend>` stays put and the original bug
+    // reproduces one level deeper. Covers both spellings of the chain: with an
+    // `<answer>` in the middle and without.
+    it("relays listItemHasNativeMarker through everything that forwards the alignment signal", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <ol>
@@ -116,6 +117,20 @@ describe("List tag tests @group4", async () => {
       </choiceInput>
     </blockQuote>
   </li>
+  <li name="liSbs">
+    <sideBySide name="sbs">
+      <div name="d3">
+        <answer name="ansSbs">
+          <choiceInput name="ciSbs">
+            <label>Pick one</label>
+            <choice credit="1">A</choice>
+            <choice>B</choice>
+          </choiceInput>
+        </answer>
+      </div>
+      <p>The other panel</p>
+    </sideBySide>
+  </li>
 </ol>
 <problem>
   <task name="task1">
@@ -136,6 +151,8 @@ describe("List tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("ciDiv")].stateValues;
         const ciQuote =
             stateVariables[await resolvePathToNodeIdx("ciQuote")].stateValues;
+        const ciSbs =
+            stateVariables[await resolvePathToNodeIdx("ciSbs")].stateValues;
         const ciTaskDiv =
             stateVariables[await resolvePathToNodeIdx("ciTaskDiv")].stateValues;
 
@@ -144,6 +161,12 @@ describe("List tag tests @group4", async () => {
 
         expect(ciQuote.renderInlineForListItem).eq(true);
         expect(ciQuote.listItemHasNativeMarker).eq(true);
+
+        // `<sideBySide>` forwards the alignment signal to its panels with its
+        // own definition rather than the shared wrapper mixin, so it needs its
+        // own relay; the `<legend>` quirk does apply inside a panel.
+        expect(ciSbs.renderInlineForListItem).eq(true);
+        expect(ciSbs.listItemHasNativeMarker).eq(true);
 
         // The same wrapper under a `<problem asList>` section must still report
         // no native marker — the relay must not invent one.
@@ -303,44 +326,17 @@ describe("List tag tests @group4", async () => {
         expect(ci1.renderInlineForListItem).eq(false);
     });
 
-    it("an unlabeled choiceInput as the first child still gets list-item alignment", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-<ol>
-  <li name="li1">
-    <choiceInput name="ci1">
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-    </choiceInput>
-  </li>
-</ol>`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        const ci1 =
-            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues;
-
-        expect(ci1.renderInlineForListItem).eq(true);
-    });
-
-    // A known limitation, pinned down rather than fixed. Neither
-    // `childRendersSomething` nor `SectioningComponent`'s own `firstVisibleChild`
-    // loop checks a child's own `hidden` state variable (`SectioningComponent`'s
-    // `hideChildren` is a different, section-wide broadcast concept), so a
-    // `<p hide>` wins the lead of its list item and strands the child after it —
-    // which means `<li><p hide/><answer><choiceInput>` still reproduces the
-    // original marker bug.
-    //
-    // Note that the renderer half of the machinery does *not* share the blind
-    // spot: `markLeadingParagraphOfListItem()` in `list.tsx` skips the `null` the
-    // core sends for an unrendered child, and
-    // `accessibility/listItemParagraphRoles.cy.js` ("hidden paragraph does not
-    // claim the lead of its list item") asserts exactly that. So core and
-    // renderer disagree here. Fixing it means giving both core call sites a
-    // `hidden` dependency on their children; that is left for a follow-up so
-    // `<li>` and `<task>` keep behaving identically, which the second half of
-    // this test checks.
+    // A known limitation, pinned down rather than fixed: neither
+    // `childRendersSomething` nor `SectioningComponent`'s `firstVisibleChild`
+    // consults a child's own `hidden`, so a `<p hide>` wins the lead of its list
+    // item and strands the child after it — `<li><p hide/><answer><choiceInput>`
+    // still reproduces the original marker bug. The renderer half does not share
+    // the blind spot (`markLeadingParagraphOfListItem()` in `list.tsx` skips the
+    // `null` the core sends for an unrendered child, asserted by
+    // `accessibility/listItemParagraphRoles.cy.js`), so core and renderer
+    // disagree here. Fixing it means giving both core call sites a `hidden`
+    // dependency; left for a follow-up so `<li>` and `<task>` keep behaving
+    // identically, which the second half of this test checks.
     it("documents current behavior for a hidden first child (li vs. task)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

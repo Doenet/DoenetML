@@ -11,6 +11,7 @@ import {
     returnLabelStateVariableDefinitions,
 } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { returnListItemHasNativeMarkerDefinition } from "../utils/listItemChild";
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -908,31 +909,20 @@ export default class Answer extends InlineComponent {
          *
          * For other input configurations (for example inline choiceInput or mathInput),
          * <answer> returns "none" and the section keeps baseline alignment.
+         *
+         * Forwarding `childrenToRenderInlineForListItem` obliges <answer> to
+         * forward `listItemHasNativeMarker` too, which it does just below.
          */
         stateVariableDefinitions.renderInlineForListItem = {
             forRenderer: true,
             additionalStateVariablesDefined: [
                 { variableName: "listItemInlineAlignment", forRenderer: true },
                 { variableName: "childrenToRenderInlineForListItem" },
-                { variableName: "listItemHasNativeMarker" },
             ],
             returnDependencies: () => ({
                 parentChildrenToRenderInlineForListItem: {
                     dependencyType: "parentStateVariable",
                     variableName: "childrenToRenderInlineForListItem",
-                },
-                // Relayed straight through to the choiceInput child, which needs
-                // to tell a real `<li>` (native `::marker`) from a `<problem
-                // asList>` section forwarding the same
-                // `childrenToRenderInlineForListItem` signal for its own,
-                // unrelated `::before`/grid numbering. See
-                // `returnListItemHasNativeMarkerDefinition()` in
-                // `utils/listItemChild.ts` for the shared version of this;
-                // `<answer>` inlines it because it defines the whole cluster of
-                // list-item variables together below.
-                parentListItemHasNativeMarker: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "listItemHasNativeMarker",
                 },
                 inputChildren: {
                     dependencyType: "child",
@@ -948,21 +938,12 @@ export default class Answer extends InlineComponent {
                         .includes(componentIdx),
                 );
 
-                // Relayed regardless of whether this `<answer>` was selected for
-                // inline alignment, so the variable keeps the single meaning it
-                // has everywhere else: "a native marker exists up my list-item
-                // chain". Consumers pair it with `renderInlineForListItem`.
-                const listItemHasNativeMarker = Boolean(
-                    dependencyValues.parentListItemHasNativeMarker,
-                );
-
                 if (!isInParentList) {
                     return {
                         setValue: {
                             renderInlineForListItem: false,
                             listItemInlineAlignment: "none",
                             childrenToRenderInlineForListItem: [],
-                            listItemHasNativeMarker,
                         },
                     };
                 }
@@ -985,11 +966,13 @@ export default class Answer extends InlineComponent {
                         childrenToRenderInlineForListItem: firstBlockChoiceInput
                             ? [firstBlockChoiceInput]
                             : [],
-                        listItemHasNativeMarker,
                     },
                 };
             },
         };
+
+        stateVariableDefinitions.listItemHasNativeMarker =
+            returnListItemHasNativeMarkerDefinition();
 
         const labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);

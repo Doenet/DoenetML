@@ -2,7 +2,10 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    returnListItemChildStateVariableDefinitions,
+    returnListItemHasNativeMarkerDefinition,
+} from "../utils/listItemChild";
 import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
@@ -126,13 +129,15 @@ export default class Choiceinput extends Input {
             returnListItemChildStateVariableDefinitions({
                 checkInlineVariable: true,
                 listItemInlineAlignment: "flex-start",
-                // choiceInput is the one consumer that has to tell a real
-                // `<li>`'s native `::marker` apart from a `<problem asList>`
-                // section's own `::before`/grid number, because only the former
-                // is thrown off by a `<legend>` — see `choiceInput.tsx`.
-                includeHasNativeMarker: true,
             }),
         );
+
+        // choiceInput is the one consumer that has to tell a real `<li>`'s
+        // native `::marker` apart from a `<problem asList>` section's own
+        // `::before`/grid number, because only the former is thrown off by a
+        // `<legend>` — see `choiceInput.tsx`.
+        stateVariableDefinitions.listItemHasNativeMarker =
+            returnListItemHasNativeMarkerDefinition({ forRenderer: true });
 
         stateVariableDefinitions.inline = {
             description:
