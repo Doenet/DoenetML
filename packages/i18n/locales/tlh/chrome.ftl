@@ -12,11 +12,11 @@
 # has a constructed language in it at all.
 #
 # **This file is the most complete of the four, and that is not an accident.**
-# Klingon's lexicon is rich in verbs of acting and judging and empty of nouns
-# for mathematics and for the parts of a document. The chrome is buttons, and a
-# button is a verb: «yIchov» (evaluate it), «yIteq» (remove it), «yIchel» (add
-# it). So nearly all of it can be written, where `content.ftl` and
-# `diagnostics.ftl` have to leave a great deal to English.
+# Klingon's lexicon is rich in verbs of acting and judging, and thin in nouns
+# for the parts of a document. The chrome is buttons, and a button is a verb:
+# «yIchov» (evaluate it), «yIteq» (remove it), «yIchel» (add it). So nearly all
+# of it can be written, where `diagnostics.ftl` has to leave a great deal to
+# English.
 #
 # Klingon is object–verb–subject, so what English puts after the verb comes
 # before it here — «{ $choice } yIteq», not the other way round. An imperative
@@ -30,8 +30,11 @@
 # what English says with the passive. It is what makes «chovlu'taH» (it is being
 # evaluated) a sentence with nobody in it, which is what a status line wants.
 #
-# Klingon has no noun for *answer* or *response*. «jang» is the verb, and the
-# messages below are written around it rather than through a coined noun.
+# Klingon has no noun for *answer* or *response*; «jang» is the verb «answer,
+# reply». The messages below put it in noun position anyway — «jang chovlu'taH»
+# reads «the answer is being evaluated» — which is a liberty this seed takes
+# rather than a canon pattern, and a speaker with a better construction should
+# replace it. Coining a noun would have been the larger liberty.
 
 
 ## Answer submission
@@ -55,9 +58,11 @@ answer-percent-short = { $percent } %
 
 max-credit-available = Suqlu'laHbogh pop: { $percent }%
 
-# No select. Klingon marks no number on a noun, so «nID» is one attempt and
-# many alike, and «ratlh» (remain) puts its subject after it. The `[0]` branch
-# stays, because «pagh» names none rather than counting.
+# No select. Klingon marks no number on a noun after a numeral, so one form of
+# «nID» serves every count, and «ratlh» (remain) puts its subject after it.
+# «nID» is canon as the verb «attempt, try» and there is no noun for an
+# attempt; standing it in noun position is the same liberty «jang» takes above.
+# The `[0]` branch stays, because «pagh» names none rather than counting.
 attempts-remaining =
     { $count ->
         [0] ratlh pagh nID
@@ -98,41 +103,41 @@ description-more-information = De' latlh
 
 ## Controls
 
-# «veb» is «be next»; «vebHa'» is formed with the canon reversative «-Ha'», as
-# `paginator-previous` is, because Klingon has no word for *previous*.
-slider-previous = vebHa'
+# «veb» is «be next» and «vorgh» «be previous». Both are canon; an earlier
+# draft coined «vebHa'» for the second, which `content.ftl`'s paginator keys no
+# longer do either.
+slider-previous = vorgh
 slider-next = veb
 
-# «ghItlhwI'» — «that which writes», from the canon «ghItlh» (write) with «-wI'»
-# — is this file's own for a keyboard. Klingon has no word for one.
-keyboard-open = ghItlhwI' yIpoSmoH
-keyboard-close = ghItlhwI' yISoQmoH
+# «nItlh 'echlet» — «finger tablet» — is Okrand's word for a computer keyboard.
+keyboard-open = nItlh 'echlet yIpoSmoH
+keyboard-close = nItlh 'echlet yISoQmoH
 
 choice-input-remove-choice = { $choice } yIteq
 
-# «tlhegh» is a line of things, and «chal tlhegh» — a sky-line — is this file's
-# own for a column, the same vertical metaphor `fill-style` uses in
-# `content.ftl`.
-matrix-remove-row = tlhegh yIteq
-matrix-add-row = tlhegh yIchel
-matrix-remove-column = chal tlhegh yIteq
-matrix-add-column = chal tlhegh yIchel
+# «wev» and «war» are canon for a row and a column of a table or spreadsheet,
+# which is what a matrix is made of.
+matrix-remove-row = wev yIteq
+matrix-add-row = wev yIchel
+matrix-remove-column = war yIteq
+matrix-add-column = war yIchel
 
-# Left to English. A subset of the reals is mathematics, and the four controls
-# name operations on one; see `content.ftl` on why this catalog does not coin
-# a mathematical vocabulary.
+# Left to English. Klingon has a mathematics register — see `content.ftl` — but
+# not this part of it: nothing canon names an interval, a union or a
+# complement, and the four controls name operations on those.
 
 # «ngaSwI'» is «container», formed from the canon «ngaS» (contain). «Dung» and
-# «bIng» are the areas above and below, which is which way an arrow points.
-orbital-add-row = tlhegh yIchel
-orbital-remove-row = tlhegh yIteq
+# «bIng» are the areas above and below, which is which way an arrow points;
+# «tIH» is an energy beam, standing in for the arrow itself.
+orbital-add-row = wev yIchel
+orbital-remove-row = wev yIteq
 orbital-add-box = ngaSwI' yIchel
 orbital-remove-box = ngaSwI' yIteq
 orbital-add-up-arrow = Dung tIH yIchel
 orbital-add-down-arrow = bIng tIH yIchel
 orbital-remove-arrow = tIH yIteq
 
-orbital-row-label = { $row } tlhegh pong
+orbital-row-label = { $row } wev pong
 
 pretzel-answer = jang
 

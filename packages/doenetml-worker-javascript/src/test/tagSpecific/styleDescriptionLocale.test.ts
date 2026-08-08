@@ -456,19 +456,17 @@ describe("style descriptions follow the document locale @group4", () => {
         // Klingon has no adjectives, and only one verb of quality may follow a
         // noun, so `locales/tlh` welds «-bogh» onto each verb, joins them with
         // «'ej», and puts the whole clause in front of the noun.
-        expect(values.st).eq("tInbogh 'ej pe'lu'bogh 'ej Doqbogh");
-        expect(values.stn).eq("tInbogh 'ej pe'lu'bogh 'ej Doqbogh tlhegh");
-        // Two things this string pins at once. Canon «SuD» is green, blue and
-        // yellow at once, and the catalog files cyan under it too — four of the
-        // twelve colour keys collapsing onto one of Klingon's four basic
-        // terms — and «square» is one of the thirteen nouns the catalog leaves
-        // to English, because a word for it would be an invented root rather
-        // than a compound of canon words.
-        expect(values.pt).eq("SuDbogh square");
+        expect(values.st).eq("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh");
+        expect(values.stn).eq("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh tlhegh");
+        // Canon «SuD» is green, blue and yellow at once, and the catalog files
+        // cyan under it too — four of the twelve colour keys collapsing onto
+        // one of Klingon's four basic terms. The nouns beside it are Okrand's:
+        // «meyrI'» is a square and «gho» is a circle, the latter in TKD itself.
+        expect(values.pt).eq("SuDbogh meyrI'");
         expect(values.sh).eq(
-            "buy'bogh 'ej SuDbogh 'ej nagHommey ngaSbogh circle tInbogh 'ej pe'lu'bogh 'ej Doqbogh HeH je",
+            "buy'bogh 'ej SuDbogh 'ej nagHommey ngaSbogh gho jeDbogh 'ej pe'lu'bogh 'ej Doqbogh HeH je",
         );
-        expect(values.bd).eq("tInbogh 'ej pe'lu'bogh 'ej Doqbogh");
+        expect(values.bd).eq("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh");
         expect(values.fd).eq("SuDbogh nagHommey");
     });
 

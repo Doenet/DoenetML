@@ -9,8 +9,10 @@
 #
 # **What this file leaves out is almost everything about accessibility, and
 # every sentence of the context-help panel.** Klingon has no word for
-# *accessibility*, none for *attribute*, *reference*, *default* or *snippet*,
-# and those five nouns are what the help panel is made of. The messages that
+# *accessibility*, none for *attribute*, *default* or *snippet*, and those four
+# nouns are what the help panel is made of. («nompuq» does cover *reference* in
+# the sense of a citation, so that one is a gap in the sentences rather than in
+# the lexicon.) The messages that
 # survive are the ones built out of finding, showing and choosing, which Klingon
 # has verbs for. WCAG AA is the standard's name and would stay as written in any
 # language, so the messages around it fall back whole rather than in halves.
@@ -56,8 +58,10 @@ editor-variant-previous = pImwI' vebHa' yIwIv
 
 ## The footer
 ##
-## `editor-version-title` is left to English: Klingon has no word for a version,
-## and «DoenetML» and the number are the whole of the message besides it.
+## `editor-version-title` is left to English. Klingon names a version *number* —
+## «nIqHom mI'» major, «qa'meH mI'» minor — but not a version as a thing in
+## itself, and «DoenetML» and the number are the whole of the message besides
+## it.
 
 # «boQ» is «aid», which is what the help tab offers. `content.ftl` gives
 # `hint-title` the same word, and they are the same thing said twice.
@@ -73,8 +77,9 @@ editor-tab-responses = ngeHlu'ta'bogh
 
 editor-tab-with-count = { $label }: { $count }
 
-# «DuH» is «be possible», so «DuHmey» is the set of things that can be done.
-# «lIS» is «adjust», which is what reformatting the source is.
+# «DuH» is canon both as the verb «be possible» and as the noun «possibility,
+# option», which is what a menu of them holds. «lIS» is «adjust», which is what
+# reformatting the source is.
 editor-options = DuHmey
 editor-format-as-doenetml = DoenetML yIlIS
 editor-format-as-xml = XML yIlIS
@@ -112,6 +117,6 @@ editor-response-submitted = ngeHlu'ta'
 ## none of them; a sentence built around an English noun with Klingon grammar
 ## around it would read worse than the English sentence it replaced.
 
-# «motlh» is «be usual», and «Segh» is «type, species».
+# «motlh» is «be usual», and «Segh» is «race» in the sense of a type or class.
 help-default = motlhbogh:
 help-type = Segh:

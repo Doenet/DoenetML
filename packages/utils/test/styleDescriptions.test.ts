@@ -1271,8 +1271,10 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
      * Klingon has no adjectives, and TKD describes putting one verb of quality
      * directly after the noun it modifies with no way to chain them — so a
      * description of three cannot be an adjective string at all. `locales/tlh`
-     * writes a relative clause instead: «-bogh» on each verb, «'ej» between them, and the whole clause
-     * standing in front of the noun.
+     * writes a relative clause instead: «-bogh» on each verb, «'ej» between
+     * them, and the whole clause standing in front of the noun. Joining
+     * «-bogh» clauses that way is the catalog's extension of «'ej» rather than
+     * an attested pattern, which its header says.
      *
      * That puts it on the *prenominal* side with the Philippine catalogs and
      * Tok Pisin, and for a reason none of them shares. What this pins is the
@@ -1286,13 +1288,13 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
                 noun: { key: "line" },
                 withNoun: true,
             }),
-        ).toBe("tInbogh 'ej pe'lu'bogh 'ej Doqbogh tlhegh");
+        ).toBe("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh tlhegh");
         expect(
             describeStrokedShape(tlh, words, {
                 noun: { key: "line" },
                 withNoun: false,
             }),
-        ).toBe("tInbogh 'ej pe'lu'bogh 'ej Doqbogh");
+        ).toBe("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh");
     });
 
     /**
@@ -1316,10 +1318,13 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
 
     /**
      * **Four colour words for twelve keys.** Klingon's basic terms are «qIj»,
-     * «chIS», «Doq» (the warm end) and «SuD» (green, blue and yellow
-     * together), and the catalog leaves the collapse standing rather than
-     * coining eight words to repair it — the reason `locales/oj` gives for
-     * leaving the periodic table alone, at the scale of a whole table.
+     * «chIS», «Doq» (red and orange, and brown too by Okrand's own note) and
+     * «SuD» (green, blue and yellow together), and the catalog leaves the
+     * collapse standing rather than coining words to repair it — the reason
+     * `locales/oj` gives for leaving the periodic table alone, at the scale of
+     * a whole table. Only `purple` and `pink` have nothing canon behind their
+     * placement; `gray` has a canon phrase, «qIj 'ej wov», that this table
+     * cannot hold because «-bogh» welds onto a single verb.
      *
      * It is pinned rather than described because it costs something real: a
      * blue curve and a green one report the same word, and these descriptions
@@ -1346,29 +1351,57 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
 
     /**
      * The catalog is partial in its `noun` table rather than only in its
-     * chemistry, which no earlier catalog is. Thirteen of the eighteen nouns
-     * are mathematics — circle, polygon, parabola — and Klingon has no word for
-     * any of them, so they fall back to English and the description comes out
-     * in two languages.
+     * chemistry, which no earlier catalog is — but the gap is narrower than the
+     * shape of the language suggests. Okrand has published a geometry
+     * vocabulary, so fourteen of the eighteen nouns are canon Klingon; four
+     * are not, because *parabola*, *polyline*, *curve* and *diamond* have no
+     * canon word and each would be a new root.
      *
-     * That is the documented state and not a bug to tidy: an invented root
-     * would read as a word no Klingon speaker has met, where the English at
-     * least reads as English. `noun-regular-polygon` is left with them, so a
-     * regular polygon reads in English entire rather than in half of each.
+     * Those four fall back to English and the description comes out in two
+     * languages, which is the documented state and not a bug to tidy: an
+     * invented root would read as a word no Klingon speaker has met, where the
+     * English at least reads as English. `noun-regular-polygon` is left with
+     * them, because nothing canon says *regular*, so a regular polygon reads in
+     * English entire rather than in half of each.
      */
     it("falls back to English for the nouns Klingon has no word for", () => {
         expect(
             describeStrokedShape(tlh, words, {
-                noun: { key: "circle" },
+                noun: { key: "parabola" },
                 withNoun: true,
             }),
-        ).toBe("tInbogh 'ej pe'lu'bogh 'ej Doqbogh circle");
+        ).toBe("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh parabola");
         expect(
             describeStrokedShape(tlh, words, {
                 noun: { key: "regular-polygon", numSides: 5 },
                 withNoun: true,
             }),
-        ).toBe("tInbogh 'ej pe'lu'bogh 'ej Doqbogh 5-sided regular polygon");
+        ).toBe("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh 5-sided regular polygon");
+    });
+
+    /**
+     * The other side of the same line, and the one worth pinning because an
+     * earlier draft of this catalog got it wrong and left these in English on
+     * the grounds that Klingon had no mathematics at all. It does: «gho» is in
+     * TKD, and «mey'» and «ra'Duch» come from the word lists Okrand has
+     * released since. Anything this test stops matching is a canon word that
+     * has been dropped back to English.
+     */
+    it.each([
+        ["circle", "gho"],
+        ["polygon", "mey'"],
+        ["triangle", "ra'Duch"],
+        ["rectangle", "letbaQ"],
+        ["square", "meyrI'"],
+        ["vector", "baSta'"],
+        ["function", "chav"],
+    ])("names a %s with the canon word %s", (key, klingon) => {
+        expect(
+            describeStrokedShape(tlh, words, {
+                noun: { key },
+                withNoun: true,
+            }),
+        ).toBe(`jeDbogh 'ej pe'lu'bogh 'ej Doqbogh ${klingon}`);
     });
 
     /**
@@ -1388,7 +1421,7 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
                 { markerColorWord: "blue", markerStyleWord: "point" },
                 { withNoun: true },
             ),
-        ).toBe("SuDbogh Daq");
+        ).toBe("SuDbogh vI'");
         expect(
             describeRegion(
                 tlh,
@@ -1413,7 +1446,7 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
                 { filled: true, noun: { key: "line" }, withNoun: true },
             ),
         ).toBe(
-            "buy'bogh 'ej SuDbogh tlhegh tInbogh 'ej pe'lu'bogh 'ej Doqbogh HeH je",
+            "buy'bogh 'ej SuDbogh tlhegh jeDbogh 'ej pe'lu'bogh 'ej Doqbogh HeH je",
         );
     });
 });

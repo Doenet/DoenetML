@@ -7,11 +7,16 @@
 # **This is the emptiest catalog in the roster, and the reason is worth stating
 # plainly rather than leaving to be inferred from the gap.** The English file
 # holds a little over two hundred messages, and almost every one of them is
-# built out of nouns Klingon does not have: *attribute*, *component*,
-# *reference*, *variant*, *sequence*, *matrix*, *interval*, *domain*. Under the
-# rule `locales/tlh/content.ftl` opens with — a compound of canon words is
-# written, a new root is not — translating them would mean coining most of a
-# technical vocabulary, which is the thing this seed refuses to do.
+# built out of nouns Klingon does not have: *attribute*, *variant*, *matrix*,
+# *interval*, *dimension*, *expression*. Under the rule
+# `locales/tlh/content.ftl` opens with — a compound of canon words is written, a
+# new root is not — translating them would mean coining most of a technical
+# vocabulary, which is the thing this seed refuses to do.
+#
+# Not every noun in those messages is missing, and a corrector should not read
+# the gap as one: «'ay'» covers *component* in its canon sense of a part, and
+# «nompuq» is *reference* in the sense of a citation. What kept the messages
+# around them in English is the rest of each sentence rather than that word.
 #
 # What is written here is the part that is about *finding* and *being wrong*,
 # which Klingon has words for: «tu'lu'» (one finds it), «muj» (be wrong), «Qagh»
@@ -50,8 +55,10 @@ parse-self-closing-tag-name-missing = muj DoenetML: pong Hutlh per `<{ $content 
 
 parse-close-tag-without-open-tag = muj DoenetML: tu'lu' per SoQmoHwI' `{ $tag }`, 'ach tu'lu'be' per poSmoHwI'.
 
-# «-'e'» marks the topic — what was expected as against what turned up.
-parse-close-tag-mismatched = muj DoenetML: pIm per SoQmoHwI'. `</{ $expected }>`'e' pIhlu'. `{ $found }` tu'lu'.
+# «pIH» is «expect» and «-'e'» marks the topic — what was expected as against
+# what turned up. The capital H matters: «h» alone is not a Klingon consonant,
+# so a lowercase spelling here would be no word at all.
+parse-close-tag-mismatched = muj DoenetML: pIm per SoQmoHwI'. `</{ $expected }>`'e' pIHlu'. `{ $found }` tu'lu'.
 
 
 ## Referring to other components
@@ -68,7 +75,7 @@ collect-no-source = Hal tu'lu'be'.
 
 ## Building components from the source
 
-# «Segh» is «type, species».
+# «Segh» is «race» in the sense of a type, sort or class.
 component-type-invalid = muj Segh: `<{ $componentType }>`.
 
 
