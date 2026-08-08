@@ -23,6 +23,7 @@ import {
     getNumericEndpointPair,
     mergePointCoords,
 } from "../utils/lineSegment";
+import { evaluateToNumber, isNumericConstant } from "../utils/math";
 
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
@@ -1785,8 +1786,13 @@ export default class LineSegment extends GraphicalComponent {
                         ind < globalDependencyValues.numDimensions;
                         ind++
                     ) {
-                        let val = endpoint[ind].evaluate_to_constant();
-                        numericalP.push(val);
+                        // `evaluate_to_constant` reports "no numeric value"
+                        // as `null`, and this array goes straight to the
+                        // renderer, where `Number(null)` is `0` — an undefined
+                        // endpoint would be drawn at the origin rather than not
+                        // drawn. Map it to `NaN` explicitly, as `Point.js`'s
+                        // `numericalXs` does.
+                        numericalP.push(evaluateToNumber(endpoint[ind]));
                     }
                     numericalEndpoints[arrayKey] = numericalP;
                 }
@@ -2005,7 +2011,7 @@ export default class LineSegment extends GraphicalComponent {
                 if (m instanceof me.class) {
                     m = m.evaluate_to_constant();
                 }
-                if (Number.isNaN(m)) {
+                if (!isNumericConstant(m)) {
                     return { success: false };
                 }
 

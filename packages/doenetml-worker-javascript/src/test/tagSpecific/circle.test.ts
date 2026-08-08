@@ -5995,7 +5995,7 @@ $c7.radius
         ).eqls("2469.14");
         expect(
             stateVariables[await resolvePathToNodeIdx("c1c")].stateValues.text,
-        ).eqls("( 12.35, 0.123 )");
+        ).eqls("(12.35, 0.123)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("c1ar")].stateValues.text,
@@ -6005,16 +6005,16 @@ $c7.radius
         ).eqls("2469.1");
         expect(
             stateVariables[await resolvePathToNodeIdx("c1ac")].stateValues.text,
-        ).eqls("( 12.35, 0.1235 )");
+        ).eqls("(12.35, 0.1235)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pc2tp")].stateValues
                 .text,
-        ).eqls("( 1234.57, 0.123 )");
+        ).eqls("(1234.57, 0.123)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc2atp")].stateValues
                 .text,
-        ).eqls("( 1234.6, 0.1235 )");
+        ).eqls("(1234.6, 0.1235)");
     });
 
     it("circle style descriptions", async () => {

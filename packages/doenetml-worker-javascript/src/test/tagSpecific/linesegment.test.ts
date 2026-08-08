@@ -16,6 +16,23 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
+/**
+ * Whether a coordinate has no value — the segment is underdetermined there.
+ *
+ * Not `Number.isNaN(v.evaluate_to_constant())`: the engine reports "this has no
+ * numeric value" as `null`, where the JS library said `NaN`, and `null` is not
+ * NaN — it is `0` to every JavaScript operator that touches it. The components
+ * spell an undefined coordinate `＿` (the blank), so that is what this checks,
+ * along with the numeric projection being non-finite either way.
+ */
+function coordIsUndefined(v: Expression): boolean {
+    const numeric = v.evaluate_to_constant();
+    return (
+        v.tree === "＿" &&
+        (typeof numeric !== "number" || !Number.isFinite(numeric))
+    );
+}
+
 async function setupScene({
     lineProperties = "",
     lineChildren = "",
@@ -3920,16 +3937,12 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
                 v.evaluate_to_constant(),
             ),
         ).eqls([1, 2]);
-        expect(
-            Number.isNaN(
-                sv[undefIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
-            ),
-        ).eq(true);
-        expect(
-            Number.isNaN(
-                sv[undefIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
-            ),
-        ).eq(true);
+        expect(coordIsUndefined(sv[undefIdx].stateValues.endpoints[1][0])).eq(
+            true,
+        );
+        expect(coordIsUndefined(sv[undefIdx].stateValues.endpoints[1][1])).eq(
+            true,
+        );
     });
 
     it("one endpoint and midpoint, midpointOffset=-1 — referenced ep1 is still draggable", async () => {
@@ -3959,16 +3972,12 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
                 v.evaluate_to_constant(),
             ),
         ).eqls([-3, 1]);
-        expect(
-            Number.isNaN(
-                sv[lsIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
-            ),
-        ).eq(true);
-        expect(
-            Number.isNaN(
-                sv[lsIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
-            ),
-        ).eq(true);
+        expect(coordIsUndefined(sv[lsIdx].stateValues.endpoints[1][0])).eq(
+            true,
+        );
+        expect(coordIsUndefined(sv[lsIdx].stateValues.endpoints[1][1])).eq(
+            true,
+        );
         expect(
             sv[p1Idx].stateValues.xs.map((v: Expression) =>
                 v.evaluate_to_constant(),
@@ -3985,16 +3994,12 @@ describe("LineSegment slope/length/midpoint/midpointOffset attribute tests @grou
                 v.evaluate_to_constant(),
             ),
         ).eqls([2, -4]);
-        expect(
-            Number.isNaN(
-                sv[lsIdx].stateValues.endpoints[1][0].evaluate_to_constant(),
-            ),
-        ).eq(true);
-        expect(
-            Number.isNaN(
-                sv[lsIdx].stateValues.endpoints[1][1].evaluate_to_constant(),
-            ),
-        ).eq(true);
+        expect(coordIsUndefined(sv[lsIdx].stateValues.endpoints[1][0])).eq(
+            true,
+        );
+        expect(coordIsUndefined(sv[lsIdx].stateValues.endpoints[1][1])).eq(
+            true,
+        );
         expect(
             sv[p1Idx].stateValues.xs.map((v: Expression) =>
                 v.evaluate_to_constant(),

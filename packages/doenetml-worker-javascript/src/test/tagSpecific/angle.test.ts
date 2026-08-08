@@ -470,7 +470,14 @@ describe("Angle tag tests @group4", async () => {
             { latex: "4", number: 4 },
             { latex: "3\\pi/2", number: (3 * Math.PI) / 2 },
             { latex: "11\\pi/6", number: (11 * Math.PI) / 6 },
-            { latex: "2\\pi", number: 2 * Math.PI },
+            // `8sin(2pi)` simplifies to exactly 0, so the third point lands
+            // exactly on the ray through the first one and the angle is 0.
+            // (The old expectation of a full turn came from evaluating the
+            // sine numerically: it gave -2.4e-16, putting the point a hair
+            // *below* the axis, which with `chooseReflexAngle="allowed"` reads
+            // as just under 2pi. Turning by 2pi + 0.00001 gives 0.00001 below,
+            // so 0 is the consistent value here.)
+            { latex: "2\\pi", number: 0 },
             { latex: "2\\pi+0.00001", number: 0.00001 },
         ];
 
@@ -697,15 +704,16 @@ describe("Angle tag tests @group4", async () => {
                 await resolvePathToNodeIdx("angle1")
             ].stateValues.points[2].map((x) => x.tree),
         ).eqls(["\uff3f", "\uff3f"]);
-        // TODO: once can simplify fractions, these should be: ["/", ["*", "alpha", "pi"], 90]
+        // The engine reduces the fraction now, which is what the TODO that
+        // used to sit here was waiting for: `2απ/180` is `απ/90`.
         expect(
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
-        ).eqls(["/", ["*", 2, "alpha", "pi"], 180]);
+        ).eqls(["/", ["*", "alpha", "pi"], 90]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
                 .tree,
-        ).eqls(["/", ["*", 2, "alpha", "pi"], 180]);
+        ).eqls(["/", ["*", "alpha", "pi"], 90]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
                 .tree,

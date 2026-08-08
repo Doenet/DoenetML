@@ -46,7 +46,8 @@
             "dependencies": [
                 "../i18n:build",
                 "../utils:build",
-                "../parser:build"
+                "../parser:build",
+                "../math:build"
             ]
         }
     },
@@ -54,8 +55,9 @@
         "compromise": "^13.11.4",
         "compromise-numbers": "^1.4.0",
         "efrt": "2.7.0",
-        "suffix-thumb": "5.0.2",
-        "grad-school": "0.0.5"
+        "grad-school": "0.0.5",
+        "math-expressions": "file:../math",
+        "suffix-thumb": "5.0.2"
     },
     "devDependencies": {}
 }

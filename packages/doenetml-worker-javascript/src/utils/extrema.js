@@ -5,6 +5,67 @@ import {
 } from "@doenet/utils";
 import { mathExpressionFromSubsetValue } from "@doenet/utils";
 
+/**
+ * Every root of `formula`'s derivative, exactly, or `null` when the engine
+ * cannot decide and the caller must fall back to bracketing.
+ *
+ * Bracketing finds a root by watching the derivative change sign across a grid
+ * cell and then refining. That is where the classic failures live: two roots
+ * inside one cell look like one, a root that touches zero without crossing is
+ * invisible, and refinement leaves round-off that later shows up as a spurious
+ * extremum. Where the derivative is a rational function none of it is
+ * necessary — the roots are the roots of a polynomial and the engine returns
+ * them exactly.
+ *
+ * `critical_points` is three-valued and the distinction matters here: an empty
+ * array means "provably none", which is a *usable* answer, while `null` means
+ * undecided (a derivative that is not rational in the variable, one carrying a
+ * free parameter, a constant function). Only the last falls back.
+ */
+function exactCriticalPointsOf(plainFormula, varString) {
+    let points;
+    try {
+        points = plainFormula.critical_points(varString);
+    } catch (e) {
+        return null;
+    }
+    if (points === null) {
+        return null;
+    }
+    // An exact point that cannot be placed on the number line is no use to the
+    // numerical machinery downstream, so treat the whole answer as undecided
+    // rather than silently returning a short list.
+    let values = [];
+    for (let p of points) {
+        let v = p.evaluate_to_constant();
+        if (typeof v !== "number" || !Number.isFinite(v)) {
+            return null;
+        }
+        values.push(v);
+    }
+    return values;
+}
+
+/**
+ * Sample `expr` at every point of `xs` in a single engine call.
+ *
+ * Per-point evaluation is dominated by crossing the wasm boundary and
+ * marshalling the variable name, not by the arithmetic — about 1.2µs against
+ * 6ns of real work. Returns `null` if the expression cannot be sampled that
+ * way, leaving the caller on its per-point path.
+ */
+function sampleGrid(expr, varString, xs) {
+    if (!expr) {
+        return null;
+    }
+    try {
+        let values = expr.evaluate_many(varString, xs);
+        return values && values.length === xs.length ? values : null;
+    } catch (e) {
+        return null;
+    }
+}
+
 export function find_local_global_minima({
     domain,
     xscale,
@@ -523,20 +584,34 @@ export function find_local_global_minima({
         let derivative_f;
         let haveDerivative = true;
         let derivative;
+        // The expression behind `derivative`, kept so the grid below can be
+        // sampled in one call rather than one call per point.
+        let derivative_formula = null;
+        // Every root of f', exactly, when the derivative is a rational
+        // function \u2014 see `exactCriticalPoints`. `null` means "undecided, do it
+        // the numerical way".
+        let exactCriticalPoints = null;
 
         if (formula.variables().includes("\uFF3F")) {
             haveDerivative = false;
             derivative = () => NaN;
         } else {
-            let derivative_formula = formula
-                .subscripts_to_strings()
-                .derivative(varString);
+            let plainFormula = formula.subscripts_to_strings();
+            derivative_formula = plainFormula.derivative(varString);
 
             try {
                 derivative_f = derivative_formula.f();
             } catch (e) {
                 haveDerivative = false;
+                derivative_formula = null;
                 derivative = () => NaN;
+            }
+
+            if (haveDerivative) {
+                exactCriticalPoints = exactCriticalPointsOf(
+                    plainFormula,
+                    varString,
+                );
             }
         }
 
@@ -573,15 +648,32 @@ export function find_local_global_minima({
         let minimaList = [];
         let minimumAtPreviousRight = false;
         let addedAtPreviousRightViaDeriv = false;
+
+        // The derivative is read once per grid point, at `minx + i·dx` for
+        // `i = -1 … numIntervals + 1`. That is a fixed, known set of points, so
+        // ask for all of them at once; `derivativeGrid[i + 1]` is the value at
+        // step `i`. `null` when the expression cannot be batched, in which case
+        // the per-point closure below is used exactly as before.
+        let gridXs = new Float64Array(numIntervals + 3);
+        for (let i = -1; i <= numIntervals + 1; i++) {
+            gridXs[i + 1] = minx + i * dx;
+        }
+        let derivativeGrid = haveDerivative
+            ? sampleGrid(derivative_formula, varString, gridXs)
+            : null;
+        let derivativeAt = derivativeGrid
+            ? (i) => derivativeGrid[i + 1]
+            : (i) => derivative(minx + i * dx);
+
         let fright = f(minx - dx);
-        let dright = derivative(minx - dx);
+        let dright = derivativeAt(-1);
         for (let i = -1; i < numIntervals + 1; i++) {
             let xleft = minx + i * dx;
             let xright = minx + (i + 1) * dx;
             let fleft = fright;
             fright = f(xright);
             let dleft = dright;
-            dright = derivative(xright);
+            dright = derivativeAt(i + 1);
 
             if (Number.isNaN(fleft) || Number.isNaN(fright)) {
                 continue;
@@ -592,7 +684,20 @@ export function find_local_global_minima({
             if (haveDerivative && dleft * dright <= 0) {
                 let x;
 
-                if (dleft === 0) {
+                // The sign change says a root of f' is in this cell. Where the
+                // exact roots are known, take the one that is here rather than
+                // refining towards it — same root, none of the round-off that
+                // later reads as a spurious extremum.
+                let exact =
+                    exactCriticalPoints === null
+                        ? undefined
+                        : exactCriticalPoints.find(
+                              (p) => p >= xleft && p <= xright,
+                          );
+
+                if (exact !== undefined) {
+                    x = exact;
+                } else if (dleft === 0) {
                     x = xleft;
                 } else if (dright === 0) {
                     x = xright;
@@ -610,7 +715,33 @@ export function find_local_global_minima({
                     let eps = 1e-6;
                     let tol_act = 0.5 * eps * (Math.abs(x) + 1);
 
+                    // `fzero` locates the root to within `tol_act`, so a root
+                    // sitting just *outside* a closed domain comes back as the
+                    // boundary itself — and the sign test below then certifies
+                    // it using samples taken outside the domain. `cos(x)` on
+                    // `[-pi + 1e-6, …]` did exactly that: the real critical
+                    // point is at `-pi`, 1e-6 beyond the edge and inside the
+                    // 2e-6 tolerance, so the edge was reported as a minimum.
+                    //
+                    // A genuine extremum at a closed endpoint (`cos` at `2pi`
+                    // on `[…, 2pi]`) is not affected: there the derivative
+                    // really does vanish at the endpoint, to the last bit. So
+                    // the check is on the derivative *at* the point, measured
+                    // against the scale it varies over in this cell — not on
+                    // where the point sits.
+                    let atClosedBoundary =
+                        (!openMin && Math.abs(x - minx) < 2 * tol_act) ||
+                        (!openMax && Math.abs(x - maxx) < 2 * tol_act);
+                    let derivativeScale = Math.max(
+                        Math.abs(dleft),
+                        Math.abs(dright),
+                    );
+                    let rootIsReal =
+                        !atClosedBoundary ||
+                        Math.abs(derivative(x)) <= derivativeScale * 1e-8;
+
                     if (
+                        rootIsReal &&
                         derivative(x - tol_act) < 0 &&
                         derivative(x + tol_act) > 0
                     ) {

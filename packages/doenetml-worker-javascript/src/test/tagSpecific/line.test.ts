@@ -11,6 +11,7 @@ import {
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { evaluateToNumber } from "../../utils/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -452,32 +453,33 @@ async function checkLineValues({
         expect(P1xs[i].evaluate_to_constant()).closeTo(points[0][i], 1e-12);
         expect(P2xs[i].evaluate_to_constant()).closeTo(points[1][i], 1e-12);
     }
+    // Read the numeric projections through `evaluateToNumber`, the same helper
+    // the components use. A line that is degenerate — both defining points on
+    // top of each other — has no equation, so its coefficients are the blank
+    // `＿` and these quantities have no numeric value at all. The engine reports
+    // that as `null`, where the JS library said `NaN`; `Math.abs(null)` is `0`,
+    // which would read as a *finite* intercept. `evaluateToNumber` maps
+    // "no numeric value" to `NaN`, which is what these comparisons mean.
     if (Number.isFinite(slope)) {
-        expect(lineSlope.evaluate_to_constant()).closeTo(slope, 1e-12);
+        expect(evaluateToNumber(lineSlope)).closeTo(slope, 1e-12);
     } else {
-        expect(lineSlope.evaluate_to_constant()).eqls(slope);
+        expect(evaluateToNumber(lineSlope)).eqls(slope);
     }
     if (Number.isFinite(xintercept)) {
-        expect(lineXintercept.evaluate_to_constant()).closeTo(
-            xintercept,
-            1e-12,
-        );
+        expect(evaluateToNumber(lineXintercept)).closeTo(xintercept, 1e-12);
     } else {
         // Note: x-intercept for horizontal lines can be Infinity or -Infinity
         // when it should really be NaN
-        expect(Math.abs(lineXintercept.evaluate_to_constant())).eqls(
+        expect(Math.abs(evaluateToNumber(lineXintercept))).eqls(
             Math.abs(xintercept),
         );
     }
     if (Number.isFinite(yintercept)) {
-        expect(lineYintercept.evaluate_to_constant()).closeTo(
-            yintercept,
-            1e-12,
-        );
+        expect(evaluateToNumber(lineYintercept)).closeTo(yintercept, 1e-12);
     } else {
         // Note: y-intercept for vertical lines can be Infinity or -Infinity
         // when it should really be NaN
-        expect(Math.abs(lineYintercept.evaluate_to_constant())).eqls(
+        expect(Math.abs(evaluateToNumber(lineYintercept))).eqls(
             Math.abs(yintercept),
         );
     }
@@ -1683,6 +1685,10 @@ describe("Line tag tests @group3", async () => {
                 await resolvePathToNodeIdx("l6")
             ].stateValues.equation.equals(me.fromText("y=x^2")),
         ).eq(true);
+        // The coefficients of `y - x^2 = 0`: everything moved to the left of
+        // the equation as authored. (`y=x^2` is not a line, so `x^2` lands in
+        // the constant slot for want of anywhere better — but the sign is the
+        // author's.)
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues.coeff0
                 .tree,
@@ -1701,10 +1707,14 @@ describe("Line tag tests @group3", async () => {
                 await resolvePathToNodeIdx("l7")
             ].stateValues.equation.equals(me.fromText("1=2")),
         ).eq(true);
+        // `1 - 2`, again the author's own left-minus-right. The old `1` came
+        // from reading right-minus-left off the *simplified* equation, which
+        // agreed with the convention only for the spellings `simplify` happened
+        // to swap. A contradiction has no line, so either sign describes it.
         expect(
             stateVariables[await resolvePathToNodeIdx("l7")].stateValues.coeff0
                 .tree,
-        ).eq(1);
+        ).eq(-1);
         expect(
             stateVariables[await resolvePathToNodeIdx("l7")].stateValues
                 .coeffvar1.tree,

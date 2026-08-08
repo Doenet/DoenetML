@@ -1,0 +1,55 @@
+{
+    "name": "@doenet/math",
+    "type": "module",
+    "description": "The single seam through which DoenetML reaches math-expressions: the Rust core compiled to WASM, inlined and re-exported behind the legacy API.",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./engine-rust": {
+            "import": "./dist/engine-rust.js"
+        }
+    },
+    "scripts": {
+        "watch": "vite build --watch",
+        "test": "vitest",
+        "build:wasm": "wireit",
+        "build": "wireit"
+    },
+    "wireit": {
+        "build:wasm": {
+            "command": "node scripts/build-wasm.mjs"
+        },
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "vite.config.ts",
+                "tsconfig.json",
+                "../../vendor/math-expressions/packages/math-expressions-js-compat/lib/**/*.ts",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-js/**/*.ts"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.map",
+                "dist/**/*.d.ts"
+            ],
+            "dependencies": [
+                "build:wasm"
+            ],
+            "clean": true
+        }
+    },
+    "dependencies": {
+        "mathjs": "^15.2.0"
+    }
+}

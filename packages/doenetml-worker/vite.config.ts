@@ -5,6 +5,19 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    resolve: {
+        // `math-expressions` (the `@doenet/math` seam) arrives here through
+        // several dependencies, each of which externalizes it. Without dedupe
+        // they resolve to distinct module instances and this bundle ends up
+        // with two copies of the engine — ~3.5 MiB of duplicated inlined WASM,
+        // and two separate WASM instantiations at runtime.
+        //
+        // The seam is deliberately NOT externalized here: this bundle is
+        // fetched on its own by URL and has to stay self-contained (see the
+        // viteStaticCopy note in packages/standalone/vite.config.ts). One copy
+        // is correct; two is a bug.
+        dedupe: ["math-expressions"],
+    },
     // Note: for some reason {rollupTypes: true} causes an extra `.d` to be added to the types file name.
     // So, it becomes `index.d.d.ts` instead of `index.d.ts`. So avoid rolling up the types until this can be resolved.
     plugins: [

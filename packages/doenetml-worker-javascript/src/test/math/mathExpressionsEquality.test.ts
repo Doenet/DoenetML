@@ -303,8 +303,10 @@ describe("Math expressions equality tests @group2", async () => {
             expr2: "log(a)/log(b)",
             equal: true,
             symbolicEqual: false,
-            symbolicSimplifyEqual: false, // with improved simplification, these should compare as true
-            symbolicSimplifyExpandEqual: false, // with improved simplification, these should compare as true
+            // The improved simplification this used to wait for: change of base
+            // now reduces, so these do compare as true.
+            symbolicSimplifyEqual: true,
+            symbolicSimplifyExpandEqual: true,
         },
         {
             expr1: "nCr(5,3)",
@@ -847,8 +849,10 @@ describe("Math expressions equality tests @group2", async () => {
             expr2: "vec(y)",
             equal: true,
             symbolicEqual: false,
-            symbolicSimplifyEqual: false, // with improved simplification, these should compare as true
-            symbolicSimplifyExpandEqual: false, // with improved simplification, these should compare as true
+            // The improved simplification this used to wait for: the current
+            // engine cancels the (x⃗·x⃗) factor, so these do compare as true.
+            symbolicSimplifyEqual: true,
+            symbolicSimplifyExpandEqual: true,
         },
 
         {

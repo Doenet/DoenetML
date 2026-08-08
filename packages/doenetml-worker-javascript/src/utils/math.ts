@@ -203,15 +203,19 @@ export function textToMathFactory({
     splitSymbols?: boolean;
     parseScientificNotation?: boolean;
 } = {}) {
+    // Parses straight to an Expression rather than via `textToAstObj` +
+    // `fromAst`. The AST is JSON, so every number in it is an f64: the trip
+    // through it turned an exact user-typed decimal into the nearest float,
+    // and `35203423.02352343201` came back as `35203423.023523435`. The parser
+    // itself holds the decimal exactly, and skipping the round-trip is what
+    // lets it reach the display path intact.
     return (x: string) =>
-        me.fromAst(
-            new me.converters.textToAstObj({
-                appliedFunctionSymbols,
-                functionSymbols,
-                splitSymbols,
-                parseScientificNotation,
-            }).convert(x),
-        );
+        me.fromText(x, {
+            appliedFunctionSymbols,
+            functionSymbols,
+            splitSymbols,
+            parseScientificNotation,
+        });
 }
 
 export var latexToAst = new me.converters.latexToAstObj({
@@ -230,29 +234,18 @@ export function latexToMathFactory({
     splitSymbols?: boolean;
     parseScientificNotation?: boolean;
 } = {}) {
-    if (splitSymbols) {
-        return (x: string) =>
-            me.fromAst(
-                new me.converters.latexToAstObj({
-                    appliedFunctionSymbols,
-                    functionSymbols,
-                    allowedLatexSymbols,
-                    parseScientificNotation,
-                }).convert(
-                    wrapWordIncludingNumberWithVar(x, parseScientificNotation),
-                ),
-            );
-    } else {
-        return (x: string) =>
-            me.fromAst(
-                new me.converters.latexToAstObj({
-                    appliedFunctionSymbols,
-                    functionSymbols,
-                    allowedLatexSymbols,
-                    parseScientificNotation,
-                }).convert(wrapWordWithVar(x, parseScientificNotation)),
-            );
-    }
+    // Parses straight to an Expression, for the reason given on
+    // `textToMathFactory`: the AST is JSON and would float every decimal.
+    const opts = {
+        appliedFunctionSymbols,
+        functionSymbols,
+        allowedLatexSymbols,
+        parseScientificNotation,
+    };
+    const wrap = splitSymbols
+        ? wrapWordIncludingNumberWithVar
+        : wrapWordWithVar;
+    return (x: string) => me.fromLatex(wrap(x, parseScientificNotation), opts);
 }
 
 export function findFiniteNumericalValue(value: any) {
@@ -277,6 +270,76 @@ export function findFiniteNumericalValue(value: any) {
 
     // couldn't find numerical value
     return null;
+}
+
+/**
+ * Whether `evaluate_to_constant()` produced a number we can actually compute
+ * with.
+ *
+ * It reports `null` — not `NaN` — for everything it cannot evaluate: a free
+ * variable, a blank `＿`, an unevaluable head. `Number.isNaN(null)` is `false`
+ * and `null` coerces to `0` in arithmetic and comparisons, so testing only for
+ * `NaN` lets an unevaluable expression pass as numeric and then silently behave
+ * like zero. `＿ < 1` became `null < 1`, which is `true`, and a blank answer
+ * scored full credit.
+ *
+ * Use this anywhere the result feeds arithmetic, a comparison, or a sort.
+ * `±Infinity` passes deliberately: it is a value, and ordering against it is
+ * meaningful.
+ */
+export function isNumericConstant(value: unknown): value is number {
+    return typeof value === "number" && !Number.isNaN(value);
+}
+
+/**
+ * `expr.evaluate_to_constant()` as a plain number, with everything that is not
+ * one reported as `NaN`.
+ *
+ * The engine distinguishes two failures the legacy one did not: `NaN` for an
+ * expression that *evaluates to* NaN (`0/0`), and `null` for one it cannot
+ * evaluate at all — a free variable, a blank `＿`. That distinction is worth
+ * having, but a *number* state variable has only one way to say "not a number",
+ * and it is `NaN`. Passing `null` on instead is worse than useless:
+ * `Number.isNaN(null)` is `false`, so every guard waves it through, and it then
+ * coerces to `0` — a blank input silently reading as zero.
+ *
+ * Use this at the boundary where an expression becomes a numeric state
+ * variable. Code that needs to tell the two apart should call
+ * `evaluate_to_constant()` directly. A complex result is also `NaN` here: it is
+ * a value, but not one a real-valued state variable can hold.
+ */
+export function evaluateToNumber(expr: {
+    evaluate_to_constant: () => unknown;
+}): number {
+    const value = expr.evaluate_to_constant();
+    return typeof value === "number" ? value : NaN;
+}
+
+/**
+ * A numeric AST leaf, with the engine's tagged non-finite forms decoded.
+ *
+ * `.tree` hands back `{"$":"Inf"}` / `{"$":"-Inf"}` / `{"$":"NaN"}` rather than
+ * the JS scalars, deliberately — one tagged wire format in both directions, so
+ * that `fromAst(x).tree` is a fixpoint and `{"$":"None"}`, which has no JS
+ * scalar at all, can travel the same road. Consumers that compare a leaf
+ * against `-Infinity` or run `typeof x === "number"` therefore silently stop
+ * matching. Read leaves through here instead; it accepts both spellings, so it
+ * keeps working whichever way that contract settles.
+ *
+ * Returns the value unchanged when it is not a tagged form.
+ */
+export function numericLeaf(value: unknown): unknown {
+    if (value && typeof value === "object" && "$" in (value as object)) {
+        switch ((value as { $: string }).$) {
+            case "Inf":
+                return Infinity;
+            case "-Inf":
+                return -Infinity;
+            case "NaN":
+                return NaN;
+        }
+    }
+    return value;
 }
 
 export function returnNVariables(n: number, variablesSpecified: any[]) {
@@ -528,7 +591,12 @@ export function mathStateVariableFromNumberStateVariable({
 
             let desiredNumber;
             if (desiredMath instanceof me.class) {
-                desiredNumber = desiredMath.evaluate_to_constant();
+                // `null` is "cannot be evaluated" — a free variable, a blank.
+                // The number side of this bridge spells that `NaN`; leaving it
+                // as `null` makes every `Number.isNaN` guard downstream miss it
+                // and the value settle at `0`. A complex result passes through:
+                // components that accept one test `re`/`im` themselves.
+                desiredNumber = desiredMath.evaluate_to_constant() ?? NaN;
             } else if (typeof desiredMath === "number") {
                 desiredNumber = desiredMath;
             } else {
@@ -585,6 +653,18 @@ export function numberToMathExpression(
     return me.fromAst(mathTree);
 }
 
+/**
+ * Flatten a `list` nested directly inside another container: `(a, (b, c))`
+ * written as `["tuple", "a", ["list", "b", "c"]]` becomes
+ * `["tuple", "a", "b", "c"]`.
+ *
+ * Returns the *same* tree object when there is nothing to flatten, so callers
+ * can tell a no-op apart from a real change. That matters because the only way
+ * to apply the result is `me.fromAst`, and rebuilding an expression from its
+ * tree is lossy: the tree is JSON, so an exact user-typed decimal comes back as
+ * the nearest f64. Skipping the rebuild in the common case keeps the value
+ * exact.
+ */
 export function mergeListsWithOtherContainers(tree: any) {
     if (!Array.isArray(tree)) {
         return tree;
@@ -592,20 +672,46 @@ export function mergeListsWithOtherContainers(tree: any) {
 
     let operator = tree[0];
     let operands = tree.slice(1);
+    let changed = false;
 
     if ([...vectorOperators, "list", "set"].includes(operator)) {
-        operands = operands.reduce(
-            (a, c) =>
+        const flattened = operands.reduce(
+            (a: any[], c: any) =>
                 Array.isArray(c) && c[0] === "list"
                     ? [...a, ...c.slice(1)]
                     : [...a, c],
             [],
         );
+        if (flattened.length !== operands.length) {
+            operands = flattened;
+            changed = true;
+        }
     }
 
-    operands = operands.map((x) => mergeListsWithOtherContainers(x));
+    operands = operands.map((x) => {
+        const merged = mergeListsWithOtherContainers(x);
+        if (merged !== x) {
+            changed = true;
+        }
+        return merged;
+    });
 
-    return [operator, ...operands];
+    return changed ? [operator, ...operands] : tree;
+}
+
+/**
+ * [`mergeListsWithOtherContainers`] applied to an `Expression`, rebuilding it
+ * only if the flattening actually changed something.
+ *
+ * The rebuild has to go through `me.fromAst`, and a tree is JSON: an exact
+ * user-typed decimal comes back as the nearest f64, so `35203423.02352343201`
+ * would reach the display as `35203423.023523435`. Almost nothing has a nested
+ * list to flatten, so almost nothing should pay that.
+ */
+export function mergeListsIfNeeded(value: any): any {
+    const tree = value.tree;
+    const merged = mergeListsWithOtherContainers(tree);
+    return merged === tree ? value : me.fromAst(merged);
 }
 
 function wrapWordWithVar(string: string, parseScientificNotation: boolean) {
@@ -931,6 +1037,72 @@ export function removeFunctionsMathExpressionClass(value: any) {
 }
 
 /**
+ * Marks a vector component that an inverse definition is deliberately leaving
+ * alone, so that `preprocessMathInverseDefinition` can fill it back in from the
+ * workspace or the current value.
+ *
+ * This used to be a hole in the AST array (`["vector", , 9]`), detected with
+ * `tree.includes()`. That only worked because the old JavaScript engine stored
+ * the AST array by reference; the Rust engine round-trips `.tree` through JSON,
+ * where a hole becomes `null` and `from_ast` rejects it outright ("unexpected
+ * value null"), aborting the whole update. A symbol survives the round trip
+ * unchanged.
+ *
+ * Deliberately *not* `＿` (U+FF3F), which already means a blank the student
+ * typed and must keep flowing through untouched.
+ */
+export const UNSPECIFIED_COMPONENT = "unspecifiedComponent";
+
+/** Whether an AST node marks a component no inverse instruction has set. */
+function isUnspecifiedComponent(value: unknown) {
+    // `undefined` covers holes in trees that never went through the engine.
+    return value === undefined || value === UNSPECIFIED_COMPONENT;
+}
+
+/**
+ * Whether any operand of `tree` is unspecified. Indexed rather than
+ * `.some()`, which skips holes.
+ */
+function hasUnspecifiedComponent(tree: any[]) {
+    for (let ind = 1; ind < tree.length; ind++) {
+        if (isUnspecifiedComponent(tree[ind])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Whether a math expression pulled out of a vector is a component that no
+ * inverse instruction set, and so should be skipped rather than assigned.
+ *
+ * The `undefined` tree is the legacy hole; `UNSPECIFIED_COMPONENT` is the same
+ * thing after a round trip through the engine.
+ */
+export function isUnspecifiedComponentValue(expression: any) {
+    return (
+        expression == null ||
+        expression.tree === undefined ||
+        expression.tree === UNSPECIFIED_COMPONENT
+    );
+}
+
+/**
+ * Replace the unset slots of a vector AST being built component-by-component
+ * with `UNSPECIFIED_COMPONENT`, so it can be handed to `me.fromAst`.
+ *
+ * Operates on operands only — index 0 is the operator.
+ */
+export function markUnspecifiedComponents(tree: any[]) {
+    for (let ind = 1; ind < tree.length; ind++) {
+        if (tree[ind] === undefined) {
+            tree[ind] = UNSPECIFIED_COMPONENT;
+        }
+    }
+    return tree;
+}
+
+/**
  * Preprocess the desired value within the inverse definition of a math state variable
  * to fill in any any vector components.
  *
@@ -970,7 +1142,7 @@ export async function preprocessMathInverseDefinition({
 
     if (
         !vectorOperators.includes(desiredValue.tree[0]) ||
-        !desiredValue.tree.includes()
+        !hasUnspecifiedComponent(desiredValue.tree)
     ) {
         return { desiredValue };
     }
@@ -1027,7 +1199,7 @@ export async function preprocessMathInverseDefinition({
         let vectorComponentsNotAffected = [];
         let foundNotAffected = false;
         for (let [ind, value] of desiredValue.tree.entries()) {
-            if (value === undefined) {
+            if (ind > 0 && isUnspecifiedComponent(value)) {
                 foundNotAffected = true;
                 vectorComponentsNotAffected.push(ind);
             } else {
@@ -1052,7 +1224,7 @@ export async function preprocessMathInverseDefinition({
         // fill in with \uff3f
         let desiredOperands = [];
         for (let val of desiredValue.tree.slice(1)) {
-            if (val === undefined) {
+            if (isUnspecifiedComponent(val)) {
                 desiredOperands.push("\uff3f");
             } else {
                 desiredOperands.push(val);

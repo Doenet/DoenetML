@@ -8244,7 +8244,12 @@ describe("MathInput tag tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("iv1")].stateValues
                     .latex,
             ),
-        ).eq("\\frac{a}{b}\\int_{a}^{b}f(x)dx");
+            // The engine parenthesizes an integral used as a factor, where
+            // legacy left it bare. Both mean `(a/b)·∫f dx` — an integral's
+            // scope already ends at the differential — so this is explicitness,
+            // not a change of meaning. The raw value below is what the student
+            // typed and is unaffected.
+        ).eq("\\frac{a}{b}(\\int_{a}^{b}f(x)dx)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pr1")].stateValues.text,
         ).eq("Raw value: \\frac{a}{b} \\int_a^b f(x) dx");
@@ -11918,7 +11923,7 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p14")]
                         .stateValues.text,
-                ).eq(`Matrix: [ [ ${math} ] ]`);
+                ).eq(`Matrix: [[${math}]]`);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
@@ -11931,7 +11936,11 @@ describe("MathInput tag tests @group2", async () => {
                     stateVariables[await resolvePathToNodeIdx("p14")]
                         .stateValues.text,
                 ).eq(
-                    `Matrix: [ ${[...Array(numDimensions).keys()].map((i) => `[ ${math.get_component(i)} ]`).join(", ")} ]`,
+                    // The engine prints a matrix without the padding spaces
+                    // the JS library used (`[[1], [2]]`, not `[ [ 1 ], [ 2 ] ]`)
+                    // — a recorded, deliberate divergence
+                    // (`ast-output-known-divergences.json`).
+                    `Matrix: [${[...Array(numDimensions).keys()].map((i) => `[${math.get_component(i)}]`).join(", ")}]`,
                 );
                 expect(
                     stateVariables[
@@ -11946,12 +11955,12 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
                         .stateValues.text,
-                ).eq(`Matrix[${i}]: [ [ ${x1} ] ]`);
+                ).eq(`Matrix[${i}]: [[${x1}]]`);
             } else if (i <= numDimensions) {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
                         .stateValues.text,
-                ).eq(`Matrix[${i}]: [ [ ${math.get_component(i - 1)} ] ]`);
+                ).eq(`Matrix[${i}]: [[${math.get_component(i - 1)}]]`);
             } else {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p15")]
@@ -12018,7 +12027,12 @@ describe("MathInput tag tests @group2", async () => {
             }
 
             if (numDimensions === 1) {
-                let num = math.evaluate_to_constant();
+                // `<numberList>` reports "no number here" as `NaN`; the engine
+                // reports it as `null` (an unfilled `＿` has no value, as
+                // distinct from having the value NaN). Both are right for their
+                // own contract, so the expectation converts.
+                let evaluated = math.evaluate_to_constant();
+                let num = typeof evaluated === "number" ? evaluated : NaN;
 
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p20")]
@@ -12029,9 +12043,12 @@ describe("MathInput tag tests @group2", async () => {
                         .numbers,
                 ).eqls([num]);
             } else {
+                // As above: the engine's "no value" is `null`, the
+                // `<numberList>`'s is `NaN`.
                 let nums = math.tree
                     .slice(1)
-                    .map((v: Tree) => me.fromAst(v).evaluate_to_constant());
+                    .map((v: Tree) => me.fromAst(v).evaluate_to_constant())
+                    .map((v: unknown) => (typeof v === "number" ? v : NaN));
 
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p20")]

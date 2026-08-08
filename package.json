@@ -69,9 +69,6 @@
     "prettier": {
         "tabWidth": 4
     },
-    "lint-staged": {
-        "*.{js,jsx,ts,tsx,css,json}": "prettier --write"
-    },
     "overrides": {
         "@qualified/lsp-connection": {
             "vscode-jsonrpc": "$vscode-jsonrpc"
@@ -167,7 +164,6 @@
         "lint-staged": "^15.0.0",
         "katex": "^0.16.47",
         "lorem-ipsum": "^2.0.8",
-        "math-expressions": "^2.0.0-alpha95",
         "micromark": "^4.0.2",
         "nanoid": "^5.1.16",
         "nextra": "^3.3.1",

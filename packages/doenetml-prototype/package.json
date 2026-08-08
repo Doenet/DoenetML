@@ -79,7 +79,8 @@
                 "../doenetml-worker:build",
                 "../doenetml-to-pretext:build",
                 "../parser:build",
-                "../codemirror:build"
+                "../codemirror:build",
+                "../math:build"
             ]
         }
     },
@@ -103,5 +104,8 @@
     },
     "prettier": {
         "tabWidth": 4
+    },
+    "dependencies": {
+        "math-expressions": "file:../math"
     }
 }

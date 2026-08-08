@@ -1653,7 +1653,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(pieceCount).toBeGreaterThan(1);
         expect(prefigureXML).toContain(`<group at="curve_0">`);
         expect(prefigureXML).toContain(`function="curve_0_0_r(`);
-        expect(prefigureXML).toContain(`(x^3)/10`);
+        // The engine prints this without the JS library's defensive
+        // parentheses; `^` binds tighter than `/` in prefigure's syntax too,
+        // so `x^3/10` is the same curve.
+        expect(prefigureXML).toContain(`x^3/10`);
         expect(prefigureXML).toContain(`domain="`);
         expect(prefigureXML).not.toContain(`fill="`);
         expect(prefigureXML).not.toContain(`fill-opacity="`);

@@ -3339,7 +3339,7 @@ describe("Math operator tests @group2", async () => {
       <floor name="floor2">$floor1/$ceil1</floor>
       <ceil name="ceil2">$ceil1/$floor1</ceil>
 
-      <p>Allow for slight roundoff error:
+      <p>Rounding is exact — a decimal literal is an exact rational, not an f64:
       <floor name="floor3">3.999999999999999</floor>
       <ceil name="ceil3">-6999.999999999999</ceil>
       </p>
@@ -3414,7 +3414,7 @@ describe("Math operator tests @group2", async () => {
       <math displayDigits="10" name="ceil3" format="latex" simplify>\\lceil $ceil1/$floor1 \\rceil</math>
       <math displayDigits="10" name="ceil4" simplify>ceil($ceil1/$floor1)</math>
 
-      <p>Allow for slight roundoff error:
+      <p>Rounding is exact — a decimal literal is an exact rational, not an f64:
       <math displayDigits="10" format="latex" name="floor5" simplify>\\lfloor 3.999999999999999 \\rfloor</math>
       <math displayDigits="10" name="floor6" simplify>floor 3.999999999999999</math>
       <math displayDigits="10" format="latex" name="ceil5" simplify>\\lceil -6999.999999999999 \\rceil</math>
@@ -3473,22 +3473,28 @@ describe("Math operator tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("ceil4")].stateValues
                 .value.tree,
         ).eq(1);
+        // These four used to expect 4 and -7000: the JS library held every
+        // decimal as an f64, so `3.999999999999999` was an *approximation* of
+        // something, and it nudged a near-integer onto the integer before
+        // rounding to repair that. Decimals parse to exact rationals here —
+        // this one is exactly 3.999999999999999, and its floor is 3. Nudging
+        // would break `floor(x) ≤ x` to undo an error that is not there.
         expect(
             stateVariables[await resolvePathToNodeIdx("floor5")].stateValues
                 .value.tree,
-        ).eq(4);
+        ).eq(3);
         expect(
             stateVariables[await resolvePathToNodeIdx("floor6")].stateValues
                 .value.tree,
-        ).eq(4);
+        ).eq(3);
         expect(
             stateVariables[await resolvePathToNodeIdx("ceil5")].stateValues
                 .value.tree,
-        ).eq(-7000);
+        ).eq(-6999);
         expect(
             stateVariables[await resolvePathToNodeIdx("ceil6")].stateValues
                 .value.tree,
-        ).eq(-7000);
+        ).eq(-6999);
     });
 
     it("abs", async () => {
@@ -5353,16 +5359,21 @@ describe("Math operator tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
+        // The *Product forms collapse to a single value (`251`), and a single
+        // observation has no sample variance: the n-1 denominator is zero, so
+        // the quantity is undefined rather than 0 (R gives NA, numpy nan). The
+        // engine declines to fold it rather than assert a spread of zero, so
+        // the application stays as written and `isNumber` is false.
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "variance", 251]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
@@ -5396,12 +5407,12 @@ describe("Math operator tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("numberComponentsProductSimplify")
             ].stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "variance", 51]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberComponentsProductSimplify")
             ].stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosCommas")]
@@ -5430,11 +5441,11 @@ describe("Math operator tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "variance", 51]);
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("group")].stateValues
@@ -6101,16 +6112,21 @@ describe("Math operator tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("numberStringProduct")]
                 .stateValues.isNumber,
         ).eq(false);
+        // The *Product forms collapse to a single value (`1621`), and a single
+        // observation has no sample variance: the n-1 denominator is zero, so
+        // the quantity is undefined rather than 0 (R gives NA, numpy nan). The
+        // engine declines to fold it rather than assert a spread of zero, so
+        // the application stays as written and `isNumber` is false.
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "std", 1621]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberStringProductSimplify")
             ].stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("numberComponentsCommas")]
@@ -6144,12 +6160,12 @@ describe("Math operator tests @group2", async () => {
             stateVariables[
                 await resolvePathToNodeIdx("numberComponentsProductSimplify")
             ].stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "std", 325]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("numberComponentsProductSimplify")
             ].stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosCommas")]
@@ -6178,11 +6194,11 @@ describe("Math operator tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.value.tree,
-        ).eq(0);
+        ).eqls(["apply", "std", 325]);
         expect(
             stateVariables[await resolvePathToNodeIdx("macrosProductSimplify")]
                 .stateValues.isNumber,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("group")].stateValues

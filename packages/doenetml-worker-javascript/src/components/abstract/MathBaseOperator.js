@@ -1,6 +1,7 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import MathComponent from "../Math";
 import me from "math-expressions";
+import { isNumericConstant } from "../../utils/math";
 
 export default class MathOperator extends MathComponent {
     static componentType = "_mathOperator";
@@ -228,9 +229,18 @@ export default class MathOperator extends MathComponent {
                             inputs.push(child.stateValues.value);
                         } else {
                             // math
+                            //
+                            // `evaluate_to_constant()` gives `null`, not `NaN`,
+                            // for anything it cannot evaluate — `x+1` in
+                            // `<median>1 4 5 x+1</median>`. The numeric
+                            // operators are mathjs functions that accept `NaN`
+                            // and reject `null`: `median([1,4,5,null])` throws
+                            // "unexpected type of argument" and takes the whole
+                            // document with it, where `median([1,4,5,NaN])`
+                            // returns `NaN` and the operator degrades quietly.
                             let value =
                                 child.stateValues.value.evaluate_to_constant();
-                            inputs.push(value);
+                            inputs.push(isNumericConstant(value) ? value : NaN);
                         }
                     }
 

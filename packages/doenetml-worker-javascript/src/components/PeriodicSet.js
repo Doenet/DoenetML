@@ -5,6 +5,7 @@ import {
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
+import { isNumericConstant } from "../utils/math";
 
 export default class PeriodicSet extends MathComponent {
     static componentType = "periodicSet";
@@ -201,7 +202,7 @@ export default class PeriodicSet extends MathComponent {
                 if (dependencyValues.period !== null) {
                     let periodValue =
                         dependencyValues.period.evaluate_to_constant();
-                    if (!Number.isNaN(periodValue)) {
+                    if (isNumericConstant(periodValue)) {
                         for (
                             let ind1 = 0;
                             ind1 < dependencyValues.numOffsets;
@@ -212,6 +213,16 @@ export default class PeriodicSet extends MathComponent {
                                 let offsetDiff = dependencyValues.offsets[ind1]
                                     .subtract(dependencyValues.offsets[ind2])
                                     .evaluate_to_constant();
+                                // An offset box the student has not filled in
+                                // cannot duplicate anything. Without this the
+                                // pair reads as redundant and the answer takes
+                                // the redundancy penalty: the difference of two
+                                // blanks has no value, and `null % period` is
+                                // `0` in JavaScript — a difference of zero,
+                                // which is exactly what "redundant" looks like.
+                                if (!isNumericConstant(offsetDiff)) {
+                                    continue;
+                                }
                                 if (
                                     Math.abs(offsetDiff % periodValue) <
                                     1e-10 * periodValue
@@ -267,14 +278,14 @@ export default class PeriodicSet extends MathComponent {
                 if (dependencyValues.period !== null) {
                     let periodValue =
                         dependencyValues.period.evaluate_to_constant();
-                    if (!Number.isNaN(periodValue)) {
+                    if (isNumericConstant(periodValue)) {
                         let period = dependencyValues.period.simplify();
 
                         let allFinite = true;
                         let shiftedOffsetsWithNumeric = [];
                         for (let offset of dependencyValues.uniqueOffsets) {
                             let offsetValue = offset.evaluate_to_constant();
-                            if (Number.isNaN(offsetValue)) {
+                            if (!isNumericConstant(offsetValue)) {
                                 allFinite = false;
                                 break;
                             } else {

@@ -3082,9 +3082,12 @@ describe("Function tag tests @group4", async () => {
         // values of extrema computed in Sage
         let minimumLocations = [-2.29152990292159];
 
-        // XXX: this is a spurious minimum that is now being picked up due to numerical issues.
-        // See issue #940
-        minimumLocations.push(4.999999948194912);
+        // Issue #940 — the spurious minimum at 4.999999948194912, an artifact
+        // of bracketing next to the double pole at x = 5 — is gone. Extrema are
+        // now seeded from `critical_points`, which solves f' = 0 exactly rather
+        // than refining a sign change, and its answer for this function is
+        // -11.66601734921, -2.29152990292, 3.18454272065, 9.77300453148 —
+        // the four Sage values above and nothing near 5.
         let minima = minimumLocations.map((x) => [x, f(x)]);
         let maximumLocations = [
             -11.6660173492088, 3.18454272065031, 9.77300453148004,
@@ -3644,7 +3647,7 @@ describe("Function tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(pName)].stateValues
                     .text,
-            ).eq(`( 0, 1 ), ( ${piString}, -1 )`);
+            ).eq(`(0, 1), (${piString}, -1)`);
         }
 
         for (const pName of [
@@ -3662,7 +3665,7 @@ describe("Function tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx(pName)].stateValues
                     .text,
             ).eq(
-                `( -${piString}, 0 ), ( 0, 2 ), ( ${piString}, 0 ), ( ${twoPiString}, 2 )`,
+                `(-${piString}, 0), (0, 2), (${piString}, 0), (${twoPiString}, 2)`,
             );
         }
     });
@@ -5399,23 +5402,23 @@ describe("Function tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing1")].stateValues
                 .text,
-        ).eq("g1 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g1 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing2")].stateValues
                 .text,
-        ).eq("g2 domain: ( 3, 4 ), ( 5, 6 )");
+        ).eq("g2 domain: (3, 4), (5, 6)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing3")].stateValues
                 .text,
-        ).eq("g3 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g3 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing4")].stateValues
                 .text,
-        ).eq("g4 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g4 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing5")].stateValues
                 .text,
-        ).eq("g5 domain: ( 3, 4 ), ( 5, 6 )");
+        ).eq("g5 domain: (3, 4), (5, 6)");
 
         let diagnosticsByType = getDiagnosticsByType(core);
 

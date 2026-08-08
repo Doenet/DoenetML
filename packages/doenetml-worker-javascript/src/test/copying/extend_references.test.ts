@@ -4638,7 +4638,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("P: ( 2, 3 )");
+        ).eq("P: (2, 3)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("x of P: 2");
@@ -4647,10 +4647,10 @@ describe("Extend and references tests @group2", async () => {
         ).eq("y of P: 3");
         expect(
             stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
-        ).eq("P.: ( 2, 3 ).");
+        ).eq("P.: (2, 3).");
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
-        ).eq("P.1: ( 2, 3 ).1");
+        ).eq("P.1: (2, 3).1");
         expect(
             stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
         ).eq("x of P: 2");
@@ -4672,10 +4672,10 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p12")].stateValues.text,
-        ).eq("P: ( 2, 3 )");
+        ).eq("P: (2, 3)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p13")].stateValues.text,
-        ).eq("(P).x: ( 2, 3 ).x");
+        ).eq("(P).x: (2, 3).x");
         expect(
             stateVariables[await resolvePathToNodeIdx("p14")].stateValues.text,
         ).eq("no match: $(P.)");
@@ -4790,7 +4790,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p1")].stateValues
                     .text,
-            ).eq(`( ${P11}, ${P12} ), ( ${P21}, ${P22} )`);
+            ).eq(`(${P11}, ${P12}), (${P21}, ${P22})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p2")].stateValues
                     .text,
@@ -4819,7 +4819,7 @@ describe("Extend and references tests @group2", async () => {
             // XXX: restore this assertion
             // expect(
             //     stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
-            // ).eq(`( ${P11}, ${P12} )`);
+            // ).eq(`(${P11}, ${P12})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p9")].stateValues
                     .text,
@@ -4848,7 +4848,7 @@ describe("Extend and references tests @group2", async () => {
             // XXX: restore this assertion
             // expect(
             //     stateVariables[await resolvePathToNodeIdx("p15")].stateValues.text,
-            // ).eq(`( ${P21}, ${P22} )`);
+            // ).eq(`(${P21}, ${P22})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p16")].stateValues
                     .text,
@@ -5138,7 +5138,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq(`( ${P11Dig2}, ${P12Dig2} ), ( ${P21Dig2}, ${P22Dig2} )`);
+        ).eq(`(${P11Dig2}, ${P12Dig2}), (${P21Dig2}, ${P22Dig2})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq(`${P11Dig2}, ${P21Dig2}`);
@@ -5160,7 +5160,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} ), ( ${P21Dec4}, ${P22Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4}), (${P21Dec4}, ${P22Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
         ).eq(`${P11Dec4}, ${P21Dec4}`);
@@ -5182,7 +5182,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p15")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p16")].stateValues.text,
         ).eq(`${P11Dec4}`);
@@ -5204,7 +5204,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p22")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} ), ( ${P21Dec4}, ${P22Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4}), (${P21Dec4}, ${P22Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p23")].stateValues.text,
         ).eq(`${P11Dec4}, ${P21Dec4}`);
@@ -5226,7 +5226,7 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p29")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p30")].stateValues.text,
         ).eq(`${P11Dec4}`);
@@ -5252,10 +5252,10 @@ describe("Extend and references tests @group2", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p37")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} ), ( ${P21Dec4}, ${P22Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4}), (${P21Dec4}, ${P22Dec4})`);
         expect(
             stateVariables[await resolvePathToNodeIdx("p38")].stateValues.text,
-        ).eq(`( ${P11Dec4}, ${P12Dec4} )`);
+        ).eq(`(${P11Dec4}, ${P12Dec4})`);
     });
 
     // TODO: convert this into extend, though many after restoring functionality lost that's mentioned above
@@ -5361,7 +5361,7 @@ describe("Extend and references tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("p1")].stateValues
                     .text,
             ).eq(
-                `( ${P11string || P11}, ${P12string || P12} ), ( ${P21string || P21}, ${P22string || P22} )`,
+                `(${P11string || P11}, ${P12string || P12}), (${P21string || P21}, ${P22string || P22})`,
             );
 
             expect(
@@ -5392,7 +5392,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p8")].stateValues
                     .text,
-            ).eq(`( ${P11string || P11}, ${P12string || P12} )`);
+            ).eq(`(${P11string || P11}, ${P12string || P12})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p9")].stateValues
                     .text,
@@ -5421,7 +5421,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p15")].stateValues
                     .text,
-            ).eq(`( ${P21string || P21}, ${P22string || P22} )`);
+            ).eq(`(${P21string || P21}, ${P22string || P22})`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p16")].stateValues
                     .text,
@@ -5816,7 +5816,7 @@ describe("Extend and references tests @group2", async () => {
                     stateVariables[await resolvePathToNodeIdx("pt")].stateValues
                         .text,
                 ).contain(
-                    `are: ( ${Pxs[tn - 1]}, ${Pys[tn - 1]} ) and ( ${Qxs[tn - 1]}, ${Qys[tn - 1]} ).`,
+                    `are: (${Pxs[tn - 1]}, ${Pys[tn - 1]}) and (${Qxs[tn - 1]}, ${Qys[tn - 1]}).`,
                 );
 
                 if (pn === 1) {
@@ -5824,7 +5824,7 @@ describe("Extend and references tests @group2", async () => {
                         stateVariables[await resolvePathToNodeIdx("pp")]
                             .stateValues.text,
                     ).contain(
-                        `from the line in that item is: ( ${Pxs[tn - 1]}, ${Pys[tn - 1]} ).`,
+                        `from the line in that item is: (${Pxs[tn - 1]}, ${Pys[tn - 1]}).`,
                     );
 
                     // XXX: restore these assertions
@@ -5849,7 +5849,7 @@ describe("Extend and references tests @group2", async () => {
                         stateVariables[await resolvePathToNodeIdx("pp")]
                             .stateValues.text,
                     ).contain(
-                        `from the line in that item is: ( ${Qxs[tn - 1]}, ${Qys[tn - 1]} ).`,
+                        `from the line in that item is: (${Qxs[tn - 1]}, ${Qys[tn - 1]}).`,
                     );
 
                     // XXX: restore these assertions
@@ -6001,7 +6001,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("another blank: ");
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
-        ).eq("the point: ( 4, 5 )");
+        ).eq("the point: (4, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p6")].stateValues.text,
         ).eq("the point x: 4");
@@ -6010,7 +6010,7 @@ describe("Extend and references tests @group2", async () => {
         ).eq("the line: 0 = x - y - 1");
         expect(
             stateVariables[await resolvePathToNodeIdx("p8")].stateValues.text,
-        ).eq("the line, point 1: ( 10, 9 )");
+        ).eq("the line, point 1: (10, 9)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
         ).eq("the line, point 2, y: 8");

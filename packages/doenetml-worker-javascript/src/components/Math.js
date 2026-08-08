@@ -24,7 +24,7 @@ import {
     textToMathFactory,
     latexToMathFactory,
     roundForDisplay,
-    mergeListsWithOtherContainers,
+    mergeListsIfNeeded,
     superSubscriptsToUnicode,
     unicodeToSuperSubscripts,
     preprocessMathInverseDefinition,
@@ -1355,7 +1355,7 @@ function calculateMathValue({ dependencyValues } = {}) {
         value = value.substitute(subsMapping);
     }
 
-    value = me.fromAst(mergeListsWithOtherContainers(value.tree));
+    value = mergeListsIfNeeded(value);
 
     return {
         setValue: { unnormalizedValue: value },

@@ -7,6 +7,7 @@ import {
     catalogsInScript,
     collectCatalogProbes,
     countBigBlobs,
+    countInlinedBinaries,
     findProblems,
     loadBudgets,
     servedCatalogProblems,
@@ -24,11 +25,14 @@ const BUDGETS = [
  * One emitted script. `blobs` is the count of inlined wasm copies it holds,
  * `catalogs` the locales whose served catalog turned up inside it.
  */
-function script(size, blobs = 0, catalogs = []) {
+function script(size, blobs = 0, catalogs = [], mathCores = 0) {
     return {
         size,
         wasmUris: blobs,
-        bigBlobs: blobs,
+        // `bigBlobs` is the total across both inlined binaries; the DoenetML
+        // core contributes `blobs`, the math core `mathCores`.
+        bigBlobs: blobs + mathCores,
+        mathCores,
         inlinedCatalogs: catalogs,
     };
 }
@@ -422,5 +426,71 @@ describe("servedCatalogProblems", () => {
         const problems = servedCatalogProblems(["en", "es"], null);
         expect(problems).toHaveLength(1);
         expect(problems[0]).toContain("dist/locales/ was not emitted");
+    });
+});
+
+describe("countInlinedBinaries", () => {
+    const blob = "a".repeat(1_000_000);
+
+    it("attributes a data-URI payload to the DoenetML core", () => {
+        const text = `x="data:application/wasm;base64,${blob}"`;
+        expect(countInlinedBinaries(text)).toEqual({
+            wasmUriBlobs: 1,
+            bareBlobs: 0,
+        });
+    });
+
+    it("attributes a bare base64 constant to the math core", () => {
+        expect(countInlinedBinaries(`const WASM_BASE64="${blob}"`)).toEqual({
+            wasmUriBlobs: 0,
+            bareBlobs: 1,
+        });
+    });
+
+    it("separates the two when both are present", () => {
+        const text = `a="data:application/wasm;base64,${blob}",b="${blob}"`;
+        expect(countInlinedBinaries(text)).toEqual({
+            wasmUriBlobs: 1,
+            bareBlobs: 1,
+        });
+    });
+
+    it("ignores runs below the threshold", () => {
+        expect(countInlinedBinaries("a".repeat(999_999))).toEqual({
+            wasmUriBlobs: 0,
+            bareBlobs: 0,
+        });
+    });
+});
+
+describe("the math core's placement", () => {
+    it("accepts one copy in the standalone bundle, where the DoenetML core is banned", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, script(500, 0, [], 1));
+        expect(problemsFor(scripts)).toEqual([]);
+    });
+
+    it("accepts one copy alongside the DoenetML core in the worker", () => {
+        const scripts = healthyBuild();
+        scripts.set(WASM_CORE_SCRIPT, script(900, 1, [], 1));
+        expect(problemsFor(scripts)).toEqual([]);
+    });
+
+    it("rejects a second copy — the duplication this guard exists to catch", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, script(500, 0, [], 2));
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining(
+                "carries 2 copies of the @doenet/math core",
+            ),
+        ]);
+    });
+
+    it("still rejects the DoenetML core leaking out, even beside a legal math core", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, script(500, 1, [], 1));
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining("should carry no inlined binary"),
+        ]);
     });
 });

@@ -4,7 +4,7 @@ import {
     breakEmbeddedStringByCommas,
     returnBreakStringsSugarFunction,
 } from "./commonsugar/breakstrings";
-import { roundForDisplay } from "../utils/math";
+import { roundForDisplay, markUnspecifiedComponents } from "../utils/math";
 import {
     convertValueToMathExpression,
     returnGraphicalStyleDescriptionDefinitions,
@@ -1477,7 +1477,11 @@ export default class Vector extends GraphicalComponent {
                             desiredDisplacement.length = arraySize[0] + 1;
                             instructions.push({
                                 setDependency: "displacementAttr",
-                                desiredValue: me.fromAst(desiredDisplacement),
+                                desiredValue: me.fromAst(
+                                    markUnspecifiedComponents(
+                                        desiredDisplacement,
+                                    ),
+                                ),
                                 variableIndex: 0,
                             });
                         } else if (
@@ -1509,7 +1513,11 @@ export default class Vector extends GraphicalComponent {
                             desiredDisplacement.length = arraySize[0] + 1;
                             instructions.push({
                                 setDependency: "displacementShadow",
-                                desiredValue: me.fromAst(desiredDisplacement),
+                                desiredValue: me.fromAst(
+                                    markUnspecifiedComponents(
+                                        desiredDisplacement,
+                                    ),
+                                ),
                             });
                         } else if (
                             arraySize[0] === 1 &&
@@ -1831,7 +1839,9 @@ export default class Vector extends GraphicalComponent {
                         desiredHead.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "headShadow",
-                            desiredValue: me.fromAst(desiredHead),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredHead),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&
@@ -2088,7 +2098,9 @@ export default class Vector extends GraphicalComponent {
                         desiredTail.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "tailShadow",
-                            desiredValue: me.fromAst(desiredTail),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredTail),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&

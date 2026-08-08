@@ -711,10 +711,21 @@ export default class Curve extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // A non-numeric bound (`parMin="a"`) leaves the endpoint as
+                // `null`, which `fromAst` rejects outright — taking down the
+                // whole document instead of producing a curve the renderer can
+                // decline to draw. NaN is a value the tree can hold, and every
+                // consumer already tests the domain for finiteness, so this
+                // degrades to "no finite domain" and the renderer warns.
+                const bound = (v) => (typeof v === "number" ? v : NaN);
                 // closed interval [parMin, parMax]
                 let interval = me.fromAst([
                     "interval",
-                    ["tuple", dependencyValues.parMin, dependencyValues.parMax],
+                    [
+                        "tuple",
+                        bound(dependencyValues.parMin),
+                        bound(dependencyValues.parMax),
+                    ],
                     ["tuple", true, true],
                 ]);
                 return {

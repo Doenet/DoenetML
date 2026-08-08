@@ -2597,12 +2597,19 @@ describe("Number tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("c4")].stateValues.text,
         ).eq("0.9 + 0.7 i");
+        // `Infinity i` is an infinity in the imaginary direction, and the
+        // engine has one infinity, on the real axis — so `Infinity*i` folds to
+        // `Infinity` (its `infnan_folds_are_conservative` test pins that, as
+        // the JS library's `simplify` did too). The old `NaN + NaN i` came from
+        // the JS *evaluator* disagreeing with its own simplifier: mathjs
+        // answered complex.js's `Complex.INFINITY`, which this component then
+        // put through a second evaluation to get NaN.
         expect(
             stateVariables[await resolvePathToNodeIdx("c5")].stateValues.text,
-        ).eq("NaN + NaN i");
+        ).eq("∞");
         expect(
             stateVariables[await resolvePathToNodeIdx("c6")].stateValues.text,
-        ).eq("NaN + NaN i");
+        ).eq("∞");
         expect(
             stateVariables[await resolvePathToNodeIdx("c7")].stateValues.text,
         ).eq("5");
@@ -2850,22 +2857,14 @@ describe("Number tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("c4")].stateValues.value
                 .im,
         ).closeTo(0.7, 1e-14);
+        // Real infinity, not a complex NaN — see the note on the rendered text
+        // below.
         expect(
-            stateVariables[await resolvePathToNodeIdx("c5")].stateValues.value
-                .re,
-        ).eqls(NaN);
+            stateVariables[await resolvePathToNodeIdx("c5")].stateValues.value,
+        ).eqls(Infinity);
         expect(
-            stateVariables[await resolvePathToNodeIdx("c5")].stateValues.value
-                .im,
-        ).eqls(NaN);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("c6")].stateValues.value
-                .re,
-        ).eqls(NaN);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("c6")].stateValues.value
-                .im,
-        ).eqls(NaN);
+            stateVariables[await resolvePathToNodeIdx("c6")].stateValues.value,
+        ).eqls(Infinity);
         expect(
             stateVariables[await resolvePathToNodeIdx("c7")].stateValues.value,
         ).eq(5);

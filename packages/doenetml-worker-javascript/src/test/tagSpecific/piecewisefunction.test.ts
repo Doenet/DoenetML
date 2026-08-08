@@ -585,11 +585,11 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pgmin")].stateValues
                 .text,
-        ).eq("Minima of g: ( 0.1, -0.01 )");
+        ).eq("Minima of g: (0.1, -0.01)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pgmax")].stateValues
                 .text,
-        ).eq("Maxima of g: ( 0, 0 )");
+        ).eq("Maxima of g: (0, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pg2min")].stateValues
                 .text,
@@ -597,7 +597,7 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pg2max")].stateValues
                 .text,
-        ).eq("Maxima of g_2: ( 0, 0 )");
+        ).eq("Maxima of g_2: (0, 0)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues.minima
@@ -687,7 +687,7 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("phmin")].stateValues
                 .text,
-        ).eq("Minima of h: ( 0, 0 )");
+        ).eq("Minima of h: (0, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("phmax")].stateValues
                 .text,
@@ -695,11 +695,11 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("ph2min")].stateValues
                 .text,
-        ).eq("Minima of h_2: ( 0, 0 )");
+        ).eq("Minima of h_2: (0, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("ph2max")].stateValues
                 .text,
-        ).eq("Maxima of h_2: ( -0.1, 0.01 )");
+        ).eq("Maxima of h_2: (-0.1, 0.01)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("h")].stateValues.minima
@@ -791,19 +791,19 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pkmin")].stateValues
                 .text,
-        ).eq("Minima of k: ( -2, 0 ), ( -1, 0 ), ( 1, 0 ), ( 2, 0 )");
+        ).eq("Minima of k: (-2, 0), (-1, 0), (1, 0), (2, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pkmax")].stateValues
                 .text,
-        ).eq("Maxima of k: ( 0, 1 )");
+        ).eq("Maxima of k: (0, 1)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pk2min")].stateValues
                 .text,
-        ).eq("Minima of k_2: ( -2, 0 ), ( 2, 0 )");
+        ).eq("Minima of k_2: (-2, 0), (2, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pk2max")].stateValues
                 .text,
-        ).eq("Maxima of k_2: ( -1, 1 ), ( 0, 1 ), ( 1, 1 )");
+        ).eq("Maxima of k_2: (-1, 1), (0, 1), (1, 1)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("k")].stateValues.minima
