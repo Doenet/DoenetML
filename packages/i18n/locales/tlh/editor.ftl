@@ -15,9 +15,9 @@
 # has verbs for. WCAG AA is the standard's name and would stay as written in any
 # language, so the messages around it fall back whole rather than in halves.
 #
-# Klingon is verb-final, and the imperative prefix «yI-» marks a button as an
-# order rather than a statement — the same convention `chrome.ftl` uses and for
-# the same reason.
+# Klingon is object–verb–subject, and the imperative prefix «yI-» marks a
+# button as an order rather than a statement — the same convention `chrome.ftl`
+# uses and for the same reason.
 
 
 ## The viewer's controls

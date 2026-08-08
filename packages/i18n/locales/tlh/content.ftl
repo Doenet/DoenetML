@@ -24,16 +24,19 @@
 # safe here exactly as it does everywhere else: a description reads «SuDbogh
 # circle» rather than reading a word no Klingon speaker has ever met.
 #
-# The Klingon Language Institute's own coinages are where a corrector should
-# start, and replacing an English fallback with one is the single most useful
-# edit anyone can make to this file.
+# Words Okrand has published since TKD — in KGT, in the addenda, and in the
+# material released through the Klingon Language Institute — are where a
+# corrector should start, and replacing an English fallback with one is the
+# single most useful edit anyone can make to this file. The KLI itself does not
+# coin vocabulary, so a word with no Okrand source behind it is an invention
+# whoever the speaker is.
 #
 # ## Every quality word here is a verb
 #
 # Klingon has no adjectives. What English writes as an adjective is a verb of
-# quality, and TKD 4.4 admits exactly **one** of them directly after a noun —
-# «tlhegh Doq», a red line. A description that chains three of them cannot be
-# written that way, and `style-stroke` chains three in its widest branch.
+# quality, and TKD 4.4 describes putting **one** of them directly after the
+# noun it modifies — «tlhegh Doq», a red line. It gives no way to chain them
+# there, and `style-stroke` chains three in its widest branch.
 #
 # The device that takes any number of them is the relative clause: «-bogh» on
 # each verb, «'ej» between them, and the whole clause standing **in front of**
@@ -57,7 +60,9 @@
 # `noun-gender` answers one token for every noun. Klingon does have a noun class
 # system — «-pu'» pluralizes beings capable of language, «-Du'» body parts,
 # «-mey» everything else — and it is the sort of thing `$gender` carries for the
-# Bantu catalogs. It goes unused because nothing here ever pluralizes a noun.
+# Bantu catalogs. It goes unused because no message here has to choose a class
+# at runtime: the few plurals below («ngoQmey», «tlheghmey», «nagHommey») are
+# fixed table entries, written out with the class they take.
 #
 # ## Plurals
 #
@@ -70,10 +75,14 @@
 ## Style vocabulary
 
 # **Four words for twelve keys, and this is the catalog's central fact.**
-# Klingon's basic colour terms are «qIj» (black), «chIS» (white), «Doq» (the
-# warm end — red through orange to brown) and «SuD» (the cool end plus yellow —
-# the famous «vegetable-coloured», covering green, blue and yellow together).
-# The twelve keys English distinguishes collapse onto those four.
+# Klingon's basic colour terms are «qIj» (black), «chIS» (white), «Doq» (be
+# red, be orange) and «SuD» (be green, be blue, be yellow — one term across all
+# three). The twelve keys English distinguishes collapse onto those four.
+#
+# Two of the twelve go beyond even that. Canon «Doq» is the red-orange range,
+# and nothing canon covers brown, purple or pink; putting them under «Doq» is
+# this file choosing the nearest of the four rather than reporting a Klingon
+# fact, and it is the first thing a speaker should overrule.
 #
 # The collapse is left standing rather than repaired, and the reason is the one
 # `locales/oj` gives for leaving the periodic table alone: eight invented colour
@@ -296,10 +305,15 @@ paginator-page-status = { $pageLabel } { $currentPage }, Hoch { $numPages }
 
 ## Piecewise functions
 
-# «joq» is the verb conjunction «or»; «-chugh» is the conditional suffix, which
-# cannot stand alone in front of mathematics, so «qaSchugh» — «if it happens» —
-# carries it. «latlhDaq» is «elsewhere», for the branch that catches the rest.
-piecewise-condition-or = joq
+# «pagh» is the conjunction «or» that joins sentences, which is what a piecewise
+# condition is; «joq» is its noun-joining counterpart and would be wrong here.
+# It is a homophone of the «pagh» (nothing) that `style-background-none` uses,
+# and the two are unrelated words.
+#
+# «-chugh» is the conditional suffix, which cannot stand alone in front of
+# mathematics, so «qaSchugh» — «if it happens» — carries it. «latlhDaq» is «at
+# another», this file's own way to say *elsewhere*.
+piecewise-condition-or = pagh
 piecewise-condition-if = qaSchugh
 piecewise-condition-otherwise = latlhDaq
 
@@ -310,6 +324,6 @@ piecewise-condition-otherwise = latlhDaq
 ## left to English, and Klingon is the clearest case in the roster of the reason
 ## `locales/sm` and `locales/haw` give: there is no settled list to seed from,
 ## and here there is not even a school system that might one day produce one.
-## Okrand's lexicon names a handful of substances — «baS» for metal, «SuD»'s
-## sibling terms for the stuff of the world — and nothing resembling a periodic
-## table. Coining 118 names would be coining 118 words.
+## Okrand's lexicon names a handful of substances — «baS» (metal), «bIQ»
+## (water), «Hov» (star) — and nothing resembling a periodic table. Coining 118
+## names would be coining 118 words.

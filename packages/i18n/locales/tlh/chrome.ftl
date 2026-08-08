@@ -18,8 +18,9 @@
 # it). So nearly all of it can be written, where `content.ftl` and
 # `diagnostics.ftl` have to leave a great deal to English.
 #
-# Klingon is verb-final and object-initial, so what English puts after the verb
-# comes before it here — «{ $choice } yIteq», not the other way round.
+# Klingon is object–verb–subject, so what English puts after the verb comes
+# before it here — «{ $choice } yIteq», not the other way round. An imperative
+# has no spoken subject, which is why these messages end on the verb.
 #
 # The imperative prefix is «yI-» for one thing acted on. It is used throughout
 # rather than the bare stem: a Klingon verb without a prefix is a statement, and

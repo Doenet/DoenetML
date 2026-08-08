@@ -1268,10 +1268,10 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
     };
 
     /**
-     * Klingon has no adjectives, and TKD admits exactly one verb of quality
-     * directly after a noun — so a description that chains three of them cannot
-     * be an adjective string at all. `locales/tlh` writes a relative clause
-     * instead: «-bogh» on each verb, «'ej» between them, and the whole clause
+     * Klingon has no adjectives, and TKD describes putting one verb of quality
+     * directly after the noun it modifies with no way to chain them — so a
+     * description of three cannot be an adjective string at all. `locales/tlh`
+     * writes a relative clause instead: «-bogh» on each verb, «'ej» between them, and the whole clause
      * standing in front of the noun.
      *
      * That puts it on the *prenominal* side with the Philippine catalogs and
@@ -1341,7 +1341,7 @@ describe("Klingon, which builds its phrase out of a relative clause", () => {
         ["white", "chIS"],
         ["gray", "Hurgh"],
     ])("answers %s with %s", (english, klingon) => {
-        expect(describeColor(tlh, english, "standalone")).toBe(klingon);
+        expect(describeColor(tlh, english, "text")).toBe(klingon);
     });
 
     /**

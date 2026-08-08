@@ -76,5 +76,5 @@ component-type-invalid = muj Segh: `<{ $componentType }>`.
 ##
 ## Left to English, and not as an oversight — see the header. The nouns those
 ## messages are built from do not exist in Klingon, and a corrector who wants
-## them here should bring the Klingon Language Institute's coinages rather than
-## invent a set beside this file's.
+## them here should bring words Okrand has published rather than invent a set
+## beside this file's.

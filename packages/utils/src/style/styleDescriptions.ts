@@ -357,21 +357,34 @@ function describeStroke(
 }
 
 /**
+ * A lone colour, phrased the way a stroke's colour is: `style-stroke`'s
+ * `[color]` branch, which is exactly what a one-colour description is.
+ *
+ * Used by the callers that hand the result to {@link attachNoun}, which relies
+ * on its `description` always being `style-stroke`'s output. `locales/tlh` is
+ * what the invariant is for: Klingon phrases a description as a relative
+ * clause, welding «-bogh» onto each quality verb inside `style-stroke`, so a
+ * colour arriving here as a bare table word would be placed as though it were
+ * a finished clause. Every catalog writes the `[color]` branch as the identity
+ * `{ $color }`, so going through it moves no existing language's output.
+ *
+ * Distinct from {@link describeColor}, which reports the citation form a state
+ * variable answers with and so stays a bare table lookup.
+ */
+function strokeColorPhrase(
+    t: Translator,
+    colorWord: string | undefined,
+    gender: string,
+): string {
+    return describeStroke(t, { colorWord }, gender, "standalone");
+}
+
+/**
  * A description followed by what it describes: "thick red line".
  *
- * `description` is always `style-stroke`'s output, never a word looked up on
- * its own. That is an invariant rather than an accident of the callers, and
- * `locales/tlh` is what made it one: Klingon builds a multi-adjective
- * description as a relative clause, welding «-bogh» onto each verb inside
- * `style-stroke`, so a colour that reached this function without passing
- * through that message would arrive as a bare verb and be placed as though it
- * were a finished clause. `describeMarker` and `describeRegion` look up one
- * colour and nothing else, which is `style-stroke`'s `[color]` branch — so they
- * go through it too rather than around it.
- *
- * Every catalog in the repository writes that branch as the identity
- * `{ $color }`, so routing them through it moves no existing language's output.
- * What it buys is that a catalog may rely on the shape of what arrives here.
+ * `description` is always `style-stroke`'s output — see
+ * {@link strokeColorPhrase} for why that is an invariant rather than an
+ * accident of the callers.
  */
 function attachNoun(
     t: Translator,
@@ -596,12 +609,7 @@ export function describeMarker(
 ): string {
     const noun = markerWord(t, words.markerStyleWord);
     const gender = genderOf(t, words.markerStyleWord || "point");
-    const color = describeStroke(
-        t,
-        { colorWord: words.markerColorWord },
-        gender,
-        "standalone",
-    );
+    const color = strokeColorPhrase(t, words.markerColorWord, gender);
     return withNoun ? attachNoun(t, color, { noun, tail: "" }) : color;
 }
 
@@ -612,12 +620,7 @@ export function describeRegion(
     { noun, withNoun }: { noun: NounSpec; withNoun: boolean },
 ): string {
     const gender = genderOf(t, noun.key);
-    const color = describeStroke(
-        t,
-        { colorWord: words.fillColorWord },
-        gender,
-        "standalone",
-    );
+    const color = strokeColorPhrase(t, words.fillColorWord, gender);
     return withNoun ? attachNoun(t, color, nounPhrase(t, noun)) : color;
 }
 
