@@ -467,6 +467,50 @@ describe("negotiateLocales", () => {
             ).toEqual(["en"]);
         });
     });
+
+    /**
+     * Klingon, the roster's first constructed language. Nothing in negotiation
+     * treats it specially and nothing should: `tlh` is a registered IANA
+     * primary subtag with an ISO 639-3 code, so it filters like any other
+     * individual language, needs no entry in `LANGUAGE_ALIASES`, and belongs to
+     * no macrolanguage.
+     */
+    describe("a constructed language", () => {
+        it.each([
+            ["tlh", "tlh"],
+            // pIqaD is ISO 15924 `Piqd` — a registered script code for a script
+            // Unicode does not encode, so no catalog can ever be written in it.
+            // The Latin catalog is what a reader asking for it reaches, which
+            // is the `ban-Bali` and `ace-Arab` asymmetry with the extra twist
+            // that here the second catalog the answer usually points to cannot
+            // exist.
+            ["tlh-Piqd", "tlh"],
+        ])("reaches the Klingon catalog from %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The constructed languages with codes of their own and no catalog.
+         * Quenya and Sindarin are two languages rather than one "Elvish", and
+         * `art` is the ISO 639-2 collection code over constructed languages as
+         * a group — the `phi` case, and a collection nothing folds onto. All
+         * three fall to English, which is the rule working: membership is a
+         * published fact, and none of them is a member of `tlh`.
+         */
+        it.each(["qya", "sjn", "art"])(
+            "leaves %s on English rather than folding it onto Klingon",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+    });
 });
 
 describe("resolveDocumentLocale", () => {

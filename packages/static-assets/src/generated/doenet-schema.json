@@ -65472,6 +65472,10 @@
                             "description": "Turkmen (türkmen dili)"
                         },
                         {
+                            "value": "tlh",
+                            "description": "Klingon"
+                        },
+                        {
                             "value": "tn",
                             "description": "Tswana (Setswana)"
                         },
