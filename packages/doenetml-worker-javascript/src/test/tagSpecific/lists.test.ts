@@ -333,9 +333,15 @@ describe("List tag tests @group4", async () => {
     // the blind spot (`markLeadingParagraphOfListItem()` in `list.tsx` skips the
     // `null` the core sends for an unrendered child, asserted by
     // `accessibility/listItemParagraphRoles.cy.js`), so core and renderer
-    // disagree here. Fixing it means giving both core call sites a `hidden`
-    // dependency; left for a follow-up so `<li>` and `<task>` keep behaving
-    // identically, which the second half of this test checks.
+    // disagree here. Confirmed user-visible, not just a state-variable oddity:
+    // the marker renders beside the first choice.
+    //
+    // Left unfixed on purpose rather than deferred — consulting a child's
+    // `hidden` here risks a circular dependency on the section side, and a
+    // `<li>`-only fix would make `<li>` and `<task>` diverge, which the second
+    // half of this test checks they do not. `childRendersSomething()` in
+    // `utils/listItemChild.ts` carries the analysis and the `hiddenIgnoreParent`
+    // route for whoever picks this up.
     it("documents current behavior for a hidden first child (li vs. task)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

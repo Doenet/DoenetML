@@ -20,13 +20,33 @@
  * Known limitation: this asks what a child's component type *could* render, not
  * whether this particular child is actually rendered, because it does not
  * consult the child's own `hidden`. So a `<p hide>` still wins the lead of its
- * list item even though the renderer drops it, stranding the child after it.
- * The limitation is pre-existing and shared with the section path
+ * list item even though the renderer drops it, stranding the child after it —
+ * `<li><p hide/><answer><choiceInput/></answer></li>` renders its marker beside
+ * the first choice, the very bug #1668 fixes for the unhidden case. The
+ * limitation is pre-existing and shared with the section path
  * (`SectioningComponent`'s `firstVisibleChild`, which honors only the
  * section-wide `hideChildren` broadcast); `lists.test.ts` pins the current
- * behavior down for both. Fixing it means giving both call sites a `hidden`
- * dependency on their children, deliberately not done here so `<li>` and
- * `<task>` keep behaving identically.
+ * behavior down for both.
+ *
+ * It is left unfixed on purpose, and not merely deferred: the obvious fix walks
+ * into a circular dependency. A component's `hidden` depends on its parent's
+ * `childrenToHide` (`BaseComponent`), and on the section side
+ * `childIndicesToRender`/`firstVisibleChild` and `childrenToHide` are both fed
+ * by the shared `returnSectionChildDependencies()`. Adding `hidden` to that
+ * shared helper therefore makes `childrenToHide` depend on the very `hidden` it
+ * feeds. A `<li>`-only fix has no such hazard (`Li` defines no
+ * `childrenToHide`, and `Li`'s own `text` already depends on its children's
+ * `hidden`), but it would make `<li>` and `<task>` diverge — the failure mode
+ * this whole area keeps repeating.
+ *
+ * Whoever does fix it should reach for `hiddenIgnoreParent` rather than
+ * `hidden`: it exists for this class of problem, it asks the question actually
+ * being asked here ("did this child hide *itself*?"), and it skips both
+ * `parentChildrenToHide` and ancestor visibility. See `BaseComponent`'s
+ * `hiddenIgnoreParent` and its use by `<choice>`'s `text` for why depending on
+ * ancestor visibility bites. Note also that `<cascade>` hides its unrevealed
+ * children through `childrenToHide`, so consulting plain `hidden` would change
+ * which child leads a cascade-hidden section.
  */
 export function childRendersSomething(
     child: any,
