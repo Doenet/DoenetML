@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -325,17 +326,16 @@ describe("List tag tests @group4", async () => {
         expect(ci1.renderInlineForListItem).eq(false);
     });
 
-    // A known limitation, pinned down rather than fixed: neither
-    // `childRendersSomething` nor `SectioningComponent`'s `firstVisibleChild`
-    // consults a child's own `hidden`, so a `<p hide>` wins the lead of its list
-    // item and strands the child after it — `<li><p hide/><answer><choiceInput>`
-    // still reproduces the original marker bug, confirmed in a real build and
-    // not just as a state-variable oddity. `childRendersSomething()` in
-    // `utils/listItemChild.ts` carries the analysis and the route for whoever
-    // picks it up; this test pins down all three facts that analysis rests on:
-    // `<li>` and `<task>` share the gap exactly (so a fix belongs in both), and
-    // moving the hidden child off the front is the documented workaround.
-    it("documents current behavior for a hidden first child (li, task, and the workaround)", async () => {
+    // A child that hides itself does not win the lead of its list item, in
+    // either the `<li>` or the section path: `childRendersSomething()` skips it
+    // via `hiddenIgnoreParent`, so the child after it — the one that actually
+    // renders first — gets the alignment signal. Before this, a leading
+    // `<p hide>` stranded it and `<li><p hide/><answer><choiceInput>` still
+    // reproduced the marker bug #1668 fixed for the unhidden case.
+    //
+    // The third arm (hidden child *after* the answer) was the workaround while
+    // the gap stood; it is kept because it must go on working either way.
+    it("does not delegate list-item alignment to a first child that hides itself (li and task)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <ol>
@@ -388,21 +388,86 @@ describe("List tag tests @group4", async () => {
         const ci3 =
             stateVariables[await resolvePathToNodeIdx("ci3")].stateValues;
 
-        // `<li>` picks the hidden <p> as its first visible child, so the
-        // choiceInput after it does NOT get list-item alignment.
-        expect(li1.childrenToRenderInlineForListItem[0].componentType).eq("p");
-        expect(ci1.renderInlineForListItem).eq(false);
+        // `<li>` skips the hidden <p> and delegates to the <answer> behind it.
+        expect(li1.childrenToRenderInlineForListItem[0].componentType).eq(
+            "answer",
+        );
+        expect(ci1.renderInlineForListItem).eq(true);
 
-        // `<task>` has the exact same gap via its own firstVisibleChild:
-        // same shared limitation, not something this change made worse.
-        expect(task1.firstVisibleChild.componentType).eq("p");
-        expect(ci2.renderInlineForListItem).eq(false);
+        // `<task>`'s own firstVisibleChild skips it for the same reason, so the
+        // two paths still agree.
+        expect(task1.firstVisibleChild.componentType).eq("answer");
+        expect(ci2.renderInlineForListItem).eq(true);
 
-        // The workaround the changeset documents: with the hidden child after
-        // the answer instead of before it, alignment lands where it should.
+        // A hidden child after the answer changes nothing, as before.
         expect(li2.childrenToRenderInlineForListItem[0].componentType).eq(
             "answer",
         );
         expect(ci3.renderInlineForListItem).eq(true);
+    });
+
+    // The lead has to move when a child's `hide` changes, not just when the
+    // document is first loaded — otherwise the alignment a reader sees depends
+    // on which state the document started in.
+    it("moves the lead when a first child's hide toggles", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<booleanInput name="b" />
+<ol>
+  <li name="li1">
+    <p name="p1" hide="$b">Sometimes hidden</p>
+    <answer name="ans1">
+      <choiceInput name="ci1">
+        <choice credit="1">A</choice>
+        <choice>B</choice>
+      </choiceInput>
+    </answer>
+  </li>
+</ol>`,
+        });
+
+        async function leadOfLi1() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                lead: stateVariables[await resolvePathToNodeIdx("li1")]
+                    .stateValues.childrenToRenderInlineForListItem[0]
+                    ?.componentType,
+                choiceInputAligned:
+                    stateVariables[await resolvePathToNodeIdx("ci1")]
+                        .stateValues.renderInlineForListItem,
+            };
+        }
+
+        // Visible <p> leads, so the <answer> behind it is not delegated to.
+        expect(await leadOfLi1()).eqls({
+            lead: "p",
+            choiceInputAligned: false,
+        });
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+
+        // Now hidden, so the <answer> takes the lead.
+        expect(await leadOfLi1()).eqls({
+            lead: "answer",
+            choiceInputAligned: true,
+        });
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+
+        expect(await leadOfLi1()).eqls({
+            lead: "p",
+            choiceInputAligned: false,
+        });
     });
 });

@@ -31,7 +31,10 @@ import {
     returnContentLocaleDependencies,
 } from "../../utils/contentLocale";
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
-import { childRendersSomething } from "../../utils/listItemChild";
+import {
+    childRendersSomething,
+    LIST_ITEM_CHILD_VARIABLE_NAMES,
+} from "../../utils/listItemChild";
 
 /**
  * The `child` dependencies shared by the state variables that split a section's
@@ -51,12 +54,22 @@ import { childRendersSomething } from "../../utils/listItemChild";
  * rather than render inside it. None of these component types has a
  * `rendererType`. They keep their slot in `allChildren` so the positions stay
  * aligned, and `nonConfigurationChildEntries()` filters them back out.
+ *
+ * `allChildren` also carries `LIST_ITEM_CHILD_VARIABLE_NAMES` so that
+ * `firstVisibleChild` can skip a child that hid itself. Those must stay
+ * `hiddenIgnoreParent` and never become `hidden`: `childrenToHide` reads this
+ * same helper, and a child's `hidden` depends on its parent's `childrenToHide`,
+ * so asking for `hidden` here would make `childrenToHide` depend on the value it
+ * feeds — the core then refuses to load the document, reporting a circular
+ * dependency. See {@link LIST_ITEM_CHILD_VARIABLE_NAMES}.
  */
 function returnSectionChildDependencies() {
     return {
         allChildren: {
             dependencyType: "child",
             includeAllChildren: true,
+            variableNames: LIST_ITEM_CHILD_VARIABLE_NAMES,
+            variablesOptional: true,
         },
         configurationChildren: {
             dependencyType: "child",
@@ -545,11 +558,12 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
-                // Tracks the first child whose kind puts something on the screen
-                // (see `childRendersSomething()`), so list-item sections can
-                // delegate alignment behavior to that child. "Hidden" here means
-                // only the section-wide `hideChildren` broadcast below; a child's
-                // own `hide` is not consulted — see `childRendersSomething()`.
+                // Tracks the first child that puts something on the screen (see
+                // `childRendersSomething()`, which skips both a child whose kind
+                // renders nothing and one that hid itself), so list-item sections
+                // can delegate alignment behavior to that child. The
+                // section-wide `hideChildren` broadcast below suppresses the
+                // delegation entirely.
                 let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(

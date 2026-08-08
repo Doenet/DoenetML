@@ -170,6 +170,74 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
+    // A child that hides itself must not take the lead of its list item: the
+    // renderer drops it, so the child behind it is what the marker has to line
+    // up with. `<li>` and a `<task>` section share one implementation of this
+    // (`childRendersSomething()`), so both are checked — the section arm through
+    // the top margin, since a section's number is a `::before` the marker scan
+    // does not apply to.
+    it("skips a first child that hides itself, in a list item and in a section", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="liHidden">
+        <p name="hiddenP" hide>Hidden setup text</p>
+        <answer name="ansHidden">
+          <choiceInput name="ciHidden">
+            <label>Label behind a hidden paragraph</label>
+            <choice credit="1">A</choice>
+            <choice>B</choice>
+          </choiceInput>
+        </answer>
+      </li>
+    </ol>
+    <problem name="problem">
+      <task name="taskHidden">
+        <p name="hiddenP2" hide>Hidden setup text</p>
+        <answer name="ansTask">
+          <choiceInput name="ciTask">
+            <label>Label behind a hidden paragraph</label>
+            <choice credit="1">A</choice>
+            <choice>B</choice>
+          </choiceInput>
+        </answer>
+      </task>
+    </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("liHidden")}`).should("be.visible");
+        cy.get(`#${cesc("hiddenP")}`).should("not.exist");
+
+        // The marker lands on the label's row, not a row below it.
+        verifyListItemMarkerSharesRowWith(
+            "liHidden",
+            `#${cesc("ciHidden")}-label`,
+        );
+        cy.get(`#${cesc("ansHidden")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+        cy.get(`#${cesc("ansHidden")} fieldset > legend`).should("not.exist");
+
+        // The section path agrees: the `<answer>` behind the hidden `<p>` is the
+        // one whose top margin is suppressed. Its label keeps its `<legend>` —
+        // a section draws its own number and never had the `<legend>` quirk.
+        cy.get(`#${cesc("taskHidden")}`).should("be.visible");
+        cy.get(`#${cesc("ansTask")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+        cy.get(`#${cesc("ansTask")} fieldset > legend`).should("exist");
+    });
+
     // Publishing the list-item signal from a plain `<li>` for the first time
     // reaches every renderer that consumes `renderInlineForListItem`, not just
     // `<choiceInput>`. This mirrors the section path's coverage in
