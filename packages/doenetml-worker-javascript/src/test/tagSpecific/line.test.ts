@@ -1685,21 +1685,14 @@ describe("Line tag tests @group3", async () => {
                 await resolvePathToNodeIdx("l6")
             ].stateValues.equation.equals(me.fromText("y=x^2")),
         ).eq(true);
-        // `x^2` and `-1`, i.e. the coefficients of `x^2 - y = 0` rather than of
-        // `y - x^2 = 0`. `y=x^2` is not a line, so these are not meaningful
-        // coefficients at all — but the overall sign is worth understanding,
-        // because it is not stable: they are read as RHS − LHS off the
-        // *simplified* equation, and `simplify` reorders a relation's operands
-        // for some inputs and not others (`5x-2y=3` becomes `3 = 5x-2y`,
-        // `y=x^2` is left alone). So a `y = mx + b` line and an `ax + by = c`
-        // line come out with opposite orientations. Making that consistent
-        // flips the direction vector of every `y = mx + b` line, which the
-        // `angle > angle with one line` tests pin, so it is a deliberate
-        // decision rather than a cleanup — see REMAINING_TEST_FAILURES.md §D.
+        // The coefficients of `y - x^2 = 0`: everything moved to the left of
+        // the equation as authored. (`y=x^2` is not a line, so `x^2` lands in
+        // the constant slot for want of anywhere better — but the sign is the
+        // author's.)
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues.coeff0
                 .tree,
-        ).eqls(["^", "x", 2]);
+        ).eqls(["-", ["^", "x", 2]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues
                 .coeffvar1.tree,
@@ -1707,17 +1700,21 @@ describe("Line tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues
                 .coeffvar2.tree,
-        ).eq(-1);
+        ).eq(1);
 
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l7")
             ].stateValues.equation.equals(me.fromText("1=2")),
         ).eq(true);
+        // `1 - 2`, again the author's own left-minus-right. The old `1` came
+        // from reading right-minus-left off the *simplified* equation, which
+        // agreed with the convention only for the spellings `simplify` happened
+        // to swap. A contradiction has no line, so either sign describes it.
         expect(
             stateVariables[await resolvePathToNodeIdx("l7")].stateValues.coeff0
                 .tree,
-        ).eq(1);
+        ).eq(-1);
         expect(
             stateVariables[await resolvePathToNodeIdx("l7")].stateValues
                 .coeffvar1.tree,

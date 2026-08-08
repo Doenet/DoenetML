@@ -2323,27 +2323,41 @@ function calculateCoeffsFromEquation({ equation, variables }) {
     let var1String = var1.toString();
     let var2String = var2.toString();
 
-    equation = equation.expand().simplify();
+    // Read the two sides from the equation *as authored*, and orient the
+    // difference explicitly rather than by operand position.
+    //
+    // The coefficients are a public property, so they should be the ones that
+    // fall out of the equation the author wrote: everything moved to the left,
+    // i.e. LHS - RHS. Position alone cannot deliver that, because `simplify`
+    // reorders a relation's operands for some inputs and not others -- it turns
+    // `5x-2y=3` into `3 = 5x-2y` but leaves `y=2x+1` alone -- so reading the
+    // sides off the simplified tree negated the coefficients of whichever
+    // spelling it happened not to swap. `y=x^2` reported the coefficients of
+    // `x^2 - y = 0`.
+    //
+    // The `0 = ax+by+c` form the inverse definition writes below is the one
+    // exception: there LHS - RHS would negate everything on the round trip, so
+    // a zero side orients to its non-zero partner.
+    //
+    // This decides the *coefficients* only. The direction a line points is
+    // canonicalized separately, in `calculatePointsFromCoeffs`, precisely so
+    // that it does not depend on this.
+    const tree = equation.tree;
 
-    if (!(
-        Array.isArray(equation.tree) &&
-        equation.tree[0] === "=" &&
-        equation.tree.length === 3
-    )) {
+    if (!(Array.isArray(tree) && tree[0] === "=" && tree.length === 3)) {
         return { success: false };
     }
 
-    let rhs = me
-        .fromAst(["+", equation.tree[2], ["-", equation.tree[1]]])
+    const difference = me
+        .fromAst(tree[1] === 0 ? tree[2] : ["+", tree[1], ["-", tree[2]]])
         .expand()
         .simplify();
-    // divide rhs into terms
 
     let terms = [];
-    if (Array.isArray(rhs.tree) && rhs.tree[0] === "+") {
-        terms = rhs.tree.slice(1);
+    if (Array.isArray(difference.tree) && difference.tree[0] === "+") {
+        terms = difference.tree.slice(1);
     } else {
-        terms = [rhs.tree];
+        terms = [difference.tree];
     }
 
     let coeffvar1 = me.fromAst(0);
@@ -2512,6 +2526,12 @@ function calculatePointsFromCoeffs({
     let point1x, point1y, point2x, point2y;
     let points = {};
 
+    // Orientation for point generation (see the `else` branch below): the
+    // direction is `(-b, a)`, so `b < 0` already points +x, `b > 0` needs
+    // flipping, and a vertical line (`b === 0`) orients on `a` to point +y.
+    // Zero when undeterminable, which the caller reads as "leave it alone".
+    const s = b > 0 ? -1 : b < 0 ? 1 : a < 0 ? -1 : a > 0 ? 1 : 0;
+
     if (Number.isFinite(c) && Number.isFinite(a) && Number.isFinite(b)) {
         let denom = a * a + b * b;
         if (denom === 0) {
@@ -2529,11 +2549,29 @@ function calculatePointsFromCoeffs({
             point2x = (b * (b * x1 - a * x2) - a * c) / denom;
             point2y = (a * (-b * x1 + a * x2) - b * c) / denom;
         } else {
-            // create two points that equation passes through
-            point1x = (2 * b - a * c) / denom;
-            point1y = (-2 * a - b * c) / denom;
-            point2x = (b - a * c) / denom;
-            point2y = -(a + b * c) / denom;
+            // Create two points the equation passes through.
+            //
+            // This is the one place a line acquires a *direction*: the two
+            // points come out ordered, and `point2 - point1` is `(-b, a)`
+            // scaled, so negating the coefficients reverses it. The line is the
+            // same either way, but `<angle betweenLines>` aims its ray along
+            // `points[1] - points[0]`, so the arbitrary sign would be visible
+            // on screen.
+            //
+            // Negating all three coefficients describes the same line, so we
+            // are free to choose. Pick the sign that points the line in the +x
+            // direction, and +y for a vertical one. Without this, two spellings
+            // of one line disagree: `5x-2y=3` and `2y-5x=-3` produced opposite
+            // rays.
+            //
+            // The coefficients themselves are left alone -- they are a public
+            // property and stay in the form the author's equation gives.
+            const sign = s === 0 ? 1 : s;
+            const [ax, bx, cx] = [a * sign, b * sign, c * sign];
+            point1x = (2 * bx - ax * cx) / denom;
+            point1y = (-2 * ax - bx * cx) / denom;
+            point2x = (bx - ax * cx) / denom;
+            point2y = -(ax + bx * cx) / denom;
         }
 
         points["0,0"] = me.fromAst(point1x);

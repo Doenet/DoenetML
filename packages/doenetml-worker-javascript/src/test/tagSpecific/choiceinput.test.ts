@@ -1147,7 +1147,7 @@ describe("ChoiceInput tag tests @group4", async () => {
       <choice><m>y</m></choice>
       <choice><math format="latex">\\frac{\\partial f}{\\partial x}</math></choice>
       <choice>3</choice>
-      <choice><text>1/(e^x)</text></choice>
+      <choice><text>1/e^x</text></choice>
     </choiceInput>
     
     <p>Select by typing: <mathInput name="mi" prefill="y" /></p>
@@ -1166,7 +1166,7 @@ describe("ChoiceInput tag tests @group4", async () => {
     `,
         });
 
-        let originalChoices = ["x²/2", "y", "∂ f/∂ x", "3", "1/(e^x)"];
+        let originalChoices = ["x²/2", "y", "∂ f/∂ x", "3", "1/e^x"];
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [
