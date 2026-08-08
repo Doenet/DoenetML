@@ -8,7 +8,7 @@ import {
 } from "../utils/scoredSection";
 import {
     childRendersSomething,
-    LIST_ITEM_CHILD_VARIABLE_NAMES,
+    LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
 } from "../utils/listItemChild";
 
 export class Ol extends BlockComponent {
@@ -246,8 +246,7 @@ export class Li extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    variableNames: LIST_ITEM_CHILD_VARIABLE_NAMES,
-                    variablesOptional: true,
+                    ...LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
@@ -261,9 +260,10 @@ export class Li extends BaseComponent {
                 // keeps the native marker on the label's row.
                 //
                 // A child that hides itself is skipped, so a leading `<p hide>`
-                // does not strand the child after it — see
-                // `childRendersSomething`, whose `hiddenIgnoreParent` test the
-                // `variableNames` above feed.
+                // does not strand the child after it. That is what the
+                // visibility dependency spread above lets
+                // `childRendersSomething` see; only the child's own `hide`
+                // counts, so hiding the `<ol>` around this item changes nothing.
                 const firstVisibleChild = dependencyValues.children.find(
                     (child) =>
                         childRendersSomething(child, componentInfoObjects),

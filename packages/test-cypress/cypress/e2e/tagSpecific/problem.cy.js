@@ -1611,6 +1611,60 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         verifyBeforeContent("problem3", '"3."');
     });
 
+    // A list item lines its number up with its first child that renders
+    // something and suppresses that child's top margin, so a child that hid
+    // itself must not be picked. A `<cascade>` is where that has to be told apart
+    // from the other way a child goes off screen: the cascade hides a whole
+    // step's children until the step is revealed. Only the child's own `hide`
+    // moves the lead, so revealing a step never shifts a number.
+    it("a cascade step's hidden first child does not take the lead", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade name="cascade">
+                <problem name="problem1">
+                    <p name="hiddenLead" hide>Hidden setup text</p>
+                    <answer name="ans1">
+                        <choiceInput name="ci1">
+                            <label>Label behind a hidden paragraph</label>
+                            <choice credit="1">A</choice>
+                            <choice>B</choice>
+                        </choiceInput>
+                    </answer>
+                </problem>
+                <problem name="problem2">
+                    <p name="lead2">Later step</p>
+                </problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#problem1").should("exist");
+        cy.get("#hiddenLead").should("not.exist");
+
+        // The `<answer>` behind the hidden `<p>` is the child whose top margin is
+        // suppressed. A section draws its own number rather than a native
+        // `<li>` marker, so the label keeps its `<legend>` here.
+        cy.get(`#${cesc("ans1")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+        cy.get(`#${cesc("ans1")} fieldset > legend`).should("exist");
+        verifyBeforeContent("problem1", '"1."');
+
+        // The step the cascade has not reached hides every child, so it has no
+        // lead at all — and its number is drawn just the same.
+        cy.get("#lead2").should("not.exist");
+        verifyBeforeContent("problem2", '"2."');
+    });
+
     // ---------------------------------------------------------------------
     // Outcome-based list-item number alignment (regression guard for #1482).
     //

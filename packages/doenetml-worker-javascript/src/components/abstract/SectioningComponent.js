@@ -33,7 +33,7 @@ import {
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import {
     childRendersSomething,
-    LIST_ITEM_CHILD_VARIABLE_NAMES,
+    LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
 } from "../../utils/listItemChild";
 
 /**
@@ -55,21 +55,27 @@ import {
  * `rendererType`. They keep their slot in `allChildren` so the positions stay
  * aligned, and `nonConfigurationChildEntries()` filters them back out.
  *
- * `allChildren` also carries `LIST_ITEM_CHILD_VARIABLE_NAMES` so that
- * `firstVisibleChild` can skip a child that hid itself. Those must stay
- * `hiddenIgnoreParent` and never become `hidden`: `childrenToHide` reads this
- * same helper, and a child's `hidden` depends on its parent's `childrenToHide`,
- * so asking for `hidden` here would make `childrenToHide` depend on the value it
- * feeds — the core then refuses to load the document, reporting a circular
- * dependency. See {@link LIST_ITEM_CHILD_VARIABLE_NAMES}.
+ * `allChildren` also carries {@link LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY} so
+ * that `firstVisibleChild` can skip a child that hid itself. Only
+ * `childIndicesToRender` reads it; `childrenToHide` requesting it too is a
+ * deliberate cost, not an oversight. The variable must stay `hiddenIgnoreParent`
+ * and never become `hidden` (see the constant for why), and sharing the request
+ * is what makes a switch to `hidden` fail immediately and unmistakably:
+ * `childrenToHide` would then depend on the `hidden` it feeds, and no
+ * `<problem><task>` document would load at all. Requesting it from
+ * `childIndicesToRender` alone would break that cycle, leaving the wrong
+ * variable to fail only as a handful of wrong lead assertions (the
+ * hidden-container tests in `sectioning.test.ts` and `cascade.test.ts`) that a
+ * later refactor could mistake for tests needing an update. The price of sharing
+ * is that `childrenToHide` recomputes — to the same value — when a child's `hide`
+ * toggles, which is cheap next to losing that signal.
  */
 function returnSectionChildDependencies() {
     return {
         allChildren: {
             dependencyType: "child",
             includeAllChildren: true,
-            variableNames: LIST_ITEM_CHILD_VARIABLE_NAMES,
-            variablesOptional: true,
+            ...LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
         },
         configurationChildren: {
             dependencyType: "child",
@@ -555,15 +561,38 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "hideChildren",
                 },
+                childrenToHide: {
+                    dependencyType: "stateVariable",
+                    variableName: "childrenToHide",
+                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
-                // Tracks the first child that puts something on the screen (see
-                // `childRendersSomething()`, which skips both a child whose kind
-                // renders nothing and one that hid itself), so list-item sections
-                // can delegate alignment behavior to that child. The
-                // section-wide `hideChildren` broadcast below suppresses the
-                // delegation entirely.
+                // Tracks the first child that puts something on the screen, so
+                // list-item sections can delegate alignment behavior to that
+                // child. The lead must be a child the renderer actually draws,
+                // or the number lines up with nothing and the child that is drawn
+                // first keeps the top margin the item wanted suppressed. Three
+                // ways a child can fail to be drawn, and all three are checked
+                // here:
+                //
+                //   - Its kind renders nothing, or it hid *itself* with `hide` —
+                //     `childRendersSomething()`.
+                //   - This section hides it: `childrenToHide`. That is normally
+                //     the whole content at once, already covered by the
+                //     `hideChildren` test, but `<cascadeMessage>` inverts the
+                //     rule and is hidden precisely when the rest is shown, so
+                //     without this test a leading `<cascadeMessage>` would lead
+                //     an item it is invisible in.
+                //   - `hideChildren` is set, which suppresses the delegation
+                //     entirely, since a collapsed `<cascade>` step shows no child
+                //     at all.
+                //
+                // A child hidden by something *above* this section is a
+                // deliberate non-case: hiding the section, or the container
+                // around it, leaves the lead alone, because nothing in it is on
+                // screen to realign and because reading the inherited `hidden`
+                // here would cycle (see `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`).
                 let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
@@ -611,6 +640,9 @@ export class SectioningComponent extends BlockComponent {
                     if (
                         firstVisibleChild === null &&
                         !dependencyValues.hideChildren &&
+                        !dependencyValues.childrenToHide.includes(
+                            child.componentIdx,
+                        ) &&
                         childRendersSomething(child, componentInfoObjects)
                     ) {
                         firstVisibleChild = child;
@@ -741,9 +773,13 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 // Alignment adjustments only apply when the first visible child
-                // is a component object (not plain text).
+                // is a component object (not plain text). `!= null` first,
+                // because `typeof null === "object"`: a section with no visible
+                // child at all — every child hidden, or none that renders — has
+                // no first child to adjust.
                 const firstVisibleChildAdjustedForListItem = Boolean(
                     dependencyValues.nonBoxedListItemWithoutTitle &&
+                    dependencyValues.firstVisibleChild != null &&
                     typeof dependencyValues.firstVisibleChild === "object",
                 );
 

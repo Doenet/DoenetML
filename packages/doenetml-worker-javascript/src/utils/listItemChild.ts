@@ -1,24 +1,45 @@
 /**
- * The `variableNames` a caller must request on its children so that
- * {@link childRendersSomething} can tell a child that hid itself from one that
- * renders.
+ * The fields to spread into the `child` dependency whose children are handed to
+ * {@link childRendersSomething}, so that it can tell a child that hid itself
+ * from one that renders. Callers spread this rather than naming the variable
+ * themselves, so that all of them ask the same question of the same variable.
+ *
+ * `variablesOptional` is what lets {@link childRendersSomething} tell its two
+ * failure modes apart. `hiddenIgnoreParent` is defined on `BaseComponent`, so
+ * every component child has it today; if some class ever stopped defining it,
+ * this flag degrades that child to "not hidden" (`stateValues` present,
+ * `hiddenIgnoreParent` `undefined`) instead of failing the whole document on a
+ * missing state variable. A child arriving with no `stateValues` at all then
+ * means only one thing — a call site that did not spread this — which is why
+ * that case throws. Without the flag the two would be indistinguishable core
+ * errors. String children are unaffected either way: a `child` dependency
+ * resolves them as primitives and never looks a variable up on them.
  *
  * `hiddenIgnoreParent`, not `hidden`: the question here is whether *this* child
  * took itself off the screen, not whether an ancestor took the whole subtree
  * off it. If a list item is hidden, nothing in it renders and which child leads
  * it stops mattering; whereas asking `hidden` would be both wrong and unusable.
- * Wrong because `<cascade>` hides its unrevealed children through
- * `childrenToHide`, so the lead of a not-yet-revealed section would change as
- * the cascade advances. Unusable because `hidden` depends on the parent's
- * `childrenToHide` (`BaseComponent`) while a section's
- * `childIndicesToRender`/`firstVisibleChild` and its `childrenToHide` are fed by
- * one shared dependency helper — asking `hidden` there makes `childrenToHide`
- * depend on the `hidden` it feeds, and the core refuses to load a
- * `<problem><task>` document at all, reporting a circular dependency between
+ *
+ * Wrong because hiding a *container* would then change which child leads the
+ * items inside it. `<ol hide>`, a hidden section, and a `<cascade>` step whose
+ * children stay hidden until it is revealed all set their descendants' `hidden`
+ * while leaving `hiddenIgnoreParent` alone, so with `hiddenIgnoreParent` those
+ * items keep the lead they had — see the `<cascade>` and hidden-container tests
+ * in `cascade.test.ts`, `lists.test.ts`, and `sectioning.test.ts`.
+ *
+ * Unusable because `hidden` depends on the parent's `childrenToHide`
+ * (`BaseComponent`) while a section's `childIndicesToRender`/`firstVisibleChild`
+ * and its `childrenToHide` are fed by one shared dependency helper
+ * (`returnSectionChildDependencies()`) — asking `hidden` there makes
+ * `childrenToHide` depend on the `hidden` it feeds, and the core refuses to load
+ * a `<problem><task>` document at all, reporting a circular dependency between
  * them. `hiddenIgnoreParent` depends on neither, so it cycles nowhere. See
  * `BaseComponent`'s `hiddenIgnoreParent` and its use by `<choice>`'s `text`.
  */
-export const LIST_ITEM_CHILD_VARIABLE_NAMES = ["hiddenIgnoreParent"];
+export const LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY = {
+    variableNames: ["hiddenIgnoreParent"],
+    variablesOptional: true,
+};
 
 /**
  * Whether a child puts anything on the screen: a non-blank string always does,
@@ -40,13 +61,27 @@ export const LIST_ITEM_CHILD_VARIABLE_NAMES = ["hiddenIgnoreParent"];
  * `rendererType`: naming the base type `_base`, as both `<li>` and sections do
  * for their catch-all child group, deliberately does not match a composite (see
  * `findChildGroupNoAdapters()`), so composites always expand to their
- * replacements in `activeChildren`.
+ * replacements in `activeChildren`. A composite hidden with `hide` is caught on
+ * those replacements, which inherit `hiddenIgnoreParent` from their source
+ * composite.
  *
- * The caller must request {@link LIST_ITEM_CHILD_VARIABLE_NAMES} (with
- * `variablesOptional: true`) on the child dependency it passes children from. A
- * child arriving without `stateValues` — from a dependency that asked for no
- * variables — is treated as not hidden, which is the pre-#1668 behavior rather
- * than a silent misjudgment.
+ * Every caller must spread {@link LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY} into
+ * the child dependency it passes children from — today `Li`'s
+ * `childrenToRenderInlineForListItem`, `SectioningComponent`'s
+ * `childIndicesToRender`/`firstVisibleChild`, and the wrapper pass-through in
+ * {@link returnPassThroughListItemChildStateVariableDefinitions}. The three link
+ * into one chain (an `<li>` leads with a wrapper, which leads with a child of
+ * its own), so a link that skipped the test would put the chain's end on
+ * something not on the screen.
+ *
+ * A component child that arrives without `stateValues` is a call site that did
+ * not spread it, and throws rather than falling back to "not hidden": the
+ * fallback would hand back the pre-fix answer — exactly the misjudgment this
+ * test exists to prevent — and would do it silently, so a fourth call site added
+ * later would look correct and be wrong. It cannot fire for a call site that did
+ * spread it: a `child` dependency that requests any variable gives every
+ * component child a `stateValues` object (`Dependency.getValueNoProxy()`), empty
+ * at worst.
  */
 export function childRendersSomething(
     child: any,
@@ -56,7 +91,14 @@ export function childRendersSomething(
         return child.trim() !== "";
     }
 
-    if (child.stateValues?.hiddenIgnoreParent) {
+    if (child.stateValues === undefined) {
+        throw Error(
+            `childRendersSomething() received a <${child.componentType}> child with no stateValues: ` +
+                "spread LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY into the child dependency it came from.",
+        );
+    }
+
+    if (child.stateValues.hiddenIgnoreParent) {
         return false;
     }
 
@@ -125,9 +167,20 @@ export function returnListItemChildStateVariableDefinitions({
 /**
  * Adds pass-through list-item state variables for wrapper components.
  *
- * Wrappers forward list-item inline rendering to the first non-blank,
- * non-label child component so nested block components can adjust spacing
- * and alignment.
+ * Wrappers forward list-item inline rendering to their first visible non-label
+ * child component so nested block components can adjust spacing and alignment.
+ *
+ * "Visible" is {@link childRendersSomething}, the same test the `<li>` and
+ * section paths use to pick their own lead, so the chain reaches the same child
+ * at every level. A wrapper that forwarded to a child rendering nothing — a
+ * `<p hide>`, a `<setup>` — would strand the child that actually renders first
+ * one level down and undo the whole delegation: in
+ * `<li><div><p hide/><answer><choiceInput/></answer></div></li>` the
+ * `<choiceInput>` would keep the `<legend>` #1668 removed and the marker would
+ * drop to the first choice's row.
+ *
+ * `<label>` is excluded on top of that test: a label does render, but it is the
+ * wrapper's own naming, not the content the item's number lines up with.
  */
 export function returnPassThroughListItemChildStateVariableDefinitions() {
     const stateVariableDefinitions: Record<string, any> = {};
@@ -168,14 +221,17 @@ export function returnPassThroughListItemChildStateVariableDefinitions() {
             allChildren: {
                 dependencyType: "child",
                 includeAllChildren: true,
+                ...LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
             },
         }),
         definition({
             dependencyValues,
             componentIdx,
+            componentInfoObjects,
         }: {
             dependencyValues: Record<string, any>;
             componentIdx: number;
+            componentInfoObjects: any;
         }) {
             let childrenToRenderInlineForListItem: any[] = [];
             const shouldRenderInline = returnShouldRenderInline({
@@ -183,27 +239,26 @@ export function returnPassThroughListItemChildStateVariableDefinitions() {
                 componentIdx,
             });
 
-            // If component is in the list of children to render inline,
-            // then set its childrenToRenderInlineForListItem to be its first non-blank child
+            // If component is in the list of children to render inline, forward
+            // the signal to its first visible non-label child.
 
             if (shouldRenderInline) {
-                const firstNonBlankNonLabelChild =
-                    dependencyValues.allChildren.find((child: any) => {
-                        if (typeof child === "object") {
-                            return child.componentType !== "label";
-                        }
-                        if (typeof child === "string") {
-                            return child.trim() !== "";
-                        }
-                        return false;
-                    });
+                const firstVisibleNonLabelChild =
+                    dependencyValues.allChildren.find(
+                        (child: any) =>
+                            !(
+                                typeof child === "object" &&
+                                child.componentType === "label"
+                            ) &&
+                            childRendersSomething(child, componentInfoObjects),
+                    );
 
                 if (
-                    firstNonBlankNonLabelChild &&
-                    typeof firstNonBlankNonLabelChild === "object"
+                    firstVisibleNonLabelChild &&
+                    typeof firstVisibleNonLabelChild === "object"
                 ) {
                     childrenToRenderInlineForListItem = [
-                        firstNonBlankNonLabelChild,
+                        firstVisibleNonLabelChild,
                     ];
                 }
             }

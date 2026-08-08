@@ -1707,6 +1707,10 @@ describe("Sectioning tag tests @group3", async () => {
      * actually renders first keeps its top margin and never reports the
      * alignment the section uses to place the number.
      *
+     * "Renders nothing" covers both a child whose component type has no
+     * renderer at all and a child of a rendering type that hid itself with
+     * `hide` — the cases below cover both.
+     *
      * `doenetML` must define two `<part>`s: `pa`, which opens with the
      * non-rendering child under test, and the control `pb`, which does not.
      * The child that should be picked in each is named `ca` and `cb`
@@ -1803,6 +1807,78 @@ describe("Sectioning tag tests @group3", async () => {
             componentType: "graph",
             alignment: "flex-start",
         });
+    });
+
+    // The leading child here is of a type that renders — it just hid itself, so
+    // the renderer drops it and the `<p>` behind it is what the section's number
+    // has to line up with.
+    it("does not delegate list-item rendering to a leading child that hides itself", async () => {
+        await test_first_visible_child_skips_non_rendering_child({
+            doenetML: `
+<problem>
+  <part name="pa">
+    <p hide>Hidden setup text</p>
+    <p name="ca">First</p>
+  </part>
+  <part name="pb">
+    <p name="cb">Second</p>
+  </part>
+</problem>`,
+            componentType: "p",
+            alignment: "baseline",
+        });
+    });
+
+    // A composite is never the lead itself — it expands into its replacements in
+    // `activeChildren` — so hiding one has to be caught on those replacements,
+    // which inherit `hiddenIgnoreParent` from their source composite.
+    it("does not delegate list-item rendering to the replacements of a hidden leading composite", async () => {
+        await test_first_visible_child_skips_non_rendering_child({
+            doenetML: `
+<problem>
+  <part name="pa">
+    <repeat hide for="1 2" valueName="v"><p>Hidden $v</p></repeat>
+    <p name="ca">First</p>
+  </part>
+  <part name="pb">
+    <p name="cb">Second</p>
+  </part>
+</problem>`,
+            componentType: "p",
+            alignment: "baseline",
+        });
+    });
+
+    // Only the child's own `hide` counts. Hiding the container leaves the lead
+    // where it was: nothing in a hidden section is on screen, so there is
+    // nothing to realign, and reading the inherited `hidden` here would both
+    // move the lead of every hidden section and — because `hidden` depends on the
+    // parent's `childrenToHide`, which is fed by the same dependency helper —
+    // make the document fail to load at all. See
+    // `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`.
+    it("keeps the lead of a list-item section whose container is hidden", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems name="probs" hide>
+  <problem name="prob">
+    <p name="lead">First</p>
+    <p>Second</p>
+  </problem>
+</problems>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prob =
+            stateVariables[await resolvePathToNodeIdx("prob")].stateValues;
+        const lead =
+            stateVariables[await resolvePathToNodeIdx("lead")].stateValues;
+
+        expect(prob.hidden).eq(true);
+        expect(lead.hidden).eq(true);
+        expect(prob.firstVisibleChild.componentIdx).eq(
+            await resolvePathToNodeIdx("lead"),
+        );
+        expect(lead.renderInlineForListItem).eq(true);
     });
 });
 

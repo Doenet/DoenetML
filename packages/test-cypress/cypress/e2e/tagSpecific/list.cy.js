@@ -238,6 +238,52 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         cy.get(`#${cesc("ansTask")} fieldset > legend`).should("exist");
     });
 
+    // The lead is handed down a chain: the `<li>` picks its first visible child,
+    // and a wrapper (`<div>` here, and equally a `<blockQuote>` or a
+    // `<sideBySide>` panel — the components #1668 already routes the signal
+    // through) forwards it to its own first visible child. Both links have to
+    // apply the same visibility test; when only the outer one did, a `<p hide>`
+    // one level in still put the marker beside the first choice.
+    it("skips a child that hides itself inside a wrapper leading a list item", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="liWrapped">
+        <div name="divWrapper">
+          <p name="hiddenP" hide>Hidden setup text</p>
+          <answer name="ansWrapped">
+            <choiceInput name="ciWrapped">
+              <label>Label behind a hidden paragraph</label>
+              <choice credit="1">A</choice>
+              <choice>B</choice>
+            </choiceInput>
+          </answer>
+        </div>
+      </li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("liWrapped")}`).should("be.visible");
+        cy.get(`#${cesc("hiddenP")}`).should("not.exist");
+
+        verifyListItemMarkerSharesRowWith(
+            "liWrapped",
+            `#${cesc("ciWrapped")}-label`,
+        );
+        cy.get(`#${cesc("ansWrapped")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+        cy.get(`#${cesc("ansWrapped")} fieldset > legend`).should("not.exist");
+    });
+
     // Publishing the list-item signal from a plain `<li>` for the first time
     // reaches every renderer that consumes `renderInlineForListItem`, not just
     // `<choiceInput>`. This mirrors the section path's coverage in
