@@ -542,7 +542,11 @@ jobs:
 
             # build:schema imports componentInfoObjects from source, which
             # transitively requires @doenet/utils (and friends) to be built.
-            # Matches the check-docs-coverage cached-build pattern.
+            # It now declares those as wireit dependencies and builds them
+            # itself, so this step is belt-and-braces: it keeps the rest of the
+            # workspace warm in the shared wireit cache, and it is where a
+            # build break shows up as a build failure rather than as a
+            # confusing schema diff.
             - name: Build (cached)
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
@@ -551,8 +555,10 @@ jobs:
                   WIREIT_CACHE: "local"
 
             # Regenerates packages/static-assets/src/generated/* from
-            # componentInfoObjects (read by vite-node). build:schema is
-            # not wireit-wrapped, so a fresh run always executes.
+            # componentInfoObjects (read by vite-node). build:schema is a
+            # wireit script with dependencies but deliberately no files/output,
+            # so it always re-runs instead of being served from cache — this
+            # check is only meaningful against a fresh generation.
             # The runtime guards in get-schema.ts also throw here if any
             # component/attribute/property/attribute-value description is
             # missing.
