@@ -1,22 +1,26 @@
 import { cesc } from "@doenet/utils";
 import { verifyListItemMarkerSharesRowWith } from "./utils/listItemNumberAlignment";
+import { verifySideBySideColumnTopAlignment } from "./utils/listItemAlignment";
 
 /*
  * Fixed in #1668: a real `<ol>/<ul>` `<li>` whose first child is a labeled block
  * `<choiceInput>` rendered its "1." beside the first choice instead of beside
  * the question label.
  *
- * Two mechanisms place that native `::marker`, and both are asserted here:
+ * The fix has two halves, and both are asserted here:
  *
- *   1. the leading child's top margin is suppressed (`margin-top: 0px`), so the
- *      content starts at the `<li>`'s top edge; and
- *   2. the label is rendered in a `<div>`, not a `<legend>` — a `<legend>` gets
- *      special layout treatment that makes the browser align the marker with the
- *      content *after* it.
+ *   1. `<li>` publishes the list-item alignment signal that `<problem>`-style
+ *      sections publish, which is how the `<choiceInput>` learns it leads a list
+ *      item at all. Its own visible effect is suppressing the leading child's
+ *      top margin (`margin-top: 0px`).
+ *   2. Gated on that signal, the label renders in a `<div>` rather than a
+ *      `<legend>` — a `<legend>` gets special layout treatment that makes the
+ *      browser align the marker with the content *after* it.
  *
- * (2) is the one that actually moves the marker. On top of the mechanisms,
- * `verifyListItemMarkerSharesRowWith()` measures where the marker really landed;
- * see its doc comment for how a marker that is in no rect gets measured at all.
+ * (2) is the half that moves the marker; (1) is what tells it when to fire. On
+ * top of both mechanisms, `verifyListItemMarkerSharesRowWith()` measures where
+ * the marker really landed; see its doc comment for how a marker that is in no
+ * rect gets measured at all.
  */
 describe("List Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
@@ -69,6 +73,16 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         );
         cy.get(`#${cesc("ans1")} fieldset > legend`).should("not.exist");
 
+        // The swap must move the marker's row and nothing else: the label keeps
+        // the inline padding the UA stylesheet gives a `<legend>` (asserted on a
+        // real `<legend>` in the negative test below), so its text does not
+        // shift sideways.
+        cy.get(`#${cesc("ci1")}-label`).should(
+            "have.css",
+            "padding-inline-start",
+            "2px",
+        );
+
         // A choiceInput directly inside `<li>` (no `<answer>` wrapper) is covered
         // by the same mechanism. Its own id is on the `<fieldset>` itself here.
         verifyListItemMarkerSharesRowWith("li2", `#${cesc("ci2")}-label`);
@@ -110,7 +124,7 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         </blockQuote>
       </li>
       <li name="liSbs">
-        <sideBySide>
+        <sideBySide name="sbs">
           <div>
             <answer name="ansSbs">
               <choiceInput name="ciSbs">
@@ -143,6 +157,17 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
 
         verifyListItemMarkerSharesRowWith("liSbs", `#${cesc("ciSbs")}-label`);
         cy.get(`#${cesc("ansSbs")} fieldset > legend`).should("not.exist");
+
+        // A `<sideBySide>` leading a list item is the one consumer of the signal
+        // that does more than suppress a top margin: it also switches its panels
+        // to the flex alignment a section's `<sideBySide>` has always used
+        // (`flex-start` here, because the leading panel's content is a block
+        // `<choiceInput>` rather than a `<p>`). Same helper as the section-path
+        // guard in `problem.cy.js`, so the two paths are pinned to one contract.
+        verifySideBySideColumnTopAlignment({
+            sideBySideId: "sbs",
+            expectedAlignment: "flex-start",
+        });
     });
 
     // Publishing the list-item signal from a plain `<li>` for the first time
@@ -198,7 +223,7 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
 
     // The swap needs both of its conditions: the `<choiceInput>` leads its list
     // item (`renderInlineForListItem`) *and* a real `<li>` is somewhere above it
-    // (`listItemHasNativeMarker`). Each arm below is missing one, so all three
+    // (`insideNativeListItem`). Each arm below is missing one, so all three
     // keep a native `<legend>`. The `<problem asList>` arm matters most — it
     // shares `renderInlineForListItem` for its own `::before`/grid number and
     // never had the `<legend>` quirk, so swapping there would change
@@ -258,6 +283,14 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
             "margin-top",
             "16px",
         );
+        // The inset the swapped `<div>` has to reproduce, measured on a real
+        // `<legend>` rather than assumed — this is where the 2px in
+        // `choiceInput.tsx` comes from.
+        cy.get(`#${cesc("ciPlain")}-label`).should(
+            "have.css",
+            "padding-inline-start",
+            "2px",
+        );
 
         // A `<problem asList>` section: margin suppression still applies
         // (pre-existing, correct for its own numbering) but the `<legend>` stays.
@@ -276,34 +309,6 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
             "margin-top",
             "16px",
         );
-    });
-
-    it("does not swap legend for an inline choiceInput inside a list item", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <ol>
-      <li name="li1">
-        <answer name="ans1">
-          <choiceInput inline name="ci1">
-            <label>Pick one</label>
-            <choice credit="1">A</choice>
-            <choice>B</choice>
-          </choiceInput>
-        </answer>
-      </li>
-    </ol>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(`#${cesc("li1")}`).should("be.visible");
-        // An inline choiceInput renders a dropdown, never a fieldset, and
-        // `<answer>` forwards alignment only for a non-inline one.
-        cy.get(`#${cesc("ans1")} fieldset`).should("not.exist");
     });
 
     it("<ul> gets the same first-child alignment as <ol>", () => {

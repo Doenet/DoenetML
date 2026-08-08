@@ -112,6 +112,11 @@ export function verifyListItemNumberGutterSide(id, direction, minGutterPx = 1) {
  * content, so a margin of a few px is enough to contain any overhang while
  * still proving the band was not cut off at the edge of the scan (see
  * {@link findMarkerBand}).
+ *
+ * The same number doubles as the slack in the single-row band check in
+ * {@link verifyListItemMarkerSharesRowWith}: the band it measures can legitimately
+ * run this far past the target row, because that is exactly how far the scan lets
+ * a marker overhang the item's box.
  */
 const MARKER_SCAN_MARGIN_PX = 8;
 

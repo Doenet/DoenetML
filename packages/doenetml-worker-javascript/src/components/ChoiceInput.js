@@ -129,30 +129,36 @@ export default class Choiceinput extends Input {
             }),
         );
 
-        // `renderInlineForListItem` says "I lead a list item", but it does not
-        // say which kind: it is shared by a real `<ol>/<ul>` `<li>`, which the
-        // browser gives a native `::marker`, and by a `<problem asList>`
-        // section, which draws its own number with a `::before`/grid column
-        // (see `section.tsx`). Only the native marker is thrown off by a
-        // `<legend>`, so `choiceInput.tsx` needs the two told apart, and
-        // `choiceInput` is the only component that does.
+        // Whether a real `<ol>/<ul>` `<li>` is somewhere above this
+        // `<choiceInput>` — the only place the browser draws a native
+        // `::marker`, and so the only place a `<legend>` can displace one.
         //
-        // Asking for the nearest `<li>` ancestor answers it in one place.
-        // Threading a signal down from `<li>` through each intervening
-        // component instead would have to be repeated in `<answer>`,
-        // `<sideBySide>`, and every pass-through wrapper, and any component
-        // that forgot would silently reintroduce the bug one level deeper.
+        // `renderInlineForListItem` cannot answer that on its own: it says "I
+        // lead a list item" without saying which kind, because a
+        // `<problem asList>` section is a list item too and draws its own
+        // number with a `::before`/grid column (see `section.tsx`), where a
+        // `<legend>` is harmless. `choiceInput.tsx` gates its `<legend>` swap on
+        // both, and `choiceInput` is the only component that needs the two told
+        // apart.
         //
-        // "Has an `<li>` ancestor" is a hair wider than "leads a real `<li>`",
-        // and deliberately so. The two come apart only when a list-item section
-        // sits inside a real `<li>` (`<li><problem><task><choiceInput>`): the
-        // section, not the `<li>`, is what the `<choiceInput>` leads, yet both
-        // state variables are true, so the label renders in a `<div>`. That is
-        // harmless — the fieldset's accessible name comes from its
-        // `aria-labelledby` either way, and the section's own number is drawn in
-        // CSS — and narrowing it would cost a depth comparison between the two
-        // ancestors. `lists.test.ts` pins the behavior down.
-        stateVariableDefinitions.listItemHasNativeMarker = {
+        // An ancestor lookup answers it in one place. Threading a signal down
+        // from `<li>` through each intervening component instead would have to
+        // be repeated in `<answer>`, `<sideBySide>`, and every pass-through
+        // wrapper, and any component that forgot would silently reintroduce the
+        // bug one level deeper.
+        //
+        // Note the name: *inside* an `<li>`, which is deliberately a hair wider
+        // than *leads* the `<li>`. The two come apart only when a list-item
+        // section sits inside a real `<li>`
+        // (`<li><problem><task><choiceInput>`), where the `<choiceInput>` leads
+        // the `<task>` and not the `<li>`, so the swap fires with no marker of
+        // its own to protect. It is inert there rather than merely harmless: the
+        // `<div>` reproduces the `<legend>`'s inset (see `choiceInput.tsx`) so
+        // the two render identically, and the accessible name comes from
+        // `aria-labelledby` in both cases. Narrowing it would cost a depth
+        // comparison between the two ancestors. `lists.test.ts` pins the
+        // behavior down.
+        stateVariableDefinitions.insideNativeListItem = {
             forRenderer: true,
             returnDependencies: () => ({
                 listItemAncestor: {
@@ -162,7 +168,7 @@ export default class Choiceinput extends Input {
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    listItemHasNativeMarker: Boolean(
+                    insideNativeListItem: Boolean(
                         dependencyValues.listItemAncestor,
                     ),
                 },

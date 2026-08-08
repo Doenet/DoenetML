@@ -89,7 +89,7 @@ interface ChoiceInputSVs {
     immediateValue: any;
     placeHolder: any;
     renderInlineForListItem: boolean;
-    listItemHasNativeMarker: boolean;
+    insideNativeListItem: boolean;
     selectedIndices: any;
 }
 
@@ -800,15 +800,20 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         // Swap only when there is a native marker to protect:
         // `renderInlineForListItem` also fires for a <problem asList> section,
         // which draws its own number and has no <legend> quirk, so
-        // `listItemHasNativeMarker` narrows this to a list item inside a real
-        // <li> (see its definition in `ChoiceInput.js` for the one case where
-        // the two conditions are true without the <li> being what this
-        // fieldset leads).
+        // `insideNativeListItem` narrows this to a list item inside a real <li>
+        // (see its definition in `ChoiceInput.js` for the one case where both
+        // are true without the <li> being what this fieldset leads).
         const useDivInsteadOfLegend =
-            SVs.renderInlineForListItem && SVs.listItemHasNativeMarker;
+            SVs.renderInlineForListItem && SVs.insideNativeListItem;
         const nonInlineLabelComponent = hasLabel ? (
             useDivInsteadOfLegend ? (
-                <div id={labelId}>{label}</div>
+                // The 2px matches the inline padding every browser's UA
+                // stylesheet gives a <legend>, so the swap moves the marker's
+                // row and nothing else: the label text lands in exactly the
+                // place the <legend> put it.
+                <div id={labelId} style={{ paddingInline: "2px" }}>
+                    {label}
+                </div>
             ) : (
                 <legend id={labelId}>{label}</legend>
             )

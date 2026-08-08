@@ -251,8 +251,9 @@ export class Li extends BaseComponent {
                 // `nonBoxedListItemWithoutTitle` gate) or a wrapper component
                 // (whose forwarding is gated on being selected by its own
                 // parent), there is no parent-selection concept here: an
-                // `<li>`'s first visible child always gets to suppress its top
-                // margin and top-align with the native list marker.
+                // `<li>`'s first visible child always gets the signal, which
+                // suppresses its top margin and, for a labeled `<choiceInput>`,
+                // keeps the native marker on the label's row.
                 //
                 // `childRendersSomething` judges a child's component type, not
                 // whether that particular child is rendered — a `<p hide>` still

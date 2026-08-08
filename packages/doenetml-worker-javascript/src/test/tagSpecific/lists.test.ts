@@ -35,7 +35,7 @@ describe("List tag tests @group4", async () => {
         );
         expect(ans1.listItemInlineAlignment).eq("flex-start");
         expect(ci1.renderInlineForListItem).eq(true);
-        expect(ci1.listItemHasNativeMarker).eq(true);
+        expect(ci1.insideNativeListItem).eq(true);
     });
 
     // `renderInlineForListItem` has to survive every component that forwards
@@ -45,13 +45,13 @@ describe("List tag tests @group4", async () => {
     // and the original bug reproduces one level deeper. Covers both spellings
     // of the chain: with an `<answer>` in the middle and without.
     //
-    // `listItemHasNativeMarker` is asserted alongside it because the two must
+    // `insideNativeListItem` is asserted alongside it because the two must
     // agree for the `<legend>`/`<div>` swap to fire. It tells a real `<li>`
     // (native `::marker`) apart from a `<problem asList>` section outside a list
     // (its own `::before`/grid number, no `<legend>` quirk), which is why the
     // section arm at the bottom must report `false` however deeply the wrapper
     // nests.
-    it("reaches a choiceInput through wrappers and a <sideBySide> panel, but reports no native marker under a section", async () => {
+    it("reaches a choiceInput through wrappers and a <sideBySide> panel, but reports no native list item under a section outside a list", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <ol>
@@ -115,30 +115,31 @@ describe("List tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("ciTaskDiv")].stateValues;
 
         expect(ciDiv.renderInlineForListItem).eq(true);
-        expect(ciDiv.listItemHasNativeMarker).eq(true);
+        expect(ciDiv.insideNativeListItem).eq(true);
 
         expect(ciQuote.renderInlineForListItem).eq(true);
-        expect(ciQuote.listItemHasNativeMarker).eq(true);
+        expect(ciQuote.insideNativeListItem).eq(true);
 
         expect(ciSbs.renderInlineForListItem).eq(true);
-        expect(ciSbs.listItemHasNativeMarker).eq(true);
+        expect(ciSbs.insideNativeListItem).eq(true);
 
         // Under a `<problem asList>` section the alignment signal still arrives
         // (pre-existing behavior, and what suppresses the top margin), but there
         // is no native marker to protect, so the `<legend>` must stay.
         expect(ciTaskDiv.renderInlineForListItem).eq(true);
-        expect(ciTaskDiv.listItemHasNativeMarker).eq(false);
+        expect(ciTaskDiv.insideNativeListItem).eq(false);
     });
 
-    // Pins the one shape where `listItemHasNativeMarker` is true without the
+    // Pins the one shape where `insideNativeListItem` is true without the
     // `<choiceInput>` leading the `<li>` that owns the marker: a list-item
     // section nested inside a real `<li>`. The `<choiceInput>` leads the
     // `<task>`, so both state variables are true and the label renders in a
-    // `<div>`. Harmless (the fieldset's accessible name comes from
-    // `aria-labelledby` either way, and the section draws its own number in
-    // CSS), and cheaper than comparing how deep the two ancestors are — see the
-    // `listItemHasNativeMarker` definition in `ChoiceInput.js`.
-    it("reports a native marker for a section nested inside a real <li>", async () => {
+    // `<div>`. That is inert — the `<div>` reproduces the `<legend>`'s inset so
+    // the two render identically, the accessible name comes from
+    // `aria-labelledby` either way, and the section draws its own number in CSS
+    // — and it is cheaper than comparing how deep the two ancestors are. See
+    // the `insideNativeListItem` definition in `ChoiceInput.js`.
+    it("reports being inside a native list item for a section nested in a real <li>", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <ol>
@@ -169,7 +170,7 @@ describe("List tag tests @group4", async () => {
         // ...but the `<task>` delegates to the `<choiceInput>` regardless, and
         // the `<li>` ancestor is still there.
         expect(ci1.renderInlineForListItem).eq(true);
-        expect(ci1.listItemHasNativeMarker).eq(true);
+        expect(ci1.insideNativeListItem).eq(true);
     });
 
     it("li publishes a directly-nested choiceInput (no <answer> wrapper) for list-item alignment", async () => {
