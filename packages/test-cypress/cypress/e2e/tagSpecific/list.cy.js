@@ -1,6 +1,27 @@
 import { cesc } from "@doenet/utils";
-import { verifyListItemContentTopAligned } from "./utils/listItemNumberAlignment";
 
+/*
+ * A real `<ol>/<ul>` `<li>` draws a native browser `::marker`, and its vertical
+ * position is not observable from the DOM: the marker is painted in the `<ol>`'s
+ * padding, outside the `<li>`'s box, and moving it perturbs no queryable rect
+ * (measured — see the note at the end of ./utils/listItemNumberAlignment.js).
+ *
+ * So these specs assert the two mechanisms that decide where the marker lands,
+ * rather than the marker itself:
+ *
+ *   1. the first child's top margin is suppressed (`margin-top: 0px`), so the
+ *      content starts at the `<li>`'s top edge; and
+ *   2. a labeled non-inline `<choiceInput>` leading a real `<li>` renders its
+ *      label in a `<div>`, not a `<legend>` — a `<legend>` gets special layout
+ *      treatment that makes the browser align the marker with the content *after*
+ *      it (the first choice row) instead of with the label.
+ *
+ * Both were verified to fail against a build with the fix reverted, so they are
+ * regression guards and not just documentation. (2) is the one that actually
+ * moves the marker; (1) only removes dead space above the item, because a block
+ * child's top margin otherwise collapses out through the padding/border-free
+ * `<li>` and carries the marker down with it.
+ */
 describe("List Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -44,32 +65,51 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         // The bug's exact repro: an <answer><choiceInput> as the sole child of
         // a real <li>. Before the fix, the "1." marker aligned with the first
         // choice row instead of the label.
-        verifyListItemContentTopAligned("li1");
         cy.get(`#${cesc("ans1")} fieldset`).should(
             "have.css",
             "margin-top",
             "0px",
         );
-        // The legend/div swap only applies inside a real list item's first
-        // child — confirm the quirk-avoiding <div> is used here, not <legend>.
         cy.get(`#${cesc("ans1")} fieldset > legend`).should("not.exist");
 
         // A choiceInput directly inside <li> (no <answer> wrapper) is covered
         // by the same mechanism. Its own id is on the <fieldset> itself here
         // (there's no wrapping <answer> span), unlike the ans1 case above.
-        verifyListItemContentTopAligned("li2");
         cy.get(`#${cesc("ci2")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("ci2")} > legend`).should("not.exist");
     });
 
-    it("li number aligns with other block first children (<p>, <graph>, nested <ol>)", () => {
+    // The relay has to survive a wrapper between the <li> and the choiceInput.
+    // <div>/<blockQuote>/<stack>/<column> forward the list-item signal through
+    // `returnPassThroughListItemChildStateVariableDefinitions`, and before that
+    // mixin also relayed `listItemHasNativeMarker` these two rendered a <legend>
+    // and reproduced the original bug one wrapper deep.
+    it("swaps legend through a wrapper between <li> and the choiceInput", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
     <ol>
-      <li name="li1"><p name="p1">Paragraph first child</p></li>
-      <li name="li2"><graph name="g1" size="small"><point>(1,2)</point></graph></li>
-      <li name="li3"><ol name="nested"><li name="nestedLi">Nested item</li></ol></li>
+      <li name="liDiv">
+        <div name="d1">
+          <answer name="ansDiv">
+            <choiceInput name="ciDiv">
+              <label>Label inside a div wrapper</label>
+              <choice credit="1">A</choice>
+              <choice>B</choice>
+            </choiceInput>
+          </answer>
+        </div>
+      </li>
+      <li name="liQuote">
+        <blockQuote name="bq1">
+          <choiceInput name="ciQuote">
+            <label>Label inside a blockQuote</label>
+            <choice credit="1">A</choice>
+            <choice>B</choice>
+          </choiceInput>
+        </blockQuote>
+      </li>
     </ol>
     `,
                 },
@@ -77,10 +117,70 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(`#${cesc("li1")}`).should("be.visible");
-        verifyListItemContentTopAligned("li1");
-        verifyListItemContentTopAligned("li2");
-        // Nested list as first child: no crash, still renders its own marker.
+        cy.get(`#${cesc("liQuote")}`).should("be.visible");
+
+        cy.get(`#${cesc("ansDiv")} fieldset > legend`).should("not.exist");
+        cy.get(`#${cesc("ansDiv")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+
+        cy.get(`#${cesc("ciQuote")} > legend`).should("not.exist");
+        cy.get(`#${cesc("ciQuote")}`).should("have.css", "margin-top", "0px");
+    });
+
+    // Publishing the list-item signal from a plain `<li>` for the first time
+    // reaches every renderer that consumes `renderInlineForListItem`, not just
+    // `<choiceInput>`. This mirrors the section path's coverage in
+    // `problem.cy.js` ("untitled unboxed list items align numbering with block
+    // first children") for the types where the suppression is observable.
+    //
+    // Each `in`/`out` pair is a real assertion: the same component outside a list
+    // item keeps its default top margin, so the `0px` inside one cannot pass by
+    // accident. `<div>` and `<stack>` are deliberately absent — they carry no
+    // default top margin of their own, so their suppression is a no-op here and
+    // there is nothing to assert.
+    it("suppresses the first child's top margin for every block first-child type", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="liP"><p name="pIn">Paragraph first child</p></li>
+      <li name="liPre"><pre name="preIn">x+y</pre></li>
+      <li name="liQuote"><blockQuote name="quoteIn"><p>Quoted</p></blockQuote></li>
+      <li name="liGraph"><graph name="graphIn" size="small"><point>(1,2)</point></graph></li>
+      <li name="liNested"><ol name="nested"><li name="nestedLi">Nested item</li></ol></li>
+    </ol>
+    <p name="pOut">Paragraph outside a list</p>
+    <pre name="preOut">x+y</pre>
+    <blockQuote name="quoteOut"><p>Quoted</p></blockQuote>
+    <graph name="graphOut" size="small"><point>(1,2)</point></graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("nestedLi")}`).should("be.visible");
+
+        [
+            ["pIn", "pOut", "16px"],
+            ["preIn", "preOut", "12px"],
+            ["quoteIn", "quoteOut", "16px"],
+            ["graphIn", "graphOut", "12px"],
+        ].forEach(([inId, outId, outsideMargin]) => {
+            cy.get(`#${cesc(inId)}`).should("have.css", "margin-top", "0px");
+            cy.get(`#${cesc(outId)}`).should(
+                "have.css",
+                "margin-top",
+                outsideMargin,
+            );
+        });
+
+        // A nested list as the first child renders its own markers and is not
+        // disturbed by the signal (list.tsx ignores `renderInlineForListItem`).
         cy.get(`#${cesc("nestedLi")}`).should("be.visible");
     });
 
@@ -167,12 +267,12 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.get(`#${cesc("li1")}`).should("be.visible");
-        verifyListItemContentTopAligned("li1");
         cy.get(`#${cesc("ans1")} fieldset`).should(
             "have.css",
             "margin-top",
             "0px",
         );
+        cy.get(`#${cesc("ans1")} fieldset > legend`).should("not.exist");
     });
 
     // Byte-faithful to Doenet-Experiments/Alignment.doenet (the file that
@@ -204,7 +304,6 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.get(`#${cesc("li1")}`).should("be.visible");
-        verifyListItemContentTopAligned("li1");
         cy.get(`#${cesc("ans1")} fieldset`).should(
             "have.css",
             "margin-top",

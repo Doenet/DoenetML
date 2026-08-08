@@ -1,21 +1,38 @@
 /**
- * Whether a child puts anything on the screen: a non-blank string always does,
- * a component only if its class declares a `rendererType`.
+ * Whether a child's *kind* can put anything on the screen: a non-blank string
+ * always can, a component only if its class declares a `rendererType`.
  *
  * A list item delegates its inline first-line rendering, and the alignment of
  * its hanging number (or, for a real `<li>`, its native marker), to its first
  * visible child, so a child that renders nothing must never be picked as that
  * child — doing so strands the child that actually renders first, which then
  * keeps its top margin and never gets to report the alignment it needs.
- * `<setup>` and `<variantControl>` are the common offenders and are typically
- * already excluded as configuration children; this covers the rest
- * (`<animateFromSequence>`, `<solveEquations>`, …).
+ * `<setup>` and `<variantControl>` are the common offenders. A section excludes
+ * both as configuration children; an `<li>` names neither in a child group, but
+ * reaches the same answer anyway — `<setup>` is a composite that expands to zero
+ * replacements, and `<variantControl>` has no `rendererType`. This check covers
+ * the rest (`<animateFromSequence>`, `<solveEquations>`, …).
  *
  * Composites are not a loophole even though none of them declares a
  * `rendererType`: a composite is replaced by its replacements in
  * `activeChildren` unless the parent names its component type in a child group
- * (see `findChildGroup()`), and `<setup>` — which really does render nothing —
- * is the only composite typically named this way.
+ * — and naming the base type `_base`, as both `<li>` and sections do for their
+ * catch-all group, deliberately does not match a composite (see
+ * `findChildGroupNoAdapters()`), so composites always expand.
+ *
+ * Known limitation: this asks what a child's component type *could* render, not
+ * whether this particular child is actually rendered, because it does not
+ * consult the child's own `hidden`. So a `<p hide>` still wins the lead of its
+ * list item even though the renderer drops it, which strands the child after it
+ * exactly as described above. The renderer half of the machinery does not share
+ * the blind spot — `markLeadingParagraphOfListItem()` in `list.tsx` skips the
+ * `null` the core sends for an unrendered child — so the two disagree for a
+ * hidden lead child. This is pre-existing and shared with the `<task>`/section
+ * path (`SectioningComponent`'s `firstVisibleChild`, which honors only the
+ * section-wide `hideChildren` broadcast), and `lists.test.ts` pins the current
+ * behavior down. Fixing it means giving both call sites a `hidden` dependency on
+ * their children; it is deliberately not done here so that `<li>` and `<task>`
+ * keep behaving identically.
  */
 export function childRendersSomething(
     child: any,
@@ -32,14 +49,74 @@ export function childRendersSomething(
 }
 
 /**
+ * A state variable definition that relays "the list-item context I sit in draws a
+ * native browser `::marker`" down from the parent.
+ *
+ * `renderInlineForListItem` cannot answer that question: it is shared by a real
+ * `<ol>/<ul>` `<li>` and by a `<problem asList>` section, which draws its own
+ * number with a `::before`/grid column (see `section.tsx`) and needs no help
+ * beyond the top-margin suppression the signal already buys it. Only `<li>`
+ * defines `listItemHasNativeMarker` as `true` (see `Lists.js`); everything else
+ * either relays it or, having no such parent state variable, reports `false` —
+ * `parentStateVariable` dependencies are always optional, so an unrelated parent
+ * simply yields `null`.
+ *
+ * The value is deliberately *not* gated on this component being the child the
+ * list item selected for inline alignment, so it means exactly one thing:
+ * "a native marker exists somewhere up my list-item chain". Consumers that act
+ * on it combine it with their own `renderInlineForListItem` — see the
+ * `<legend>`/`<div>` choice in `choiceInput.tsx`, the one place that needs the
+ * distinction.
+ */
+function returnListItemHasNativeMarkerDefinition({
+    forRenderer = false,
+}: { forRenderer?: boolean } = {}) {
+    return {
+        forRenderer,
+        returnDependencies: () => ({
+            parentListItemHasNativeMarker: {
+                dependencyType: "parentStateVariable",
+                variableName: "listItemHasNativeMarker",
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: Record<string, any>;
+        }) {
+            return {
+                setValue: {
+                    listItemHasNativeMarker: Boolean(
+                        dependencyValues.parentListItemHasNativeMarker,
+                    ),
+                },
+            };
+        },
+    };
+}
+
+/**
  * Adds list-item inline-rendering state variables for components that may suppress
  * their top margin when they are the first visible child in a list item.
+ *
+ * Pass `includeHasNativeMarker` to also define `listItemHasNativeMarker` — see
+ * {@link returnListItemHasNativeMarkerDefinition}. Only `<choiceInput>` needs it,
+ * so it is opt-in rather than given to all ten consumers of this mixin.
  */
 export function returnListItemChildStateVariableDefinitions({
     checkInlineVariable = false,
     listItemInlineAlignment = "baseline",
+    includeHasNativeMarker = false,
 } = {}) {
     return {
+        ...(includeHasNativeMarker
+            ? {
+                  listItemHasNativeMarker:
+                      returnListItemHasNativeMarkerDefinition({
+                          forRenderer: true,
+                      }),
+              }
+            : {}),
         renderInlineForListItem: {
             forRenderer: true,
             additionalStateVariablesDefined: [
@@ -93,9 +170,17 @@ export function returnListItemChildStateVariableDefinitions({
  * Wrappers forward list-item inline rendering to the first non-blank,
  * non-label child component so nested block components can adjust spacing
  * and alignment.
+ *
+ * `listItemHasNativeMarker` is relayed too, so a `<choiceInput>` nested a wrapper
+ * deep (`<li><div><choiceInput>`, `<li><blockQuote><answer><choiceInput>`, …) still
+ * learns that a native `::marker` is at stake. Without the relay the chain stops
+ * at the wrapper and reports `false`, which leaves the `<legend>` in place and the
+ * marker misaligned in exactly the way this machinery exists to prevent.
  */
 export function returnPassThroughListItemChildStateVariableDefinitions() {
     const stateVariableDefinitions: Record<string, any> = {};
+    stateVariableDefinitions.listItemHasNativeMarker =
+        returnListItemHasNativeMarkerDefinition();
     stateVariableDefinitions.renderInlineForListItem = {
         forRenderer: true,
         returnDependencies: () => ({

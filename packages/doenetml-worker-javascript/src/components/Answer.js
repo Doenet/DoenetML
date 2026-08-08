@@ -921,10 +921,15 @@ export default class Answer extends InlineComponent {
                     dependencyType: "parentStateVariable",
                     variableName: "childrenToRenderInlineForListItem",
                 },
-                // Distinguishes a real `<li>` (native `::marker`) from a
-                // `<problem asList>` section forwarding the same
+                // Relayed straight through to the choiceInput child, which needs
+                // to tell a real `<li>` (native `::marker`) from a `<problem
+                // asList>` section forwarding the same
                 // `childrenToRenderInlineForListItem` signal for its own,
-                // unrelated `::before`/grid numbering — see `Lists.js`.
+                // unrelated `::before`/grid numbering. See
+                // `returnListItemHasNativeMarkerDefinition()` in
+                // `utils/listItemChild.ts` for the shared version of this;
+                // `<answer>` inlines it because it defines the whole cluster of
+                // list-item variables together below.
                 parentListItemHasNativeMarker: {
                     dependencyType: "parentStateVariable",
                     variableName: "listItemHasNativeMarker",
@@ -943,13 +948,21 @@ export default class Answer extends InlineComponent {
                         .includes(componentIdx),
                 );
 
+                // Relayed regardless of whether this `<answer>` was selected for
+                // inline alignment, so the variable keeps the single meaning it
+                // has everywhere else: "a native marker exists up my list-item
+                // chain". Consumers pair it with `renderInlineForListItem`.
+                const listItemHasNativeMarker = Boolean(
+                    dependencyValues.parentListItemHasNativeMarker,
+                );
+
                 if (!isInParentList) {
                     return {
                         setValue: {
                             renderInlineForListItem: false,
                             listItemInlineAlignment: "none",
                             childrenToRenderInlineForListItem: [],
-                            listItemHasNativeMarker: false,
+                            listItemHasNativeMarker,
                         },
                     };
                 }
@@ -972,9 +985,7 @@ export default class Answer extends InlineComponent {
                         childrenToRenderInlineForListItem: firstBlockChoiceInput
                             ? [firstBlockChoiceInput]
                             : [],
-                        listItemHasNativeMarker: Boolean(
-                            dependencyValues.parentListItemHasNativeMarker,
-                        ),
+                        listItemHasNativeMarker,
                     },
                 };
             },

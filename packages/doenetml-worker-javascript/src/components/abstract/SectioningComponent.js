@@ -545,9 +545,11 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
-                // Tracks the first non-hidden child that actually puts something
-                // on the screen (see `childRendersSomething()`), so list-item
-                // sections can delegate alignment behavior to that child.
+                // Tracks the first child whose kind puts something on the screen
+                // (see `childRendersSomething()`), so list-item sections can
+                // delegate alignment behavior to that child. "Hidden" here means
+                // only the section-wide `hideChildren` broadcast below; a child's
+                // own `hide` is not consulted — see `childRendersSomething()`.
                 let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(

@@ -106,34 +106,25 @@ export function verifyListItemNumberGutterSide(id, direction, minGutterPx = 1) {
     });
 }
 
-/**
- * Assert that a real `<li>`'s visible content starts right at the `<li>`'s own
- * top edge, i.e. that nothing (an unsuppressed top margin, a `<legend>`'s
- * special layout treatment, …) pushes the content down away from where the
- * browser's native `::marker` renders.
+/*
+ * Note on the *vertical* axis, for a real `<ol>/<ul>` `<li>`: there is no
+ * equivalent geometry-based helper here, and that is deliberate.
  *
- * A native marker has no queryable box of its own (it isn't part of the DOM),
- * so this measures the outcome that matters: if the content's top edge sits
- * at the `<li>`'s own top edge, the marker — which the browser aligns to the
- * first line box — necessarily lines up with that content too. This is the
- * vertical-axis analogue of {@link verifyListItemNumbersAlign}'s horizontal,
- * geometry-based approach.
+ * The horizontal helpers above work because a section's number is a `::before`
+ * pseudo-element that shares a layout row with the content, so the content's own
+ * box position reveals where the number went. A real `<li>`'s native `::marker`
+ * shares nothing: it is painted in the `<ol>`'s padding, outside the `<li>`'s
+ * box, and moving it does not perturb a single queryable rect. This was measured
+ * for issue #1668 — with the `<li>`'s first child a labeled `<choiceInput>`, the
+ * broken layout (`<legend>` kept) and the fixed one (`<div>`) produce *identical*
+ * values for `li.getBoundingClientRect()`, the fieldset's rect, the label's rect,
+ * the first choice row's rect, and `Range.getBoundingClientRect()` /
+ * `getClientRects()` over the `<li>`'s contents. Only the marker moves, and only
+ * a screenshot can see it.
  *
- * @param {string} liId Doenet component id of the `<li>`.
- * @param {number} [maxDriftPx=2] Allowed top-edge drift in px.
+ * An earlier version of `list.cy.js` did try a vertical helper of this shape
+ * ("content top edge == `<li>` top edge"). It passed against the buggy build, so
+ * it guarded nothing. `list.cy.js` therefore asserts the two mechanisms that
+ * determine the marker's position instead — the suppressed top margin and the
+ * absence of a `<legend>` — both of which were verified to fail before the fix.
  */
-export function verifyListItemContentTopAligned(liId, maxDriftPx = 2) {
-    cy.get(`#${cesc(liId)}`).should(($li) => {
-        const li = $li[0];
-        const liTop = li.getBoundingClientRect().top;
-
-        const range = li.ownerDocument.createRange();
-        range.selectNodeContents(li);
-        const contentTop = range.getBoundingClientRect().top;
-
-        expect(
-            contentTop - liTop,
-            `${liId} content-to-marker vertical drift`,
-        ).to.be.within(-maxDriftPx, maxDriftPx);
-    });
-}

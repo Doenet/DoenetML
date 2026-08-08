@@ -804,11 +804,11 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         // `listItemHasNativeMarker` narrows this to a real <li> specifically.
         // This keeps native <legend> semantics everywhere else, including the
         // far more common case where this choiceInput isn't a list item's
-        // first child at all.
+        // first child at all. No `!SVs.inline` guard is needed: this branch is
+        // already the non-inline one, and the core sets
+        // `renderInlineForListItem` to false for an inline choiceInput anyway.
         const useDivInsteadOfLegend =
-            SVs.renderInlineForListItem &&
-            !SVs.inline &&
-            SVs.listItemHasNativeMarker;
+            SVs.renderInlineForListItem && SVs.listItemHasNativeMarker;
         const nonInlineLabelComponent = hasLabel ? (
             useDivInsteadOfLegend ? (
                 <div id={labelId}>{label}</div>

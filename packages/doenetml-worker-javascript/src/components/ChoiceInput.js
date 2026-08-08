@@ -126,36 +126,13 @@ export default class Choiceinput extends Input {
             returnListItemChildStateVariableDefinitions({
                 checkInlineVariable: true,
                 listItemInlineAlignment: "flex-start",
+                // choiceInput is the one consumer that has to tell a real
+                // `<li>`'s native `::marker` apart from a `<problem asList>`
+                // section's own `::before`/grid number, because only the former
+                // is thrown off by a `<legend>` — see `choiceInput.tsx`.
+                includeHasNativeMarker: true,
             }),
         );
-
-        // Whether the list-item ancestor that selected this choiceInput for
-        // inline alignment (a real `<li>`, or `<answer>` forwarding one) has
-        // a native `::marker` to keep aligned, as opposed to a `<problem
-        // asList>` section (which shares `childrenToRenderInlineForListItem`
-        // for margin suppression but draws its own number and has no
-        // `<legend>`-vs-marker quirk to work around). Read directly here
-        // rather than through the shared list-item-child mixin above since
-        // only choiceInput's <legend>/<div> choice (choiceInput.tsx) needs
-        // this distinction.
-        stateVariableDefinitions.listItemHasNativeMarker = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                parentListItemHasNativeMarker: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "listItemHasNativeMarker",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        listItemHasNativeMarker: Boolean(
-                            dependencyValues.parentListItemHasNativeMarker,
-                        ),
-                    },
-                };
-            },
-        };
 
         stateVariableDefinitions.inline = {
             description:

@@ -241,10 +241,10 @@ export class Li extends BaseComponent {
         // A real `<li>` renders a native browser `::marker`, unlike a
         // `<problem asList>` section (which shares `childrenToRenderInlineForListItem`
         // for margin suppression but draws its own number via a `::before`/grid
-        // column in section.tsx). Consumers that need to distinguish "my
-        // list-item ancestor has a native marker to keep aligned" from the
-        // generic "I was selected for inline alignment" signal — for example
-        // ChoiceInput's <legend>/<div> choice, see choiceInput.tsx — read this.
+        // column in section.tsx). This is the root of that signal: descendants
+        // relay it via `returnListItemHasNativeMarkerDefinition()` in
+        // `utils/listItemChild.ts`, and `choiceInput.tsx` is the one consumer
+        // that acts on it (its <legend>/<div> choice).
         stateVariableDefinitions.listItemHasNativeMarker = {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { listItemHasNativeMarker: true } }),
@@ -266,6 +266,11 @@ export class Li extends BaseComponent {
                 // concept here: an `<li>`'s first visible child always gets a
                 // chance to suppress its top margin and top-align with the
                 // native list marker.
+                //
+                // `childRendersSomething` judges a child's component type, not
+                // whether that particular child is rendered — a `<p hide>` still
+                // wins the lead. See its doc comment for why that blind spot is
+                // left alone here.
                 const firstVisibleChild = dependencyValues.children.find(
                     (child) =>
                         childRendersSomething(child, componentInfoObjects),
