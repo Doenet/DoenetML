@@ -356,7 +356,36 @@ function describeStroke(
     );
 }
 
-/** A description followed by what it describes: "thick red line". */
+/**
+ * A lone colour, phrased the way a stroke's colour is: `style-stroke`'s
+ * `[color]` branch, which is exactly what a one-colour description is.
+ *
+ * Used by the callers that hand the result to {@link attachNoun}, which relies
+ * on its `description` always being `style-stroke`'s output. `locales/tlh` is
+ * what the invariant is for: Klingon phrases a description as a relative
+ * clause, welding «-bogh» onto each quality verb inside `style-stroke`, so a
+ * colour arriving here as a bare table word would be placed as though it were
+ * a finished clause. Every catalog writes the `[color]` branch as the identity
+ * `{ $color }`, so going through it moves no existing language's output.
+ *
+ * Distinct from {@link describeColor}, which reports the citation form a state
+ * variable answers with and so stays a bare table lookup.
+ */
+function strokeColorPhrase(
+    t: Translator,
+    colorWord: string | undefined,
+    gender: string,
+): string {
+    return describeStroke(t, { colorWord }, gender, "standalone");
+}
+
+/**
+ * A description followed by what it describes: "thick red line".
+ *
+ * `description` is always `style-stroke`'s output — see
+ * {@link strokeColorPhrase} for why that is an invariant rather than an
+ * accident of the callers.
+ */
 function attachNoun(
     t: Translator,
     description: string,
@@ -580,7 +609,7 @@ export function describeMarker(
 ): string {
     const noun = markerWord(t, words.markerStyleWord);
     const gender = genderOf(t, words.markerStyleWord || "point");
-    const color = lookUp(t, COLOR_WORDS, words.markerColorWord, gender);
+    const color = strokeColorPhrase(t, words.markerColorWord, gender);
     return withNoun ? attachNoun(t, color, { noun, tail: "" }) : color;
 }
 
@@ -591,7 +620,7 @@ export function describeRegion(
     { noun, withNoun }: { noun: NounSpec; withNoun: boolean },
 ): string {
     const gender = genderOf(t, noun.key);
-    const color = lookUp(t, COLOR_WORDS, words.fillColorWord, gender);
+    const color = strokeColorPhrase(t, words.fillColorWord, gender);
     return withNoun ? attachNoun(t, color, nounPhrase(t, noun)) : color;
 }
 

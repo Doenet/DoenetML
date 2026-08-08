@@ -76,25 +76,28 @@ English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
 `mt`, `my`, `nah`, `nb`, `nds`, `ne`, `nl`, `ny`, `oc`, `oj`, `om`, `or`, `pa`,
 `pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `ro`, `ru`, `rw`, `sc`, `scn`, `sd`,
 `se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`,
-`ta`, `te`, `tet`, `tg`, `th`, `ti`, `tk`, `tn`, `to`, `tpi`, `tr`, `tt`, `ty`,
-`ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`,
+`ta`, `te`, `tet`, `tg`, `th`, `ti`, `tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `tt`,
+`ty`, `ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`,
 `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's
 own header says at the top, and which is what #1521's translation platform is
 for. None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-Seventy-three of them are deliberately partial, all in the same place: Somali,
-Hmong Njua, Amharic, Assamese, Nepali, Burmese, Pashto, Sindhi, Uyghur,
-Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja,
-Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano, Malagasy, Māori,
-Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona, Southern Sotho,
-Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low German,
-Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern Sami,
-Yiddish, Haitian Creole, Quechua, Guarani, Aymara, Nahuatl, Kʼicheʼ, Mapudungun,
-Ojibwe, Ilocano, Waray, Hiligaynon, Kapampangan, Bikol, Balinese, Minangkabau,
-Acehnese, Madurese, Tetum, Tongan, Fijian, Tahitian, Chamorro and Tok Pisin
-leave `element-name` and `element-anion-name` out, so those 130 keys fall back
-to English and `lint:i18n` reports the gap.
+Seventy-four of them are deliberately partial. Seventy-three are partial in the
+same place — the two chemistry tables — while Klingon is partial almost
+everywhere, for a different reason: see
+[A language with no word for it](#a-language-with-no-word-for-it). The
+seventy-three are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
+Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
+Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
+Southern Sotho, Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low
+German, Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern
+Sami, Yiddish, Haitian Creole, Quechua, Guarani, Aymara, Nahuatl, Kʼicheʼ,
+Mapudungun, Ojibwe, Ilocano, Waray, Hiligaynon, Kapampangan, Bikol, Balinese,
+Minangkabau, Acehnese, Madurese, Tetum, Tongan, Fijian, Tahitian, Chamorro and
+Tok Pisin leave `element-name` and `element-anion-name` out, so those 130 keys
+fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
@@ -481,6 +484,108 @@ roster reads "Tongan (lea fakatonga)" — and the other fourteen read their
 English name once. None of the fifteen is right-to-left, so `direction.ts` is
 untouched.
 
+### A language with no word for it
+
+`tlh` is **Klingon**, and it is the roster's first constructed language. Nothing
+about delivering it is special: `tlh` is a registered IANA primary subtag with
+an ISO 639-3 code, so it filters like any other individual language, needs no
+entry in `LANGUAGE_ALIASES`, and belongs to no macrolanguage. `Intl` knows the
+English name, so the roster reads **Klingon** — once, not twice, because CLDR
+has no `tlh`-language data to answer the endonym with and the fallback is the
+English name. That is the `co` case, with the twist that Klingon *has* a
+well-known endonym («tlhIngan Hol») and CLDR simply does not carry it.
+
+pIqaD is ISO 15924 `Piqd`, so `tlh-Piqd` is a well-formed tag and reaches the
+Latin catalog. That is the `ban-Bali` and `ace-Arab` asymmetry with the answer
+removed: everywhere else the answer to a script mismatch is a second catalog
+beside the first, and here there cannot be one, because Unicode does not encode
+pIqaD. Quenya (`qya`), Sindarin (`sjn`) and the ISO 639-2 collection code `art`
+all fall to English, which is the membership rule working rather than a gap in
+it — none of them is a member of `tlh`. `negotiate.test.ts` holds all of that.
+
+What *is* new is the **shape of the gap**. Every other partial catalog leaves
+out the chemistry tables because a school system teaches chemistry in another
+language; the language has the words and the seed has no settled list to copy.
+Klingon is the first partial for a lexical reason — its lexicon is closed, since
+every word in it is one Marc Okrand has published — and `locales/tlh` translates
+160 of the 562 keys, leaving the rest to English.
+
+The line it draws is stated once in `content.ftl` and applied everywhere:
+
+> A compound of canon words whose sense a speaker could work out is a
+> description, and is written. A new root is an invention, and is not.
+
+Under it «nagHom» — «nagh» (rock) with the canon diminutive — is a fair way to
+say *dot*, and a word for *parabola* is not a translation of anything. It is the
+argument `locales/oj` already makes about coining 118 element names, generalized
+from one table to a whole catalog.
+
+**The gap is much narrower than a first look suggests, and getting that wrong is
+the mistake this catalog was drafted around before review caught it.** Okrand
+has released a mathematics register over the years, well after TKD, so «mey'»
+(polygon), «ra'Duch» (triangle), «letbaQ» (rectangle), «meyrI'» (square), «vI'»
+(point), «baSta'» (vector) and «chav» (function) all exist and are all used. So
+are «wa'chaw» (table), «wev» and «war» (row and column), «tenwal» (page) and
+«vorgh» (be previous), each of which an earlier draft either coined around or
+left to English. What is genuinely absent is smaller and stranger: *parabola*,
+*polyline*, *curve* as a noun, and the vocabulary of a document editor —
+*attribute*, *variant*, *matrix*, *snippet*, *accessibility*. **The lesson
+generalizes past Klingon: "this language has no word for X" is a claim about a
+word list, and it needs checking against the word list.**
+
+**"Canon" is three different things, and `locales/tlh` says which one it means
+every time it makes a claim.** The word list those geometry nouns come from
+records a source for each entry, and the sources are not equivalent. Some words
+are in the printed books — «gho» (circle), «tlhegh» (line), «tIH» (ray) and all
+four colour terms are TKD entries. Some are Okrand's own but were released at a
+`qep'a'` or `qepHom'a'` gathering or posted to the old `startrek.klingon`
+newsgroup: «meyrI'», «me'cheD», «baSta'», «chav» in its mathematical sense,
+«vorgh», «wa'chaw», «wev», «war», «tenwal» and «nItlh 'echlet» (keyboard). And
+three of the geometry nouns — «mey'», «ra'Duch», «letbaQ» — rest on a *single*
+relayed answer on the KLI mailing list, one post of 2014.01.27, with no second
+attestation; «ghantoH» (example) and «nompuq» (reference) are the same. All
+three classes are used and none is removed, but the catalogs mark the third
+where it appears rather than presenting it flat as canon. That matters
+precisely because of the argument the catalog makes for using these words at
+all: the KLI does not coin vocabulary, it relays Okrand's — so the third class
+is still his, and what a reader has to go on is one paraphrase. Telling them
+which entries those are is what lets a speaker overrule the right ones.
+
+`.diamond` is the instructive omission, because it is not a lexical gap at all.
+Okrand's note on «chanmon» (the gemstone) says the diamond *shape* is «meyrI'»,
+which the catalog already spends on `square`. Writing it would make a square
+marker and a diamond marker report identically — the one distinction a shape
+noun exists to carry — so the key falls back to English instead. That is the
+opposite call from the colour table below, and the difference is that the colour
+collapse is Klingon's own and this one would have been the catalog's.
+
+The four files are lopsided as a result and instructively so: `chrome.ftl` is
+nearly complete, because a button is a verb and Klingon is rich in verbs of
+acting and judging, while `diagnostics.ftl` is the emptiest file in the
+repository, because its two hundred messages are built out of the nouns that are
+missing.
+
+**Four colour words for twelve keys** is the sharpest instance, and the one
+that costs something: Klingon's basic terms are «qIj», «chIS», «Doq» and «SuD»,
+so after the collapse a blue curve and a green one report the same word, in
+strings whose whole purpose is letting a reader who cannot see the graph tell
+its objects apart. Tongan, Fijian and Tahitian met the mild form of this — one
+key inside a neighbour's word — and this is the same thing at full size. The
+collapse is left standing anyway, because coined colour words would be
+inventions; a deployment that needs the distinction supplies them as
+`localeResources`, in front of the readers who asked for it rather than in
+front of everyone. Only `purple` and `pink` are placed with nothing canon behind
+them — Okrand's own note puts brown under «Doq», and gray has the canon phrase
+«qIj 'ej wov», which the table cannot hold because «-bogh» welds onto a single
+verb. `content.ftl`'s header gives the mapping and `styleDescriptions.test.ts`
+pins all twelve, so the day someone does coin the rest the test says which
+distinctions they bought.
+
+The chemistry tables are left to English here too, and for a third reason again:
+«tamler wa'chaw» is the periodic table and roughly thirty of the 118 elements
+have canon names, so what stops the table is that seventy percent of it would
+still be English. That is the largest piece of real work left in the catalog.
+
 A catalog's **comments are in English** whatever it translates into: its
 header, its `##` group headings, and the notes explaining a wording choice.
 They are addressed to whoever maintains the file, and no one maintaining it
@@ -841,6 +946,32 @@ reason rather than the workaround. Splitting `standalone` into a citation
 position and an attributive one is a change to `styleDescriptions.ts` that no
 existing catalog needs and this one would use on the day it lands.
 
+**Klingon has no adjectives at all, and that turns the whole description into a
+relative clause.** What English writes as an adjective is a verb of quality
+there, and TKD describes putting one of them directly after the noun it
+modifies — «tlhegh Doq», a red line — giving no way to chain three, which is
+what `style-stroke`'s widest branch needs. `locales/tlh` writes «-bogh» on each
+verb, «'ej» between them, and stands the whole clause in front of the noun:
+«jeDbogh 'ej pe'lu'bogh 'ej Doqbogh tlhegh» — an extension of «'ej» rather than
+an attested pattern, since no canon example chains three relative clauses, and
+the catalog's header says so. That puts Klingon on the prenominal
+side with the Philippine catalogs and Tok Pisin, for a reason none of them
+shares, and it is why the catalog needs no `$role` fork — the *position* is
+handled by the message that composes the phrase rather than by the word inside
+it, so its tables can hold bare verbs that double as the citation form a state
+variable reports.
+
+It also turned an accident into an invariant. **`style-with-noun`'s
+`$description` is always `style-stroke`'s output, never a word looked up on its
+own.** `describeMarker` and `describeRegion` look up one colour and nothing
+else, and used to hand that raw word straight to `attachNoun`; every catalog
+writes `style-stroke`'s `[color]` branch as the identity `{ $color }`, so
+nothing said the two paths differed. Klingon says so, because a bare verb and a
+«-bogh» clause are not interchangeable in front of a noun. Both now go through
+`style-stroke`, which moves no existing language's output — all 147 of the other
+catalogs write that branch identically — and buys a catalog the right to rely on
+the shape of what arrives.
+
 Even the noun is not one string. A regular polygon is "5-sided regular polygon"
 in English but "polígono regular … de 5 lados" in Spanish, wrapped around the
 adjectives rather than sitting beside them, so `noun-regular-polygon` answers
@@ -903,6 +1034,16 @@ what that value turns out to *be*:
 Adjacency is not the problem. `{ $numSides }-kulmio` is correct Finnish for
 every side count, because `-kulmio` is the same whatever number lands in front
 of it. What cannot be written is *agreement* with an unknown word.
+
+**Klingon is that paragraph from the other end, and it is worth stating because
+`locales/tlh` welds a suffix onto a placeable in nearly every message it
+writes.** «-bogh», «-Daq» and «-vaD» sit on values the catalog never sees —
+`{ $color }bogh`, `{ $answerId }vaD` — and come out right whatever lands there,
+because Klingon suffixes have one shape each: no vowel harmony, no assimilation,
+no consonant grade. It is a constructed language, and invariant affixes are one
+of the things its designer chose. So the table above is not a list of scripts or
+of families; it is a list of languages whose endings change shape, and the rule
+is about that property rather than about welding.
 
 Tajik is the case where that distinction decides something, and it needs both
 this rule and the third way out below to come off. Its adjectives follow the

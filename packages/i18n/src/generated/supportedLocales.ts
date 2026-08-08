@@ -134,6 +134,7 @@ export type SupportedLocale =
     | "th"
     | "ti"
     | "tk"
+    | "tlh"
     | "tn"
     | "to"
     | "tpi"
@@ -877,6 +878,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Turkmen",
         endonym: "türkmen dili",
         label: "Turkmen (türkmen dili)",
+    },
+    {
+        locale: "tlh",
+        englishName: "Klingon",
+        endonym: "Klingon",
+        label: "Klingon",
     },
     {
         locale: "tn",

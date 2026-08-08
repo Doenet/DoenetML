@@ -1255,6 +1255,202 @@ describe("the Austronesian batch's word order", () => {
     );
 });
 
+describe("Klingon, which builds its phrase out of a relative clause", () => {
+    const tlh: Translator = createTranslatorFromLocaleData(
+        { locale: "tlh", resources: { tlh: readCatalog("tlh", "content") } },
+        "tlh",
+    );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    /**
+     * Klingon has no adjectives, and TKD describes putting one verb of quality
+     * directly after the noun it modifies with no way to chain them — so a
+     * description of three cannot be an adjective string at all. `locales/tlh`
+     * writes a relative clause instead: «-bogh» on each verb, «'ej» between
+     * them, and the whole clause standing in front of the noun. Joining
+     * «-bogh» clauses that way is the catalog's extension of «'ej» rather than
+     * an attested pattern, which its header says.
+     *
+     * That puts it on the *prenominal* side with the Philippine catalogs and
+     * Tok Pisin, and for a reason none of them shares. What this pins is the
+     * shape rather than the side: every word carries its own «-bogh», which is
+     * what would break if someone "simplified" the catalog into a bare
+     * adjective string.
+     */
+    it("welds -bogh onto each quality verb and puts the clause first", () => {
+        expect(
+            describeStrokedShape(tlh, words, {
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh tlhegh");
+        expect(
+            describeStrokedShape(tlh, words, {
+                noun: { key: "line" },
+                withNoun: false,
+            }),
+        ).toBe("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh");
+    });
+
+    /**
+     * The suffix is welded onto a value the catalog never sees, which the
+     * README's affix rule forbids in Arabic, Uyghur, Finnish and Hungarian.
+     * It is sound here because Klingon suffixes have one shape each — no vowel
+     * harmony, no assimilation — so this is the «{ $numSides }-kulmio» case
+     * rather than the «в»/«ве» one. A single-word description takes the same
+     * suffix as a three-word one, which is what says the weld is on the word
+     * and not on the join.
+     */
+    it("welds the same suffix on a description of one word", () => {
+        expect(
+            describeStrokedShape(
+                tlh,
+                { lineWidthWord: "", lineStyleWord: "", colorWord: "red" },
+                { noun: { key: "line" }, withNoun: true },
+            ),
+        ).toBe("Doqbogh tlhegh");
+    });
+
+    /**
+     * **Four colour words for twelve keys.** Klingon's basic terms are «qIj»,
+     * «chIS», «Doq» (red and orange, and brown too by Okrand's own note) and
+     * «SuD» (green, blue and yellow together), and the catalog leaves the
+     * collapse standing rather than coining words to repair it — the reason
+     * `locales/oj` gives for leaving the periodic table alone, at the scale of
+     * a whole table. Only `purple` and `pink` have nothing canon behind their
+     * placement; `gray` has a canon phrase, «qIj 'ej wov», that this table
+     * cannot hold because «-bogh» welds onto a single verb.
+     *
+     * It is pinned rather than described because it costs something real: a
+     * blue curve and a green one report the same word, and these descriptions
+     * exist so a reader who cannot see the graph can tell objects apart. The
+     * day someone supplies coined terms, this is the test that says which
+     * distinctions they just bought.
+     */
+    it.each([
+        ["red", "Doq"],
+        ["orange", "Doq"],
+        ["brown", "Doq"],
+        ["purple", "Doq"],
+        ["pink", "Doq"],
+        ["yellow", "SuD"],
+        ["green", "SuD"],
+        ["cyan", "SuD"],
+        ["blue", "SuD"],
+        ["black", "qIj"],
+        ["white", "chIS"],
+        ["gray", "Hurgh"],
+    ])("answers %s with %s", (english, klingon) => {
+        expect(describeColor(tlh, english, "text")).toBe(klingon);
+    });
+
+    /**
+     * The catalog is partial in its `noun` table rather than only in its
+     * chemistry, which no earlier catalog is — but the gap is narrower than the
+     * shape of the language suggests. Okrand has published a geometry
+     * vocabulary, so fourteen of the eighteen nouns are canon Klingon; four
+     * are not, because *parabola*, *polyline*, *curve* and *diamond* have no
+     * canon word and each would be a new root.
+     *
+     * Those four fall back to English and the description comes out in two
+     * languages, which is the documented state and not a bug to tidy: an
+     * invented root would read as a word no Klingon speaker has met, where the
+     * English at least reads as English. `noun-regular-polygon` is left with
+     * them, because nothing canon says *regular*, so a regular polygon reads in
+     * English entire rather than in half of each.
+     */
+    it("falls back to English for the nouns Klingon has no word for", () => {
+        expect(
+            describeStrokedShape(tlh, words, {
+                noun: { key: "parabola" },
+                withNoun: true,
+            }),
+        ).toBe("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh parabola");
+        expect(
+            describeStrokedShape(tlh, words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            }),
+        ).toBe("jeDbogh 'ej pe'lu'bogh 'ej Doqbogh 5-sided regular polygon");
+    });
+
+    /**
+     * The other side of the same line, and the one worth pinning because an
+     * earlier draft of this catalog got it wrong and left these in English on
+     * the grounds that Klingon had no mathematics at all. It does: «gho» is in
+     * TKD, and «mey'» and «ra'Duch» come from the word lists Okrand has
+     * released since. Anything this test stops matching is a canon word that
+     * has been dropped back to English.
+     */
+    it.each([
+        ["circle", "gho"],
+        ["polygon", "mey'"],
+        ["triangle", "ra'Duch"],
+        ["rectangle", "letbaQ"],
+        ["square", "meyrI'"],
+        ["vector", "baSta'"],
+        ["function", "chav"],
+    ])("names a %s with the canon word %s", (key, klingon) => {
+        expect(
+            describeStrokedShape(tlh, words, {
+                noun: { key },
+                withNoun: true,
+            }),
+        ).toBe(`jeDbogh 'ej pe'lu'bogh 'ej Doqbogh ${klingon}`);
+    });
+
+    /**
+     * The invariant `attachNoun` now documents, seen from the catalog's side. A
+     * marker and a region look up one colour and nothing else, and before this
+     * they handed that raw word to `style-with-noun` while a stroke handed over
+     * a finished `style-stroke` phrase. Every other catalog spells both the
+     * same way, so nothing said the two differed; Klingon does not, because its
+     * clause carries «-bogh» and a bare verb does not. Routing both through
+     * `style-stroke`'s `[color]` branch is what makes these two strings match
+     * the stroke's shape, and this is what would notice if either stopped.
+     */
+    it("gives a marker and a region the same clause a stroke gets", () => {
+        expect(
+            describeMarker(
+                tlh,
+                { markerColorWord: "blue", markerStyleWord: "point" },
+                { withNoun: true },
+            ),
+        ).toBe("SuDbogh vI'");
+        expect(
+            describeRegion(
+                tlh,
+                { fillColorWord: "blue" },
+                { noun: { key: "region" }, withNoun: true },
+            ),
+        ).toBe("SuDbogh yer");
+    });
+
+    /**
+     * The border clause is built with «je» — the noun conjunction, which
+     * follows what it joins. Klingon has no article and «je» opens no clause,
+     * so `style-border-clause`'s four branches all say the same thing; this is
+     * the string that would change if someone gave three of them a distinction
+     * the language does not draw.
+     */
+    it("closes a filled shape with the noun conjunction je", () => {
+        expect(
+            describeClosedShape(
+                tlh,
+                { ...words, fillColorWord: "blue", fillStyleWord: "" },
+                { filled: true, noun: { key: "line" }, withNoun: true },
+            ),
+        ).toBe(
+            "buy'bogh 'ej SuDbogh tlhegh jeDbogh 'ej pe'lu'bogh 'ej Doqbogh HeH je",
+        );
+    });
+});
+
 describe("a partly translated locale", () => {
     // A translation is allowed to lag: every key it does not define falls
     // through to English. The split noun is the case where that matters, since
@@ -1839,7 +2035,17 @@ describe("a phrase rendered in two positions", () => {
     // the substring holds even though two animacies are in play — which is the
     // same shape Swahili's «mpaka» case has, and why neither language needs
     // `$role`.
-    it.each(Object.entries({ ...americas, ...austronesian }))(
+    /**
+     * Klingon on the identity side too, and for a reason none of the others
+     * has. It is not that nothing inflects — «-bogh» is welded onto every
+     * quality verb — but that the welding happens in the *composing* message
+     * rather than in the word, so the tables hold bare verbs and a position
+     * never reaches inside one. A `$role` fork here would have nothing to
+     * change.
+     */
+    const constructed = { tlh: forLocale("tlh") } as const;
+
+    it.each(Object.entries({ ...americas, ...austronesian, ...constructed }))(
         "leaves %s's adjectives unchanged between the two positions",
         (_locale, t) => {
             const border = bothBorderForms(t);
