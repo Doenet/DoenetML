@@ -31,7 +31,10 @@ import {
     returnContentLocaleDependencies,
 } from "../../utils/contentLocale";
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
-import { childRendersSomething } from "../../utils/listItemChild";
+import {
+    childRendersSomething,
+    LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
+} from "../../utils/listItemChild";
 
 /**
  * The `child` dependencies shared by the state variables that split a section's
@@ -51,12 +54,34 @@ import { childRendersSomething } from "../../utils/listItemChild";
  * rather than render inside it. None of these component types has a
  * `rendererType`. They keep their slot in `allChildren` so the positions stay
  * aligned, and `nonConfigurationChildEntries()` filters them back out.
+ *
+ * `includeChildVisibility` adds {@link LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY} so
+ * that `firstVisibleChild` can skip a child that hid itself. Only
+ * `childIndicesToRender` may pass it, and `childrenToHide` must not: asking a
+ * child for any visibility variable reaches that child's `hide` attribute, an
+ * author may point `hide` at another component's `hidden` (`hide="$b.hidden"` is
+ * ordinary DoenetML), and `hidden` reads its parent's `childrenToHide`. Were
+ * `childrenToHide` to ask, that closes into a cycle and the document does not
+ * load at all — see the test in `sectioning.test.ts`, which loaded fine before
+ * the lead was ever picked by visibility.
+ *
+ * The cycle is about *which state variable asks*, not about which visibility
+ * variable it asks for: `hiddenIgnoreParent` closes it from `childrenToHide` just
+ * as `hidden` would, through an author's `hide="$b.hidden"`. Confining the request
+ * to `childIndicesToRender` is therefore the whole fix, and the reason to prefer
+ * `hiddenIgnoreParent` over `hidden` is a separate, semantic one — see the
+ * constant.
  */
-function returnSectionChildDependencies() {
+function returnSectionChildDependencies({
+    includeChildVisibility = false,
+} = {}) {
     return {
         allChildren: {
             dependencyType: "child",
             includeAllChildren: true,
+            ...(includeChildVisibility
+                ? LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY
+                : {}),
         },
         configurationChildren: {
             dependencyType: "child",
@@ -529,7 +554,12 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "child",
                     childGroups: ["titles"],
                 },
-                ...returnSectionChildDependencies(),
+                // The only state variable that may ask for its children's
+                // visibility — `childrenToHide` asking too would cycle. See
+                // `returnSectionChildDependencies()`.
+                ...returnSectionChildDependencies({
+                    includeChildVisibility: true,
+                }),
                 titleChildName: {
                     dependencyType: "stateVariable",
                     variableName: "titleChildName",
@@ -542,14 +572,38 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "hideChildren",
                 },
+                childrenToHide: {
+                    dependencyType: "stateVariable",
+                    variableName: "childrenToHide",
+                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
-                // Tracks the first child whose kind puts something on the screen
-                // (see `childRendersSomething()`), so list-item sections can
-                // delegate alignment behavior to that child. "Hidden" here means
-                // only the section-wide `hideChildren` broadcast below; a child's
-                // own `hide` is not consulted — see `childRendersSomething()`.
+                // Tracks the first child that puts something on the screen, so
+                // list-item sections can delegate alignment behavior to that
+                // child. The lead must be a child the renderer actually draws,
+                // or the number lines up with nothing and the child that is drawn
+                // first keeps the top margin the item wanted suppressed. Three
+                // ways a child can fail to be drawn, and all three are checked
+                // here:
+                //
+                //   - Its kind renders nothing, or it hid *itself* with `hide` —
+                //     `childRendersSomething()`.
+                //   - This section hides it: `childrenToHide`. That is normally
+                //     the whole content at once, already covered by the
+                //     `hideChildren` test, but `<cascadeMessage>` inverts the
+                //     rule and is hidden precisely when the rest is shown, so
+                //     without this test a leading `<cascadeMessage>` would lead
+                //     an item it is invisible in.
+                //   - `hideChildren` is set, which suppresses the delegation
+                //     entirely, since a collapsed `<cascade>` step shows no child
+                //     at all.
+                //
+                // A child hidden by something *above* this section is a
+                // deliberate non-case: hiding the section, or the container
+                // around it, leaves the lead alone, because nothing in it is on
+                // screen to realign and because reading the inherited `hidden`
+                // here would cycle (see `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`).
                 let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
@@ -597,6 +651,9 @@ export class SectioningComponent extends BlockComponent {
                     if (
                         firstVisibleChild === null &&
                         !dependencyValues.hideChildren &&
+                        !dependencyValues.childrenToHide.includes(
+                            child.componentIdx,
+                        ) &&
                         childRendersSomething(child, componentInfoObjects)
                     ) {
                         firstVisibleChild = child;
@@ -727,9 +784,13 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 // Alignment adjustments only apply when the first visible child
-                // is a component object (not plain text).
+                // is a component object (not plain text). `!= null` first,
+                // because `typeof null === "object"`: a section with no visible
+                // child at all — every child hidden, or none that renders — has
+                // no first child to adjust.
                 const firstVisibleChildAdjustedForListItem = Boolean(
                     dependencyValues.nonBoxedListItemWithoutTitle &&
+                    dependencyValues.firstVisibleChild != null &&
                     typeof dependencyValues.firstVisibleChild === "object",
                 );
 

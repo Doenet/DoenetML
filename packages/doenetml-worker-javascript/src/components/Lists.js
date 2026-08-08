@@ -6,7 +6,10 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
-import { childRendersSomething } from "../utils/listItemChild";
+import {
+    childRendersSomething,
+    LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
+} from "../utils/listItemChild";
 
 export class Ol extends BlockComponent {
     constructor(args) {
@@ -243,6 +246,7 @@ export class Li extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
+                    ...LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
@@ -255,10 +259,11 @@ export class Li extends BaseComponent {
                 // suppresses its top margin and, for a labeled `<choiceInput>`,
                 // keeps the native marker on the label's row.
                 //
-                // `childRendersSomething` judges a child's component type, not
-                // whether that particular child is rendered — a `<p hide>` still
-                // wins the lead. See its doc comment for why that blind spot is
-                // left alone here.
+                // A child that hides itself is skipped, so a leading `<p hide>`
+                // does not strand the child after it. That is what the
+                // visibility dependency spread above lets
+                // `childRendersSomething` see; only the child's own `hide`
+                // counts, so hiding the `<ol>` around this item changes nothing.
                 const firstVisibleChild = dependencyValues.children.find(
                     (child) =>
                         childRendersSomething(child, componentInfoObjects),
