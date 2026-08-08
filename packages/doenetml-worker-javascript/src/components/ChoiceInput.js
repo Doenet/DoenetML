@@ -142,6 +142,16 @@ export default class Choiceinput extends Input {
         // component instead would have to be repeated in `<answer>`,
         // `<sideBySide>`, and every pass-through wrapper, and any component
         // that forgot would silently reintroduce the bug one level deeper.
+        //
+        // "Has an `<li>` ancestor" is a hair wider than "leads a real `<li>`",
+        // and deliberately so. The two come apart only when a list-item section
+        // sits inside a real `<li>` (`<li><problem><task><choiceInput>`): the
+        // section, not the `<li>`, is what the `<choiceInput>` leads, yet both
+        // state variables are true, so the label renders in a `<div>`. That is
+        // harmless — the fieldset's accessible name comes from its
+        // `aria-labelledby` either way, and the section's own number is drawn in
+        // CSS — and narrowing it would cost a depth comparison between the two
+        // ancestors. `lists.test.ts` pins the behavior down.
         stateVariableDefinitions.listItemHasNativeMarker = {
             forRenderer: true,
             returnDependencies: () => ({

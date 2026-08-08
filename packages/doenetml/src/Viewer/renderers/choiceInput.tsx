@@ -800,7 +800,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         // Swap only when there is a native marker to protect:
         // `renderInlineForListItem` also fires for a <problem asList> section,
         // which draws its own number and has no <legend> quirk, so
-        // `listItemHasNativeMarker` narrows this to a real <li>.
+        // `listItemHasNativeMarker` narrows this to a list item inside a real
+        // <li> (see its definition in `ChoiceInput.js` for the one case where
+        // the two conditions are true without the <li> being what this
+        // fieldset leads).
         const useDivInsteadOfLegend =
             SVs.renderInlineForListItem && SVs.listItemHasNativeMarker;
         const nonInlineLabelComponent = hasLabel ? (

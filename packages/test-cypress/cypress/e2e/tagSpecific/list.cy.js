@@ -196,15 +196,15 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
-    // The swap must stay narrow: it fires only where a native `::marker` is at
-    // stake *and* the `<choiceInput>` is the one the marker lines up with. Each
-    // arm below fails one of those two conditions, so all three keep a native
-    // `<legend>`. The `<problem asList>` arm matters most — it shares
-    // `renderInlineForListItem` for its own `::before`/grid number and never had
-    // the `<legend>` quirk, so swapping there would change already-working
-    // behavior for a case this fix was never meant to touch. The
-    // not-leading-the-item arm is the other direction: a `<choiceInput>` deeper
-    // in a list item is inside an `<li>`, but the marker is not on its row.
+    // The swap needs both of its conditions: the `<choiceInput>` leads its list
+    // item (`renderInlineForListItem`) *and* a real `<li>` is somewhere above it
+    // (`listItemHasNativeMarker`). Each arm below is missing one, so all three
+    // keep a native `<legend>`. The `<problem asList>` arm matters most — it
+    // shares `renderInlineForListItem` for its own `::before`/grid number and
+    // never had the `<legend>` quirk, so swapping there would change
+    // already-working behavior for a case this fix was never meant to touch. The
+    // last arm is the other direction: a `<choiceInput>` behind a leading `<p>`
+    // is inside an `<li>`, but the marker is not on its row.
     it("keeps a native <legend> outside a list item, in a section, and away from the marker's row", () => {
         cy.window().then(async (win) => {
             win.postMessage(

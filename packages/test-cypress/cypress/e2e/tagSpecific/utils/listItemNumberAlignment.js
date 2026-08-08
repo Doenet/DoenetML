@@ -133,23 +133,22 @@ const MARKER_SCAN_MARGIN_PX = 8;
  * DOM-visible trace of the marker's position (measured in Chrome). Scanning the
  * gutter row by row recovers the band.
  *
- * Everything the scan could get wrong is reported rather than absorbed, because
- * a marker helper that quietly finds nothing is a helper that passes on a
- * broken page — the failure mode this list-alignment work keeps hitting:
+ * A marker helper that quietly finds nothing is a helper that passes on a broken
+ * page, so every way the scan can come up short is reported rather than absorbed:
  *
  * - The x probes step across the whole gutter in 2px steps, finer than any
- *   marker box can be, so no marker glyph can slip between two of them. If the
- *   gutter is too narrow to hold an on-screen probe at all, `noGutter` says so,
- *   and if the item is not in a list at all, `noList` does.
+ *   marker box can be, so no marker glyph can slip between two of them.
+ *   `noGutter` reports a gutter too narrow to hold an on-screen probe, `noList`
+ *   an item that is not in a list at all.
  * - Hit testing only reaches what is on screen, so the item is centred in the
  *   viewport first — inside the caller's retried assertion, so that late layout
  *   (MathJax typesetting a choice, say) is re-centred rather than measured where
  *   it used to be. The scan window ({@link MARKER_SCAN_MARGIN_PX} beyond the
- *   item on both sides) still has to fit; `offscreen` says when an item taller
- *   than the viewport does not, rather than silently measuring the visible part
- *   of a clipped marker.
- * - A band that touches an edge of the scan window may have been cut off there,
- *   so its center means nothing; `clipped` says so.
+ *   item on both sides) still has to fit; `offscreen` reports an item taller
+ *   than the viewport, rather than silently measuring the visible part of a
+ *   clipped marker.
+ * - `clipped` reports a band that touches an edge of the scan window, and so
+ *   may have been cut off there, leaving its center meaningless.
  *
  * @returns {{band: {top: number, bottom: number}}
  *   | {problem: "noList"|"noGutter"|"offscreen"|"clipped"|"notFound",
@@ -261,6 +260,15 @@ export function verifyListItemMarkerSharesRowWith(liId, targetSelector) {
         const bands =
             `marker rows ${relative(band.top)}-${relative(band.bottom)}px into ${liId}, ` +
             `${targetSelector} occupies ${relative(targetBox.top)}-${relative(targetBox.bottom)}px`;
+
+        // A native marker's box is one line tall, so a band much taller than the
+        // single-line target means the scan locked onto something else that
+        // reaches into the gutter — which could straddle the target's row and
+        // pass the assertion below on a page where the marker is elsewhere.
+        expect(
+            band.bottom - band.top,
+            `${liId} marker band is a single row tall [${bands}]`,
+        ).to.be.at.most(targetBox.height + MARKER_SCAN_MARGIN_PX);
 
         expect(
             markerCenter,

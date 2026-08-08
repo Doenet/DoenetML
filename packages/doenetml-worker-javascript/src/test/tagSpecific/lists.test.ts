@@ -47,9 +47,10 @@ describe("List tag tests @group4", async () => {
     //
     // `listItemHasNativeMarker` is asserted alongside it because the two must
     // agree for the `<legend>`/`<div>` swap to fire. It tells a real `<li>`
-    // (native `::marker`) apart from a `<problem asList>` section (its own
-    // `::before`/grid number, no `<legend>` quirk), which is why the section
-    // arm at the bottom must report `false` however deeply the wrapper nests.
+    // (native `::marker`) apart from a `<problem asList>` section outside a list
+    // (its own `::before`/grid number, no `<legend>` quirk), which is why the
+    // section arm at the bottom must report `false` however deeply the wrapper
+    // nests.
     it("reaches a choiceInput through wrappers and a <sideBySide> panel, but reports no native marker under a section", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -127,6 +128,48 @@ describe("List tag tests @group4", async () => {
         // is no native marker to protect, so the `<legend>` must stay.
         expect(ciTaskDiv.renderInlineForListItem).eq(true);
         expect(ciTaskDiv.listItemHasNativeMarker).eq(false);
+    });
+
+    // Pins the one shape where `listItemHasNativeMarker` is true without the
+    // `<choiceInput>` leading the `<li>` that owns the marker: a list-item
+    // section nested inside a real `<li>`. The `<choiceInput>` leads the
+    // `<task>`, so both state variables are true and the label renders in a
+    // `<div>`. Harmless (the fieldset's accessible name comes from
+    // `aria-labelledby` either way, and the section draws its own number in
+    // CSS), and cheaper than comparing how deep the two ancestors are — see the
+    // `listItemHasNativeMarker` definition in `ChoiceInput.js`.
+    it("reports a native marker for a section nested inside a real <li>", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<ol>
+  <li name="li1">
+    <p name="intro">Intro text, so the section does not lead the item</p>
+    <problem>
+      <task name="task1">
+        <choiceInput name="ci1">
+          <label>Pick one</label>
+          <choice credit="1">A</choice>
+          <choice>B</choice>
+        </choiceInput>
+      </task>
+    </problem>
+  </li>
+</ol>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const li1 =
+            stateVariables[await resolvePathToNodeIdx("li1")].stateValues;
+        const ci1 =
+            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues;
+
+        // The `<li>` delegates to its `<p>`, not to the section...
+        expect(li1.childrenToRenderInlineForListItem[0].componentType).eq("p");
+        // ...but the `<task>` delegates to the `<choiceInput>` regardless, and
+        // the `<li>` ancestor is still there.
+        expect(ci1.renderInlineForListItem).eq(true);
+        expect(ci1.listItemHasNativeMarker).eq(true);
     });
 
     it("li publishes a directly-nested choiceInput (no <answer> wrapper) for list-item alignment", async () => {
