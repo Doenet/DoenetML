@@ -1087,8 +1087,15 @@ function evaluateChildToNumber(child: any, argsForInputs: any): number {
         asExpression(f(argsForInputs)),
     );
     // A child that lands outside its own domain evaluates to a blank, which
-    // `evaluate_to_constant()` declines with `null`. Binding `null` into the
-    // formula would make it arithmetic on zero; "no numeric value here" is NaN.
+    // `evaluate_to_constant()` declines with `null` — note that a child which
+    // is genuinely NaN comes back as NaN, so `null` really does mean "no value".
+    //
+    // Left as `null`, it reaches the compiled formula, where mathjs rejects it
+    // for every operator — caught upstream, so the answer is NaN by way of an
+    // exception. The exception is the formula that is *just* this code, as
+    // `<function>$$f(x)</function>` is: nothing operates on the value, so the
+    // `null` is handed back as the function's number, and downstream JS reads it
+    // as zero. NaN is the answer in both cases, and it costs no throw.
     return childF(input).evaluate_to_constant() ?? NaN;
 }
 
