@@ -570,6 +570,9 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "hideChildren",
                 },
+                // Reading the sibling variable rather than repeating its rule
+                // adds no dependency edge, and so cannot cycle: `childrenToHide`
+                // asks for nothing this variable does not already ask for.
                 childrenToHide: {
                     dependencyType: "stateVariable",
                     variableName: "childrenToHide",
@@ -782,13 +785,11 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 // Alignment adjustments only apply when the first visible child
-                // is a component object (not plain text). `!= null` first,
-                // because `typeof null === "object"`: a section with no visible
-                // child at all — every child hidden, or none that renders — has
-                // no first child to adjust. The renderer reads this flag only
-                // where `useListItemGridLayout` is set, which is already false in
-                // that case, so the guard keeps the state variable honest rather
-                // than fixing anything visible today.
+                // is a component object (not plain text) — and `typeof null ===
+                // "object"`, so a section with no visible child at all needs the
+                // explicit null test. Nothing on screen depends on it today: the
+                // renderer reads this flag only where `useListItemGridLayout` is
+                // set, which is already false when there is no lead.
                 const firstVisibleChildAdjustedForListItem = Boolean(
                     dependencyValues.nonBoxedListItemWithoutTitle &&
                     dependencyValues.firstVisibleChild != null &&

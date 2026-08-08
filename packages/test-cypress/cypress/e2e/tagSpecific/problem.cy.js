@@ -1668,9 +1668,10 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     // `<cascadeMessage>` is the one child a section hides while showing
     // everything else: its rule is inverted, so it is on screen exactly while the
     // step around it is *not* revealed. That makes it the child that hides
-    // neither by kind nor by its own `hide`, and the only one the renderer used
-    // to drop while the core still handed it the lead — leaving the `<answer>`
-    // behind it with the top margin the item wanted suppressed.
+    // neither by kind nor by its own `hide` — so once a child's own `hide` is
+    // honored, it is the last child the renderer drops while the core could still
+    // hand it the lead, leaving the `<answer>` behind it with the top margin the
+    // item wanted suppressed.
     it("a revealed step's hidden cascadeMessage does not take the lead", () => {
         cy.window().then(async (win) => {
             win.postMessage(

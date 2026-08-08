@@ -45,11 +45,12 @@ export const LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY = {
  * visible child, so a child that renders nothing must never be picked as that
  * child — doing so strands the child that actually renders first, which then
  * keeps its top margin and never gets to report the alignment it needs.
- * `<setup>` and `<variantControl>` are the common offenders (a section also
- * excludes both as configuration children); the `rendererType` test covers the
- * rest (`<animateFromSequence>`, `<solveEquations>`, …), and the
- * `hiddenIgnoreParent` test covers a child of a rendering kind that is
- * nonetheless not on the screen, such as a `<p hide>`.
+ * The `rendererType` test covers a child whose kind draws nothing at all
+ * (`<animateFromSequence>`, `<solveEquations>`, …), and the `hiddenIgnoreParent`
+ * test covers a child of a rendering kind that is nonetheless not on the screen,
+ * such as a `<p hide>`. A `<setup>` reaches neither test and never could: a
+ * section takes it out as a configuration child, and inside an `<li>` or a
+ * wrapper it is not an active child at all.
  *
  * Composites are not a loophole even though none of them declares a
  * `rendererType`: naming the base type `_base`, as both `<li>` and sections do
@@ -66,18 +67,21 @@ export const LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY = {
  * {@link returnPassThroughListItemChildStateVariableDefinitions}. The three link
  * into one chain (an `<li>` leads with a wrapper, which leads with a child of
  * its own), so a link that skipped the test would put the chain's end on
- * something not on the screen.
+ * something not on the screen. `<answer>` and `<sideBySide>` forward the signal
+ * too, but each names its target by a rule of its own — the first block
+ * `<choiceInput>` among its inputs, and every panel — so neither asks this
+ * question or needs the dependency.
  *
  * A component child that arrives without `stateValues` is a call site that did
- * not spread it, and throws. A throw from a state-variable definition is not
- * cheap — it aborts the document, and `CoreWorker` hands the message to the
- * viewer as a failure to load the activity — but it is reachable only from a
- * mistake in this file's own callers, where the first test that renders a list
- * item hits it. Falling back to "not hidden" instead would silently restore the
- * pre-fix answer, so a fourth call site would look correct and be wrong. It
- * cannot fire for a call site that did spread it: a `child` dependency that
- * requests any variable gives every component child a `stateValues` object
- * (`Dependency.getValueNoProxy()`), empty at worst.
+ * not spread it, and throws, as the worker does for its other broken internal
+ * invariants. The cost when it fires is high — the document aborts and
+ * `CoreWorker` reports the activity as failing to load — but it cannot fire for a
+ * call site that did spread it, since a `child` dependency requesting any
+ * variable gives every component child a `stateValues` object
+ * (`Dependency.getValueNoProxy()`), empty at worst. So the only way to reach it
+ * is a mistake in this file's own callers, and the first test that renders a list
+ * item hits it. Falling back to "not hidden" instead would restore the pre-fix
+ * answer silently, and a fourth call site would look correct and be wrong.
  */
 export function childRendersSomething(
     child: any,
@@ -169,8 +173,8 @@ export function returnListItemChildStateVariableDefinitions({
  * "Visible" is {@link childRendersSomething}, the same test the `<li>` and
  * section paths use to pick their own lead, so the chain reaches the same child
  * at every level. A wrapper that forwarded to a child rendering nothing — a
- * `<p hide>`, a `<setup>` — would strand the child that actually renders first
- * one level down and undo the whole delegation: in
+ * `<p hide>`, an `<animateFromSequence>` — would strand the child that actually
+ * renders first one level down and undo the whole delegation: in
  * `<li><div><p hide/><answer><choiceInput/></answer></div></li>` the
  * `<choiceInput>` would keep the `<legend>` #1668 removed and the marker would
  * drop to the first choice's row.

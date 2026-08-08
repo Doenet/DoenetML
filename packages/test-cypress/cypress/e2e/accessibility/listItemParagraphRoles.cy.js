@@ -148,8 +148,8 @@ describe(
             // gets its top margin suppressed (`renderInlineForListItem`), and
             // the two used to disagree here: the renderer skipped the hidden
             // paragraph and the core did not. Asserting both on the same element
-            // pins them to one answer, which is the only reason the marker and
-            // the text end up on the same row.
+            // pins them to one answer — the paragraph the renderer promotes to
+            // the leading role is the one the core suppresses the margin of.
             postDoenetML({
                 settleSelector: "#visiblePara",
                 doenetML: `<ol>
