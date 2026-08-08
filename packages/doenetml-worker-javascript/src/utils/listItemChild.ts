@@ -1,4 +1,65 @@
 /**
+ * Whether a child's *kind* can put anything on the screen: a non-blank string
+ * always can, a component only if its class declares a `rendererType`.
+ *
+ * A list item delegates its top-margin suppression, and the alignment of its
+ * hanging number (or, for a real `<li>`, its native marker), to its first
+ * visible child, so a child that renders nothing must never be picked as that
+ * child — doing so strands the child that actually renders first, which then
+ * keeps its top margin and never gets to report the alignment it needs.
+ * `<setup>` and `<variantControl>` are the common offenders (a section also
+ * excludes both as configuration children); this covers the rest
+ * (`<animateFromSequence>`, `<solveEquations>`, …).
+ *
+ * Composites are not a loophole even though none of them declares a
+ * `rendererType`: naming the base type `_base`, as both `<li>` and sections do
+ * for their catch-all child group, deliberately does not match a composite (see
+ * `findChildGroupNoAdapters()`), so composites always expand to their
+ * replacements in `activeChildren`.
+ *
+ * Known limitation: this asks what a child's component type *could* render, not
+ * whether this particular child is actually rendered, because it does not
+ * consult the child's own `hidden`. So a `<p hide>` still wins the lead of its
+ * list item even though the renderer drops it, stranding the child after it —
+ * `<li><p hide/><answer><choiceInput/></answer></li>` renders its marker beside
+ * the first choice, the very bug #1668 fixes for the unhidden case. Moving the
+ * hidden child off the front of the item is the workaround. The blind spot is
+ * pre-existing and shared with the section path (`SectioningComponent`'s
+ * `firstVisibleChild` honors only the section-wide `hideChildren` broadcast);
+ * `lists.test.ts` pins the behavior down for both.
+ *
+ * Fixing it is out of scope for #1668 rather than infeasible: it changes which
+ * child leads a list item for `<li>` and for every section at once, so it wants
+ * its own regression sweep. Whoever picks it up should read
+ * `hiddenIgnoreParent`, not `hidden`. `hidden` depends on the parent's
+ * `childrenToHide` (`BaseComponent`), and a section's
+ * `childIndicesToRender`/`firstVisibleChild` and its `childrenToHide` are fed by
+ * one shared dependency helper (`returnSectionChildDependencies()`), so adding
+ * `hidden` there makes `childrenToHide` depend on the `hidden` it feeds: the
+ * core then refuses to load a `<problem><task>` document at all, reporting a
+ * circular dependency between the two. `hiddenIgnoreParent` depends on neither
+ * `parentChildrenToHide` nor ancestor visibility, so it cycles nowhere, and it
+ * asks the narrower question this helper actually wants — did the child hide
+ * *itself*? That distinction matters beyond the cycle: a `<cascade>` hides its
+ * unrevealed children through `childrenToHide`, so plain `hidden` would also
+ * change which child leads a section the cascade has not revealed yet. See
+ * `BaseComponent`'s `hiddenIgnoreParent` and its use by `<choice>`'s `text`.
+ */
+export function childRendersSomething(
+    child: any,
+    componentInfoObjects: any,
+): boolean {
+    if (typeof child !== "object") {
+        return child.trim() !== "";
+    }
+
+    return Boolean(
+        componentInfoObjects.allComponentClasses[child.componentType]
+            ?.rendererType,
+    );
+}
+
+/**
  * Adds list-item inline-rendering state variables for components that may suppress
  * their top margin when they are the first visible child in a list item.
  */

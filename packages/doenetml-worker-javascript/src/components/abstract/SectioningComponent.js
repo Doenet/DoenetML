@@ -31,6 +31,7 @@ import {
     returnContentLocaleDependencies,
 } from "../../utils/contentLocale";
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
+import { childRendersSomething } from "../../utils/listItemChild";
 
 /**
  * The `child` dependencies shared by the state variables that split a section's
@@ -99,35 +100,6 @@ function nonConfigurationChildEntries(dependencyValues) {
 
     return [...dependencyValues.allChildren.entries()].filter(
         ([, child]) => !configurationChildIndices.has(child.componentIdx),
-    );
-}
-
-/**
- * Whether a child puts anything on the screen: a non-blank string always does,
- * a component only if its class declares a `rendererType`.
- *
- * A list item delegates its inline first-line rendering, and the alignment of
- * its hanging number, to `firstVisibleChild`, so a child that renders nothing
- * must never be picked as that child — doing so strands the child that
- * actually renders first, which then keeps its top margin and never gets to
- * report the alignment it needs. `<setup>` and `<variantControl>` are the
- * common offenders and are already excluded as configuration children; this
- * covers the rest (`<animateFromSequence>`, `<solveEquations>`, …).
- *
- * Composites are not a loophole even though none of them declares a
- * `rendererType`: a composite is replaced by its replacements in
- * `activeChildren` unless the parent names its component type in a child group
- * (see `findChildGroup()`), and `<setup>` — which really does render nothing —
- * is the only composite a section names.
- */
-function childRendersSomething(child, componentInfoObjects) {
-    if (typeof child !== "object") {
-        return child.trim() !== "";
-    }
-
-    return Boolean(
-        componentInfoObjects.allComponentClasses[child.componentType]
-            ?.rendererType,
     );
 }
 
@@ -573,9 +545,11 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
-                // Tracks the first non-hidden child that actually puts something
-                // on the screen (see `childRendersSomething()`), so list-item
-                // sections can delegate alignment behavior to that child.
+                // Tracks the first child whose kind puts something on the screen
+                // (see `childRendersSomething()`), so list-item sections can
+                // delegate alignment behavior to that child. "Hidden" here means
+                // only the section-wide `hideChildren` broadcast below; a child's
+                // own `hide` is not consulted — see `childRendersSomething()`.
                 let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(

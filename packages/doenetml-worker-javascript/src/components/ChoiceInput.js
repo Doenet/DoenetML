@@ -129,6 +129,50 @@ export default class Choiceinput extends Input {
             }),
         );
 
+        // Whether a real `<ol>/<ul>` `<li>` is somewhere above this
+        // `<choiceInput>` — the only place the browser draws a native
+        // `::marker`, and so the only place a `<legend>` can displace one.
+        //
+        // `renderInlineForListItem` cannot answer that on its own: it says "I
+        // lead a list item" without saying which kind, because a
+        // `<problem asList>` section is a list item too and draws its own
+        // number with a `::before`/grid column (see `section.tsx`), where a
+        // `<legend>` is harmless. `choiceInput.tsx` gates its `<legend>` swap on
+        // both, and `choiceInput` is the only component that needs the two told
+        // apart.
+        //
+        // An ancestor lookup answers it in one place. Threading a signal down
+        // from `<li>` through each intervening component instead would have to
+        // be repeated in `<answer>`, `<sideBySide>`, and every pass-through
+        // wrapper, and any component that forgot would silently reintroduce the
+        // bug one level deeper.
+        //
+        // Note the name: *inside* an `<li>`, deliberately a hair wider than
+        // *leads* the `<li>`. The two come apart only for a list-item section
+        // inside a real `<li>` (`<li><problem><task><choiceInput>`), where the
+        // `<choiceInput>` leads the `<task>` and the swap fires with no marker
+        // of its own to protect. It is inert there: the `<div>` reproduces the
+        // `<legend>`'s inset (see `choiceInput.tsx`), so the label renders in
+        // the same place, and the accessible name comes from `aria-labelledby`
+        // either way. Narrowing it would cost a depth comparison between the
+        // two ancestors. `lists.test.ts` pins the behavior down.
+        stateVariableDefinitions.insideNativeListItem = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                listItemAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "li",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    insideNativeListItem: Boolean(
+                        dependencyValues.listItemAncestor,
+                    ),
+                },
+            }),
+        };
+
         stateVariableDefinitions.inline = {
             description:
                 "Whether the input is rendered inline (as a dropdown).",
