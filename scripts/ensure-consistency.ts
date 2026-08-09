@@ -189,6 +189,9 @@ for (const tsconfig of TSCONFIG_FILES) {
  * scripts in `@doenet/static-assets` can depend on exactly that set (see
  * `packages/static-assets/test/generator-script-dependencies.test.ts`). Reading
  * only `build`'s own list would report those groups as missing dependencies.
+ *
+ * `visited` is what keeps a cyclic group — which wireit itself rejects when the
+ * script runs — from recursing forever here.
  */
 function crossPackageDependencies(
     packageJson: {

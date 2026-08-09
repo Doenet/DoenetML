@@ -22,8 +22,8 @@ npm run build:assets
 
 ## Why the generator scripts are wireit scripts
 
-`build:schema`, `build:assets` and `check:docs-coverage` generate from the
-worker's component definitions, which they import as **source**
+`build:schema`, `build:assets` and `check:docs-coverage` all read the worker's
+component definitions, which they import as **source**
 (`doenetml-worker-javascript/src/utils/componentInfoObjects`). That source
 resolves `@doenet/utils`, `@doenet/i18n` and `@doenet/parser` to their built
 `dist/`, so a generator run against a stale sibling silently generates from old

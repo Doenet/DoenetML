@@ -552,21 +552,19 @@ jobs:
             # runner-side build step in this file uses (the devcontainer jobs
             # build inside their container and set nothing); it belongs here
             # because this step now performs those builds itself when the cache
-            # cannot supply them — ~21s from nothing at all, peaking at ~1.4 GiB
-            # RSS, measured locally.
+            # cannot supply them.
             #
             # There is deliberately no `npm run build:all-no-docs` step ahead of
             # this: a pre-built workspace masks an *incomplete dependency list*,
             # the bug this job is shaped to catch, and that bug only bites someone
             # who runs build:schema on its own — so CI runs it on its own too.
-            # Nothing is lost by dropping it. A dependency that cannot be restored
+            # Nothing is lost by dropping it. A dependency the cache cannot supply
             # is rebuilt from source; one that fails to build is named by wireit
-            # (`[../i18n:build] exited with exit code 1`, plus the compiler error)
             # and would already have failed the `build` job this one needs; an
-            # *undeclared* one — the single new failure mode — is vite's `Failed to
-            # resolve entry for package "@doenet/utils"`, naming the importing
-            # file. None of the three can masquerade as a stale schema, because
-            # the diff step below never runs.
+            # *undeclared* one — the single new failure mode — fails with vite's
+            # `Failed to resolve entry for package "@doenet/utils"`, naming the
+            # importing file. None of the three can masquerade as a stale schema,
+            # because the diff step below never runs.
             #
             # The runtime guards in get-schema.ts also throw here if any
             # component/attribute/property/attribute-value description is

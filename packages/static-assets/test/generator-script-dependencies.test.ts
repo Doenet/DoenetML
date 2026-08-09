@@ -15,30 +15,20 @@
  * `../doenetml-worker-javascript:build:deps`, a no-command aggregator naming the
  * sibling builds the worker's source needs in order to be importable. The
  * worker's own `build` depends on it too, so the list has exactly one home and
- * cannot drift out of step with what the worker actually needs. Two alternatives
- * were weighed and rejected:
- *
- * - **Depending on `../doenetml-worker-javascript:build`.** Also drift-proof,
- *   but it adds a vite pass — measured at ~11s, on top of a `build:schema` that
- *   takes ~20s from a completely cold cache — to produce a 7 MB bundle these
- *   scripts never load, because they consume the worker's *source*. That is pure
- *   waste on every schema regeneration, which is the inner loop when adding or
- *   documenting a component, and it is at its most expensive exactly when the
- *   worker's source just changed.
- * - **Restating the three sibling builds here** (what earlier revisions of this
- *   PR did, once per generator). It needs no change to another package, but it
- *   puts the same list in four places and needs a test to compare them — the
- *   drift the aggregator makes impossible. A local aggregator in this package
- *   would cut that to two copies, which is still one too many.
+ * cannot drift out of step with what the worker actually needs. Depending on the
+ * worker's `build` instead would be equally drift-proof, but it adds a vite pass
+ * — ~11s, on top of a `build:schema` that takes ~20s from a completely cold
+ * cache — to produce a 7 MB bundle these scripts never load, since they consume
+ * the worker's *source*: waste on every schema regeneration, which is the inner
+ * loop when adding or documenting a component, and worst exactly when the
+ * worker's source just changed.
  *
  * The aggregator only helps while it stays authoritative, so this test also
  * pins that down: the worker's `build` must name no sibling build directly, or a
  * dependency added there would reach the worker and not the generators. It does
  * not check that the names *inside* `build:deps` resolve: wireit rejects a
  * dangling dependency when the script runs, and `build:deps` is on the worker
- * `build`'s path, which CI runs in the `build` job. (A typo in a list only these
- * generators depended on would have been invisible, since CI never runs
- * `build:assets`.)
+ * `build`'s path, which CI runs in the `build` job.
  *
  * Two further requirements:
  *
@@ -85,10 +75,9 @@ const WORKER_BUILD_DEPS = "../doenetml-worker-javascript:build:deps";
  * match.
  *
  * Deriving the list rather than hard-coding it means a *newly added* generator
- * is covered on arrival — `build:assets` had this exact gap for as long as it
- * existed and was only noticed by hand, in review. An explicit list plus a test
- * that the list is complete would need this same pattern anyway, and one more
- * place to edit.
+ * is covered on arrival: `build:assets` carried this exact gap for as long as it
+ * existed. An explicit list plus a test that the list is complete would need
+ * this same pattern anyway, and one more place to edit.
  *
  * A script that runs out of `scripts/` without importing worker source is a
  * false positive: it will be asked for a dependency it does not need. The
@@ -125,13 +114,11 @@ const workerPkg = readPackageJson(
     path.join(PACKAGES_DIR, "doenetml-worker-javascript"),
 );
 
-/** The script a wireit dependency names, in either of the two allowed forms. */
-function dependencyName(dependency: WireitDependency): string {
-    return typeof dependency === "string" ? dependency : dependency.script;
-}
-
+/** The scripts a wireit script depends on, in either of the two allowed forms. */
 function dependenciesOf(pkg: PackageJson, script: string): string[] {
-    return (pkg.wireit?.[script]?.dependencies ?? []).map(dependencyName);
+    return (pkg.wireit?.[script]?.dependencies ?? []).map((dependency) =>
+        typeof dependency === "string" ? dependency : dependency.script,
+    );
 }
 
 /** What a script runs, looking through the `wireit` indirection. */
