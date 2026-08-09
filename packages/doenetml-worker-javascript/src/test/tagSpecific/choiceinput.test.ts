@@ -1166,7 +1166,10 @@ describe("ChoiceInput tag tests @group4", async () => {
     `,
         });
 
-        let originalChoices = ["x²/2", "y", "∂ f/∂ x", "3", "1/e^x"];
+        // `∂f/∂x`, not `∂ f/∂ x`: the text printer emits a space after a
+        // differential symbol only where the following symbol is multi-character
+        // and would otherwise re-lex as one token (`∂ hello`, not `∂hello`).
+        let originalChoices = ["x²/2", "y", "∂f/∂x", "3", "1/e^x"];
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const choiceTexts: string[][] = [

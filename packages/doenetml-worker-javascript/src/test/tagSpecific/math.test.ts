@@ -6815,12 +6815,15 @@ describe("Math tag tests @group3", async () => {
                     .latex,
             ),
         ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        // A coordinate vector is read by position: a row (1×N) to the left of a
+        // matrix, a column (N×1) to its right. So `expand` contracts on both
+        // sides, and `$tuple2$matrix22` is the row product, not the column one.
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("(ae+cf,be+df)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22v2")].stateValues
@@ -6844,7 +6847,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("v2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("(g,h)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("(ag+ch,bg+dh)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22a2")].stateValues
@@ -6868,7 +6871,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("\\langlep,q\\rangle\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("\\langleap+cq,bp+dq\\rangle");
     });
 
     it("matrix and vector state variables", async () => {

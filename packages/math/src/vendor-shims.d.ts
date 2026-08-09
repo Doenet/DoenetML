@@ -26,6 +26,13 @@ declare module "math-expressions-js-compat" {
 
     export function isTree(value: unknown): value is Tree;
 
+    /**
+     * Re-exported by the barrel from `lib/_wasm` — see the declaration below
+     * for what it does. `./wasm-loader` imports it from here rather than from
+     * the leaf so that nothing has to reach past the package entry point.
+     */
+    export function setWasmModule(mod: WasmModule): void;
+
     const context: Context;
     export default context;
 }

@@ -161,6 +161,63 @@ describe("Video tag tests @group1", async () => {
         ).eq("block");
     });
 
+    // The renderer reports a source change by calling this action (it is the
+    // thing that observes `youtube`/`source` changing); `video.cy.js` covers
+    // that wiring end to end. This covers what the action itself guarantees.
+    it("recordVideoSourceChanged drops playback state of the previous video", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <video name="v" youtube="tJ4ypc5L6uU"><shortDescription>a video</shortDescription></video>
+            `,
+        });
+
+        const videoIdx = await resolvePathToNodeIdx("v");
+        const stateOf = async () =>
+            (await core.returnAllStateVariables(false, true))[videoIdx]
+                .stateValues;
+
+        // Watch the first video: 5s in, with 0-5 recorded as watched.
+        await core.requestAction({
+            componentIdx: videoIdx,
+            actionName: "recordVideoReady",
+            args: { duration: 300 },
+            baseVariantIndex: 0,
+        });
+        await core.requestAction({
+            componentIdx: videoIdx,
+            actionName: "setTime",
+            args: { time: 5 },
+            baseVariantIndex: 0,
+        });
+        await core.requestAction({
+            componentIdx: videoIdx,
+            actionName: "recordVideoWatched",
+            args: { beginTime: 0, endTime: 5, duration: 300, rates: [] },
+            baseVariantIndex: 0,
+        });
+
+        expect((await stateOf()).time).eq(5);
+        expect((await stateOf()).secondsWatched).eq(5);
+        expect((await stateOf()).fractionWatched).closeTo(5 / 300, 1e-12);
+
+        // A position of 0:05 and 5 seconds watched belong to the video that has
+        // just been replaced, so neither carries over.
+        await core.requestAction({
+            componentIdx: videoIdx,
+            actionName: "recordVideoSourceChanged",
+            args: {},
+            baseVariantIndex: 0,
+        });
+
+        expect((await stateOf()).time).eq(0);
+        expect((await stateOf()).secondsWatched).eq(0);
+        expect((await stateOf()).fractionWatched).eq(0);
+        // `duration` is intentionally untouched: the new player overwrites it
+        // through `recordVideoReady`, and blanking it here would only make
+        // `fractionWatched` divide by null in the meantime.
+        expect((await stateOf()).duration).eq(300);
+    });
+
     it("accessibility diagnostic if no short description specified", async () => {
         let { core } = await createTestCore({
             doenetML: `
