@@ -641,6 +641,10 @@ export class SectioningComponent extends BlockComponent {
          */
         stateVariableDefinitions.firstVisibleChild = {
             returnDependencies: () => ({
+                // `includeAllChildren`, not a list of child groups, for the same
+                // reason `returnSectionChildDependencies()` uses it: the entries
+                // are indexed below by the positions in `childIndicesToRender`,
+                // and this is the only form whose indices are those positions.
                 allChildren: {
                     dependencyType: "child",
                     includeAllChildren: true,
