@@ -541,28 +541,29 @@ jobs:
                   name: build-artifacts
 
             # Regenerates packages/static-assets/src/generated/* from
-            # componentInfoObjects (read by vite-node). build:schema imports
-            # that from worker source, which needs @doenet/utils (and friends)
-            # built; it declares those as wireit dependencies, and the artifact
-            # above is the .wireit cache, so those dependencies restore from
-            # cache instead of rebuilding. WIREIT_CACHE has to be set
-            # explicitly: wireit defaults it to "none" whenever CI=true.
+            # componentInfoObjects (read by vite-node). build:schema imports that
+            # from worker source, so @doenet/utils (and friends) have to be
+            # built; it declares those as wireit dependencies and restores them
+            # from the .wireit cache downloaded above. WIREIT_CACHE has to be set
+            # explicitly — wireit defaults it to "none" whenever CI=true — while
+            # build:schema itself declares no files/output, so it always re-runs
+            # instead of being served from cache, which is what makes the diff
+            # below meaningful.
             #
             # There is deliberately no `npm run build:all-no-docs` step ahead of
-            # this. A build break already fails the `build` job this one needs,
-            # so it cannot surface here; what a pre-build would hide is an
-            # *incomplete dependency list*, which is the bug this job is shaped
-            # to catch — it only bites someone who runs build:schema on its own,
-            # so CI runs it on its own too. When the cache cannot supply a declared
-            # dependency wireit just builds it from source (~20s from nothing at
-            # all), so dropping the step costs speed at worst, never a false
-            # pass. An *undeclared* dependency is the one new hard failure, and
-            # it is legible: vite reports `Failed to resolve entry for package
-            # "@doenet/utils"` naming the importing file.
+            # this: a pre-built workspace masks an *incomplete dependency list*,
+            # the bug this job is shaped to catch, and that bug only bites someone
+            # who runs build:schema on its own — so CI runs it on its own too.
+            # Nothing is lost by dropping it. A declared dependency the cache
+            # cannot supply is rebuilt from source (~20s from nothing at all); one
+            # that fails to build is named by wireit (`[../i18n:build] exited with
+            # exit code 1`, plus the compiler error) and would already have failed
+            # the `build` job this one needs; an *undeclared* one — the single new
+            # failure mode here — is vite's `Failed to resolve entry for package
+            # "@doenet/utils"` naming the importing file. None of the three can
+            # produce a misleading "schema is stale" diff, because the diff step
+            # below never runs.
             #
-            # build:schema declares dependencies but deliberately no
-            # files/output, so it always re-runs instead of being served from
-            # cache — this check is only meaningful against a fresh generation.
             # The runtime guards in get-schema.ts also throw here if any
             # component/attribute/property/attribute-value description is
             # missing.
