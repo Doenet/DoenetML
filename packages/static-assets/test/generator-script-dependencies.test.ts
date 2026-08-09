@@ -60,9 +60,11 @@
  *   underlying command (wireit README, *Extra arguments*), so the targeted-run
  *   workflow survives. On Node 24 it does make wireit emit a `DEP0190`
  *   deprecation warning, because wireit spawns with `shell: true` *and* args.
- * - CI cost is ~nil. Both `test-main` and `test-worker-js` already run
- *   `build:all-no-docs` against the downloaded `.wireit` cache before testing,
- *   so the dependencies would be fresh by the time a wireit `test` looked.
+ * - CI cost is ~nil. Both test jobs already build against the downloaded
+ *   `.wireit` cache before testing — `test-main` runs `build:all-no-docs`, and
+ *   `test-worker-js` runs `build -w packages/doenetml-worker`, which reaches
+ *   `../doenetml-worker-javascript:build` and so the same three packages — so
+ *   the dependencies would be fresh by the time a wireit `test` looked.
  * - The real blocker is the terminal. Wireit spawns the command with piped
  *   stdio (`script-child-process.ts` passes no `stdio` option), so the child
  *   sees no TTY and no stdin. These scripts are a bare `vitest`, i.e. watch
