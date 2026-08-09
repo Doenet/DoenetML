@@ -57,10 +57,10 @@ const DOENET_SOURCE = `<section name="s">
  * is WCAG's 3:1 for non-text contrast. Light mode has less headroom before a
  * "light blue selection" stops looking like one, and gets a lower floor.
  *
- * The floor is applied twice per mode — to the fill on its own and to the fill
- * seen through the active-line tint that is painted over it — so the number
- * has to hold for what the reader actually sees, not only for the value in the
- * theme.
+ * The floor is applied to the fill on its own and to the fill seen through
+ * each tint the editor paints above the selection layer — `.cm-activeLine` in
+ * both modes, and the read-only theme's `.cm-content` — so the number has to
+ * hold for what the reader actually sees, not only for the value in the theme.
  */
 const MIN_SELECTION_VISIBILITY: Record<ThemeMode, number> = {
     dark: 3.0,
@@ -98,6 +98,38 @@ function expectHighlightedTextIsLegible(mode: ThemeMode) {
     });
 }
 
+/**
+ * Assert the rendered selection clears {@link MIN_SELECTION_VISIBILITY}.
+ *
+ * `overlaySelector` names an element the editor paints *above* the selection
+ * layer; give it and the selection is measured as the reader sees it through
+ * that element's background rather than on its own. Omit it for the bare fill.
+ */
+function expectSelectionVisible(mode: ThemeMode, overlaySelector?: string) {
+    cy.window().then((win) => {
+        const selection = renderedBackground(
+            win,
+            ".cm-selectionBackground",
+            mode,
+        );
+        let color = selection.color;
+        let describe = `selection ${selection.css}`;
+
+        if (overlaySelector) {
+            const overlay = win.document.querySelector(overlaySelector);
+            expect(overlay, `element matching ${overlaySelector}`).to.exist;
+            const overlayCss = win.getComputedStyle(overlay!).backgroundColor;
+            color = flatten(parseColor(overlayCss), color);
+            describe += ` under ${overlaySelector} ${overlayCss}`;
+        }
+
+        expect(
+            contrastAgainstCanvas(win, color, mode),
+            `${describe}, against the ${mode} canvas`,
+        ).to.be.at.least(MIN_SELECTION_VISIBILITY[mode]);
+    });
+}
+
 describe("CodeMirror selection-highlight accessibility", () => {
     (["light", "dark"] as ThemeMode[]).forEach((mode) => {
         it(`${mode} mode: selected text meets contrast on the selection`, () => {
@@ -110,17 +142,7 @@ describe("CodeMirror selection-highlight accessibility", () => {
         // prevents.
         it(`${mode} mode: the selection is visible against the canvas`, () => {
             mountAndSelectAll(mode);
-            cy.window().then((win) => {
-                const { css, color } = renderedBackground(
-                    win,
-                    ".cm-selectionBackground",
-                    mode,
-                );
-                expect(
-                    contrastAgainstCanvas(win, color, mode),
-                    `selection ${css} against the ${mode} canvas`,
-                ).to.be.at.least(MIN_SELECTION_VISIBILITY[mode]);
-            });
+            expectSelectionVisible(mode);
         });
 
         // …and still visible where it is shaded. `.cm-activeLine` is painted on
@@ -132,21 +154,7 @@ describe("CodeMirror selection-highlight accessibility", () => {
         it(`${mode} mode: the selection stays visible under the active-line tint`, () => {
             mountAndSelectAll(mode);
             cy.get(".cm-activeLine").should("exist");
-            cy.window().then((win) => {
-                const selection = renderedBackground(
-                    win,
-                    ".cm-selectionBackground",
-                    mode,
-                );
-                const activeLine = win.getComputedStyle(
-                    win.document.querySelector(".cm-activeLine")!,
-                ).backgroundColor;
-                const shaded = flatten(parseColor(activeLine), selection.color);
-                expect(
-                    contrastAgainstCanvas(win, shaded, mode),
-                    `selection ${selection.css} under active line ${activeLine}, against the ${mode} canvas`,
-                ).to.be.at.least(MIN_SELECTION_VISIBILITY[mode]);
-            });
+            expectSelectionVisible(mode, ".cm-activeLine");
         });
     });
 
@@ -178,13 +186,16 @@ describe("CodeMirror selection-highlight accessibility", () => {
     // canvas color of its own and so sat on whatever was behind it. It now
     // paints the canvas and shares the highlight rules — `renderedBackground`
     // asserts the first and the recolor assertions the second. Its own
-    // `.cm-content` tint shades the selection, so the visibility floor above
-    // does not apply to it; the text on top still has to clear AA.
+    // `.cm-content` tint is the theme's other overlay above the selection
+    // layer, so the selection is measured through it here; being lighter than
+    // the fill it lifts the ratio rather than lowering it, and the floor has to
+    // hold either way.
     it("dark mode: a read-only editor gets the same canvas and selection", () => {
         const viewRef = mountEditor("dark", DOENET_SOURCE, { readOnly: true });
         setSelection(viewRef, 0, DOENET_SOURCE.length);
         cy.get(".cm-selectionBackground").should("exist");
         cy.get(".cm-selectedText").should("exist");
         expectHighlightedTextIsLegible("dark");
+        expectSelectionVisible("dark", ".cm-content");
     });
 });

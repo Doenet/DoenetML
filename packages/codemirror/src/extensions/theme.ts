@@ -27,14 +27,17 @@ export type ThemeMode = "dark" | "light";
  * against the canvas of the mode; `selectionAccessibility.cy.tsx` measures the
  * text side.
  *
- * Two of the editor's own tints are painted on the line itself, *above* the
- * selection layer, so they shade whatever the selection covers rather than
- * sitting under it: `.cm-activeLine` on the line holding a cursor, and
- * `.cm-content` throughout the read-only theme. Only the first darkens the
- * dark selection, and it is the case that matters — selecting a word puts the
- * cursor on that very line — so the value below is chosen to clear 3:1 *after*
- * that shading (3.27:1), not just before it. The read-only tint is lighter
- * than the selection and nudges it the other way, to 3.50:1.
+ * Two of the editor's own tints are painted on elements that sit *above* the
+ * selection layer — CodeMirror gives that layer a negative z-index, so a line
+ * background covers it — and they therefore shade whatever the selection
+ * covers rather than sitting under it: `.cm-activeLine` on the line holding a
+ * cursor, and `.cm-content` throughout the read-only theme. Only the first
+ * darkens the dark selection, and it is the case that matters — selecting a
+ * word puts the cursor on that very line — so the value below is chosen to
+ * clear 3:1 *after* that shading (3.27:1), not just before it. The read-only
+ * tint is lighter than the selection and nudges it the other way, to 3.50:1.
+ * `selectionAccessibility.cy.tsx` measures both composites, not just the
+ * values below.
  */
 function getHighlightColors(darkMode: ThemeMode) {
     if (darkMode === "dark") {
