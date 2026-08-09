@@ -1169,11 +1169,20 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
-    /** Run assertions against the CSS `::before` pseudo-element for an item. */
+    /**
+     * Run assertions against the CSS `::before` pseudo-element for an item.
+     *
+     * `should`, not `then`: a section's number arrives from the worker, so an
+     * assertion made once against whatever the first paint had is a coin flip —
+     * the flake tracked as #1320. `should` re-runs the callback until it passes
+     * or the command times out, which is what every other assertion in this file
+     * already gets from `cy.get(...).should(...)`. Every caller's callback only
+     * asserts, so re-running one has no other effect.
+     */
     function withBeforeStyle(itemId, callback) {
         const escapedItemId = cesc(itemId);
 
-        cy.get(`#${escapedItemId}`).then(($el) => {
+        cy.get(`#${escapedItemId}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             callback(win.getComputedStyle($el[0], "::before"));
         });

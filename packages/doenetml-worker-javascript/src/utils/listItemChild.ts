@@ -44,8 +44,9 @@ export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
  * visible child, so a child that renders nothing must never be picked as that
  * child — doing so strands the child that actually renders first, which then
  * keeps its top margin and never gets to report the alignment it needs. A real
- * `<li>`'s native marker is not on this list: the browser places it, and where
- * it lands is settled in `choiceInput.tsx` rather than here.
+ * `<li>`'s native marker is not delegated: the browser places it, and where it
+ * lands is settled in `choiceInput.tsx` rather than by anything here.
+ *
  * The `rendererType` test covers a child whose kind draws nothing at all
  * (`<animateFromSequence>`, `<solveEquations>`, …), and the `hiddenIgnoreParent`
  * test covers a child of a rendering kind that is nonetheless not on the screen,
