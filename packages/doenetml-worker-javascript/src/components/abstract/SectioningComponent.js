@@ -698,6 +698,9 @@ export class SectioningComponent extends BlockComponent {
             definition({ dependencyValues, componentInfoObjects }) {
                 let firstVisibleChild = null;
 
+                // No `childIndicesToRender` means the gate above returned no
+                // dependencies at all: this section delegates nothing, so it has
+                // no lead.
                 if (
                     dependencyValues.childIndicesToRender &&
                     !dependencyValues.hideChildren
