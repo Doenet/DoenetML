@@ -101,28 +101,29 @@ type PackageJson = {
     >;
 };
 
-/** Undefined when `packageDir` holds no `package.json`. */
-function readPackageJson(packageDir: string): PackageJson | undefined {
-    const file = path.join(packageDir, "package.json");
-    if (!fs.existsSync(file)) {
-        return undefined;
-    }
-    return JSON.parse(fs.readFileSync(file, "utf-8")) as PackageJson;
+function readPackageJson(packageDir: string): PackageJson {
+    return JSON.parse(
+        fs.readFileSync(path.join(packageDir, "package.json"), "utf-8"),
+    ) as PackageJson;
 }
 
-function readRequiredPackageJson(packageDir: string): PackageJson {
-    const pkg = readPackageJson(packageDir);
-    if (pkg === undefined) {
-        throw new Error(`No package.json in ${packageDir}`);
+/**
+ * Script names the package in `packageDir` declares — empty when there is no
+ * package there at all, so a dependency naming a nonexistent package fails as
+ * a missing script rather than as an unhandled `ENOENT`.
+ */
+function scriptNamesIn(packageDir: string): string[] {
+    if (!fs.existsSync(path.join(packageDir, "package.json"))) {
+        return [];
     }
-    return pkg;
+    return Object.keys(readPackageJson(packageDir).scripts ?? {});
 }
 
 const STATIC_ASSETS_DIR = path.join(PACKAGES_DIR, "static-assets");
 const WORKER_DIR = path.join(PACKAGES_DIR, "doenetml-worker-javascript");
 
-const staticAssetsPkg = readRequiredPackageJson(STATIC_ASSETS_DIR);
-const workerPkg = readRequiredPackageJson(WORKER_DIR);
+const staticAssetsPkg = readPackageJson(STATIC_ASSETS_DIR);
+const workerPkg = readPackageJson(WORKER_DIR);
 
 /**
  * Rewrite a wireit dependency into a form that can be compared across
@@ -178,17 +179,18 @@ describe("generator script wireit wiring", () => {
 
     for (const script of GENERATOR_SCRIPTS) {
         describe(script, () => {
+            const dependencies = canonicalDependenciesOf(
+                staticAssetsPkg,
+                STATIC_ASSETS_DIR,
+                script,
+            );
+
             it("is a wireit script", () => {
                 expect(staticAssetsPkg.scripts?.[script]).toBe("wireit");
                 expect(staticAssetsPkg.wireit?.[script]?.command).toBeTruthy();
             });
 
             it("declares every build @doenet/doenetml-worker-javascript needs", () => {
-                const dependencies = canonicalDependenciesOf(
-                    staticAssetsPkg,
-                    STATIC_ASSETS_DIR,
-                    script,
-                );
                 expect(dependencies).toEqual(
                     expect.arrayContaining(workerBuildDependencies),
                 );
@@ -197,24 +199,19 @@ describe("generator script wireit wiring", () => {
             it("declares only dependencies that exist", () => {
                 // A superset assertion alone would accept a typo'd or dangling
                 // entry. Wireit rejects those, but only when the script runs.
-                const dependencies = canonicalDependenciesOf(
-                    staticAssetsPkg,
-                    STATIC_ASSETS_DIR,
-                    script,
-                );
                 for (const dependency of dependencies) {
                     // Canonical form is `<package-dir>:<script>`; directory
                     // names hold no colon, so the first one divides them.
                     const separator = dependency.indexOf(":");
-                    const packageName = dependency.slice(0, separator);
-                    const scriptName = dependency.slice(separator + 1);
-                    const pkg = readPackageJson(
-                        path.join(PACKAGES_DIR, packageName),
-                    );
                     expect(
-                        Object.keys(pkg?.scripts ?? {}),
+                        scriptNamesIn(
+                            path.join(
+                                PACKAGES_DIR,
+                                dependency.slice(0, separator),
+                            ),
+                        ),
                         `${dependency} names a script that does not exist`,
-                    ).toContain(scriptName);
+                    ).toContain(dependency.slice(separator + 1));
                 }
             });
 
