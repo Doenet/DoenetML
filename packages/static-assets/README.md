@@ -26,14 +26,13 @@ npm run build:assets
 worker's component definitions, which they import as **source**
 (`doenetml-worker-javascript/src/utils/componentInfoObjects`). That source
 resolves `@doenet/utils`, `@doenet/i18n` and `@doenet/parser` to their built
-`dist/`, so running a generator against a stale sibling silently generates from
-old code — a regenerated schema can come out *missing* entries a branch just
+`dist/`, so a generator run against a stale sibling silently generates from old
+code — the regenerated schema can come out *missing* entries the branch just
 added, which reads as "the committed schema is stale" when the stale thing is
-`@doenet/i18n/dist`.
+`@doenet/i18n/dist`. All three are therefore wireit scripts that declare those
+builds as dependencies, and declare no `files`/`output` so wireit always re-runs
+them rather than serving a cached no-op.
 
-All three are therefore wireit scripts that declare those builds as
-dependencies, so they build what they read. They deliberately declare no
-`files`/`output`, which is what makes wireit always re-run them: a schema
-freshness check served from a cache would check nothing.
-`test/generator-script-dependencies.test.ts` documents the trade-offs in full
-and fails if the declarations drift from the worker's own.
+`test/generator-script-dependencies.test.ts` is where the reasoning lives in
+full — `package.json` cannot carry comments — and it fails if the declarations
+drift from the worker's own.
