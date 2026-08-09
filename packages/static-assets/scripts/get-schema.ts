@@ -3,10 +3,14 @@
  *
  * The `createComponentInfoObjects` import below reaches the worker's *source*,
  * which in turn resolves `@doenet/utils`, `@doenet/i18n` and `@doenet/parser` to
- * their built `dist/`. Every npm script that runs this module is therefore a
- * wireit script that declares those builds as dependencies; see the header of
+ * their built `dist/`. Generating against an unbuilt or stale sibling therefore
+ * produces a schema built from old code instead of failing, so the npm scripts
+ * that run the generators — `build:schema`, `build:assets` and
+ * `check:docs-coverage` — are wireit scripts that declare those builds as
+ * dependencies. See the header of
  * `test/generator-script-dependencies.test.ts` for the full reasoning and the
- * test that keeps the declarations in step with the worker's own.
+ * test that keeps the declarations in step with the worker's own. (The `test`
+ * script reaches this module too and is not yet covered; see that header.)
  */
 import * as fs from "node:fs";
 import * as path from "node:path";

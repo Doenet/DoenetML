@@ -34,6 +34,14 @@
  *   which is exactly what `build:schema` writes. If that chain ever breaks the
  *   failure is loud (`ERR_MODULE_NOT_FOUND`), not a silent stale read, and CI
  *   runs these scripts without pre-building the workspace so it sees it too.
+ *
+ * Not covered: this package's `test` script, which reaches the same worker
+ * source through `scripts/get-schema.ts`, and every other plain `test`/Cypress
+ * script in the repo that imports a `@doenet/*` package. Converting those is a
+ * separate change — wireit forwards extra arguments after `--` so the
+ * `-- --run <file>` workflow survives, but its cost in CI (where `npm ci`
+ * leaves no `.wireit` state) and its effect on `vitest` watch output want
+ * measuring first.
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
