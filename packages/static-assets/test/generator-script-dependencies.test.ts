@@ -12,13 +12,16 @@
  * *delete* the entry the branch had just added.
  *
  * Each generator script therefore declares the same wireit `dependencies` as
- * `@doenet/doenetml-worker-javascript`'s own `build`. We mirror that list
- * rather than depending on `../doenetml-worker-javascript:build` because these
- * scripts consume the worker's *source*: its bundle is never loaded, and
- * building it (plus the Rust/WASM core it pulls in) would add minutes to a
- * command that takes ~20s from a completely cold cache. The price of mirroring
- * is that the list can drift when the worker gains a dependency, and this test
- * is what makes that drift fail loudly instead of silently.
+ * `@doenet/doenetml-worker-javascript`'s own `build`. Depending on
+ * `../doenetml-worker-javascript:build` instead would track those transitively
+ * and could never drift, and it is not expensive — measured at ~10s of vite on
+ * top of a `build:schema` that takes ~20s from a completely cold cache. We
+ * mirror anyway because these scripts consume the worker's *source*: its 7 MB
+ * bundle is never loaded, so that 10s is pure waste on every schema
+ * regeneration, which is the inner loop when adding or documenting a component.
+ * The price of mirroring is that the list can drift when the worker gains a
+ * dependency, and this test is what makes that drift fail loudly rather than
+ * silently. Revisit the trade if the mirroring ever costs more than it saves.
  *
  * Two further requirements this test pins down:
  *
