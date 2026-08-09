@@ -5,11 +5,11 @@
  * import `createComponentInfoObjects` from `doenetml-worker-javascript/src`
  * (see `scripts/get-schema.ts` and `scripts/check-docs-coverage.ts`). That
  * source resolves `@doenet/utils`, `@doenet/i18n` and `@doenet/parser` to their
- * *built* `dist/` — each exports `"." → "./dist/index.js"` and there is no
- * source alias anywhere in the repo — so running a generator against an
- * unbuilt or stale sibling quietly generates from old code instead of failing.
- * That is how regenerating the schema on top of a new locale catalog could
- * *delete* the entry the branch had just added.
+ * *built* `dist/` — each exports `"." → "./dist/index.js"`, and nothing in the
+ * config these generators run under aliases those specifiers to source — so
+ * running a generator against an unbuilt or stale sibling quietly generates from
+ * old code instead of failing. That is how regenerating the schema on top of a
+ * new locale catalog could *delete* the entry the branch had just added.
  *
  * Each generator script therefore declares the same wireit `dependencies` as
  * `@doenet/doenetml-worker-javascript`'s own `build`. Depending on
@@ -51,26 +51,12 @@
  *   not a silent stale read, and CI runs these scripts without pre-building the
  *   workspace so it sees it too.
  *
- * Not covered: this package's `test` script, which reaches the same worker
- * source through `scripts/get-schema.ts`, and every other plain `test`/Cypress
- * script in the repo that imports a `@doenet/*` package. Converting those is a
- * separate change, and the blocker is not the one you might expect:
- *
- * - Argument forwarding is fine. `npm run test -- --run <file>` reaches the
- *   underlying command (wireit README, *Extra arguments*), so the targeted-run
- *   workflow survives. On Node 24 it does make wireit emit a `DEP0190`
- *   deprecation warning, because wireit spawns with `shell: true` *and* args.
- * - CI cost is ~nil. Both test jobs already build against the downloaded
- *   `.wireit` cache before testing — `test-main` runs `build:all-no-docs`, and
- *   `test-worker-js` runs `build -w packages/doenetml-worker`, which reaches
- *   `../doenetml-worker-javascript:build` and so the same three packages — so
- *   the dependencies would be fresh by the time a wireit `test` looked.
- * - The real blocker is the terminal. Wireit spawns the command with piped
- *   stdio (`script-child-process.ts` passes no `stdio` option), so the child
- *   sees no TTY and no stdin. These scripts are a bare `vitest`, i.e. watch
- *   mode, whose interactive keypress UI would stop working — for the one
- *   command developers spend all day in. Fixing that likely means splitting
- *   watch and single-run entry points, which is why it is its own change.
+ * Not covered: this package's own `test` script, which reaches the same worker
+ * source through `scripts/get-schema.ts`, nor any other plain `test`/Cypress
+ * script in the repo that imports a `@doenet/*` package — all of them read the
+ * same possibly-stale `dist/`. Converting them is its own change (the blocker
+ * is watch mode: wireit spawns with piped stdio, so a wrapped bare `vitest`
+ * loses its interactive keypress UI); tracked in Doenet/DoenetML#1675.
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -103,6 +89,9 @@ type PackageJson = {
     >;
 };
 
+/** The npm script a wireit dependency names, with its package resolved. */
+type ScriptRef = { packageDir: string; script: string };
+
 function readPackageJson(packageDir: string): PackageJson {
     return JSON.parse(
         fs.readFileSync(path.join(packageDir, "package.json"), "utf-8"),
@@ -128,49 +117,58 @@ const staticAssetsPkg = readPackageJson(STATIC_ASSETS_DIR);
 const workerPkg = readPackageJson(WORKER_DIR);
 
 /**
- * Rewrite a wireit dependency into a form that can be compared across
- * packages.
+ * Resolve a wireit dependency to the script it names, so that lists declared by
+ * two different packages can be compared.
  *
- * Dependency names are resolved relative to the package that declares them:
- * `"../i18n:build"` in `packages/utils` and `"../i18n:build"` in
- * `packages/static-assets` happen to agree, but `"build:wasm"` (a
- * same-package dependency, a form several packages here use) means a different
- * script depending on who wrote it. Resolving to `<package-name>:<script>`
- * makes the comparison mean what it says, and makes a failure message name the
- * script a reader has to go add.
+ * A dependency is interpreted relative to whoever declares it: `"../i18n:build"`
+ * in `packages/utils` and in `packages/static-assets` agree only by coincidence,
+ * and a bare `"build:rust"` — a same-package dependency, a form several packages
+ * here use — names a different script depending on who wrote it.
  *
- * The two cases are split exactly as wireit splits them (`analyzer.ts`): a name
- * starting with `"."` is cross-package and divides at its *first* colon;
- * anything else is a script in the declaring package, colons and all.
+ * The split follows wireit's documented dependency syntax, not an internal of
+ * its implementation: "Dependencies can refer to scripts in other npm packages
+ * by using a relative path with the syntax `<relative-path>:<script-name>`. All
+ * cross-package dependencies should start with a `"."`" (`wireit/schema.json`).
+ * So a name starting with `"."` divides at its *first* colon; anything else is a
+ * script in the declaring package, colons and all. A cross-package name with no
+ * colon at all is a config error wireit rejects outright — here it falls through
+ * as an oddly-named same-package script and trips the existence check below.
  */
-function canonicalizeDependency(
+function resolveDependency(
     dependency: WireitDependency,
     declaringPackageDir: string,
-): string {
+): ScriptRef {
     const name =
         typeof dependency === "string" ? dependency : dependency.script;
     const separator = name.startsWith(".") ? name.indexOf(":") : -1;
     const relativeDir = separator === -1 ? "." : name.slice(0, separator);
     const script = separator === -1 ? name : name.slice(separator + 1);
-    const packageDir = path.resolve(declaringPackageDir, relativeDir);
+    return {
+        packageDir: path.resolve(declaringPackageDir, relativeDir),
+        script,
+    };
+}
+
+/** `<package-dir>:<script>` — comparable, and readable in a failure message. */
+function refKey({ packageDir, script }: ScriptRef): string {
     return `${path.relative(PACKAGES_DIR, packageDir)}:${script}`;
 }
 
-function canonicalDependenciesOf(
+function dependenciesOf(
     pkg: PackageJson,
     packageDir: string,
     script: string,
-): string[] {
+): ScriptRef[] {
     return (pkg.wireit?.[script]?.dependencies ?? []).map((dependency) =>
-        canonicalizeDependency(dependency, packageDir),
+        resolveDependency(dependency, packageDir),
     );
 }
 
-const workerBuildDependencies = canonicalDependenciesOf(
+const workerBuildDependencies = dependenciesOf(
     workerPkg,
     WORKER_DIR,
     "build",
-);
+).map(refKey);
 
 describe("generator script wireit wiring", () => {
     it("has dependencies to mirror", () => {
@@ -181,7 +179,7 @@ describe("generator script wireit wiring", () => {
 
     for (const script of GENERATOR_SCRIPTS) {
         describe(script, () => {
-            const dependencies = canonicalDependenciesOf(
+            const dependencies = dependenciesOf(
                 staticAssetsPkg,
                 STATIC_ASSETS_DIR,
                 script,
@@ -193,7 +191,7 @@ describe("generator script wireit wiring", () => {
             });
 
             it("declares every build @doenet/doenetml-worker-javascript needs", () => {
-                expect(dependencies).toEqual(
+                expect(dependencies.map(refKey)).toEqual(
                     expect.arrayContaining(workerBuildDependencies),
                 );
             });
@@ -202,18 +200,10 @@ describe("generator script wireit wiring", () => {
                 // A superset assertion alone would accept a typo'd or dangling
                 // entry. Wireit rejects those, but only when the script runs.
                 for (const dependency of dependencies) {
-                    // Canonical form is `<package-dir>:<script>`; directory
-                    // names hold no colon, so the first one divides them.
-                    const separator = dependency.indexOf(":");
                     expect(
-                        scriptNamesIn(
-                            path.join(
-                                PACKAGES_DIR,
-                                dependency.slice(0, separator),
-                            ),
-                        ),
-                        `${dependency} names a script that does not exist`,
-                    ).toContain(dependency.slice(separator + 1));
+                        scriptNamesIn(dependency.packageDir),
+                        `${refKey(dependency)} names a script that does not exist`,
+                    ).toContain(dependency.script);
                 }
             });
 

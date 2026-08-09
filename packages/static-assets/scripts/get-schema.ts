@@ -10,7 +10,7 @@
  * dependencies. See the header of
  * `test/generator-script-dependencies.test.ts` for the full reasoning and the
  * test that keeps the declarations in step with the worker's own. (The `test`
- * script reaches this module too and is not yet covered; see that header.)
+ * script reaches this module too and is not yet covered — Doenet/DoenetML#1675.)
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
