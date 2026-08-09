@@ -37,20 +37,21 @@ import {
 } from "../../utils/listItemChild";
 
 /**
- * The one `allChildren` child dependency every position-indexed section state
- * variable must use — `childIndicesToRender`, `childrenToHide` (both through
- * `returnSectionChildDependencies()`) and `firstVisibleChild`.
+ * The one `allChildren` child dependency every section state variable that works
+ * in child *positions* must use: `childIndicesToRender` and `childrenToHide`
+ * (both through `returnSectionChildDependencies()`), `firstVisibleChild`, and
+ * `startsWithIntroduction`.
  *
  * It deliberately uses `includeAllChildren` rather than a list of child groups.
- * `childIndicesToRender` is consumed as *positions* in `activeChildren` (see
+ * `childIndicesToRender` is consumed as positions in `activeChildren` (see
  * `returnActiveChildrenIndicesToRender`), and `includeAllChildren` is the only
  * form whose indices are by construction those positions. Enumerating child
- * groups instead would silently drop any group left off the list, shifting every
- * later position down: rendered children would fall off the end of the section,
- * and `firstVisibleChild` — which indexes this array by those positions — would
- * report a child that is not the one at that position. Everything that needs
- * those positions therefore shares this definition rather than repeating
- * `includeAllChildren`, so no one call site can narrow it on its own.
+ * groups instead drops whatever is left off the list — blank strings, for one —
+ * shifting every later position down: rendered children fall off the end of the
+ * section, and the variables that look positions up in this array report the
+ * child at the wrong one. Sharing this definition is what keeps one call site
+ * from narrowing it alone; `sectioning.test.ts`'s hidden-leading-composite case
+ * fails if `firstVisibleChild`'s is narrowed to child groups.
  *
  * `extraFields` is for a variable that needs state values off the children as
  * well; only `firstVisibleChild` does, for their visibility.
@@ -670,11 +671,9 @@ export class SectioningComponent extends BlockComponent {
                     return {};
                 }
                 return {
-                    // Shared with `childIndicesToRender`, whose positions index
-                    // this array — see `sectionAllChildrenDependency()`. Narrowing
-                    // it to child groups here shifts those positions; the
-                    // hidden-leading-composite case in `sectioning.test.ts` is
-                    // what catches that.
+                    // Indexed below by the positions in `childIndicesToRender`,
+                    // so it must be the shared definition — see
+                    // `sectionAllChildrenDependency()`.
                     allChildren: sectionAllChildrenDependency(
                         listItemChildVisibilityDependency(),
                     ),
@@ -942,13 +941,10 @@ export class SectioningComponent extends BlockComponent {
             returnDependencies: () => ({
                 // `childIndicesToRender` is looked up in this list below, so it
                 // must be the same complete child list that produced those
-                // positions (see `returnSectionChildDependencies`). The
+                // positions — see `sectionAllChildrenDependency()`. The
                 // configuration children are already excluded from
                 // `childIndicesToRender`, so they need not be identified here.
-                allChildren: {
-                    dependencyType: "child",
-                    includeAllChildren: true,
-                },
+                allChildren: sectionAllChildrenDependency(),
                 asList: {
                     dependencyType: "stateVariable",
                     variableName: "asList",
