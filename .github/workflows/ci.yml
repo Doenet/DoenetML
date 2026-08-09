@@ -551,9 +551,9 @@ jobs:
             # There is deliberately no `npm run build:all-no-docs` step ahead of
             # this. A build break already fails the `build` job this one needs,
             # so it cannot surface here; what a pre-build would hide is an
-            # *incomplete dependency list*, and that is the bug this PR is
-            # about — it only bites someone who runs build:schema on its own, so
-            # CI runs it on its own too. When the cache cannot supply a declared
+            # *incomplete dependency list*, which is the bug this job is shaped
+            # to catch — it only bites someone who runs build:schema on its own,
+            # so CI runs it on its own too. When the cache cannot supply a declared
             # dependency wireit just builds it from source (~20s from nothing at
             # all), so dropping the step costs speed at worst, never a false
             # pass. An *undeclared* dependency is the one new hard failure, and
