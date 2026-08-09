@@ -67,10 +67,10 @@ export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
  * chain — an `<li>` or a section picks its lead, and a wrapper, an `<answer>`, or
  * a `<sideBySide>` that wins that lead forwards it to a child of its own — so a
  * link that skipped the test would leave the chain's end on something not on the
- * screen. All five, one of the first five rows of the lead-selection matrix in
- * `lists.test.ts` each (its sixth row is that matrix's negative control). The
- * first three find their lead with this test; the last two pick their target by a
- * rule of their own and use this only to filter what that rule may pick:
+ * screen. Each of the five gets a row of its own in the lead-selection matrix in
+ * `lists.test.ts` (whose sixth row is that matrix's negative control). The first
+ * three find their lead with this test; the last two pick their target by a rule
+ * of their own and use this only to filter what that rule may pick:
  *
  *   - `Li`'s `childrenToRenderInlineForListItem`
  *   - `SectioningComponent`'s `firstVisibleChild`

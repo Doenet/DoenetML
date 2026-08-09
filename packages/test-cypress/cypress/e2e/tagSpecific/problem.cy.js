@@ -1179,14 +1179,14 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
      * already gets from `cy.get(...).should(...)`. Every caller's callback only
      * asserts, so re-running one has no other effect.
      *
-     * #1320 points at more of this file than this one helper, and the rest are
-     * `should` now too: the boxed-heading `::before` read, both grid-layout
-     * reads, the `display` read in the mixed-first-children test, and the three
-     * `align-items` reads in "answer list-item alignment only triggers flex-start
-     * for block choiceInput child" — plus
-     * `verifySideBySideColumnTopAlignment()`. Every value any of them reads is
-     * computed in the worker and arrives after the element does, so a single-shot
-     * callback is the same race in each case. There is no remaining
+     * #1320 lists more of this file than this one helper as sharing the pattern,
+     * and the rest are `should` now too: the boxed-heading `::before` read, both
+     * grid-layout reads, the `display` read in "untitled unboxed list items align
+     * numbering with block first children", and the three `align-items` reads in
+     * "answer list-item alignment only triggers flex-start for block choiceInput
+     * child" — plus `verifySideBySideColumnTopAlignment()`. Every value any of
+     * them reads is computed in the worker and arrives after the element does, so
+     * a single-shot callback is the same race in each case. There is no remaining
      * `getComputedStyle` in this file outside a retried callback; keep it that
      * way.
      */
