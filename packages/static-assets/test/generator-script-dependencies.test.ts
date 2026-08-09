@@ -66,12 +66,17 @@ import { describe, expect, it } from "vitest";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGES_DIR = path.resolve(__dirname, "../..");
 
-/** Scripts in this package that run a generator over worker source. */
-const GENERATOR_SCRIPTS = [
-    "build:assets",
-    "build:schema",
-    "check:docs-coverage",
-] as const;
+/**
+ * How a generator script is recognized: it runs one of `scripts/` under
+ * `vite-node`. Deriving the list rather than hard-coding it means a *newly
+ * added* generator is covered on arrival — `build:assets` had this same gap for
+ * as long as it existed and was only noticed by hand.
+ *
+ * A script that runs `vite-node` without reaching worker source would be a
+ * false positive, and would be asked for dependencies it does not need. That is
+ * loud, and the fix is to narrow this pattern.
+ */
+const GENERATOR_COMMAND = /vite-node\s+\.\/scripts\//;
 
 /** A wireit dependency entry: `"../i18n:build"` or `{ script: "…" }`. */
 type WireitDependency = string | { script: string; cascade?: boolean };
@@ -170,11 +175,29 @@ const workerBuildDependencies = dependenciesOf(
     "build",
 ).map(refKey);
 
+/** What an npm script runs, looking through the `wireit` indirection. */
+function commandOf(pkg: PackageJson, script: string): string {
+    const npmCommand = pkg.scripts?.[script] ?? "";
+    return npmCommand === "wireit"
+        ? (pkg.wireit?.[script]?.command ?? "")
+        : npmCommand;
+}
+
+const GENERATOR_SCRIPTS = Object.keys(staticAssetsPkg.scripts ?? {}).filter(
+    (script) => GENERATOR_COMMAND.test(commandOf(staticAssetsPkg, script)),
+);
+
 describe("generator script wireit wiring", () => {
     it("has dependencies to mirror", () => {
         // If the worker's build ever stops declaring dependencies, the
         // superset assertions below would pass vacuously.
         expect(workerBuildDependencies.length).toBeGreaterThan(0);
+    });
+
+    it("recognizes the generator scripts", () => {
+        // A canary for GENERATOR_COMMAND going stale: matching nothing would
+        // make every assertion below disappear rather than fail.
+        expect(GENERATOR_SCRIPTS).toContain("build:schema");
     });
 
     for (const script of GENERATOR_SCRIPTS) {
