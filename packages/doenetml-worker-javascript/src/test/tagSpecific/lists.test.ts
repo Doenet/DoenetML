@@ -313,10 +313,6 @@ describe("List tag tests @group4", async () => {
       </answer>`;
     }
 
-    function graphLead(name: string) {
-        return `<graph name="${name}" size="small"><point>(1,2)</point></graph>`;
-    }
-
     // One question — a leading child that hid itself is not the item's lead —
     // asked of all five places a list item's lead is chosen, from one table so
     // that a change to any one of them cannot silently diverge from the others.
@@ -422,7 +418,7 @@ describe("List tag tests @group4", async () => {
   <li name="item">
     <sideBySide name="middle">
       <p name="hiddenChild" ${hide}>Setup text</p>
-      ${graphLead("lead")}
+      <graph name="lead" size="small"><point>(1,2)</point></graph>
     </sideBySide>
   </li>
 </ol>`,
