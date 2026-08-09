@@ -25,9 +25,13 @@ export type ThemeMode = "dark" | "light";
  * by recoloring its own text — `selectedText` below — so only that one color
  * has to clear AA there, which is what buys the fill its strength. Ratios are
  * against the canvas of the mode; `selectionAccessibility.cy.tsx` measures the
- * text side. (The read-only theme tints `.cm-content`, which paints over the
- * selection layer beneath it, so its selection lands a little short of the
- * numbers below — 2.79:1 rather than 3.09:1 on the dark canvas.)
+ * text side.
+ *
+ * Two of the editor's own tints are painted on the line itself, above the
+ * selection layer, and so shade whatever they cover: `.cm-activeLine` on the
+ * line holding a cursor, and `.cm-content` throughout the read-only theme.
+ * Either costs the dark selection about a third of a point — 2.74:1 and 2.79:1
+ * rather than the 3.09:1 below.
  */
 function getHighlightColors(darkMode: ThemeMode) {
     if (darkMode === "dark") {
@@ -66,7 +70,10 @@ function getHighlightColors(darkMode: ThemeMode) {
  * wins when focused, and add a focus-agnostic rule so the *blurred* selection
  * (base default `#d9d9d9` light / `#222` dark) is overridden too — otherwise
  * clicking away from the editor reverts the highlight to the washed-out base
- * color. `::selection` covers the native-selection fallback.
+ * color. `::selection` colors the native selection; `drawSelection` (part of
+ * `basicSetup`) forces that transparent inside `.cm-line`, so on the document
+ * it is a fallback for an editor configured without the drawn selection, and
+ * what it paints today is the selection in the search panel's input.
  */
 function highlightThemeRules(darkMode: ThemeMode) {
     const { selection, selectedText, match, tagMatch, tagMismatch } =

@@ -1,8 +1,8 @@
-import type { EditorSelection } from "@codemirror/state";
+import type { EditorSelection, Range } from "@codemirror/state";
 import {
     Decoration,
     type DecorationSet,
-    EditorView,
+    type EditorView,
     ViewPlugin,
     type ViewUpdate,
 } from "@codemirror/view";
@@ -61,7 +61,7 @@ function overlapsSelection(
  * common that marking it would tint the document rather than point at
  * anything.
  */
-function findMatches(view: EditorView) {
+function findMatches(view: EditorView): Range<Decoration>[] {
     const { state } = view;
     const { selection } = state;
     const main = selection.main;
@@ -79,7 +79,7 @@ function findMatches(view: EditorView) {
         return [];
     }
 
-    const matches = [];
+    const matches: Range<Decoration>[] = [];
     // Only what is on screen: the marks are a reading aid, and off-screen ones
     // would cost a full-document scan on every cursor move to draw nothing.
     for (const part of view.visibleRanges) {

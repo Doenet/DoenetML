@@ -34,13 +34,15 @@ import {
  */
 
 // "alpha" several times over, including two on one line — enough copies to tell
-// "some marks" from "all marks" as Ctrl+D consumes them. The comment and the
-// unbalanced close tag bring in the two dimmest syntax colors, so the contrast
-// check below measures the tint against the whole painted palette.
+// "some marks" from "all marks" as Ctrl+D consumes them. The rest of the
+// document paints one token of every color the editor has, so the contrast
+// check below measures the tint against the whole palette rather than a corner
+// of it — the comment gray and the mismatched-tag red among them, the two
+// dimmest in the dark palette.
 const DOENET_SOURCE = `<section name="alpha">
   <!-- a comment about alpha -->
   <p>alpha beta alpha</p>
-  <p>gamma alpha delta</p>
+  <p>gamma alpha delta $epsilon</p>
   <p>a mismatched <em>close</strong> tag</p>
 </section>`;
 

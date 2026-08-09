@@ -32,7 +32,7 @@ import { mountEditor, setSelection } from "../support/mount-editor";
  */
 
 // Exercises the token categories the editor actually paints: tag names / angle
-// brackets, attribute names, attribute-value strings, text content, the
+// brackets, attribute names, attribute-value strings, macros, text content, the
 // mismatched-tag red, and the comment gray. All of them are recolored once
 // selected, so the point of the variety here is to catch a token type that
 // somehow escapes the recolor.
@@ -139,6 +139,20 @@ describe("CodeMirror selection-highlight accessibility", () => {
         setSelection(viewRef, source.indexOf("alpha"));
         cy.get(".cm-content").type("{ctrl}d").type("{ctrl}d");
         cy.get(".cm-selectedText").should("have.length", 2);
+        expectHighlightedTextIsLegible("dark");
+    });
+
+    // A read-only editor is themed by a second factory, which used to bring no
+    // canvas color of its own and so sat on whatever was behind it. It now
+    // paints the canvas and shares the highlight rules — `renderedBackground`
+    // asserts the first and the recolor assertions the second. Its own
+    // `.cm-content` tint shades the selection, so the visibility floor above
+    // does not apply to it; the text on top still has to clear AA.
+    it("dark mode: a read-only editor gets the same canvas and selection", () => {
+        const viewRef = mountEditor("dark", DOENET_SOURCE, { readOnly: true });
+        setSelection(viewRef, 0, DOENET_SOURCE.length);
+        cy.get(".cm-selectionBackground").should("exist");
+        cy.get(".cm-selectedText").should("exist");
         expectHighlightedTextIsLegible("dark");
     });
 });

@@ -23,8 +23,15 @@ export type ViewRef = { current: EditorView | null };
  * Returns a ref to the `EditorView`, which lets a spec place the selection at a
  * document offset rather than click at a pixel coordinate that would depend on
  * the rendered font metrics.
+ *
+ * `readOnly` picks the other of the two theme factories, which is a separate
+ * set of rules that has to stay in step with the editable one.
  */
-export function mountEditor(mode: ThemeMode, value: string): ViewRef {
+export function mountEditor(
+    mode: ThemeMode,
+    value: string,
+    { readOnly = false }: { readOnly?: boolean } = {},
+): ViewRef {
     const viewRef: ViewRef = { current: null };
     const style = {
         height: "500px",
@@ -41,6 +48,7 @@ export function mountEditor(mode: ThemeMode, value: string): ViewRef {
             <CodeMirror
                 value={value}
                 darkMode={mode}
+                readOnly={readOnly}
                 editorViewRef={viewRef as React.RefObject<EditorView | null>}
             />
         </div>,
