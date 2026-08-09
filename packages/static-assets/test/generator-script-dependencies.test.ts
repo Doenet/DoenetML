@@ -189,7 +189,10 @@ describe("generator script wireit wiring", () => {
                 expect(staticAssetsPkg.scripts?.[script], advice).toBe(
                     "wireit",
                 );
-                expect(staticAssetsPkg.wireit?.[script]?.command).toBeTruthy();
+                expect(
+                    staticAssetsPkg.wireit?.[script]?.command,
+                    advice,
+                ).toBeTruthy();
             });
 
             it("depends on the worker's build:deps", () => {
