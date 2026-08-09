@@ -52,7 +52,7 @@
  *   workspace so it sees it too.
  *
  * Not covered: this package's own `test` script, which reaches the same worker
- * source through `scripts/get-schema.ts`, nor any other plain `test`/Cypress
+ * source through `scripts/get-schema.ts`, or any other plain `test`/Cypress
  * script in the repo that imports a `@doenet/*` package — all of them read the
  * same possibly-stale `dist/`. Converting them is its own change (the blocker
  * is watch mode: wireit spawns with piped stdio, so a wrapped bare `vitest`
