@@ -551,7 +551,7 @@ jobs:
             # makes the diff below meaningful. NODE_OPTIONS matches the other
             # build steps in this file, since this step now performs those builds
             # itself when the cache cannot supply them (~21s from nothing at all,
-            # peaking at ~1.5 GB RSS).
+            # peaking at ~1.4 GiB RSS).
             #
             # There is deliberately no `npm run build:all-no-docs` step ahead of
             # this: a pre-built workspace masks an *incomplete dependency list*,
