@@ -21,3 +21,5 @@ This holds at every level the number's alignment is passed down. Hiding a compos
 A `<cascadeMessage>` no longer takes the lead either. It is hidden whenever the step around it is revealed, so a `<problem>` that opened with one gave its number, and the top-margin suppression, to a message the reader cannot see.
 
 Only a child's own `hide` counts, though. Hiding a *container* does not re-pick the lead of anything inside it: a hidden `<ol>`, a hidden section, and a `<cascade>` step held back until earlier ones are done all hide their contents while leaving each item leading with exactly the child it would lead with if shown.
+
+Known limitation, unchanged by this and tracked separately as [#1673](https://github.com/Doenet/DoenetML/issues/1673): an `<li>` that leads with a box whose baseline is its bottom edge — a `<graph>`, `<image>`, `<video>` or `<figure>` — still has its number drawn at the bottom of that box rather than beside its top.

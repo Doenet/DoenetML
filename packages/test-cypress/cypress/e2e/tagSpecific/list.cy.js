@@ -614,6 +614,14 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
+    // `<ul>` and `<ol>` share one `Li` class, so this is a guard against that
+    // ever stopping being true rather than a second implementation.
+    //
+    // The `margin-top: 0px` is the load-bearing assertion, for the reason the
+    // wrapper test above spells out: the label is a `<div>` unconditionally, so
+    // the marker lands on its row whether or not this `<li>` published the
+    // list-item signal at all. Measured — with the signal's effect removed the
+    // marker assertion here still passes and only the margin fails.
     it("<ul> gets the same first-child alignment as <ol>", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -638,6 +646,11 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
 
         cy.get(`#${cesc("li1")}`).should("be.visible");
         verifyListItemMarkerSharesRowWith("li1", `#${cesc("ci1")}-label`);
+        cy.get(`#${cesc("ans1")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
         cy.get(`#${cesc("ans1")} fieldset > legend`).should("not.exist");
     });
 
