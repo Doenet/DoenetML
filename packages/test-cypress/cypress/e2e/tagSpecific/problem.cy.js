@@ -1178,6 +1178,14 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
      * or the command times out, which is what every other assertion in this file
      * already gets from `cy.get(...).should(...)`. Every caller's callback only
      * asserts, so re-running one has no other effect.
+     *
+     * #1320 names four other places in this file with the same shape — the
+     * boxed-heading `::before` read, the two grid-layout reads, and the
+     * `align-items` reads that check a section's own alignment — and they are all
+     * `should` now too, along with `verifySideBySideColumnTopAlignment()`. Every
+     * value any of them reads is computed in the worker and arrives after the
+     * element does, so a single-shot callback is a race in each case. Any new
+     * helper here that reads a computed style belongs in a `should`.
      */
     function withBeforeStyle(itemId, callback) {
         const escapedItemId = cesc(itemId);
@@ -1266,7 +1274,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
 
         verifyNoBeforeContent(itemId);
 
-        cy.get(`#${escapedItemId} .${escapedHeadingClassName}`).then(
+        cy.get(`#${escapedItemId} .${escapedHeadingClassName}`).should(
             ($headingEl) => {
                 const win = $headingEl[0].ownerDocument.defaultView;
                 const before = win.getComputedStyle($headingEl[0], "::before");
@@ -1300,7 +1308,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         const escapedItemId = cesc(itemId);
         const escapedContentWrapperId = cesc(`${itemId}-content-wrapper`);
 
-        cy.get(`#${escapedItemId}`).then(($el) => {
+        cy.get(`#${escapedItemId}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
@@ -1317,7 +1325,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             expect(before.getPropertyValue("grid-column-start")).to.equal("1");
         });
 
-        cy.get(`#${escapedContentWrapperId}`).then(($el) => {
+        cy.get(`#${escapedContentWrapperId}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("grid-column-start")).to.equal("2");
@@ -1514,7 +1522,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             "0px",
         );
 
-        cy.get(`#${cesc("task6")}`).then(($el) => {
+        cy.get(`#${cesc("task6")}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.not.equal("grid");
@@ -1540,7 +1548,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         // task1: answer with mathInput — section uses baseline alignment, not flex-start
-        cy.get(`#${cesc("task1")}`).then(($el) => {
+        cy.get(`#${cesc("task1")}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
@@ -1548,7 +1556,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         // task2: answer with inline choiceInput — section uses baseline alignment, not flex-start
-        cy.get(`#${cesc("task2")}`).then(($el) => {
+        cy.get(`#${cesc("task2")}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
@@ -1556,7 +1564,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         // task3: answer with block choiceInput — section uses flex-start, choiceInput margin is suppressed
-        cy.get(`#${cesc("task3")}`).then(($el) => {
+        cy.get(`#${cesc("task3")}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
