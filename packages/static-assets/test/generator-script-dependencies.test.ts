@@ -17,11 +17,11 @@
  * worker's own `build` depends on it too, so the list has exactly one home and
  * cannot drift out of step with what the worker actually needs. Depending on the
  * worker's `build` instead would be equally drift-proof, but it adds a vite pass
- * — ~11s, on top of a `build:schema` that takes ~20s from a completely cold
- * cache — to produce a 7 MB bundle these scripts never load, since they consume
- * the worker's *source*: waste on every schema regeneration, which is the inner
- * loop when adding or documenting a component, and worst exactly when the
- * worker's source just changed.
+ * — on its own about as expensive as a cold `build:schema` in full — to produce a
+ * 7 MB bundle these scripts never load, since they consume the worker's
+ * *source*: waste on every schema regeneration, which is the inner loop when
+ * adding or documenting a component, and worst exactly when the worker's source
+ * just changed.
  *
  * The aggregator only helps while it stays authoritative, so this test also
  * pins that down: the worker's `build` must name no sibling build directly, or a
