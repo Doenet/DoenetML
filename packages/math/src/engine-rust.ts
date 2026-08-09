@@ -29,9 +29,12 @@
  * `Context` import.
  */
 import "./wasm-loader";
-import Context, { isTree } from "math-expressions-js-compat";
+import CompatContext, {
+    isTree as compatIsTree,
+} from "math-expressions-js-compat";
 import type {
     Bindings,
+    Context as ContextType,
     Dopri,
     Expression as ExpressionType,
     Tree,
@@ -44,14 +47,38 @@ import type {
  * the context. Callers (`ODESystem.js`, `packages/utils`) import it from
  * `@doenet/math` rather than reaching into the context.
  */
-export const dopri = (Context as unknown as { dopri: Dopri }).dopri;
+export const dopri = (CompatContext as unknown as { dopri: Dopri }).dopri;
 
 export {
     initMathWasm,
     initMathWasmSync,
     isMathWasmInitialized,
 } from "./wasm-loader";
-export { isTree };
+
+/*
+ * The two re-exports below are restated against types from `./types` rather
+ * than handed straight back out, and that is the whole point of them.
+ *
+ * Re-exporting the imported bindings directly makes the emitted `.d.ts` say
+ * `import { default as Context, isTree } from
+ * '../../../vendor/math-expressions/.../lib/math-expressions.ts'` — a relative
+ * path into the submodule's *source*. Since `index.d.ts` → `engine.d.ts` →
+ * `engine-rust.d.ts`, every consumer of `@doenet/math` then type-checks that
+ * file, and the 18 packages here running `dts({ rollupTypes: true })` run
+ * API Extractor over it. One upstream commit adding a construct API Extractor
+ * cannot analyse (an object binding pattern, as it happens) took out
+ * `@doenet/utils`, and with it `build:all` and every Cypress run.
+ *
+ * `./vendor-shims.d.ts` was meant to be the single named contract with the
+ * submodule, but it only governs what we *import*: node resolution finds the
+ * real package and wins, and nothing constrained what we *emit*. Naming local
+ * types here is what actually keeps the submodule's source out of consumers'
+ * type programs.
+ */
+export const isTree = compatIsTree as unknown as (
+    value: unknown,
+) => value is Tree;
 export const engineName = "rust" as const;
 export type { ExpressionType as Expression, Tree, Bindings, Dopri };
-export default Context;
+const context = CompatContext as unknown as ContextType;
+export default context;

@@ -156,4 +156,9 @@ const guarded = new Proxy(glue as unknown as WasmModule, {
  */
 setWasmModule(guarded);
 
-export default guarded;
+// `guarded` is deliberately not exported. Nothing imports it — the compat layer
+// receives it through `setWasmModule` above, and this module is not in the
+// package's `exports` map — while exporting it made the emitted `.d.ts` say
+// `import { WasmModule } from '../../../vendor/math-expressions/.../src-js/index.ts'`,
+// putting a second submodule source file into every consumer's type program.
+// See the note in `./engine-rust` for why that is worth avoiding.
