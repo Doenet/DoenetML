@@ -46,12 +46,14 @@ import {
  * `childIndicesToRender` is consumed as positions in `activeChildren` (see
  * `returnActiveChildrenIndicesToRender`), and `includeAllChildren` is the only
  * form whose indices are by construction those positions. Enumerating child
- * groups instead drops whatever is left off the list — blank strings, for one —
- * shifting every later position down: rendered children fall off the end of the
- * section, and the variables that look positions up in this array report the
- * child at the wrong one. Sharing this definition is what keeps one call site
- * from narrowing it alone; `sectioning.test.ts`'s hidden-leading-composite case
- * fails if `firstVisibleChild`'s is narrowed to child groups.
+ * groups instead drops whatever is left off the list, shifting every later
+ * position down: rendered children fall off the end of the section, and the
+ * variables that look positions up in this array read the wrong entry or run off
+ * the end of it. Sharing this definition is what keeps one call site from
+ * narrowing it alone. Narrowing `firstVisibleChild`'s to `childGroups:
+ * ["anything"]` runs off the end, and `sectioning.test.ts`'s
+ * hidden-leading-composite case then fails to load its document at all
+ * (`Cannot read properties of undefined (reading 'componentIdx')`).
  *
  * `extraFields` is for a variable that needs state values off the children as
  * well; only `firstVisibleChild` does, for their visibility.

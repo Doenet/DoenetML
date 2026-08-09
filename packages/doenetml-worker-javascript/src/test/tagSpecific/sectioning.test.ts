@@ -1823,9 +1823,11 @@ describe("Sectioning tag tests @group3", async () => {
     //
     // This is also what catches a narrowed `firstVisibleChild` child dependency:
     // it indexes `allChildren` by the positions in `childIndicesToRender`, and a
-    // composite expanding to two replacements in the middle of the child list is
-    // enough offset that swapping `sectionAllChildrenDependency()` for a list of
-    // child groups picks the wrong child here (verified by making that change).
+    // composite expanding to two replacements in the middle of the child list
+    // offsets those positions enough that swapping
+    // `sectionAllChildrenDependency()` for `childGroups: ["anything"]` indexes
+    // past the end of the narrowed list, and this document stops loading at all
+    // — verified by making that change; it is the only case here that catches it.
     it("does not delegate list-item rendering to the replacements of a hidden leading composite", async () => {
         await test_first_visible_child_skips_non_rendering_child({
             doenetML: `
