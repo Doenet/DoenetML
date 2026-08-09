@@ -136,18 +136,19 @@ export class SideBySide extends BlockComponent {
                 // flex-start for block-level content (graphs, choiceInputs, etc.)
                 // so the number aligns with the top of the content instead.
                 //
-                // The alignment is read off the first panel that is *on the
-                // screen* (`childRendersSomething()`, the same test the `<li>`,
-                // section, and wrapper links of this chain apply). A hidden panel
-                // keeps its column but draws nothing in it, so `baseline` taken
-                // from a `<p hide>` aligns the row by a baseline nothing on the
-                // screen has, instead of by the panel the reader can see.
+                // The panel it is read off has to be one that is *on the screen*
+                // (`childRendersSomething()`, the same test the other links of
+                // this chain apply). A hidden panel keeps its slot in the row's
+                // widths but the renderer draws no box for it, so a `baseline`
+                // read off a `<p hide>` lines the number up with the next
+                // panel's baseline — the bottom of a `<graph>` — rather than the
+                // top of the content the reader sees.
                 //
-                // Only the alignment is read off one panel; the forward still
-                // goes to every panel, hidden or not, since that is what
-                // suppresses each panel's top margin and they all sit at the top
-                // of the row. A hidden panel has no margin to suppress, so
-                // leaving it in that list is invisible either way.
+                // Only the alignment comes from one panel; the forward still goes
+                // to every panel, hidden or not, since that is what suppresses
+                // each panel's top margin and they all sit at the top of the row.
+                // A hidden panel has no margin to suppress, so leaving it in that
+                // list is invisible either way.
                 const leadingPanel = dependencyValues.blockChildren?.find(
                     (child) =>
                         childRendersSomething(child, componentInfoObjects),

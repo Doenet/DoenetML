@@ -18,11 +18,11 @@
  * document fine and simply fails those two tests. See `BaseComponent`'s
  * `hiddenIgnoreParent` and its use by `<choice>`'s `text`.
  *
- * `variablesOptional` covers a class that does not define `hiddenIgnoreParent` —
- * none does today, since `BaseComponent` defines it for all of them — by reading
- * it as "not hidden" rather than failing the document on a missing state
- * variable. It also leaves "component child with no `stateValues` at all"
- * meaning exactly one thing; see {@link childRendersSomething}.
+ * `variablesOptional` reads a class that does not define `hiddenIgnoreParent` as
+ * "not hidden" rather than failing the document — no class does today, since
+ * `BaseComponent` defines it for all of them — and it leaves "component child
+ * with no `stateValues` at all" meaning exactly one thing; see
+ * {@link childRendersSomething}.
  */
 export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
     variableNames: string[];
@@ -64,8 +64,10 @@ export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
  * chain — an `<li>` or a section picks its lead, and a wrapper, an `<answer>`, or
  * a `<sideBySide>` that wins that lead forwards it to a child of its own — so a
  * link that skipped the test would leave the chain's end on something not on the
- * screen. All five, pinned together by the lead-selection matrix in
- * `lists.test.ts`:
+ * screen. All five, one row of the lead-selection matrix in `lists.test.ts`
+ * each. The first three find their lead with this test; the last two pick their
+ * target by a rule of their own and use this only to filter what that rule may
+ * pick:
  *
  *   - `Li`'s `childrenToRenderInlineForListItem`
  *   - `SectioningComponent`'s `firstVisibleChild`
@@ -76,18 +78,14 @@ export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
  *   - `<sideBySide>`'s `listItemInlineAlignment`, which reads the alignment off
  *     its leading panel
  *
- * The last two pick their target by a rule of their own and use this only to
- * filter what that rule may pick, so what they need from it is the
- * `hiddenIgnoreParent` half.
- *
- * A component child arriving without `stateValues` means a call site that did not
- * spread it, and throws rather than defaulting to "not hidden", which would
- * silently restore the pre-fix answer and leave the next call site looking correct
- * and being wrong. A throw here aborts the document, but it is unreachable from a
- * correct call site: a `child` dependency requesting any variable gives every
- * component child a `stateValues` object, empty at worst
- * (`Dependency.getValueNoProxy()`). So the only way to reach it is a mistake in
- * this file's own callers, and the first test that renders a list item hits it.
+ * A component child arriving without `stateValues` means a call site that did
+ * not spread it, and throws rather than defaulting to "not hidden" — which would
+ * silently restore the pre-fix answer, leaving the next call site looking correct
+ * and being wrong. The throw aborts the document, but it is unreachable from a
+ * correct call site, since a `child` dependency requesting any variable gives
+ * every component child a `stateValues` object, empty at worst
+ * (`Dependency.getValueNoProxy()`). So only a mistake in this file's own callers
+ * reaches it, and the first test that renders a list item does.
  */
 export function childRendersSomething(
     child: any,
