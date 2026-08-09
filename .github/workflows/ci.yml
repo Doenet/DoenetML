@@ -548,10 +548,12 @@ jobs:
             # has to be set explicitly — wireit defaults it to "none" whenever
             # CI=true — while build:schema itself declares no files/output, so it
             # always re-runs instead of being served from cache, which is what
-            # makes the diff below meaningful. NODE_OPTIONS matches the other
-            # build steps in this file, since this step now performs those builds
-            # itself when the cache cannot supply them (~21s from nothing at all,
-            # peaking at ~1.4 GiB RSS).
+            # makes the diff below meaningful. NODE_OPTIONS is the value every
+            # runner-side build step in this file uses (the devcontainer jobs
+            # build inside their container and set nothing); it belongs here
+            # because this step now performs those builds itself when the cache
+            # cannot supply them — ~21s from nothing at all, peaking at ~1.4 GiB
+            # RSS, measured locally.
             #
             # There is deliberately no `npm run build:all-no-docs` step ahead of
             # this: a pre-built workspace masks an *incomplete dependency list*,
