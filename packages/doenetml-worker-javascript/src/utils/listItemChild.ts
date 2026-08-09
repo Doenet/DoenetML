@@ -27,9 +27,7 @@
  * none does today, since `BaseComponent` defines it for all of them — by reading
  * it as "not hidden" rather than failing the document on a missing state
  * variable. It also leaves "component child with no `stateValues` at all"
- * meaning exactly one thing; see {@link childRendersSomething}. String children
- * are unaffected either way: a `child` dependency resolves them as primitives
- * and never looks a variable up on them.
+ * meaning exactly one thing; see {@link childRendersSomething}.
  */
 export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
     variableNames: string[];

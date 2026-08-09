@@ -721,9 +721,9 @@ describe("List tag tests @group4", async () => {
                 div.childrenToRenderInlineForListItem[0].componentIdx,
                 wrapper,
             ).eq(await resolvePathToNodeIdx(graph));
-            // The `<graph>`'s own `flex-start`, reported back up through the
-            // wrapper. A skipped child reports nothing, so the wrapper would say
-            // `none` and the number would fall to the graph's baseline.
+            // The wrapper reports the `<graph>`'s own `flex-start` back up. A
+            // `<label>` or an `<animateFromSequence>` has no alignment to report,
+            // so leading with either would leave the wrapper saying `none`.
             expect(div.listItemInlineAlignment, wrapper).eq("flex-start");
             expect(
                 stateVariables[await resolvePathToNodeIdx(graph)].stateValues
@@ -794,9 +794,12 @@ describe("List tag tests @group4", async () => {
 
     // `<answer>` forwards the signal to the first block `<choiceInput>` among its
     // inputs, which is how the `<choiceInput>` learns to drop its `<legend>` and
-    // suppress its top margin. A hidden one is not what the number lines up with,
-    // so the `<answer>` names nobody and reports no alignment — the item falls
-    // back to its default rather than top-aligning against an empty row.
+    // suppress its top margin, and it is where the item reads its top-vs-baseline
+    // alignment from. A hidden `<choiceInput>` is not what the number lines up
+    // with, so the `<answer>` names nobody and reports no alignment. The
+    // `<problem>` arm is where that is visible: `firstChildListItemAlignment` is
+    // the value the section renderer reads, and it goes back to baseline rather
+    // than top-aligning the number against an input nobody can see.
     it("does not forward a list item's alignment to an answer's hidden choiceInput", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -810,7 +813,27 @@ describe("List tag tests @group4", async () => {
       </choiceInput>
     </answer>
   </li>
-</ol>`,
+</ol>
+<problem>
+  <task name="taskHiddenInput">
+    <answer name="ansTaskHidden">
+      <choiceInput name="ciTaskHidden" hide>
+        <label>Pick one</label>
+        <choice credit="1">A</choice>
+        <choice>B</choice>
+      </choiceInput>
+    </answer>
+  </task>
+  <task name="taskShownInput">
+    <answer name="ansTaskShown">
+      <choiceInput name="ciTaskShown">
+        <label>Pick one</label>
+        <choice credit="1">A</choice>
+        <choice>B</choice>
+      </choiceInput>
+    </answer>
+  </task>
+</problem>`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -829,5 +852,16 @@ describe("List tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("ciHidden")].stateValues
                 .renderInlineForListItem,
         ).eq(false);
+
+        // The section arm, and the control beside it: an `<answer>` whose
+        // `<choiceInput>` is shown still top-aligns the number.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("taskHiddenInput")]
+                .stateValues.firstChildListItemAlignment,
+        ).eq("baseline");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("taskShownInput")]
+                .stateValues.firstChildListItemAlignment,
+        ).eq("flex-start");
     });
 });
