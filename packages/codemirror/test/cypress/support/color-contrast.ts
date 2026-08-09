@@ -4,9 +4,9 @@
  *
  * These live here rather than in a spec because more than one spec needs them:
  * `selectionAccessibility.cy.tsx` checks the selection background, and
- * `selectionMatchHighlight.cy.tsx` checks the subtler background used for the
- * other occurrences of the selected text. Both ask the same question of a
- * different color.
+ * `selectionHighlights.cy.tsx` checks the subtler backgrounds used for the other
+ * occurrences of the selected text and for the tag pair. Both ask the same
+ * question of a different color.
  */
 
 export type ThemeMode = "dark" | "light";
@@ -52,12 +52,15 @@ export function flatten(fg: Rgb, backdrop: Rgb): Rgb {
     };
 }
 
+function linearize(c: number): number {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+}
+
 export function relativeLuminance({ r, g, b }: Rgb): number {
-    const channel = (c: number) => {
-        const s = c / 255;
-        return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-    };
-    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+    return (
+        0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
+    );
 }
 
 export function contrastRatio(a: Rgb, b: Rgb): number {

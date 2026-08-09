@@ -25,7 +25,9 @@ export type ThemeMode = "dark" | "light";
  * by recoloring its own text — `selectedText` below — so only that one color
  * has to clear AA there, which is what buys the fill its strength. Ratios are
  * against the canvas of the mode; `selectionAccessibility.cy.tsx` measures the
- * text side.
+ * text side. (The read-only theme tints `.cm-content`, which paints over the
+ * selection layer beneath it, so its selection lands a little short of the
+ * numbers below — 2.79:1 rather than 3.09:1 on the dark canvas.)
  */
 function getHighlightColors(darkMode: ThemeMode) {
     if (darkMode === "dark") {
@@ -69,11 +71,6 @@ function getHighlightColors(darkMode: ThemeMode) {
 function highlightThemeRules(darkMode: ThemeMode) {
     const { selection, selectedText, match, tagMatch, tagMismatch } =
         getHighlightColors(darkMode);
-    const outline = (color: string) => ({
-        backgroundColor: "transparent",
-        outline: `1px solid ${color}`,
-        borderRadius: "2px",
-    });
     return {
         "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
             { backgroundColor: selection },
@@ -84,23 +81,43 @@ function highlightThemeRules(darkMode: ThemeMode) {
 
         // The syntax palette writes `color` onto a generated class of its own,
         // and whether that span ends up inside the selection's span, outside
-        // it, or merged with it is CodeMirror's business, not ours. All three
-        // selectors are listed so the recolor wins whichever way they nest —
-        // each outranks the single generated class, and `color` inherits down
-        // to whatever is nested inside.
-        ".cm-selectedText, .cm-selectedText span, span .cm-selectedText": {
+        // it, or merged with it is CodeMirror's business, not ours. A theme
+        // rule is emitted prefixed with the theme's own class, so
+        // `.cm-selectedText` outranks the palette's single generated class
+        // wherever the two land on the same span; the descendant selector
+        // covers the case where the palette colors a span *inside* the
+        // selection, which plain inheritance would lose to.
+        ".cm-selectedText, .cm-selectedText span": {
             color: selectedText,
         },
 
         ".cm-selectionMatch": { backgroundColor: match },
+        // Mirrors the rule that shipped with `highlightSelectionMatches`: the
+        // search panel's own highlight is the answer to a question the author
+        // just asked, so the ambient hint gets out of its way.
+        ".cm-searchMatch .cm-selectionMatch": {
+            backgroundColor: "transparent",
+        },
 
-        // `backgroundColor: transparent` is doing real work: it cancels the
-        // fill CodeMirror's base theme sets for these, which is the fill that
-        // competed with the selection.
         "&.cm-focused .cm-matchingBracket, .cm-matchingBracket":
-            outline(tagMatch),
+            tagOutline(tagMatch),
         "&.cm-focused .cm-nonmatchingBracket, .cm-nonmatchingBracket":
-            outline(tagMismatch),
+            tagOutline(tagMismatch),
+    };
+}
+
+/**
+ * A box around a tag with nothing inside it — the channel neither fill uses.
+ *
+ * `backgroundColor: transparent` is doing real work here: it cancels the fill
+ * CodeMirror's base theme sets for the tag pair, which is the fill that
+ * competed with the selection.
+ */
+function tagOutline(color: string) {
+    return {
+        backgroundColor: "transparent",
+        outline: `1px solid ${color}`,
+        borderRadius: "2px",
     };
 }
 

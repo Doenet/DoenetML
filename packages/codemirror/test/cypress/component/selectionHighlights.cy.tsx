@@ -1,6 +1,3 @@
-import React from "react";
-import { CodeMirror } from "../../../src/CodeMirror";
-import type { EditorView } from "@uiw/react-codemirror";
 import {
     canvasColor,
     contrastAgainstCanvas,
@@ -8,9 +5,13 @@ import {
     flatten,
     parseColor,
     renderedBackground,
-    THEME_VARS,
     type ThemeMode,
 } from "../support/color-contrast";
+import {
+    mountEditor,
+    setSelection,
+    type ViewRef,
+} from "../support/mount-editor";
 
 /**
  * The editor paints three things around text, and an author has to be able to
@@ -56,9 +57,10 @@ const FIRST_BODY_ALPHA = DOENET_SOURCE.indexOf("<p>alpha") + "<p>".length;
 const MAX_MATCH_VISIBILITY = 1.6;
 
 /**
- * How much louder the selection has to be than the hint. A bare "greater than"
- * would have passed on the old 1.84-vs-1.47 pairing that authors still could
- * not read apart, so the gap itself is the assertion.
+ * How much louder the selection has to be than the hint. Merely asserting the
+ * selection is the greater of the two would be satisfied by a pair that reads
+ * as one thing at a glance, which is the complaint; the size of the gap is what
+ * makes the order legible, so the gap is what is asserted.
  */
 const MIN_SELECTION_OVER_MATCH = 1.5;
 
@@ -70,48 +72,11 @@ const MIN_SELECTION_OVER_MATCH = 1.5;
 const NON_TEXT_CONTRAST = 3.0;
 
 function mount(mode: ThemeMode) {
-    const viewRef: { current: EditorView | null } = { current: null };
-    const style = {
-        height: "500px",
-        width: "700px",
-        background: THEME_VARS[mode]["--canvas"],
-        ...THEME_VARS[mode],
-    } as React.CSSProperties;
-
-    cy.mount(
-        <div style={style}>
-            <CodeMirror
-                value={DOENET_SOURCE}
-                darkMode={mode}
-                editorViewRef={viewRef as React.RefObject<EditorView | null>}
-            />
-        </div>,
-    );
-    cy.get(".cm-content").click();
-    return viewRef;
+    return mountEditor(mode, DOENET_SOURCE);
 }
 
-/**
- * Put the cursor inside the first body `alpha` without clicking at a pixel
- * coordinate, which would depend on the rendered font metrics.
- */
-function placeCursorInFirstAlpha(viewRef: { current: EditorView | null }) {
-    cy.get(".cm-content").should("exist");
-    cy.then(() => {
-        viewRef.current!.dispatch({ selection: { anchor: FIRST_BODY_ALPHA } });
-    });
-}
-
-function selectFirstAlpha(viewRef: { current: EditorView | null }) {
-    cy.get(".cm-content").should("exist");
-    cy.then(() => {
-        viewRef.current!.dispatch({
-            selection: {
-                anchor: FIRST_BODY_ALPHA,
-                head: FIRST_BODY_ALPHA + "alpha".length,
-            },
-        });
-    });
+function selectFirstAlpha(viewRef: ViewRef) {
+    setSelection(viewRef, FIRST_BODY_ALPHA, FIRST_BODY_ALPHA + "alpha".length);
 }
 
 describe("CodeMirror highlight channels", () => {
@@ -133,7 +98,7 @@ describe("CodeMirror highlight channels", () => {
     // marks blinked out on the first Ctrl+D.
     it("keeps marking the remaining occurrences as Ctrl+D collects them", () => {
         const viewRef = mount("light");
-        placeCursorInFirstAlpha(viewRef);
+        setSelection(viewRef, FIRST_BODY_ALPHA);
 
         // The first Ctrl+D selects the word under the cursor; each one after
         // that takes the next occurrence. Every press should move one copy from
@@ -157,23 +122,12 @@ describe("CodeMirror highlight channels", () => {
         const viewRef = mount("light");
 
         // A single character matches half the document.
-        cy.then(() => {
-            viewRef.current!.dispatch({
-                selection: {
-                    anchor: FIRST_BODY_ALPHA,
-                    head: FIRST_BODY_ALPHA + 1,
-                },
-            });
-        });
+        setSelection(viewRef, FIRST_BODY_ALPHA, FIRST_BODY_ALPHA + 1);
         cy.get(".cm-selectionMatch").should("not.exist");
 
         // A run of whitespace would light up every line's indentation.
         const gap = DOENET_SOURCE.indexOf("\n  <p>alpha");
-        cy.then(() => {
-            viewRef.current!.dispatch({
-                selection: { anchor: gap, head: gap + 3 },
-            });
-        });
+        setSelection(viewRef, gap, gap + 3);
         cy.get(".cm-selectionMatch").should("not.exist");
 
         // Sanity check that the same document does mark a real word, so the
@@ -237,13 +191,7 @@ describe("CodeMirror highlight channels", () => {
             const viewRef = mount(mode);
             // Inside the opening tag's name, which is where an author lands
             // when they click on a tag.
-            cy.then(() => {
-                viewRef.current!.dispatch({
-                    selection: {
-                        anchor: DOENET_SOURCE.indexOf("<section") + 2,
-                    },
-                });
-            });
+            setSelection(viewRef, DOENET_SOURCE.indexOf("<section") + 2);
 
             // Both halves of the pair, not just the one under the cursor.
             cy.get(".cm-matchingBracket").should("have.length", 2);

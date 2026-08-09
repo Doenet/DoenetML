@@ -1,14 +1,11 @@
-import React from "react";
-import { CodeMirror } from "../../../src/CodeMirror";
-import type { EditorView } from "@uiw/react-codemirror";
 import {
     contrastAgainstCanvas,
     expectLegible,
     measureSelectedTextOn,
     renderedBackground,
-    THEME_VARS,
     type ThemeMode,
 } from "../support/color-contrast";
+import { mountEditor, setSelection } from "../support/mount-editor";
 
 /**
  * Accessibility coverage for *selected* (highlighted) text in the editor.
@@ -30,7 +27,7 @@ import {
  * and asserts the WCAG 2.1 contrast between them is at least AA (4.5:1).
  *
  * The editor theme reads a few colors from CSS custom properties defined in
- * `@doenet/doenetml`'s `DoenetML.css` (not in this package); the mount wrapper
+ * `@doenet/doenetml`'s `DoenetML.css` (not in this package); `mountEditor`
  * re-declares them per mode so the component renders with the real app colors.
  */
 
@@ -64,40 +61,13 @@ const MIN_SELECTION_VISIBILITY: Record<ThemeMode, number> = {
     light: 1.8,
 };
 
-function mountEditor(mode: ThemeMode, value: string) {
-    const viewRef: { current: EditorView | null } = { current: null };
-    const style = {
-        height: "500px",
-        width: "700px",
-        background: THEME_VARS[mode]["--canvas"],
-        ...THEME_VARS[mode],
-    } as React.CSSProperties;
-
-    cy.mount(
-        <div style={style}>
-            {/* An element outside the editor to blur onto. */}
-            <button id="outside-editor" type="button">
-                outside
-            </button>
-            <CodeMirror
-                value={value}
-                darkMode={mode}
-                editorViewRef={viewRef as React.RefObject<EditorView | null>}
-            />
-        </div>,
-    );
-    cy.get(".cm-content").click();
-    return viewRef;
-}
-
 function mountAndSelectAll(mode: ThemeMode) {
-    const viewRef = mountEditor(mode, DOENET_SOURCE);
+    mountEditor(mode, DOENET_SOURCE);
     // Select the whole document so the selection layer is painted behind every
     // token.
     cy.get(".cm-content").type("{selectall}");
     cy.get(".cm-selectionBackground").should("exist");
     cy.get(".cm-selectedText").should("exist");
-    return viewRef;
 }
 
 /**
@@ -166,11 +136,7 @@ describe("CodeMirror selection-highlight accessibility", () => {
     it("dark mode: every Ctrl+D range is recolored, not just the main one", () => {
         const source = `<p>alpha beta alpha gamma alpha</p>`;
         const viewRef = mountEditor("dark", source);
-        cy.then(() => {
-            viewRef.current!.dispatch({
-                selection: { anchor: source.indexOf("alpha") },
-            });
-        });
+        setSelection(viewRef, source.indexOf("alpha"));
         cy.get(".cm-content").type("{ctrl}d").type("{ctrl}d");
         cy.get(".cm-selectedText").should("have.length", 2);
         expectHighlightedTextIsLegible("dark");
