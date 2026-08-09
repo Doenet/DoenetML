@@ -37,17 +37,36 @@ import {
 } from "../../utils/listItemChild";
 
 /**
+ * The one `allChildren` child dependency every position-indexed section state
+ * variable must use — `childIndicesToRender`, `childrenToHide` (both through
+ * `returnSectionChildDependencies()`) and `firstVisibleChild`.
+ *
+ * It deliberately uses `includeAllChildren` rather than a list of child groups.
+ * `childIndicesToRender` is consumed as *positions* in `activeChildren` (see
+ * `returnActiveChildrenIndicesToRender`), and `includeAllChildren` is the only
+ * form whose indices are by construction those positions. Enumerating child
+ * groups instead would silently drop any group left off the list, shifting every
+ * later position down: rendered children would fall off the end of the section,
+ * and `firstVisibleChild` — which indexes this array by those positions — would
+ * report a child that is not the one at that position. Everything that needs
+ * those positions therefore shares this definition rather than repeating
+ * `includeAllChildren`, so no one call site can narrow it on its own.
+ *
+ * `extraFields` is for a variable that needs state values off the children as
+ * well; only `firstVisibleChild` does, for their visibility.
+ */
+function sectionAllChildrenDependency(extraFields = {}) {
+    return {
+        dependencyType: "child",
+        includeAllChildren: true,
+        ...extraFields,
+    };
+}
+
+/**
  * The `child` dependencies shared by the state variables that split a section's
  * children into the ones it renders (or hides) and the ones that merely
  * configure it.
- *
- * `allChildren` deliberately uses `includeAllChildren` rather than a list of
- * child groups. `childIndicesToRender` is consumed as *positions* in
- * `activeChildren` (see `returnActiveChildrenIndicesToRender`), and
- * `includeAllChildren` is the only form whose indices are by construction those
- * positions. Enumerating child groups instead would silently drop any group
- * left off the list, shifting every later position down and pushing that many
- * rendered children off the end of the section.
  *
  * `configurationChildren` are the children that configure the section — its
  * styles, its answer feedback, its variants, and its `<setup>` definitions —
@@ -65,10 +84,7 @@ import {
  */
 function returnSectionChildDependencies() {
     return {
-        allChildren: {
-            dependencyType: "child",
-            includeAllChildren: true,
-        },
+        allChildren: sectionAllChildrenDependency(),
         configurationChildren: {
             dependencyType: "child",
             childGroups: [
@@ -607,13 +623,11 @@ export class SectioningComponent extends BlockComponent {
         };
 
         /**
-         * The first child this section actually draws, which a list-item section
-         * lines its number up with and suppresses the top margin of. A child that
-         * draws nothing must never be picked: doing so strands the child that
-         * does draw first, which then keeps its top margin and never reports the
-         * alignment the number is placed by.
-         *
-         * Three ways a child fails to be drawn, and all three are checked:
+         * The child this section lines its number up with and suppresses the top
+         * margin of, or `null` if there is none. A child that draws nothing must
+         * never be picked: doing so strands the child that does draw first, which
+         * then keeps its top margin and never reports the alignment the number is
+         * placed by. Three ways a child fails to be drawn, all checked here:
          *
          *   - Its kind renders nothing, or it hid *itself* with `hide` —
          *     `childRendersSomething()`.
@@ -630,43 +644,61 @@ export class SectioningComponent extends BlockComponent {
          * the lead it shows once revealed must not depend on having been hidden.
          * See `listItemChildVisibilityDependency()`.
          *
-         * This is the only section variable that asks its children whether they
-         * are hidden. It is kept separate from `childIndicesToRender` — which
-         * reads the same children and produces the positions iterated here — so
-         * that the request sits on a variable `childrenToHide` cannot reach,
-         * which is what would cycle (see `returnSectionChildDependencies()`), and
-         * not on one carrying `markStale: updateRenderedChildren`, which would
-         * rebuild a section's whole rendered-child list every time a child's
-         * `hide` changed.
+         * `null` also whenever this section does not delegate alignment at all,
+         * which is what `nonBoxedListItemWithoutTitle` gates: every consumer
+         * (`childrenToRenderInlineForListItem`,
+         * `firstVisibleChildAdjustedForListItem`, `useListItemGridLayout`,
+         * `firstChildListItemAlignment`) already requires that flag, so gating
+         * here changes no output — it only keeps an ordinary `<document>`,
+         * `<section>` or unnumbered `<problem>` from asking each of its children
+         * for a visibility variable it would never read.
+         *
+         * Being its own state variable rather than a second output of
+         * `childIndicesToRender` is what makes that gate possible —
+         * `childIndicesToRender` is needed in every section — and it keeps the
+         * visibility request off a variable `childrenToHide` can reach, which is
+         * what would cycle (see `returnSectionChildDependencies()`), and off one
+         * carrying `markStale: updateRenderedChildren`, which would rebuild a
+         * section's whole rendered-child list every time a child's `hide` changed.
          */
         stateVariableDefinitions.firstVisibleChild = {
-            returnDependencies: () => ({
-                // `includeAllChildren`, not a list of child groups, for the same
-                // reason `returnSectionChildDependencies()` uses it: the entries
-                // are indexed below by the positions in `childIndicesToRender`,
-                // and this is the only form whose indices are those positions.
-                allChildren: {
-                    dependencyType: "child",
-                    includeAllChildren: true,
-                    ...listItemChildVisibilityDependency(),
-                },
-                childIndicesToRender: {
-                    dependencyType: "stateVariable",
-                    variableName: "childIndicesToRender",
-                },
-                hideChildren: {
-                    dependencyType: "stateVariable",
-                    variableName: "hideChildren",
-                },
-                childrenToHide: {
-                    dependencyType: "stateVariable",
-                    variableName: "childrenToHide",
-                },
-            }),
+            stateVariablesDeterminingDependencies: [
+                "nonBoxedListItemWithoutTitle",
+            ],
+            returnDependencies: ({ stateValues }) => {
+                if (!stateValues.nonBoxedListItemWithoutTitle) {
+                    return {};
+                }
+                return {
+                    // Shared with `childIndicesToRender`, whose positions index
+                    // this array — see `sectionAllChildrenDependency()`. Narrowing
+                    // it to child groups here shifts those positions; the
+                    // hidden-leading-composite case in `sectioning.test.ts` is
+                    // what catches that.
+                    allChildren: sectionAllChildrenDependency(
+                        listItemChildVisibilityDependency(),
+                    ),
+                    childIndicesToRender: {
+                        dependencyType: "stateVariable",
+                        variableName: "childIndicesToRender",
+                    },
+                    hideChildren: {
+                        dependencyType: "stateVariable",
+                        variableName: "hideChildren",
+                    },
+                    childrenToHide: {
+                        dependencyType: "stateVariable",
+                        variableName: "childrenToHide",
+                    },
+                };
+            },
             definition({ dependencyValues, componentInfoObjects }) {
                 let firstVisibleChild = null;
 
-                if (!dependencyValues.hideChildren) {
+                if (
+                    dependencyValues.childIndicesToRender &&
+                    !dependencyValues.hideChildren
+                ) {
                     for (const ind of dependencyValues.childIndicesToRender) {
                         const child = dependencyValues.allChildren[ind];
                         if (

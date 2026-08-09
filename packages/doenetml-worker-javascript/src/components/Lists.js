@@ -260,9 +260,9 @@ export class Li extends BaseComponent {
                 // keeps the native marker on the label's row.
                 //
                 // A child that hides itself is skipped, so a leading `<p hide>`
-                // does not strand the child after it. That is what the
+                // does not strand the child after it — that is what the
                 // visibility dependency spread above lets
-                // `childRendersSomething` see; only the child's own `hide`
+                // `childRendersSomething` see. Only the child's own `hide`
                 // counts, so hiding the `<ol>` around this item changes nothing.
                 const firstVisibleChild = dependencyValues.children.find(
                     (child) =>

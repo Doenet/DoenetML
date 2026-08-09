@@ -143,11 +143,11 @@ export class SideBySide extends BlockComponent {
                 // from a `<p hide>` aligns the row by a baseline nothing on the
                 // screen has, instead of by the panel the reader can see.
                 //
-                // Only the alignment is read off one panel. The forward itself
-                // still goes to every panel, hidden or not, because that is what
-                // suppresses each panel's top margin and the panels all sit at
-                // the top of the row; a hidden panel draws no margin to suppress,
-                // so leaving it in the list is invisible either way.
+                // Only the alignment is read off one panel; the forward still
+                // goes to every panel, hidden or not, since that is what
+                // suppresses each panel's top margin and they all sit at the top
+                // of the row. A hidden panel has no margin to suppress, so
+                // leaving it in that list is invisible either way.
                 const leadingPanel = dependencyValues.blockChildren?.find(
                     (child) =>
                         childRendersSomething(child, componentInfoObjects),

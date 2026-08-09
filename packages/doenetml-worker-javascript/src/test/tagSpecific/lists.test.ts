@@ -326,85 +326,212 @@ describe("List tag tests @group4", async () => {
         expect(ci1.renderInlineForListItem).eq(false);
     });
 
-    // A child that hides itself does not win the lead of its list item, in
-    // either the `<li>` or the section path: `childRendersSomething()` skips it
-    // via `hiddenIgnoreParent`, so the child after it — the one that actually
-    // renders first — gets the alignment signal. Before this, a leading
-    // `<p hide>` stranded it and `<li><p hide/><answer><choiceInput>` still
-    // reproduced the marker bug #1668 fixed for the unhidden case.
+    // One question — a leading child that hid itself is not the item's lead —
+    // asked of all five places a list item's lead is chosen, in one table so
+    // that a change to any one of them cannot silently diverge from the others.
+    // Drifting apart is this area's recurring failure (#1403, #1482, #1579,
+    // #1668), and all five now share `childRendersSomething()`.
     //
-    // The third arm puts the hidden child *after* the answer, which has always
-    // worked and must go on working: it is what tells the two arms above apart
-    // from a change that simply stopped honoring `hide` anywhere in an item.
-    it("does not delegate list-item alignment to a first child that hides itself (li and task)", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+    // Each row is run twice: once with the leading child hidden and once with it
+    // shown. The `shown` half is the control — without it a row would also pass
+    // for a change that stopped delegating alignment at all. Expectations are
+    // `component name -> state variable -> value`, with the same names in both
+    // runs: `hiddenChild` is the leading child under test, `item` the list item,
+    // `middle` the component whose selection rule the row exercises, and
+    // `lead`/`leadInput` the content the number should end up lining up with.
+    //
+    // Row 4 is the one asymmetry, and it is deliberate: a `<sideBySide>` forwards
+    // the signal to *every* panel, since they all sit at the top of the row and
+    // all want their top margin suppressed, and only the top-vs-baseline
+    // alignment is read off a single panel. So there the hidden panel still
+    // reports `renderInlineForListItem` — what must not come from it is the
+    // alignment.
+    it("no hidden leading child takes a list item's lead, in any of the five places the lead is chosen", async () => {
+        const choiceAnswer = (answerName: string, inputName: string) => `
+      <answer name="${answerName}">
+        <choiceInput name="${inputName}">
+          <label>Pick one</label>
+          <choice credit="1">A</choice>
+          <choice>B</choice>
+        </choiceInput>
+      </answer>`;
+
+        const graphLead = (name: string) =>
+            `<graph name="${name}" size="small"><point>(1,2)</point></graph>`;
+
+        const rules: {
+            rule: string;
+            doenetML: (hide: string) => string;
+            whenHidden: Record<string, Record<string, unknown>>;
+            whenShown: Record<string, Record<string, unknown>>;
+        }[] = [
+            {
+                rule: "1. an <li> picks its own lead (Li.childrenToRenderInlineForListItem)",
+                doenetML: (hide) => `
 <ol>
-  <li name="li1">
-    <p name="hiddenP" hide>Hidden setup text</p>
-    <answer name="ans1">
-      <choiceInput name="ci1">
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-      </choiceInput>
-    </answer>
-  </li>
-</ol>
-<problem>
-  <task name="task1">
-    <p name="hiddenP2" hide>Hidden setup text</p>
-    <answer name="ans2">
-      <choiceInput name="ci2">
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-      </choiceInput>
-    </answer>
-  </task>
-</problem>
-<ol>
-  <li name="li2">
-    <answer name="ans3">
-      <choiceInput name="ci3">
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-      </choiceInput>
-    </answer>
-    <p name="hiddenP3" hide>Hidden setup text</p>
+  <li name="item">
+    <p name="hiddenChild" ${hide}>Setup text</p>
+    ${choiceAnswer("lead", "leadInput")}
   </li>
 </ol>`,
-        });
+                whenHidden: {
+                    hiddenChild: { renderInlineForListItem: false },
+                    lead: { listItemInlineAlignment: "flex-start" },
+                    leadInput: { renderInlineForListItem: true },
+                },
+                whenShown: {
+                    hiddenChild: { renderInlineForListItem: true },
+                    lead: { listItemInlineAlignment: "none" },
+                    leadInput: { renderInlineForListItem: false },
+                },
+            },
+            {
+                rule: "2. a section picks its own lead (SectioningComponent.firstVisibleChild)",
+                doenetML: (hide) => `
+<problem>
+  <part name="item">
+    <p name="hiddenChild" ${hide}>Setup text</p>
+    ${choiceAnswer("lead", "leadInput")}
+  </part>
+</problem>`,
+                whenHidden: {
+                    hiddenChild: { renderInlineForListItem: false },
+                    leadInput: { renderInlineForListItem: true },
+                    item: { firstChildListItemAlignment: "flex-start" },
+                },
+                whenShown: {
+                    hiddenChild: { renderInlineForListItem: true },
+                    leadInput: { renderInlineForListItem: false },
+                    item: { firstChildListItemAlignment: "baseline" },
+                },
+            },
+            {
+                rule: "3. a wrapper that leads the item forwards past it (the shared wrapper mixin)",
+                doenetML: (hide) => `
+<ol>
+  <li name="item">
+    <div name="middle">
+      <p name="hiddenChild" ${hide}>Setup text</p>
+      ${choiceAnswer("lead", "leadInput")}
+    </div>
+  </li>
+</ol>`,
+                whenHidden: {
+                    hiddenChild: { renderInlineForListItem: false },
+                    middle: { listItemInlineAlignment: "flex-start" },
+                    leadInput: { renderInlineForListItem: true },
+                },
+                whenShown: {
+                    hiddenChild: { renderInlineForListItem: true },
+                    middle: { listItemInlineAlignment: "baseline" },
+                    leadInput: { renderInlineForListItem: false },
+                },
+            },
+            {
+                rule: "4. a <sideBySide> that leads the item reads its alignment off a shown panel",
+                doenetML: (hide) => `
+<ol>
+  <li name="item">
+    <sideBySide name="middle">
+      <p name="hiddenChild" ${hide}>Setup text</p>
+      ${graphLead("lead")}
+    </sideBySide>
+  </li>
+</ol>`,
+                whenHidden: {
+                    middle: { listItemInlineAlignment: "flex-start" },
+                    hiddenChild: { renderInlineForListItem: true },
+                    lead: { renderInlineForListItem: true },
+                },
+                whenShown: {
+                    middle: { listItemInlineAlignment: "baseline" },
+                    hiddenChild: { renderInlineForListItem: true },
+                    lead: { renderInlineForListItem: true },
+                },
+            },
+            {
+                rule: "5. an <answer> that leads the item forwards only to a shown input",
+                doenetML: (hide) => `
+<problem>
+  <part name="item">
+    <answer name="middle">
+      <choiceInput name="hiddenChild" ${hide}>
+        <label>Pick one</label>
+        <choice credit="1">A</choice>
+        <choice>B</choice>
+      </choiceInput>
+    </answer>
+  </part>
+</problem>`,
+                whenHidden: {
+                    hiddenChild: { renderInlineForListItem: false },
+                    middle: { listItemInlineAlignment: "none" },
+                    item: { firstChildListItemAlignment: "baseline" },
+                },
+                whenShown: {
+                    hiddenChild: { renderInlineForListItem: true },
+                    middle: { listItemInlineAlignment: "flex-start" },
+                    item: { firstChildListItemAlignment: "flex-start" },
+                },
+            },
+            {
+                rule: "6. a hidden child that is not the lead changes nothing (control for all five)",
+                doenetML: (hide) => `
+<ol>
+  <li name="item">
+    ${choiceAnswer("lead", "leadInput")}
+    <p name="hiddenChild" ${hide}>Trailing text</p>
+  </li>
+</ol>`,
+                whenHidden: {
+                    hiddenChild: { renderInlineForListItem: false },
+                    leadInput: { renderInlineForListItem: true },
+                },
+                whenShown: {
+                    hiddenChild: { renderInlineForListItem: false },
+                    leadInput: { renderInlineForListItem: true },
+                },
+            },
+        ];
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function expectLeadPlacement(
+            doenetML: string,
+            expected: Record<string, Record<string, unknown>>,
+            label: string,
+        ) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
-        const li1 =
-            stateVariables[await resolvePathToNodeIdx("li1")].stateValues;
-        const ci1 =
-            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues;
-        const task1 =
-            stateVariables[await resolvePathToNodeIdx("task1")].stateValues;
-        const ci2 =
-            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues;
-        const li2 =
-            stateVariables[await resolvePathToNodeIdx("li2")].stateValues;
-        const ci3 =
-            stateVariables[await resolvePathToNodeIdx("ci3")].stateValues;
+            for (const [name, variables] of Object.entries(expected)) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                for (const [variableName, value] of Object.entries(variables)) {
+                    expect(
+                        stateValues[variableName],
+                        `${label}: ${name}.${variableName}`,
+                    ).eqls(value);
+                }
+            }
+        }
 
-        // `<li>` skips the hidden <p> and delegates to the <answer> behind it.
-        expect(li1.childrenToRenderInlineForListItem[0].componentType).eq(
-            "answer",
-        );
-        expect(ci1.renderInlineForListItem).eq(true);
-
-        // `<task>`'s own firstVisibleChild skips it for the same reason, so the
-        // two paths still agree.
-        expect(task1.firstVisibleChild.componentType).eq("answer");
-        expect(ci2.renderInlineForListItem).eq(true);
-
-        // A hidden child after the answer changes nothing, as before.
-        expect(li2.childrenToRenderInlineForListItem[0].componentType).eq(
-            "answer",
-        );
-        expect(ci3.renderInlineForListItem).eq(true);
+        for (const { rule, doenetML, whenHidden, whenShown } of rules) {
+            await expectLeadPlacement(
+                doenetML("hide"),
+                whenHidden,
+                `${rule} [hidden]`,
+            );
+            await expectLeadPlacement(
+                doenetML(""),
+                whenShown,
+                `${rule} [shown]`,
+            );
+        }
     });
 
     // The lead has to move when a child's `hide` changes, not just when the
@@ -546,81 +673,6 @@ describe("List tag tests @group4", async () => {
         ).eq(true);
     });
 
-    // The lead is handed down a chain, not read once: an `<li>` picks its first
-    // visible child, and a wrapper child (`<div>`, `<blockQuote>`, a
-    // `<sideBySide>` panel, …) forwards the signal to its own first visible
-    // child. Every link has to apply the same visibility test, or the chain ends
-    // on a child that is not on the screen — the wrapper used to forward to its
-    // first non-label child whatever it was, so a `<p hide>` inside the wrapper
-    // reproduced the marker bug that the same `<p hide>` directly inside the
-    // `<li>` no longer does.
-    it("forwards a wrapper's lead past a child that hides itself", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-<ol>
-  <li name="liWrapped">
-    <div name="divHidden">
-      <p name="hiddenP" hide>Hidden setup text</p>
-      <answer name="ans1">
-        <choiceInput name="ci1">
-          <choice credit="1">A</choice>
-          <choice>B</choice>
-        </choiceInput>
-      </answer>
-    </div>
-  </li>
-  <li name="liWrappedShown">
-    <div name="divShown">
-      <p name="shownP">Shown setup text</p>
-      <answer name="ans2">
-        <choiceInput name="ci2">
-          <choice credit="1">A</choice>
-          <choice>B</choice>
-        </choiceInput>
-      </answer>
-    </div>
-  </li>
-</ol>`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        // The `<div>` is what the `<li>` delegates to either way.
-        for (const div of ["divHidden", "divShown"]) {
-            expect(
-                stateVariables[await resolvePathToNodeIdx(div)].stateValues
-                    .renderInlineForListItem,
-            ).eq(true);
-        }
-
-        // The `<div>` forwards past the hidden `<p>` to the `<answer>`, and
-        // reports the block alignment that `<answer>`'s `<choiceInput>` needs
-        // rather than the paragraph's baseline.
-        const divHidden =
-            stateVariables[await resolvePathToNodeIdx("divHidden")].stateValues;
-        expect(divHidden.childrenToRenderInlineForListItem[0].componentIdx).eq(
-            await resolvePathToNodeIdx("ans1"),
-        );
-        expect(divHidden.listItemInlineAlignment).eq("flex-start");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
-                .renderInlineForListItem,
-        ).eq(true);
-
-        // The control: a visible `<p>` still takes the wrapper's lead, so this is
-        // about the `hide` and not about wrappers skipping paragraphs.
-        const divShown =
-            stateVariables[await resolvePathToNodeIdx("divShown")].stateValues;
-        expect(divShown.childrenToRenderInlineForListItem[0].componentIdx).eq(
-            await resolvePathToNodeIdx("shownP"),
-        );
-        expect(divShown.listItemInlineAlignment).eq("baseline");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
-                .renderInlineForListItem,
-        ).eq(false);
-    });
-
     // Only a child's own `hide` counts, which is why `childRendersSomething()`
     // reads `hiddenIgnoreParent` and not `hidden`. Hiding the `<ol>` marks every
     // child of every item `hidden`, and the lead must not move: nothing is on
@@ -731,137 +783,5 @@ describe("List tag tests @group4", async () => {
                 graph,
             ).eq(true);
         }
-    });
-
-    // `<sideBySide>` forwards the signal to every panel — they all sit at the top
-    // of the row, so they all want their top margin suppressed — but it reads the
-    // *alignment* off one panel: `baseline` for a paragraph, so the number lines
-    // up with its text, `flex-start` for anything else. That panel has to be one
-    // on the screen. A hidden panel keeps its column but draws nothing in it, so
-    // `baseline` taken from a `<p hide>` aligns the row by a baseline nothing on
-    // the screen has. `list.cy.js` asserts the rendered `align-items` this ends
-    // up as.
-    it("reads a sideBySide's list-item alignment off its first panel that is on the screen", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-<ol>
-  <li name="liHiddenPanel">
-    <sideBySide name="sbsHiddenPanel">
-      <p name="hiddenPanel" hide>Hidden</p>
-      <graph name="g1" size="small"><point>(1,2)</point></graph>
-    </sideBySide>
-  </li>
-  <li name="liShownPanel">
-    <sideBySide name="sbsShownPanel">
-      <p name="shownPanel">Shown</p>
-      <graph name="g2" size="small"><point>(1,2)</point></graph>
-    </sideBySide>
-  </li>
-</ol>`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        // The hidden paragraph is skipped, so the `<graph>` behind it decides.
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sbsHiddenPanel")]
-                .stateValues.listItemInlineAlignment,
-        ).eq("flex-start");
-
-        // The control: the same document with the paragraph shown reports its
-        // baseline, so this is about the `hide` and not about paragraph panels.
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sbsShownPanel")]
-                .stateValues.listItemInlineAlignment,
-        ).eq("baseline");
-
-        // Either way every panel is forwarded to, which is what suppresses each
-        // panel's top margin.
-        for (const [sbs, panels] of [
-            ["sbsHiddenPanel", ["hiddenPanel", "g1"]],
-            ["sbsShownPanel", ["shownPanel", "g2"]],
-        ] as [string, string[]][]) {
-            const forwarded = stateVariables[
-                await resolvePathToNodeIdx(sbs)
-            ].stateValues.childrenToRenderInlineForListItem.map(
-                (child: any) => child.componentIdx,
-            );
-            expect(forwarded, sbs).eqls(
-                await Promise.all(panels.map((p) => resolvePathToNodeIdx(p))),
-            );
-        }
-    });
-
-    // `<answer>` forwards the signal to the first block `<choiceInput>` among its
-    // inputs, which is how the `<choiceInput>` learns to drop its `<legend>` and
-    // suppress its top margin, and it is where the item reads its top-vs-baseline
-    // alignment from. A hidden `<choiceInput>` is not what the number lines up
-    // with, so the `<answer>` names nobody and reports no alignment. The
-    // `<problem>` arm is where that is visible: `firstChildListItemAlignment` is
-    // the value the section renderer reads, and it goes back to baseline rather
-    // than top-aligning the number against an input nobody can see.
-    it("does not forward a list item's alignment to an answer's hidden choiceInput", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-<ol>
-  <li name="liHiddenInput">
-    <answer name="ansHidden">
-      <choiceInput name="ciHidden" hide>
-        <label>Pick one</label>
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-      </choiceInput>
-    </answer>
-  </li>
-</ol>
-<problem>
-  <task name="taskHiddenInput">
-    <answer name="ansTaskHidden">
-      <choiceInput name="ciTaskHidden" hide>
-        <label>Pick one</label>
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-      </choiceInput>
-    </answer>
-  </task>
-  <task name="taskShownInput">
-    <answer name="ansTaskShown">
-      <choiceInput name="ciTaskShown">
-        <label>Pick one</label>
-        <choice credit="1">A</choice>
-        <choice>B</choice>
-      </choiceInput>
-    </answer>
-  </task>
-</problem>`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        // The `<li>` still leads with the `<answer>`, which does render.
-        expect(
-            stateVariables[await resolvePathToNodeIdx("liHiddenInput")]
-                .stateValues.childrenToRenderInlineForListItem[0].componentIdx,
-        ).eq(await resolvePathToNodeIdx("ansHidden"));
-
-        const ansHidden =
-            stateVariables[await resolvePathToNodeIdx("ansHidden")].stateValues;
-        expect(ansHidden.childrenToRenderInlineForListItem).eqls([]);
-        expect(ansHidden.listItemInlineAlignment).eq("none");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("ciHidden")].stateValues
-                .renderInlineForListItem,
-        ).eq(false);
-
-        // The section arm, and the control beside it: an `<answer>` whose
-        // `<choiceInput>` is shown still top-aligns the number.
-        expect(
-            stateVariables[await resolvePathToNodeIdx("taskHiddenInput")]
-                .stateValues.firstChildListItemAlignment,
-        ).eq("baseline");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("taskShownInput")]
-                .stateValues.firstChildListItemAlignment,
-        ).eq("flex-start");
     });
 });
