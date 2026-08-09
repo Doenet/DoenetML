@@ -134,16 +134,25 @@ function dependenciesOf(pkg: PackageJson, script: string): string[] {
     return (pkg.wireit?.[script]?.dependencies ?? []).map(dependencyName);
 }
 
-/** What an npm script runs, looking through the `wireit` indirection. */
+/** What a script runs, looking through the `wireit` indirection. */
 function commandOf(pkg: PackageJson, script: string): string {
-    const npmCommand = pkg.scripts?.[script] ?? "";
-    return npmCommand === "wireit"
+    const npmCommand = pkg.scripts?.[script];
+    // `undefined` covers a wireit-only script — valid, and usable as a
+    // dependency of another wireit script — whose command lives only in the
+    // wireit section.
+    return npmCommand === undefined || npmCommand === "wireit"
         ? (pkg.wireit?.[script]?.command ?? "")
         : npmCommand;
 }
 
-const GENERATOR_SCRIPTS = Object.keys(staticAssetsPkg.scripts ?? {}).filter(
-    (script) => GENERATOR_COMMAND.test(commandOf(staticAssetsPkg, script)),
+/** Every script name this package declares, in either section. */
+const DECLARED_SCRIPTS = new Set([
+    ...Object.keys(staticAssetsPkg.scripts ?? {}),
+    ...Object.keys(staticAssetsPkg.wireit ?? {}),
+]);
+
+const GENERATOR_SCRIPTS = [...DECLARED_SCRIPTS].filter((script) =>
+    GENERATOR_COMMAND.test(commandOf(staticAssetsPkg, script)),
 );
 
 describe("the worker's build:deps aggregator", () => {
@@ -185,10 +194,15 @@ describe("generator script wireit wiring", () => {
         describe(script, () => {
             const advice = `${script} runs a file from packages/static-assets/scripts/, which is taken to mean it imports worker source. Make it a wireit script depending on ${WORKER_BUILD_DEPS} — or, if it does not import worker source, narrow GENERATOR_COMMAND in this test`;
 
-            it("is a wireit script", () => {
-                expect(staticAssetsPkg.scripts?.[script], advice).toBe(
-                    "wireit",
-                );
+            it("runs under wireit", () => {
+                // Its command has to live in the wireit section, which is the
+                // only place dependencies can be declared. An npm script gets
+                // there by being the literal "wireit"; a wireit-only script is
+                // already there.
+                expect(
+                    staticAssetsPkg.scripts?.[script] ?? "wireit",
+                    advice,
+                ).toBe("wireit");
                 expect(
                     staticAssetsPkg.wireit?.[script]?.command,
                     advice,
