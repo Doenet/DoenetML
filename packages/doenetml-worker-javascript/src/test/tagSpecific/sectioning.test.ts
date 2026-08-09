@@ -1853,7 +1853,7 @@ describe("Sectioning tag tests @group3", async () => {
     // where it was: nothing in a hidden section is on screen to realign, and the
     // lead it shows once revealed must not depend on having been hidden. This is
     // the guard on reading `hiddenIgnoreParent` rather than `hidden` — it is what
-    // fails if that changes. See `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`.
+    // fails if that changes. See `listItemChildVisibilityDependency()`.
     it("keeps the lead of a list-item section whose container is hidden", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -1879,13 +1879,13 @@ describe("Sectioning tag tests @group3", async () => {
         expect(lead.renderInlineForListItem).eq(true);
     });
 
-    // Asking for a child's `hiddenIgnoreParent` is not free: it reaches the
+    // Asking a child for its `hiddenIgnoreParent` is not free: it reaches the
     // child's `hide`, an author may point `hide` at another component's `hidden`,
-    // and `hidden` reads its parent's `childrenToHide`. So only
-    // `childIndicesToRender` may ask (see `returnSectionChildDependencies()`); if
-    // `childrenToHide` asks too, this document stops loading at all with a
-    // circular dependency, having loaded fine both before the lead was picked by
-    // visibility and after.
+    // and `hidden` reads its parent's `childrenToHide`. So `firstVisibleChild`
+    // asks on its own and the shared `returnSectionChildDependencies()` does not;
+    // move the request there, so that `childrenToHide` asks too, and this
+    // document stops loading at all with a circular dependency — measured. It
+    // loads on both sides of this change.
     it("loads a section whose child's hide references another child's hidden", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

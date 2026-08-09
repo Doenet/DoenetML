@@ -1,4 +1,8 @@
-import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    childRendersSomething,
+    listItemChildVisibilityDependency,
+    returnPassThroughListItemChildStateVariableDefinitions,
+} from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
@@ -105,9 +109,14 @@ export class SideBySide extends BlockComponent {
                 blockChildren: {
                     dependencyType: "child",
                     childGroups: ["blocks"],
+                    ...listItemChildVisibilityDependency(),
                 },
             }),
-            definition({ dependencyValues, componentIdx }) {
+            definition({
+                dependencyValues,
+                componentIdx,
+                componentInfoObjects,
+            }) {
                 const shouldRenderInline =
                     dependencyValues.parentChildrenToRenderInlineForListItem
                         ?.map((c) => c.componentIdx)
@@ -122,15 +131,31 @@ export class SideBySide extends BlockComponent {
                     };
                 }
 
-                // Use baseline alignment when the first panel is a plain paragraph
-                // so the list-item number aligns with its text; use flex-start for
-                // block-level content (graphs, choiceInputs, etc.) so the number
-                // aligns with the top of the content instead.
-                const firstPanel = dependencyValues.blockChildren?.[0];
+                // Use baseline alignment when the leading panel is a plain
+                // paragraph so the list-item number aligns with its text; use
+                // flex-start for block-level content (graphs, choiceInputs, etc.)
+                // so the number aligns with the top of the content instead.
+                //
+                // The alignment is read off the first panel that is *on the
+                // screen* (`childRendersSomething()`, the same test the `<li>`,
+                // section, and wrapper links of this chain apply). A hidden panel
+                // keeps its column but draws nothing in it, so `baseline` taken
+                // from a `<p hide>` aligns the row by a baseline nothing on the
+                // screen has, instead of by the panel the reader can see.
+                //
+                // Only the alignment is read off one panel. The forward itself
+                // still goes to every panel, hidden or not, because that is what
+                // suppresses each panel's top margin and the panels all sit at
+                // the top of the row; a hidden panel draws no margin to suppress,
+                // so leaving it in the list is invisible either way.
+                const leadingPanel = dependencyValues.blockChildren?.find(
+                    (child) =>
+                        childRendersSomething(child, componentInfoObjects),
+                );
                 return {
                     setValue: {
                         listItemInlineAlignment:
-                            firstPanel?.componentType === "p"
+                            leadingPanel?.componentType === "p"
                                 ? "baseline"
                                 : "flex-start",
                         childrenToRenderInlineForListItem:

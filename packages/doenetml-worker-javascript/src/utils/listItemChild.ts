@@ -1,8 +1,10 @@
 /**
- * The fields to spread into the `child` dependency whose children are handed to
+ * The fields to spread into a `child` dependency whose children are handed to
  * {@link childRendersSomething}, so that it can tell a child that hid itself
- * from one that renders. Callers spread this rather than naming the variable
- * themselves, so that all of them ask the same question of the same variable.
+ * from one that renders. Pass any other variables the same dependency needs;
+ * callers go through this rather than naming `hiddenIgnoreParent` themselves, so
+ * that all of them ask the same question of the same variable and none of them
+ * can leave `variablesOptional` off.
  *
  * `hiddenIgnoreParent`, not `hidden`: the question here is whether *this* child
  * took itself off the screen, not whether an ancestor took the whole subtree off
@@ -16,11 +18,10 @@
  *
  * Not a cycle argument, measured: `hidden`'s dependency on the parent's
  * `childrenToHide` (`BaseComponent`) closes a loop only when `childrenToHide` is
- * itself the state variable doing the asking, which
- * `returnSectionChildDependencies()` prevents for either variable. With that
- * request confined to `childIndicesToRender`, `hidden` loads fine and simply
- * fails those two tests. See `BaseComponent`'s `hiddenIgnoreParent` and its use
- * by `<choice>`'s `text`.
+ * itself the state variable doing the asking, which a section avoids by keeping
+ * this request off `returnSectionChildDependencies()`. With it off, `hidden`
+ * loads every document fine and simply fails those two tests. See
+ * `BaseComponent`'s `hiddenIgnoreParent` and its use by `<choice>`'s `text`.
  *
  * `variablesOptional` covers a class that does not define `hiddenIgnoreParent` —
  * none does today, since `BaseComponent` defines it for all of them — by reading
@@ -30,10 +31,15 @@
  * are unaffected either way: a `child` dependency resolves them as primitives
  * and never looks a variable up on them.
  */
-export const LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY = {
-    variableNames: ["hiddenIgnoreParent"],
-    variablesOptional: true,
-};
+export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
+    variableNames: string[];
+    variablesOptional: true;
+} {
+    return {
+        variableNames: [...alsoRequest, "hiddenIgnoreParent"],
+        variablesOptional: true,
+    };
+}
 
 /**
  * Whether a child puts anything on the screen: a non-blank string always does,
@@ -60,28 +66,36 @@ export const LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY = {
  * those replacements, which inherit `hiddenIgnoreParent` from their source
  * composite.
  *
- * Every caller must spread {@link LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY} into
- * the child dependency it passes children from — today `Li`'s
- * `childrenToRenderInlineForListItem`, `SectioningComponent`'s
- * `childIndicesToRender`/`firstVisibleChild`, and the wrapper pass-through in
- * {@link returnPassThroughListItemChildStateVariableDefinitions}. The three link
- * into one chain (an `<li>` leads with a wrapper, which leads with a child of
- * its own), so a link that skipped the test would put the chain's end on
- * something not on the screen. `<answer>` and `<sideBySide>` forward the signal
- * too, but each names its target by a rule of its own — the first block
- * `<choiceInput>` among its inputs, and every panel — so neither asks this
- * question or needs the dependency.
+ * Every caller must spread {@link listItemChildVisibilityDependency} into the
+ * child dependency it passes children from. The call sites are the links of one
+ * chain — an `<li>` or a section picks its lead, and a wrapper, an `<answer>`, or
+ * a `<sideBySide>` that wins that lead forwards it to a child of its own — so a
+ * link that skipped the test would leave the chain's end on something not on the
+ * screen:
  *
- * A component child that arrives without `stateValues` is a call site that did
- * not spread it, and throws, as the worker does for its other broken internal
- * invariants. The cost when it fires is high — the document aborts and
+ *   - `Li`'s `childrenToRenderInlineForListItem`
+ *   - `SectioningComponent`'s `firstVisibleChild`
+ *   - the wrapper pass-through in
+ *     {@link returnPassThroughListItemChildStateVariableDefinitions}
+ *   - `<answer>`'s `renderInlineForListItem`, which forwards to the first block
+ *     `<choiceInput>` among its inputs
+ *   - `<sideBySide>`'s `listItemInlineAlignment`, which reads the alignment off
+ *     its leading panel
+ *
+ * The last two pick their target by a rule of their own and use this only to
+ * filter what that rule may pick, so what they need from it is the
+ * `hiddenIgnoreParent` half.
+ *
+ * A component child arriving without `stateValues` means a call site that did
+ * not spread it, and throws rather than defaulting to "not hidden": the default
+ * would silently restore the pre-fix answer, so the next call site would look
+ * correct and be wrong. The throw is not cheap — it aborts the document and
  * `CoreWorker` reports the activity as failing to load — but it cannot fire for a
  * call site that did spread it, since a `child` dependency requesting any
  * variable gives every component child a `stateValues` object
  * (`Dependency.getValueNoProxy()`), empty at worst. So the only way to reach it
  * is a mistake in this file's own callers, and the first test that renders a list
- * item hits it. Falling back to "not hidden" instead would restore the pre-fix
- * answer silently, and a fourth call site would look correct and be wrong.
+ * item hits it.
  */
 export function childRendersSomething(
     child: any,
@@ -94,7 +108,7 @@ export function childRendersSomething(
     if (child.stateValues === undefined) {
         throw Error(
             `childRendersSomething() received a <${child.componentType}> child with no stateValues: ` +
-                "spread LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY into the child dependency it came from.",
+                "spread listItemChildVisibilityDependency() into the child dependency it came from.",
         );
     }
 
@@ -221,7 +235,7 @@ export function returnPassThroughListItemChildStateVariableDefinitions() {
             allChildren: {
                 dependencyType: "child",
                 includeAllChildren: true,
-                ...LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
+                ...listItemChildVisibilityDependency(),
             },
         }),
         definition({

@@ -1774,12 +1774,13 @@ describe("Cascade tag tests @group4", async () => {
 
     // A list item lines its number up with — and suppresses the top margin of —
     // its first child that renders something, which means skipping one that hid
-    // itself with `hide`. A `<cascade>` is where that has to be told apart from
-    // hiding by a container: a step the cascade has not revealed yet hides its
-    // children through `childrenToHide`, which sets their `hidden` but not their
-    // `hiddenIgnoreParent`. Only the latter is consulted, so an unrevealed step's
-    // lead is exactly the lead it has once revealed — nothing about a cascade
-    // advancing moves a number.
+    // itself with `hide`. A `<cascade>` is where the two ways a child can be off
+    // screen come apart, and this pins each to its own answer: a revealed step
+    // skips the child that hid *itself* and hands the lead to the next one, while
+    // a step the cascade has not reached hides every child at once through
+    // `hideChildren` and delegates to nobody. Revealing that step then hands the
+    // lead to the child it would have had all along, so nothing about a cascade
+    // advancing moves a number sideways.
     it("picks a list item's lead by the child's own hide, not the cascade's", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

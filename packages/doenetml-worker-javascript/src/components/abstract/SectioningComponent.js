@@ -33,7 +33,7 @@ import {
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import {
     childRendersSomething,
-    LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
+    listItemChildVisibilityDependency,
 } from "../../utils/listItemChild";
 
 /**
@@ -55,31 +55,19 @@ import {
  * `rendererType`. They keep their slot in `allChildren` so the positions stay
  * aligned, and `nonConfigurationChildEntries()` filters them back out.
  *
- * `includeChildVisibility` adds {@link LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY} so
- * that `firstVisibleChild` can skip a child that hid itself. Only
- * `childIndicesToRender` may pass it, and `childrenToHide` must not: asking a
- * child for any visibility variable reaches that child's `hide` attribute, an
- * author may point `hide` at another component's `hidden` (`hide="$b.hidden"` is
- * ordinary DoenetML), and `hidden` reads its parent's `childrenToHide`. Were
- * `childrenToHide` to ask, it would depend on the value it feeds and the document
- * would not load at all — see the test in `sectioning.test.ts`, whose document
- * loads on both sides of this change but not if the request is shared.
- *
- * That is about *which state variable asks*, not which visibility variable it
- * asks for: `hiddenIgnoreParent` closes the loop from `childrenToHide` just as
- * `hidden` would, through an author's `hide="$b.hidden"`. The reason to prefer
- * `hiddenIgnoreParent` over `hidden` is separate and semantic — see the constant.
+ * Neither of these state variables asks a child whether it is hidden, and
+ * neither may: asking reaches the child's `hide` attribute, an author may point
+ * `hide` at another component's `hidden` (`hide="$b.hidden"` is ordinary
+ * DoenetML), and `hidden` reads its parent's `childrenToHide`. `childrenToHide`
+ * would then depend on the value it feeds and the document would not load at all
+ * — see the test in `sectioning.test.ts`. `firstVisibleChild` is the one section
+ * variable that needs a child's visibility, and it keeps that request to itself.
  */
-function returnSectionChildDependencies({
-    includeChildVisibility = false,
-} = {}) {
+function returnSectionChildDependencies() {
     return {
         allChildren: {
             dependencyType: "child",
             includeAllChildren: true,
-            ...(includeChildVisibility
-                ? LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY
-                : {}),
         },
         configurationChildren: {
             dependencyType: "child",
@@ -546,18 +534,12 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.childIndicesToRender = {
-            additionalStateVariablesDefined: ["firstVisibleChild"],
             returnDependencies: () => ({
                 titleChildren: {
                     dependencyType: "child",
                     childGroups: ["titles"],
                 },
-                // The only state variable that may ask for its children's
-                // visibility — `childrenToHide` asking too would cycle. See
-                // `returnSectionChildDependencies()`.
-                ...returnSectionChildDependencies({
-                    includeChildVisibility: true,
-                }),
+                ...returnSectionChildDependencies(),
                 titleChildName: {
                     dependencyType: "stateVariable",
                     variableName: "titleChildName",
@@ -570,42 +552,9 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "hideChildren",
                 },
-                // Reading the sibling variable rather than repeating its rule
-                // adds no dependency edge, and so cannot cycle: `childrenToHide`
-                // asks for nothing this variable does not already ask for.
-                childrenToHide: {
-                    dependencyType: "stateVariable",
-                    variableName: "childrenToHide",
-                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
-                // Tracks the first child that puts something on the screen, so
-                // list-item sections can delegate alignment behavior to that
-                // child. The lead must be a child the renderer actually draws,
-                // or the number lines up with nothing and the child that is drawn
-                // first keeps the top margin the item wanted suppressed. Three
-                // ways a child can fail to be drawn, and all three are checked
-                // here:
-                //
-                //   - Its kind renders nothing, or it hid *itself* with `hide` —
-                //     `childRendersSomething()`.
-                //   - This section hides it: `childrenToHide`. That is normally
-                //     the whole content at once, already covered by the
-                //     `hideChildren` test, but `<cascadeMessage>` inverts the
-                //     rule and is hidden precisely when the rest is shown, so
-                //     without this test a leading `<cascadeMessage>` would lead
-                //     an item it is invisible in.
-                //   - `hideChildren` is set, which suppresses the delegation
-                //     entirely, since a collapsed `<cascade>` step shows no child
-                //     at all.
-                //
-                // A child hidden from *above* — this section, or a container
-                // around it — is a deliberate non-case: nothing in it is on
-                // screen to realign, and the lead it shows once revealed must not
-                // depend on having been hidden. See
-                // `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY`.
-                let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
                     (x) => x.componentIdx,
@@ -648,24 +597,88 @@ export class SectioningComponent extends BlockComponent {
                     }
 
                     childIndicesToRender.push(ind);
-
-                    if (
-                        firstVisibleChild === null &&
-                        !dependencyValues.hideChildren &&
-                        !dependencyValues.childrenToHide.includes(
-                            child.componentIdx,
-                        ) &&
-                        childRendersSomething(child, componentInfoObjects)
-                    ) {
-                        firstVisibleChild = child;
-                    }
                 }
 
                 return {
-                    setValue: { childIndicesToRender, firstVisibleChild },
+                    setValue: { childIndicesToRender },
                 };
             },
             markStale: () => ({ updateRenderedChildren: true }),
+        };
+
+        /**
+         * The first child this section actually draws, which a list-item section
+         * lines its number up with and suppresses the top margin of. A child that
+         * draws nothing must never be picked: doing so strands the child that
+         * does draw first, which then keeps its top margin and never reports the
+         * alignment the number is placed by.
+         *
+         * Three ways a child fails to be drawn, and all three are checked:
+         *
+         *   - Its kind renders nothing, or it hid *itself* with `hide` —
+         *     `childRendersSomething()`.
+         *   - This section hides it: `childrenToHide`. That is normally the whole
+         *     content at once, already covered by the `hideChildren` test, but
+         *     `<cascadeMessage>` inverts the rule and is hidden precisely when the
+         *     rest is shown, so without this test a leading `<cascadeMessage>`
+         *     would lead an item it is invisible in.
+         *   - `hideChildren` is set, which suppresses the delegation entirely,
+         *     since a collapsed `<cascade>` step shows no child at all.
+         *
+         * A child hidden from *above* — this section, or a container around it —
+         * is a deliberate non-case: nothing in it is on screen to realign, and
+         * the lead it shows once revealed must not depend on having been hidden.
+         * See `listItemChildVisibilityDependency()`.
+         *
+         * This is the only section variable that asks its children whether they
+         * are hidden. It is kept separate from `childIndicesToRender` — which
+         * reads the same children and produces the positions iterated here — so
+         * that the request sits on a variable `childrenToHide` cannot reach,
+         * which is what would cycle (see `returnSectionChildDependencies()`), and
+         * not on one carrying `markStale: updateRenderedChildren`, which would
+         * rebuild a section's whole rendered-child list every time a child's
+         * `hide` changed.
+         */
+        stateVariableDefinitions.firstVisibleChild = {
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                    ...listItemChildVisibilityDependency(),
+                },
+                childIndicesToRender: {
+                    dependencyType: "stateVariable",
+                    variableName: "childIndicesToRender",
+                },
+                hideChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideChildren",
+                },
+                childrenToHide: {
+                    dependencyType: "stateVariable",
+                    variableName: "childrenToHide",
+                },
+            }),
+            definition({ dependencyValues, componentInfoObjects }) {
+                let firstVisibleChild = null;
+
+                if (!dependencyValues.hideChildren) {
+                    for (const ind of dependencyValues.childIndicesToRender) {
+                        const child = dependencyValues.allChildren[ind];
+                        if (
+                            !dependencyValues.childrenToHide.includes(
+                                child.componentIdx,
+                            ) &&
+                            childRendersSomething(child, componentInfoObjects)
+                        ) {
+                            firstVisibleChild = child;
+                            break;
+                        }
+                    }
+                }
+
+                return { setValue: { firstVisibleChild } };
+            },
         };
 
         stateVariableDefinitions.childrenToHide = {

@@ -626,7 +626,7 @@ describe("List tag tests @group4", async () => {
     // child of every item `hidden`, and the lead must not move: nothing is on
     // screen to realign, and the lead this item shows once it is revealed must
     // not depend on having been hidden. This test is the guard on that choice —
-    // it fails if `LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY` becomes `hidden`.
+    // it fails if `listItemChildVisibilityDependency()` becomes `hidden`.
     it("keeps the lead of a list item whose container is hidden", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -680,5 +680,154 @@ describe("List tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("li1")].stateValues
                 .childrenToRenderInlineForListItem[0].componentIdx,
         ).eq(await resolvePathToNodeIdx("c"));
+    });
+
+    // Hiding is one of two ways a wrapper's child can fail to be drawn; the
+    // other is a component type with no renderer, and both go through
+    // `childRendersSomething()`. A wrapper used to forward to its first
+    // non-`<label>` child whatever it was, so an `<animateFromSequence>` — which
+    // draws nothing anywhere — took the lead and the `<graph>` behind it kept its
+    // top margin. `<label>` is excluded on top of that test rather than by it: a
+    // label does render, it is just the wrapper's own naming rather than the
+    // content the number lines up with.
+    it("forwards a wrapper's lead past a label and past a child of a kind that draws nothing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<ol>
+  <li name="liLabel">
+    <div name="divLabel">
+      <label name="lab">A label</label>
+      <graph name="gLabel" size="small"><point>(1,2)</point></graph>
+    </div>
+  </li>
+  <li name="liAnimate">
+    <div name="divAnimate">
+      <animateFromSequence target="$Pa.x" from="1" to="5" />
+      <graph name="gAnimate" size="small"><point name="Pa">(1,2)</point></graph>
+    </div>
+  </li>
+</ol>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        for (const [wrapper, graph] of [
+            ["divLabel", "gLabel"],
+            ["divAnimate", "gAnimate"],
+        ]) {
+            const div =
+                stateVariables[await resolvePathToNodeIdx(wrapper)].stateValues;
+            expect(
+                div.childrenToRenderInlineForListItem[0].componentIdx,
+                wrapper,
+            ).eq(await resolvePathToNodeIdx(graph));
+            // The `<graph>`'s own `flex-start`, reported back up through the
+            // wrapper. A skipped child reports nothing, so the wrapper would say
+            // `none` and the number would fall to the graph's baseline.
+            expect(div.listItemInlineAlignment, wrapper).eq("flex-start");
+            expect(
+                stateVariables[await resolvePathToNodeIdx(graph)].stateValues
+                    .renderInlineForListItem,
+                graph,
+            ).eq(true);
+        }
+    });
+
+    // `<sideBySide>` forwards the signal to every panel — they all sit at the top
+    // of the row, so they all want their top margin suppressed — but it reads the
+    // *alignment* off one panel: `baseline` for a paragraph, so the number lines
+    // up with its text, `flex-start` for anything else. That panel has to be one
+    // on the screen. A hidden panel keeps its column but draws nothing in it, so
+    // `baseline` taken from a `<p hide>` aligns the row by a baseline nothing on
+    // the screen has. `list.cy.js` asserts the rendered `align-items` this ends
+    // up as.
+    it("reads a sideBySide's list-item alignment off its first panel that is on the screen", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<ol>
+  <li name="liHiddenPanel">
+    <sideBySide name="sbsHiddenPanel">
+      <p name="hiddenPanel" hide>Hidden</p>
+      <graph name="g1" size="small"><point>(1,2)</point></graph>
+    </sideBySide>
+  </li>
+  <li name="liShownPanel">
+    <sideBySide name="sbsShownPanel">
+      <p name="shownPanel">Shown</p>
+      <graph name="g2" size="small"><point>(1,2)</point></graph>
+    </sideBySide>
+  </li>
+</ol>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // The hidden paragraph is skipped, so the `<graph>` behind it decides.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sbsHiddenPanel")]
+                .stateValues.listItemInlineAlignment,
+        ).eq("flex-start");
+
+        // The control: the same document with the paragraph shown reports its
+        // baseline, so this is about the `hide` and not about paragraph panels.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sbsShownPanel")]
+                .stateValues.listItemInlineAlignment,
+        ).eq("baseline");
+
+        // Either way every panel is forwarded to, which is what suppresses each
+        // panel's top margin.
+        for (const [sbs, panels] of [
+            ["sbsHiddenPanel", ["hiddenPanel", "g1"]],
+            ["sbsShownPanel", ["shownPanel", "g2"]],
+        ] as [string, string[]][]) {
+            const forwarded = stateVariables[
+                await resolvePathToNodeIdx(sbs)
+            ].stateValues.childrenToRenderInlineForListItem.map(
+                (child: any) => child.componentIdx,
+            );
+            expect(forwarded, sbs).eqls(
+                await Promise.all(panels.map((p) => resolvePathToNodeIdx(p))),
+            );
+        }
+    });
+
+    // `<answer>` forwards the signal to the first block `<choiceInput>` among its
+    // inputs, which is how the `<choiceInput>` learns to drop its `<legend>` and
+    // suppress its top margin. A hidden one is not what the number lines up with,
+    // so the `<answer>` names nobody and reports no alignment — the item falls
+    // back to its default rather than top-aligning against an empty row.
+    it("does not forward a list item's alignment to an answer's hidden choiceInput", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<ol>
+  <li name="liHiddenInput">
+    <answer name="ansHidden">
+      <choiceInput name="ciHidden" hide>
+        <label>Pick one</label>
+        <choice credit="1">A</choice>
+        <choice>B</choice>
+      </choiceInput>
+    </answer>
+  </li>
+</ol>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // The `<li>` still leads with the `<answer>`, which does render.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("liHiddenInput")]
+                .stateValues.childrenToRenderInlineForListItem[0].componentIdx,
+        ).eq(await resolvePathToNodeIdx("ansHidden"));
+
+        const ansHidden =
+            stateVariables[await resolvePathToNodeIdx("ansHidden")].stateValues;
+        expect(ansHidden.childrenToRenderInlineForListItem).eqls([]);
+        expect(ansHidden.listItemInlineAlignment).eq("none");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ciHidden")].stateValues
+                .renderInlineForListItem,
+        ).eq(false);
     });
 });

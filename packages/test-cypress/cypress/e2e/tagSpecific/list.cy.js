@@ -284,6 +284,55 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         cy.get(`#${cesc("ansWrapped")} fieldset > legend`).should("not.exist");
     });
 
+    // A `<sideBySide>` leading a list item takes its top-or-baseline alignment
+    // from one panel — `baseline` for a paragraph, so the number lines up with
+    // the text, `flex-start` for anything else. That panel has to be one that is
+    // shown: a hidden panel keeps its column but puts no text in it, so a
+    // `baseline` read off it lands the row's baseline on whatever the next panel
+    // happens to draw. This is only visible in a browser, since the alignment is
+    // pure CSS on the rendered flex row.
+    it("takes a leading sideBySide's alignment from its first panel that is shown", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="liHiddenPanel">
+        <sideBySide name="sbsHiddenPanel">
+          <p name="hiddenPanel" hide>Hidden panel</p>
+          <graph name="graphPanel" size="small"><point>(1,2)</point></graph>
+        </sideBySide>
+      </li>
+      <li name="liShownPanel">
+        <sideBySide name="sbsShownPanel">
+          <p name="shownPanel">Shown panel</p>
+          <graph size="small"><point>(1,2)</point></graph>
+        </sideBySide>
+      </li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("liShownPanel")}`).should("be.visible");
+        cy.get(`#${cesc("hiddenPanel")}`).should("not.exist");
+
+        // The hidden paragraph is skipped, so the `<graph>` decides: top-align,
+        // and the panels' top edges agree.
+        verifySideBySideColumnTopAlignment({
+            sideBySideId: "sbsHiddenPanel",
+            expectedAlignment: "flex-start",
+        });
+
+        // The control: shown, the same paragraph still reports its baseline.
+        verifySideBySideColumnTopAlignment({
+            sideBySideId: "sbsShownPanel",
+            expectedAlignment: "baseline",
+        });
+    });
+
     // Publishing the list-item signal from a plain `<li>` for the first time
     // reaches every renderer that consumes `renderInlineForListItem`, not just
     // `<choiceInput>`. This mirrors the section path's coverage in

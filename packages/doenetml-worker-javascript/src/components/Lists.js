@@ -8,7 +8,7 @@ import {
 } from "../utils/scoredSection";
 import {
     childRendersSomething,
-    LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
+    listItemChildVisibilityDependency,
 } from "../utils/listItemChild";
 
 export class Ol extends BlockComponent {
@@ -246,7 +246,7 @@ export class Li extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    ...LIST_ITEM_CHILD_VISIBILITY_DEPENDENCY,
+                    ...listItemChildVisibilityDependency(),
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
