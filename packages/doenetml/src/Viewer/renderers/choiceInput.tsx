@@ -89,7 +89,6 @@ interface ChoiceInputSVs {
     immediateValue: any;
     placeHolder: any;
     renderInlineForListItem: boolean;
-    insideNativeListItem: boolean;
     selectedIndices: any;
 }
 
@@ -789,34 +788,32 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 }
             });
 
-        // A native <legend> gets special layout treatment: when this fieldset
-        // leads a real <li>, the browser aligns the <li>'s ::marker with the
-        // content AFTER the legend (the first choice row) instead of with the
-        // legend text, and no CSS on the fieldset undoes it (display: flex and
-        // grid were both tried). A <div> avoids the quirk, and the accessible
-        // name is unaffected — the aria-labelledby below associates this label
-        // explicitly, whichever tag holds labelId.
+        // A <div>, never a native <legend>. A <legend> gets special layout
+        // treatment: anywhere this fieldset is what a real <li> draws first, the
+        // browser aligns the <li>'s ::marker with the content AFTER the legend
+        // (the first choice row) instead of with the legend text, and no CSS on
+        // the fieldset undoes it (display: flex and grid were both tried).
         //
-        // Swap only when there is a native marker to protect:
-        // `renderInlineForListItem` also fires for a <problem asList> section,
-        // which draws its own number and has no <legend> quirk, so
-        // `insideNativeListItem` narrows this to a list item inside a real <li>
-        // (see its definition in `ChoiceInput.js` for the one case where both
-        // are true without the <li> being what this fieldset leads).
-        const useDivInsteadOfLegend =
-            SVs.renderInlineForListItem && SVs.insideNativeListItem;
+        // Unconditional on purpose. This used to fire only when the core told
+        // the renderer that this input leads a list item, which meant the quirk
+        // came back for every wrapper that does not forward that signal —
+        // `<li><p>`, `<li><span>`, `<li><em>` all rendered the marker a full row
+        // low. Deciding it here cannot be incomplete that way: an author can
+        // nest a `<choiceInput>` in anything, so the only reliable rule is not
+        // to depend on where it sits. The signal still decides margin
+        // suppression below, where a gap it misses costs spacing rather than a
+        // misplaced number.
+        //
+        // Nothing is lost by dropping the <legend>. Its one job is naming the
+        // <fieldset>, which the aria-labelledby below does explicitly and takes
+        // precedence over a <legend> anyway; `accessibility/basicTests.cy.js`
+        // checks the accessible name resolves. The 2px matches the inline
+        // padding every browser's UA stylesheet gives a <legend>, so the label
+        // text lands exactly where the <legend> put it.
         const nonInlineLabelComponent = hasLabel ? (
-            useDivInsteadOfLegend ? (
-                // The 2px matches the inline padding every browser's UA
-                // stylesheet gives a <legend>, so the swap moves the marker's
-                // row and nothing else: the label text lands in exactly the
-                // place the <legend> put it.
-                <div id={labelId} style={{ paddingInline: "2px" }}>
-                    {label}
-                </div>
-            ) : (
-                <legend id={labelId}>{label}</legend>
-            )
+            <div id={labelId} style={{ paddingInline: "2px" }}>
+                {label}
+            </div>
         ) : null;
 
         return (

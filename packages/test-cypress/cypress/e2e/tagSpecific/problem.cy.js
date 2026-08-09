@@ -1649,14 +1649,12 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         cy.get("#hiddenLead").should("not.exist");
 
         // The `<answer>` behind the hidden `<p>` is the child whose top margin is
-        // suppressed. A section draws its own number rather than a native
-        // `<li>` marker, so the label keeps its `<legend>` here.
+        // suppressed.
         cy.get(`#${cesc("ans1")} fieldset`).should(
             "have.css",
             "margin-top",
             "0px",
         );
-        cy.get(`#${cesc("ans1")} fieldset > legend`).should("exist");
         verifyBeforeContent("problem1", '"1."');
 
         // The step the cascade has not reached hides every child, so it has no

@@ -208,12 +208,12 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         });
     });
 
-    // The last list here covers the one configuration in which a block
-    // `<choiceInput>`'s fieldset label is rendered in a `<div>` carrying
-    // `aria-labelledby` instead of a native `<legend>`: leading a real `<li>`,
-    // where a `<legend>` would push the item's marker off the label's row (see
-    // `tagSpecific/list.cy.js`). The axe pass is what confirms the fieldset is
-    // still named for assistive technology without the `<legend>`.
+    // A block `<choiceInput>` renders its fieldset label in a `<div>` carrying
+    // `aria-labelledby`, never a native `<legend>` — a `<legend>` pushes a list
+    // item's marker off the label's row (see `tagSpecific/list.cy.js`). The axe
+    // pass is what confirms the fieldset is still named for assistive technology
+    // without one. The last list here puts an input in an `<li>`, the shape
+    // where the `<legend>` was doing visible damage.
     it("Lists", () => {
         cy.window().then(async (win) => {
             win.postMessage(

@@ -6,7 +6,9 @@
 "doenet-vscode-extension": patch
 ---
 
-Stop a hidden first child from taking the lead of a list item.
+Line a list item's number up with a labeled `<choiceInput>` however it is wrapped, and stop a hidden first child from taking the lead.
+
+A labeled block `<choiceInput>` leading an `<ol>`/`<ul>` list item drew the item's number beside the first choice instead of beside the question label, because the label was rendered in a `<legend>` and a browser aligns a list marker with the content *after* a legend. #1668 fixed that only where the core could tell the input it was leading a list item, which left the bug in place for wrappers that pass no such signal on — `<li><p>`, `<li><span>` and `<li><em>` all still drew the number a line low. The label now renders in an equivalent `<div>` wherever it appears, so nesting the input in anything at all keeps the number on the label's row. Its accessible name is unchanged (`aria-labelledby` names the fieldset either way) and so is its position on the line.
 
 A list item — an `<li>`, or a `<problem>`/`<task>`/`<part>` rendered as one — lines its number up with its first child, and suppresses that child's top margin. A child hidden with `hide` counted as that first child even though nothing of it renders, so the child behind it kept its top margin and lost its claim on the number. In `<li><p hide/><answer><choiceInput/></answer></li>` that put the marker beside the first choice instead of beside the question label. The first child that actually renders is now the one used, so hidden content can sit at the front of a list item without disturbing it.
 

@@ -7,20 +7,23 @@ import { verifySideBySideColumnTopAlignment } from "./utils/listItemAlignment";
  * `<choiceInput>` rendered its "1." beside the first choice instead of beside
  * the question label.
  *
- * The fix has two halves, and both are asserted here:
+ * Two independent mechanisms, and this file keeps them apart because they failed
+ * for different reasons:
  *
- *   1. `<li>` publishes the list-item alignment signal that `<problem>`-style
- *      sections publish, which is how the `<choiceInput>` learns it leads a list
- *      item at all. Its own visible effect is suppressing the leading child's
- *      top margin (`margin-top: 0px`).
- *   2. Gated on that signal, the label renders in a `<div>` rather than a
- *      `<legend>` — a `<legend>` gets special layout treatment that makes the
- *      browser align the marker with the content *after* it.
+ *   1. The label renders in a `<div>`, never a `<legend>`. A `<legend>` gets
+ *      special layout treatment that makes the browser align the marker with the
+ *      content *after* it. This is the half that moves the marker, and it is
+ *      unconditional — see `choiceInput.tsx`. It was originally gated on the
+ *      core's list-item signal, which left the bug alive for every wrapper that
+ *      does not forward that signal (`<li><p>`, `<li><span>`, `<li><em>`); the
+ *      wrapper matrix below is what would catch that recurring.
+ *   2. `<li>` publishes the list-item alignment signal `<problem>`-style
+ *      sections publish, which suppresses the leading child's top margin
+ *      (`margin-top: 0px`). Still positional, because a gap it misses costs
+ *      spacing rather than a misplaced number.
  *
- * (2) is the half that moves the marker; (1) is what tells it when to fire. On
- * top of both mechanisms, `verifyListItemMarkerSharesRowWith()` measures where
- * the marker really landed; see its doc comment for how a marker that is in no
- * rect gets measured at all.
+ * `verifyListItemMarkerSharesRowWith()` measures where the marker really landed;
+ * see its doc comment for how a marker that is in no rect gets measured at all.
  */
 describe("List Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
@@ -73,10 +76,9 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         );
         cy.get(`#${cesc("ans1")} fieldset > legend`).should("not.exist");
 
-        // The swap must move the marker's row and nothing else: the label keeps
-        // the inline padding the UA stylesheet gives a `<legend>` (asserted on a
-        // real `<legend>` in the negative test below), so its text does not
-        // shift sideways.
+        // Dropping the `<legend>` must move the marker's row and nothing else:
+        // the label keeps the inline padding a UA stylesheet gives a `<legend>`,
+        // so its text does not shift sideways.
         cy.get(`#${cesc("ci1")}-label`).should(
             "have.css",
             "padding-inline-start",
@@ -227,15 +229,14 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         cy.get(`#${cesc("ansHidden")} fieldset > legend`).should("not.exist");
 
         // The section path agrees: the `<answer>` behind the hidden `<p>` is the
-        // one whose top margin is suppressed. Its label keeps its `<legend>` —
-        // a section draws its own number and never had the `<legend>` quirk.
+        // one whose top margin is suppressed.
         cy.get(`#${cesc("taskHidden")}`).should("be.visible");
         cy.get(`#${cesc("ansTask")} fieldset`).should(
             "have.css",
             "margin-top",
             "0px",
         );
-        cy.get(`#${cesc("ansTask")} fieldset > legend`).should("exist");
+        cy.get(`#${cesc("ansTask")} fieldset > legend`).should("not.exist");
     });
 
     // The lead is handed down a chain: the `<li>` picks its first visible child,
@@ -384,16 +385,17 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
-    // The swap needs both of its conditions: the `<choiceInput>` leads its list
-    // item (`renderInlineForListItem`) *and* a real `<li>` is somewhere above it
-    // (`insideNativeListItem`). Each arm below is missing one, so all three
-    // keep a native `<legend>`. The `<problem asList>` arm matters most — it
-    // shares `renderInlineForListItem` for its own `::before`/grid number and
-    // never had the `<legend>` quirk, so swapping there would change
-    // already-working behavior for a case this fix was never meant to touch. The
-    // last arm is the other direction: a `<choiceInput>` behind a leading `<p>`
-    // is inside an `<li>`, but the marker is not on its row.
-    it("keeps a native <legend> outside a list item, in a section, and away from the marker's row", () => {
+    // A non-inline `<choiceInput>` renders its label in a `<div>` wherever it
+    // sits — outside any list item, in a `<problem asList>` section, and inside
+    // an `<li>` but behind a leading `<p>`. The label is never a `<legend>`,
+    // because deciding that per position is what left `<li><p>`, `<li><span>`
+    // and `<li><em>` misaligned: those wrappers forward no signal, and the set
+    // of things an author can wrap an input in has no end.
+    //
+    // Margin suppression is still positional, and these arms pin that: only the
+    // one leading a list item loses its top margin. A gap there costs spacing,
+    // not a misplaced number, which is why it is safe to leave positional.
+    it("renders the label in a <div> wherever the input sits, and suppresses the top margin only for a list item's lead", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -438,40 +440,100 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
 
         cy.get(`#${cesc("liLate")}`).should("be.visible");
 
-        // Not a list item's first child: native `<legend>` semantics are kept,
-        // and the fieldset's top margin is not suppressed.
-        cy.get(`#${cesc("ansPlain")} fieldset > legend`).should("exist");
+        // No `<legend>` anywhere, and every label carries the same inset. The
+        // 2px is what a browser's UA stylesheet gives a `<legend>`, kept so that
+        // dropping the element moved no label; no spec can measure it on a real
+        // `<legend>` any more, because none is rendered.
+        ["ansPlain", "ansTask", "ansLate"].forEach((answerName) => {
+            cy.get(`#${cesc(answerName)} fieldset > legend`).should(
+                "not.exist",
+            );
+        });
+        ["ciPlain", "ciTask", "ciLate"].forEach((inputName) => {
+            cy.get(`#${cesc(inputName)}-label`)
+                .should(($label) => {
+                    expect($label[0].tagName, `${inputName} label`).to.equal(
+                        "DIV",
+                    );
+                })
+                .and("have.css", "padding-inline-start", "2px");
+        });
+
+        // Not a list item's lead: top margin kept.
         cy.get(`#${cesc("ansPlain")} fieldset`).should(
             "have.css",
             "margin-top",
             "16px",
         );
-        // The inset the swapped `<div>` has to reproduce, measured on a real
-        // `<legend>` rather than assumed — this is where the 2px in
-        // `choiceInput.tsx` comes from.
-        cy.get(`#${cesc("ciPlain")}-label`).should(
-            "have.css",
-            "padding-inline-start",
-            "2px",
-        );
 
-        // A `<problem asList>` section: margin suppression still applies
-        // (pre-existing, correct for its own numbering) but the `<legend>` stays.
-        cy.get(`#${cesc("ansTask")} fieldset > legend`).should("exist");
+        // Leads a `<problem asList>` section, which suppresses it for its own
+        // `::before`/grid numbering.
         cy.get(`#${cesc("ansTask")} fieldset`).should(
             "have.css",
             "margin-top",
             "0px",
         );
 
-        // Inside a real `<li>` but behind a leading `<p>`, so the marker sits on
-        // the paragraph's row and the `<legend>` cannot disturb it.
-        cy.get(`#${cesc("ansLate")} fieldset > legend`).should("exist");
+        // Inside a real `<li>` but behind a leading `<p>`, so it is not the lead.
         cy.get(`#${cesc("ansLate")} fieldset`).should(
             "have.css",
             "margin-top",
             "16px",
         );
+    });
+
+    // The question this file exists to keep asking: for a labeled block
+    // `<choiceInput>` leading a list item, does the marker sit on the label's
+    // row — whatever the author wrapped the input in?
+    //
+    // A matrix over *markup shapes*, not over internal forwarding rules. Six
+    // review cycles pinned the five rules the core knew about and still shipped
+    // `<li><p>`, `<li><span>` and `<li><em>` broken, because a matrix over rules
+    // cannot notice a missing rule. These shapes are author-visible, so a new
+    // wrapper that breaks alignment shows up here as a failing row rather than as
+    // a bug report.
+    const WRAPPERS = [
+        { name: "bare", open: "", close: "" },
+        { name: "p", open: "<p>", close: "</p>" },
+        { name: "span", open: "<span>", close: "</span>" },
+        { name: "em", open: "<em>", close: "</em>" },
+        { name: "div", open: "<div>", close: "</div>" },
+        { name: "blockQuote", open: "<blockQuote>", close: "</blockQuote>" },
+        { name: "stack", open: "<stack>", close: "</stack>" },
+        { name: "nested p in span", open: "<span><p>", close: "</p></span>" },
+        {
+            name: "answer in p",
+            open: "<p><answer>",
+            close: "</answer></p>",
+        },
+    ];
+
+    WRAPPERS.forEach(({ name, open, close }) => {
+        it(`marker stays on the label's row with the input wrapped in ${name}`, () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+    <ol>
+      <li name="item">
+        ${open}<choiceInput name="input"><label>hello</label>
+          <choice>1</choice>
+          <choice>2</choice>
+        </choiceInput>${close}
+      </li>
+    </ol>
+    `,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get(`#${cesc("item")}`).should("be.visible");
+            verifyListItemMarkerSharesRowWith(
+                "item",
+                `#${cesc("input")}-label`,
+            );
+        });
     });
 
     it("<ul> gets the same first-child alignment as <ol>", () => {
