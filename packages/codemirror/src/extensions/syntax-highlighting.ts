@@ -92,7 +92,7 @@ const customHighlightStyle = createHighlightStyle({
     tagName: "#0550ae", // Blue - 7.67:1 on white
     propertyName: "#953800", // Burnt orange - 5.17:1 on white
     invalid: "#a80000", // Dark red - 6.23:1 on white
-    blockComment: "#5c636d", // Gray - 6.1:1 on white, 4.7:1 on the --mainGray selection
+    blockComment: "#5c636d", // Gray - 6.1:1 on white, 5.3:1 on the match tint
     macroName: "#6f42c1", // Purple - 5.01:1 on white
     content: "#24292f", // Near black - 15.3:1 on white
 });
@@ -106,12 +106,21 @@ const doenetLanguage = LRLanguage.define({
 
 // Dark canvas (#121212) syntax highlight palette — GitHub-dark-inspired.
 // All colors verified for ≥4.5:1 WCAG AA contrast on #121212.
+//
+// The comment gray is the dimmest of these, so it also decides how strong the
+// match tint in `theme.ts` may be — that tint is painted behind unrecolored
+// tokens, and comments are the first to fail on top of it. At GitHub's #8b949e
+// the tint had to stay under 1.30:1 against the canvas to keep them at AA,
+// which is about where the old selection sat when authors reported seeing no
+// highlight at all. A shade lighter buys the tint enough to register while
+// leaving comments plainly quieter than body content (7.4:1 against the canvas
+// versus 16:1).
 const darkHighlightStyle = createHighlightStyle({
     string: "#56d364", // green  ~7.1:1 on #121212
     tagName: "#79c0ff", // blue   ~10:1 on #121212
     propertyName: "#ffa657", // orange ~7.4:1 on #121212
     invalid: "#ff7b72", // red    ~6.4:1 on #121212
-    blockComment: "#8b949e", // gray   ~6.5:1 on #121212
+    blockComment: "#9ba4ad", // gray   ~7.4:1 on #121212
     macroName: "#d2a8ff", // purple ~9.6:1 on #121212
     content: "#e6edf3", // near-white ~16:1 on #121212
 });
