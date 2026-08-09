@@ -96,10 +96,15 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
     // `childrenToRenderInlineForListItem`: the pass-through wrappers
     // (`<div>`, `<blockQuote>`, `<stack>`, …) and `<sideBySide>`, which hands it
     // to its panels. Each of these reproduced the original bug at some point
-    // during development, one level deeper than the last, which is why this
-    // asserts the rendered outcome at every depth rather than trusting the
-    // forwarding chain.
-    it("aligns the marker through a wrapper and through a <sideBySide> panel", () => {
+    // during development, one level deeper than the last.
+    //
+    // What a break in that chain costs is asserted here as the top margin, not
+    // as the marker's row: the marker moved because of the `<legend>`, and the
+    // label is a `<div>` at every depth now, so a marker assertion alone would
+    // pass on a chain that forwarded nothing. The marker assertions stay because
+    // they are what the reader actually sees, but the `margin-top: 0px` beside
+    // each one is what fails if a wrapper stops forwarding.
+    it("suppresses the leading child's top margin through a wrapper and through a <sideBySide> panel", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -150,15 +155,30 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
 
         verifyListItemMarkerSharesRowWith("liDiv", `#${cesc("ciDiv")}-label`);
         cy.get(`#${cesc("ansDiv")} fieldset > legend`).should("not.exist");
+        // The `<div>` wrapper forwarded the signal to the `<answer>`, which
+        // forwarded it to the `<choiceInput>` it holds.
+        cy.get(`#${cesc("ansDiv")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
 
         verifyListItemMarkerSharesRowWith(
             "liQuote",
             `#${cesc("ciQuote")}-label`,
         );
         cy.get(`#${cesc("ciQuote")} > legend`).should("not.exist");
+        // A `<blockQuote>` forwards to the `<choiceInput>` directly.
+        cy.get(`#${cesc("ciQuote")}`).should("have.css", "margin-top", "0px");
 
         verifyListItemMarkerSharesRowWith("liSbs", `#${cesc("ciSbs")}-label`);
         cy.get(`#${cesc("ansSbs")} fieldset > legend`).should("not.exist");
+        // Three links deep: panel, `<div>`, `<answer>`.
+        cy.get(`#${cesc("ansSbs")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
 
         // A `<sideBySide>` leading a list item is the one consumer of the signal
         // that does more than suppress a top margin: it also switches its panels
@@ -173,11 +193,15 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
     });
 
     // A child that hides itself must not take the lead of its list item: the
-    // renderer drops it, so the child behind it is what the marker has to line
-    // up with. `<li>` and a `<task>` section share one implementation of this
-    // (`childRendersSomething()`), so both are checked — the section arm through
-    // the top margin, since a section's number is a `::before` the marker scan
-    // does not apply to.
+    // renderer drops it, so the child behind it is the one whose spacing the item
+    // has to fix up. `<li>` and a `<task>` section share one implementation of
+    // this (`childRendersSomething()`), so both are checked.
+    //
+    // `margin-top: 0px` is the assertion that fails without the fix, in both
+    // arms. The marker measurement beside it does not: with nothing rendered
+    // ahead of the fieldset, the browser puts the marker on the label's row
+    // whichever child the core called the lead. It is kept as the statement of
+    // what the reader should see, next to the check that earns it.
     it("skips a first child that hides itself, in a list item and in a section", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -239,12 +263,66 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         cy.get(`#${cesc("ansTask")} fieldset > legend`).should("not.exist");
     });
 
+    // Every other case here loads the document with the child already hidden,
+    // but `hide` takes a boolean an author can drive from anything, so it changes
+    // while the activity is open. The lead has to follow it: the spacing a reader
+    // sees must not depend on which state the document started in. Both
+    // directions, because a lead that moved once and then stuck would satisfy
+    // half of that. `lists.test.ts` toggles the same document through the core;
+    // this is the rendered outcome in a real build.
+    it("moves a list item's lead when a first child's hide toggles", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="b" />
+    <ol>
+      <li name="item">
+        <p name="lead" hide="$b">Sometimes hidden</p>
+        <choiceInput name="ci">
+          <label>Label behind a sometimes-hidden paragraph</label>
+          <choice credit="1">A</choice>
+          <choice>B</choice>
+        </choiceInput>
+      </li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("item")}`).should("be.visible");
+
+        // Shown: the `<p>` leads, so it is the one without a top margin and the
+        // one the marker sits beside.
+        cy.get(`#${cesc("lead")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("ci")}`).should("have.css", "margin-top", "16px");
+        verifyListItemMarkerSharesRowWith("item", `#${cesc("lead")}`);
+
+        cy.get("#b_input").click({ force: true });
+
+        // Hidden: the `<choiceInput>` takes over, and the marker is on its label.
+        cy.get(`#${cesc("lead")}`).should("not.exist");
+        cy.get(`#${cesc("ci")}`).should("have.css", "margin-top", "0px");
+        verifyListItemMarkerSharesRowWith("item", `#${cesc("ci")}-label`);
+
+        cy.get("#b_input").click({ force: true });
+
+        // And back: revealing the paragraph returns the lead to it.
+        cy.get(`#${cesc("lead")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("ci")}`).should("have.css", "margin-top", "16px");
+        verifyListItemMarkerSharesRowWith("item", `#${cesc("lead")}`);
+    });
+
     // The lead is handed down a chain: the `<li>` picks its first visible child,
     // and a wrapper (`<div>` here, and equally a `<blockQuote>` or a
     // `<sideBySide>` panel — the components #1668 already routes the signal
     // through) forwards it to its own first visible child. Both links have to
-    // apply the same visibility test; when only the outer one did, a `<p hide>`
-    // one level in still put the marker beside the first choice.
+    // apply the same visibility test; when only the outer one did, the `<p hide>`
+    // one level in kept the forward and the `<answer>` behind it kept the top
+    // margin the item wanted suppressed — again the `margin-top: 0px` below, not
+    // the marker, is what notices.
     it("skips a child that hides itself inside a wrapper leading a list item", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -563,9 +641,13 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         cy.get(`#${cesc("ans1")} fieldset > legend`).should("not.exist");
     });
 
-    // Confirms the accessible name actually resolves in the browser for the
-    // swapped-to-`<div>` case, not just that a `<div>` with the right id exists.
-    it("aria-labelledby resolves to the swapped <div> and its text matches the label", () => {
+    // Confirms the accessible name actually resolves in the browser now that no
+    // `<legend>` is rendered, not just that a `<div>` with the right id exists.
+    // `aria-labelledby` outranks a `<legend>` in the accessible-name
+    // computation, so this is the name a screen reader announced before the
+    // `<legend>` went away too; `accessibility/basicTests.cy.js` runs axe over
+    // the same shape.
+    it("aria-labelledby resolves to the label <div> and its text matches the label", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -597,10 +679,9 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
             const labelIds = labelledBy.split(/\s+/);
             const labelEl = fieldset.ownerDocument.getElementById(labelIds[0]);
             expect(labelEl, "labelled element exists").to.exist;
-            expect(
-                labelEl.tagName,
-                "labelled element is the swapped div",
-            ).to.equal("DIV");
+            expect(labelEl.tagName, "labelled element is a div").to.equal(
+                "DIV",
+            );
             expect(labelEl.textContent).to.contain(
                 "Which of these are the variables in the problem?",
             );

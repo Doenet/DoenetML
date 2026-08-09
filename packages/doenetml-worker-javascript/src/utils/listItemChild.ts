@@ -39,11 +39,13 @@ export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
  * a component only if its class declares a `rendererType` and it has not hidden
  * itself.
  *
- * A list item delegates its top-margin suppression, and the alignment of its
- * hanging number (or, for a real `<li>`, its native marker), to its first
+ * A list item delegates its top-margin suppression, and (for a section, which
+ * draws its own number) the vertical alignment of that number, to its first
  * visible child, so a child that renders nothing must never be picked as that
  * child — doing so strands the child that actually renders first, which then
- * keeps its top margin and never gets to report the alignment it needs.
+ * keeps its top margin and never gets to report the alignment it needs. A real
+ * `<li>`'s native marker is not on this list: the browser places it, and where
+ * it lands is settled in `choiceInput.tsx` rather than here.
  * The `rendererType` test covers a child whose kind draws nothing at all
  * (`<animateFromSequence>`, `<solveEquations>`, …), and the `hiddenIgnoreParent`
  * test covers a child of a rendering kind that is nonetheless not on the screen,
@@ -180,8 +182,14 @@ export function returnListItemChildStateVariableDefinitions({
  * `<p hide>`, an `<animateFromSequence>` — would strand the child that renders
  * first one level down: in
  * `<li><div><p hide/><answer><choiceInput/></answer></div></li>` the
- * `<choiceInput>` would keep the `<legend>` #1668 removed and the marker would
- * drop to the first choice's row.
+ * `<choiceInput>` would keep the top margin the item wanted suppressed, and the
+ * alignment reported back up would be the alignment of something not on the
+ * screen — which inside a `<problem>`-style list item is what decides whether
+ * the section's own number sits on the first line's baseline or at the top of
+ * the content (`firstChildListItemAlignment`, read by `section.tsx`). A real
+ * `<li>`'s native marker no longer rides on this chain at all: it moved because
+ * of the `<legend>`, and `choiceInput.tsx` now renders the label in a `<div>`
+ * wherever the input sits.
  *
  * `<label>` is excluded on top of that test: a label does render, but it is the
  * wrapper's own naming, not the content the item's number lines up with.

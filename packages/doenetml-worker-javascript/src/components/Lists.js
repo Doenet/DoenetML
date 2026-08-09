@@ -256,8 +256,10 @@ export class Li extends BaseComponent {
                 // (whose forwarding is gated on being selected by its own
                 // parent), there is no parent-selection concept here: an
                 // `<li>`'s first visible child always gets the signal, which
-                // suppresses its top margin and, for a labeled `<choiceInput>`,
-                // keeps the native marker on the label's row.
+                // suppresses its top margin. Where the native marker lands is
+                // not decided here — a `<legend>` was moving it, and
+                // `choiceInput.tsx` renders the label in a `<div>` wherever the
+                // input sits.
                 //
                 // A child that hides itself is skipped, so a leading `<p hide>`
                 // does not strand the child after it — that is what the
