@@ -29,10 +29,13 @@ resolves `@doenet/utils`, `@doenet/i18n` and `@doenet/parser` to their built
 `dist/`, so a generator run against a stale sibling silently generates from old
 code — the regenerated schema can come out *missing* entries the branch just
 added, which reads as "the committed schema is stale" when the stale thing is
-`@doenet/i18n/dist`. All three are therefore wireit scripts that declare those
-builds as dependencies, and declare no `files`/`output` so wireit always re-runs
-them rather than serving a cached no-op.
+`@doenet/i18n/dist`. All three are therefore wireit scripts that depend on
+`../doenetml-worker-javascript:build:deps` — the aggregator naming the sibling
+builds the worker's source needs, which the worker's own `build` depends on too,
+so the list has one home — and declare no `files`/`output` so wireit always
+re-runs them rather than serving a cached no-op.
 
 `test/generator-script-dependencies.test.ts` is where the reasoning lives in
-full — `package.json` cannot carry comments — and it fails if the declarations
-drift from the worker's own.
+full — `package.json` cannot carry comments — and it fails if a generator stops
+declaring that dependency, or if the aggregator stops being the worker's only
+source of sibling builds.

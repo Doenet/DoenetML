@@ -542,27 +542,29 @@ jobs:
 
             # Regenerates packages/static-assets/src/generated/* from
             # componentInfoObjects (read by vite-node). build:schema imports that
-            # from worker source, so @doenet/utils (and friends) have to be
-            # built; it declares those as wireit dependencies and restores them
-            # from the .wireit cache downloaded above. WIREIT_CACHE has to be set
-            # explicitly — wireit defaults it to "none" whenever CI=true — while
-            # build:schema itself declares no files/output, so it always re-runs
-            # instead of being served from cache, which is what makes the diff
-            # below meaningful.
+            # from worker source, so @doenet/utils (and friends) have to be built;
+            # it gets them from a wireit dependency on the worker's build:deps and
+            # restores them from the .wireit cache downloaded above. WIREIT_CACHE
+            # has to be set explicitly — wireit defaults it to "none" whenever
+            # CI=true — while build:schema itself declares no files/output, so it
+            # always re-runs instead of being served from cache, which is what
+            # makes the diff below meaningful. NODE_OPTIONS matches the other
+            # build steps in this file, since this step now performs those builds
+            # itself when the cache cannot supply them (~21s from nothing at all,
+            # peaking at ~1.5 GB RSS).
             #
             # There is deliberately no `npm run build:all-no-docs` step ahead of
             # this: a pre-built workspace masks an *incomplete dependency list*,
             # the bug this job is shaped to catch, and that bug only bites someone
             # who runs build:schema on its own — so CI runs it on its own too.
-            # Nothing is lost by dropping it. A declared dependency the cache
-            # cannot supply is rebuilt from source (~20s from nothing at all); one
-            # that fails to build is named by wireit (`[../i18n:build] exited with
-            # exit code 1`, plus the compiler error) and would already have failed
-            # the `build` job this one needs; an *undeclared* one — the single new
-            # failure mode here — is vite's `Failed to resolve entry for package
-            # "@doenet/utils"` naming the importing file. None of the three can
-            # produce a misleading "schema is stale" diff, because the diff step
-            # below never runs.
+            # Nothing is lost by dropping it. A dependency that cannot be restored
+            # is rebuilt from source; one that fails to build is named by wireit
+            # (`[../i18n:build] exited with exit code 1`, plus the compiler error)
+            # and would already have failed the `build` job this one needs; an
+            # *undeclared* one — the single new failure mode — is vite's `Failed to
+            # resolve entry for package "@doenet/utils"`, naming the importing
+            # file. None of the three can masquerade as a stale schema, because
+            # the diff step below never runs.
             #
             # The runtime guards in get-schema.ts also throw here if any
             # component/attribute/property/attribute-value description is
@@ -571,6 +573,7 @@ jobs:
               run: npm run build:schema -w packages/static-assets
               env:
                   WIREIT_CACHE: "local"
+                  NODE_OPTIONS: "--max_old_space_size=6114"
 
             - name: Assert committed schema is up to date
               run: git diff --exit-code -- packages/static-assets/src/generated/
@@ -611,13 +614,15 @@ jobs:
 
             # The docs-coverage script imports componentInfoObjects from source,
             # which needs @doenet/utils (and friends) built. Like build:schema in
-            # schema-freshness, check:docs-coverage declares those as wireit
-            # dependencies and restores them from the .wireit cache downloaded
+            # schema-freshness, check:docs-coverage gets those through a wireit
+            # dependency and restores them from the .wireit cache downloaded
             # above, so there is no separate build step; see the comments in that
-            # job for the reasoning. The reference pages it checks are the .mdx
-            # sources in packages/docs-nextra/pages/reference, tracked in git, so
-            # nothing else needs building.
+            # job for the reasoning behind that and behind the env below. The
+            # reference pages it checks are the .mdx sources in
+            # packages/docs-nextra/pages/reference, tracked in git, so nothing
+            # else needs building.
             - name: Verify schema components map to /reference/<slug> pages
               run: npm run check:docs-coverage -w packages/static-assets
               env:
                   WIREIT_CACHE: "local"
+                  NODE_OPTIONS: "--max_old_space_size=6114"

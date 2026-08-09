@@ -29,6 +29,13 @@
         "build": "wireit"
     },
     "wireit": {
+        "build:deps": {
+            "dependencies": [
+                "../i18n:build",
+                "../utils:build",
+                "../parser:build"
+            ]
+        },
         "build": {
             "command": "vite build",
             "files": [
@@ -44,9 +51,7 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
-                "../i18n:build",
-                "../utils:build",
-                "../parser:build"
+                "build:deps"
             ]
         }
     },

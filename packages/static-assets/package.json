@@ -47,25 +47,19 @@
         "build:assets": {
             "command": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-completion-snippets.ts && vite-node ./scripts/generate-math-assets.ts",
             "dependencies": [
-                "../i18n:build",
-                "../utils:build",
-                "../parser:build"
+                "../doenetml-worker-javascript:build:deps"
             ]
         },
         "build:schema": {
             "command": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts",
             "dependencies": [
-                "../i18n:build",
-                "../utils:build",
-                "../parser:build"
+                "../doenetml-worker-javascript:build:deps"
             ]
         },
         "check:docs-coverage": {
             "command": "vite-node ./scripts/check-docs-coverage.ts",
             "dependencies": [
-                "../i18n:build",
-                "../utils:build",
-                "../parser:build"
+                "../doenetml-worker-javascript:build:deps"
             ]
         },
         "build": {
