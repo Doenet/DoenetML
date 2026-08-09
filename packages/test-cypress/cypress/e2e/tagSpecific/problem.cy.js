@@ -1179,13 +1179,16 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
      * already gets from `cy.get(...).should(...)`. Every caller's callback only
      * asserts, so re-running one has no other effect.
      *
-     * #1320 names four other places in this file with the same shape — the
-     * boxed-heading `::before` read, the two grid-layout reads, and the
-     * `align-items` reads that check a section's own alignment — and they are all
-     * `should` now too, along with `verifySideBySideColumnTopAlignment()`. Every
-     * value any of them reads is computed in the worker and arrives after the
-     * element does, so a single-shot callback is a race in each case. Any new
-     * helper here that reads a computed style belongs in a `should`.
+     * #1320 points at more of this file than this one helper, and the rest are
+     * `should` now too: the boxed-heading `::before` read, both grid-layout
+     * reads, the `display` read in the mixed-first-children test, and the three
+     * `align-items` reads in "answer list-item alignment only triggers flex-start
+     * for block choiceInput child" — plus
+     * `verifySideBySideColumnTopAlignment()`. Every value any of them reads is
+     * computed in the worker and arrives after the element does, so a single-shot
+     * callback is the same race in each case. There is no remaining
+     * `getComputedStyle` in this file outside a retried callback; keep it that
+     * way.
      */
     function withBeforeStyle(itemId, callback) {
         const escapedItemId = cesc(itemId);
