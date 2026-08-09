@@ -111,14 +111,9 @@ function getDecorations(view: EditorView): DecorationSet {
  * Recolors the selected text and tints the other occurrences of it.
  *
  * Both halves answer the same reported problem — that the selection was the
- * quietest thing on screen — from opposite directions.
- *
- * Recoloring is what lets the selection background be seen at all. The
- * background is painted behind syntax-colored text that has to stay readable
- * on top of it, and on either canvas that caps how far the background can move
- * before the dimmest token falls below WCAG AA. Handing the selected text a
- * single high-contrast color of its own lifts the cap, the way a native text
- * selection does in any other input on the page.
+ * quietest thing on screen — from opposite directions. Recoloring is what lets
+ * the selection background be strong enough to see at all; `getHighlightColors`
+ * in `theme.ts` explains why, and holds both colors.
  *
  * The match marks stand in for `@codemirror/search`'s
  * `highlightSelectionMatches`, which drops every one of them as soon as the
