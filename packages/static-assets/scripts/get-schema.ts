@@ -1,3 +1,13 @@
+/*
+ * Builds the DoenetML schema from the worker's component definitions.
+ *
+ * The `createComponentInfoObjects` import below reaches the worker's *source*,
+ * which in turn resolves `@doenet/utils`, `@doenet/i18n` and `@doenet/parser` to
+ * their built `dist/`. Every npm script that runs this module is therefore a
+ * wireit script that declares those builds as dependencies; see the header of
+ * `test/generator-script-dependencies.test.ts` for the full reasoning and the
+ * test that keeps the declarations in step with the worker's own.
+ */
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";

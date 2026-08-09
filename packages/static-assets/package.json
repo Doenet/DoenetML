@@ -39,11 +39,19 @@
     "scripts": {
         "test": "vitest",
         "build": "wireit",
-        "build:assets": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-completion-snippets.ts && vite-node ./scripts/generate-math-assets.ts",
+        "build:assets": "wireit",
         "build:schema": "wireit",
         "check:docs-coverage": "wireit"
     },
     "wireit": {
+        "build:assets": {
+            "command": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-completion-snippets.ts && vite-node ./scripts/generate-math-assets.ts",
+            "dependencies": [
+                "../i18n:build",
+                "../utils:build",
+                "../parser:build"
+            ]
+        },
         "build:schema": {
             "command": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts",
             "dependencies": [
