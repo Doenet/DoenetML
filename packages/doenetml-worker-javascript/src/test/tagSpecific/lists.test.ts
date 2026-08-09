@@ -326,21 +326,27 @@ describe("List tag tests @group4", async () => {
     // test case, named by the rule it pins, so breaking two rules reports two
     // failures rather than stopping at the first.
     //
-    // Every row is run twice: once with the leading child hidden and once with
-    // it shown. The shown half is the control — without it a row would also pass
-    // for a change that stopped delegating alignment at all. Both runs use the
-    // same component names: `hiddenChild` is the leading child under test, `item`
-    // the list item, `middle` the component whose selection rule the row
-    // exercises, and `lead`/`leadInput` the content the number should end up
-    // lining up with.
+    // Rows 1-5 are the five rules. Row 6 is not a rule but the negative control
+    // for the whole table: the same `hide` on a child that is *not* in the lead
+    // position, which must change nothing. Without it, a rule that reacted to any
+    // hidden child anywhere rather than to a hidden *leading* child would satisfy
+    // rows 1-5.
     //
-    // Row 4 is the one row whose hidden and shown halves agree about
-    // `renderInlineForListItem`, and it is deliberate: a `<sideBySide>` forwards
-    // the signal to *every* panel, since they all sit at the top of the row and
-    // all want their top margin suppressed, and only the top-vs-baseline
-    // alignment is read off a single panel. So there the hidden panel still
-    // reports `renderInlineForListItem` — what must not come from it is the
-    // alignment.
+    // Every row is run twice, once with the child hidden and once with it shown.
+    // For rows 1-5 the shown half is the control — without it a row would also
+    // pass for a change that stopped delegating alignment at all. Both runs use
+    // the same component names: `hiddenChild` is the child under test, `item` the
+    // list item, `middle` the component whose selection rule the row exercises,
+    // and `lead`/`leadInput` the content the number should end up lining up with.
+    //
+    // Two rows have hidden and shown halves that agree about
+    // `renderInlineForListItem`, for different reasons. Row 6 by construction:
+    // hiding a child that is not the lead is meant to be inert. Row 4 because a
+    // `<sideBySide>` forwards the signal to *every* panel — they all sit at the
+    // top of the row and all want their top margin suppressed — and reads only
+    // the top-vs-baseline alignment off a single panel. So there the hidden panel
+    // still reports `renderInlineForListItem`; what must not come from it is the
+    // alignment, which is why row 4 asserts `middle.listItemInlineAlignment`.
     const leadSelectionRules: {
         rule: string;
         doenetML: (hide: string) => string;
