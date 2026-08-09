@@ -27,19 +27,23 @@ export type ThemeMode = "dark" | "light";
  * against the canvas of the mode; `selectionAccessibility.cy.tsx` measures the
  * text side.
  *
- * Two of the editor's own tints are painted on the line itself, above the
- * selection layer, and so shade whatever they cover: `.cm-activeLine` on the
- * line holding a cursor, and `.cm-content` throughout the read-only theme.
- * Either costs the dark selection about a third of a point — 2.74:1 and 2.79:1
- * rather than the 3.09:1 below.
+ * Two of the editor's own tints are painted on the line itself, *above* the
+ * selection layer, so they shade whatever the selection covers rather than
+ * sitting under it: `.cm-activeLine` on the line holding a cursor, and
+ * `.cm-content` throughout the read-only theme. Only the first darkens the
+ * dark selection, and it is the case that matters — selecting a word puts the
+ * cursor on that very line — so the value below is chosen to clear 3:1 *after*
+ * that shading (3.27:1), not just before it. The read-only tint is lighter
+ * than the selection and nudges it the other way, to 3.50:1.
  */
 function getHighlightColors(darkMode: ThemeMode) {
     if (darkMode === "dark") {
         return {
-            // 3.09:1 on #121212 — clearing WCAG's 3:1 for non-text contrast,
-            // where the #092c4d this replaces sat at 1.32:1 and authors read
-            // it as no highlight at all. White text on it is 6.07:1.
-            selection: "#1b62b5",
+            // 3.48:1 on #121212, and 3.27:1 once `.cm-activeLine` shades it —
+            // clearing WCAG's 3:1 for non-text contrast either way, where the
+            // #092c4d this replaces sat at 1.32:1 and authors read it as no
+            // highlight at all. White text on it is 5.39:1.
+            selection: "#1e6ac2",
             selectedText: "#ffffff",
             match: "#14335a", // 1.47:1
             tagMatch: "#3fa8a0", // 6.53:1 as an outline
@@ -51,7 +55,8 @@ function getHighlightColors(darkMode: ThemeMode) {
         // 1.96:1 on white, up from the 1.28:1 of the neutral `--mainGray`
         // (#e3e3e3) this replaces — a gray that is also the gutter's
         // background, so the selection read as a piece of the editor chrome.
-        // Near-black text on it is 9.64:1.
+        // Near-black text on it is 9.64:1. `.cm-activeLine` darkens rather
+        // than lightens this one, taking it to 2.28:1.
         selection: "#93bcf0",
         selectedText: "#0d1117",
         match: "#e2edfc", // 1.18:1
