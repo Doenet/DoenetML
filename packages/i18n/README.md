@@ -220,6 +220,31 @@ second reason beside its school system, since Guam's periodic table arrived
 through English rather than through the Spanish the rest of its vocabulary came
 from.
 
+**All twelve of the South Asian batch are partial, and they split five ways** —
+every shape the batches above them found, arriving together for the first
+time. Maithili, Bhojpuri, Konkani, Dogri, Manipuri, Kashmiri and Dzongkha are
+the school-system case, in six different school systems: secondary science is
+Hindi-, Nepali-, English-, Marathi- or Urdu-medium depending on the state or
+the country, so in all seven the fallback *is* the curriculum, and `locales/hi`,
+`locales/ne`, `locales/mr` and `locales/ur` are the parallel texts each header
+names. Bodo and Sanskrit are the Samoan case: Bodo-medium schooling in Assam
+*does* run to the secondary grades, and Sanskrit has words for the metals it
+knew, but neither has a settled list of all 118 to seed from. Santali is the
+Ojibwe shape — schooling in it stops below the grades where the table is
+taught, and no table waits on the other side — and Dhivehi is `locales/to`'s and
+`locales/fj`'s, both halves at once.
+
+Tibetan is the twelfth and the one claim about a language in the set: it is the
+Khmer case, the only one in the batch. Tibetan-medium secondary schooling exists
+in the TAR, in Qinghai and in the exile system, and it teaches chemistry out of
+textbooks that print the table in Tibetan — so the names exist, and what is
+missing is a convention this seed could reproduce rather than invent, the
+terminology committees and the two curricula not spelling every element the same
+way. **`locales/dz` beside it is partial for the opposite reason**, Bhutan
+teaching every subject but Dzongkha itself in English: two catalogs in one
+script, two different reasons for the same gap, which is the sharpest form this
+file has of the sentence below.
+
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
 line runs through the Arabic script — Arabic, Persian and Urdu supply them and
@@ -548,7 +573,7 @@ holds that, and holds `kfy`, `mag`, `hoc`, `njz` and `grt` on English —
 neighbours of `mai`, `bho`, `sat` and `brx` that belong to no macrolanguage
 with a catalog, which is the membership rule working rather than a gap in it.
 
-The batch adds **five script asymmetries and no new answer to any of them**.
+The batch adds **six script asymmetries and no new answer to any of them**.
 `sa` is Devanagari and is written in more scripts than anything else here, so
 `sa-Gran`, `sa-Knda` and a dozen more reach it; `kok` is Devanagari and Romi
 Konkani (`kok-Latn`) reaches it; `doi` is Devanagari and `doi-Arab` reaches it;
@@ -971,8 +996,10 @@ exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
 positions, and `be`, `bs`, `cs`, `de`, `el`, `et`, `fi`, `fo`, `hi`, `hr`,
 `is`, `ka`, `kok`, `lt`, `lv`, `mr`, `pa`, `pl`, `ps`, `ro`, `ru`, `sa`, `sd`,
 `sk`, `sl`, `sq`, `sr`, `uk`, `ur` and `yi` are the catalogs that select on
-them, and `locales/sa` selects on more of each than any of them — three genders
-and a different case in every clause position. Sharing a script does
+them. `locales/sa` and `locales/kok` both take the widest set the fork allows —
+three genders and all four positions, which is the shape `de`, `ru`, `pl`,
+`cs`, `hr`, `sr` and `sl` already have — and `sa` writes it in every one of the
+sixteen adjectives, where `kok` writes it in nine. Sharing a script does
 not imply sharing the fork: Marathi and Hindi both take an oblique adjective
 before a postposition and Nepali, written in the same letters, takes none. Nor
 is the fork all-or-nothing: Pashto marks the oblique on a feminine adjective in
@@ -1131,6 +1158,7 @@ what that value turns out to *be*:
 | the definite article on the value | `ro` | the article is a suffix — «secțiune» → «secțiunea» |
 | a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
 | a compound with the value | `fi` | Finnish writes a compound as one word |
+| a case particle after the value | `bo`, `dz` | the particle has four shapes, picked by the final letter of the syllable before it |
 
 Adjacency is not the problem. `{ $numSides }-kulmio` is correct Finnish for
 every side count, because `-kulmio` is the same whatever number lands in front
@@ -1145,8 +1173,7 @@ look at. So `bo/content.ftl` and `dz/content.ftl` — the two files that
 only the ones that have a single shape: དང་ for accompaniment, ལ་ (Dzongkha
 ལུ་) for location, ནང་ for containment. That is *prefer the free allomorph
 over the bound one* applied to a particle rather than to a prefix, and the
-fourth catalog family to take that way out after `ceb`, `quc` and the Bisayan
-pair.
+third family to take that way out, after Kʼicheʼ and the Bisayan catalogs.
 
 **The other three files in each are where the way out runs out**, and it is
 worth saying because no earlier catalog has shown the boundary this clearly. A
@@ -1236,7 +1263,9 @@ that can be written without knowing what stands beside it — the move `locales/
 already makes, and the same move `locales/quc` makes when it writes the free
 relational «rech» instead of the possessive prefix «u-»/«r-». That is the fifth
 way out listed above — *prefer the free allomorph over the bound one* — and it
-is stated as a rule here because three catalogs now take it.
+is stated as a rule here because three families now take it: the Bisayan
+catalogs, Kʼicheʼ, and the two Tibetan-script ones, which reach it for a case
+particle rather than for a linker.
 
 The other three cannot, and each header says exactly where its choice comes out
 wrong rather than leaving a reader to find it. Ilocano's is the sharpest and is
@@ -1683,10 +1712,12 @@ and `dv` is Indo-Aryan and agrees with nothing either — the two reach the same
 answer from opposite families. `ks` is the one of the ten whose catalog records
 a gap rather than a decision: it *does* agree an adjective for gender and this
 seed does not, which its header says outright.
-`yi` is Germanic and the only one of the ten that forks on `$role`: its
-adjectives take a dative after «מיט» and «אויף», so its catalog has the shape
-`locales/de` and `locales/bs` have rather than the shape of the nine beside
-it — which is the paragraph above put as sharply as it goes. Its one spelling
+`yi` is Germanic, and it forks on `$role` for a reason none of the other nine
+does: `ur`, `ps` and `sd` fork because an Indo-Aryan or Iranian adjective takes
+an oblique before a postposition, and Yiddish's adjectives take a **dative**
+after «מיט» and «אויף» — so its catalog has the shape `locales/de` and
+`locales/bs` have rather than `locales/hi`'s, which is the paragraph above put
+as sharply as it goes. Its one spelling
 convention worth stating is that Yiddish's three digraphs are written as **two
 letters each** — «וו», «וי», «יי» — and never as the precomposed ligatures
 U+05F0–U+05F2, which render identically and compare unequal. CLDR spells the

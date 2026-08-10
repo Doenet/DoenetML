@@ -54,16 +54,16 @@ const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Five of the
- * six keys — `qu`, `ay`, `gn`, `oj`, `bik` — are ISO 639-3 macrolanguages and
- * list their macrolanguage members; `nah` is an ISO 639-3 **collection** code
- * rather than a macrolanguage, so it lists the individual Nahuan languages ISO
- * 639-5 groups under it.
+ * member of `nb` or `ak`, and both are deliberately left to miss. Seven of the
+ * eight keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi` — are ISO 639-3
+ * macrolanguages and list their macrolanguage members; `nah` is an ISO 639-3
+ * **collection** code rather than a macrolanguage, so it lists the individual
+ * Nahuan languages ISO 639-5 groups under it.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr` — so that each list reads as the whole of a group rather than as the
- * leftovers of one, and so that a change in ICU data cannot silently drop a code
- * out of coverage.
+ * `ayr`, `gom`, `dgo` — so that each list reads as the whole of a group rather
+ * than as the leftovers of one, and so that a change in ICU data cannot
+ * silently drop a code out of coverage.
  *
  * Serving a related variety is a real compromise, and each of these catalogs
  * says in its own header which written standard it is — Southern Quechua,

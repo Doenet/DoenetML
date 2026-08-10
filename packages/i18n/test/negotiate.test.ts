@@ -513,9 +513,12 @@ describe("negotiateLocales", () => {
     });
 
     /**
-     * The South Asian batch. Two of its twelve are macrolanguages and the rest
-     * are individual languages that filter unaided; between them they add five
-     * scripts and no alias.
+     * The South Asian batch. Two of its twelve are macrolanguages and go in
+     * `MACROLANGUAGE_MEMBERS`; the other ten are individual languages
+     * whose ISO 639-3 codes ICU canonicalizes unaided, so the batch adds no
+     * `LANGUAGE_ALIASES` entry at all. Three of its scripts are new to the
+     * roster — Ol Chiki, Thaana and Tibetan — and none of them changes
+     * negotiation, which is what the script rows below say.
      */
     describe("the South Asian batch", () => {
         it.each([

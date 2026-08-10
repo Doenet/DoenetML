@@ -2576,23 +2576,29 @@ describe("the South Asian batch", () => {
         ).toBe(expected);
     });
 
-    it.each(["mni", "bo", "dz"])(
-        "reaches [noun-tail] for %s's regular polygon",
-        (locale) => {
-            const description = describeStrokedShape(
+    /**
+     * Asserted whole rather than by substring: the count has to land in the
+     * *tail*, after the adjective, and only the entire string says that. An
+     * assertion that merely looked for the count would pass just as happily
+     * against a catalog that folded the count into `[head]` and left `[tail]`
+     * empty, which is the one thing these three are here to rule out.
+     */
+    it.each([
+        ["mni", "অচুম্বা বহুভুজ অঙাংবা মায়কৈ 5 লৈবা"],
+        ["bo", "ཆ་སྙོམས་ཟུར་མང དམར་པོ ཟུར་ 5 ཅན"],
+        ["dz", "ཚད་མཉམ་ཟུར་མང དམརཔོ ཟུར་ 5 ཡོདཔ"],
+    ])("reaches [noun-tail] for %s's regular polygon", (locale, expected) => {
+        expect(
+            describeStrokedShape(
                 forLocale(locale),
                 { colorWord: "red" },
                 {
                     noun: { key: "regular-polygon", numSides: 5 },
                     withNoun: true,
                 },
-            );
-            // The count is last, after the adjectives it qualifies — which is
-            // what `[head]`-only catalogs cannot produce.
-            expect(description).toContain("5");
-            expect(description.trimEnd().endsWith("5")).toBe(false);
-        },
-    );
+            ),
+        ).toBe(expected);
+    });
 
     /**
      * Five Devanagari catalogs, three answers. Sanskrit and Konkani inflect
@@ -2600,18 +2606,37 @@ describe("the South Asian batch", () => {
      * for neither — so the script says nothing about the fork, which is the
      * point of asserting them side by side.
      */
-    it.each(["mai", "bho"])(
-        "leaves %s's adjectives unchanged between the two positions",
-        (locale) => {
+    it.each([
+        ["mai", "भरल नील वृत्त लाल किनार सहित", "नील पृष्ठभूमि पर लाल"],
+        ["bho", "भरल नील वृत्त लाल किनारी सहित", "नील पृष्ठभूमि पर लाल"],
+    ])(
+        "leaves %s's adjectives unchanged in every position",
+        (locale, closed, text) => {
             const t = forLocale(locale);
-            const standalone = describeBorder(t, { colorWord: "red" });
+            // «लाल» and «नील» standing alone, and the same two words in the
+            // border and background positions a postposition governs. Written
+            // out whole rather than asserted as a substring of the phrase,
+            // since an oblique would contain the direct form as a prefix and a
+            // substring check would not notice one appearing.
+            expect(describeBorder(t, { colorWord: "red" })).toBe("लाल");
             expect(
                 describeClosedShape(
                     t,
                     { fillColorWord: "blue", colorWord: "red" },
                     { filled: true, noun: { key: "circle" }, withNoun: true },
                 ),
-            ).toContain(standalone);
+            ).toBe(closed);
+            expect(
+                describeText(t, {
+                    color: describeColor(t, "red", "text", "text-clause"),
+                    background: describeColor(
+                        t,
+                        "blue",
+                        "background",
+                        "background-clause",
+                    ),
+                }),
+            ).toBe(text);
         },
     );
 
