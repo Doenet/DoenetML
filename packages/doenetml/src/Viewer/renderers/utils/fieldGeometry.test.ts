@@ -129,7 +129,7 @@ describe("buildSlopeFieldData", () => {
         expect(numMarks).toBe(28); // x = 0..3 only, 4 columns x 7 rows
     });
 
-    it("coarsens the lattice instead of exceeding maxMarks", () => {
+    it("coarsens the lattice to the tightest stride that meets maxMarks", () => {
         const wide = { xMin: -100, xMax: 100, yMin: -100, yMax: 100 };
         const { numMarks, stride } = buildSlopeFieldData({
             f: () => 1,
@@ -138,9 +138,10 @@ describe("buildSlopeFieldData", () => {
             maxMarks: 400,
         });
 
-        expect(stride).toBeGreaterThan(1);
-        expect(numMarks).toBeLessThanOrEqual(400);
-        expect(numMarks).toBeGreaterThan(0);
+        // 201 lattice lines per axis: a stride of 11 keeps 19 of them each way,
+        // for 361 marks, and the next stride down would keep 21 x 21 = 441.
+        expect(stride).toBe(11);
+        expect(numMarks).toBe(361);
     });
 
     it("keeps the coarsened lattice on multiples of the stride", () => {
@@ -163,7 +164,8 @@ describe("buildSlopeFieldData", () => {
 
     it("respects maxMarks on a lattice with far more columns than rows", () => {
         // Rounding each axis's kept count up independently is what makes a
-        // lopsided lattice the hard case for the cap.
+        // lopsided lattice the hard case for the cap: sqrt(total / cap) is 9
+        // here, which would keep 1112 x 1 marks.
         const { numMarks, stride } = buildSlopeFieldData({
             f: () => 1,
             ...opts,
@@ -171,15 +173,16 @@ describe("buildSlopeFieldData", () => {
             maxMarks: 400,
         });
 
-        expect(stride).toBeGreaterThan(1);
-        expect(numMarks).toBeLessThanOrEqual(400);
-        expect(numMarks).toBeGreaterThan(0);
+        // 10,001 columns of 3 rows: only a stride of 26 or more fits the cap,
+        // and it collapses the three rows to one.
+        expect(stride).toBe(26);
+        expect(numMarks).toBe(385);
     });
 
     it("still bounds the lattice when maxMarks is not a usable cap", () => {
         // A cap below 1 can never be met — every stride keeps at least one mark
         // of a non-empty lattice — so it has to be clamped rather than searched
-        // for, or the stride search never terminates.
+        // for, or an unusable `maxMarks` would lift the only bound on the work.
         for (const maxMarks of [0, -5, NaN, 0.5]) {
             const { numMarks } = buildSlopeFieldData({
                 f: () => 1,

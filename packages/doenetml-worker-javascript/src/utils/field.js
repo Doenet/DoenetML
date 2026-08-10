@@ -14,8 +14,8 @@ import { returnWrapNonLabelsDescriptionsSugarFunction } from "./label";
  * `dx`, `dy`, `xoffset` and `yoffset` deliberately match `<pegboard>`, which
  * describes the same lattice.
  *
- * @param {string} markNoun plural noun for a single mark ("marks", "arrows"),
- *   used in the attribute descriptions.
+ * @param {string} markNoun plural noun for the marks ("marks", "arrows"), used
+ *   in the attribute descriptions.
  * @param {number} markLengthDefault default `markLength`, in pixels.
  * @param {string} markLengthDescription description of `markLength`, which
  *   means something slightly different for each component.

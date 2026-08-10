@@ -80,8 +80,8 @@ function strideFor(nx: number, ny: number, maxMarks: number): number {
     // `maxMarks` is the only thing bounding the work, so a value that is not a
     // usable cap must not be allowed to lift the bound: fall back to the
     // tightest possible cap rather than drawing the whole lattice. Anything
-    // below 1 is unsatisfiable — a non-empty lattice keeps at least one mark at
-    // every stride — and would send the search below climbing forever.
+    // below 1 is unsatisfiable, since a non-empty lattice keeps at least one
+    // mark at every stride.
     const cap = maxMarks >= 1 ? maxMarks : 1;
     const total = nx * ny;
     // Also covers an empty lattice (total <= 0) and maxMarks = Infinity.
@@ -89,30 +89,34 @@ function strideFor(nx: number, ny: number, maxMarks: number): number {
         return 1;
     }
 
-    // Lines kept along an axis of `n` lattice lines, at most.
+    /** Lines kept along an axis of `n` lattice lines, at most. */
     const kept = (n: number, s: number) => Math.ceil(n / s);
+    const fits = (s: number) => kept(nx, s) * kept(ny, s) <= cap;
 
-    // sqrt(total / cap) is the exact answer for a continuous lattice, but each
-    // axis keeps a *whole* number of lines, and rounding up twice can overshoot
-    // the cap badly on a lopsided lattice: 10,000 x 1 lines under a cap of 400
-    // gives a stride of 5, which keeps 2000 marks. Anchoring the search at the
-    // largest of the three estimates and then walking up leaves only the few
-    // steps that rounding costs.
-    let stride = Math.max(
-        Math.ceil(Math.sqrt(total / cap)),
-        Math.ceil(nx / cap),
-        Math.ceil(ny / cap),
-        1,
-    );
-    while (kept(nx, stride) * kept(ny, stride) > cap) {
-        stride++;
+    // sqrt(total / cap) is the answer for a continuous lattice, but each axis
+    // keeps a *whole* number of lines, and rounding up twice can overshoot the
+    // cap badly on a lopsided lattice: 10,000 x 1 lines under a cap of 400
+    // gives a stride of 5, which keeps 2000 marks. Since `kept` is
+    // non-increasing in the stride, so is `fits`, and the smallest stride that
+    // fits can be bisected for exactly — in a number of steps that grows with
+    // the log of the lattice size rather than with the lattice itself.
+    let lo = 1;
+    // A stride this long keeps one line per axis, so it always fits.
+    let hi = Math.max(nx, ny);
+    while (lo < hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        if (fits(mid)) {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
     }
-    return stride;
+    return lo;
 }
 
 /**
- * Visit every lattice point of `grid` lying inside `bounds`, thinned so that at
- * most about `maxMarks` points are visited, and return the stride that was
+ * Visit every lattice point of `grid` lying inside `bounds`, thinned so that no
+ * more than `maxMarks` points are visited, and return the stride that was
  * applied (1 when none was needed).
  *
  * When thinning, the kept lattice lines are those whose index is a multiple of

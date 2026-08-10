@@ -95,6 +95,10 @@ export function useFieldCurve({
 
     const attributes: Record<string, any> = {
         visible: !SVs.hidden,
+        // A field covers the whole viewport, so there is no point on it that
+        // reads as "where the label goes"; like `pegboard`, it accepts a
+        // `<label>` child (both inherit the group from `GraphicalComponent`)
+        // but draws no label on the graph.
         withLabel: false,
         fixed: true,
         layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
