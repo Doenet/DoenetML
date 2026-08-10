@@ -2849,3 +2849,144 @@ describe("the African and Berber batch", () => {
         ).toBe(expected);
     });
 });
+
+describe("the West and Central African batch", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    const described = (locale: string, key: NounKey) =>
+        describeStrokedShape(forLocale(locale), words, {
+            noun: { key },
+            withNoun: true,
+        });
+
+    /**
+     * **The third place a noun class can be spelled.** Sixteen Bantu catalogs
+     * write it as a prefix on the describing word and three — `ff`, `mos`,
+     * `dag` — write it as a suffix; Tiv writes it as a word of its own, the
+     * relative particle a verb of quality needs in order to modify a noun.
+     * Three rows, three classes, and the particle is the only thing that moves:
+     * «vesen» and «nyian» are constant across all three.
+     */
+    it("carries a Tiv class on a particle of its own, in front of the word", () => {
+        expect(described("tiv", "line")).toBe(
+            "layin u vesen u nyian man ubaajir",
+        );
+        expect(described("tiv", "circle")).toBe(
+            "sekul i vesen i nyian man ubaajir",
+        );
+        expect(described("tiv", "point")).toBe(
+            "poyint a vesen a nyian man ubaajir",
+        );
+    });
+
+    /**
+     * The Gur pair, asserted side by side because what they show is not that
+     * Gur suffixes a concord — `locales/ff` already showed an Atlantic-Congo
+     * language doing that — but that two catalogs in one family disagree about
+     * how many classes the core's nouns reach. Mooré forks four ways and lands
+     * three different endings on these three nouns; Dagbani forks three and
+     * lands two, the line and the circle sharing `-li`.
+     *
+     * Asserted whole rather than by the suffix alone, because a stem that
+     * stopped agreeing would leave the endings looking right.
+     */
+    it("suffixes a Mooré concord across three classes", () => {
+        expect(described("mos", "line")).toBe("sõore bɛdre miugre ne tirɛ");
+        expect(described("mos", "circle")).toBe("gilgu bɛdgo miuggo ne tirɛ");
+        expect(described("mos", "point")).toBe("poẽ bɛdga miugga ne tirɛ");
+    });
+
+    it("suffixes a Dagbani concord across a narrower set", () => {
+        expect(described("dag", "line")).toBe("layin titali ʒeeli ni dasɛs");
+        expect(described("dag", "circle")).toBe("gilli titali ʒeeli ni dasɛs");
+        expect(described("dag", "point")).toBe("pɔyint titaga ʒeega ni dasɛs");
+    });
+
+    /**
+     * **Kituba is the row that has to be identical, and that is the finding.**
+     * It is a Bantu-based creole whose nouns keep their class prefixes as
+     * frozen parts of the word and whose describing words agree with nothing,
+     * so the same three tokens stand against a class-5 noun, a class-9 one and
+     * a loan. `locales/ln` is the neighbour that kept its concord.
+     *
+     * Written out three times rather than as a loop over one string, so that a
+     * later editor adding a `$gender` fork to this catalog has to delete an
+     * assertion that says in as many words why it should not be there.
+     */
+    it("leaves every Kituba describing word alone, whatever the noun", () => {
+        expect(described("ktu", "line")).toBe(
+            "linya ya nene ya batini ya mbwaki",
+        );
+        expect(described("ktu", "circle")).toBe(
+            "ndilu ya nene ya batini ya mbwaki",
+        );
+        expect(described("ktu", "point")).toBe(
+            "pwente ya nene ya batini ya mbwaki",
+        );
+    });
+
+    /**
+     * One row each for the rest, so that a change to any of their
+     * `noun-gender` tables or word order shows up as a diff here. The two
+     * Bantu catalogs fork; the three Manding and Kwa ones do not, and their
+     * rows are here for the same reason `locales/ktu`'s are — a fork appearing
+     * in one of them would be a claim the language does not make.
+     */
+    it.each([
+        ["rn", "umurongo munini utukura w'udukona"],
+        ["nyn", "omurongo muhango w'omutukura na tubaraaza"],
+        ["lua", "mulongo munene mukunze ne tutupa"],
+        ["dyu", "layini bonman bilenman ni tirɛw ye"],
+        ["mnk", "laayinoo waroo wuleŋo niŋ dasoolu"],
+        ["gaa", "laiŋi agbo tsuru kɛ dashii"],
+        ["kr", "layin kura kime kǝska-be"],
+    ])("describes a %s line", (locale, expected) => {
+        expect(described(locale, "line")).toBe(expected);
+    });
+
+    /**
+     * All eleven put their adjectives after the noun and all eleven reach
+     * `[noun-tail]`, the side count being a complement in every one of them.
+     * That is the African and Berber batch's conclusion holding across a very
+     * different set of families — Bantu, Gur, Mande, Kwa, Benue-Congo and
+     * Nilo-Saharan — which is the only reason to write all eleven rows out
+     * rather than a representative few.
+     */
+    it.each([
+        ["rn", "ishusho ingana impande itukura ifise impande 5"],
+        ["nyn", "ekishushani ekingana empande ky'omutukura ekiine empande 5"],
+        ["lua", "cimfuanyi cia mpanga mifuanangane cikunze cidi ne mpanga 5"],
+        [
+            "ktu",
+            "kifwani ya bansuki ya kiteso mosi ya mbwaki ya kele ti bansuki 5",
+        ],
+        ["mos", "poligonre sẽn zems miugre sẽn tar kɩrems 5"],
+        ["dag", "poligɔn din kpaŋa nyɛla yim ʒeeli din mali kpaŋa 5"],
+        ["dyu", "poligɔni bɛnnen bilenman min kɛrɛ 5 ye"],
+        ["mnk", "poligoŋ tembendiŋo wuleŋo meŋ ye karoo 5 soto"],
+        ["gaa", "poligɔn ni damɔ pɛpɛɛpɛ tsuru ni yɔɔ tsɔɔmɔ 5"],
+        ["tiv", "poligon u a kuma i nyian u a lu a atser 5"],
+        ["kr", "poligon lawanbe kime kǝskawa 5 jinzǝ"],
+    ])("closes %s's phrase with the side count", (locale, expected) => {
+        expect(
+            describeStrokedShape(
+                forLocale(locale),
+                { colorWord: "red" },
+                {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                },
+            ),
+        ).toBe(expected);
+    });
+});

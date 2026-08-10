@@ -464,6 +464,43 @@ describe("the noun-class reachability rule", () => {
 
         expect([...new Set(offenders)].sort()).toEqual([]);
     });
+
+    /**
+     * The rule above catches a class branch nothing can select. This is its
+     * mirror image, and it is pinned rather than left to the header: Kituba is
+     * a Bantu-based creole whose describing words agree with nothing, so a
+     * `$gender` fork of *any* shape in `locales/ktu` would be a second spelling
+     * of a form the language does not have — the same argument
+     * `locales/sg`'s plural test makes about a `[one]` branch.
+     *
+     * Asserted for Kituba alone rather than for every catalog without a class
+     * table, because the claim is about *this* language: seventeen other Bantu
+     * catalogs in this repository do fork, and what makes Kituba's flatness
+     * worth holding still is that a later editor would reasonably expect it not
+     * to be.
+     */
+    it("has Kituba write no noun-class fork at all", () => {
+        const source = readCatalog("ktu", "content") ?? "";
+        const offenders: string[] = [];
+
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type !== "Message" && entry.type !== "Term") {
+                continue;
+            }
+            for (const select of selectExpressions(entry)) {
+                if (
+                    select.selector.type === "VariableReference" &&
+                    select.selector.id.name === "gender"
+                ) {
+                    offenders.push(
+                        entry.type === "Message" ? entry.id.name : "term",
+                    );
+                }
+            }
+        }
+
+        expect(offenders).toEqual([]);
+    });
 });
 
 describe("counted messages", () => {

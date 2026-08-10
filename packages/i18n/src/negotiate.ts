@@ -32,11 +32,25 @@ export type NegotiateLocalesOptions = {
  * of its own and `locales/ak` is written in Asante Twi, so answering Fante
  * with it would be the substitution `nn` is kept out for.
  *
- * A member code of a macrolanguage is handled by {@link MACROLANGUAGE_MEMBERS}
- * instead: there are hundreds of them, and membership is a published fact rather
- * than a judgement made here.
+ * `man` is the ISO 639-3 macrolanguage over the Manding varieties, and it is
+ * the first one this repository has catalogs for *members* of rather than for
+ * the macrolanguage itself: `bm`, `dyu` and `mnk` are all members, so
+ * {@link MACROLANGUAGE_MEMBERS} — which folds a member onto the wider code —
+ * has nothing to fold `man` onto and cannot answer it. Which of the three a
+ * bare `man` should reach is CLDR's decision rather than one made here:
+ * `new Intl.Locale("man").maximize()` is `man-Latn-GM`, the Gambia, which is
+ * Mandinka's country. `emk` (Eastern Maninkakan) reaches the same place, since
+ * `Intl.getCanonicalLocales` folds it to `man` before this entry is consulted.
+ *
+ * A member code of a macrolanguage is otherwise handled by
+ * {@link MACROLANGUAGE_MEMBERS}: there are hundreds of them, and membership is a
+ * published fact rather than a judgement made here.
  */
-const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
+const LANGUAGE_ALIASES: Record<string, string> = {
+    no: "nb",
+    tw: "ak",
+    man: "mnk",
+};
 
 /**
  * Individual-language codes folded onto the wider code this repository names a
@@ -54,11 +68,16 @@ const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Eight of the
- * nine keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff` — are ISO 639-3
- * macrolanguages and list their macrolanguage members; `nah` is an ISO 639-3
- * **collection** code rather than a macrolanguage, so it lists the individual
- * Nahuan languages ISO 639-5 groups under it.
+ * member of `nb` or `ak`, and both are deliberately left to miss. Nine of the
+ * eleven keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr` — are
+ * ISO 639-3 macrolanguages and list their macrolanguage members; `nah` is an
+ * ISO 639-3 **collection** code rather than a macrolanguage, so it lists the
+ * individual Nahuan languages ISO 639-5 groups under it; and `mnk` is neither,
+ * being a *member* of `man` that this repository happens to name a catalog
+ * after. That last is the shape {@link LANGUAGE_ALIASES}'s `man` entry
+ * explains, and it is why the members listed under `mnk` exclude `bam` and
+ * `dyu`: those two have catalogs of their own, and folding them here would
+ * serve a Bambara reader Mandinka.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
  * `ayr`, `gom`, `dgo`, `fuc` — so that each list reads as the whole of a group
@@ -186,6 +205,20 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // macrolanguage, so an Adamawa (`fub`) or Nigerian (`fuv`) Fulfulde reader
     // reaches Pulaar rather than English.
     ff: ["ffm", "fub", "fuc", "fue", "fuf", "fuh", "fui", "fuq", "fuv"],
+    // Kanuri. The catalog is Central Kanuri, which is `knc` — what CLDR fills a
+    // bare `kr` in as and the one member it already folds. These four are the
+    // whole of the macrolanguage. `kby` (Manga Kanuri) maximizes to `kby-Arab`,
+    // so a Manga reader most likely arrives in Ajami and is served Latin; that
+    // is `locales/ha`'s asymmetry, and the answer to it is a second catalog
+    // rather than a change here. `kbl` (Kanembu) is deliberately absent: ISO
+    // 639-3 gives it a code outside `kr`, so folding it would be the judgement
+    // this map avoids.
+    kr: ["bms", "kby", "knc", "krt"],
+    // Manding. `mnk` is a *member* rather than the macrolanguage — see
+    // {@link LANGUAGE_ALIASES}'s `man` entry — so this lists the members that
+    // resolve nowhere, and deliberately omits `bam` and `dyu`, which
+    // `locales/bm` and `locales/dyu` answer for themselves.
+    mnk: ["emk", "mku", "mlq", "msc", "mwk"],
 };
 
 /** Flattened once at module load rather than searched per request. */
