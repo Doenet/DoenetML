@@ -324,18 +324,26 @@ names are one language, and the catalog's own header says so.
 
 The roster is derived, so a locale's name comes from `Intl.DisplayNames` rather
 than from a hand-maintained list — which is what keeps adding a language free of
-per-language prose. `Intl.DisplayNames` answers a tag it does not know with the
-tag itself, though, and a `<document lang>` autocomplete offering a reader
-"ktu" and expecting them to know what it is helps nobody. So
+per-language prose. CLDR has no language data at all for a few of the tags this
+repository ships catalogs for, though, and a `<document lang>` autocomplete
+offering a reader "ktu" and expecting them to know what it is helps nobody. So
 `LOCALE_NAME_FALLBACKS`, in `scripts/catalogUtils.ts`, supplies a name for the
-locales CLDR has no language data for: today `nah`, `dag`, `ktu` and `mnk`.
+locales CLDR has none for: today `nah`, `dag`, `ktu` and `mnk`.
 
-It fills a gap and never overrides one. A name is taken from the table only
-where ICU handed back the tag, so the rule above still holds — a language is
-named whatever CLDR names it — and an entry stops being consulted the day ICU
-learns a name of its own. `englishName` is required and `endonym` optional,
-because an English name is what identifies a language to someone choosing one
-and costs nothing to be sure of.
+It fills a gap and never overrides one. ICU is asked with `fallback: "none"`, so
+it answers `undefined` where it has nothing — rather than its own rendering of
+the tag's subtags, which reads like a name and is not one — and the table is
+read only there. The rule above therefore still holds: a language is named
+whatever CLDR names it, and an entry stops being consulted the day ICU learns a
+name of its own.
+
+The names in the table are **unreviewed and machine-generated**, the same status
+as the seed catalogs — the best available answer, not a speaker's. `endonym` is
+optional for that reason: an entry whose endonym turns out to be wrong should
+have the field deleted rather than guessed at again, and the label falls back to
+the English name alone. `englishName` is required, because an English name is
+what identifies a language to someone choosing one and costs nothing to be sure
+of.
 
 Two tests keep the table small and honest. One fails if any locale's label is
 still just its code, so a future batch cannot reintroduce the gap silently; the

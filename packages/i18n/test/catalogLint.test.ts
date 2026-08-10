@@ -228,29 +228,41 @@ describe("renderSupportedLocalesModule", () => {
 
     it("names an unknown locale rather than throwing on it", async () => {
         // A locale directory can be added long before `Intl` (or this Node)
-        // knows the tag. Codegen must not be what stops it landing: an
-        // unrecognized tag degrades to `Intl`'s rendering of the tag itself,
-        // which is still a usable label.
+        // knows the tag, and before anyone has added a fallback name for it.
+        // Codegen must not be what stops it landing: such a tag degrades to
+        // the tag itself, which is usable and visibly a code rather than
+        // ICU's "zz (QQ)", which reads like a name and is not one.
         const rendered = await renderSupportedLocalesModule(["en", "zz-QQ"]);
         expect(rendered).toContain('locale: "zz-QQ"');
-        expect(rendered).toMatch(/label: "zz[^"]*"/);
+        expect(rendered).toContain('label: "zz-QQ"');
     });
 
     it("fills a name in for a locale CLDR has none for", async () => {
-        // `Intl.DisplayNames` answers an unknown tag with the tag, so `dag`
-        // would be labelled "dag" — which tells a reader choosing a
-        // `<document lang>` nothing. `LOCALE_NAME_FALLBACKS` supplies the name.
+        // ICU has no name for `dag` in either English or Dagbani, so without
+        // the table it would be labelled "dag" — which tells a reader choosing
+        // a `<document lang>` nothing. `LOCALE_NAME_FALLBACKS` supplies both.
         const rendered = await renderSupportedLocalesModule(["en", "dag"]);
         expect(rendered).toContain('label: "Dagbani (Dagbanli)"');
     });
 
-    it("lets CLDR win wherever CLDR has an answer", async () => {
-        // The table fills gaps and never overrides, so an entry for a locale
-        // ICU *does* know changes nothing. Written as a live check rather than
-        // asserted about the real table, since the real table is meant to hold
-        // no such entry — that is the next test's job.
-        const rendered = await renderSupportedLocalesModule(["en", "es"]);
-        expect(rendered).toContain('englishName: "Spanish"');
+    it("lets CLDR win over an entry for a locale CLDR knows", async () => {
+        // The table fills gaps and never overrides. Proved by planting an
+        // entry that would be visibly wrong if it were consulted, since the
+        // real table is meant to hold no entry for a locale ICU knows — that
+        // is the `holds no entry ICU no longer needs` test's job, and asserting
+        // against the real table here would prove nothing about overriding.
+        LOCALE_NAME_FALLBACKS.es = {
+            englishName: "NOT-SPANISH",
+            endonym: "NO-ES-ESPAÑOL",
+        };
+        try {
+            const rendered = await renderSupportedLocalesModule(["en", "es"]);
+            expect(rendered).toContain('label: "Spanish (español)"');
+            expect(rendered).not.toContain("NOT-SPANISH");
+            expect(rendered).not.toContain("NO-ES-ESPAÑOL");
+        } finally {
+            delete LOCALE_NAME_FALLBACKS.es;
+        }
     });
 
     it("emits Prettier-formatted output so lint:i18n and prettier agree", async () => {
