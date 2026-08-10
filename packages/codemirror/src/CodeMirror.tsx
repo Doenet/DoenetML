@@ -5,6 +5,7 @@ import ReactCodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { syntaxHighlightingExtension } from "./extensions/syntax-highlighting";
 import { tabExtension } from "./extensions/tab";
 import { autoCloseTagExtension } from "./extensions/auto-close-tag";
+import { selectionHighlighter } from "./extensions/selection-highlight";
 import {
     lspPlugin,
     redrawDiagnostics,
@@ -177,6 +178,7 @@ const CodeMirror = React.memo(function CodeMirror({
         const extensions: Extension[] = [
             syntaxHighlightingExtension(darkMode),
             readOnly ? readOnlyColorTheme(darkMode) : colorTheme(darkMode),
+            selectionHighlighter,
             EditorView.lineWrapping,
             // Add aria-label to the contenteditable element for accessibility
             EditorView.contentAttributes.of({ "aria-label": ariaLabel }),
@@ -220,10 +222,22 @@ const CodeMirror = React.memo(function CodeMirror({
             <ReactCodeMirror
                 style={{ height: "100%" }}
                 value={value}
+                // `@uiw/react-codemirror` otherwise appends a theme of its own
+                // — `theme="light"` by default, which is nothing but
+                // `&{background-color:#fff}` — after our extensions, where it
+                // outranks the canvas color `colorTheme` sets and leaves a
+                // dark-mode editor sitting on white. We bring a full theme; we
+                // don't want theirs.
+                theme="none"
                 basicSetup={{
                     indentOnInput: true,
                     highlightActiveLine: !readOnly,
                     highlightActiveLineGutter: !readOnly,
+                    // Superseded by `selectionHighlighter` above, which
+                    // survives a multi-range selection where this one blanks
+                    // out. Leaving both on would paint two backgrounds and
+                    // still lose the marks on Ctrl+D.
+                    highlightSelectionMatches: false,
                 }}
                 onChange={(editor, update) => {
                     if (onChange) {
