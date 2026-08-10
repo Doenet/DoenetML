@@ -1,41 +1,36 @@
 /*
- * A list item whose leading block asks for the item's number beside the top of
- * its box — a graph, an image, a video, a tabular, a spreadsheet, or a container
- * such as a `<figure>` or a `<div>` forwarding one of them — is an item whose
- * lead holds no first line of text for the browser to draw the native `::marker`
- * on. (One lead asks for it and does hold such a line; see the last paragraph.)
+ * A list item leading with a block that holds no first line of text — a graph, an
+ * image, a video, a tabular, a spreadsheet, or a container such as a `<figure>` or
+ * a `<div>` forwarding one of them — gives the browser nowhere to draw the native
+ * `::marker`. Blink then either draws it after all of the item's content (at the
+ * bottom of a graph, hundreds of pixels from where a reader looks for the number,
+ * #1673) or reserves a blank line at the top of the item for it, as it does above
+ * a leading spreadsheet.
  *
- * Where the leading box offers no line box at all, the browser falls back to
- * drawing the marker after all of the item's content: at the bottom of a graph,
- * hundreds of pixels from where a reader looks for the number (#1673). Where it
- * instead reserves a line of its own for the marker, as it does above a leading
- * spreadsheet, the number is in the right place but the item carries a blank line
- * the author did not write.
- *
- * This gives such an item one line box of its own at the top of its content box
- * for the marker to land on. The zero-width space is what makes it a line box —
- * an empty `content: ""` block has none, and neither an absolutely positioned nor
- * a floated one is a place the browser will put the marker. `height: 0` keeps the
- * line box out of the item's height, so it costs no space (and the reserved line
- * above a spreadsheet goes away); nothing paints from it, and the marker sits
- * exactly where it would on a first line of ordinary text, because the line box
- * is one.
+ * This gives such an item a line box of its own at the top of its content box for
+ * the marker to land on, so the marker sits exactly where it would on a first line
+ * of ordinary text, because the line box is one. The zero-width space is what
+ * makes it a line box: an empty `content: ""` block has none, and neither an
+ * absolutely positioned nor a floated pseudo-element is a place Blink will put the
+ * marker (both measured). `height: 0` keeps the line box out of the item's height,
+ * so it costs no space and the line reserved above a spreadsheet goes away.
  *
  * The second `content` hides the space from the accessibility tree: the
- * alternative-text form (`content: <string> / <alt>`) reduces the item's
- * accessible name to what it was before, so the marker still folds into the
- * item's own text run (the VoiceOver behavior behind #662). A browser that does
- * not support that form drops the second declaration and keeps the first, so it
- * still gets the fix, with a zero-width space in the tree.
+ * alternative-text form (`content: <string> / <alt>`) leaves the item's accessible
+ * name what it was, so the marker still folds into the item's own text run (the
+ * VoiceOver behavior behind #662). A browser without that form drops the second
+ * declaration and keeps the first, so it still gets the layout fix, with a
+ * zero-width space in the tree.
  *
- * The class goes on exactly the items whose lead asks for the number beside the
- * top of its box — `firstChildListItemAlignment` in the worker's `Lists.js` — so
- * that every other item keeps the browser's own placement, which for a lead that
- * does hold a first line is the row the reader wants. A block `<choiceInput>`
- * asks for it as well and so takes the class, but it is a lead that already
- * holds one: measured with and without the class, its marker sits on the same
- * row of an item of the same height, because the label's line box is the item's
- * first line either way.
+ * The class goes on exactly the items whose lead reports `"flex-start"` —
+ * `firstChildListItemAlignment` in the worker's `Lists.js` — so every other item
+ * keeps the browser's placement, which for a lead that does hold a first line is
+ * the row the reader wants. A block `<choiceInput>` reports `"flex-start"` too and
+ * so takes the class, but it already holds such a line: measured with and without
+ * the class, its marker sits on the same row of an item of the same height.
+ *
+ * Measured in Chrome; the fix is a plain line box rather than a browser-specific
+ * override, so a browser that already places these markers well keeps doing so.
  */
 .doenet-viewer li.list-item-marker-anchored::before {
     content: "\200B";

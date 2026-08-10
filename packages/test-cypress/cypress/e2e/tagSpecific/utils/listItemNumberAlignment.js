@@ -254,10 +254,9 @@ function measureMarkerBand(li, liId) {
  * ordinary text — occupies relative to *its* item.
  *
  * This is the assertion for an item leading with a block whose box offers the
- * browser no line box to put the marker on: a `<graph>`, an `<image>`, a
- * `<video>`, a `<tabular>`. The browser draws such an item's marker after all of
- * the item's content — at the bottom of the graph, hundreds of pixels down
- * (#1673) — and `list.css` supplies a line box at the top of the item instead.
+ * browser no line box to put the marker on — a `<graph>`, an `<image>`, a
+ * `<video>`, a `<tabular>` — where the browser draws the marker after all of the
+ * item's content instead (#1673) and `list.css` supplies a line box at the top.
  *
  * {@link verifyListItemMarkerSharesRowWith} cannot ask this. Its target must be a
  * single-line element, and the whole trouble with these leads is that the top of
@@ -265,12 +264,10 @@ function measureMarkerBand(li, liId) {
  * target, "the marker's center is inside the target" is satisfied by the bug, and
  * the band-height check that would notice loosens to the height of the graph.
  *
- * The reference item is what makes it an assertion about the reader's experience
- * rather than about a tolerance: the claim of the fix is that the number lands
- * where the number of a plain text item lands, and a fixture whose text item's
- * marker moved would fail here rather than quietly redefining the target. Both
- * items are measured in the same page, so a font or zoom difference between one
- * browser and the next moves both.
+ * Stating it against a sibling item rather than a tolerance is what makes it an
+ * assertion about the reader's experience — the number lands where a plain text
+ * item's number lands — and both items are measured in the same page, so a font
+ * or zoom difference moves the reference too.
  *
  * @param {string} liId Doenet component id of the item whose lead is a block.
  * @param {string} textItemId Doenet component id of a sibling item that begins

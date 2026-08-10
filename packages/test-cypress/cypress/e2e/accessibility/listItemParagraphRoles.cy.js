@@ -140,20 +140,16 @@ describe(
         });
 
         // A list item leading with a block that offers the browser no line box
-        // gets one from a `::before` holding a zero-width space, so the item's
-        // native marker has somewhere to land other than the bottom of the block
-        // (#1673, `list.css`). Generated content reaches the accessibility tree,
-        // and a stray text node inside the `<li>` is exactly what keeps the
-        // marker out of the item's own text run — the #662 shape this file
-        // exists to protect — so the anchor declares empty alternative text.
+        // gets one from a `::before` holding a zero-width space (#1673,
+        // `list.css`). Generated content reaches the accessibility tree, and a
+        // stray text node inside the `<li>` is exactly what keeps the marker out
+        // of the item's own text run — the #662 shape this file exists to protect
+        // — so the anchor declares empty alternative text.
         //
-        // The computed `content` is the only trace of that in the DOM: pseudo
-        // elements are not nodes, so nothing here can read the space or its
-        // absence from the tree. Checked out of band against Chrome's own
-        // accessibility tree, where the alternative text leaves the item's nodes
-        // byte-identical to an item with no anchor; asserted here as the
-        // declaration that produces it, which is what a browser update or an
-        // edit to that rule would change.
+        // Pseudo elements are not nodes, so nothing here can read the space or
+        // its absence from the tree; checked out of band against Chrome's own
+        // accessibility tree (byte-identical to an item with no anchor) and
+        // asserted here as the declaration that produces that.
         it("the marker anchor on a block-leading list item declares empty alternative text", () => {
             postDoenetML({
                 settleSelector: "#anchored",

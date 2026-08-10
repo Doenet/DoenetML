@@ -119,28 +119,18 @@ export function childRendersSomething(
 /**
  * Where a list item's number goes, given the `listItemInlineAlignment` its
  * leading child reports: `"flex-start"` beside the top of that child's box,
- * `"baseline"` on the first line of its text.
+ * `"baseline"` on the first line of its text. Anything other than
+ * `"flex-start"` — including a lead that declares no alignment at all, which is
+ * most components — is `"baseline"`, since what such a lead renders is text.
  *
- * Anything other than `"flex-start"` is `"baseline"`, including a lead that
- * declares no alignment at all — most components — since what such a lead renders
- * is text, whose first line the number belongs on.
- *
- * Both kinds of list item map their lead through this, so the two agree about a
- * given lead by construction: `SectioningComponent`'s and `Li`'s
- * `firstChildListItemAlignment`. They differ only in who acts on the answer. A
- * `<problem>`-style item draws its own number and `section.tsx` puts it in the row
- * this names. A real `<li>` gets a native `::marker` that the browser places, so
- * `list.tsx` can only hand the browser a line box to place it on, and does that
- * for `"flex-start"` alone — what a lead whose box offers the browser no line box
- * of its own reports (#1673). Overriding the browser for a `"baseline"` lead
- * would pull the number off a first line that legitimately sits lower than a
- * plain one, such as an item leading with inline math.
- *
- * `"flex-start"` is not only those leads, though: a block `<choiceInput>` reports
- * it too, from #1034's question of which row a *section's* number shares with a
- * labeled input. Handing that item a line box changes nothing, since its label's
- * line box is already the item's first — measured either way, same marker row and
- * same item height — so the two questions can go on sharing one answer.
+ * Both kinds of list item map their lead through this into their own
+ * `firstChildListItemAlignment` (`SectioningComponent`'s and `Li`'s), so the two
+ * agree about a given lead by construction. They differ in who acts on it: a
+ * `<problem>`-style item draws its own number, so `section.tsx` puts it in the
+ * row this names, while a real `<li>` gets a native `::marker` the browser
+ * places, so `list.tsx` can only hand the browser a line box to put it on — see
+ * `list.css` for why that is only done for `"flex-start"`, and for the block
+ * `<choiceInput>` that reports `"flex-start"` (from #1034) without needing one.
  */
 export function listItemNumberAlignmentForLead(
     leadAlignment: unknown,

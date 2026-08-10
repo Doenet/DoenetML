@@ -80,13 +80,9 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
                 id={id}
                 ref={ref}
                 // The class supplies a zero-height line box at the top of the
-                // item for the browser to draw the item's native marker on. What
-                // asks for it is a lead that holds no first line of text of its
-                // own — a `<graph>`, an `<image>`, a `<video>`, a `<tabular>`, a
-                // `<spreadsheet>`, or a container such as a `<figure>` or a
-                // `<div>` forwarding one of them — and a block `<choiceInput>`,
-                // which holds one already and is unchanged by the anchor. See
-                // `list.css`.
+                // item for the browser to draw the item's native marker on,
+                // which is what a lead holding no first line of text of its own
+                // needs (#1673). See `list.css`.
                 className={
                     SVs.firstChildListItemAlignment === "flex-start"
                         ? "list-item-marker-anchored"

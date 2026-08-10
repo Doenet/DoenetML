@@ -204,29 +204,15 @@ describe("List tag tests @group4", async () => {
     });
 
     // What `firstChildListItemAlignment` answers is whether the item has to hand
-    // the browser a line of its own to put the native marker on. A leading
-    // `<graph>`, `<image>`, `<tabular>` or `<spreadsheet>` renders a box holding no
-    // line of text, and the browser draws the marker after all of the item's
-    // content instead — at the bottom of the graph (#1673) — or reserves a blank
-    // line of its own for it; `list.tsx` reads `"flex-start"` and gives the marker
-    // a zero-height line box at the top of the item. A lead that holds a first line
-    // the browser already uses must report something else, because anchoring the
-    // marker to the top of the item would pull it off a line that legitimately sits
-    // lower: a `<matrixInput>` puts its label on the matrix's last row, and an item
-    // leading with inline math has a taller first line than a plain one.
+    // the browser a line of its own to draw the native marker on: `"flex-start"`
+    // for a lead whose box holds no line of text (#1673, `list.css`),
+    // `"baseline"` for one that does, whose existing first line the browser
+    // already uses and must keep using — a `<matrixInput>` puts its label on the
+    // matrix's last row, and inline math makes a taller first line than plain
+    // text.
     //
-    // The two are not the same question, though. A block `<choiceInput>` reports
-    // `"flex-start"` from #1034 — which row a *section's* number shares with a
-    // labeled input — and holds a first line of its own all the same. The rows of
-    // the lead-selection matrix below that lead with one are `"flex-start"` rows
-    // that need no line box and get one that costs them nothing.
-    //
-    // The value comes from the lead's own `listItemInlineAlignment`, mapped by the
-    // `listItemNumberAlignmentForLead()` a `<problem>`-style list item goes through
-    // too (`SectioningComponent`'s variable of this name), so both kinds of list
-    // item place a given lead the same way. Asserted here per lead *type* rather
-    // than per forwarding rule; the rules themselves are the matrix below, and the
-    // rendered outcome is `list.cy.js`.
+    // Asserted per lead *type* here; the forwarding rules are the matrix further
+    // down, and the rendered outcome is `list.cy.js`.
     const markerAnchorLeads: [string, string, string][] = [
         ["a string", `Plain text`, "none"],
         ["a paragraph", `<p>Paragraph text</p>`, "baseline"],

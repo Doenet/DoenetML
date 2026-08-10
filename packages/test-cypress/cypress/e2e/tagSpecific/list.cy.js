@@ -619,16 +619,15 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
 
     /*
      * Every assertion in this section is measured from the top of the item, and an
-     * item whose leading block is not on the page yet is a one-line item whose
-     * marker is at its own top however the anchor is set — so all of them pass on
-     * a page that is simply not finished rendering. That is not hypothetical: the
-     * `<spreadsheet>` test below passed with the anchor removed until this gate
-     * went in, because a spreadsheet's renderer arrives in a lazily loaded chunk
-     * and `should` retries settled on the empty box that stands in for it.
+     * item whose leading block has not arrived yet is a one-line item whose marker
+     * is at its own top however the anchor is set — so all of them pass on a page
+     * that is simply not finished rendering. Not hypothetical: the `<spreadsheet>`
+     * test below passed with the anchor removed until this gate went in, because a
+     * spreadsheet's renderer arrives in a lazily loaded chunk and `should` retries
+     * settled on the empty box standing in for it.
      *
-     * The item being taller than a line of text is what says the lead has arrived.
-     * The threshold is 40px; every lead in this section is at least 60px tall once
-     * it is on the page.
+     * Being taller than a line of text is what says the lead has arrived. Every
+     * lead in this section is at least 60px tall once it is on the page.
      */
     function waitForBlockLeadToRender(liId) {
         cy.get(`#${cesc(liId)}`).should(($li) => {
@@ -648,15 +647,10 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
      * taking its other shape; see the test after this matrix.)
      *
      * Again a matrix over author-visible markup rather than over the internal
-     * rules, for the reason the wrapper matrix above gives. These rows are the
-     * leading *shapes*, including two that put the block one level down (a
-     * wrapper, a `<sideBySide>` panel) and one that is a container of its own
-     * (`<figure>`, which has to hand the item its content's alignment past the
-     * `<caption>` that renders below the content whatever its position).
-     *
-     * Each fixture carries a plain-text item whose number is the reference row —
-     * see `verifyListItemMarkerOnFirstRow()` for why the assertion is stated
-     * against a sibling item rather than as a tolerance.
+     * rules, for the reason the wrapper matrix above gives. Each fixture carries a
+     * plain-text item whose number is the reference row — see
+     * `verifyListItemMarkerOnFirstRow()` for why the assertion is stated against a
+     * sibling item rather than as a tolerance.
      */
     const BLOCK_LEADS = [
         {
