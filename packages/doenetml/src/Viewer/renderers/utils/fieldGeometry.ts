@@ -86,7 +86,26 @@ function strideFor(nx: number, ny: number, maxMarks: number): number {
     if (total <= cap) {
         return 1;
     }
-    return Math.ceil(Math.sqrt(total / cap));
+
+    // Lines kept along an axis of `n` lattice lines, at most.
+    const kept = (n: number, s: number) => Math.ceil(n / s);
+
+    // sqrt(total / cap) is the exact answer for a continuous lattice, but each
+    // axis keeps a *whole* number of lines, and rounding up twice can overshoot
+    // the cap badly on a lopsided lattice: 10,000 x 1 lines under a cap of 400
+    // gives a stride of 5, which keeps 2000 marks. Anchoring the search at the
+    // largest of the three estimates and then walking up leaves only the few
+    // steps that rounding costs.
+    let stride = Math.max(
+        Math.ceil(Math.sqrt(total / cap)),
+        Math.ceil(nx / cap),
+        Math.ceil(ny / cap),
+        1,
+    );
+    while (kept(nx, stride) * kept(ny, stride) > cap) {
+        stride++;
+    }
+    return stride;
 }
 
 /**

@@ -6,6 +6,8 @@
  * they accept the function, are identical.
  */
 
+import { returnWrapNonLabelsDescriptionsSugarFunction } from "./label";
+
 /**
  * The lattice attributes both field components take.
  *
@@ -85,58 +87,31 @@ export function returnFieldLatticeAttributes({
  * a symbol and evaluate to NaN everywhere — a field that silently draws
  * nothing. Naming both is harmless for an expression that uses only `x`, since
  * the extra input is simply ignored.
+ *
+ * Sugar recurses into attribute components, so from here `<function>`'s own
+ * sugar wraps the expression in `<math>` and the variable list splits its
+ * string into variable names. Any `<label>` child is left where it is, which is
+ * what the shared wrapping helper is for.
  */
 export function returnFieldFunctionSugarInstruction() {
-    return {
-        replacementFunction({ matchedChildren, nComponents, stateIdInfo }) {
-            // Nothing to do if there are no children, or only whitespace.
-            if (
-                matchedChildren.length === 0 ||
-                matchedChildren.every(
-                    (child) => typeof child === "string" && child.trim() === "",
-                )
-            ) {
-                return { success: false };
-            }
-
-            function nextStateId() {
-                return stateIdInfo
-                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                    : undefined;
-            }
-
-            // Wrap the children in a <function>, and hand it over as the
-            // `function` attribute. Sugar recurses into attribute components,
-            // so <function>'s own sugar wraps the strings in <math> from here,
-            // and the variable list splits its string into variable names.
-            const variables = {
-                type: "component",
-                name: "variables",
-                component: {
-                    type: "serialized",
-                    componentType: "_variableNameList",
-                    componentIdx: nComponents++,
-                    stateId: nextStateId(),
-                    children: ["x y"],
-                    attributes: {},
-                    doenetAttributes: {},
-                    state: {},
-                },
-            };
-
+    const wrapChildren = returnWrapNonLabelsDescriptionsSugarFunction({
+        wrappingComponentType: "function",
+        createAttributeOfType: "function",
+        createWrappingComponentAttributes(nComponents, stateIdInfo) {
             return {
-                success: true,
-                newAttributes: {
-                    function: {
+                attributes: {
+                    variables: {
                         type: "component",
-                        name: "function",
+                        name: "variables",
                         component: {
                             type: "serialized",
-                            componentType: "function",
+                            componentType: "_variableNameList",
                             componentIdx: nComponents++,
-                            stateId: nextStateId(),
-                            children: matchedChildren,
-                            attributes: { variables },
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
+                            children: ["x y"],
+                            attributes: {},
                             doenetAttributes: {},
                             state: {},
                         },
@@ -145,19 +120,100 @@ export function returnFieldFunctionSugarInstruction() {
                 nComponents,
             };
         },
+    });
+
+    return {
+        replacementFunction(args) {
+            // Whitespace alone is not an expression. Wrapping it in a
+            // <function> would produce one that is NaN everywhere, i.e. a field
+            // that draws nothing while claiming to have a function; leaving the
+            // sugar unapplied reports honestly that there is no function.
+            // (`every` is also true of no children at all.)
+            if (
+                args.matchedChildren.every(
+                    (child) => typeof child === "string" && child.trim() === "",
+                )
+            ) {
+                return { success: false };
+            }
+
+            return wrapChildren(args);
+        },
     };
 }
 
 /**
- * Whether the `function` attribute component is usable as a field of
- * `numOutputs` outputs: it must exist, take one or two inputs, and have exactly
- * the expected number of outputs.
+ * The state variables both field components derive from their `function`
+ * attribute.
+ *
+ * The renderer redraws the field on every pan and zoom without going back to
+ * the worker, so what it needs is not the closure but `fDefinitions`, which it
+ * rehydrates with `createFunctionFromDefinition`. It needs `numInputs` too: a
+ * one-input function built that way has signature `(x, overrideDomain)`, so
+ * calling it as `f(x, y)` would quietly pass `y` as `overrideDomain`.
+ *
+ * @param {number} numOutputs how many outputs the function must have — 1 for a
+ *   slope field, 2 for a vector field. Anything else is not a usable field, and
+ *   `haveFunction` is false so that nothing is drawn.
  */
-export function functionAttrIsUsableField(functionAttr, numOutputs) {
-    return (
-        functionAttr !== null &&
-        (functionAttr.stateValues.numInputs === 1 ||
-            functionAttr.stateValues.numInputs === 2) &&
-        functionAttr.stateValues.numOutputs === numOutputs
-    );
+export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
+    return {
+        functions: {
+            additionalStateVariablesDefined: [
+                { variableName: "haveFunction", forRenderer: true },
+                { variableName: "fDefinitions", forRenderer: true },
+                { variableName: "numInputs", forRenderer: true },
+            ],
+            returnDependencies: () => ({
+                functionAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "function",
+                    variableNames: [
+                        "numericalfs",
+                        "numInputs",
+                        "numOutputs",
+                        "fDefinitions",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const attr = dependencyValues.functionAttr;
+
+                // Both y' = f(x) and y' = f(x, y) are meaningful fields, so
+                // either arity is accepted; the number of outputs is not
+                // negotiable, since it is what a mark is drawn from.
+                const usable =
+                    attr !== null &&
+                    (attr.stateValues.numInputs === 1 ||
+                        attr.stateValues.numInputs === 2) &&
+                    attr.stateValues.numOutputs === numOutputs;
+
+                if (!usable) {
+                    return {
+                        setValue: {
+                            functions: Array.from(
+                                { length: numOutputs },
+                                () => () => NaN,
+                            ),
+                            haveFunction: false,
+                            fDefinitions: Array.from(
+                                { length: numOutputs },
+                                () => ({}),
+                            ),
+                            numInputs: 0,
+                        },
+                    };
+                }
+
+                return {
+                    setValue: {
+                        functions: attr.stateValues.numericalfs,
+                        haveFunction: true,
+                        fDefinitions: attr.stateValues.fDefinitions,
+                        numInputs: attr.stateValues.numInputs,
+                    },
+                };
+            },
+        },
+    };
 }

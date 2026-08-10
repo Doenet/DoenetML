@@ -32,7 +32,9 @@ user pans or zooms, and its arrows keep a constant on-screen length whatever the
 ```
 
 By default arrow length is proportional to the magnitude of the vector, so the arrows grow with
-distance from the origin.
+distance from the origin. The longest arrow currently on screen is drawn at `markLength`, and the
+rest in proportion to it, so panning or zooming to a region of larger vectors rescales them all
+rather than letting them run off the graph.
 
 
 ---
@@ -96,7 +98,7 @@ level curves. Here the field is defined as a separate `<function>{:dn}` and refe
 ```
 
 `markLength` is measured in pixels. When arrows scale with magnitude it sets the length of the
-longest arrow; with `normalize` it sets the length of every arrow.
+longest arrow on screen; with `normalize` it sets the length of every arrow.
 
 
 ---

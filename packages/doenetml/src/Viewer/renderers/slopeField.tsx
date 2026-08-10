@@ -8,7 +8,7 @@ import { useFieldCurve, useFieldFunction } from "./utils/useFieldCurve";
 
 interface SlopeFieldSVs extends GraphicalSVs {
     haveFunction: boolean;
-    fDefinition: any;
+    fDefinitions: any[];
     numInputs: number;
     dx: number;
     dy: number;
@@ -24,7 +24,7 @@ export default React.memo(function SlopeField(props: UseDoenetRendererProps) {
     // @ts-ignore
     SlopeField.ignoreActionsWithoutCore = () => true;
 
-    const f = useFieldFunction(SVs.fDefinition, SVs.numInputs);
+    const f = useFieldFunction(SVs.fDefinitions[0], SVs.numInputs);
 
     useFieldCurve({
         SVs,

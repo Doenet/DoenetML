@@ -21,9 +21,9 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
 
         expect(sf.stateValues.haveFunction).eq(true);
         expect(sf.stateValues.numInputs).eq(2);
-        expect(sf.stateValues.fDefinition).toBeTruthy();
+        expect(sf.stateValues.fDefinitions.length).eq(1);
         // The numeric closure must evaluate positionally: f(2, pi/2) = 2.
-        expect(sf.stateValues.function(2, Math.PI / 2)).closeTo(2, 1e-12);
+        expect(sf.stateValues.functions[0](2, Math.PI / 2)).closeTo(2, 1e-12);
     });
 
     it("slopeField accepts a one-input function", async () => {
@@ -61,14 +61,14 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         // that mentions y is a genuine function of y rather than NaN.
         expect(onlyX.stateValues.haveFunction).eq(true);
         expect(onlyX.stateValues.numInputs).eq(2);
-        expect(onlyX.stateValues.function(2, 7)).closeTo(
+        expect(onlyX.stateValues.functions[0](2, 7)).closeTo(
             2 * Math.sin(2),
             1e-12,
         );
 
         expect(bothVars.stateValues.haveFunction).eq(true);
         expect(bothVars.stateValues.numInputs).eq(2);
-        expect(bothVars.stateValues.function(2, 7)).closeTo(5, 1e-12);
+        expect(bothVars.stateValues.functions[0](2, 7)).closeTo(5, 1e-12);
     });
 
     it("slopeField reports no function when none is given", async () => {
@@ -76,6 +76,29 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
             doenetML: `
   <graph>
     <slopeField name="sf" />
+    <slopeField name="blank">   </slopeField>
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sf = stateVariables[await resolvePathToNodeIdx("sf")];
+        const blank = stateVariables[await resolvePathToNodeIdx("blank")];
+
+        expect(sf.stateValues.haveFunction).eq(false);
+        expect(sf.stateValues.numInputs).eq(0);
+
+        // Whitespace is not an expression: wrapping it would yield a function
+        // that is NaN everywhere, which looks the same on screen as a broken
+        // component.
+        expect(blank.stateValues.haveFunction).eq(false);
+    });
+
+    it("slopeField sugar leaves a label child alone", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <slopeField name="sf">y - x<label>a field</label></slopeField>
   </graph>
   `,
         });
@@ -83,8 +106,10 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const sf = stateVariables[await resolvePathToNodeIdx("sf")];
 
-        expect(sf.stateValues.haveFunction).eq(false);
-        expect(sf.stateValues.numInputs).eq(0);
+        // Only the expression becomes the function; the label stays a child.
+        expect(sf.stateValues.haveFunction).eq(true);
+        expect(sf.stateValues.functions[0](2, 7)).closeTo(5, 1e-12);
+        expect(sf.stateValues.label).eq("a field");
     });
 
     it("slopeField exposes grid defaults and honors overrides", async () => {
@@ -126,7 +151,7 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const vf = stateVariables[await resolvePathToNodeIdx("vf")];
 
-        expect(vf.stateValues.haveFunctions).eq(true);
+        expect(vf.stateValues.haveFunction).eq(true);
         expect(vf.stateValues.numInputs).eq(2);
         expect(vf.stateValues.fDefinitions.length).eq(2);
         // F(3, 5) = (5, -3)
@@ -146,7 +171,7 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const vf = stateVariables[await resolvePathToNodeIdx("vf")];
 
-        expect(vf.stateValues.haveFunctions).eq(true);
+        expect(vf.stateValues.haveFunction).eq(true);
         expect(vf.stateValues.numInputs).eq(2);
         expect(vf.stateValues.functions[0](3, 5)).closeTo(5, 1e-12);
         expect(vf.stateValues.functions[1](3, 5)).closeTo(-3, 1e-12);
@@ -165,7 +190,7 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const vf = stateVariables[await resolvePathToNodeIdx("vf")];
 
-        expect(vf.stateValues.haveFunctions).eq(false);
+        expect(vf.stateValues.haveFunction).eq(false);
     });
 
     it("vectorField normalize defaults to false and can be set", async () => {

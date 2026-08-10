@@ -142726,7 +142726,7 @@
                     "name": "markLength",
                     "type": "number",
                     "isArray": false,
-                    "description": "Length of the longest arrow, in pixels. Arrows keep this length whatever the axis scaling.",
+                    "description": "Length in pixels of the longest arrow, or of every arrow when normalize is set. Arrows keep this length whatever the axis scaling.",
                     "fromAttribute": true
                 },
                 {

@@ -24,8 +24,10 @@ import { useJSXGraphCleanup } from "./useJSXGraphCleanup";
  * Rehydrate one of the worker's function definitions into a numeric closure of
  * two inputs.
  *
- * Memoized because the field is rebuilt on every `boundingbox` event, and
- * `createFunctionFromDefinition` recompiles the formula each time it is called.
+ * Memoized on the definition because `createFunctionFromDefinition` recompiles
+ * the formula every time it is called, and this component re-renders on any
+ * state-variable change — a style tweak elsewhere in the document must not cost
+ * a recompile.
  *
  * A one-input function built by `createFunctionFromDefinition` has signature
  * `(x, overrideDomain)`, so it must be called with exactly one argument;
@@ -76,10 +78,12 @@ export function useFieldCurve({
     };
 
     // The `boundingbox` listener is registered once, so it must reach the
-    // current build function through a ref rather than closing over the one
-    // from first render.
+    // current build function — and the current visibility — through refs rather
+    // than closing over the ones from first render.
     const buildDataRef = useRef(buildData);
     buildDataRef.current = buildData;
+    const hiddenRef = useRef(SVs.hidden);
+    hiddenRef.current = SVs.hidden;
 
     function currentBounds(b: JXGBoard): FieldBounds {
         const [xMin, yMax, xMax, yMin] = b.getBoundingBox();
@@ -94,6 +98,12 @@ export function useFieldCurve({
         const b = board;
         const curve = curveJXG.current;
         if (!b || !curve) {
+            return;
+        }
+        if (hiddenRef.current) {
+            // Sampling the whole lattice is the expensive part, and a hidden
+            // field would otherwise pay it on every pan and zoom. The render
+            // that unhides the curve calls this again, so nothing is lost.
             return;
         }
         const { dataX, dataY } = buildDataRef.current(

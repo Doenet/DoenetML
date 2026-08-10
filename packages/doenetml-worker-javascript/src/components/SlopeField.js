@@ -1,7 +1,7 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
-    functionAttrIsUsableField,
+    returnFieldFunctionStateVariableDefinitions,
     returnFieldFunctionSugarInstruction,
     returnFieldLatticeAttributes,
 } from "../utils/field";
@@ -57,63 +57,8 @@ export default class SlopeField extends GraphicalComponent {
                 kind: "line",
                 noun: "slope-field",
             }),
+            returnFieldFunctionStateVariableDefinitions({ numOutputs: 1 }),
         );
-
-        stateVariableDefinitions.function = {
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "haveFunction",
-                    forRenderer: true,
-                },
-                {
-                    variableName: "fDefinition",
-                    forRenderer: true,
-                },
-                {
-                    // The renderer must know the arity: a one-input function
-                    // created by `createFunctionFromDefinition` has signature
-                    // (x, overrideDomain), so calling it as f(x, y) would
-                    // quietly pass y as overrideDomain.
-                    variableName: "numInputs",
-                    forRenderer: true,
-                },
-            ],
-            returnDependencies: () => ({
-                functionAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "function",
-                    variableNames: [
-                        "numericalfs",
-                        "numInputs",
-                        "numOutputs",
-                        "fDefinition",
-                    ],
-                },
-            }),
-            definition({ dependencyValues }) {
-                const attr = dependencyValues.functionAttr;
-
-                if (!functionAttrIsUsableField(attr, 1)) {
-                    return {
-                        setValue: {
-                            function: () => NaN,
-                            haveFunction: false,
-                            fDefinition: {},
-                            numInputs: 0,
-                        },
-                    };
-                }
-
-                return {
-                    setValue: {
-                        function: attr.stateValues.numericalfs[0],
-                        haveFunction: true,
-                        fDefinition: attr.stateValues.fDefinition,
-                        numInputs: attr.stateValues.numInputs,
-                    },
-                };
-            },
-        };
 
         return stateVariableDefinitions;
     }

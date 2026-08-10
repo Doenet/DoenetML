@@ -7,7 +7,7 @@ import { buildVectorFieldData } from "./utils/fieldGeometry";
 import { useFieldCurve, useFieldFunction } from "./utils/useFieldCurve";
 
 interface VectorFieldSVs extends GraphicalSVs {
-    haveFunctions: boolean;
+    haveFunction: boolean;
     fDefinitions: any[];
     numInputs: number;
     dx: number;
@@ -30,7 +30,7 @@ export default React.memo(function VectorField(props: UseDoenetRendererProps) {
 
     useFieldCurve({
         SVs,
-        enabled: SVs.haveFunctions,
+        enabled: SVs.haveFunction,
         buildData: (bounds, scale) =>
             buildVectorFieldData({
                 u,

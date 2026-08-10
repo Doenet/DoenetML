@@ -161,6 +161,21 @@ describe("buildSlopeFieldData", () => {
         }
     });
 
+    it("respects maxMarks on a lattice with far more columns than rows", () => {
+        // Rounding each axis's kept count up independently is what makes a
+        // lopsided lattice the hard case for the cap.
+        const { numMarks, stride } = buildSlopeFieldData({
+            f: () => 1,
+            ...opts,
+            bounds: { xMin: -5000, xMax: 5000, yMin: -1, yMax: 1 },
+            maxMarks: 400,
+        });
+
+        expect(stride).toBeGreaterThan(1);
+        expect(numMarks).toBeLessThanOrEqual(400);
+        expect(numMarks).toBeGreaterThan(0);
+    });
+
     it("still bounds the lattice when maxMarks is not a positive number", () => {
         for (const maxMarks of [0, -5, NaN]) {
             const { numMarks } = buildSlopeFieldData({
@@ -236,7 +251,7 @@ describe("buildVectorFieldData", () => {
         }
     });
 
-    it("scales arrows by magnitude when not normalized, capped at markLength", () => {
+    it("scales arrows by magnitude when not normalized, longest at markLength", () => {
         const { dataX, dataY } = buildVectorFieldData({
             u: (x, y) => x,
             v: () => 0,

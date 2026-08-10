@@ -1,7 +1,7 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
-    functionAttrIsUsableField,
+    returnFieldFunctionStateVariableDefinitions,
     returnFieldFunctionSugarInstruction,
     returnFieldLatticeAttributes,
 } from "../utils/field";
@@ -33,7 +33,7 @@ export default class VectorField extends GraphicalComponent {
                 markNoun: "arrows",
                 markLengthDefault: 24,
                 markLengthDescription:
-                    "Length of the longest arrow, in pixels. Arrows keep this length whatever the axis scaling.",
+                    "Length in pixels of the longest arrow, or of every arrow when normalize is set. Arrows keep this length whatever the axis scaling.",
             }),
         );
 
@@ -67,67 +67,8 @@ export default class VectorField extends GraphicalComponent {
                 kind: "line",
                 noun: "vector-field",
             }),
+            returnFieldFunctionStateVariableDefinitions({ numOutputs: 2 }),
         );
-
-        stateVariableDefinitions.functions = {
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "haveFunctions",
-                    forRenderer: true,
-                },
-                {
-                    variableName: "fDefinitions",
-                    forRenderer: true,
-                },
-                {
-                    // See SlopeField: a one-input function's second parameter
-                    // is `overrideDomain`, so the renderer must call by arity.
-                    variableName: "numInputs",
-                    forRenderer: true,
-                },
-            ],
-            returnDependencies: () => ({
-                functionAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "function",
-                    variableNames: [
-                        "numericalfs",
-                        "numInputs",
-                        "numOutputs",
-                        "fDefinitions",
-                    ],
-                },
-            }),
-            definition({ dependencyValues }) {
-                const attr = dependencyValues.functionAttr;
-
-                if (!functionAttrIsUsableField(attr, 2)) {
-                    return {
-                        setValue: {
-                            functions: [() => NaN, () => NaN],
-                            haveFunctions: false,
-                            fDefinitions: [{}, {}],
-                            numInputs: 0,
-                        },
-                    };
-                }
-
-                return {
-                    setValue: {
-                        functions: [
-                            attr.stateValues.numericalfs[0],
-                            attr.stateValues.numericalfs[1],
-                        ],
-                        haveFunctions: true,
-                        fDefinitions: [
-                            attr.stateValues.fDefinitions[0],
-                            attr.stateValues.fDefinitions[1],
-                        ],
-                        numInputs: attr.stateValues.numInputs,
-                    },
-                };
-            },
-        };
 
         return stateVariableDefinitions;
     }
