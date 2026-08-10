@@ -4,7 +4,6 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { buildSlopeFieldData } from "./utils/fieldGeometry";
 import {
-    fieldGrid,
     useFieldCurve,
     useFieldFunction,
     type FieldSVs,
@@ -20,15 +19,7 @@ export default React.memo(function SlopeField(props: UseDoenetRendererProps) {
 
     useFieldCurve({
         SVs,
-        buildData: (bounds, scale) =>
-            buildSlopeFieldData({
-                f,
-                bounds,
-                grid: fieldGrid(SVs),
-                scale,
-                markLength: SVs.markLength,
-                maxMarks: SVs.maxMarks,
-            }),
+        buildData: (sampling) => buildSlopeFieldData({ f, ...sampling }),
     });
 
     return null;

@@ -4,7 +4,6 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { buildVectorFieldData } from "./utils/fieldGeometry";
 import {
-    fieldGrid,
     useFieldCurve,
     useFieldFunction,
     type FieldSVs,
@@ -25,16 +24,12 @@ export default React.memo(function VectorField(props: UseDoenetRendererProps) {
 
     useFieldCurve({
         SVs,
-        buildData: (bounds, scale) =>
+        buildData: (sampling) =>
             buildVectorFieldData({
                 u,
                 v,
-                bounds,
-                grid: fieldGrid(SVs),
-                scale,
-                markLength: SVs.markLength,
-                maxMarks: SVs.maxMarks,
                 normalize: SVs.normalize,
+                ...sampling,
             }),
     });
 

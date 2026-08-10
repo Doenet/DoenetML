@@ -15,12 +15,7 @@ import { createFunctionFromDefinition } from "@doenet/utils";
 import { BoardContext, LINE_LAYER_OFFSET } from "../graph";
 import { DocContext } from "../../DocViewer";
 import { JXGBoard, JXGCurve } from "../jsxgraph-distrib/types";
-import type {
-    FieldBounds,
-    FieldData,
-    FieldGrid,
-    FieldScale,
-} from "./fieldGeometry";
+import type { FieldData, FieldSampling } from "./fieldGeometry";
 import type { GraphicalSVs } from "./graphicalSVs";
 import { styleToDash } from "./styleToDash";
 import { useJSXGraphCleanup } from "./useJSXGraphCleanup";
@@ -42,16 +37,6 @@ export interface FieldSVs extends GraphicalSVs {
     yoffset: number;
     markLength: number;
     maxMarks: number;
-}
-
-/** The lattice to sample on, in the shape the geometry functions take. */
-export function fieldGrid(SVs: FieldSVs): FieldGrid {
-    return {
-        dx: SVs.dx,
-        dy: SVs.dy,
-        xoffset: SVs.xoffset,
-        yoffset: SVs.yoffset,
-    };
 }
 
 /**
@@ -85,8 +70,12 @@ export function useFieldCurve({
 }: {
     /** The state variables that style the curve and say whether to draw it. */
     SVs: FieldSVs;
-    /** Produce the coordinate arrays for the currently visible region. */
-    buildData: (bounds: FieldBounds, scale: FieldScale) => FieldData;
+    /**
+     * Produce the coordinate arrays for the currently visible region. Only the
+     * function and any component-specific options are the caller's to supply;
+     * everything about the lattice comes from the state variables above.
+     */
+    buildData: (sampling: FieldSampling) => FieldData;
 }) {
     const board = useContext(BoardContext);
     const { darkMode } = useContext(DocContext) || {};
@@ -113,20 +102,29 @@ export function useFieldCurve({
     };
 
     // The `boundingbox` listener is registered once, so it must reach the
-    // current build function — and the current visibility — through refs rather
-    // than closing over the ones from first render.
+    // current build function — and the current state variables — through refs
+    // rather than closing over the ones from first render.
     const buildDataRef = useRef(buildData);
     buildDataRef.current = buildData;
-    const hiddenRef = useRef(SVs.hidden);
-    hiddenRef.current = SVs.hidden;
+    const SVsRef = useRef(SVs);
+    SVsRef.current = SVs;
 
-    function currentBounds(b: JXGBoard): FieldBounds {
+    /** The lattice and viewport to sample, as of right now. */
+    function currentSampling(b: JXGBoard): FieldSampling {
+        const svs = SVsRef.current;
         const [xMin, yMax, xMax, yMin] = b.getBoundingBox();
-        return { xMin, xMax, yMin, yMax };
-    }
-
-    function currentScale(b: JXGBoard): FieldScale {
-        return { unitX: b.unitX, unitY: b.unitY };
+        return {
+            bounds: { xMin, xMax, yMin, yMax },
+            grid: {
+                dx: svs.dx,
+                dy: svs.dy,
+                xoffset: svs.xoffset,
+                yoffset: svs.yoffset,
+            },
+            scale: { unitX: b.unitX, unitY: b.unitY },
+            markLength: svs.markLength,
+            maxMarks: svs.maxMarks,
+        };
     }
 
     function refreshData() {
@@ -135,16 +133,13 @@ export function useFieldCurve({
         if (!b || !curve) {
             return;
         }
-        if (hiddenRef.current) {
+        if (SVsRef.current.hidden) {
             // Sampling the whole lattice is the expensive part, and a hidden
             // field would otherwise pay it on every pan and zoom. The render
             // that unhides the curve calls this again, so nothing is lost.
             return;
         }
-        const { dataX, dataY } = buildDataRef.current(
-            currentBounds(b),
-            currentScale(b),
-        );
+        const { dataX, dataY } = buildDataRef.current(currentSampling(b));
         curve.dataX = dataX;
         curve.dataY = dataY;
         curve.needsUpdate = true;

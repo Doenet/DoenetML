@@ -45,6 +45,20 @@ export interface FieldData {
 }
 
 /**
+ * Everything a field builder needs besides the function itself: where to
+ * sample, how finely, how the axes are scaled, and how big a mark may get.
+ * Both builders take exactly this, so the renderer can assemble it once.
+ */
+export interface FieldSampling {
+    bounds: FieldBounds;
+    grid: FieldGrid;
+    scale: FieldScale;
+    /** Mark length in pixels. */
+    markLength: number;
+    maxMarks: number;
+}
+
+/**
  * The lattice indices whose points lie inside `bounds`.
  *
  * A negative `dx` or `dy` describes the same set of points as its positive
@@ -196,14 +210,8 @@ export function buildSlopeFieldData({
     scale,
     markLength,
     maxMarks,
-}: {
+}: FieldSampling & {
     f: (x: number, y: number) => number;
-    bounds: FieldBounds;
-    grid: FieldGrid;
-    scale: FieldScale;
-    /** Mark length in pixels. */
-    markLength: number;
-    maxMarks: number;
 }): FieldData {
     const dataX: number[] = [];
     const dataY: number[] = [];
@@ -235,6 +243,9 @@ export function buildSlopeFieldData({
  * Emits 9 array entries per arrow — shaft plus two barbs, each NaN-separated —
  * so the arrowheads stay part of the same single curve. JSXGraph's `lastArrow`
  * cannot be used: it applies to a curve as a whole, not to each pen-up piece.
+ *
+ * `markLength` is the length of the *longest* arrow on screen unless
+ * `normalize` is set, in which case every arrow gets it.
  */
 export function buildVectorFieldData({
     u,
@@ -247,15 +258,9 @@ export function buildVectorFieldData({
     normalize,
     barbFraction = 0.3,
     barbAngle = 0.44,
-}: {
+}: FieldSampling & {
     u: (x: number, y: number) => number;
     v: (x: number, y: number) => number;
-    bounds: FieldBounds;
-    grid: FieldGrid;
-    scale: FieldScale;
-    /** Arrow length in pixels (of the longest arrow when `normalize` is false). */
-    markLength: number;
-    maxMarks: number;
     /** Draw every arrow the same length, showing direction only. */
     normalize: boolean;
     /**
