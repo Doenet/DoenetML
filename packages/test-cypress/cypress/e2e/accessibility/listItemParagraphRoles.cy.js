@@ -139,6 +139,58 @@ describe(
             cy.get("#inSection").should("have.attr", "role", "paragraph");
         });
 
+        // A list item leading with a block that offers the browser no line box
+        // gets one from a `::before` holding a zero-width space (#1673,
+        // `list.css`). Generated content reaches the accessibility tree, and a
+        // stray text node inside the `<li>` is exactly what keeps the marker out
+        // of the item's own text run — the #662 shape this file exists to protect
+        // — so the anchor declares empty alternative text.
+        //
+        // Pseudo elements are not nodes, so nothing here can read the space or
+        // its absence from the tree; checked out of band against Chrome's own
+        // accessibility tree (byte-identical to an item with no anchor) and
+        // asserted here as the declaration that produces that.
+        it("the marker anchor on a block-leading list item declares empty alternative text", () => {
+            postDoenetML({
+                settleSelector: "#anchored",
+                doenetML: `<ol>
+  <li name="anchored"><graph name="g" size="small" decorative /></li>
+  <li name="plain">Apples</li>
+</ol>`,
+            });
+
+            // Resolved through the element's own window: `getComputedStyle` in a
+            // spec file is the Cypress runner's, not the application's. The
+            // expected space is written as an escape rather than as itself, so
+            // that the character the rule turns on is visible to a reader here.
+            function anchorContent($li) {
+                return $li[0].ownerDocument.defaultView.getComputedStyle(
+                    $li[0],
+                    "::before",
+                ).content;
+            }
+
+            cy.get("#anchored").should(($li) => {
+                expect(
+                    anchorContent($li),
+                    "the anchor's content carries empty alternative text",
+                ).to.equal(`"\u200B" / ""`);
+            });
+
+            // The item that needs no anchor gets none, so the space cannot reach
+            // an item whose marker the browser already places.
+            cy.get("#plain").should(($li) => {
+                expect(
+                    anchorContent($li),
+                    "an item with an ordinary lead has no anchor",
+                ).to.equal("none");
+            });
+
+            cy.checkAccessibility([".doenet-viewer"], {
+                onlyWarnImpacts: ["moderate", "minor"],
+            });
+        });
+
         it("hidden paragraph does not claim the lead of its list item", () => {
             // The core sends `null` for a child it does not render, so a
             // hidden paragraph never reaches the accessibility tree and must

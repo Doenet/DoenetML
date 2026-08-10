@@ -39,13 +39,14 @@ export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
  * a component only if its class declares a `rendererType` and it has not hidden
  * itself.
  *
- * A list item delegates its top-margin suppression, and (for a section, which
- * draws its own number) the vertical alignment of that number, to its first
- * visible child, so a child that renders nothing must never be picked as that
- * child — doing so strands the child that actually renders first, which then
- * keeps its top margin and never gets to report the alignment it needs. A real
- * `<li>`'s native marker is not delegated: the browser places it, and where it
- * lands is settled in `choiceInput.tsx` rather than by anything here.
+ * A list item delegates its top-margin suppression, and the vertical alignment of
+ * its number, to its first visible child, so a child that renders nothing must
+ * never be picked as that child — doing so strands the child that actually renders
+ * first, which then keeps its top margin and never gets to report the alignment it
+ * needs. What each kind of list item does with that alignment differs: a section
+ * draws its own number into the row it names, while a real `<li>` gets a native
+ * `::marker` the browser places and can only hand the browser a line box to place
+ * it on — see {@link listItemNumberAlignmentForLead}.
  *
  * The `rendererType` test covers a child whose kind draws nothing at all
  * (`<animateFromSequence>`, `<solveEquations>`, …), and the `hiddenIgnoreParent`
@@ -116,6 +117,28 @@ export function childRendersSomething(
 }
 
 /**
+ * Where a list item's number goes, given the `listItemInlineAlignment` its
+ * leading child reports: `"flex-start"` beside the top of that child's box,
+ * `"baseline"` on the first line of its text. Anything other than
+ * `"flex-start"` — including a lead that declares no alignment at all, which is
+ * most components — is `"baseline"`, since what such a lead renders is text.
+ *
+ * Both kinds of list item map their lead through this into their own
+ * `firstChildListItemAlignment` (`SectioningComponent`'s and `Li`'s), so the two
+ * agree about a given lead by construction. They differ in who acts on it: a
+ * `<problem>`-style item draws its own number, so `section.tsx` puts it in the
+ * row this names, while a real `<li>` gets a native `::marker` the browser
+ * places, so `list.tsx` can only hand the browser a line box to put it on — see
+ * `list.css` for why that is only done for `"flex-start"`, and for the block
+ * `<choiceInput>` that reports `"flex-start"` (from #1034) without needing one.
+ */
+export function listItemNumberAlignmentForLead(
+    leadAlignment: unknown,
+): "flex-start" | "baseline" {
+    return leadAlignment === "flex-start" ? "flex-start" : "baseline";
+}
+
+/**
  * Adds list-item inline-rendering state variables for components that may suppress
  * their top margin when they are the first visible child in a list item.
  */
@@ -172,6 +195,21 @@ export function returnListItemChildStateVariableDefinitions({
 }
 
 /**
+ * Child types that name their container rather than being its content: a
+ * `<label>` on a `<div>`-style wrapper, a `<caption>` on a `<figure>`. Both
+ * render, so {@link childRendersSomething} would let either lead, but a
+ * container's own name is not what the list item's number lines up with — and a
+ * `<caption>` is not even drawn where it is written (`figure.tsx` moves it below
+ * the content whatever its position among the children).
+ *
+ * The test is on the component type alone, so every wrapper skips both types
+ * rather than only the one that takes each. That costs nothing: `<figure>` is the
+ * only wrapper on this chain that a `<caption>` belongs in, and a `<caption>`
+ * written anywhere else is not naming anything for the number to line up past.
+ */
+const NAMING_CHILD_TYPES = ["label", "caption"];
+
+/**
  * Adds pass-through list-item state variables for wrapper components.
  *
  * Wrappers forward list-item inline rendering to their first visible non-label
@@ -185,15 +223,17 @@ export function returnListItemChildStateVariableDefinitions({
  * `<li><div><p hide/><answer><choiceInput/></answer></div></li>` the
  * `<choiceInput>` would keep the top margin the item wanted suppressed, and the
  * alignment reported back up would be the alignment of something not on the
- * screen — which inside a `<problem>`-style list item is what decides whether
- * the section's own number sits on the first line's baseline or at the top of
- * the content (`firstChildListItemAlignment`, read by `section.tsx`). A real
- * `<li>`'s native marker no longer rides on this chain at all: it moved because
- * of the `<legend>`, and `choiceInput.tsx` now renders the label in a `<div>`
- * wherever the input sits.
+ * screen — the alignment that decides whether the item's number sits on the first
+ * line's baseline or at the top of the content
+ * (`firstChildListItemAlignment`, read by `section.tsx` for a section and by
+ * `list.tsx` for a real `<li>`; see {@link listItemNumberAlignmentForLead}). What
+ * does *not* ride on this chain is where the marker lands beside a labeled
+ * `<choiceInput>`: it moved because of the `<legend>`, and `choiceInput.tsx` now
+ * renders the label in a `<div>` wherever the input sits.
  *
- * `<label>` is excluded on top of that test: a label does render, but it is the
- * wrapper's own naming, not the content the item's number lines up with.
+ * {@link NAMING_CHILD_TYPES} is excluded on top of that test: a label or a
+ * caption does render, but it is the wrapper's own naming, not the content the
+ * item's number lines up with.
  */
 export function returnPassThroughListItemChildStateVariableDefinitions() {
     const stateVariableDefinitions: Record<string, any> = {};
@@ -256,22 +296,22 @@ export function returnPassThroughListItemChildStateVariableDefinitions() {
             // the signal to its first visible non-label child.
 
             if (shouldRenderInline) {
-                const firstVisibleNonLabelChild =
+                const firstVisibleContentChild =
                     dependencyValues.allChildren.find(
                         (child: any) =>
                             !(
                                 typeof child === "object" &&
-                                child.componentType === "label"
+                                NAMING_CHILD_TYPES.includes(child.componentType)
                             ) &&
                             childRendersSomething(child, componentInfoObjects),
                     );
 
                 if (
-                    firstVisibleNonLabelChild &&
-                    typeof firstVisibleNonLabelChild === "object"
+                    firstVisibleContentChild &&
+                    typeof firstVisibleContentChild === "object"
                 ) {
                     childrenToRenderInlineForListItem = [
-                        firstVisibleNonLabelChild,
+                        firstVisibleContentChild,
                     ];
                 }
             }

@@ -1813,6 +1813,38 @@ describe("Sectioning tag tests @group3", async () => {
         });
     });
 
+    // A `<figure>` forwards the item's signal to the content it holds rather than
+    // keeping it, and past the `<caption>` naming that content — so a section
+    // leading with a figure lines its number up with the figure's graph, and the
+    // graph loses the top margin the item wanted suppressed. Both kinds of list
+    // item map their lead through `listItemNumberAlignmentForLead()`, so this is
+    // the section half of the `<li>` case in `lists.test.ts`: without the
+    // forward, a `<figure>` reports no alignment of its own and the number falls
+    // back to a baseline the figure has no text on.
+    it("delegates list-item alignment through a leading <figure> to its content", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problem>
+  <part name="item">
+    <figure name="fig">
+      <caption>A graph</caption>
+      <graph name="g" size="small"><point>(1,2)</point></graph>
+    </figure>
+  </part>
+</problem>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValuesOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        const part = await stateValuesOf("item");
+        expect(part.firstVisibleChild.componentType).eq("figure");
+        expect(part.firstChildListItemAlignment).eq("flex-start");
+        expect((await stateValuesOf("fig")).renderInlineForListItem).eq(true);
+        expect((await stateValuesOf("g")).renderInlineForListItem).eq(true);
+    });
+
     // The plain "leading child hid itself" case for a section lives in the
     // lead-selection matrix in `lists.test.ts`, which asks it of all five
     // selection rules at once. What is left here is the section-only shapes.
