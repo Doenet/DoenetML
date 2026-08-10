@@ -1747,8 +1747,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     //
     // Asserted as an outcome: the message has to start on the item's own first
     // row, the row the number occupies. The layout that puts it there is pinned
-    // with the same helper every other untitled, unboxed item in this file uses,
-    // so the item the fix returns to the numbering grid is held to one standard.
+    // too, with the helper this file checks an ordinary untitled, unboxed item's
+    // numbering grid with, so the grid the item rejoined is held to the same
+    // standard as the grid it never left.
     it("a held-back step's cascadeMessage shares the row with its number", () => {
         cy.window().then(async (win) => {
             win.postMessage(
