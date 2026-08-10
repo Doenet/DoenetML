@@ -320,6 +320,28 @@ appears as **Nyanja** in `<document lang>`'s autocomplete: `ny` is the code,
 rather than hand-written so that adding a language costs no prose. The two
 names are one language, and the catalog's own header says so.
 
+### A language CLDR has no name for
+
+The roster is derived, so a locale's name comes from `Intl.DisplayNames` rather
+than from a hand-maintained list — which is what keeps adding a language free of
+per-language prose. `Intl.DisplayNames` answers a tag it does not know with the
+tag itself, though, and a `<document lang>` autocomplete offering a reader
+"ktu" and expecting them to know what it is helps nobody. So
+`LOCALE_NAME_FALLBACKS`, in `scripts/catalogUtils.ts`, supplies a name for the
+locales CLDR has no language data for: today `nah`, `dag`, `ktu` and `mnk`.
+
+It fills a gap and never overrides one. A name is taken from the table only
+where ICU handed back the tag, so the rule above still holds — a language is
+named whatever CLDR names it — and an entry stops being consulted the day ICU
+learns a name of its own. `englishName` is required and `endonym` optional,
+because an English name is what identifies a language to someone choosing one
+and costs nothing to be sure of.
+
+Two tests keep the table small and honest. One fails if any locale's label is
+still just its code, so a future batch cannot reintroduce the gap silently; the
+other fails on an entry ICU no longer needs, since a fallback that never fires
+is indistinguishable from one that is right. Both are in `catalogLint.test.ts`.
+
 Punjabi is named `pa` and written in Gurmukhi, which the rule above allows
 because only one of its two scripts is translated. A Shahmukhi reader arriving
 under `pa-Arab` reaches it and gets Gurmukhi — the same asymmetry `zh-CN`
@@ -813,15 +835,14 @@ data says such a reader most likely arrives in Ajami and what they get from
 first rather than a rename of it. The header says so.
 
 **Three of the eleven have no CLDR language name at all**, which is further
-than any earlier batch went: `dag`, `ktu` and `mnk` render as the bare codes
-`dag`, `ktu` and `mnk` in `<document lang>`'s autocomplete, because
-`Intl.DisplayNames` has nothing to answer with in either English or the
-language itself and `supportedLocales.ts` is derived rather than hand-written.
-That is the roster's rule working — a language is named whatever CLDR names it,
-and adding a language costs no prose — showing its cost rather than failing.
-Five more read one name, their English name and their endonym being the same
-word: Luba-Lulua, Dyula, Mossi, Tiv and Kanuri. Only `rn`, `nyn` and `gaa` read
-both, as "Rundi (Ikirundi)", "Nyankole (Runyankore)" and "Ga (Gã)".
+than any earlier batch went, and it is what
+[`LOCALE_NAME_FALLBACKS`](#a-language-cldr-has-no-name-for) exists for:
+`Intl.DisplayNames` has nothing to answer `dag`, `ktu` or `mnk` with in either
+English or the language itself, so without a fallback each would be labelled
+with its own code. Five more read one name, their English name and their
+endonym being the same word: Luba-Lulua, Dyula, Mossi, Tiv and Kanuri. Only
+`rn`, `nyn` and `gaa` get both from CLDR, as "Rundi (Ikirundi)",
+"Nyankole (Runyankore)" and "Ga (Gã)".
 
 **"Mossi" is the one likeliest to be read as an error and is not one.** CLDR
 names `mos` after the people; the language is Mooré, which is what its own

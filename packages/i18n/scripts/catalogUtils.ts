@@ -624,6 +624,41 @@ function renderUnionMembers(values: string[]): string {
 }
 
 /**
+ * Names for the locales CLDR has no language data for at all.
+ *
+ * `Intl.DisplayNames` answers a tag it does not know with the tag itself, so
+ * `dag` would be labelled "dag" — which tells a reader choosing a
+ * `<document lang>` nothing about what language it is, and is what this table
+ * exists to prevent. It is consulted **only** where ICU returned the tag, so it
+ * can fill a gap and can never override CLDR: the roster still names a language
+ * whatever CLDR names it, and an entry here quietly stops being read the day
+ * ICU learns a name of its own.
+ *
+ * `endonym` is optional. Where it is absent the label is the English name
+ * alone, which is the shape every locale whose two names coincide already has —
+ * an English name is what a reader needs to identify a language, and it costs
+ * nothing to be sure of, so it is required and the endonym is not.
+ *
+ * Keep this table as small as it can be. Two tests hold it to that: one fails
+ * if any locale's label is still just its code, so a future batch cannot
+ * silently reintroduce the gap, and one fails on an entry ICU no longer needs,
+ * so entries are deleted rather than left to rot.
+ */
+export const LOCALE_NAME_FALLBACKS: Record<
+    string,
+    { englishName: string; endonym?: string }
+> = {
+    // Nahuatl predates the West and Central African batch and had the same
+    // gap; it is fixed here because the same table covers it at no extra cost.
+    // The catalog is Central Nahuatl — see `MACROLANGUAGE_MEMBERS` in
+    // `negotiate.ts` — and "Nahuatl" is what names the group it stands for.
+    nah: { englishName: "Nahuatl", endonym: "Nāhuatl" },
+    dag: { englishName: "Dagbani", endonym: "Dagbanli" },
+    ktu: { englishName: "Kituba", endonym: "Kikongo ya leta" },
+    mnk: { englishName: "Mandinka", endonym: "Mandinkakaŋo" },
+};
+
+/**
  * A locale's name in English and in itself, e.g.
  * `{ englishName: "Spanish", endonym: "español" }`.
  *
@@ -640,7 +675,8 @@ function renderUnionMembers(values: string[]): string {
  * structurally invalid tag makes `Intl.DisplayNames` throw, and we fall back to
  * the tag itself; a well-formed one it simply doesn't know comes back as its
  * own rendering of the tag's subtags (`"zz-QQ"` → `"zz (QQ)"`). Either way the
- * label is the tag, not a name — usable, and never blank.
+ * label would be the tag rather than a name, which is where
+ * {@link LOCALE_NAME_FALLBACKS} comes in.
  */
 function localeNames(locale: string): { englishName: string; endonym: string } {
     function nameIn(displayLocale: string): string {
@@ -654,7 +690,22 @@ function localeNames(locale: string): { englishName: string; endonym: string } {
             return locale;
         }
     }
-    return { englishName: nameIn(DEFAULT_LOCALE), endonym: nameIn(locale) };
+    const englishName = nameIn(DEFAULT_LOCALE);
+    const endonym = nameIn(locale);
+    const fallback = LOCALE_NAME_FALLBACKS[locale];
+
+    // The fallback fills a gap and never overrides ICU: a name is taken from
+    // the table only where `Intl.DisplayNames` handed back the tag itself. So
+    // the rule stays "the roster names a language whatever CLDR names it", and
+    // the day CLDR learns one of these the table stops being consulted for it
+    // without anyone having to notice.
+    return {
+        englishName:
+            englishName === locale
+                ? (fallback?.englishName ?? locale)
+                : englishName,
+        endonym: endonym === locale ? (fallback?.endonym ?? locale) : endonym,
+    };
 }
 
 function renderSupportedLocalesModuleRaw(locales: string[]): string {

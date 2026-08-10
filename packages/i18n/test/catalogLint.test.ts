@@ -13,6 +13,7 @@ import {
     countDiagnosticConstructions,
     extractKeys,
     listLocales,
+    LOCALE_NAME_FALLBACKS,
     multilinePatterns,
     numberingSystemOverrides,
     readCatalog,
@@ -235,6 +236,23 @@ describe("renderSupportedLocalesModule", () => {
         expect(rendered).toMatch(/label: "zz[^"]*"/);
     });
 
+    it("fills a name in for a locale CLDR has none for", async () => {
+        // `Intl.DisplayNames` answers an unknown tag with the tag, so `dag`
+        // would be labelled "dag" — which tells a reader choosing a
+        // `<document lang>` nothing. `LOCALE_NAME_FALLBACKS` supplies the name.
+        const rendered = await renderSupportedLocalesModule(["en", "dag"]);
+        expect(rendered).toContain('label: "Dagbani (Dagbanli)"');
+    });
+
+    it("lets CLDR win wherever CLDR has an answer", async () => {
+        // The table fills gaps and never overrides, so an entry for a locale
+        // ICU *does* know changes nothing. Written as a live check rather than
+        // asserted about the real table, since the real table is meant to hold
+        // no such entry — that is the next test's job.
+        const rendered = await renderSupportedLocalesModule(["en", "es"]);
+        expect(rendered).toContain('englishName: "Spanish"');
+    });
+
     it("emits Prettier-formatted output so lint:i18n and prettier agree", async () => {
         // Checked under the repo's own config, which is what `prettier:check`
         // will hold the committed file to — the default 2-space width would
@@ -249,6 +267,45 @@ describe("renderSupportedLocalesModule", () => {
                 parser: "typescript",
             }),
         ).toBe(true);
+    });
+});
+
+describe("LOCALE_NAME_FALLBACKS", () => {
+    /**
+     * The gap this table closes, held shut for the roster rather than for the
+     * four entries that close it today. A future batch adding a language CLDR
+     * has no data for fails here until someone supplies a name — which is the
+     * whole point, since the alternative is a `<document lang>` autocomplete
+     * that offers a reader "ktu" and expects them to know what it is.
+     */
+    it("leaves no locale labelled with its own code", () => {
+        const bare = SUPPORTED_LOCALES.filter(
+            (entry) => entry.label === entry.locale,
+        ).map((entry) => entry.locale);
+        expect(bare).toEqual([]);
+    });
+
+    /**
+     * The other half: an entry ICU has since learned a name for is dead weight
+     * that nothing would otherwise notice, because a fallback that never fires
+     * behaves exactly like a fallback that is correct. Failing here is the
+     * signal to delete the entry, not to reword it.
+     */
+    it("holds no entry ICU no longer needs", () => {
+        const unneeded = Object.keys(LOCALE_NAME_FALLBACKS).filter(
+            (locale) =>
+                new Intl.DisplayNames(["en"], { type: "language" }).of(
+                    locale,
+                ) !== locale,
+        );
+        expect(unneeded).toEqual([]);
+    });
+
+    /** An English name is what identifies a language; an endonym is a bonus. */
+    it("gives every entry a non-empty English name", () => {
+        for (const [locale, names] of Object.entries(LOCALE_NAME_FALLBACKS)) {
+            expect(names.englishName, locale).toBeTruthy();
+        }
     });
 });
 

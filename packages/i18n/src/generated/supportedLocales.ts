@@ -381,7 +381,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "dansk",
         label: "Danish (dansk)",
     },
-    { locale: "dag", englishName: "dag", endonym: "dag", label: "dag" },
+    {
+        locale: "dag",
+        englishName: "Dagbani",
+        endonym: "Dagbanli",
+        label: "Dagbani (Dagbanli)",
+    },
     {
         locale: "de",
         englishName: "German",
@@ -648,7 +653,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "کٲشُر",
         label: "Kashmiri (کٲشُر)",
     },
-    { locale: "ktu", englishName: "ktu", endonym: "ktu", label: "ktu" },
+    {
+        locale: "ktu",
+        englishName: "Kituba",
+        endonym: "Kikongo ya leta",
+        label: "Kituba (Kikongo ya leta)",
+    },
     {
         locale: "ky",
         englishName: "Kyrgyz",
@@ -747,7 +757,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "মৈতৈলোন্",
         label: "Manipuri (মৈতৈলোন্)",
     },
-    { locale: "mnk", englishName: "mnk", endonym: "mnk", label: "mnk" },
+    {
+        locale: "mnk",
+        englishName: "Mandinka",
+        endonym: "Mandinkakaŋo",
+        label: "Mandinka (Mandinkakaŋo)",
+    },
     { locale: "mos", englishName: "Mossi", endonym: "Mossi", label: "Mossi" },
     {
         locale: "mr",
@@ -773,7 +788,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "မြန်မာ",
         label: "Burmese (မြန်မာ)",
     },
-    { locale: "nah", englishName: "nah", endonym: "nah", label: "nah" },
+    {
+        locale: "nah",
+        englishName: "Nahuatl",
+        endonym: "Nāhuatl",
+        label: "Nahuatl (Nāhuatl)",
+    },
     {
         locale: "nb",
         englishName: "Norwegian Bokmål",
