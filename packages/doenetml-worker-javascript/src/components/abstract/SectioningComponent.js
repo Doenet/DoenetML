@@ -631,27 +631,24 @@ export class SectioningComponent extends BlockComponent {
          * margin of, or `null` if there is none. A child that draws nothing must
          * never be picked: doing so strands the child that does draw first, which
          * then keeps its top margin and never reports the alignment the number is
-         * placed by. Three ways a child fails to be drawn, all checked here:
+         * placed by. Two ways a child fails to be drawn, both checked here:
          *
          *   - Its kind renders nothing, or it hid *itself* with `hide` —
          *     `childRendersSomething()`.
-         *   - This section hides it: `childrenToHide`. That is normally the whole
-         *     content at once, already covered by the `hideChildren` test, but
-         *     `<cascadeMessage>` inverts the rule and is hidden precisely when the
-         *     rest is shown, so without this test a leading `<cascadeMessage>`
-         *     would lead an item it is invisible in.
-         *   - `hideChildren` is set, which suppresses the delegation entirely: it
-         *     comes only from an enclosing `<cascade>` holding a step back.
+         *   - This section hides it: `childrenToHide`, which holds the whole
+         *     content of a section an enclosing `<cascade>` is holding back, and
+         *     otherwise holds a `<cascadeMessage>` — whose rule is inverted, so it
+         *     is hidden precisely when the rest is shown. Without this test a
+         *     leading `<cascadeMessage>` would lead an item it is invisible in.
          *
-         * That last test is too broad, and #1680 tracks it: a held-back step does
-         * show one child — its `<cascadeMessage>`, the child whose inverted rule
-         * makes the `childrenToHide` test above necessary — so the step draws a
-         * message it delegates nothing to, and the message keeps the top margin
-         * that puts it a line below the item's number. Dropping the test would fix
-         * it, since `childrenToHide` holds every other child of a held-back step;
-         * it is left alone here because it is a different defect from #1673 in a
-         * different layout path, and the number a reader sees once the step is
-         * revealed — which is what the tests above pin — is already right.
+         * `childrenToHide` is the whole test, and asking `hideChildren` as well
+         * would only make it too broad. A held-back step is not empty: it shows
+         * its `<cascadeMessage>`, the one child `childrenToHide` leaves out there,
+         * so treating "this step is held back" as "nothing to delegate to" left
+         * the message leading nothing and keeping the top margin that put it a
+         * line below the item's number (#1680). A held-back step with no message
+         * still delegates to nobody, because then `childrenToHide` holds every
+         * child it has.
          *
          * A child hidden from *above* — this section, or a container around it —
          * is a deliberate non-case: nothing in it is on screen to realign, and
@@ -697,10 +694,12 @@ export class SectioningComponent extends BlockComponent {
                         dependencyType: "stateVariable",
                         variableName: "childIndicesToRender",
                     },
-                    hideChildren: {
-                        dependencyType: "stateVariable",
-                        variableName: "hideChildren",
-                    },
+                    // `hideChildren` is deliberately not requested. Both of these
+                    // are computed from it, and both answer differently once a
+                    // `<cascade>` holds this step back or lets it go — the message
+                    // enters and leaves `childrenToHide`, and a string child enters
+                    // and leaves `childIndicesToRender` — so the lead is recomputed
+                    // for the transition either way.
                     childrenToHide: {
                         dependencyType: "stateVariable",
                         variableName: "childrenToHide",
@@ -713,10 +712,7 @@ export class SectioningComponent extends BlockComponent {
                 // No `childIndicesToRender` means the gate above returned no
                 // dependencies at all: this section delegates nothing, so it has
                 // no lead.
-                if (
-                    dependencyValues.childIndicesToRender &&
-                    !dependencyValues.hideChildren
-                ) {
+                if (dependencyValues.childIndicesToRender) {
                     for (const ind of dependencyValues.childIndicesToRender) {
                         const child = dependencyValues.allChildren[ind];
                         if (
