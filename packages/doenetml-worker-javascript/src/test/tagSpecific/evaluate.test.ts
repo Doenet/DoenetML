@@ -5203,9 +5203,16 @@ describe("Evaluate tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("fxp13")].stateValues
                 .text,
         ).eq("NaN");
+        // `NaN`, not `y + NaN`: `simplify` absorbs NaN through a sum, so an
+        // out-of-domain `f` takes the whole expression with it however many
+        // free symbols sit beside it. Only NaN folds this way — `y + ∞` keeps
+        // both terms — and only through `simplify`; `fromAst(["+","y",NaN])`
+        // still prints `y + NaN`. Same call as the `Infinity i` fold recorded
+        // in `number.test.ts`: nothing substituted for `y` makes the sum
+        // defined, so naming `y` in the output claimed more than was true.
         expect(
             stateVariables[await resolvePathToNodeIdx("fpy0")].stateValues.text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fpy1")].stateValues.text,
         ).eq("y + 1");
@@ -5214,11 +5221,11 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("y + 4");
         expect(
             stateVariables[await resolvePathToNodeIdx("fpy3")].stateValues.text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fpya0")].stateValues
                 .text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fpya1")].stateValues
                 .text,
@@ -5230,7 +5237,7 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fpya3")].stateValues
                 .text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1py0")].stateValues
                 .text,
@@ -5242,11 +5249,11 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1py2")].stateValues
                 .text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fxp1py3")].stateValues
                 .text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fm0")].stateValues.text,
         ).eq("NaN");
@@ -5262,19 +5269,19 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("fpym0")].stateValues
                 .text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fpym1")].stateValues
                 .text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fpym2")].stateValues
                 .text,
-        ).eq("y + NaN");
+        ).eq("NaN");
         expect(
             stateVariables[await resolvePathToNodeIdx("fpym3")].stateValues
                 .text,
-        ).eq("y + NaN");
+        ).eq("NaN");
     });
 
     it("evaluate functions based on functions, symbolic then numeric", async () => {
