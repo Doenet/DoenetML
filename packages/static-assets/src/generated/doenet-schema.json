@@ -114594,7 +114594,7 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "docsSlug": null,
+            "docsSlug": "slopeField",
             "summary": "A slope field for a differential equation y' = f(x,y), drawn as tick marks on a lattice",
             "layoutCategory": "other"
         },
@@ -115032,7 +115032,7 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "docsSlug": null,
+            "docsSlug": "vectorField",
             "summary": "A vector field drawn as arrows on a lattice, from a function with two outputs",
             "layoutCategory": "other"
         },
