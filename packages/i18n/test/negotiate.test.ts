@@ -580,6 +580,96 @@ describe("negotiateLocales", () => {
             },
         );
     });
+
+    /**
+     * The African and Berber batch. One of its twelve is a macrolanguage and
+     * goes in `MACROLANGUAGE_MEMBERS`; the other eleven are individual
+     * languages that filter unaided, so the batch adds no `LANGUAGE_ALIASES`
+     * entry. Tifinagh is new to the roster with `zgh` and `shi` and changes
+     * nothing here — a script is a subtag like any other.
+     */
+    describe("the African and Berber batch", () => {
+        it.each([
+            // Fula is the macrolanguage. `fuc` — Pulaar, which the catalog is
+            // written in — is the one member `Intl.getCanonicalLocales` folds
+            // on its own; the other eight reach the catalog only because
+            // `MACROLANGUAGE_MEMBERS` lists them, and without the entry a
+            // Nigerian or Adamawa Fulfulde reader gets English with a catalog
+            // on disk.
+            ["fuc", "ff"],
+            ["ffm", "ff"],
+            ["fub", "ff"],
+            ["fue", "ff"],
+            ["fuf", "ff"],
+            ["fuh", "ff"],
+            ["fui", "ff"],
+            ["fuq", "ff"],
+            ["fuv", "ff"],
+            // The ISO 639-3 codes ICU canonicalizes to a 639-1 code on its own.
+            ["ssw", "ss"],
+            ["ven", "ve"],
+            ["tso", "ts"],
+            ["kik", "ki"],
+            ["sag", "sg"],
+            ["ful", "ff"],
+            // `nso`, `bem`, `luo`, `kab`, `zgh` and `shi` have no 639-1 code of
+            // their own, so they arrive under the same tag the directory is
+            // named for and need nothing.
+            ["nso", "nso"],
+            ["bem", "bem"],
+            ["luo", "luo"],
+            ["kab", "kab"],
+            ["zgh", "zgh"],
+            ["shi", "shi"],
+            // Script asymmetries. Each reaches its catalog and gets the script
+            // the catalog is written in. `ff-Adlm` is the one that is owed a
+            // catalog of its own rather than merely allowed one: Adlam is a
+            // living, taught script for Fulfulde.
+            ["ff-Adlm", "ff"],
+            ["kab-Tfng", "kab"],
+            ["kab-Arab", "kab"],
+            ["zgh-Latn", "zgh"],
+            ["shi-Latn", "shi"],
+            // Region tags, which filter without help.
+            ["nso-ZA", "nso"],
+            ["ss-SZ", "ss"],
+            ["ve-ZA", "ve"],
+            ["ts-MZ", "ts"],
+            ["ki-KE", "ki"],
+            ["bem-ZM", "bem"],
+            ["luo-TZ", "luo"],
+            ["sg-CF", "sg"],
+            ["ff-NG", "ff"],
+            ["kab-DZ", "kab"],
+            ["zgh-MA", "zgh"],
+            ["shi-MA", "shi"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The near misses. `tzm` (Central Atlas Tamazight) and `rif` (Tarifit)
+         * are Berber languages beside `zgh` and `shi` and are members of no
+         * macrolanguage with a catalog; `nd` and `nr` are Nguni neighbours of
+         * `ss`; `nyn` (Nyankole) is Bantu like `ki`; `kln` (Kalenjin) is
+         * Nilotic like `luo`. Every one falls to English, which is the
+         * membership rule working rather than a gap in it — Tachelhit is not
+         * Tarifit, however close a map makes them look.
+         */
+        it.each(["tzm", "rif", "nd", "nr", "nyn", "kln"])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+    });
 });
 
 describe("resolveDocumentLocale", () => {

@@ -19,6 +19,7 @@ export type SupportedLocale =
     | "az"
     | "ban"
     | "be"
+    | "bem"
     | "bg"
     | "bho"
     | "bik"
@@ -45,6 +46,7 @@ export type SupportedLocale =
     | "et"
     | "eu"
     | "fa"
+    | "ff"
     | "fi"
     | "fil"
     | "fj"
@@ -74,6 +76,8 @@ export type SupportedLocale =
     | "ja"
     | "jv"
     | "ka"
+    | "kab"
+    | "ki"
     | "kk"
     | "km"
     | "kn"
@@ -86,6 +90,7 @@ export type SupportedLocale =
     | "ln"
     | "lo"
     | "lt"
+    | "luo"
     | "lv"
     | "mad"
     | "mai"
@@ -105,6 +110,7 @@ export type SupportedLocale =
     | "nds"
     | "ne"
     | "nl"
+    | "nso"
     | "ny"
     | "oc"
     | "oj"
@@ -127,6 +133,8 @@ export type SupportedLocale =
     | "scn"
     | "sd"
     | "se"
+    | "sg"
+    | "shi"
     | "si"
     | "sk"
     | "sl"
@@ -135,6 +143,7 @@ export type SupportedLocale =
     | "so"
     | "sq"
     | "sr"
+    | "ss"
     | "st"
     | "su"
     | "sv"
@@ -151,18 +160,21 @@ export type SupportedLocale =
     | "to"
     | "tpi"
     | "tr"
+    | "ts"
     | "tt"
     | "ty"
     | "ug"
     | "uk"
     | "ur"
     | "uz"
+    | "ve"
     | "vi"
     | "war"
     | "wo"
     | "xh"
     | "yi"
     | "yo"
+    | "zgh"
     | "zh-Hans"
     | "zh-Hant"
     | "zu";
@@ -265,6 +277,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Belarusian",
         endonym: "беларуская",
         label: "Belarusian (беларуская)",
+    },
+    {
+        locale: "bem",
+        englishName: "Bemba",
+        endonym: "Ichibemba",
+        label: "Bemba (Ichibemba)",
     },
     {
         locale: "bg",
@@ -406,6 +424,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Persian",
         endonym: "فارسی",
         label: "Persian (فارسی)",
+    },
+    {
+        locale: "ff",
+        englishName: "Fula",
+        endonym: "Pulaar",
+        label: "Fula (Pulaar)",
     },
     {
         locale: "fi",
@@ -562,6 +586,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Georgian (ქართული)",
     },
     {
+        locale: "kab",
+        englishName: "Kabyle",
+        endonym: "Taqbaylit",
+        label: "Kabyle (Taqbaylit)",
+    },
+    {
+        locale: "ki",
+        englishName: "Kikuyu",
+        endonym: "Gikuyu",
+        label: "Kikuyu (Gikuyu)",
+    },
+    {
         locale: "kk",
         englishName: "Kazakh",
         endonym: "қазақ тілі",
@@ -627,6 +663,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Lithuanian",
         endonym: "lietuvių",
         label: "Lithuanian (lietuvių)",
+    },
+    {
+        locale: "luo",
+        englishName: "Luo",
+        endonym: "Dholuo",
+        label: "Luo (Dholuo)",
     },
     {
         locale: "lv",
@@ -731,6 +773,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Dutch",
         endonym: "Nederlands",
         label: "Dutch (Nederlands)",
+    },
+    {
+        locale: "nso",
+        englishName: "Northern Sotho",
+        endonym: "Sesotho sa Leboa",
+        label: "Northern Sotho (Sesotho sa Leboa)",
     },
     { locale: "ny", englishName: "Nyanja", endonym: "Nyanja", label: "Nyanja" },
     {
@@ -855,6 +903,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Northern Sami (davvisámegiella)",
     },
     {
+        locale: "sg",
+        englishName: "Sango",
+        endonym: "Sängö",
+        label: "Sango (Sängö)",
+    },
+    {
+        locale: "shi",
+        englishName: "Tachelhit",
+        endonym: "ⵜⴰⵛⵍⵃⵉⵜ",
+        label: "Tachelhit (ⵜⴰⵛⵍⵃⵉⵜ)",
+    },
+    {
         locale: "si",
         englishName: "Sinhala",
         endonym: "සිංහල",
@@ -897,6 +957,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "српски",
         label: "Serbian (српски)",
     },
+    { locale: "ss", englishName: "Swati", endonym: "Swati", label: "Swati" },
     {
         locale: "st",
         englishName: "Southern Sotho",
@@ -983,6 +1044,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Türkçe",
         label: "Turkish (Türkçe)",
     },
+    { locale: "ts", englishName: "Tsonga", endonym: "Tsonga", label: "Tsonga" },
     {
         locale: "tt",
         englishName: "Tatar",
@@ -1019,6 +1081,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "o‘zbek",
         label: "Uzbek (o‘zbek)",
     },
+    { locale: "ve", englishName: "Venda", endonym: "Venda", label: "Venda" },
     {
         locale: "vi",
         englishName: "Vietnamese",
@@ -1044,6 +1107,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Yoruba",
         endonym: "Èdè Yorùbá",
         label: "Yoruba (Èdè Yorùbá)",
+    },
+    {
+        locale: "zgh",
+        englishName: "Standard Moroccan Tamazight",
+        endonym: "ⵜⴰⵎⴰⵣⵉⵖⵜ",
+        label: "Standard Moroccan Tamazight (ⵜⴰⵎⴰⵣⵉⵖⵜ)",
     },
     {
         locale: "zh-Hans",

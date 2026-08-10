@@ -2673,3 +2673,154 @@ describe("the South Asian batch", () => {
         expect(describeBorder(doi, { colorWord: "black" })).toBe("काली");
     });
 });
+
+/**
+ * The African and Berber batch, which pins the three things it added to the
+ * suite: a class concord that is a **suffix** rather than a prefix, a class
+ * fork narrow enough that most of the words stay put, and a preposition made
+ * uniform so that an affix could be written beside a placeable at all.
+ */
+describe("the African and Berber batch", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    const described = (locale: string, key: NounKey) =>
+        describeStrokedShape(forLocale(locale), words, {
+            noun: { key },
+            withNoun: true,
+        });
+
+    /**
+     * `$gender` is a token set and nothing outside a catalog reads its values,
+     * which is what lets Fula use the same argument the eleven Bantu catalogs
+     * use and have it land on the *other end* of the word. The stems are
+     * constant here — mawn- "thick", bodee- "red" — and only the class suffix
+     * moves.
+     */
+    it("moves a Fula concord to the end of the word", () => {
+        expect(described("ff", "line")).toBe("diidol mawngol bodeewol e taƴe");
+        expect(described("ff", "circle")).toBe(
+            "sirkul mawngal bodeewal e taƴe",
+        );
+        expect(described("ff", "point")).toBe("toɓɓere mawnde bodeere e taƴe");
+    });
+
+    /**
+     * Xitsonga has very few true adjectives: almost everything English calls
+     * one is a noun. So the class fork lands on «-kulu» and nowhere else, and
+     * the colour is the same string against a class 3 noun and a class 7 one.
+     * That is a fact about which words carry a concord rather than about how
+     * much agreement the language has, and it is why the two rows are asserted
+     * whole rather than by a substring that would pass either way.
+     */
+    it("moves a Xitsonga concord on the width and not on the colour", () => {
+        expect(described("ts", "line")).toBe(
+            "ntila lowukulu tshwuka hi swiphemu",
+        );
+        expect(described("ts", "circle")).toBe(
+            "xirhendzevutana lexikulu tshwuka hi swiphemu",
+        );
+    });
+
+    /**
+     * The eleven prefixing catalogs, one row each, so that a change to any
+     * one of their `noun-gender` tables shows up as a diff here. Every one of
+     * them puts the noun first and the dash pattern last.
+     */
+    it.each([
+        ["nso", "line", "mothaladi o mokoto o mohubedu ka dikgaotšo"],
+        ["ss", "line", "umudvwa lomkhulu lobovu ngetincetu"],
+        ["ve", "line", "mutalo muhulu mutswuku nga zwipiḓa"],
+        ["ki", "line", "mũhari mũnene mũtune na icunjĩ"],
+        ["bem", "line", "umutalale umukulu umukashika na tuputule"],
+    ])(
+        "agrees %s's prefixed concord with the noun class",
+        (locale, key, expected) => {
+            expect(described(locale, key as NounKey)).toBe(expected);
+        },
+    );
+
+    /**
+     * Kabyle's *état d'annexion* falls on the noun after a preposition, and
+     * `$pattern` is a noun this catalog never sees. The way out is not an
+     * inflection but a *layout*: every one of the four places a fill pattern
+     * is placed puts it behind the same «s», so `fill-style` can write one
+     * annexed form apiece and be right in all of them. These two are the two
+     * shapes those places take — inside a named shape, and standing alone —
+     * and they are what would break if a branch stopped supplying the
+     * preposition.
+     */
+    it("puts every Kabyle fill pattern behind the same preposition", () => {
+        const kab = forLocale("kab");
+        expect(
+            describeClosedShape(
+                kab,
+                { fillColorWord: "blue", fillStyleWord: "dots" },
+                { filled: true, noun: { key: "circle" }, withNoun: true },
+            ),
+        ).toBe("tawinest teččuṛ tanilit s tenqiḍin");
+        expect(
+            describeFill(
+                kab,
+                { fillColorWord: "blue", fillStyleWord: "dots" },
+                { filled: true },
+            ),
+        ).toBe("anili s tenqiḍin");
+    });
+
+    /**
+     * Two standard languages in one script, which is the `hr`-against-`sr`
+     * case again: `zgh` and `shi` share Tifinagh and disagree about the words.
+     * Asserted side by side, because a catalog copied from its neighbour would
+     * read as perfectly good Tifinagh and be the wrong language.
+     */
+    it("keeps the two Tifinagh catalogs' vocabularies apart", () => {
+        const black = (locale: string) =>
+            describeStrokedShape(
+                forLocale(locale),
+                { colorWord: "black" },
+                { noun: { key: "line" }, withNoun: true },
+            );
+        expect(black("zgh")).toBe("ⵉⵣⵉⵔⵉⴳ ⴰⴱⴻⵔⴽⴰⵏ");
+        expect(black("shi")).toBe("ⵉⵣⵉⵔⵉⴳ ⴰⵙⴳⴳⴰⵏ");
+        expect(black("kab")).toBe("izirig aberkan");
+    });
+
+    /**
+     * All twelve put their adjectives after the noun, and all twelve therefore
+     * reach `[noun-tail]` for a regular polygon: the side count is a
+     * complement in every one of them and has to close the phrase. The
+     * Austronesian batch made the point that the split is not the postnominal
+     * languages' property; this is the same conclusion from the side where
+     * they all *are* postnominal, which is why the rows are worth having.
+     */
+    it.each([
+        ["nso", "sekhutlokhutlo se se lekanego se sehubedu sa mahlakore a 5"],
+        ["ts", "xivumbeko lexi ringanaka tshwuka xa matlhelo ya 5"],
+        ["ki", "mũhianĩre mũiganu mũtune ũrĩ na mĩena 5"],
+        ["luo", "kido mopogore maromre marakwar man-gi bethe 5"],
+        ["sg", "poligöne so alîngbi bengbä so ayeke na ambâgë 5"],
+        ["ff", "poligoŋ fotduɗo bodeewal mo banŋeeji 5"],
+        ["kab", "ameggetsdis aɣbalu azeggaɣ s 5 n yidisan"],
+    ])("closes %s's phrase with the side count", (locale, expected) => {
+        expect(
+            describeStrokedShape(
+                forLocale(locale),
+                { colorWord: "red" },
+                {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                },
+            ),
+        ).toBe(expected);
+    });
+});

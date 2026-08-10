@@ -67,29 +67,30 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
-`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ban`, `be`, `bg`, `bho`, `bik`, `bm`,
-`bn`, `bo`, `br`, `brx`, `bs`, `ca`, `ceb`, `ch`, `co`, `cs`, `cy`, `da`, `de`,
-`doi`, `dv`, `dz`, `ee`, `el`, `es`, `et`, `eu`, `fa`, `fi`, `fil`, `fj`, `fo`,
-`fr`, `fy`, `ga`, `gd`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`,
-`hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`, `jv`, `ka`,
-`kk`, `km`, `kn`, `ko`, `kok`, `ks`, `ky`, `lb`, `lg`, `ln`, `lo`, `lt`, `lv`,
-`mad`, `mai`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mr`, `ms`, `mt`,
-`my`, `nah`, `nb`, `nds`, `ne`, `nl`, `ny`, `oc`, `oj`, `om`, `or`, `pa`,
-`pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `ro`, `ru`, `rw`, `sa`, `sat`,
-`sc`, `scn`, `sd`, `se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`,
-`su`, `sv`, `sw`, `ta`, `te`, `tet`, `tg`, `th`, `ti`, `tk`, `tlh`, `tn`, `to`,
-`tpi`, `tr`, `tt`, `ty`, `ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`,
-`yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**,
+`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ban`, `be`, `bem`, `bg`, `bho`, `bik`,
+`bm`, `bn`, `bo`, `br`, `brx`, `bs`, `ca`, `ceb`, `ch`, `co`, `cs`, `cy`, `da`,
+`de`, `doi`, `dv`, `dz`, `ee`, `el`, `es`, `et`, `eu`, `fa`, `ff`, `fi`, `fil`,
+`fj`, `fo`, `fr`, `fy`, `ga`, `gd`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`,
+`hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`,
+`jv`, `ka`, `kab`, `ki`, `kk`, `km`, `kn`, `ko`, `kok`, `ks`, `ky`, `lb`, `lg`,
+`ln`, `lo`, `lt`, `luo`, `lv`, `mad`, `mai`, `mg`, `mi`, `min`, `mk`, `ml`,
+`mn`, `mni`, `mr`, `ms`, `mt`, `my`, `nah`, `nb`, `nds`, `ne`, `nl`, `nso`,
+`ny`, `oc`, `oj`, `om`, `or`, `pa`, `pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`,
+`ro`, `ru`, `rw`, `sa`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`,
+`sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`, `sv`, `sw`, `ta`,
+`te`, `tet`, `tg`, `th`, `ti`, `tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `ts`,
+`tt`, `ty`, `ug`, `uk`, `ur`, `uz`, `ve`, `vi`, `war`, `wo`, `xh`, `yi`, `yo`,
+`zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**,
 which each file's own header says at the top, and which is what #1521's
 translation platform is for. None has been read by a speaker. Correcting one
 needs no permission and no coordination: a wrong string is just wrong, and the
 English is one key away.
 
-Eighty-six of them are deliberately partial. Eighty-five are partial in the
+Ninety-eight of them are deliberately partial. Ninety-seven are partial in the
 same place — the two chemistry tables — while Klingon is partial almost
 everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The
-eighty-five are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+ninety-seven are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -99,9 +100,10 @@ Sami, Yiddish, Haitian Creole, Quechua, Guarani, Aymara, Nahuatl, Kʼicheʼ,
 Mapudungun, Ojibwe, Ilocano, Waray, Hiligaynon, Kapampangan, Bikol, Balinese,
 Minangkabau, Acehnese, Madurese, Tetum, Tongan, Fijian, Tahitian, Chamorro, Tok
 Pisin, Sanskrit, Maithili, Bhojpuri, Konkani, Dogri, Bodo, Manipuri, Santali,
-Kashmiri, Dhivehi, Tibetan and Dzongkha leave `element-name` and
-`element-anion-name` out, so those 130 keys fall back to English and
-`lint:i18n` reports the gap.
+Kashmiri, Dhivehi, Tibetan, Dzongkha, Northern Sotho, Swati, Venda, Tsonga,
+Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight and
+Tachelhit leave `element-name` and `element-anion-name` out, so those 130 keys
+fall back to English and `lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
@@ -244,6 +246,27 @@ way. **`locales/dz` beside it is partial for the opposite reason**, Bhutan
 teaching every subject but Dzongkha itself in English: two catalogs in one
 script, two different reasons for the same gap, which is the sharpest form this
 file has of the sentence below.
+
+**All twelve of the African and Berber batch are partial, and — like the second
+sub-Saharan batch and unlike every batch since — they split no ways at all.**
+Every one of the twelve is the school-system case, and the twelve run through
+seven education ministries rather than one: secondary science is taught in
+English or Afrikaans in South Africa, English in Eswatini, Kenya and Zambia,
+Portuguese in Mozambique, French in the Central African Republic and across
+Fula's whole range but Nigeria, and Arabic and French in Morocco and Algeria,
+where Amazigh is taught as a subject rather than used as a medium. So in all
+twelve the fallback *is* the curriculum. That is a fact about seven school
+systems rather than about twelve languages, which is why it reads as one
+paragraph here and takes a sentence of its own in each catalog's header.
+
+The four South African ones make the point sharpest, because `locales/af` sits
+in the same classrooms and **supplies the whole table**. Afrikaans and Northern
+Sotho are taught chemistry side by side, in the same schools, out of the same
+syllabus; one of them has a settled list of all 118 and the other meets the
+table in English. Nothing about the two languages predicts that, and nothing
+about the medium of instruction is a property of a language. `locales/sw` and
+`locales/ki` are the same pair in Kenya, one education system and two different
+answers.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -606,6 +629,102 @@ that no existing catalog needs and this one would use.
 
 **Tibetan's case particles are the affix rule in its sharpest form yet**, and
 they belong beside that rule rather than here; see
+[An affix cannot be welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable).
+
+### The African and Berber batch
+
+Twelve languages: Northern Sotho, Swati, Venda, Tsonga, Kikuyu, Bemba, Luo,
+Sango, Fula, Kabyle, Standard Moroccan Tamazight and Tachelhit. Four of them
+**complete South Africa's spoken official languages** — `nso`, `ss`, `ve` and
+`ts` join `af`, `en`, `zu`, `xh`, `st` and `tn`, so an activity can now declare
+any of the ten and get prose in it. (South African Sign Language, official
+since 2023, is the eleventh and has no written form to seed.)
+
+**Six more Bantu catalogs take the noun-class group from five to eleven**, and
+the thing they add is how *unevenly* a class concord lands. `locales/ts` is the
+case worth reading: Xitsonga has very few true adjectives, and almost
+everything English calls one is a noun joined with a possessive concord — so
+the class fork falls on «-kulu» and «-tsongo» and on nothing else, where
+`locales/zu` forks eight words and `locales/sw` six. That is not less
+agreement; it is agreement landing on fewer words, and
+`styleDescriptions.test.ts` pins the colour holding still while the width
+moves. Sotho-Tswana builds its concord out of two pieces where Nguni builds it
+out of one, so `locales/nso` writes «o mokoto» where `locales/ss` writes
+«lomkhulu» — which is why each catalog writes its table out rather than
+deriving it.
+
+**Fula puts the same argument on the other end of the word.** A Fula adjective
+agrees with its noun's class through a **suffix**: «ɓaleewol» against a `ngol`
+noun, «ɓaleere» against a `nde` one. `$gender` is a token set and nothing
+outside a catalog reads its values, so the argument needed no widening to reach
+a suffix any more than it needed widening to reach a noun class — which is the
+cleanest demonstration this file has that the mechanism is about *what a word
+agrees with* rather than about gender, prefixes, or Bantu.
+
+**Luo and Sango select on neither argument, and they sit between catalogs that
+select on five classes each.** Dholuo is Nilotic and Sango Ubangian; neither has
+gender or noun classes, and `locales/ki` and `locales/bem` on either side of
+them fork on `c3`, `c5`, `c7` and `c9`. A region says as little about agreement
+as a script does. `locales/luo` adds one thing of its own: its relative
+particle «ma-» is written onto the front of the adjective, including when the
+adjective is a placeable, which makes it the roster's first *prefix* welded
+onto a value the catalog never sees. That is sound for `locales/tlh`'s reason —
+«ma-» has one shape and never assimilates — and its header records the one case
+that would break it.
+
+**Sango has exactly one plural category.** `Intl.PluralRules("sg")` reports
+`other` and nothing else, so every counted message in it is flat, the way
+`locales/bm`, `locales/wo`, `locales/yo` and `locales/ig` already are.
+**Tachelhit is the opposite surprise**: `Intl.PluralRules("shi")` reports
+`one`, `few` and `other`, which makes it the roster's first catalog outside
+Europe with a `few` — the shape `bs`, `hr`, `ro` and `sr` have, reached from
+Afro-Asiatic. The three Berber catalogs disagree about plural categories as
+much as they disagree about script: `kab` and `zgh` have two and `shi` has
+three. Plural categories are per-language CLDR data, and neither a family nor a
+script predicts them.
+
+**Tifinagh is new to the roster**, and it cost `direction.ts` nothing: it runs
+left to right, and `zgh` and `shi` are ordinary left-to-right catalogs. Which
+Berber catalog is in which script is CLDR's decision rather than this
+repository's — `zgh` and `shi` maximize to `-Tfng` and `kab` to `-Latn`, the
+same rule that makes `sr` Cyrillic and `az` Latin — and `tzm` would arrive in
+Latin for the same reason, which is worth knowing before someone "fixes" it.
+`zgh` and `shi` are two directories rather than one with a script tag, the
+`hr`-against-`sr` case a sixth time: `locales/shi` writes ⵓⵎⵍⵉⵍ where
+`locales/zgh` writes ⴰⵎⴻⵍⵍⴰⵍ and ⴰⵙⴳⴳⴰⵏ where it writes ⴰⴱⴻⵔⴽⴰⵏ.
+
+The batch adds **five script asymmetries and one that is owed rather than
+hypothetical**. `kab-Tfng` and `kab-Arab` reach the Latin Kabyle catalog;
+`zgh-Latn` and `shi-Latn` reach the Tifinagh ones. **`ff-Adlm` is the one that
+is owed.** Adlam is a living script for Fulfulde — devised in the 1980s,
+encoded in Unicode 9, taught and published in — and a reader arriving under it
+gets Latin. As with `mni-Mtei` in the batch above, the usual answer, a second
+catalog beside the first, is a real debt rather than a formality, and the
+catalog's header says so.
+
+`ff` is an ISO 639-3 **macrolanguage** and joins `MACROLANGUAGE_MEMBERS` for
+the same published reason `qu`, `oj`, `bik`, `kok` and `doi` did. The catalog
+is **Pulaar**, the Senegalese and Mauritanian variety, which is `fuc` — the one
+member ICU folds on its own — and the other eight members reach it. That takes
+the map to nine keys, eight of them macrolanguages. None of the other eleven
+needs an alias: `ssw`, `ven`, `tso`, `kik`, `sag` and `ful` are canonicalized
+by `Intl.getCanonicalLocales`, and `nso`, `bem`, `luo`, `kab`, `zgh` and `shi`
+have no two-letter code to be canonicalized from. `negotiate.test.ts` holds
+that, and holds `tzm`, `rif`, `nd`, `nr`, `nyn` and `kln` on English —
+neighbours of the seeded languages that belong to no macrolanguage with a
+catalog, which is the membership rule working rather than a gap in it.
+
+Three of the twelve read their **English name once** in `<document lang>`'s
+autocomplete: CLDR has no `ss`, `ve` or `ts` language data to answer an endonym
+with, so Swati, Venda and Tsonga join `locales/co` and the rest. The other nine
+read both names: "Kikuyu (Gikuyu)",
+"Bemba (Ichibemba)", "Luo (Dholuo)", "Sango (Sängö)", "Northern Sotho (Sesotho
+sa Leboa)", "Kabyle (Taqbaylit)" and — the case most likely to be read as a
+mistake — **"Fula (Pulaar)"**, where CLDR's English name and its endonym are
+two different names for the language rather than one name twice.
+
+**What Kabyle adds to the affix rule is a new way out**, and it belongs beside
+that rule rather than here; see
 [An affix cannot be welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable).
 
 ### A language with no word for it
@@ -976,14 +1095,21 @@ its own terms.
 
 `$gender` is read more widely than its name suggests: it is a token set naming
 what an adjective agrees with, and nothing outside a catalog interprets its
-values. The five Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda and Nyanja
-— answer it with the noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`) rather
-than with a gender, and nothing outside them had to learn what a noun class is.
-The reachability rule applies to the class tokens exactly as it does to
-`$role`: a catalog writes a branch for a class only if its own `noun-gender`
-can answer that class, which is why Swahili and Nyanja carry `c6` — the plural
-class, which their word for *text* or *border* lands in — and Zulu, Xhosa and
-Kinyarwanda do not.
+values. The eleven Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda, Nyanja,
+Northern Sotho, Swati, Venda, Tsonga, Kikuyu and Bemba — answer it with the
+noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`) rather than with a gender, and
+nothing outside them had to learn what a noun class is. The reachability rule
+applies to the class tokens exactly as it does to `$role`: a catalog writes a
+branch for a class only if its own `noun-gender` can answer that class, which
+is why Swahili and Nyanja carry `c6` — the plural class, which their word for
+*text* or *border* lands in — and the other nine do not.
+
+**Fula answers it with a class too, and the concord is a suffix.**
+`locales/ff` writes «ɓaleewol» against a `ngol` noun and «ɓaleere» against a
+`nde` one, so the same argument that reaches the front of a Bantu adjective
+reaches the back of a Fula one. Nothing outside the catalog changed to allow
+that, which is the point: what `$gender` names is *what a word agrees with*,
+not where the agreement is spelled.
 
 Gender is not the only thing an adjective has to agree with. Three sets of
 words are rendered in two places each — a border's adjectives, the background
@@ -1159,6 +1285,7 @@ what that value turns out to *be*:
 | a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
 | a compound with the value | `fi` | Finnish writes a compound as one word |
 | a case particle after the value | `bo`, `dz` | the particle has four shapes, picked by the final letter of the syllable before it |
+| the annexed state on the value | `kab`, `zgh`, `shi` | a Berber noun changes its initial vowel after a preposition — «tawinest» → «n twinest» |
 
 Adjacency is not the problem. `{ $numSides }-kulmio` is correct Finnish for
 every side count, because `-kulmio` is the same whatever number lands in front
@@ -1231,6 +1358,34 @@ There are five ways out, and every catalog here takes one of them:
   the Bisayan linker «nga» in place of the enclitic `-ng`, which is what
   `locales/ceb` already does — see
   [A ligature is an affix too](#a-ligature-is-an-affix-too).
+
+**The three Berber catalogs sharpen the third of those into something new: make
+the position uniform, and one written form is right in all of them.** A Berber
+noun after a preposition goes into the *état d'annexion*, and `$pattern` is a
+noun these catalogs never see — so no branch can inflect it. What they do
+instead is arrange that every one of the four places a fill pattern is placed
+puts it behind the *same* preposition «s», including `style-fill`, where
+English has no preposition at all. `fill-style` then writes its words already
+annexed and cannot be wrong anywhere. That is *choose the words that land
+there* with the extra step of choosing how many positions there are to choose
+for, and `styleDescriptions.test.ts` pins two of the four so that a branch
+dropping the preposition fails rather than quietly producing an unannexed noun.
+
+The same three catalogs also settle a question the affix table can otherwise
+make look decided: **an alternation that a clause position triggers is not
+automatically a `$role` fork.** The annexed state is exactly the kind of thing
+`$role` exists for, and all three select on `$gender` alone — because the state
+falls on the *noun*, and every noun a clause position lands on is one the
+catalog writes out. A `$role` branch would render what the `$gender` branch
+underneath it already renders, which is `locales/gu`'s trap reached from
+Afro-Asiatic.
+
+**Dholuo welds a prefix onto a placeable, which nothing else here does.** Its
+relative particle «ma-» is written as part of the following word, and the
+following word is often a value: `locales/luo` writes `ma{ $color }`. It comes
+out right for `locales/tlh`'s reason rather than by luck — «ma-» has one shape
+and assimilates to nothing — so the table above stays a list of languages whose
+endings *change shape*, and gains a language whose beginnings do not.
 
 A select whose variants would land against such an affix carries the affix into
 each variant: Fluent does not care where a select sits inside a pattern.
