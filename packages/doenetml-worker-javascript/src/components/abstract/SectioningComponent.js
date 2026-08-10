@@ -641,8 +641,17 @@ export class SectioningComponent extends BlockComponent {
          *     rest is shown, so without this test a leading `<cascadeMessage>`
          *     would lead an item it is invisible in.
          *   - `hideChildren` is set, which suppresses the delegation entirely: it
-         *     comes only from an enclosing `<cascade>` holding a step back, and
-         *     such a step shows no child at all.
+         *     comes only from an enclosing `<cascade>` holding a step back.
+         *
+         * That last test is too broad, and #1680 tracks it: a held-back step does
+         * show one child — its `<cascadeMessage>`, the child whose inverted rule
+         * makes the `childrenToHide` test above necessary — so the step draws a
+         * message it delegates nothing to, and the message keeps the top margin
+         * that puts it a line below the item's number. Dropping the test would fix
+         * it, since `childrenToHide` holds every other child of a held-back step;
+         * it is left alone here because it is a different defect from #1673 in a
+         * different layout path, and the number a reader sees once the step is
+         * revealed — which is what the tests above pin — is already right.
          *
          * A child hidden from *above* — this section, or a container around it —
          * is a deliberate non-case: nothing in it is on screen to realign, and
