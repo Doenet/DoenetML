@@ -98,7 +98,7 @@ side-by-side-absolute-widths = `<{ $component }>` ma dilan ni sumanikɛlan minnu
 
 side-by-side-absolute-margins = `<{ $component }>` ma dilan ni sumanikɛlan minnu tɛ falen ye. An bɛ dankanw bila suman kan.
 
-side-by-side-no-block-child = `<{ $component }>` man ɲi: den kelen dɔrɔn ka kan ka kɛ a la.
+side-by-side-no-block-child = `<{ $component }>` man ɲi: den kelen walima ka tɛmɛ o kan ka kan ka kɛ a la.
 
 ## `<label>`
 

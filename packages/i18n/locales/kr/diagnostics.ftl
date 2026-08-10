@@ -28,7 +28,7 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset jiliwuni poyint k
 
 line-points-undetermined-dimensions = Layin poyintwa kura sǝnǝni-ben cauwin.
 
-line-points-too-few-dimensions = Layin poyintwa kura ndi ya kurabe-ben cauwuwu gǝni.
+line-points-too-few-dimensions = Layin poyintwa kura ndi ya kurabe-ben cauwuwu gǝnzǝ.
 
 line-points-depend-on-variables = Layin poyintwa nduwa gǝrǝginzǝ-ro dǝganzǝ-ben cauwin: { $variables }.
 

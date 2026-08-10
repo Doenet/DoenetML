@@ -195,11 +195,11 @@ function-points-too-close = Fonksiyo irimwo utudomo tubiri turi hafi cane. Ntibi
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-        [one] Ugusubiramwo kwa fonksiyo gushoboka gusa igihe igitigiri c'inzinjizo gihuye n'igitigiri c'inyishu. Iyi fonksiyo ifise inzinjizo { $inputs } n' { $outputs ->
+        [one] Ugusubiramwo kwa fonksiyo gushoboka gusa igihe igitigiri c'inzinjizo gihuye n'igitigiri c'inyishu. Iyi fonksiyo ifise inzinjizo { $inputs } na { $outputs ->
             [one] inyishu { $outputs }
            *[other] inyishu { $outputs }
         }.
-       *[other] Ugusubiramwo kwa fonksiyo gushoboka gusa igihe igitigiri c'inzinjizo gihuye n'igitigiri c'inyishu. Iyi fonksiyo ifise inzinjizo { $inputs } n' { $outputs ->
+       *[other] Ugusubiramwo kwa fonksiyo gushoboka gusa igihe igitigiri c'inzinjizo gihuye n'igitigiri c'inyishu. Iyi fonksiyo ifise inzinjizo { $inputs } na { $outputs ->
             [one] inyishu { $outputs }
            *[other] inyishu { $outputs }
         }.

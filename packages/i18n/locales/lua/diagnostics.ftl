@@ -12,13 +12,13 @@
 
 line-segment-attributes-ignored-with-endpoints =
     { $attributesCount ->
-        [one] { $attributes } udi ulengulula padi mpwente ibidi ya ku mfudilu iteka
+        [one] { $attributes } udi ulengululua padi mpwente ibidi ya ku mfudilu iteka
        *[other] { $attributes } idi ilengululua padi mpwente ibidi ya ku mfudilu iteka
     }
 
 line-segment-attributes-ignored-with-endpoint-and-midpoint =
     { $attributesCount ->
-        [one] { $attributes } udi ulengulula padi pwente wa ku mfudilu ne wa munkatshi bonso bateka
+        [one] { $attributes } udi ulengululua padi pwente wa ku mfudilu ne wa munkatshi bonso bateka
        *[other] { $attributes } idi ilengululua padi pwente wa ku mfudilu ne wa munkatshi bonso bateka
     }
 

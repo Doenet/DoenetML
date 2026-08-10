@@ -69,32 +69,30 @@ locales/<locale>/
 English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
 `ar`, `arn`, `as`, `ast`, `ay`, `az`, `ban`, `be`, `bem`, `bg`, `bho`, `bik`,
 `bm`, `bn`, `bo`, `br`, `brx`, `bs`, `ca`, `ceb`, `ch`, `co`, `cs`, `cy`, `da`,
-`dag`, `de`, `doi`, `dv`, `dyu`, `dz`, `ee`, `el`, `es`, `et`, `eu`, `fa`, `ff`,
-`fi`, `fil`,
-`fj`, `fo`, `fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`,
-`hi`,
-`hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`,
-`jv`, `ka`, `kab`, `ki`, `kk`, `km`, `kn`, `ko`, `kok`, `kr`, `ks`, `ktu`, `ky`,
-`lb`, `lg`,
-`ln`, `lo`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`, `mg`, `mi`, `min`, `mk`, `ml`,
-`mn`, `mni`, `mnk`, `mos`, `mr`, `ms`, `mt`, `my`, `nah`, `nb`, `nds`, `ne`,
-`nl`, `nso`, `ny`, `nyn`, `oc`, `oj`, `om`, `or`, `pa`, `pam`, `pl`, `ps`, `pt`,
-`qu`, `quc`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`, `sat`, `sc`, `scn`, `sd`, `se`,
-`sg`, `shi`, `si`,
+`dag`, `de`, `doi`, `dv`, `dyu`, `dz`, `ee`, `el`, `es`, `et`, `eu`, `fa`,
+`ff`, `fi`, `fil`, `fj`, `fo`, `fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`, `gu`,
+`ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`,
+`ilo`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `ki`, `kk`, `km`, `kn`, `ko`,
+`kok`, `kr`, `ks`, `ktu`, `ky`, `lb`, `lg`, `ln`, `lo`, `lt`, `lua`, `luo`,
+`lv`, `mad`, `mai`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mos`,
+`mr`, `ms`, `mt`, `my`, `nah`, `nb`, `nds`, `ne`, `nl`, `nso`, `ny`, `nyn`,
+`oc`, `oj`, `om`, `or`, `pa`, `pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`,
+`ro`, `ru`, `rw`, `sa`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`,
 `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`, `sv`, `sw`, `ta`,
-`te`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `ts`,
-`tt`, `ty`, `ug`, `uk`, `ur`, `uz`, `ve`, `vi`, `war`, `wo`, `xh`, `yi`, `yo`,
-`zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**,
-which each file's own header says at the top, and which is what #1521's
+`te`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tlh`, `tn`, `to`, `tpi`, `tr`,
+`ts`, `tt`, `ty`, `ug`, `uk`, `ur`, `uz`, `ve`, `vi`, `war`, `wo`, `xh`, `yi`,
+`yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed
+machine-generated seed**, which each file's own header says at the top, and
+which is what #1521's
 translation platform is for. None has been read by a speaker. Correcting one
 needs no permission and no coordination: a wrong string is just wrong, and the
 English is one key away.
 
-A hundred and nine of them are deliberately partial. A hundred and eight are partial in the
-same place — the two chemistry tables — while Klingon is partial almost
-everywhere, for a different reason: see
-[A language with no word for it](#a-language-with-no-word-for-it). The
-hundred and eight are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+A hundred and nine of them are deliberately partial. A hundred and eight are
+partial in the same place — the two chemistry tables — while Klingon is partial
+almost everywhere, for a different reason: see
+[A language with no word for it](#a-language-with-no-word-for-it). The hundred
+and eight are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -107,10 +105,10 @@ Pisin, Sanskrit, Maithili, Bhojpuri, Konkani, Dogri, Bodo, Manipuri, Santali,
 Kashmiri, Dhivehi, Tibetan, Dzongkha, Northern Sotho, Swati, Venda, Tsonga,
 Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight,
 Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
-Mandinka, Ga, Tiv and Kanuri leave `element-name` and `element-anion-name` out, so those 130 keys
-fall back to English and `lint:i18n` reports the gap.
-The first nine have no settled chemical nomenclature to seed from, and
-inventing one would be worse than the English a student meets in their own
+Mandinka, Ga, Tiv and Kanuri leave `element-name` and `element-anion-name` out,
+so those 130 keys fall back to English and `lint:i18n` reports the gap. The
+first nine have no settled chemical nomenclature to seed from, and inventing
+one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
 transliterations reaching all 118 — and picking either would misreport the
 other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
@@ -1228,8 +1226,9 @@ Ganda. The reachability rule applies to the class tokens exactly as it does to
 `$role`: a catalog writes a branch for a class only if its own `noun-gender`
 can answer that class. That is why Swahili and Nyanja carry `c6` — the plural
 class, which their word for *text* or *border* lands in — and the other
-seventeen do not, and why Venda, Tsonga, Kikuyu and Bemba stop at `c3`, `c7` and `c9`: no noun the
-core names is class 5 in any of the four, so the ḽi-, leri-, i- and ili- forms
+seventeen do not, and why Venda, Tsonga, Kikuyu and Bemba stop at `c3`, `c7`
+and `c9`: no noun the core names is class 5 in any of the four, so the ḽi-,
+leri-, i- and ili- forms
 are named in those catalogs' headers rather than written as branches nothing
 can select.
 
@@ -1274,9 +1273,11 @@ agreement; it is agreement landing on fewer words.
 is a creole whose lexifier is Kikongo: its nouns keep their class prefixes as
 frozen parts of the word and nothing agrees with them, so a describing word is
 joined by the invariable linker «ya» and never changes shape. It answers
-`noun-gender` with one token, the way `locales/en` does, and
-`styleDescriptions.test.ts` pins the three identical rows so that a fork
-appearing there has to delete an assertion rather than merely pass one.
+`noun-gender` with one token, the way `locales/en` does, and it is pinned from
+both ends: `styleDescriptions.test.ts` holds three identical rendered rows, and
+`catalogLint.test.ts` asserts at the source that no message in `locales/ktu`
+forks on `$gender` at all, so a fork appearing there has to delete an assertion
+rather than merely pass one.
 `locales/ln` is the instructive neighbour — the other Congolese vehicular
 language, which kept its concord. A family says as little about agreement as a
 region or a script does.

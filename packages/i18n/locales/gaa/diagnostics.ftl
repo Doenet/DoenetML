@@ -98,7 +98,7 @@ side-by-side-absolute-widths = Afeko `<{ $component }>` kɛ susumɔi ni tsakeee.
 
 side-by-side-absolute-margins = Afeko `<{ $component }>` kɛ susumɔi ni tsakeee. Wɔmaa naagbeei lɛ yɛ susumɔ nɔ.
 
-side-by-side-no-block-child = `<{ $component }>` ejaaa: esa akɛ ená fã bi kome kɛkɛ.
+side-by-side-no-block-child = `<{ $component }>` ejaaa: esa akɛ ená fã bi kome loo nɔ ni fe nakai.
 
 ## `<label>`
 
@@ -323,8 +323,8 @@ nested-section-wide-check-work-max-num-attempts = `maxNumAttempts` ni ato fã ni
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
-        [one] Okadi { $attributes } feŋ nɔ ko kɛji ato symbolicEquality.
-       *[other] Okadii { $attributes } feŋ nɔ ko kɛji ato symbolicEquality.
+        [one] Okadi { $attributes } feŋ nɔ ko kɛji atooo symbolicEquality.
+       *[other] Okadii { $attributes } feŋ nɔ ko kɛji atooo symbolicEquality.
     }
 
 answer-invalid-type = Hetoo sui ni ejaaa: { $type }

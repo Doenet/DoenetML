@@ -393,7 +393,7 @@ section-multiple-style-palettes = Kitini lenda sola <stylePalette> mosi kaka; be
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = beto lenda zaba ve bamutindu ya ke vutukila ve ya { $component } sambu numToSelect kele ntalu ya mvimba yina kele na nsi ya zero ve.
+variant-num-to-select-not-non-negative-integer = beto lenda zaba ve bamutindu ya ke vutukila ve ya { $component } sambu numToSelect kele ntalu ya mvimba ya kuluta to ya kufwanana ti zero ve.
 
 variant-num-to-select-not-constant-number = beto lenda zaba ve bamutindu ya ke vutukila ve ya { $component } sambu numToSelect kele ntalu ya ke soba ve.
 

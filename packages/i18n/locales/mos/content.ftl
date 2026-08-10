@@ -27,6 +27,7 @@
 #   miug-     miugga      miuggo      miugre      miugum
 #   bɛd-      bɛdga       bɛdgo       bɛdre       bɛdem
 #   bil-      bilga       bilgo       bilre       bilem
+#   pid-      pidga       pidgo       pidre       pidem
 #
 # **A Mooré noun phrase can also be built as a compound**, with the noun
 # dropped to its bare stem and the class suffix carried by the last modifier
@@ -39,8 +40,10 @@
 # *choose the words that land there* applied to a whole construction rather
 # than to one word, which is `locales/kab`'s move reached from Gur.
 #
-# Only the five words with a Mooré stem inflect; the remaining colours are
-# nouns and are written bare. `$role` goes unused: Mooré marks no case.
+# Only the six words with a Mooré stem inflect — three colours, both widths and
+# the filled word, which is the last row of the table above; the remaining
+# colours are nouns and are written bare. `$role` goes unused: Mooré marks no
+# case.
 #
 # The mathematical vocabulary is adapted from French, which is what a Burkinabè
 # classroom teaches mathematics in, except where Mooré has its own word —
@@ -142,9 +145,13 @@ noun-regular-polygon =
        *[head] poligonre sẽn zems
     }
 
-# The noun class, read off the noun's own suffix. `c1` is the default and the
-# class a loanword joins, which is what an author's own `markerStyleWord` is as
-# far as this catalog is concerned.
+# The noun class. A Mooré noun's class is usually legible in its own suffix —
+# «sõore» is `-re`, so `c3` — but the class is a fact about the noun rather
+# than about its ending, and two entries here say so: «zĩiga» is `c2` despite
+# `-ga`, and «sõor sẽn gob» is `c2` where the bare «sõore» it is built on is
+# `c3`. The French loans carry no Mooré suffix to read at all, which is why
+# they fall to the default. `c1` is that default, and what an author's own
+# `markerStyleWord` gets, the catalog never having seen it.
 noun-gender =
     { $noun ->
         [line] c3

@@ -20,6 +20,7 @@
 #   nyian     u nyian    i nyian    a nyian
 #   vesen     u vesen    i vesen    a vesen
 #   kiryan    u kiryan   i kiryan   a kiryan
+#   iv        u iv       i iv       a iv
 #
 # That is the third place agreement can be written, and it arrives with the
 # same argument and no change to anything outside this file — which is the
@@ -130,8 +131,8 @@ noun =
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
     { $part ->
-        [tail] u a lu a atser { $numSides }
-       *[head] poligon u a kuma
+        [tail] i a lu a atser { $numSides }
+       *[head] poligon i a kuma
     }
 
 # The noun class. `c3` is the default and the class a loanword joins, which is

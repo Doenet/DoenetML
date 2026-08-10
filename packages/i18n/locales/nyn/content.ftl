@@ -268,16 +268,16 @@ style-filled-with-noun =
        *[plain] { $noun } { $filled } { $color }
     }
 
-# «orubaju» is the border and leads its own describing words, so they agree
-# with it rather than with the shape it surrounds. Runyankore has no article
-# and joins this clause with the invariable «na», so all four branches read
-# alike.
+# «omupaka» is class 3, as `locales/rn`'s «umupaka» and `locales/lua`'s
+# «mukalu» are, and it leads its own describing words, so they agree with it
+# rather than with the shape it surrounds. Runyankore has no article and joins
+# this clause with the invariable «na», so all four branches read alike.
 style-border-clause =
     { $parts ->
-        [with-article] n'orubaju { $border }
-        [and] n'orubaju { $border }
-        [and-article] n'orubaju { $border }
-       *[with] n'orubaju { $border }
+        [with-article] n'omupaka { $border }
+        [and] n'omupaka { $border }
+        [and-article] n'omupaka { $border }
+       *[with] n'omupaka { $border }
     }
 
 style-fill =

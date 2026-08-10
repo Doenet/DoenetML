@@ -98,7 +98,7 @@ side-by-side-absolute-widths = I er `<{ $component }>` a mbamkaren mba ve gem ga
 
 side-by-side-absolute-margins = I er `<{ $component }>` a mbamkaren mba ve gem ga la ga. Se wa mkur la sha mkaren.
 
-side-by-side-no-block-child = `<{ $component }>` doo ga: gba u una lu a wan u ikyar môm tseegh.
+side-by-side-no-block-child = `<{ $component }>` doo ga: gba u una lu a wan u ikyar môm shin a hemba nahan.
 
 ## `<label>`
 

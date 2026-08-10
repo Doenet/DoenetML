@@ -2975,7 +2975,11 @@ describe("the West and Central African batch", () => {
         ["dyu", "poligɔni bɛnnen bilenman min kɛrɛ 5 ye"],
         ["mnk", "poligoŋ tembendiŋo wuleŋo meŋ ye karoo 5 soto"],
         ["gaa", "poligɔn ni damɔ pɛpɛɛpɛ tsuru ni yɔɔ tsɔɔmɔ 5"],
-        ["tiv", "poligon u a kuma i nyian u a lu a atser 5"],
+        // Tiv is the row where the noun's own particles are visible beside the
+        // adjective's, and all three have to be the same word: the head, the
+        // colour and the tail all agree with `regular-polygon`'s class, which
+        // `noun-gender` gives as `c2`, so all three read «i».
+        ["tiv", "poligon i a kuma i nyian i a lu a atser 5"],
         ["kr", "poligon lawanbe kime kǝskawa 5 jinzǝ"],
     ])("closes %s's phrase with the side count", (locale, expected) => {
         expect(

@@ -30,7 +30,7 @@ attempts-remaining =
     { $count ->
         [0] nta kugerageza gusigaye
         [one] hasigaye ukugerageza { $count }
-       *[other] hasigaye ugukurikirana { $count }
+       *[other] hasigaye ukugerageza { $count }
     }
 
 validation-correct = (Ni vyo)

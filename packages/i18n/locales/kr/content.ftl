@@ -208,7 +208,7 @@ section-title-prefix =
        *[name-number] { $sectionName } { $sectionNumber }
     }
 
-hint-title = Nyirtu
+hint-title = Alama
 
 
 ## Tables and figures

@@ -131,9 +131,14 @@ noun-regular-polygon =
        *[head] poligɔn din kpaŋa nyɛla yim
     }
 
-# The noun class, read off the noun's own suffix. `c1` is the default and the
-# class a loanword joins, which is what an author's own `markerStyleWord` is as
-# far as this catalog is concerned.
+# The noun class. A Dagbani noun's class is usually legible in its own suffix —
+# «gilli» and «luɣili» are `-li`, so `c1` — but the class is a fact about the
+# noun rather than about its ending: «daantalli» is `c2` despite `-li`. The
+# English loans carry no Dagbani suffix to read, and they are listed here
+# rather than left to the default because a loan joins the class its shape puts
+# it in — «sikwɛɛ», «dayamɔn» and «pɔyint» are all `c2`. `c1` is the default,
+# and what an author's own `markerStyleWord` gets, the catalog never having
+# seen it.
 noun-gender =
     { $noun ->
         [circle] c1

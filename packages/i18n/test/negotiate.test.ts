@@ -692,6 +692,10 @@ describe("negotiateLocales", () => {
             ["bms", "kr"],
             ["kby", "kr"],
             ["krt", "kr"],
+            // `kau` is not a member but the ISO 639-2/T code for the
+            // macrolanguage itself, which `Intl.getCanonicalLocales` rewrites
+            // to `kr` before negotiation is reached — `run`'s case rather than
+            // `bms`'s, and it needs no entry in either map.
             ["kau", "kr"],
             // The rest have no two-letter code, so they arrive under the tag
             // their directory is named for and need nothing.

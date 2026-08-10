@@ -98,7 +98,7 @@ side-by-side-absolute-widths = Bɛ na bi mali `<{ $component }>` ni tariga din b
 
 side-by-side-absolute-margins = Bɛ na bi mali `<{ $component }>` ni tariga din bi taɣira. Ti zaŋdila nɔya n-niŋ ŋmaŋŋa zuɣu.
 
-side-by-side-no-block-child = `<{ $component }>` bi tuhi: di simdi ka di mali pirigili biɛɣu kɔŋko.
+side-by-side-no-block-child = `<{ $component }>` bi tuhi: di simdi ka di mali pirigili biɛɣu yino bee gari lala.
 
 ## `<label>`
 
