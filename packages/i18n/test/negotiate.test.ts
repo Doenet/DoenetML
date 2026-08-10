@@ -760,10 +760,9 @@ describe("negotiateLocales", () => {
             ["msc", "mnk"],
             ["mwk", "mnk"],
             // The two members with catalogs of their own, which must not be
-            // folded onto Mandinka. This is the half of the entry that is easy
-            // to get wrong: listing `bam` or `dyu` under `mnk` would serve a
-            // Bamako reader Mandinka, and nothing else in the suite would
-            // notice.
+            // folded onto Mandinka. These rows record where they land; what
+            // holds them out of the members list is the test below, since
+            // normalization hides the mistake from these.
             ["bam", "bm"],
             ["bm", "bm"],
             ["dyu", "dyu"],
@@ -772,6 +771,27 @@ describe("negotiateLocales", () => {
                 negotiateLocales([normalizeLocaleTag(requested)], available),
             ).toEqual([expected, "en"]);
         });
+
+        /**
+         * The half of the `mnk` entry that is easy to get wrong: listing `bam`
+         * or `dyu` among Mandinka's members would serve a Bamako reader
+         * Mandinka.
+         *
+         * Asserted on the *un-normalized* tag, which is the only form the
+         * mistake is visible in. `normalizeLocaleTag` rewrites `bam` to `bm`
+         * before `applyLanguageAlias` is ever reached, so the row above passes
+         * whether or not `bam` is listed — and `negotiateLocales` is a public
+         * function a host may hand a raw `navigator.languages` entry to, so
+         * the members list really is consulted for these tags.
+         */
+        it.each(["bam", "dyu"])(
+            "keeps %s out of Mandinka's members list",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).not.toContain(
+                    "mnk",
+                );
+            },
+        );
 
         /**
          * The near misses. `kmb` (Kimbundu) and `umb` (Umbundu) are Bantu

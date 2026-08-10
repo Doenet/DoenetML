@@ -81,9 +81,10 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
  * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc` — so that each list reads as the
- * whole of a group
- * rather than as the leftovers of one, and so that a change in ICU data cannot
- * silently drop a code out of coverage.
+ * whole of a group rather than as the leftovers of one, and so that a change in
+ * ICU data cannot silently drop a code out of coverage. `mnk`'s list carries
+ * `emk` for the same reason, though what ICU folds `emk` to is `man` rather
+ * than `mnk`.
  *
  * Serving a related variety is a real compromise, and each of these catalogs
  * says in its own header which written standard it is — Southern Quechua,
@@ -216,9 +217,12 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // this map avoids.
     kr: ["bms", "kby", "knc", "krt"],
     // Manding. `mnk` is a *member* rather than the macrolanguage — see
-    // {@link LANGUAGE_ALIASES}'s `man` entry — so this lists the members that
-    // resolve nowhere, and deliberately omits `bam` and `dyu`, which
-    // `locales/bm` and `locales/dyu` answer for themselves.
+    // {@link LANGUAGE_ALIASES}'s `man` entry — so this lists the sibling
+    // members, and deliberately omits `bam` and `dyu`, which `locales/bm` and
+    // `locales/dyu` answer for themselves. `emk` is listed for the reason the
+    // already-folded codes above are: `Intl.getCanonicalLocales` rewrites it to
+    // `man`, so it would reach Mandinka through the alias anyway, and naming it
+    // keeps the list the whole of a group rather than the leftovers of one.
     mnk: ["emk", "mku", "mlq", "msc", "mwk"],
 };
 
@@ -229,7 +233,19 @@ const MACROLANGUAGE_ALIASES: Record<string, string> = Object.fromEntries(
     ),
 );
 
-/** Rewrite a request's language subtag if it is one no catalog is named after. */
+/**
+ * Rewrite a request's language subtag if it is one no catalog is named after.
+ *
+ * {@link LANGUAGE_ALIASES} is consulted before {@link MACROLANGUAGE_MEMBERS},
+ * so a hand-written entry always wins over a membership one. The two share no
+ * key today; the order is what keeps a future collision decidable rather than
+ * accidental.
+ *
+ * The tag arrives as the caller wrote it — {@link negotiateLocales} is public
+ * and hosts pass `navigator.languages` straight in — so a code
+ * `Intl.getCanonicalLocales` would have folded may still reach these maps
+ * unfolded. That is why a member list names codes ICU already resolves.
+ */
 function applyLanguageAlias(tag: string): string {
     const [language, ...rest] = tag.split("-");
     const lowered = language.toLowerCase();

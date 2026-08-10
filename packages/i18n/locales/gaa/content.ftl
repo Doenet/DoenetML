@@ -11,10 +11,9 @@
 # and no case, so `$gender` and `$role` go unused exactly as they do in
 # English. It sits in this batch beside three catalogs that fork on a prefixed
 # class, two on a suffixed one and one on a particle, and it is the plainest
-# form of the sentence
-# they add up to: **a region says nothing about agreement.** Accra and Tamale
-# are in one country and one school system, and `locales/dag` writes a class
-# table where this file writes none.
+# form of the sentence they add up to: **a region says nothing about
+# agreement.** Accra and Tamale are in one country and one school system, and
+# `locales/dag` writes a class table where this file writes none.
 #
 # What Ga does have is **reduplication for the plural of a qualifier** —
 # «agbo» becomes «agbogbo» after a plural noun. Nothing in these messages ever

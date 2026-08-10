@@ -83,10 +83,9 @@ English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
 `ts`, `tt`, `ty`, `ug`, `uk`, `ur`, `uz`, `ve`, `vi`, `war`, `wo`, `xh`, `yi`,
 `yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed
 machine-generated seed**, which each file's own header says at the top, and
-which is what #1521's
-translation platform is for. None has been read by a speaker. Correcting one
-needs no permission and no coordination: a wrong string is just wrong, and the
-English is one key away.
+which is what #1521's translation platform is for. None has been read by a
+speaker. Correcting one needs no permission and no coordination: a wrong string
+is just wrong, and the English is one key away.
 
 A hundred and nine of them are deliberately partial. A hundred and eight are
 partial in the same place — the two chemistry tables — while Klingon is partial
@@ -107,9 +106,9 @@ Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight,
 Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
 Mandinka, Ga, Tiv and Kanuri leave `element-name` and `element-anion-name` out,
 so those 130 keys fall back to English and `lint:i18n` reports the gap. The
-first nine have no settled chemical nomenclature to seed from, and inventing
-one would be worse than the English a student meets in their own
-textbook. Kannada has two — native coinages reaching a dozen elements and
+first nine have no settled chemical nomenclature to seed from, and inventing one
+would be worse than the English a student meets in their own textbook. Kannada
+has two — native coinages reaching a dozen elements and
 transliterations reaching all 118 — and picking either would misreport the
 other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
 current one is English: Punjabi secondary chemistry uses the English terms, the
@@ -826,8 +825,7 @@ both, as "Rundi (Ikirundi)", "Nyankole (Runyankore)" and "Ga (Gã)".
 
 **"Mossi" is the one likeliest to be read as an error and is not one.** CLDR
 names `mos` after the people; the language is Mooré, which is what its own
-catalog header calls it. They are one entry, the way "Nyanja" and Chichewa
-are.
+catalog header calls it. They are one entry, the way "Nyanja" and Chichewa are.
 
 #### The chemistry gap splits two ways, and one of the two is new here
 
@@ -1228,9 +1226,8 @@ can answer that class. That is why Swahili and Nyanja carry `c6` — the plural
 class, which their word for *text* or *border* lands in — and the other
 seventeen do not, and why Venda, Tsonga, Kikuyu and Bemba stop at `c3`, `c7`
 and `c9`: no noun the core names is class 5 in any of the four, so the ḽi-,
-leri-, i- and ili- forms
-are named in those catalogs' headers rather than written as branches nothing
-can select.
+leri-, i- and ili- forms are named in those catalogs' headers rather than
+written as branches nothing can select.
 
 **Fula answers it with a class too, and the concord is a suffix.**
 `locales/ff` writes «ɓaleewol» against a `ngol` noun and «ɓaleere» against a
@@ -1277,10 +1274,9 @@ joined by the invariable linker «ya» and never changes shape. It answers
 both ends: `styleDescriptions.test.ts` holds three identical rendered rows, and
 `catalogLint.test.ts` asserts at the source that no message in `locales/ktu`
 forks on `$gender` at all, so a fork appearing there has to delete an assertion
-rather than merely pass one.
-`locales/ln` is the instructive neighbour — the other Congolese vehicular
-language, which kept its concord. A family says as little about agreement as a
-region or a script does.
+rather than merely pass one. `locales/ln` is the instructive neighbour — the
+other Congolese vehicular language, which kept its concord. A family says as
+little about agreement as a region or a script does.
 
 Gender is not the only thing an adjective has to agree with. Three sets of
 words are rendered in two places each — a border's adjectives, the background
