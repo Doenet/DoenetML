@@ -16,6 +16,6 @@ Only items whose leading content has no first line of its own are affected, so a
 
 A `<figure>` leading a list item also passes the item's top-margin suppression on to the content it holds, as the other container components do, so the number and the figure's content start on the same row. A `<caption>` is skipped when a container looks for the content the number lines up with, since it is drawn below that content whatever its position among the children.
 
-These items now line up exactly as the corresponding `<problem>`/`<task>`/`<part>` items in a `<problems>` do, which draw their own numbers and have always top-aligned them for block content.
+These items now line up exactly as the corresponding `<problem>`/`<task>`/`<part>` list items do, which draw their own numbers and top-align them for block content.
 
 Closes #1673.

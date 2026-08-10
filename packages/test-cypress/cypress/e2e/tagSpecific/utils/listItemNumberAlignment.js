@@ -230,6 +230,25 @@ function findMarkerBand(li) {
 }
 
 /**
+ * {@link findMarkerBand}, with every way it can come up short turned into a
+ * failure naming the item and the reason. Both assertions below go through this,
+ * so neither can absorb a scan that found nothing — which is how a marker helper
+ * comes to pass on a broken page.
+ *
+ * @param {Element} li The `<li>` to scan.
+ * @param {string} liId Doenet component id of that item, for the message.
+ * @returns {{top: number, bottom: number}} The band, in viewport coordinates.
+ */
+function measureMarkerBand(li, liId) {
+    const { band, problem, detail } = findMarkerBand(li);
+    expect(
+        problem,
+        `${liId}'s native ::marker could not be measured (${problem}: ${detail})`,
+    ).to.be.undefined;
+    return band;
+}
+
+/**
  * Assert that a real `<li>`'s native `::marker` is painted on the item's own
  * first row: the row the marker of `textItemId` — a sibling item that begins with
  * ordinary text — occupies relative to *its* item.
@@ -268,11 +287,7 @@ export function verifyListItemMarkerOnFirstRow(
     [textItemId, liId].forEach((id) => {
         cy.get(`#${cesc(id)}`).should(($li) => {
             const li = $li[0];
-            const { band, problem, detail } = findMarkerBand(li);
-            expect(
-                problem,
-                `${id}'s native ::marker could not be measured (${problem}: ${detail})`,
-            ).to.be.undefined;
+            const band = measureMarkerBand(li, id);
             const liTop = li.getBoundingClientRect().top;
             rows[id] = {
                 top: band.top - liTop,
@@ -327,12 +342,7 @@ export function verifyListItemMarkerSharesRowWith(liId, targetSelector) {
         const target = li.ownerDocument.querySelector(targetSelector);
         expect(target, `${targetSelector} exists`).to.not.be.null;
 
-        const { band, problem, detail } = findMarkerBand(li);
-        expect(
-            problem,
-            `${liId}'s native ::marker could not be measured (${problem}: ${detail})`,
-        ).to.be.undefined;
-
+        const band = measureMarkerBand(li, liId);
         const liTop = li.getBoundingClientRect().top;
         const targetBox = target.getBoundingClientRect();
         const markerCenter = (band.top + band.bottom) / 2;

@@ -618,6 +618,28 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
     });
 
     /*
+     * Every assertion in this section is measured from the top of the item, and an
+     * item whose leading block is not on the page yet is a one-line item whose
+     * marker is at its own top however the anchor is set — so all of them pass on
+     * a page that is simply not finished rendering. That is not hypothetical: the
+     * `<spreadsheet>` test below passed with the anchor removed until this gate
+     * went in, because a spreadsheet's renderer arrives in a lazily loaded chunk
+     * and `should` retries settled on the empty box that stands in for it.
+     *
+     * The item being taller than a line of text is what says the lead has arrived.
+     * The threshold is 40px; every lead in this section is at least 60px tall once
+     * it is on the page.
+     */
+    function waitForBlockLeadToRender(liId) {
+        cy.get(`#${cesc(liId)}`).should(($li) => {
+            expect(
+                $li[0].getBoundingClientRect().height,
+                `${liId}'s leading block has rendered`,
+            ).to.be.greaterThan(40);
+        });
+    }
+
+    /*
      * #1673: a leading box that offers the browser no line box — a `<graph>`, an
      * `<image>`, a `<video>`, a `<tabular>` — left the item's native marker with
      * nowhere to go, and the browser drew it after all of the item's content: the
@@ -651,9 +673,6 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
             markup: `<video name="lead" youtube="tJnwPSaeuUk" width="320px"><shortDescription>A video</shortDescription></video>`,
         },
         {
-            // No `outsideMargin`: a `<tabular>`'s margin is on a wrapper div
-            // the renderer owns, and the component's id is on the `<table>`
-            // inside it, so there is no element here to assert it on.
             name: "tabular with a paragraph in its first cell",
             markup: `<tabular name="lead"><row><cell><p>a cell</p></cell></row></tabular>`,
         },
@@ -675,6 +694,7 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         {
             name: "graph in a sideBySide panel",
             markup: `<sideBySide><graph name="lead" size="small"><point>(1,2)</point></graph><p>Beside it</p></sideBySide>`,
+            outsideMargin: "12px",
         },
     ];
 
@@ -695,15 +715,16 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
                 );
             });
 
-            cy.get(`#${cesc("item")}`).should("be.visible");
+            waitForBlockLeadToRender("item");
             verifyListItemMarkerOnFirstRow("item", "textItem");
 
             // The number can only sit on the content's row if the content still
             // starts at the top of the item, so the lead's top margin has to be
             // suppressed as well; the copy outside the list keeps its margin, so
-            // the `0px` cannot pass by accident. Only for the leads whose margin
-            // is on an element with an id to name — `<video>` and `<image>` carry
-            // theirs on a container div the renderer owns.
+            // the `0px` cannot pass by accident. Asserted only on the rows whose
+            // margin sits on the element the name resolves to: an `<image>`, a
+            // `<video>` and a `<tabular>` carry theirs on a container div the
+            // renderer owns instead, so there is nothing here to name it by.
             if (outsideMargin) {
                 cy.get(`#${cesc("lead")}`).should(
                     "have.css",
@@ -740,7 +761,7 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(`#${cesc("item")}`).should("be.visible");
+        waitForBlockLeadToRender("item");
         verifyListItemMarkerOnFirstRow("item", "textItem");
 
         cy.get(`#${cesc("lead")}`).should(($lead) => {
@@ -775,7 +796,7 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(`#${cesc("item")}`).should("be.visible");
+        waitForBlockLeadToRender("item");
         verifyListItemMarkerOnFirstRow("item", "textItem");
     });
 

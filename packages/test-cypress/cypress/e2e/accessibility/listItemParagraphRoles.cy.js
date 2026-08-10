@@ -163,18 +163,29 @@ describe(
 </ol>`,
             });
 
+            // Resolved through the element's own window: `getComputedStyle` in a
+            // spec file is the Cypress runner's, not the application's. The
+            // expected space is written as an escape rather than as itself, so
+            // that the character the rule turns on is visible to a reader here.
+            function anchorContent($li) {
+                return $li[0].ownerDocument.defaultView.getComputedStyle(
+                    $li[0],
+                    "::before",
+                ).content;
+            }
+
             cy.get("#anchored").should(($li) => {
                 expect(
-                    getComputedStyle($li[0], "::before").content,
+                    anchorContent($li),
                     "the anchor's content carries empty alternative text",
-                ).to.equal(`"​" / ""`);
+                ).to.equal(`"\u200B" / ""`);
             });
 
             // The item that needs no anchor gets none, so the space cannot reach
             // an item whose marker the browser already places.
             cy.get("#plain").should(($li) => {
                 expect(
-                    getComputedStyle($li[0], "::before").content,
+                    anchorContent($li),
                     "an item with an ordinary lead has no anchor",
                 ).to.equal("none");
             });
