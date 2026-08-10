@@ -86,7 +86,7 @@ editor-tab-help = सन्दर्भानुसारिणी सहाय�
 editor-tab-help-short = सन्दर्भः
 editor-tab-errors = दोषाः
 editor-tab-warnings = सावधानानि
-editor-tab-info = सूचनाः
+editor-tab-info = सूचना
 editor-tab-accessibility = सुगम्यता
 editor-tab-responses = प्रेषितानि उत्तराणि
 

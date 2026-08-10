@@ -81,8 +81,9 @@ English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
 `tpi`, `tr`, `tt`, `ty`, `ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`,
 `yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**,
 which each file's own header says at the top, and which is what #1521's
-translation platform is for. None has been read by a speaker. Correcting one needs no permission and no
-coordination: a wrong string is just wrong, and the English is one key away.
+translation platform is for. None has been read by a speaker. Correcting one
+needs no permission and no coordination: a wrong string is just wrong, and the
+English is one key away.
 
 Eighty-six of them are deliberately partial. Eighty-five are partial in the
 same place — the two chemistry tables — while Klingon is partial almost
@@ -514,13 +515,13 @@ change for the answer to change.
 where the plural takes -ᱠᱚ. A dual is not new here — `ar`, `he`, `mt`, `br`,
 `cy`, `ga`, `gd`, `se` and `sl` all resolve `two` and all write it — but every
 one of them writes it in a handful of messages, and `locales/sat` writes it in
-every counted message it has: 16 branches against Slovene's 14 and Hebrew's
-eight. **Tibetan and
-Dzongkha are the opposite extreme**: ICU reports exactly one category for each,
-so no message in either can select on a count, and the `[0]` branches that
-survive are matched by *number* rather than by category — Fluent resolves an
-explicit number before it consults the plural rules, which is why a wording for
-none is still reachable.
+every counted message it has: 16 branches against Slovene's 14, Arabic's ten and
+Hebrew's eight. **Tibetan and Dzongkha are the opposite extreme**: ICU reports
+exactly one category for each, so no message in either can select on a count and
+every counted message in both is written flat, the way `locales/ja` and
+`locales/th` write theirs. The `[0]` branches that survive are matched by
+*number* rather than by category — Fluent resolves an explicit number before it
+consults the plural rules, which is why a wording for none is still reachable.
 
 Three catalogs put their adjectives **after** the noun — Meitei and both
 Tibetan-script ones — and all three therefore reach `[noun-tail]` for the
@@ -967,11 +968,11 @@ inflects for case wants a different form in each. So every adjective is handed
 `$role` as well, naming the *position* the phrase is going into rather than
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
-positions, and `be`, `cs`, `de`, `el`, `et`, `fi`, `fo`, `hi`, `hr`, `is`,
-`ka`, `kok`, `lt`, `lv`, `mr`, `pa`, `pl`, `ps`, `ro`, `ru`, `sa`, `sd`, `sk`,
-`sl`, `sq`, `sr`, `uk` and `ur` are the catalogs that select on them, and
-`locales/sa` selects on more of each than any of them — three genders and a
-different case in every clause position. Sharing a script does
+positions, and `be`, `bs`, `cs`, `de`, `el`, `et`, `fi`, `fo`, `hi`, `hr`,
+`is`, `ka`, `kok`, `lt`, `lv`, `mr`, `pa`, `pl`, `ps`, `ro`, `ru`, `sa`, `sd`,
+`sk`, `sl`, `sq`, `sr`, `uk`, `ur` and `yi` are the catalogs that select on
+them, and `locales/sa` selects on more of each than any of them — three genders
+and a different case in every clause position. Sharing a script does
 not imply sharing the fork: Marathi and Hindi both take an oblique adjective
 before a postposition and Nepali, written in the same letters, takes none. Nor
 is the fork all-or-nothing: Pashto marks the oblique on a feminine adjective in
@@ -1677,11 +1678,11 @@ differ from `de` or `es`:
 
 `ur` is the outlier worth knowing about: its grammar is `hi`'s, so
 `locales/hi` is the closest thing to a parallel text for it and a correction to
-one is usually a correction to both. `ug` is Turkic and agrees with nothing, and `dv` is Indo-Aryan and agrees with
-nothing either — the two reach the same answer from opposite families. `ks` is
-the one of the ten whose catalog records a gap rather than a decision: it *does*
-agree an adjective for gender and this seed does not, which its header says
-outright.
+one is usually a correction to both. `ug` is Turkic and agrees with nothing,
+and `dv` is Indo-Aryan and agrees with nothing either — the two reach the same
+answer from opposite families. `ks` is the one of the ten whose catalog records
+a gap rather than a decision: it *does* agree an adjective for gender and this
+seed does not, which its header says outright.
 `yi` is Germanic and the only one of the ten that forks on `$role`: its
 adjectives take a dative after «מיט» and «אויף», so its catalog has the shape
 `locales/de` and `locales/bs` have rather than the shape of the nine beside

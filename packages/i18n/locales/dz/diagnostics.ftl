@@ -3,7 +3,7 @@
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
-# One plural category, so every counted select here is a single branch; see
+# One plural category, so every counted message here is written flat; see
 # `content.ftl`'s header, and `locales/bo/content.ftl` for the case-particle
 # rule both Tibetan-script catalogs follow. DoenetML element, attribute and
 # value names stay in English exactly as written, and so does the
@@ -11,15 +11,9 @@
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-       *[other] མཐའ་ཚག་གཉིས་ཆ་ར་བཀོད་ཡོད་པ་ཅིན་ { $attributes } སྣང་མེད་བཞག
-    }
+line-segment-attributes-ignored-with-endpoints = མཐའ་ཚག་གཉིས་ཆ་ར་བཀོད་ཡོད་པ་ཅིན་ { $attributes } སྣང་མེད་བཞག
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-       *[other] མཐའ་ཚག་དང་དབུས་ཚག་གཉིས་ཆ་ར་བཀོད་ཡོད་པ་ཅིན་ { $attributes } སྣང་མེད་བཞག
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = མཐའ་ཚག་དང་དབུས་ཚག་གཉིས་ཆ་ར་བཀོད་ཡོད་པ་ཅིན་ { $attributes } སྣང་མེད་བཞག
 
 line-segment-midpoint-offset-without-midpoint = དབུས་ཚག་མེད་པ་ཅིན་ midpointOffset ལུ་ནུས་པ་མེད
 
@@ -240,10 +234,7 @@ eigen-decomposition-failed = དྲྭ་གྲངས་ཀྱི་རང་བ
 
 ## `<matchesPattern>`
 
-matches-pattern-parameter-not-in-pattern =
-    { $parametersCount ->
-       *[other] `<matchesPattern>`: ཚད་བཟུང་ { $parameters } དཔེ་གཞི་ནང་མིན་འདུག དེ་འབད་ནི་དེ་གིས་དེ་ཨ་རྟག་ར་སྟོངམ་དང་མཐུནམ་ཨིན།
-    }
+matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: ཚད་བཟུང་ { $parameters } དཔེ་གཞི་ནང་མིན་འདུག དེ་འབད་ནི་དེ་གིས་དེ་ཨ་རྟག་ར་སྟོངམ་དང་མཐུནམ་ཨིན།
 
 ## `<graph>`
 
@@ -299,10 +290,7 @@ answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` ཡ�
 
 nested-section-wide-check-work-max-num-attempts = `sectionWideCheckWork` སྣོད་གཞན་ཅིག་གི་ནང་ན་གི་ `sectionWideCheckWork` སྣོད་གུ་ `maxNumAttempts` བཀོད་རུང་ནུས་པ་མེད། འབད་རྩོལ་གྱི་གྲངས་ཀ་ཕྱི་ཁའི་སྣོད་ཀྱིས་ཚད་འཛིན་འབདཝ་ཨིན་ནི་དེ་གིས། `maxNumAttempts` ཕྱི་ཁའི་སྣོད་གུ་བཀོད་གནང་།
 
-answer-attributes-need-symbolic-equality =
-    { $attributesCount ->
-       *[other] symbolicEquality མེད་པ་ཅིན་ { $attributes } ཁྱད་ཆོས་ལུ་ནུས་པ་མི་འབྱུང་།
-    }
+answer-attributes-need-symbolic-equality = symbolicEquality མེད་པ་ཅིན་ { $attributes } ཁྱད་ཆོས་ལུ་ནུས་པ་མི་འབྱུང་།
 
 answer-invalid-type = ལན་ལུ་དབྱེ་བ་ནོར་བ། { $type }
 
@@ -322,10 +310,7 @@ pretzel-circuit-first-problem-distractor = pretzel ནོར་བ། mode="circ
 
 ## Attribute values
 
-attribute-invalid-values =
-    { $valuesCount ->
-       *[other] `{ $attribute }` ཁྱད་ཆོས་ལུ་བེ་ལུ་ནོར་བ་ { $values }། སྣང་མེད་བཞག
-    }
+attribute-invalid-values = `{ $attribute }` ཁྱད་ཆོས་ལུ་བེ་ལུ་ནོར་བ་ { $values }། སྣང་མེད་བཞག
 
 attribute-must-be-references = `{ $attribute }` ཁྱད་ཆོས་ལུ་ `{ $value }` འདི་བེ་ལུ་ནོར་བ་ཨིན། ཁྱད་ཆོས་འདི་ `$` ལས་འགོ་བཙུགས་པའི་གཞི་བསྟུན་གྱིས་གྲུབ་དགོ
 

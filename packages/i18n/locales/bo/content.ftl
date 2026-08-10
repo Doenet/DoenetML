@@ -13,12 +13,10 @@
 # **`Intl.PluralRules("bo")` reports exactly one category, `other`.** Tibetan
 # does not mark number on a noun after a numeral, and ICU records that, so no
 # message in any of the four files can select on a count and none tries to:
-# every counted message is written flat. The `[0]`
-# branches that survive are matched by *number* rather than by category, which
-# Fluent resolves before it consults the plural rules — so a wording for none
-# is still reachable. That makes Tibetan the first catalog in the roster whose
-# every counted message is a single branch by the language's own grammar rather
-# than by a translator's choice.
+# every counted message is written flat, as `locales/ja`, `locales/th` and the
+# other one-category catalogs write theirs. The `[0]` branches that survive are
+# matched by *number* rather than by category, which Fluent resolves before it
+# consults the plural rules — so a wording for none is still reachable.
 #
 # **Tibetan's case particles change shape according to the final letter of the
 # syllable before them, and that is the affix rule in its sharpest form yet.**

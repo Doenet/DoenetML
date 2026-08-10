@@ -4,7 +4,7 @@
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
-# One plural category, so every counted select here is a single branch.
+# One plural category, so every counted message here is written flat.
 # `WCAG`, `WCAG AA`, `DoenetML`, `XML` and `styleNumber` are names and stay as
 # they stand.
 
@@ -186,10 +186,7 @@ help-suggested-values = གྲོས་འདེབས་ཀྱི་བེ་�
 
 help-inserts = བཙུགསཔ་ཨིན
 
-help-coordinates =
-    { $count ->
-       *[other] གནས་ཚད
-    }
+help-coordinates = གནས་ཚད
 
 help-type = དབྱེ་བ
 

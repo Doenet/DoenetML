@@ -6,6 +6,11 @@
 #
 # `WCAG`, `WCAG AA`, `DoenetML`, `XML` and `styleNumber` are names rather than
 # words and stay as they stand.
+#
+# Three English words the interface keeps apart would all be মখল if translated
+# by sense — "type", "attribute" and "variant". মখল is kept for *type*, and the
+# other two take the words `locales/bn` and `locales/as` use in the same script:
+# এট্রিবিউট for an attribute and রূপভেদ for a variant.
 
 
 ## The viewer's controls
@@ -25,13 +30,13 @@ editor-update-viewer-title =
 
 ## The variant picker
 
-editor-variant = মখল
+editor-variant = রূপভেদ
 
 editor-variant-filter = খনথোকউ…
 
-editor-variant-next = মথংগী মখল খল্লু
+editor-variant-next = মথংগী রূপভেদ খল্লু
 
-editor-variant-previous = মমাংগী মখল খল্লু
+editor-variant-previous = মমাংগী রূপভেদ খল্লু
 
 
 ## The accessibility status button
@@ -126,7 +131,7 @@ editor-response-submitted = থাদোকখ্রে
 
 ## The context-help panel
 
-help-placeholder = দোকুমেন্তেসনগীদমক কর্সর অসি তেগ মমিং, মখল, নত্ত্রগা { $ref }-দা থমউ।
+help-placeholder = দোকুমেন্তেসনগীদমক কর্সর অসি তেগ মমিং, এট্রিবিউট, নত্ত্রগা { $ref }-দা থমউ।
 
 help-unsupported-ref-chain = { $example } অসিগুম্বা শরুক কয়াগী মরীগীদমক মতেং হৌজিক ফাওবদা লৈতে।
 
@@ -173,7 +178,7 @@ help-property-is-reference =
        *[other] { $ref } অসি { $element }গী { $property } মগুনগী মরী অমনি (পরেং { $line })।
     }
 
-help-kind-attribute = মখল
+help-kind-attribute = এট্রিবিউট
 help-kind-snippet = শরুক
 help-kind-array-entry = শরনী এন্ত্রি
 

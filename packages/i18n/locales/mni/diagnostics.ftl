@@ -7,6 +7,9 @@
 # `midpointOffset`, `numDimensions`, `symbolicEquality`, `selectFromSequence`
 # and the rest — are part of the language rather than prose, and stay in
 # English exactly as written. So does the `[deprecation]` marker.
+#
+# মখল is *type* here and nothing else: an attribute is এট্রিবিউট and a variant
+# রূপভেদ, as `editor.ftl`'s header sets out.
 
 ## `<lineSegment>`
 
@@ -74,7 +77,7 @@ pretzel-circuit-first-index = circuit মোদতা pretzel-গীদমক �
 
 ## `<shuffle>` and `<sort>`
 
-string-children-need-type = `<{ $component }>` অসি স্ত্রিং মচাসিংগা লোয়ননা থবক তৌনবা `type` মখল পীবা তঙাইফদে।
+string-children-need-type = `<{ $component }>` অসি স্ত্রিং মচাসিংগা লোয়ননা থবক তৌনবা `type` এট্রিবিউট পীবা তঙাইফদে।
 
 invalid-type-defaulting-to-math = { $component } শরুক্কীদমক { $type } মখল অসি অরানবনি। math, text, number নত্ত্রগা boolean-গী মরক্তা অমা ওইগদবনি। অহানবা ওইনা math লৌই।
 
@@ -88,9 +91,9 @@ invalid-variable-value = চরগী অরানবা মমল: `{ $value }`
 
 ## Variants
 
-variant-index-must-be-number = মখল ইন্দেক্স { $index } অসি মশিং অমা ওইগদবনি
+variant-index-must-be-number = রূপভেদ ইন্দেক্স { $index } অসি মশিং অমা ওইগদবনি
 
-variant-index-must-be-integer = মখল ইন্দেক্স { $index } অসি পূর্ণাংক অমা ওইগদবনি
+variant-index-must-be-integer = রূপভেদ ইন্দেক্স { $index } অসি পূর্ণাংক অমা ওইগদবনি
 
 ## `<sideBySide>`
 
@@ -102,17 +105,17 @@ side-by-side-no-block-child = অরানবা `<{ $component }>`: মসি�
 
 ## `<label>`
 
-label-for-ignored-on-graphical = আলেখীয় `<label>`-দা `for` মখল লৌথোক্লি।
+label-for-ignored-on-graphical = আলেখীয় `<label>`-দা `for` এট্রিবিউট লৌথোক্লি।
 
-label-for-must-resolve-to-one = `<label>`-দা `for` মখল অসি শরুক অমখক্তা উৎপা তাই।
+label-for-must-resolve-to-one = `<label>`-দা `for` এট্রিবিউট অসি শরুক অমখক্তা উৎপা তাই।
 
-label-for-unresolved = `<label>`-দা `for` মখল অসিনা শরুক অমত্তা উৎপা ঙমদে।
+label-for-unresolved = `<label>`-দা `for` এট্রিবিউট অসিনা শরুক অমত্তা উৎপা ঙমদে।
 
-label-for-answer-with-authored-inputs = `<label>`-দা `for` মখল অসিনা ইরিবনা মশামক ইনপুত ইখিবা `<answer>` অদু উৎলি; ইনপুত অদু ফজনা উৎলু।
+label-for-answer-with-authored-inputs = `<label>`-দা `for` এট্রিবিউট অসিনা ইরিবনা মশামক ইনপুত ইখিবা `<answer>` অদু উৎলি; ইনপুত অদু ফজনা উৎলু।
 
-label-for-answer-without-input = `<label>`-দা `for` মখল অসিনা মমিং থোনবা য়াবা ইনপুত লৈতবা `<answer>` অদু উৎলি।
+label-for-answer-without-input = `<label>`-দা `for` এট্রিবিউট অসিনা মমিং থোনবা য়াবা ইনপুত লৈতবা `<answer>` অদু উৎলি।
 
-label-for-must-reference-input-or-answer = `<label>`-দা `for` মখল অসিনা ইনপুত অমা নত্ত্রগা পাউখুম অমা উৎপা তাই।
+label-for-must-reference-input-or-answer = `<label>`-দা `for` এট্রিবিউট অসিনা ইনপুত অমা নত্ত্রগা পাউখুম অমা উৎপা তাই।
 
 ## Accessibility
 
@@ -323,19 +326,19 @@ nested-section-wide-check-work-max-num-attempts = অতোপ্পা `section
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
-        [one] symbolicEquality লৈত্রবদি { $attributes } মখল অসিনা করিসু তৌরোই।
-       *[other] symbolicEquality লৈত্রবদি { $attributes } মখলসিংনা করিসু তৌরোই।
+        [one] symbolicEquality লৈত্রবদি { $attributes } এট্রিবিউট অসিনা করিসু তৌরোই।
+       *[other] symbolicEquality লৈত্রবদি { $attributes } এট্রিবিউটসিংনা করিসু তৌরোই।
     }
 
 answer-invalid-type = পাউখুমগী অরানবা মখল: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
-module-attribute-child-needs-name = `<{ $component }>` শরুক্কী মমিং লৈতে, মরম অদুনা মদুবু module-গী মখল ওইনা শিজিন্নবা ঙমদে
+module-attribute-child-needs-name = `<{ $component }>` শরুক্কী মমিং লৈতে, মরম অদুনা মদুবু module-গী এট্রিবিউট ওইনা শিজিন্নবা ঙমদে
 
-module-attribute-name-already-defined = `<{ $component } name="{ $name }">` শরুক অসি module-গী মখল ওইনা শিজিন্নবা ঙমদে, মরমদি `<module>` শরুক মখলদা "{ $name }" মখল অসি হান্ননা লেপ্লে।
+module-attribute-name-already-defined = `<{ $component } name="{ $name }">` শরুক অসি module-গী এট্রিবিউট ওইনা শিজিন্নবা ঙমদে, মরমদি `<module>` শরুক মখলদা "{ $name }" এট্রিবিউট অসি হান্ননা লেপ্লে।
 
-conditional-content-condition-ignored = case নত্ত্রগা else মচা লৈবা `<conditionalContent>` শরুক্তা `condition` মখল লৌথোক্লি।
+conditional-content-condition-ignored = case নত্ত্রগা else মচা লৈবা `<conditionalContent>` শরুক্তা `condition` এট্রিবিউট লৌথোক্লি।
 
 slider-markers-type-mismatch = খুদমগী মখল অসি slider-গী মখলগা চান্নদে।
 
@@ -347,11 +350,11 @@ pretzel-circuit-first-problem-distractor = অরানবা pretzel: mode="cir
 
 attribute-invalid-values =
     { $valuesCount ->
-        [one] `{ $attribute }` মখলগীদমক অরানবা মমল { $values }; লৌথোক্লি।
-       *[other] `{ $attribute }` মখলগীদমক অরানবা মমল { $values }; লৌথোক্লি।
+        [one] `{ $attribute }` এট্রিবিউটগীদমক অরানবা মমল { $values }; লৌথোক্লি।
+       *[other] `{ $attribute }` এট্রিবিউটগীদমক অরানবা মমল { $values }; লৌথোক্লি।
     }
 
-attribute-must-be-references = `{ $attribute }` মখলগীদমক `{ $value }` অসি অরানবা মমলনি। মখল অসি `$`-না হৌবা মরীসিংনা শেম্বা তাই।
+attribute-must-be-references = `{ $attribute }` এট্রিবিউটগীদমক `{ $value }` অসি অরানবা মমলনি। এট্রিবিউট অসি `$`-না হৌবা মরীসিংনা শেম্বা তাই।
 
 math-input-invalid-function-names = <mathInput>: { $attribute }-দা অরানবা ফলনগী মমিং লৌথোক্লি: { $names }। মমিং খুদিংগী উৎপা শরুক্তা খ্বাইদগী য়াম্না ময়েক অনি (ময়েক নত্ত্রগা মরী খুদম) লৈগদবনি; মদুগী মতুংদা `|<mathspeak alternative>` হাপচিনবা য়াই।
 
@@ -359,9 +362,9 @@ math-input-invalid-function-names = <mathInput>: { $attribute }-দা অরা
 
 component-type-invalid = অরানবা শরুক মখল: `<{ $componentType }>`
 
-attribute-repeated = { $attribute } মখল অমুক হন্না পীবা ঙমদে।
+attribute-repeated = { $attribute } এট্রিবিউট অমুক হন্না পীবা ঙমদে।
 
-attribute-invalid-for-component = `<{ $componentType }>` মখলগী শরুক্কীদমক "{ $attribute }" মখল অসি অরানবনি।
+attribute-invalid-for-component = `<{ $componentType }>` মখলগী শরুক্কীদমক "{ $attribute }" এট্রিবিউট অসি অরানবনি।
 
 ## Style definition contrast
 
@@ -393,15 +396,15 @@ section-multiple-style-palettes = শরুক অমনা <stylePalette> অ�
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = { $component }-গী তোঙানবা মখল লেপ্পা ঙমদে, মরমদি numToSelect অসি ঋণাত্মক নত্তবা পূর্ণাংক নত্তে।
+variant-num-to-select-not-non-negative-integer = { $component }-গী তোঙানবা রূপভেদ লেপ্পা ঙমদে, মরমদি numToSelect অসি ঋণাত্মক নত্তবা পূর্ণাংক নত্তে।
 
-variant-num-to-select-not-constant-number = { $component }-গী তোঙানবা মখল লেপ্পা ঙমদে, মরমদি numToSelect অসি লেপ্লবা মশিং নত্তে।
+variant-num-to-select-not-constant-number = { $component }-গী তোঙানবা রূপভেদ লেপ্পা ঙমদে, মরমদি numToSelect অসি লেপ্লবা মশিং নত্তে।
 
-variant-with-replacement-not-constant-boolean = { $component }-গী তোঙানবা মখল লেপ্পা ঙমদে, মরমদি withReplacement অসি লেপ্লবা বূলিয়ন নত্তে।
+variant-with-replacement-not-constant-boolean = { $component }-গী তোঙানবা রূপভেদ লেপ্পা ঙমদে, মরমদি withReplacement অসি লেপ্লবা বূলিয়ন নত্তে।
 
-variant-select-weight-disables-unique = খনগদবা অমদা selectWeight নত্ত্রগা selectForVariants পীরবদি select-কী তোঙানবা মখল থিংই
+variant-select-weight-disables-unique = খনগদবা অমদা selectWeight নত্ত্রগা selectForVariants পীরবদি select-কী তোঙানবা রূপভেদ থিংই
 
-variant-coprime-undetermined = { $component }-গী তোঙানবা মখল লেপ্পা ঙমদে, মরমদি coprime অসি মতম পুম্নমক্তা অরানবনি হায়বদু লেপ্পা ঙমদে।
+variant-coprime-undetermined = { $component }-গী তোঙানবা রূপভেদ লেপ্পা ঙমদে, মরমদি coprime অসি মতম পুম্নমক্তা অরানবনি হায়বদু লেপ্পা ঙমদে।
 
 variant-attribute-not-constant = { $component }-গী তোঙানবা মখল লেপ্পা ঙমদে, মরমদি { $attribute } অসি লেপ্লবা নত্তে।
 
@@ -435,7 +438,7 @@ prefigure-curve-label-omitted = { $subject }: হোংদোকখ্রবা 
 
 prefigure-curve-unsupported-definition-type = { $subject }: কোয়বা পরেংগী ফলন লেপ্পগী মখল '{ $definitionType }' চৎনদে; মচা থাদোক্লে।
 
-prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves-তা flipFunctions মখল চৎনদে; মচা থাদোক্লে।
+prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves-তা flipFunctions এট্রিবিউট চৎনদে; মচা থাদোক্লে।
 
 prefigure-region-non-formula-child = { $subject }: regionBetweenCurves-তা formula মখলগী মচা ফলনখক্তা চৎনই; মচা থাদোক্লে।
 
@@ -479,13 +482,13 @@ reference-multiple-referents = মরীগী পান্দম কয়া �
 
 ## Children that do not match
 
-children-invalid-attribute-format = `<{ $componentType }>`-গী { $attribute } মখলগী অরানবা মওং।
+children-invalid-attribute-format = `<{ $componentType }>`-গী { $attribute } এট্রিবিউটগী অরানবা মওং।
 
 children-invalid = `<{ $componentType }>`-গীদমক অরানবা মচা: অরানবা মচা ফংলে: { $children }
 
 ## Falling back to a default
 
-attribute-value-invalid-using-default = `{ $attribute }` মখলগীদমক `{ $value }` অসি অরানবা মমলনি, `{ $default }` মমল লৌই
+attribute-value-invalid-using-default = `{ $attribute }` এট্রিবিউটগীদমক `{ $value }` অসি অরানবা মমলনি, `{ $default }` মমল লৌই
 
 ## Loading a DoenetML version
 
@@ -503,9 +506,9 @@ parse-tag-missing-close-tag = অরানবা DoenetML: তেগ `{ $tag }`-
 
 parse-tag-error = অরানবা DoenetML: তেগ `<{ $tagName }>`-দা অশোয়বা
 
-parse-attribute-missing-value = অরানবা DoenetML: অরানবা মখল `{ $attribute }`-দা মমল লৈতবা মালি।
+parse-attribute-missing-value = অরানবা DoenetML: অরানবা এট্রিবিউট `{ $attribute }`-দা মমল লৈতবা মালি।
 
-parse-attribute-invalid = অরানবা DoenetML: অরানবা মখল `{ $attribute }`
+parse-attribute-invalid = অরানবা DoenetML: অরানবা এট্রিবিউট `{ $attribute }`
 
 parse-attribute-value-invalid = অরানবা DoenetML: অরানবা মখলগী মমল `{ $value }`
 
@@ -561,21 +564,21 @@ external-doenetml-type-mismatch = { $attribute }="{ $uri }"-দগী পুর�
 
 deprecated-attribute-renamed =
     { $component ->
-        [none] [deprecation] মখল `{ $from }` থাদোক্লে; মদুগী মহুত্তা `{ $to }` শিজিন্নৌ।
-       *[other] [deprecation] `<{ $component }>`-দা মখল `{ $from }` থাদোক্লে; মদুগী মহুত্তা `{ $to }` শিজিন্নৌ।
+        [none] [deprecation] এট্রিবিউট `{ $from }` থাদোক্লে; মদুগী মহুত্তা `{ $to }` শিজিন্নৌ।
+       *[other] [deprecation] `<{ $component }>`-দা এট্রিবিউট `{ $from }` থাদোক্লে; মদুগী মহুত্তা `{ $to }` শিজিন্নৌ।
     }
 
 deprecated-attribute-renamed-conflict =
     { $component ->
-        [none] [deprecation] মখল `{ $from }` থাদোক্লে অমসুং লৌথোক্লে, মরমদি `{ $to }`-সু পীরে।
-       *[other] [deprecation] `<{ $component }>`-দা মখল `{ $from }` থাদোক্লে অমসুং লৌথোক্লে, মরমদি `{ $to }`-সু পীরে।
+        [none] [deprecation] এট্রিবিউট `{ $from }` থাদোক্লে অমসুং লৌথোক্লে, মরমদি `{ $to }`-সু পীরে।
+       *[other] [deprecation] `<{ $component }>`-দা এট্রিবিউট `{ $from }` থাদোক্লে অমসুং লৌথোক্লে, মরমদি `{ $to }`-সু পীরে।
     }
 
-deprecated-attribute-ignored = [deprecation] `<{ $component }>`-দা মখল `{ $attribute }` থাদোক্লে অমসুং লৌথোক্লে।
+deprecated-attribute-ignored = [deprecation] `<{ $component }>`-দা এট্রিবিউট `{ $attribute }` থাদোক্লে অমসুং লৌথোক্লে।
 
-deprecated-attribute-to-child = [deprecation] `<{ $component }>`-দা মখল `{ $attribute }` থাদোক্লে; মদুগী মহুত্তা `<{ $child }>` মচা শিজিন্নৌ।
+deprecated-attribute-to-child = [deprecation] `<{ $component }>`-দা এট্রিবিউট `{ $attribute }` থাদোক্লে; মদুগী মহুত্তা `<{ $child }>` মচা শিজিন্নৌ।
 
-deprecated-attribute-value-renamed = [deprecation] `<{ $component }>`-দা মখল `{ $attribute }`-গী মমল `{ $value }` থাদোক্লে; মদুগী মহুত্তা `{ $to }` শিজিন্নৌ।
+deprecated-attribute-value-renamed = [deprecation] `<{ $component }>`-দা এট্রিবিউট `{ $attribute }`-গী মমল `{ $value }` থাদোক্লে; মদুগী মহুত্তা `{ $to }` শিজিন্নৌ।
 
 
 ## Language coverage
@@ -602,11 +605,11 @@ schema-attribute-value-not-allowed =
 
 ## The `<select>` family's error boxes
 
-select-variant-name-option-count-mismatch = select-কীদমক অরানবা মখলগী মমিং। মখলগী মমিং { $variantName } অসি খনগদবা { $numOptions }-দা লৈরি অদুবু খনগদবা মশিংদি { $numToSelect }-নি।
+select-variant-name-option-count-mismatch = select-কীদমক অরানবা রূপভেদগী মমিং। রূপভেদগী মমিং { $variantName } অসি খনগদবা { $numOptions }-দা লৈরি অদুবু খনগদবা মশিংদি { $numToSelect }-নি।
 
-select-variant-name-without-options = select-কীদমক মখল খরা পীরে অদুবু ওইথোকপা য়াবা মখলগী মমিং { $variantName }-গীদমক খনগদবা অমত্তা পীদে।
+select-variant-name-without-options = select-কীদমক রূপভেদ খরা পীরে অদুবু ওইথোকপা য়াবা রূপভেদগী মমিং { $variantName }-গীদমক খনগদবা অমত্তা পীদে।
 
-select-variant-name-not-possible = select-কীদমক পীরিবা মখলগী মমিং { $variantName } অসি ওইথোকপা য়াবা মখলগী মমিং নত্তে।
+select-variant-name-not-possible = select-কীদমক পীরিবা রূপভেদগী মমিং { $variantName } অসি ওইথোকপা য়াবা রূপভেদগী মমিং নত্তে।
 
 select-too-few-options = { $numOptions }খক্তদগী শরুক { $numToSelect } খনবা ঙমদে।
 
