@@ -1,0 +1,32 @@
+/*
+ * A list item leading with a block whose box offers no line box of its own —
+ * a graph, an image, a video, a table — has nowhere for the browser to draw the
+ * item's native `::marker`, and the browser falls back to drawing it after all
+ * of the item's content: at the bottom of a graph, hundreds of pixels from where
+ * a reader looks for the number (#1673).
+ *
+ * This gives such an item one line box at the top of its content box for the
+ * marker to land on. The zero-width space is what makes it a line box — an empty
+ * `content: ""` block has none, and neither an absolutely positioned nor a
+ * floated one is a place the browser will put the marker. `height: 0` keeps the
+ * line box out of the item's height, so it costs no space; nothing paints from
+ * it, and the marker sits exactly where it would on a first line of ordinary
+ * text, because the line box is one.
+ *
+ * The second `content` hides the space from the accessibility tree: the
+ * alternative-text form (`content: <string> / <alt>`) reduces the item's
+ * accessible name to what it was before, so the marker still folds into the
+ * item's own text run (the VoiceOver behavior behind #662). A browser that does
+ * not support that form drops the second declaration and keeps the first, so it
+ * still gets the fix, with a zero-width space in the tree.
+ *
+ * The class is applied only where the leading box has no line box to offer, so
+ * that every other item keeps the browser's own placement — see
+ * `firstChildListItemAlignment` in the worker's `Lists.js`.
+ */
+.doenet-viewer li.list-item-marker-anchored::before {
+    content: "\200B";
+    content: "\200B" / "";
+    display: block;
+    height: 0;
+}

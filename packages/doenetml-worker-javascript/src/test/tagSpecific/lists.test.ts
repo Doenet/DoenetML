@@ -203,6 +203,121 @@ describe("List tag tests @group4", async () => {
         expect(ci1.renderInlineForListItem).eq(false);
     });
 
+    // What `firstChildListItemAlignment` answers is whether the browser has a
+    // first line to put the item's native marker on. A leading `<graph>`,
+    // `<image>` or `<tabular>` renders a box that has none, and the browser draws
+    // the marker after all of the item's content instead — at the bottom of the
+    // graph (#1673); `list.tsx` reads `"flex-start"` and gives the marker a line
+    // box at the top of the item. Every other lead has a first line of its own
+    // that the browser already uses, and must report something else, because
+    // anchoring the marker to the top of the item would pull it off a line that
+    // legitimately sits lower: a `<matrixInput>` puts its label on the matrix's
+    // last row, and an item leading with inline math has a taller first line than
+    // a plain one.
+    //
+    // The value comes from the lead's own `listItemInlineAlignment`, the same
+    // variable a `<problem>`-style list item reads (`SectioningComponent`'s
+    // variable of this name), so both kinds of list item place a given lead the
+    // same way. Asserted here per lead *type* rather than per forwarding rule; the
+    // rules themselves are the matrix below, and the rendered outcome is
+    // `list.cy.js`.
+    const markerAnchorLeads: [string, string, string][] = [
+        ["a string", `Plain text`, "none"],
+        ["a paragraph", `<p>Paragraph text</p>`, "baseline"],
+        [
+            "a matrixInput",
+            `<matrixInput><label>Matrix</label></matrixInput>`,
+            "baseline",
+        ],
+        [
+            "a graph",
+            `<graph size="small"><point>(1,2)</point></graph>`,
+            "flex-start",
+        ],
+        [
+            "an image",
+            `<image source="doenet:x" width="100px" decorative />`,
+            "flex-start",
+        ],
+        [
+            "a tabular",
+            `<tabular><row><cell><p>a cell</p></cell></row></tabular>`,
+            "flex-start",
+        ],
+        [
+            "a figure",
+            `<figure><graph size="small"><point>(1,2)</point></graph><caption>A graph</caption></figure>`,
+            "flex-start",
+        ],
+        [
+            "a figure whose caption is written first",
+            `<figure><caption>A graph</caption><graph size="small"><point>(1,2)</point></graph></figure>`,
+            "flex-start",
+        ],
+        [
+            "a graph inside a wrapper",
+            `<div><graph size="small"><point>(1,2)</point></graph></div>`,
+            "flex-start",
+        ],
+    ];
+
+    it.each(markerAnchorLeads)(
+        "li reports where its number goes for a lead that is %s",
+        async (_lead, markup, expectedAlignment) => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<ol>
+  <li name="item">${markup}</li>
+</ol>`,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("item")].stateValues
+                    .firstChildListItemAlignment,
+            ).eq(expectedAlignment);
+        },
+    );
+
+    // A `<figure>` holds the content the number lines up with, so it forwards the
+    // item's signal the way the other container components do — including past a
+    // `<caption>`, which renders (so the shared visibility test would let it
+    // lead) but is drawn below the content whatever its position among the
+    // children. Without the forward the graph inside keeps the top margin the
+    // item wanted suppressed, and the number sits a margin above the figure.
+    it("a figure leading a list item forwards the signal to its content, not its caption", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<ol>
+  <li name="item">
+    <figure name="fig">
+      <caption>A graph</caption>
+      <graph name="g" size="small"><point>(1,2)</point></graph>
+    </figure>
+  </li>
+</ol>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValuesOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await stateValuesOf("fig")).renderInlineForListItem).eq(true);
+        expect(
+            (await stateValuesOf("fig")).childrenToRenderInlineForListItem[0]
+                .componentType,
+        ).eq("graph");
+        expect((await stateValuesOf("g")).renderInlineForListItem).eq(true);
+        // That the graph is the forwarded-to child is the statement that the
+        // caption was passed over; a `<caption>` has no
+        // `renderInlineForListItem` of its own to assert on, since it is not one
+        // of the components that consume the signal.
+    });
+
     it("does not delegate list-item alignment when the list item renders nothing", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -362,11 +477,13 @@ describe("List tag tests @group4", async () => {
                 hiddenChild: { renderInlineForListItem: false },
                 lead: { listItemInlineAlignment: "flex-start" },
                 leadInput: { renderInlineForListItem: true },
+                item: { firstChildListItemAlignment: "flex-start" },
             },
             whenShown: {
                 hiddenChild: { renderInlineForListItem: true },
                 lead: { listItemInlineAlignment: "none" },
                 leadInput: { renderInlineForListItem: false },
+                item: { firstChildListItemAlignment: "baseline" },
             },
         },
         {
@@ -404,11 +521,13 @@ describe("List tag tests @group4", async () => {
                 hiddenChild: { renderInlineForListItem: false },
                 middle: { listItemInlineAlignment: "flex-start" },
                 leadInput: { renderInlineForListItem: true },
+                item: { firstChildListItemAlignment: "flex-start" },
             },
             whenShown: {
                 hiddenChild: { renderInlineForListItem: true },
                 middle: { listItemInlineAlignment: "baseline" },
                 leadInput: { renderInlineForListItem: false },
+                item: { firstChildListItemAlignment: "baseline" },
             },
         },
         {
@@ -426,11 +545,13 @@ describe("List tag tests @group4", async () => {
                 middle: { listItemInlineAlignment: "flex-start" },
                 hiddenChild: { renderInlineForListItem: true },
                 lead: { renderInlineForListItem: true },
+                item: { firstChildListItemAlignment: "flex-start" },
             },
             whenShown: {
                 middle: { listItemInlineAlignment: "baseline" },
                 hiddenChild: { renderInlineForListItem: true },
                 lead: { renderInlineForListItem: true },
+                item: { firstChildListItemAlignment: "baseline" },
             },
         },
         {
@@ -470,10 +591,12 @@ describe("List tag tests @group4", async () => {
             whenHidden: {
                 hiddenChild: { renderInlineForListItem: false },
                 leadInput: { renderInlineForListItem: true },
+                item: { firstChildListItemAlignment: "flex-start" },
             },
             whenShown: {
                 hiddenChild: { renderInlineForListItem: false },
                 leadInput: { renderInlineForListItem: true },
+                item: { firstChildListItemAlignment: "flex-start" },
             },
         },
     ];

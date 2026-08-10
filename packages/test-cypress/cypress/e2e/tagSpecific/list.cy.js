@@ -1,5 +1,8 @@
 import { cesc } from "@doenet/utils";
-import { verifyListItemMarkerSharesRowWith } from "./utils/listItemNumberAlignment";
+import {
+    verifyListItemMarkerOnFirstRow,
+    verifyListItemMarkerSharesRowWith,
+} from "./utils/listItemNumberAlignment";
 import { verifySideBySideColumnTopAlignment } from "./utils/listItemAlignment";
 
 /*
@@ -611,6 +614,169 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
                 "item",
                 `#${cesc("input")}-label`,
             );
+        });
+    });
+
+    /*
+     * #1673: a leading box that offers the browser no line box — a `<graph>`, an
+     * `<image>`, a `<video>`, a `<tabular>` — left the item's native marker with
+     * nowhere to go, and the browser drew it after all of the item's content: the
+     * number for a graph landed at the *bottom* of the graph, 250px from where a
+     * reader looks for it.
+     *
+     * Again a matrix over author-visible markup rather than over the internal
+     * rules, for the reason the wrapper matrix above gives. These rows are the
+     * leading *shapes*, including two that put the block one level down (a
+     * wrapper, a `<sideBySide>` panel) and one that is a container of its own
+     * (`<figure>`, which has to hand the item its content's alignment past the
+     * `<caption>` that renders below the content whatever its position).
+     *
+     * Each fixture carries a plain-text item whose number is the reference row —
+     * see `verifyListItemMarkerOnFirstRow()` for why the assertion is stated
+     * against a sibling item rather than as a tolerance.
+     */
+    const BLOCK_LEADS = [
+        {
+            name: "graph",
+            markup: `<graph name="lead" size="small"><point>(1,2)</point></graph>`,
+            outsideMargin: "12px",
+        },
+        {
+            name: "image",
+            markup: `<image name="lead" source="missing.png" width="200px" aspectRatio="1" decorative />`,
+        },
+        {
+            name: "video",
+            markup: `<video name="lead" youtube="tJnwPSaeuUk" width="320px"><shortDescription>A video</shortDescription></video>`,
+        },
+        {
+            // No `outsideMargin`: a `<tabular>`'s margin is on a wrapper div
+            // the renderer owns, and the component's id is on the `<table>`
+            // inside it, so there is no element here to assert it on.
+            name: "tabular with a paragraph in its first cell",
+            markup: `<tabular name="lead"><row><cell><p>a cell</p></cell></row></tabular>`,
+        },
+        {
+            name: "figure",
+            markup: `<figure name="lead"><graph size="small"><point>(1,2)</point></graph><caption>A graph</caption></figure>`,
+            outsideMargin: "12px",
+        },
+        {
+            name: "figure whose caption is written before its content",
+            markup: `<figure name="lead"><caption>A graph</caption><graph size="small"><point>(1,2)</point></graph></figure>`,
+            outsideMargin: "12px",
+        },
+        {
+            name: "graph inside a wrapper",
+            markup: `<div><graph name="lead" size="small"><point>(1,2)</point></graph></div>`,
+            outsideMargin: "12px",
+        },
+        {
+            name: "graph in a sideBySide panel",
+            markup: `<sideBySide><graph name="lead" size="small"><point>(1,2)</point></graph><p>Beside it</p></sideBySide>`,
+        },
+    ];
+
+    BLOCK_LEADS.forEach(({ name, markup, outsideMargin }) => {
+        it(`marker sits on the item's first row with a leading ${name}`, () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+    <ol>
+      <li name="textItem">Plain text item</li>
+      <li name="item">${markup}</li>
+    </ol>
+    ${outsideMargin ? markup.replace('name="lead"', 'name="outside"') : ""}
+    `,
+                    },
+                    "*",
+                );
+            });
+
+            cy.get(`#${cesc("item")}`).should("be.visible");
+            verifyListItemMarkerOnFirstRow("item", "textItem");
+
+            // The number can only sit on the content's row if the content still
+            // starts at the top of the item, so the lead's top margin has to be
+            // suppressed as well; the copy outside the list keeps its margin, so
+            // the `0px` cannot pass by accident. Only for the leads whose margin
+            // is on an element with an id to name — `<video>` and `<image>` carry
+            // theirs on a container div the renderer owns.
+            if (outsideMargin) {
+                cy.get(`#${cesc("lead")}`).should(
+                    "have.css",
+                    "margin-top",
+                    "0px",
+                );
+                cy.get(`#${cesc("outside")}`).should(
+                    "have.css",
+                    "margin-top",
+                    outsideMargin,
+                );
+            }
+        });
+    });
+
+    // Content pulled in by a composite leads its item the same way content
+    // written there does — the shape that has needed its own coverage at every
+    // step of this work (#1671), because the replacements arrive as a nested
+    // array and the renderer wraps them in a `<span>` of their own.
+    it("marker sits on the item's first row when a composite pulls in the leading graph", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <setup><graph name="g" size="small" decorative><point>(1,2)</point></graph></setup>
+    <ol>
+      <li name="textItem">Plain text item</li>
+      <li name="item">$g</li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("item")}`).should("be.visible");
+        verifyListItemMarkerOnFirstRow("item", "textItem");
+    });
+
+    // The other half of the contract, and the half that says the fix is not an
+    // unconditional "put the number at the top": a lead that *does* offer a first
+    // line keeps the browser's own placement. A `<matrixInput>` is the sharp case
+    // — its label sits on the matrix's last row, a whole row below the top of the
+    // item — so anchoring every item's marker to its top edge fails here while
+    // passing every row of the matrix above.
+    it("keeps the browser's placement for a lead that offers a first line", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="textItem">Plain text item</li>
+      <li name="item"><matrixInput name="mi"><label>Matrix</label></matrixInput></li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("item")}`).should("be.visible");
+        verifyListItemMarkerSharesRowWith("item", `#${cesc("mi")}-label`);
+
+        // …and that row is not the item's first one, which is what makes the
+        // assertion above discriminating.
+        cy.get(`#${cesc("mi")}-label`).should(($label) => {
+            const li = $label[0].closest("li");
+            const gap =
+                $label[0].getBoundingClientRect().top -
+                li.getBoundingClientRect().top;
+            expect(
+                gap,
+                "the label is below the item's first row",
+            ).to.be.greaterThan(8);
         });
     });
 

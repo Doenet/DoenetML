@@ -4,6 +4,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import Measure from "react-measure";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 
 interface FigureSVs {
     [key: string]: any;
@@ -12,6 +13,7 @@ interface FigureSVs {
     figureName: string;
     figureNamePrefix: string;
     suppressFigureNameInCaption: boolean;
+    renderInlineForListItem: boolean;
 }
 
 export default React.memo(function Figure(props: UseDoenetRendererProps) {
@@ -131,7 +133,11 @@ export default React.memo(function Figure(props: UseDoenetRendererProps) {
     return (
         <figure
             id={id}
-            style={{ margin: "12px 0" }}
+            style={{
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: SVs.renderInlineForListItem,
+                }),
+            }}
             ref={ref}
             aria-labelledby={id + "_caption"}
         >

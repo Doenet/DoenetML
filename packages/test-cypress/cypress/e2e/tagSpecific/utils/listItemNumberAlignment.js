@@ -230,6 +230,81 @@ function findMarkerBand(li) {
 }
 
 /**
+ * Assert that a real `<li>`'s native `::marker` is painted on the item's own
+ * first row: the row the marker of `textItemId` — a sibling item that begins with
+ * ordinary text — occupies relative to *its* item.
+ *
+ * This is the assertion for an item leading with a block whose box offers the
+ * browser no line box to put the marker on: a `<graph>`, an `<image>`, a
+ * `<video>`, a `<tabular>`. The browser draws such an item's marker after all of
+ * the item's content — at the bottom of the graph, hundreds of pixels down
+ * (#1673) — and `list.css` supplies a line box at the top of the item instead.
+ *
+ * {@link verifyListItemMarkerSharesRowWith} cannot ask this. Its target must be a
+ * single-line element, and the whole trouble with these leads is that the top of
+ * the item holds no line of text to name: given the graph's own box as the
+ * target, "the marker's center is inside the target" is satisfied by the bug, and
+ * the band-height check that would notice loosens to the height of the graph.
+ *
+ * The reference item is what makes it an assertion about the reader's experience
+ * rather than about a tolerance: the claim of the fix is that the number lands
+ * where the number of a plain text item lands, and a fixture whose text item's
+ * marker moved would fail here rather than quietly redefining the target. Both
+ * items are measured in the same page, so a font or zoom difference between one
+ * browser and the next moves both.
+ *
+ * @param {string} liId Doenet component id of the item whose lead is a block.
+ * @param {string} textItemId Doenet component id of a sibling item that begins
+ *   with ordinary text.
+ * @param {number} [maxDriftPx=2] Allowed disagreement, in px, between the two
+ *   items' marker rows.
+ */
+export function verifyListItemMarkerOnFirstRow(
+    liId,
+    textItemId,
+    maxDriftPx = 2,
+) {
+    const rows = {};
+    [textItemId, liId].forEach((id) => {
+        cy.get(`#${cesc(id)}`).should(($li) => {
+            const li = $li[0];
+            const { band, problem, detail } = findMarkerBand(li);
+            expect(
+                problem,
+                `${id}'s native ::marker could not be measured (${problem}: ${detail})`,
+            ).to.be.undefined;
+            const liTop = li.getBoundingClientRect().top;
+            rows[id] = {
+                top: band.top - liTop,
+                height: band.bottom - band.top,
+            };
+        });
+    });
+
+    cy.then(() => {
+        const reference = rows[textItemId];
+        const measured = rows[liId];
+        const detail =
+            `${liId} marker starts ${measured.top.toFixed(0)}px into its item ` +
+            `and is ${measured.height.toFixed(0)}px tall; ${textItemId} ` +
+            `${reference.top.toFixed(0)}px and ${reference.height.toFixed(0)}px`;
+
+        expect(
+            measured.top,
+            `${liId}'s number is on the item's first row [${detail}]`,
+        ).to.be.closeTo(reference.top, maxDriftPx);
+        // A band taller than the text item's is a band that locked onto
+        // something else reaching into the gutter, which could straddle the
+        // first row and satisfy the check above on a page where the marker is
+        // elsewhere.
+        expect(
+            measured.height,
+            `${liId}'s marker band is one row tall [${detail}]`,
+        ).to.be.closeTo(reference.height, maxDriftPx);
+    });
+}
+
+/**
  * Assert that a real `<li>`'s native `::marker` is painted on the same row as
  * `targetSelector` — e.g. that item 1's "1." sits beside a question label rather
  * than beside the first choice below it, the misalignment fixed in #1668.

@@ -11,12 +11,14 @@ import {
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
 import type { PProps } from "./p";
+import "./list.css";
 
 interface ListSVs {
     [key: string]: any;
     hidden: boolean;
     _compositeReplacementActiveRange?: any;
     item?: any;
+    firstChildListItemAlignment?: string;
     justSubmitted: boolean;
     level: number;
     marker: string;
@@ -74,7 +76,18 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
     // TODO: incorporate label
     if (SVs.item) {
         return (
-            <li id={id} ref={ref}>
+            <li
+                id={id}
+                ref={ref}
+                // A leading block with no line box of its own leaves the browser
+                // nowhere to draw the item's native marker; the class supplies a
+                // line box at the top of the item. See `list.css`.
+                className={
+                    SVs.firstChildListItemAlignment === "flex-start"
+                        ? "list-item-marker-anchored"
+                        : undefined
+                }
+            >
                 {markLeadingParagraphOfListItem(children)}
                 {checkWorkComponent}
             </li>

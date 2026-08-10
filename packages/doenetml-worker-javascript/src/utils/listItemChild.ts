@@ -172,6 +172,16 @@ export function returnListItemChildStateVariableDefinitions({
 }
 
 /**
+ * Child types that name their container rather than being its content: a
+ * `<label>` on a `<div>`-style wrapper, a `<caption>` on a `<figure>`. Both
+ * render, so {@link childRendersSomething} would let either lead, but a
+ * container's own name is not what the list item's number lines up with — and a
+ * `<caption>` is not even drawn where it is written (`figure.tsx` moves it below
+ * the content whatever its position among the children).
+ */
+const NAMING_CHILD_TYPES = ["label", "caption"];
+
+/**
  * Adds pass-through list-item state variables for wrapper components.
  *
  * Wrappers forward list-item inline rendering to their first visible non-label
@@ -192,8 +202,9 @@ export function returnListItemChildStateVariableDefinitions({
  * of the `<legend>`, and `choiceInput.tsx` now renders the label in a `<div>`
  * wherever the input sits.
  *
- * `<label>` is excluded on top of that test: a label does render, but it is the
- * wrapper's own naming, not the content the item's number lines up with.
+ * {@link NAMING_CHILD_TYPES} is excluded on top of that test: a label or a
+ * caption does render, but it is the wrapper's own naming, not the content the
+ * item's number lines up with.
  */
 export function returnPassThroughListItemChildStateVariableDefinitions() {
     const stateVariableDefinitions: Record<string, any> = {};
@@ -256,22 +267,22 @@ export function returnPassThroughListItemChildStateVariableDefinitions() {
             // the signal to its first visible non-label child.
 
             if (shouldRenderInline) {
-                const firstVisibleNonLabelChild =
+                const firstVisibleContentChild =
                     dependencyValues.allChildren.find(
                         (child: any) =>
                             !(
                                 typeof child === "object" &&
-                                child.componentType === "label"
+                                NAMING_CHILD_TYPES.includes(child.componentType)
                             ) &&
                             childRendersSomething(child, componentInfoObjects),
                     );
 
                 if (
-                    firstVisibleNonLabelChild &&
-                    typeof firstVisibleNonLabelChild === "object"
+                    firstVisibleContentChild &&
+                    typeof firstVisibleContentChild === "object"
                 ) {
                     childrenToRenderInlineForListItem = [
-                        firstVisibleNonLabelChild,
+                        firstVisibleContentChild,
                     ];
                 }
             }

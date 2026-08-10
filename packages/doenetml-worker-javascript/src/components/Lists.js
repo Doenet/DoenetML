@@ -256,10 +256,10 @@ export class Li extends BaseComponent {
                 // (whose forwarding is gated on being selected by its own
                 // parent), there is no parent-selection concept here: an
                 // `<li>`'s first visible child always gets the signal, which
-                // suppresses its top margin. Where the native marker lands is
-                // not decided here — a `<legend>` was moving it, and
-                // `choiceInput.tsx` renders the label in a `<div>` wherever the
-                // input sits.
+                // suppresses its top margin. Which child leads also decides
+                // whether the item asks the browser to draw the native marker
+                // beside the top of that child's box rather than on its
+                // baseline — see `firstChildListItemAlignment` below.
                 //
                 // A child that hides itself is skipped, so a leading `<p hide>`
                 // does not strand the child after it — that is what the
@@ -278,6 +278,73 @@ export class Li extends BaseComponent {
                             typeof firstVisibleChild === "object"
                                 ? [firstVisibleChild]
                                 : [],
+                    },
+                };
+            },
+        };
+
+        /**
+         * How the item's number should line up with its leading child:
+         * `"flex-start"` beside the top of that child's box, `"baseline"` on the
+         * first line of its text, `"none"` when no component child leads the
+         * item (a string does).
+         *
+         * This is the same question — and the same answer, read off the same
+         * `listItemInlineAlignment` — that a `<problem>`-style list item asks in
+         * `SectioningComponent`'s `firstChildListItemAlignment`, so the two kinds
+         * of list item agree about a given lead by construction. What differs is
+         * who acts on it: a section draws its own number into a grid row, while a
+         * real `<li>` gets a native `::marker` that the browser places, so
+         * `list.tsx` can only give the browser a line box to place it on. It does
+         * that for `"flex-start"` alone, since that is the case where the leading
+         * box offers no line box of its own to put the number beside (#1673); for
+         * every other lead the browser's own choice is already the right one, and
+         * overriding it would pull the number off a first line that legitimately
+         * sits lower than a plain one — an item leading with inline math, say.
+         */
+        stateVariableDefinitions.firstChildListItemAlignment = {
+            forRenderer: true,
+            stateVariablesDeterminingDependencies: [
+                "childrenToRenderInlineForListItem",
+            ],
+            returnDependencies: ({ stateValues }) => {
+                const leadingChild =
+                    stateValues.childrenToRenderInlineForListItem?.[0];
+
+                if (leadingChild?.componentIdx === undefined) {
+                    return {};
+                }
+
+                return {
+                    leadingChildListItemInlineAlignment: {
+                        dependencyType: "stateVariable",
+                        componentIdx: leadingChild.componentIdx,
+                        variableName: "listItemInlineAlignment",
+                        variablesOptional: true,
+                    },
+                };
+            },
+            definition({ dependencyValues }) {
+                if (
+                    !("leadingChildListItemInlineAlignment" in dependencyValues)
+                ) {
+                    // No component child leads the item, so there is nothing to
+                    // read an alignment off: a string leads it, or nothing does.
+                    return {
+                        setValue: { firstChildListItemAlignment: "none" },
+                    };
+                }
+
+                // A lead that declares no alignment of its own — most
+                // components — renders text, whose first line the browser
+                // already puts the number beside.
+                return {
+                    setValue: {
+                        firstChildListItemAlignment:
+                            dependencyValues.leadingChildListItemInlineAlignment ===
+                            "flex-start"
+                                ? "flex-start"
+                                : "baseline",
                     },
                 };
             },
