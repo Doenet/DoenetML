@@ -480,21 +480,23 @@ describe("the noun-class reachability rule", () => {
      * to be.
      */
     it("has Kituba write no noun-class fork at all", () => {
-        const source = readCatalog("ktu", "content") ?? "";
         const offenders: string[] = [];
 
-        for (const entry of parse(source, { withSpans: false }).body) {
-            if (entry.type !== "Message" && entry.type !== "Term") {
-                continue;
-            }
-            for (const select of selectExpressions(entry)) {
-                if (
-                    select.selector.type === "VariableReference" &&
-                    select.selector.id.name === "gender"
-                ) {
-                    offenders.push(
-                        entry.type === "Message" ? entry.id.name : "term",
-                    );
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog("ktu", namespace) ?? "";
+            for (const entry of parse(source, { withSpans: false }).body) {
+                if (entry.type !== "Message" && entry.type !== "Term") {
+                    continue;
+                }
+                for (const select of selectExpressions(entry)) {
+                    if (
+                        select.selector.type === "VariableReference" &&
+                        select.selector.id.name === "gender"
+                    ) {
+                        const name =
+                            entry.type === "Message" ? entry.id.name : "term";
+                        offenders.push(`${namespace}: ${name}`);
+                    }
                 }
             }
         }

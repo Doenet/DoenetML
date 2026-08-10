@@ -470,6 +470,66 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("SuDbogh nagHommey");
     });
 
+    it("carries a Tiv relative particle through the worker path", async () => {
+        const values = await descriptions(styled, names, "tiv");
+        // The third place a noun class can be spelled, after Luganda's prefix
+        // and Fula's suffix: Tiv has very few true adjectives — what English
+        // calls one is a verb of quality — and such a verb modifies a noun
+        // through a relative particle chosen by the noun's class. So the
+        // describing words never change and the particle in front of each one
+        // does.
+        //
+        // This fixture reaches two classes. «layin» a line is `c1` and takes
+        // «u»; «sekul» a circle is `c2` and takes «i». What `@doenet/utils`'
+        // "West and Central African batch" suite pins is the agreement across
+        // three classes; what this checks is that the token survives
+        // `setLocaleData`, the document's locale and the `translator`
+        // dependency.
+        //
+        // `st` carries the particle with no noun in front of it, which is a
+        // headless relative — "the one that is thick" — and is the same
+        // fragment English's "thick dashed red" is. A prefix language hides
+        // this and a particle language cannot, so it is written out here
+        // rather than left to be discovered as a regression.
+        expect(values.st).eq("u vesen u nyian man ubaajir");
+        expect(values.stn).eq("layin u vesen u nyian man ubaajir");
+        // The marker's colour is «girin», one of the nine colours Tiv writes
+        // as a bare noun, so nothing agrees and no particle appears at all —
+        // the fork is on six words rather than on the roster of fifteen.
+        expect(values.pt).eq("sikwe girin");
+        expect(values.sh).eq(
+            "sekul i iv bulu man utindi man igbenda u vesen u nyian man ubaajir",
+        );
+        // The border carries its own class rather than the circle's: it is
+        // `c1` and reads «u» where the circle beside it in `sh` reads «i»,
+        // which is what a particle agreeing with the wrong noun would break.
+        expect(values.bd).eq("u vesen u nyian man ubaajir");
+        expect(values.fd).eq("utindi bulu");
+    });
+
+    it("leaves every Kituba describing word alone through the worker path", async () => {
+        const values = await descriptions(styled, names, "ktu");
+        // The other end of the same batch, and the reason both rows are here:
+        // Kituba is Bantu — a creole whose lexifier is Kikongo — and it is the
+        // twentieth Bantu catalog and the only one with no class table at all.
+        // Its nouns keep their class prefixes as frozen parts of the word and
+        // nothing agrees with them, so a describing word is joined by the
+        // invariable linker «ya» and the same three tokens stand against a
+        // line, a square and a circle alike.
+        //
+        // Held here as well as in `@doenet/utils` because what a family
+        // predicts about agreement is exactly nothing, and this is the row a
+        // later editor would most reasonably expect to have to inflect.
+        expect(values.st).eq("ya nene ya batini ya mbwaki");
+        expect(values.stn).eq("linya ya nene ya batini ya mbwaki");
+        expect(values.pt).eq("kare ya matiti");
+        expect(values.sh).eq(
+            "ndilu ya kufuluka ya bule ti bantoni ti ndilu ya nene ya batini ya mbwaki",
+        );
+        expect(values.bd).eq("ya nene ya batini ya mbwaki");
+        expect(values.fd).eq("bantoni ya bule");
+    });
+
     it("falls back to English for a locale with no catalog", async () => {
         // `qaa` is in the ISO 639-3 private-use range, so it can never gain a
         // catalog and this stays a test of the fallback rather than of which
