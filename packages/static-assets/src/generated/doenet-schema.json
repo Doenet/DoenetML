@@ -65080,6 +65080,10 @@
                             "description": "Danish (dansk)"
                         },
                         {
+                            "value": "dag",
+                            "description": "Dagbani (Dagbanli)"
+                        },
+                        {
                             "value": "de",
                             "description": "German (Deutsch)"
                         },
@@ -65090,6 +65094,10 @@
                         {
                             "value": "dv",
                             "description": "Divehi"
+                        },
+                        {
+                            "value": "dyu",
+                            "description": "Dyula"
                         },
                         {
                             "value": "dz",
@@ -65150,6 +65158,10 @@
                         {
                             "value": "ga",
                             "description": "Irish (Gaeilge)"
+                        },
+                        {
+                            "value": "gaa",
+                            "description": "Ga (Gã)"
                         },
                         {
                             "value": "gd",
@@ -65268,8 +65280,16 @@
                             "description": "Konkani (कोंकणी)"
                         },
                         {
+                            "value": "kr",
+                            "description": "Kanuri"
+                        },
+                        {
                             "value": "ks",
                             "description": "Kashmiri (کٲشُر)"
+                        },
+                        {
+                            "value": "ktu",
+                            "description": "Kituba (Kikongo ya leta)"
                         },
                         {
                             "value": "ky",
@@ -65294,6 +65314,10 @@
                         {
                             "value": "lt",
                             "description": "Lithuanian (lietuvių)"
+                        },
+                        {
+                            "value": "lua",
+                            "description": "Luba-Lulua"
                         },
                         {
                             "value": "luo",
@@ -65340,6 +65364,14 @@
                             "description": "Manipuri (মৈতৈলোন্)"
                         },
                         {
+                            "value": "mnk",
+                            "description": "Mandinka (Mandinkakaŋo)"
+                        },
+                        {
+                            "value": "mos",
+                            "description": "Mossi"
+                        },
+                        {
                             "value": "mr",
                             "description": "Marathi (मराठी)"
                         },
@@ -65357,7 +65389,7 @@
                         },
                         {
                             "value": "nah",
-                            "description": "nah"
+                            "description": "Nahuatl (Nāhuatl)"
                         },
                         {
                             "value": "nb",
@@ -65382,6 +65414,10 @@
                         {
                             "value": "ny",
                             "description": "Nyanja"
+                        },
+                        {
+                            "value": "nyn",
+                            "description": "Nyankole (Runyankore)"
                         },
                         {
                             "value": "oc",
@@ -65430,6 +65466,10 @@
                         {
                             "value": "rm",
                             "description": "Romansh (rumantsch)"
+                        },
+                        {
+                            "value": "rn",
+                            "description": "Rundi (Ikirundi)"
                         },
                         {
                             "value": "ro",
@@ -65550,6 +65590,10 @@
                         {
                             "value": "ti",
                             "description": "Tigrinya (ትግርኛ)"
+                        },
+                        {
+                            "value": "tiv",
+                            "description": "Tiv"
                         },
                         {
                             "value": "tk",

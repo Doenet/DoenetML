@@ -13,6 +13,7 @@ import {
     countDiagnosticConstructions,
     extractKeys,
     listLocales,
+    LOCALE_NAME_FALLBACKS,
     multilinePatterns,
     numberingSystemOverrides,
     readCatalog,
@@ -227,12 +228,41 @@ describe("renderSupportedLocalesModule", () => {
 
     it("names an unknown locale rather than throwing on it", async () => {
         // A locale directory can be added long before `Intl` (or this Node)
-        // knows the tag. Codegen must not be what stops it landing: an
-        // unrecognized tag degrades to `Intl`'s rendering of the tag itself,
-        // which is still a usable label.
+        // knows the tag, and before anyone has added a fallback name for it.
+        // Codegen must not be what stops it landing: such a tag degrades to
+        // the tag itself, which is usable and visibly a code rather than
+        // ICU's "zz (QQ)", which reads like a name and is not one.
         const rendered = await renderSupportedLocalesModule(["en", "zz-QQ"]);
         expect(rendered).toContain('locale: "zz-QQ"');
-        expect(rendered).toMatch(/label: "zz[^"]*"/);
+        expect(rendered).toContain('label: "zz-QQ"');
+    });
+
+    it("fills a name in for a locale CLDR has none for", async () => {
+        // ICU has no name for `dag` in either English or Dagbani, so without
+        // the table it would be labelled "dag" — which tells a reader choosing
+        // a `<document lang>` nothing. `LOCALE_NAME_FALLBACKS` supplies both.
+        const rendered = await renderSupportedLocalesModule(["en", "dag"]);
+        expect(rendered).toContain('label: "Dagbani (Dagbanli)"');
+    });
+
+    it("lets CLDR win over an entry for a locale CLDR knows", async () => {
+        // The table fills gaps and never overrides. Proved by planting an
+        // entry that would be visibly wrong if it were consulted, since the
+        // real table is meant to hold no entry for a locale ICU knows — that
+        // is the `holds no entry ICU no longer needs` test's job, and asserting
+        // against the real table here would prove nothing about overriding.
+        LOCALE_NAME_FALLBACKS.es = {
+            englishName: "NOT-SPANISH",
+            endonym: "NO-ES-ESPAÑOL",
+        };
+        try {
+            const rendered = await renderSupportedLocalesModule(["en", "es"]);
+            expect(rendered).toContain('label: "Spanish (español)"');
+            expect(rendered).not.toContain("NOT-SPANISH");
+            expect(rendered).not.toContain("NO-ES-ESPAÑOL");
+        } finally {
+            delete LOCALE_NAME_FALLBACKS.es;
+        }
     });
 
     it("emits Prettier-formatted output so lint:i18n and prettier agree", async () => {
@@ -249,6 +279,45 @@ describe("renderSupportedLocalesModule", () => {
                 parser: "typescript",
             }),
         ).toBe(true);
+    });
+});
+
+describe("LOCALE_NAME_FALLBACKS", () => {
+    /**
+     * The gap this table closes, held shut for the roster rather than for the
+     * four entries that close it today. A future batch adding a language CLDR
+     * has no data for fails here until someone supplies a name — which is the
+     * whole point, since the alternative is a `<document lang>` autocomplete
+     * that offers a reader "ktu" and expects them to know what it is.
+     */
+    it("leaves no locale labelled with its own code", () => {
+        const bare = SUPPORTED_LOCALES.filter(
+            (entry) => entry.label === entry.locale,
+        ).map((entry) => entry.locale);
+        expect(bare).toEqual([]);
+    });
+
+    /**
+     * The other half: an entry ICU has since learned a name for is dead weight
+     * that nothing would otherwise notice, because a fallback that never fires
+     * behaves exactly like a fallback that is correct. Failing here is the
+     * signal to delete the entry, not to reword it.
+     */
+    it("holds no entry ICU no longer needs", () => {
+        const unneeded = Object.keys(LOCALE_NAME_FALLBACKS).filter(
+            (locale) =>
+                new Intl.DisplayNames(["en"], { type: "language" }).of(
+                    locale,
+                ) !== locale,
+        );
+        expect(unneeded).toEqual([]);
+    });
+
+    /** An English name is what identifies a language; an endonym is a bonus. */
+    it("gives every entry a non-empty English name", () => {
+        for (const [locale, names] of Object.entries(LOCALE_NAME_FALLBACKS)) {
+            expect(names.englishName, locale).toBeTruthy();
+        }
     });
 });
 
@@ -463,6 +532,45 @@ describe("the noun-class reachability rule", () => {
         }
 
         expect([...new Set(offenders)].sort()).toEqual([]);
+    });
+
+    /**
+     * The rule above catches a class branch nothing can select. This is its
+     * mirror image, and it is pinned rather than left to the header: Kituba is
+     * a Bantu-based creole whose describing words agree with nothing, so a
+     * `$gender` fork of *any* shape in `locales/ktu` would be a second spelling
+     * of a form the language does not have — the same argument
+     * `locales/sg`'s plural test makes about a `[one]` branch.
+     *
+     * Asserted for Kituba alone rather than for every catalog without a class
+     * table, because the claim is about *this* language: nineteen other Bantu
+     * catalogs in this repository do fork, and what makes Kituba's flatness
+     * worth holding still is that a later editor would reasonably expect it not
+     * to be.
+     */
+    it("has Kituba write no noun-class fork at all", () => {
+        const offenders: string[] = [];
+
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog("ktu", namespace) ?? "";
+            for (const entry of parse(source, { withSpans: false }).body) {
+                if (entry.type !== "Message" && entry.type !== "Term") {
+                    continue;
+                }
+                for (const select of selectExpressions(entry)) {
+                    if (
+                        select.selector.type === "VariableReference" &&
+                        select.selector.id.name === "gender"
+                    ) {
+                        const name =
+                            entry.type === "Message" ? entry.id.name : "term";
+                        offenders.push(`${namespace}: ${name}`);
+                    }
+                }
+            }
+        }
+
+        expect(offenders).toEqual([]);
     });
 });
 

@@ -653,12 +653,156 @@ describe("negotiateLocales", () => {
          * The near misses. `tzm` (Central Atlas Tamazight) and `rif` (Tarifit)
          * are Berber languages beside `zgh` and `shi` and are members of no
          * macrolanguage with a catalog; `nd` and `nr` are Nguni neighbours of
-         * `ss`; `nyn` (Nyankole) is Bantu like `ki`; `kln` (Kalenjin) is
-         * Nilotic like `luo`. Every one falls to English, which is the
-         * membership rule working rather than a gap in it — Tachelhit is not
-         * Tarifit, however close a map makes them look.
+         * `ss`; `kln` (Kalenjin) is Nilotic like `luo`. Every one falls to
+         * English, which is the membership rule working rather than a gap in it
+         * — Tachelhit is not Tarifit, however close a map makes them look.
+         *
+         * `nyn` was in this list when it was written and is not any more: the
+         * West and Central African batch gave Nyankole a catalog of its own,
+         * which is the only thing that should ever take a code off a
+         * negative-control list.
          */
-        it.each(["tzm", "rif", "nd", "nr", "nyn", "kln"])(
+        it.each(["tzm", "rif", "nd", "nr", "kln"])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+    });
+
+    describe("the West and Central African batch", () => {
+        it.each([
+            // Rundi is the one directory in the batch whose name a request
+            // never arrives under: `run` is the ISO 639-3 code and `rn` the
+            // 639-1 one, and `Intl.getCanonicalLocales` rewrites the first to
+            // the second before negotiation is reached. No alias is needed, and
+            // adding one would be dead code.
+            ["run", "rn"],
+            ["rn", "rn"],
+            // Kanuri is a macrolanguage. `knc` — Central Kanuri, which the
+            // catalog is written in — is the one member ICU folds on its own;
+            // the other three reach the catalog only because
+            // `MACROLANGUAGE_MEMBERS` lists them.
+            ["knc", "kr"],
+            ["bms", "kr"],
+            ["kby", "kr"],
+            ["krt", "kr"],
+            // `kau` is not a member but the ISO 639-2/T code for the
+            // macrolanguage itself, which `Intl.getCanonicalLocales` rewrites
+            // to `kr` before negotiation is reached — `run`'s case rather than
+            // `bms`'s, and it needs no entry in either map.
+            ["kau", "kr"],
+            // The rest have no two-letter code, so they arrive under the tag
+            // their directory is named for and need nothing.
+            ["nyn", "nyn"],
+            ["lua", "lua"],
+            ["ktu", "ktu"],
+            ["mos", "mos"],
+            ["dag", "dag"],
+            ["dyu", "dyu"],
+            ["mnk", "mnk"],
+            ["gaa", "gaa"],
+            ["tiv", "tiv"],
+            // Script asymmetry, and the one this batch owes a catalog rather
+            // than merely allows: `kby` maximizes to `kby-Arab`, so CLDR's own
+            // data says a Manga Kanuri reader most likely arrives in Ajami and
+            // is served Latin. `locales/ha` has the same debt in the same
+            // script and `locales/ff` has it in Adlam.
+            ["kby-Arab", "kr"],
+            ["kr-Arab", "kr"],
+            // Region tags, which filter without help.
+            ["rn-BI", "rn"],
+            ["nyn-UG", "nyn"],
+            ["lua-CD", "lua"],
+            ["ktu-CG", "ktu"],
+            ["mos-BF", "mos"],
+            ["dag-GH", "dag"],
+            ["dyu-CI", "dyu"],
+            ["mnk-GM", "mnk"],
+            ["gaa-GH", "gaa"],
+            ["tiv-NG", "tiv"],
+            ["kr-NE", "kr"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The Manding macrolanguage, which is the shape no earlier batch has
+         * had: `man` is a macrolanguage this repository has three *member*
+         * catalogs for and no catalog of its own, so `MACROLANGUAGE_MEMBERS`
+         * cannot answer it and `LANGUAGE_ALIASES` does.
+         *
+         * Which member it points at is CLDR's decision rather than one made in
+         * the repository — `man` maximizes to `man-Latn-GM`, the Gambia — and
+         * the second assertion below is what would catch a change in that data
+         * rather than merely restating the map.
+         */
+        it("sends the Manding macrolanguage to Mandinka, as CLDR's likely-subtags does", () => {
+            expect(new Intl.Locale("man").maximize().region).toBe("GM");
+            expect(negotiateLocales([normalizeLocaleTag("man")], available)) //
+                .toEqual(["mnk", "en"]);
+        });
+
+        it.each([
+            // Eastern Maninkakan, which ICU folds to `man` on its own, so it
+            // arrives at the alias above rather than at the members list.
+            ["emk", "mnk"],
+            // The members that resolve nowhere without the map.
+            ["mku", "mnk"],
+            ["mlq", "mnk"],
+            ["msc", "mnk"],
+            ["mwk", "mnk"],
+            // The two members with catalogs of their own, which must not be
+            // folded onto Mandinka. These rows record where they land; what
+            // holds them out of the members list is the test below, since
+            // normalization hides the mistake from these.
+            ["bam", "bm"],
+            ["bm", "bm"],
+            ["dyu", "dyu"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The half of the `mnk` entry that is easy to get wrong: listing `bam`
+         * or `dyu` among Mandinka's members would serve a Bamako reader
+         * Mandinka.
+         *
+         * Asserted on the *un-normalized* tag, which is the only form the
+         * mistake is visible in. `normalizeLocaleTag` rewrites `bam` to `bm`
+         * before `applyLanguageAlias` is ever reached, so the row above passes
+         * whether or not `bam` is listed — and `negotiateLocales` is a public
+         * function a host may hand a raw `navigator.languages` entry to, so
+         * the members list really is consulted for these tags.
+         */
+        it.each(["bam", "dyu"])(
+            "keeps %s out of Mandinka's members list",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).not.toContain(
+                    "mnk",
+                );
+            },
+        );
+
+        /**
+         * The near misses. `kmb` (Kimbundu) and `umb` (Umbundu) are Bantu
+         * neighbours of `lua` and `ktu`; `kbl` (Kanembu) is the language beside
+         * Kanuri that ISO 639-3 keeps *outside* the `kr` macrolanguage; `gur`
+         * (Farefare) and `xsm` (Kasem) are Gur languages beside `mos` and
+         * `dag`; `sus` (Susu) is Mande but not Manding. Every one falls to
+         * English, which is the membership rule working rather than a gap in
+         * it.
+         */
+        it.each(["kmb", "umb", "kbl", "gur", "xsm", "sus"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(
