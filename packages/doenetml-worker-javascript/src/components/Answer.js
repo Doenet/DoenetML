@@ -11,6 +11,10 @@ import {
     returnLabelStateVariableDefinitions,
 } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    childRendersSomething,
+    listItemChildVisibilityDependency,
+} from "../utils/listItemChild";
 
 export default class Answer extends InlineComponent {
     constructor(args) {
@@ -923,11 +927,14 @@ export default class Answer extends InlineComponent {
                 inputChildren: {
                     dependencyType: "child",
                     childGroups: ["inputs"],
-                    variableNames: ["inline"],
-                    variablesOptional: true,
+                    ...listItemChildVisibilityDependency("inline"),
                 },
             }),
-            definition({ dependencyValues, componentIdx }) {
+            definition({
+                dependencyValues,
+                componentIdx,
+                componentInfoObjects,
+            }) {
                 const isInParentList = Boolean(
                     dependencyValues.parentChildrenToRenderInlineForListItem
                         ?.map((c) => c.componentIdx)
@@ -944,13 +951,19 @@ export default class Answer extends InlineComponent {
                     };
                 }
 
-                // Propagate only to the first non-inline choiceInput input child.
-                // <answer> itself has no top margin to suppress.
+                // Propagate only to the first non-inline choiceInput input child
+                // that is on the screen. <answer> itself has no top margin to
+                // suppress, so its only job here is to name the child the list
+                // item's number lines up with — a hidden `<choiceInput>` is not
+                // that child, and claiming it is would align the number against
+                // nothing (`childRendersSomething()`, the same test the `<li>`,
+                // section, and wrapper links of this chain apply).
                 const firstBlockChoiceInput =
                     dependencyValues.inputChildren?.find(
                         (child) =>
                             child.componentType === "choiceInput" &&
-                            child.stateValues.inline === false,
+                            child.stateValues.inline === false &&
+                            childRendersSomething(child, componentInfoObjects),
                     );
 
                 return {

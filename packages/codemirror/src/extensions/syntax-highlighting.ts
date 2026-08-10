@@ -84,17 +84,19 @@ function createHighlightStyle(colors: SyntaxColors) {
     ]);
 }
 
-// WCAG 2.1 AA compliant color scheme for syntax highlighting
-// All colors have been chosen to meet 4.5:1 contrast ratio on white background
-// and appropriate contrast on dark backgrounds
+// WCAG 2.1 AA compliant color scheme for syntax highlighting.
+// Every color clears 4.5:1 on the white canvas and on the light match tint in
+// `theme.ts` (#e2edfc), which is painted behind tokens that keep these colors.
+// The selection fill is not in that list: text inside a selection is recolored
+// to a single value, so this palette never has to clear it.
 const customHighlightStyle = createHighlightStyle({
-    string: "#00732f", // Dark green - 4.62:1 on white
-    tagName: "#0550ae", // Blue - 7.67:1 on white
-    propertyName: "#953800", // Burnt orange - 5.17:1 on white
-    invalid: "#a80000", // Dark red - 6.23:1 on white
-    blockComment: "#5c636d", // Gray - 6.1:1 on white, 4.7:1 on the --mainGray selection
-    macroName: "#6f42c1", // Purple - 5.01:1 on white
-    content: "#24292f", // Near black - 15.3:1 on white
+    string: "#00732f", // Dark green - 6.01:1 on white, 5.08:1 on the match tint
+    tagName: "#0550ae", // Blue - 7.59:1 on white
+    propertyName: "#953800", // Burnt orange - 7.39:1 on white
+    invalid: "#a80000", // Dark red - 7.88:1 on white
+    blockComment: "#5c636d", // Gray - 6.07:1 on white
+    macroName: "#6f42c1", // Purple - 6.51:1 on white
+    content: "#24292f", // Near black - 14.65:1 on white
 });
 const doenetLanguage = LRLanguage.define({
     parser: parserWithMetadata,
@@ -106,14 +108,23 @@ const doenetLanguage = LRLanguage.define({
 
 // Dark canvas (#121212) syntax highlight palette — GitHub-dark-inspired.
 // All colors verified for ≥4.5:1 WCAG AA contrast on #121212.
+//
+// The dimmest color here also decides how strong the match tint in `theme.ts`
+// may be: that tint is painted behind tokens that keep these colors, so the
+// dimmest one is the first to fall below AA on top of it. At GitHub's comment
+// gray #8b949e (6.09:1 on the canvas) the tint could not exceed 1.35:1 against
+// the canvas without taking comments under AA — about where the old selection
+// sat when authors reported seeing no highlight at all. A shade lighter lifts
+// that ceiling to 1.65:1, room enough for a tint that registers, while leaving
+// comments plainly quieter than body content.
 const darkHighlightStyle = createHighlightStyle({
-    string: "#56d364", // green  ~7.1:1 on #121212
-    tagName: "#79c0ff", // blue   ~10:1 on #121212
-    propertyName: "#ffa657", // orange ~7.4:1 on #121212
-    invalid: "#ff7b72", // red    ~6.4:1 on #121212
-    blockComment: "#8b949e", // gray   ~6.5:1 on #121212
-    macroName: "#d2a8ff", // purple ~9.6:1 on #121212
-    content: "#e6edf3", // near-white ~16:1 on #121212
+    string: "#56d364", // green  9.72:1 on #121212
+    tagName: "#79c0ff", // blue   9.63:1 on #121212
+    propertyName: "#ffa657", // orange 9.67:1 on #121212
+    invalid: "#ff7b72", // red    7.43:1 on #121212
+    blockComment: "#9ba4ad", // gray   7.41:1 on #121212 — the dimmest
+    macroName: "#d2a8ff", // purple 9.62:1 on #121212
+    content: "#e6edf3", // near-white 15.85:1 on #121212
 });
 
 export function syntaxHighlightingExtension(darkMode: ThemeMode) {

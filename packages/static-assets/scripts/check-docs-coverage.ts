@@ -10,7 +10,11 @@
  *   - The allow-list contains an entry that's now redundant (component has docs
  *     or no longer exists).
  *
- * Run via `npm run check:docs-coverage -w packages/static-assets`.
+ * Run via `npm run check:docs-coverage -w packages/static-assets`. That is a
+ * wireit script, because importing worker source below reaches sibling packages
+ * that resolve to their built `dist/` — see the header of
+ * `test/generator-script-dependencies.test.ts` for the dependency it declares
+ * and what keeps that honest.
  */
 
 import * as fs from "node:fs";

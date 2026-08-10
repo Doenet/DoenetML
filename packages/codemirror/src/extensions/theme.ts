@@ -3,24 +3,73 @@ import { EditorView } from "@codemirror/view";
 export type ThemeMode = "dark" | "light";
 
 /**
- * Text-selection (highlight) background, shared by the editable and read-only
- * themes so they can't drift.
+ * Three things the editor points at behind or around text, shared by the
+ * editable and read-only themes so they can't drift. Each gets its own visual
+ * channel, because when all three were fills of similar strength an author
+ * could not tell which was which:
  *
- *  - light: neutral `--mainGray` (#e3e3e3) behind dark syntax tokens.
- *  - dark:  a dark navy (#092c4d) rather than `--mainGray` (#a9a9a9). The dark
- *           syntax palette is near-white/bright (verified ≥4.5:1 on the #121212
- *           canvas); a light-gray selection painted behind those tokens washed
- *           them out — most visibly the near-white content color. #092c4d keeps
- *           every token, down to the dim comment gray, at WCAG AA contrast while
- *           still reading as a selection against the canvas. Covered by
- *           `selectionAccessibility.cy.tsx`.
+ *  - `selection` — a solid fill under the text the author selected, including
+ *    every range Ctrl+D has collected. By far the loudest of the three: it
+ *    marks what the next keystroke acts on.
+ *  - `match` — a faint fill under the other occurrences of that text on
+ *    screen (see `selection-highlight.ts`). A hint, nothing more.
+ *  - `tagMatch` / `tagMismatch` — the tag pair under the cursor, drawn as an
+ *    outline with no fill at all. CodeMirror's `bracketMatching` ships a
+ *    translucent teal fill for this, which on the dark canvas landed at
+ *    1.51:1 — indistinguishable from the other two. An outline says the same
+ *    thing in a channel neither fill can be confused with.
+ *
+ * What caps a fill is the text on top of it: the syntax palette must clear
+ * WCAG AA (4.5:1) against whatever it is painted over. For `match` that is the
+ * binding constraint and the reason it stays faint. The selection escapes it
+ * by recoloring its own text — `selectedText` below — so only that one color
+ * has to clear AA there, which is what buys the fill its strength. Ratios are
+ * against the canvas of the mode; `selectionAccessibility.cy.tsx` measures the
+ * text side.
+ *
+ * Two of the editor's own tints are painted on elements that sit *above* the
+ * selection layer — CodeMirror gives that layer a negative z-index, so a line
+ * background covers it — and they therefore shade whatever the selection
+ * covers rather than sitting under it: `.cm-activeLine` on the line holding a
+ * cursor, and `.cm-content` throughout the read-only theme. Only the first
+ * darkens the dark selection, and it is the case that matters — selecting a
+ * word puts the cursor on that very line — so the value below is chosen to
+ * clear 3:1 *after* that shading (3.27:1), not just before it. The read-only
+ * tint is lighter than the selection and nudges it the other way, to 3.50:1.
+ * `selectionAccessibility.cy.tsx` measures both composites, not just the
+ * values below.
  */
-function getSelectionBackgroundColor(darkMode: ThemeMode) {
-    return darkMode === "dark" ? "#092c4d" : "var(--mainGray)";
+function getHighlightColors(darkMode: ThemeMode) {
+    if (darkMode === "dark") {
+        return {
+            // 3.48:1 on #121212, and 3.27:1 once `.cm-activeLine` shades it —
+            // clearing WCAG's 3:1 for non-text contrast either way, where the
+            // #092c4d this replaces sat at 1.32:1 and authors read it as no
+            // highlight at all. White text on it is 5.39:1.
+            selection: "#1e6ac2",
+            selectedText: "#ffffff",
+            match: "#14335a", // 1.47:1
+            tagMatch: "#3fa8a0", // 6.53:1 as an outline
+            tagMismatch: "#f0665e", // 6.04:1
+        };
+    }
+
+    return {
+        // 1.96:1 on white, up from the 1.28:1 of the neutral `--mainGray`
+        // (#e3e3e3) this replaces — a gray that is also the gutter's
+        // background, so the selection read as a piece of the editor chrome.
+        // Near-black text on it is 9.64:1. `.cm-activeLine` darkens rather
+        // than lightens this one, taking it to 2.28:1.
+        selection: "#93bcf0",
+        selectedText: "#0d1117",
+        match: "#e2edfc", // 1.18:1
+        tagMatch: "#0f6e66", // 6.10:1 as an outline
+        tagMismatch: "#c9372c", // 5.16:1
+    };
 }
 
 /**
- * Selection-highlight rules shared by the editable and read-only themes.
+ * Highlight rules shared by the editable and read-only themes.
  *
  * CodeMirror's base theme colors the selection itself, and does so with a
  * high-specificity selector for the *focused* state
@@ -29,18 +78,76 @@ function getSelectionBackgroundColor(darkMode: ThemeMode) {
  * wins when focused, and add a focus-agnostic rule so the *blurred* selection
  * (base default `#d9d9d9` light / `#222` dark) is overridden too — otherwise
  * clicking away from the editor reverts the highlight to the washed-out base
- * color. `::selection` covers the native-selection fallback.
+ * color. `::selection` colors the native selection; `drawSelection` (part of
+ * `basicSetup`) forces that transparent inside `.cm-line`, so on the document
+ * it is a fallback for an editor configured without the drawn selection, and
+ * what it paints today is the selection in the search panel's input.
  */
-function selectionThemeRules(darkMode: ThemeMode) {
-    const backgroundColor = getSelectionBackgroundColor(darkMode);
+function highlightThemeRules(darkMode: ThemeMode) {
+    const { selection, selectedText, match, tagMatch, tagMismatch } =
+        getHighlightColors(darkMode);
     return {
         "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
-            { backgroundColor },
+            { backgroundColor: selection },
         "& > .cm-scroller > .cm-selectionLayer .cm-selectionBackground": {
-            backgroundColor,
+            backgroundColor: selection,
         },
-        "::selection": { backgroundColor },
+        "::selection": { backgroundColor: selection, color: selectedText },
+
+        // The syntax palette writes `color` onto a generated class of its own,
+        // and whether that span ends up inside the selection's span, outside
+        // it, or merged with it is CodeMirror's business, not ours. A theme
+        // rule is emitted prefixed with the theme's own class, so
+        // `.cm-selectedText` outranks the palette's single generated class
+        // wherever the two land on the same span; the descendant selector
+        // covers the case where the palette colors a span *inside* the
+        // selection, which plain inheritance would lose to.
+        ".cm-selectedText, .cm-selectedText span": {
+            color: selectedText,
+        },
+
+        ".cm-selectionMatch": { backgroundColor: match },
+        // Mirrors the rule that shipped with `highlightSelectionMatches`: the
+        // search panel's own highlight is the answer to a question the author
+        // just asked, so the ambient hint gets out of its way.
+        ".cm-searchMatch .cm-selectionMatch": {
+            backgroundColor: "transparent",
+        },
+
+        "&.cm-focused .cm-matchingBracket, .cm-matchingBracket":
+            tagOutline(tagMatch),
+        "&.cm-focused .cm-nonmatchingBracket, .cm-nonmatchingBracket":
+            tagOutline(tagMismatch),
     };
+}
+
+/**
+ * A box around a tag with nothing inside it — the channel neither fill uses.
+ *
+ * `backgroundColor: transparent` is doing real work here: it cancels the fill
+ * CodeMirror's base theme sets for the tag pair, which is the fill that
+ * competed with the selection.
+ */
+function tagOutline(color: string) {
+    return {
+        backgroundColor: "transparent",
+        outline: `1px solid ${color}`,
+        borderRadius: "2px",
+    };
+}
+
+/**
+ * The page's canvas color, with a fallback for a host that has not defined
+ * `--canvas` (the dev sites, and anything embedding this package without
+ * `@doenet/doenetml`'s stylesheet). The fallback matters because `CodeMirror`
+ * turns off `@uiw/react-codemirror`'s own theme, which used to paint an
+ * unconditional white here; without a value of our own the editor would fall
+ * through to whatever is behind it.
+ */
+function canvasBackground(darkMode: ThemeMode) {
+    return darkMode === "dark"
+        ? "var(--canvas, #121212)"
+        : "var(--canvas, #fff)";
 }
 
 // Shared gutter palette used by both the editable and read-only themes to keep colors aligned per mode.
@@ -83,7 +190,7 @@ export function colorTheme(darkMode: ThemeMode) {
             "&": {
                 color: "var(--canvasText)",
                 height: "100%",
-                backgroundColor: "var(--canvas)",
+                backgroundColor: canvasBackground(darkMode),
             },
             ".cm-content": {
                 caretColor: "#0e9",
@@ -91,7 +198,7 @@ export function colorTheme(darkMode: ThemeMode) {
             "&.cm-focused .cm-cursor": {
                 borderLeftColor: "var(--canvasText)",
             },
-            ...selectionThemeRules(darkMode),
+            ...highlightThemeRules(darkMode),
             "&.cm-focused": {
                 color: "var(--canvasText)",
             },
@@ -221,6 +328,7 @@ export function readOnlyColorTheme(darkMode: ThemeMode) {
             "&": {
                 color: "var(--canvasText)",
                 height: "100%",
+                backgroundColor: canvasBackground(darkMode),
             },
             ".cm-content": {
                 caretColor: "#0e9",
@@ -229,7 +337,7 @@ export function readOnlyColorTheme(darkMode: ThemeMode) {
             "&.cm-focused .cm-cursor": {
                 borderLeftColor: "var(--canvasText)",
             },
-            ...selectionThemeRules(darkMode),
+            ...highlightThemeRules(darkMode),
             "&.cm-focused": {
                 color: "var(--canvasText)",
             },

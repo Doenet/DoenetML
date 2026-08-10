@@ -147,7 +147,7 @@ for (const tsconfig of TSCONFIG_FILES) {
             const expected = doenetImports.map(
                 (dep) => `../${dep.split("/")[1]}:build`,
             );
-            const existing = wireitBuild.dependencies ?? [];
+            const existing = crossPackageDependencies(packageJson, "build");
             const missing = expected.filter((x) => !existing.includes(x));
             const excessive = existing.filter((x) => !expected.includes(x));
 
@@ -174,6 +174,47 @@ for (const tsconfig of TSCONFIG_FILES) {
             }
         }
     }
+}
+
+/**
+ * The cross-package builds a package's wireit `script` pulls in, looking through
+ * same-package dependencies.
+ *
+ * A dependency name without a leading `"."` is a script in the same package
+ * (wireit's rule: "All cross-package dependencies should start with a `\".\"`" —
+ * `wireit/schema.json`), and packages here use one to group dependencies:
+ * `@doenet/standalone`'s `build` reaches `../doenetml:build` through
+ * `build:main`, and `@doenet/doenetml-worker-javascript` keeps the sibling
+ * builds its source needs in a no-command `build:deps` so that the generator
+ * scripts in `@doenet/static-assets` can depend on exactly that set (see
+ * `packages/static-assets/test/generator-script-dependencies.test.ts`). Reading
+ * only `build`'s own list would report those groups as missing dependencies.
+ *
+ * `visited` is what keeps a cyclic group — which wireit itself rejects when the
+ * script runs — from recursing forever here.
+ */
+function crossPackageDependencies(
+    packageJson: {
+        wireit?: Record<
+            string,
+            { dependencies?: (string | { script: string })[] }
+        >;
+    },
+    script: string,
+    visited: Set<string> = new Set(),
+): string[] {
+    if (visited.has(script)) {
+        return [];
+    }
+    visited.add(script);
+    const dependencies = packageJson.wireit?.[script]?.dependencies ?? [];
+    return dependencies.flatMap((dependency) => {
+        const name =
+            typeof dependency === "string" ? dependency : dependency.script;
+        return name.startsWith(".")
+            ? [name]
+            : crossPackageDependencies(packageJson, name, visited);
+    });
 }
 
 /**

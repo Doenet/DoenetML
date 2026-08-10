@@ -4,7 +4,11 @@ import {
     TEXT_CONTRAST_THRESHOLD,
 } from "@doenet/utils/style";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
-import { submitAnswer, updateMathInputValue } from "../utils/actions";
+import {
+    submitAnswer,
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
@@ -1707,6 +1711,10 @@ describe("Sectioning tag tests @group3", async () => {
      * actually renders first keeps its top margin and never reports the
      * alignment the section uses to place the number.
      *
+     * "Renders nothing" covers both a child whose component type has no
+     * renderer at all and a child of a rendering type that hid itself with
+     * `hide` — the cases below cover both.
+     *
      * `doenetML` must define two `<part>`s: `pa`, which opens with the
      * non-rendering child under test, and the control `pb`, which does not.
      * The child that should be picked in each is named `ca` and `cb`
@@ -1803,6 +1811,161 @@ describe("Sectioning tag tests @group3", async () => {
             componentType: "graph",
             alignment: "flex-start",
         });
+    });
+
+    // The plain "leading child hid itself" case for a section lives in the
+    // lead-selection matrix in `lists.test.ts`, which asks it of all five
+    // selection rules at once. What is left here is the section-only shapes.
+    //
+    // A composite is never the lead itself — it expands into its replacements in
+    // `activeChildren` — so hiding one has to be caught on those replacements,
+    // which inherit `hiddenIgnoreParent` from their source composite.
+    //
+    // This is also what catches a narrowed `firstVisibleChild` child dependency:
+    // it indexes `allChildren` by the positions in `childIndicesToRender`, and a
+    // composite expanding to two replacements in the middle of the child list
+    // offsets those positions enough that swapping
+    // `sectionAllChildrenDependency()` for `childGroups: ["anything"]` indexes
+    // past the end of the narrowed list, and this document stops loading at all
+    // — verified by making that change; it is the only case here that catches it.
+    it("does not delegate list-item rendering to the replacements of a hidden leading composite", async () => {
+        await test_first_visible_child_skips_non_rendering_child({
+            doenetML: `
+<problem>
+  <part name="pa">
+    <repeat hide for="1 2" valueName="v"><p>Hidden $v</p></repeat>
+    <p name="ca">First</p>
+  </part>
+  <part name="pb">
+    <p name="cb">Second</p>
+  </part>
+</problem>`,
+            componentType: "p",
+            alignment: "baseline",
+        });
+    });
+
+    // Only the child's own `hide` counts. Hiding the container leaves the lead
+    // where it was: nothing in a hidden section is on screen to realign, and the
+    // lead it shows once revealed must not depend on having been hidden. This is
+    // the guard on reading `hiddenIgnoreParent` rather than `hidden` — it is what
+    // fails if that changes. See `listItemChildVisibilityDependency()`.
+    it("keeps the lead of a list-item section whose container is hidden", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems name="probs" hide>
+  <problem name="prob">
+    <p name="lead">First</p>
+    <p>Second</p>
+  </problem>
+</problems>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prob =
+            stateVariables[await resolvePathToNodeIdx("prob")].stateValues;
+        const lead =
+            stateVariables[await resolvePathToNodeIdx("lead")].stateValues;
+
+        expect(prob.hidden).eq(true);
+        expect(lead.hidden).eq(true);
+        expect(prob.firstVisibleChild.componentIdx).eq(
+            await resolvePathToNodeIdx("lead"),
+        );
+        expect(lead.renderInlineForListItem).eq(true);
+    });
+
+    // `firstVisibleChild` only asks its children for their visibility while the
+    // section actually delegates alignment, which is a
+    // `stateVariablesDeterminingDependencies` gate on
+    // `nonBoxedListItemWithoutTitle` — so a section that *becomes* a list item
+    // has to acquire that request, and the lead it then picks has to be the one
+    // it would have had if it had been a list item all along. This is the guard
+    // on the gate: without the rebuild, the lead stays `null` and nothing is
+    // delegated to.
+    it("picks up a lead when a section becomes a list item", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<booleanInput name="b" />
+<section name="sec" asList="$b">
+  <problem name="prob">
+    <p name="hiddenChild" hide>Hidden setup text</p>
+    <p name="lead">Lead</p>
+  </problem>
+</section>`,
+        });
+
+        async function leadOfProb() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                isListItem:
+                    stateVariables[await resolvePathToNodeIdx("prob")]
+                        .stateValues.isListItem,
+                lead:
+                    stateVariables[await resolvePathToNodeIdx("prob")]
+                        .stateValues.firstVisibleChild?.componentIdx ?? null,
+                leadDelegatedTo:
+                    stateVariables[await resolvePathToNodeIdx("lead")]
+                        .stateValues.renderInlineForListItem,
+            };
+        }
+
+        expect(await leadOfProb()).eqls({
+            isListItem: false,
+            lead: null,
+            leadDelegatedTo: false,
+        });
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+
+        expect(await leadOfProb()).eqls({
+            isListItem: true,
+            lead: await resolvePathToNodeIdx("lead"),
+            leadDelegatedTo: true,
+        });
+    });
+
+    // Asking a child for its `hiddenIgnoreParent` is not free: it reaches the
+    // child's `hide`, an author may point `hide` at another component's `hidden`,
+    // and `hidden` reads its parent's `childrenToHide`. So `firstVisibleChild`
+    // asks on its own and the shared `returnSectionChildDependencies()` does not;
+    // move the request there, so that `childrenToHide` asks too, and this
+    // document stops loading at all with a circular dependency — measured. It
+    // loads on both sides of this change.
+    //
+    // The `<problems>` wrapper is load-bearing: `firstVisibleChild` only asks its
+    // children for their visibility when the section is a list item, so a bare
+    // `<problem>` would never make the request this guards.
+    it("loads a section whose child's hide references another child's hidden", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems name="probs">
+  <problem name="prob">
+    <p name="a" hide="$b.hidden">Hidden whenever b is</p>
+    <p name="b" hide>Hidden</p>
+    <p name="c">Lead</p>
+  </problem>
+</problems>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prob =
+            stateVariables[await resolvePathToNodeIdx("prob")].stateValues;
+
+        // Both of the first two children are off screen, so the third leads.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.hidden,
+        ).eq(true);
+        expect(prob.firstVisibleChild.componentIdx).eq(
+            await resolvePathToNodeIdx("c"),
+        );
     });
 });
 

@@ -489,14 +489,12 @@
 }
 
 /*
- * CodeMirror editor area. `@uiw/react-codemirror` injects
- * `backgroundColor: '#fff'` via its default light theme extension. Our
- * `colorTheme()` factory already sets `backgroundColor: "var(--canvas)"` on
- * the same `&` selector, and because our extensions are appended after the
- * @uiw defaults in the CodeMirror state they should win. The CSS rule below
- * acts as a belt-and-suspenders override with higher specificity
- * (attribute(0,1,0) + class(0,0,1) = 0,1,1 beats the generated single-class
- * theme rules at 0,0,1) so the editor background is guaranteed dark.
+ * CodeMirror editor area. `CodeMirror.tsx` turns off `@uiw/react-codemirror`'s
+ * own theme (whose only rule painted the editor white) and its `colorTheme()`
+ * factory paints the canvas itself. The rule below is belt and suspenders: its
+ * three compound parts (0,3,0) outrank the `.<generated-theme-class>` a
+ * CodeMirror theme emits for an `&` rule (0,1,0), so the editor background is
+ * guaranteed dark whatever else ends up in the extension set.
  */
 [data-theme="dark"] .editor-panel .cm-editor {
     background-color: var(--canvas);
