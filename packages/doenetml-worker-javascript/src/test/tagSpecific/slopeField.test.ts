@@ -1,5 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
+import { createFunctionFromDefinition } from "@doenet/utils";
 import { createTestCore } from "../utils/test-core";
+
+/**
+ * Rehydrate one of a field's `fDefinitions` into a numeric closure, exactly as
+ * the renderer does. The components deliberately do not expose the worker's own
+ * closures, since `fDefinitions` is all that is sent to the renderer.
+ */
+function numericalF(fDefinition: any) {
+    return createFunctionFromDefinition(fDefinition) as (
+        ...args: number[]
+    ) => number;
+}
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -23,7 +35,9 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(sf.stateValues.numInputs).eq(2);
         expect(sf.stateValues.fDefinitions.length).eq(1);
         // The numeric closure must evaluate positionally: f(2, pi/2) = 2.
-        expect(sf.stateValues.functions[0](2, Math.PI / 2)).closeTo(2, 1e-12);
+        expect(
+            numericalF(sf.stateValues.fDefinitions[0])(2, Math.PI / 2),
+        ).closeTo(2, 1e-12);
     });
 
     it("slopeField accepts a one-input function", async () => {
@@ -61,14 +75,17 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         // that mentions y is a genuine function of y rather than NaN.
         expect(onlyX.stateValues.haveFunction).eq(true);
         expect(onlyX.stateValues.numInputs).eq(2);
-        expect(onlyX.stateValues.functions[0](2, 7)).closeTo(
+        expect(numericalF(onlyX.stateValues.fDefinitions[0])(2, 7)).closeTo(
             2 * Math.sin(2),
             1e-12,
         );
 
         expect(bothVars.stateValues.haveFunction).eq(true);
         expect(bothVars.stateValues.numInputs).eq(2);
-        expect(bothVars.stateValues.functions[0](2, 7)).closeTo(5, 1e-12);
+        expect(numericalF(bothVars.stateValues.fDefinitions[0])(2, 7)).closeTo(
+            5,
+            1e-12,
+        );
     });
 
     it("slopeField reports no function when none is given", async () => {
@@ -108,7 +125,10 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
 
         // Only the expression becomes the function; the label stays a child.
         expect(sf.stateValues.haveFunction).eq(true);
-        expect(sf.stateValues.functions[0](2, 7)).closeTo(5, 1e-12);
+        expect(numericalF(sf.stateValues.fDefinitions[0])(2, 7)).closeTo(
+            5,
+            1e-12,
+        );
         expect(sf.stateValues.label).eq("a field");
     });
 
@@ -155,8 +175,14 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(vf.stateValues.numInputs).eq(2);
         expect(vf.stateValues.fDefinitions.length).eq(2);
         // F(3, 5) = (5, -3)
-        expect(vf.stateValues.functions[0](3, 5)).closeTo(5, 1e-12);
-        expect(vf.stateValues.functions[1](3, 5)).closeTo(-3, 1e-12);
+        expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            5,
+            1e-12,
+        );
+        expect(numericalF(vf.stateValues.fDefinitions[1])(3, 5)).closeTo(
+            -3,
+            1e-12,
+        );
     });
 
     it("vectorField sugars a bare expression into a function", async () => {
@@ -173,8 +199,14 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
 
         expect(vf.stateValues.haveFunction).eq(true);
         expect(vf.stateValues.numInputs).eq(2);
-        expect(vf.stateValues.functions[0](3, 5)).closeTo(5, 1e-12);
-        expect(vf.stateValues.functions[1](3, 5)).closeTo(-3, 1e-12);
+        expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            5,
+            1e-12,
+        );
+        expect(numericalF(vf.stateValues.fDefinitions[1])(3, 5)).closeTo(
+            -3,
+            1e-12,
+        );
     });
 
     it("vectorField rejects a one-output function", async () => {

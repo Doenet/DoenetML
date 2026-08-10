@@ -2,24 +2,16 @@ import React from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { GraphicalSVs } from "./utils/graphicalSVs";
 import { buildSlopeFieldData } from "./utils/fieldGeometry";
-import { useFieldCurve, useFieldFunction } from "./utils/useFieldCurve";
-
-interface SlopeFieldSVs extends GraphicalSVs {
-    haveFunction: boolean;
-    fDefinitions: any[];
-    numInputs: number;
-    dx: number;
-    dy: number;
-    xoffset: number;
-    yoffset: number;
-    markLength: number;
-    maxMarks: number;
-}
+import {
+    fieldGrid,
+    useFieldCurve,
+    useFieldFunction,
+    type FieldSVs,
+} from "./utils/useFieldCurve";
 
 export default React.memo(function SlopeField(props: UseDoenetRendererProps) {
-    let { SVs } = useDoenetRenderer<SlopeFieldSVs>(props);
+    let { SVs } = useDoenetRenderer<FieldSVs>(props);
 
     // @ts-ignore
     SlopeField.ignoreActionsWithoutCore = () => true;
@@ -28,17 +20,11 @@ export default React.memo(function SlopeField(props: UseDoenetRendererProps) {
 
     useFieldCurve({
         SVs,
-        enabled: SVs.haveFunction,
         buildData: (bounds, scale) =>
             buildSlopeFieldData({
                 f,
                 bounds,
-                grid: {
-                    dx: SVs.dx,
-                    dy: SVs.dy,
-                    xoffset: SVs.xoffset,
-                    yoffset: SVs.yoffset,
-                },
+                grid: fieldGrid(SVs),
                 scale,
                 markLength: SVs.markLength,
                 maxMarks: SVs.maxMarks,

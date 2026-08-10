@@ -176,8 +176,11 @@ describe("buildSlopeFieldData", () => {
         expect(numMarks).toBeGreaterThan(0);
     });
 
-    it("still bounds the lattice when maxMarks is not a positive number", () => {
-        for (const maxMarks of [0, -5, NaN]) {
+    it("still bounds the lattice when maxMarks is not a usable cap", () => {
+        // A cap below 1 can never be met — every stride keeps at least one mark
+        // of a non-empty lattice — so it has to be clamped rather than searched
+        // for, or the stride search never terminates.
+        for (const maxMarks of [0, -5, NaN, 0.5]) {
             const { numMarks } = buildSlopeFieldData({
                 f: () => 1,
                 ...opts,
@@ -274,23 +277,28 @@ describe("buildVectorFieldData", () => {
         expect(Math.min(...lengths)).toBeLessThan(12);
     });
 
-    it("keeps barbs a constant pixel length independent of arrow length", () => {
+    it("sizes each barb in proportion to the arrow it terminates", () => {
+        // A fixed pixel barb would be half the length of the shortest arrows in
+        // a magnitude-scaled field, and invisible on the longest.
         const { dataX, dataY } = buildVectorFieldData({
             u: (x) => x,
             v: () => 0,
             ...opts,
             normalize: false,
-            barbLength: 5,
+            barbFraction: 0.25,
         });
 
         for (let i = 0; i < dataX.length; i += 9) {
-            if (!Number.isFinite(dataX[i + 3])) continue;
+            const shaft = Math.hypot(
+                (dataX[i + 1] - dataX[i]) * square.unitX,
+                (dataY[i + 1] - dataY[i]) * square.unitY,
+            );
             for (const off of [3, 6]) {
                 const len = Math.hypot(
                     (dataX[i + off + 1] - dataX[i + off]) * square.unitX,
                     (dataY[i + off + 1] - dataY[i + off]) * square.unitY,
                 );
-                expect(len).toBeCloseTo(5, 10);
+                expect(len).toBeCloseTo(0.25 * shaft, 10);
             }
         }
     });

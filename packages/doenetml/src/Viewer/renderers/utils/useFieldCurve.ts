@@ -15,10 +15,44 @@ import { createFunctionFromDefinition } from "@doenet/utils";
 import { BoardContext, LINE_LAYER_OFFSET } from "../graph";
 import { DocContext } from "../../DocViewer";
 import { JXGBoard, JXGCurve } from "../jsxgraph-distrib/types";
-import type { FieldBounds, FieldData, FieldScale } from "./fieldGeometry";
+import type {
+    FieldBounds,
+    FieldData,
+    FieldGrid,
+    FieldScale,
+} from "./fieldGeometry";
 import type { GraphicalSVs } from "./graphicalSVs";
 import { styleToDash } from "./styleToDash";
 import { useJSXGraphCleanup } from "./useJSXGraphCleanup";
+
+/**
+ * The state variables every field component sends its renderer: the graphical
+ * basics, the rehydratable function from
+ * `returnFieldFunctionStateVariableDefinitions`, and the lattice attributes
+ * from `returnFieldLatticeAttributes`. `<vectorField>` extends this with
+ * `normalize`.
+ */
+export interface FieldSVs extends GraphicalSVs {
+    haveFunction: boolean;
+    fDefinitions: any[];
+    numInputs: number;
+    dx: number;
+    dy: number;
+    xoffset: number;
+    yoffset: number;
+    markLength: number;
+    maxMarks: number;
+}
+
+/** The lattice to sample on, in the shape the geometry functions take. */
+export function fieldGrid(SVs: FieldSVs): FieldGrid {
+    return {
+        dx: SVs.dx,
+        dy: SVs.dy,
+        xoffset: SVs.xoffset,
+        yoffset: SVs.yoffset,
+    };
+}
 
 /**
  * Rehydrate one of the worker's function definitions into a numeric closure of
@@ -48,14 +82,11 @@ export function useFieldFunction(
 export function useFieldCurve({
     SVs,
     buildData,
-    enabled,
 }: {
-    /** The graphical state variables that style and place the curve. */
-    SVs: GraphicalSVs;
+    /** The state variables that style the curve and say whether to draw it. */
+    SVs: FieldSVs;
     /** Produce the coordinate arrays for the currently visible region. */
     buildData: (bounds: FieldBounds, scale: FieldScale) => FieldData;
-    /** False when the component has no usable function yet. */
-    enabled: boolean;
 }) {
     const board = useContext(BoardContext);
     const { darkMode } = useContext(DocContext) || {};
@@ -144,7 +175,7 @@ export function useFieldCurve({
     useJSXGraphCleanup({ objectRef: curveJXG, destroy: deleteCurve });
 
     if (board) {
-        if (!enabled) {
+        if (!SVs.haveFunction) {
             // No usable function: make sure nothing lingers from a previous
             // render that did have one.
             if (curveJXG.current !== null) {

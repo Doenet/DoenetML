@@ -78,9 +78,11 @@ export function latticeRange(
  */
 function strideFor(nx: number, ny: number, maxMarks: number): number {
     // `maxMarks` is the only thing bounding the work, so a value that is not a
-    // positive number must not be allowed to lift the bound: fall back to the
-    // tightest possible cap rather than drawing the whole lattice.
-    const cap = maxMarks > 0 ? maxMarks : 1;
+    // usable cap must not be allowed to lift the bound: fall back to the
+    // tightest possible cap rather than drawing the whole lattice. Anything
+    // below 1 is unsatisfiable — a non-empty lattice keeps at least one mark at
+    // every stride — and would send the search below climbing forever.
+    const cap = maxMarks >= 1 ? maxMarks : 1;
     const total = nx * ny;
     // Also covers an empty lattice (total <= 0) and maxMarks = Infinity.
     if (total <= cap) {
@@ -239,7 +241,7 @@ export function buildVectorFieldData({
     markLength,
     maxMarks,
     normalize,
-    barbLength = 4,
+    barbFraction = 0.3,
     barbAngle = 0.44,
 }: {
     u: (x: number, y: number) => number;
@@ -252,8 +254,12 @@ export function buildVectorFieldData({
     maxMarks: number;
     /** Draw every arrow the same length, showing direction only. */
     normalize: boolean;
-    /** Arrowhead barb length, in pixels. */
-    barbLength?: number;
+    /**
+     * Arrowhead barb length, as a fraction of the arrow it terminates. A fixed
+     * pixel size would swamp the short arrows of a magnitude-scaled field and
+     * all but vanish on a large `markLength`.
+     */
+    barbFraction?: number;
     /** Half-spread of the arrowhead, in radians. */
     barbAngle?: number;
 }): FieldData {
@@ -311,9 +317,11 @@ export function buildVectorFieldData({
         dataY.push(tailY, headY, NaN);
 
         // Barbs: rotate the backward pixel direction by +/- barbAngle, then
-        // convert back to user units so they keep a constant on-screen size.
+        // convert back to user units so the head keeps its on-screen shape
+        // whatever the axis scaling.
         const bx = (-ux * scale.unitX) / mag;
         const by = (-uy * scale.unitY) / mag;
+        const barbLength = pixelLength * barbFraction;
         for (const sign of [1, -1]) {
             const ca = Math.cos(sign * barbAngle);
             const sa = Math.sin(sign * barbAngle);

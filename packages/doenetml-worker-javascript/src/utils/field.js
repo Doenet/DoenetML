@@ -147,10 +147,12 @@ export function returnFieldFunctionSugarInstruction() {
  * attribute.
  *
  * The renderer redraws the field on every pan and zoom without going back to
- * the worker, so what it needs is not the closure but `fDefinitions`, which it
- * rehydrates with `createFunctionFromDefinition`. It needs `numInputs` too: a
- * one-input function built that way has signature `(x, overrideDomain)`, so
- * calling it as `f(x, y)` would quietly pass `y` as `overrideDomain`.
+ * the worker, so what it needs is not a closure but `fDefinitions`, which it
+ * rehydrates with `createFunctionFromDefinition`. The worker therefore never
+ * asks the function for `numericalfs`, which it would only have to build and
+ * throw away. `numInputs` comes along because a one-input function built that
+ * way has signature `(x, overrideDomain)`, so calling it as `f(x, y)` would
+ * quietly pass `y` as `overrideDomain`.
  *
  * @param {number} numOutputs how many outputs the function must have — 1 for a
  *   slope field, 2 for a vector field. Anything else is not a usable field, and
@@ -158,9 +160,9 @@ export function returnFieldFunctionSugarInstruction() {
  */
 export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
     return {
-        functions: {
+        haveFunction: {
+            forRenderer: true,
             additionalStateVariablesDefined: [
-                { variableName: "haveFunction", forRenderer: true },
                 { variableName: "fDefinitions", forRenderer: true },
                 { variableName: "numInputs", forRenderer: true },
             ],
@@ -168,12 +170,7 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                 functionAttr: {
                     dependencyType: "attributeComponent",
                     attributeName: "function",
-                    variableNames: [
-                        "numericalfs",
-                        "numInputs",
-                        "numOutputs",
-                        "fDefinitions",
-                    ],
+                    variableNames: ["numInputs", "numOutputs", "fDefinitions"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -191,11 +188,10 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                 if (!usable) {
                     return {
                         setValue: {
-                            functions: Array.from(
-                                { length: numOutputs },
-                                () => () => NaN,
-                            ),
                             haveFunction: false,
+                            // An empty definition rehydrates to the NaN
+                            // function, so a field with no usable function
+                            // draws nothing rather than throwing.
                             fDefinitions: Array.from(
                                 { length: numOutputs },
                                 () => ({}),
@@ -207,7 +203,6 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
 
                 return {
                     setValue: {
-                        functions: attr.stateValues.numericalfs,
                         haveFunction: true,
                         fDefinitions: attr.stateValues.fDefinitions,
                         numInputs: attr.stateValues.numInputs,

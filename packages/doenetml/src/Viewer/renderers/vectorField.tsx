@@ -2,21 +2,16 @@ import React from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { GraphicalSVs } from "./utils/graphicalSVs";
 import { buildVectorFieldData } from "./utils/fieldGeometry";
-import { useFieldCurve, useFieldFunction } from "./utils/useFieldCurve";
+import {
+    fieldGrid,
+    useFieldCurve,
+    useFieldFunction,
+    type FieldSVs,
+} from "./utils/useFieldCurve";
 
-interface VectorFieldSVs extends GraphicalSVs {
-    haveFunction: boolean;
-    fDefinitions: any[];
-    numInputs: number;
-    dx: number;
-    dy: number;
-    xoffset: number;
-    yoffset: number;
-    markLength: number;
+interface VectorFieldSVs extends FieldSVs {
     normalize: boolean;
-    maxMarks: number;
 }
 
 export default React.memo(function VectorField(props: UseDoenetRendererProps) {
@@ -30,18 +25,12 @@ export default React.memo(function VectorField(props: UseDoenetRendererProps) {
 
     useFieldCurve({
         SVs,
-        enabled: SVs.haveFunction,
         buildData: (bounds, scale) =>
             buildVectorFieldData({
                 u,
                 v,
                 bounds,
-                grid: {
-                    dx: SVs.dx,
-                    dy: SVs.dy,
-                    xoffset: SVs.xoffset,
-                    yoffset: SVs.yoffset,
-                },
+                grid: fieldGrid(SVs),
                 scale,
                 markLength: SVs.markLength,
                 maxMarks: SVs.maxMarks,
