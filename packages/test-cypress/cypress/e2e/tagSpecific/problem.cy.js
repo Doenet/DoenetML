@@ -1792,7 +1792,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             expect(
                 offset,
                 "the cascadeMessage starts on its item's first row",
-            ).to.be.lessThan(2);
+            ).to.be.closeTo(0, 2);
         });
 
         // The number itself stays put horizontally: this item numbers itself

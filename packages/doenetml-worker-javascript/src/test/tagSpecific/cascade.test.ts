@@ -1823,8 +1823,10 @@ describe("Cascade tag tests @group4", async () => {
         );
 
         // The step the cascade has not reached hides all of its children, so it
-        // delegates to nobody at all — `hideChildren`, not any child's own
-        // `hide`, is what suppresses the delegation.
+        // delegates to nobody at all — the container's hiding, not any child's
+        // own `hide`, is what leaves it without a lead. This step has no
+        // `<cascadeMessage>`, so `childrenToHide` really does hold every child it
+        // has; the step that does show one is the test two below.
         expect(stateVariables[prob2Idx].stateValues.hideChildren).eq(true);
         expect(stateVariables[prob2Idx].stateValues.firstVisibleChild).eq(null);
         expect(stateVariables[lead2Idx].stateValues.hidden).eq(true);
