@@ -815,12 +815,21 @@ data says such a reader most likely arrives in Ajami and what they get from
 `locales/ff`'s in Adlam, and the answer to it is a second catalog beside the
 first rather than a rename of it. The header says so.
 
-Four of the eleven read their English name once in `<document lang>`'s
-autocomplete, CLDR having no language data for `dag`, `ktu`, `mnk` or `tiv` to
-answer an endonym with. The other seven read both, and two are worth a glance
-because the two names are not the same word: **"Mossi (Mossi)"** names the
-people where the language is Mooré, and **"Rundi (Ikirundi)"** is the ordinary
-Bantu shape beside it.
+**Three of the eleven have no CLDR language name at all**, which is further
+than any earlier batch went: `dag`, `ktu` and `mnk` render as the bare codes
+`dag`, `ktu` and `mnk` in `<document lang>`'s autocomplete, because
+`Intl.DisplayNames` has nothing to answer with in either English or the
+language itself and `supportedLocales.ts` is derived rather than hand-written.
+That is the roster's rule working — a language is named whatever CLDR names it,
+and adding a language costs no prose — showing its cost rather than failing.
+Five more read one name, their English name and their endonym being the same
+word: Luba-Lulua, Dyula, Mossi, Tiv and Kanuri. Only `rn`, `nyn` and `gaa` read
+both, as "Rundi (Ikirundi)", "Nyankole (Runyankore)" and "Ga (Gã)".
+
+**"Mossi" is the one likeliest to be read as an error and is not one.** CLDR
+names `mos` after the people; the language is Mooré, which is what its own
+catalog header calls it. They are one entry, the way "Nyanja" and Chichewa
+are.
 
 #### The chemistry gap splits two ways, and one of the two is new here
 
