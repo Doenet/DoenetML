@@ -46,7 +46,7 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Imphendvulo
+feedback-heading = Imphendvulo yekucondzisa
 
 collapsible-click-to-open = (chafata kute uvule)
 collapsible-click-to-close = (chafata kute uvale)

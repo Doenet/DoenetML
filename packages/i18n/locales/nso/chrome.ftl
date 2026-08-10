@@ -128,6 +128,6 @@ accessibility-heading-level-2 = Temošo ya phihlelelo
 
 something-went-wrong = Go na le se se sa sepelago gabotse.
 
-renderer-load-failed = mmontšhi o palelwe go laisa. Hle laiša leletšo gape.
+renderer-load-failed = mmontšhi o palelwe go laisa. Hle laiša letlakala gape.
 
-core-start-failed = Mmontšhi wa tokumente ga se a kgone go thoma. Hle laiša leletšo gape.
+core-start-failed = Mmontšhi wa tokumente ga se a kgone go thoma. Hle laiša letlakala gape.

@@ -148,11 +148,11 @@ circle-radius-with-many-points = Te kuti wapange icizingulushi icipitila mu mapo
 
 circle-invalid-center-or-through-points = Ipakati nangu amapoyinti ya cizingulushi yabipa.
 
-circle-radius-center-with-multiple-points = Te kuti wapende redioyasi ya cizingulushi na ipakati lyasalwa icipitila mu ipoyinti ilyacila pali limo.
+circle-radius-center-with-multiple-points = Te kuti wapende rediyasi ya cizingulushi na ipakati lyasalwa icipitila mu ipoyinti ilyacila pali limo.
 
-circle-change-radius-non-numerical = Te kuti waalule redioyasi ya cizingulushi icipitila mu mapoyinti ayashikwete inambala
+circle-change-radius-non-numerical = Te kuti waalule rediyasi ya cizingulushi icipitila mu mapoyinti ayashikwete inambala
 
-circle-radius-with-points-non-numerical = Te kuti wapange icizingulushi icipitila mu ipoyinti ilyacila pali limo na redioyasi iyasalwa nga takuli imibalo ya nambala.
+circle-radius-with-points-non-numerical = Te kuti wapange icizingulushi icipitila mu ipoyinti ilyacila pali limo na rediyasi iyasalwa nga takuli imibalo ya nambala.
 
 circle-change-center-non-numerical = Ukwaalula ipakati lya cizingulushi icipitila mu mapoyinti ayashikwete imibalo ya nambala takwapangilwe.
 
@@ -491,15 +491,15 @@ attribute-value-invalid-using-default = Umubalo uwabipa `{ $value }` uwa cishink
 
 doenetml-version-not-found =
     { $fallback ->
-        [none] Ubwikashi bwa DoenetML { $version } tabwasangwa.
-       *[other] Ubwikashi bwa DoenetML { $version } tabwasangwa. Kulebwelela ku bwikashi { $fallback }
+        [none] Vesheni ya DoenetML { $version } tayasangwa.
+       *[other] Vesheni ya DoenetML { $version } tayasangwa. Kulebwelela ku vesheni { $fallback }
     }
 
 ## Reading the DoenetML
 
 parse-invalid-doenetml = DoenetML iyabipa: { $content }
 
-parse-tag-missing-close-tag = DoenetML iyabipa: Tagi `{ $tag }` taikwete tagi ya kwisala. Kwalelolelwa tagi iiisala nangu tagi ya `</{ $tagName }>`.
+parse-tag-missing-close-tag = DoenetML iyabipa: Tagi `{ $tag }` taikwete tagi ya kwisala. Kwalelolelwa tagi iisala nangu tagi ya `</{ $tagName }>`.
 
 parse-tag-error = DoenetML iyabipa: Ubulubo pa tagi `<{ $tagName }>`
 

@@ -567,11 +567,11 @@ deprecated-attribute-renamed =
 
 deprecated-attribute-renamed-conflict =
     { $component ->
-        [none] [deprecation] Alama `{ $from }` ok ti kendo kendo ok okwan nikech `{ $to }` bende oket.
-       *[other] [deprecation] Alama `{ $from }` e `<{ $component }>` ok ti kendo kendo ok okwan nikech `{ $to }` bende oket.
+        [none] [deprecation] Alama `{ $from }` ok ti kendo, kendo ok okwan nikech `{ $to }` bende oket.
+       *[other] [deprecation] Alama `{ $from }` e `<{ $component }>` ok ti kendo, kendo ok okwan nikech `{ $to }` bende oket.
     }
 
-deprecated-attribute-ignored = [deprecation] Alama `{ $attribute }` e `<{ $component }>` ok ti kendo kendo ok okwan.
+deprecated-attribute-ignored = [deprecation] Alama `{ $attribute }` e `<{ $component }>` ok ti kendo, kendo ok okwan.
 
 deprecated-attribute-to-child = [deprecation] Alama `{ $attribute }` e `<{ $component }>` ok ti kendo; ti gi nyathi mar `<{ $child }>` kar mano.
 

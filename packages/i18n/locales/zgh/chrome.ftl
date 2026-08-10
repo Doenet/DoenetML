@@ -27,7 +27,7 @@ answer-percent-credit = { $percent }% ⵏ ⵜⴻⵏⵇⵉⴹⵉⵏ
 answer-percent-correct = { $percent }% ⴷ ⵜⵉⴷⴻⵜ
 answer-percent-short = { $percent } %
 
-max-credit-available = ⵜⵉⵏⵇⵉⴹⵉⵏ ⵓⴳⴰⵔ ⵢⴻⵍⵍⴰⵏ: { $percent }%
+max-credit-available = ⵜⵉⵏⵇⵉⴹⵉⵏ ⵓⴳⴰⵔ ⵉ ⵢⴻⵍⵍⴰⵏ: { $percent }%
 
 attempts-remaining =
     { $count ->
@@ -42,14 +42,14 @@ validation-partially-correct = (ⴷ ⵜⵉⴷⴻⵜ ⵙ ⵓⵃⵔⵉⵛ)
 
 answer-show-responses =
     { $count ->
-        [one] ⵙⴽⴻⵏ { $count } ⵏ ⵜⵉⵔⵉⵔⵉⵜ ⵉ { $answerId }
-       *[other] ⵙⴽⴻⵏ { $count } ⵏ ⵜⵉⵔⵉⵔⵉⵢⵉⵏ ⵉ { $answerId }
+        [one] ⵙⴽⴻⵏ { $count } ⵏ ⵜⵔⵉⵔⵉⵜ ⵉ { $answerId }
+       *[other] ⵙⴽⴻⵏ { $count } ⵏ ⵜⵔⵉⵔⵉⵢⵉⵏ ⵉ { $answerId }
     }
 
 
 ## Disclosure panels
 
-feedback-heading = ⵜⵉⵔⵉⵔⵉⵜ
+feedback-heading = ⵉⵡⴻⵏⵏⵉⵜⴻⵏ
 
 collapsible-click-to-open = (ⵙⵉⵜ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⴻⵍⴷⵉⴷ)
 collapsible-click-to-close = (ⵙⵉⵜ ⴰⴽⴽⴻⵏ ⴰⴷ ⵜⵎⴻⴷⵍⴻⴷ)
@@ -86,7 +86,7 @@ orbital-add-row = ⵔⵏⵓ ⵉⵣⵉⵔⵉⴳ
 orbital-remove-row = ⴽⴽⴻⵙ ⵉⵣⵉⵔⵉⴳ
 orbital-add-box = ⵔⵏⵓ ⵜⴰⵏⴰⴽⴰ
 orbital-remove-box = ⴽⴽⴻⵙ ⵜⴰⵏⴰⴽⴰ
-orbital-add-up-arrow = ⵔⵏⵓ ⵜⴰⵏⴻⵛⵛⴰⴱⵜ ⵙ ⴰⴼⴻⵍⵍⴰ
+orbital-add-up-arrow = ⵔⵏⵓ ⵜⴰⵏⴻⵛⵛⴰⴱⵜ ⵙ ⵓⴼⴻⵍⵍⴰ
 orbital-add-down-arrow = ⵔⵏⵓ ⵜⴰⵏⴻⵛⵛⴰⴱⵜ ⵙ ⵡⴰⴷⴷⴰ
 orbital-remove-arrow = ⴽⴽⴻⵙ ⵜⴰⵏⴻⵛⵛⴰⴱⵜ
 

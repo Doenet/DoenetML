@@ -164,7 +164,7 @@ help-ref-is-reference =
 help-ref-derived-from =
     { $line ->
         [none] Nĩ yarehirwo nĩ { $owner } ta { $role }.
-       *[other] Nĩ yarehirwo nĩ { $owner } mũharĩ-inĩ wa { $line } ta { $role }.
+       *[other] Nĩ yarehirwo nĩ { $owner } mũhari-inĩ wa { $line } ta { $role }.
     }
 
 help-property-is-reference =

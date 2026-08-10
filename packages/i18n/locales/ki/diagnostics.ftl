@@ -427,17 +427,17 @@ variant-non-constant-exclude-not-implemented = mĩthemba mĩamũre ya { $compone
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: ndĩteithĩrĩirio harĩ mũonania wa graph prefigure; mũciari nĩatigwo.
+prefigure-descendant-unsupported = { $subject }: ndĩteithĩrĩirio harĩ mũonania wa graph prefigure; rũciaro nĩrwatigwo.
 
-prefigure-descendant-invalid-geometry = { $subject }: jiomethiri ĩtathiraga kana ĩtakinyanĩire; mũciari nĩatigwo.
+prefigure-descendant-invalid-geometry = { $subject }: jiomethiri ĩtathiraga kana ĩtakinyanĩire; rũciaro nĩrwatigwo.
 
 prefigure-curve-label-omitted = { $subject }: marĩĩtwa matiteithĩrĩirio harĩ icunjĩ cia mũhari mũgothe iria cigarũrĩtwo; rĩĩtwa nĩrĩatigwo.
 
-prefigure-curve-unsupported-definition-type = { $subject }: mũthemba wa gũtaarĩria wa wĩra wa mũhari mũgothe '{ $definitionType }' ndũteithĩrĩirio; mũciari nĩatigwo.
+prefigure-curve-unsupported-definition-type = { $subject }: mũthemba wa gũtaarĩria wa wĩra wa mũhari mũgothe '{ $definitionType }' ndũteithĩrĩirio; rũciaro nĩrwatigwo.
 
-prefigure-region-flip-functions-unsupported = { $subject }: kĩgeranio kĩa flipFunctions harĩ regionBetweenCurves gĩtiteithĩrĩirio; mũciari nĩatigwo.
+prefigure-region-flip-functions-unsupported = { $subject }: kĩgeranio kĩa flipFunctions harĩ regionBetweenCurves gĩtiteithĩrĩirio; rũciaro nĩrwatigwo.
 
-prefigure-region-non-formula-child = { $subject }: nĩ mawĩra ma ciana ma mũthemba wa formula moiki mateithĩrĩirio harĩ regionBetweenCurves; mũciari nĩatigwo.
+prefigure-region-non-formula-child = { $subject }: nĩ mawĩra ma ciana ma mũthemba wa formula moiki mateithĩrĩirio harĩ regionBetweenCurves; rũciaro nĩrwatigwo.
 
 prefigure-label-position-unsupported =
     { $subject }: labelPosition '{ $labelPosition }' ndĩteithĩrĩirio harĩ { $labelKind ->
@@ -534,12 +534,12 @@ parser-node-unconvertible = Gũtiahotekire kũgarũra nodi { $node } ĩtuĩke no
 ## Names
 
 name-attribute-invalid =
-    Rĩĩtwa rĩa kĩgeranio ndrĩrĩ rĩega name='{ $name }'. { $reason ->
+    Rĩĩtwa rĩa kĩgeranio rĩtirĩ rĩega name='{ $name }'. { $reason ->
         [characters] Marĩĩtwa no makorwo na ndemwa, namba, mĩhari ya thĩ kana mĩhari kiiki.
        *[start] Marĩĩtwa no mũhaka mambĩrĩrie na ndemwa.
     }
 
-component-name-invalid-start = Rĩĩtwa rĩa gĩcunjĩ ndrĩrĩ rĩega "{ $name }". Marĩĩtwa no mũhaka mambĩrĩrie na ndemwa.
+component-name-invalid-start = Rĩĩtwa rĩa gĩcunjĩ rĩtirĩ rĩega "{ $name }". Marĩĩtwa no mũhaka mambĩrĩrie na ndemwa.
 
 ## `<answer>` sugar
 
@@ -602,7 +602,7 @@ schema-attribute-value-not-allowed =
 
 ## The `<select>` family's error boxes
 
-select-variant-name-option-count-mismatch = Rĩĩtwa rĩa mũthemba ndrĩrĩ rĩega harĩ select.  Rĩĩtwa rĩa mũthemba { $variantName } rĩonekaga harĩ ũthuuri { $numOptions } no mũigana wa gũthuura nĩ { $numToSelect }.
+select-variant-name-option-count-mismatch = Rĩĩtwa rĩa mũthemba rĩtirĩ rĩega harĩ select.  Rĩĩtwa rĩa mũthemba { $variantName } rĩonekaga harĩ ũthuuri { $numOptions } no mũigana wa gũthuura nĩ { $numToSelect }.
 
 select-variant-name-without-options = Mĩthemba ĩmwe nĩyathuurirwo harĩ select no gũtirĩ ũthuuri wathuurirwo wa rĩĩtwa rĩa mũthemba rĩngĩhoteka: { $variantName }.
 

@@ -54,16 +54,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] Yettwaf uzgar WCAG AA n wanekcum. Yettwaf { $count ->
-            [one] { $count } n uzgar WCAG AA
-           *[other] { $count } n yizgaren WCAG AA
+        [violations] Yettwaf uzgar WCAG AA n wanekcum. { $count ->
+            [one] Yettwaf { $count } n uzgar WCAG AA
+           *[other] Ttwafen { $count } n yizgaren WCAG AA
         }. Sit akken ad { $action ->
             [close] tmedleḍ
            *[open] teldiḍ
         } aneqqis n wanekcum.
-        [advisories] Ulac azgar WCAG AA yettwafen. Yettwaf { $count ->
-            [one] { $count } n uneɣmis nniḍen n wanekcum
-           *[other] { $count } n yineɣmisen nniḍen n wanekcum
+        [advisories] Ulac azgar WCAG AA yettwafen. { $count ->
+            [one] Yettwaf { $count } n uneɣmis nniḍen n wanekcum
+           *[other] Ttwafen { $count } n yineɣmisen nniḍen n wanekcum
         }. Sit akken ad { $action ->
             [close] tmedleḍ
            *[open] teldiḍ
@@ -207,4 +207,4 @@ help-reset-list = Umuɣ yettwawennzen deg unekcum-agi:
 help-added-on-input = Ayen yettwarnan deg unekcum-agi:
 help-removed-on-input = Ayen yettwakksen deg unekcum-agi:
 
-help-reset-overrides = { $reset } yugar { $additional } d { $removed }.
+help-reset-overrides = { $reset } yezwar { $additional } d { $removed }.

@@ -46,7 +46,7 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Duoko
+feedback-heading = Paro
 
 collapsible-click-to-open = (dii mondo iyaw)
 collapsible-click-to-close = (dii mondo iumo)

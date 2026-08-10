@@ -57,18 +57,18 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] ⵢⵜⵜⵓⴼ ⵓⵣⴳⴰⵔ WCAG AA ⵏ ⵡⴰⵏⴽⵛⵓⵎ. ⵢⵜⵜⵓⴼ { $count ->
-            [one] { $count } ⵏ ⵓⵣⴳⴰⵔ WCAG AA
-            [few] { $count } ⵏ ⵢⵉⵣⴳⴰⵔⵏ WCAG AA
-           *[other] { $count } ⵏ ⵢⵉⵣⴳⴰⵔⵏ WCAG AA
+        [violations] ⵢⵜⵜⵓⴼ ⵓⵣⴳⴰⵔ WCAG AA ⵏ ⵡⴰⵏⴽⵛⵓⵎ. { $count ->
+            [one] ⵢⵜⵜⵓⴼ { $count } ⵏ ⵓⵣⴳⴰⵔ WCAG AA
+            [few] ⵜⵜⵓⴼⵏ { $count } ⵏ ⵢⵉⵣⴳⴰⵔⵏ WCAG AA
+           *[other] ⵜⵜⵓⴼⵏ { $count } ⵏ ⵢⵉⵣⴳⴰⵔⵏ WCAG AA
         }. ⵙⵉⵜ ⴰⴼⴰⴷ ⴰⴷ { $action ->
             [close] ⵜⵇⵇⵏⵜ
            *[open] ⵜⵔⵣⵎⵜ
         } ⴰⵏⵇⵇⵉⵙ ⵏ ⵡⴰⵏⴽⵛⵓⵎ.
-        [advisories] ⵓⵔ ⵉⵍⵍⵉ ⵓⵣⴳⴰⵔ WCAG AA ⵢⵜⵜⵓⴼⴰⵏ. ⵢⵜⵜⵓⴼ { $count ->
-            [one] { $count } ⵏ ⵓⵏⵖⵎⵉⵙ ⵢⴰⴹⵏⵉⵏ ⵏ ⵡⴰⵏⴽⵛⵓⵎ
-            [few] { $count } ⵏ ⵢⵉⵏⵖⵎⵉⵙⵏ ⵢⴰⴹⵏⵉⵏ ⵏ ⵡⴰⵏⴽⵛⵓⵎ
-           *[other] { $count } ⵏ ⵢⵉⵏⵖⵎⵉⵙⵏ ⵢⴰⴹⵏⵉⵏ ⵏ ⵡⴰⵏⴽⵛⵓⵎ
+        [advisories] ⵓⵔ ⵉⵍⵍⵉ ⵓⵣⴳⴰⵔ WCAG AA ⵢⵜⵜⵓⴼⴰⵏ. { $count ->
+            [one] ⵢⵜⵜⵓⴼ { $count } ⵏ ⵓⵏⵖⵎⵉⵙ ⵢⴰⴹⵏⵉⵏ ⵏ ⵡⴰⵏⴽⵛⵓⵎ
+            [few] ⵜⵜⵓⴼⵏ { $count } ⵏ ⵢⵉⵏⵖⵎⵉⵙⵏ ⵢⴰⴹⵏⵉⵏ ⵏ ⵡⴰⵏⴽⵛⵓⵎ
+           *[other] ⵜⵜⵓⴼⵏ { $count } ⵏ ⵢⵉⵏⵖⵎⵉⵙⵏ ⵢⴰⴹⵏⵉⵏ ⵏ ⵡⴰⵏⴽⵛⵓⵎ
         }. ⵙⵉⵜ ⴰⴼⴰⴷ ⴰⴷ { $action ->
             [close] ⵜⵇⵇⵏⵜ
            *[open] ⵜⵔⵣⵎⵜ
@@ -123,7 +123,7 @@ editor-none-found = ⵓⵔ ⵢⵜⵜⵓⴼ ⵢⴰⵜ
 ## Submitted responses
 
 editor-no-responses = ⵓⵔ ⵍⵍⵉⵏⵜ ⵜⵉⵔⵉⵔⵉⵢⵉⵏ ⵢⵜⵜⵓⵣⵏⵏ ⴰⵔ ⵖⵉⵍⴰⴷ
-editor-response-answer-id = ⴰⵙⵓⵍⴰⵢ ⵏ ⵜⵉⵔⵉⵔⵉⵜ
+editor-response-answer-id = ⴰⵙⵓⵍⴰⵢ ⵏ ⵜⵔⵉⵔⵉⵜ
 editor-response-response = ⵜⵉⵔⵉⵔⵉⵜ
 editor-response-credit = ⵜⵉⵏⵇⵉⴹⵉⵏ
 editor-response-submitted = ⵜⵜⵓⵣⵏ
@@ -133,7 +133,7 @@ editor-response-submitted = ⵜⵜⵓⵣⵏ
 
 help-placeholder = ⵔⴰⵔ ⵜⴰⵃⵏⴰⵛⵛⴰⴹ ⵅⴼ ⵢⵉⵙⵎ ⵏ ⵜⴱⵣⵉⵎⵜ, ⵅⴼ ⵓⵎⵙⵍⴰⵢ, ⵏⵖ ⵅⴼ { $ref } ⵉ ⵜⵙⵎⵍⵉⵜ.
 
-help-unsupported-ref-chain = ⵜⴰⵍⵍⴰⵍⵜ ⵏ ⵜⵎⵖⵕⵉⵡⵉⵏ ⵙ ⴰⵟⵟⴰⵙ ⵏ ⵢⵉⵃⵔⵉⵛⵏ ⴰⵎ { $example } ⴰⵔ ⵜⴰ ⵓⵔ ⵜⵍⵍⵉ.
+help-unsupported-ref-chain = ⵜⴰⵍⵍⴰⵍⵜ ⵏ ⵜⵎⵖⵕⵉⵡⵉⵏ ⵙ ⵡⴰⵟⵟⴰⵙ ⵏ ⵢⵉⵃⵔⵉⵛⵏ ⴰⵎ { $example } ⴰⵔ ⵜⴰ ⵓⵔ ⵜⵍⵍⵉ.
 
 help-unresolved-ref =
     { $reason ->
@@ -213,4 +213,4 @@ help-reset-list = ⴰⵎⵓⵖ ⵢⵜⵜⵓⵔⴰⵔⵏ ⴳ ⵓⵏⴽⵛⵓⵎ �
 help-added-on-input = ⵎⴰ ⵢⵜⵜⵓⵔⵏⴰⵏ ⴳ ⵓⵏⴽⵛⵓⵎ ⴰⴷ:
 help-removed-on-input = ⵎⴰ ⵢⵜⵜⵓⴽⴽⵙⵏ ⴳ ⵓⵏⴽⵛⵓⵎ ⴰⴷ:
 
-help-reset-overrides = { $reset } ⵉⵓⴳⴰⵔ { $additional } ⴷ { $removed }.
+help-reset-overrides = { $reset } ⵉⵣⵡⴰⵔ { $additional } ⴷ { $removed }.

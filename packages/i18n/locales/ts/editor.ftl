@@ -27,7 +27,7 @@ editor-update-viewer-title =
 
 editor-variant = Muxaka
 
-editor-variant-filter = Hluvula…
+editor-variant-filter = Hlungula…
 
 editor-variant-next = Hlawula muxaka lowu landzelaka
 
@@ -79,7 +79,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = Vuxaka bya DoenetML { $version }
+editor-version-title = Vhezheni ya DoenetML { $version }
 
 editor-tab-help = Mpfuno wa xiyimo
 editor-tab-help-short = Xiyimo

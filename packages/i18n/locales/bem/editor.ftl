@@ -79,7 +79,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = Ubwikashi bwa DoenetML { $version }
+editor-version-title = Vesheni ya DoenetML { $version }
 
 editor-tab-help = Ubwafwilisho bwa cifulo
 editor-tab-help-short = Icifulo

@@ -46,7 +46,7 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Macookio
+feedback-heading = Mataaro
 
 collapsible-click-to-open = (ringa nĩguo ũhingũre)
 collapsible-click-to-close = (ringa nĩguo ũhinge)
@@ -112,7 +112,7 @@ error-heading = Ihĩtia
 
 error-found-at =
     { $span ->
-        [line] Nĩrĩoneka mũharĩ-inĩ wa { $startLine }.
+        [line] Nĩrĩoneka mũhari-inĩ wa { $startLine }.
        *[lines] Nĩrĩoneka mĩhari-inĩ ya { $startLine }–{ $endLine }.
     }
 
@@ -121,7 +121,7 @@ document-contains-errors = Ĩbuku rĩrĩ rĩrĩ na mahĩtia!
 diagnostic-heading-error = Ihĩtia
 diagnostic-heading-warning = Mũkaana
 diagnostic-heading-information = Ũhoro
-diagnostic-heading-hint = Kĩrĩkanĩro
+diagnostic-heading-hint = Ũtaaro
 
 accessibility-heading-level-1 = Kũagarara WCAG AA kwa Ũkinyĩrĩri
 accessibility-heading-level-2 = Mũkaana wa ũkinyĩrĩri

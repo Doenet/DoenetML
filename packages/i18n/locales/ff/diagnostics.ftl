@@ -96,7 +96,7 @@ variant-index-must-be-integer = Limre sifaa { $index } ina foti wonde limoore ti
 
 side-by-side-absolute-widths = `<{ $component }>` waɗanaaka betirɗe timmuɗe. Njaajeendi waɗaama ndi ƴeeworaandi.
 
-side-by-side-absolute-margins = `<{ $component }>` waɗanaaka betirɗe timmuɗe. Keeri kaɗaama ɗi ƴeeworaaɗi.
+side-by-side-absolute-margins = `<{ $component }>` waɗanaaka betirɗe timmuɗe. Keeri waɗaama ɗi ƴeeworaaɗi.
 
 side-by-side-no-block-child = `<{ $component }>` moƴƴaani: ina foti jogaade ɓiɗɗo gooto bloku walla ɓuri.
 
@@ -124,7 +124,7 @@ accessibility-input-short-description-or-label = Ngam yettagol, `<{ $component }
 
 accessibility-answer-input-short-description-or-label = Ngam yettagol, `<answer>` sosoowo naatnugol ina foti jogaade firo raɓɓiɗngo walla innde.
 
-accessibility-short-description-contains-math = Piiji raɓɓiɗɗi kaa foti jogaade geɗe limtorɗe wano `<{ $component }>`. Winndu limtorɗe e kelme.
+accessibility-short-description-contains-math = Firooji raɓɓiɗɗi potaani jogaade geɗe limtorɗe wano `<{ $component }>`. Winndu limtorɗe e kelme.
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
@@ -353,7 +353,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = Keewal moƴƴaani `{ $value }` e sifa `{ $attribute }`. Sifa ina foti sosreede joopagol ngol fuɗɗortoo `$`.
 
-math-input-invalid-function-names = <mathInput>: inɗe golle moƴƴaa njaltinaama e { $attribute }: { $names }. Geɗal kollirgol innde kala ina foti jogaade alkule ɗiɗi walla ɓuri (alkule walla taƴe); `<mathspeak alternative>` e `|` ina waawi rewde.
+math-input-invalid-function-names = <mathInput>: inɗe golle moƴƴaa njaltinaama e { $attribute }: { $names }. Geɗal kollirgol innde kala ina foti jogaade alkule ɗiɗi walla ɓuri (alkule walla taƴe); `|<mathspeak alternative>` ina waawi rewde.
 
 ## Building components from the source
 
@@ -513,11 +513,11 @@ parse-attribute-value-quote-mismatch = DoenetML moƴƴaani: Keewal sifa moƴƴaa
 
 parse-open-tag-name-missing = DoenetML moƴƴaani: Tag mo alaa innde yiyaama, misaal `<`
 
-parse-tag-not-closed = DoenetML moƴƴaani: Tag `{ $tag }` udditaaka (ina wa'i wano `>` alaa).
+parse-tag-not-closed = DoenetML moƴƴaani: Tag `{ $tag }` uddaaka (ina wa'i wano `>` alaa).
 
 parse-self-closing-tag-name-missing = DoenetML moƴƴaani: Tag mo alaa innde yiyaama `<{ $content }>`
 
-parse-self-closing-tag-not-closed = DoenetML moƴƴaani: Tag `{ $tag }` udditaaka (ina wa'i wano `/>` alaa).
+parse-self-closing-tag-not-closed = DoenetML moƴƴaani: Tag `{ $tag }` uddaaka (ina wa'i wano `/>` alaa).
 
 parse-tag-invalid-attributes = DoenetML moƴƴaani: Tag `{ $tag }` jaɓaaka. Ina waawi jogaade sifaaji moƴƴaa.
 
@@ -642,6 +642,6 @@ select-prime-numbers-values-excluded-combination = Keeweeje kaɓɓaaɗe selectPr
 
 select-prime-numbers-excluded-too-many-combinations = Ɓuri 70% dental yaltinaama e selectPrimeNumbers
 
-select-random-combination-fluke = E ko tijjanoaka sanne, horiima suɓaade dental keeweeje cuɓaaɗe e meere
+select-random-combination-fluke = E ko tijjaaka sanne, horiima suɓaade dental keeweeje cuɓaaɗe e meere
 
-select-random-value-fluke = E ko tijjanoaka sanne, horiima suɓaade keewal cuɓaangal e meere
+select-random-value-fluke = E ko tijjaaka sanne, horiima suɓaade keewal cuɓaangal e meere

@@ -48,11 +48,11 @@ vector-dimension-mismatch = numDimensions ayihambelani kuvektha.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Akukhonakali kudvonsela ku-`<{ $component }>` ngoba ayinaso sitfombe sesimo se-nearestPoint.
+attract-to-without-nearest-point = Akukhonakali kudvonsela ku-`<{ $component }>` ngoba ayinayo intfo leguquguqukako yesimo ye-nearestPoint.
 
-constrain-to-without-nearest-point = Akukhonakali kukhawulela ku-`<{ $component }>` ngoba ayinaso sitfombe sesimo se-nearestPoint.
+constrain-to-without-nearest-point = Akukhonakali kukhawulela ku-`<{ $component }>` ngoba ayinayo intfo leguquguqukako yesimo ye-nearestPoint.
 
-constrain-to-interior-without-nearest-point = Akukhonakali kukhawulela ngekhatsi kwe-`<{ $component }>` ngoba ayinaso sitfombe sesimo se-nearestPoint.
+constrain-to-interior-without-nearest-point = Akukhonakali kukhawulela ngekhatsi kwe-`<{ $component }>` ngoba ayinayo intfo leguquguqukako yesimo ye-nearestPoint.
 
 ## `<choiceInput>`
 
@@ -207,7 +207,7 @@ function-iterates-input-output-mismatch =
 
 ## `<sequence>`
 
-sequence-invalid-length = Budze lobungesilo belandzelano.  Kufanele kube linani lelipheleleko lelingesilo lelingenhla kwaliphelele.
+sequence-invalid-length = Budze lobungesilo belandzelano.  Kufanele kube linani lelipheleleko lelingesi ngaphansi kwaliphelele.
 
 sequence-invalid-step = Sinyatselo lesingasilo selandzelano.  Kufanele kube linani kulandzelano lweluhlobo lwe-{ $type }.
 
@@ -225,7 +225,7 @@ select-from-sequence-coprime-with-exclude-combinations = coprime ishaywe indziva
 
 target-not-found = Umgomo longesilo we-`<{ $source }>`: umgomo awutfolakali.
 
-target-state-variable-not-found = Umgomo longesilo we-`<{ $source }>`: akutfolakali sitfombe sesimo lesibitwa "{ $property }" ku-`<{ $component }>`.
+target-state-variable-not-found = Umgomo longesilo we-`<{ $source }>`: akutfolakali intfo leguquguqukako yesimo lebitwa "{ $property }" ku-`<{ $component }>`.
 
 ## `<odeSystem>`
 
@@ -393,7 +393,7 @@ section-multiple-style-palettes = Sigaba singakhetsa <stylePalette> yinye kuphel
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = akukhonakali kubona tinhlobo letehlukile te-{ $component } ngobe numToSelect akusilo linani lelipheleleko lelingenhla kwaliphelele.
+variant-num-to-select-not-non-negative-integer = akukhonakali kubona tinhlobo letehlukile te-{ $component } ngobe numToSelect akusilo linani lelipheleleko lelingesi ngaphansi kwaliphelele.
 
 variant-num-to-select-not-constant-number = akukhonakali kubona tinhlobo letehlukile te-{ $component } ngobe numToSelect akusilo linani lelingaguquki.
 
@@ -469,8 +469,8 @@ annotation-text-missing = `<annotation>`: `text` ayikho nobe ayinalutfo; kukhish
 
 composite-circular-dependency =
     { $componentType ->
-        [none] Kutfolwe kwentiwa kwendingilizi.
-       *[other] Kutfolwe kwentiwa kwendingilizi lokufaka sicheme se-`<{ $componentType }>`.
+        [none] Kutfolwe kuncika lokuyindingilizi.
+       *[other] Kutfolwe kuncika lokuyindingilizi lokufaka sicheme se-`<{ $componentType }>`.
     }
 
 reference-no-referent = Akukho lokutfolakele kulenkhomba: `{ $reference }`
@@ -491,8 +491,8 @@ attribute-value-invalid-using-default = Linani lelingasilo `{ $value }` lesici `
 
 doenetml-version-not-found =
     { $fallback ->
-        [none] Umshini we-DoenetML { $version } awutfolakali.
-       *[other] Umshini we-DoenetML { $version } awutfolakali. Kubuyelwa emshinini { $fallback }
+        [none] Invesheni ye-DoenetML { $version } ayitfolakali.
+       *[other] Invesheni ye-DoenetML { $version } ayitfolakali. Kubuyelwa envesheni { $fallback }
     }
 
 ## Reading the DoenetML

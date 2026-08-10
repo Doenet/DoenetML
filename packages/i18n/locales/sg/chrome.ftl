@@ -43,7 +43,7 @@ answer-show-responses = Fa akîri-tënë { $count } tî { $answerId }
 
 ## Disclosure panels
 
-feedback-heading = Kîri-tënë
+feedback-heading = Wängö
 
 collapsible-click-to-open = (pîka tî zi)
 collapsible-click-to-close = (pîka tî kânga)

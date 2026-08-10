@@ -622,13 +622,13 @@ select-from-sequence-indices-excluded-combination = Dzinomboro dzo bulwaho dza s
 
 select-from-sequence-coprime-not-positive-integers = A zwi konadzei u nanga ṱhanganelo dza coprime ngauri a hu khou nangwa zwivhalo zwo fhelelaho zwi fhiraho mbila.
 
-select-from-sequence-coprime-common-factor = A zwi konadzei u nanga zwivhalo zwa coprime. Ndeme dzoṱhe dzi konadzeaho dzi na tshiteṅwa tshi fanaho. (Ndeme dzo bulwaho dza "from" kana "to" dzi fanela u vha coprime na "step".)
+select-from-sequence-coprime-common-factor = A zwi konadzei u nanga zwivhalo zwa coprime. Ndeme dzoṱhe dzi konadzeaho dzi na tshifhandekanyi tshi fanaho. (Ndeme dzo bulwaho dza "from" kana "to" dzi fanela u vha coprime na "step".)
 
 select-from-sequence-coprime-single-number = A zwi konadzei u nanga ṱhanganelo dza coprime kha tshivhalo tshithihi tshi si 1.
 
 select-from-sequence-excluded-too-many-combinations = Ho bviswa u fhira 70% ya ṱhanganelo kha selectFromSequence
 
-select-from-sequence-coprime-none-found = A zwo ngo konadzea u nanga zwivhalo zwa coprime. Ndeme dzoṱhe dzi konadzeaho dzi na tshiteṅwa tshi fanaho.
+select-from-sequence-coprime-none-found = A zwo ngo konadzea u nanga zwivhalo zwa coprime. Ndeme dzoṱhe dzi konadzeaho dzi na tshifhandekanyi tshi fanaho.
 
 select-from-sequence-too-few-unique-values = A zwi konadzei u nanga ndeme dzo khetheaho dza { $numToSelect } kha tevhekano ya vhulapfu ha { $numPossibleValues }
 

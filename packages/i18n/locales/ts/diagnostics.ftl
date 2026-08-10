@@ -491,8 +491,8 @@ attribute-value-invalid-using-default = Mpimo lowu hoxeke `{ $value }` wa xihlaw
 
 doenetml-version-not-found =
     { $fallback ->
-        [none] Vuxaka bya DoenetML { $version } a byi kumeki.
-       *[other] Vuxaka bya DoenetML { $version } a byi kumeki. Ku tlheleriwa eka vuxaka { $fallback }
+        [none] Vhezheni ya DoenetML { $version } a yi kumeki.
+       *[other] Vhezheni ya DoenetML { $version } a yi kumeki. Ku tlheleriwa eka vhezheni { $fallback }
     }
 
 ## Reading the DoenetML
@@ -622,13 +622,13 @@ select-from-sequence-indices-excluded-combination = Tinomboro leti bohiweke ta s
 
 select-from-sequence-coprime-not-positive-integers = A swi koteki ku hlawula minhlanganiso ya coprime hikuva ku nga hlawuriwi tinhlayo leti heleleke leti tlulaka mpfumawulo.
 
-select-from-sequence-coprime-common-factor = A swi koteki ku hlawula tinhlayo ta coprime. Mimpimo hinkwayo leyi kotekaka yi na xihlawulekisi lexi fanaka. (Mimpimo leyi bohiweke ya "from" kumbe "to" yi fanele yi va coprime na "step".)
+select-from-sequence-coprime-common-factor = A swi koteki ku hlawula tinhlayo ta coprime. Mimpimo hinkwayo leyi kotekaka yi na nhlayo yo avanyisa leyi fanaka. (Mimpimo leyi bohiweke ya "from" kumbe "to" yi fanele yi va coprime na "step".)
 
 select-from-sequence-coprime-single-number = A swi koteki ku hlawula minhlanganiso ya coprime eka nhlayo yin'we leyi nga riki 1.
 
 select-from-sequence-excluded-too-many-combinations = Ku susiwile ku tlula 70% ya minhlanganiso eka selectFromSequence
 
-select-from-sequence-coprime-none-found = A swi kotekanga ku hlawula tinhlayo ta coprime. Mimpimo hinkwayo leyi kotekaka yi na xihlawulekisi lexi fanaka.
+select-from-sequence-coprime-none-found = A swi kotekanga ku hlawula tinhlayo ta coprime. Mimpimo hinkwayo leyi kotekaka yi na nhlayo yo avanyisa leyi fanaka.
 
 select-from-sequence-too-few-unique-values = A swi koteki ku hlawula mimpimo yo hlawuleka ya { $numToSelect } eka landzelelano ra ku leha ka { $numPossibleValues }
 

@@ -46,7 +46,7 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Jaabawol
+feedback-heading = Miijooji
 
 collapsible-click-to-open = (ñoƴƴu ngam udditde)
 collapsible-click-to-close = (ñoƴƴu ngam uddude)

@@ -227,7 +227,7 @@ intersection-too-many-items = A leke bûngbïngö tî aye so ahön ûse pëpe
 
 ## Other math components
 
-ionic-compound-not-two-ions = A leke bûngbïngö tî iôni so ayeke tî aiôni ûse pëpe pëpe.
+ionic-compound-not-two-ions = A leke bûngbïngö tî iôni ndâli tî mbênî ye ndê na aiôni ûse pëpe.
 
 ionic-compound-needs-cation-and-anion = A leke bûngbïngö tî iôni gï ndâli tî katiôni ôko na aniôni ôko.
 
@@ -359,11 +359,11 @@ section-multiple-style-palettes = Mbâgë alîngbi tî soro gï <stylePalette> �
 
 ## Unique variants
 
-variant-num-to-select-not-non-negative-integer = a lîngbi tî hînga amarä ndê tî { $component } pëpe ndâli tî sô numToSelect ayeke wüngö so akîri na ndâ na so ayeke na gbe tî sênge pëpe pëpe.
+variant-num-to-select-not-non-negative-integer = a lîngbi tî hînga amarä ndê tî { $component } pëpe ndâli tî sô numToSelect ayeke wüngö so akîri na ndâ na so ayeke 0 wala ahön pëpe.
 
-variant-num-to-select-not-constant-number = a lîngbi tî hînga amarä ndê tî { $component } pëpe ndâli tî sô numToSelect ayeke wüngö so agbîan pëpe pëpe.
+variant-num-to-select-not-constant-number = a lîngbi tî hînga amarä ndê tî { $component } pëpe ndâli tî sô numToSelect ayeke wüngö so angbâ ôko pëpe.
 
-variant-with-replacement-not-constant-boolean = a lîngbi tî hînga amarä ndê tî { $component } pëpe ndâli tî sô withReplacement ayeke boolean so agbîan pëpe pëpe.
+variant-with-replacement-not-constant-boolean = a lîngbi tî hînga amarä ndê tî { $component } pëpe ndâli tî sô withReplacement ayeke boolean so angbâ ôko pëpe.
 
 variant-select-weight-disables-unique = A kânga amarä ndê tî select tônde mbênî sorongö ayeke na selectWeight wala selectForVariants
 
@@ -570,7 +570,7 @@ schema-attribute-value-not-allowed =
 
 select-variant-name-option-count-mismatch = Îri tî marä ayeke tâ pëpe na select.  Îri tî marä { $variantName } asîgîgî na asorongö { $numOptions } me wüngö tî sorongö ayeke { $numToSelect }.
 
-select-variant-name-without-options = A fa ambênî marä na select me a fa asorongö ndâli tî îri tî marä so alîngbi tî dutï pëpe: { $variantName }.
+select-variant-name-without-options = A fa ambênî marä na select me a fa mbênî sorongö pëpe ndâli tî îri tî marä so alîngbi tî dutï: { $variantName }.
 
 select-variant-name-not-possible = Îri tî marä { $variantName } so a fa na select ayeke îri tî marä so alîngbi tî dutï pëpe.
 
@@ -590,7 +590,7 @@ select-from-sequence-coprime-not-positive-integers = A lîngbi tî soro abûngb�
 
 select-from-sequence-coprime-common-factor = A lîngbi tî soro awüngö tî coprime pëpe. Awüngö kûê so alîngbi ayeke na fakitëre ôko. (Awüngö so a fa tî "from" wala "to" alîngbi tî dutï coprime na "step".)
 
-select-from-sequence-coprime-single-number = A lîngbi tî soro abûngbïngö tî coprime na wüngö ôko so ayeke 1 pëpe pëpe.
+select-from-sequence-coprime-single-number = A lîngbi tî soro abûngbïngö tî coprime na wüngö ôko so ayeke ndê na 1 pëpe.
 
 select-from-sequence-excluded-too-many-combinations = A zî ahön 70% tî abûngbïngö na pekô na selectFromSequence
 

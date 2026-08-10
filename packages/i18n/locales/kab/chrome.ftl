@@ -46,7 +46,7 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Tiririt
+feedback-heading = Iwenniten
 
 collapsible-click-to-open = (sit akken ad t-teldiḍ)
 collapsible-click-to-close = (sit akken ad t-tmedleḍ)
@@ -83,8 +83,8 @@ orbital-add-row = Rnu izirig
 orbital-remove-row = Kkes izirig
 orbital-add-box = Rnu tanaka
 orbital-remove-box = Kkes tanaka
-orbital-add-up-arrow = Rnu taneccabt uksawen
-orbital-add-down-arrow = Rnu taneccabt uksawen d akessar
+orbital-add-up-arrow = Rnu taneccabt s ufella
+orbital-add-down-arrow = Rnu taneccabt s wadda
 orbital-remove-arrow = Kkes taneccabt
 
 orbital-row-label = Tabzimt n yizirig { $row }

@@ -126,7 +126,7 @@ editor-response-submitted = E romilwe
 
 ## The context-help panel
 
-help-placeholder = Bea kesara leineng la tag, gare ga seka, goba go { $ref } bakeng sa ditokumente.
+help-placeholder = Bea kesara leineng la tag, sekeng, goba go { $ref } bakeng sa ditokumente.
 
 help-unsupported-ref-chain = Thušo ya ditšhupetšo tša dikarolo tše dintši bjalo ka { $example } ga se ya thekgwa go fihla bjale.
 
@@ -194,8 +194,8 @@ help-inserts = E tsenya:
 
 help-coordinates =
     { $count ->
-        [one] Kutu:
-       *[other] Dikutu:
+        [one] Sesupanepo:
+       *[other] Disupanepo:
     }
 
 help-type = Mohuta:

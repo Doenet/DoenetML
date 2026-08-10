@@ -79,7 +79,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = Umshini we-DoenetML { $version }
+editor-version-title = Invesheni ye-DoenetML { $version }
 
 editor-tab-help = Lusito lwesimo
 editor-tab-help-short = Simo
@@ -174,7 +174,7 @@ help-property-is-reference =
     }
 
 help-kind-attribute = sici
-help-kind-snippet = sicheme
+help-kind-snippet = sicucu
 help-kind-array-entry = kufakwa eluhlwini
 
 help-default = Lokuvamile:

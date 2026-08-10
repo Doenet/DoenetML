@@ -46,7 +46,7 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Nhlamulo
+feedback-heading = Nhlamulo ya Mudyondzisi
 
 collapsible-click-to-open = (tshikilela ku pfula)
 collapsible-click-to-close = (tshikilela ku pfala)

@@ -681,8 +681,8 @@ have, reached from Afro-Asiatic rather than from Slavic or Romance. It is the
 only catalog outside Europe besides `locales/ar` with a `few` at all, and
 Arabic's sits in a six-category set rather than in this three-category one. The
 three Berber catalogs disagree about plural categories as much as they disagree
-about script: `kab` and `zgh` have two and `shi` has three. Plural categories are per-language CLDR data, and neither a family nor a
-script predicts them.
+about script: `kab` and `zgh` have two and `shi` has three. Plural categories
+are per-language CLDR data, and neither a family nor a script predicts them.
 
 **Tifinagh is new to the roster**, and it cost `direction.ts` nothing: it runs
 left to right, and `zgh` and `shi` are ordinary left-to-right catalogs. Which
@@ -699,9 +699,9 @@ hypothetical**. `kab-Tfng` and `kab-Arab` reach the Latin Kabyle catalog;
 `zgh-Latn` and `shi-Latn` reach the Tifinagh ones. **`ff-Adlm` is the fifth,
 and the one that is owed.** Adlam is a living script for Fulfulde — devised in
 the 1980s, encoded in Unicode 9, taught and published in — and a reader
-arriving under it gets Latin. As with `mni-Mtei` in the batch above, the usual answer, a second
-catalog beside the first, is a real debt rather than a formality, and the
-catalog's header says so.
+arriving under it gets Latin. As with `mni-Mtei` in the batch above, the usual
+answer, a second catalog beside the first, is a real debt rather than a
+formality, and the catalog's header says so.
 
 `ff` is an ISO 639-3 **macrolanguage** and joins `MACROLANGUAGE_MEMBERS` for
 the same published reason `qu`, `oj`, `bik`, `kok` and `doi` did. The catalog

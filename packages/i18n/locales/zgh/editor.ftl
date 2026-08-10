@@ -54,16 +54,16 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] ⵢⴻⵜⵜⵡⴰⴼ ⵓⵣⴳⴰⵔ WCAG AA ⵏ ⵡⴰⵏⴻⴽⵛⵓⵎ. ⵢⴻⵜⵜⵡⴰⴼ { $count ->
-            [one] { $count } ⵏ ⵓⵣⴳⴰⵔ WCAG AA
-           *[other] { $count } ⵏ ⵢⵉⵣⴳⴰⵔⴻⵏ WCAG AA
+        [violations] ⵢⴻⵜⵜⵡⴰⴼ ⵓⵣⴳⴰⵔ WCAG AA ⵏ ⵡⴰⵏⴻⴽⵛⵓⵎ. { $count ->
+            [one] ⵢⴻⵜⵜⵡⴰⴼ { $count } ⵏ ⵓⵣⴳⴰⵔ WCAG AA
+           *[other] ⵜⵜⵡⴰⴼⴻⵏ { $count } ⵏ ⵢⵉⵣⴳⴰⵔⴻⵏ WCAG AA
         }. ⵙⵉⵜ ⴰⴽⴽⴻⵏ ⴰⴷ { $action ->
             [close] ⵜⵎⴻⴷⵍⴻⴷ
            *[open] ⵜⴻⵍⴷⵉⴷ
         } ⴰⵏⴻⵇⵇⵉⵙ ⵏ ⵡⴰⵏⴻⴽⵛⵓⵎ.
-        [advisories] ⵓⵍⴰⵛ ⴰⵣⴳⴰⵔ WCAG AA ⵢⴻⵜⵜⵡⴰⴼⴻⵏ. ⵢⴻⵜⵜⵡⴰⴼ { $count ->
-            [one] { $count } ⵏ ⵓⵏⴻⵖⵎⵉⵙ ⵏⵏⵉⴹⴻⵏ ⵏ ⵡⴰⵏⴻⴽⵛⵓⵎ
-           *[other] { $count } ⵏ ⵢⵉⵏⴻⵖⵎⵉⵙⴻⵏ ⵏⵏⵉⴹⴻⵏ ⵏ ⵡⴰⵏⴻⴽⵛⵓⵎ
+        [advisories] ⵓⵍⴰⵛ ⴰⵣⴳⴰⵔ WCAG AA ⵢⴻⵜⵜⵡⴰⴼⴻⵏ. { $count ->
+            [one] ⵢⴻⵜⵜⵡⴰⴼ { $count } ⵏ ⵓⵏⴻⵖⵎⵉⵙ ⵏⵏⵉⴹⴻⵏ ⵏ ⵡⴰⵏⴻⴽⵛⵓⵎ
+           *[other] ⵜⵜⵡⴰⴼⴻⵏ { $count } ⵏ ⵢⵉⵏⴻⵖⵎⵉⵙⴻⵏ ⵏⵏⵉⴹⴻⵏ ⵏ ⵡⴰⵏⴻⴽⵛⵓⵎ
         }. ⵙⵉⵜ ⴰⴽⴽⴻⵏ ⴰⴷ { $action ->
             [close] ⵜⵎⴻⴷⵍⴻⴷ
            *[open] ⵜⴻⵍⴷⵉⴷ
@@ -118,7 +118,7 @@ editor-none-found = ⵓⵍⴰⵛ ⴰⵛⴻⵎⵎⴰ ⵢⴻⵜⵜⵡⴰⴼⴻⵏ
 ## Submitted responses
 
 editor-no-responses = ⵓⵍⴰⵛ ⵜⵉⵔⵉⵔⵉⵢⵉⵏ ⵢⴻⵜⵜⵡⴰⵣⵏⴻⵏ ⴰⵔ ⵜⵓⵔⴰ
-editor-response-answer-id = ⴰⵙⵓⵍⴰⵢ ⵏ ⵜⵉⵔⵉⵔⵉⵜ
+editor-response-answer-id = ⴰⵙⵓⵍⴰⵢ ⵏ ⵜⵔⵉⵔⵉⵜ
 editor-response-response = ⵜⵉⵔⵉⵔⵉⵜ
 editor-response-credit = ⵜⵉⵏⵇⵉⴹⵉⵏ
 editor-response-submitted = ⵜⴻⵜⵜⵡⴰⵣⴻⵏ
@@ -151,7 +151,7 @@ help-suggestions-header =
        *[components] { " — ⵜⵉⵖⴰⵡⵙⵉⵡⵉⵏ ⴰⵔⴰ ⵜⵄⴻⵔⴹⴻⴷ:" }
     }
 
-help-suggestions-footer = ⵙⵉⵜ { $shortcut } ⵉ ⵡⴰⴽⴽⴻⵏ ⴰⴷ ⵜⵡⴰⵍⵉⴷ { $total } ⵏ ⵢⵉⴼⴻⵔⴷⵉⵙⴻⵏ.
+help-suggestions-footer = ⵙⵉⵜ { $shortcut } ⵉ ⵡⴰⴽⴽⴻⵏ ⴰⴷ ⵜⵡⴰⵍⵉⴷ { $total } ⵏ ⵢⵉⴼⴻⵔⴷⵉⵙⴻⵏ ⵎⴻⵕⵕⴰ.
 
 help-name-summary = { $name } — { $summary }
 
@@ -207,4 +207,4 @@ help-reset-list = ⴰⵎⵓⵖ ⵢⴻⵜⵜⵡⴰⵡⴻⵏⵏⵣⴻⵏ ⴷⴻⴳ
 help-added-on-input = ⴰⵢⴻⵏ ⵢⴻⵜⵜⵡⴰⵔⵏⴰⵏ ⴷⴻⴳ ⵓⵏⴻⴽⵛⵓⵎ-ⴰ:
 help-removed-on-input = ⴰⵢⴻⵏ ⵢⴻⵜⵜⵡⴰⴽⴽⵙⴻⵏ ⴷⴻⴳ ⵓⵏⴻⴽⵛⵓⵎ-ⴰ:
 
-help-reset-overrides = { $reset } ⵢⵓⴳⴰⵔ { $additional } ⴷ { $removed }.
+help-reset-overrides = { $reset } ⵢⴻⵣⵡⴰⵔ { $additional } ⴷ { $removed }.

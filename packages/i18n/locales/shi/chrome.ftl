@@ -33,7 +33,7 @@ max-credit-available = ⵜⵉⵏⵇⵉⴹⵉⵏ ⵓⴳⴳⴰⵔ ⵍⵍⴰⵏⵉ�
 
 attempts-remaining =
     { $count ->
-        [0] ⵓⵔ ⵉⵍⵍⵉ ⵓⴰⵄⵔⴰⴹ ⵉⵇⵇⵉⵎⵏ
+        [0] ⵓⵔ ⵉⵍⵍⵉ ⵓⵄⵔⴰⴹ ⵉⵇⵇⵉⵎⵏ
         [one] ⵉⵇⵇⵉⵎ { $count } ⵏ ⵓⵄⵔⴰⴹ
         [few] ⵇⵇⵉⵎⵏ { $count } ⵏ ⵢⵉⵄⵔⴰⴹⵏ
        *[other] ⵇⵇⵉⵎⵏ { $count } ⵏ ⵢⵉⵄⵔⴰⴹⵏ
@@ -45,15 +45,15 @@ validation-partially-correct = (ⴷ ⵜⵉⴷⵜ ⵙ ⵓⵃⵔⵉⵛ)
 
 answer-show-responses =
     { $count ->
-        [one] ⵎⵍ { $count } ⵏ ⵜⵉⵔⵉⵔⵉⵜ ⵉ { $answerId }
-        [few] ⵎⵍ { $count } ⵏ ⵜⵉⵔⵉⵔⵉⵢⵉⵏ ⵉ { $answerId }
-       *[other] ⵎⵍ { $count } ⵏ ⵜⵉⵔⵉⵔⵉⵢⵉⵏ ⵉ { $answerId }
+        [one] ⵎⵍ { $count } ⵏ ⵜⵔⵉⵔⵉⵜ ⵉ { $answerId }
+        [few] ⵎⵍ { $count } ⵏ ⵜⵔⵉⵔⵉⵢⵉⵏ ⵉ { $answerId }
+       *[other] ⵎⵍ { $count } ⵏ ⵜⵔⵉⵔⵉⵢⵉⵏ ⵉ { $answerId }
     }
 
 
 ## Disclosure panels
 
-feedback-heading = ⵜⵉⵔⵉⵔⵉⵜ
+feedback-heading = ⵉⵡⵏⵏⵉⵜⵏ
 
 collapsible-click-to-open = (ⵙⵉⵜ ⴰⴼⴰⴷ ⴰⴷ ⵜⵔⵣⵎⵜ)
 collapsible-click-to-close = (ⵙⵉⵜ ⴰⴼⴰⴷ ⴰⴷ ⵜⵇⵇⵏⵜ)
@@ -90,7 +90,7 @@ orbital-add-row = ⵔⵏⵓ ⵉⵣⵉⵔⵉⴳ
 orbital-remove-row = ⴽⴽⵙ ⵉⵣⵉⵔⵉⴳ
 orbital-add-box = ⵔⵏⵓ ⵜⴰⵏⴰⴽⴰ
 orbital-remove-box = ⴽⴽⵙ ⵜⴰⵏⴰⴽⴰ
-orbital-add-up-arrow = ⵔⵏⵓ ⵜⴰⵏⵛⵛⴰⴱⵜ ⵙ ⴰⴼⵍⵍⴰ
+orbital-add-up-arrow = ⵔⵏⵓ ⵜⴰⵏⵛⵛⴰⴱⵜ ⵙ ⵓⴼⵍⵍⴰ
 orbital-add-down-arrow = ⵔⵏⵓ ⵜⴰⵏⵛⵛⴰⴱⵜ ⵙ ⵡⴰⴷⴷⴰ
 orbital-remove-arrow = ⴽⴽⵙ ⵜⴰⵏⵛⵛⴰⴱⵜ
 
@@ -135,6 +135,6 @@ accessibility-heading-level-2 = ⴰⵍⵖⵓ ⵏ ⵡⴰⵏⴽⵛⵓⵎ
 
 something-went-wrong = ⵉⵍⵍⴰ ⵎⴰ ⵓⵔ ⵉⴷⴷⵉⵏ ⵙ ⵓⵣⴳⴰⵍ.
 
-renderer-load-failed = ⴰⵎⵙⴽⵏ ⵓⵔ ⵉⵣⴹⴰⵕ ⴰⴷ ⵉⴰⵍⵉ. ⵎⴽ ⵜⵔⵉⴷ ⵙⵎⴰⵢⵏⵓ ⴰⵙⴰⵜⵓ.
+renderer-load-failed = ⴰⵎⵙⴽⵏ ⵓⵔ ⵉⵣⴹⴰⵕ ⴰⴷ ⵢⴰⵍⵉ. ⵎⴽ ⵜⵔⵉⴷ ⵙⵎⴰⵢⵏⵓ ⴰⵙⴰⵜⵓ.
 
 core-start-failed = ⴰⵎⵙⴽⵏ ⵏ ⵓⵙⵎⵍⵉ ⵓⵔ ⵉⵣⴹⴰⵕ ⴰⴷ ⵉⴱⴷⵓ. ⵎⴽ ⵜⵔⵉⴷ ⵙⵎⴰⵢⵏⵓ ⴰⵙⴰⵜⵓ.

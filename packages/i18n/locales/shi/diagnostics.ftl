@@ -342,7 +342,7 @@ data-frame-missing-column-name = ⵉⵙⴼⴽⴰ ⵓⵔ ⴷⴰⵔⵙⵏ ⵉⵙ�
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = award ⵏ ⵜⵉⵔⵉⵔⵉⵜ ⴰⴷ ⵉⴱⴷⴷⴰ ⵅⴼ ⵜⵉⵔⵉⵔⵉⵜ ⵏ ⵜⴱⵣⵉⵎⵜ answer ⵙ ⵉⵅⴼ ⵏⵏⵙ, ⵎⴰⵢⴰⴷ ⵔⴰⴷ ⴷ ⵢⴰⵡⵉ ⵜⵉⴽⵍⵉ ⵓⵔ ⵉⵜⵜⵓⵔⴰⵊⴰⵏ.
+answer-award-depends-on-own-response = award ⵏ ⵜⵔⵉⵔⵉⵜ ⴰⴷ ⵉⴱⴷⴷⴰ ⵅⴼ ⵜⵔⵉⵔⵉⵜ ⵏ ⵜⴱⵣⵉⵎⵜ answer ⵙ ⵉⵅⴼ ⵏⵏⵙ, ⵎⴰⵢⴰⴷ ⵔⴰⴷ ⴷ ⵢⴰⵡⵉ ⵜⵉⴽⵍⵉ ⵓⵔ ⵉⵜⵜⵓⵔⴰⵊⴰⵏ.
 
 answer-max-num-attempts-in-section-wide-check-work = ⴰⵙⵔⵙ ⵏ `maxNumAttempts` ⴳ `<answer>` ⵉⵍⵍⴰⵏ ⴳ ⵓⵎⴰⵜⴰⵔ ⵉⵍⴰⵏ `sectionWideCheckWork` ⵓⵔ ⴷⴰⵔⵙ ⴰⵣⴰⵍ, ⴰⵛⴽⵓ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⵄⵔⴰⴹⵏ ⵉⵜⵜⵓⵙⵢⵢⴰⵔ ⵙ ⵓⵎⴰⵜⴰⵔ. ⵙⵔⵙ `maxNumAttempts` ⴳ ⵓⵎⴰⵜⴰⵔ.
 
@@ -355,7 +355,7 @@ answer-attributes-need-symbolic-equality =
        *[other] ⵉⵎⵙⵍⴰⵢⵏ { $attributes } ⵓⵔ ⴷⴰⵔⵙⵏ ⴰⵣⴰⵍ ⴱⵍⴰ symbolicEquality.
     }
 
-answer-invalid-type = ⴰⵏⴰⵡ ⴰⵔⴰⵎⵖⵜⵓ ⵏ ⵜⵉⵔⵉⵔⵉⵜ: { $type }
+answer-invalid-type = ⴰⵏⴰⵡ ⴰⵔⴰⵎⵖⵜⵓ ⵏ ⵜⵔⵉⵔⵉⵜ: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
@@ -382,7 +382,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = ⴰⵣⴰⵍ ⴰⵔⴰⵎⵖⵜⵓ `{ $value }` ⵏ ⵓⵎⵙⵍⴰⵢ `{ $attribute }`. ⴰⵎⵙⵍⴰⵢ ⵉⵇⵇⴰⵏ ⴰⴷ ⵉⴱⵏⵓ ⵅⴼ ⵜⵎⵖⵕⵉⵡⵉⵏ ⵉⴱⴷⴰⵏ ⵙ `$`.
 
-math-input-invalid-function-names = <mathInput>: ⵉⵙⵎⴰⵡⵏ ⵏ ⵜⵡⵓⵔⵉⵡⵉⵏ ⵉⵔⴰⵎⵖⵜⵓⵢⵏ ⵜⵜⵓⵣⴳⴰⵍⵏ ⴳ { $attribute }: { $names }. ⴰⵃⵔⵉⵛ ⵏ ⵓⵙⴽⴰⵏ ⵏ ⴽⵓ ⵉⵙⵎ ⵉⵇⵇⴰⵏ ⴰⴷ ⴷⴰⵔⵙ ⵉⵍⵉⵏ ⵙⵉⵏ ⵢⵉⵙⴽⴽⵉⵍⵏ; `|<mathspeak alternative>` ⵉⵣⴹⴰⵕ ⴰⴷ ⵉⴹⴼⵓⵕ.
+math-input-invalid-function-names = <mathInput>: ⵉⵙⵎⴰⵡⵏ ⵏ ⵜⵡⵓⵔⵉⵡⵉⵏ ⵉⵔⴰⵎⵖⵜⵓⵢⵏ ⵜⵜⵓⵣⴳⴰⵍⵏ ⴳ { $attribute }: { $names }. ⴰⵃⵔⵉⵛ ⵏ ⵓⵙⴽⴰⵏ ⵏ ⴽⵓ ⵉⵙⵎ ⵉⵇⵇⴰⵏ ⴰⴷ ⴷⴰⵔⵙ ⵉⵍⵉⵏ ⵙⵉⵏ ⵢⵉⵙⴽⴽⵉⵍⵏ ⵏⵖ ⵓⴳⴳⴰⵔ (ⵉⵙⴽⴽⵉⵍⵏ ⵏⵖ ⵉⵊⵔⵔⵉⴷⵏ); `|<mathspeak alternative>` ⵉⵣⴹⴰⵕ ⴰⴷ ⵉⴹⴼⵓⵕ.
 
 ## Building components from the source
 
@@ -458,7 +458,7 @@ variant-non-constant-exclude-not-implemented = ⵜⵉⵍⵖⴰ ⵜⵓⵎⵎⵉ�
 
 prefigure-descendant-unsupported = { $subject }: ⵓⵔ ⵢⵜⵜⵓⵙⴼⵔⴰⴽ ⴳ ⵓⵎⵙⴽⵏ graph prefigure; ⴰⵎⴷⵓⵔ ⵢⵜⵜⵓⵊⵊⴰ.
 
-prefigure-descendant-invalid-geometry = { $subject }: ⵜⴰⵏⵣⴳⴳⵉⵜ ⵓⵔ ⵉⴽⵎⵎⵍⵏ; ⴰⵎⴷⵓⵔ ⵢⵜⵜⵓⵊⵊⴰ.
+prefigure-descendant-invalid-geometry = { $subject }: ⵜⴰⵏⵣⴳⴳⵉⵜ ⵓⵔ ⵉⴼⵓⴽⴽⴰⵏ ⵏⵖ ⵓⵔ ⵉⴽⵎⵎⵍⵏ; ⴰⵎⴷⵓⵔ ⵢⵜⵜⵓⵊⵊⴰ.
 
 prefigure-curve-label-omitted = { $subject }: ⵜⵉⴱⵣⵉⵎⵉⵏ ⵓⵔ ⵜⵜⵓⵙⴼⵔⴰⴽⵏⵜ ⴳ ⵢⵉⴼⵔⴷⵉⵙⵏ ⵏ ⵓⴽⵏⴰⵏ ⵢⵜⵜⵓⵙⵏⴼⵍⵏ; ⵜⴰⴱⵣⵉⵎⵜ ⵜⵜⵓⵊⵊⴰ.
 
@@ -576,7 +576,7 @@ answer-video-watched-missing-video = ⵜⵉⵔⵉⵔⵉⵜ ⵏ ⵓⵏⴰⵡ vide
 
 answer-video-watched-video-not-reference = ⵜⵉⵔⵉⵔⵉⵜ ⵏ ⵓⵏⴰⵡ videoWatched ⵉⵇⵇⴰⵏ ⴰⴷ ⴷⴰⵔⵙ ⵢⵉⵍⵉ ⵓⵎⵙⵍⴰⵢ video ⵉⴳⴰⵏ ⵜⴰⵎⵖⵕⵉⵜ
 
-answer-name-not-single-text = ⴰⵎⵙⵍⴰⵢ name ⵏ ⵜⵉⵔⵉⵔⵉⵜ ⵉⵇⵇⴰⵏ ⴰⴷ ⴷⴰⵔⵙ ⵢⵉⵍⵉ ⵢⴰⵏ ⵡⴰⵔⵔⴰⵡ ⵏ ⵓⴹⵔⵉⵙ
+answer-name-not-single-text = ⴰⵎⵙⵍⴰⵢ name ⵏ ⵜⵔⵉⵔⵉⵜ ⵉⵇⵇⴰⵏ ⴰⴷ ⴷⴰⵔⵙ ⵢⵉⵍⵉ ⵢⴰⵏ ⵡⴰⵔⵔⴰⵡ ⵏ ⵓⴹⵔⵉⵙ
 
 ## Referencing another document
 

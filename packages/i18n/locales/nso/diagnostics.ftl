@@ -140,7 +140,7 @@ circle-too-many-through-points = Ga go kgonege go bala sediko se se fetago dintl
 
 circle-overprescribed-radius-center-points = Ga go kgonege go bala sediko ka radiase, bogare le dintlha tšeo di laeditšwego.
 
-circle-center-with-multiple-points = Ga go kgonege go bala sediko ka bogare bjo bo laeditšwego bjo bo fetago ntlheng e fetago e tee.
+circle-center-with-multiple-points = Ga go kgonege go bala sediko seo se fetago ntlheng e fetago e tee ka bogare bjo bo laeditšwego.
 
 circle-radius-too-small = Ga go kgonege go bala sediko: ka ge sekgoba magareng ga dintlha tše pedi e le { $distance }, radiase { $radius } yeo e laeditšwego e nnyane kudu.
 
@@ -148,7 +148,7 @@ circle-radius-with-many-points = Ga go kgonege go hlola sediko se se fetago dint
 
 circle-invalid-center-or-through-points = Bogare goba dintlha tša sediko di fošagetše.
 
-circle-radius-center-with-multiple-points = Ga go kgonege go bala radiase ya sediko ka bogare bjo bo laeditšwego bjo bo fetago ntlheng e fetago e tee.
+circle-radius-center-with-multiple-points = Ga go kgonege go bala radiase ya sediko seo se fetago ntlheng e fetago e tee ka bogare bjo bo laeditšwego.
 
 circle-change-radius-non-numerical = Ga go kgonege go fetoša radiase ya sediko seo se fetago dintlheng tše di se nago dipalo
 
@@ -523,7 +523,7 @@ parse-tag-invalid-attributes = DoenetML ye e fošagetšego: Tag `{ $tag }` ga e 
 
 parse-close-tag-name-missing = DoenetML ye e fošagetšego: Go hweditšwe tag ya go tswalela ye e se nago leina, mohlala `</`
 
-parse-attribute-value-unquoted = Boleng bja seka bo swanetše go ba ka gare ga maswao a go nagana: `{ $attribute }="{ $value }"`
+parse-attribute-value-unquoted = Boleng bja seka bo swanetše go ba ka gare ga maswao a tsopolo: `{ $attribute }="{ $value }"`
 
 parse-close-tag-without-open-tag = DoenetML ye e fošagetšego: Go hweditšwe tag ya go tswalela `{ $tag }`, efela ga go tag ya go bula ye e sepelelanago le yona
 

@@ -316,7 +316,7 @@ data-frame-missing-column-name = ⵉⵙⴻⴼⴽⴰ ⵓⵍⴰⵛ ⵖⵓⵔ-ⵙ�
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = award ⵏ ⵜⵉⵔⵉⵔⵉⵜ-ⴰ ⵢⴻⴱⵏⴰ ⵅⴼ ⵜⵉⵔⵉⵔⵉⵜ ⵏ ⵜⴻⴱⵣⵉⵎⵜ answer ⵙ ⵜⵉⵎⵎⴰⴷ-ⵉⵙ, ⴰⵢⴻⵏ ⴰⵔⴰ ⴷ-ⵢⴰⵡⵉⵏ ⵜⵉⴽⵍⵉ ⵓⵔ ⵏⴻⵜⵜⵡⴰⴳⴰⵏ ⴰⵔⴰ.
+answer-award-depends-on-own-response = award ⵏ ⵜⵔⵉⵔⵉⵜ-ⴰ ⵢⴻⴱⵏⴰ ⵅⴼ ⵜⵔⵉⵔⵉⵜ ⵏ ⵜⴻⴱⵣⵉⵎⵜ answer ⵙ ⵜⵉⵎⵎⴰⴷ-ⵉⵙ, ⴰⵢⴻⵏ ⴰⵔⴰ ⴷ-ⵢⴰⵡⵉⵏ ⵜⵉⴽⵍⵉ ⵓⵔ ⵏⴻⵜⵜⵡⴰⴳⴰⵏ ⴰⵔⴰ.
 
 answer-max-num-attempts-in-section-wide-check-work = ⴰⵙⴻⵔⵙ ⵏ `maxNumAttempts` ⴷⴻⴳ `<answer>` ⵢⴻⵍⵍⴰⵏ ⴷⴻⴳ ⵓⵎⴰⵜⴰⵔ ⵉ ⵢⴻⵙⵄⴰⵏ `sectionWideCheckWork` ⵓⵍⴰⵛ ⴼⴻⵍⵍ-ⴰⵙ ⴰⵣⴰⵍ, ⴰⵛⴽⵓ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⵄⵔⴰⴹⴻⵏ ⵢⴻⵜⵜⵡⴰⵙⴻⵢⵢⴻⵔ ⵙ ⵓⵎⴰⵜⴰⵔ. ⵙⴻⵔⵙ `maxNumAttempts` ⴷⴻⴳ ⵓⵎⴰⵜⴰⵔ.
 
@@ -328,7 +328,7 @@ answer-attributes-need-symbolic-equality =
        *[other] ⵉⵎⴻⵙⵍⴰⵢⴻⵏ { $attributes } ⵓⵔ ⵙⵄⵉⵏ ⴰⵔⴰ ⴰⵣⴰⵍ ⵡⴰⵔ symbolicEquality.
     }
 
-answer-invalid-type = ⴰⵏⴰⵡ ⴰⵔⴰⵎⴻⵖⵜⵓ ⵏ ⵜⵉⵔⵉⵔⵉⵜ: { $type }
+answer-invalid-type = ⴰⵏⴰⵡ ⴰⵔⴰⵎⴻⵖⵜⵓ ⵏ ⵜⵔⵉⵔⵉⵜ: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
@@ -354,7 +354,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = ⴰⵣⴰⵍ ⴰⵔⴰⵎⴻⵖⵜⵓ `{ $value }` ⵏ ⵓⵎⴻⵙⵍⴰⵢ `{ $attribute }`. ⴰⵎⴻⵙⵍⴰⵢ ⵉⵍⴰⵇ ⴰⴷ ⵢⴻⴱⵏⵓ ⵅⴼ ⵜⵎⴻⵖⵕⵉⵡⵉⵏ ⵉ ⵢⴻⴱⴷⴰⵏ ⵙ `$`.
 
-math-input-invalid-function-names = <mathInput>: ⵉⵙⵎⴰⵡⴻⵏ ⵏ ⵜⵡⵓⵔⵉⵡⵉⵏ ⵉⵔⴰⵎⴻⵖⵜⵓⵢⴻⵏ ⵜⵜⵡⴰⵣⴳⵍⴻⵏ ⴷⴻⴳ { $attribute }: { $names }. ⴰⵃⵔⵉⵛ ⵏ ⵓⵙⴽⴰⵏ ⵏ ⵢⴰⵍ ⵉⵙⴻⵎ ⵉⵍⴰⵇ ⴰⴷ ⵢⴻⵙⵄⵓ ⵎⴰ ⴷⵔⵓⵙ ⵙⵉⵏ ⵏ ⵢⵉⵙⴻⴽⴽⵉⵍⴻⵏ; `|<mathspeak alternative>` ⵢⴻⵣⵎⴻⵔ ⴰⴷ ⵢⴻⴹⴼⴻⵔ.
+math-input-invalid-function-names = <mathInput>: ⵉⵙⵎⴰⵡⴻⵏ ⵏ ⵜⵡⵓⵔⵉⵡⵉⵏ ⵉⵔⴰⵎⴻⵖⵜⵓⵢⴻⵏ ⵜⵜⵡⴰⵣⴳⵍⴻⵏ ⴷⴻⴳ { $attribute }: { $names }. ⴰⵃⵔⵉⵛ ⵏ ⵓⵙⴽⴰⵏ ⵏ ⵢⴰⵍ ⵉⵙⴻⵎ ⵉⵍⴰⵇ ⴰⴷ ⵢⴻⵙⵄⵓ ⵎⴰ ⴷⵔⵓⵙ ⵙⵉⵏ ⵏ ⵢⵉⵙⴻⴽⴽⵉⵍⴻⵏ (ⵉⵙⴻⴽⴽⵉⵍⴻⵏ ⵏⴻⵖ ⵉⵊⴻⵔⵔⵉⴷⴻⵏ); `|<mathspeak alternative>` ⵢⴻⵣⵎⴻⵔ ⴰⴷ ⵢⴻⴹⴼⴻⵔ.
 
 ## Building components from the source
 
@@ -548,7 +548,7 @@ answer-video-watched-missing-video = ⵜⵉⵔⵉⵔⵉⵜ ⵏ ⵓⵏⴰⵡ vide
 
 answer-video-watched-video-not-reference = ⵜⵉⵔⵉⵔⵉⵜ ⵏ ⵓⵏⴰⵡ videoWatched ⵉⵍⴰⵇ ⴰⴷ ⵜⴻⵙⵄⵓ ⴰⵎⴻⵙⵍⴰⵢ video ⵉ ⵢⴻⵍⵍⴰⵏ ⴷ ⵜⴰⵎⴻⵖⵕⵉⵜ
 
-answer-name-not-single-text = ⴰⵎⴻⵙⵍⴰⵢ name ⵏ ⵜⵉⵔⵉⵔⵉⵜ ⵉⵍⴰⵇ ⴰⴷ ⵢⴻⵙⵄⵓ ⵢⵉⵡⴻⵏ ⵏ ⵡⴰⵔⵔⴰⵡ ⵏ ⵓⴹⵔⵉⵙ
+answer-name-not-single-text = ⴰⵎⴻⵙⵍⴰⵢ name ⵏ ⵜⵔⵉⵔⵉⵜ ⵉⵍⴰⵇ ⴰⴷ ⵢⴻⵙⵄⵓ ⵢⵉⵡⴻⵏ ⵏ ⵡⴰⵔⵔⴰⵡ ⵏ ⵓⴹⵔⵉⵙ
 
 ## Referencing another document
 

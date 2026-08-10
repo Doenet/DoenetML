@@ -22,10 +22,10 @@
 # is exactly the shape `bs`, `hr`, `ro` and `sr` already have, reached here
 # from Afro-Asiatic rather than from Slavic or Romance; Arabic's `few` sits in
 # a six-category set and is a different shape entirely. Every counted message
-# in these catalogs therefore writes three branches where `locales/zgh` and
+# in this catalog therefore writes three branches where `locales/zgh` and
 # `locales/kab` write two, and the three Berber catalogs' plural rules are as
-# different from each other as their scripts are. Plural categories are per-language CLDR data; a family and a
-# script both say nothing about them.
+# different from each other as their scripts are. Plural categories are
+# per-language CLDR data; a family and a script both say nothing about them.
 #
 # **Two genders, and an adjective agrees for them**, exactly as in the two
 # catalogs beside it: `noun-gender` answers `m` or `f`, a masculine adjective
