@@ -1717,9 +1717,9 @@ does: `ur`, `ps` and `sd` fork because an Indo-Aryan or Iranian adjective takes
 an oblique before a postposition, and Yiddish's adjectives take a **dative**
 after «מיט» and «אויף» — so its catalog has the shape `locales/de` and
 `locales/bs` have rather than `locales/hi`'s, which is the paragraph above put
-as sharply as it goes. Its one spelling
-convention worth stating is that Yiddish's three digraphs are written as **two
-letters each** — «וו», «וי», «יי» — and never as the precomposed ligatures
+as sharply as it goes. Its one spelling convention worth stating is that
+Yiddish's three digraphs are written as **two letters each** — «וו», «וי»,
+«יי» — and never as the precomposed ligatures
 U+05F0–U+05F2, which render identically and compare unequal. CLDR spells the
 endonym «ייִדיש» that way, so the roster's own label and the catalogs match.
 
