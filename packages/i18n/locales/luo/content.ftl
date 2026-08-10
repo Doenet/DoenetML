@@ -9,12 +9,12 @@
 #
 # **This is the roster's first Nilotic language, and it selects on neither
 # argument.** Dholuo has no grammatical gender and no noun classes, so the
-# whole apparatus the eleven Bantu catalogs need — `noun-gender` answering a
+# whole apparatus the sixteen Bantu catalogs need — `noun-gender` answering a
 # class, every adjective forking on it — is absent here, and `noun-gender`
 # answers one token that nothing reads. That is worth saying because Dholuo
-# sits geographically between `locales/sw` and `locales/ki`, both of which fork
-# on five: a shared region says as little about agreement as a shared script
-# does.
+# sits geographically between `locales/sw`, which forks on five classes, and
+# `locales/ki`, which forks on three: a shared region says as little about
+# agreement as a shared script does.
 #
 # **What it does have is a relative particle, and the particle welds onto a
 # placeable.** An attributive adjective follows its noun behind «ma-», written
@@ -22,10 +22,14 @@
 # `style-stroke` writes `ma{ $color }` and puts the prefix on a value this
 # catalog never sees. That is sound for the same reason `locales/tlh`'s
 # suffixes are: «ma-» has one shape and never assimilates to what follows it.
-# The limit is honest rather than hidden — a vowel-initial adjective would want
-# a hyphen in careful orthography, and every word this catalog can put there is
-# consonant-initial today. A new entry in `color` or `line-width` has to be
-# checked against that.
+# The prefix is written in exactly one place, on `$color`, and the two limits
+# on it are honest rather than hidden. A vowel-initial adjective would want a
+# hyphen in careful orthography, and a word that already opens with its own
+# relative marker would come out doubled — so every entry in `color` is both
+# consonant-initial and unmarked, and a new one has to be checked against both.
+# `line-width` and `line-style` are the reason the prefix is not written more
+# widely: their words carry the marker themselves («mabor», «mokethore»), so
+# `style-stroke` places them bare.
 #
 # **The velar nasal is written `ng'` with a plain ASCII apostrophe throughout**,
 # never with U+2019 and never as bare `ng`. The two apostrophes render nearly
@@ -47,7 +51,7 @@ color =
     .white = rachar
     .red = rakwar
     .gray = buru
-    .orange = machunga
+    .orange = chungwa
     .yellow = ratong'
     .green = ratong'ng'ich
     .cyan = sayan
@@ -106,17 +110,19 @@ noun-gender = neuter
 
 ## Style composition
 
-# «ma-» is the relative particle and is written onto the front of each
-# adjective, including the ones that arrive as placeables. It has one shape
-# whatever follows it, which is what makes that sound; see this file's header.
+# «ma-» is the relative particle and is written onto the front of `$color`,
+# which arrives as a placeable. It has one shape whatever follows it, which is
+# what makes that sound; see this file's header. `$width` and `$lineStyle`
+# are placed bare, because `line-width` and `line-style` write their words with
+# a relative marker of their own already on them.
 style-stroke =
     { $parts ->
-        [width-style-color] ma{ $width } ma{ $lineStyle } ma{ $color }
-        [width-color] ma{ $width } ma{ $color }
-        [style-color] ma{ $lineStyle } ma{ $color }
-        [width-style] ma{ $width } ma{ $lineStyle }
-        [width] ma{ $width }
-        [style] ma{ $lineStyle }
+        [width-style-color] { $width } { $lineStyle } ma{ $color }
+        [width-color] { $width } ma{ $color }
+        [style-color] { $lineStyle } ma{ $color }
+        [width-style] { $width } { $lineStyle }
+        [width] { $width }
+        [style] { $lineStyle }
        *[color] ma{ $color }
     }
 

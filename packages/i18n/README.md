@@ -250,13 +250,13 @@ file has of the sentence below.
 **All twelve of the African and Berber batch are partial, and — like the second
 sub-Saharan batch and unlike every batch since — they split no ways at all.**
 Every one of the twelve is the school-system case, and the twelve run through
-seven education ministries rather than one: secondary science is taught in
-English or Afrikaans in South Africa, English in Eswatini, Kenya and Zambia,
-Portuguese in Mozambique, French in the Central African Republic and across
-Fula's whole range but Nigeria, and Arabic and French in Morocco and Algeria,
-where Amazigh is taught as a subject rather than used as a medium. So in all
-twelve the fallback *is* the curriculum. That is a fact about seven school
-systems rather than about twelve languages, which is why it reads as one
+a whole row of education ministries rather than one: secondary science is
+taught in English or Afrikaans in South Africa, English in Eswatini, Kenya and
+Zambia, Portuguese in Mozambique, French in the Central African Republic and
+across Fula's whole range but Nigeria, and Arabic and French in Morocco and
+Algeria, where Amazigh is taught as a subject rather than used as a medium. So
+in all twelve the fallback *is* the curriculum. That is a fact about those
+school systems rather than about twelve languages, which is why it reads as one
 paragraph here and takes a sentence of its own in each catalog's header.
 
 The four South African ones make the point sharpest, because `locales/af` sits
@@ -644,8 +644,8 @@ since 2023, is the eleventh and has no written form to seed.)
 the thing they add is how *unevenly* a class concord lands. `locales/ts` is the
 case worth reading: Xitsonga has very few true adjectives, and almost
 everything English calls one is a noun joined with a possessive concord — so
-the class fork falls on «-kulu» and «-tsongo» and on nothing else, where
-`locales/zu` forks eight words and `locales/sw` six. That is not less
+the class fork falls on «-kulu», «-tsongo» and the passive «-tateriwaka» and on
+nothing else, where `locales/zu` forks fifteen words and `locales/sw` six. That is not less
 agreement; it is agreement landing on fewer words, and
 `styleDescriptions.test.ts` pins the colour holding still while the width
 moves. Sotho-Tswana builds its concord out of two pieces where Nguni builds it
@@ -662,12 +662,12 @@ cleanest demonstration this file has that the mechanism is about *what a word
 agrees with* rather than about gender, prefixes, or Bantu.
 
 **Luo and Sango select on neither argument, and they sit between catalogs that
-select on five classes each.** Dholuo is Nilotic and Sango Ubangian; neither has
+select on three classes each.** Dholuo is Nilotic and Sango Ubangian; neither has
 gender or noun classes, and `locales/ki` and `locales/bem` on either side of
 them fork on `c3`, `c7` and `c9`. A region says as little about agreement
 as a script does. `locales/luo` adds one thing of its own: its relative
-particle «ma-» is written onto the front of the adjective, including when the
-adjective is a placeable, which makes it the roster's first *prefix* welded
+particle «ma-» is written onto the front of the colour, including when the
+colour is a placeable, which makes it the roster's first *prefix* welded
 onto a value the catalog never sees. That is sound for `locales/tlh`'s reason —
 «ma-» has one shape and never assimilates — and its header records the one case
 that would break it.
@@ -676,9 +676,10 @@ that would break it.
 `other` and nothing else, so every counted message in it is flat, the way
 `locales/bm`, `locales/wo`, `locales/yo` and `locales/ig` already are.
 **Tachelhit is the opposite surprise**: `Intl.PluralRules("shi")` reports
-`one`, `few` and `other`, which makes it the roster's first catalog outside
-Europe with a `few` — the shape `bs`, `hr`, `ro` and `sr` have, reached from
-Afro-Asiatic. The three Berber catalogs disagree about plural categories as
+`one`, `few` and `other`, which is exactly the shape `bs`, `hr`, `ro` and `sr`
+have, reached from Afro-Asiatic rather than from Slavic or Romance. It is the
+only catalog outside Europe besides `locales/ar` with a `few` at all, and
+Arabic's sits in a six-category set rather than in this three-category one. The three Berber catalogs disagree about plural categories as
 much as they disagree about script: `kab` and `zgh` have two and `shi` has
 three. Plural categories are per-language CLDR data, and neither a family nor a
 script predicts them.
@@ -693,10 +694,10 @@ Latin for the same reason, which is worth knowing before someone "fixes" it.
 `hr`-against-`sr` case a sixth time: `locales/shi` writes ⵓⵎⵍⵉⵍ where
 `locales/zgh` writes ⴰⵎⴻⵍⵍⴰⵍ and ⴰⵙⴳⴳⴰⵏ where it writes ⴰⴱⴻⵔⴽⴰⵏ.
 
-The batch adds **five script asymmetries and one that is owed rather than
+The batch adds **five script asymmetries, one of which is owed rather than
 hypothetical**. `kab-Tfng` and `kab-Arab` reach the Latin Kabyle catalog;
-`zgh-Latn` and `shi-Latn` reach the Tifinagh ones. **`ff-Adlm` is the one that
-is owed.** Adlam is a living script for Fulfulde — devised in the 1980s,
+`zgh-Latn` and `shi-Latn` reach the Tifinagh ones. **`ff-Adlm` is the fifth,
+and the one that is owed.** Adlam is a living script for Fulfulde — devised in the 1980s,
 encoded in Unicode 9, taught and published in — and a reader arriving under it
 gets Latin. As with `mni-Mtei` in the batch above, the usual answer, a second
 catalog beside the first, is a real debt rather than a formality, and the
@@ -1390,7 +1391,9 @@ Afro-Asiatic.
 relative particle «ma-» is written as part of the following word, and the
 following word is often a value: `locales/luo` writes `ma{ $color }`. It comes
 out right for `locales/tlh`'s reason rather than by luck — «ma-» has one shape
-and assimilates to nothing — so the table above stays a list of languages whose
+and assimilates to nothing — and it is written on `$color` alone, because
+`line-width` and `line-style` write their words already marked and would come
+out doubled; so the table above stays a list of languages whose
 endings *change shape*, and gains a language whose beginnings do not.
 
 A select whose variants would land against such an affix carries the affix into

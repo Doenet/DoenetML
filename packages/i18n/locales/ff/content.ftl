@@ -23,7 +23,7 @@
 # second catalog is owed rather than hypothetical.
 #
 # **Fula agrees an adjective with the noun's class, and the concord is a
-# suffix.** That is what this catalog adds to the eleven Bantu ones beside it:
+# suffix.** That is what this catalog adds to the sixteen Bantu ones beside it:
 # there `$gender` reaches the *front* of the word and here it reaches the back,
 # and no code outside these files had to learn the difference, because the
 # argument is a token set and nothing outside a catalog reads its values.

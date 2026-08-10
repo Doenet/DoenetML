@@ -15,7 +15,7 @@
 # it describes with the possessive concord («ntila wa ntima», a line of
 # blackness). So only the two words that really are adjectives — «-kulu» thick
 # and «-tsongo» thin — and the passive «-tateriwaka» carry a concord here,
-# where `locales/zu` writes the fork on eight words and `locales/sw` on six.
+# where `locales/zu` writes the fork on fifteen words and `locales/sw` on six.
 # That is not a smaller amount of agreement; it is agreement landing on fewer
 # words, and `styleDescriptions.test.ts` pins the colours staying put while the
 # width moves.
@@ -61,8 +61,8 @@ color =
     .pink = phinki
     .brown = ntsvuku wa misava
 
-# The two true adjectives, and the only place in this file where a class
-# concord moves.
+# The two true adjectives. With `style-filled-word` below, these are the only
+# places in this file where a class concord moves.
 line-width =
     .thick =
         { $gender ->

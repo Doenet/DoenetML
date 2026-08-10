@@ -21,8 +21,9 @@
 # agreement of any kind; a describing word follows its noun and never changes
 # shape. So `noun-gender` answers one token that nothing reads. Sango and
 # `locales/luo` reach that answer from two different families, and both sit
-# among eleven Bantu catalogs that fork on five noun classes apiece — which is
-# the sharpest form this roster has of *a region says nothing about agreement*.
+# among sixteen Bantu catalogs that fork on three to six noun classes apiece —
+# which is the sharpest form this roster has of *a region says nothing about
+# agreement*.
 #
 # **The tone marks are part of the spelling**, not decoration: Sango writes
 # â, ê, î, ô, û for the falling tone and ä, ë, ï, ö, ü for the high, and

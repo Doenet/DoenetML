@@ -17,7 +17,7 @@
 # writes «mola» and `tn` writes «mola», «gomme» where `st` writes «’me», and
 # «efela» where `tn` writes «mme».
 #
-# **What an adjective agrees with here is the noun's class**, as in the five
+# **What an adjective agrees with here is the noun's class**, as in the ten
 # Bantu catalogs that came before, so `noun-gender` answers `c3`, `c5`, `c7`
 # or `c9` and every concording word selects on it. Sotho-Tswana builds
 # that concord out of two pieces where Nguni builds it out of one — a

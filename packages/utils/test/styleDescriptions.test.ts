@@ -2701,7 +2701,7 @@ describe("the African and Berber batch", () => {
 
     /**
      * `$gender` is a token set and nothing outside a catalog reads its values,
-     * which is what lets Fula use the same argument the eleven Bantu catalogs
+     * which is what lets Fula use the same argument the sixteen Bantu catalogs
      * use and have it land on the *other end* of the word. The stems are
      * constant here — mawn- "thick", bodee- "red" — and only the class suffix
      * moves.
@@ -2716,8 +2716,9 @@ describe("the African and Berber batch", () => {
 
     /**
      * Xitsonga has very few true adjectives: almost everything English calls
-     * one is a noun. So the class fork lands on «-kulu» and nowhere else, and
-     * the colour is the same string against a class 3 noun and a class 7 one.
+     * one is a noun. So the class fork lands on «-kulu», «-tsongo» and the
+     * passive «-tateriwaka», and on nothing else — the colour is the same
+     * string against a class 3 noun and a class 7 one.
      * That is a fact about which words carry a concord rather than about how
      * much agreement the language has, and it is why the two rows are asserted
      * whole rather than by a substring that would pass either way.
@@ -2732,9 +2733,27 @@ describe("the African and Berber batch", () => {
     });
 
     /**
-     * The eleven prefixing catalogs, one row each, so that a change to any
-     * one of their `noun-gender` tables shows up as a diff here. Every one of
-     * them puts the noun first and the dash pattern last.
+     * Dholuo's relative particle «ma-» is welded onto `$color`, which the
+     * catalog never sees, and onto nothing else: `line-width` and `line-style`
+     * write their words with a relative marker of their own already on them
+     * («mabor», «mokethore»), so `style-stroke` places those bare. Asserted
+     * with all three words present, because that is the only combination in
+     * which a stray second «ma-» on either of them would show.
+     */
+    it("welds Dholuo's relative particle on once and only on the colour", () => {
+        expect(
+            describeStrokedShape(forLocale("luo"), words, {
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("laini mabor mokethore marakwar");
+    });
+
+    /**
+     * The batch's other five prefixing catalogs — Xitsonga has a row of its
+     * own above — one row each, so that a change to any one of their
+     * `noun-gender` tables shows up as a diff here. Every one of them puts the
+     * noun first and the dash pattern last.
      */
     it.each([
         ["nso", "line", "mothaladi o mokoto o mohubedu ka dikgaotšo"],
@@ -2801,16 +2820,22 @@ describe("the African and Berber batch", () => {
      * complement in every one of them and has to close the phrase. The
      * Austronesian batch made the point that the split is not the postnominal
      * languages' property; this is the same conclusion from the side where
-     * they all *are* postnominal, which is why the rows are worth having.
+     * they all *are* postnominal, which is why all twelve rows are here rather
+     * than a representative few.
      */
     it.each([
         ["nso", "sekhutlokhutlo se se lekanego se sehubedu sa mahlakore a 5"],
+        ["ss", "sakhiwo lesilinganako lesibovu lesinetinhlangotsi letingu-5"],
+        ["ve", "tshivhumbeo tsho linganaho tshitswuku tsha masia a 5"],
         ["ts", "xivumbeko lexi ringanaka tshwuka xa matlhelo ya 5"],
         ["ki", "mũhianĩre mũiganu mũtune ũrĩ na mĩena 5"],
+        ["bem", "icimo icalingana icikashika icakwata amabali 5"],
         ["luo", "kido mopogore maromre marakwar man-gi bethe 5"],
         ["sg", "poligöne so alîngbi bengbä so ayeke na ambâgë 5"],
         ["ff", "poligoŋ fotduɗo bodeewal mo banŋeeji 5"],
         ["kab", "ameggetsdis aɣbalu azeggaɣ s 5 n yidisan"],
+        ["zgh", "ⴰⵎⴻⴳⴳⴻⵜⵙⴷⵉⵙ ⴰⵎⴻⵛⵜⵓ ⴰⵣⴻⴳⴳⴰⵖ ⵙ 5 ⵏ ⵢⵉⴷⵉⵙⴰⵏ"],
+        ["shi", "ⴰⵎⴳⴳⵜⵙⴷⵉⵙ ⴰⵎⵛⵜⵓ ⴰⵣⴳⴳⵯⴰⵖ ⵙ 5 ⵏ ⵢⵉⴷⵉⵙⴰⵏ"],
     ])("closes %s's phrase with the side count", (locale, expected) => {
         expect(
             describeStrokedShape(
