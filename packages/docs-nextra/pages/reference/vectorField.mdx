@@ -1,0 +1,147 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<vectorField/>{:dn}`
+
+<ComponentDisplay name='vectorField'/>
+
+`<vectorField/>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) component
+that draws a two-dimensional vector field as arrows on a lattice covering the visible region of an
+enclosing `<graph>{:dn}`.
+
+The field comes from a `<function>{:dn}` with **two outputs**, such as
+`<function variables="x y">(y, -x)</function>{:dn}`. Like [`<slopeField/>`](slopeField), the whole
+field is a single graphical object, it re-tiles as the user pans or zooms, and its arrows keep a
+constant on-screen length whatever the axis scaling.
+
+<AttrPropDisplay name='vectorField'/>
+
+
+## Examples
+
+### Example: A rotational field
+
+```doenet-editor-horiz
+<setup>
+  <function name="F" variables="x y">(y, -x)</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The vector field (y, -x), which circulates clockwise about the origin</shortDescription>
+  <vectorField function="$F" />
+</graph>
+```
+
+By default arrow length is proportional to the magnitude of the vector, so the arrows grow with
+distance from the origin.
+
+
+---
+
+### Example: Direction only
+
+```doenet-editor-horiz
+<setup>
+  <function name="F" variables="x y">(y, -x)</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The same rotational field with every arrow the same length</shortDescription>
+  <vectorField function="$F" normalize />
+</graph>
+```
+
+With `normalize`, every arrow is drawn the same length. This is the better choice when the shape of
+the flow matters more than its speed, or when magnitudes vary so widely that the small arrows
+vanish.
+
+
+---
+
+### Example: A gradient field
+
+```doenet-editor-horiz
+<setup>
+  <function name="G" variables="x y">(2x, 2y)</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The gradient field of x squared plus y squared, pointing away from the origin</shortDescription>
+  <vectorField function="$G" />
+</graph>
+```
+
+The gradient of <m>x^2 + y^2</m> points radially outward, everywhere perpendicular to the circular
+level curves.
+
+
+## Attribute Examples
+
+### Attribute Example: dx, dy
+
+```doenet-editor-horiz
+<setup>
+  <function name="F" variables="x y">(y, -x)</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A rotational vector field sampled on a finer lattice</shortDescription>
+  <vectorField function="$F" dx="0.5" dy="0.5" markLength="14" normalize />
+</graph>
+```
+
+`dx` and `dy` set the lattice spacing. A finer lattice usually wants a shorter `markLength`.
+
+
+---
+
+### Attribute Example: markLength
+
+```doenet-editor-horiz
+<setup>
+  <function name="F" variables="x y">(y, -x)</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A rotational vector field drawn with long arrows</shortDescription>
+  <vectorField function="$F" markLength="40" />
+</graph>
+```
+
+`markLength` is measured in pixels. When arrows scale with magnitude it sets the length of the
+longest arrow; with `normalize` it sets the length of every arrow.
+
+
+---
+
+### Attribute Example: maxMarks
+
+```doenet-editor-horiz
+<setup>
+  <function name="F" variables="x y">(y, -x)</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A dense vector field limited to at most 150 arrows</shortDescription>
+  <vectorField function="$F" dx="0.25" dy="0.25" markLength="8" maxMarks="150" normalize />
+</graph>
+```
+
+`maxMarks` bounds how many arrows are drawn, coarsening the lattice rather than refusing to draw
+when it would be exceeded.
+
+
+## Property Examples
+
+### Property Example: dx, dy, normalize
+
+```doenet-editor-horiz
+<setup>
+  <function name="F" variables="x y">(y, -x)</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A named vector field whose settings are reported as text</shortDescription>
+  <vectorField name="vf" function="$F" dx="2" dy="2" normalize />
+</graph>
+
+<p><c>dx, dy</c> = $vf.dx, $vf.dy</p>
+<p><c>normalize</c> = $vf.normalize</p>
+```
+
+Each attribute of `<vectorField/>{:dn}` is also available as a property of a named vector field.

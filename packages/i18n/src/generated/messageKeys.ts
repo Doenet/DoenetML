@@ -97,6 +97,8 @@ export type MessageKey =
     | "noun.vector"
     | "noun.curve"
     | "noun.function"
+    | "noun.slope-field"
+    | "noun.vector-field"
     | "noun.parabola"
     | "noun.polyline"
     | "noun.polygon"
@@ -662,6 +664,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "noun.vector",
     "noun.curve",
     "noun.function",
+    "noun.slope-field",
+    "noun.vector-field",
     "noun.parabola",
     "noun.polyline",
     "noun.polygon",

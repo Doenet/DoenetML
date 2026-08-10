@@ -1,0 +1,149 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<slopeField/>{:dn}`
+
+<ComponentDisplay name='slopeField'/>
+
+`<slopeField/>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) component
+that draws the slope field of a differential equation <m>y' = f(x,y)</m> as short tick marks on a
+lattice covering the visible region of an enclosing `<graph>{:dn}`.
+
+The whole field is drawn as a single graphical object, so a field of thousands of marks costs about
+the same to render as a handful. It also re-tiles automatically as the user pans or zooms, and its
+marks keep a constant on-screen length — so slopes appear at their true visual angle even when the
+axes are not equally scaled.
+
+<AttrPropDisplay name='slopeField'/>
+
+
+## Examples
+
+### Example: A slope field from an expression
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The slope field of y' = x sin(x)</shortDescription>
+  <slopeField>x*sin(x)</slopeField>
+</graph>
+```
+
+Given directly as a child, the expression becomes the slope function. Here <m>y'</m> depends only
+on <m>x</m>, so every mark in a column is parallel.
+
+
+---
+
+### Example: A slope field of two variables
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x y">y - x</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The slope field of y' = y - x</shortDescription>
+  <slopeField function="$f" />
+</graph>
+```
+
+To let the slope depend on <m>y</m> as well, define a `<function>{:dn}` with
+`variables="x y"` and reference it with the `function` attribute. Marks along the line
+<m>y = x</m> are horizontal, since <m>y' = 0</m> there.
+
+
+---
+
+### Example: A solution curve through the field
+
+```doenet-editor-horiz
+<setup>
+  <function name="f" variables="x y">y - x</function>
+</setup>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A slope field with a draggable point on a solution curve</shortDescription>
+  <slopeField function="$f" />
+  <function styleNumber="2">x + 1 - e^x</function>
+</graph>
+```
+
+Drawing a known solution on top of the field shows the curve following the marks everywhere.
+
+
+## Attribute Examples
+
+### Attribute Example: dx, dy
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A slope field sampled twice as finely in each direction</shortDescription>
+  <slopeField dx="0.5" dy="0.5" markLength="12">x*sin(x)</slopeField>
+</graph>
+```
+
+`dx` and `dy` set the horizontal and vertical spacing of the lattice. A finer lattice usually wants
+a shorter `markLength` so the marks do not overlap.
+
+
+---
+
+### Attribute Example: markLength
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A slope field drawn with long marks</shortDescription>
+  <slopeField markLength="34">y</slopeField>
+</graph>
+```
+
+`markLength` is measured in pixels rather than graph units. That is what keeps every mark the same
+length, and at the correct visual angle, no matter how the axes are scaled.
+
+
+---
+
+### Attribute Example: xoffset, yoffset
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A slope field whose lattice is shifted half a unit</shortDescription>
+  <slopeField xoffset="0.5" yoffset="0.5">y</slopeField>
+</graph>
+```
+
+`xoffset` and `yoffset` shift the lattice so a mark falls at `(xoffset, yoffset)` rather than at the
+origin.
+
+
+---
+
+### Attribute Example: maxMarks
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A dense slope field limited to at most 200 marks</shortDescription>
+  <slopeField dx="0.2" dy="0.2" markLength="6" maxMarks="200">y</slopeField>
+</graph>
+```
+
+`maxMarks` bounds how many marks are drawn. Rather than refusing to draw when the lattice would
+exceed it — for instance after zooming far out — the field keeps every <m>n</m>-th lattice line, so
+it stays readable.
+
+
+## Property Examples
+
+### Property Example: dx, dy, markLength
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A named slope field whose lattice settings are reported as text</shortDescription>
+  <slopeField name="sf" dx="0.5" dy="2" markLength="16">y</slopeField>
+</graph>
+
+<p><c>dx, dy</c> = $sf.dx, $sf.dy</p>
+<p><c>markLength</c> = $sf.markLength</p>
+```
+
+Each attribute of `<slopeField/>{:dn}` is also available as a property of a named slope field.
