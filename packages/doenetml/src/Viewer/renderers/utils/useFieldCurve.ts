@@ -30,7 +30,6 @@ import { useJSXGraphCleanup } from "./useJSXGraphCleanup";
 export interface FieldSVs extends GraphicalSVs {
     haveFunction: boolean;
     fDefinitions: any[];
-    numInputs: number;
     dx: number;
     dy: number;
     xoffset: number;
@@ -48,20 +47,21 @@ export interface FieldSVs extends GraphicalSVs {
  * state-variable change — a style tweak elsewhere in the document must not cost
  * a recompile.
  *
- * A one-input function built by `createFunctionFromDefinition` has signature
- * `(x, overrideDomain)`, so it must be called with exactly one argument;
- * passing `y` as the second would silently override the domain instead.
+ * The definition always describes a function of two inputs, whatever arity the
+ * author wrote: the `function` attribute names both variables on the
+ * `<function>` it creates (see `returnFieldFunctionAttribute` in the worker's
+ * `utils/field.js`). That is what lets the two inputs be passed positionally
+ * here — a *one*-input function built by `createFunctionFromDefinition` has
+ * signature `(x, overrideDomain)`, so a second argument would silently override
+ * the domain rather than supply `y`.
  */
 export function useFieldFunction(
     fDefinition: any,
-    numInputs: number,
 ): (x: number, y: number) => number {
-    return useMemo(() => {
-        const raw = createFunctionFromDefinition(fDefinition);
-        return numInputs === 2
-            ? (x: number, y: number) => raw(x, y)
-            : (x: number, _y: number) => raw(x);
-    }, [fDefinition, numInputs]);
+    return useMemo(
+        () => createFunctionFromDefinition(fDefinition),
+        [fDefinition],
+    );
 }
 
 export function useFieldCurve({

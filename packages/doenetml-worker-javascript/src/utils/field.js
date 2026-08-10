@@ -6,7 +6,38 @@
  * they accept the function, are identical.
  */
 
+import { codedDiagnostic } from "./diagnostics";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "./label";
+
+/**
+ * The `function` attribute both field components take.
+ *
+ * The `<function>` it creates is always given `variables="x y"`, which is what
+ * the sugar does for a bare expression child. Without it, an attribute holding
+ * a literal expression — `<vectorField function="(y, -x)" />`, the form the
+ * editor's completions offer — would create a `<function>` that takes only `x`,
+ * leaving `y` a free symbol: the field would be NaN at every lattice point and
+ * draw nothing at all, while reporting that it has a function. Naming both
+ * variables is harmless for an expression in `x` alone, since the extra input
+ * is simply ignored.
+ *
+ * A function supplied by reference is unaffected: the created component holds
+ * the referenced one as a *child* and passes inputs through to it positionally,
+ * so `<function name="F" variables="u v">(v, -u)</function>` keeps the variable
+ * names its own author chose.
+ *
+ * @param {string} description description of the attribute, which says
+ *   something different for each component.
+ */
+export function returnFieldFunctionAttribute({ description }) {
+    return {
+        function: {
+            createComponentOfType: "function",
+            attributesForCreatedComponent: { variables: "x y" },
+            description,
+        },
+    };
+}
 
 /**
  * The lattice attributes both field components take.
@@ -82,11 +113,12 @@ export function returnFieldLatticeAttributes({
  * that `<slopeField>y - x</slopeField>` means the same as
  * `<slopeField function="$f" />` for `<function variables="x y">y - x</function>`.
  *
- * The wrapped function is given both variables explicitly. A `<function>` with
- * no `variables` takes only `x`, so a bare `y - x` would otherwise treat `y` as
- * a symbol and evaluate to NaN everywhere — a field that silently draws
- * nothing. Naming both is harmless for an expression that uses only `x`, since
- * the extra input is simply ignored.
+ * The wrapped function is given `variables="x y"`, for the reason spelled out
+ * on {@link returnFieldFunctionAttribute}: without it a bare `y - x` would be
+ * read as a function of `x` alone and evaluate to NaN everywhere. The sugar has
+ * to name them itself rather than inherit the attribute's
+ * `attributesForCreatedComponent`, since it builds the attribute's component
+ * directly instead of going through the usual attribute conversion.
  *
  * Sugar recurses into attribute components, so from here `<function>`'s own
  * sugar wraps the expression in `<math>` and the variable list splits its
@@ -150,42 +182,78 @@ export function returnFieldFunctionSugarInstruction() {
  * the worker, so what it needs is not a closure but `fDefinitions`, which it
  * rehydrates with `createFunctionFromDefinition`. The worker therefore never
  * asks the function for `numericalfs`, which it would only have to build and
- * throw away. `numInputs` comes along because a one-input function built that
- * way has signature `(x, overrideDomain)`, so calling it as `f(x, y)` would
- * quietly pass `y` as `overrideDomain`.
+ * throw away. The definitions always describe a function of two inputs, since
+ * `returnFieldFunctionAttribute` names both variables on the `<function>` it
+ * creates; the renderer can call them as `f(x, y)` without checking an arity.
+ *
+ * The number of outputs, by contrast, is what a mark is drawn from and so is
+ * not negotiable. A function with the wrong number is almost always meant for
+ * the sibling component, which the warning says.
  *
  * @param {number} numOutputs how many outputs the function must have — 1 for a
  *   slope field, 2 for a vector field. Anything else is not a usable field, and
  *   `haveFunction` is false so that nothing is drawn.
  */
 export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
+    // The two field components are each other's alternative: whichever one this
+    // is, a function with the other's number of outputs belongs to the other.
+    const isSlopeField = numOutputs === 1;
+    const componentType = isSlopeField ? "slopeField" : "vectorField";
+    const alternativeComponentType = isSlopeField
+        ? "vectorField"
+        : "slopeField";
+    const alternativeNumOutputs = isSlopeField ? 2 : 1;
+
     return {
         haveFunction: {
             forRenderer: true,
             additionalStateVariablesDefined: [
                 { variableName: "fDefinitions", forRenderer: true },
-                { variableName: "numInputs", forRenderer: true },
             ],
             returnDependencies: () => ({
                 functionAttr: {
                     dependencyType: "attributeComponent",
                     attributeName: "function",
-                    variableNames: ["numInputs", "numOutputs", "fDefinitions"],
+                    variableNames: ["numOutputs", "fDefinitions"],
                 },
             }),
             definition({ dependencyValues }) {
                 const attr = dependencyValues.functionAttr;
 
-                // Both y' = f(x) and y' = f(x, y) are meaningful fields, so
-                // either arity is accepted; the number of outputs is not
-                // negotiable, since it is what a mark is drawn from.
-                const usable =
-                    attr !== null &&
-                    (attr.stateValues.numInputs === 1 ||
-                        attr.stateValues.numInputs === 2) &&
-                    attr.stateValues.numOutputs === numOutputs;
+                if (
+                    attr === null ||
+                    attr.stateValues.numOutputs !== numOutputs
+                ) {
+                    const sendDiagnostics = [];
 
-                if (!usable) {
+                    // A field with no function at all is visibly unfinished —
+                    // it is what the editor's completions leave behind, and a
+                    // warning would fire while the author was still typing. A
+                    // field whose function is present but has the wrong number
+                    // of outputs looks finished and silently draws nothing, so
+                    // that one is worth saying out loud.
+                    if (attr !== null) {
+                        const found = attr.stateValues.numOutputs;
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0122",
+                                args: {
+                                    component: componentType,
+                                    expected: numOutputs,
+                                    found,
+                                    // Naming the sibling component only helps
+                                    // if the function would actually suit it.
+                                    alternative:
+                                        found === alternativeNumOutputs
+                                            ? alternativeComponentType
+                                            : "none",
+                                },
+                                position: attr.position || undefined,
+                            }),
+                        );
+                    }
+
                     return {
                         setValue: {
                             haveFunction: false,
@@ -196,8 +264,8 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                                 { length: numOutputs },
                                 () => ({}),
                             ),
-                            numInputs: 0,
                         },
+                        sendDiagnostics,
                     };
                 }
 
@@ -205,7 +273,6 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                     setValue: {
                         haveFunction: true,
                         fDefinitions: attr.stateValues.fDefinitions,
-                        numInputs: attr.stateValues.numInputs,
                     },
                 };
             },

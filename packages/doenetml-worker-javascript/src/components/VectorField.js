@@ -1,6 +1,7 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
+    returnFieldFunctionAttribute,
     returnFieldFunctionStateVariableDefinitions,
     returnFieldFunctionSugarInstruction,
     returnFieldLatticeAttributes,
@@ -21,14 +22,12 @@ export default class VectorField extends GraphicalComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.function = {
-            createComponentOfType: "function",
-            description:
-                "A function with two outputs giving the vector at each point, such as (y, -x). May take one input or two.",
-        };
-
         Object.assign(
             attributes,
+            returnFieldFunctionAttribute({
+                description:
+                    "A function with two outputs giving the vector at each point, as an expression such as (y, -x) or a reference to a <function>. May take one input or two.",
+            }),
             returnFieldLatticeAttributes({
                 markNoun: "arrows",
                 markLengthDefault: 24,

@@ -375,6 +375,7 @@ export type MessageKey =
     | "eigen-decomposition-failed"
     | "matches-pattern-parameter-not-in-pattern"
     | "graph-grid-invalid"
+    | "field-function-wrong-num-outputs"
     | "prefigure-x-label-position-unsupported"
     | "prefigure-y-label-position-unsupported"
     | "prefigure-invalid-axis-bounds"
@@ -942,6 +943,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "eigen-decomposition-failed",
     "matches-pattern-parameter-not-in-pattern",
     "graph-grid-invalid",
+    "field-function-wrong-num-outputs",
     "prefigure-x-label-position-unsupported",
     "prefigure-y-label-position-unsupported",
     "prefigure-invalid-axis-bounds",

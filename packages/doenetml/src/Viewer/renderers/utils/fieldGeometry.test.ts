@@ -274,10 +274,15 @@ describe("buildVectorFieldData", () => {
             // Every lattice point here is an integer pair.
             expect(tailX).toBeCloseTo(Math.round(tailX), 10);
             expect(tailY).toBeCloseTo(Math.round(tailY), 10);
-            // The shaft points along (y, -x) as sampled at the tail.
+            // The shaft points along (y, -x) as sampled at the tail — in that
+            // direction, not merely along that line, so a flipped arrow is not
+            // mistaken for a correct one. The axes are square here, so the
+            // shaft in user units is a positive multiple of the vector.
             const shaftX = dataX[i + 1] - tailX;
             const shaftY = dataY[i + 1] - tailY;
-            expect(shaftX * -tailX - shaftY * tailY).toBeCloseTo(0, 10);
+            const t = Math.hypot(shaftX, shaftY) / Math.hypot(tailY, tailX);
+            expect(shaftX).toBeCloseTo(t * tailY, 10);
+            expect(shaftY).toBeCloseTo(-t * tailX, 10);
         }
     });
 
@@ -342,6 +347,45 @@ describe("buildVectorFieldData", () => {
                     (dataY[i + off + 1] - dataY[i + off]) * square.unitY,
                 );
                 expect(len).toBeCloseTo(0.25 * shaft, 10);
+            }
+        }
+    });
+
+    it("keeps the arrowhead's on-screen shape on non-square axes", () => {
+        // The barbs are rotated in pixel space and converted back to user
+        // units, so mixing up the two units would still look right whenever
+        // they happen to be equal.
+        const scale = { unitX: 40, unitY: 8 };
+        const { dataX, dataY } = buildVectorFieldData({
+            u: (x, y) => y,
+            v: (x, y) => -x,
+            ...opts,
+            scale,
+        });
+
+        /** The segment starting at index `i`, as the pixels it spans. */
+        function pixelSpan(i: number) {
+            return [
+                (dataX[i + 1] - dataX[i]) * scale.unitX,
+                (dataY[i + 1] - dataY[i]) * scale.unitY,
+            ];
+        }
+
+        for (let i = 0; i < dataX.length; i += 9) {
+            const [shaftX, shaftY] = pixelSpan(i);
+            const shaftLength = Math.hypot(shaftX, shaftY);
+            expect(shaftLength).toBeCloseTo(12, 10);
+
+            for (const off of [3, 6]) {
+                const [barbX, barbY] = pixelSpan(i + off);
+                const barbLength = Math.hypot(barbX, barbY);
+                expect(barbLength).toBeCloseTo(0.3 * 12, 10); // barbFraction
+                // Each barb leaves the tip at `barbAngle` to the shaft it
+                // comes back along.
+                const cos =
+                    (-barbX * shaftX - barbY * shaftY) /
+                    (barbLength * shaftLength);
+                expect(Math.acos(cos)).toBeCloseTo(0.44, 10);
             }
         }
     });

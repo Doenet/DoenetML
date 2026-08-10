@@ -19,8 +19,8 @@ export default React.memo(function VectorField(props: UseDoenetRendererProps) {
     // @ts-ignore
     VectorField.ignoreActionsWithoutCore = () => true;
 
-    const u = useFieldFunction(SVs.fDefinitions[0], SVs.numInputs);
-    const v = useFieldFunction(SVs.fDefinitions[1], SVs.numInputs);
+    const u = useFieldFunction(SVs.fDefinitions[0]);
+    const v = useFieldFunction(SVs.fDefinitions[1]);
 
     useFieldCurve({
         SVs,

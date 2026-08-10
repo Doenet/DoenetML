@@ -214,5 +214,6 @@
     "doenet-w0118": "prefigure-grid-spacing-too-fine",
     "doenet-w0119": "graph-grid-invalid",
     "doenet-w0120": "deprecated-attribute-to-child",
-    "doenet-w0121": "deprecated-attribute-value-renamed"
+    "doenet-w0121": "deprecated-attribute-value-renamed",
+    "doenet-w0122": "field-function-wrong-num-outputs"
 }

@@ -11,9 +11,11 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 that draws a two-dimensional vector field as arrows on a lattice covering the visible region of an
 enclosing `<graph>{:dn}`.
 
-The field comes from a function with **two outputs**, given either as a bare expression child —
-`<vectorField>(y, -x)</vectorField>{:dn}`, read as a function of both <m>x</m> and <m>y</m> — or as
-a `<function>{:dn}` referenced with the `function` attribute. Like
+The field comes from a function with **two outputs**, given as a bare expression child —
+`<vectorField>(y, -x)</vectorField>{:dn}` — as an expression written straight into the `function`
+attribute — `<vectorField function="(y, -x)" />{:dn}` — or as a `<function>{:dn}` referenced with
+that attribute. Written either of the first two ways, the expression is read as a function of both
+<m>x</m> and <m>y</m>. Like
 [`<slopeField/>`](slopeField), the whole field is a single graphical object, it re-tiles as the
 user pans or zooms, and its arrows keep a constant on-screen length whatever the axis scaling.
 
@@ -77,6 +79,22 @@ level curves. Here the field is defined as a separate `<function>{:dn}` and refe
 
 
 ## Attribute Examples
+
+### Attribute Example: function
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A rotational vector field written into the function attribute</shortDescription>
+  <vectorField function="(y, -x)" normalize />
+</graph>
+```
+
+`function` takes an expression directly, as here, or a reference to a `<function>{:dn}` declared
+elsewhere. An expression written here is read as a function of both <m>x</m> and <m>y</m>, exactly
+as a bare expression child is; a referenced function keeps whatever variables its own author named.
+
+
+---
 
 ### Attribute Example: dx, dy
 

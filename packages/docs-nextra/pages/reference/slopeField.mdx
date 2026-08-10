@@ -11,8 +11,11 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 that draws the slope field of a differential equation <m>y' = f(x,y)</m> as short tick marks on a
 lattice covering the visible region of an enclosing `<graph>{:dn}`.
 
-The slope function can be given as a bare expression child, which is read as a function of both
-<m>x</m> and <m>y</m>, or as a `<function>{:dn}` referenced with the `function` attribute.
+The slope function can be given as a bare expression child, as an expression written straight into
+the `function` attribute, or as a `<function>{:dn}` referenced with that attribute. Written either
+of the first two ways, the expression is read as a function of both <m>x</m> and <m>y</m>, so
+`<slopeField>y - x</slopeField>{:dn}` and `<slopeField function="y - x" />{:dn}` mean the same
+thing.
 
 The whole field is drawn as a single graphical object, so a field of thousands of marks costs about
 the same to render as a handful. It also re-tiles automatically as the user pans or zooms, and its
@@ -77,6 +80,26 @@ alternative to giving the expression as a child.
 
 
 ## Attribute Examples
+
+### Attribute Example: function
+
+```doenet-editor-horiz
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>The slope field of y' = y - x, written into the function attribute</shortDescription>
+  <slopeField function="y - x" />
+</graph>
+```
+
+`function` takes an expression directly, as here, or a reference to a `<function>{:dn}` declared
+elsewhere. An expression written here is read as a function of both <m>x</m> and <m>y</m>, exactly
+as a bare expression child is; a referenced function keeps whatever variables its own author named.
+
+A function whose number of outputs does not suit the component — a two-output expression such as
+`(y, -x)` given to `<slopeField/>{:dn}` — draws nothing and reports a warning saying which component
+does want it.
+
+
+---
 
 ### Attribute Example: dx, dy
 

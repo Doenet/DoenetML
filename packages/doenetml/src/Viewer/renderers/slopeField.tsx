@@ -15,7 +15,7 @@ export default React.memo(function SlopeField(props: UseDoenetRendererProps) {
     // @ts-ignore
     SlopeField.ignoreActionsWithoutCore = () => true;
 
-    const f = useFieldFunction(SVs.fDefinitions[0], SVs.numInputs);
+    const f = useFieldFunction(SVs.fDefinitions[0]);
 
     useFieldCurve({
         SVs,

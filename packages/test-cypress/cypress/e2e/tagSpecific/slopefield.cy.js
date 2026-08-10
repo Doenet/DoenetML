@@ -132,4 +132,32 @@ describe("SlopeField and VectorField Tag Tests", { tags: ["@group2"] }, () => {
             expect(shaft[1][0] - shaft[0][0]).greaterThan(0);
         });
     });
+
+    it("draws a field from an expression written into the function attribute", () => {
+        // The attribute form has to be read as a function of x and y just as
+        // the child form is. Read as a function of x alone, the y here would be
+        // a free symbol, every lattice point would be NaN, and the graph would
+        // come up blank — which is why this is checked end to end.
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="g" xmin="-3" xmax="3" ymin="-3" ymax="3">
+        <vectorField name="vf" function="(y, -x)" normalize />
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        withFieldCurve("g", (curve) => {
+            const segs = segments(curve);
+            expect(segs.length / 3, "number of arrows").greaterThan(20);
+
+            const shaft = segmentNear(segs, 0, 2, "tail");
+            expect(shaft[1][1] - shaft[0][1]).closeTo(0, 1e-9);
+            expect(shaft[1][0] - shaft[0][0]).greaterThan(0);
+        });
+    });
 });

@@ -114408,7 +114408,7 @@
                 },
                 {
                     "name": "function",
-                    "description": "The function giving the slope y' at each point. May take one input, f(x), or two, f(x,y).",
+                    "description": "The function giving the slope y' at each point, as an expression such as y-x or a reference to a <function>. May take one input, f(x), or two, f(x,y).",
                     "type": "function"
                 },
                 {
@@ -114829,7 +114829,7 @@
                 },
                 {
                     "name": "function",
-                    "description": "A function with two outputs giving the vector at each point, such as (y, -x). May take one input or two.",
+                    "description": "A function with two outputs giving the vector at each point, as an expression such as (y, -x) or a reference to a <function>. May take one input or two.",
                     "type": "function"
                 },
                 {

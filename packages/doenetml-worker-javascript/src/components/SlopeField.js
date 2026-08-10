@@ -1,6 +1,7 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
+    returnFieldFunctionAttribute,
     returnFieldFunctionStateVariableDefinitions,
     returnFieldFunctionSugarInstruction,
     returnFieldLatticeAttributes,
@@ -21,14 +22,12 @@ export default class SlopeField extends GraphicalComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.function = {
-            createComponentOfType: "function",
-            description:
-                "The function giving the slope y' at each point. May take one input, f(x), or two, f(x,y).",
-        };
-
         Object.assign(
             attributes,
+            returnFieldFunctionAttribute({
+                description:
+                    "The function giving the slope y' at each point, as an expression such as y-x or a reference to a <function>. May take one input, f(x), or two, f(x,y).",
+            }),
             returnFieldLatticeAttributes({
                 markNoun: "marks",
                 markLengthDefault: 20,

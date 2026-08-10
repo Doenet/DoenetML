@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 /**
  * Rehydrate one of a field's `fDefinitions` into a numeric closure, exactly as
  * the renderer does. The components deliberately do not expose the worker's own
  * closures, since `fDefinitions` is all that is sent to the renderer.
+ *
+ * The renderer calls it as `f(x, y)` unconditionally, so these tests do too:
+ * the `function` attribute names both variables on the `<function>` it creates,
+ * whatever arity the author wrote.
  */
 function numericalF(fDefinition: any) {
     return createFunctionFromDefinition(fDefinition) as (
@@ -32,7 +37,6 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const sf = stateVariables[await resolvePathToNodeIdx("sf")];
 
         expect(sf.stateValues.haveFunction).eq(true);
-        expect(sf.stateValues.numInputs).eq(2);
         expect(sf.stateValues.fDefinitions.length).eq(1);
         // The numeric closure must evaluate positionally: f(2, pi/2) = 2.
         expect(
@@ -53,8 +57,94 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const sf = stateVariables[await resolvePathToNodeIdx("sf")];
 
+        // The second input is simply ignored, so f(x) is a field like any other.
         expect(sf.stateValues.haveFunction).eq(true);
-        expect(sf.stateValues.numInputs).eq(1);
+        expect(numericalF(sf.stateValues.fDefinitions[0])(2, 7)).closeTo(
+            2 * Math.sin(2),
+            1e-12,
+        );
+    });
+
+    it("reads a literal expression in the function attribute as a function of x and y", async () => {
+        // The form the editor's completions offer. Without `variables="x y"` on
+        // the `<function>` the attribute creates, `y` here would be a free
+        // symbol and both fields would be NaN everywhere — a blank graph.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <vectorField name="vf" function="(y, -x)" />
+    <slopeField name="sf" function="y - x" />
+    <slopeField name="onlyX" function="x*sin(x)" />
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const vf = stateVariables[await resolvePathToNodeIdx("vf")];
+        const sf = stateVariables[await resolvePathToNodeIdx("sf")];
+        const onlyX = stateVariables[await resolvePathToNodeIdx("onlyX")];
+
+        expect(vf.stateValues.haveFunction).eq(true);
+        expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            5,
+            1e-12,
+        );
+        expect(numericalF(vf.stateValues.fDefinitions[1])(3, 5)).closeTo(
+            -3,
+            1e-12,
+        );
+
+        expect(sf.stateValues.haveFunction).eq(true);
+        expect(numericalF(sf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            2,
+            1e-12,
+        );
+
+        // An expression in x alone must not be disturbed by naming y too.
+        expect(onlyX.stateValues.haveFunction).eq(true);
+        expect(numericalF(onlyX.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            3 * Math.sin(3),
+            1e-12,
+        );
+
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("leaves a referenced function's own variables alone", async () => {
+        // Naming `x` and `y` on the component the attribute creates must not
+        // rename the inputs of a function the author declared for themselves:
+        // the referenced function is held as a child and fed positionally.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <setup>
+    <function name="F" variables="u v">(v, -u)</function>
+    <function name="h" variable="t">t^2</function>
+  </setup>
+  <graph>
+    <vectorField name="vf" function="$F" />
+    <slopeField name="sf" function="$h" />
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const vf = stateVariables[await resolvePathToNodeIdx("vf")];
+        const sf = stateVariables[await resolvePathToNodeIdx("sf")];
+
+        // F(3, 5) = (5, -3), read as (v, -u) and not as (y, -x).
+        expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            5,
+            1e-12,
+        );
+        expect(numericalF(vf.stateValues.fDefinitions[1])(3, 5)).closeTo(
+            -3,
+            1e-12,
+        );
+        // h(3) = 9, whatever the second input is.
+        expect(numericalF(sf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            9,
+            1e-12,
+        );
     });
 
     it("slopeField sugars a bare expression into a function of x and y", async () => {
@@ -74,14 +164,12 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         // The sugared function always takes both variables, so an expression
         // that mentions y is a genuine function of y rather than NaN.
         expect(onlyX.stateValues.haveFunction).eq(true);
-        expect(onlyX.stateValues.numInputs).eq(2);
         expect(numericalF(onlyX.stateValues.fDefinitions[0])(2, 7)).closeTo(
             2 * Math.sin(2),
             1e-12,
         );
 
         expect(bothVars.stateValues.haveFunction).eq(true);
-        expect(bothVars.stateValues.numInputs).eq(2);
         expect(numericalF(bothVars.stateValues.fDefinitions[0])(2, 7)).closeTo(
             5,
             1e-12,
@@ -103,12 +191,16 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const blank = stateVariables[await resolvePathToNodeIdx("blank")];
 
         expect(sf.stateValues.haveFunction).eq(false);
-        expect(sf.stateValues.numInputs).eq(0);
 
         // Whitespace is not an expression: wrapping it would yield a function
         // that is NaN everywhere, which looks the same on screen as a broken
         // component.
         expect(blank.stateValues.haveFunction).eq(false);
+
+        // Deliberately silent: a field with no function at all is what the
+        // editor's completions leave behind, so a warning here would fire while
+        // the author was still typing.
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
     it("slopeField sugar leaves a label child alone", async () => {
@@ -172,7 +264,6 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const vf = stateVariables[await resolvePathToNodeIdx("vf")];
 
         expect(vf.stateValues.haveFunction).eq(true);
-        expect(vf.stateValues.numInputs).eq(2);
         expect(vf.stateValues.fDefinitions.length).eq(2);
         // F(3, 5) = (5, -3)
         expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
@@ -198,7 +289,6 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const vf = stateVariables[await resolvePathToNodeIdx("vf")];
 
         expect(vf.stateValues.haveFunction).eq(true);
-        expect(vf.stateValues.numInputs).eq(2);
         expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
             5,
             1e-12,
@@ -209,20 +299,50 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         );
     });
 
-    it("vectorField rejects a one-output function", async () => {
+    it("warns, rather than drawing nothing in silence, when the function has the wrong number of outputs", async () => {
+        // A field given the other component's function looks finished and draws
+        // nothing, so refusing it is only half the job: the warning has to name
+        // what was wanted and point at the component that wants what was given.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <setup><function name="f" variables="x y">x*y</function></setup>
   <graph>
-    <vectorField name="vf" function="$f" />
+    <vectorField name="vf">x*y</vectorField>
+    <slopeField name="sf">(y, -x)</slopeField>
   </graph>
   `,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const vf = stateVariables[await resolvePathToNodeIdx("vf")];
+        expect(
+            stateVariables[await resolvePathToNodeIdx("vf")].stateValues
+                .haveFunction,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("sf")].stateValues
+                .haveFunction,
+        ).eq(false);
 
-        expect(vf.stateValues.haveFunction).eq(false);
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors.length).eq(0);
+        expect(warnings.length).eq(2);
+
+        expect(warnings[0].message).contain(
+            "`<vectorField>` needs a function with two outputs",
+        );
+        expect(warnings[0].message).contain("has 1 output");
+        expect(warnings[0].message).contain(
+            "`<slopeField>` is the component for that function",
+        );
+        expect(warnings[0].position.start.line).eq(3);
+
+        expect(warnings[1].message).contain(
+            "`<slopeField>` needs a function with one output",
+        );
+        expect(warnings[1].message).contain("has 2 outputs");
+        expect(warnings[1].message).contain(
+            "`<vectorField>` is the component for that function",
+        );
+        expect(warnings[1].position.start.line).eq(4);
     });
 
     it("vectorField normalize defaults to false and can be set", async () => {
