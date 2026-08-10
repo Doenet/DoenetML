@@ -61,8 +61,8 @@ const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
  * Nahuan languages ISO 639-5 groups under it.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr`, `gom`, `dgo`, `fuc` — so that each list reads as the whole of a group rather
- * than as the leftovers of one, and so that a change in ICU data cannot
+ * `ayr`, `gom`, `dgo`, `fuc` — so that each list reads as the whole of a group
+ * rather than as the leftovers of one, and so that a change in ICU data cannot
  * silently drop a code out of coverage.
  *
  * Serving a related variety is a real compromise, and each of these catalogs

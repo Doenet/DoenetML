@@ -464,3 +464,63 @@ describe("the noun-class reachability rule", () => {
         expect([...new Set(offenders)].sort()).toEqual([]);
     });
 });
+
+describe("Tachelhit's counted messages", () => {
+    /**
+     * `locales/shi` inflects a verb for the number of its subject —
+     * ⵢⵜⵜⵓⵣⴳⴰⵍ for one thing ignored against ⵜⵜⵓⵣⴳⴰⵍⵏ for several — and a noun
+     * counted behind ⵏ for the number of the count. So a count English forks
+     * on is a count it forks on too, and a message that renders one branch for
+     * every count states a plural verb about a single attribute.
+     *
+     * Asserted for Tachelhit alone rather than for every catalog, because the
+     * rule is a fact about *this* language: `locales/sg` forks on no count at
+     * all, correctly, since `Intl.PluralRules("sg")` reports one category. The
+     * check is that the catalog agrees with itself.
+     */
+    it("forks on every count English forks on", () => {
+        const countArguments = new Set([
+            "count",
+            "attributesCount",
+            "valuesCount",
+            "parametersCount",
+            "intervals",
+            "inputs",
+            "outputs",
+        ]);
+
+        const countSelectors = (source: string) => {
+            const found = new Map<string, Set<string>>();
+            for (const entry of parse(source, { withSpans: false }).body) {
+                if (entry.type !== "Message") {
+                    continue;
+                }
+                const selectors = new Set(
+                    selectExpressions(entry).flatMap((select) =>
+                        select.selector.type === "VariableReference" &&
+                        countArguments.has(select.selector.id.name)
+                            ? [select.selector.id.name]
+                            : [],
+                    ),
+                );
+                if (selectors.size > 0) {
+                    found.set(entry.id.name, selectors);
+                }
+            }
+            return found;
+        };
+
+        for (const namespace of ["chrome", "diagnostics", "editor"]) {
+            const english = countSelectors(readCatalog("en", namespace) ?? "");
+            const tachelhit = countSelectors(
+                readCatalog("shi", namespace) ?? "",
+            );
+            for (const [message, selectors] of english) {
+                expect(
+                    [...(tachelhit.get(message) ?? [])].sort(),
+                    `${namespace}: ${message}`,
+                ).toEqual([...selectors].sort());
+            }
+        }
+    });
+});

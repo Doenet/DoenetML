@@ -143,10 +143,14 @@ noun =
 
 # The side count is a complement introduced by «s», so it follows the whole
 # phrase rather than opening it, and the noun inside it is annexed.
+#
+# «amectu» is the word `locales/zgh` and `locales/shi` use for *regular* here.
+# It is written rather than «aɣbalu», which this catalog already uses for
+# *source* in `collect-no-source` and which would read as "source polygon".
 noun-regular-polygon =
     { $part ->
         [tail] s { $numSides } n yidisan
-       *[head] ameggetsdis aɣbalu
+       *[head] ameggetsdis amectu
     }
 
 # The grammatical gender of the noun being described. Masculine is the default

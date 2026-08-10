@@ -22,11 +22,15 @@
 # `style-stroke` writes `ma{ $color }` and puts the prefix on a value this
 # catalog never sees. That is sound for the same reason `locales/tlh`'s
 # suffixes are: «ma-» has one shape and never assimilates to what follows it.
-# The prefix is written in exactly one place, on `$color`, and the two limits
-# on it are honest rather than hidden. A vowel-initial adjective would want a
+# The prefix is only ever written on a colour, and the two limits on it are
+# honest rather than hidden. A vowel-initial adjective would want a
 # hyphen in careful orthography, and a word that already opens with its own
 # relative marker would come out doubled — so every entry in `color` is both
 # consonant-initial and unmarked, and a new one has to be checked against both.
+# The places it is written are `$color` in `style-stroke`, `style-filled`,
+# `style-filled-with-noun`, `style-fill` and `style-text`, and `$background`
+# beside it in the last of those, which `describeColor` fills from the same
+# `color` table.
 # `line-width` and `line-style` are the reason the prefix is not written more
 # widely: their words carry the marker themselves («mabor», «mokethore»), so
 # `style-stroke` places them bare.

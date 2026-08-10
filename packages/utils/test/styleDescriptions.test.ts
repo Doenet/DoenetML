@@ -2833,7 +2833,7 @@ describe("the African and Berber batch", () => {
         ["luo", "kido mopogore maromre marakwar man-gi bethe 5"],
         ["sg", "poligöne so alîngbi bengbä so ayeke na ambâgë 5"],
         ["ff", "poligoŋ fotduɗo bodeewal mo banŋeeji 5"],
-        ["kab", "ameggetsdis aɣbalu azeggaɣ s 5 n yidisan"],
+        ["kab", "ameggetsdis amectu azeggaɣ s 5 n yidisan"],
         ["zgh", "ⴰⵎⴻⴳⴳⴻⵜⵙⴷⵉⵙ ⴰⵎⴻⵛⵜⵓ ⴰⵣⴻⴳⴳⴰⵖ ⵙ 5 ⵏ ⵢⵉⴷⵉⵙⴰⵏ"],
         ["shi", "ⴰⵎⴳⴳⵜⵙⴷⵉⵙ ⴰⵎⵛⵜⵓ ⴰⵣⴳⴳⵯⴰⵖ ⵙ 5 ⵏ ⵢⵉⴷⵉⵙⴰⵏ"],
     ])("closes %s's phrase with the side count", (locale, expected) => {

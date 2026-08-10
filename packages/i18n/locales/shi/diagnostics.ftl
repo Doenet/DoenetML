@@ -3,11 +3,14 @@
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
-# **The counted messages here write `one`, `few` and `other`**, because
+# **Every counted message here writes `one`, `few` and `other`**, because
 # `Intl.PluralRules("shi")` reports three categories; see `content.ftl`'s
-# header. Where English separates a singular from a plural only in the verb and
-# Tachelhit covers both with one form, the select is dropped rather than
-# written out three times identically.
+# header. The verb agrees with its subject in number — ⵢⵜⵜⵓⵣⴳⴰⵍ for one thing
+# ignored, ⵜⵜⵓⵣⴳⴰⵍⵏ for several — and so does a noun counted behind ⵏ, so a
+# count English forks on is a count this catalog forks on too. `few` and
+# `other` coincide in wording throughout, and both are written out: `few` is a
+# category of its own here, and a speaker revising one of them must be able to
+# revise it without touching the other.
 #
 # DoenetML element, attribute and value names — `through`, `endpoint`,
 # `midpointOffset`, `numDimensions`, `symbolicEquality`, `selectFromSequence`
@@ -17,9 +20,19 @@
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints = { $attributes } ⵜⵜⵓⵣⴳⴰⵍⵏ ⵎⴽ ⵜⵜⵓⵙⵜⴰⵢⵏⵜ ⵙⵏⴰⵜ ⵏ ⵜⵏⵇⵉⴹⵉⵏ ⵏ ⵜⴳⵉⵔⴰ
+line-segment-attributes-ignored-with-endpoints =
+    { $attributesCount ->
+        [one] { $attributes } ⵢⵜⵜⵓⵣⴳⴰⵍ ⵎⴽ ⵜⵜⵓⵙⵜⴰⵢⵏⵜ ⵙⵏⴰⵜ ⵏ ⵜⵏⵇⵉⴹⵉⵏ ⵏ ⵜⴳⵉⵔⴰ
+        [few] { $attributes } ⵜⵜⵓⵣⴳⴰⵍⵏ ⵎⴽ ⵜⵜⵓⵙⵜⴰⵢⵏⵜ ⵙⵏⴰⵜ ⵏ ⵜⵏⵇⵉⴹⵉⵏ ⵏ ⵜⴳⵉⵔⴰ
+       *[other] { $attributes } ⵜⵜⵓⵣⴳⴰⵍⵏ ⵎⴽ ⵜⵜⵓⵙⵜⴰⵢⵏⵜ ⵙⵏⴰⵜ ⵏ ⵜⵏⵇⵉⴹⵉⵏ ⵏ ⵜⴳⵉⵔⴰ
+    }
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint = { $attributes } ⵜⵜⵓⵣⴳⴰⵍⵏ ⵎⴽ ⵜⵜⵓⵙⵜⴰⵢⵏⵜ ⵜⴰⵏⵇⵉⴹⵜ ⵏ ⵜⴳⵉⵔⴰ ⴷ ⵜⵏⵇⵉⴹⵜ ⵜⴰⵎⵎⴰⵙⵜ
+line-segment-attributes-ignored-with-endpoint-and-midpoint =
+    { $attributesCount ->
+        [one] { $attributes } ⵢⵜⵜⵓⵣⴳⴰⵍ ⵎⴽ ⵜⵜⵓⵙⵜⴰⵢⵏⵜ ⵜⴰⵏⵇⵉⴹⵜ ⵏ ⵜⴳⵉⵔⴰ ⴷ ⵜⵏⵇⵉⴹⵜ ⵜⴰⵎⵎⴰⵙⵜ
+        [few] { $attributes } ⵜⵜⵓⵣⴳⴰⵍⵏ ⵎⴽ ⵜⵜⵓⵙⵜⴰⵢⵏⵜ ⵜⴰⵏⵇⵉⴹⵜ ⵏ ⵜⴳⵉⵔⴰ ⴷ ⵜⵏⵇⵉⴹⵜ ⵜⴰⵎⵎⴰⵙⵜ
+       *[other] { $attributes } ⵜⵜⵓⵣⴳⴰⵍⵏ ⵎⴽ ⵜⵜⵓⵙⵜⴰⵢⵏⵜ ⵜⴰⵏⵇⵉⴹⵜ ⵏ ⵜⴳⵉⵔⴰ ⴷ ⵜⵏⵇⵉⴹⵜ ⵜⴰⵎⵎⴰⵙⵜ
+    }
 
 line-segment-midpoint-offset-without-midpoint = midpointOffset ⵓⵔ ⴷⴰⵔⵙ ⴰⵣⴰⵍ ⴱⵍⴰ ⵜⴰⵏⵇⵉⴹⵜ ⵜⴰⵎⵎⴰⵙⵜ
 
@@ -159,9 +172,21 @@ circle-change-center-non-numerical = ⴰⵙⵏⴼⵍ ⵏ ⵜⵎⵎⴰⵙⵜ ⵏ 
 
 function-domain-insufficient-dimensions =
     { $intervals ->
-        [one] ⵜⵉⵙⴽⴽⵉⵔⵉⵏ ⴷⵔⵓⵙⵏⵜ ⵉ ⵜⵖⵓⵍⵜ ⵏ ⵜⵡⵓⵔⵉ. ⵜⴰⵖⵓⵍⵜ ⴷⴰⵔⵙ { $intervals } ⵏ ⵡⴰⴽⵓⴷ ⵎⴰⵛⴰ ⵜⴰⵡⵓⵔⵉ ⴷⴰⵔⵙ { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ.
-        [few] ⵜⵉⵙⴽⴽⵉⵔⵉⵏ ⴷⵔⵓⵙⵏⵜ ⵉ ⵜⵖⵓⵍⵜ ⵏ ⵜⵡⵓⵔⵉ. ⵜⴰⵖⵓⵍⵜ ⴷⴰⵔⵙ { $intervals } ⵏ ⵡⴰⴽⵓⴷⵏ ⵎⴰⵛⴰ ⵜⴰⵡⵓⵔⵉ ⴷⴰⵔⵙ { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ.
-       *[other] ⵜⵉⵙⴽⴽⵉⵔⵉⵏ ⴷⵔⵓⵙⵏⵜ ⵉ ⵜⵖⵓⵍⵜ ⵏ ⵜⵡⵓⵔⵉ. ⵜⴰⵖⵓⵍⵜ ⴷⴰⵔⵙ { $intervals } ⵏ ⵡⴰⴽⵓⴷⵏ ⵎⴰⵛⴰ ⵜⴰⵡⵓⵔⵉ ⴷⴰⵔⵙ { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ.
+        [one] ⵜⵉⵙⴽⴽⵉⵔⵉⵏ ⴷⵔⵓⵙⵏⵜ ⵉ ⵜⵖⵓⵍⵜ ⵏ ⵜⵡⵓⵔⵉ. ⵜⴰⵖⵓⵍⵜ ⴷⴰⵔⵙ { $intervals } ⵏ ⵡⴰⴽⵓⴷ ⵎⴰⵛⴰ ⵜⴰⵡⵓⵔⵉ ⴷⴰⵔⵙ { $inputs ->
+            [one] { $inputs } ⵏ ⵓⵏⴽⵛⵓⵎ
+            [few] { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ
+           *[other] { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ
+        }.
+        [few] ⵜⵉⵙⴽⴽⵉⵔⵉⵏ ⴷⵔⵓⵙⵏⵜ ⵉ ⵜⵖⵓⵍⵜ ⵏ ⵜⵡⵓⵔⵉ. ⵜⴰⵖⵓⵍⵜ ⴷⴰⵔⵙ { $intervals } ⵏ ⵡⴰⴽⵓⴷⵏ ⵎⴰⵛⴰ ⵜⴰⵡⵓⵔⵉ ⴷⴰⵔⵙ { $inputs ->
+            [one] { $inputs } ⵏ ⵓⵏⴽⵛⵓⵎ
+            [few] { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ
+           *[other] { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ
+        }.
+       *[other] ⵜⵉⵙⴽⴽⵉⵔⵉⵏ ⴷⵔⵓⵙⵏⵜ ⵉ ⵜⵖⵓⵍⵜ ⵏ ⵜⵡⵓⵔⵉ. ⵜⴰⵖⵓⵍⵜ ⴷⴰⵔⵙ { $intervals } ⵏ ⵡⴰⴽⵓⴷⵏ ⵎⴰⵛⴰ ⵜⴰⵡⵓⵔⵉ ⴷⴰⵔⵙ { $inputs ->
+            [one] { $inputs } ⵏ ⵓⵏⴽⵛⵓⵎ
+            [few] { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ
+           *[other] { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ
+        }.
     }
 
 function-domain-invalid-format = ⴰⵎⴰⵙⴰⵍ ⴰⵔⴰⵎⵖⵜⵓ ⵏ ⵜⵖⵓⵍⵜ ⵏ ⵜⵡⵓⵔⵉ.
@@ -189,9 +214,21 @@ function-points-too-close = ⵜⴰⵡⵓⵔⵉ ⴷⴰⵔⵙ ⵙⵏⴰⵜ ⵜⵏ�
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-        [one] ⴰⵍⵍⵓⵙ ⵏ ⵜⵡⵓⵔⵉ ⵉⵣⴹⴰⵕ ⵖⴰⵙ ⵎⴽ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⵉⵎⵙⴰⵙⴰ ⴷ ⵓⵎⴹⴰⵏ ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ. ⵜⴰⵡⵓⵔⵉ ⴰⴷ ⴷⴰⵔⵙ { $inputs } ⵏ ⵓⵏⴽⵛⵓⵎ ⴷ { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ.
-        [few] ⴰⵍⵍⵓⵙ ⵏ ⵜⵡⵓⵔⵉ ⵉⵣⴹⴰⵕ ⵖⴰⵙ ⵎⴽ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⵉⵎⵙⴰⵙⴰ ⴷ ⵓⵎⴹⴰⵏ ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ. ⵜⴰⵡⵓⵔⵉ ⴰⴷ ⴷⴰⵔⵙ { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⴷ { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ.
-       *[other] ⴰⵍⵍⵓⵙ ⵏ ⵜⵡⵓⵔⵉ ⵉⵣⴹⴰⵕ ⵖⴰⵙ ⵎⴽ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⵉⵎⵙⴰⵙⴰ ⴷ ⵓⵎⴹⴰⵏ ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ. ⵜⴰⵡⵓⵔⵉ ⴰⴷ ⴷⴰⵔⵙ { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⴷ { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ.
+        [one] ⴰⵍⵍⵓⵙ ⵏ ⵜⵡⵓⵔⵉ ⵉⵣⴹⴰⵕ ⵖⴰⵙ ⵎⴽ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⵉⵎⵙⴰⵙⴰ ⴷ ⵓⵎⴹⴰⵏ ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ. ⵜⴰⵡⵓⵔⵉ ⴰⴷ ⴷⴰⵔⵙ { $inputs } ⵏ ⵓⵏⴽⵛⵓⵎ ⴷ { $outputs ->
+            [one] { $outputs } ⵏ ⵜⵓⴼⴼⵖⴰ
+            [few] { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ
+           *[other] { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ
+        }.
+        [few] ⴰⵍⵍⵓⵙ ⵏ ⵜⵡⵓⵔⵉ ⵉⵣⴹⴰⵕ ⵖⴰⵙ ⵎⴽ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⵉⵎⵙⴰⵙⴰ ⴷ ⵓⵎⴹⴰⵏ ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ. ⵜⴰⵡⵓⵔⵉ ⴰⴷ ⴷⴰⵔⵙ { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⴷ { $outputs ->
+            [one] { $outputs } ⵏ ⵜⵓⴼⴼⵖⴰ
+            [few] { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ
+           *[other] { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ
+        }.
+       *[other] ⴰⵍⵍⵓⵙ ⵏ ⵜⵡⵓⵔⵉ ⵉⵣⴹⴰⵕ ⵖⴰⵙ ⵎⴽ ⴰⵎⴹⴰⵏ ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⵉⵎⵙⴰⵙⴰ ⴷ ⵓⵎⴹⴰⵏ ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ. ⵜⴰⵡⵓⵔⵉ ⴰⴷ ⴷⴰⵔⵙ { $inputs } ⵏ ⵢⵉⵏⴽⵛⴰⵎⵏ ⴷ { $outputs ->
+            [one] { $outputs } ⵏ ⵜⵓⴼⴼⵖⴰ
+            [few] { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ
+           *[other] { $outputs } ⵏ ⵜⵓⴼⴼⵖⵉⵡⵉⵏ
+        }.
     }
 
 ## `<sequence>`

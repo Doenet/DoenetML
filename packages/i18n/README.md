@@ -645,8 +645,8 @@ the thing they add is how *unevenly* a class concord lands. `locales/ts` is the
 case worth reading: Xitsonga has very few true adjectives, and almost
 everything English calls one is a noun joined with a possessive concord — so
 the class fork falls on «-kulu», «-tsongo» and the passive «-tateriwaka» and on
-nothing else, where `locales/zu` forks fifteen words and `locales/sw` six. That is not less
-agreement; it is agreement landing on fewer words, and
+nothing else, where `locales/zu` forks fifteen words and `locales/sw` six. That
+is not less agreement; it is agreement landing on fewer words, and
 `styleDescriptions.test.ts` pins the colour holding still while the width
 moves. Sotho-Tswana builds its concord out of two pieces where Nguni builds it
 out of one, so `locales/nso` writes «o mokoto» where `locales/ss` writes
@@ -679,9 +679,9 @@ that would break it.
 `one`, `few` and `other`, which is exactly the shape `bs`, `hr`, `ro` and `sr`
 have, reached from Afro-Asiatic rather than from Slavic or Romance. It is the
 only catalog outside Europe besides `locales/ar` with a `few` at all, and
-Arabic's sits in a six-category set rather than in this three-category one. The three Berber catalogs disagree about plural categories as
-much as they disagree about script: `kab` and `zgh` have two and `shi` has
-three. Plural categories are per-language CLDR data, and neither a family nor a
+Arabic's sits in a six-category set rather than in this three-category one. The
+three Berber catalogs disagree about plural categories as much as they disagree
+about script: `kab` and `zgh` have two and `shi` has three. Plural categories are per-language CLDR data, and neither a family nor a
 script predicts them.
 
 **Tifinagh is new to the roster**, and it cost `direction.ts` nothing: it runs
@@ -697,9 +697,9 @@ Latin for the same reason, which is worth knowing before someone "fixes" it.
 The batch adds **five script asymmetries, one of which is owed rather than
 hypothetical**. `kab-Tfng` and `kab-Arab` reach the Latin Kabyle catalog;
 `zgh-Latn` and `shi-Latn` reach the Tifinagh ones. **`ff-Adlm` is the fifth,
-and the one that is owed.** Adlam is a living script for Fulfulde — devised in the 1980s,
-encoded in Unicode 9, taught and published in — and a reader arriving under it
-gets Latin. As with `mni-Mtei` in the batch above, the usual answer, a second
+and the one that is owed.** Adlam is a living script for Fulfulde — devised in
+the 1980s, encoded in Unicode 9, taught and published in — and a reader
+arriving under it gets Latin. As with `mni-Mtei` in the batch above, the usual answer, a second
 catalog beside the first, is a real debt rather than a formality, and the
 catalog's header says so.
 
@@ -1391,10 +1391,11 @@ Afro-Asiatic.
 relative particle «ma-» is written as part of the following word, and the
 following word is often a value: `locales/luo` writes `ma{ $color }`. It comes
 out right for `locales/tlh`'s reason rather than by luck — «ma-» has one shape
-and assimilates to nothing — and it is written on `$color` alone, because
-`line-width` and `line-style` write their words already marked and would come
-out doubled; so the table above stays a list of languages whose
-endings *change shape*, and gains a language whose beginnings do not.
+and assimilates to nothing — and it is written on the colour arguments alone
+(`$color`, and `$background` beside it in `style-text`), because `line-width`
+and `line-style` write their words already marked and would come out doubled;
+so the table above stays a list of languages whose endings *change shape*, and
+gains a language whose beginnings do not.
 
 A select whose variants would land against such an affix carries the affix into
 each variant: Fluent does not care where a select sits inside a pattern.
