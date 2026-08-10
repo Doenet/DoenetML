@@ -9,6 +9,7 @@ import {
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
+    listItemNumberAlignmentForLead,
 } from "../utils/listItemChild";
 
 export class Ol extends BlockComponent {
@@ -284,23 +285,11 @@ export class Li extends BaseComponent {
         };
 
         /**
-         * How the item's number should line up with its leading child:
-         * `"flex-start"` beside the top of that child's box, `"baseline"` on the
-         * first line of its text, `"none"` when no component child leads the
-         * item (a string does).
-         *
-         * This is the same question — and the same answer, read off the same
-         * `listItemInlineAlignment` — that a `<problem>`-style list item asks in
-         * `SectioningComponent`'s `firstChildListItemAlignment`, so the two kinds
-         * of list item agree about a given lead by construction. What differs is
-         * who acts on it: a section draws its own number into a grid row, while a
-         * real `<li>` gets a native `::marker` that the browser places, so
-         * `list.tsx` can only give the browser a line box to place it on. It does
-         * that for `"flex-start"` alone, since that is the case where the leading
-         * box offers no line box of its own to put the number beside (#1673); for
-         * every other lead the browser's own choice is already the right one, and
-         * overriding it would pull the number off a first line that legitimately
-         * sits lower than a plain one — an item leading with inline math, say.
+         * How the item's number should line up with its leading child —
+         * {@link listItemNumberAlignmentForLead}, the same mapping of the same
+         * `listItemInlineAlignment` that a `<problem>`-style list item goes
+         * through — or `"none"` when no component child leads the item (a string
+         * does, or nothing does).
          */
         stateVariableDefinitions.firstChildListItemAlignment = {
             forRenderer: true,
@@ -335,16 +324,12 @@ export class Li extends BaseComponent {
                     };
                 }
 
-                // A lead that declares no alignment of its own — most
-                // components — renders text, whose first line the browser
-                // already puts the number beside.
                 return {
                     setValue: {
                         firstChildListItemAlignment:
-                            dependencyValues.leadingChildListItemInlineAlignment ===
-                            "flex-start"
-                                ? "flex-start"
-                                : "baseline",
+                            listItemNumberAlignmentForLead(
+                                dependencyValues.leadingChildListItemInlineAlignment,
+                            ),
                     },
                 };
             },

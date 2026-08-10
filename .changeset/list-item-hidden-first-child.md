@@ -22,4 +22,4 @@ A `<cascadeMessage>` no longer takes the lead either. It is hidden whenever the 
 
 Only a child's own `hide` counts, though. Hiding a *container* does not re-pick the lead of anything inside it: a hidden `<ol>`, a hidden section, and a `<cascade>` step held back until earlier ones are done all hide their contents while leaving each item leading with exactly the child it would lead with if shown.
 
-An `<li>` leading with a box that offers no first line of text — a `<graph>`, `<image>`, `<video>`, `<figure>` or `<tabular>` — had its number drawn at the bottom of that box rather than beside its top. That was left to #1673 rather than fixed here, and the accompanying entry for it closes it.
+An `<li>` leading with a box that offers no first line of text — a `<graph>`, `<image>`, `<video>`, `<figure>` or `<tabular>` — had its number drawn at the bottom of that box rather than beside its top. That was tracked separately as [#1673](https://github.com/Doenet/DoenetML/issues/1673); the entry for it in this same release fixes it, so a list item of any shape now has its number beside the top of its content.

@@ -622,7 +622,8 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
      * `<image>`, a `<video>`, a `<tabular>` — left the item's native marker with
      * nowhere to go, and the browser drew it after all of the item's content: the
      * number for a graph landed at the *bottom* of the graph, 250px from where a
-     * reader looks for it.
+     * reader looks for it. (A leading `<spreadsheet>` is the same missing line box
+     * taking its other shape; see the test after this matrix.)
      *
      * Again a matrix over author-visible markup rather than over the internal
      * rules, for the reason the wrapper matrix above gives. These rows are the
@@ -715,6 +716,42 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
                     outsideMargin,
                 );
             }
+        });
+    });
+
+    // The other shape a leading box with no line box of its own takes: instead of
+    // falling through to the end of the item, the browser reserves a blank line at
+    // the top of the item for the marker — which is what it does above a leading
+    // `<spreadsheet>`. The number is already on the item's first row there, so the
+    // matrix above would pass either way; what the anchor removes is the empty line
+    // the browser had put between that number and the content (measured: 17px).
+    it("removes the blank line the browser reserves above a leading spreadsheet", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="textItem">Plain text item</li>
+      <li name="item"><spreadsheet name="lead" minNumRows="2" minNumColumns="2" /></li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("item")}`).should("be.visible");
+        verifyListItemMarkerOnFirstRow("item", "textItem");
+
+        cy.get(`#${cesc("lead")}`).should(($lead) => {
+            const li = $lead[0].closest("li");
+            const gap =
+                $lead[0].getBoundingClientRect().top -
+                li.getBoundingClientRect().top;
+            expect(
+                gap,
+                "the spreadsheet starts at the top of its item, with no line reserved above it",
+            ).to.be.closeTo(0, 1);
         });
     });
 

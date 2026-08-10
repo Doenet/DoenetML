@@ -34,6 +34,7 @@ import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
+    listItemNumberAlignmentForLead,
 } from "../../utils/listItemChild";
 
 /**
@@ -915,23 +916,16 @@ export class SectioningComponent extends BlockComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                // Baseline is a safe fallback if the first child does not expose
-                // an explicit list-item alignment signal.
-                let firstChildListItemAlignment = "none";
-
-                if (dependencyValues.firstVisibleChildAdjustedForListItem) {
-                    const alignmentFromFirstChild =
-                        dependencyValues.firstVisibleChildListItemInlineAlignment;
-
-                    if (
-                        alignmentFromFirstChild === "baseline" ||
-                        alignmentFromFirstChild === "flex-start"
-                    ) {
-                        firstChildListItemAlignment = alignmentFromFirstChild;
-                    } else {
-                        firstChildListItemAlignment = "baseline";
-                    }
-                }
+                // `"none"` when this section lines its number up with no child at
+                // all — it delegates nothing, or nothing of it renders. Otherwise
+                // the shared mapping, so that an `<li>` leading with the same
+                // component places its number the same way.
+                const firstChildListItemAlignment =
+                    dependencyValues.firstVisibleChildAdjustedForListItem
+                        ? listItemNumberAlignmentForLead(
+                              dependencyValues.firstVisibleChildListItemInlineAlignment,
+                          )
+                        : "none";
 
                 return { setValue: { firstChildListItemAlignment } };
             },

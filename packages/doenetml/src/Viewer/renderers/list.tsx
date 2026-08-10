@@ -79,9 +79,10 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
             <li
                 id={id}
                 ref={ref}
-                // A leading block with no line box of its own leaves the browser
-                // nowhere to draw the item's native marker; the class supplies a
-                // line box at the top of the item. See `list.css`.
+                // A lead that wants the number beside the top of its box is a lead
+                // that offers the browser no first line of text to draw the item's
+                // native marker on; the class supplies a zero-height line box at
+                // the top of the item instead. See `list.css`.
                 className={
                     SVs.firstChildListItemAlignment === "flex-start"
                         ? "list-item-marker-anchored"

@@ -39,13 +39,14 @@ export function listItemChildVisibilityDependency(...alsoRequest: string[]): {
  * a component only if its class declares a `rendererType` and it has not hidden
  * itself.
  *
- * A list item delegates its top-margin suppression, and (for a section, which
- * draws its own number) the vertical alignment of that number, to its first
- * visible child, so a child that renders nothing must never be picked as that
- * child — doing so strands the child that actually renders first, which then
- * keeps its top margin and never gets to report the alignment it needs. A real
- * `<li>`'s native marker is not delegated: the browser places it, and where it
- * lands is settled in `choiceInput.tsx` rather than by anything here.
+ * A list item delegates its top-margin suppression, and the vertical alignment of
+ * its number, to its first visible child, so a child that renders nothing must
+ * never be picked as that child — doing so strands the child that actually renders
+ * first, which then keeps its top margin and never gets to report the alignment it
+ * needs. What each kind of list item does with that alignment differs: a section
+ * draws its own number into the row it names, while a real `<li>` gets a native
+ * `::marker` the browser places and can only hand the browser a line box to place
+ * it on — see {@link listItemNumberAlignmentForLead}.
  *
  * The `rendererType` test covers a child whose kind draws nothing at all
  * (`<animateFromSequence>`, `<solveEquations>`, …), and the `hiddenIgnoreParent`
@@ -113,6 +114,32 @@ export function childRendersSomething(
         componentInfoObjects.allComponentClasses[child.componentType]
             ?.rendererType,
     );
+}
+
+/**
+ * Where a list item's number goes, given the `listItemInlineAlignment` its
+ * leading child reports: `"flex-start"` beside the top of that child's box,
+ * `"baseline"` on the first line of its text.
+ *
+ * Anything other than `"flex-start"` is `"baseline"`, including a lead that
+ * declares no alignment at all — most components — since what such a lead renders
+ * is text, whose first line the number belongs on.
+ *
+ * Both kinds of list item map their lead through this, so the two agree about a
+ * given lead by construction: `SectioningComponent`'s and `Li`'s
+ * `firstChildListItemAlignment`. They differ only in who acts on the answer. A
+ * `<problem>`-style item draws its own number and `section.tsx` puts it in the row
+ * this names. A real `<li>` gets a native `::marker` that the browser places, so
+ * `list.tsx` can only hand the browser a line box to place it on, and does that
+ * for `"flex-start"` alone — the case where the leading box offers no line box of
+ * its own (#1673). Overriding the browser for a `"baseline"` lead would pull the
+ * number off a first line that legitimately sits lower than a plain one, such as
+ * an item leading with inline math.
+ */
+export function listItemNumberAlignmentForLead(
+    leadAlignment: unknown,
+): "flex-start" | "baseline" {
+    return leadAlignment === "flex-start" ? "flex-start" : "baseline";
 }
 
 /**
@@ -195,12 +222,13 @@ const NAMING_CHILD_TYPES = ["label", "caption"];
  * `<li><div><p hide/><answer><choiceInput/></answer></div></li>` the
  * `<choiceInput>` would keep the top margin the item wanted suppressed, and the
  * alignment reported back up would be the alignment of something not on the
- * screen — which inside a `<problem>`-style list item is what decides whether
- * the section's own number sits on the first line's baseline or at the top of
- * the content (`firstChildListItemAlignment`, read by `section.tsx`). A real
- * `<li>`'s native marker no longer rides on this chain at all: it moved because
- * of the `<legend>`, and `choiceInput.tsx` now renders the label in a `<div>`
- * wherever the input sits.
+ * screen — the alignment that decides whether the item's number sits on the first
+ * line's baseline or at the top of the content
+ * (`firstChildListItemAlignment`, read by `section.tsx` for a section and by
+ * `list.tsx` for a real `<li>`; see {@link listItemNumberAlignmentForLead}). What
+ * does *not* ride on this chain is where the marker lands beside a labeled
+ * `<choiceInput>`: it moved because of the `<legend>`, and `choiceInput.tsx` now
+ * renders the label in a `<div>` wherever the input sits.
  *
  * {@link NAMING_CHILD_TYPES} is excluded on top of that test: a label or a
  * caption does render, but it is the wrapper's own naming, not the content the
