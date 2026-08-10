@@ -18,23 +18,26 @@
 # which is what the SABC and the Department of Basic Education both print.
 #
 # `$gender` is the noun **class**, as in every Bantu catalog here, and
-# `noun-gender` answers `c3`, `c5`, `c7` or `c9`. The concord is a prefix on
+# `noun-gender` answers `c3`, `c7` or `c9`. The concord is a prefix on
 # the stem:
 #
-#            c3 (mu-)   c5 (ḽi-)   c7 (tshi-)   c9 (N-)
-#   -tswu     mutswu     ḽitswu     tshitswu     ntswu
-#   -tshena   mutshena   ḽitshena   tshitshena   ntshena
-#   -tswuku   mutswuku   ḽitswuku   tshitswuku   ntswuku
-#   -hulu     muhulu     ḽihulu     tshihulu     khulu
-#   -ṱuku     muṱuku     ḽiṱuku     tshiṱuku     nṱuku
+#            c3 (mu-)   c7 (tshi-)   c9 (N-)
+#   -tswu     mutswu     tshitswu     ntswu
+#   -tshena   mutshena   tshitshena   ntshena
+#   -tswuku   mutswuku   tshitswuku   ntswuku
+#   -hulu     muhulu     tshihulu     khulu
+#   -ṱuku     muṱuku     tshiṱuku     nṱuku
 #
 # Only the three colours with a native stem take the concord; the rest are
 # nouns, written bare for `locales/sw`'s reason — the possessive concord that
 # would attach them attributively is ungrammatical in the standalone position
 # `backgroundColor` reports them in, and `$role` cannot tell the two apart.
 #
-# Class 6 is absent because no noun the core names reaches it; see
-# `locales/zu`'s header for the reachability rule.
+# Classes 5 and 6 are absent because no noun the core names reaches either —
+# class 6 is the plural of class 5 and every noun here is singular; see
+# `locales/zu`'s header for the reachability rule that decides which class
+# branches a catalog is entitled to write. Adding a `c5` branch — the ḽi-
+# prefix — means adding the noun that reaches it first.
 #
 # `c9` is the default and the class a loanword joins, which is what an author's
 # own `markerStyleWord` is as far as this catalog is concerned.
@@ -55,14 +58,12 @@ color =
     .black =
         { $gender ->
             [c3] mutswu
-            [c5] ḽitswu
             [c7] tshitswu
            *[c9] ntswu
         }
     .white =
         { $gender ->
             [c3] mutshena
-            [c5] ḽitshena
             [c7] tshitshena
            *[c9] ntshena
         }
@@ -70,7 +71,6 @@ color =
     .red =
         { $gender ->
             [c3] mutswuku
-            [c5] ḽitswuku
             [c7] tshitswuku
            *[c9] ntswuku
         }
@@ -87,14 +87,12 @@ line-width =
     .thick =
         { $gender ->
             [c3] muhulu
-            [c5] ḽihulu
             [c7] tshihulu
            *[c9] khulu
         }
     .thin =
         { $gender ->
             [c3] muṱuku
-            [c5] ḽiṱuku
             [c7] tshiṱuku
            *[c9] nṱuku
         }
@@ -185,7 +183,6 @@ style-with-noun =
 style-filled-word =
     { $gender ->
         [c3] wo ḓadzwaho
-        [c5] ḽo ḓadzwaho
         [c7] tsho ḓadzwaho
        *[c9] yo ḓadzwaho
     }

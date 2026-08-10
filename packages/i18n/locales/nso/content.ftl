@@ -18,18 +18,23 @@
 # «efela» where `tn` writes «mme».
 #
 # **What an adjective agrees with here is the noun's class**, as in the five
-# Bantu catalogs that came before, so `noun-gender` answers `c3`, `c5`, `c6`,
-# `c7` or `c9` and every concording word selects on it. Sotho-Tswana builds
+# Bantu catalogs that came before, so `noun-gender` answers `c3`, `c5`, `c7`
+# or `c9` and every concording word selects on it. Sotho-Tswana builds
 # that concord out of two pieces where Nguni builds it out of one — a
 # qualificative particle and then the adjective prefix — so the whole of it is
 # written into each variant rather than assembled:
 #
-#            c3 (mo-)      c5 (le-)       c6 (ma-)      c7 (se-)      c9 (N-)
-#   -koto     o mokoto      le lekoto      a makoto      se sekoto     e nkoto
-#   -sesane   o mosesane    le lesesane    a masesane    se sesesane   e sesane
-#   -so       o moso        le leso        a maso        se seso       e ntsho
-#   -šweu     o mošweu      le lešweu      a mašweu      se sešweu     e tšhweu
-#   -hubedu   o mohubedu    le lehubedu    a mahubedu    se sehubedu   e khubedu
+#            c3 (mo-)      c5 (le-)       c7 (se-)      c9 (N-)
+#   -koto     o mokoto      le lekoto      se sekoto     e nkoto
+#   -sesane   o mosesane    le lesesane    se sesesane   e sesane
+#   -so       o moso        le leso        se seso       e ntsho
+#   -šweu     o mošweu      le lešweu      se sešweu     e tšhweu
+#   -hubedu   o mohubedu    le lehubedu    se sehubedu   e khubedu
+#
+# Class 6 is absent because no noun the core names reaches it — it is the
+# plural of class 5 and every noun here is singular; see `locales/zu`'s header
+# for the reachability rule that decides which class branches a catalog is
+# entitled to write.
 #
 # `c9` is the default and the class a loanword joins, which is what an author's
 # own `markerStyleWord` is as far as this catalog is concerned.
@@ -64,7 +69,6 @@ color =
         { $gender ->
             [c3] o moso
             [c5] le leso
-            [c6] a maso
             [c7] se seso
            *[c9] e ntsho
         }
@@ -72,7 +76,6 @@ color =
         { $gender ->
             [c3] o mošweu
             [c5] le lešweu
-            [c6] a mašweu
             [c7] se sešweu
            *[c9] e tšhweu
         }
@@ -81,7 +84,6 @@ color =
         { $gender ->
             [c3] o mohubedu
             [c5] le lehubedu
-            [c6] a mahubedu
             [c7] se sehubedu
            *[c9] e khubedu
         }
@@ -99,7 +101,6 @@ line-width =
         { $gender ->
             [c3] o mokoto
             [c5] le lekoto
-            [c6] a makoto
             [c7] se sekoto
            *[c9] e nkoto
         }
@@ -107,7 +108,6 @@ line-width =
         { $gender ->
             [c3] o mosesane
             [c5] le lesesane
-            [c6] a masesane
             [c7] se sesesane
            *[c9] e sesane
         }
@@ -207,7 +207,6 @@ style-filled-word =
     { $gender ->
         [c3] o tladitšwego
         [c5] le tladitšwego
-        [c6] a tladitšwego
         [c7] se tladitšwego
        *[c9] e tladitšwego
     }

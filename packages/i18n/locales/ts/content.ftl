@@ -9,7 +9,7 @@
 # `<document lang>`'s autocomplete reads "Tsonga" once rather than twice.
 #
 # `$gender` is the noun **class** here as in every Bantu catalog, and
-# `noun-gender` answers `c3`, `c5`, `c7` or `c9`. **What this file adds to that
+# `noun-gender` answers `c3`, `c7` or `c9`. **What this file adds to that
 # group is how narrow a class fork can legitimately be.** Xitsonga has very few
 # true adjectives; almost everything English calls one is a noun joined to what
 # it describes with the possessive concord («ntila wa ntima», a line of
@@ -20,7 +20,7 @@
 # words, and `styleDescriptions.test.ts` pins the colours staying put while the
 # width moves.
 #
-#   adjective concord   c3 lowu-   c5 leri-   c7 lexi-   c9 leyi-
+#   adjective concord   c3 lowu-   c7 lexi-   c9 leyi-
 #
 # The colours are written **bare**, without the possessive concord that would
 # attach them attributively. That is `locales/sw`'s compromise for
@@ -29,9 +29,11 @@
 # possessive is ungrammatical, and `$role` is `standalone` in both positions. A
 # bare colour noun is what a label or a legend says in Xitsonga anyway.
 #
-# Class 6 is absent because no noun the core names reaches it; see
+# Classes 5 and 6 are absent because no noun the core names reaches either —
+# class 6 is the plural of class 5 and every noun here is singular; see
 # `locales/zu`'s header for the reachability rule that decides which class
-# branches a catalog is entitled to write.
+# branches a catalog is entitled to write. Adding a `c5` branch — the leri-
+# concord — means adding the noun that reaches it first.
 #
 # Describing words follow the noun, so the composition messages put the noun
 # first. `$role` goes unused: Xitsonga marks no case.
@@ -65,14 +67,12 @@ line-width =
     .thick =
         { $gender ->
             [c3] lowukulu
-            [c5] lerikulu
             [c7] lexikulu
            *[c9] leyikulu
         }
     .thin =
         { $gender ->
             [c3] lowutsongo
-            [c5] leritsongo
             [c7] lexitsongo
            *[c9] leyitsongo
         }
@@ -167,7 +167,6 @@ style-with-noun =
 style-filled-word =
     { $gender ->
         [c3] lowu tateriweke
-        [c5] leri tateriweke
         [c7] lexi tateriweke
        *[c9] leyi tateriweke
     }

@@ -9,24 +9,26 @@
 # names, and they are one language.
 #
 # `$gender` is the noun **class**, as in every Bantu catalog here, and
-# `noun-gender` answers `c3`, `c5`, `c7` or `c9`. Bemba writes the class twice
+# `noun-gender` answers `c3`, `c7` or `c9`. Bemba writes the class twice
 # on a describing word — the noun's own prefix and then the concord — and this
 # file writes the whole of each form rather than deriving it:
 #
-#            c3 (umu-)    c5 (ili-)    c7 (ici-)    c9 (in-)
-#   -fiita    umufiita     ilifiita     icifiita     imfiita
-#   -buuta    umubuuta     ilibuuta     icibuuta     imbuuta
-#   -kashika  umukashika   ilikashika   icikashika   inkashika
-#   -kulu     umukulu      ilikulu      icikulu      inkulu
-#   -nono     umunono      ilinono      icinono      innono
+#            c3 (umu-)    c7 (ici-)    c9 (in-)
+#   -fiita    umufiita     icifiita     imfiita
+#   -buuta    umubuuta     icibuuta     imbuuta
+#   -kashika  umukashika   icikashika   inkashika
+#   -kulu     umukulu      icikulu      inkulu
+#   -nono     umunono      icinono      innono
 #
 # Only the three colours with a native stem take the concord; the rest are
 # nouns, written bare for `locales/sw`'s reason — the associative particle that
 # would join them attributively is ungrammatical in the standalone position
 # `backgroundColor` reports them in, and `$role` cannot tell the two apart.
 #
-# Class 6 is absent because no noun the core names reaches it; see
-# `locales/zu`'s header for the reachability rule.
+# Classes 5 and 6 are absent because no noun the core names reaches either —
+# class 6 is the plural of class 5 and every noun here is singular; see
+# `locales/zu`'s header for the reachability rule. Adding a `c5` branch — the
+# ili- prefix — means adding the noun that reaches it first.
 #
 # `c9` is the default and the class a loanword joins, which is what an author's
 # own `markerStyleWord` is as far as this catalog is concerned.
@@ -47,14 +49,12 @@ color =
     .black =
         { $gender ->
             [c3] umufiita
-            [c5] ilifiita
             [c7] icifiita
            *[c9] imfiita
         }
     .white =
         { $gender ->
             [c3] umubuuta
-            [c5] ilibuuta
             [c7] icibuuta
            *[c9] imbuuta
         }
@@ -62,7 +62,6 @@ color =
     .red =
         { $gender ->
             [c3] umukashika
-            [c5] ilikashika
             [c7] icikashika
            *[c9] inkashika
         }
@@ -79,14 +78,12 @@ line-width =
     .thick =
         { $gender ->
             [c3] umukulu
-            [c5] ilikulu
             [c7] icikulu
            *[c9] inkulu
         }
     .thin =
         { $gender ->
             [c3] umunono
-            [c5] ilinono
             [c7] icinono
            *[c9] innono
         }
@@ -180,7 +177,6 @@ style-with-noun =
 style-filled-word =
     { $gender ->
         [c3] uwaisula
-        [c5] ilyaisula
         [c7] icaisula
        *[c9] iyaisula
     }

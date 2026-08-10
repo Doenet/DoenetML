@@ -640,7 +640,7 @@ Sango, Fula, Kabyle, Standard Moroccan Tamazight and Tachelhit. Four of them
 any of the ten and get prose in it. (South African Sign Language, official
 since 2023, is the eleventh and has no written form to seed.)
 
-**Six more Bantu catalogs take the noun-class group from five to eleven**, and
+**Six more Bantu catalogs take the noun-class group from ten to sixteen**, and
 the thing they add is how *unevenly* a class concord lands. `locales/ts` is the
 case worth reading: Xitsonga has very few true adjectives, and almost
 everything English calls one is a noun joined with a possessive concord — so
@@ -664,7 +664,7 @@ agrees with* rather than about gender, prefixes, or Bantu.
 **Luo and Sango select on neither argument, and they sit between catalogs that
 select on five classes each.** Dholuo is Nilotic and Sango Ubangian; neither has
 gender or noun classes, and `locales/ki` and `locales/bem` on either side of
-them fork on `c3`, `c5`, `c7` and `c9`. A region says as little about agreement
+them fork on `c3`, `c7` and `c9`. A region says as little about agreement
 as a script does. `locales/luo` adds one thing of its own: its relative
 particle «ma-» is written onto the front of the adjective, including when the
 adjective is a placeable, which makes it the roster's first *prefix* welded
@@ -717,11 +717,12 @@ catalog, which is the membership rule working rather than a gap in it.
 Three of the twelve read their **English name once** in `<document lang>`'s
 autocomplete: CLDR has no `ss`, `ve` or `ts` language data to answer an endonym
 with, so Swati, Venda and Tsonga join `locales/co` and the rest. The other nine
-read both names: "Kikuyu (Gikuyu)",
-"Bemba (Ichibemba)", "Luo (Dholuo)", "Sango (Sängö)", "Northern Sotho (Sesotho
-sa Leboa)", "Kabyle (Taqbaylit)" and — the case most likely to be read as a
-mistake — **"Fula (Pulaar)"**, where CLDR's English name and its endonym are
-two different names for the language rather than one name twice.
+read both names: "Kikuyu (Gikuyu)", "Bemba (Ichibemba)", "Luo (Dholuo)", "Sango
+(Sängö)", "Northern Sotho (Sesotho sa Leboa)", "Kabyle (Taqbaylit)", "Standard
+Moroccan Tamazight (ⵜⴰⵎⴰⵣⵉⵖⵜ)", "Tachelhit (ⵜⴰⵛⵍⵃⵉⵜ)" and — the case most
+likely to be read as a mistake — **"Fula (Pulaar)"**, where CLDR's English name
+and its endonym are two different names for the language rather than one name
+twice.
 
 **What Kabyle adds to the affix rule is a new way out**, and it belongs beside
 that rule rather than here; see
@@ -1095,14 +1096,19 @@ its own terms.
 
 `$gender` is read more widely than its name suggests: it is a token set naming
 what an adjective agrees with, and nothing outside a catalog interprets its
-values. The eleven Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda, Nyanja,
-Northern Sotho, Swati, Venda, Tsonga, Kikuyu and Bemba — answer it with the
-noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`) rather than with a gender, and
-nothing outside them had to learn what a noun class is. The reachability rule
-applies to the class tokens exactly as it does to `$role`: a catalog writes a
-branch for a class only if its own `noun-gender` can answer that class, which
-is why Swahili and Nyanja carry `c6` — the plural class, which their word for
-*text* or *border* lands in — and the other nine do not.
+values. The sixteen Bantu catalogs — Swahili, Zulu, Xhosa, Kinyarwanda,
+Nyanja, Shona, Lingala, Ganda, Southern Sotho, Tswana, Northern Sotho, Swati,
+Venda, Tsonga, Kikuyu and Bemba — answer it with the noun's **class** (`c3`,
+`c5`, `c6`, `c7`, `c9`, and `c11` and `c12` in Ganda) rather than with a
+gender, and nothing outside them had to learn what a noun class is. The
+reachability rule applies to the class tokens exactly as it does to `$role`: a
+catalog writes a branch for a class only if its own `noun-gender` can answer
+that class. That is why Swahili and Nyanja carry `c6` — the plural class, which
+their word for *text* or *border* lands in — and the other fourteen do not, and
+why Venda, Tsonga, Kikuyu and Bemba stop at `c3`, `c7` and `c9`: no noun the
+core names is class 5 in any of the four, so the ḽi-, leri-, i- and ili- forms
+are named in those catalogs' headers rather than written as branches nothing
+can select.
 
 **Fula answers it with a class too, and the concord is a suffix.**
 `locales/ff` writes «ɓaleewol» against a `ngol` noun and «ɓaleere» against a

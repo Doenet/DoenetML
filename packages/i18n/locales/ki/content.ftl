@@ -15,20 +15,22 @@
 # drops them is a file in a different language.
 #
 # `$gender` is the noun **class**, as in every Bantu catalog here, and
-# `noun-gender` answers `c3`, `c5`, `c7` or `c9`:
+# `noun-gender` answers `c3`, `c7` or `c9`:
 #
-#            c3 (mũ-)   c5 (i-)   c7 (gĩ-/kĩ-)   c9 (N-)
-#   -irũ      mũirũ      irũ       kĩirũ          njirũ
-#   -erũ      mwerũ      ierũ      kĩerũ          njerũ
-#   -tune     mũtune     itune     gĩtune         ndune
-#   -nene     mũnene     inene     kĩnene         nene
-#   -nini     mũnini     inini     kĩnini         nini
+#            c3 (mũ-)   c7 (gĩ-/kĩ-)   c9 (N-)
+#   -irũ      mũirũ      kĩirũ          njirũ
+#   -erũ      mwerũ      kĩerũ          njerũ
+#   -tune     mũtune     gĩtune         ndune
+#   -nene     mũnene     kĩnene         nene
+#   -nini     mũnini     kĩnini         nini
 #
 # Only the three colours with a native stem take the concord; the rest are
 # nouns, written bare for `locales/sw`'s reason.
 #
-# Class 6 is absent because no noun the core names reaches it; see
-# `locales/zu`'s header for the reachability rule.
+# Classes 5 and 6 are absent because no noun the core names reaches either —
+# class 6 is the plural of class 5 and every noun here is singular; see
+# `locales/zu`'s header for the reachability rule. Adding a `c5` branch — the
+# i- prefix — means adding the noun that reaches it first.
 #
 # `c9` is the default and the class a loanword joins, which is what an author's
 # own `markerStyleWord` is as far as this catalog is concerned.
@@ -49,14 +51,12 @@ color =
     .black =
         { $gender ->
             [c3] mũirũ
-            [c5] irũ
             [c7] kĩirũ
            *[c9] njirũ
         }
     .white =
         { $gender ->
             [c3] mwerũ
-            [c5] ierũ
             [c7] kĩerũ
            *[c9] njerũ
         }
@@ -64,7 +64,6 @@ color =
     .red =
         { $gender ->
             [c3] mũtune
-            [c5] itune
             [c7] gĩtune
            *[c9] ndune
         }
@@ -81,14 +80,12 @@ line-width =
     .thick =
         { $gender ->
             [c3] mũnene
-            [c5] inene
             [c7] kĩnene
            *[c9] nene
         }
     .thin =
         { $gender ->
             [c3] mũnini
-            [c5] inini
             [c7] kĩnini
            *[c9] nini
         }
@@ -182,7 +179,6 @@ style-with-noun =
 style-filled-word =
     { $gender ->
         [c3] mũiyũre
-        [c5] iyũre
         [c7] kĩiyũre
        *[c9] njiyũre
     }
