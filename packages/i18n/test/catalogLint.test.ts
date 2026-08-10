@@ -21,6 +21,7 @@ import {
     renderSupportedLocalesModule,
 } from "../scripts/catalogUtils";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
+import { CATALOG_NAMESPACES } from "../src/namespaces";
 
 describe("extractKeys", () => {
     it("reads message ids, attributes, and both together", () => {
@@ -465,7 +466,48 @@ describe("the noun-class reachability rule", () => {
     });
 });
 
-describe("Tachelhit's counted messages", () => {
+describe("counted messages", () => {
+    const countArguments = new Set([
+        "count",
+        "attributesCount",
+        "valuesCount",
+        "parametersCount",
+        "intervals",
+        "inputs",
+        "outputs",
+    ]);
+
+    /** Each message in a catalog, mapped to the count arguments it selects on. */
+    const countSelectors = (source: string) => {
+        const found = new Map<string, Set<string>>();
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type !== "Message") {
+                continue;
+            }
+            const selectors = new Set(
+                selectExpressions(entry).flatMap((select) =>
+                    select.selector.type === "VariableReference" &&
+                    countArguments.has(select.selector.id.name)
+                        ? [select.selector.id.name]
+                        : [],
+                ),
+            );
+            if (selectors.size > 0) {
+                found.set(entry.id.name, selectors);
+            }
+        }
+        return found;
+    };
+
+    const forLocale = (locale: string) =>
+        CATALOG_NAMESPACES.map(
+            (namespace) =>
+                [
+                    namespace,
+                    countSelectors(readCatalog(locale, namespace) ?? ""),
+                ] as const,
+        );
+
     /**
      * `locales/shi` inflects a verb for the number of its subject —
      * ⵢⵜⵜⵓⵣⴳⴰⵍ for one thing ignored against ⵜⵜⵓⵣⴳⴰⵍⵏ for several — and a noun
@@ -474,53 +516,62 @@ describe("Tachelhit's counted messages", () => {
      * every count states a plural verb about a single attribute.
      *
      * Asserted for Tachelhit alone rather than for every catalog, because the
-     * rule is a fact about *this* language: `locales/sg` forks on no count at
-     * all, correctly, since `Intl.PluralRules("sg")` reports one category. The
-     * check is that the catalog agrees with itself.
+     * rule is a fact about *this* language, and the check is that the catalog
+     * agrees with itself.
      */
-    it("forks on every count English forks on", () => {
-        const countArguments = new Set([
-            "count",
-            "attributesCount",
-            "valuesCount",
-            "parametersCount",
-            "intervals",
-            "inputs",
-            "outputs",
-        ]);
-
-        const countSelectors = (source: string) => {
-            const found = new Map<string, Set<string>>();
-            for (const entry of parse(source, { withSpans: false }).body) {
-                if (entry.type !== "Message") {
-                    continue;
-                }
-                const selectors = new Set(
-                    selectExpressions(entry).flatMap((select) =>
-                        select.selector.type === "VariableReference" &&
-                        countArguments.has(select.selector.id.name)
-                            ? [select.selector.id.name]
-                            : [],
-                    ),
-                );
-                if (selectors.size > 0) {
-                    found.set(entry.id.name, selectors);
-                }
-            }
-            return found;
-        };
-
-        for (const namespace of ["chrome", "diagnostics", "editor"]) {
-            const english = countSelectors(readCatalog("en", namespace) ?? "");
-            const tachelhit = countSelectors(
-                readCatalog("shi", namespace) ?? "",
-            );
+    it("has Tachelhit fork on every count English forks on", () => {
+        const tachelhit = new Map(forLocale("shi"));
+        for (const [namespace, english] of forLocale("en")) {
             for (const [message, selectors] of english) {
                 expect(
-                    [...(tachelhit.get(message) ?? [])].sort(),
+                    [...(tachelhit.get(namespace)?.get(message) ?? [])].sort(),
                     `${namespace}: ${message}`,
                 ).toEqual([...selectors].sort());
             }
+        }
+    });
+
+    /**
+     * The mirror image, and the reason the rule above is stated per language
+     * rather than for the roster: `Intl.PluralRules("sg")` reports the single
+     * category `other`, so a Sango `[one]` branch would be a second spelling
+     * of a form the language does not have.
+     *
+     * An exact-number key is a different thing and stays allowed: `[0]` is
+     * matched by value rather than by category, and it is how every catalog —
+     * Sango included — writes "no attempts remaining" as its own sentence.
+     */
+    it("has Sango write no plural-category branch", () => {
+        const categories = new Set(["one", "two", "few", "many"]);
+
+        for (const namespace of CATALOG_NAMESPACES) {
+            const offenders: string[] = [];
+            for (const entry of parse(readCatalog("sg", namespace) ?? "", {
+                withSpans: false,
+            }).body) {
+                if (entry.type !== "Message") {
+                    continue;
+                }
+                for (const select of selectExpressions(entry)) {
+                    if (
+                        select.selector.type !== "VariableReference" ||
+                        !countArguments.has(select.selector.id.name)
+                    ) {
+                        continue;
+                    }
+                    for (const variant of select.variants) {
+                        if (
+                            variant.key.type === "Identifier" &&
+                            categories.has(variant.key.name)
+                        ) {
+                            offenders.push(
+                                `${entry.id.name} [${variant.key.name}]`,
+                            );
+                        }
+                    }
+                }
+            }
+            expect(offenders, namespace).toEqual([]);
         }
     });
 });
