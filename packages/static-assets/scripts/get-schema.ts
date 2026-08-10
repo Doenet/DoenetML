@@ -1,3 +1,17 @@
+/*
+ * Builds the DoenetML schema from the worker's component definitions.
+ *
+ * The `createComponentInfoObjects` import below reaches the worker's *source*,
+ * which in turn resolves `@doenet/utils`, `@doenet/i18n` and `@doenet/parser` to
+ * their built `dist/`. Generating against an unbuilt or stale sibling therefore
+ * produces a schema built from old code instead of failing, so the npm scripts
+ * that run the generators — `build:schema`, `build:assets` and
+ * `check:docs-coverage` — are wireit scripts that depend on the worker's
+ * `build:deps`, which names those builds. See the header of
+ * `test/generator-script-dependencies.test.ts` for the full reasoning and the
+ * test that keeps the wiring honest. (The `test` script reaches this module too
+ * and is not yet covered — Doenet/DoenetML#1675.)
+ */
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
