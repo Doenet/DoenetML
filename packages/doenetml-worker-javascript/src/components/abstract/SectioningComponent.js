@@ -642,15 +642,14 @@ export class SectioningComponent extends BlockComponent {
          *     precisely when the rest is shown. Without this test a leading
          *     `<cascadeMessage>` would lead an item it is invisible in.
          *
-         * `childrenToHide` is the whole test, and asking `hideChildren` as well
-         * would only make it too broad — which is what #1680 was. A held-back step
-         * is not empty: it shows the one child `childrenToHide` leaves out there,
-         * its `<cascadeMessage>`, so reading "this step is held back" as "nothing
-         * to delegate to" left the message leading nothing and keeping the top
-         * margin that put it a line below the item's number. A held-back step that
-         * really shows nothing still delegates to nobody without that test:
-         * `childrenToHide` catches its component children, and
-         * `childIndicesToRender` drops its strings.
+         * So a held-back step is not empty, and the message it shows is its lead:
+         * asking `hideChildren` as well called such a step empty and left the
+         * message leading nothing, keeping the top margin that put it a line below
+         * the item's number (#1680). A held-back step that really shows nothing
+         * still lands on `null` without asking it, since `childIndicesToRender`
+         * drops its strings — and both that variable and `childrenToHide` are
+         * computed from `hideChildren`, so this one follows a `<cascade>` holding a
+         * step back or letting it go all the same.
          *
          * A child hidden from *above* — this section, or a container around it —
          * is a deliberate non-case: nothing in it is on screen to realign, and
@@ -664,7 +663,8 @@ export class SectioningComponent extends BlockComponent {
          * directly, `firstChildListItemAlignment` through the second of those — so
          * the gate changes no output. What it saves is every section that is not a
          * bare untitled list item — a `<document>`, a `<section>`, a `<problem>`
-         * outside a `<problems>`, a titled or boxed one inside it — asking each of
+         * outside a `<problems>`, a titled, boxed or collapsible one inside it —
+         * asking each of
          * its children for a visibility variable it would never read. Measured over
          * 120 such sections, six `hide` toggles cost 471 ms without the gate and
          * 316 ms with it, against 328 ms on `main`.
@@ -696,12 +696,6 @@ export class SectioningComponent extends BlockComponent {
                         dependencyType: "stateVariable",
                         variableName: "childIndicesToRender",
                     },
-                    // `hideChildren` is deliberately not requested, and asking it
-                    // would not keep this variable any fresher: `childrenToHide` is
-                    // computed from `hideChildren`, so a `<cascade>` holding this
-                    // step back or letting it go marks `childrenToHide` stale and
-                    // this variable with it, whichever way the values above then
-                    // work out.
                     childrenToHide: {
                         dependencyType: "stateVariable",
                         variableName: "childrenToHide",

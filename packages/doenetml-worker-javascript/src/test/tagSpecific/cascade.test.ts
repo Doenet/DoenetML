@@ -1916,7 +1916,7 @@ describe("Cascade tag tests @group4", async () => {
     // that put it a line below its own number.
     //
     // Both halves of the transition are asserted, because the lead has to follow
-    // the cascade in both directions and `firstVisibleChild` no longer asks
+    // the cascade in both directions and `firstVisibleChild` does not ask
     // `hideChildren` itself: it learns of the change through `childrenToHide`,
     // which the message enters as the step is revealed.
     it("gives a held-back step's lead to the cascadeMessage it shows", async () => {

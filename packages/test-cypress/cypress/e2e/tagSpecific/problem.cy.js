@@ -1745,11 +1745,12 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     // the item delegated to nobody, fell out of the numbering grid, and the
     // message kept its own top margin — which drew it a line *below* the number.
     //
-    // Positional, not a computed-style claim about the layout: the message has to
-    // start on the item's own first row (which is the row the number occupies),
-    // and its number has to stay in the same hanging-indent column as the
-    // revealed sibling's, since the item switches numbering layout when the
-    // cascade lets it go.
+    // Asserted as an outcome first: the message has to start on the item's own
+    // first row (the row the number occupies), and its number has to stay in the
+    // same hanging-indent column as the revealed sibling's, since the item
+    // switches numbering layout when the cascade lets it go. The layout it
+    // switches *to* is pinned with the same helper every other untitled, unboxed
+    // item in this file uses, so the held-back item is held to one standard.
     it("a held-back step's cascadeMessage shares the row with its number", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1794,6 +1795,10 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                 "the cascadeMessage starts on its item's first row",
             ).to.be.closeTo(0, 2);
         });
+
+        // It is the ordinary grid item now: number in the fixed first column,
+        // content in the second. This is the layout it had dropped out of.
+        verifyUntitledUnboxedListItemUsesGridLayout("problem2", 2);
 
         // The number itself stays put horizontally: this item numbers itself
         // through a different layout while it is held back than the revealed one
