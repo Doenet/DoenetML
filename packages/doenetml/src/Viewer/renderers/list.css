@@ -1,13 +1,13 @@
 /*
  * A list item whose leading block asks for the item's number beside the top of
- * its box — a graph, an image, a video, a table, a spreadsheet — is an item the
- * browser has no first line of text to draw the native `::marker` on. Where the
- * leading box offers no line box at all, the browser falls back to drawing the
- * marker after all of the item's content: at the bottom of a graph, hundreds of
- * pixels from where a reader looks for the number (#1673). Where it instead
- * reserves a line of its own for the marker, as it does above a leading
- * spreadsheet, the number is in the right place but the item carries a blank
- * line the author did not write.
+ * its box — a graph, an image, a video, a tabular, a spreadsheet — is an item
+ * whose lead holds no first line of text for the browser to draw the native
+ * `::marker` on. Where the leading box offers no line box at all, the browser
+ * falls back to drawing the marker after all of the item's content: at the bottom
+ * of a graph, hundreds of pixels from where a reader looks for the number
+ * (#1673). Where it instead reserves a line of its own for the marker, as it does
+ * above a leading spreadsheet, the number is in the right place but the item
+ * carries a blank line the author did not write.
  *
  * This gives such an item one line box of its own at the top of its content box
  * for the marker to land on. The zero-width space is what makes it a line box —
@@ -25,9 +25,14 @@
  * not support that form drops the second declaration and keeps the first, so it
  * still gets the fix, with a zero-width space in the tree.
  *
- * The class is applied only where the lead asks for the number beside the top of
- * its box, so that every other item keeps the browser's own placement — see
- * `firstChildListItemAlignment` in the worker's `Lists.js`.
+ * The class goes on exactly the items whose lead asks for the number beside the
+ * top of its box — `firstChildListItemAlignment` in the worker's `Lists.js` — so
+ * that every other item keeps the browser's own placement, which for a lead that
+ * does hold a first line is the row the reader wants. A block `<choiceInput>`
+ * asks for it as well and so takes the class, but it is a lead that already
+ * holds one: measured with and without the class, its marker sits on the same
+ * row of an item of the same height, because the label's line box is the item's
+ * first line either way.
  */
 .doenet-viewer li.list-item-marker-anchored::before {
     content: "\200B";

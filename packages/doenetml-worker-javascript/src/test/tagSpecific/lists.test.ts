@@ -203,17 +203,23 @@ describe("List tag tests @group4", async () => {
         expect(ci1.renderInlineForListItem).eq(false);
     });
 
-    // What `firstChildListItemAlignment` answers is whether the browser has a
-    // first line of text to put the item's native marker on. A leading `<graph>`,
-    // `<image>`, `<tabular>` or `<spreadsheet>` renders a box that offers none, and
-    // the browser draws the marker after all of the item's content instead — at the
-    // bottom of the graph (#1673) — or reserves a blank line of its own for it;
-    // `list.tsx` reads `"flex-start"` and gives the marker a zero-height line box
-    // at the top of the item. Every other lead has a first line of its own that the
-    // browser already uses, and must report something else, because anchoring the
+    // What `firstChildListItemAlignment` answers is whether the item has to hand
+    // the browser a line of its own to put the native marker on. A leading
+    // `<graph>`, `<image>`, `<tabular>` or `<spreadsheet>` renders a box holding no
+    // line of text, and the browser draws the marker after all of the item's
+    // content instead — at the bottom of the graph (#1673) — or reserves a blank
+    // line of its own for it; `list.tsx` reads `"flex-start"` and gives the marker
+    // a zero-height line box at the top of the item. A lead that holds a first line
+    // the browser already uses must report something else, because anchoring the
     // marker to the top of the item would pull it off a line that legitimately sits
     // lower: a `<matrixInput>` puts its label on the matrix's last row, and an item
     // leading with inline math has a taller first line than a plain one.
+    //
+    // The two are not the same question, though. A block `<choiceInput>` reports
+    // `"flex-start"` from #1034 — which row a *section's* number shares with a
+    // labeled input — and holds a first line of its own all the same. The rows of
+    // the lead-selection matrix below that lead with one are `"flex-start"` rows
+    // that need no line box and get one that costs them nothing.
     //
     // The value comes from the lead's own `listItemInlineAlignment`, mapped by the
     // `listItemNumberAlignmentForLead()` a `<problem>`-style list item goes through

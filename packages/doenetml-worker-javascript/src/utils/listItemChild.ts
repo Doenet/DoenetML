@@ -131,10 +131,16 @@ export function childRendersSomething(
  * `<problem>`-style item draws its own number and `section.tsx` puts it in the row
  * this names. A real `<li>` gets a native `::marker` that the browser places, so
  * `list.tsx` can only hand the browser a line box to place it on, and does that
- * for `"flex-start"` alone — the case where the leading box offers no line box of
- * its own (#1673). Overriding the browser for a `"baseline"` lead would pull the
- * number off a first line that legitimately sits lower than a plain one, such as
- * an item leading with inline math.
+ * for `"flex-start"` alone — what a lead whose box offers the browser no line box
+ * of its own reports (#1673). Overriding the browser for a `"baseline"` lead
+ * would pull the number off a first line that legitimately sits lower than a
+ * plain one, such as an item leading with inline math.
+ *
+ * `"flex-start"` is not only those leads, though: a block `<choiceInput>` reports
+ * it too, from #1034's question of which row a *section's* number shares with a
+ * labeled input. Handing that item a line box changes nothing, since its label's
+ * line box is already the item's first — measured either way, same marker row and
+ * same item height — so the two questions can go on sharing one answer.
  */
 export function listItemNumberAlignmentForLead(
     leadAlignment: unknown,
@@ -205,6 +211,11 @@ export function returnListItemChildStateVariableDefinitions({
  * container's own name is not what the list item's number lines up with — and a
  * `<caption>` is not even drawn where it is written (`figure.tsx` moves it below
  * the content whatever its position among the children).
+ *
+ * The test is on the component type alone, so every wrapper skips both types
+ * rather than only the one that takes each. That costs nothing: `<figure>` is the
+ * only wrapper on this chain that a `<caption>` belongs in, and a `<caption>`
+ * written anywhere else is not naming anything for the number to line up past.
  */
 const NAMING_CHILD_TYPES = ["label", "caption"];
 
