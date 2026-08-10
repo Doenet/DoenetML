@@ -11,6 +11,9 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 that draws the slope field of a differential equation <m>y' = f(x,y)</m> as short tick marks on a
 lattice covering the visible region of an enclosing `<graph>{:dn}`.
 
+The slope function can be given as a bare expression child, which is read as a function of both
+<m>x</m> and <m>y</m>, or as a `<function>{:dn}` referenced with the `function` attribute.
+
 The whole field is drawn as a single graphical object, so a field of thousands of marks costs about
 the same to render as a handful. It also re-tiles automatically as the user pans or zooms, and its
 marks keep a constant on-screen length — so slopes appear at their true visual angle even when the
@@ -39,18 +42,14 @@ on <m>x</m>, so every mark in a column is parallel.
 ### Example: A slope field of two variables
 
 ```doenet-editor-horiz
-<setup>
-  <function name="f" variables="x y">y - x</function>
-</setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>The slope field of y' = y - x</shortDescription>
-  <slopeField function="$f" />
+  <slopeField>y - x</slopeField>
 </graph>
 ```
 
-To let the slope depend on <m>y</m> as well, define a `<function>{:dn}` with
-`variables="x y"` and reference it with the `function` attribute. Marks along the line
-<m>y = x</m> are horizontal, since <m>y' = 0</m> there.
+The slope may depend on <m>y</m> as well; a bare expression is always read as a function of both
+variables. Marks along the line <m>y = x</m> are horizontal, since <m>y' = 0</m> there.
 
 
 ---
@@ -62,13 +61,15 @@ To let the slope depend on <m>y</m> as well, define a `<function>{:dn}` with
   <function name="f" variables="x y">y - x</function>
 </setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
-  <shortDescription>A slope field with a draggable point on a solution curve</shortDescription>
+  <shortDescription>A slope field with a solution curve drawn through it</shortDescription>
   <slopeField function="$f" />
   <function styleNumber="2">x + 1 - e^x</function>
 </graph>
 ```
 
-Drawing a known solution on top of the field shows the curve following the marks everywhere.
+Drawing a known solution on top of the field shows the curve following the marks everywhere. Here
+the slope function is defined separately and referenced with the `function` attribute, which is the
+alternative to giving the expression as a child.
 
 
 ## Attribute Examples

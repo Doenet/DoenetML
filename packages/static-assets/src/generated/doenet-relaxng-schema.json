@@ -142381,17 +142381,17 @@
                         "string"
                     ]
                 },
+                "maxMarks": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "normalize": {
                     "optional": true,
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "maxMarks": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 }
             },
@@ -142730,17 +142730,17 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "normalize",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Draw every arrow the same length, showing direction only rather than magnitude.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "maxMarks",
                     "type": "number",
                     "isArray": false,
                     "description": "Upper bound on how many arrows are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of arrows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "normalize",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Draw every arrow the same length, showing direction only rather than magnitude.",
                     "fromAttribute": true
                 },
                 {

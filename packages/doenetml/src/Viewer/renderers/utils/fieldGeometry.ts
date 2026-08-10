@@ -44,16 +44,29 @@ export interface FieldData {
     stride: number;
 }
 
-/** The lattice indices whose points lie inside `bounds`. */
+/**
+ * The lattice indices whose points lie inside `bounds`.
+ *
+ * A negative `dx` or `dy` describes the same set of points as its positive
+ * counterpart, just indexed in the opposite direction, so the two ends are
+ * sorted before being rounded inward. (`pegboard`, whose lattice attributes
+ * these mirror, is likewise indifferent to the sign.)
+ */
 export function latticeRange(
     bounds: FieldBounds,
     grid: FieldGrid,
 ): { minXind: number; maxXind: number; minYind: number; maxYind: number } {
-    const minXind = Math.ceil((bounds.xMin - grid.xoffset) / grid.dx);
-    const maxXind = Math.floor((bounds.xMax - grid.xoffset) / grid.dx);
-    const minYind = Math.ceil((bounds.yMin - grid.yoffset) / grid.dy);
-    const maxYind = Math.floor((bounds.yMax - grid.yoffset) / grid.dy);
-    return { minXind, maxXind, minYind, maxYind };
+    const xIndA = (bounds.xMin - grid.xoffset) / grid.dx;
+    const xIndB = (bounds.xMax - grid.xoffset) / grid.dx;
+    const yIndA = (bounds.yMin - grid.yoffset) / grid.dy;
+    const yIndB = (bounds.yMax - grid.yoffset) / grid.dy;
+
+    return {
+        minXind: Math.ceil(Math.min(xIndA, xIndB)),
+        maxXind: Math.floor(Math.max(xIndA, xIndB)),
+        minYind: Math.ceil(Math.min(yIndA, yIndB)),
+        maxYind: Math.floor(Math.max(yIndA, yIndB)),
+    };
 }
 
 /**
@@ -64,14 +77,61 @@ export function latticeRange(
  * lattice line and stays readable.
  */
 function strideFor(nx: number, ny: number, maxMarks: number): number {
-    if (maxMarks <= 0 || nx <= 0 || ny <= 0) {
-        return 1;
-    }
+    // `maxMarks` is the only thing bounding the work, so a value that is not a
+    // positive number must not be allowed to lift the bound: fall back to the
+    // tightest possible cap rather than drawing the whole lattice.
+    const cap = maxMarks > 0 ? maxMarks : 1;
     const total = nx * ny;
-    if (total <= maxMarks) {
+    // Also covers an empty lattice (total <= 0) and maxMarks = Infinity.
+    if (total <= cap) {
         return 1;
     }
-    return Math.ceil(Math.sqrt(total / maxMarks));
+    return Math.ceil(Math.sqrt(total / cap));
+}
+
+/**
+ * Visit every lattice point of `grid` lying inside `bounds`, thinned so that at
+ * most about `maxMarks` points are visited, and return the stride that was
+ * applied (1 when none was needed).
+ *
+ * When thinning, the kept lattice lines are those whose index is a multiple of
+ * the stride. Anchoring on the index rather than on the first visible line
+ * keeps a coarsened field in place as the graph is panned, instead of having
+ * every mark jump a lattice line whenever the leading index changes.
+ */
+function forEachLatticePoint(
+    bounds: FieldBounds,
+    grid: FieldGrid,
+    maxMarks: number,
+    visit: (x: number, y: number) => void,
+): number {
+    const { minXind, maxXind, minYind, maxYind } = latticeRange(bounds, grid);
+    if (
+        !Number.isFinite(minXind) ||
+        !Number.isFinite(maxXind) ||
+        !Number.isFinite(minYind) ||
+        !Number.isFinite(maxYind)
+    ) {
+        return 1;
+    }
+
+    const stride = strideFor(
+        maxXind - minXind + 1,
+        maxYind - minYind + 1,
+        maxMarks,
+    );
+
+    const firstXind = Math.ceil(minXind / stride) * stride;
+    const firstYind = Math.ceil(minYind / stride) * stride;
+
+    for (let xind = firstXind; xind <= maxXind; xind += stride) {
+        const x = xind * grid.dx + grid.xoffset;
+        for (let yind = firstYind; yind <= maxYind; yind += stride) {
+            visit(x, yind * grid.dy + grid.yoffset);
+        }
+    }
+
+    return stride;
 }
 
 /**
@@ -124,43 +184,22 @@ export function buildSlopeFieldData({
     const dataY: number[] = [];
     let numMarks = 0;
 
-    const { minXind, maxXind, minYind, maxYind } = latticeRange(bounds, grid);
-    if (
-        !Number.isFinite(minXind) ||
-        !Number.isFinite(maxXind) ||
-        !Number.isFinite(minYind) ||
-        !Number.isFinite(maxYind)
-    ) {
-        return { dataX, dataY, numMarks: 0, stride: 1 };
-    }
-
-    const stride = strideFor(
-        maxXind - minXind + 1,
-        maxYind - minYind + 1,
-        maxMarks,
-    );
-
-    for (let xind = minXind; xind <= maxXind; xind += stride) {
-        const x = xind * grid.dx + grid.xoffset;
-        for (let yind = minYind; yind <= maxYind; yind += stride) {
-            const y = yind * grid.dy + grid.yoffset;
-
-            const slope = f(x, y);
-            if (!Number.isFinite(slope)) {
-                // Outside the function's domain: draw nothing here.
-                continue;
-            }
-
-            const half = halfDisplacement(1, slope, scale, markLength);
-            if (half === null) {
-                continue;
-            }
-
-            dataX.push(x - half.hx, x + half.hx, NaN);
-            dataY.push(y - half.hy, y + half.hy, NaN);
-            numMarks++;
+    const stride = forEachLatticePoint(bounds, grid, maxMarks, (x, y) => {
+        const slope = f(x, y);
+        if (!Number.isFinite(slope)) {
+            // Outside the function's domain: draw nothing here.
+            return;
         }
-    }
+
+        const half = halfDisplacement(1, slope, scale, markLength);
+        if (half === null) {
+            return;
+        }
+
+        dataX.push(x - half.hx, x + half.hx, NaN);
+        dataY.push(y - half.hy, y + half.hy, NaN);
+        numMarks++;
+    });
 
     return { dataX, dataY, numMarks, stride };
 }
@@ -203,53 +242,40 @@ export function buildVectorFieldData({
     const dataY: number[] = [];
     let numMarks = 0;
 
-    const { minXind, maxXind, minYind, maxYind } = latticeRange(bounds, grid);
-    if (
-        !Number.isFinite(minXind) ||
-        !Number.isFinite(maxXind) ||
-        !Number.isFinite(minYind) ||
-        !Number.isFinite(maxYind)
-    ) {
-        return { dataX, dataY, numMarks: 0, stride: 1 };
-    }
-
-    const stride = strideFor(
-        maxXind - minXind + 1,
-        maxYind - minYind + 1,
-        maxMarks,
-    );
-
-    // When arrows scale with magnitude, one pass is needed first to find the
-    // largest magnitude so nothing overruns `markLength`.
-    const samples: { x: number; y: number; ux: number; uy: number }[] = [];
+    // Unnormalized arrows are sized relative to the longest vector on screen,
+    // so the whole lattice has to be sampled before anything can be emitted.
+    // `maxMarks` is what bounds the size of this array.
+    const samples: {
+        x: number;
+        y: number;
+        ux: number;
+        uy: number;
+        mag: number;
+    }[] = [];
     let maxMag = 0;
-    for (let xind = minXind; xind <= maxXind; xind += stride) {
-        const x = xind * grid.dx + grid.xoffset;
-        for (let yind = minYind; yind <= maxYind; yind += stride) {
-            const y = yind * grid.dy + grid.yoffset;
-            const ux = u(x, y);
-            const uy = v(x, y);
-            if (!Number.isFinite(ux) || !Number.isFinite(uy)) {
-                continue;
-            }
-            const mag = Math.hypot(ux * scale.unitX, uy * scale.unitY);
-            if (mag > maxMag) {
-                maxMag = mag;
-            }
-            samples.push({ x, y, ux, uy });
-        }
-    }
 
-    for (const { x, y, ux, uy } of samples) {
+    const stride = forEachLatticePoint(bounds, grid, maxMarks, (x, y) => {
+        const ux = u(x, y);
+        const uy = v(x, y);
+        if (!Number.isFinite(ux) || !Number.isFinite(uy)) {
+            // Outside the function's domain: draw nothing here.
+            return;
+        }
+        // Magnitude in pixels, not in user units: what an arrow has to convey
+        // is its on-screen length, whatever the axis scaling.
         const mag = Math.hypot(ux * scale.unitX, uy * scale.unitY);
         if (mag === 0) {
-            continue;
+            // A zero vector has no direction to draw.
+            return;
         }
+        maxMag = Math.max(maxMag, mag);
+        samples.push({ x, y, ux, uy, mag });
+    });
+
+    for (const { x, y, ux, uy, mag } of samples) {
         const pixelLength = normalize
             ? markLength
-            : maxMag > 0
-              ? (markLength * mag) / maxMag
-              : markLength;
+            : (markLength * mag) / maxMag;
 
         const half = halfDisplacement(ux, uy, scale, pixelLength);
         if (half === null) {
@@ -267,20 +293,15 @@ export function buildVectorFieldData({
 
         // Barbs: rotate the backward pixel direction by +/- barbAngle, then
         // convert back to user units so they keep a constant on-screen size.
-        const dxPix = (headX - tailX) * scale.unitX;
-        const dyPix = (headY - tailY) * scale.unitY;
-        const dLen = Math.hypot(dxPix, dyPix);
-        if (dLen > 0) {
-            const bx = -dxPix / dLen;
-            const by = -dyPix / dLen;
-            for (const sign of [1, -1]) {
-                const ca = Math.cos(sign * barbAngle);
-                const sa = Math.sin(sign * barbAngle);
-                const rx = (bx * ca - by * sa) * barbLength;
-                const ry = (bx * sa + by * ca) * barbLength;
-                dataX.push(headX, headX + rx / scale.unitX, NaN);
-                dataY.push(headY, headY + ry / scale.unitY, NaN);
-            }
+        const bx = (-ux * scale.unitX) / mag;
+        const by = (-uy * scale.unitY) / mag;
+        for (const sign of [1, -1]) {
+            const ca = Math.cos(sign * barbAngle);
+            const sa = Math.sin(sign * barbAngle);
+            const rx = (bx * ca - by * sa) * barbLength;
+            const ry = (bx * sa + by * ca) * barbLength;
+            dataX.push(headX, headX + rx / scale.unitX, NaN);
+            dataY.push(headY, headY + ry / scale.unitY, NaN);
         }
 
         numMarks++;

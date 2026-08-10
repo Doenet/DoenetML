@@ -1,5 +1,10 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
+import {
+    functionAttrIsUsableField,
+    returnFieldFunctionSugarInstruction,
+    returnFieldLatticeAttributes,
+} from "../utils/field";
 
 export default class SlopeField extends GraphicalComponent {
     static componentType = "slopeField";
@@ -22,61 +27,15 @@ export default class SlopeField extends GraphicalComponent {
                 "The function giving the slope y' at each point. May take one input, f(x), or two, f(x,y).",
         };
 
-        attributes.dx = {
-            createComponentOfType: "number",
-            createStateVariable: "dx",
-            defaultValue: 1,
-            public: true,
-            forRenderer: true,
-            description: "Horizontal spacing between marks.",
-        };
-
-        attributes.dy = {
-            createComponentOfType: "number",
-            createStateVariable: "dy",
-            defaultValue: 1,
-            public: true,
-            forRenderer: true,
-            description: "Vertical spacing between marks.",
-        };
-
-        attributes.xoffset = {
-            createComponentOfType: "number",
-            createStateVariable: "xoffset",
-            defaultValue: 0,
-            public: true,
-            forRenderer: true,
-            description: "Horizontal offset of the lattice origin.",
-        };
-
-        attributes.yoffset = {
-            createComponentOfType: "number",
-            createStateVariable: "yoffset",
-            defaultValue: 0,
-            public: true,
-            forRenderer: true,
-            description: "Vertical offset of the lattice origin.",
-        };
-
-        attributes.markLength = {
-            createComponentOfType: "number",
-            createStateVariable: "markLength",
-            defaultValue: 20,
-            public: true,
-            forRenderer: true,
-            description:
-                "Length of each mark, in pixels. Marks keep this length whatever the axis scaling, so slopes are drawn at their true visual angle.",
-        };
-
-        attributes.maxMarks = {
-            createComponentOfType: "number",
-            createStateVariable: "maxMarks",
-            defaultValue: 2500,
-            public: true,
-            forRenderer: true,
-            description:
-                "Upper bound on how many marks are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of marks.",
-        };
+        Object.assign(
+            attributes,
+            returnFieldLatticeAttributes({
+                markNoun: "marks",
+                markLengthDefault: 20,
+                markLengthDescription:
+                    "Length of each mark, in pixels. Marks keep this length whatever the axis scaling, so slopes are drawn at their true visual angle.",
+            }),
+        );
 
         return attributes;
     }
@@ -84,47 +43,7 @@ export default class SlopeField extends GraphicalComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        sugarInstructions.push({
-            replacementFunction({ matchedChildren, nComponents, stateIdInfo }) {
-                // Nothing to do if there are no children, or only whitespace.
-                if (
-                    matchedChildren.length === 0 ||
-                    matchedChildren.every(
-                        (child) =>
-                            typeof child === "string" && child.trim() === "",
-                    )
-                ) {
-                    return { success: false };
-                }
-
-                // Wrap the children in a <function>, and hand it over as the
-                // `function` attribute. Sugar recurses into attribute
-                // components, so <function>'s own sugar wraps the strings in
-                // <math> from here.
-                return {
-                    success: true,
-                    newAttributes: {
-                        function: {
-                            type: "component",
-                            name: "function",
-                            component: {
-                                type: "serialized",
-                                componentType: "function",
-                                componentIdx: nComponents++,
-                                stateId: stateIdInfo
-                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                    : undefined,
-                                children: matchedChildren,
-                                attributes: {},
-                                doenetAttributes: {},
-                                state: {},
-                            },
-                        },
-                    },
-                    nComponents,
-                };
-            },
-        });
+        sugarInstructions.push(returnFieldFunctionSugarInstruction());
 
         return sugarInstructions;
     }
@@ -174,12 +93,7 @@ export default class SlopeField extends GraphicalComponent {
             definition({ dependencyValues }) {
                 const attr = dependencyValues.functionAttr;
 
-                if (
-                    attr === null ||
-                    (attr.stateValues.numInputs !== 1 &&
-                        attr.stateValues.numInputs !== 2) ||
-                    attr.stateValues.numOutputs !== 1
-                ) {
+                if (!functionAttrIsUsableField(attr, 1)) {
                     return {
                         setValue: {
                             function: () => NaN,

@@ -11,10 +11,11 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 that draws a two-dimensional vector field as arrows on a lattice covering the visible region of an
 enclosing `<graph>{:dn}`.
 
-The field comes from a `<function>{:dn}` with **two outputs**, such as
-`<function variables="x y">(y, -x)</function>{:dn}`. Like [`<slopeField/>`](slopeField), the whole
-field is a single graphical object, it re-tiles as the user pans or zooms, and its arrows keep a
-constant on-screen length whatever the axis scaling.
+The field comes from a function with **two outputs**, given either as a bare expression child —
+`<vectorField>(y, -x)</vectorField>{:dn}`, read as a function of both <m>x</m> and <m>y</m> — or as
+a `<function>{:dn}` referenced with the `function` attribute. Like
+[`<slopeField/>`](slopeField), the whole field is a single graphical object, it re-tiles as the
+user pans or zooms, and its arrows keep a constant on-screen length whatever the axis scaling.
 
 <AttrPropDisplay name='vectorField'/>
 
@@ -24,12 +25,9 @@ constant on-screen length whatever the axis scaling.
 ### Example: A rotational field
 
 ```doenet-editor-horiz
-<setup>
-  <function name="F" variables="x y">(y, -x)</function>
-</setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>The vector field (y, -x), which circulates clockwise about the origin</shortDescription>
-  <vectorField function="$F" />
+  <vectorField>(y, -x)</vectorField>
 </graph>
 ```
 
@@ -42,12 +40,9 @@ distance from the origin.
 ### Example: Direction only
 
 ```doenet-editor-horiz
-<setup>
-  <function name="F" variables="x y">(y, -x)</function>
-</setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>The same rotational field with every arrow the same length</shortDescription>
-  <vectorField function="$F" normalize />
+  <vectorField normalize>(y, -x)</vectorField>
 </graph>
 ```
 
@@ -71,7 +66,8 @@ vanish.
 ```
 
 The gradient of <m>x^2 + y^2</m> points radially outward, everywhere perpendicular to the circular
-level curves.
+level curves. Here the field is defined as a separate `<function>{:dn}` and referenced with the
+`function` attribute, which is the alternative to giving the expression as a child.
 
 
 ## Attribute Examples
@@ -79,12 +75,9 @@ level curves.
 ### Attribute Example: dx, dy
 
 ```doenet-editor-horiz
-<setup>
-  <function name="F" variables="x y">(y, -x)</function>
-</setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>A rotational vector field sampled on a finer lattice</shortDescription>
-  <vectorField function="$F" dx="0.5" dy="0.5" markLength="14" normalize />
+  <vectorField dx="0.5" dy="0.5" markLength="14" normalize>(y, -x)</vectorField>
 </graph>
 ```
 
@@ -96,12 +89,9 @@ level curves.
 ### Attribute Example: markLength
 
 ```doenet-editor-horiz
-<setup>
-  <function name="F" variables="x y">(y, -x)</function>
-</setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>A rotational vector field drawn with long arrows</shortDescription>
-  <vectorField function="$F" markLength="40" />
+  <vectorField markLength="40">(y, -x)</vectorField>
 </graph>
 ```
 
@@ -114,12 +104,9 @@ longest arrow; with `normalize` it sets the length of every arrow.
 ### Attribute Example: maxMarks
 
 ```doenet-editor-horiz
-<setup>
-  <function name="F" variables="x y">(y, -x)</function>
-</setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>A dense vector field limited to at most 150 arrows</shortDescription>
-  <vectorField function="$F" dx="0.25" dy="0.25" markLength="8" maxMarks="150" normalize />
+  <vectorField dx="0.25" dy="0.25" markLength="8" maxMarks="150" normalize>(y, -x)</vectorField>
 </graph>
 ```
 
@@ -132,12 +119,9 @@ when it would be exceeded.
 ### Property Example: dx, dy, normalize
 
 ```doenet-editor-horiz
-<setup>
-  <function name="F" variables="x y">(y, -x)</function>
-</setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>A named vector field whose settings are reported as text</shortDescription>
-  <vectorField name="vf" function="$F" dx="2" dy="2" normalize />
+  <vectorField name="vf" dx="2" dy="2" normalize>(y, -x)</vectorField>
 </graph>
 
 <p><c>dx, dy</c> = $vf.dx, $vf.dy</p>

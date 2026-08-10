@@ -1,5 +1,10 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
+import {
+    functionAttrIsUsableField,
+    returnFieldFunctionSugarInstruction,
+    returnFieldLatticeAttributes,
+} from "../utils/field";
 
 export default class VectorField extends GraphicalComponent {
     static componentType = "vectorField";
@@ -22,51 +27,15 @@ export default class VectorField extends GraphicalComponent {
                 "A function with two outputs giving the vector at each point, such as (y, -x). May take one input or two.",
         };
 
-        attributes.dx = {
-            createComponentOfType: "number",
-            createStateVariable: "dx",
-            defaultValue: 1,
-            public: true,
-            forRenderer: true,
-            description: "Horizontal spacing between arrows.",
-        };
-
-        attributes.dy = {
-            createComponentOfType: "number",
-            createStateVariable: "dy",
-            defaultValue: 1,
-            public: true,
-            forRenderer: true,
-            description: "Vertical spacing between arrows.",
-        };
-
-        attributes.xoffset = {
-            createComponentOfType: "number",
-            createStateVariable: "xoffset",
-            defaultValue: 0,
-            public: true,
-            forRenderer: true,
-            description: "Horizontal offset of the lattice origin.",
-        };
-
-        attributes.yoffset = {
-            createComponentOfType: "number",
-            createStateVariable: "yoffset",
-            defaultValue: 0,
-            public: true,
-            forRenderer: true,
-            description: "Vertical offset of the lattice origin.",
-        };
-
-        attributes.markLength = {
-            createComponentOfType: "number",
-            createStateVariable: "markLength",
-            defaultValue: 24,
-            public: true,
-            forRenderer: true,
-            description:
-                "Length of the longest arrow, in pixels. Arrows keep this length whatever the axis scaling.",
-        };
+        Object.assign(
+            attributes,
+            returnFieldLatticeAttributes({
+                markNoun: "arrows",
+                markLengthDefault: 24,
+                markLengthDescription:
+                    "Length of the longest arrow, in pixels. Arrows keep this length whatever the axis scaling.",
+            }),
+        );
 
         attributes.normalize = {
             createComponentOfType: "boolean",
@@ -78,58 +47,13 @@ export default class VectorField extends GraphicalComponent {
                 "Draw every arrow the same length, showing direction only rather than magnitude.",
         };
 
-        attributes.maxMarks = {
-            createComponentOfType: "number",
-            createStateVariable: "maxMarks",
-            defaultValue: 2500,
-            public: true,
-            forRenderer: true,
-            description:
-                "Upper bound on how many arrows are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of arrows.",
-        };
-
         return attributes;
     }
 
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        sugarInstructions.push({
-            replacementFunction({ matchedChildren, nComponents, stateIdInfo }) {
-                if (
-                    matchedChildren.length === 0 ||
-                    matchedChildren.every(
-                        (child) =>
-                            typeof child === "string" && child.trim() === "",
-                    )
-                ) {
-                    return { success: false };
-                }
-
-                return {
-                    success: true,
-                    newAttributes: {
-                        function: {
-                            type: "component",
-                            name: "function",
-                            component: {
-                                type: "serialized",
-                                componentType: "function",
-                                componentIdx: nComponents++,
-                                stateId: stateIdInfo
-                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                    : undefined,
-                                children: matchedChildren,
-                                attributes: {},
-                                doenetAttributes: {},
-                                state: {},
-                            },
-                        },
-                    },
-                    nComponents,
-                };
-            },
-        });
+        sugarInstructions.push(returnFieldFunctionSugarInstruction());
 
         return sugarInstructions;
     }
@@ -177,12 +101,7 @@ export default class VectorField extends GraphicalComponent {
             definition({ dependencyValues }) {
                 const attr = dependencyValues.functionAttr;
 
-                if (
-                    attr === null ||
-                    (attr.stateValues.numInputs !== 1 &&
-                        attr.stateValues.numInputs !== 2) ||
-                    attr.stateValues.numOutputs !== 2
-                ) {
+                if (!functionAttrIsUsableField(attr, 2)) {
                     return {
                         setValue: {
                             functions: [() => NaN, () => NaN],

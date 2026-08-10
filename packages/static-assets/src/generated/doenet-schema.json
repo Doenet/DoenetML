@@ -114863,6 +114863,12 @@
                     "type": "number"
                 },
                 {
+                    "name": "maxMarks",
+                    "description": "Upper bound on how many arrows are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of arrows.",
+                    "defaultValue": 2500,
+                    "type": "number"
+                },
+                {
                     "name": "normalize",
                     "description": "Draw every arrow the same length, showing direction only rather than magnitude.",
                     "defaultValue": false,
@@ -114871,12 +114877,6 @@
                         "false"
                     ],
                     "type": "boolean"
-                },
-                {
-                    "name": "maxMarks",
-                    "description": "Upper bound on how many arrows are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of arrows.",
-                    "defaultValue": 2500,
-                    "type": "number"
                 }
             ],
             "properties": [
@@ -114966,17 +114966,17 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "normalize",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Draw every arrow the same length, showing direction only rather than magnitude.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "maxMarks",
                     "type": "number",
                     "isArray": false,
                     "description": "Upper bound on how many arrows are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of arrows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "normalize",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Draw every arrow the same length, showing direction only rather than magnitude.",
                     "fromAttribute": true
                 },
                 {

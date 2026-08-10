@@ -27,6 +27,12 @@ describe("latticeRange", () => {
             ),
         ).toEqual({ minXind: -0, maxXind: 2, minYind: 0, maxYind: 1 });
     });
+
+    it("is indifferent to the sign of the spacing", () => {
+        expect(latticeRange(bounds, { ...grid, dx: -1, dy: -1 })).toEqual(
+            latticeRange(bounds, grid),
+        );
+    });
 });
 
 describe("buildSlopeFieldData", () => {
@@ -135,6 +141,48 @@ describe("buildSlopeFieldData", () => {
         expect(stride).toBeGreaterThan(1);
         expect(numMarks).toBeLessThanOrEqual(400);
         expect(numMarks).toBeGreaterThan(0);
+    });
+
+    it("keeps the coarsened lattice on multiples of the stride", () => {
+        // Anchoring on the lattice index rather than on the first visible line
+        // is what keeps a coarsened field still as the graph is panned.
+        const { dataX, stride } = buildSlopeFieldData({
+            f: () => 1,
+            ...opts,
+            bounds: { xMin: -100, xMax: 100, yMin: -100, yMax: 100 },
+            maxMarks: 400,
+        });
+
+        expect(stride).toBeGreaterThan(1);
+        for (let i = 0; i < dataX.length; i += 3) {
+            // grid.dx is 1 with no offset, so x is the lattice index.
+            const center = (dataX[i] + dataX[i + 1]) / 2;
+            expect(Math.abs(Math.round(center) % stride)).toBe(0);
+        }
+    });
+
+    it("still bounds the lattice when maxMarks is not a positive number", () => {
+        for (const maxMarks of [0, -5, NaN]) {
+            const { numMarks } = buildSlopeFieldData({
+                f: () => 1,
+                ...opts,
+                bounds: { xMin: -100, xMax: 100, yMin: -100, yMax: 100 },
+                maxMarks,
+            });
+            expect(numMarks).toBeLessThanOrEqual(4);
+        }
+    });
+
+    it("draws the same marks for a negative spacing as for a positive one", () => {
+        const positive = buildSlopeFieldData({ f: (x) => x, ...opts });
+        const negative = buildSlopeFieldData({
+            f: (x) => x,
+            ...opts,
+            grid: { ...grid, dx: -1, dy: -1 },
+        });
+
+        expect(negative.numMarks).toBe(positive.numMarks);
+        expect([...negative.dataX].sort()).toEqual([...positive.dataX].sort());
     });
 
     it("returns nothing for degenerate bounds", () => {
