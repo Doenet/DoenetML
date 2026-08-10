@@ -83,8 +83,8 @@ alternative to giving the expression as a child.
 </graph>
 ```
 
-`dx` and `dy` set the horizontal and vertical spacing of the lattice. A finer lattice usually wants
-a shorter `markLength` so the marks do not overlap.
+`dx` and `dy` set the horizontal and vertical spacing of the lattice, one unit each by default. A
+finer lattice usually wants a shorter `markLength` so the marks do not overlap.
 
 
 ---
@@ -98,8 +98,9 @@ a shorter `markLength` so the marks do not overlap.
 </graph>
 ```
 
-`markLength` is measured in pixels rather than graph units. That is what keeps every mark the same
-length, and at the correct visual angle, no matter how the axes are scaled.
+`markLength` is measured in pixels rather than graph units, and defaults to 20. Working in pixels is
+what keeps every mark the same length, and at the correct visual angle, no matter how the axes are
+scaled.
 
 
 ---
@@ -113,8 +114,8 @@ length, and at the correct visual angle, no matter how the axes are scaled.
 </graph>
 ```
 
-`xoffset` and `yoffset` shift the lattice so a mark falls at `(xoffset, yoffset)` rather than at the
-origin.
+`xoffset` and `yoffset` shift the lattice so a mark falls at `(xoffset, yoffset)`. Both default to
+0, which puts a mark at the origin.
 
 
 ---
@@ -128,9 +129,9 @@ origin.
 </graph>
 ```
 
-`maxMarks` bounds how many marks are drawn. Rather than refusing to draw when the lattice would
-exceed it — for instance after zooming far out — the field keeps every <m>n</m>-th lattice line, so
-it stays readable.
+`maxMarks` bounds how many marks are drawn, and defaults to 2500. Rather than refusing to draw when
+the lattice would exceed it — for instance after zooming far out — the field keeps every <m>n</m>-th
+lattice line, so it stays readable.
 
 
 ## Property Examples

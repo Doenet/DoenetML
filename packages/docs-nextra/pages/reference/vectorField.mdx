@@ -83,7 +83,8 @@ level curves. Here the field is defined as a separate `<function>{:dn}` and refe
 </graph>
 ```
 
-`dx` and `dy` set the lattice spacing. A finer lattice usually wants a shorter `markLength`.
+`dx` and `dy` set the lattice spacing, one unit each by default. A finer lattice usually wants a
+shorter `markLength`.
 
 
 ---
@@ -97,8 +98,8 @@ level curves. Here the field is defined as a separate `<function>{:dn}` and refe
 </graph>
 ```
 
-`markLength` is measured in pixels. When arrows scale with magnitude it sets the length of the
-longest arrow on screen; with `normalize` it sets the length of every arrow.
+`markLength` is measured in pixels, and defaults to 24. When arrows scale with magnitude it sets the
+length of the longest arrow on screen; with `normalize` it sets the length of every arrow.
 
 
 ---
@@ -112,8 +113,8 @@ longest arrow on screen; with `normalize` it sets the length of every arrow.
 </graph>
 ```
 
-`maxMarks` bounds how many arrows are drawn, coarsening the lattice rather than refusing to draw
-when it would be exceeded.
+`maxMarks` bounds how many arrows are drawn, and defaults to 2500. Rather than refusing to draw when
+the lattice would exceed it, the field keeps every <m>n</m>-th lattice line.
 
 
 ## Property Examples
