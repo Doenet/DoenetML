@@ -65012,6 +65012,10 @@
                             "description": "Belarusian (беларуская)"
                         },
                         {
+                            "value": "bem",
+                            "description": "Bemba (Ichibemba)"
+                        },
+                        {
                             "value": "bg",
                             "description": "Bulgarian (български)"
                         },
@@ -65114,6 +65118,10 @@
                         {
                             "value": "fa",
                             "description": "Persian (فارسی)"
+                        },
+                        {
+                            "value": "ff",
+                            "description": "Fula (Pulaar)"
                         },
                         {
                             "value": "fi",
@@ -65232,6 +65240,14 @@
                             "description": "Georgian (ქართული)"
                         },
                         {
+                            "value": "kab",
+                            "description": "Kabyle (Taqbaylit)"
+                        },
+                        {
+                            "value": "ki",
+                            "description": "Kikuyu (Gikuyu)"
+                        },
+                        {
                             "value": "kk",
                             "description": "Kazakh (қазақ тілі)"
                         },
@@ -65278,6 +65294,10 @@
                         {
                             "value": "lt",
                             "description": "Lithuanian (lietuvių)"
+                        },
+                        {
+                            "value": "luo",
+                            "description": "Luo (Dholuo)"
                         },
                         {
                             "value": "lv",
@@ -65354,6 +65374,10 @@
                         {
                             "value": "nl",
                             "description": "Dutch (Nederlands)"
+                        },
+                        {
+                            "value": "nso",
+                            "description": "Northern Sotho (Sesotho sa Leboa)"
                         },
                         {
                             "value": "ny",
@@ -65444,6 +65468,14 @@
                             "description": "Northern Sami (davvisámegiella)"
                         },
                         {
+                            "value": "sg",
+                            "description": "Sango (Sängö)"
+                        },
+                        {
+                            "value": "shi",
+                            "description": "Tachelhit (ⵜⴰⵛⵍⵃⵉⵜ)"
+                        },
+                        {
                             "value": "si",
                             "description": "Sinhala (සිංහල)"
                         },
@@ -65474,6 +65506,10 @@
                         {
                             "value": "sr",
                             "description": "Serbian (српски)"
+                        },
+                        {
+                            "value": "ss",
+                            "description": "Swati"
                         },
                         {
                             "value": "st",
@@ -65540,6 +65576,10 @@
                             "description": "Turkish (Türkçe)"
                         },
                         {
+                            "value": "ts",
+                            "description": "Tsonga"
+                        },
+                        {
                             "value": "tt",
                             "description": "Tatar (татар)"
                         },
@@ -65564,6 +65604,10 @@
                             "description": "Uzbek (o‘zbek)"
                         },
                         {
+                            "value": "ve",
+                            "description": "Venda"
+                        },
+                        {
                             "value": "vi",
                             "description": "Vietnamese (Tiếng Việt)"
                         },
@@ -65586,6 +65630,10 @@
                         {
                             "value": "yo",
                             "description": "Yoruba (Èdè Yorùbá)"
+                        },
+                        {
+                            "value": "zgh",
+                            "description": "Standard Moroccan Tamazight (ⵜⴰⵎⴰⵣⵉⵖⵜ)"
                         },
                         {
                             "value": "zh-Hans",

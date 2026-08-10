@@ -1,4 +1,11 @@
 import { describe, expect, it } from "vitest";
+import {
+    parse,
+    type Entry,
+    type Message,
+    type Pattern,
+    type SelectExpression,
+} from "@fluent/syntax";
 
 import {
     SUPPORTED_LOCALES_FILE,
@@ -8,11 +15,13 @@ import {
     listLocales,
     multilinePatterns,
     numberingSystemOverrides,
+    readCatalog,
     remainingLiteralDiagnostics,
     renderMessageKeysModule,
     renderSupportedLocalesModule,
 } from "../scripts/catalogUtils";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
+import { CATALOG_NAMESPACES } from "../src/namespaces";
 
 describe("extractKeys", () => {
     it("reads message ids, attributes, and both together", () => {
@@ -335,5 +344,234 @@ describe("countDiagnosticConstructions", () => {
             `interface R { type: "error"; }\nconst r = { error_type: "warning" };`,
         );
         expect(counts.constructionCount).toBe(0);
+    });
+});
+
+/**
+ * Every `SelectExpression` an entry contains, at any nesting depth. A select
+ * can sit inside a variant of another select — which is how a catalog forks on
+ * `$role` and then on `$gender` — so this recurses rather than reading the top
+ * level of each pattern.
+ */
+function selectExpressions(entry: Entry): SelectExpression[] {
+    const found: SelectExpression[] = [];
+
+    const visitPattern = (pattern: Pattern | null) => {
+        for (const element of pattern?.elements ?? []) {
+            if (element.type !== "Placeable") {
+                continue;
+            }
+            const expression = element.expression;
+            if (expression.type === "SelectExpression") {
+                found.push(expression);
+                for (const variant of expression.variants) {
+                    visitPattern(variant.value);
+                }
+            }
+        }
+    };
+
+    if (entry.type === "Message" || entry.type === "Term") {
+        visitPattern(entry.value ?? null);
+        for (const attribute of entry.attributes) {
+            visitPattern(attribute.value);
+        }
+    }
+    return found;
+}
+
+describe("the noun-class reachability rule", () => {
+    /**
+     * `$gender` is a token set a catalog defines for itself: `noun-gender`
+     * maps each noun key to a token, and every concording word selects on the
+     * tokens that come back. A variant for a token `noun-gender` can never
+     * answer is therefore dead — it renders for no noun, and it reads as
+     * agreement the catalog does not actually have. `locales/zu`'s header
+     * states the rule («a `c6` branch would be a variant nothing can select»)
+     * and the README restates it for `$role`; this is what holds all the
+     * catalogs to it at once.
+     *
+     * The default variant is exempt: it is what an unlisted token falls to,
+     * which is the point of writing one.
+     *
+     * The rule is asserted for **noun-class** tokens (`c3`, `c5`, …) and not
+     * for the gender tokens of `locales/ru`, `locales/be` and `locales/sr`,
+     * which write a neuter no noun currently reaches. The difference is that a
+     * class token set is one a catalog invents for the core's own closed list
+     * of nouns, so a class with no noun in it is a claim about nothing,
+     * whereas Russian's three genders exist whatever this repository names —
+     * and the neuter is the form the file needs the moment a neuter noun is
+     * added.
+     */
+    it("writes no noun-class variant its own `noun-gender` cannot answer", () => {
+        const offenders: string[] = [];
+
+        for (const locale of listLocales()) {
+            const source = readCatalog(locale, "content");
+            if (source === null) {
+                continue;
+            }
+            const resource = parse(source, { withSpans: false });
+
+            const nounGender = resource.body.find(
+                (entry): entry is Message =>
+                    entry.type === "Message" && entry.id.name === "noun-gender",
+            );
+            if (!nounGender) {
+                continue;
+            }
+
+            const answered = new Set(
+                selectExpressions(nounGender).flatMap((select) =>
+                    select.variants.flatMap((variant) =>
+                        variant.value.elements.flatMap((element) =>
+                            element.type === "TextElement"
+                                ? [element.value.trim()]
+                                : [],
+                        ),
+                    ),
+                ),
+            );
+
+            for (const entry of resource.body) {
+                if (entry.type !== "Message" && entry.type !== "Term") {
+                    continue;
+                }
+                for (const select of selectExpressions(entry)) {
+                    if (
+                        select.selector.type !== "VariableReference" ||
+                        select.selector.id.name !== "gender"
+                    ) {
+                        continue;
+                    }
+                    for (const variant of select.variants) {
+                        const key =
+                            variant.key.type === "Identifier"
+                                ? variant.key.name
+                                : variant.key.value;
+                        if (
+                            variant.default ||
+                            !/^c\d+$/.test(key) ||
+                            answered.has(key)
+                        ) {
+                            continue;
+                        }
+                        offenders.push(`${locale}: [${key}]`);
+                    }
+                }
+            }
+        }
+
+        expect([...new Set(offenders)].sort()).toEqual([]);
+    });
+});
+
+describe("counted messages", () => {
+    const countArguments = new Set([
+        "count",
+        "attributesCount",
+        "valuesCount",
+        "parametersCount",
+        "intervals",
+        "inputs",
+        "outputs",
+    ]);
+
+    /** Each message in a catalog, mapped to the count arguments it selects on. */
+    const countSelectors = (source: string) => {
+        const found = new Map<string, Set<string>>();
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type !== "Message") {
+                continue;
+            }
+            const selectors = new Set(
+                selectExpressions(entry).flatMap((select) =>
+                    select.selector.type === "VariableReference" &&
+                    countArguments.has(select.selector.id.name)
+                        ? [select.selector.id.name]
+                        : [],
+                ),
+            );
+            if (selectors.size > 0) {
+                found.set(entry.id.name, selectors);
+            }
+        }
+        return found;
+    };
+
+    const forLocale = (locale: string) =>
+        CATALOG_NAMESPACES.map(
+            (namespace) =>
+                [
+                    namespace,
+                    countSelectors(readCatalog(locale, namespace) ?? ""),
+                ] as const,
+        );
+
+    /**
+     * `locales/shi` inflects a verb for the number of its subject —
+     * ⵢⵜⵜⵓⵣⴳⴰⵍ for one thing ignored against ⵜⵜⵓⵣⴳⴰⵍⵏ for several — and a noun
+     * counted behind ⵏ for the number of the count. So a count English forks
+     * on is a count it forks on too, and a message that renders one branch for
+     * every count states a plural verb about a single attribute.
+     *
+     * Asserted for Tachelhit alone rather than for every catalog, because the
+     * rule is a fact about *this* language, and the check is that the catalog
+     * agrees with itself.
+     */
+    it("has Tachelhit fork on every count English forks on", () => {
+        const tachelhit = new Map(forLocale("shi"));
+        for (const [namespace, english] of forLocale("en")) {
+            for (const [message, selectors] of english) {
+                expect(
+                    [...(tachelhit.get(namespace)?.get(message) ?? [])].sort(),
+                    `${namespace}: ${message}`,
+                ).toEqual([...selectors].sort());
+            }
+        }
+    });
+
+    /**
+     * The mirror image, and the reason the rule above is stated per language
+     * rather than for the roster: `Intl.PluralRules("sg")` reports the single
+     * category `other`, so a Sango `[one]` branch would be a second spelling
+     * of a form the language does not have.
+     *
+     * An exact-number key is a different thing and stays allowed: `[0]` is
+     * matched by value rather than by category, and it is how every catalog —
+     * Sango included — writes "no attempts remaining" as its own sentence.
+     */
+    it("has Sango write no plural-category branch", () => {
+        const categories = new Set(["one", "two", "few", "many"]);
+
+        for (const namespace of CATALOG_NAMESPACES) {
+            const offenders: string[] = [];
+            for (const entry of parse(readCatalog("sg", namespace) ?? "", {
+                withSpans: false,
+            }).body) {
+                if (entry.type !== "Message") {
+                    continue;
+                }
+                for (const select of selectExpressions(entry)) {
+                    if (
+                        select.selector.type !== "VariableReference" ||
+                        !countArguments.has(select.selector.id.name)
+                    ) {
+                        continue;
+                    }
+                    for (const variant of select.variants) {
+                        if (
+                            variant.key.type === "Identifier" &&
+                            categories.has(variant.key.name)
+                        ) {
+                            offenders.push(
+                                `${entry.id.name} [${variant.key.name}]`,
+                            );
+                        }
+                    }
+                }
+            }
+            expect(offenders, namespace).toEqual([]);
+        }
     });
 });

@@ -54,15 +54,15 @@ const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Seven of the
- * eight keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi` — are ISO 639-3
+ * member of `nb` or `ak`, and both are deliberately left to miss. Eight of the
+ * nine keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff` — are ISO 639-3
  * macrolanguages and list their macrolanguage members; `nah` is an ISO 639-3
  * **collection** code rather than a macrolanguage, so it lists the individual
  * Nahuan languages ISO 639-5 groups under it.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr`, `gom`, `dgo` — so that each list reads as the whole of a group rather
- * than as the leftovers of one, and so that a change in ICU data cannot
+ * `ayr`, `gom`, `dgo`, `fuc` — so that each list reads as the whole of a group
+ * rather than as the leftovers of one, and so that a change in ICU data cannot
  * silently drop a code out of coverage.
  *
  * Serving a related variety is a real compromise, and each of these catalogs
@@ -180,6 +180,12 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // whole of the macrolanguage, and `xnr` (Kangri) is the member ICU leaves
     // unresolvable; `dgo` is the one it already folds.
     doi: ["dgo", "xnr"],
+    // Fula. The catalog is Pulaar, the western variety of Senegal and
+    // Mauritania, which is `fuc` — what CLDR fills a bare `ff` in as and the
+    // one member it already folds. These nine are the whole of the
+    // macrolanguage, so an Adamawa (`fub`) or Nigerian (`fuv`) Fulfulde reader
+    // reaches Pulaar rather than English.
+    ff: ["ffm", "fub", "fuc", "fue", "fuf", "fuh", "fui", "fuq", "fuv"],
 };
 
 /** Flattened once at module load rather than searched per request. */
