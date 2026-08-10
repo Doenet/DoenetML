@@ -83,8 +83,10 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
                 // item for the browser to draw the item's native marker on. What
                 // asks for it is a lead that holds no first line of text of its
                 // own — a `<graph>`, an `<image>`, a `<video>`, a `<tabular>`, a
-                // `<spreadsheet>` — and a block `<choiceInput>`, which holds one
-                // already and is unchanged by the anchor. See `list.css`.
+                // `<spreadsheet>`, or a container such as a `<figure>` or a
+                // `<div>` forwarding one of them — and a block `<choiceInput>`,
+                // which holds one already and is unchanged by the anchor. See
+                // `list.css`.
                 className={
                     SVs.firstChildListItemAlignment === "flex-start"
                         ? "list-item-marker-anchored"

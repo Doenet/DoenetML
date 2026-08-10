@@ -666,7 +666,7 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         },
         {
             name: "image",
-            markup: `<image name="lead" source="missing.png" width="200px" aspectRatio="1" decorative />`,
+            markup: `<image name="lead" source="./Doenet_Logo_Frontpage.png" width="200px" aspectRatio="1" decorative />`,
         },
         {
             name: "video",
