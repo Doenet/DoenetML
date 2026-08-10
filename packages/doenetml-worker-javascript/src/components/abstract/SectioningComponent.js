@@ -646,10 +646,10 @@ export class SectioningComponent extends BlockComponent {
          * asking `hideChildren` as well called such a step empty and left the
          * message leading nothing, keeping the top margin that put it a line below
          * the item's number (#1680). A held-back step that really shows nothing
-         * still lands on `null` without asking it, since `childIndicesToRender`
-         * drops its strings — and both that variable and `childrenToHide` are
-         * computed from `hideChildren`, so this one follows a `<cascade>` holding a
-         * step back or letting it go all the same.
+         * still lands on `null` without asking it: `childrenToHide` holds its
+         * component children and `childIndicesToRender` drops its strings — and
+         * both of those are computed from `hideChildren`, so this one follows a
+         * `<cascade>` holding a step back or letting it go all the same.
          *
          * A child hidden from *above* — this section, or a container around it —
          * is a deliberate non-case: nothing in it is on screen to realign, and
