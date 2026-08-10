@@ -1751,6 +1751,11 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     // switches numbering layout when the cascade lets it go. The layout it
     // switches *to* is pinned with the same helper every other untitled, unboxed
     // item in this file uses, so the held-back item is held to one standard.
+    //
+    // Two steps are held back at once, which is what a cascade of more than two
+    // entries looks like from the start: each held-back step shows a message of
+    // its own, so each has to lead with its own — not just the one the cascade
+    // stopped at.
     it("a held-back step's cascadeMessage shares the row with its number", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1765,6 +1770,10 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                     <cascadeMessage name="msg2">Answer the previous question to continue</cascadeMessage>
                     <p name="lead2">What is 2+2? <answer name="ans2">4</answer></p>
                 </problem>
+                <problem name="problem3">
+                    <cascadeMessage name="msg3">Answer the previous question to continue</cascadeMessage>
+                    <p name="lead3">What is 3+3? <answer name="ans3">6</answer></p>
+                </problem>
             </cascade>
         </problems>
     `,
@@ -1773,39 +1782,52 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get("#problem2").should("exist");
+        cy.get("#problem3").should("exist");
         cy.get("#msg2").should("be.visible");
+        cy.get("#msg3").should("be.visible");
         cy.get("#lead2").should("not.exist");
+        cy.get("#lead3").should("not.exist");
 
-        // The margin the item suppresses for whichever child leads it. Without
-        // the suppression the message is a margin below its own number.
-        cy.get("#msg2").should("have.css", "margin-top", "0px");
+        for (const [itemId, messageId, number] of [
+            ["problem2", "msg2", 2],
+            ["problem3", "msg3", 3],
+        ]) {
+            // The margin the item suppresses for whichever child leads it.
+            // Without the suppression the message is a margin below its own
+            // number.
+            cy.get(`#${cesc(messageId)}`).should(
+                "have.css",
+                "margin-top",
+                "0px",
+            );
 
-        // And it really renders on the item's first row. Measured rather than
-        // taken from the margin, because the row is what a reader sees and more
-        // than one thing could push the message off it.
-        cy.get("#problem2").should(($item) => {
-            const item = $item[0];
-            const message = item.ownerDocument.getElementById("msg2");
-            const offset =
-                message.getBoundingClientRect().top -
-                item.getBoundingClientRect().top;
-            expect(
-                offset,
-                "the cascadeMessage starts on its item's first row",
-            ).to.be.closeTo(0, 2);
-        });
+            // And it really renders on the item's first row. Measured rather
+            // than taken from the margin, because the row is what a reader sees
+            // and more than one thing could push the message off it.
+            cy.get(`#${cesc(itemId)}`).should(($item) => {
+                const item = $item[0];
+                const message = item.ownerDocument.getElementById(messageId);
+                const offset =
+                    message.getBoundingClientRect().top -
+                    item.getBoundingClientRect().top;
+                expect(
+                    offset,
+                    `the cascadeMessage starts on ${itemId}'s first row`,
+                ).to.be.closeTo(0, 2);
+            });
 
-        // It is the ordinary grid item now: number in the fixed first column,
-        // content in the second. This is the layout it had dropped out of.
-        verifyUntitledUnboxedListItemUsesGridLayout("problem2", 2);
+            // It is the ordinary grid item now: number in the fixed first
+            // column, content in the second. This is the layout it had dropped
+            // out of.
+            verifyUntitledUnboxedListItemUsesGridLayout(itemId, number);
+        }
 
-        // The number itself stays put horizontally: this item numbers itself
-        // through a different layout while it is held back than the revealed one
-        // beside it, and the two have to agree at the decimal — the #1482 guard,
-        // applied across that difference.
-        verifyListItemNumbersAlign(["problem1", "problem2"], {
-            label: "held-back step beside a revealed one",
+        // The numbers themselves stay put horizontally: the held-back items
+        // number themselves through a different layout than the revealed one
+        // above them, and all three have to agree at the decimal — the #1482
+        // guard, applied across that difference.
+        verifyListItemNumbersAlign(["problem1", "problem2", "problem3"], {
+            label: "held-back steps beside a revealed one",
         });
     });
 

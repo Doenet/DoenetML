@@ -664,10 +664,9 @@ export class SectioningComponent extends BlockComponent {
          * the gate changes no output. What it saves is every section that is not a
          * bare untitled list item — a `<document>`, a `<section>`, a `<problem>`
          * outside a `<problems>`, a titled, boxed or collapsible one inside it —
-         * asking each of
-         * its children for a visibility variable it would never read. Measured over
-         * 120 such sections, six `hide` toggles cost 471 ms without the gate and
-         * 316 ms with it, against 328 ms on `main`.
+         * asking each of its children for a visibility variable it would never
+         * read. Measured over 120 such sections, six `hide` toggles cost 471 ms
+         * without the gate and 316 ms with it, against 328 ms on `main`.
          *
          * Being its own state variable rather than a second output of
          * `childIndicesToRender` is what makes that gate possible —
