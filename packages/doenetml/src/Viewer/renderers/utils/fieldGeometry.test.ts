@@ -65,6 +65,24 @@ describe("buildSlopeFieldData", () => {
         }
     });
 
+    it("straddles each lattice point, which is the tangent line's midpoint", () => {
+        const { dataX, dataY } = buildSlopeFieldData({
+            f: (x, y) => x - y,
+            ...opts,
+        });
+
+        for (let i = 0; i < dataX.length; i += 3) {
+            const midX = (dataX[i] + dataX[i + 1]) / 2;
+            const midY = (dataY[i] + dataY[i + 1]) / 2;
+            // Every lattice point here is an integer pair.
+            expect(midX).toBeCloseTo(Math.round(midX), 10);
+            expect(midY).toBeCloseTo(Math.round(midY), 10);
+            // The slope at the midpoint is what the mark is drawn for.
+            const slope = (dataY[i + 1] - dataY[i]) / (dataX[i + 1] - dataX[i]);
+            expect(slope).toBeCloseTo(midX - midY, 10);
+        }
+    });
+
     it("draws every mark at the same pixel length regardless of slope", () => {
         const { dataX, dataY } = buildSlopeFieldData({
             f: (x, y) => x * y, // strongly varying slope
@@ -238,6 +256,28 @@ describe("buildVectorFieldData", () => {
         expect(dataX).toHaveLength(49 * 9);
         for (let i = 2; i < dataX.length; i += 3) {
             expect(Number.isNaN(dataX[i])).toBe(true);
+        }
+    });
+
+    it("puts each arrow's tail on the lattice point it was sampled at", () => {
+        // The arrow represents the vector at that point, so it must start
+        // there rather than straddle it the way a slope mark does.
+        const { dataX, dataY } = buildVectorFieldData({
+            u: (x, y) => y,
+            v: (x, y) => -x,
+            ...opts,
+        });
+
+        for (let i = 0; i < dataX.length; i += 9) {
+            const tailX = dataX[i];
+            const tailY = dataY[i];
+            // Every lattice point here is an integer pair.
+            expect(tailX).toBeCloseTo(Math.round(tailX), 10);
+            expect(tailY).toBeCloseTo(Math.round(tailY), 10);
+            // The shaft points along (y, -x) as sampled at the tail.
+            const shaftX = dataX[i + 1] - tailX;
+            const shaftY = dataY[i + 1] - tailY;
+            expect(shaftX * -tailX - shaftY * tailY).toBeCloseTo(0, 10);
         }
     });
 

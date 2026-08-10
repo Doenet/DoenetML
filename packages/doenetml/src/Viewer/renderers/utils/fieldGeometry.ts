@@ -181,21 +181,21 @@ function forEachLatticePoint(
  * keeps marks the same on-screen length, and at the true visual slope, on any
  * aspect ratio.
  *
- * Returns the half-displacement in user units, or null if the direction is
- * degenerate.
+ * Returns the displacement in user units that spans `pixelLength` on screen, or
+ * null if the direction is degenerate.
  */
-function halfDisplacement(
+function scaledDisplacement(
     ux: number,
     uy: number,
     scale: FieldScale,
     pixelLength: number,
-): { hx: number; hy: number } | null {
+): { dx: number; dy: number } | null {
     const pixLen = Math.hypot(ux * scale.unitX, uy * scale.unitY);
     if (!Number.isFinite(pixLen) || pixLen === 0) {
         return null;
     }
-    const t = pixelLength / 2 / pixLen;
-    return { hx: ux * t, hy: uy * t };
+    const t = pixelLength / pixLen;
+    return { dx: ux * t, dy: uy * t };
 }
 
 /**
@@ -224,13 +224,15 @@ export function buildSlopeFieldData({
             return;
         }
 
-        const half = halfDisplacement(1, slope, scale, markLength);
-        if (half === null) {
+        const d = scaledDisplacement(1, slope, scale, markLength);
+        if (d === null) {
             return;
         }
 
-        dataX.push(x - half.hx, x + half.hx, NaN);
-        dataY.push(y - half.hy, y + half.hy, NaN);
+        // A slope mark is a sample of the solution curve's tangent line, which
+        // passes through the lattice point — so it straddles it.
+        dataX.push(x - d.dx / 2, x + d.dx / 2, NaN);
+        dataY.push(y - d.dy / 2, y + d.dy / 2, NaN);
         numMarks++;
     });
 
@@ -311,19 +313,19 @@ export function buildVectorFieldData({
             ? markLength
             : (markLength * mag) / maxMag;
 
-        const half = halfDisplacement(ux, uy, scale, pixelLength);
-        if (half === null) {
+        const d = scaledDisplacement(ux, uy, scale, pixelLength);
+        if (d === null) {
             continue;
         }
 
-        // Arrows sit centered on the lattice point, like the tick marks do.
-        const tailX = x - half.hx;
-        const tailY = y - half.hy;
-        const headX = x + half.hx;
-        const headY = y + half.hy;
+        // An arrow represents the vector *at* the lattice point, so its tail
+        // sits there and it points away. (Unlike a slope mark, which straddles
+        // its point: a tangent direction has no head or tail to distinguish.)
+        const headX = x + d.dx;
+        const headY = y + d.dy;
 
-        dataX.push(tailX, headX, NaN);
-        dataY.push(tailY, headY, NaN);
+        dataX.push(x, headX, NaN);
+        dataY.push(y, headY, NaN);
 
         // Barbs: rotate the backward pixel direction by +/- barbAngle, then
         // convert back to user units so the head keeps its on-screen shape

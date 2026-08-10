@@ -40,13 +40,19 @@ function segments(curve) {
     return found;
 }
 
-/** The segment whose midpoint is nearest `(x, y)`. */
-function segmentNear(segs, x, y) {
+/**
+ * The segment nearest `(x, y)`, located by `anchor`: slope marks straddle their
+ * lattice point, so they are found by midpoint, while a vector field's arrow
+ * starts at its lattice point and is found by its tail.
+ */
+function segmentNear(segs, x, y, anchor = "midpoint") {
     let best = null;
     let bestDist = Infinity;
     for (const seg of segs) {
-        const cx = (seg[0][0] + seg[1][0]) / 2;
-        const cy = (seg[0][1] + seg[1][1]) / 2;
+        const [cx, cy] =
+            anchor === "tail"
+                ? seg[0]
+                : [(seg[0][0] + seg[1][0]) / 2, (seg[0][1] + seg[1][1]) / 2];
         const dist = Math.hypot(cx - x, cy - y);
         if (dist < bestDist) {
             bestDist = dist;
@@ -117,8 +123,11 @@ describe("SlopeField and VectorField Tag Tests", { tags: ["@group2"] }, () => {
             const segs = segments(curve);
             expect(segs.length / 3, "number of arrows").greaterThan(20);
 
-            // (y, -x) at (0, 2) is (2, 0): the shaft points along +x.
-            const shaft = segmentNear(segs, 0, 2);
+            // (y, -x) at (0, 2) is (2, 0): the shaft starts at the lattice
+            // point and points along +x from there.
+            const shaft = segmentNear(segs, 0, 2, "tail");
+            expect(shaft[0][0], "tail x").closeTo(0, 1e-9);
+            expect(shaft[0][1], "tail y").closeTo(2, 1e-9);
             expect(shaft[1][1] - shaft[0][1]).closeTo(0, 1e-9);
             expect(shaft[1][0] - shaft[0][0]).greaterThan(0);
         });
