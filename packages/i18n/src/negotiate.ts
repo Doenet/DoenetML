@@ -80,7 +80,8 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * serve a Bambara reader Mandinka.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr`, `gom`, `dgo`, `fuc` — so that each list reads as the whole of a group
+ * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc` — so that each list reads as the
+ * whole of a group
  * rather than as the leftovers of one, and so that a change in ICU data cannot
  * silently drop a code out of coverage.
  *

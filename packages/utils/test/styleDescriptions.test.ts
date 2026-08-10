@@ -2701,7 +2701,7 @@ describe("the African and Berber batch", () => {
 
     /**
      * `$gender` is a token set and nothing outside a catalog reads its values,
-     * which is what lets Fula use the same argument the sixteen Bantu catalogs
+     * which is what lets Fula use the same argument the Bantu catalogs
      * use and have it land on the *other end* of the word. The stems are
      * constant here — mawn- "thick", bodee- "red" — and only the class suffix
      * moves.
@@ -2870,7 +2870,7 @@ describe("the West and Central African batch", () => {
         });
 
     /**
-     * **The third place a noun class can be spelled.** Sixteen Bantu catalogs
+     * **The third place a noun class can be spelled.** Nineteen Bantu catalogs
      * write it as a prefix on the describing word and three — `ff`, `mos`,
      * `dag` — write it as a suffix; Tiv writes it as a word of its own, the
      * relative particle a verb of quality needs in order to modify a noun.

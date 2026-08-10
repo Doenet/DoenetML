@@ -474,7 +474,7 @@ describe("the noun-class reachability rule", () => {
      * `locales/sg`'s plural test makes about a `[one]` branch.
      *
      * Asserted for Kituba alone rather than for every catalog without a class
-     * table, because the claim is about *this* language: seventeen other Bantu
+     * table, because the claim is about *this* language: nineteen other Bantu
      * catalogs in this repository do fork, and what makes Kituba's flatness
      * worth holding still is that a later editor would reasonably expect it not
      * to be.

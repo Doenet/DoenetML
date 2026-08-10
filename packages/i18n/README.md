@@ -752,8 +752,8 @@ Fula's; `tiv` writes it as a separate particle, which is new; and `dyu`, `mnk`,
 **`ktu` is the one that carries the batch.** Kituba is Bantu — a creole whose
 lexifier is Kikongo — and it forks on nothing at all, its nouns keeping their
 class prefixes as frozen parts of the word and nothing agreeing with them.
-Sixteen catalogs had established that Bantu means a class table; this is the
-seventeenth Bantu catalog and it cannot write one. What a language does with
+Nineteen catalogs had established that Bantu means a class table; this is the
+twentieth Bantu catalog and it cannot write one. What a language does with
 agreement is a fact about that language, and neither its family, its region nor
 its script predicts it. `locales/ln` is the neighbour that settles it: the other
 Congolese vehicular language, one border and no distance away, and it kept its
@@ -833,12 +833,12 @@ are.
 
 #### The chemistry gap splits two ways, and one of the two is new here
 
-Ten of the eleven are the school-system case, across five mediums rather than
-one: English in Ghana, Nigeria, Uganda and Zambia, French in Burundi, Burkina
-Faso, Côte d'Ivoire and both Congos, and English or French depending on the
-country for Kanuri, which spans four. So in all ten the fallback *is* the
-curriculum, which is a fact about those education ministries rather than about
-ten languages.
+Ten of the eleven are the school-system case, in two mediums across eleven
+countries rather than one: English in Ghana, Nigeria and Uganda, French in
+Burundi, Burkina Faso, Côte d'Ivoire and both Congos, and English or French
+depending on the country for Kanuri, which spans four. So in all ten the
+fallback *is* the curriculum, which is a fact about those education ministries
+rather than about ten languages.
 
 **Mandinka is the eleventh and the one claim of a different kind.** It is
 spoken across three countries with three different mediums of secondary
@@ -1222,15 +1222,13 @@ Kinyarwanda, Nyanja, Shona, Lingala, Ganda, Southern Sotho, Tswana, Northern
 Sotho, Swati, Venda, Tsonga, Kikuyu, Bemba, Rundi, Nyankole and Luba-Lulua —
 answer it with the noun's **class** (`c3`, `c5`, `c6`, `c7`, `c9`, `c11` and
 `c12`) rather than with a gender, and nothing outside them had to learn what a
-noun class is. Nyankole answers with the widest set of the nineteen, five
-classes, and the fifth is worth naming for *what* reaches it: «akadomo», the
-point, is class 12, and a point is the most frequently described noun the core
-has. The
-reachability rule applies to the class tokens exactly as it does to `$role`: a
-catalog writes a branch for a class only if its own `noun-gender` can answer
-that class. That is why Swahili and Nyanja carry `c6` — the plural class, which
-their word for *text* or *border* lands in — and the other fourteen do not, and
-why Venda, Tsonga, Kikuyu and Bemba stop at `c3`, `c7` and `c9`: no noun the
+noun class is. Ganda answers with the widest set, six; Nyankole with five, and
+its fifth is `c12` — «akadomo», the point, is a diminutive there, as it is in
+Ganda. The reachability rule applies to the class tokens exactly as it does to
+`$role`: a catalog writes a branch for a class only if its own `noun-gender`
+can answer that class. That is why Swahili and Nyanja carry `c6` — the plural
+class, which their word for *text* or *border* lands in — and the other
+seventeen do not, and why Venda, Tsonga, Kikuyu and Bemba stop at `c3`, `c7` and `c9`: no noun the
 core names is class 5 in any of the four, so the ḽi-, leri-, i- and ili- forms
 are named in those catalogs' headers rather than written as branches nothing
 can select.
@@ -1267,10 +1265,10 @@ never change and the particle in front of them does. Prefix, suffix, separate
 word: three positions, one argument, and no change to anything outside a
 catalog to reach any of them.
 
-Tiv is also `locales/ts`'s shape rather than `locales/zu`'s — it forks on five
-words and leaves eleven alone, because a language with few adjectives has few
-places for agreement to land. That is not less agreement; it is agreement
-landing on fewer words.
+Tiv is also `locales/ts`'s shape rather than `locales/zu`'s — it forks on six
+words and leaves nine alone, where Zulu forks all fifteen, because a language
+with few adjectives has few places for agreement to land. That is not less
+agreement; it is agreement landing on fewer words.
 
 **`locales/ktu` is the catalog that forks on nothing, and it is Bantu.** Kituba
 is a creole whose lexifier is Kikongo: its nouns keep their class prefixes as

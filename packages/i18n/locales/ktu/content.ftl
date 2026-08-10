@@ -16,7 +16,7 @@
 # «ya ndombe» is right after every noun in the language.
 #
 # So `noun-gender` answers one token, the way `locales/en` does, and no message
-# forks on `$gender`. Sixteen Bantu catalogs in this repository write out a
+# forks on `$gender`. Nineteen Bantu catalogs in this repository write out a
 # class table, and this one cannot, because there is nothing to write: a family
 # says as little about agreement as a region or a script does, which is the
 # sentence `locales/luo` and `locales/sg` earned from outside Bantu and this

@@ -10,7 +10,7 @@
 # own.** Tiv has very few true adjectives: what English writes as one is a verb
 # of quality here, and a verb of quality modifies a noun through a relative
 # particle — «u», «i» or «a» — chosen by the noun's class. So the class is
-# spelled neither as a prefix on the describing word, the way the sixteen Bantu
+# spelled neither as a prefix on the describing word, the way the nineteen Bantu
 # catalogs spell it, nor as a suffix, the way `locales/ff`, `locales/mos` and
 # `locales/dag` do, but as a separate word standing in front of it:
 #
@@ -26,9 +26,10 @@
 # whole of what `$gender` was for.
 #
 # **Only the words with a Tiv verb of quality take it.** The other colours are
-# nouns, written bare, and they are the majority: this catalog forks on five
-# words and leaves eleven alone, which is `locales/ts`'s shape rather than
-# `locales/zu`'s. A language with few adjectives has few places for agreement
+# nouns, written bare, and they are the majority: this catalog forks on six
+# words — three colours, both widths and the filled word — and leaves nine
+# alone, which is `locales/ts`'s shape rather than `locales/zu`'s, Zulu forking
+# all fifteen. A language with few adjectives has few places for agreement
 # to land, and that is not less agreement — it is agreement landing on fewer
 # words.
 #

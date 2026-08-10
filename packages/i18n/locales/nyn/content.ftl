@@ -7,13 +7,11 @@
 # `nyn` is Runyankore, of south-western Uganda. The roster reads
 # "Nyankole (Runyankore)" — CLDR knows both names, and they are one language.
 #
-# `$gender` is the noun **class**, as in every Bantu catalog here, and this is
-# the widest class set any of them answers with: `c3`, `c5`, `c7`, `c9` and
-# `c12`. The fifth is worth naming because of *what* reaches it — «akadomo»,
-# the point, is class 12, and a point is the most frequently described noun the
-# core has. Every other catalog that names a diminutive class reaches it
-# through a word at the edge of the vocabulary; here it arrives through the
-# middle of it.
+# `$gender` is the noun **class**, as in every Bantu catalog here, and
+# `noun-gender` answers `c3`, `c5`, `c7`, `c9` or `c12` — five classes, where
+# `locales/lg` answers six and most of the group answers four. The fifth is the
+# diminutive: «akadomo», the point, is class 12, which is where Ganda puts its
+# point too, so the two files are worth reading against each other.
 #
 # Two concord sets, and which set a word takes is a fact about the word:
 #

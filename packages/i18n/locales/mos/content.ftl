@@ -14,7 +14,7 @@
 # Atlantic-Congo; Mooré is Gur. What the two have in common is not ancestry
 # close enough to explain it but the plain fact the argument was built for:
 # `$gender` names *what a word agrees with*, and where the agreement is spelled
-# is the catalog's business. Sixteen Bantu catalogs spell it as a prefix, three
+# is the catalog's business. Nineteen Bantu catalogs spell it as a prefix, three
 # Berber ones as an initial vowel, and these two as an ending.
 #
 # The class tokens are this catalog's own. Gur class numbering is not Bantu's,

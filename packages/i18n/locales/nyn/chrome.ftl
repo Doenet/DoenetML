@@ -4,7 +4,7 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
 # See `content.ftl`'s header for the noun-class table — this catalog answers
-# five classes, one more than any other here — and for what a speaker should
+# five classes, one short of `locales/lg`'s six — and for what a speaker should
 # check first.
 
 

@@ -12,7 +12,7 @@
 # `locales/mos`: Dagbani is Gur too, and the two files should be read against
 # each other. What they do not share is how many classes the core's nouns
 # reach. Mooré forks four ways here and Dagbani three, which is the Gur form of
-# a fact the Bantu catalogs have shown sixteen times over — a class inventory
+# a fact the Bantu catalogs have shown nineteen times over — a class inventory
 # is a fact about which nouns a catalog happens to name, not about a family.
 #
 # The tokens are this catalog's own, indexing Dagbani's suffix sets:

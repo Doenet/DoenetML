@@ -254,12 +254,13 @@ piecewise-condition-otherwise = kǝlawa dǝga
 ## keys fall back to English and `lint:i18n` reports the gap.
 ##
 ## The school-system case, and across four ministries rather than one: Nigeria
-## and Cameroon teach secondary science in English, Niger and Chad in French,
-## so a Kanuri speaker meets the periodic table in one or the other and the
-## fallback *is* one of the two curricula. `locales/mnk`'s header records the
-## sharper version of the same shape, where the three mediums leave nothing for
-## a fallback to be; here two of the four are English, which is what the
-## fallback already is.
+## teaches secondary science in English, Niger and Chad in French, and Cameroon
+## in both — though Kanuri's range there is the francophone Far North. So a
+## Kanuri speaker meets the periodic table in one or the other and the fallback
+## *is* one of the two curricula. `locales/mnk`'s header records the sharper
+## version of the same shape, where the three mediums leave nothing for a
+## fallback to be; here one of the two is English, which is what the fallback
+## already is.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
 
