@@ -2597,19 +2597,26 @@ describe("Number tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("c4")].stateValues.text,
         ).eq("0.9 + 0.7 i");
-        // `Infinity i` is an infinity in the imaginary direction, and the
-        // engine has one infinity, on the real axis — so `Infinity*i` folds to
-        // `Infinity` (its `infnan_folds_are_conservative` test pins that, as
-        // the JS library's `simplify` did too). The old `NaN + NaN i` came from
-        // the JS *evaluator* disagreeing with its own simplifier: mathjs
-        // answered complex.js's `Complex.INFINITY`, which this component then
-        // put through a second evaluation to get NaN.
+        // `Infinity i` reads as complex NaN, and only because the compat layer
+        // says so. The Rust core treats it as the single infinity on the real
+        // axis: `evaluate_to_constant` answers `Infinity`, `evaluate_to_complex`
+        // answers `[Infinity, 0]`, and both `simplify` and `evaluate_numbers`
+        // print `∞`. `math-expressions.ts` then overrides that whenever a
+        // non-finite value comes from a tree mentioning `i`, which is what this
+        // component reads.
+        //
+        // That override is deliberate, and pinned upstream by
+        // `slow_simplify.spec.ts`: mathjs was not idempotent here — evaluating
+        // `Infinity*i` once gave `Infinity*i+Infinity` and again gave
+        // `NaN*i+NaN` — so it forces NaN to make repeated evaluation stable.
+        // The Rust core has no such instability (it answers `∞` every time), so
+        // the rule now outlives its reason; revisit if upstream drops it.
         expect(
             stateVariables[await resolvePathToNodeIdx("c5")].stateValues.text,
-        ).eq("∞");
+        ).eq("NaN + NaN i");
         expect(
             stateVariables[await resolvePathToNodeIdx("c6")].stateValues.text,
-        ).eq("∞");
+        ).eq("NaN + NaN i");
         expect(
             stateVariables[await resolvePathToNodeIdx("c7")].stateValues.text,
         ).eq("5");
@@ -2857,14 +2864,15 @@ describe("Number tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("c4")].stateValues.value
                 .im,
         ).closeTo(0.7, 1e-14);
-        // Real infinity, not a complex NaN — see the note on the rendered text
-        // below.
+        // Complex NaN rather than the real infinity the core computes — the
+        // stored value carries the same compat override as the rendered text,
+        // so both move together. See the note above.
         expect(
             stateVariables[await resolvePathToNodeIdx("c5")].stateValues.value,
-        ).eqls(Infinity);
+        ).eqls({ re: NaN, im: NaN });
         expect(
             stateVariables[await resolvePathToNodeIdx("c6")].stateValues.value,
-        ).eqls(Infinity);
+        ).eqls({ re: NaN, im: NaN });
         expect(
             stateVariables[await resolvePathToNodeIdx("c7")].stateValues.value,
         ).eq(5);

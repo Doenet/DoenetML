@@ -2609,15 +2609,16 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("result1")].stateValues
                 .value.tree,
-        ).eqls(["-", ["*", 3, ["apply", "sin", ["/", "pi", ["*", 2, "w"]]]]]);
+        ).eqls(["*", -3, ["apply", "sin", ["/", "pi", ["*", 2, "w"]]]]);
         expect(stateVariables[result2Name].stateValues.value.tree).eqls([
-            "-",
-            ["*", 3, ["apply", "sin", ["/", "pi", ["*", 2, "w"]]]],
+            "*",
+            -3,
+            ["apply", "sin", ["/", "pi", ["*", 2, "w"]]],
         ]);
         expect(
             stateVariables[await resolvePathToNodeIdx("result3")].stateValues
                 .value.tree,
-        ).eqls(["-", ["*", 3, ["apply", "sin", ["/", "pi", ["*", 2, "w"]]]]]);
+        ).eqls(["*", -3, ["apply", "sin", ["/", "pi", ["*", 2, "w"]]]]);
 
         // add 4th input
         await updateMathInputValue({

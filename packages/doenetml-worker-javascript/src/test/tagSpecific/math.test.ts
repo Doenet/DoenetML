@@ -562,7 +562,10 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m5")].stateValues
                     .latex,
             ),
-        ).eq("x^{2}-2x^{2}+5x^{2}-2");
+            // Terms of equal degree order by coefficient, so `-2x^2` leads the
+            // three `x^2` terms. Matches the legacy library, which folds the
+            // sign into the coefficient and then sorts on it.
+        ).eq("-2x^{2}+x^{2}+5x^{2}-2");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m6")].stateValues
@@ -608,12 +611,12 @@ describe("Math tag tests @group3", async () => {
                 .tree,
             // Like terms stay uncollected (that is what `simplify="numbers"`
             // means), and the ones that survive sort canonically rather than in
-            // written order: `x²` before `-2x²` before `5x²`. Same four terms,
-            // same value.
+            // written order: within one degree, by coefficient, so `-2x²`
+            // before `x²` before `5x²`. Same four terms, same value.
         ).eqls([
             "+",
+            ["*", -2, ["^", "x", 2]],
             ["^", "x", 2],
-            ["-", ["*", 2, ["^", "x", 2]]],
             ["*", 5, ["^", "x", 2]],
             -2,
         ]);
@@ -692,16 +695,14 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
         ).eqls(["*", ["+", "x", -3], ["+", ["*", 2, "x"], 4]]);
-        // `-(2x)`, not `(-2)x`: a product's sign is never moved into one of its
-        // factors — the parsers emit `Neg` and the canonical form keeps it, so
-        // `-2x` is `["-", ["*", 2, "x"]]` throughout. Legacy folded the sign
-        // into the coefficient once a term had been computed, which is why the
-        // written form above (`m1`) and this expanded one disagreed in spelling
-        // but not in value. The printer still renders it `-2x`.
+        // `(-2)x`, not `-(2x)`: a computed term carries its sign on the leading
+        // coefficient, which is where a student would write it. A bare `Neg`
+        // survives only when there is no number to carry the sign (`-x`, and
+        // the `-(3x+5)(7-x)` in `m3` below, whose leading factor is a sum).
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
                 .tree,
-        ).eqls(["+", ["*", 2, ["^", "x", 2]], ["-", ["*", 2, "x"]], -12]);
+        ).eqls(["+", ["*", 2, ["^", "x", 2]], ["*", -2, "x"], -12]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
                 .tree,
@@ -713,7 +714,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m4")].stateValues.value
                 .tree,
-        ).eqls(["+", ["*", 5, ["^", "x", 2]], ["-", ["*", 18, "x"]], -47]);
+        ).eqls(["+", ["*", 5, ["^", "x", 2]], ["*", -18, "x"], -47]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
                 .tree,
@@ -13252,18 +13253,18 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
                 .tree,
-            // A negative product is spelled `-(2·…)` rather than `(-2)·…`: the
-            // sign rides on a unary minus so that a sum renders with a `−` between
-            // its terms. Same value, one less numeric literal in the tree.
-        ).eqls(["-", ["*", 2, ["apply", "cbrt", ["*", 3, ["^", "x", 6]]]]]);
+            // A negative product is spelled `(-2)·…`, not `-(2·…)`: the sign
+            // rides the leading coefficient, as in the legacy library. A `Neg`
+            // wrapper is left only when no numeric factor can carry it.
+        ).eqls(["*", -2, ["apply", "cbrt", ["*", 3, ["^", "x", 6]]]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
                 .tree,
-        ).eqls(["-", ["*", 2, ["^", "x", 2], ["apply", "cbrt", 3]]]);
+        ).eqls(["*", -2, ["^", "x", 2], ["apply", "cbrt", 3]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m2c")].stateValues.value
                 .tree,
-        ).eqls(["-", ["*", 2, ["^", "x", 2], ["apply", "cbrt", 3]]]);
+        ).eqls(["*", -2, ["^", "x", 2], ["apply", "cbrt", 3]]);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
