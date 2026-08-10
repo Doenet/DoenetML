@@ -2913,11 +2913,13 @@ describe("the West and Central African batch", () => {
     });
 
     /**
-     * **Kituba is the row that has to be identical, and that is the finding.**
+     * **Kituba is where the describing words have to be identical, and that is
+     * the finding.** Only the noun differs between these three rows.
      * It is a Bantu-based creole whose nouns keep their class prefixes as
      * frozen parts of the word and whose describing words agree with nothing,
-     * so the same three tokens stand against a class-5 noun, a class-9 one and
-     * a loan. `locales/ln` is the neighbour that kept its concord.
+     * so the same three tokens stand against all three nouns whatever prefix
+     * each one is frozen with. `locales/ln` is the neighbour that kept its
+     * concord.
      *
      * Written out three times rather than as a loop over one string, so that a
      * later editor adding a `$gender` fork to this catalog has to delete an
@@ -2937,10 +2939,11 @@ describe("the West and Central African batch", () => {
 
     /**
      * One row each for the rest, so that a change to any of their
-     * `noun-gender` tables or word order shows up as a diff here. The two
-     * Bantu catalogs fork; the three Manding and Kwa ones do not, and their
-     * rows are here for the same reason `locales/ktu`'s are — a fork appearing
-     * in one of them would be a claim the language does not make.
+     * `noun-gender` tables or word order shows up as a diff here. The three
+     * Bantu catalogs — `rn`, `nyn`, `lua` — fork; the four Manding, Kwa and
+     * Nilo-Saharan ones — `dyu`, `mnk`, `gaa`, `kr` — do not, and their rows
+     * are here for the same reason `locales/ktu`'s are: a fork appearing in one
+     * of them would be a claim the language does not make.
      */
     it.each([
         ["rn", "umurongo munini utukura w'udukona"],

@@ -515,7 +515,10 @@ describe("style descriptions follow the document locale @group4", () => {
         // Its nouns keep their class prefixes as frozen parts of the word and
         // nothing agrees with them, so a describing word is joined by the
         // invariable linker «ya» and the same three tokens stand against a
-        // line, a square and a circle alike.
+        // line, a circle and the circle's border alike. The marker row is the
+        // one exception in shape rather than in principle: a marker's colour
+        // is its only describing word, so «ya matiti» is all there is to
+        // carry.
         //
         // Held here as well as in `@doenet/utils` because what a family
         // predicts about agreement is exactly nothing, and this is the row a

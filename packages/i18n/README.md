@@ -1271,7 +1271,8 @@ is a creole whose lexifier is Kikongo: its nouns keep their class prefixes as
 frozen parts of the word and nothing agrees with them, so a describing word is
 joined by the invariable linker «ya» and never changes shape. It answers
 `noun-gender` with one token, the way `locales/en` does, and it is pinned from
-both ends: `styleDescriptions.test.ts` holds three identical rendered rows, and
+both ends: `styleDescriptions.test.ts` holds three rendered rows whose
+describing words are identical and whose nouns are all that differ, and
 `catalogLint.test.ts` asserts at the source that no message in `locales/ktu`
 forks on `$gender` at all, so a fork appearing there has to delete an assertion
 rather than merely pass one. `locales/ln` is the instructive neighbour — the
