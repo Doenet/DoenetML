@@ -2434,3 +2434,168 @@ describe("a regular polygon's side count", () => {
         );
     });
 });
+
+/**
+ * The South Asian batch, which pins the three shapes it added to the suite:
+ * a case-inflecting classical language, a postnominal Tibeto-Burman one, and
+ * a Devanagari catalog that agrees with nothing while three of its neighbours
+ * in the same script agree with everything.
+ */
+describe("the South Asian batch", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            {
+                locale,
+                resources: { [locale]: readCatalog(locale, "content") },
+            },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    /**
+     * Sanskrit inflects an adjective for gender, number *and* case, and each
+     * clause position governs a different case. What holds the fork together
+     * is that the three clause positions each land on a noun the catalog
+     * writes — «सीमा» feminine, «पृष्ठभूमिः» feminine, «पाठ्यम्» neuter — so
+     * the position fixes the form and `$gender` is not consulted inside it.
+     */
+    it("gives Sanskrit a different case in each clause position", () => {
+        const sa = forLocale("sa");
+        // Nominative, agreeing with the noun described: masculine for
+        // «रेखाखण्डः», feminine for «रेखा».
+        expect(
+            describeStrokedShape(sa, words, {
+                noun: { key: "line-segment" },
+                withNoun: true,
+            }),
+        ).toBe("स्थूलः खण्डितः रक्तः रेखाखण्डः");
+        expect(
+            describeStrokedShape(sa, words, {
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("स्थूला खण्डिता रक्ता रेखा");
+        // Instrumental before «सीमया सह», and locative before «पृष्ठभूमौ».
+        expect(describeBorder(sa, { colorWord: "red" })).toBe("रक्ता");
+        expect(
+            describeClosedShape(
+                sa,
+                { fillColorWord: "blue", colorWord: "red" },
+                { filled: true, noun: { key: "circle" }, withNoun: true },
+            ),
+        ).toContain("रक्तया सीमया सह");
+        // The two words `describeText` composes arrive already inflected for
+        // the position each is going into, which is what `$role` is for.
+        expect(describeColor(sa, "red", "text", "text-clause")).toBe("रक्तम्");
+        expect(
+            describeColor(sa, "blue", "background", "background-clause"),
+        ).toBe("नीलायां");
+        expect(
+            describeText(sa, {
+                color: describeColor(sa, "red", "text", "text-clause"),
+                background: describeColor(
+                    sa,
+                    "blue",
+                    "background",
+                    "background-clause",
+                ),
+            }),
+        ).toBe("नीलायां पृष्ठभूमौ रक्तम्");
+    });
+
+    /**
+     * Meitei and the two Tibetan-script catalogs put their adjectives *after*
+     * the noun, which no Indo-Aryan catalog in the batch does. All three reach
+     * `[noun-tail]` for the regular polygon, because a side count is a
+     * complement there and a complement follows the whole phrase.
+     */
+    it.each([
+        ["mni", "পরেং অচৌবা তক্থোকপা অঙাংবা"],
+        ["bo", "ཐིག མཐུག་པོ ཆད་ལྷུག དམར་པོ"],
+        ["dz", "གྲལ་ཐིག སྦོམ ཆད་ལྷུག དམརཔོ"],
+    ])("puts %s's adjectives after the noun", (locale, expected) => {
+        expect(
+            describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe(expected);
+    });
+
+    it.each(["mni", "bo", "dz"])(
+        "reaches [noun-tail] for %s's regular polygon",
+        (locale) => {
+            const description = describeStrokedShape(
+                forLocale(locale),
+                { colorWord: "red" },
+                {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                },
+            );
+            // The count is last, after the adjectives it qualifies — which is
+            // what `[head]`-only catalogs cannot produce.
+            expect(description).toContain("5");
+            expect(description.trimEnd().endsWith("5")).toBe(false);
+        },
+    );
+
+    /**
+     * Four Devanagari catalogs, three answers. Marathi and Sanskrit inflect for
+     * both arguments, Dogri for gender alone, and Maithili and Bhojpuri for
+     * neither — so the script says nothing about the fork, which is the point
+     * of asserting them side by side.
+     */
+    it.each(["mai", "bho"])(
+        "leaves %s's adjectives unchanged between the two positions",
+        (locale) => {
+            const t = forLocale(locale);
+            const standalone = describeBorder(t, { colorWord: "red" });
+            expect(
+                describeClosedShape(
+                    t,
+                    { fillColorWord: "blue", colorWord: "red" },
+                    { filled: true, noun: { key: "circle" }, withNoun: true },
+                ),
+            ).toContain(standalone);
+        },
+    );
+
+    /**
+     * Dogri's masculine -आ adjectives do have an oblique, and none of the three
+     * clause positions reaches it: the border and background are feminine and
+     * the text colour is a direct masculine. So the `$gender` fork alone gets
+     * every position right, and a `$role` branch would render what is already
+     * rendered. This is what would notice if a future `noun` entry put a
+     * masculine oblique in one of those positions.
+     */
+    it("agrees Dogri for gender and needs no position fork", () => {
+        const doi = forLocale("doi");
+        expect(
+            describeStrokedShape(
+                doi,
+                { colorWord: "black" },
+                {
+                    noun: { key: "line" },
+                    withNoun: true,
+                },
+            ),
+        ).toBe("काली रेखा");
+        expect(
+            describeStrokedShape(
+                doi,
+                { colorWord: "black" },
+                {
+                    noun: { key: "point" },
+                    withNoun: true,
+                },
+            ),
+        ).toBe("काला बिंदू");
+        expect(describeBorder(doi, { colorWord: "black" })).toBe("काली");
+    });
+});

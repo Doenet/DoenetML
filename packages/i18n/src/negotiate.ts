@@ -171,6 +171,15 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // must not be added: `fil` is a language of its own with a catalog of its
     // own, and folding it here would serve a Tagalog reader Bikol.
     bik: ["bcl", "bln", "bto", "cts", "fbl", "lbl", "rbl", "ubl"],
+    // Konkani. The catalog is Goan Konkani in Devanagari, the standard the Goa
+    // Konkani Akademi publishes in. These two are the whole of the
+    // macrolanguage; `gom` is the one `Intl.getCanonicalLocales` already folds.
+    kok: ["gom", "knn"],
+    // Dogri. The catalog is Dogri proper, which is `dgo` — the variety the
+    // Eighth Schedule names and the J&K academy publishes in. These two are the
+    // whole of the macrolanguage, and `xnr` (Kangri) is the member ICU leaves
+    // unresolvable; `dgo` is the one it already folds.
+    doi: ["dgo", "xnr"],
 };
 
 /** Flattened once at module load rather than searched per request. */

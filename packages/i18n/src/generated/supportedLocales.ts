@@ -20,10 +20,13 @@ export type SupportedLocale =
     | "ban"
     | "be"
     | "bg"
+    | "bho"
     | "bik"
     | "bm"
     | "bn"
+    | "bo"
     | "br"
+    | "brx"
     | "bs"
     | "ca"
     | "ceb"
@@ -33,6 +36,9 @@ export type SupportedLocale =
     | "cy"
     | "da"
     | "de"
+    | "doi"
+    | "dv"
+    | "dz"
     | "ee"
     | "el"
     | "es"
@@ -72,6 +78,8 @@ export type SupportedLocale =
     | "km"
     | "kn"
     | "ko"
+    | "kok"
+    | "ks"
     | "ky"
     | "lb"
     | "lg"
@@ -80,12 +88,14 @@ export type SupportedLocale =
     | "lt"
     | "lv"
     | "mad"
+    | "mai"
     | "mg"
     | "mi"
     | "min"
     | "mk"
     | "ml"
     | "mn"
+    | "mni"
     | "mr"
     | "ms"
     | "mt"
@@ -111,6 +121,8 @@ export type SupportedLocale =
     | "ro"
     | "ru"
     | "rw"
+    | "sa"
+    | "sat"
     | "sc"
     | "scn"
     | "sd"
@@ -260,6 +272,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "български",
         label: "Bulgarian (български)",
     },
+    {
+        locale: "bho",
+        englishName: "Bhojpuri",
+        endonym: "भोजपुरी",
+        label: "Bhojpuri (भोजपुरी)",
+    },
     { locale: "bik", englishName: "Bikol", endonym: "Bikol", label: "Bikol" },
     {
         locale: "bm",
@@ -274,11 +292,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Bangla (বাংলা)",
     },
     {
+        locale: "bo",
+        englishName: "Tibetan",
+        endonym: "བོད་སྐད་",
+        label: "Tibetan (བོད་སྐད་)",
+    },
+    {
         locale: "br",
         englishName: "Breton",
         endonym: "brezhoneg",
         label: "Breton (brezhoneg)",
     },
+    { locale: "brx", englishName: "Bodo", endonym: "बर’", label: "Bodo (बर’)" },
     {
         locale: "bs",
         englishName: "Bosnian",
@@ -332,6 +357,19 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "German",
         endonym: "Deutsch",
         label: "German (Deutsch)",
+    },
+    {
+        locale: "doi",
+        englishName: "Dogri",
+        endonym: "डोगरी",
+        label: "Dogri (डोगरी)",
+    },
+    { locale: "dv", englishName: "Divehi", endonym: "Divehi", label: "Divehi" },
+    {
+        locale: "dz",
+        englishName: "Dzongkha",
+        endonym: "རྫོང་ཁ",
+        label: "Dzongkha (རྫོང་ཁ)",
     },
     {
         locale: "ee",
@@ -548,6 +586,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Korean (한국어)",
     },
     {
+        locale: "kok",
+        englishName: "Konkani",
+        endonym: "कोंकणी",
+        label: "Konkani (कोंकणी)",
+    },
+    {
+        locale: "ks",
+        englishName: "Kashmiri",
+        endonym: "کٲشُر",
+        label: "Kashmiri (کٲشُر)",
+    },
+    {
         locale: "ky",
         englishName: "Kyrgyz",
         endonym: "кыргызча",
@@ -591,6 +641,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Madurese",
     },
     {
+        locale: "mai",
+        englishName: "Maithili",
+        endonym: "मैथिली",
+        label: "Maithili (मैथिली)",
+    },
+    {
         locale: "mg",
         englishName: "Malagasy",
         endonym: "Malagasy",
@@ -620,6 +676,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Mongolian",
         endonym: "монгол",
         label: "Mongolian (монгол)",
+    },
+    {
+        locale: "mni",
+        englishName: "Manipuri",
+        endonym: "মৈতৈলোন্",
+        label: "Manipuri (মৈতৈলোন্)",
     },
     {
         locale: "mr",
@@ -755,6 +817,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Kinyarwanda",
         endonym: "Ikinyarwanda",
         label: "Kinyarwanda (Ikinyarwanda)",
+    },
+    {
+        locale: "sa",
+        englishName: "Sanskrit",
+        endonym: "संस्कृत भाषा",
+        label: "Sanskrit (संस्कृत भाषा)",
+    },
+    {
+        locale: "sat",
+        englishName: "Santali",
+        endonym: "ᱥᱟᱱᱛᱟᱲᱤ",
+        label: "Santali (ᱥᱟᱱᱛᱟᱲᱤ)",
     },
     {
         locale: "sc",

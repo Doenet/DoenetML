@@ -511,6 +511,72 @@ describe("negotiateLocales", () => {
             },
         );
     });
+
+    /**
+     * The South Asian batch. Two of its twelve are macrolanguages and the rest
+     * are individual languages that filter unaided; between them they add five
+     * scripts and no alias.
+     */
+    describe("the South Asian batch", () => {
+        it.each([
+            // The two macrolanguages. `gom` and `dgo` are the members
+            // `Intl.getCanonicalLocales` already folds; `knn` and `xnr` are the
+            // ones that reach their catalog only because
+            // `MACROLANGUAGE_MEMBERS` lists them.
+            ["gom", "kok"],
+            ["knn", "kok"],
+            ["dgo", "doi"],
+            ["xnr", "doi"],
+            // The ISO 639-3 codes ICU canonicalizes on its own, so no alias is
+            // needed for any of them.
+            ["san", "sa"],
+            ["bod", "bo"],
+            ["dzo", "dz"],
+            ["div", "dv"],
+            // Script asymmetries. Each of these reaches the catalog and gets
+            // the script the catalog is written in; the answer to every one of
+            // them is a second catalog beside the first rather than a rename.
+            ["sa-Gran", "sa"],
+            ["sa-Knda", "sa"],
+            ["mni-Mtei", "mni"],
+            ["sat-Deva", "sat"],
+            ["sat-Latn", "sat"],
+            ["ks-Deva", "ks"],
+            ["kok-Latn", "kok"],
+            ["doi-Arab", "doi"],
+            ["mai-Tirh", "mai"],
+            // Region tags, which filter without help.
+            ["sat-IN", "sat"],
+            ["bo-CN", "bo"],
+            ["dz-BT", "dz"],
+            ["dv-MV", "dv"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The near misses. `kfy` (Kumaoni) and `mag` (Magahi) are Indo-Aryan
+         * neighbours of `mai` and `bho` that belong to no macrolanguage with a
+         * catalog; `hoc` (Ho) is Munda like Santali and is not a member of
+         * `sat`; `njz` (Nyishi) and `grt` (Garo) are Tibeto-Burman like Bodo
+         * and are not members of `brx`. All fall to English, which is the
+         * membership rule working rather than a gap in it — the moment
+         * "sounds close to" decides the map, nothing in it is checkable.
+         */
+        it.each(["kfy", "mag", "hoc", "njz", "grt"])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+    });
 });
 
 describe("resolveDocumentLocale", () => {

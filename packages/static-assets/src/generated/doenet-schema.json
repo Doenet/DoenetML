@@ -65016,6 +65016,10 @@
                             "description": "Bulgarian (български)"
                         },
                         {
+                            "value": "bho",
+                            "description": "Bhojpuri (भोजपुरी)"
+                        },
+                        {
                             "value": "bik",
                             "description": "Bikol"
                         },
@@ -65028,8 +65032,16 @@
                             "description": "Bangla (বাংলা)"
                         },
                         {
+                            "value": "bo",
+                            "description": "Tibetan (བོད་སྐད་)"
+                        },
+                        {
                             "value": "br",
                             "description": "Breton (brezhoneg)"
+                        },
+                        {
+                            "value": "brx",
+                            "description": "Bodo (बर’)"
                         },
                         {
                             "value": "bs",
@@ -65066,6 +65078,18 @@
                         {
                             "value": "de",
                             "description": "German (Deutsch)"
+                        },
+                        {
+                            "value": "doi",
+                            "description": "Dogri (डोगरी)"
+                        },
+                        {
+                            "value": "dv",
+                            "description": "Divehi"
+                        },
+                        {
+                            "value": "dz",
+                            "description": "Dzongkha (རྫོང་ཁ)"
                         },
                         {
                             "value": "ee",
@@ -65224,6 +65248,14 @@
                             "description": "Korean (한국어)"
                         },
                         {
+                            "value": "kok",
+                            "description": "Konkani (कोंकणी)"
+                        },
+                        {
+                            "value": "ks",
+                            "description": "Kashmiri (کٲشُر)"
+                        },
+                        {
                             "value": "ky",
                             "description": "Kyrgyz (кыргызча)"
                         },
@@ -65256,6 +65288,10 @@
                             "description": "Madurese"
                         },
                         {
+                            "value": "mai",
+                            "description": "Maithili (मैथिली)"
+                        },
+                        {
                             "value": "mg",
                             "description": "Malagasy"
                         },
@@ -65278,6 +65314,10 @@
                         {
                             "value": "mn",
                             "description": "Mongolian (монгол)"
+                        },
+                        {
+                            "value": "mni",
+                            "description": "Manipuri (মৈতৈলোন্)"
                         },
                         {
                             "value": "mr",
@@ -65378,6 +65418,14 @@
                         {
                             "value": "rw",
                             "description": "Kinyarwanda (Ikinyarwanda)"
+                        },
+                        {
+                            "value": "sa",
+                            "description": "Sanskrit (संस्कृत भाषा)"
+                        },
+                        {
+                            "value": "sat",
+                            "description": "Santali (ᱥᱟᱱᱛᱟᱲᱤ)"
                         },
                         {
                             "value": "sc",

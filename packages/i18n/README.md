@@ -78,16 +78,18 @@ English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
 `se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`,
 `ta`, `te`, `tet`, `tg`, `th`, `ti`, `tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `tt`,
 `ty`, `ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`,
-`zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's
+`zh-Hant`, `zu`, and the South Asian batch — `bho`, `bo`, `brx`, `doi`, `dv`,
+`dz`, `kok`, `ks`, `mai`, `mni`, `sa`, `sat` — is an **unreviewed
+machine-generated seed**, which each file's
 own header says at the top, and which is what #1521's translation platform is
 for. None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-Seventy-four of them are deliberately partial. Seventy-three are partial in the
+Eighty-six of them are deliberately partial. Eighty-five are partial in the
 same place — the two chemistry tables — while Klingon is partial almost
 everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The
-seventy-three are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+eighty-five are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -95,9 +97,11 @@ Southern Sotho, Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low
 German, Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern
 Sami, Yiddish, Haitian Creole, Quechua, Guarani, Aymara, Nahuatl, Kʼicheʼ,
 Mapudungun, Ojibwe, Ilocano, Waray, Hiligaynon, Kapampangan, Bikol, Balinese,
-Minangkabau, Acehnese, Madurese, Tetum, Tongan, Fijian, Tahitian, Chamorro and
-Tok Pisin leave `element-name` and `element-anion-name` out, so those 130 keys
-fall back to English and `lint:i18n` reports the gap.
+Minangkabau, Acehnese, Madurese, Tetum, Tongan, Fijian, Tahitian, Chamorro, Tok
+Pisin, Sanskrit, Maithili, Bhojpuri, Konkani, Dogri, Bodo, Manipuri, Santali,
+Kashmiri, Dhivehi, Tibetan and Dzongkha leave `element-name` and
+`element-anion-name` out, so those 130 keys fall back to English and
+`lint:i18n` reports the gap.
 The first nine have no settled chemical nomenclature to seed from, and
 inventing one would be worse than the English a student meets in their own
 textbook. Kannada has two — native coinages reaching a dozen elements and
@@ -483,6 +487,98 @@ scale: `to` is the only one of the fifteen whose **endonym** CLDR knows — the
 roster reads "Tongan (lea fakatonga)" — and the other fourteen read their
 English name once. None of the fifteen is right-to-left, so `direction.ts` is
 untouched.
+
+### The South Asian batch
+
+Twelve languages, and the thing they add to this file is not any one of them
+but the **four Devanagari catalogs that answer the agreement question three
+different ways**. Sanskrit selects on `$gender` and `$role` and inflects for
+gender, number *and* case; Konkani selects on both with Marathi's three
+genders; Dogri selects on `$gender` alone; Maithili and Bhojpuri select on
+neither. Hindi, Marathi and Nepali were already three more answers in the same
+letters. **A script says nothing about the fork**, which is the sharpest
+statement of that this repository has, and `styleDescriptions.test.ts` pins all
+four side by side so it cannot quietly stop being true.
+
+Dogri is the one worth reading closely, because it is *not* a claim that Dogri
+does not inflect. Its masculine -आ adjectives take an oblique; none of the three
+clause positions reaches it, because the border and background are feminine and
+the text colour is a direct masculine. A `$role` branch would render what the
+`$gender` branch underneath it already renders — the trap named above under
+[Composition, not substitution](#composition-not-substitution), and
+`locales/gu`'s case a second time. Its header records which noun would have to
+change for the answer to change.
+
+**Santali is the first catalog outside Semitic with a `two` plural category.**
+`Intl.PluralRules("sat")` reports `one`, `two` and `other`, because Santali
+marks a dual on the noun with -ᱠᱤᱱ where the plural takes -ᱠᱚ. Hebrew is the
+only other catalog that writes a `[two]` branch and it writes far fewer of
+them; every counted message in `locales/sat` writes all three. **Tibetan and
+Dzongkha are the opposite extreme**: ICU reports exactly one category for each,
+so no message in either can select on a count, and the `[0]` branches that
+survive are matched by *number* rather than by category — Fluent resolves an
+explicit number before it consults the plural rules, which is why a wording for
+none is still reachable.
+
+Two catalogs put their adjectives **after** the noun — Meitei and both
+Tibetan-script ones — and all three therefore reach `[noun-tail]` for the
+regular polygon, because a side count is a complement there. That is the
+Austronesian batch's lesson restated from a different family: what decides the
+split is the shape of the complement, not the side the adjectives sit on.
+
+`bo` and `dz` are two directories rather than one with a script tag, and it is
+the `hr`-against-`sr` case a fifth time: two standard languages, two
+vocabularies, one script. `locales/dz` writes ཧོནམ where `locales/bo` writes
+སྔོན་པོ, and སྦོམ where it writes མཐུག་པོ. They are also partial for *opposite*
+reasons — see the chemistry paragraph above — which is the neatest illustration
+in the roster that the gap is a fact about a school system rather than about a
+script.
+
+`kok` and `doi` are ISO 639-3 **macrolanguages** and join
+`MACROLANGUAGE_MEMBERS` for the same published reason `qu`, `oj` and `bik` did.
+The catalogs are Goan Konkani and Dogri proper; `knn` (Maharashtrian Konkani)
+and `xnr` (Kangri) reach them, and `gom` and `dgo` are the members ICU already
+folds and are listed anyway so each group reads as a whole. Nothing else in the
+batch needs an alias: `san`, `bod`, `dzo` and `div` are all canonicalized by
+`Intl.getCanonicalLocales` before negotiation is reached. `negotiate.test.ts`
+holds that, and holds `kfy`, `mag`, `hoc`, `njz` and `grt` on English —
+neighbours of `mai`, `bho`, `sat` and `brx` that belong to no macrolanguage
+with a catalog, which is the membership rule working rather than a gap in it.
+
+The batch adds **five script asymmetries and no new answer to any of them**.
+`sa` is Devanagari and is written in more scripts than anything else here, so
+`sa-Gran`, `sa-Knda` and a dozen more reach it; `kok` is Devanagari and Romi
+Konkani (`kok-Latn`) reaches it; `doi` is Devanagari and `doi-Arab` reaches it;
+`sat` is Ol Chiki and `sat-Deva`, `sat-Beng`, `sat-Orya` and `sat-Latn` reach
+it; `ks` is Perso-Arabic and `ks-Deva` reaches it. **`mni` is the one that will
+be argued with.** The rule is that a catalog is written in whatever CLDR fills a
+bare tag in as — the rule that makes `sr` Cyrillic and `az` Latin — and `mni`
+maximizes to `mni-Beng`, so the catalog is in Bengali letters even though Meetei
+Mayek is Manipur's official script and what its schools now teach. A reader
+arriving under `mni-Mtei` gets Bengali letters. Here more than anywhere else the
+usual answer — a second catalog beside the first — is owed rather than
+hypothetical, and its header says so.
+
+`dv` is the batch's locale whose **endonym comes back as its English name**, so
+the roster reads "Divehi" once rather than twice. That is `locales/co`'s case
+with Klingon's twist: Dhivehi has a well-known endonym, «ދިވެހި», and CLDR does
+not carry it.
+
+Two of the twelve record a limit rather than a decision, and both are worth
+keeping visible. `locales/ks` writes every adjective in the **masculine
+citation form** although Kashmiri agrees them for gender; `noun-gender` is
+filled in with the real genders anyway, so that a speaker adding the fork has
+the table already and need only write the feminine forms. And `locales/dv` puts
+`piecewise-condition-if` on the wrong side of the mathematics: Dhivehi's
+conditional particle «ނަމަ» is clause-final and the renderer places that key
+*before* what it introduces, which no wording in the catalog can fix. That is
+the `locales/tpi` shape — a distinction the composition messages do not expose
+— and splitting the key into a prefix and a suffix is a change to the worker
+that no existing catalog needs and this one would use.
+
+**Tibetan's case particles are the affix rule in its sharpest form yet**, and
+they belong beside that rule rather than here; see
+[An affix cannot be welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable).
 
 ### A language with no word for it
 
@@ -870,8 +966,10 @@ inflects for case wants a different form in each. So every adjective is handed
 the case it takes: which case a position governs is the catalog's business,
 exactly as `$gender`'s token set already is. `locales/en/content.ftl` lists the
 positions, and `be`, `cs`, `de`, `el`, `et`, `fi`, `fo`, `hi`, `hr`, `is`,
-`ka`, `lt`, `lv`, `mr`, `pa`, `pl`, `ps`, `ro`, `ru`, `sd`, `sk`, `sl`, `sq`,
-`sr`, `uk` and `ur` are the catalogs that select on them. Sharing a script does
+`ka`, `kok`, `lt`, `lv`, `mr`, `pa`, `pl`, `ps`, `ro`, `ru`, `sa`, `sd`, `sk`,
+`sl`, `sq`, `sr`, `uk` and `ur` are the catalogs that select on them, and
+`locales/sa` selects on more of each than any of them — three genders and a
+different case in every clause position. Sharing a script does
 not imply sharing the fork: Marathi and Hindi both take an oblique adjective
 before a postposition and Nepali, written in the same letters, takes none. Nor
 is the fork all-or-nothing: Pashto marks the oblique on a feminine adjective in
@@ -1034,6 +1132,16 @@ what that value turns out to *be*:
 Adjacency is not the problem. `{ $numSides }-kulmio` is correct Finnish for
 every side count, because `-kulmio` is the same whatever number lands in front
 of it. What cannot be written is *agreement* with an unknown word.
+
+**Tibetan and Dzongkha are the table's sharpest entry, and the way out they
+take is the fifth one.** A Tibetan case particle is chosen by the *final letter
+of the syllable before it*: the agentive is གིས་, ཀྱིས་, གྱིས་ or ཡིས་ and the
+genitive གི་, ཀྱི་, གྱི་ or ཡི་. Beside a placeable there is no syllable to
+look at. So `locales/bo` and `locales/dz` use only the particles that have one
+shape — དང་ for accompaniment, ལ་ for location, ནང་ for containment — which is
+*prefer the free allomorph over the bound one* applied to a particle rather
+than to a prefix, and the fourth catalog family to take that way out after
+`ceb`, `quc` and the Bisayan pair.
 
 **Klingon is that paragraph from the other end, and it is worth stating because
 `locales/tlh` welds a suffix onto a placeable in nearly every message it
@@ -1528,8 +1636,8 @@ headers, the graph-controls panel, the editor chrome.
 
 ### Writing a right-to-left catalog
 
-Eight ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd`, `ug` and `yi`. Nothing about the
-file format changes for any of them. A `.ftl` pattern is a sequence of
+Ten ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd`, `ug`, `yi`, `ks` and `dv`. Nothing
+about the file format changes for any of them. A `.ftl` pattern is a sequence of
 characters in **logical** order — the order the text is spoken — and `dir`
 decides where each run is drawn, so a translation is written the way it is read
 and never reordered by hand to look right in an editor. Brackets, quotes and
@@ -1538,9 +1646,9 @@ opening-first; the bidi algorithm turns them around at render time. Digits stay
 Latin, as [everywhere else](#digits-are-latin-separators-are-not), which is why
 an Arabic sentence and the mathematics beside it count in the same characters.
 
-**Direction is not a language family.** These eight share a writing direction
-and almost nothing else, and the catalogs differ from each other far more than
-they differ from `de` or `es`:
+**Direction is not a language family.** These ten share a writing direction and
+almost nothing else, and the catalogs differ from each other far more than they
+differ from `de` or `es`:
 
 | | Adjectives | Gender | Plural categories |
 | --- | --- | --- | --- |
@@ -1550,10 +1658,16 @@ they differ from `de` or `es`:
 | `ur`, `ps`, `sd` | precede the noun | m/f | two |
 | `ug` | precede the noun | none | two |
 | `yi` | precede the noun | m/f/n | two |
+| `ks` | precede the noun | m/f | two |
+| `dv` | precede the noun | none | two |
 
 `ur` is the outlier worth knowing about: its grammar is `hi`'s, so
 `locales/hi` is the closest thing to a parallel text for it and a correction to
-one is usually a correction to both. `ug` is Turkic and agrees with nothing.
+one is usually a correction to both. `ug` is Turkic and agrees with nothing, and `dv` is Indo-Aryan and agrees with
+nothing either — the two reach the same answer from opposite families. `ks` is
+the one of the ten whose catalog records a gap rather than a decision: it *does*
+agree an adjective for gender and this seed does not, which its header says
+outright.
 `yi` is Germanic and the only one of the eight that forks on `$role`: its
 adjectives take a dative after «מיט» and «אויף», so its catalog has the shape
 `locales/de` and `locales/bs` have rather than the shape of the six beside it —
