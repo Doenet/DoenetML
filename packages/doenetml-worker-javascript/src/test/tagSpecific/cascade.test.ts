@@ -1771,4 +1771,138 @@ describe("Cascade tag tests @group4", async () => {
         );
         expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
     });
+
+    // A list item lines its number up with — and suppresses the top margin of —
+    // its first child that renders something, which means skipping one that hid
+    // itself with `hide`. A `<cascade>` is where the two ways a child can be off
+    // screen come apart, and this pins each to its own answer: a revealed step
+    // skips the child that hid *itself* and hands the lead to the next one, while
+    // a step the cascade has not reached hides every child at once through
+    // `hideChildren` and delegates to nobody. Revealing that step then hands the
+    // lead to the child it would have had all along, so nothing about a cascade
+    // advancing moves a number sideways.
+    it("picks a list item's lead by the child's own hide, not the cascade's", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems name="probs">
+  <cascade name="cascade">
+    <problem name="prob1">
+      <p name="hiddenLead" hide>Hidden setup text</p>
+      <p name="lead1">What is 1+1? <answer name="ans1">2</answer></p>
+    </problem>
+    <problem name="prob2">
+      <p name="lead2">What is 2+2? <answer name="ans2">4</answer></p>
+    </problem>
+  </cascade>
+</problems>`,
+        });
+
+        const prob1Idx = await resolvePathToNodeIdx("prob1");
+        const prob2Idx = await resolvePathToNodeIdx("prob2");
+        const hiddenLeadIdx = await resolvePathToNodeIdx("prob1.hiddenLead");
+        const lead1Idx = await resolvePathToNodeIdx("prob1.lead1");
+        const lead2Idx = await resolvePathToNodeIdx("prob2.lead2");
+        const ans1Idx = await resolvePathToNodeIdx("prob1.ans1");
+
+        let stateVariables = await getStateVariables(core);
+
+        // Both problems are numbered list items, so both delegate to a lead.
+        expect(stateVariables[prob1Idx].stateValues.isListItem).eq(true);
+        expect(stateVariables[prob2Idx].stateValues.isListItem).eq(true);
+
+        // The revealed step skips the child that hid itself.
+        expect(stateVariables[hiddenLeadIdx].stateValues.hidden).eq(true);
+        expect(
+            stateVariables[prob1Idx].stateValues.firstVisibleChild.componentIdx,
+        ).eq(lead1Idx);
+        expect(
+            stateVariables[hiddenLeadIdx].stateValues.renderInlineForListItem,
+        ).eq(false);
+        expect(stateVariables[lead1Idx].stateValues.renderInlineForListItem).eq(
+            true,
+        );
+
+        // The step the cascade has not reached hides all of its children, so it
+        // delegates to nobody at all — `hideChildren`, not any child's own
+        // `hide`, is what suppresses the delegation.
+        expect(stateVariables[prob2Idx].stateValues.hideChildren).eq(true);
+        expect(stateVariables[prob2Idx].stateValues.firstVisibleChild).eq(null);
+        expect(stateVariables[lead2Idx].stateValues.hidden).eq(true);
+        expect(stateVariables[lead2Idx].stateValues.renderInlineForListItem).eq(
+            false,
+        );
+
+        // "No lead" has to be reported as no lead. `typeof null === "object"`,
+        // so the flag that says a *component* leads this section had to test for
+        // null before testing the type, or a section delegating to nobody would
+        // claim it had a component first child to suppress the margin of.
+        expect(
+            stateVariables[prob2Idx].stateValues
+                .firstVisibleChildAdjustedForListItem,
+        ).eq(false);
+        expect(stateVariables[prob2Idx].stateValues.useListItemGridLayout).eq(
+            false,
+        );
+
+        await submitMathAnswer({
+            core,
+            latex: "2",
+            mathInputIdx: getMathInputIdx(stateVariables, ans1Idx),
+            answerIdx: ans1Idx,
+        });
+
+        stateVariables = await getStateVariables(core);
+
+        // Revealing the second step hands the lead to the same child that would
+        // have had it all along: the container's hiding never moved it.
+        expect(stateVariables[prob2Idx].stateValues.hideChildren).eq(false);
+        expect(
+            stateVariables[prob2Idx].stateValues.firstVisibleChild.componentIdx,
+        ).eq(lead2Idx);
+        expect(stateVariables[lead2Idx].stateValues.renderInlineForListItem).eq(
+            true,
+        );
+    });
+
+    // `<cascadeMessage>` is the one child a section hides while showing
+    // everything else: its rule is inverted, so it is hidden exactly when the
+    // step's content is revealed. That makes it the case where the renderer and
+    // the core could disagree about which child leads a list item — the renderer
+    // never draws the message, so the core must not hand it the number. It hides
+    // neither by kind nor by its own `hide`, so `childRendersSomething()` alone
+    // does not catch it; the section's own `childrenToHide` is what does.
+    it("does not give a list item's lead to a hidden cascadeMessage", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems name="probs">
+  <problem name="prob">
+    <cascadeMessage name="msg">Finish the previous problem first</cascadeMessage>
+    <p name="lead">Real content</p>
+  </problem>
+</problems>`,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const probIdx = await resolvePathToNodeIdx("prob");
+        const msgIdx = await resolvePathToNodeIdx("msg");
+        const leadIdx = await resolvePathToNodeIdx("lead");
+        const prob = stateVariables[probIdx].stateValues;
+
+        // The setup: a numbered list item that shows its content, and so hides
+        // its message even though nothing set `hide` on it.
+        expect(prob.isListItem).eq(true);
+        expect(prob.hideChildren).eq(false);
+        expect(prob.childrenToHide).eqls([msgIdx]);
+        expect(stateVariables[msgIdx].stateValues.hidden).eq(true);
+        expect(stateVariables[msgIdx].stateValues.hiddenIgnoreParent).eq(false);
+
+        // So the `<p>` behind it leads, and gets the top-margin suppression.
+        expect(prob.firstVisibleChild.componentIdx).eq(leadIdx);
+        expect(stateVariables[leadIdx].stateValues.renderInlineForListItem).eq(
+            true,
+        );
+        expect(stateVariables[msgIdx].stateValues.renderInlineForListItem).eq(
+            false,
+        );
+    });
 });

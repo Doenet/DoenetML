@@ -1169,11 +1169,31 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
-    /** Run assertions against the CSS `::before` pseudo-element for an item. */
+    /**
+     * Run assertions against the CSS `::before` pseudo-element for an item.
+     *
+     * `should`, not `then`: a section's number arrives from the worker, so an
+     * assertion made once against whatever the first paint had is a coin flip —
+     * the flake tracked as #1320. `should` re-runs the callback until it passes
+     * or the command times out, which is what every other assertion in this file
+     * already gets from `cy.get(...).should(...)`. Every caller's callback only
+     * asserts, so re-running one has no other effect.
+     *
+     * #1320 lists more of this file than this one helper as sharing the pattern,
+     * and the rest are `should` now too: the boxed-heading `::before` read, both
+     * grid-layout reads, the `display` read in "untitled unboxed list items align
+     * numbering with block first children", and the three `align-items` reads in
+     * "answer list-item alignment only triggers flex-start for block choiceInput
+     * child" — plus `verifySideBySideColumnTopAlignment()`. Every value any of
+     * them reads is computed in the worker and arrives after the element does, so
+     * a single-shot callback is the same race in each case. There is no remaining
+     * `getComputedStyle` in this file outside a retried callback; keep it that
+     * way.
+     */
     function withBeforeStyle(itemId, callback) {
         const escapedItemId = cesc(itemId);
 
-        cy.get(`#${escapedItemId}`).then(($el) => {
+        cy.get(`#${escapedItemId}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             callback(win.getComputedStyle($el[0], "::before"));
         });
@@ -1257,7 +1277,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
 
         verifyNoBeforeContent(itemId);
 
-        cy.get(`#${escapedItemId} .${escapedHeadingClassName}`).then(
+        cy.get(`#${escapedItemId} .${escapedHeadingClassName}`).should(
             ($headingEl) => {
                 const win = $headingEl[0].ownerDocument.defaultView;
                 const before = win.getComputedStyle($headingEl[0], "::before");
@@ -1291,7 +1311,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         const escapedItemId = cesc(itemId);
         const escapedContentWrapperId = cesc(`${itemId}-content-wrapper`);
 
-        cy.get(`#${escapedItemId}`).then(($el) => {
+        cy.get(`#${escapedItemId}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
@@ -1308,7 +1328,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             expect(before.getPropertyValue("grid-column-start")).to.equal("1");
         });
 
-        cy.get(`#${escapedContentWrapperId}`).then(($el) => {
+        cy.get(`#${escapedContentWrapperId}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("grid-column-start")).to.equal("2");
@@ -1505,7 +1525,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             "0px",
         );
 
-        cy.get(`#${cesc("task6")}`).then(($el) => {
+        cy.get(`#${cesc("task6")}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.not.equal("grid");
@@ -1531,7 +1551,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         // task1: answer with mathInput — section uses baseline alignment, not flex-start
-        cy.get(`#${cesc("task1")}`).then(($el) => {
+        cy.get(`#${cesc("task1")}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
@@ -1539,7 +1559,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         // task2: answer with inline choiceInput — section uses baseline alignment, not flex-start
-        cy.get(`#${cesc("task2")}`).then(($el) => {
+        cy.get(`#${cesc("task2")}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
@@ -1547,7 +1567,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         // task3: answer with block choiceInput — section uses flex-start, choiceInput margin is suppressed
-        cy.get(`#${cesc("task3")}`).then(($el) => {
+        cy.get(`#${cesc("task3")}`).should(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
@@ -1609,6 +1629,113 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         verifyBeforeContent("problem1", '"1."');
         verifyBeforeContent("problem2", '"2."');
         verifyBeforeContent("problem3", '"3."');
+    });
+
+    // A list item lines its number up with its first child that renders
+    // something and suppresses that child's top margin, so a child that hid
+    // itself must not be picked. A `<cascade>` is where that has to be told apart
+    // from the other way a child goes off screen: the cascade hides a whole
+    // step's children until the step is revealed. Only the child's own `hide`
+    // moves the lead, so revealing a step never shifts a number.
+    it("a cascade step's hidden first child does not take the lead", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade name="cascade">
+                <problem name="problem1">
+                    <p name="hiddenLead" hide>Hidden setup text</p>
+                    <answer name="ans1">
+                        <choiceInput name="ci1">
+                            <label>Label behind a hidden paragraph</label>
+                            <choice credit="1">A</choice>
+                            <choice>B</choice>
+                        </choiceInput>
+                    </answer>
+                </problem>
+                <problem name="problem2">
+                    <p name="lead2">Later step</p>
+                </problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#problem1").should("exist");
+        cy.get("#hiddenLead").should("not.exist");
+
+        // The `<answer>` behind the hidden `<p>` is the child whose top margin is
+        // suppressed.
+        cy.get(`#${cesc("ans1")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+        verifyBeforeContent("problem1", '"1."');
+
+        // The step the cascade has not reached hides every child, so it has no
+        // lead at all — and its number is drawn just the same.
+        cy.get("#lead2").should("not.exist");
+        verifyBeforeContent("problem2", '"2."');
+    });
+
+    // `<cascadeMessage>` is the one child a section hides while showing
+    // everything else: its rule is inverted, so it is on screen exactly while the
+    // step around it is *not* revealed. That makes it the child that hides
+    // neither by kind nor by its own `hide` — so once a child's own `hide` is
+    // honored, it is the last child the renderer drops while the core could still
+    // hand it the lead, leaving the `<answer>` behind it with the top margin the
+    // item wanted suppressed.
+    it("a revealed step's hidden cascadeMessage does not take the lead", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade name="cascade">
+                <problem name="problem1">
+                    <cascadeMessage name="msg1">Finish the previous problem first</cascadeMessage>
+                    <answer name="ans1">
+                        <choiceInput name="ci1">
+                            <label>Label behind a hidden message</label>
+                            <choice credit="1">A</choice>
+                            <choice>B</choice>
+                        </choiceInput>
+                    </answer>
+                </problem>
+                <problem name="problem2">
+                    <cascadeMessage name="msg2">Finish the previous problem first</cascadeMessage>
+                    <p name="lead2">Later step</p>
+                </problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#problem1").should("exist");
+
+        // The first step is revealed, so its message is hidden and the
+        // `<answer>` behind it is the child whose top margin is suppressed.
+        cy.get("#msg1").should("not.exist");
+        cy.get(`#${cesc("ans1")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+        verifyBeforeContent("problem1", '"1."');
+
+        // The step still to come is the mirror image: the message shows and the
+        // content does not, and with every child hidden there is no lead.
+        cy.get("#msg2").should("exist");
+        cy.get("#lead2").should("not.exist");
+        verifyBeforeContent("problem2", '"2."');
     });
 
     // ---------------------------------------------------------------------

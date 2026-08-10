@@ -6,7 +6,10 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
-import { childRendersSomething } from "../utils/listItemChild";
+import {
+    childRendersSomething,
+    listItemChildVisibilityDependency,
+} from "../utils/listItemChild";
 
 export class Ol extends BlockComponent {
     constructor(args) {
@@ -243,6 +246,7 @@ export class Li extends BaseComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
+                    ...listItemChildVisibilityDependency(),
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
@@ -252,13 +256,16 @@ export class Li extends BaseComponent {
                 // (whose forwarding is gated on being selected by its own
                 // parent), there is no parent-selection concept here: an
                 // `<li>`'s first visible child always gets the signal, which
-                // suppresses its top margin and, for a labeled `<choiceInput>`,
-                // keeps the native marker on the label's row.
+                // suppresses its top margin. Where the native marker lands is
+                // not decided here — a `<legend>` was moving it, and
+                // `choiceInput.tsx` renders the label in a `<div>` wherever the
+                // input sits.
                 //
-                // `childRendersSomething` judges a child's component type, not
-                // whether that particular child is rendered — a `<p hide>` still
-                // wins the lead. See its doc comment for why that blind spot is
-                // left alone here.
+                // A child that hides itself is skipped, so a leading `<p hide>`
+                // does not strand the child after it — that is what the
+                // visibility dependency spread above lets
+                // `childRendersSomething` see. Only the child's own `hide`
+                // counts, so hiding the `<ol>` around this item changes nothing.
                 const firstVisibleChild = dependencyValues.children.find(
                     (child) =>
                         childRendersSomething(child, componentInfoObjects),

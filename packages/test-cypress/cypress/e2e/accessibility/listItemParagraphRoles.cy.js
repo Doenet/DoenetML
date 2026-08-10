@@ -143,6 +143,13 @@ describe(
             // The core sends `null` for a child it does not render, so a
             // hidden paragraph never reaches the accessibility tree and must
             // not take the leading role from the paragraph after it.
+            //
+            // The renderer decides the role, while the core decides which child
+            // gets its top margin suppressed (`renderInlineForListItem`), and
+            // the two used to disagree here: the renderer skipped the hidden
+            // paragraph and the core did not. Asserting both on the same element
+            // pins them to one answer — the paragraph the renderer promotes to
+            // the leading role is the one the core suppresses the margin of.
             postDoenetML({
                 settleSelector: "#visiblePara",
                 doenetML: `<ol>
@@ -152,6 +159,7 @@ describe(
 
             cy.get("#hiddenPara").should("not.exist");
             cy.get("#visiblePara").should("have.attr", "role", "presentation");
+            cy.get("#visiblePara").should("have.css", "margin-top", "0px");
         });
     },
 );
