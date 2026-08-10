@@ -12,9 +12,11 @@
 # beside the first; here it would be a dozen of them, and Devanagari is the one
 # every Sanskrit reader is taught.
 #
-# **This catalog forks on `$role` more widely than any before it, because
-# Sanskrit inflects an adjective for gender, number *and* case.** Three
-# genders, and each clause position governs a different case:
+# **This catalog forks on `$role` in every message that can, and it is the
+# only one that hands each position a different *case*.** Sanskrit inflects an
+# adjective for gender, number and case; nothing here forks on number, because
+# every form the composition messages need is singular. Three genders, and
+# each clause position governs a different case:
 #
 #   standalone          nominative singular, agreeing with the noun described
 #   border-clause       instrumental feminine, before «सीमया सह»
@@ -241,7 +243,7 @@ line-style =
                 }
         }
 
-# Instrumental plurals, because both places these are used put «सह» after them
+# Instrumental plurals, because everywhere these are used puts «सह» after them
 # — «बिन्दुभिः सह», "with dots". Writing them in the nominative and inflecting
 # them in the frame is not possible: the frame would have to know which stem
 # each was, and the frame only ever sees a formatted string.
@@ -464,8 +466,8 @@ paginator-next = अग्रिमम्
 paginator-page = पृष्ठम्
 
 # «X-मध्ये Y» — "Y among X" — puts the total first, so the two counts change
-# places. The ablative-sense «-मध्ये» is welded to a placeable and has one
-# shape whatever precedes it.
+# places. «-मध्ये» is a locative in form and partitive in sense; it is welded
+# to a placeable and has one shape whatever precedes it.
 paginator-page-status = { $numPages }-मध्ये { $pageLabel } { $currentPage }
 
 

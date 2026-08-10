@@ -3,26 +3,20 @@
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
-# Written in Ol Chiki. Every message that counts something writes a `[two]`
-# branch as well as `[one]` and `[other]`; see `content.ftl`'s header on the
-# dual. DoenetML element, attribute and value names stay in English exactly as
+# Written in Ol Chiki. Every message whose wording depends on a count writes a
+# `[two]` branch as well as `[one]` and `[other]`; see `content.ftl`'s header
+# on the dual. The two `line-segment-attributes-ignored-*` messages are written
+# flat instead, because the count they carry never reaches a noun in the
+# Santali wording and three identical branches would say nothing.
+#
+# DoenetML element, attribute and value names stay in English exactly as
 # written, and so does the `[deprecation]` marker.
 
 ## `<lineSegment>`
 
-line-segment-attributes-ignored-with-endpoints =
-    { $attributesCount ->
-        [one] ᱵᱟᱨᱭᱟᱱ ᱢᱩᱪᱟᱹᱫ ᱴᱩᱰᱟᱹᱜ ᱮᱢ ᱟᱠᱟᱱ ᱠᱷᱟᱱ { $attributes } ᱵᱟᱝ ᱧᱮᱞᱚᱜᱼᱟ
-        [two] ᱵᱟᱨᱭᱟᱱ ᱢᱩᱪᱟᱹᱫ ᱴᱩᱰᱟᱹᱜ ᱮᱢ ᱟᱠᱟᱱ ᱠᱷᱟᱱ { $attributes } ᱵᱟᱝ ᱧᱮᱞᱚᱜᱼᱟ
-       *[other] ᱵᱟᱨᱭᱟᱱ ᱢᱩᱪᱟᱹᱫ ᱴᱩᱰᱟᱹᱜ ᱮᱢ ᱟᱠᱟᱱ ᱠᱷᱟᱱ { $attributes } ᱵᱟᱝ ᱧᱮᱞᱚᱜᱼᱟ
-    }
+line-segment-attributes-ignored-with-endpoints = ᱵᱟᱨᱭᱟᱱ ᱢᱩᱪᱟᱹᱫ ᱴᱩᱰᱟᱹᱜ ᱮᱢ ᱟᱠᱟᱱ ᱠᱷᱟᱱ { $attributes } ᱵᱟᱝ ᱧᱮᱞᱚᱜᱼᱟ
 
-line-segment-attributes-ignored-with-endpoint-and-midpoint =
-    { $attributesCount ->
-        [one] ᱢᱩᱪᱟᱹᱫ ᱴᱩᱰᱟᱹᱜ ᱟᱨ ᱛᱟᱞᱟ ᱴᱩᱰᱟᱹᱜ ᱵᱟᱨᱭᱟᱱ ᱮᱢ ᱟᱠᱟᱱ ᱠᱷᱟᱱ { $attributes } ᱵᱟᱝ ᱧᱮᱞᱚᱜᱼᱟ
-        [two] ᱢᱩᱪᱟᱹᱫ ᱴᱩᱰᱟᱹᱜ ᱟᱨ ᱛᱟᱞᱟ ᱴᱩᱰᱟᱹᱜ ᱵᱟᱨᱭᱟᱱ ᱮᱢ ᱟᱠᱟᱱ ᱠᱷᱟᱱ { $attributes } ᱵᱟᱝ ᱧᱮᱞᱚᱜᱼᱟ
-       *[other] ᱢᱩᱪᱟᱹᱫ ᱴᱩᱰᱟᱹᱜ ᱟᱨ ᱛᱟᱞᱟ ᱴᱩᱰᱟᱹᱜ ᱵᱟᱨᱭᱟᱱ ᱮᱢ ᱟᱠᱟᱱ ᱠᱷᱟᱱ { $attributes } ᱵᱟᱝ ᱧᱮᱞᱚᱜᱼᱟ
-    }
+line-segment-attributes-ignored-with-endpoint-and-midpoint = ᱢᱩᱪᱟᱹᱫ ᱴᱩᱰᱟᱹᱜ ᱟᱨ ᱛᱟᱞᱟ ᱴᱩᱰᱟᱹᱜ ᱵᱟᱨᱭᱟᱱ ᱮᱢ ᱟᱠᱟᱱ ᱠᱷᱟᱱ { $attributes } ᱵᱟᱝ ᱧᱮᱞᱚᱜᱼᱟ
 
 line-segment-midpoint-offset-without-midpoint = ᱛᱟᱞᱟ ᱴᱩᱰᱟᱹᱜ ᱵᱟᱹᱱᱩᱜ ᱠᱷᱟᱱ midpointOffset ᱨᱮᱱ ᱡᱟᱦᱟᱸ ᱠᱟᱹᱢᱤ ᱵᱟᱹᱱᱩᱜᱼᱟ
 

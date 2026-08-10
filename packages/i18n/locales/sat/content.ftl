@@ -13,20 +13,25 @@
 # the same: a second catalog beside this one, never a transliteration inside
 # it.
 #
-# **Santali is the first language in the roster outside Semitic with a `two`
-# plural category, and it is the reason to read the counted messages here
-# closely.** `Intl.PluralRules("sat")` reports `one`, `two` and `other`,
-# because Santali marks a dual on the noun — ᱠᱩᱨᱩᱢᱩᱴᱩ, ᱠᱩᱨᱩᱢᱩᱴᱩᱠᱤᱱ,
-# ᱠᱩᱨᱩᱢᱩᱴᱩᱠᱚ — with the suffix -ᱠᱤᱱ where the plural takes -ᱠᱚ. Hebrew is the
-# only other catalog that writes a `[two]` branch, and it writes far fewer of
-# them. Every message here that counts something writes all three.
+# **Santali is the roster's first Munda language and its first dual outside
+# Semitic and Celtic.** `Intl.PluralRules("sat")` reports `one`, `two` and
+# `other`, because Santali marks a dual on the noun — ᱠᱩᱨᱩᱢᱩᱴᱩ, ᱠᱩᱨᱩᱢᱩᱴᱩᱠᱤᱱ,
+# ᱠᱩᱨᱩᱢᱩᱴᱩᱠᱚ — with the suffix -ᱠᱤᱱ where the plural takes -ᱠᱚ. Nine other
+# catalogs resolve a `two` category and write it — `ar`, `he` and `mt`, the
+# Celtic `br`, `cy`, `ga` and `gd`, plus `se` and `sl` — but none writes it
+# everywhere: this catalog's 16 `[two]` branches are the roster's most, ahead
+# of Slovene's 14, because every counted message it has writes all three.
+# **None of them is in this file**: `content.ftl` has no counted message in
+# any language, so the dual is `chrome.ftl`, `diagnostics.ftl` and
+# `editor.ftl`'s business and their headers repeat it.
 #
 # Santali is Munda: no grammatical gender, no adjective agreement, adjectives
 # in front of the noun. So neither `$gender` nor `$role` is selected on.
 #
-# Numbers render in Latin digits under Indian grouping (#1615), which is worth
-# stating because Ol Chiki has digits of its own (᱐–᱙) that this catalog
-# therefore does not use.
+# Numbers render in Latin digits (#1615), which is worth stating because Ol
+# Chiki has digits of its own (᱐–᱙) that this catalog therefore does not use.
+# Grouping comes from CLDR per locale, and CLDR gives Santali the Western
+# thousands — `1,234,567`, not India's `12,34,567`.
 
 
 ## Style vocabulary

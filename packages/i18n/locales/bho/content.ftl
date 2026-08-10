@@ -11,18 +11,25 @@
 #
 # Bhojpuri selects on neither `$gender` nor `$role`. Its colour and width words
 # — उजर, हरियर, पियर, लाल, नील, मोट, पातर — do not inflect, and an adjective
-# before a postposition is the same word as one standing alone. It is the same
+# before a postposition is the same word as one standing alone. The two that
+# would test that are करिया and खैरा: both are -आ-final, and खैरा has a
+# feminine खैरी. This seed writes them invariant, which is the first thing to
+# put to a speaker. It is the same
 # answer `locales/mai` gives, arrived at independently: these are two languages
 # rather than one, and `locales/bho` writes के where `locales/mai` writes क,
 # भा where it writes वा, and बा where it writes अछि.
 #
-# **`Intl.PluralRules` has Bhojpuri data and reports `one` and `other`**, which
-# is one of the few places in this batch where ICU knows the language rather
-# than falling back to the English rule. The wording of a counted message is
+# **`Intl.PluralRules` has Bhojpuri data and reports `one` and `other`**, and
+# it puts 0 in `one` rather than in `other` as the English rule does — so the
+# category is the language's rather than a fallback. Three of the twelve in
+# this batch get the fallback instead — `mai`, `sa` and `mni`, for which
+# `Intl.PluralRules` resolves to `en-US`. The wording of a counted message is
 # still chosen to read correctly under either branch, because Bhojpuri leaves a
 # noun unmarked after a numeral.
 #
-# Numbers render in Latin digits under Indian grouping (#1615).
+# Numbers render in Latin digits (#1615). Grouping comes from CLDR per
+# locale, and CLDR gives Bhojpuri the Western thousands — `1,234,567`, not
+# India's `12,34,567`, which `hi`, `sa`, `kok` and `brx` get.
 
 
 ## Style vocabulary
@@ -160,7 +167,7 @@ boolean-false = गलत
 
 ## Answer buttons
 
-answer-submit-label = जाँची
+answer-submit-label = जाँचीं
 answer-submit-label-no-correctness = जवाब भेजीं
 
 

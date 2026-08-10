@@ -6,8 +6,10 @@
 # Right-to-left, written in logical order. DoenetML element, attribute and
 # value names stay in English exactly as written, and so does the
 # `[deprecation]` marker. Kashmiri leaves a noun singular after a numeral, so
-# where English separates singular from plural only in the verb the two
-# branches read alike here.
+# where English separates singular from plural only in a noun the two branches
+# read alike — `attribute-invalid-values` and the two `function-*` messages are
+# that case. Where English separates them in the verb, Kashmiri does too:
+# چھُ against چھِ, which is what the branches below carry.
 
 ## `<lineSegment>`
 

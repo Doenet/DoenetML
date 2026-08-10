@@ -3,9 +3,12 @@
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
-# One plural category, so both counted messages below are a single branch; the
-# `[0]` branch is matched by number, not by category. See `content.ftl`'s
-# header for the case particles this catalog restricts itself to.
+# One plural category, so there is nothing for a counted message to select on
+# and `answer-show-responses` is written flat; `attempts-remaining` keeps two
+# branches because its `[0]` is matched by number rather than by category. See
+# `content.ftl`'s header for the case particles the composition messages
+# restrict themselves to — and for why `orbital-row-label` and
+# `summary-statistics-caption` here cannot, and write the default གི་.
 
 
 ## Answer submission
@@ -37,10 +40,7 @@ validation-correct = (ངོ་མ)
 validation-incorrect = (འཛོལ་བ)
 validation-partially-correct = (ཕྱོགས་གཅིག་ངོ་མ)
 
-answer-show-responses =
-    { $count ->
-       *[other] { $answerId } ལུ་ལན་ { $count } སྟོན
-    }
+answer-show-responses = { $answerId } ལུ་ལན་ { $count } སྟོན
 
 
 ## Disclosure panels

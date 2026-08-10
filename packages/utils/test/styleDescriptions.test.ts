@@ -2509,6 +2509,55 @@ describe("the South Asian batch", () => {
     });
 
     /**
+     * Konkani is the batch's other catalog that selects on both arguments, and
+     * it selects the way Marathi does: three genders in the direct case, and
+     * an oblique -या before a postposition. Sanskrit's fork is a different
+     * case in each position; Konkani's is one oblique shared by the two
+     * positions a postposition governs.
+     */
+    it("gives Konkani three genders and an oblique before a postposition", () => {
+        const kok = forLocale("kok");
+        expect(
+            describeStrokedShape(kok, words, {
+                noun: { key: "line-segment" },
+                withNoun: true,
+            }),
+        ).toBe("जाड तुटक तांबडो रेघखंड");
+        expect(
+            describeStrokedShape(kok, words, {
+                noun: { key: "line" },
+                withNoun: true,
+            }),
+        ).toBe("जाड तुटक तांबडी रेघ");
+        expect(
+            describeStrokedShape(kok, words, {
+                noun: { key: "circle" },
+                withNoun: true,
+            }),
+        ).toBe("जाड तुटक तांबडें वर्तुळ");
+        // The oblique, before «कडेसयत» and «फांटभुंयेर»; and the direct
+        // masculine agreeing with «मजकूर» in the text clause.
+        expect(
+            describeClosedShape(
+                kok,
+                { fillColorWord: "blue", colorWord: "red" },
+                { filled: true, noun: { key: "circle" }, withNoun: true },
+            ),
+        ).toContain("तांबड्या कडेसयत");
+        expect(
+            describeText(kok, {
+                color: describeColor(kok, "red", "text", "text-clause"),
+                background: describeColor(
+                    kok,
+                    "blue",
+                    "background",
+                    "background-clause",
+                ),
+            }),
+        ).toBe("निळ्या फांटभुंयेर तांबडो");
+    });
+
+    /**
      * Meitei and the two Tibetan-script catalogs put their adjectives *after*
      * the noun, which no Indo-Aryan catalog in the batch does. All three reach
      * `[noun-tail]` for the regular polygon, because a side count is a
@@ -2546,10 +2595,10 @@ describe("the South Asian batch", () => {
     );
 
     /**
-     * Four Devanagari catalogs, three answers. Marathi and Sanskrit inflect for
-     * both arguments, Dogri for gender alone, and Maithili and Bhojpuri for
-     * neither — so the script says nothing about the fork, which is the point
-     * of asserting them side by side.
+     * Five Devanagari catalogs, three answers. Sanskrit and Konkani inflect
+     * for both arguments, Dogri for gender alone, and Maithili and Bhojpuri
+     * for neither — so the script says nothing about the fork, which is the
+     * point of asserting them side by side.
      */
     it.each(["mai", "bho"])(
         "leaves %s's adjectives unchanged between the two positions",

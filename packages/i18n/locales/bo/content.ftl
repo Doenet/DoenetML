@@ -12,7 +12,8 @@
 #
 # **`Intl.PluralRules("bo")` reports exactly one category, `other`.** Tibetan
 # does not mark number on a noun after a numeral, and ICU records that, so no
-# message in this catalog can select on a count and none tries to. The `[0]`
+# message in any of the four files can select on a count and none tries to:
+# every counted message is written flat. The `[0]`
 # branches that survive are matched by *number* rather than by category, which
 # Fluent resolves before it consults the plural rules — so a wording for none
 # is still reachable. That makes Tibetan the first catalog in the roster whose
@@ -23,11 +24,20 @@
 # syllable before them, and that is the affix rule in its sharpest form yet.**
 # The agentive is གིས་, ཀྱིས་, གྱིས་ or ཡིས་ and the genitive གི་, ཀྱི་, གྱི་
 # or ཡི་, chosen by what precedes — which, beside a placeable, this catalog
-# cannot see. So it uses **only the particles that have one shape**: དང་ for
-# accompaniment, ལ་ for location, ནང་ for containment. That is the fifth way
-# out the README lists — prefer the free allomorph over the bound one — applied
-# to a particle rather than to a prefix, and it is why nothing here welds a
-# genitive onto a value.
+# cannot see. So the phrases this file composes use **only the particles that
+# have one shape**: དང་ for accompaniment, ལ་ for location, ནང་ for
+# containment. That is the fifth way out the README lists — prefer the free
+# allomorph over the bound one — applied to a particle rather than to a prefix,
+# and it is why nothing in `content.ftl` welds a genitive onto a value.
+#
+# **The other three files cannot take that way out, and do not pretend to.** A
+# message like `summary-statistics-caption` or the `variant-*` family names a
+# thing the document contains and needs a genitive to do it, with no invariant
+# particle to reach for. Those write the default shape, གི་ and གིས་, after a
+# placeable — right for most syllables and wrong for some — and that is a
+# recorded limit rather than a decision. Rewording each of them to avoid the
+# genitive is the correction owed; keeping one shape throughout is what makes
+# the wrong ones findable.
 #
 # Tibetan adjectives **follow** the noun: ཐིག་དམར་པོ, a red line. So
 # `style-with-noun` puts the description after the noun, which is the position

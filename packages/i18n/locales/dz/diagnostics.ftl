@@ -157,12 +157,7 @@ circle-change-center-non-numerical = གྲངས་ཀ་མེན་པའི�
 
 ## `<function>`
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-       *[other] བྱེད་ལས་ཀྱི་ཁྱབ་ཁོངས་ལུ་རྒྱ་ཁྱོན་ལངམ་མིན་འདུག ཁྱབ་ཁོངས་ནང་བར་མཚམས་ { $intervals } ཡོད་རུང་བྱེད་ལས་ནང་བཙུགས་སྤྱོད་ { $inputs ->
-           *[other] { $inputs }
-        } ཡོད།
-    }
+function-domain-insufficient-dimensions = བྱེད་ལས་ཀྱི་ཁྱབ་ཁོངས་ལུ་རྒྱ་ཁྱོན་ལངམ་མིན་འདུག ཁྱབ་ཁོངས་ནང་བར་མཚམས་ { $intervals } ཡོད་རུང་བྱེད་ལས་ནང་བཙུགས་སྤྱོད་ { $inputs } ཡོད།
 
 function-domain-invalid-format = བྱེད་ལས་ཀྱི་ཁྱབ་ཁོངས་ཀྱི་རྩ་སྒྲིག་ནོར་བ།
 
@@ -187,12 +182,7 @@ function-ignoring-empty =
 
 function-points-too-close = བྱེད་ལས་ནང་ཚག་གཉིས་ཧ་ཅང་ཉེ་བར་འདུག བྱེད་ལས་ངོས་འཛིན་འབད་མི་ཚུགས།
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-       *[other] བྱེད་ལས་ལོག་བསྐྱར་འབད་ནི་འདི་བཙུགས་སྤྱོད་ཀྱི་གྲངས་ཀ་དང་ཐོན་སྐྱེད་ཀྱི་གྲངས་ཀ་མཉམ་པའི་སྐབས་རྐྱངམ་ཅིག་ཚུགས། བྱེད་ལས་འདི་ནང་བཙུགས་སྤྱོད་ { $inputs } དང་ཐོན་སྐྱེད་ { $outputs ->
-           *[other] { $outputs }
-        } ཡོད།
-    }
+function-iterates-input-output-mismatch = བྱེད་ལས་ལོག་བསྐྱར་འབད་ནི་འདི་བཙུགས་སྤྱོད་ཀྱི་གྲངས་ཀ་དང་ཐོན་སྐྱེད་ཀྱི་གྲངས་ཀ་མཉམ་པའི་སྐབས་རྐྱངམ་ཅིག་ཚུགས། བྱེད་ལས་འདི་ནང་བཙུགས་སྤྱོད་ { $inputs } དང་ཐོན་སྐྱེད་ { $outputs } ཡོད།
 
 ## `<sequence>`
 

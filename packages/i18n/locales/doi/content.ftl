@@ -28,7 +28,9 @@
 # put a masculine oblique in one of those positions would be the thing that
 # changes the answer.
 #
-# Numbers render in Latin digits under Indian grouping (#1615).
+# Numbers render in Latin digits (#1615). Grouping comes from CLDR per
+# locale, and CLDR gives Dogri the Western thousands — `1,234,567`, not
+# India's `12,34,567`, which `hi`, `sa`, `kok` and `brx` get.
 
 
 ## Style vocabulary

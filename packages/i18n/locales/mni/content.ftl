@@ -20,7 +20,8 @@
 # adjective agreement, and — unlike every Indo-Aryan catalog in this batch —
 # its **adjectives follow the noun**: «ফী অঙৌবা», a white cloth. So
 # `style-with-noun` puts the description after the noun rather than before it,
-# and this is the only catalog in the batch that does.
+# which is the position `locales/bo` and `locales/dz` also take and no
+# Indo-Aryan catalog in this batch does.
 #
 # **Two vocabulary decisions to check first.** Four colour words here are
 # Meitei's own — অমুবা, অঙৌবা, অঙাংবা, অশাংবা — and the other eight are the
@@ -31,7 +32,9 @@
 # width are guessed from its ordinary words for large and small, the same guess
 # `locales/brx` makes.
 #
-# Numbers render in Latin digits under Indian grouping (#1615).
+# Numbers render in Latin digits (#1615). Grouping comes from CLDR per
+# locale, and CLDR gives Manipuri the Western thousands — `1,234,567`, not
+# India's `12,34,567`, which `hi`, `sa`, `kok` and `brx` get.
 
 
 ## Style vocabulary
@@ -87,8 +90,9 @@ noun =
     .plus = পুনশিনবা খুদম
 
 # The count follows the noun the way every other modifier does, so the head
-# carries the noun alone and the tail carries the complement. Meitei is the one
-# catalog in this batch that reaches `[tail]`.
+# carries the noun alone and the tail carries the complement. The three
+# post-nominal catalogs in this batch — this one, `bo` and `dz` — are the ones
+# that reach `[tail]`; the Indo-Aryan ones fold the count into the head.
 noun-regular-polygon =
     { $part ->
         [tail] মায়কৈ { $numSides } লৈবা
@@ -200,7 +204,7 @@ section-name =
     .problems = ৱাফম
     .proof = খংহন্নবা
     .question = ৱাহং
-    .section = শরুক
+    .section = খণ্ড
     .solution = পাউখুম লম্বী
     .task = থবক
     .theorem = প্রমেয়

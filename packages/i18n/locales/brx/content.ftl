@@ -17,9 +17,9 @@
 # to use words that do not inflect, and Bodo has nothing that could.
 #
 # **Two vocabulary decisions are worth checking before anything else here.**
-# The four colour words Bodo forms with its own adjectival गो- prefix —
-# गोसो, गुफुर, गोजा, गोथां — are the language's; the other eight are the loans
-# Bodo prose already uses, written in Bodo orthography. And the mathematical
+# The five colour words Bodo forms with its own adjectival गो-/गु- prefix —
+# गोसो, गुफुर, गोजा, गोमो, गोथां — are the language's; the other seven are
+# loans Bodo prose already uses, written in Bodo orthography. And the mathematical
 # nouns are the Assamese- and Sanskrit-derived terms Bodo-medium textbooks in
 # Assam carry, because that is where Bodo's geometry vocabulary comes from
 # rather than from anywhere older. Which of either group a speaker would
@@ -186,9 +186,9 @@ section-name =
     .note = टिप्पनी
     .objectives = गोसोखां
     .paragraphs = अनुच्छेद
-    .part = बाहागो
-    .problem = जटिलता
-    .problems = जटिलता
+    .part = हांखो
+    .problem = जिंगा
+    .problems = जिंगा
     .proof = सान्दांथि
     .question = सोंथि
     .section = बाहागो

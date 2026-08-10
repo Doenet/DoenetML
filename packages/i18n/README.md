@@ -67,22 +67,21 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
-`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ban`, `be`, `bg`, `bik`, `bm`, `bn`,
-`br`, `bs`, `ca`, `ceb`, `ch`, `co`, `cs`, `cy`, `da`, `de`, `ee`, `el`, `es`,
-`et`, `eu`, `fa`, `fi`, `fil`, `fj`, `fo`, `fr`, `fy`, `ga`, `gd`, `gl`, `gn`,
-`gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`,
-`ilo`, `is`, `it`, `ja`, `jv`, `ka`, `kk`, `km`, `kn`, `ko`, `ky`, `lb`, `lg`,
-`ln`, `lo`, `lt`, `lv`, `mad`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mr`, `ms`,
-`mt`, `my`, `nah`, `nb`, `nds`, `ne`, `nl`, `ny`, `oc`, `oj`, `om`, `or`, `pa`,
-`pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `ro`, `ru`, `rw`, `sc`, `scn`, `sd`,
-`se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`, `su`, `sv`, `sw`,
-`ta`, `te`, `tet`, `tg`, `th`, `ti`, `tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `tt`,
-`ty`, `ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`, `yo`, `zh-Hans`,
-`zh-Hant`, `zu`, and the South Asian batch — `bho`, `bo`, `brx`, `doi`, `dv`,
-`dz`, `kok`, `ks`, `mai`, `mni`, `sa`, `sat` — is an **unreviewed
-machine-generated seed**, which each file's
-own header says at the top, and which is what #1521's translation platform is
-for. None has been read by a speaker. Correcting one needs no permission and no
+`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ban`, `be`, `bg`, `bho`, `bik`, `bm`,
+`bn`, `bo`, `br`, `brx`, `bs`, `ca`, `ceb`, `ch`, `co`, `cs`, `cy`, `da`, `de`,
+`doi`, `dv`, `dz`, `ee`, `el`, `es`, `et`, `eu`, `fa`, `fi`, `fil`, `fj`, `fo`,
+`fr`, `fy`, `ga`, `gd`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`,
+`hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`, `jv`, `ka`,
+`kk`, `km`, `kn`, `ko`, `kok`, `ks`, `ky`, `lb`, `lg`, `ln`, `lo`, `lt`, `lv`,
+`mad`, `mai`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mr`, `ms`, `mt`,
+`my`, `nah`, `nb`, `nds`, `ne`, `nl`, `ny`, `oc`, `oj`, `om`, `or`, `pa`,
+`pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `ro`, `ru`, `rw`, `sa`, `sat`,
+`sc`, `scn`, `sd`, `se`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `st`,
+`su`, `sv`, `sw`, `ta`, `te`, `tet`, `tg`, `th`, `ti`, `tk`, `tlh`, `tn`, `to`,
+`tpi`, `tr`, `tt`, `ty`, `ug`, `uk`, `ur`, `uz`, `vi`, `war`, `wo`, `xh`, `yi`,
+`yo`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated seed**,
+which each file's own header says at the top, and which is what #1521's
+translation platform is for. None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
 Eighty-six of them are deliberately partial. Eighty-five are partial in the
@@ -491,14 +490,14 @@ untouched.
 ### The South Asian batch
 
 Twelve languages, and the thing they add to this file is not any one of them
-but the **four Devanagari catalogs that answer the agreement question three
+but the **five Devanagari catalogs that answer the agreement question three
 different ways**. Sanskrit selects on `$gender` and `$role` and inflects for
 gender, number *and* case; Konkani selects on both with Marathi's three
 genders; Dogri selects on `$gender` alone; Maithili and Bhojpuri select on
 neither. Hindi, Marathi and Nepali were already three more answers in the same
 letters. **A script says nothing about the fork**, which is the sharpest
 statement of that this repository has, and `styleDescriptions.test.ts` pins all
-four side by side so it cannot quietly stop being true.
+five side by side so it cannot quietly stop being true.
 
 Dogri is the one worth reading closely, because it is *not* a claim that Dogri
 does not inflect. Its masculine -आ adjectives take an oblique; none of the three
@@ -509,18 +508,21 @@ the text colour is a direct masculine. A `$role` branch would render what the
 `locales/gu`'s case a second time. Its header records which noun would have to
 change for the answer to change.
 
-**Santali is the first catalog outside Semitic with a `two` plural category.**
-`Intl.PluralRules("sat")` reports `one`, `two` and `other`, because Santali
-marks a dual on the noun with -ᱠᱤᱱ where the plural takes -ᱠᱚ. Hebrew is the
-only other catalog that writes a `[two]` branch and it writes far fewer of
-them; every counted message in `locales/sat` writes all three. **Tibetan and
+**Santali is the roster's first Munda language, and the catalog that writes a
+`[two]` branch everywhere one is possible.** `Intl.PluralRules("sat")` reports
+`one`, `two` and `other`, because Santali marks a dual on the noun with -ᱠᱤᱱ
+where the plural takes -ᱠᱚ. A dual is not new here — `ar`, `he`, `mt`, `br`,
+`cy`, `ga`, `gd`, `se` and `sl` all resolve `two` and all write it — but every
+one of them writes it in a handful of messages, and `locales/sat` writes it in
+every counted message it has: 16 branches against Slovene's 14 and Hebrew's
+eight. **Tibetan and
 Dzongkha are the opposite extreme**: ICU reports exactly one category for each,
 so no message in either can select on a count, and the `[0]` branches that
 survive are matched by *number* rather than by category — Fluent resolves an
 explicit number before it consults the plural rules, which is why a wording for
 none is still reachable.
 
-Two catalogs put their adjectives **after** the noun — Meitei and both
+Three catalogs put their adjectives **after** the noun — Meitei and both
 Tibetan-script ones — and all three therefore reach `[noun-tail]` for the
 regular polygon, because a side count is a complement there. That is the
 Austronesian batch's lesson restated from a different family: what decides the
@@ -1137,11 +1139,23 @@ of it. What cannot be written is *agreement* with an unknown word.
 take is the fifth one.** A Tibetan case particle is chosen by the *final letter
 of the syllable before it*: the agentive is གིས་, ཀྱིས་, གྱིས་ or ཡིས་ and the
 genitive གི་, ཀྱི་, གྱི་ or ཡི་. Beside a placeable there is no syllable to
-look at. So `locales/bo` and `locales/dz` use only the particles that have one
-shape — དང་ for accompaniment, ལ་ for location, ནང་ for containment — which is
-*prefer the free allomorph over the bound one* applied to a particle rather
-than to a prefix, and the fourth catalog family to take that way out after
-`ceb`, `quc` and the Bisayan pair.
+look at. So `bo/content.ftl` and `dz/content.ftl` — the two files that
+*compose* a phrase, and so the two that get to choose their particles — use
+only the ones that have a single shape: དང་ for accompaniment, ལ་ (Dzongkha
+ལུ་) for location, ནང་ for containment. That is *prefer the free allomorph
+over the bound one* applied to a particle rather than to a prefix, and the
+fourth catalog family to take that way out after `ceb`, `quc` and the Bisayan
+pair.
+
+**The other three files in each are where the way out runs out**, and it is
+worth saying because no earlier catalog has shown the boundary this clearly. A
+message that names a thing the document contains — `summary-statistics-caption`,
+the fifteen `variant-*` diagnostics — needs a genitive, and there is no
+invariant genitive to reach for. Both catalogs write the default shape, གི་ and
+གིས་, after a placeable: correct after most syllables and wrong after some.
+That is a recorded limit, and the reason to write one shape rather than guess
+per message is that a single wrong form is findable where a scatter of them is
+not. Both headers say so outright.
 
 **Klingon is that paragraph from the other end, and it is worth stating because
 `locales/tlh` welds a suffix onto a placeable in nearly every message it
@@ -1668,10 +1682,10 @@ nothing either — the two reach the same answer from opposite families. `ks` is
 the one of the ten whose catalog records a gap rather than a decision: it *does*
 agree an adjective for gender and this seed does not, which its header says
 outright.
-`yi` is Germanic and the only one of the eight that forks on `$role`: its
+`yi` is Germanic and the only one of the ten that forks on `$role`: its
 adjectives take a dative after «מיט» and «אויף», so its catalog has the shape
-`locales/de` and `locales/bs` have rather than the shape of the six beside it —
-which is the paragraph above put as sharply as it goes. Its one spelling
+`locales/de` and `locales/bs` have rather than the shape of the nine beside
+it — which is the paragraph above put as sharply as it goes. Its one spelling
 convention worth stating is that Yiddish's three digraphs are written as **two
 letters each** — «וו», «וי», «יי» — and never as the precomposed ligatures
 U+05F0–U+05F2, which render identically and compare unequal. CLDR spells the

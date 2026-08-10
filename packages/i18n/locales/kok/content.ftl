@@ -212,7 +212,6 @@ noun-gender =
         [border] f
         [background] f
         [function] n
-        [rectangle] n
         [circle] n
         [plus] n
         [fill] n
@@ -370,9 +369,10 @@ paginator-previous = फाटलें
 paginator-next = फुडलें
 paginator-page = पान
 
-# «X भितर Y» — "Y of X" — puts the total first, so the two counts change
-# places.
-paginator-page-status = { $numPages } भितर { $pageLabel } { $currentPage }
+# «X पैकीं Y» — "Y out of X" — puts the total first, so the two counts change
+# places. «पैकीं» is the partitive, Marathi's «पैकी»; «भितर» would read
+# "inside".
+paginator-page-status = { $numPages } पैकीं { $pageLabel } { $currentPage }
 
 
 ## Piecewise functions

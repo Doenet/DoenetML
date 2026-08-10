@@ -4,8 +4,14 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
 # See `content.ftl`'s header for the single plural category and for the case
-# particles this catalog is restricted to. Both counted messages below are one
-# branch each; the `[0]` branch is matched by number, not by category.
+# particles the composition messages are restricted to. With one category there
+# is nothing for a counted message to select on, so `answer-show-responses` is
+# written flat; `attempts-remaining` keeps two branches because its `[0]` is
+# matched by number rather than by category, which Fluent resolves first.
+#
+# `orbital-row-label` and `summary-statistics-caption` are two of the messages
+# `content.ftl`'s header names as unable to avoid a genitive after a placeable.
+# Both write the default shape, གི་.
 
 
 ## Answer submission
@@ -37,10 +43,7 @@ validation-correct = (ཡང་དག)
 validation-incorrect = (ནོར་འཁྲུལ)
 validation-partially-correct = (ཕྱོགས་གཅིག་ཡང་དག)
 
-answer-show-responses =
-    { $count ->
-       *[other] { $answerId } ལ་ལན་ { $count } སྟོན
-    }
+answer-show-responses = { $answerId } ལ་ལན་ { $count } སྟོན
 
 
 ## Disclosure panels
@@ -90,7 +93,7 @@ orbital-row-label = ཕྲེང་ { $row } གི་མིང་བྱང
 
 pretzel-answer = ལན
 
-summary-statistics-caption = { $column } གྱི་གྲངས་ཐོའི་བསྡུས་དོན
+summary-statistics-caption = { $column } གི་གྲངས་ཐོའི་བསྡུས་དོན
 
 
 ## Math input

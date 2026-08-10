@@ -13,13 +13,16 @@
 #
 # **Maithili selects on neither `$gender` nor `$role`, and it is written in the
 # same letters as three catalogs that select on both.** The colour and width
-# words this catalog uses — उज्जर, हरियर, पीयर, लाल, नील, मोट, पातर — do not
-# end in -आ and do not inflect, so an adjective before a postposition is the
-# same word as one standing alone. That is the point worth keeping: Hindi,
+# words this catalog uses — उज्जर, हरियर, पीयर, लाल, नील, मोट, पातर, and the
+# -ी loans बैंगनी, गुलाबी and नारंगी — do not end in -आ and do not inflect, so
+# an adjective before a postposition is the same word as one standing alone.
+# The one to put to a speaker is कारी, which is -ी where Hindi's कारा is -आ. That is the point worth keeping: Hindi,
 # Marathi and Nepali share this script and answer the question three different
 # ways, so the script says nothing about the fork.
 #
-# Numbers render in Latin digits under Indian grouping (#1615).
+# Numbers render in Latin digits (#1615). Grouping comes from CLDR per
+# locale, and CLDR gives Maithili the Western thousands — `1,234,567`, not
+# India's `12,34,567`, which `hi`, `sa`, `kok` and `brx` get.
 
 
 ## Style vocabulary

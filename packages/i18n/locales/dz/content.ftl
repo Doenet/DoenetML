@@ -13,16 +13,19 @@
 # and it is the `hr`-against-`sr` case a fifth time: two standard languages
 # with two vocabularies and two orthographic habits sharing one script.
 # `locales/dz` writes ཧོནམ where `locales/bo` writes སྔོན་པོ, སྦོམ where it
-# writes མཐུག་པོ, and the Dzongkha adjectival suffix -མ / -པ where Tibetan
-# writes -པོ / -མོ. Copying either over the other would be wrong in both.
+# writes མཐུག་པོ, and ལུ་ where it writes ལ་. The Dzongkha adjectival suffix
+# -མ / -པ stands where Tibetan writes -པོ / -མོ in ཧོནམ, རིངམ, བཀངམ and ཕྲམ,
+# but it is a tendency rather than a rule: five colour terms here keep -པོ.
+# Copying either catalog over the other would be wrong in both.
 #
 # Like Tibetan, `Intl.PluralRules("dz")` reports exactly one category, so no
 # counted message selects and the `[0]` branches that survive are matched by
-# number rather than by category. And like Tibetan, this catalog restricts
-# itself to the case particles that have **one shape** — དང་, ལ་, ནང་ — because
-# the agentive and genitive change form according to the final letter of the
-# syllable before them, which beside a placeable the catalog cannot see. See
-# `locales/bo/content.ftl` for the full statement of that rule.
+# number rather than by category. And like Tibetan, the phrases this file
+# composes use only the case particles that have **one shape** — དང་, ལུ་,
+# ནང་ — because the agentive and genitive change form according to the final
+# letter of the syllable before them, which beside a placeable the catalog
+# cannot see. See `locales/bo/content.ftl` for the full statement of that
+# rule, and for where the other three files cannot keep it.
 #
 # Adjectives follow the noun, so `style-with-noun` puts the description after
 # it.
@@ -40,9 +43,9 @@ color =
     .green = ལྗང་ཁུ
     .cyan = སྔོ་ལྗང
     .blue = ཧོནམ
-    .purple = སྨུག་པོ
+    .purple = རྒྱ་སྨུག
     .pink = ཟིང་སྐྱ
-    .brown = རྒྱ་སྨུག
+    .brown = སྨུག་པོ
 
 line-width =
     .thick = སྦོམ
@@ -146,10 +149,10 @@ style-fill =
 
 style-unfilled = མ་བཀངམ
 
-# «ལ་» is invariant too.
+# «ལུ་», the Dzongkha dative, is invariant too.
 style-text =
     { $parts ->
-        [background] རྒྱབ་གཞི་ { $background } ལ་ { $color }
+        [background] རྒྱབ་གཞི་ { $background } ལུ་ { $color }
        *[plain] { $color }
     }
 

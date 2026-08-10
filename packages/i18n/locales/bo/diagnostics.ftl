@@ -126,8 +126,8 @@ accessibility-short-description-contains-math = འགྲེལ་བཤད་�
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] ལེ་ཚན་གྱི་ཁ་བྱང་ཡི་གེ་ལ་ { $colorName } གྱི་ཁྱད་པར་མི་འདང་ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ཉུང་མཐར་ { $threshold }:1 དགོས) (ནག་སྒོ)།
-       *[other] ལེ་ཚན་གྱི་ཁ་བྱང་ཡི་གེ་ལ་ { $colorName } གྱི་ཁྱད་པར་མི་འདང་ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ཉུང་མཐར་ { $threshold }:1 དགོས)།
+        [dark] ལེ་ཚན་གྱི་ཁ་བྱང་ཡི་གེ་ལ་ { $colorName } གི་ཁྱད་པར་མི་འདང་ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ཉུང་མཐར་ { $threshold }:1 དགོས) (ནག་སྒོ)།
+       *[other] ལེ་ཚན་གྱི་ཁ་བྱང་ཡི་གེ་ལ་ { $colorName } གི་ཁྱད་པར་མི་འདང་ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ཉུང་མཐར་ { $threshold }:1 དགོས)།
     }
 
 ## `<circle>`
@@ -156,12 +156,7 @@ circle-change-center-non-numerical = གྲངས་ཀ་མིན་པའི�
 
 ## `<function>`
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-       *[other] བྱེད་རྩིས་ཀྱི་ཁྱབ་ཁོངས་ལ་རྒྱ་ཁྱོན་མི་འདང་། ཁྱབ་ཁོངས་ནང་བར་མཚམས་ { $intervals } ཡོད་ཀྱང་བྱེད་རྩིས་ལ་ནང་འཇུག་ { $inputs ->
-           *[other] { $inputs }
-        } ཡོད།
-    }
+function-domain-insufficient-dimensions = བྱེད་རྩིས་ཀྱི་ཁྱབ་ཁོངས་ལ་རྒྱ་ཁྱོན་མི་འདང་། ཁྱབ་ཁོངས་ནང་བར་མཚམས་ { $intervals } ཡོད་ཀྱང་བྱེད་རྩིས་ལ་ནང་འཇུག་ { $inputs } ཡོད།
 
 function-domain-invalid-format = བྱེད་རྩིས་ཀྱི་ཁྱབ་ཁོངས་ཀྱི་རྣམ་པ་ནོར་བ།
 
@@ -186,12 +181,7 @@ function-ignoring-empty =
 
 function-points-too-close = བྱེད་རྩིས་ནང་ཚེག་གཉིས་ཧ་ཅང་ཉེ་བར་ཡོད། བྱེད་རྩིས་ངེས་འཛིན་མི་ཐུབ།
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-       *[other] བྱེད་རྩིས་ཡང་བསྐྱར་བྱེད་པ་ནི་ནང་འཇུག་གི་གྲངས་ཀ་དང་ཕྱིར་འདོན་གྱི་གྲངས་ཀ་མཉམ་པའི་སྐབས་ཁོ་ནར་ཐུབ། བྱེད་རྩིས་འདིར་ནང་འཇུག་ { $inputs } དང་ཕྱིར་འདོན་ { $outputs ->
-           *[other] { $outputs }
-        } ཡོད།
-    }
+function-iterates-input-output-mismatch = བྱེད་རྩིས་ཡང་བསྐྱར་བྱེད་པ་ནི་ནང་འཇུག་གི་གྲངས་ཀ་དང་ཕྱིར་འདོན་གྱི་གྲངས་ཀ་མཉམ་པའི་སྐབས་ཁོ་ནར་ཐུབ། བྱེད་རྩིས་འདིར་ནང་འཇུག་ { $inputs } དང་ཕྱིར་འདོན་ { $outputs } ཡོད།
 
 ## `<sequence>`
 
@@ -357,7 +347,7 @@ style-definition-insufficient-contrast =
         [line] རས་གཞིར་བལྟས་པའི་ཐིག་གི་ཚོན་མདངས
         [marker] རས་གཞིར་བལྟས་པའི་རྟགས་ཀྱི་ཚོན་མདངས
        *[text-on-canvas] རས་གཞིར་བལྟས་པའི་ཡི་གེའི་ཚོན་མདངས
-    } ཀྱི་ཁྱད་པར་མི་འདང་{ $mode ->
+    } གི་ཁྱད་པར་མི་འདང་{ $mode ->
         [dark] { " (ནག་སྒོ)" }
        *[light] { "" }
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; ཉུང་མཐར་ { $threshold }:1 དགོས)།
