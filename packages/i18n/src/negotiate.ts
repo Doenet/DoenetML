@@ -54,16 +54,16 @@ const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Five of the
- * six keys — `qu`, `ay`, `gn`, `oj`, `bik` — are ISO 639-3 macrolanguages and
- * list their macrolanguage members; `nah` is an ISO 639-3 **collection** code
- * rather than a macrolanguage, so it lists the individual Nahuan languages ISO
- * 639-5 groups under it.
+ * member of `nb` or `ak`, and both are deliberately left to miss. Seven of the
+ * eight keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi` — are ISO 639-3
+ * macrolanguages and list their macrolanguage members; `nah` is an ISO 639-3
+ * **collection** code rather than a macrolanguage, so it lists the individual
+ * Nahuan languages ISO 639-5 groups under it.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr` — so that each list reads as the whole of a group rather than as the
- * leftovers of one, and so that a change in ICU data cannot silently drop a code
- * out of coverage.
+ * `ayr`, `gom`, `dgo` — so that each list reads as the whole of a group rather
+ * than as the leftovers of one, and so that a change in ICU data cannot
+ * silently drop a code out of coverage.
  *
  * Serving a related variety is a real compromise, and each of these catalogs
  * says in its own header which written standard it is — Southern Quechua,
@@ -171,6 +171,15 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // must not be added: `fil` is a language of its own with a catalog of its
     // own, and folding it here would serve a Tagalog reader Bikol.
     bik: ["bcl", "bln", "bto", "cts", "fbl", "lbl", "rbl", "ubl"],
+    // Konkani. The catalog is Goan Konkani in Devanagari, the standard the Goa
+    // Konkani Akademi publishes in. These two are the whole of the
+    // macrolanguage; `gom` is the one `Intl.getCanonicalLocales` already folds.
+    kok: ["gom", "knn"],
+    // Dogri. The catalog is Dogri proper, which is `dgo` — the variety the
+    // Eighth Schedule names and the J&K academy publishes in. These two are the
+    // whole of the macrolanguage, and `xnr` (Kangri) is the member ICU leaves
+    // unresolvable; `dgo` is the one it already folds.
+    doi: ["dgo", "xnr"],
 };
 
 /** Flattened once at module load rather than searched per request. */
