@@ -261,8 +261,11 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     //
     // `tda` (Tadaksahak) maximizes to `tda-Tfng-NE` — Tifinagh — so a reader
     // most likely arriving in that script is served Latin. That is
-    // `locales/kr`'s asymmetry with `kby` and `locales/ha`'s with Ajami, and
-    // the answer to it is a second catalog rather than a change here.
+    // `locales/kr`'s asymmetry with `kby` in Ajami and `locales/ff`'s in
+    // Adlam — the two other debts CLDR's own maximization creates, rather
+    // than `locales/ha`'s, which CLDR does not: a bare `ha` maximizes to
+    // `ha-Latn-NG`. The answer to it is a second catalog rather than a change
+    // here.
     dje: ["ddn", "hmb", "khq", "ses", "tda", "twq"],
 };
 

@@ -49,11 +49,11 @@ vector-dimension-mismatch = numDimensions ki i sokela mu vetoru ko.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Ki tu tena kukwata ku `<{ $component }>` mukonda ki kyala ni nearestPoint ko.
+attract-to-without-nearest-point = Ki tu tena kukwata ku `<{ $component }>` mukonda ki kyala ni kisokololwelu nearestPoint ko.
 
-constrain-to-without-nearest-point = Ki tu tena kukangela ku `<{ $component }>` mukonda ki kyala ni nearestPoint ko.
+constrain-to-without-nearest-point = Ki tu tena kukangela ku `<{ $component }>` mukonda ki kyala ni kisokololwelu nearestPoint ko.
 
-constrain-to-interior-without-nearest-point = Ki tu tena kukangela mukwa `<{ $component }>` mukonda ki kyala ni nearestPoint ko.
+constrain-to-interior-without-nearest-point = Ki tu tena kukangela mukwa `<{ $component }>` mukonda ki kyala ni kisokololwelu nearestPoint ko.
 
 ## `<choiceInput>`
 
@@ -161,11 +161,11 @@ circle-change-center-non-numerical = O kusokolola o kaxaxi ka kizenge kya bhita 
 
 function-domain-insufficient-dimensions =
     { $intervals ->
-        [one] O udikota ki wa tokala ko mu domain ya funsau. O domain yala ni kitembu { $intervals } maji o funsau yala ni { $inputs ->
+        [one] O udikota wala utetuka kyavulu mu domain ya funsau. O domain yala ni kitembu { $intervals } maji o funsau yala ni { $inputs ->
             [one] input { $inputs }
            *[other] input { $inputs }
         }.
-       *[other] O udikota ki wa tokala ko mu domain ya funsau. O domain yala ni itembu { $intervals } maji o funsau yala ni { $inputs ->
+       *[other] O udikota wala utetuka kyavulu mu domain ya funsau. O domain yala ni itembu { $intervals } maji o funsau yala ni { $inputs ->
             [one] input { $inputs }
            *[other] input { $inputs }
         }.
@@ -230,7 +230,7 @@ target-state-variable-not-found = O target ya `<{ $source }>` ki yabhonga ko: ki
 
 ## `<odeSystem>`
 
-ode-system-variables-match-independent = O isokololwelu ya `<odeSystem>` ya tokala kutepa ni kisokololwelu kya muene.
+ode-system-variables-match-independent = O isokololwelu ya `<odeSystem>` ya tokala kutepa ni kisokololwelu ki kolela ku kima kya mukwa ko.
 
 ode-system-duplicate-variable-names = Ki tu tena kujijila o funsau ja ODE RHS ni majina ma isokololwelu ma vutuluka.
 
@@ -264,13 +264,13 @@ eigen-decomposition-failed = Ki tu tenene kusoka o jieigenvalue ja matrisi
 
 matches-pattern-parameter-not-in-pattern =
     { $parametersCount ->
-        [one] `<matchesPattern>`: o parameter { $parameters } ki yala mu kifwa ko, kienyi i sokela ngó ni kima ki kyala ko.
-       *[other] `<matchesPattern>`: o parameters { $parameters } ki yala mu kifwa ko, kienyi i sokela ngó ni kima ki kyala ko.
+        [one] `<matchesPattern>`: o parameter { $parameters } ki yala mu kifwa ko, kienyi i sokela ithangana yoso ni kima ki kyala ko.
+       *[other] `<matchesPattern>`: o parameters { $parameters } ki yala mu kifwa ko, kienyi i sokela ithangana yoso ni kima ki kyala ko.
     }
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: ki tu tena kwijiya grid="{ $grid }". Ya tokala kukala none, medium, dense, mba italu yyadi ya dikota ya tepwa ni kididi, kála grid="1 0.5". Ki tu bhanga grid ko.
+graph-grid-invalid = `<graph>`: ki tu tena kwijiya grid="{ $grid }". Ya tokala kukala none, medium, dense, mba italu yyadi yala bhulu dya ziro ya tepwa ni kididi, kála grid="1 0.5". Ki tu bhanga grid ko.
 
 ## PreFigure renderer
 
@@ -286,7 +286,7 @@ prefigure-invalid-aspect-ratio = `<graph>`: o aspectRatio ki yabhonga ko mu pref
 
 prefigure-grid-spacing-too-fine = `<graph>`: o kididi kya grid kyala kitetuka kyavulu mu jimbandu ja aksi; o grid i katulwa mu mulondekesi prefigure.
 
-prefigure-annotations-not-rendered = `<graph>`: o annotations ki i londekeswa ko se ki tu kalakala ni mulondekesi PreFigure.
+prefigure-annotations-not-rendered = `<graph>`: o annotations ki i londekeswa ko se ki tu kalakala ni mulondekesi PreFigure ko.
 
 multiple-annotations-children = Kwa sangwa an'a avulu a `<annotations>` mu `<graph>`; oso a xisiwa maji o wa sukina.
 
@@ -354,7 +354,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = O kima `{ $value }` ki kyabhonga ko mu attribute `{ $attribute }`. O attribute ya tokala kukala izwelu i matekesa ni `$`.
 
-math-input-invalid-function-names = <mathInput>: majina ma funsau ki mabhonga ko ma xisiwa mu { $attribute }: { $names }. Dijina dyoso o kitangana kya kulondekesa kya tokala kukala ni jisonekenu jyadi mba javulu (jisonekenu mba jimbandu); `|<mathspeak alternative>` i tena kukayela.
+math-input-invalid-function-names = <mathInput>: majina ma funsau ki mabhonga ko ma xisiwa mu { $attribute }: { $names }. Dijina dyoso o kitangana kya kulondekesa kya tokala kukala ni jisonekenu jyadi mba javulu (jisonekenu mba jifeni); `|<mathspeak alternative>` i tena kukayela.
 
 ## Building components from the source
 
@@ -536,7 +536,7 @@ parser-node-unconvertible = Ki tu tena kusokolola o node { $node } ku node ya Da
 
 name-attribute-invalid =
     O dijina name='{ $name }' ki dyabhonga ko. { $reason ->
-        [characters] O majina ma tena kukala ngó ni jisonekenu, italu, jimbandu ja boxi mba jimbandu.
+        [characters] O majina ma tena kukala ngó ni jisonekenu, italu, jinlonji ja boxi mba jifeni.
        *[start] O majina ma tokala kumatekesa ni disonekenu.
     }
 

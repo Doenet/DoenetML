@@ -115,7 +115,7 @@ editor-none-found = Ki kwa sangelwe kima ko
 
 ## Submitted responses
 
-editor-no-responses = Ki kwala muthu wa tumu kitambwijilu ko
+editor-no-responses = Ki kwala itambwijilu ya tumwa hanji ko
 editor-response-answer-id = Dijina dya kitambwijilu
 editor-response-response = Kitambwijilu
 editor-response-credit = Mbandu
@@ -182,8 +182,8 @@ help-style-number-annotation = { " " }(styleNumber { $styleNumber })
 
 help-allowed-values =
     { $perItem ->
-        [true] Ima ya itanu (kimoxi ku kima kimoxi):
-       *[other] Ima ya itanu:
+        [true] Ima ya tanwa (kimoxi ku kima kimoxi):
+       *[other] Ima ya tanwa:
     }
 
 help-suggested-values = Ima ya londekeswa:

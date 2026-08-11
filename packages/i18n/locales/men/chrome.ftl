@@ -77,7 +77,7 @@ matrix-add-column = Gbua kɔlum
 subset-add-remove-points = Gbua/Wumbu tɔkpɔisia
 subset-toggle-points-intervals = Wote tɔkpɔisia kɛ wati sia
 subset-move-points = Hiti Tɔkpɔisia
-subset-clear = Gbɔyɔ kpɛlɛ
+subset-clear = Wumbu kpɛlɛ
 
 orbital-add-row = Gbua Lɔlɔi
 orbital-remove-row = Wumbu Lɔlɔi

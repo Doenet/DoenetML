@@ -49,11 +49,11 @@ vector-dimension-mismatch = numDimensions ka yi likwatisa vovetoru.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Ka ci tẽliwa oku kokela ku `<{ $component }>` momo ka ci kwete nearestPoint.
+attract-to-without-nearest-point = Ka ci tẽliwa oku kokela ku `<{ $component }>` momo ka ci kwete opongoloso nearestPoint.
 
-constrain-to-without-nearest-point = Ka ci tẽliwa oku kutika ku `<{ $component }>` momo ka ci kwete nearestPoint.
+constrain-to-without-nearest-point = Ka ci tẽliwa oku kutika ku `<{ $component }>` momo ka ci kwete opongoloso nearestPoint.
 
-constrain-to-interior-without-nearest-point = Ka ci tẽliwa oku kutika vokati ka `<{ $component }>` momo ka ci kwete nearestPoint.
+constrain-to-interior-without-nearest-point = Ka ci tẽliwa oku kutika vokati ka `<{ $component }>` momo ka ci kwete opongoloso nearestPoint.
 
 ## `<choiceInput>`
 
@@ -161,11 +161,11 @@ circle-change-center-non-numerical = Epongoloko lyokati kocilinganya ci pita pol
 
 function-domain-insufficient-dimensions =
     { $intervals ->
-        [one] Ovinene ka vya sukila kodomain yofunsão. Domain yi kwete otembo { $intervals } pole funsão yi kwete { $inputs ->
+        [one] Ovinene vi tito calua kodomain yofunsão. Domain yi kwete otembo { $intervals } pole funsão yi kwete { $inputs ->
             [one] input { $inputs }
            *[other] input { $inputs }
         }.
-       *[other] Ovinene ka vya sukila kodomain yofunsão. Domain yi kwete olotembo { $intervals } pole funsão yi kwete { $inputs ->
+       *[other] Ovinene vi tito calua kodomain yofunsão. Domain yi kwete olotembo { $intervals } pole funsão yi kwete { $inputs ->
             [one] input { $inputs }
            *[other] input { $inputs }
         }.
@@ -230,7 +230,7 @@ target-state-variable-not-found = Target ya `<{ $source }>` ka ya sungulukile: k
 
 ## `<odeSystem>`
 
-ode-system-variables-match-independent = Olopongoloso vya `<odeSystem>` vi sukila oku litepa lopongoloso yaco muẽle.
+ode-system-variables-match-independent = Olopongoloso vya `<odeSystem>` vi sukila oku litepa lopongoloso ka yi kolela kucikwavo.
 
 ode-system-duplicate-variable-names = Ka ci tẽliwa oku lomboloka ofunsão vya ODE RHS lolonduko vyolopongoloso vya lilwilwa.
 
@@ -264,13 +264,13 @@ eigen-decomposition-failed = Ka ci tẽlele oku sokisa oloeigenvalue vyomatrisi
 
 matches-pattern-parameter-not-in-pattern =
     { $parametersCount ->
-        [one] `<matchesPattern>`: parameter { $parameters } ka yi kasi vocifwa, kuenje yi likwatisa lika lokahandeleko.
-       *[other] `<matchesPattern>`: parameters { $parameters } ka vi kasi vocifwa, kuenje vi likwatisa lika lokahandeleko.
+        [one] `<matchesPattern>`: parameter { $parameters } ka yi kasi vocifwa, kuenje yi likwatisa olonjanja viosi lokahandeleko.
+       *[other] `<matchesPattern>`: parameters { $parameters } ka vi kasi vocifwa, kuenje vi likwatisa olonjanja viosi lokahandeleko.
     }
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: ka ci tẽliwa oku kũlĩhĩsa grid="{ $grid }". Yi sukila oku kala none, medium, dense, ale ovitalatu vivali vinene vya tepiwa locitumãlo, ndeci grid="1 0.5". Ka ku lingiwa grid.
+graph-grid-invalid = `<graph>`: ka ci tẽliwa oku kũlĩhĩsa grid="{ $grid }". Yi sukila oku kala none, medium, dense, ale ovitalatu vivali vi kasi kilu lya ziro vya tepiwa locitumãlo, ndeci grid="1 0.5". Ka ku lingiwa grid.
 
 ## PreFigure renderer
 
@@ -354,7 +354,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = Ocina `{ $value }` ka ca sungulukile ku attribute `{ $attribute }`. Attribute yi sukila oku kala olondaka vi fetika la `$`.
 
-math-input-invalid-function-names = <mathInput>: olonduko vyofunsão ka vya sungulukile vi yepiwa vu { $attribute }: { $names }. Onduko yosi onepa yayo yokulekisa yi sukila ovisonehua vivali ale valua (ovisonehua ale olondimbu); `|<mathspeak alternative>` yi pondola oku kwãma.
+math-input-invalid-function-names = <mathInput>: olonduko vyofunsão ka vya sungulukile vi yepiwa vu { $attribute }: { $names }. Onduko yosi onepa yayo yokulekisa yi sukila ovisonehua vivali ale valua (ovisonehua ale olofeni); `|<mathspeak alternative>` yi pondola oku kwãma.
 
 ## Building components from the source
 
@@ -536,7 +536,7 @@ parser-node-unconvertible = Ka ci tẽliwa oku pongolola node { $node } ku node 
 
 name-attribute-invalid =
     Onduko name='{ $name }' ka ya sungulukile. { $reason ->
-        [characters] Olonduko vi pondola oku kwata lika ovisonehua, ovitalatu, olondimbu vyemehi ale olondimbu.
+        [characters] Olonduko vi pondola oku kwata lika ovisonehua, ovitalatu, olongoli vyemehi ale olofeni.
        *[start] Olonduko vi sukila oku fetika locisonehua.
     }
 

@@ -49,11 +49,11 @@ vector-dimension-mismatch = numDimensions si saba vekteero ra.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = I si hin ka candi `<{ $component }>` ga zama a sinda nearestPoint.
+attract-to-without-nearest-point = I si hin ka candi `<{ $component }>` ga zama a sinda nearestPoint stet barmayyaŋ.
 
-constrain-to-without-nearest-point = I si hin ka haw `<{ $component }>` ga zama a sinda nearestPoint.
+constrain-to-without-nearest-point = I si hin ka haw `<{ $component }>` ga zama a sinda nearestPoint stet barmayyaŋ.
 
-constrain-to-interior-without-nearest-point = I si hin ka haw `<{ $component }>` ra zama a sinda nearestPoint.
+constrain-to-interior-without-nearest-point = I si hin ka haw `<{ $component }>` ra zama a sinda nearestPoint stet barmayyaŋ.
 
 ## `<choiceInput>`
 
@@ -264,13 +264,13 @@ eigen-decomposition-failed = I mana hin ka matris aygenvalue-yaŋ lasaabu
 
 matches-pattern-parameter-not-in-pattern =
     { $parametersCount ->
-        [one] `<matchesPattern>`: parameter { $parameters } si dumo ra, woodin se a ga saba nda hay kulu si alwaati kulu.
-       *[other] `<matchesPattern>`: parameters { $parameters } si dumo ra, woodin se i ga saba nda hay kulu si alwaati kulu.
+        [one] `<matchesPattern>`: parameter { $parameters } si dumo ra, woodin se a ga saba nda nangu koonu alwaati kulu.
+       *[other] `<matchesPattern>`: parameters { $parameters } si dumo ra, woodin se i ga saba nda nangu koonu alwaati kulu.
     }
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: i si hin ka grid="{ $grid }" faham. A ga hima ka ciya none, medium, dense, wala lasaabu hinka beeri kaŋ nangu na i fay, danga grid="1 0.5". I si grid kulu te.
+graph-grid-invalid = `<graph>`: i si hin ka grid="{ $grid }" faham. A ga hima ka ciya none, medium, dense, wala lasaabu hinka kaŋ go beene ziro ga kaŋ nangu na i fay, danga grid="1 0.5". I si grid kulu te.
 
 ## PreFigure renderer
 

@@ -115,7 +115,7 @@ editor-none-found = Ka kwa sangiwile cimwe
 
 ## Submitted responses
 
-editor-no-responses = Kwakele omunu wa tuma etambululo
+editor-no-responses = Ka kwa tumiwile handi atambululo
 editor-response-answer-id = Onduko yetambululo
 editor-response-response = Etambululo
 editor-response-credit = Olonoso

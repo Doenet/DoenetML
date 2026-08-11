@@ -115,7 +115,7 @@ editor-none-found = I mana du hay kulu
 
 ## Submitted responses
 
-editor-no-responses = Boro kulu mana tuuruyaŋ samba jina
+editor-no-responses = Tuuruyaŋ kaŋ i samba si no jina
 editor-response-answer-id = Tuuruyaŋ maa
 editor-response-response = Tuuruyaŋ
 editor-response-credit = Nooru

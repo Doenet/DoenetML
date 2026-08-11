@@ -84,9 +84,9 @@ orbital-add-row = Tonton Kar
 orbital-remove-row = Kaa Kar
 orbital-add-box = Tonton Sanduku
 orbital-remove-box = Kaa Sanduku
-orbital-add-up-arrow = Tonton Beene Alaama
-orbital-add-down-arrow = Tonton Ganda Alaama
-orbital-remove-arrow = Kaa Alaama
+orbital-add-up-arrow = Tonton Beene Hangaw
+orbital-add-down-arrow = Tonton Ganda Hangaw
+orbital-remove-arrow = Kaa Hangaw
 
 orbital-row-label = Kar { $row } maa
 

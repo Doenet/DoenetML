@@ -83,9 +83,9 @@ orbital-add-row = Vokiya Ongoli
 orbital-remove-row = Pindula Ongoli
 orbital-add-box = Vokiya Ocikuta
 orbital-remove-box = Pindula Ocikuta
-orbital-add-up-arrow = Vokiya Ondimbu Yokilu
-orbital-add-down-arrow = Vokiya Ondimbu Yokemehi
-orbital-remove-arrow = Pindula Ondimbu
+orbital-add-up-arrow = Vokiya Oseta Yokilu
+orbital-add-down-arrow = Vokiya Oseta Yokemehi
+orbital-remove-arrow = Pindula Oseta
 
 orbital-row-label = Onduko yongoli { $row }
 
@@ -98,7 +98,7 @@ summary-statistics-caption = Elomboloko lyovialua vya { $column }
 
 math-input-preview-region = oku tala tete ondaka yomatematika
 math-input-preview = Tala tete
-math-input-invalid-expression = Ondaka ka yisungulukile:
+math-input-invalid-expression = Ondaka ka ya sungulukile:
 
 
 ## Document status
@@ -130,4 +130,4 @@ something-went-wrong = Cimwe ka ca lingile ciwa.
 
 renderer-load-failed = ulekisi umwe ka weyile. Tu ku pinga, tiukulula etapa.
 
-core-start-failed = Ulekisi welivulu ka a tẽlele oku fetika. Tu ku pinga, tiukulula etapa.
+core-start-failed = Ulekisi welivulu ka wa tẽlele oku fetika. Tu ku pinga, tiukulula etapa.

@@ -334,7 +334,7 @@ piecewise-condition-otherwise = kovina vikwavo viosi
 ## `locales/kri` fall back to the English a Nigerian or Sierra Leonean student
 ## meets in their own textbook, and `locales/kg` and `locales/fon` leave the gap
 ## rather than fill it with English words a French-educated reader would not
-## recognize. Angola is the second shape and a sharper one: a student here meets
+## recognize. Angola is the third shape and a sharper one: a student here meets
 ## the periodic table in **Portuguese**, so English is neither Umbundu nor the
 ## curriculum, and the 130 keys fall back to a language that answers nobody.
 ##

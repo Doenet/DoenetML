@@ -115,7 +115,7 @@ editor-none-found = Hinda gbi ii majɔɔ
 
 ## Submitted responses
 
-editor-no-responses = Numu gbi ii njepei ve kpɛlɛ
+editor-no-responses = Njepe veninga gbi ii lɔ kpɛlɛ
 editor-response-answer-id = Njepei biyei
 editor-response-response = Njepei
 editor-response-credit = Ndoli

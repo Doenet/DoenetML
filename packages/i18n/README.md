@@ -1077,6 +1077,42 @@ Umbundu one is the substitution this whole seeding effort is careful not to
 make. It is the clearest case in the repository for a real translator, and
 `locales/umb` records it at the foot of its own file so #1521 can find it.
 
+#### What reading the prose caught, and what it could not
+
+Reviewing these four message by message against `locales/en` turned up one
+defect in **all four at once**, which is worth recording because it is the
+first time a single mistranslation has been unanimous: `graph-grid-invalid`
+rendered "two **positive** numbers" as "two **big** numbers" in Mende,
+Umbundu, Kimbundu and Zarma alike — and the message's own example,
+`grid="1 0.5"`, contradicts it. Every one of the four already had the right
+idiom a few keys away, in
+`select-from-sequence-coprime-not-positive-integers`, so the fix was to reuse
+each catalog's own words rather than to invent any.
+
+The rest of what review fixed is the same shape: a clause the English has and
+the translation dropped (`attract-to-without-nearest-point` and its two
+`constrain-to-*` siblings lost "state variable" in all four), a quantifier
+that changed which claim it made ("will **always** match a blank" became
+"matches **only** a blank"), a complaint that reversed
+(`function-domain-insufficient-dimensions` read "dimensions are not
+*required*"), and buttons whose word belonged to a different control — the
+orbital spin arrows were labelled with `umb`'s, `kmb`'s and `dje`'s word for
+*point*, three lines from a real points control.
+
+**What review deliberately did not fix is the larger finding**, and it is a
+limit of seeding rather than a bug in these four. Each catalog spreads one
+word across several English concepts that the UI shows *at the same time*:
+`umb`'s «ocituwa», `kmb`'s «kifwa» and `dje`'s «dumi» each carry *variant*,
+*version*, *type* and *style* together, and `men`'s «wotela» carries
+*variant*, *version* and *variable*, so in all four the editor's version
+footer and its variant picker are labelled identically. Three of the
+four also head the feedback panel with their word for *answer*, and all four
+use one noun for both *viewer* and *renderer*, so the whole-page failure and
+the one-component failure read alike. Separating these needs new words chosen
+by someone who speaks the language; picking them here would be the
+substitution the chemistry tables are left out to avoid. They are named here
+so #1521 has them.
+
 ### A language with no word for it
 
 `tlh` is **Klingon**, and it is the roster's first constructed language. Nothing

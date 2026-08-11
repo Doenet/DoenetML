@@ -49,11 +49,11 @@ vector-dimension-mismatch = numDimensions ii yɛlɛ kɛnɛi vɛkta hu.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Ti ii gula ti li `<{ $component }>` ma va ngi nearestPoint ii lɔ.
+attract-to-without-nearest-point = Ti ii gula ti li `<{ $component }>` ma va ngi nearestPoint stet wotela ii lɔ.
 
-constrain-to-without-nearest-point = Ti ii gula ti gbɔkɔ `<{ $component }>` ma va ngi nearestPoint ii lɔ.
+constrain-to-without-nearest-point = Ti ii gula ti gbɔkɔ `<{ $component }>` ma va ngi nearestPoint stet wotela ii lɔ.
 
-constrain-to-interior-without-nearest-point = Ti ii gula ti gbɔkɔ `<{ $component }>` bu va ngi nearestPoint ii lɔ.
+constrain-to-interior-without-nearest-point = Ti ii gula ti gbɔkɔ `<{ $component }>` bu va ngi nearestPoint stet wotela ii lɔ.
 
 ## `<choiceInput>`
 
@@ -270,7 +270,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: ti ii gula ti grid="{ $grid }" hugɔɔ. I lɔ i yɛlɛ none, medium, dense, ɔɔ nambasia fele wa na ndɔlɔ a ti gbualɔ, kɛ grid="1 0.5". Ti grid gbi ii yɛlɛ.
+graph-grid-invalid = `<graph>`: ti ii gula ti grid="{ $grid }" hugɔɔ. I lɔ i yɛlɛ none, medium, dense, ɔɔ nambasia fele na ti lɔ ziro woma na ndɔlɔ a ti gbualɔ, kɛ grid="1 0.5". Ti grid gbi ii yɛlɛ.
 
 ## PreFigure renderer
 

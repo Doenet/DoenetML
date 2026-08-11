@@ -84,9 +84,9 @@ orbital-add-row = Bhakela Nlonji
 orbital-remove-row = Katula Nlonji
 orbital-add-box = Bhakela Kaxa
 orbital-remove-box = Katula Kaxa
-orbital-add-up-arrow = Bhakela Kimbanza kya Bhulu
-orbital-add-down-arrow = Bhakela Kimbanza kya Boxi
-orbital-remove-arrow = Katula Kimbanza
+orbital-add-up-arrow = Bhakela Seta ya Bhulu
+orbital-add-down-arrow = Bhakela Seta ya Boxi
+orbital-remove-arrow = Katula Seta
 
 orbital-row-label = Dijina dya nlonji { $row }
 
@@ -129,6 +129,6 @@ accessibility-heading-level-2 = Kidimbu kya kubhixila
 
 something-went-wrong = Kima kya mukwa ki kya bhonga ko.
 
-renderer-load-failed = o mulondekesi umoxi ki weza ko. Tu ku bhinga, sokolola o kibhamba.
+renderer-load-failed = o mulondekesi umoxi ki weza ko. Tu ku bhinga, vutulula o kibhamba.
 
-core-start-failed = O mulondekesi wa divulu ki wa tenene kumatekesa ko. Tu ku bhinga, sokolola o kibhamba.
+core-start-failed = O mulondekesi wa divulu ki wa tenene kumatekesa ko. Tu ku bhinga, vutulula o kibhamba.
