@@ -3,6 +3,10 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 export default class Pegboard extends GraphicalComponent {
     static componentType = "pegboard";
 
+    // A pegboard fills the whole visible region, so there is nowhere for a
+    // label to sit beside it and the renderer draws none.
+    static includeLabels = false;
+
     static componentDocs = {
         summary: "Renders a grid of pegs on a graph",
     };

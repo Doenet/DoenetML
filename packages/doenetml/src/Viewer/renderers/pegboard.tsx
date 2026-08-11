@@ -30,6 +30,10 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
     let previousBounds = useRef<[number, number, number, number] | null>(null);
 
+    // The `boundingbox` listener, kept so that it can be removed again. It is
+    // registered once, from whichever call to `createPegboardJXG` comes first.
+    let boundListener = useRef<(() => void) | null>(null);
+
     let dx = useRef<number>(SVs.dx);
     let dy = useRef<number>(SVs.dy);
     let xoffset = useRef<number>(SVs.xoffset);
@@ -59,6 +63,15 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
     useEffect(() => {
         //On unmount
         return () => {
+            // Both, and in this order. The board outlives a pegboard that is
+            // removed from the document — a `<conditionalContent>` toggled
+            // off, say — so a listener left behind goes on firing, finds no
+            // pegs, and builds a fresh set that belongs to nothing and can
+            // never be removed.
+            if (boundListener.current) {
+                board?.off("boundingbox", boundListener.current);
+                boundListener.current = null;
+            }
             deletePegboardJXG();
         };
     }, []);
@@ -109,7 +122,14 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
             pegboardJXG.current = pegs;
         }
 
-        board.on("boundingbox", () => {
+        if (boundListener.current) {
+            // Already listening. `createPegboardJXG` runs again whenever the
+            // pegs have gone — when the lattice was not drawable and became so
+            // — and each registration would otherwise be permanent.
+            return;
+        }
+
+        const listener = () => {
             let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
             let xind1 = (xMin - xoffset.current) / dx.current;
@@ -134,7 +154,9 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
             ) {
                 recalculatePegboard(minXind, maxXind, minYind, maxYind);
             }
-        });
+        };
+        boundListener.current = listener;
+        board.on("boundingbox", listener);
     }
 
     function deletePegboardJXG() {

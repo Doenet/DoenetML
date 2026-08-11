@@ -116876,13 +116876,6 @@
                         "string"
                     ]
                 },
-                "labelIsName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
                 "applyStyleToLabel": {
                     "optional": true,
                     "type": [
@@ -116928,20 +116921,7 @@
                     ]
                 }
             },
-            "children": [
-                {
-                    "ref": "xLabel"
-                },
-                {
-                    "ref": "yLabel"
-                },
-                {
-                    "ref": "conditionalContent"
-                },
-                {
-                    "ref": "label"
-                }
-            ],
+            "children": [],
             "textChildrenAllowed": false,
             "properties": [
                 {
@@ -116963,13 +116943,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
                     "fromAttribute": true
                 },
                 {
@@ -117050,12 +117023,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component."
                 }
             ]
         },
