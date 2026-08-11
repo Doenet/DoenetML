@@ -814,6 +814,97 @@ describe("negotiateLocales", () => {
             },
         );
     });
+
+    describe("the West and Central African batch, continued", () => {
+        it.each([
+            // Kongo is a macrolanguage, and `kng` — Koongo — is the one member
+            // `Intl.getCanonicalLocales` folds to `kg` on its own, `run`'s case
+            // rather than `bms`'s. The other two reach the catalog only because
+            // `MACROLANGUAGE_MEMBERS` lists them.
+            ["kg", "kg"],
+            ["kng", "kg"],
+            ["kwy", "kg"],
+            ["ldi", "kg"],
+            // `kon` is the ISO 639-2/T code for the macrolanguage itself, which
+            // canonicalizes to `kg` before negotiation is reached.
+            ["kon", "kg"],
+            // The rest have no two-letter code and arrive under the tag their
+            // directory is named for.
+            ["fon", "fon"],
+            ["pcm", "pcm"],
+            ["kri", "kri"],
+            ["kbp", "kbp"],
+            ["tem", "tem"],
+            // Region tags, which filter without help.
+            ["kg-CD", "kg"],
+            ["fon-BJ", "fon"],
+            ["pcm-NG", "pcm"],
+            ["kri-SL", "kri"],
+            ["kbp-TG", "kbp"],
+            ["tem-SL", "tem"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The exclusion that carries this batch's argument, and the one most
+         * likely to be "fixed" by someone who does not know why it is there.
+         *
+         * Kituba is a creole *of* Kikongo rather than a variety of it — see the
+         * two catalogs' headers — and ISO 639-3 gives it a code outside the
+         * `kg` macrolanguage. Listing it among `kg`'s members would serve a
+         * Kituba reader Kikongo, which is a different language and not a
+         * dialect of the one they asked for.
+         *
+         * Asserted on the *un-normalized* tag for the reason the `bam` guard
+         * above records: `negotiateLocales` is public and a host may hand it a
+         * raw `navigator.languages` entry, so the members list really is
+         * consulted for it. The `ktu → ktu` row in the previous batch's block
+         * would pass whether or not `ktu` were listed, since `ktu` has a
+         * catalog of its own and wins on an exact match before any folding.
+         */
+        it.each(["ktu", "mkw"])(
+            "keeps %s out of Kongo's members list",
+            (requested) => {
+                expect(negotiateLocales([requested], available)).not.toContain(
+                    "kg",
+                );
+            },
+        );
+
+        /**
+         * The near misses for this batch. `bin` (Edo) and `efi` (Efik) are
+         * Nigerian neighbours of `pcm` and `tiv`; `men` (Mende) is a Sierra
+         * Leonean neighbour of `kri` and `tem`; `gej` (Gen) is a Gbe language
+         * beside `fon` and `ee`. Every one falls to English rather than being
+         * folded onto a language it is merely near.
+         *
+         * `son` is here for a different reason and is the interesting row: it
+         * is the ISO 639-3 macrolanguage over the Songhay varieties, and this
+         * repository has no catalog for any of them. It is *not* aliased the
+         * way `man` is, because the justification `man`'s entry rests on does
+         * not exist here — `new Intl.Locale("son").maximize()` adds no region,
+         * so CLDR has no opinion about which variety a bare `son` means, and
+         * picking one would be the judgement these maps avoid.
+         */
+        it.each(["bin", "efi", "men", "gej", "son"])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        it("has no CLDR region for `son`, which is why it is not aliased", () => {
+            expect(new Intl.Locale("son").maximize().region).toBeUndefined();
+        });
+    });
 });
 
 describe("resolveDocumentLocale", () => {

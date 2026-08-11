@@ -68,9 +68,9 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Nine of the
- * eleven keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr` — are
- * ISO 639-3 macrolanguages and list their macrolanguage members; `nah` is an
+ * member of `nb` or `ak`, and both are deliberately left to miss. Ten of the
+ * twelve keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`, `kg` —
+ * are ISO 639-3 macrolanguages and list their macrolanguage members; `nah` is an
  * ISO 639-3 **collection** code rather than a macrolanguage, so it lists the
  * individual Nahuan languages ISO 639-5 groups under it; and `mnk` is neither,
  * being a *member* of `man` that this repository happens to name a catalog
@@ -224,6 +224,19 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // `man`, so it would reach Mandinka through the alias anyway, and naming it
     // keeps the list the whole of a group rather than the leftovers of one.
     mnk: ["emk", "mku", "mlq", "msc", "mwk"],
+    // Kongo. The catalog is written towards the Kikongo ya Bandundu standard.
+    // These three are the whole of the macrolanguage; `kng` is the one
+    // `Intl.getCanonicalLocales` already folds to `kg`, and it is listed for
+    // the reason the other already-folded codes above are.
+    //
+    // `ktu` (Kituba) is deliberately absent, and this is the one exclusion here
+    // that is not simply "it has a catalog of its own" — though it does, added
+    // in #1685. Kituba is a creole *of* Kikongo rather than a variety of it,
+    // ISO 639-3 gives it a code outside `kg`, and folding it would be the
+    // judgement this map avoids. `mkw` (Kituba of the Republic of the Congo) is
+    // absent for the same reason and is left to miss; answering it with `ktu`
+    // would be defensible and is not a membership fact, so it is not done here.
+    kg: ["kng", "kwy", "ldi"],
 };
 
 /** Flattened once at module load rather than searched per request. */

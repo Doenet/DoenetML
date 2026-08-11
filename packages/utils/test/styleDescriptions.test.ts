@@ -2997,3 +2997,155 @@ describe("the West and Central African batch", () => {
         ).toBe(expected);
     });
 });
+
+describe("the West and Central African batch, continued", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    const described = (locale: string, key: NounKey) =>
+        describeStrokedShape(forLocale(locale), words, {
+            noun: { key },
+            withNoun: true,
+        });
+
+    /**
+     * **A creole beside its lexifier, which is what this batch was assembled
+     * to show.** `locales/ktu` was seeded in the previous batch as the one
+     * Bantu catalog selecting on nothing: Kituba joins a describing word to
+     * its noun with an invariable «ya». That «ya» is Kongo's class-9 linker,
+     * frozen — and here the linker moves while the stem does not.
+     *
+     * Four rows and three of the four classes — `circle` and `region` are both
+     * class 7, and class 11 belongs to `border`, which the worker-path test's
+     * `sh` row exercises. «nene» and «mbwaki» are constant across all four:
+     * the whole of the agreement in Kikongo is that first syllable. The dash
+     * pattern stays «ya …» in every row, because it is written as a frozen
+     * class-9 phrase — which is to say, as Kituba writes everything.
+     */
+    it("moves only Kongo's linker syllable, never the stem behind it", () => {
+        expect(described("kg", "line")).toBe(
+            "nsinga ya nene ya mbwaki ya bitini bitini",
+        );
+        expect(described("kg", "circle")).toBe(
+            "kizunga kya nene kya mbwaki ya bitini bitini",
+        );
+        expect(described("kg", "point")).toBe(
+            "tona dya nene dya mbwaki ya bitini bitini",
+        );
+        expect(described("kg", "region")).toBe(
+            "fulu kya nene kya mbwaki ya bitini bitini",
+        );
+    });
+
+    /**
+     * The same argument from the other end: a class spelled as a suffix, which
+     * `locales/mos` and `locales/dag` already do with four classes and three.
+     * Kabiyè answers with five, and the stem is again constant — «sɔsɔ-» and
+     * «kɩsɛm-» never move, only what follows them.
+     *
+     * Reading this against the Kongo rows above is the point of having both in
+     * one batch: the agreement is one morph in each, and it lands in front in
+     * one and behind in the other.
+     */
+    it("moves only Kabiyè's class suffix, never the stem in front of it", () => {
+        expect(described("kbp", "line")).toBe(
+            "ñɔʋ sɔsɔʋ kɩsɛmʋ nɛ hɔɔlɩŋ cikpeŋ",
+        );
+        expect(described("kbp", "circle")).toBe(
+            "kpelaɣ sɔsɔɖɛ kɩsɛmɩɖɛ nɛ hɔɔlɩŋ cikpeŋ",
+        );
+        expect(described("kbp", "point")).toBe(
+            "yʋsaɣ sɔsɔa kɩsɛma nɛ hɔɔlɩŋ cikpeŋ",
+        );
+        expect(described("kbp", "region")).toBe(
+            "ɖenɖe sɔsɔtʋ kɩsɛmɩtʋ nɛ hɔɔlɩŋ cikpeŋ",
+        );
+    });
+
+    /**
+     * **Alliterative concord, which is visible in the rendered string and in no
+     * other locale here.** The noun's own prefix and both describing words'
+     * prefixes are the same syllable, three times over in each row:
+     * «kʌlayn kʌbana-bana kʌbana», «rʌtoni rʌbana-bana rʌbana».
+     *
+     * That is why `locales/tem`'s header can claim its `noun-gender` table is
+     * checkable by eye against `noun`, and these rows are what would catch the
+     * table drifting away from the nouns it describes.
+     */
+    it("repeats the Temne noun's own prefix on every describing word", () => {
+        expect(described("tem", "line")).toBe(
+            "kʌlayn kʌbana-bana kʌbana na ʌŋpath-pathi",
+        );
+        expect(described("tem", "circle")).toBe(
+            "tʌkərəŋ tʌbana-bana tʌbana na ʌŋpath-pathi",
+        );
+        expect(described("tem", "point")).toBe(
+            "rʌtoni rʌbana-bana rʌbana na ʌŋpath-pathi",
+        );
+        expect(described("tem", "region")).toBe(
+            "rʌro rʌbana-bana rʌbana na ʌŋpath-pathi",
+        );
+    });
+
+    /**
+     * The three that fork on nothing, one row each, since a second row would
+     * only restate the first.
+     *
+     * The two creoles are worth having side by side even though neither
+     * inflects: same lexifier, same word order, and every content word spelled
+     * differently. That is the whole of what separates them, and it is exactly
+     * what a reader skimming `locales/pcm` and concluding "this is English"
+     * would miss.
+     */
+    it.each([
+        ["fon", "dlɛ̌n gaga vɔvɔ kpó dlɛ̌n kpɛví lɛ́"],
+        ["pcm", "thick brok-brok red lain"],
+        ["kri", "tik brok-brok rɛd layn"],
+    ])("leaves %s's describing words alone", (locale, expected) => {
+        expect(described(locale, "line")).toBe(expected);
+    });
+
+    /**
+     * All six reach `[noun-tail]`, the side count being a complement in every
+     * one of them, as it was in all eleven of the batch above — including the
+     * two English-lexifier creoles, which is the one shape that batch had no
+     * example of.
+     *
+     * The Kabiyè row is the one to read: the colour «kɩsɛmɩɖɛ» ends in the
+     * `-ɖɛ` the header's table gives class 3, which is the class
+     * `noun-gender` assigns `regular-polygon` — the head «poligɔnɩ kɩmaɣzaɣ»
+     * that `noun-regular-polygon` writes. (Kabiyè is not alliterative the way
+     * `locales/tem` is, so that head does not itself display the class; only
+     * the suffix does.) A colour agreeing with something other than its own
+     * head is the easiest defect to write into a class catalog, and this row
+     * is what would catch it here.
+     */
+    it.each([
+        ["kg", "poligone yafwanana ya mbwaki ya makonso 5"],
+        ["fon", "polygone jɛ́jɛ́ vɔvɔ kpó akpá 5"],
+        ["pcm", "red poligọn wey ẹvri sait dey di sem wey gẹt 5 sait"],
+        ["kri", "rɛd pɔligɔn we ɔl di say dɛn na wan we gɛt 5 say"],
+        ["kbp", "poligɔnɩ kɩmaɣzaɣ kɩsɛmɩɖɛ ŋgʋ kɩwɛnɩ hɔɔlɩŋ 5 yɔ"],
+        ["tem", "tʌpɔligɔn tʌ nɔŋ tʌbana tʌ na tʌbʌŋ 5"],
+    ])("closes %s's phrase with the side count", (locale, expected) => {
+        expect(
+            describeStrokedShape(
+                forLocale(locale),
+                { colorWord: "red" },
+                {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                },
+            ),
+        ).toBe(expected);
+    });
+});

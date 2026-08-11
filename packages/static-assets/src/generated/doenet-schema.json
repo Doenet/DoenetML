@@ -65148,6 +65148,10 @@
                             "description": "Faroese (føroyskt)"
                         },
                         {
+                            "value": "fon",
+                            "description": "Fon"
+                        },
+                        {
                             "value": "fr",
                             "description": "French (français)"
                         },
@@ -65256,6 +65260,14 @@
                             "description": "Kabyle (Taqbaylit)"
                         },
                         {
+                            "value": "kbp",
+                            "description": "Kabiyè (Kabɩyɛ)"
+                        },
+                        {
+                            "value": "kg",
+                            "description": "Kongo"
+                        },
+                        {
                             "value": "ki",
                             "description": "Kikuyu (Gikuyu)"
                         },
@@ -65282,6 +65294,10 @@
                         {
                             "value": "kr",
                             "description": "Kanuri"
+                        },
+                        {
+                            "value": "kri",
+                            "description": "Krio"
                         },
                         {
                             "value": "ks",
@@ -65444,6 +65460,10 @@
                             "description": "Pampanga"
                         },
                         {
+                            "value": "pcm",
+                            "description": "Nigerian Pidgin (Naijíriá Píjin)"
+                        },
+                        {
                             "value": "pl",
                             "description": "Polish (polski)"
                         },
@@ -65574,6 +65594,10 @@
                         {
                             "value": "te",
                             "description": "Telugu (తెలుగు)"
+                        },
+                        {
+                            "value": "tem",
+                            "description": "Timne"
                         },
                         {
                             "value": "tet",
