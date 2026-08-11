@@ -1,6 +1,9 @@
 import React from "react";
 
-import { UniqueKeyboardTray } from "./unique-keyboard-tray";
+import {
+    reportMathInputFocus,
+    UniqueKeyboardTray,
+} from "./unique-keyboard-tray";
 import { KeyCommand } from "./keys";
 
 /**
@@ -9,6 +12,20 @@ import { KeyCommand } from "./keys";
 export type IframeMessage = {
     keyCommands: KeyCommand[];
     subject: "keyboard";
+};
+
+/**
+ * A message sent from the iframe up to the parent window, reporting whether a
+ * math input inside it has focus.
+ *
+ * The tray lives in the parent, whose own focus events see no further than
+ * "the iframe is focused" — they cannot distinguish a math input from a text
+ * input inside it, and the two want opposite things from the tray. So the
+ * iframe, which can tell, says so.
+ */
+export type IframeFocusMessage = {
+    subject: "keyboard-focus";
+    mathInputFocused: boolean;
 };
 
 /**
@@ -21,6 +38,25 @@ export function ExternalVirtualKeyboard({
     theme?: "dark" | "light";
     ownerRef: React.RefObject<HTMLIFrameElement | null>;
 }) {
+    React.useEffect(() => {
+        function listener(event: MessageEvent<IframeFocusMessage | undefined>) {
+            // Only this keyboard's own iframe may move this keyboard's tray.
+            if (
+                event.source !== ownerRef.current?.contentWindow ||
+                event.data?.subject !== "keyboard-focus"
+            ) {
+                return;
+            }
+            reportMathInputFocus(event.data.mathInputFocused);
+        }
+
+        window.addEventListener("message", listener);
+
+        return () => {
+            window.removeEventListener("message", listener);
+        };
+    }, [ownerRef]);
+
     return (
         <UniqueKeyboardTray
             ownerRef={ownerRef}

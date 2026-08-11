@@ -2,12 +2,28 @@ import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { OnClick } from "./keyboard";
 import { KeyboardTray } from "./keyboard-tray";
+import { KeyCommand } from "./keys";
 import { MathJaxContext } from "@doenet/utils/mathjax";
-import { mathjaxConfig } from "@doenet/utils";
+import { hasCoarsePrimaryPointer, mathjaxConfig } from "@doenet/utils";
 import type { Direction, Translator } from "@doenet/i18n";
 
 type VirtualKeyboardState = {
     count: number;
+    /**
+     * Whether the tray is expanded. Held here rather than in the tray
+     * component because focus moving into a math input opens it, and that
+     * happens outside the tray's own React tree — in another window entirely
+     * when the viewer is embedded in an iframe.
+     */
+    open: boolean;
+    /**
+     * Whether the reader closed the tray themselves. Their choice outlasts the
+     * input they made it in: the tray then stays shut as they move between
+     * math inputs, rather than springing back open at each one.
+     */
+    userClosedTray: boolean;
+    /** Subscribers to `open`, so a change re-renders only the tray itself. */
+    openListeners: Set<() => void>;
     keyboardDomNode: HTMLElement | null;
     keyboardReactRoot: Root | null;
     registrations: {
@@ -34,6 +50,9 @@ const globalThis = Function("return this")() || {};
 const virtualKeyboardState: VirtualKeyboardState =
     globalThis?.virtualKeyboardState || {
         count: 0,
+        open: false,
+        userClosedTray: false,
+        openListeners: new Set(),
         keyboardDomNode: null,
         keyboardReactRoot: null,
         registrations: [],
@@ -116,6 +135,99 @@ function getTrayRegistration():
     return registrations[registrations.length - 1];
 }
 
+/**
+ * Tells every viewer on the page which keyboard the reader has just asked for.
+ *
+ * Broadcast rather than sent to the focused viewer alone, because a viewer
+ * needs this to decide whether to keep the device's own on-screen keyboard
+ * down, and that has to be settled before the reader focuses one of its
+ * inputs — reaching for the Doenet keyboard before touching any input is the
+ * ordinary way to start on a phone.
+ */
+function broadcastKeyboardChoice(open: boolean) {
+    const choice: KeyCommand[] = [
+        {
+            type: "keyboardChoice",
+            command: open ? "virtual" : "system",
+            timestamp: +new Date(),
+        },
+    ];
+    for (const registration of virtualKeyboardState.registrations) {
+        registration.onClick(choice);
+    }
+}
+
+function getTrayOpen() {
+    return virtualKeyboardState.open;
+}
+
+function subscribeToTrayOpen(listener: () => void) {
+    virtualKeyboardState.openListeners.add(listener);
+    return () => {
+        virtualKeyboardState.openListeners.delete(listener);
+    };
+}
+
+function setTrayOpen(open: boolean, { byUser }: { byUser: boolean }) {
+    if (byUser) {
+        virtualKeyboardState.userClosedTray = !open;
+        // Only the reader's own choice decides which keyboard they get. The
+        // tray following focus around the page is not them asking for the
+        // device's keyboard back.
+        broadcastKeyboardChoice(open);
+    }
+    if (virtualKeyboardState.open === open) {
+        return;
+    }
+    virtualKeyboardState.open = open;
+    // Notify the tray rather than re-rendering the whole tray root: the root
+    // holds the `MathJaxContext` that typesets the keys, and tearing that down
+    // and rebuilding it on every open and close both wastes the work and can
+    // interrupt a typeset already in flight.
+    for (const listener of virtualKeyboardState.openListeners) {
+        listener();
+    }
+}
+
+/**
+ * Reports that focus has entered or left a math input, so the tray can follow
+ * it on devices that have no physical keyboard.
+ *
+ * Only touch devices get this treatment. On a desktop the tray stays under the
+ * reader's manual control, as it always has: it occupies a fixed strip along
+ * the bottom of the window, and springing that open at every math input would
+ * be an imposition on a reader who has a keyboard in front of them.
+ */
+export function reportMathInputFocus(mathInputFocused: boolean) {
+    if (!hasCoarsePrimaryPointer()) {
+        return;
+    }
+
+    if (mathInputFocused) {
+        if (!virtualKeyboardState.userClosedTray) {
+            setTrayOpen(true, { byUser: false });
+        }
+        return;
+    }
+
+    const activeElement = document.activeElement;
+    if (
+        activeElement instanceof Node &&
+        getTrayElement()?.contains(activeElement)
+    ) {
+        // The reader moved into the keyboard itself to operate it. They are
+        // still editing the input they left; the tray must not fold away
+        // underneath them.
+        return;
+    }
+
+    // Focus has gone somewhere that is not a math input — a text input, say,
+    // whose editing wants the device's own keyboard and all the screen the
+    // tray is occupying. Closing is not the reader's own choice, so it does
+    // not count against reopening at the next math input.
+    setTrayOpen(false, { byUser: false });
+}
+
 function rerenderTray() {
     const registration = getTrayRegistration();
     const theme = registration?.theme;
@@ -143,6 +255,9 @@ function rerenderTray() {
         const currentDirection =
             (trayEl.getAttribute("dir") as Direction | null | undefined) ??
             undefined;
+        // Whether the tray is open is deliberately not part of this
+        // comparison: it does not come from a registration, and it reaches the
+        // tray by subscription rather than by re-rendering this root.
         if (
             currentTheme === theme &&
             currentDirection === direction &&
@@ -157,6 +272,41 @@ function rerenderTray() {
     );
 }
 
+/**
+ * Subscribes the tray to the shared open state, so that opening and closing it
+ * — including when focus moving into a math input opens it — re-renders the
+ * tray alone and leaves the `MathJaxContext` above it untouched.
+ */
+function TrayWithSharedOpenState({
+    theme,
+    translate,
+    direction,
+}: {
+    theme: "dark" | "light" | undefined;
+    translate: Translator | undefined;
+    direction: Direction | undefined;
+}) {
+    const open = React.useSyncExternalStore(
+        subscribeToTrayOpen,
+        getTrayOpen,
+        getTrayOpen,
+    );
+
+    return (
+        <KeyboardTray
+            theme={theme}
+            translate={translate}
+            direction={direction}
+            open={open}
+            onOpenChange={(nextOpen) => setTrayOpen(nextOpen, { byUser: true })}
+            onClick={(e) => {
+                // Route key events only to the active (focused) owner.
+                getActiveRegistration()?.onClick(e);
+            }}
+        />
+    );
+}
+
 function renderTray(
     theme: "dark" | "light" | undefined,
     translate: Translator | undefined,
@@ -164,14 +314,10 @@ function renderTray(
 ) {
     return (
         <MathJaxContext config={mathjaxConfig} version={4}>
-            <KeyboardTray
+            <TrayWithSharedOpenState
                 theme={theme}
                 translate={translate}
                 direction={direction}
-                onClick={(e) => {
-                    // Route key events only to the active (focused) owner.
-                    getActiveRegistration()?.onClick(e);
-                }}
             />
         </MathJaxContext>
     );
@@ -274,6 +420,12 @@ export function UniqueKeyboardTray({
                     );
                     virtualKeyboardState.keyboardDomNode = null;
                 }
+                // The tray itself is gone, so neither is there a tray that is
+                // open nor a reader who has closed one. Leaving these set
+                // would have the next tray built on the page inherit the
+                // disposition of a tray its reader never saw.
+                virtualKeyboardState.open = false;
+                virtualKeyboardState.userClosedTray = false;
             } else {
                 rerenderTray();
             }

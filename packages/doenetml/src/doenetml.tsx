@@ -767,7 +767,29 @@ function WrapWithKeyboard({
             translate={translate}
             direction={direction}
             onClick={(keyCommands) => {
-                dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
+                // `keyboardChoice` is a preference, not a key press. It is
+                // routed to the store instead of to the focused input, so that
+                // every math input can decide whether to keep the device's own
+                // on-screen keyboard down. See `KeyCommand`.
+                const lastChoice = keyCommands
+                    .filter((command) => command.type === "keyboardChoice")
+                    .pop();
+                if (lastChoice) {
+                    dispatch(
+                        keyboardSlice.actions.setSystemKeyboardRequested(
+                            lastChoice.command === "system",
+                        ),
+                    );
+                }
+
+                const keyPresses = keyCommands.filter(
+                    (command) => command.type !== "keyboardChoice",
+                );
+                if (keyPresses.length > 0) {
+                    dispatch(
+                        keyboardSlice.actions.setKeyboardInput(keyPresses),
+                    );
+                }
             }}
         />
     ) : null;

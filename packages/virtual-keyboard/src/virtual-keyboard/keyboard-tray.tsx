@@ -37,11 +37,19 @@ const KeyboardIcon = () => (
  */
 export function KeyboardTray({
     onClick,
+    open,
+    onOpenChange,
     theme,
     translate,
     direction,
 }: {
     onClick: OnClick;
+    /**
+     * Whether the tray is expanded. Controlled by `UniqueKeyboardTray`, which
+     * also opens it when focus lands in a math input on a touch device.
+     */
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
     theme?: "dark" | "light";
     /**
      * Chrome translator for the tray's labels. Passed in rather than read from
@@ -61,7 +69,6 @@ export function KeyboardTray({
      */
     direction?: Direction;
 }) {
-    const [open, setOpen] = React.useState(false);
     const t = translate ?? untranslated;
     const openLabel = t("keyboard-open", undefined, "Open Keyboard");
     const closeLabel = t("keyboard-close", undefined, "Close Keyboard");
@@ -72,26 +79,25 @@ export function KeyboardTray({
             data-theme={theme}
             dir={direction}
             className={classNames({ open })}
-            onMouseDown={() => {
-                // The mousedown event appears to precede a blur event on a mathInput,
-                // so this access event will set the accessed timestamp to be
-                // just before the time of the blur if keyboard is clicked while the mathInput is focused.
-                onClick([
-                    { type: "accessed", command: "", timestamp: +new Date() },
-                ]);
-            }}
-            onClick={() => {
-                // If the keyboard is clicked but a key is not clicked, then we send
-                // this accessed event to make sure the math input is still re-focused after the click.
-                // (The click event appears to occur after the blur event on a mathInput.)
-                onClick([
-                    { type: "accessed", command: "", timestamp: +new Date() },
-                ]);
-            }}
+            // Decline focus for the whole tray, keys included: the events from
+            // the buttons bubble to here, and cancelling the default action of
+            // the pointer press is what stops focus from leaving the input the
+            // reader is typing into. Without this the input blurs on every key
+            // and has to be refocused, which on Android re-summons the system
+            // keyboard on top of this tray (issue #1692), and which made the
+            // keyboard unusable from the keyboard itself (issue #747) because
+            // "which input receives keys" was tied to `document.activeElement`.
+            //
+            // `pointerdown` covers touch and mouse; `mousedown` is the fallback
+            // for browsers that deliver no pointer events. Neither cancels the
+            // subsequent `click`, so the keys themselves still work, and
+            // neither affects moving focus into the tray with the Tab key.
+            onPointerDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
         >
             <button
                 className="open-keyboard-button"
-                onClick={() => setOpen((old) => !old)}
+                onClick={() => onOpenChange(!open)}
                 title={open ? closeLabel : openLabel}
                 aria-label={open ? closeLabel : openLabel}
             >
@@ -100,7 +106,7 @@ export function KeyboardTray({
             <div className="keyboard-container">
                 <button
                     className="close-keyboard-button"
-                    onClick={() => setOpen(false)}
+                    onClick={() => onOpenChange(false)}
                     title={closeLabel}
                     aria-label={closeLabel}
                 >

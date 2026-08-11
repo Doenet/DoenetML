@@ -15,7 +15,11 @@ import useDoenetRenderer, {
 import { MathField } from "./mathquill/types";
 import { EditableMathField } from "./mathquill/EditableMathField";
 import "./mathquill/mathquill.css";
-import { DEFAULT_MATH_INPUT_FUNCTION_NAMES } from "@doenet/utils";
+import {
+    DEFAULT_MATH_INPUT_FUNCTION_NAMES,
+    hasCoarsePrimaryPointer,
+    subscribeToPrimaryPointerType,
+} from "@doenet/utils";
 import { DescriptionPopover } from "./utils/Description";
 import * as Ariakit from "@ariakit/react";
 
@@ -372,37 +376,52 @@ function MathInputPreviewPopover({
 }
 
 /**
+ * Whether the reader's primary pointing device is coarse, re-evaluated if that
+ * changes (a tablet gaining a trackpad).
+ */
+function useHasCoarsePrimaryPointer(): boolean {
+    return React.useSyncExternalStore(
+        subscribeToPrimaryPointerType,
+        hasCoarsePrimaryPointer,
+        // Server snapshot: assume a conventional pointer device.
+        () => false,
+    );
+}
+
+/**
  * Computes blur-transition context used by `handleBlur`.
  *
- * Determines whether a blur was likely caused by the virtual keyboard handoff
- * and whether focus moved into the preview region, which allows the input blur
- * to be treated as non-final while preview interaction continues.
+ * Determines where focus went, which decides whether the blur is final. Two
+ * destinations are not: the input's own preview popover, and the virtual
+ * keyboard tray, which the reader may have tabbed into in order to type with
+ * it. In both cases the reader is still working on this input.
+ *
+ * Note that clicking or tapping a key does *not* reach here at all — the tray
+ * cancels the default action of the pointer press, so focus never leaves the
+ * input. Only deliberate keyboard navigation into the tray produces a blur
+ * whose `relatedTarget` is inside it.
  */
 function getBlurTransitionContext({
     relatedTarget,
     previewRef,
-    lastBlurTime,
-    lastKeyboardAccessTime,
 }: {
     relatedTarget: EventTarget | null;
     previewRef: React.RefObject<HTMLDivElement | null>;
-    lastBlurTime: number;
-    lastKeyboardAccessTime: number;
 }) {
-    // If the blur was immediately preceded by a keyboard access,
-    // we conclude that the blur was caused by the keyboard access.
-    // If not, we currently indicate the blur was not caused by a keyboard access,
-    // though we'll also check if there is a keyboard access following the blur.
-    const keyboardCausedBlur =
-        Math.abs(lastKeyboardAccessTime - lastBlurTime) < 100;
-
     const focusMovedToPreview =
         relatedTarget instanceof Node &&
         previewRef.current?.contains(relatedTarget);
 
+    const focusMovedToKeyboardTray =
+        relatedTarget instanceof Node &&
+        (document
+            .getElementById("virtual-keyboard-tray")
+            ?.contains(relatedTarget) ??
+            false);
+
     return {
-        keyboardCausedBlur,
         focusMovedToPreview,
+        focusMovedToKeyboardTray,
     };
 }
 
@@ -454,6 +473,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const virtualKeyboardEvents = useAppSelector(
         keyboardSlice.selectors.keyboardInput,
     );
+    const systemKeyboardRequested = useAppSelector(
+        keyboardSlice.selectors.systemKeyboardRequested,
+    );
     const focusedMathInput = useContext(FocusedMathInputContext);
     const [mathField, setMathField] = useState<MathField | null>(null);
     // `EditableMathField`'s `handlers.enter` callback can hold stale captures.
@@ -463,9 +485,33 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const [focused, setFocused] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null); // Ref to keep track of the mathInput's disabled state
 
-    const lastKeyboardAccessTime = useRef(0);
-    const lastBlurTime = useRef(0);
-    const keyboardCausedBlur = useRef(false);
+    // On a touch device the Doenet keyboard and the device's own on-screen
+    // keyboard compete for the same screen, so only one of them may be in
+    // play. The Doenet keyboard has it unless the reader closes the tray,
+    // which is how they ask for the device's keyboard back. Deciding this from
+    // the outset, rather than waiting for the tray to open, is what stops the
+    // system keyboard from appearing at the first math input a reader taps.
+    const coarsePointer = useHasCoarsePrimaryPointer();
+    const suppressSystemKeyboard = coarsePointer && !systemKeyboardRequested;
+
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) {
+            return;
+        }
+        // `inputmode="none"` keeps focus, the caret, selection, and any
+        // physical keyboard working while telling the device not to raise its
+        // on-screen keyboard — the standard way to run a custom math keyboard
+        // on the web (issue #1692). Supported by Chrome/Android 66+, Safari
+        // iOS 12.2+, and Firefox for Android; ignored by desktop browsers,
+        // which is harmless because it is only ever set on touch devices.
+        //
+        // Changing this while the input is focused does not retract a system
+        // keyboard that is already up: reopening it, or dismissing it, needs a
+        // fresh tap on the input, because iOS raises the keyboard only during
+        // a user gesture and this runs after one.
+        textarea.inputMode = suppressSystemKeyboard ? "none" : "text";
+    }, [suppressSystemKeyboard, mathField]);
 
     const rendererValue = useRef(SVs.rawRendererValue);
 
@@ -579,7 +625,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     React.useEffect(() => {
         if (!mathField || focusedMathInput.current !== mathField.el()) {
-            // If we aren't the focused math input, ignore the events
+            // These keys belong to a different input. `focusedMathInput` is
+            // the record of which input the virtual keyboard is typing into;
+            // it deliberately outlives `document.activeElement` moving into
+            // the tray, so that the keyboard can be operated from the keyboard.
             return;
         }
         for (const event of virtualKeyboardEvents) {
@@ -598,50 +647,37 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 }
                 continue;
             }
-            if (event.type === "accessed") {
-                // Record when the virtual keyboard was accessed.
-                lastKeyboardAccessTime.current = event.timestamp || 0;
-
-                // If keyboard access immediately follows blur, treat that blur as
-                // keyboard-caused (handoff), not user intent to leave the field.
-                if (
-                    Math.abs(
-                        lastKeyboardAccessTime.current - lastBlurTime.current,
-                    ) < 100
-                ) {
-                    keyboardCausedBlur.current = true;
-                }
-            }
-            if (keyboardCausedBlur.current) {
-                switch (event.type) {
-                    case "accessed":
-                        // Already handled
-                        break;
-                    case "cmd":
-                        mathField.cmd(event.command);
-                        break;
-                    case "write":
-                        mathField.write(event.command);
-                        break;
-                    case "keystroke":
-                        mathField.keystroke(event.command);
-                        break;
-                    case "type":
-                        mathField.typedText(event.command);
-                        break;
-                    default:
-                        console.warn(
-                            `Unknown event type: ${event.type} in MathInput`,
-                            event,
-                        );
-                        break;
-                }
+            switch (event.type) {
+                case "accessed":
+                case "keyboardChoice":
+                    // Not key presses. Both are handled elsewhere (or, for
+                    // `accessed`, no longer needed at all); see `KeyCommand`.
+                    break;
+                case "cmd":
+                    mathField.cmd(event.command);
+                    break;
+                case "write":
+                    mathField.write(event.command);
+                    break;
+                case "keystroke":
+                    mathField.keystroke(event.command);
+                    break;
+                case "type":
+                    mathField.typedText(event.command);
+                    break;
+                default:
+                    console.warn(
+                        `Unknown event type: ${event.type} in MathInput`,
+                        event,
+                    );
+                    break;
             }
         }
-        if (keyboardCausedBlur.current) {
-            // If the keyboard caused the blur, return focus to the mathField
-            mathField.focus();
-        }
+        // Deliberately no `mathField.focus()` here. The tray declines focus, so
+        // this input still has it; and when the reader has instead tabbed into
+        // the tray, pulling focus back would make the keyboard impossible to
+        // operate by keyboard. Refocusing on every key is also what re-summoned
+        // Android's system keyboard over the tray (issue #1692).
     }, [virtualKeyboardEvents]);
 
     function onFocusChanged(focused: boolean) {
@@ -660,33 +696,36 @@ export default function MathInput(props: UseDoenetRendererProps) {
     };
 
     const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
-        lastBlurTime.current = +new Date();
-
-        const {
-            keyboardCausedBlur: nextKeyboardCausedBlur,
-            focusMovedToPreview,
-        } = getBlurTransitionContext({
-            relatedTarget: e.relatedTarget,
-            previewRef: preview.previewRef,
-            lastBlurTime: lastBlurTime.current,
-            lastKeyboardAccessTime: lastKeyboardAccessTime.current,
-        });
-
-        keyboardCausedBlur.current = nextKeyboardCausedBlur;
-
-        if (!keyboardCausedBlur.current) {
-            // For a genuine blur (not virtual-keyboard handoff), commit and unfocus.
-            callAction({
-                action: actions.updateValue,
-                baseVariableValue: rendererValue.current,
+        const { focusMovedToPreview, focusMovedToKeyboardTray } =
+            getBlurTransitionContext({
+                relatedTarget: e.relatedTarget,
+                previewRef: preview.previewRef,
             });
-            onFocusChanged(false);
 
-            // Keep preview open when keyboard focus tabs from the input into the
-            // preview region.
-            if (focusMovedToPreview) {
-                preview.setInteractingWithPreview(true);
-            }
+        if (focusMovedToKeyboardTray) {
+            // The reader moved focus into the virtual keyboard in order to type
+            // with it, so this input is still the one being edited: stay
+            // registered as the target of its keys, and neither commit the
+            // value nor drop the focused styling.
+            return;
+        }
+
+        // For a genuine blur, stop claiming the virtual keyboard's keys, then
+        // commit and unfocus.
+        if (mathField && focusedMathInput.current === mathField.el()) {
+            focusedMathInput.current = null;
+        }
+
+        callAction({
+            action: actions.updateValue,
+            baseVariableValue: rendererValue.current,
+        });
+        onFocusChanged(false);
+
+        // Keep preview open when keyboard focus tabs from the input into the
+        // preview region.
+        if (focusMovedToPreview) {
+            preview.setInteractingWithPreview(true);
         }
     };
 
@@ -1134,6 +1173,14 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     textareaRef.current = document.createElement("textarea");
                     textareaRef.current.id = inputKey;
                     textareaRef.current.disabled = SVs.disabled;
+                    // MathQuill puts these on the textarea it would have built
+                    // itself, so a substitute has to repeat them. They matter
+                    // most on phones, whose keyboards would otherwise
+                    // capitalize and autocorrect mathematics.
+                    textareaRef.current.setAttribute("autocapitalize", "off");
+                    textareaRef.current.setAttribute("autocomplete", "off");
+                    textareaRef.current.setAttribute("autocorrect", "off");
+                    textareaRef.current.spellcheck = false;
                     textareaRef.current.addEventListener("keydown", (event) => {
                         if (event.key === "Escape") {
                             // Match preview Escape behavior: dismiss the

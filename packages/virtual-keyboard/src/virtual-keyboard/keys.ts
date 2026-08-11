@@ -1,5 +1,25 @@
+/**
+ * A message sent from the virtual keyboard tray to whichever input is active.
+ *
+ * Most types are literal key presses. Two are not, and ride this channel
+ * because it is the only one that already spans the iframe boundary (the tray
+ * lives in the embedding page, the inputs live inside the iframe):
+ *
+ * - `"accessed"` — retained so a tray and a viewer built from different
+ *   bundle versions still speak the same protocol. Current viewers ignore it;
+ *   it used to drive a blur/refocus timing heuristic that the tray no longer
+ *   needs now that it declines focus outright.
+ * - `"keyboardChoice"` — which keyboard the reader has asked for, with
+ *   `command` set to `"virtual"` (they opened the tray) or `"system"` (they
+ *   closed it). On a touch device the two keyboards compete for the same
+ *   screen, so a math input keeps the device's own on-screen keyboard down
+ *   until told the reader wants it. Sent only when the reader chooses: the
+ *   tray also opens and closes by itself as focus moves between inputs, and
+ *   that is not a statement about which keyboard they would rather have.
+ */
 export type KeyCommand = {
-    type: "keystroke" | "type" | "write" | "cmd" | "accessed";
+    type:
+        "keystroke" | "type" | "write" | "cmd" | "accessed" | "keyboardChoice";
     command: string;
     timestamp?: number;
 };

@@ -1,7 +1,10 @@
 import React from "react";
 
-import { IframeMessage } from "./external-virtual-keyboard";
-import { UniqueKeyboardTray } from "./unique-keyboard-tray";
+import { IframeFocusMessage, IframeMessage } from "./external-virtual-keyboard";
+import {
+    reportMathInputFocus,
+    UniqueKeyboardTray,
+} from "./unique-keyboard-tray";
 import { KeyCommand } from "./keys";
 import type { Direction, Translator } from "@doenet/i18n";
 
@@ -79,6 +82,62 @@ export function ExternalAwareVirtualKeyboard({
             };
         }
     }, [externalVirtualKeyboardProvided, onClick]);
+
+    // Watch focus entering and leaving this viewer's math inputs, so the tray
+    // can follow it on a touch device. `ownerRef` is the element of whichever
+    // math input is currently focused, which makes it the signal: a text input
+    // taking focus leaves it empty, and the tray gets out of the way of the
+    // device's own keyboard.
+    React.useEffect(() => {
+        let lastReported: boolean | null = null;
+        let pending: ReturnType<typeof setTimeout> | undefined;
+
+        function report() {
+            const activeElement = document.activeElement;
+            const owner = ownerRef.current;
+            const mathInputFocused =
+                owner !== null &&
+                activeElement instanceof Node &&
+                owner.contains(activeElement);
+
+            if (mathInputFocused === lastReported) {
+                return;
+            }
+            lastReported = mathInputFocused;
+
+            if (externalVirtualKeyboardProvided) {
+                // The tray lives in the embedding page, which cannot see which
+                // element inside this iframe has focus. See `IframeFocusMessage`
+                // for why the target origin is "*".
+                window.parent.postMessage(
+                    {
+                        subject: "keyboard-focus",
+                        mathInputFocused,
+                    } satisfies IframeFocusMessage,
+                    "*",
+                );
+            } else {
+                reportMathInputFocus(mathInputFocused);
+            }
+        }
+
+        function scheduleReport() {
+            // Focus passes through `<body>` on its way between two elements,
+            // so wait for it to land before reading `document.activeElement`.
+            // This also coalesces the focusout/focusin pair into one report.
+            clearTimeout(pending);
+            pending = setTimeout(report, 0);
+        }
+
+        document.addEventListener("focusin", scheduleReport);
+        document.addEventListener("focusout", scheduleReport);
+
+        return () => {
+            clearTimeout(pending);
+            document.removeEventListener("focusin", scheduleReport);
+            document.removeEventListener("focusout", scheduleReport);
+        };
+    }, [externalVirtualKeyboardProvided, ownerRef]);
 
     // If an external keyboard is not provided,
     // then we add a reference to the keyboard here
