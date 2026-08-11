@@ -17,10 +17,8 @@ of the first two ways, the expression is read as a function of both <m>x</m> and
 `<slopeField>y - x</slopeField>{:dn}` and `<slopeField function="y - x" />{:dn}` mean the same
 thing.
 
-The whole field is drawn as a single graphical object, so a field of thousands of marks costs about
-the same to render as a handful. It also re-tiles automatically as the user pans or zooms, and its
-marks keep a constant on-screen length — so slopes appear at their true visual angle even when the
-axes are not equally scaled.
+The field re-tiles automatically as the user pans or zooms, and its marks keep a constant on-screen
+length — so slopes appear at their true visual angle even when the axes are not equally scaled.
 
 Each mark is centered on its lattice point, sampling the tangent line of the solution curve through
 that point. (By contrast, [`<vectorField/>`](vectorField) puts an arrow's tail on its lattice
