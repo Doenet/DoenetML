@@ -65008,6 +65008,10 @@
                             "description": "Balinese"
                         },
                         {
+                            "value": "bci",
+                            "description": "Baoulé (bci)"
+                        },
+                        {
                             "value": "be",
                             "description": "Belarusian (беларуская)"
                         },
@@ -65026,6 +65030,10 @@
                         {
                             "value": "bik",
                             "description": "Bikol"
+                        },
+                        {
+                            "value": "bin",
+                            "description": "Bini"
                         },
                         {
                             "value": "bm",
@@ -65050,6 +65058,10 @@
                         {
                             "value": "bs",
                             "description": "Bosnian (bosanski)"
+                        },
+                        {
+                            "value": "bum",
+                            "description": "Bulu"
                         },
                         {
                             "value": "ca",
@@ -65100,6 +65112,10 @@
                             "description": "Divehi"
                         },
                         {
+                            "value": "dyo",
+                            "description": "Jola-Fonyi (joola)"
+                        },
+                        {
                             "value": "dyu",
                             "description": "Dyula"
                         },
@@ -65110,6 +65126,10 @@
                         {
                             "value": "ee",
                             "description": "Ewe (eʋegbe)"
+                        },
+                        {
+                            "value": "efi",
+                            "description": "Efik"
                         },
                         {
                             "value": "el",
@@ -65126,6 +65146,10 @@
                         {
                             "value": "eu",
                             "description": "Basque (euskara)"
+                        },
+                        {
+                            "value": "ewo",
+                            "description": "Ewondo (ewondo)"
                         },
                         {
                             "value": "fa",
@@ -65300,6 +65324,10 @@
                             "description": "Konkani (कोंकणी)"
                         },
                         {
+                            "value": "kpe",
+                            "description": "Kpelle"
+                        },
+                        {
                             "value": "kr",
                             "description": "Kanuri"
                         },
@@ -65334,6 +65362,10 @@
                         {
                             "value": "lo",
                             "description": "Lao (ລາວ)"
+                        },
+                        {
+                            "value": "lom",
+                            "description": "Loma (lom)"
                         },
                         {
                             "value": "lt",
@@ -65592,6 +65624,10 @@
                             "description": "Sundanese (Basa Sunda)"
                         },
                         {
+                            "value": "sus",
+                            "description": "Susu"
+                        },
+                        {
                             "value": "sv",
                             "description": "Swedish (svenska)"
                         },
@@ -65682,6 +65718,10 @@
                         {
                             "value": "ur",
                             "description": "Urdu (اردو)"
+                        },
+                        {
+                            "value": "urh",
+                            "description": "Urhobo (urh)"
                         },
                         {
                             "value": "uz",

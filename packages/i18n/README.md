@@ -67,31 +67,32 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
-`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ban`, `be`, `bem`, `bg`, `bho`, `bik`,
-`bm`, `bn`, `bo`, `br`, `brx`, `bs`, `ca`, `ceb`, `ch`, `co`, `cs`, `cy`, `da`,
-`dag`, `de`, `doi`, `dv`, `dyu`, `dz`, `ee`, `el`, `es`, `et`, `eu`, `fa`,
-`ff`, `fi`, `fil`, `fj`, `fo`, `fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`, `gu`,
-`ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`,
-`ilo`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `ki`, `kk`, `km`, `kn`, `ko`,
-`kok`, `kr`, `ks`, `ktu`, `ky`, `lb`, `lg`, `ln`, `lo`, `lt`, `lua`, `luo`,
+`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ban`, `bci`, `be`, `bem`, `bg`, `bho`,
+`bik`, `bin`, `bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bum`, `ca`, `ceb`, `ch`,
+`co`, `cs`, `cy`, `da`, `dag`, `de`, `doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`,
+`efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`, `fil`, `fj`, `fo`,
+`fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`,
+`hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`,
+`jv`, `ka`, `kab`, `ki`, `kk`, `km`, `kn`, `ko`, `kok`, `kpe`, `kr`, `ks`,
+`ktu`, `ky`, `lb`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`,
 `lv`, `mad`, `mai`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mos`,
 `mr`, `ms`, `mt`, `my`, `nah`, `nb`, `nds`, `ne`, `nl`, `nso`, `ny`, `nyn`,
 `oc`, `oj`, `om`, `or`, `pa`, `pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`,
 `ro`, `ru`, `rw`, `sa`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`,
-`sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`, `sv`, `sw`, `ta`,
-`te`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tlh`, `tn`, `to`, `tpi`, `tr`,
-`ts`, `tt`, `ty`, `ug`, `uk`, `ur`, `uz`, `ve`, `vi`, `war`, `wo`, `xh`, `yi`,
-`yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed
+`sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`, `sus`, `sv`, `sw`,
+`ta`, `te`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tlh`, `tn`, `to`, `tpi`,
+`tr`, `ts`, `tt`, `ty`, `ug`, `uk`, `ur`, `urh`, `uz`, `ve`, `vi`, `war`,
+`wo`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed
 machine-generated seed**, which each file's own header says at the top, and
 which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
 is just wrong, and the English is one key away.
 
-A hundred and nineteen of them are deliberately partial. A hundred and eighteen
-are partial in the same place — the two chemistry tables — while Klingon is
-partial almost everywhere, for a different reason: see
+A hundred and twenty-nine of them are deliberately partial. A hundred and
+twenty-eight are partial in the same place — the two chemistry tables — while
+Klingon is partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and eighteen are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+and twenty-eight are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -105,7 +106,8 @@ Kashmiri, Dhivehi, Tibetan, Dzongkha, Northern Sotho, Swati, Venda, Tsonga,
 Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight,
 Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
 Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè, Temne,
-Mende, Umbundu, Kimbundu and Zarma
+Mende, Umbundu, Kimbundu, Zarma, Baoulé, Bini, Bulu, Jola-Fonyi, Efik, Ewondo,
+Kpelle, Loma, Susu and Urhobo
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -1113,6 +1115,116 @@ the one-component failure read alike. Separating these needs new words chosen
 by someone who speaks the language; picking them here would be the
 substitution the chemistry tables are left out to avoid. They are named here
 so #1521 has them.
+
+### Ten languages, and the batch that says plainly how little it knows
+
+Baoulé, Bini, Bulu, Jola-Fonyi, Efik, Ewondo, Kpelle, Loma, Susu and Urhobo —
+ten catalogs across six families (Bantu: `ewo`, `bum`; Edoid: `bin`, `urh`;
+Mande: `sus`, `kpe`, `lom`; Kwa: `bci`; Atlantic: `dyo`; Cross River: `efi`),
+continuing the three batches above. Where those batches asked where agreement
+goes and what a family does or does not predict, this one adds a question the
+earlier ones did not have to ask so loudly: **what happens when the batch runs
+out of digitized language to draw from?**
+
+**Agreement, once more, refuses to sort by family.** `bci` (Kwa, beside `ak`)
+has no gender or class and marks plural with a suffix, «mun», where Akan
+prefixes it — the same split direction Dyula's qualifier suffix takes for an
+unrelated reason. `bin` and `urh` (Edoid, a sibling pair the way `bm`/`dyu`
+are Manding) both have no adjective-noun agreement at all: description is
+carried by stative verbs and word order, not by a concord. `efi` (Cross River)
+keeps a reduced noun-class prefix for number but, like the Edoid pair, never
+extends it to an agreeing adjective — a reminder that "has noun classes" and
+"marks agreement with them" are two separate facts, not one. `dyo` (Atlantic)
+is the one genuine noun-class catalog in the batch, the same shape
+`locales/tem` has: four written prefixes (`ka-`/`si-`/`bu-`/`fu-`) that mark
+both the noun and the word describing it, checkable by eye the way Temne's
+alliterative concord is. `sus`, `kpe` and `lom` (three different Mande
+branches — Central Mande, and two Southwestern Mande sisters) fork on neither
+`$gender` nor `$role`, extending the finding `bm`, `dyu`, `mnk` and `men`
+already made to seven Mande catalogs in a row; `kpe` and `lom` go further
+than `sus` by lacking even a definite or qualifier suffix, so Southwestern
+Mande genuinely marks nothing where Central Mande and Manding each mark one
+thing. `ewo` and `bum` are the pair that shows agreement can be *present* and
+still not written down: both are Beti-Pahuin Bantu with a real class-concord
+system, but `bum`'s header commits to two classes (`c1`/`c7`) it found enough
+colour-stem data to write with confidence, while `ewo`'s header explains why
+it stops short of writing any class table at all — not because Ewondo lacks
+one, but because this seed did not have reliable prefix data for the specific
+words it needed and judged a partial, half-remembered table worse than a flat
+answer. Read together they are the clearest instance yet of the distinction
+`locales/ktu` first drew between a language having no agreement and a seed
+having no confidence to report one.
+
+**This is the first batch where honest confidence caveats are the headline
+rather than a footnote.** `ewo`, `bum`, `bin`, `urh`, `dyo`, `sus`, `kpe` and
+`lom` all carry one in their own headers, and they are not the same caveat:
+`ewo`'s is about grammatical data it could not verify; `bin`, `urh` and `sus`
+lean on English or French loanwords for newer technical and UI vocabulary
+because no settled digital lexicon exists to draw from; `dyo`'s `diagnostics.ftl`
+and `editor.ftl` say plainly that an earlier draft was discarded for being a
+mechanical re-lexification of `locales/tem` rather than a translation, and
+that the rewrite is "a fluent non-speaker's construction from published
+grammatical sketches... not a speaker's translation"; and `kpe` and `lom` are
+the least digitized languages this repository has seeded from yet — Kpelle is
+close to unattested in machine-translation training data (arXiv:2505.18905
+starts from near zero), and Loma has no comparable corpus at all, so `lom`'s
+own header calls itself the least certain catalog in the batch and asks a
+speaker to check it first. `bci` and `efi` are the two that do not carry this
+caveat: Baoulé's only honesty flag is a segmental-spelling-without-tone-marks
+choice, a narrower and more confident gap, and Efik draws on a written
+tradition going back to the earliest regional Bible translations, which gives
+it a settled orthography and vocabulary the rest of the batch does not have.
+None of this is new information the catalogs invented for this README — it is
+what each file's own header already says, gathered here so a reviewer does not
+have to open ten files to find the same shape repeated.
+
+**Two candidates were dropped rather than seeded.** Vai (`vai`) and Nupe
+(`nup`) were both attempted for this batch and both discarded after an honest
+self-audit: Vai's draft vocabulary could not be verified against any source
+this seed could check and read as fabricated rather than researched, and
+Nupe's draft amounted to the English text carried over with a disclaimer
+rather than to any actual Nupe content. Leaving a gap is the same policy the
+chemistry tables already follow — an admitted absence over an invented
+answer — applied one level up, to whole catalogs rather than to 130 keys
+inside one. Neither is aliased or fallen back to anywhere; a document asking
+for `vai` or `nup` reaches English, as it did before this batch, until a real
+seed exists.
+
+#### Negotiation
+
+None of the ten is an ISO 639-3 macrolanguage, a member of a macrolanguage
+already in `MACROLANGUAGE_MEMBERS`, or has a script or region surprise in its
+`Intl.Locale(...).maximize()` result the way `kby` (Ajami), `ff` (Adlam) and
+`tda` (Tifinagh) do — every one of the ten maximizes to its expected Latin
+script and country (`bci-Latn-CI`, `bin-Latn-NG`, `bum-Latn-CM`,
+`dyo-Latn-SN`, `efi-Latn-NG`, `ewo-Latn-CM`, `kpe-Latn-LR`, `lom-Latn-LR`,
+`sus-Latn-GN`, `urh-Latn-NG`), so `LANGUAGE_ALIASES` gains nothing from this
+batch. `ewo` and `bum`, the one Bantu pair in the batch, were the most likely
+candidates for a macrolanguage or member entry given how often that shape has
+recurred in the three batches above; neither is one — both are ordinary
+individual languages in ISO 639-3, with no wider macrolanguage code over
+either of them.
+
+**Three of the ten have no CLDR language name at all** — `bci`, `lom` and
+`urh` — and take new entries in
+[`LOCALE_NAME_FALLBACKS`](#a-language-cldr-has-no-name-for): "Baoulé", "Loma"
+and "Urhobo". None gets an endonym: a wrong one is worse than none, and
+`locales/lom`'s own header explicitly declines to choose between "Löömàgòòi"
+(the Liberian name) and "Toma" (the Guinean one) rather than guess.
+
+#### The chemistry gap
+
+All ten leave `element-name` and `element-anion-name` out, and all ten are the
+ordinary school-system case: secondary science is English-medium in Nigeria
+(`bin`, `efi`, `urh`) and Liberia (`kpe`), French-medium in Cameroon (`ewo`,
+`bum`) and Senegal (`dyo`), and English- or French-medium in Côte d'Ivoire and
+Guinea depending on which is meant (`bci`, `sus`). `lom` is the one worth a
+sentence of its own: Loma is spoken across a border where the two sides teach
+science in different languages entirely — English in Liberia, French in
+Guinea — so, as `locales/mnk` and `locales/se` already established for a
+border of their own, there is no single curriculum for a fallback to *be*, and
+leaving both keys out serves each side of the border the same way English
+already partially does for the Liberian half.
 
 ### A language with no word for it
 

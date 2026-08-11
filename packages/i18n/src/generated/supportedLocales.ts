@@ -18,17 +18,20 @@ export type SupportedLocale =
     | "ay"
     | "az"
     | "ban"
+    | "bci"
     | "be"
     | "bem"
     | "bg"
     | "bho"
     | "bik"
+    | "bin"
     | "bm"
     | "bn"
     | "bo"
     | "br"
     | "brx"
     | "bs"
+    | "bum"
     | "ca"
     | "ceb"
     | "ch"
@@ -41,13 +44,16 @@ export type SupportedLocale =
     | "dje"
     | "doi"
     | "dv"
+    | "dyo"
     | "dyu"
     | "dz"
     | "ee"
+    | "efi"
     | "el"
     | "es"
     | "et"
     | "eu"
+    | "ewo"
     | "fa"
     | "ff"
     | "fi"
@@ -91,6 +97,7 @@ export type SupportedLocale =
     | "kn"
     | "ko"
     | "kok"
+    | "kpe"
     | "kr"
     | "kri"
     | "ks"
@@ -100,6 +107,7 @@ export type SupportedLocale =
     | "lg"
     | "ln"
     | "lo"
+    | "lom"
     | "lt"
     | "lua"
     | "luo"
@@ -164,6 +172,7 @@ export type SupportedLocale =
     | "ss"
     | "st"
     | "su"
+    | "sus"
     | "sv"
     | "sw"
     | "ta"
@@ -187,6 +196,7 @@ export type SupportedLocale =
     | "uk"
     | "umb"
     | "ur"
+    | "urh"
     | "uz"
     | "ve"
     | "vi"
@@ -294,6 +304,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Balinese",
     },
     {
+        locale: "bci",
+        englishName: "Baoulé",
+        endonym: "bci",
+        label: "Baoulé (bci)",
+    },
+    {
         locale: "be",
         englishName: "Belarusian",
         endonym: "беларуская",
@@ -318,6 +334,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Bhojpuri (भोजपुरी)",
     },
     { locale: "bik", englishName: "Bikol", endonym: "Bikol", label: "Bikol" },
+    { locale: "bin", englishName: "Bini", endonym: "Bini", label: "Bini" },
     {
         locale: "bm",
         englishName: "Bambara",
@@ -349,6 +366,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "bosanski",
         label: "Bosnian (bosanski)",
     },
+    { locale: "bum", englishName: "Bulu", endonym: "Bulu", label: "Bulu" },
     {
         locale: "ca",
         englishName: "Catalan",
@@ -416,6 +434,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Dogri (डोगरी)",
     },
     { locale: "dv", englishName: "Divehi", endonym: "Divehi", label: "Divehi" },
+    {
+        locale: "dyo",
+        englishName: "Jola-Fonyi",
+        endonym: "joola",
+        label: "Jola-Fonyi (joola)",
+    },
     { locale: "dyu", englishName: "Dyula", endonym: "Dyula", label: "Dyula" },
     {
         locale: "dz",
@@ -429,6 +453,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "eʋegbe",
         label: "Ewe (eʋegbe)",
     },
+    { locale: "efi", englishName: "Efik", endonym: "Efik", label: "Efik" },
     {
         locale: "el",
         englishName: "Greek",
@@ -452,6 +477,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Basque",
         endonym: "euskara",
         label: "Basque (euskara)",
+    },
+    {
+        locale: "ewo",
+        englishName: "Ewondo",
+        endonym: "ewondo",
+        label: "Ewondo (ewondo)",
     },
     {
         locale: "fa",
@@ -676,6 +707,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "कोंकणी",
         label: "Konkani (कोंकणी)",
     },
+    {
+        locale: "kpe",
+        englishName: "Kpelle",
+        endonym: "Kpelle",
+        label: "Kpelle",
+    },
     { locale: "kr", englishName: "Kanuri", endonym: "Kanuri", label: "Kanuri" },
     { locale: "kri", englishName: "Krio", endonym: "Krio", label: "Krio" },
     {
@@ -715,6 +752,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Lingala (lingála)",
     },
     { locale: "lo", englishName: "Lao", endonym: "ລາວ", label: "Lao (ລາວ)" },
+    { locale: "lom", englishName: "Loma", endonym: "lom", label: "Loma (lom)" },
     {
         locale: "lt",
         englishName: "Lithuanian",
@@ -1064,6 +1102,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Basa Sunda",
         label: "Sundanese (Basa Sunda)",
     },
+    { locale: "sus", englishName: "Susu", endonym: "Susu", label: "Susu" },
     {
         locale: "sv",
         englishName: "Swedish",
@@ -1176,6 +1215,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Urdu",
         endonym: "اردو",
         label: "Urdu (اردو)",
+    },
+    {
+        locale: "urh",
+        englishName: "Urhobo",
+        endonym: "urh",
+        label: "Urhobo (urh)",
     },
     {
         locale: "uz",
