@@ -65004,6 +65004,10 @@
                             "description": "Azerbaijani (azərbaycan)"
                         },
                         {
+                            "value": "ba",
+                            "description": "Bashkir (башҡорт)"
+                        },
+                        {
                             "value": "ban",
                             "description": "Balinese"
                         },
@@ -65060,12 +65064,20 @@
                             "description": "Bosnian (bosanski)"
                         },
                         {
+                            "value": "bua",
+                            "description": "Buriat (буряад)"
+                        },
+                        {
                             "value": "bum",
                             "description": "Bulu"
                         },
                         {
                             "value": "ca",
                             "description": "Catalan (català)"
+                        },
+                        {
+                            "value": "ce",
+                            "description": "Chechen (нохчийн)"
                         },
                         {
                             "value": "ceb",
@@ -65076,12 +65088,20 @@
                             "description": "Chamorro"
                         },
                         {
+                            "value": "chm",
+                            "description": "Mari"
+                        },
+                        {
                             "value": "co",
                             "description": "Corsican"
                         },
                         {
                             "value": "cs",
                             "description": "Czech (čeština)"
+                        },
+                        {
+                            "value": "cv",
+                            "description": "Chuvash (чӑваш чӗлхи)"
                         },
                         {
                             "value": "cy",
@@ -65344,6 +65364,10 @@
                             "description": "Kituba (Kikongo ya leta)"
                         },
                         {
+                            "value": "kv",
+                            "description": "Komi"
+                        },
+                        {
                             "value": "ky",
                             "description": "Kyrgyz (кыргызча)"
                         },
@@ -65448,6 +65472,10 @@
                             "description": "Burmese (မြန်မာ)"
                         },
                         {
+                            "value": "myv",
+                            "description": "Erzya"
+                        },
+                        {
                             "value": "nah",
                             "description": "Nahuatl (Nāhuatl)"
                         },
@@ -65494,6 +65522,10 @@
                         {
                             "value": "or",
                             "description": "Odia (ଓଡ଼ିଆ)"
+                        },
+                        {
+                            "value": "os",
+                            "description": "Ossetic (ирон)"
                         },
                         {
                             "value": "pa",
@@ -65550,6 +65582,10 @@
                         {
                             "value": "sa",
                             "description": "Sanskrit (संस्कृत भाषा)"
+                        },
+                        {
+                            "value": "sah",
+                            "description": "Yakut (саха тыла)"
                         },
                         {
                             "value": "sat",
@@ -65704,6 +65740,14 @@
                             "description": "Tahitian"
                         },
                         {
+                            "value": "tyv",
+                            "description": "Tuvinian (Тыва)"
+                        },
+                        {
+                            "value": "udm",
+                            "description": "Udmurt"
+                        },
+                        {
                             "value": "ug",
                             "description": "Uyghur (ئۇيغۇرچە)"
                         },
@@ -65742,6 +65786,10 @@
                         {
                             "value": "wo",
                             "description": "Wolof"
+                        },
+                        {
+                            "value": "xal",
+                            "description": "Kalmyk"
                         },
                         {
                             "value": "xh",

@@ -68,8 +68,9 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Ten of the
- * thirteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`, `kg` —
+ * member of `nb` or `ak`, and both are deliberately left to miss. Thirteen of
+ * the sixteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
+ * `kg`, `bua`, `kv`, `chm` —
  * are ISO 639-3 macrolanguages and list their macrolanguage members; `nah` is an
  * ISO 639-3 **collection** code rather than a macrolanguage, so it lists the
  * individual Nahuan languages ISO 639-5 groups under it; and `mnk` and `dje`
@@ -267,6 +268,25 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // `ha-Latn-NG`. The answer to it is a second catalog rather than a change
     // here.
     dje: ["ddn", "hmb", "khq", "ses", "tda", "twq"],
+    // Buryat. The catalog is the Russia Buriat literary standard, which is what
+    // ICU already folds `bxr` onto; `bxm` (Mongolia) and `bxu` (China) are the
+    // members it does not, and they reach `locales/bua` only through this list.
+    // `bxu` maximizes to `bxu-Mong-CN` — the Mongolian script — so a China
+    // Buriat reader most likely arriving in that script is served Cyrillic.
+    // That is `locales/kr`'s asymmetry with `kby` and `locales/dje`'s with
+    // `tda`, and the answer to it is a second catalog rather than a change
+    // here.
+    bua: ["bxm", "bxr", "bxu"],
+    // Komi. The catalog is Komi-Zyrian, which is what ICU folds `kpv` onto;
+    // `koi` (Komi-Permyak) is the member it does not, and it is a written
+    // standard of its own, so serving it Zyrian is the compromise every entry
+    // in this map makes and `locales/kv`'s header records.
+    kv: ["koi", "kpv"],
+    // Mari. The catalog is Meadow Mari, which is what ICU folds `mhr` onto;
+    // `mrj` (Hill Mari) is the member it does not, and, like `koi` above, it is
+    // a written standard with an orthography of its own rather than a spelling
+    // of this one.
+    chm: ["mhr", "mrj"],
 };
 
 /** Flattened once at module load rather than searched per request. */

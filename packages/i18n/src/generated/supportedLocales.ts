@@ -17,6 +17,7 @@ export type SupportedLocale =
     | "ast"
     | "ay"
     | "az"
+    | "ba"
     | "ban"
     | "bci"
     | "be"
@@ -31,12 +32,16 @@ export type SupportedLocale =
     | "br"
     | "brx"
     | "bs"
+    | "bua"
     | "bum"
     | "ca"
+    | "ce"
     | "ceb"
     | "ch"
+    | "chm"
     | "co"
     | "cs"
+    | "cv"
     | "cy"
     | "da"
     | "dag"
@@ -102,6 +107,7 @@ export type SupportedLocale =
     | "kri"
     | "ks"
     | "ktu"
+    | "kv"
     | "ky"
     | "lb"
     | "lg"
@@ -128,6 +134,7 @@ export type SupportedLocale =
     | "ms"
     | "mt"
     | "my"
+    | "myv"
     | "nah"
     | "nb"
     | "nds"
@@ -140,6 +147,7 @@ export type SupportedLocale =
     | "oj"
     | "om"
     | "or"
+    | "os"
     | "pa"
     | "pam"
     | "pcm"
@@ -154,6 +162,7 @@ export type SupportedLocale =
     | "ru"
     | "rw"
     | "sa"
+    | "sah"
     | "sat"
     | "sc"
     | "scn"
@@ -192,6 +201,8 @@ export type SupportedLocale =
     | "ts"
     | "tt"
     | "ty"
+    | "tyv"
+    | "udm"
     | "ug"
     | "uk"
     | "umb"
@@ -202,6 +213,7 @@ export type SupportedLocale =
     | "vi"
     | "war"
     | "wo"
+    | "xal"
     | "xh"
     | "yi"
     | "yo"
@@ -298,6 +310,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Azerbaijani (azərbaycan)",
     },
     {
+        locale: "ba",
+        englishName: "Bashkir",
+        endonym: "башҡорт",
+        label: "Bashkir (башҡорт)",
+    },
+    {
         locale: "ban",
         englishName: "Balinese",
         endonym: "Balinese",
@@ -366,12 +384,24 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "bosanski",
         label: "Bosnian (bosanski)",
     },
+    {
+        locale: "bua",
+        englishName: "Buriat",
+        endonym: "буряад",
+        label: "Buriat (буряад)",
+    },
     { locale: "bum", englishName: "Bulu", endonym: "Bulu", label: "Bulu" },
     {
         locale: "ca",
         englishName: "Catalan",
         endonym: "català",
         label: "Catalan (català)",
+    },
+    {
+        locale: "ce",
+        englishName: "Chechen",
+        endonym: "нохчийн",
+        label: "Chechen (нохчийн)",
     },
     {
         locale: "ceb",
@@ -385,6 +415,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Chamorro",
         label: "Chamorro",
     },
+    { locale: "chm", englishName: "Mari", endonym: "Mari", label: "Mari" },
     {
         locale: "co",
         englishName: "Corsican",
@@ -396,6 +427,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Czech",
         endonym: "čeština",
         label: "Czech (čeština)",
+    },
+    {
+        locale: "cv",
+        englishName: "Chuvash",
+        endonym: "чӑваш чӗлхи",
+        label: "Chuvash (чӑваш чӗлхи)",
     },
     {
         locale: "cy",
@@ -727,6 +764,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Kikongo ya leta",
         label: "Kituba (Kikongo ya leta)",
     },
+    { locale: "kv", englishName: "Komi", endonym: "Komi", label: "Komi" },
     {
         locale: "ky",
         englishName: "Kyrgyz",
@@ -858,6 +896,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "မြန်မာ",
         label: "Burmese (မြန်မာ)",
     },
+    { locale: "myv", englishName: "Erzya", endonym: "Erzya", label: "Erzya" },
     {
         locale: "nah",
         englishName: "Nahuatl",
@@ -919,6 +958,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Odia",
         endonym: "ଓଡ଼ିଆ",
         label: "Odia (ଓଡ଼ିଆ)",
+    },
+    {
+        locale: "os",
+        englishName: "Ossetic",
+        endonym: "ирон",
+        label: "Ossetic (ирон)",
     },
     {
         locale: "pa",
@@ -1003,6 +1048,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Sanskrit",
         endonym: "संस्कृत भाषा",
         label: "Sanskrit (संस्कृत भाषा)",
+    },
+    {
+        locale: "sah",
+        englishName: "Yakut",
+        endonym: "саха тыла",
+        label: "Yakut (саха тыла)",
     },
     {
         locale: "sat",
@@ -1193,6 +1244,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Tahitian",
     },
     {
+        locale: "tyv",
+        englishName: "Tuvinian",
+        endonym: "Тыва",
+        label: "Tuvinian (Тыва)",
+    },
+    {
+        locale: "udm",
+        englishName: "Udmurt",
+        endonym: "Udmurt",
+        label: "Udmurt",
+    },
+    {
         locale: "ug",
         englishName: "Uyghur",
         endonym: "ئۇيغۇرچە",
@@ -1237,6 +1300,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     { locale: "war", englishName: "Waray", endonym: "Waray", label: "Waray" },
     { locale: "wo", englishName: "Wolof", endonym: "Wolof", label: "Wolof" },
+    {
+        locale: "xal",
+        englishName: "Kalmyk",
+        endonym: "Kalmyk",
+        label: "Kalmyk",
+    },
     {
         locale: "xh",
         englishName: "Xhosa",
