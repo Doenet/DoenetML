@@ -64,14 +64,16 @@ export default class GraphicalComponent extends BaseComponent {
     /**
      * Whether this component can carry a label.
      *
-     * Every graphical component gets the `labels` child group, the
-     * `labelIsName` attribute and the `label` state variables from here, which
-     * suits the ones drawn at a place a label can sit beside. A component that
-     * covers the whole viewport — a field, say — has no such place, and its
-     * renderer draws no label however one is written. Setting this false drops
-     * the three together, so a `<label>` is refused rather than accepted and
-     * ignored. They have to go together: the `label` state variable depends on
-     * the `labels` child group, so dropping only the group would leave it
+     * Every graphical component gets the whole label surface from here — the
+     * `labels` child group, the `labelIsName`, `applyStyleToLabel` and
+     * `maskLabel` attributes, and the `label` state variables — which suits the
+     * ones drawn at a place a label can sit beside. A component that covers the
+     * whole viewport — a field, say — has no such place, and its renderer draws
+     * no label however one is written. Setting this false drops the surface
+     * whole, so a `<label>` is refused rather than accepted and ignored, and
+     * nothing is left offering to style or mask a label that cannot exist.
+     * Dropping only part of it would not do: the `label` state variable depends
+     * on the `labels` child group, so removing the group alone would leave it
      * pointing at nothing.
      *
      * Tested against `false` rather than for truthiness because these methods
@@ -86,26 +88,27 @@ export default class GraphicalComponent extends BaseComponent {
 
         if (this.includeLabels !== false) {
             Object.assign(attributes, returnLabelAttributes());
+
+            attributes.applyStyleToLabel = {
+                createComponentOfType: "boolean",
+                createStateVariable: "applyStyleToLabel",
+                defaultValue: false,
+                public: true,
+                forRenderer: true,
+                description:
+                    "Whether to apply this component's selected style to its label.",
+            };
+            attributes.maskLabel = {
+                createComponentOfType: "boolean",
+                createStateVariable: "maskLabel",
+                defaultValue: false,
+                public: true,
+                forRenderer: true,
+                description:
+                    "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
+            };
         }
 
-        attributes.applyStyleToLabel = {
-            createComponentOfType: "boolean",
-            createStateVariable: "applyStyleToLabel",
-            defaultValue: false,
-            public: true,
-            forRenderer: true,
-            description:
-                "Whether to apply this component's selected style to its label.",
-        };
-        attributes.maskLabel = {
-            createComponentOfType: "boolean",
-            createStateVariable: "maskLabel",
-            defaultValue: false,
-            public: true,
-            forRenderer: true,
-            description:
-                "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-        };
         attributes.layer = {
             createComponentOfType: "integer",
             createStateVariable: "layer",

@@ -141766,20 +141766,6 @@
                         "string"
                     ]
                 },
-                "applyStyleToLabel": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "maskLabel": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
                 "layer": {
                     "optional": true,
                     "type": [
@@ -142106,20 +142092,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "layer",
                     "type": "integer",
                     "isArray": false,
@@ -142273,20 +142245,6 @@
                     "optional": true,
                     "type": [
                         "string"
-                    ]
-                },
-                "applyStyleToLabel": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "maskLabel": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
                     ]
                 },
                 "layer": {
@@ -142619,20 +142577,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
                     "fromAttribute": true
                 },
                 {
