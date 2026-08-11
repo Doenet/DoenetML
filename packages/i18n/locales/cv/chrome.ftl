@@ -7,13 +7,13 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Chuvash resolves a CLDR `zero` category, and it is the second catalog here to
-# do so after `locales/lv` — but it means the opposite thing. Latvian's `zero`
-# covers every number ending in 0 and the whole of the teens; Chuvash's fires
-# for exactly 0 and nothing else, and `one` for exactly 1, so 21 and 101 are
-# `other` where Latvian's are `one`. A `zero` category is therefore not a fact
-# about a language family or about a script: it is a rule, and the two rules
-# here happen to share a name.
+# Chuvash resolves a CLDR `zero` category, the fourth catalog here to do so
+# after `locales/ar`, `locales/cy` and `locales/lv`. Arabic's and Welsh's fire
+# for exactly 0, as Chuvash's does; Latvian's is the one that means something
+# else, covering every number ending in 0 and the whole of the teens. Chuvash's
+# `one` is exactly 1, so 21 and 101 are `other` where Latvian's are `one`. A
+# `zero` category is therefore not a fact about a language family or about a
+# script: it is a rule, and the four rules here only share a name.
 #
 # The consequence for this file is small and worth stating so nobody
 # "corrects" it: `attempts-remaining` keeps the explicit `[0]` branch and adds
@@ -24,53 +24,53 @@
 
 ## Answer submission
 
-answer-checking = Тĕрĕслет…
+answer-checking = Тӗрӗслет…
 answer-submitting = Ярать…
 
-answer-checking-status = Хурава тĕрĕслет
+answer-checking-status = Хурава тӗрӗслет
 answer-submitting-status = Хурава ярать
 
-answer-correct = Тĕрĕс
-answer-incorrect = Йăнăш
+answer-correct = Тӗрӗс
+answer-incorrect = Йӑнӑш
 
-answer-response-saved = Хурав упранчĕ
+answer-response-saved = Хурав упранчӗ
 
 answer-percent-credit = { $percent }% балл
-answer-percent-correct = { $percent }% тĕрĕс
+answer-percent-correct = { $percent }% тӗрӗс
 answer-percent-short = { $percent } %
 
-max-credit-available = Пулма пултаракан чи пысăк балл: { $percent }%
+max-credit-available = Пулма пултаракан чи пысӑк балл: { $percent }%
 
 attempts-remaining =
     { $count ->
-        [0] хăтланса пăхмалли юлмарĕ
-        [one] { $count } хут хăтланса пăхма юлчĕ
-       *[other] { $count } хут хăтланса пăхма юлчĕ
+        [0] хӑтланса пӑхмалли юлмарӗ
+        [one] { $count } хут хӑтланса пӑхма юлчӗ
+       *[other] { $count } хут хӑтланса пӑхма юлчӗ
     }
 
-validation-correct = (Тĕрĕс)
-validation-incorrect = (Йăнăш)
-validation-partially-correct = (Пайăн-пайăн тĕрĕс)
+validation-correct = (Тӗрӗс)
+validation-incorrect = (Йӑнӑш)
+validation-partially-correct = (Пайӑн-пайӑн тӗрӗс)
 
 answer-show-responses =
     { $count ->
-        [zero] { $answerId } валли хурав çук
-        [one] { $answerId } валли { $count } хурав кăтартас
-       *[other] { $answerId } валли { $count } хурав кăтартас
+        [zero] { $answerId } валли хурав ҫук
+        [one] { $answerId } валли { $count } хурав кӑтартас
+       *[other] { $answerId } валли { $count } хурав кӑтартас
     }
 
 
 ## Disclosure panels
 
-feedback-heading = Хирĕç калани
+feedback-heading = Хирӗҫ калани
 
-collapsible-click-to-open = (уçма пусăр)
-collapsible-click-to-close = (хупма пусăр)
+collapsible-click-to-open = (уҫма пусӑр)
+collapsible-click-to-close = (хупма пусӑр)
 
-collapsible-initializing = Хатĕрленет…
+collapsible-initializing = Хатӗрленет…
 
-footnote-show = Асăрхаттарăва кăтартас
-footnote-hide = Асăрхаттарăва пытарас
+footnote-show = Асӑрхаттарӑва кӑтартас
+footnote-hide = Асӑрхаттарӑва пытарас
 
 description-more-information = хушма информаци
 
@@ -78,72 +78,72 @@ description-more-information = хушма информаци
 ## Controls
 
 slider-previous = Малтанхи
-slider-next = Тепĕр
+slider-next = Тепӗр
 
-keyboard-open = Клавиатурăна уçас
-keyboard-close = Клавиатурăна хупас
+keyboard-open = Клавиатурӑна уҫас
+keyboard-close = Клавиатурӑна хупас
 
-choice-input-remove-choice = { $choice } суйлавне кăларас
+choice-input-remove-choice = { $choice } суйлавне кӑларас
 
-matrix-remove-row = Йĕркене кăларас
-matrix-add-row = Йĕрке хушас
-matrix-remove-column = Юпана кăларас
+matrix-remove-row = Йӗркене кӑларас
+matrix-add-row = Йӗрке хушас
+matrix-remove-column = Юпана кӑларас
 matrix-add-column = Юпа хушас
 
-subset-add-remove-points = Пăнчă хушас/кăларас
-subset-toggle-points-intervals = Пăнчăсемпе хушăксене улăштарас
-subset-move-points = Пăнчăсене куçарас
+subset-add-remove-points = Пӑнчӑ хушас/кӑларас
+subset-toggle-points-intervals = Пӑнчӑсемпе хушӑксене улӑштарас
+subset-move-points = Пӑнчӑсене куҫарас
 subset-clear = Тасатас
 
-orbital-add-row = Йĕрке хушас
-orbital-remove-row = Йĕркене кăларас
-orbital-add-box = Куçă хушас
-orbital-remove-box = Куçă кăларас
-orbital-add-up-arrow = Çӳлелле йĕппи хушас
-orbital-add-down-arrow = Аялалла йĕппи хушас
-orbital-remove-arrow = Йĕппе кăларас
+orbital-add-row = Йӗрке хушас
+orbital-remove-row = Йӗркене кӑларас
+orbital-add-box = Куҫӑ хушас
+orbital-remove-box = Куҫӑ кӑларас
+orbital-add-up-arrow = Ҫӳлелле йӗппи хушас
+orbital-add-down-arrow = Аялалла йӗппи хушас
+orbital-remove-arrow = Йӗппе кӑларас
 
-orbital-row-label = { $row } йĕркин палли
+orbital-row-label = { $row } йӗркин палли
 
 pretzel-answer = Хурав
 
-summary-statistics-caption = { $column } юпин пĕтĕмлетӳ статистики
+summary-statistics-caption = { $column } юпин пӗтӗмлетӳ статистики
 
 
 ## Math input
 
-math-input-preview-region = математика палăртăвне малтан пăхни
-math-input-preview = Малтан пăхни
-math-input-invalid-expression = Тĕрĕс мар палăрту:
+math-input-preview-region = математика палӑртӑвне малтан пӑхни
+math-input-preview = Малтан пӑхни
+math-input-invalid-expression = Тӗрӗс мар палӑрту:
 
 
 ## Document status
 
-viewer-initializing = Хатĕрленет…
+viewer-initializing = Хатӗрленет…
 
 
 ## Errors
 
-error-heading = Йăнăш
+error-heading = Йӑнӑш
 
 error-found-at =
     { $span ->
-        [line] Тупнă йĕрке: { $startLine }.
-       *[lines] Тупнă йĕркесем: { $startLine }–{ $endLine }.
+        [line] Тупнӑ йӗрке: { $startLine }.
+       *[lines] Тупнӑ йӗркесем: { $startLine }–{ $endLine }.
     }
 
-document-contains-errors = Ку документра йăнăшсем пур!
+document-contains-errors = Ку документра йӑнӑшсем пур!
 
-diagnostic-heading-error = Йăнăш
-diagnostic-heading-warning = Асăрхаттару
+diagnostic-heading-error = Йӑнӑш
+diagnostic-heading-warning = Асӑрхаттару
 diagnostic-heading-information = Информаци
 diagnostic-heading-hint = Канаш
 
-accessibility-heading-level-1 = WCAG AA майлăх пăсăлăвĕ
-accessibility-heading-level-2 = Майлăх пирки хыпар
+accessibility-heading-level-1 = WCAG AA майлӑх пӑсӑлӑвӗ
+accessibility-heading-level-2 = Майлӑх пирки хыпар
 
-something-went-wrong = Темĕн йăнăш пулса тухрĕ.
+something-went-wrong = Темӗн йӑнӑш пулса тухрӗ.
 
-renderer-load-failed = ӳкерекеннине тиеме пулмарĕ. Страницăна çĕнетĕр.
+renderer-load-failed = ӳкерекеннине тиеме пулмарӗ. Страницӑна ҫӗнетӗр.
 
-core-start-failed = Документ пăхмалли хатĕре ĕçлеттерсе яма пулмарĕ. Страницăна çĕнетĕр.
+core-start-failed = Документ пӑхмалли хатӗре ӗҫлеттерсе яма пулмарӗ. Страницӑна ҫӗнетӗр.

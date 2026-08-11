@@ -70,8 +70,8 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
  * member of `nb` or `ak`, and both are deliberately left to miss. Thirteen of
  * the sixteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
- * `kg`, `bua`, `kv`, `chm` —
- * are ISO 639-3 macrolanguages and list their macrolanguage members; `nah` is an
+ * `kg`, `bua`, `kv`, `chm` — are ISO 639-3 macrolanguages and list their
+ * macrolanguage members; `nah` is an
  * ISO 639-3 **collection** code rather than a macrolanguage, so it lists the
  * individual Nahuan languages ISO 639-5 groups under it; and `mnk` and `dje`
  * are neither, being *members* — of `man` and `son` respectively — that this
@@ -86,7 +86,8 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * means, while `son` is left to miss because it maximizes to nothing.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc` — so that each list reads as the
+ * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc`, `bxr`, `kpv`, `mhr` — so that each
+ * list reads as the
  * whole of a group rather than as the leftovers of one, and so that a change in
  * ICU data cannot silently drop a code out of coverage. `mnk`'s list carries
  * `emk` for the same reason, though what ICU folds `emk` to is `man` rather

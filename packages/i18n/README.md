@@ -1278,25 +1278,28 @@ have. The eleven catalogs beside it resolve `one` and `other`. Yakut marks a
 plural perfectly well; what it does not do is keep it after a numeral, so a
 category would have nothing to choose between.
 
-**`locales/cv` is the roster's second `zero` category, and it means the
-opposite of the first.** Latvian's `zero` covers every number ending in 0 and
-the whole of the teens; Chuvash's fires for exactly 0 and `one` for exactly 1,
-so 21 and 101 are `other` where Latvian's are `one`. Two languages, one
-category name, two rules — which is why `locales/cv`'s header spells out where
+**`locales/cv` is the roster's fourth `zero` category, and the interesting
+comparison is with the one it does _not_ match.** `locales/ar`, `locales/cy`
+and `locales/lv` are the other three; Arabic's and Welsh's `zero` fire for
+exactly 0, and so does Chuvash's, with `one` for exactly 1. Latvian's is the
+odd one out — it covers every number ending in 0 and the whole of the teens, so
+21 and 101 are `one` there and `other` in Chuvash. Four languages, one category
+name, three rules — which is why `locales/cv`'s header spells out where
 its `[zero]` branch is genuinely reached (`answer-show-responses`, the two
 accessibility labels) and where the explicit `[0]` branch wins first
 (`attempts-remaining`).
 
-**Six catalogs record the same limit, and it is word order rather than family
+**Five catalogs record the same limit, and it is word order rather than family
 that decides which.** `piecewise-condition-if` is placed by the renderer
 _before_ the mathematics it introduces. Sakha's «буоллаҕына», Tuvan's «болза»,
 Udmurt's «ке», Komi's «кӧ» and Mari's «гын» all close the clause they condition,
-so all five headers record the `locales/dv` shape — a distinction the
-composition messages do not expose, which splitting the key into a prefix and a
-suffix would fix and which no existing catalog needs. Buryat's «хэрбээ»,
-Kalmyk's «кемр», Erzya's «бути», Ossetian's «кæд» and Chechen's «нагахь санна»
-are clause-initial and land correctly. Two Turkic catalogs on opposite sides of
-that line, two Uralic on one side and one on the other: the wall is syntax, not
+so all five files record the `locales/dv` shape beside the key — a distinction
+the composition messages do not expose, which splitting the key into a prefix
+and a suffix would fix and which no existing catalog needs. The other seven are
+clause-initial and land correctly: Bashkir's «әгәр», Chuvash's «енчен»,
+Buryat's «хэрбээ», Kalmyk's «кемр», Erzya's «бути», Ossetian's «кæд» and
+Chechen's «нагахь санна». Two Turkic catalogs on each side of that line, and
+three Uralic on one side against one on the other: the wall is syntax, not
 ancestry.
 
 #### Negotiation

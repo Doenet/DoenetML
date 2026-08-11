@@ -4,10 +4,16 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Written in Cyrillic with Chuvash's own four extra letters — ă, ĕ, ç, ӳ —
+# Written in Cyrillic with Chuvash's own four extra letters — ӑ, ӗ, ҫ, ӳ —
 # which are what its schools and publishing use and what CLDR fills a bare `cv`
-# in as. Spelling «хура» as «хура» with Russian letters only is a different
+# in as. Spelling «шурӑ» as «шура» with Russian letters only is a different
 # language, so those four are load-bearing rather than decorative.
+#
+# All four are **Cyrillic** codepoints — ӑ U+04D1, ӗ U+04D7, ҫ U+04AB, ӳ U+04F3
+# — and not the Latin lookalikes ă U+0103, ĕ U+0115 and ç U+00E7 that legacy
+# Chuvash typesetting reached for. They look alike and sort, search and
+# case-fold differently, so a correction typed from a Latin keyboard layout
+# would quietly split this catalog across two scripts.
 #
 # CONFIDENCE. Chuvash is the sole surviving Oghur Turkic language and shares
 # far less vocabulary with `locales/tt` and `locales/ba` than their common
@@ -24,53 +30,53 @@
 
 color =
     .black = хура
-    .white = шурă
-    .gray = сăрă
-    .red = хĕрлĕ
-    .orange = хĕрлĕ-сарă
-    .yellow = сарă
-    .green = симĕс
-    .cyan = çутă кăвак
-    .blue = кăвак
-    .purple = хĕрхĕлтĕм
-    .pink = шупка хĕрлĕ
-    .brown = хăмăр
+    .white = шурӑ
+    .gray = сӑрӑ
+    .red = хӗрлӗ
+    .orange = хӗрлӗ-сарӑ
+    .yellow = сарӑ
+    .green = симӗс
+    .cyan = ҫутӑ кӑвак
+    .blue = кӑвак
+    .purple = хӗрхӗлтӗм
+    .pink = шупка хӗрлӗ
+    .brown = хӑмӑр
 
 line-width =
-    .thick = хулăн
-    .thin = çӳхе
+    .thick = хулӑн
+    .thin = ҫӳхе
 
 line-style =
-    .dashed = татăклă
-    .dotted = пăнчăллă
+    .dashed = татӑклӑ
+    .dotted = пӑнчӑллӑ
 
-# Noun phrases: they stand in front of «эрешлĕ» and modify nothing.
+# Noun phrases: they stand in front of «эрешлӗ» and modify nothing.
 fill-style =
-    .horizontal = горизонталь йĕр
-    .vertical = вертикаль йĕр
-    .diagonal = диагональ йĕр
-    .backdiagonal = хирĕç диагональ йĕр
-    .dots = пăнчă
+    .horizontal = горизонталь йӗр
+    .vertical = вертикаль йӗр
+    .diagonal = диагональ йӗр
+    .backdiagonal = хирӗҫ диагональ йӗр
+    .dots = пӑнчӑ
     .diamonds = ромб
 
 noun =
-    .line = тӳрĕ йĕр
-    .line-segment = касăк
-    .ray = пайăрка
+    .line = тӳрӗ йӗр
+    .line-segment = касӑк
+    .ray = пайӑрка
     .vector = вектор
-    .curve = кукăр йĕр
+    .curve = кукӑр йӗр
     .function = функци
     .parabola = парабола
-    .polyline = хуçăлнă йĕр
-    .polygon = нумай кĕтеслĕх
-    .triangle = виçкĕтеслĕх
-    .rectangle = тӳрĕ кĕтеслĕх
-    .circle = çаврашка
-    .region = лаптăк
-    .point = пăнчă
-    .square = тăваткал
+    .polyline = хуҫӑлнӑ йӗр
+    .polygon = нумай кӗтеслӗх
+    .triangle = виҫкӗтеслӗх
+    .rectangle = тӳрӗ кӗтеслӗх
+    .circle = ҫаврашка
+    .region = лаптӑк
+    .point = пӑнчӑ
+    .square = тӑваткал
     .diamond = ромб
-    .cross = хĕрес
+    .cross = хӗрес
     .plus = плюс
 
 # Chuvash builds the word from the side count in front of the noun, so the
@@ -78,7 +84,7 @@ noun =
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
-       *[head] тĕрĕс { $numSides } кĕтеслĕх
+       *[head] тӗрӗс { $numSides } кӗтеслӗх
     }
 
 # Chuvash has no grammatical gender, so every noun answers the same and the
@@ -105,85 +111,85 @@ style-with-noun =
        *[noun] { $description } { $noun }
     }
 
-style-filled-word = сăрланă
+style-filled-word = сӑрланӑ
 
 style-filled =
     { $parts ->
-        [pattern] { $pattern } эрешлĕ { $color } { $filled }
+        [pattern] { $pattern } эрешлӗ { $color } { $filled }
        *[plain] { $color } { $filled }
     }
 
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } эрешлĕ { $color } { $filled } { $noun }
+        [pattern] { $pattern } эрешлӗ { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } эрешлĕ { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail] { $pattern } эрешлӗ { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
 
-# «хĕрриллĕ» — "having an edge" — carries the "with a border" sense in its own
+# «хӗрриллӗ» — "having an edge" — carries the "with a border" sense in its own
 # suffix, so neither a preposition nor an article is wanted.
 style-border-clause =
     { $parts ->
-        [with-article] { $border } хĕрриллĕ
-        [and] тата { $border } хĕрриллĕ
-        [and-article] тата { $border } хĕрриллĕ
-       *[with] { $border } хĕрриллĕ
+        [with-article] { $border } хӗрриллӗ
+        [and] тата { $border } хӗрриллӗ
+        [and-article] тата { $border } хӗрриллӗ
+       *[with] { $border } хӗрриллӗ
     }
 
 style-fill =
     { $parts ->
-        [pattern] { $pattern } эрешлĕ { $color } сăр
-       *[plain] { $color } сăр
+        [pattern] { $pattern } эрешлӗ { $color } сӑр
+       *[plain] { $color } сӑр
     }
 
-style-unfilled = сăрламан
+style-unfilled = сӑрламан
 
-# «çинче» — "on" — is a postposition, so it follows the background colour
+# «ҫинче» — "on" — is a postposition, so it follows the background colour
 # rather than standing between the two words the way English's "with a" does.
 style-text =
     { $parts ->
-        [background] { $background } фон çинче { $color }
+        [background] { $background } фон ҫинче { $color }
        *[plain] { $color }
     }
 
-style-background-none = çук
+style-background-none = ҫук
 
 
 ## Boolean words
 
-boolean-true = тĕрĕс
-boolean-false = йăнăш
+boolean-true = тӗрӗс
+boolean-false = йӑнӑш
 
 
 ## Answer buttons
 
-answer-submit-label = Тĕрĕслесе пăхас
+answer-submit-label = Тӗрӗслесе пӑхас
 answer-submit-label-no-correctness = Хурава ярас
 
 
 ## Sectional blocks
 
 section-name =
-    .activity = Ĕç
-    .aside = Асăрхаттару
+    .activity = Ӗҫ
+    .aside = Асӑрхаттару
     .cascade = Каскад
-    .definition = Ăнлантару
-    .example = Тĕслĕх
-    .exercise = Хăнăхтару
-    .exercises = Хăнăхтарусем
+    .definition = Ӑнлантару
+    .example = Тӗслӗх
+    .exercise = Хӑнӑхтару
+    .exercises = Хӑнӑхтарусем
     .given-answer = Хурав
-    .note = Асăрхаттару çырăвĕ
-    .objectives = Тĕллевсем
+    .note = Асӑрхаттару ҫырӑвӗ
+    .objectives = Тӗллевсем
     .paragraphs = Абзацсем
-    .part = Пайĕ
+    .part = Пайӗ
     .problem = Задача
-    .problems = Задачăсем
-    .proof = Кăтартса пани
+    .problems = Задачӑсем
+    .proof = Кӑтартса пани
     .question = Ыйту
     .section = Пай
-    .solution = Татăлăхĕ
-    .task = Ĕç хушни
+    .solution = Татӑлӑхӗ
+    .task = Ӗҫ хушни
     .theorem = Теорема
 
 section-title-prefix =
@@ -211,17 +217,17 @@ table-name =
 
 figure-name =
     { $parts ->
-        [numbered] Ӳкерчĕк { $enumeration }
-        [numbered-caption] Ӳкерчĕк { $enumeration }{ ". " }
-        [unnumbered-caption] Ӳкерчĕк{ ". " }
-       *[unnumbered] Ӳкерчĕк
+        [numbered] Ӳкерчӗк { $enumeration }
+        [numbered-caption] Ӳкерчӗк { $enumeration }{ ". " }
+        [unnumbered-caption] Ӳкерчӗк{ ". " }
+       *[unnumbered] Ӳкерчӗк
     }
 
 
 ## Paginator controls
 
 paginator-previous = Малтанхи
-paginator-next = Тепĕр
+paginator-next = Тепӗр
 paginator-page = Страница
 
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
@@ -231,7 +237,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 
 piecewise-condition-or = е
 piecewise-condition-if = енчен
-piecewise-condition-otherwise = урăх чухне
+piecewise-condition-otherwise = урӑх чухне
 
 
 ## Chemistry
@@ -247,5 +253,5 @@ piecewise-condition-otherwise = урăх чухне
 
 ion-name-oxidation-state = { $name } ({ $numeral })
 
-chemistry-invalid-symbol = Тĕрĕс мар хими палли
-chemistry-invalid-ionic-compound = Тĕрĕс мар ион пĕрлешĕвĕ
+chemistry-invalid-symbol = Тӗрӗс мар хими палли
+chemistry-invalid-ionic-compound = Тӗрӗс мар ион пӗрлешӗвӗ
