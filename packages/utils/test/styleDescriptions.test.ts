@@ -3261,3 +3261,148 @@ describe("the Angolan, Sierra Leonean and Songhay batch", () => {
         ).toBe(expected);
     });
 });
+
+describe("the Russian Federation's Cyrillic batch", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    /**
+     * Twelve catalogs from five families — Turkic, Mongolic, Uralic, Iranian
+     * and Nakh — sharing nothing but a script, and the useful thing to pin is
+     * that the script predicts nothing while the twelve agree anyway: all of
+     * them put their adjectives **in front of** the noun and fold a regular
+     * polygon's side count into the head, so `noun-regular-polygon`'s `[tail]`
+     * branch renders empty in every one.
+     *
+     * Asserted as an identity rather than as a difference, the way the
+     * Americas batch's rows are: what this catches is someone "correcting" one
+     * of these catalogs by moving its adjectives behind the noun.
+     */
+    const prenominal: [string, string, string][] = [
+        ["ba", "ҡалын өҙөклө ҡыҙыл тура һыҙыҡ", "ҡалын өҙөклө ҡыҙыл"],
+        ["cv", "хулӑн татӑклӑ хӗрлӗ тӳрӗ йӗр", "хулӑн татӑклӑ хӗрлӗ"],
+        [
+            "sah",
+            "халыҥ быстах-быстах кыһыл көнө сурааһын",
+            "халыҥ быстах-быстах кыһыл",
+        ],
+        ["tyv", "кылын үзүктелген кызыл дорт шугум", "кылын үзүктелген кызыл"],
+        [
+            "bua",
+            "бүдүүн таһаршаһан улаан сэхэ зурлаа",
+            "бүдүүн таһаршаһан улаан",
+        ],
+        ["xal", "зузан тасрха улан шулун зурас", "зузан тасрха улан"],
+        ["udm", "зӧк чигем горд шонер чур", "зӧк чигем горд"],
+        ["kv", "кыз вундалӧм гӧрд веськыд визь", "кыз вундалӧм гӧрд"],
+        ["myv", "эчке сезнезь якстере виде линия", "эчке сезнезь якстере"],
+        ["chm", "кӱжгӧ кӱрылтшӧ йошкар вияш линий", "кӱжгӧ кӱрылтшӧ йошкар"],
+        ["os", "бæзджын скъуыдтæ сырх раст хахх", "бæзджын скъуыдтæ сырх"],
+        ["ce", "дуькъа кагйина цӀен нийса сиз", "дуькъа кагйина цӀен"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun is appended to the adjectives rather than woven into
+            // them, which is what makes this English's shape and not merely
+            // English's sequence.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    it("keeps the side count in the head for all twelve, leaving no tail", () => {
+        for (const [locale] of prenominal) {
+            const description = describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            });
+            // The count is present, and it is inside the noun rather than
+            // trailing after the adjectives.
+            expect(description).toContain("5");
+            expect(description.trimEnd()).toBe(description);
+            expect(description).not.toContain("  ");
+        }
+    });
+});
+
+/**
+ * `$gender` carrying a Northeast Caucasian noun class, which is the fifth
+ * mechanism the argument has been asked to hold after a European gender, a
+ * Bantu noun class, Ojibwe's animacy and Fula's suffixed concord.
+ *
+ * Chechen marks its classes with в-, й-, б- and д- at the *front* of an
+ * agreeing word, and almost nothing in a style description agrees: the colour
+ * and width adjectives take no prefix at all. The single word that does is the
+ * participle «дуьзна», "filled", so unlike Swahili's this catalog's fork is
+ * one message wide — and these rows are the only thing standing between it and
+ * being quietly flattened by someone who reads the rest of the file and
+ * concludes that Chechen agrees nothing.
+ */
+describe("Chechen noun classes", () => {
+    const ce: Translator = createTranslatorFromLocaleData(
+        { locale: "ce", resources: { ce: readCatalog("ce", "content") } },
+        "ce",
+    );
+
+    const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
+
+    // «гуо» is `d` and «тӀадам» is `b`, so one word of the two moves and the
+    // colour beside it does not. The `withNoun: false` half is the one that
+    // could not pass by accident: with the noun withheld, the prefix is all
+    // that is left to tell the two classes apart.
+    it.each([
+        ["circle", "сийна дуьзна гуо", "сийна дуьзна"],
+        ["point", "сийна буьзна тӀадам", "сийна буьзна"],
+    ])("agrees the filled participle with «%s»", (key, withNoun, alone) => {
+        expect(
+            describeClosedShape(ce, blueFill, {
+                filled: true,
+                noun: { key: key as NounKey },
+                withNoun: true,
+            }),
+        ).toBe(withNoun);
+        expect(
+            describeClosedShape(ce, blueFill, {
+                filled: true,
+                noun: { key: key as NounKey },
+                withNoun: false,
+            }),
+        ).toBe(alone);
+    });
+
+    /**
+     * The other half of the same fact, and the reason `style-unfilled` is
+     * written flat here rather than forked the way `style-filled-word` is:
+     * `describeFill` renders it with no arguments, because a fill described on
+     * its own has no noun to take a class from. A `$gender` select in that
+     * message could only ever reach its default branch, which is why no
+     * agreeing catalog in the roster writes one.
+     */
+    it("says unfilled without agreeing with anything", () => {
+        expect(
+            describeFill(ce, { fillColorWord: "blue" }, { filled: false }),
+        ).toBe("дуьзна доцу");
+    });
+});

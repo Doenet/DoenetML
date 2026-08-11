@@ -27,8 +27,12 @@
 # colour and width adjectives — «Ӏаьржа», «дуькъа», «дораха» — are
 # non-agreeing: they take no class prefix and hold still after every noun, so
 # the style vocabulary below forks nowhere. What does agree is the participle
-# «дуьзна», "filled", and its negation, and those two are where `$gender`
-# is used.
+# «дуьзна», "filled", and `style-filled-word` is the one message where
+# `$gender` is used. Its negation agrees too, in the language — but
+# `style-unfilled` is rendered with no arguments at all (`describeFill` has no
+# noun to hand it when there is nothing filled), so the catalog cannot select
+# there and writes the д-class form flat, as every other agreeing catalog in
+# the roster does.
 #
 # **`noun-gender`'s table is the least certain thing here and a speaker should
 # check it first.** This seed could verify the four class markers and the
@@ -184,15 +188,12 @@ style-fill =
        *[plain] { $color } бос
     }
 
-# The negated participle agrees exactly as the positive one does, so it forks
-# on the same argument and in the same four ways.
-style-unfilled =
-    { $gender ->
-        [b] буьзна боцу
-        [j] юьзна йоцу
-        [v] вуьзна воцу
-       *[d] дуьзна доцу
-    }
+# The negated participle agrees in the language exactly as the positive one
+# does — «буьзна боцу», «юьзна йоцу», «вуьзна воцу» — but this message
+# describes a fill standing on its own, with no noun and therefore no
+# `$gender` reaching it. So the д-class form is written flat, and a fork here
+# would only ever render its default branch.
+style-unfilled = дуьзна доцу
 
 # «тӀехь» — "on" — is a postposition and follows the background colour, so
 # nothing stands between the two words.
