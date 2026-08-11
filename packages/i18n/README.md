@@ -108,10 +108,9 @@ Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè and Temne
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
-English a student meets in their own textbook. Kannada
-has two — native coinages reaching a dozen elements and
-transliterations reaching all 118 — and picking either would misreport the
-other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
+English a student meets in their own textbook. Kannada has two — native
+coinages reaching a dozen elements and transliterations reaching all 118 — and
+picking either would misreport the other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
 current one is English: Punjabi secondary chemistry uses the English terms, the
 Philippines teaches science in English from the intermediate grades, and
 Vietnamese school chemistry has moved from the transliterated names to the
@@ -977,11 +976,11 @@ again, and it is not an error.
 
 All six leave `element-name` and `element-anion-name` out. Four are the ordinary
 school-system case — the DRC, Benin and Togo teach secondary science in French,
-Sierra Leone and Nigeria in English — but `pcm` and `kri` are a shape no earlier
-batch had. Their lexifier *is* English, so the fallback is not merely the
-curriculum, it is very nearly the language: filling those 130 keys in would
-produce entries character-identical to `locales/en` and claim a translation that
-had not happened. Leaving the gap visible is the honest answer, and it is the
+Sierra Leone in English — but `pcm` and `kri` are a shape no earlier batch had.
+Their lexifier *is* English, so the fallback is not merely the curriculum, it is
+very nearly the language: filling those 130 keys in would produce entries
+character-identical to `locales/en` and claim a translation that had not
+happened. Leaving the gap visible is the honest answer, and it is the
 first time that argument has applied.
 
 ### A language with no word for it

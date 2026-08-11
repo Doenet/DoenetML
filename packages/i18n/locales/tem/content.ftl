@@ -13,7 +13,7 @@
 # syllable:
 #
 #            c1 (kʌ-)      c2 (tʌ-)      c3 (rʌ-)      c4 (ʌŋ-)
-#   noun      kʌ-bath       tʌ-bath       rʌ-th        ʌŋ-fəm
+#   noun      kʌ-bath       tʌ-bath       rʌ-th         ʌŋ-fəm
 #   -fith     kʌfith        tʌfith        rʌfith        ʌŋfith
 #   -fera     kʌfera        tʌfera        rʌfera        ʌŋfera
 #
