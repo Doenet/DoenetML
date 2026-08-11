@@ -92,6 +92,19 @@ describe("Normalize dast", async () => {
             `<document><slopeField><function variables="x y">y - x</function><label>hi</label></slopeField></document>`,
         );
     });
+    it("keeps a field's set-aside child on the side it was written", () => {
+        // The line breaks matter: the whitespace around the expression is
+        // swallowed into the wrapper, so the wrapper has to land where the
+        // expression is rather than where the first swallowed child was.
+        const dast = normalizeDocumentDast(
+            lezerToDast(
+                `<slopeField>\n<label>hi</label>\ny - x\n</slopeField>`,
+            ),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField><label>hi</label><function variables="x y">\n\ny - x\n</function></slopeField></document>`,
+        );
+    });
     it("does not give a field a <function> when it has no expression", () => {
         const dast = normalizeDocumentDast(
             lezerToDast(`<slopeField>   </slopeField>`),

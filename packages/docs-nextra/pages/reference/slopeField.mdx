@@ -16,6 +16,10 @@ The slope function is given inside the component, either as a bare expression �
 as a function of <m>x</m> and <m>y</m>; use the `variables` attribute to name them differently. A
 `<function>{:dn}` child is used exactly as written, since it names its own variables.
 
+A function whose number of outputs does not suit the component — a two-output expression such as
+`(y, -x)` given to `<slopeField/>{:dn}` — draws nothing and reports a warning saying which component
+does want it.
+
 The field re-tiles automatically as the user pans or zooms, and its marks keep a constant on-screen
 length — so slopes appear at their true visual angle even when the axes are not equally scaled.
 
@@ -102,10 +106,6 @@ them:
   <slopeField variables="$v1 $v2">$v1 - $v2</slopeField>
 </graph>
 ```
-
-A function whose number of outputs does not suit the component — a two-output expression such as
-`(y, -x)` given to `<slopeField/>{:dn}` — draws nothing and reports a warning saying which component
-does want it.
 
 
 ---

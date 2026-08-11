@@ -13,12 +13,13 @@ const DEFAULT_VARIABLES = "x y";
 /**
  * Children this sugar never folds into the function.
  *
- * A field takes a `<shortDescription>`, and takes no label at all: it covers
- * the whole visible region, so there is nowhere for one to sit, and the
- * components set `includeLabels = false`. The label tags are listed anyway so
- * that one written by mistake is left where it was and reported as the invalid
- * child it is, rather than being swallowed into the expression and reported as
- * something else entirely.
+ * A field takes none of them — least of all a label, since it covers the whole
+ * visible region and so the components set `includeLabels = false`. That is
+ * exactly why they are listed: one written by mistake is left where it was and
+ * reported as the invalid child it is, instead of being swallowed into the
+ * expression and reported as whatever a `<label>` means to a `<math>`. The set
+ * is the one `returnWrapNonLabelsDescriptionsSugarFunction` sets aside in the
+ * worker, for the components that do take them.
  */
 const NON_FUNCTION_CHILDREN = new Set([
     "label",
@@ -105,18 +106,18 @@ export function fieldFunctionSugar(node: DastElement) {
         source_doc: node.source_doc,
     };
 
-    // The wrapper takes the place of the first child it swallowed, so a label
-    // written before or after the expression stays on that side of it.
-    let placed = false;
-    node.children = node.children.flatMap((child) => {
+    // The wrapper takes the place of the first child that is part of the
+    // expression, so a set-aside child stays on the side of it that it was
+    // written on. It is the first *substantive* child that fixes the position,
+    // since the whitespace around the expression is swallowed into the wrapper
+    // as well, and on a component written across several lines that whitespace
+    // comes first.
+    const firstExpressionIndex = node.children.indexOf(substantive[0]);
+    node.children = node.children.flatMap((child, index) => {
         if (isLeftAlone(child)) {
             return [child];
         }
-        if (placed) {
-            return [];
-        }
-        placed = true;
-        return [functionChild];
+        return index === firstExpressionIndex ? [functionChild] : [];
     });
 }
 

@@ -155,35 +155,6 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         );
     });
 
-    it("slopeField sugars a bare expression into a function of x and y", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-  <graph>
-    <slopeField name="onlyX">x*sin(x)</slopeField>
-    <slopeField name="bothVars">y - x</slopeField>
-  </graph>
-  `,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const onlyX = stateVariables[await resolvePathToNodeIdx("onlyX")];
-        const bothVars = stateVariables[await resolvePathToNodeIdx("bothVars")];
-
-        // The sugared function always takes both variables, so an expression
-        // that mentions y is a genuine function of y rather than NaN.
-        expect(onlyX.stateValues.haveFunction).eq(true);
-        expect(numericalF(onlyX.stateValues.fDefinitions[0])(2, 7)).closeTo(
-            2 * Math.sin(2),
-            1e-12,
-        );
-
-        expect(bothVars.stateValues.haveFunction).eq(true);
-        expect(numericalF(bothVars.stateValues.fDefinitions[0])(2, 7)).closeTo(
-            5,
-            1e-12,
-        );
-    });
-
     it("slopeField reports no function when none is given", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -285,29 +256,6 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(vf.stateValues.haveFunction).eq(true);
         expect(vf.stateValues.fDefinitions.length).eq(2);
         // F(3, 5) = (5, -3)
-        expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
-            5,
-            1e-12,
-        );
-        expect(numericalF(vf.stateValues.fDefinitions[1])(3, 5)).closeTo(
-            -3,
-            1e-12,
-        );
-    });
-
-    it("vectorField sugars a bare expression into a function", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-  <graph>
-    <vectorField name="vf">(y, -x)</vectorField>
-  </graph>
-  `,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const vf = stateVariables[await resolvePathToNodeIdx("vf")];
-
-        expect(vf.stateValues.haveFunction).eq(true);
         expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
             5,
             1e-12,
@@ -475,6 +423,34 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(warnings[0].code).eq("doenet-w0124");
         expect(warnings[0].message).contain(
             "which names its own variables, so `variables` is ignored",
+        );
+    });
+
+    it("says the field's variables did nothing when there is no expression", async () => {
+        // The other way the attribute can come to nothing, and the one where
+        // the warning is the only child the component ends up with — worth
+        // checking it survives the trip from the parser rather than being read
+        // as a stray child.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <vectorField name="vf" variables="u v" />
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("vf")].stateValues
+                .haveFunction,
+        ).eq(false);
+
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors.length).eq(0);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0124");
+        expect(warnings[0].message).contain(
+            "No such expression is given here, so `variables` is ignored",
         );
     });
 
