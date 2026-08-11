@@ -134,8 +134,8 @@ describe("SlopeField and VectorField Tag Tests", { tags: ["@group2"] }, () => {
     });
 
     it("draws a field from an expression in the variables the field names", () => {
-        // The names reach the wrapping <function> through sugar, which reads
-        // them from a primitive attribute. If they did not arrive, `u` and `v`
+        // The names reach the wrapping <function> because the parser's sugar
+        // moves the attribute onto it. If they did not arrive, `u` and `v`
         // would be free symbols, every lattice point would be NaN, and the
         // graph would come up blank — which is why this is checked end to end.
         cy.window().then((win) => {
