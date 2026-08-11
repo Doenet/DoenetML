@@ -938,10 +938,11 @@ suffixes its class and `wo` marks it on a determiner.
 
 **`fon` has no agreement at all, and is here for its colour words.** Fon has
 three basic colour terms — «wiwi», «wewe», «vɔvɔ» — all reduplicated statives,
-and the other nine in the file are bare French loans because there is no stem to
-reduplicate. The seam runs through one message and is morphological, so a
-speaker reviewing it should expect to move words across it rather than to find
-the loans wrong as loans.
+and the other nine in `color` are bare French loans because there is no stem to
+reduplicate. The seam is sharpest there but runs through `noun` and `fill-style`
+as well, and it is morphological rather than orthographic, so a speaker
+reviewing it should expect to move words across it rather than to find the loans
+wrong as loans.
 
 #### Negotiation, and the exclusion that carries the argument
 

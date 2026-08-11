@@ -46,7 +46,7 @@ answer-show-responses =
 
 ## Disclosure panels
 
-feedback-heading = Mvutu ya Nlongi
+feedback-heading = Mvutu ya Kisalu
 
 collapsible-click-to-open = (buta sambu na kuzibula)
 collapsible-click-to-close = (buta sambu na kukanga)

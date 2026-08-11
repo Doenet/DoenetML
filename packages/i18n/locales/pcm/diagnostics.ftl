@@ -50,11 +50,11 @@ vector-dimension-mismatch = numDimensions no mach fọ di vẹkta.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Wi no fit atrakt to `<{ $component }>` bikọs e no gẹt nearestPoint.
+attract-to-without-nearest-point = Wi no fit atrakt to `<{ $component }>` bikọs e no gẹt nearestPoint stet vẹriabul.
 
-constrain-to-without-nearest-point = Wi no fit kọnstren to `<{ $component }>` bikọs e no gẹt nearestPoint.
+constrain-to-without-nearest-point = Wi no fit kọnstren to `<{ $component }>` bikọs e no gẹt nearestPoint stet vẹriabul.
 
-constrain-to-interior-without-nearest-point = Wi no fit kọnstren to di insai of `<{ $component }>` bikọs e no gẹt nearestPoint.
+constrain-to-interior-without-nearest-point = Wi no fit kọnstren to di insai of `<{ $component }>` bikọs e no gẹt nearestPoint stet vẹriabul.
 
 ## `<choiceInput>`
 
@@ -78,13 +78,13 @@ pretzel-circuit-first-index = Wi dey ignọ di indices wey yu gi pretzel fọ mo
 
 string-children-need-type = Fọ make `<{ $component }>` wọk wit string pikin, yu must gi am `type` attribute.
 
-invalid-type-defaulting-to-math = Type { $type } no korẹkt fọ { $component } kọmponẹnt. E must bi math, text, number ọ boolean. Wi go yuz math.
+invalid-type-defaulting-to-math = Taip { $type } no korẹkt fọ { $component } kọmponẹnt. E must bi math, text, number ọ boolean. Wi go yuz math.
 
-string-not-valid-component-to-arrange = String "{ $value }" no bi valid kọmponẹnt fọ { $component }. Wi dey ignọ am.
+string-not-valid-component-to-arrange = String "{ $value }" no bi kọmponẹnt wey korẹkt fọ { $component }. Wi dey ignọ am.
 
 ## Types and variables
 
-invalid-type-defaulting-to-number = Type { $type } no korẹkt, wi don sẹt di type to number.
+invalid-type-defaulting-to-number = Taip { $type } no korẹkt, wi don sẹt di taip to number.
 
 invalid-variable-value = Vẹriabul valyu wey no korẹkt: `{ $value }`
 
@@ -301,7 +301,7 @@ collect-no-source = Wi no si sọs fọ collect.
 
 collect-invalid-component-type = Wi no fit kolẹkt kọmponẹnt of taip `<{ $component }>` bikọs di taip no korẹkt.
 
-reference-index-unavailable = Wi no fit rẹfarẹns index `{ $reference }`
+reference-index-unavailable = Wi no fit rẹfrẹns index `{ $reference }`
 
 ## `<callAction>`
 
@@ -412,7 +412,7 @@ variant-attribute-not-number = wi no fit sabi di yunik vẹriant of { $component
 variant-attribute-wrong-type-for-sequence =
     wi no fit sabi di yunik vẹriant of { $component } of { $type } taip bikọs { $attribute } no bi { $expected ->
         [letters-combination] lẹta kọmbineshọn
-        [math-expression] valid mat ẹkspreshọn
+        [math-expression] mat ẹkspreshọn wey korẹkt
         [integer] hol nọmba
        *[number] nọmba
     }.
@@ -521,7 +521,7 @@ parse-self-closing-tag-name-missing = DoenetML no korẹkt: Wi si tag wey no g�
 
 parse-self-closing-tag-not-closed = DoenetML no korẹkt: Dem no klos di tag `{ $tag }` (e lai sey `/>` no dey).
 
-parse-tag-invalid-attributes = DoenetML no korẹkt: Di tag `{ $tag }` no valid. E fit gẹt attribute wey no korẹkt.
+parse-tag-invalid-attributes = DoenetML no korẹkt: Di tag `{ $tag }` no korẹkt. E fit gẹt attribute wey no korẹkt.
 
 parse-close-tag-name-missing = DoenetML no korẹkt: Wi si klosin tag wey no gẹt nem, lai `</`
 

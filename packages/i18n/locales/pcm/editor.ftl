@@ -127,7 +127,7 @@ editor-response-submitted = Dem sẹnd am
 
 ## The context-help panel
 
-help-placeholder = Put yọ kọsọ fọ tag nem, attribute, ọ { $ref } make yu si di dọkumẹnteshọn.
+help-placeholder = Put yọ kọsọ fọ tag nem, attribute, ọ { $ref } make yu si di dọkyumẹnteshọn.
 
 help-unsupported-ref-chain = Wi neva gẹt hẹlp fọ rẹfrẹns wey gẹt many pat lai { $example }.
 
@@ -147,8 +147,8 @@ help-suggestions-header =
        *[top] Fọ di tọp lẹvul
     }{ $allowed ->
         [none] { " — nọtin dey go hia." }
-        [text] { " — tayp tẹks hia." }
-        [text-and-components] { " — tayp tẹks hia, ọ tray:" }
+        [text] { " — taip tẹks hia." }
+        [text-and-components] { " — taip tẹks hia, ọ tray:" }
        *[components] { " — tin wey yu fit tray:" }
     }
 

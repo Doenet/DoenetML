@@ -85,7 +85,7 @@ string-not-valid-component-to-arrange = String "{ $value }" tɩkɛ pʋyʋ kɩba�
 
 invalid-type-defaulting-to-number = Type { $type } tɩtʋʋzɩ, paɖʋ type number.
 
-invalid-variable-value = Lɛɣzɩtʋ pʋyʋ kɩdɛkɛdʋʋ: `{ $value }`
+invalid-variable-value = Lɛɣzɩtʋ pʋyʋ tɩtʋʋzɩ: `{ $value }`
 
 ## Variants
 
@@ -264,8 +264,8 @@ eigen-decomposition-failed = Paapɩzɩɣ pamaɣzɩ matrisɩ aygɛnvaluu
 
 matches-pattern-parameter-not-in-pattern =
     { $parametersCount ->
-        [one] `<matchesPattern>`: parameter { $parameters } fɛyɩ kɩɖaʋ taa, pʋyɔɔ ɛɛmaɣ nɛ falaa paa ɛzɩmtaa.
-       *[other] `<matchesPattern>`: parameter { $parameters } fɛyɩ kɩɖaʋ taa, pʋyɔɔ paamaɣ nɛ falaa paa ɛzɩmtaa.
+        [one] `<matchesPattern>`: parameter { $parameters } fɛyɩ kɩɖaʋ taa, pʋyɔɔ ɛmaɣ nɛ falaa paa ɛzɩmtaa.
+       *[other] `<matchesPattern>`: parameter { $parameters } fɛyɩ kɩɖaʋ taa, pʋyɔɔ pamaɣ nɛ falaa paa ɛzɩmtaa.
     }
 
 ## `<graph>`
@@ -492,8 +492,8 @@ attribute-value-invalid-using-default = Pʋyʋ `{ $value }` tɩtʋʋzɩ attribut
 
 doenetml-version-not-found =
     { $fallback ->
-        [none] Patɩna DoenetML wɛtʋ { $version }.
-       *[other] Patɩna DoenetML wɛtʋ { $version }. Palakɩnɩ wɛtʋ { $fallback }
+        [none] Patɩna DoenetML version { $version }.
+       *[other] Patɩna DoenetML version { $version }. Palakɩnɩ version { $fallback }
     }
 
 ## Reading the DoenetML

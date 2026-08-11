@@ -99,7 +99,7 @@ side-by-side-absolute-widths = `<{ $component }>` yasalwa ve mu bitezo bya kimos
 
 side-by-side-absolute-margins = `<{ $component }>` yasalwa ve mu bitezo bya kimosi. Ndilu zatulwa na kifwani.
 
-side-by-side-no-block-child = `<{ $component }>` yambi: yifweti vwanda ti mwana mosi ya block na zulu.
+side-by-side-no-block-child = `<{ $component }>` yambi: yifweti vwanda ye mwana mosi ya block na zulu.
 
 ## `<label>`
 
@@ -396,15 +396,15 @@ section-multiple-style-palettes = Kitini kilenda sola kaka <stylePalette> mosi; 
 
 variant-num-to-select-not-non-negative-integer = kilendi zaba mpila zaswaswana za { $component } ko kadi numToSelect kena ntalu yamvimba yina ya nsi ya nulu ve ko.
 
-variant-num-to-select-not-constant-number = kilendi zaba mpila zaswaswana za { $component } ko kadi numToSelect kena ntalu yasoba ve ko.
+variant-num-to-select-not-constant-number = kilendi zaba mpila zaswaswana za { $component } ko kadi numToSelect kena ntalu yasikama ve ko.
 
-variant-with-replacement-not-constant-boolean = kilendi zaba mpila zaswaswana za { $component } ko kadi withReplacement kena boolean yasoba ve ko.
+variant-with-replacement-not-constant-boolean = kilendi zaba mpila zaswaswana za { $component } ko kadi withReplacement kena boolean yasikama ve ko.
 
 variant-select-weight-disables-unique = Mpila zaswaswana za select zikangwa kana option yina ye selectWeight to selectForVariants yatelwa
 
 variant-coprime-undetermined = kilendi zaba mpila zaswaswana za { $component } ko kadi kilendi zaba nde coprime kele luvunu ntangu yonso ko.
 
-variant-attribute-not-constant = kilendi zaba mpila zaswaswana za { $component } ko kadi { $attribute } kasobaka ve ko.
+variant-attribute-not-constant = kilendi zaba mpila zaswaswana za { $component } ko kadi { $attribute } kena kima kyasikama ve ko.
 
 variant-attribute-not-number = kilendi zaba mpila zaswaswana za { $component } ko kadi { $attribute } kena ntalu ve.
 
@@ -492,8 +492,8 @@ attribute-value-invalid-using-default = Ntalu yambi `{ $value }` mu attribute `{
 
 doenetml-version-not-found =
     { $fallback ->
-        [none] Mpila ya DoenetML { $version } yamonana ve.
-       *[other] Mpila ya DoenetML { $version } yamonana ve. Kukwenda na mpila { $fallback }
+        [none] version ya DoenetML { $version } yamonana ve.
+       *[other] version ya DoenetML { $version } yamonana ve. Kukwenda na version { $fallback }
     }
 
 ## Reading the DoenetML

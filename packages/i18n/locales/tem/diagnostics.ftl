@@ -492,8 +492,8 @@ attribute-value-invalid-using-default = Ʌŋbʌŋ `{ $value }` kʌ bana bɔm ka 
 
 doenetml-version-not-found =
     { $fallback ->
-        [none] Ma bata DoenetML kʌmʌŋ { $version } bɔm.
-       *[other] Ma bata DoenetML kʌmʌŋ { $version } bɔm. Ma bay kʌmʌŋ { $fallback }
+        [none] Ma bata DoenetML version { $version } bɔm.
+       *[other] Ma bata DoenetML version { $version } bɔm. Ma bay version { $fallback }
     }
 
 ## Reading the DoenetML

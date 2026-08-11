@@ -99,7 +99,7 @@ summary-statistics-caption = Ʌŋkəbath ka tʌnamba tʌ { $column }
 
 math-input-preview-region = yira ʌŋkəre ka mat pʌ
 math-input-preview = Yira pʌ
-math-input-invalid-expression = Ʌŋkəre ka bana bɔm:
+math-input-invalid-expression = Ʌŋkəre kʌ bana bɔm:
 
 
 ## Document status

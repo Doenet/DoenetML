@@ -61,6 +61,17 @@
 # `line-width`, `style-filled-word`, and these four colours — supplies all four
 # classes.
 #
+# `.red` is the entry to settle before any of the others. Its stem «-bana» is
+# also this catalog's word for *big*: `diagnostics.ftl` renders a function's
+# `[maximum]` as «kʌbana» against `[minimum]` «kʌkəni», and `line-width` below
+# reduplicates the same two stems for `.thick` and `.thin`. So a stroked red
+# line renders «kʌlayn kʌbana-bana kʌbana», where only the repeated `kʌ-` is
+# meant to be the concord and the repeated «bana» is not meant to be anything.
+# Either «-bana» really is the colour term as well and the pair is a homonym a
+# speaker can leave alone, or `.red` wants its own stem; a speaker deciding the
+# second way should expect `styleDescriptions.test.ts` and
+# `styleDescriptionLocale.test.ts` to need their pinned Temne strings updated.
+#
 # A comment cannot go inside the message beside the attribute it describes: an
 # indented comment line is part of the pattern and renders as a newline, which
 # `lint:i18n` rejects.

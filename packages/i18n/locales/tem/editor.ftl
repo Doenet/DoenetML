@@ -77,7 +77,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = DoenetML kʌmʌŋ { $version }
+editor-version-title = DoenetML version { $version }
 
 editor-tab-help = Kʌsandi ka ro mʌ na
 editor-tab-help-short = Ro
@@ -100,7 +100,7 @@ editor-diagnostic-line = Kʌlayn #{ $line }
 
 editor-no-errors = Tʌwuni Tʌ Bɔm
 editor-no-warnings = Tʌmɔŋ Tʌ Bɔm
-editor-no-info = Ʌŋkəre Ka Bɔm
+editor-no-info = Ʌŋkəre Kʌ Bɔm
 
 editor-show-info-annotations = Yira ʌŋkəre ka kʌsɔŋɛr
 editor-show-accessibility-annotations = Yira tʌwuni tʌ kʌsɔth ka kʌsɔŋɛr
@@ -182,7 +182,7 @@ help-style-number-annotation = { " " }(styleNumber { $styleNumber })
 
 help-allowed-values =
     { $perItem ->
-        [true] Tʌbʌŋ tʌ ma yifi (kʌmɔth ka kʌmɔth):
+        [true] Tʌbʌŋ tʌ ma yifi (kʌrɔŋ ka kʌmɔth):
        *[other] Tʌbʌŋ tʌ ma yifi:
     }
 

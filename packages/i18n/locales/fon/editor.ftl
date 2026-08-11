@@ -77,7 +77,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = DoenetML alɔkpa { $version }
+editor-version-title = DoenetML version { $version }
 
 editor-tab-help = Alɔdo tɛnmɛ tɔ̀n
 editor-tab-help-short = Tɛnmɛ

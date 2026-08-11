@@ -27,9 +27,9 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset má nɔ w'azɔ̌ 
 
 ## `<line>`
 
-line-points-undetermined-dimensions = Dlɛ̌n gbɔn tɛ́n e sín ɖaxó è má tuùn ǎ lɛ́ é jí.
+line-points-undetermined-dimensions = Dlɛ̌n gbɔn tɛ́n e sín dimension è má tuùn ǎ lɛ́ é jí.
 
-line-points-too-few-dimensions = Dlɛ̌n ɖó ná gbɔn tɛ́n e ɖó ɖaxó wè ɖibla lɛ́ é jí.
+line-points-too-few-dimensions = Dlɛ̌n ɖó ná gbɔn tɛ́n e ɖó dimension wè ɖibla lɛ́ é jí.
 
 line-points-depend-on-variables = Dlɛ̌n gbɔn tɛ́n e ɖò nǔɖyɔ́ lɛ́ sí lɛ́ é jí: { $variables }.
 
@@ -161,11 +161,11 @@ circle-change-center-non-numerical = È má ko bló lɛ̌lɛ̌ sín tɛntin ɖi�
 
 function-domain-insufficient-dimensions =
     { $intervals ->
-        [one] Ðaxó má kpé nú fonction sín domain ǎ. Domain ɖó hwenu { $intervals } amɔ̌ fonction ɔ́ ɖó { $inputs ->
+        [one] Dimension má kpé nú fonction sín domain ǎ. Domain ɖó intervalle { $intervals } amɔ̌ fonction ɔ́ ɖó { $inputs ->
             [one] input { $inputs }
            *[other] input { $inputs }
         }.
-       *[other] Ðaxó má kpé nú fonction sín domain ǎ. Domain ɖó hwenu { $intervals } amɔ̌ fonction ɔ́ ɖó { $inputs ->
+       *[other] Dimension má kpé nú fonction sín domain ǎ. Domain ɖó intervalle { $intervals } amɔ̌ fonction ɔ́ ɖó { $inputs ->
             [one] input { $inputs }
            *[other] input { $inputs }
         }.
@@ -492,8 +492,8 @@ attribute-value-invalid-using-default = Nǔ `{ $value }` má sɔgbe ǎ nú attri
 
 doenetml-version-not-found =
     { $fallback ->
-        [none] È má mɔ DoenetML alɔkpa { $version } ǎ.
-       *[other] È má mɔ DoenetML alɔkpa { $version } ǎ. È ná zán alɔkpa { $fallback }
+        [none] È má mɔ DoenetML version { $version } ǎ.
+       *[other] È má mɔ DoenetML version { $version } ǎ. È ná zán version { $fallback }
     }
 
 ## Reading the DoenetML

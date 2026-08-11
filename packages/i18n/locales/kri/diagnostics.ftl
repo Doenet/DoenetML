@@ -79,7 +79,7 @@ string-children-need-type = Fɔ mek `<{ $component }>` wok wit string pikin, yu 
 
 invalid-type-defaulting-to-math = Tayp { $type } nɔ kɔrɛkt fɔ { $component } kɔmponɛnt. I fɔ bi math, text, number ɔ boolean. Wi go yuz math.
 
-string-not-valid-component-to-arrange = String "{ $value }" nɔ to valid kɔmponɛnt fɔ { $component }. Wi de ignɔ am.
+string-not-valid-component-to-arrange = String "{ $value }" nɔ to kɔmponɛnt we kɔrɛkt fɔ { $component }. Wi de ignɔ am.
 
 ## Types and variables
 
@@ -210,7 +210,7 @@ function-iterates-input-output-mismatch =
 
 sequence-invalid-length = Di lɛnt pan di sequence nɔ kɔrɛkt.  I fɔ bi ɔl nɔmba we nɔ de bilo ziro.
 
-sequence-invalid-step = Di step pan di sequence nɔ kɔrɛkt.  I fɔ bi nɔmba fɔ sequence pan type { $type }.
+sequence-invalid-step = Di step pan di sequence nɔ kɔrɛkt.  I fɔ bi nɔmba fɔ sequence pan tayp { $type }.
 
 sequence-invalid-endpoint-number = Di "{ $attribute }" pan di number sequence nɔ kɔrɛkt.  I fɔ bi nɔmba.
 
@@ -300,7 +300,7 @@ collect-no-source = Wi nɔ si sɔs fɔ collect.
 
 collect-invalid-component-type = Wi nɔ ebul fɔ kɔlɛkt kɔmponɛnt pan tayp `<{ $component }>` bikɔs di tayp nɔ kɔrɛkt.
 
-reference-index-unavailable = Wi nɔ ebul fɔ rɛfarɛns index `{ $reference }`
+reference-index-unavailable = Wi nɔ ebul fɔ rɛfrɛns index `{ $reference }`
 
 ## `<callAction>`
 
@@ -411,7 +411,7 @@ variant-attribute-not-number = wi nɔ ebul fɔ no di yunik vɛriant pan { $compo
 variant-attribute-wrong-type-for-sequence =
     wi nɔ ebul fɔ no di yunik vɛriant pan { $component } pan { $type } tayp bikɔs { $attribute } nɔ to { $expected ->
         [letters-combination] lɛta kɔmbineshɔn
-        [math-expression] valid mat ɛkspreshɔn
+        [math-expression] mat ɛkspreshɔn we kɔrɛkt
         [integer] ɔl nɔmba
        *[number] nɔmba
     }.
@@ -520,7 +520,7 @@ parse-self-closing-tag-name-missing = DoenetML nɔ kɔrɛkt: Wi si tag we nɔ g�
 
 parse-self-closing-tag-not-closed = DoenetML nɔ kɔrɛkt: Dɛn nɔ klos di tag `{ $tag }` (i tan lɛk se `/>` nɔ de).
 
-parse-tag-invalid-attributes = DoenetML nɔ kɔrɛkt: Di tag `{ $tag }` nɔ valid. I kin gɛt attribute we nɔ kɔrɛkt.
+parse-tag-invalid-attributes = DoenetML nɔ kɔrɛkt: Di tag `{ $tag }` nɔ kɔrɛkt. I kin gɛt attribute we nɔ kɔrɛkt.
 
 parse-close-tag-name-missing = DoenetML nɔ kɔrɛkt: Wi si klosin tag we nɔ gɛt nem, lɛk `</`
 

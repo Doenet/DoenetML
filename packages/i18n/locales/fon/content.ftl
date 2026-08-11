@@ -29,10 +29,9 @@
 #
 # So the file has a visible seam running through it — sharpest in `color`, and
 # again in `noun` and `fill-style` — and the seam is morphological rather than
-# orthographic. A speaker reviewing this should
-# expect to move words across it — Fon has descriptive phrases for at least
-# green («amamu», the colour of leaves) and yellow — rather than to find the
-# nine loans wrong as loans.
+# orthographic. A speaker reviewing this should expect to move words across it
+# — Fon has descriptive phrases for at least green («amamu», the colour of
+# leaves) and yellow — rather than to find the nine loans wrong as loans.
 #
 # The determiner «ɔ́» closes a whole noun phrase, behind the describing words.
 # It is left off throughout: these descriptions are read out of context, where

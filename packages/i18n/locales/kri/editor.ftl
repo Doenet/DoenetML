@@ -6,7 +6,11 @@
 # the language and stay in English exactly as written. Krio's phonemic spelling
 # makes that seam easy to see here: an identifier like `styleNumber` keeps its
 # English spelling inside a sentence, and everything spelt Krio around it —
-# «atribyut», «snipɛt» — is prose.
+# «atribyut», «snipɛt» — is prose. That spelling is this file's convention and
+# is applied throughout it. `diagnostics.ftl` keeps the English `attribute`
+# instead, since there the word names the piece of DoenetML the message is
+# reporting on rather than a kind of completion the editor offers; the two
+# files are each consistent, and a speaker changing one should change both.
 
 
 ## The viewer's controls
@@ -127,7 +131,7 @@ editor-response-submitted = Dɛn sɛn am
 
 ## The context-help panel
 
-help-placeholder = Put yu kɔsɔ pan tag nem, attribute, ɔ { $ref } fɔ si di dɔkyumɛnteshɔn.
+help-placeholder = Put yu kɔsɔ pan tag nem, atribyut, ɔ { $ref } fɔ si di dɔkyumɛnteshɔn.
 
 help-unsupported-ref-chain = Wi nɔ gɛt ɛlp yet fɔ rɛfrɛns we gɛt bɔku pat lɛk { $example }.
 
@@ -201,7 +205,7 @@ help-coordinates =
 
 help-type = Tayp:
 
-help-resolved-style = Stayl we wi wok am ɔt (styleNumber { $styleNumber }):
+help-resolved-style = Stayl we wi wok ɔt (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Fɔnkshɔn nem dɛn we wi wok ɔt:
 help-reset-list = Risɛt lis pan dis input:

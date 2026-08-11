@@ -76,7 +76,7 @@ matrix-remove-column = Ðè kɔ́ sín mɛ
 matrix-add-column = Sɔ́ kɔ́ dó
 
 subset-add-remove-points = Sɔ́ tɛ́n dó/Ðè tɛ́n sín mɛ
-subset-toggle-points-intervals = Ðyɔ́ tɛ́n kpó hwenu kpó
+subset-toggle-points-intervals = Ðyɔ́ tɛ́n kpó intervalle kpó
 subset-move-points = Sɛ Tɛ́n Lɛ́ Dó
 subset-clear = Súnsún
 
@@ -99,7 +99,7 @@ summary-statistics-caption = Kplékplé xayi { $column } tɔ̀n
 
 math-input-preview-region = nùnywɛ́xó kpɔ́n jɛ nukɔ́n
 math-input-preview = Kpɔ́n jɛ nukɔ́n
-math-input-invalid-expression = Xógbe e má sɔgbe ǎ é:
+math-input-invalid-expression = Nǔnywɛ́xó e má sɔgbe ǎ é:
 
 
 ## Document status

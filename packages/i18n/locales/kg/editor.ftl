@@ -25,7 +25,7 @@ editor-update-viewer-title =
 
 editor-variant = Mpila
 
-editor-variant-filter = Sola…
+editor-variant-filter = Sosa…
 
 editor-variant-next = Sola mpila yalanda
 
@@ -77,7 +77,7 @@ editor-accessibility-badge = WCAG
 
 ## The footer
 
-editor-version-title = Mpila ya DoenetML { $version }
+editor-version-title = version ya DoenetML { $version }
 
 editor-tab-help = Lusadisu lwa fulu
 editor-tab-help-short = Fulu
@@ -182,8 +182,8 @@ help-style-number-annotation = { " " }(styleNumber { $styleNumber })
 
 help-allowed-values =
     { $perItem ->
-        [true] Ntalu zalombwa (mosi konso kitini):
-       *[other] Ntalu zalombwa:
+        [true] Ntalu zatambulwa (mosi konso kitini):
+       *[other] Ntalu zatambulwa:
     }
 
 help-suggested-values = Ntalu zalongwa:
