@@ -11,9 +11,9 @@
 # and two regional languages that share almost nothing with it or each other.
 #
 # **This catalog is the clearest instance of the affix rule in the tree, and it
-# is the reason to read it.** Mende's definite marker is a suffix — `-i` after
-# a consonant, `-ei` after a vowel — and it attaches not to the noun but to
-# **whichever word ends the noun phrase**:
+# is the reason to read it.** Mende's definite marker is a suffix «-i» that
+# fuses with the final vowel of the word it lands on, and it attaches not to the
+# noun but to **whichever word ends the noun phrase**:
 #
 #   pɛlɛ           a house          pɛlɛi          the house
 #   pɛlɛ wa        a big house      pɛlɛ wai       the big house

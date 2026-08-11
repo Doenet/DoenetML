@@ -1717,7 +1717,7 @@ what that value turns out to *be*:
 | The catalog wants | The language | Why it cannot |
 | --- | --- | --- |
 | a case ending on the value | `ar`, `ug`, `hu`, `fi`, `ta`, `te` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
-| the definite article on the value | `ro` | the article is a suffix — «secțiune» → «secțiunea» |
+| the definite article on the value | `ro`, `men` | the article is a suffix — «secțiune» → «secțiunea», «wa» → «wai» |
 | a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
 | a compound with the value | `fi` | Finnish writes a compound as one word |
 | a case particle after the value | `bo`, `dz` | the particle has four shapes, picked by the final letter of the syllable before it |
@@ -1785,7 +1785,11 @@ There are five ways out, and every catalog here takes one of them:
   Hungarian («ehhez: { $answerId }»).
 - **Choose the words that land there.** Czech's pattern for horizontal lines is
   «horizontální čáry» rather than «vodorovné čáry», because «v vodorovné» would
-  have wanted «ve».
+  have wanted «ve». `locales/men` takes the same way out across a whole file
+  rather than one message, staying in the indefinite so that no description ever
+  ends in a definite suffix — see
+  [Angola, Sierra Leone and the Songhay](#angola-sierra-leone-and-the-songhay)
+  for why that is the right reading of Mende rather than a dodge.
 - **Write both forms.** Hungarian's «a(z)» is the standard orthographic answer
   to exactly this problem, and predates software by a long way.
 - **Prefer the free allomorph over the bound one.** Where the affix has a
