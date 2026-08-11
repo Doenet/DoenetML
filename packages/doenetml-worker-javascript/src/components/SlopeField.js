@@ -1,6 +1,7 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
+    returnFieldFunctionChildGroup,
     returnFieldFunctionStateVariableDefinitions,
     returnFieldLatticeAttributes,
     returnFieldVariablesAttribute,
@@ -24,10 +25,7 @@ export default class SlopeField extends GraphicalComponent {
 
     static returnChildGroups() {
         let groups = super.returnChildGroups();
-        groups.push({
-            group: "functions",
-            componentTypes: ["function"],
-        });
+        groups.push(returnFieldFunctionChildGroup());
 
         return groups;
     }
