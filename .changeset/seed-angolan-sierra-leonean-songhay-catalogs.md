@@ -22,5 +22,5 @@ is deliberately still served English: CLDR has no opinion about which Songhay
 variety it means, so choosing one would be a guess rather than a published
 fact.
 
-Umbundu and Kimbundu are the first Angolan languages in the roster, and Mende
-the third Sierra Leonean one.
+Umbundu and Kimbundu are the first catalogs in the roster centred on Angola,
+and Mende the third for a language of Sierra Leone.

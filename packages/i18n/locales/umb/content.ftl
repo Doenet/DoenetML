@@ -5,12 +5,13 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # `umb` is Umbundu, the largest Angolan language, spoken across the central
-# highlands. It is the first Angolan catalog in this repository, and it arrives
-# beside `locales/kmb` (Kimbundu) in the same batch.
+# highlands. It is the first catalog here centred on Angola — `locales/kg`
+# reaches northern Angola too, but is written towards a written standard of the
+# DRC — and it arrives beside `locales/kmb` (Kimbundu) in the same batch.
 #
-# **`$gender` is a noun class spelled as a concord prefix**, which is what
-# twenty-odd Bantu catalogs here already do. The stem takes the class's prefix
-# directly, with nothing between:
+# **`$gender` is a noun class spelled as a concord prefix**, which is what most
+# of the twenty-odd Bantu catalogs here already do. The stem takes the class's
+# prefix directly, with nothing between:
 #
 #            c5 (li-)    c7 (ci-)    c9 (yi-)    c10 (vi-)
 #   -tekãva   litekãva    citekãva    yitekãva    vitekãva
@@ -133,9 +134,8 @@ noun =
 # describing words, so it goes in the tail.
 #
 # The head takes `ci-`, not `yi-`: `noun-gender` does not list
-# `regular-polygon`, so it falls to the `c7` default that a Portuguese loan
-# joins, and the head has to carry the same class the adjectives beside it
-# will. A head disagreeing with its own class is the defect #1685 found in
+# `regular-polygon`, so it falls to the `c7` default, and the head has to carry
+# the same class the adjectives beside it will. A head disagreeing with its own class is the defect #1685 found in
 # `locales/tiv`, and `styleDescriptions.test.ts` pins this row against it.
 noun-regular-polygon =
     { $part ->
@@ -143,9 +143,10 @@ noun-regular-polygon =
        *[head] poligonu cisokisa
     }
 
-# The noun class. `c7` is the default and the class a Portuguese loan joins,
-# which is what an author's own `markerStyleWord` is as far as this catalog is
-# concerned.
+# The noun class. `c7` is the default, which is what an author's own
+# `markerStyleWord` is as far as this catalog is concerned. Every noun with an
+# overt `oci-` — «ocilinganya», «ocitumãlo», «ocinepa» — falls to it unlisted,
+# so that a head and the words beside it always carry the same class.
 noun-gender =
     { $noun ->
         [point] c5
@@ -158,7 +159,6 @@ noun-gender =
         [ray] c9
         [polyline] c9
         [border] c9
-        [line-segment] c10
         [fill] c10
         [background] c10
        *[other] c7

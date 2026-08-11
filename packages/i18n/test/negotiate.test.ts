@@ -996,11 +996,11 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * The near misses for this batch. `nya` neighbours nothing here; `lol`
-         * (Mongo) and `cjk` (Chokwe) are Bantu neighbours of `kmb` and `umb`;
-         * `kpe` (Kpelle) sits beside `men` in the same two countries without being
-         * a Mande variety of it. Every one falls to
-         * English, which is the membership rule working rather than a gap.
+         * The near misses for this batch. `lol` (Mongo) and `cjk` (Chokwe) are
+         * Bantu neighbours of `kmb` and `umb`; `kpe` (Kpelle) sits beside
+         * `men` in Sierra Leone and is Mande like it without being a variety
+         * of it. Every one falls to English, which is the membership rule
+         * working rather than a gap in it.
          */
         it.each(["lol", "cjk", "kpe"])(
             "leaves %s on English rather than folding it onto a neighbour",

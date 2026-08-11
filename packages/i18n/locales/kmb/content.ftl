@@ -27,7 +27,9 @@
 #
 # `locales/kg` is a thousand kilometres north, in a different country, and does
 # *exactly this*: an agreeing «-a» connective in front of an invariant stem,
-# «dya ndombe» for the same word. So a distant relative converges.
+# «dya ndombe» for the same word. The class inventories are not identical —
+# `locales/kg` forks a c11 where this file forks a c10 — but the mechanism is,
+# down to the syllable. So a distant relative converges.
 #
 # Family does not predict the shape of agreement, and neither does geography.
 # That was `locales/kg` and `locales/ktu`'s lesson in #1686 about a creole and
@@ -47,7 +49,7 @@
 ## Style vocabulary
 ##
 ## The stem never changes; only the connective in front of it does. That is
-## `locales/kg`'s shape exactly, and not `locales/umb`'s.
+## `locales/kg`'s mechanism exactly, and not `locales/umb`'s.
 
 color =
     .black =
@@ -148,9 +150,10 @@ noun-regular-polygon =
        *[head] poligonu ya kusokela
     }
 
-# The noun class. `c9` is the default and the class a Portuguese loan joins,
-# which is what an author's own `markerStyleWord` is as far as this catalog is
-# concerned.
+# The noun class. `c9` is the default, which is what an author's own
+# `markerStyleWord` is as far as this catalog is concerned. Every noun with an
+# overt `ki-` — «kizenge», «kididi», «kitangana», «kimbanza» — answers `c7`, so
+# that a head and the words beside it always carry the same class.
 noun-gender =
     { $noun ->
         [line-segment] c7

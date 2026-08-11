@@ -5,17 +5,20 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # `dje` is Zarma (Zarmaciine), the largest Songhay variety and the most widely
-# spoken language of Niger after Hausa. It is the second Nigerien catalog here,
-# after `locales/kr` (Kanuri) in #1685.
+# spoken language of Niger after Hausa. It is the second catalog here for a
+# language of Niger, after `locales/kr` (Kanuri, whose range crosses eastern
+# Niger) in #1685.
 #
 # **Songhay is the reason this catalog is here, and the reason is
 # classificatory rather than morphological.** Every other language in these
-# three batches is Niger-Congo — Bantu, Gur, Mande, Atlantic, Kwa,
-# Benue-Congo — or an English-lexifier creole built on one. Songhay is none of
-# those. Its wider affiliation is genuinely unsettled: it is often filed under
-# Nilo-Saharan, and it is just as often argued to be an isolate that borrowed
-# heavily from Mande and Berber. `locales/kr` is the only neighbour here under
-# the same disputed label, and the two are not close.
+# three batches but one is Niger-Congo — Bantu, Gur, Mande, Atlantic, Kwa,
+# Benue-Congo — or an English-lexifier creole built on one. Songhay is not, and
+# neither is the exception: `locales/kr`, which #1685 seeded as the one
+# Nilo-Saharan catalog of its batch. Zarma's own affiliation is genuinely
+# unsettled — often filed under Nilo-Saharan too, and just as often argued to
+# be an isolate that borrowed heavily from Mande and Berber — so `locales/kr`
+# is the only neighbour here under the same disputed label, and the two are not
+# close.
 #
 # **`$gender` and `$role` both go unused.** Zarma has no noun class and no
 # gender, and marks no case; a describing word follows its noun and never

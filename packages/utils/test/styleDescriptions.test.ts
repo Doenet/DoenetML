@@ -3194,6 +3194,13 @@ describe("the Angolan, Sierra Leonean and Songhay batch", () => {
         expect(described("umb", "point")).toBe(
             "ondimbu linene likusuka lo olongoli vitito",
         );
+        // «ocinepa» carries an overt `oci-`, so it has to take the `ci-`
+        // concord the other `oci-` nouns take: `noun-gender` listed
+        // `line-segment` under `c10` at first and the head disagreed with the
+        // words beside it, which is the `locales/tiv` defect again.
+        expect(described("umb", "line-segment")).toBe(
+            "ocinepa congoli cinene cikusuka lo olongoli vitito",
+        );
     });
 
     it("moves only Kimbundu's connective, never the stem behind it", () => {

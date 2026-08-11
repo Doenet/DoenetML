@@ -1001,8 +1001,9 @@ an agreeing connective in front of it:
 | `umb` | ongoli **yi**nene | ocilinganya **ci**nene | ondimbu **li**nene |
 | `kmb` | nlonji **ya** nene | kizenge **kya** nene | kimbanza **kya** nene |
 
-And Kimbundu's shape is `locales/kg`'s exactly — an agreeing «-a» connective a
-thousand kilometres north, in another country. So **family does not predict the
+And Kimbundu's mechanism is `locales/kg`'s exactly — an agreeing «-a»
+connective a thousand kilometres north, in another country, differing only in
+which classes the two catalogs happen to fork on. So **family does not predict the
 shape of agreement, and neither does geography.** That was #1686's lesson about
 a creole and its lexifier; this is the same lesson with the creole taken out,
 which makes it a fact about Bantu rather than about creolization.
@@ -1025,10 +1026,11 @@ family predicting something about agreement for once, and it is the only one in
 this repository that does.
 
 **`dje` is here for where it sits rather than for what it does.** Every other
-language in these three batches is Niger-Congo or an English-lexifier creole
-built on one. Songhay is neither, and its wider affiliation is genuinely
-unsettled — often filed under Nilo-Saharan, often argued to be an isolate that
-borrowed heavily from Mande and Berber. It forks on nothing, and its header says
+language in these three batches but one is Niger-Congo or an English-lexifier
+creole built on one; the exception is `locales/kr`, the Nilo-Saharan catalog
+#1685 seeded. Songhay is neither Niger-Congo nor securely anything else — its
+affiliation is genuinely unsettled, often filed under Nilo-Saharan, often
+argued to be an isolate that borrowed heavily from Mande and Berber. It forks on nothing, and its header says
 so plainly rather than hunting for an argument: a batch that only ever added
 forking catalogs would be selecting its languages for the argument rather than
 for the readers.
