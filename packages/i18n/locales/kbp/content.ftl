@@ -45,7 +45,7 @@
 
 ## Style vocabulary
 
-# The last nine attributes are French loans. A loan joins class 1 and does not
+# The last eight attributes are French loans. A loan joins class 1 and does not
 # take the suffix, so it is written bare — which is what makes the seam between
 # the four Kabiyè stems and the rest of this message visible at a glance, the
 # way `locales/fon` makes its own seam visible.

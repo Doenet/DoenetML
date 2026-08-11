@@ -87,9 +87,9 @@ which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
 is just wrong, and the English is one key away.
 
-A hundred and fifteen of them are deliberately partial. A hundred and fourteen are
-partial in the same place — the two chemistry tables — while Klingon is partial
-almost everywhere, for a different reason: see
+A hundred and fifteen of them are deliberately partial. A hundred and fourteen
+are partial in the same place — the two chemistry tables — while Klingon is
+partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
 and fourteen are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
@@ -105,10 +105,10 @@ Kashmiri, Dhivehi, Tibetan, Dzongkha, Northern Sotho, Swati, Venda, Tsonga,
 Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight,
 Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
 Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè and Temne
-leave `element-name` and `element-anion-name` out,
-so those 130 keys fall back to English and `lint:i18n` reports the gap. The
-first nine have no settled chemical nomenclature to seed from, and inventing one
-would be worse than the English a student meets in their own textbook. Kannada
+leave `element-name` and `element-anion-name` out, so those 130 keys fall back
+to English and `lint:i18n` reports the gap. The first nine have no settled
+chemical nomenclature to seed from, and inventing one would be worse than the
+English a student meets in their own textbook. Kannada
 has two — native coinages reaching a dozen elements and
 transliterations reaching all 118 — and picking either would misreport the
 other. Punjabi, Filipino and Vietnamese have two as well, and in all three the
@@ -931,10 +931,10 @@ concord is *alliterative*: the describing word takes the same prefix the noun
 itself carries, so a rendered description reads «kʌlayn kʌbana-bana kʌbana» —
 the same syllable three times. In every other noun-class catalog here the
 concord and the noun's own prefix are different morphs, and `noun-gender` has to
-be taken on trust; in this one the table can be read straight off `noun` by eye.
-`styleDescriptions.test.ts` pins four rows of it. It is the third Atlantic
-catalog and answers differently from both the others — `ff` suffixes its class
-and `wo` marks it on a determiner.
+be taken on trust; in this one every entry naming a noun can be read straight
+off `noun` by eye. `styleDescriptions.test.ts` pins four rows of it. It is the
+third Atlantic catalog and answers differently from both the others — `ff`
+suffixes its class and `wo` marks it on a determiner.
 
 **`fon` has no agreement at all, and is here for its colour words.** Fon has
 three basic colour terms — «wiwi», «wewe», «vɔvɔ» — all reduplicated statives,

@@ -22,9 +22,16 @@
 # a particle: in each of those the concord and the noun's own prefix are
 # different morphs, so a reviewer has to take `noun-gender`'s table on trust.
 # Here the two are the same syllable, so `noun-gender` can be *checked against
-# `noun`* by eye — every entry below assigns a noun to the class its own
-# written prefix names, and a reviewer who finds one that does not has found a
-# bug without needing to know Temne.
+# `noun`* by eye — every entry naming one of `noun`'s attributes assigns it the
+# class that attribute's own written prefix carries, and a reviewer who finds
+# one that does not has found a bug without needing to know Temne.
+#
+# The four entries that name a phrase head rather than a noun are outside that
+# check, since `noun` does not spell them: `border` and `background` can still
+# be read against the words this file writes for them — «ʌŋbʌŋ» in
+# `style-border-clause` and «ʌŋkəbaka» in `style-text`, both `ʌŋ-` and both
+# `c4` — but `text` and `fill` head phrases this catalog writes no word for, so
+# their classes have to be taken on trust the way every other catalog's are.
 #
 # It is the third Atlantic catalog here and answers differently from both the
 # others: `locales/ff` spells its class as a suffix and `locales/wo` on a
@@ -139,9 +146,12 @@ noun-regular-polygon =
        *[head] tʌpɔligɔn tʌ kɔmɔ
     }
 
-# The noun class. Read it against `noun` above: each entry names the class the
-# noun's own written prefix carries, and `regular-polygon` takes `c2` because
-# `noun-regular-polygon`'s head is «tʌpɔligɔn». `c1` is the default and the
+# The noun class. Read it against `noun` above: each entry that names one of
+# `noun`'s attributes takes the class that attribute's own written prefix
+# carries, and `regular-polygon` takes `c2` because `noun-regular-polygon`'s
+# head is «tʌpɔligɔn». The last four name phrase heads instead — see the
+# header for which of them `noun` can be read against and which cannot.
+# `c1` is the default and the
 # class an English loan joins, which is what an author's own `markerStyleWord`
 # is as far as this catalog is concerned.
 noun-gender =

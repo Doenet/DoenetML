@@ -3114,8 +3114,9 @@ describe("the West and Central African batch, continued", () => {
 
     /**
      * All six reach `[noun-tail]`, the side count being a complement in every
-     * one of them — which is now the eighteenth consecutive catalog to do so
-     * across three batches and a dozen families.
+     * one of them, as it was in all eleven of the batch above — including the
+     * two English-lexifier creoles, which is the one shape that batch had no
+     * example of.
      *
      * The Kabiyè row is the one to read: «kɩsɛmɩɖɛ» carries class 3, and so
      * does the head «poligɔnɩ kɩmaɣzaɣ» that `noun-gender` assigns
