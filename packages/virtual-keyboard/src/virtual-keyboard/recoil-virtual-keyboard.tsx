@@ -89,8 +89,29 @@ export function ExternalAwareVirtualKeyboard({
     // taking focus leaves it empty, and the tray gets out of the way of the
     // device's own keyboard.
     React.useEffect(() => {
-        let lastReported: boolean | null = null;
+        // Starts at `false` rather than "unknown": a viewer that has never had
+        // a math input focused has nothing to announce, and saying so anyway
+        // would be a report about the other viewers on the page as much as
+        // about this one.
+        let lastReported = false;
         let pending: ReturnType<typeof setTimeout> | undefined;
+
+        function send(mathInputFocused: boolean) {
+            if (externalVirtualKeyboardProvided) {
+                // The tray lives in the embedding page, which cannot see which
+                // element inside this iframe has focus. See `IframeFocusMessage`
+                // for why the target origin is "*".
+                window.parent.postMessage(
+                    {
+                        subject: "keyboard-focus",
+                        mathInputFocused,
+                    } satisfies IframeFocusMessage,
+                    "*",
+                );
+            } else {
+                reportMathInputFocus(ownerRef, mathInputFocused);
+            }
+        }
 
         function report() {
             const activeElement = document.activeElement;
@@ -104,21 +125,7 @@ export function ExternalAwareVirtualKeyboard({
                 return;
             }
             lastReported = mathInputFocused;
-
-            if (externalVirtualKeyboardProvided) {
-                // The tray lives in the embedding page, which cannot see which
-                // element inside this iframe has focus. See `IframeFocusMessage`
-                // for why the target origin is "*".
-                window.parent.postMessage(
-                    {
-                        subject: "keyboard-focus",
-                        mathInputFocused,
-                    } satisfies IframeFocusMessage,
-                    "*",
-                );
-            } else {
-                reportMathInputFocus(mathInputFocused);
-            }
+            send(mathInputFocused);
         }
 
         function scheduleReport() {
@@ -136,6 +143,12 @@ export function ExternalAwareVirtualKeyboard({
             clearTimeout(pending);
             document.removeEventListener("focusin", scheduleReport);
             document.removeEventListener("focusout", scheduleReport);
+            if (lastReported) {
+                // This viewer is unmounting with one of its math inputs
+                // focused. Withdraw the claim, or the tray would stay open for
+                // a viewer that is no longer on the page.
+                send(false);
+            }
         };
     }, [externalVirtualKeyboardProvided, ownerRef]);
 

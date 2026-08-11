@@ -22,6 +22,11 @@ export type IframeMessage = {
  * "the iframe is focused" — they cannot distinguish a math input from a text
  * input inside it, and the two want opposite things from the tray. So the
  * iframe, which can tell, says so.
+ *
+ * Posted with a target origin of `"*"`, for the same reason `IframeMessage`
+ * is: the two documents are routinely on different origins, and neither can
+ * read the other's. Nothing here is sensitive — one bit about focus — and the
+ * parent only acts on messages whose `event.source` is its own iframe.
  */
 export type IframeFocusMessage = {
     subject: "keyboard-focus";
@@ -39,6 +44,8 @@ export function ExternalVirtualKeyboard({
     ownerRef: React.RefObject<HTMLIFrameElement | null>;
 }) {
     React.useEffect(() => {
+        let reportedFocused = false;
+
         function listener(event: MessageEvent<IframeFocusMessage | undefined>) {
             // Only this keyboard's own iframe may move this keyboard's tray.
             if (
@@ -47,13 +54,20 @@ export function ExternalVirtualKeyboard({
             ) {
                 return;
             }
-            reportMathInputFocus(event.data.mathInputFocused);
+            reportedFocused = event.data.mathInputFocused;
+            reportMathInputFocus(ownerRef, reportedFocused);
         }
 
         window.addEventListener("message", listener);
 
         return () => {
             window.removeEventListener("message", listener);
+            if (reportedFocused) {
+                // This keyboard is going away while its iframe still holds the
+                // focused math input. Withdraw the claim, or the tray would
+                // stay open for a viewer that is no longer on the page.
+                reportMathInputFocus(ownerRef, false);
+            }
         };
     }, [ownerRef]);
 

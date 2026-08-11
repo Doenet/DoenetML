@@ -1,7 +1,11 @@
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { OnClick } from "./keyboard";
-import { KeyboardTray } from "./keyboard-tray";
+import {
+    getVirtualKeyboardTrayElement,
+    isInVirtualKeyboardTray,
+    KeyboardTray,
+} from "./keyboard-tray";
 import { KeyCommand } from "./keys";
 import { MathJaxContext } from "@doenet/utils/mathjax";
 import { hasCoarsePrimaryPointer, mathjaxConfig } from "@doenet/utils";
@@ -24,6 +28,19 @@ type VirtualKeyboardState = {
     userClosedTray: boolean;
     /** Subscribers to `open`, so a change re-renders only the tray itself. */
     openListeners: Set<() => void>;
+    /**
+     * The viewers that currently have a math input focused, each identified by
+     * the `ownerRef` it registered with.
+     *
+     * A page can hold several viewers, and each watches focus on its own and
+     * reports only about its own inputs. The tray belongs open while *any* of
+     * them has a math input focused, so their reports are collected rather
+     * than allowed to overwrite one another: otherwise a viewer announcing
+     * "none of mine is focused" — which every other viewer on the page does
+     * the moment the reader taps into one of them — would shut the tray that
+     * the tapped viewer just opened.
+     */
+    focusedMathInputSources: Set<object>;
     keyboardDomNode: HTMLElement | null;
     keyboardReactRoot: Root | null;
     registrations: {
@@ -53,6 +70,7 @@ const virtualKeyboardState: VirtualKeyboardState =
         open: false,
         userClosedTray: false,
         openListeners: new Set(),
+        focusedMathInputSources: new Set(),
         keyboardDomNode: null,
         keyboardReactRoot: null,
         registrations: [],
@@ -70,10 +88,6 @@ function getRegistrationById(id: number | null) {
             (registration) => registration.id === id,
         ) ?? null
     );
-}
-
-function getTrayElement() {
-    return document.getElementById("virtual-keyboard-tray");
 }
 
 function getActiveRegistration() {
@@ -97,10 +111,7 @@ function getActiveRegistration() {
         }
     }
 
-    if (
-        activeElement instanceof Node &&
-        getTrayElement()?.contains(activeElement)
-    ) {
+    if (isInVirtualKeyboardTray(activeElement)) {
         return getRegistrationById(
             virtualKeyboardState.lastActiveRegistrationId,
         );
@@ -190,34 +201,48 @@ function setTrayOpen(open: boolean, { byUser }: { byUser: boolean }) {
 }
 
 /**
- * Reports that focus has entered or left a math input, so the tray can follow
- * it on devices that have no physical keyboard.
+ * Reports that focus has entered or left one of `source`'s math inputs, so the
+ * tray can follow it on devices that have no physical keyboard.
+ *
+ * `source` identifies the reporting viewer — any object stable for that
+ * viewer's lifetime; callers pass the `ownerRef` they registered with. Reports
+ * are about that viewer's own inputs only, and are collected across viewers:
+ * see `focusedMathInputSources`.
  *
  * Only touch devices get this treatment. On a desktop the tray stays under the
  * reader's manual control, as it always has: it occupies a fixed strip along
  * the bottom of the window, and springing that open at every math input would
  * be an imposition on a reader who has a keyboard in front of them.
  */
-export function reportMathInputFocus(mathInputFocused: boolean) {
+export function reportMathInputFocus(
+    source: object,
+    mathInputFocused: boolean,
+) {
     if (!hasCoarsePrimaryPointer()) {
         return;
     }
 
+    const focusedSources = virtualKeyboardState.focusedMathInputSources;
+
     if (mathInputFocused) {
+        focusedSources.add(source);
         if (!virtualKeyboardState.userClosedTray) {
             setTrayOpen(true, { byUser: false });
         }
         return;
     }
 
-    const activeElement = document.activeElement;
-    if (
-        activeElement instanceof Node &&
-        getTrayElement()?.contains(activeElement)
-    ) {
+    if (isInVirtualKeyboardTray(document.activeElement)) {
         // The reader moved into the keyboard itself to operate it. They are
-        // still editing the input they left; the tray must not fold away
-        // underneath them.
+        // still editing the input they left, so this viewer keeps its claim on
+        // the tray and the tray must not fold away underneath them.
+        return;
+    }
+
+    focusedSources.delete(source);
+    if (focusedSources.size > 0) {
+        // Another viewer on the page still has a math input focused; this
+        // report is only about focus leaving this one's.
         return;
     }
 
@@ -247,7 +272,7 @@ function rerenderTray() {
     // part of this comparison: moving focus between two viewers whose readers
     // differ only in direction would otherwise leave the tray facing the way
     // the previous one did.
-    const trayEl = getTrayElement();
+    const trayEl = getVirtualKeyboardTrayElement();
     if (trayEl) {
         const currentTheme =
             (trayEl.getAttribute("data-theme") as
@@ -421,11 +446,13 @@ export function UniqueKeyboardTray({
                     virtualKeyboardState.keyboardDomNode = null;
                 }
                 // The tray itself is gone, so neither is there a tray that is
-                // open nor a reader who has closed one. Leaving these set
-                // would have the next tray built on the page inherit the
-                // disposition of a tray its reader never saw.
+                // open nor a reader who has closed one, and no viewer is left
+                // to claim one. Leaving these set would have the next tray
+                // built on the page inherit the disposition of a tray its
+                // reader never saw.
                 virtualKeyboardState.open = false;
                 virtualKeyboardState.userClosedTray = false;
+                virtualKeyboardState.focusedMathInputSources.clear();
             } else {
                 rerenderTray();
             }

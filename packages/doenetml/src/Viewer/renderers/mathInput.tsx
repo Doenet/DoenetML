@@ -26,6 +26,7 @@ import * as Ariakit from "@ariakit/react";
 import { MathJax } from "better-react-mathjax";
 
 import "./mathInput.css";
+import { isInVirtualKeyboardTray } from "@doenet/virtual-keyboard";
 import { FocusedMathInputContext } from "../../doenetml";
 import { useAppSelector } from "../../state";
 import { keyboardSlice } from "../../state/slices/keyboard";
@@ -412,12 +413,7 @@ function getBlurTransitionContext({
         relatedTarget instanceof Node &&
         previewRef.current?.contains(relatedTarget);
 
-    const focusMovedToKeyboardTray =
-        relatedTarget instanceof Node &&
-        (document
-            .getElementById("virtual-keyboard-tray")
-            ?.contains(relatedTarget) ??
-            false);
+    const focusMovedToKeyboardTray = isInVirtualKeyboardTray(relatedTarget);
 
     return {
         focusMovedToPreview,

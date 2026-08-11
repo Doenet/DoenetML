@@ -5,10 +5,14 @@
  * because it is the only one that already spans the iframe boundary (the tray
  * lives in the embedding page, the inputs live inside the iframe):
  *
- * - `"accessed"` — retained so a tray and a viewer built from different
- *   bundle versions still speak the same protocol. Current viewers ignore it;
- *   it used to drive a blur/refocus timing heuristic that the tray no longer
- *   needs now that it declines focus outright.
+ * - `"accessed"` — no longer sent. It used to drive a blur/refocus timing
+ *   heuristic that the tray no longer needs now that it declines focus
+ *   outright. The type stays because the tray and the viewer ship separately
+ *   — an embedding page can pin an older bundle inside the iframe — so a
+ *   current viewer must still recognize what an older tray sends, and ignore
+ *   it rather than warn. (The opposite pairing cannot be rescued: a viewer
+ *   old enough to need the heuristic typed only after a blur, and declining
+ *   focus is exactly what stops the blur.)
  * - `"keyboardChoice"` — which keyboard the reader has asked for, with
  *   `command` set to `"virtual"` (they opened the tray) or `"system"` (they
  *   closed it). On a touch device the two keyboards compete for the same

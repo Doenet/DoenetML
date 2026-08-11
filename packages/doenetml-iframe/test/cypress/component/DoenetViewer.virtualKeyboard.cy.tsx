@@ -230,6 +230,28 @@ describe("ExternalVirtualKeyboard — iframe routing", () => {
         cy.get("#virtual-keyboard-tray.open").should("not.exist");
     });
 
+    it("keeps the tray open while another viewer still has a math input focused", () => {
+        cy.mount(<Harness />);
+        stubCoarsePointer();
+
+        postFocusFromIframe(0, true);
+        cy.get("#virtual-keyboard-tray.open").should("exist");
+
+        // Every viewer on the page watches focus, and each reports only about
+        // its own inputs. That none of the second viewer's is focused says
+        // nothing about the first viewer's, and must not shut the tray the
+        // first one just opened.
+        postFocusFromIframe(1, false);
+        // The tray shutting is what would go wrong here, so the message has to
+        // have been delivered — and had its chance to shut it — before the
+        // assertion can mean anything.
+        cy.wait(100);
+        cy.get("#virtual-keyboard-tray.open").should("exist");
+
+        postFocusFromIframe(0, false);
+        cy.get("#virtual-keyboard-tray.open").should("not.exist");
+    });
+
     it("stays shut at the next math input once the reader closes it", () => {
         cy.mount(<Harness />);
         stubCoarsePointer();
@@ -255,8 +277,11 @@ describe("ExternalVirtualKeyboard — iframe routing", () => {
         cy.mount(<Harness />);
 
         postFocusFromIframe(0, true);
-        // Give the message a chance to be delivered before asserting absence.
-        cy.get("iframe").eq(0).should("exist");
+        // The tray opening is what would go wrong here, so the message has to
+        // have been delivered — and had its chance to open it — before the
+        // assertion can mean anything. A following Cypress command is not
+        // enough of a wait: `postMessage` is delivered later than that.
+        cy.wait(100);
         cy.get("#virtual-keyboard-tray.open").should("not.exist");
     });
 
@@ -340,6 +365,11 @@ describe("VirtualKeyboard — same-window focus tracking", () => {
 
         cy.get("[data-testid=math-input]").focus();
         cy.focused().should("have.attr", "data-testid", "math-input");
+        // The tray opening is what would go wrong here, so the focus watcher
+        // has to have run — and had its chance to open it — before the
+        // assertion can mean anything. It reads focus back on a timeout, which
+        // a following Cypress command does not reliably outlast.
+        cy.wait(100);
         cy.get("#virtual-keyboard-tray.open").should("not.exist");
     });
 });

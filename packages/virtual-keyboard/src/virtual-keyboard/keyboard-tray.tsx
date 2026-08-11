@@ -16,6 +16,31 @@ import "./keyboard-tray.css";
  */
 const untranslated: Translator = (key, _args, fallback) => fallback ?? key;
 
+/**
+ * The id of the tray's root element. Only one tray exists per page, so an id
+ * identifies it; `keyboard-tray.css` styles it by the same name.
+ */
+export const VIRTUAL_KEYBOARD_TRAY_ID = "virtual-keyboard-tray";
+
+/** The tray's root element, or `null` when no tray is on the page. */
+export function getVirtualKeyboardTrayElement(): HTMLElement | null {
+    return document.getElementById(VIRTUAL_KEYBOARD_TRAY_ID);
+}
+
+/**
+ * Whether `node` is inside the keyboard tray.
+ *
+ * How a math input tells a blur that hands over to the keyboard from one that
+ * leaves the input for good, and how the tray tells that focus is being kept
+ * inside itself rather than moving away from the input it types into.
+ */
+export function isInVirtualKeyboardTray(node: EventTarget | null): boolean {
+    return (
+        node instanceof Node &&
+        (getVirtualKeyboardTrayElement()?.contains(node) ?? false)
+    );
+}
+
 const KeyboardIcon = () => (
     <svg
         stroke="currentColor"
@@ -75,7 +100,7 @@ export function KeyboardTray({
 
     return createPortal(
         <div
-            id="virtual-keyboard-tray"
+            id={VIRTUAL_KEYBOARD_TRAY_ID}
             data-theme={theme}
             dir={direction}
             className={classNames({ open })}
