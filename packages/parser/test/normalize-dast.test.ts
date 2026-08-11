@@ -32,15 +32,57 @@ describe("Normalize dast", async () => {
             `<document><vectorField><function variables="$v1 $v2">($v2,-$v1)</function></vectorField></document>`,
         );
     });
-    it("leaves a field's explicit <function> child, and its variables, alone", () => {
+    it("warns that a field's variables are ignored beside an explicit <function> child", () => {
         const dast = normalizeDocumentDast(
             lezerToDast(
                 `<slopeField variables="s t"><function variables="u v">u-v</function></slopeField>`,
             ),
         );
-        expect(toXml(dast)).toEqual(
-            `<document><slopeField variables="s t"><function variables="u v">u-v</function></slopeField></document>`,
+        // The child is used as it stands, and the attribute stays where it was
+        // written rather than being quietly deleted along with its meaning.
+        expect(toXml(dast)).toContain(`<slopeField variables="s t">`);
+        expect(toXml(dast)).toContain(
+            `<function variables="u v">u-v</function>`,
         );
+
+        const warnings = extractDastErrors(dast).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                error_type: "warning",
+                code: "doenet-w0124",
+                args: { component: "slopeField", reason: "function-child" },
+            },
+        ]);
+        expect(warnings[0].message).toContain(
+            "which names its own variables, so `variables` is ignored",
+        );
+    });
+    it("warns that a field's variables are ignored when it has no expression", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<vectorField variables="u v" />`),
+        );
+        const warnings = extractDastErrors(dast).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                error_type: "warning",
+                code: "doenet-w0124",
+                args: { component: "vectorField", reason: "no-expression" },
+            },
+        ]);
+    });
+    it("does not warn about a field's variables when it uses them", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField variables="s t">s - t</slopeField>`),
+        );
+        expect(
+            extractDastErrors(dast).filter(
+                (error) => error.error_type === "warning",
+            ),
+        ).toEqual([]);
     });
     it("leaves a field's label child outside the <function> it wraps", () => {
         const dast = normalizeDocumentDast(

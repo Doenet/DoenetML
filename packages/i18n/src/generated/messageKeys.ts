@@ -376,6 +376,8 @@ export type MessageKey =
     | "matches-pattern-parameter-not-in-pattern"
     | "graph-grid-invalid"
     | "field-function-wrong-num-outputs"
+    | "field-function-attribute-ignored-with-child"
+    | "field-variables-ignored"
     | "prefigure-x-label-position-unsupported"
     | "prefigure-y-label-position-unsupported"
     | "prefigure-invalid-axis-bounds"
@@ -944,6 +946,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "matches-pattern-parameter-not-in-pattern",
     "graph-grid-invalid",
     "field-function-wrong-num-outputs",
+    "field-function-attribute-ignored-with-child",
+    "field-variables-ignored",
     "prefigure-x-label-position-unsupported",
     "prefigure-y-label-position-unsupported",
     "prefigure-invalid-axis-bounds",

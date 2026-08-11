@@ -91,7 +91,8 @@ component, which is the alternative to writing the expression out.
 
 `variables` names the inputs of a bare expression, in order: the horizontal axis first, then the
 vertical. It defaults to `x y`, so an equation written in those letters needs nothing. It has no
-effect on a `<function>{:dn}` child, which names its own variables.
+effect on a `<function>{:dn}` child, which names its own variables — writing both warns, since
+one of them cannot be doing anything.
 
 The names may themselves be references, exactly as on a `<function>{:dn}`, so a student can choose
 them:

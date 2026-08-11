@@ -1,4 +1,10 @@
-import { DastAttribute, DastElement, DastElementContent } from "../../types";
+import { codedDastError } from "../../coded-dast-error";
+import {
+    DastAttribute,
+    DastElement,
+    DastElementContent,
+    DastError,
+} from "../../types";
 
 /** Variable names a bare expression is read as a function of, when the field
  * does not name any itself. */
@@ -62,6 +68,7 @@ export function fieldFunctionSugar(node: DastElement) {
     // claiming to have a function — where leaving it alone reports honestly
     // that there is no function.
     if (substantive.length === 0) {
+        warnVariablesIgnored(node, "no-expression");
         return;
     }
 
@@ -71,6 +78,7 @@ export function fieldFunctionSugar(node: DastElement) {
             (child) => child.type === "element" && child.name === "function",
         )
     ) {
+        warnVariablesIgnored(node, "function-child");
         return;
     }
 
@@ -105,4 +113,46 @@ export function fieldFunctionSugar(node: DastElement) {
         placed = true;
         return [functionChild];
     });
+}
+
+/**
+ * Say that a `variables` the sugar did not use is being ignored.
+ *
+ * The attribute only ever reaches the `<function>` this sugar builds, so when
+ * no function is built it does nothing at all — silently, and while looking
+ * exactly like the attribute of the same name that a `<function>` does obey.
+ * An author who wrote it meant something by it, so the two ways it can come to
+ * nothing are both worth saying out loud.
+ *
+ * Nothing is emitted when there is no `variables` to ignore, which is the
+ * ordinary case for both.
+ */
+function warnVariablesIgnored(
+    node: DastElement,
+    reason: "function-child" | "no-expression",
+) {
+    const variables = node.attributes.variables;
+    if (!variables) {
+        return;
+    }
+
+    const explanation =
+        reason === "function-child"
+            ? "The function here is given as a `<function>` child, which names its own variables, so `variables` is ignored."
+            : "No such expression is given here, so `variables` is ignored.";
+
+    const warning: DastError = codedDastError({
+        code: "doenet-w0124",
+        error_type: "warning",
+        message: `\`<${node.name}>\`: the \`variables\` attribute names the variables of an expression written directly inside the component. ${explanation}`,
+        args: {
+            // The field's own tag, since this sugar covers both of them.
+            component: node.name,
+            reason,
+        },
+        position: variables.position ?? node.position,
+        source_doc: variables.source_doc ?? node.source_doc,
+    });
+
+    node.children.unshift(warning);
 }

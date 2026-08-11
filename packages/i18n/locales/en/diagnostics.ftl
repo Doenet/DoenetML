@@ -358,6 +358,23 @@ field-function-wrong-num-outputs =
        *[other] `<{ $alternative }>` is the component for that function. Nothing is drawn.
     }
 
+# Translators: retired. `function` is an attribute name and stays in English.
+# It warned that a field had been given its function both as an attribute and
+# inside the component; the attribute no longer exists, so the two can no
+# longer disagree. Kept because diagnostic codes are never reused.
+field-function-attribute-ignored-with-child = The `function` attribute is ignored because the function is also given inside the component; the one inside is used. Give the function only one of the two ways.
+
+# Translators: `variables` and `function` are a DoenetML attribute and tag and
+# stay in English, as does $component, the field's own tag. The attribute names
+# the inputs of an expression written directly inside the component; when there
+# is no such expression there is nothing for it to name, and $reason says which
+# of the two ways that happened.
+field-variables-ignored =
+    `<{ $component }>`: the `variables` attribute names the variables of an expression written directly inside the component. { $reason ->
+        [function-child] The function here is given as a `<function>` child, which names its own variables, so `variables` is ignored.
+       *[no-expression] No such expression is given here, so `variables` is ignored.
+    }
+
 ## PreFigure renderer
 
 # Translators: xLabelPosition, yLabelPosition and their values are attribute

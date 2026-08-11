@@ -449,7 +449,15 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
             1e-12,
         );
 
-        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        // The attribute did nothing, which is worth saying: it looks exactly
+        // like the `variables` a <function> does obey.
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors.length).eq(0);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0124");
+        expect(warnings[0].message).contain(
+            "which names its own variables, so `variables` is ignored",
+        );
     });
 
     it("vectorField normalize defaults to false and can be set", async () => {
