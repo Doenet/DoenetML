@@ -131,10 +131,16 @@ noun =
 
 # The side count is a complement and closes the noun phrase behind the
 # describing words, so it goes in the tail.
+#
+# The head takes `ci-`, not `yi-`: `noun-gender` does not list
+# `regular-polygon`, so it falls to the `c7` default that a Portuguese loan
+# joins, and the head has to carry the same class the adjectives beside it
+# will. A head disagreeing with its own class is the defect #1685 found in
+# `locales/tiv`, and `styleDescriptions.test.ts` pins this row against it.
 noun-regular-polygon =
     { $part ->
         [tail] lo olonele { $numSides }
-       *[head] poligonu yisokisa
+       *[head] poligonu cisokisa
     }
 
 # The noun class. `c7` is the default and the class a Portuguese loan joins,

@@ -507,6 +507,29 @@ describe("style descriptions follow the document locale @group4", () => {
         expect(values.fd).eq("utindi bulu");
     });
 
+    it("prefixes an Umbundu class through the worker path", async () => {
+        const values = await descriptions(styled, names, "umb");
+        // The third place this repository has put a Bantu class, and the one
+        // its own batch is built to contrast: Umbundu prefixes the class
+        // straight onto the describing stem, where `locales/kmb` next door
+        // moves a connective in front of an unchanged stem and `locales/kg`
+        // does the same a thousand kilometres north.
+        //
+        // What `@doenet/utils` pins is the agreement across three classes.
+        // What this checks is that the token survives `setLocaleData`, the
+        // document's locale and the `translator` dependency — and, in `sh`,
+        // that a border's concord follows the border's own class rather than
+        // the shape's.
+        expect(values.st).eq("yinene yikusuka lo olongoli vitito");
+        expect(values.stn).eq("ongoli yinene yikusuka lo olongoli vitito");
+        expect(values.pt).eq("kwadradu verdi");
+        expect(values.sh).eq(
+            "ocilinganya ciyukisiwa azulu lo olondimbu lo onele yinene yikusuka lo olongoli vitito",
+        );
+        expect(values.bd).eq("yinene yikusuka lo olongoli vitito");
+        expect(values.fd).eq("olondimbu azulu");
+    });
+
     it("agrees a Kongo linker through the worker path", async () => {
         const values = await descriptions(styled, names, "kg");
         // The lexifier of the Kituba below it, and the reason this batch put

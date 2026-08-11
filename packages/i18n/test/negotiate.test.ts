@@ -802,7 +802,11 @@ describe("negotiateLocales", () => {
          * English, which is the membership rule working rather than a gap in
          * it.
          */
-        it.each(["kmb", "umb", "kbl", "gur", "xsm", "sus"])(
+        // `kmb` and `umb` were on this list until the Angolan batch below gave
+        // Kimbundu and Umbundu catalogs of their own — the same removal `men`
+        // and `nyn` got, and the only thing that should ever shorten a
+        // negative-control list.
+        it.each(["kbl", "gur", "xsm", "sus"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(
@@ -889,7 +893,10 @@ describe("negotiateLocales", () => {
          * so CLDR has no opinion about which variety a bare `son` means, and
          * picking one would be the judgement these maps avoid.
          */
-        it.each(["bin", "efi", "men", "gej", "son"])(
+        // `men` was on this list until the batch below gave Mende a catalog of
+        // its own, which is the only thing that should ever take a code off a
+        // negative-control list — the same removal `nyn` got a batch earlier.
+        it.each(["bin", "efi", "gej", "son"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(
@@ -904,6 +911,108 @@ describe("negotiateLocales", () => {
         it("has no CLDR region for `son`, which is why it is not aliased", () => {
             expect(new Intl.Locale("son").maximize().region).toBeUndefined();
         });
+    });
+
+    describe("the Angolan, Sierra Leonean and Songhay batch", () => {
+        it.each([
+            // None of the four has a two-letter code, so each arrives under the
+            // tag its directory is named for.
+            ["men", "men"],
+            ["umb", "umb"],
+            ["kmb", "kmb"],
+            ["dje", "dje"],
+            // Region tags, which filter without help.
+            ["men-SL", "men"],
+            ["umb-AO", "umb"],
+            ["kmb-AO", "kmb"],
+            ["dje-NE", "dje"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * Songhay, and the second instance of the shape `mnk` introduced: a
+         * macrolanguage this repository has a *member* catalog for and no
+         * catalog of its own.
+         *
+         * ICU folds none of these six, so each reaches Zarma only because
+         * `MACROLANGUAGE_MEMBERS` lists it. That is the opposite of `kg`'s
+         * entry, where `kng` would arrive anyway through canonicalization —
+         * which is why the `kg` block says so and this one does not have to.
+         */
+        it.each([
+            ["ddn", "dje"],
+            ["hmb", "dje"],
+            ["khq", "dje"],
+            ["ses", "dje"],
+            ["tda", "dje"],
+            ["twq", "dje"],
+        ])(
+            "folds the Songhay member %s onto Zarma as %s",
+            (requested, expected) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual([expected, "en"]);
+            },
+        );
+
+        /**
+         * The decision this batch declines to change, restated now that a
+         * Songhay catalog exists.
+         *
+         * #1686 left `son` unaliased because CLDR has no opinion about which
+         * variety it means. Zarma's arrival makes the alias *possible* and no
+         * more justified: `dje` is the largest Songhay variety, and "largest"
+         * is a judgement rather than a published fact, which is the line these
+         * maps hold everywhere else.
+         *
+         * Asserted on the maximization rather than on the map, so that a change
+         * in ICU data — not a change of mind here — is what fails and reopens
+         * the question.
+         */
+        it("still leaves the Songhay macrolanguage unaliased, CLDR having no opinion", () => {
+            expect(new Intl.Locale("son").maximize().region).toBeUndefined();
+            expect(new Intl.Locale("man").maximize().region).toBe("GM");
+            expect(negotiateLocales([normalizeLocaleTag("son")], available)) //
+                .toEqual(["en"]);
+        });
+
+        /**
+         * `tda` is this batch's script debt, and it is recorded rather than
+         * fixed: Tadaksahak maximizes to `tda-Tfng-NE`, so CLDR's own data says
+         * such a reader most likely arrives in Tifinagh and what they get from
+         * `locales/dje` is Latin. `locales/kr` owes the same debt to `kby` in
+         * Ajami and `locales/ff` owes it in Adlam.
+         */
+        it("serves Tadaksahak Latin although CLDR expects it in Tifinagh", () => {
+            expect(new Intl.Locale("tda").maximize().script).toBe("Tfng");
+            expect(negotiateLocales([normalizeLocaleTag("tda")], available)) //
+                .toEqual(["dje", "en"]);
+        });
+
+        /**
+         * The near misses for this batch. `nya` neighbours nothing here; `lol`
+         * (Mongo) and `cjk` (Chokwe) are Bantu neighbours of `kmb` and `umb`;
+         * `kpe` (Kpelle) sits beside `men` in the same two countries without being
+         * a Mande variety of it. Every one falls to
+         * English, which is the membership rule working rather than a gap.
+         */
+        it.each(["lol", "cjk", "kpe"])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
     });
 });
 

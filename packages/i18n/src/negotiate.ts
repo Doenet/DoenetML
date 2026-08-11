@@ -69,15 +69,20 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
  * member of `nb` or `ak`, and both are deliberately left to miss. Ten of the
- * twelve keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`, `kg` —
+ * thirteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`, `kg` —
  * are ISO 639-3 macrolanguages and list their macrolanguage members; `nah` is an
  * ISO 639-3 **collection** code rather than a macrolanguage, so it lists the
- * individual Nahuan languages ISO 639-5 groups under it; and `mnk` is neither,
- * being a *member* of `man` that this repository happens to name a catalog
- * after. That last is the shape {@link LANGUAGE_ALIASES}'s `man` entry
- * explains, and it is why the members listed under `mnk` exclude `bam` and
- * `dyu`: those two have catalogs of their own, and folding them here would
- * serve a Bambara reader Mandinka.
+ * individual Nahuan languages ISO 639-5 groups under it; and `mnk` and `dje`
+ * are neither, being *members* — of `man` and `son` respectively — that this
+ * repository happens to name catalogs after. Those two are the shape
+ * {@link LANGUAGE_ALIASES}'s `man` entry explains, and it is why the members
+ * listed under `mnk` exclude `bam` and `dyu`: those two have catalogs of their
+ * own, and folding them here would serve a Bambara reader Mandinka.
+ *
+ * The two member cases part company over their macrolanguage, and the reason
+ * is CLDR rather than a preference: `man` is aliased onto `mnk` because
+ * `Intl.Locale#maximize` gives it a region and so decides which member it
+ * means, while `son` is left to miss because it maximizes to nothing.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
  * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc` — so that each list reads as the
@@ -237,6 +242,28 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // absent for the same reason and is left to miss; answering it with `ktu`
     // would be defensible and is not a membership fact, so it is not done here.
     kg: ["kng", "kwy", "ldi"],
+    // Songhay. `dje` is a *member* rather than the macrolanguage — the shape
+    // {@link LANGUAGE_ALIASES}'s `man` entry explains — so this lists the
+    // sibling members. These six are the whole of `son` apart from Zarma
+    // itself, and ICU folds none of them, so every one of them reaches a
+    // catalog only because this list exists.
+    //
+    // `son` itself is deliberately *not* aliased onto `dje`, and that is the
+    // half worth reading. `man` earns its alias because CLDR decides for
+    // itself which member a bare macrolanguage tag means —
+    // `new Intl.Locale("man").maximize()` is `man-Latn-GM`, Mandinka's
+    // country. `son` maximizes to nothing at all: CLDR adds no region, so it
+    // has no opinion, and picking Zarma because it is the largest would be
+    // exactly the judgement these maps exist to avoid. `negotiate.test.ts`
+    // asserts the absent region rather than merely the absent entry, so a
+    // change in ICU data that gave `son` a region would fail there and invite
+    // someone to reconsider.
+    //
+    // `tda` (Tadaksahak) maximizes to `tda-Tfng-NE` — Tifinagh — so a reader
+    // most likely arriving in that script is served Latin. That is
+    // `locales/kr`'s asymmetry with `kby` and `locales/ha`'s with Ajami, and
+    // the answer to it is a second catalog rather than a change here.
+    dje: ["ddn", "hmb", "khq", "ses", "tda", "twq"],
 };
 
 /** Flattened once at module load rather than searched per request. */

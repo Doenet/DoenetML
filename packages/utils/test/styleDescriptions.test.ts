@@ -3149,3 +3149,107 @@ describe("the West and Central African batch, continued", () => {
         ).toBe(expected);
     });
 });
+
+describe("the Angolan, Sierra Leonean and Songhay batch", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    const described = (locale: string, key: NounKey) =>
+        describeStrokedShape(forLocale(locale), words, {
+            noun: { key },
+            withNoun: true,
+        });
+
+    /**
+     * **Two Angolan neighbours putting the same agreement in different
+     * places**, which is the reason this batch has both.
+     *
+     * Umbundu prefixes the class straight onto the stem, so «nene» and
+     * «kusuka» change shape from row to row: `yinene`, `cinene`, `linene`.
+     * Kimbundu leaves the stem alone and moves a connective in front of it:
+     * `ya nene`, `kya nene`. Same family, same class system, same country, and
+     * the two files do not resemble each other.
+     *
+     * The Kimbundu rows are also `locales/kg`'s shape exactly — an agreeing
+     * «-a» connective a thousand kilometres away, in a different country — so
+     * these six lines are what makes the header's claim checkable rather than
+     * asserted: neither family nor geography predicts the shape.
+     */
+    it("prefixes Umbundu's class onto the stem", () => {
+        expect(described("umb", "line")).toBe(
+            "ongoli yinene yikusuka lo olongoli vitito",
+        );
+        expect(described("umb", "circle")).toBe(
+            "ocilinganya cinene cikusuka lo olongoli vitito",
+        );
+        expect(described("umb", "point")).toBe(
+            "ondimbu linene likusuka lo olongoli vitito",
+        );
+    });
+
+    it("moves only Kimbundu's connective, never the stem behind it", () => {
+        expect(described("kmb", "line")).toBe(
+            "nlonji ya nene ya kusuka ya jinlonji jitetuka",
+        );
+        expect(described("kmb", "circle")).toBe(
+            "kizenge kya nene kya kusuka ya jinlonji jitetuka",
+        );
+        expect(described("kmb", "point")).toBe(
+            "kimbanza kya nene kya kusuka ya jinlonji jitetuka",
+        );
+    });
+
+    /**
+     * The two that fork on nothing, one row each.
+     *
+     * `men` is the affix-rule case: its describing words follow the noun, so
+     * the phrase ends in an argument and Mende's definite suffix — which
+     * attaches to whatever word ends the noun phrase — could never be welded
+     * on. The whole catalog is indefinite for that reason, and this row is what
+     * it looks like.
+     */
+    it.each([
+        ["men", "laing wa kpou kɛ ngeya-ngeya"],
+        ["dje", "kar beeri ciray nda dumbu-dumbu"],
+    ])("leaves %s's describing words alone", (locale, expected) => {
+        expect(described(locale, "line")).toBe(expected);
+    });
+
+    /**
+     * All four reach `[noun-tail]`, the side count being a complement in every
+     * one of them.
+     *
+     * The Umbundu row is the one to read, and it is here because probing the
+     * rendered string rather than assuming it caught a real defect: the head
+     * «poligonu» first carried `yi-` while `noun-gender` sends
+     * `regular-polygon` to the `c7` default, so the head and the colour beside
+     * it disagreed. That is the defect #1685 found in `locales/tiv`, and this
+     * row is what would catch it recurring.
+     */
+    it.each([
+        ["men", "pɔligɔn yekpe kpou na kɛ gbua 5"],
+        ["umb", "poligonu cisokisa cikusuka lo olonele 5"],
+        ["kmb", "poligonu ya kusokela ya kusuka ya jimbandu 5"],
+        ["dje", "poligon saawa ciray kaŋ gonda kambu 5"],
+    ])("closes %s's phrase with the side count", (locale, expected) => {
+        expect(
+            describeStrokedShape(
+                forLocale(locale),
+                { colorWord: "red" },
+                {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                },
+            ),
+        ).toBe(expected);
+    });
+});
