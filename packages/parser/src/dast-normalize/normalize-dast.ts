@@ -23,6 +23,7 @@ import {
     addDynamicChildrenSugar,
 } from "./component-sugar/dynamicChildren";
 import { answerSugar } from "./component-sugar/answer";
+import { fieldFunctionSugar } from "./component-sugar/field";
 import { pluginApplyDeprecations } from "./deprecations";
 
 /**
@@ -240,6 +241,10 @@ const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
                 case "fractionInput":
                     descriptionAttributeSugar(node);
                     fractionInputSugar(node);
+                    break;
+                case "slopeField":
+                case "vectorField":
+                    fieldFunctionSugar(node);
                     break;
             }
 

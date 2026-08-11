@@ -21,7 +21,6 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
     onlyStringOrMacros = false,
     customWrappingFunction,
     wrapSingleIfNotWrappingComponentType = false,
-    skipIfAllWrappingComponentType = false,
     createWrappingComponentAttributes,
 }: {
     wrappingComponentType: string;
@@ -34,17 +33,10 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
     ) => { newChildren: (SerializedComponent | string)[]; nComponents: number };
     wrapSingleIfNotWrappingComponentType?: boolean;
     /**
-     * Leave the children alone when every one of them is already
-     * `wrappingComponentType`, rather than wrapping them in one more of it.
-     * Unlike `wrapSingleIfNotWrappingComponentType` this holds however many
-     * there are, which is what a component wants when the wrapping type is
-     * also a legal child of its own.
-     */
-    skipIfAllWrappingComponentType?: boolean;
-    /**
-     * Attributes to put on the component that wraps the children. Receives the
-     * running component counter so that any attribute components it builds get
-     * fresh indices, and returns the counter it left off at.
+     * Attributes to put on the component that wraps the children, for the
+     * `createAttributeOfType` case. Receives the running component counter so
+     * that any attribute components it builds get fresh indices, and returns
+     * the counter it left off at.
      */
     createWrappingComponentAttributes?: (
         nComponents: number,
@@ -153,27 +145,6 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
             return { success: false as const };
         }
 
-        if (skipIfAllWrappingComponentType) {
-            // Blank strings are just the whitespace between the children, so
-            // they do not make a set of wrapping-type children mixed.
-            const substantive = childrenToWrap.filter(
-                (child) => typeof child !== "string" || child.trim() !== "",
-            );
-            if (
-                substantive.length > 0 &&
-                substantive.every(
-                    (child) =>
-                        typeof child !== "string" &&
-                        componentInfoObjects.componentIsSpecifiedType(
-                            child,
-                            wrappingComponentType,
-                        ),
-                )
-            ) {
-                return { success: false as const };
-            }
-        }
-
         if (createAttributeOfType) {
             let wrappingAttributes: Record<string, SerializedAttribute> = {};
             if (createWrappingComponentAttributes) {
@@ -237,17 +208,6 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappedChildren = wrapResult.newChildren;
                 nComponents = wrapResult.nComponents;
             } else {
-                let wrappingAttributes: Record<string, SerializedAttribute> =
-                    {};
-                if (createWrappingComponentAttributes) {
-                    const attributeResult = createWrappingComponentAttributes(
-                        nComponents,
-                        stateIdInfo,
-                    );
-                    wrappingAttributes = attributeResult.attributes;
-                    nComponents = attributeResult.nComponents;
-                }
-
                 wrappedChildren = [
                     {
                         type: "serialized",
@@ -257,7 +217,7 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
                             ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
                             : undefined,
                         children: childrenToWrap,
-                        attributes: wrappingAttributes,
+                        attributes: {},
                         state: {},
                         doenetAttributes: {},
                     },

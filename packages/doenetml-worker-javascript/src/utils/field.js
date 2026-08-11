@@ -7,36 +7,27 @@
  */
 
 import { codedDiagnostic } from "./diagnostics";
-import { returnWrapNonLabelsDescriptionsSugarFunction } from "./label";
-
-/** Variable names a bare expression is read as a function of, when the field
- * does not say otherwise. */
-const DEFAULT_VARIABLES = "x y";
 
 /**
  * The `variables` attribute both field components take.
  *
- * It names the inputs of the `<function>` the sugar builds around a bare
- * expression, so `<slopeField variables="s t">s - t</slopeField>` reads that
- * expression the way its author wrote it. Without naming them, a `<function>`
- * takes only `x` and every other symbol in the expression is free: the field
- * would be NaN at every lattice point and draw nothing, while reporting that it
- * has a function.
+ * The attribute is declared here so that it is in the schema and the
+ * documentation, but nothing in the worker reads it: `fieldFunctionSugar`
+ * (`@doenet/parser`) moves it onto the `<function>` it wraps a bare expression
+ * in, before the worker sees either. It is the same `_variableNameList` a
+ * `<function>` takes, and it is moved rather than read, so the names may be
+ * references — `variables="$v1 $v2"` naming two `<mathInput>`s renames the
+ * field's inputs as the student types.
  *
- * It is the same `_variableNameList` a `<function>` itself takes, and the sugar
- * hands that component over whole rather than reading names out of it, so the
- * names may be references: `variables="$v1 $v2"` naming two `<mathInput>`s
- * renames the field's inputs as the student types, exactly as it would on a
- * `<function>`.
- *
- * The attribute has nothing to say about an explicit `<function>` child, which
- * names its own inputs; see {@link returnFieldFunctionSugarInstruction}.
+ * It survives on the field only when there is an explicit `<function>` child,
+ * which names its own inputs and so leaves nothing for it to say.
  */
 export function returnFieldVariablesAttribute() {
     return {
         variables: {
             createComponentOfType: "_variableNameList",
-            description: `Names of the variables a bare expression is read as a function of. Defaults to "${DEFAULT_VARIABLES}". Ignored when the function is given as a <function> child, which names its own variables.`,
+            description:
+                'Names of the variables a bare expression is read as a function of. Defaults to "x y". Ignored when the function is given as a <function> child, which names its own variables.',
         },
     };
 }
@@ -106,101 +97,6 @@ export function returnFieldLatticeAttributes({
             public: true,
             forRenderer: true,
             description: `Upper bound on how many ${markNoun} are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of ${markNoun}.`,
-        },
-    };
-}
-
-/**
- * Sugar that wraps a bare expression child in a `<function>` child, so that
- * `<slopeField>y - x</slopeField>` means the same as
- * `<slopeField><function variables="x y">y - x</function></slopeField>`.
- *
- * The wrapping `<function>` is given the field's `variables` attribute — the
- * component itself, moved rather than copied, so the references inside it
- * resolve in exactly one place and go on tracking whatever they name. An author
- * who writes their equation in other letters, or lets a student choose them,
- * says so once on the field rather than reaching for an explicit `<function>`.
- * When the field named none, the wrapper gets the default pair; see
- * {@link returnFieldVariablesAttribute} for why naming them at all is what
- * keeps a bare `y - x` from being NaN everywhere.
- *
- * Children that are *already* `<function>` components are left alone: they name
- * their own inputs, so there is nothing for a wrapper to add, and the field's
- * `variables` has no bearing on them. A reference such as `$F` cannot be told
- * apart from a reference to a `<math>` at this stage — neither has resolved yet
- * — so it is wrapped like any other expression. That is harmless either way: a
- * `<function>` holding a referenced function passes its inputs straight through
- * positionally, so a referenced function keeps the variable names its own
- * author chose.
- *
- * Sugar recurses into what it builds, so from here `<function>`'s own sugar
- * wraps the expression in `<math>` and the variable list splits the string into
- * names. Any `<label>` child is left where it is, which is what the shared
- * wrapping helper is for.
- */
-export function returnFieldFunctionSugarInstruction() {
-    return {
-        replacementFunction(args) {
-            // Whitespace alone is not an expression. Wrapping it in a
-            // <function> would produce one that is NaN everywhere, i.e. a field
-            // that draws nothing while claiming to have a function; leaving the
-            // sugar unapplied reports honestly that there is no function.
-            // (`every` is also true of no children at all.)
-            if (
-                args.matchedChildren.every(
-                    (child) => typeof child === "string" && child.trim() === "",
-                )
-            ) {
-                return { success: false };
-            }
-
-            // The field's own `variables`, if it named any. Handed to the
-            // wrapping <function> as it stands: it is the same
-            // `_variableNameList` a <function> takes, and the references it may
-            // contain have not resolved yet, so they resolve there instead.
-            const variablesAttr = args.allComponentAttributes?.variables;
-
-            const results = returnWrapNonLabelsDescriptionsSugarFunction({
-                wrappingComponentType: "function",
-                skipIfAllWrappingComponentType: true,
-                createWrappingComponentAttributes(nComponents, stateIdInfo) {
-                    if (variablesAttr) {
-                        return {
-                            attributes: { variables: variablesAttr },
-                            nComponents,
-                        };
-                    }
-                    return {
-                        attributes: {
-                            variables: {
-                                type: "component",
-                                name: "variables",
-                                component: {
-                                    type: "serialized",
-                                    componentType: "_variableNameList",
-                                    componentIdx: nComponents++,
-                                    stateId: stateIdInfo
-                                        ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                        : undefined,
-                                    children: [DEFAULT_VARIABLES],
-                                    attributes: {},
-                                    doenetAttributes: {},
-                                    state: {},
-                                },
-                            },
-                        },
-                        nComponents,
-                    };
-                },
-            })(args);
-
-            // Moved, not shared: the attribute must not remain on the field as
-            // well, or its components would be built twice under one index.
-            if (results.success && variablesAttr) {
-                results.removeAttributes = ["variables"];
-            }
-
-            return results;
         },
     };
 }

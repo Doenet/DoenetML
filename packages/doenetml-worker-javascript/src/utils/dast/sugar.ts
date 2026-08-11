@@ -113,14 +113,6 @@ export function applySugar({
                         parentParametersFromSugar,
                         parentAttributes,
                         componentAttributes,
-                        // Every attribute, already serialized. Sugar that
-                        // builds a component the author's attribute really
-                        // belongs on takes it from here and names it in
-                        // `removeAttributes`, so that it moves rather than
-                        // being duplicated — the values inside it are still
-                        // unresolved references, which must resolve in exactly
-                        // one place.
-                        allComponentAttributes: component.attributes,
                         componentInfoObjects,
                         isAttributeComponent,
                         nComponents,
@@ -194,17 +186,6 @@ export function applySugar({
                         }
 
                         newComponent = { ...newComponent };
-
-                        if (sugarResults.removeAttributes?.length) {
-                            // Copy before deleting: the attributes object is
-                            // shared with the component we were handed.
-                            newComponent.attributes = {
-                                ...newComponent.attributes,
-                            };
-                            for (const attrName of sugarResults.removeAttributes) {
-                                delete newComponent.attributes[attrName];
-                            }
-                        }
 
                         if (newChildren) {
                             // Currently, we accept either serialized or unflattened children from the sugar.

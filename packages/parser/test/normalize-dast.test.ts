@@ -12,6 +12,52 @@ console.log = (...args) => {
 };
 
 describe("Normalize dast", async () => {
+    it("wraps a field's bare expression in a <function> child", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField>y - x</slopeField>`),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField><function variables="x y">y - x</function></slopeField></document>`,
+        );
+    });
+    it("moves a field's variables onto the <function> it wraps", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(
+                `<vectorField variables="$v1 $v2">($v2,-$v1)</vectorField>`,
+            ),
+        );
+        // The references are carried over untouched, so they resolve against
+        // whatever names them rather than being read here.
+        expect(toXml(dast)).toEqual(
+            `<document><vectorField><function variables="$v1 $v2">($v2,-$v1)</function></vectorField></document>`,
+        );
+    });
+    it("leaves a field's explicit <function> child, and its variables, alone", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(
+                `<slopeField variables="s t"><function variables="u v">u-v</function></slopeField>`,
+            ),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField variables="s t"><function variables="u v">u-v</function></slopeField></document>`,
+        );
+    });
+    it("leaves a field's label child outside the <function> it wraps", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField>y - x<label>hi</label></slopeField>`),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField><function variables="x y">y - x</function><label>hi</label></slopeField></document>`,
+        );
+    });
+    it("does not give a field a <function> when it has no expression", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField>   </slopeField>`),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField>   </slopeField></document>`,
+        );
+    });
     it("wraps in a <document> tag", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;

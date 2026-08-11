@@ -2,7 +2,6 @@ import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
     returnFieldFunctionStateVariableDefinitions,
-    returnFieldFunctionSugarInstruction,
     returnFieldLatticeAttributes,
     returnFieldVariablesAttribute,
 } from "../utils/field";
@@ -44,14 +43,6 @@ export default class SlopeField extends GraphicalComponent {
         );
 
         return attributes;
-    }
-
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        sugarInstructions.push(returnFieldFunctionSugarInstruction());
-
-        return sugarInstructions;
     }
 
     static returnStateVariableDefinitions() {
