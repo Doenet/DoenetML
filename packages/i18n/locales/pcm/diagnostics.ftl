@@ -110,7 +110,7 @@ label-for-must-resolve-to-one = Di `for` attribute ọn `<label>` must point to 
 
 label-for-unresolved = Di `for` attribute ọn `<label>` no fit point to eni kọmponẹnt.
 
-label-for-answer-with-authored-inputs = Di `for` attribute ọn `<label>` dey point to `<answer>` wey gẹt input wey di ọda pẹsin rait; point to di input dairẹkt.
+label-for-answer-with-authored-inputs = Di `for` attribute ọn `<label>` dey point to `<answer>` wey gẹt input wey di ọtọ rait wit im on han; point to di input dairẹkt.
 
 label-for-answer-without-input = Di `for` attribute ọn `<label>` dey point to `<answer>` wey no gẹt input to lebul.
 

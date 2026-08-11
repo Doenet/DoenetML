@@ -514,9 +514,10 @@ describe("style descriptions follow the document locale @group4", () => {
         // linker frozen; Kongo's agrees, and the describing stem behind it
         // never moves.
         //
-        // What `@doenet/utils` pins is the agreement across four classes. What
-        // this checks is that the token survives `setLocaleData`, the
-        // document's locale and the `translator` dependency — and, in `sh`,
+        // What `@doenet/utils` pins is the agreement across the nouns' own
+        // classes. What this checks is that the token survives
+        // `setLocaleData`, the document's locale and the `translator`
+        // dependency — and, in `sh`,
         // that a border's linker follows the border's own class rather than
         // the shape's, which is the mistake the previous batch found in
         // `locales/tiv` and fixed. In `sh` the circle is class 7 and reads
@@ -526,9 +527,14 @@ describe("style descriptions follow the document locale @group4", () => {
         // `st` carries the linker with no noun in front of it, which is the
         // headless form English's bare "thick dashed red" is. A suffix
         // language hides this and a linker language cannot.
+        //
+        // `pt` is a square marker, and «kare» is a French loan, so it takes
+        // the class-9 «ya» that `locales/kg`'s `noun-gender` comment names as
+        // the class a loan joins — not the class-7 «kya» that «kizunga» in
+        // `sh` gets for being a Kikongo ki-/bi- noun.
         expect(values.st).eq("ya nene ya mbwaki ya bitini bitini");
         expect(values.stn).eq("nsinga ya nene ya mbwaki ya bitini bitini");
-        expect(values.pt).eq("kare kya mayamba");
+        expect(values.pt).eq("kare ya mayamba");
         expect(values.sh).eq(
             "kizunga kyazala kya bule ye tona ye lubaku lwa nene lwa mbwaki ya bitini bitini",
         );

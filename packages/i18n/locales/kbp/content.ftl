@@ -159,7 +159,9 @@ noun-regular-polygon =
 
 # The noun class. `c1` is the default and the class a French loan joins, which
 # is what an author's own `markerStyleWord` is as far as this catalog is
-# concerned.
+# concerned. `border` is listed explicitly even though it answers the default,
+# so that `style-border-clause`'s comment below has a row to point at rather
+# than an absence a reader has to infer.
 noun-gender =
     { $noun ->
         [line-segment] c2
@@ -176,6 +178,7 @@ noun-gender =
         [plus] c4
         [fill] c5
         [background] c5
+        [border] c1
        *[other] c1
     }
 

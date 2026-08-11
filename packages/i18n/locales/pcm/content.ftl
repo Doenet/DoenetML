@@ -7,9 +7,9 @@
 #
 # `pcm` is Nigerian Pidgin (Naijá), an English-lexifier creole and the most
 # widely spoken language in Nigeria — a first language for millions and a
-# second one for tens of millions more, across every one of the three
-# languages this repository already carries from that country (`locales/ha`,
-# `locales/ig`, `locales/yo`) and `locales/tiv` besides.
+# second one for tens of millions more, spoken across the communities of every
+# Nigerian language this repository already carries (`locales/ha`,
+# `locales/ig`, `locales/yo`, `locales/tiv`).
 #
 # **The thing to be careful about in this catalog is that it looks like
 # English.** The lexifier shows through in almost every word, so a reader
@@ -19,11 +19,12 @@
 #
 #   plural            no `-s`; number is carried by `dem` or by a numeral
 #                     («two lain», not «two lines»)
-#   tense and aspect  preverbal `don`, `dey`, `go` — «e don full», not
-#                     «it is filled»
-#   negation          `no be` and `no`, never `-n't`
+#   tense and aspect  preverbal `don`, `dey`, `go` — «don full», not
+#                     «is filled»
+#   negation          `no bi` and `no`, never `-n't`
 #   copula            `na` for identity, `dey` for location and state
-#   possession        `of` is rare; juxtaposition or `fọ` does the work
+#   possession        `of` and `fọ` both occur, and juxtaposition does a lot of
+#                     the work («plọs mak», not «mark of a plus»)
 #
 # So `style-unfilled` is «e no full» rather than «unfilled», and
 # `boolean-false` is «na lai» rather than «false». A speaker reviewing this
@@ -90,7 +91,7 @@ noun =
     .curve = lain wey bend
     .function = fọnkshọn
     .parabola = parabola
-    .polyline = lain wey get many pis
+    .polyline = lain wey gẹt many pis
     .polygon = poligọn
     .triangle = trayangul
     .rectangle = rẹktangul
@@ -107,8 +108,8 @@ noun =
 # place `locales/tiv` puts its own.
 noun-regular-polygon =
     { $part ->
-        [tail] wey get { $numSides } sait
-       *[head] poligọn wey ẹvri sait dey de sem
+        [tail] wey gẹt { $numSides } sait
+       *[head] poligọn wey ẹvri sait dey di sem
     }
 
 # Nigerian Pidgin has no noun class and no gender, so every noun answers the

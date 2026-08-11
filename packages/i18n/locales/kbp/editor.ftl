@@ -193,7 +193,7 @@ help-inserts = Pɩsʋʋnɩ:
 help-coordinates =
     { $count ->
         [one] Ɖenɖe:
-       *[other] Ɖeɖe:
+       *[other] Ɖenɖe:
     }
 
 help-type = Wɛtʋ:

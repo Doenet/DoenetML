@@ -26,12 +26,16 @@
 # class that attribute's own written prefix carries, and a reviewer who finds
 # one that does not has found a bug without needing to know Temne.
 #
+# The eight colour words that are English loans are the exception, and they are
+# written bare rather than prefixed; see the comment above `color`.
+#
 # The four entries that name a phrase head rather than a noun are outside that
 # check, since `noun` does not spell them: `border` and `background` can still
 # be read against the words this file writes for them — «ʌŋbʌŋ» in
-# `style-border-clause` and «ʌŋkəbaka» in `style-text`, both `ʌŋ-` and both
-# `c4` — but `text` and `fill` head phrases this catalog writes no word for, so
-# their classes have to be taken on trust the way every other catalog's are.
+# `style-border-clause`, `ʌŋ-` and so `c4`, and «kʌbaka» in `style-text`, `kʌ-`
+# and so `c1` — but `text` and `fill` head phrases this catalog writes no word
+# for, so their classes have to be taken on trust the way every other
+# catalog's are.
 #
 # It is the third Atlantic catalog here and answers differently from both the
 # others: `locales/ff` spells its class as a suffix and `locales/wo` on a
@@ -41,12 +45,24 @@
 # `$role` goes unused: Temne marks no case.
 #
 # The geometry leans on the English loans Sierra Leonean schooling supplies —
-# the same ministry `locales/kri` records — with Temne words where they are
-# solid: «ro-» a place, «ʌŋ-mark» a mark. They are the first thing to check.
+# the same ministry `locales/kri` draws its own English from — with Temne words
+# where they are solid: «rʌ-ro» a place, «rʌ-mark» a mark. They are the first
+# thing to check.
 
 
 ## Style vocabulary
 
+# The last eight attributes are English loans. A loan is written bare and takes
+# no concord prefix, so the alliteration the header describes runs through the
+# four Temne stems and stops at the seam — which is the same shape
+# `locales/kbp` gives its French loans, and it is the first thing a speaker
+# should either confirm or undo. Every word this catalog does inflect —
+# `line-width`, `style-filled-word`, and these four colours — supplies all four
+# classes.
+#
+# A comment cannot go inside the message beside the attribute it describes: an
+# indented comment line is part of the pattern and renders as a newline, which
+# `lint:i18n` rejects.
 color =
     .black =
         { $gender ->
@@ -143,17 +159,17 @@ noun =
 noun-regular-polygon =
     { $part ->
         [tail] tʌ na tʌbʌŋ { $numSides }
-       *[head] tʌpɔligɔn tʌ kɔmɔ
+       *[head] tʌpɔligɔn tʌ nɔŋ
     }
 
 # The noun class. Read it against `noun` above: each entry that names one of
 # `noun`'s attributes takes the class that attribute's own written prefix
 # carries, and `regular-polygon` takes `c2` because `noun-regular-polygon`'s
-# head is «tʌpɔligɔn». The last four name phrase heads instead — see the
-# header for which of them `noun` can be read against and which cannot.
-# `c1` is the default and the
-# class an English loan joins, which is what an author's own `markerStyleWord`
-# is as far as this catalog is concerned.
+# head is «tʌpɔligɔn». The last four name phrase heads instead, and the header
+# says which of those this file writes a word for and which have to be taken on
+# trust. `c1` is the default, and it is the class an English loan joins — which
+# is what an author's own `markerStyleWord` is as far as this catalog is
+# concerned.
 noun-gender =
     { $noun ->
         [polyline] c2
@@ -170,7 +186,6 @@ noun-gender =
         [plus] c3
         [text] c3
         [fill] c4
-        [background] c4
         [border] c4
        *[other] c1
     }
@@ -242,7 +257,7 @@ style-unfilled = kʌwuni bɔm
 
 style-text =
     { $parts ->
-        [background] { $color } na ʌŋkəbaka { $background }
+        [background] { $color } na kʌbaka { $background }
        *[plain] { $color }
     }
 

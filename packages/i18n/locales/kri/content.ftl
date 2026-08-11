@@ -11,7 +11,8 @@
 # has the same lexifier and much of the same grammar — postposed plural, a
 # preverbal completive, `na` for identity — and the two catalogs still do not
 # look alike, because Sierra Leone settled on a phonemic orthography and
-# Nigeria did not:
+# Nigeria stayed close to English spelling. The two diverge wherever the
+# spelling does, which is not everywhere:
 #
 #              kri          pcm
 #   black      blak         black

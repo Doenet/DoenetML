@@ -4,8 +4,9 @@
 #
 # DoenetML element names, attribute names and `styleNumber` are identifiers of
 # the language and stay in English exactly as written. Krio's phonemic spelling
-# makes that seam easy to see here: `attribute` inside a sentence is the
-# DoenetML word, and anything spelt Krio around it is prose.
+# makes that seam easy to see here: an identifier like `styleNumber` keeps its
+# English spelling inside a sentence, and everything spelt Krio around it —
+# «atribyut», «snipɛt» — is prose.
 
 
 ## The viewer's controls
@@ -173,7 +174,7 @@ help-property-is-reference =
        *[other] { $ref } na rɛfrɛns to di { $property } prɔpati pan { $element } (layn { $line }).
     }
 
-help-kind-attribute = attribute
+help-kind-attribute = atribyut
 help-kind-snippet = snipɛt
 help-kind-array-entry = array ɛntri
 

@@ -878,9 +878,8 @@ describe("negotiateLocales", () => {
          * The near misses for this batch. `bin` (Edo) and `efi` (Efik) are
          * Nigerian neighbours of `pcm` and `tiv`; `men` (Mende) is a Sierra
          * Leonean neighbour of `kri` and `tem`; `gej` (Gen) is a Gbe language
-         * beside `fon` and `ee`; `ncu` and `bib` are Atlantic and Mande
-         * neighbours. Every one falls to English rather than being folded onto
-         * a language it is merely near.
+         * beside `fon` and `ee`. Every one falls to English rather than being
+         * folded onto a language it is merely near.
          *
          * `son` is here for a different reason and is the interesting row: it
          * is the ISO 639-3 macrolanguage over the Songhay varieties, and this

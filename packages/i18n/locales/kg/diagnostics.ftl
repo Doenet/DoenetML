@@ -29,7 +29,7 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset kena mfunu ve kan
 
 line-points-undetermined-dimensions = Nsinga wa matona mana nene yawu kazabakene ko.
 
-line-points-too-few-dimensions = Nsinga fweti vyoka matona ma nene zole na kunsi.
+line-points-too-few-dimensions = Nsinga fweti vyoka matona ma nene zole na zulu.
 
 line-points-depend-on-variables = Nsinga wa matona mana kwendaka na bina bisobanga: { $variables }.
 
@@ -99,7 +99,7 @@ side-by-side-absolute-widths = `<{ $component }>` yasalwa ve mu bitezo bya kimos
 
 side-by-side-absolute-margins = `<{ $component }>` yasalwa ve mu bitezo bya kimosi. Ndilu zatulwa na kifwani.
 
-side-by-side-no-block-child = `<{ $component }>` yambi: yifweti vwanda ti mwana mosi ya block na kunsi.
+side-by-side-no-block-child = `<{ $component }>` yambi: yifweti vwanda ti mwana mosi ya block na zulu.
 
 ## `<label>`
 
@@ -129,8 +129,8 @@ accessibility-short-description-contains-math = Nsasa zankufi kafweti vwanda ye 
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] { $colorName } kena ye luswaswanu lwafwana ve mu mambu ma ntu wa kitini (mode ya mpimpa) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na kunsi).
-       *[other] { $colorName } kena ye luswaswanu lwafwana ve mu mambu ma ntu wa kitini ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na kunsi).
+        [dark] { $colorName } kena ye luswaswanu lwafwana ve mu mambu ma ntu wa kitini (mode ya mpimpa) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na zulu).
+       *[other] { $colorName } kena ye luswaswanu lwafwana ve mu mambu ma ntu wa kitini ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na zulu).
     }
 
 ## `<circle>`
@@ -270,7 +270,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: kilendi bakisa grid="{ $grid }" ko. Fweti vwanda none, medium, dense, to mitangu zole ya nene yakabulwa na fulu, bonso grid="1 0.5". Grid yisonwa ve.
+graph-grid-invalid = `<graph>`: kilendi bakisa grid="{ $grid }" ko. Fweti vwanda none, medium, dense, to mitangu zole mya zulu ya nulu yakabulwa na fulu, bonso grid="1 0.5". Grid yisonwa ve.
 
 ## PreFigure renderer
 
@@ -354,7 +354,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = Ntalu yambi `{ $value }` mu attribute `{ $attribute }`. Attribute fweti vwanda ye bantinu bina biyantika ye `$`.
 
-math-input-invalid-function-names = <mathInput>: nkumbu zambi za fonksio zivezwanga mu { $attribute }: { $names }. Konso nkumbu fweti vwanda ye bisono 2 na kunsi (bisono to bindilu); `|<mathspeak alternative>` yilenda landa.
+math-input-invalid-function-names = <mathInput>: nkumbu zambi za fonksio zivezwanga mu { $attribute }: { $names }. Konso nkumbu fweti vwanda ye bisono 2 na zulu (bisono to bindilu); `|<mathspeak alternative>` yilenda landa.
 
 ## Building components from the source
 
@@ -376,16 +376,16 @@ style-definition-insufficient-contrast =
     }{ $mode ->
         [dark] { " (mode ya mpimpa)" }
        *[light] { "" }
-    } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na kunsi).
+    } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na zulu).
 
 style-definition-dark-mode-text-background-contrast =
-    Ata nsasa ya mpila { $styleNumber } yina ye mbala zina ye luswaswanu lwafwana mu mode ya mwinda, mbala za mode ya mpimpa zabakwa na zawu zina ye luswaswanu lwafwana ve kati kwa mbala ya mambu ye mbala ya nima ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na kunsi). { $suggestion ->
+    Ata nsasa ya mpila { $styleNumber } yina ye mbala zina ye luswaswanu lwafwana mu mode ya mwinda, mbala za mode ya mpimpa zabakwa na zawu zina ye luswaswanu lwafwana ve kati kwa mbala ya mambu ye mbala ya nima ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na zulu). { $suggestion ->
         [available] Sambu na luswaswanu lwafwana mu mode ya mpimpa, yikula luswaswanu lwa mode ya mwinda (mu kifwani, tula { $lightAttribute }="{ $lightColor }") to soba mbala ya mode ya mpimpa (mu kifwani, tula { $darkAttribute }="{ $darkColor }").
        *[none] Sambu na luswaswanu lwafwana mu mode ya mpimpa, yikula luswaswanu lwa mode ya mwinda to soba mbala zabakwa ye textColorDarkMode to backgroundColorDarkMode.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    Ata nsasa ya mpila { $styleNumber } yina ye mbala ya mambu yina ye luswaswanu lwafwana mu mode ya mwinda, mbala ya mambu ya mode ya mpimpa yabakwa na yawu yina ye luswaswanu lwafwana ve va kanevasi ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na kunsi). { $suggestion ->
+    Ata nsasa ya mpila { $styleNumber } yina ye mbala ya mambu yina ye luswaswanu lwafwana mu mode ya mwinda, mbala ya mambu ya mode ya mpimpa yabakwa na yawu yina ye luswaswanu lwafwana ve va kanevasi ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; yifweti { $threshold }:1 na zulu). { $suggestion ->
         [available] Sambu na luswaswanu lwafwana mu mode ya mpimpa, yikula luswaswanu lwa mode ya mwinda (mu kifwani, tula textColor="{ $lightColor }") to soba mbala ya mode ya mpimpa (mu kifwani, tula textColorDarkMode="{ $darkColor }").
        *[none] Sambu na luswaswanu lwafwana mu mode ya mpimpa, yikula luswaswanu lwa mode ya mwinda to soba mbala yabakwa ye textColorDarkMode.
     }

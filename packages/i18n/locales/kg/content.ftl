@@ -24,9 +24,10 @@
 #   nene      dya nene   kya nene   ya nene    lwa nene
 #
 # So the whole of the agreement in this catalog is one syllable, and it is
-# always the same syllable: the describing stem never moves. Kituba kept the
-# class-9 row and threw the other three away. Putting `color.black` in the two
-# files side by side is the shortest statement of what a creole did to its
+# always in the same place: the describing stem behind it never moves, and only
+# the linker in front of it changes shape. Kituba kept the class-9 row and
+# threw the other three away. Putting `color.black` in the two files side by
+# side is the shortest statement of what a creole did to its
 # lexifier that this repository can make, and it costs nothing but the two
 # files being in the same tree.
 #
@@ -170,7 +171,7 @@ noun =
     .line-segment = kitini kya nsinga
     .ray = nsemo
     .vector = vektele
-    .curve = nsinga wa nkubama
+    .curve = nsinga ya nkubama
     .function = fonksio
     .parabola = palabole
     .polyline = nsinga mia bitini
@@ -196,18 +197,18 @@ noun-regular-polygon =
 
 # The noun class. `c9` is the default and the class a French loan joins, which
 # is what an author's own `markerStyleWord` is as far as this catalog is
-# concerned — and it is also the row Kituba kept.
+# concerned — and it is also the row Kituba kept. So «kare» and «kuluse» are
+# unlisted on purpose: they are loans and take «ya», where «sinsu» and
+# «kizunga» are Kikongo ki-/bi- nouns and take «kya».
 noun-gender =
     { $noun ->
         [line-segment] c7
-        [square] c7
         [region] c7
         [circle] c7
+        [plus] c7
         [fill] c7
         [point] c5
         [diamond] c5
-        [cross] c5
-        [plus] c5
         [text] c5
         [border] c11
        *[other] c9

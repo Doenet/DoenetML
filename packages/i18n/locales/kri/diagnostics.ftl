@@ -49,11 +49,11 @@ vector-dimension-mismatch = numDimensions nɔ mach fɔ di vɛkta.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Wi nɔ ebul fɔ atrakt to `<{ $component }>` bikɔs i nɔ gɛt nearestPoint.
+attract-to-without-nearest-point = Wi nɔ ebul fɔ atrakt to `<{ $component }>` bikɔs i nɔ gɛt nearestPoint stet vɛriabul.
 
-constrain-to-without-nearest-point = Wi nɔ ebul fɔ kɔnstren to `<{ $component }>` bikɔs i nɔ gɛt nearestPoint.
+constrain-to-without-nearest-point = Wi nɔ ebul fɔ kɔnstren to `<{ $component }>` bikɔs i nɔ gɛt nearestPoint stet vɛriabul.
 
-constrain-to-interior-without-nearest-point = Wi nɔ ebul fɔ kɔnstren to di insay pan `<{ $component }>` bikɔs i nɔ gɛt nearestPoint.
+constrain-to-interior-without-nearest-point = Wi nɔ ebul fɔ kɔnstren to di insay pan `<{ $component }>` bikɔs i nɔ gɛt nearestPoint stet vɛriabul.
 
 ## `<choiceInput>`
 
@@ -77,13 +77,13 @@ pretzel-circuit-first-index = Wi de ignɔ di indices we yu gi pretzel na mode="c
 
 string-children-need-type = Fɔ mek `<{ $component }>` wok wit string pikin, yu fɔ gi am `type` attribute.
 
-invalid-type-defaulting-to-math = Type { $type } nɔ kɔrɛkt fɔ { $component } kɔmponɛnt. I fɔ bi math, text, number ɔ boolean. Wi go yuz math.
+invalid-type-defaulting-to-math = Tayp { $type } nɔ kɔrɛkt fɔ { $component } kɔmponɛnt. I fɔ bi math, text, number ɔ boolean. Wi go yuz math.
 
 string-not-valid-component-to-arrange = String "{ $value }" nɔ to valid kɔmponɛnt fɔ { $component }. Wi de ignɔ am.
 
 ## Types and variables
 
-invalid-type-defaulting-to-number = Type { $type } nɔ kɔrɛkt, wi dɔn sɛt di type to number.
+invalid-type-defaulting-to-number = Tayp { $type } nɔ kɔrɛkt, wi dɔn sɛt di tayp to number.
 
 invalid-variable-value = Vɛriabul valyu we nɔ kɔrɛkt: `{ $value }`
 
@@ -109,7 +109,7 @@ label-for-must-resolve-to-one = Di `for` attribute pan `<label>` fɔ pɔynt to �
 
 label-for-unresolved = Di `for` attribute pan `<label>` nɔ ebul fɔ pɔynt to ɛni kɔmponɛnt.
 
-label-for-answer-with-authored-inputs = Di `for` attribute pan `<label>` de pɔynt to `<answer>` we gɛt input dɛn we di ɔda pɔsin rayt; pɔynt to di input daytrɛkt.
+label-for-answer-with-authored-inputs = Di `for` attribute pan `<label>` de pɔynt to `<answer>` we gɛt input dɛn we di ɔtɔ rayt insɛf; pɔynt to di input daytrɛkt.
 
 label-for-answer-without-input = Di `for` attribute pan `<label>` de pɔynt to `<answer>` we nɔ gɛt input fɔ lebul.
 

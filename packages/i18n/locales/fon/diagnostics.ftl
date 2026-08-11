@@ -288,7 +288,7 @@ prefigure-grid-spacing-too-fine = `<graph>`: grid sín tɛnmɛ kpɛ́ dín nú a
 
 prefigure-annotations-not-rendered = `<graph>`: è má ná ɖè annotations lɛ́ xlɛ́ ǎ enyi è ma ɖò PreFigure ɖiɖexlɛ́tɔ́ zán wɛ ǎ.
 
-multiple-annotations-children = È mɔ `<annotations>` ví gègě ɖò `<graph>` mɛ; è jó yě bǐ dó bó hɛn nukɔntɔ́n gudo tɔ́n ɔ́ géé.
+multiple-annotations-children = È mɔ `<annotations>` ví gègě ɖò `<graph>` mɛ; è jó yě bǐ dó bó hɛn gudo tɔ́n ɔ́ géé.
 
 ## Referring to other components
 

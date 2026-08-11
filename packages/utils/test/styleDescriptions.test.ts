@@ -3024,10 +3024,12 @@ describe("the West and Central African batch, continued", () => {
      * its noun with an invariable «ya». That «ya» is Kongo's class-9 linker,
      * frozen — and here the linker moves while the stem does not.
      *
-     * Four rows, four classes, and «nene» and «mbwaki» are constant across all
-     * of them: the whole of the agreement in Kikongo is that first syllable.
-     * The dash pattern stays «ya …» in every row, because it is written as a
-     * frozen class-9 phrase — which is to say, as Kituba writes everything.
+     * Four rows and three of the four classes — `circle` and `region` are both
+     * class 7, and class 11 belongs to `border`, which the worker-path test's
+     * `sh` row exercises. «nene» and «mbwaki» are constant across all four:
+     * the whole of the agreement in Kikongo is that first syllable. The dash
+     * pattern stays «ya …» in every row, because it is written as a frozen
+     * class-9 phrase — which is to say, as Kituba writes everything.
      */
     it("moves only Kongo's linker syllable, never the stem behind it", () => {
         expect(described("kg", "line")).toBe(
@@ -3127,10 +3129,10 @@ describe("the West and Central African batch, continued", () => {
     it.each([
         ["kg", "poligone yafwanana ya mbwaki ya makonso 5"],
         ["fon", "polygone jɛ́jɛ́ vɔvɔ kpó akpá 5"],
-        ["pcm", "red poligọn wey ẹvri sait dey de sem wey get 5 sait"],
+        ["pcm", "red poligọn wey ẹvri sait dey di sem wey gẹt 5 sait"],
         ["kri", "rɛd pɔligɔn we ɔl di say dɛn na wan we gɛt 5 say"],
         ["kbp", "poligɔnɩ kɩmaɣzaɣ kɩsɛmɩɖɛ ŋgʋ kɩwɛnɩ hɔɔlɩŋ 5 yɔ"],
-        ["tem", "tʌpɔligɔn tʌ kɔmɔ tʌbana tʌ na tʌbʌŋ 5"],
+        ["tem", "tʌpɔligɔn tʌ nɔŋ tʌbana tʌ na tʌbʌŋ 5"],
     ])("closes %s's phrase with the side count", (locale, expected) => {
         expect(
             describeStrokedShape(

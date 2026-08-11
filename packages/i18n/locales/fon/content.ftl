@@ -7,12 +7,12 @@
 # `fon` is Fon (Fɔngbe), the largest Gbe language of southern Benin, and the
 # nearest relative of `locales/ee` (Ewe) that this repository carries. Held up
 # against it, the two show how far apart two Gbe catalogs can be while
-# answering `$gender` the same way — which is to say, not at all.
+# inflecting for `$gender` the same way — which is to say, not at all.
 #
-# **This catalog selects on neither argument, and the reason is a fact about
-# its colour words rather than about its grammar.** Fon has no noun class and
-# no gender, so nothing agrees with anything; `$role` goes unused too, since Fon
-# marks no case. That much it shares with `locales/ktu` and `locales/pcm`.
+# **This catalog selects on neither argument.** Fon has no noun class and no
+# gender, so nothing agrees with anything; `$role` goes unused too, since Fon
+# marks no case. That much it shares with `locales/ktu` and `locales/pcm`, and
+# it is not what this file is here for.
 #
 # What is worth reading here is the shape of `color`. Fon has three basic
 # colour terms and no more: «wiwi» black, «wewe» white, «vɔvɔ» red. All three
@@ -22,12 +22,14 @@
 # they are French, which is where a Fon speaker meets them, and they are
 # written bare because there is no stem to reduplicate:
 #
-#   reduplicated stative     wiwi, wewe, vɔvɔ, kléwún, gaga
+#   reduplicated stative     wiwi, wewe, vɔvɔ, gaga
+#   other Fon stative        kléwún
 #   bare French loan         gris, orange, jaune, vert, cyan, bleu, violet,
 #                            rose, marron
 #
-# So the file has a visible seam running through one message, and the seam is
-# morphological rather than orthographic. A speaker reviewing this should
+# So the file has a visible seam running through it — sharpest in `color`, and
+# again in `noun` and `fill-style` — and the seam is morphological rather than
+# orthographic. A speaker reviewing this should
 # expect to move words across it — Fon has descriptive phrases for at least
 # green («amamu», the colour of leaves) and yellow — rather than to find the
 # nine loans wrong as loans.
@@ -61,8 +63,9 @@ color =
     .pink = rose
     .brown = marron
 
-# Both are Fon statives, and both reduplicate: «gaga» from «gá» to be big,
-# «kléwún» from «klé» to be slender.
+# Both are Fon statives, but only one reduplicates: «gaga» doubles «gá» to be
+# big, while «kléwún» is derived from «klé» to be slender without doubling it.
+# That is why the table in the header gives it a row of its own.
 line-width =
     .thick = gaga
     .thin = kléwún

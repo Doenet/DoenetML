@@ -29,7 +29,7 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset ɛɛlakɩ tʋmɩy
 
 line-points-undetermined-dimensions = Ñɔʋ ŋgʋ kɩɖɛɣ yʋsasɩ nzɩ sɩ-ɖaɣlɩkɩŋ patɩna yɔ sɩ-yɔɔ yɔ.
 
-line-points-too-few-dimensions = Pɩwɛɛ se ñɔʋ ɛɖɛɛ yʋsasɩ nzɩ sɩwɛnɩ ɖaɣlɩkɩŋ naalɛ yɔ sɩ-yɔɔ.
+line-points-too-few-dimensions = Pɩwɛɛ se ñɔʋ ɛɖɛɛ yʋsasɩ nzɩ sɩwɛnɩ ɖaɣlɩkɩŋ naalɛ nɛ pɩɖɛɛnɩ ɛzɩma yɔ sɩ-yɔɔ.
 
 line-points-depend-on-variables = Ñɔʋ ɖɛɣ yʋsasɩ nzɩ sɩñɔtɩnɩ lɛɣzɩtʋ yɔ sɩ-yɔɔ: { $variables }.
 
@@ -196,11 +196,11 @@ function-points-too-close = Fɔŋksɩyɔŋ wɛnɩ yʋsasɩ naalɛ nzɩ sɩñɔt�
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-        [one] Fɔŋksɩyɔŋ tasʋʋ pɩzɩɣ pɩla ye input ɖɔʋ nɛ output ɖɔʋ pɛkɛ kʋɖʋm yɔ. Fɔŋksɩyɔŋ kʋnɛ kɩwɛnɩ input { $inputs } nɛ { $outputs ->
+        [one] Fɔŋksɩyɔŋ tasʋʋ pɩzɩɣ pɩla ɖeke ye input ɖɔʋ nɛ output ɖɔʋ pɛkɛ kʋɖʋm yɔ. Fɔŋksɩyɔŋ kʋnɛ kɩwɛnɩ input { $inputs } nɛ { $outputs ->
             [one] output { $outputs }
            *[other] output { $outputs }
         }.
-       *[other] Fɔŋksɩyɔŋ tasʋʋ pɩzɩɣ pɩla ye input ɖɔʋ nɛ output ɖɔʋ pɛkɛ kʋɖʋm yɔ. Fɔŋksɩyɔŋ kʋnɛ kɩwɛnɩ input { $inputs } nɛ { $outputs ->
+       *[other] Fɔŋksɩyɔŋ tasʋʋ pɩzɩɣ pɩla ɖeke ye input ɖɔʋ nɛ output ɖɔʋ pɛkɛ kʋɖʋm yɔ. Fɔŋksɩyɔŋ kʋnɛ kɩwɛnɩ input { $inputs } nɛ { $outputs ->
             [one] output { $outputs }
            *[other] output { $outputs }
         }.
