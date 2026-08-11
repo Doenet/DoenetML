@@ -15,7 +15,8 @@ The field comes from a function with **two outputs**, given as a bare expression
 `<vectorField>(y, -x)</vectorField>{:dn}` — as an expression written straight into the `function`
 attribute — `<vectorField function="(y, -x)" />{:dn}` — or as a `<function>{:dn}` referenced with
 that attribute. Written either of the first two ways, the expression is read as a function of both
-<m>x</m> and <m>y</m>. Like
+<m>x</m> and <m>y</m>. Give the function only one of these ways: if both are used, the one written
+inside the component is used and the `function` attribute is ignored, with a warning. Like
 [`<slopeField/>`](slopeField), the field re-tiles as the user pans or zooms, and its arrows keep a
 constant on-screen length whatever the axis scaling.
 

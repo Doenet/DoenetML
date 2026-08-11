@@ -124,6 +124,11 @@ export function returnFieldLatticeAttributes({
  * sugar wraps the expression in `<math>` and the variable list splits its
  * string into variable names. Any `<label>` child is left where it is, which is
  * what the shared wrapping helper is for.
+ *
+ * When the author supplied both a child and a `function` attribute, the
+ * attribute this builds is assigned over theirs, so the child wins; that is
+ * warned about rather than left for the author to discover from a field drawn
+ * off the wrong function.
  */
 export function returnFieldFunctionSugarInstruction() {
     const wrapChildren = returnWrapNonLabelsDescriptionsSugarFunction({
@@ -169,7 +174,25 @@ export function returnFieldFunctionSugarInstruction() {
                 return { success: false };
             }
 
-            return wrapChildren(args);
+            const results = wrapChildren(args);
+
+            // The attribute the sugar builds is assigned over any the author
+            // wrote, so children silently win. Say so, rather than dropping
+            // half of what was written without comment.
+            if (
+                results.success &&
+                args.componentAttributeNames?.includes("function")
+            ) {
+                results.diagnostics = [
+                    ...(results.diagnostics ?? []),
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0123",
+                    }),
+                ];
+            }
+
+            return results;
         },
     };
 }

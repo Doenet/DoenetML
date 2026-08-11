@@ -345,6 +345,57 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(warnings[1].position.start.line).eq(4);
     });
 
+    it("warns that a function given both ways uses the one inside the component", async () => {
+        // The sugar assigns its `function` attribute over the author's, so the
+        // child silently wins and half of what was written is discarded.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <setup><function name="F" variables="x y">(y, -x)</function></setup>
+  <graph>
+    <vectorField name="vf" function="$F">(x, y)</vectorField>
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const vf = stateVariables[await resolvePathToNodeIdx("vf")];
+
+        expect(vf.stateValues.haveFunction).eq(true);
+        // (x, y) at (3, 5) is (3, 5); $F would have given (5, -3).
+        expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            3,
+            1e-12,
+        );
+        expect(numericalF(vf.stateValues.fDefinitions[1])(3, 5)).closeTo(
+            5,
+            1e-12,
+        );
+
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors.length).eq(0);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).contain(
+            "The `function` attribute is ignored",
+        );
+        expect(warnings[0].message).contain("the one inside is used");
+        expect(warnings[0].position.start.line).eq(4);
+    });
+
+    it("does not warn when the function is given only one way", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+  <setup><function name="F" variables="x y">(y, -x)</function></setup>
+  <graph>
+    <vectorField name="attr" function="$F" />
+    <vectorField name="child">(y, -x)</vectorField>
+    <vectorField name="labelled">(y, -x)<label>a field</label></vectorField>
+  </graph>
+  `,
+        });
+
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
     it("vectorField normalize defaults to false and can be set", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

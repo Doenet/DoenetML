@@ -15,7 +15,8 @@ The slope function can be given as a bare expression child, as an expression wri
 the `function` attribute, or as a `<function>{:dn}` referenced with that attribute. Written either
 of the first two ways, the expression is read as a function of both <m>x</m> and <m>y</m>, so
 `<slopeField>y - x</slopeField>{:dn}` and `<slopeField function="y - x" />{:dn}` mean the same
-thing.
+thing. Give the function only one of these ways: if both are used, the one written inside the
+component is used and the `function` attribute is ignored, with a warning.
 
 The field re-tiles automatically as the user pans or zooms, and its marks keep a constant on-screen
 length — so slopes appear at their true visual angle even when the axes are not equally scaled.
