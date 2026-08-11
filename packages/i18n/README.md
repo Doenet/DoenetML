@@ -1285,8 +1285,9 @@ exactly 0, and so does Chuvash's, with `one` for exactly 1. Latvian's is the
 odd one out — it covers every number ending in 0 and the whole of the teens, so
 21 and 101 are `one` there and `other` in Chuvash. Four languages, one category
 name, three rules — which is why `locales/cv`'s header spells out where
-its `[zero]` branch is genuinely reached (`answer-show-responses`, the two
-accessibility labels) and where the explicit `[0]` branch wins first
+its `[zero]` branch is genuinely reached (`answer-show-responses`, and both
+counts inside `editor-accessibility-label`) and where the explicit `[0]` branch
+wins first
 (`attempts-remaining`).
 
 **Five catalogs record the same limit, and it is word order rather than family

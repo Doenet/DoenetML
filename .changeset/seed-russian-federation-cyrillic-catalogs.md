@@ -22,8 +22,9 @@ Mari (`mrj`) reaches Mari. Each of those catalogs is written in one standard —
 Russia Buriat, Komi-Zyrian, Meadow Mari — and says so in its own header.
 
 Every string is machine-generated and has not been read by a speaker; each
-catalog says so in its header. Two carry an additional confidence caveat:
-`locales/xal` (Kalmyk) is the least certain of the twelve, and `locales/ce`
-(Chechen) is the one catalog that agrees words with a noun class and is honest
-that it could verify the class markers but not the class of every noun it
-needed. Correcting any of this needs no permission.
+catalog says so in its header. Five carry an additional confidence caveat —
+`locales/cv`, `locales/tyv`, `locales/udm`, `locales/xal` and `locales/ce` —
+and two of those are worth naming: `locales/xal` (Kalmyk) is the least certain
+of the twelve, and `locales/ce` (Chechen) is the one catalog that agrees words
+with a noun class and is honest that it could verify the class markers but not
+the class of every noun it needed. Correcting any of this needs no permission.

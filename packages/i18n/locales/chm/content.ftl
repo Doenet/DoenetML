@@ -4,8 +4,10 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Written in Cyrillic with Mari's own ӓ, ӧ, ӱ and ҥ, which is the orthography
-# Mari El's schools and publishing use and what CLDR fills a bare `chm` in as.
+# Written in Cyrillic with Meadow Mari's own ӧ, ӱ and ҥ, which is the
+# orthography Mari El's schools and publishing use and what CLDR fills a bare
+# `chm` in as. Hill Mari's ӓ and ӹ are deliberately absent: they belong to the
+# other standard, and this catalog is not written in it — see below.
 #
 # `chm` is an ISO 639-3 **macrolanguage** over Meadow Mari (`mhr`) and Hill
 # Mari (`mrj`), so it joins `MACROLANGUAGE_MEMBERS` in `negotiate.ts` and both

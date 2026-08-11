@@ -17,8 +17,10 @@
 # д-, and a word agreeing with a noun carries its class at the *front*. So
 # `noun-gender` returns a class here rather than one token, and the words that
 # agree fork on it. Eleven catalogs in one region and one script, and the
-# twelfth forks — which is the sentence `locales/ts`, `locales/luo` and
-# `locales/ktu` already earned inside Bantu, restated in the Caucasus.
+# twelfth forks — which is the sentence `locales/ts` and `locales/ktu` already
+# earned inside Bantu, restated in the Caucasus. (`locales/luo` is the mirror
+# image and not a third example: Dholuo sits between two Bantu catalogs that
+# fork on three classes each and selects on neither argument.)
 #
 # **What agrees is a much shorter list than in a Bantu catalog, and the header
 # has to be honest about which part of this file is confident.** Chechen's

@@ -236,9 +236,11 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## `piecewise-condition-if` is `locales/sah`'s and `locales/tyv`'s limit a
 ## third time, arriving from a third family: Udmurt's conditional «ке» is a
 ## particle that *follows* the clause it conditions, and the renderer places
-## this key before the mathematics it introduces. Three catalogs in this batch
-## hit the same wall and two — `locales/bua` and `locales/xal` — do not, which
-## is what makes it a fact about word order rather than about the region.
+## this key before the mathematics it introduces. Five catalogs in this batch
+## hit the same wall — `locales/sah`, `locales/tyv`, this one, `locales/kv` and
+## `locales/chm` — and the other seven, among them `locales/bua` and
+## `locales/xal`, do not, which is what makes it a fact about word order rather
+## than about the region.
 
 piecewise-condition-or = яке
 piecewise-condition-if = ке

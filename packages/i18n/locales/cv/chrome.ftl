@@ -13,7 +13,8 @@
 # else, covering every number ending in 0 and the whole of the teens. Chuvash's
 # `one` is exactly 1, so 21 and 101 are `other` where Latvian's are `one`. A
 # `zero` category is therefore not a fact about a language family or about a
-# script: it is a rule, and the four rules here only share a name.
+# script: it is a rule, and the four categories here are three rules sharing a
+# name — Arabic's and Welsh's coincide, Latvian's does not.
 #
 # The consequence for this file is small and worth stating so nobody
 # "corrects" it: `attempts-remaining` keeps the explicit `[0]` branch and adds

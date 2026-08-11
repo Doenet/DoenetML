@@ -11,10 +11,11 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# The two counted messages here write a `[zero]` branch, which Chuvash resolves
-# for exactly 0 — see the note in `chrome.ftl` on how that differs from
-# `locales/lv`'s category of the same name. A `[zero]` here is reached rather
-# than decorative: neither message has an explicit `[0]` branch to win first.
+# `editor-accessibility-label` counts twice — violations and advisories — and
+# both of its `{ $count -> … }` selectors write a `[zero]` branch, which Chuvash
+# resolves for exactly 0; see the note in `chrome.ftl` on how that differs from
+# `locales/lv`'s category of the same name. Both are reached rather than
+# decorative: neither selector has an explicit `[0]` branch to win first.
 
 
 ## The viewer's controls

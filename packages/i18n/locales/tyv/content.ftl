@@ -13,7 +13,7 @@
 # adjective, so `$gender` and `$role` go unused, as in every other Turkic
 # catalog here.
 #
-# CONFIDENCE. Tuvan's colour vocabulary below leans on Russian for the three
+# CONFIDENCE. Tuvan's colour vocabulary below leans on Russian for the two
 # words its own palette does not name separately — «фиолет», «розовый» — and a
 # speaker may well have native words this seed did not find. It does *not*
 # have `locales/sah`'s green/blue problem: «ногаан» and «көк» are two words for

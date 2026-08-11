@@ -233,8 +233,9 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## Erzya's conditional «бути» is clause-initial, as Buryat's and Kalmyk's are,
 ## so this key lands where the renderer puts it — unlike the two Permic
 ## catalogs beside it, `locales/udm` and `locales/kv`, whose «ке» and «кӧ»
-## follow their clause and record a limit there. Three Uralic catalogs in one
-## batch, and word order rather than family decides.
+## follow their clause and record a limit there — as `locales/chm`'s «гын»
+## does too. Four Uralic catalogs in one batch, three of them recording the
+## limit and this one not, so word order rather than family decides.
 
 piecewise-condition-or = эли
 piecewise-condition-if = бути
