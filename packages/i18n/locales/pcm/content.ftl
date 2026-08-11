@@ -26,7 +26,7 @@
 #   possession        `of` is rare; juxtaposition or `fọ` does the work
 #
 # So `style-unfilled` is «e no full» rather than «unfilled», and
-# `boolean-false` is «na lie» rather than «false». A speaker reviewing this
+# `boolean-false` is «na lai» rather than «false». A speaker reviewing this
 # should be reading for register — this is written Naijá, not English with the
 # spelling roughened — and the fastest way to check a message is to read it
 # aloud.
@@ -65,13 +65,14 @@ line-width =
     .thick = thick
     .thin = thin
 
-# «wey» is the relativizer and «dey» the stative marker: a dash pattern is
-# something the line *does*, not something it is, so it comes out as a clause
-# rather than as an adjective. `style-stroke` puts it last, where a clause
-# belongs.
+# Reduplication used attributively, which is how Naijá makes a modifier out of
+# a verb without building a relative clause. A «wey dey brok-brok» clause would
+# be the more literal rendering and is wrong here: the description is *followed*
+# by the noun in this catalog, so a relative clause would sit in front of the
+# thing it modifies and attach to nothing.
 line-style =
-    .dashed = wey dey brok-brok
-    .dotted = wey dey dot-dot
+    .dashed = brok-brok
+    .dotted = dot-dot
 
 fill-style =
     .horizontal = lain wey lie down
@@ -117,14 +118,14 @@ noun-gender = wan
 
 ## Style composition
 
-# The dash pattern is a «wey …» clause and closes the description, so it moves
-# behind the colour rather than sitting between the width and it. Two clauses
-# in a row simply stand side by side.
+# Naijá stacks modifiers in front of the noun in the order English does, and
+# `line-style` is a bare modifier rather than a clause, so nothing needs to be
+# moved to the end here.
 style-stroke =
     { $parts ->
-        [width-style-color] { $width } { $color } { $lineStyle }
+        [width-style-color] { $width } { $lineStyle } { $color }
         [width-color] { $width } { $color }
-        [style-color] { $color } { $lineStyle }
+        [style-color] { $lineStyle } { $color }
         [width-style] { $width } { $lineStyle }
         [width] { $width }
         [style] { $lineStyle }

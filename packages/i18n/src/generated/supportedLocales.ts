@@ -53,6 +53,7 @@ export type SupportedLocale =
     | "fil"
     | "fj"
     | "fo"
+    | "fon"
     | "fr"
     | "fy"
     | "ga"
@@ -80,6 +81,8 @@ export type SupportedLocale =
     | "jv"
     | "ka"
     | "kab"
+    | "kbp"
+    | "kg"
     | "ki"
     | "kk"
     | "km"
@@ -87,6 +90,7 @@ export type SupportedLocale =
     | "ko"
     | "kok"
     | "kr"
+    | "kri"
     | "ks"
     | "ktu"
     | "ky"
@@ -127,6 +131,7 @@ export type SupportedLocale =
     | "or"
     | "pa"
     | "pam"
+    | "pcm"
     | "pl"
     | "ps"
     | "pt"
@@ -160,6 +165,7 @@ export type SupportedLocale =
     | "sw"
     | "ta"
     | "te"
+    | "tem"
     | "tet"
     | "tg"
     | "th"
@@ -468,6 +474,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "føroyskt",
         label: "Faroese (føroyskt)",
     },
+    { locale: "fon", englishName: "Fon", endonym: "Fon", label: "Fon" },
     {
         locale: "fr",
         englishName: "French",
@@ -611,6 +618,13 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Kabyle (Taqbaylit)",
     },
     {
+        locale: "kbp",
+        englishName: "Kabiye",
+        endonym: "Kabɩyɛ",
+        label: "Kabiye (Kabɩyɛ)",
+    },
+    { locale: "kg", englishName: "Kongo", endonym: "Kongo", label: "Kongo" },
+    {
         locale: "ki",
         englishName: "Kikuyu",
         endonym: "Gikuyu",
@@ -647,6 +661,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Konkani (कोंकणी)",
     },
     { locale: "kr", englishName: "Kanuri", endonym: "Kanuri", label: "Kanuri" },
+    { locale: "kri", englishName: "Krio", endonym: "Krio", label: "Krio" },
     {
         locale: "ks",
         englishName: "Kashmiri",
@@ -863,6 +878,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Pampanga",
     },
     {
+        locale: "pcm",
+        englishName: "Nigerian Pidgin",
+        endonym: "Naijíriá Píjin",
+        label: "Nigerian Pidgin (Naijíriá Píjin)",
+    },
+    {
         locale: "pl",
         englishName: "Polish",
         endonym: "polski",
@@ -1050,6 +1071,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "తెలుగు",
         label: "Telugu (తెలుగు)",
     },
+    { locale: "tem", englishName: "Timne", endonym: "Timne", label: "Timne" },
     { locale: "tet", englishName: "Tetum", endonym: "Tetum", label: "Tetum" },
     {
         locale: "tg",

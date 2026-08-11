@@ -572,6 +572,37 @@ describe("the noun-class reachability rule", () => {
 
         expect(offenders).toEqual([]);
     });
+
+    /**
+     * The other half of the same claim, added when `locales/kg` arrived: what
+     * makes Kituba's flatness worth reading is that its *lexifier* is not flat.
+     * The two headers say so, and the assertion is what keeps the pair honest,
+     * since a header can drift and a `$gender` fork cannot.
+     *
+     * `color` is the message the two headers point a reader at, so it is the
+     * one pinned. Asserting on the count rather than on the exact variants
+     * leaves a speaker free to fix Kongo's four class rows — the whole file is
+     * an unreviewed seed — without failing here, while still catching the one
+     * change that would make the pair meaningless.
+     */
+    it("has Kongo fork `color` where its creole does not", () => {
+        const genderForks = (locale: string) => {
+            const source = readCatalog(locale, "content") ?? "";
+            const color = parse(source, { withSpans: false }).body.find(
+                (entry) =>
+                    entry.type === "Message" && entry.id.name === "color",
+            );
+            expect(color, `${locale} defines color`).toBeDefined();
+            return selectExpressions(color!).filter(
+                (select) =>
+                    select.selector.type === "VariableReference" &&
+                    select.selector.id.name === "gender",
+            ).length;
+        };
+
+        expect(genderForks("kg")).toBeGreaterThan(0);
+        expect(genderForks("ktu")).toBe(0);
+    });
 });
 
 describe("counted messages", () => {

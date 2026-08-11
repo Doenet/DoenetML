@@ -659,6 +659,7 @@ export const LOCALE_NAME_FALLBACKS: Record<
     dag: { englishName: "Dagbani", endonym: "Dagbanli" },
     ktu: { englishName: "Kituba", endonym: "Kikongo ya leta" },
     mnk: { englishName: "Mandinka", endonym: "Mandinkakaŋo" },
+    kbp: { englishName: "Kabiye", endonym: "Kabɩyɛ" },
 };
 
 /**

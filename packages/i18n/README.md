@@ -87,11 +87,11 @@ which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
 is just wrong, and the English is one key away.
 
-A hundred and nine of them are deliberately partial. A hundred and eight are
+A hundred and fifteen of them are deliberately partial. A hundred and fourteen are
 partial in the same place — the two chemistry tables — while Klingon is partial
 almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and eight are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+and fourteen are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -104,7 +104,8 @@ Pisin, Sanskrit, Maithili, Bhojpuri, Konkani, Dogri, Bodo, Manipuri, Santali,
 Kashmiri, Dhivehi, Tibetan, Dzongkha, Northern Sotho, Swati, Venda, Tsonga,
 Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight,
 Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
-Mandinka, Ga, Tiv and Kanuri leave `element-name` and `element-anion-name` out,
+Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè and Temne
+leave `element-name` and `element-anion-name` out,
 so those 130 keys fall back to English and `lint:i18n` reports the gap. The
 first nine have no settled chemical nomenclature to seed from, and inventing one
 would be worse than the English a student meets in their own textbook. Kannada
@@ -328,7 +329,7 @@ per-language prose. CLDR has no language data at all for a few of the tags this
 repository ships catalogs for, though, and a `<document lang>` autocomplete
 offering a reader "ktu" and expecting them to know what it is helps nobody. So
 `LOCALE_NAME_FALLBACKS`, in `scripts/catalogUtils.ts`, supplies a name for the
-locales CLDR has none for: today `nah`, `dag`, `ktu` and `mnk`.
+locales CLDR has none for: today `nah`, `dag`, `ktu`, `mnk` and `kbp`.
 
 It fills a gap and never overrides one. ICU is asked with `fallback: "none"`, so
 it answers `undefined` where it has nothing — rather than its own rendering of
@@ -873,6 +874,114 @@ choosing any of the three would report which side of which border a reader's
 school is on. `locales/se` reached exactly that place between Norway, Sweden
 and Finland; this is the Northern Sami case in West Africa, and it is the first
 time a batch's chemistry paragraph has split since the South Asian one.
+
+### The batch continued: a creole beside its lexifier
+
+Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè and Temne — six more from the same
+region, and where the eleven above were arranged around *where* a language puts
+its agreement, these six are arranged around a sharper question: **what can you
+learn from two catalogs that you cannot learn from either one alone?**
+
+Three pairs answer it.
+
+**`kg` beside `ktu`.** Kituba was seeded in the batch above as the one Bantu
+catalog selecting on neither `$gender` nor `$role`: a describing word is joined
+to its noun by the invariable linker «ya» and never changes shape. Kikongo is
+Kituba's lexifier, and its connective agrees — «dya», «kya», «ya», «lwa» — so
+that «ya» turns out to be Kongo's class-9 row, frozen. The whole of the
+agreement in `locales/kg` is that one syllable, and the describing stem behind
+it never moves:
+
+| class | linker | black         | thick       |
+| ----- | ------ | ------------- | ----------- |
+| 5     | dya    | dya ndombe    | dya nene    |
+| 7     | kya    | kya ndombe    | kya nene    |
+| 9     | ya     | ya ndombe     | ya nene     |
+| 11    | lwa    | lwa ndombe    | lwa nene    |
+
+Putting `color.black` in the two files side by side is the shortest statement of
+what a creole did to its lexifier that this repository can make, and it cost
+nothing but the two files being in the same tree. `catalogLint.test.ts` pins
+both halves — that `kg` forks and that `ktu` does not — because a header can
+drift and a `$gender` fork cannot.
+
+**`pcm` beside `kri`.** Two English-lexifier creoles with much of the same
+grammar: postposed plural, a preverbal completive, `na` for identity. They still
+do not look alike, because Sierra Leone settled on a phonemic orthography and
+Nigeria stayed close to English spelling — «blak/wet/grin» against
+«black/white/green». The seam between them is **orthographic**, where
+`locales/fon`'s internal seam (below) is morphological, and neither is the same
+thing as a difference in grammar. Together they are this repository's shortest
+argument that "English creole" names a family rather than a catalog.
+
+`locales/pcm` is also the catalog most likely to be mistaken for padding, since
+almost every word in it is English. Its header therefore leads with the grammar
+rather than the vocabulary, and asks a reviewer to read the messages aloud.
+
+**`kbp` beside `kg`.** Kabiyè is the third Gur catalog, after Mooré and
+Dagbani, and it spells its class as a suffix as they do — but with five classes
+where Mooré has four and Dagbani three. Read against Kikongo it makes the
+general point the batch above was building towards: the agreement is **one
+morph** in each, and it lands in front of an invariant stem in Kongo, behind one
+in Kabiyè, and as a separate word between the two in Tiv. Three positions, one
+argument, no change to anything outside those files.
+
+**`tem` is the one that can be checked without knowing the language.** Temne's
+concord is *alliterative*: the describing word takes the same prefix the noun
+itself carries, so a rendered description reads «kʌlayn kʌbana-bana kʌbana» —
+the same syllable three times. In every other noun-class catalog here the
+concord and the noun's own prefix are different morphs, and `noun-gender` has to
+be taken on trust; in this one the table can be read straight off `noun` by eye.
+`styleDescriptions.test.ts` pins four rows of it. It is the third Atlantic
+catalog and answers differently from both the others — `ff` suffixes its class
+and `wo` marks it on a determiner.
+
+**`fon` has no agreement at all, and is here for its colour words.** Fon has
+three basic colour terms — «wiwi», «wewe», «vɔvɔ» — all reduplicated statives,
+and the other nine in the file are bare French loans because there is no stem to
+reduplicate. The seam runs through one message and is morphological, so a
+speaker reviewing it should expect to move words across it rather than to find
+the loans wrong as loans.
+
+#### Negotiation, and the exclusion that carries the argument
+
+`kg` is Kongo, an ISO 639-3 macrolanguage, and it joins `MACROLANGUAGE_MEMBERS`
+for the published reason `kr` and the rest did: `kwy` and `ldi` reach it because
+the map lists them, and `kng` because ICU already folds it.
+
+**`ktu` is deliberately absent from that list**, and it is the one exclusion
+here that is not simply "it has a catalog of its own" — though it does. Kituba
+is a creole *of* Kikongo rather than a variety of it, ISO 639-3 gives it a code
+outside `kg`, and folding it would serve a Kituba reader a different language.
+`mkw`, Kituba of the Republic of the Congo, is left to miss for the same reason;
+answering it with `ktu` would be defensible and is not a membership fact, so it
+is not done. `negotiate.test.ts` asserts the exclusion on the *un-normalized*
+tag, which is the only form the mistake would be visible in.
+
+**`son` is the road not taken, and the test says why.** It is the macrolanguage
+over the Songhay varieties, and it is *not* aliased the way `man` was, because
+the justification `man`'s entry rests on does not exist here:
+`new Intl.Locale("son").maximize()` adds no region, so CLDR has no opinion about
+which variety a bare `son` means. Picking one would be the judgement these maps
+avoid. The test asserts the absent region rather than merely the absent entry.
+
+`kbp` has **no CLDR language name** in either English or itself, so it takes the
+fifth entry in [`LOCALE_NAME_FALLBACKS`](#a-language-cldr-has-no-name-for) —
+the mechanism the previous batch added, doing the job it was added for. The
+other five are named by CLDR, and `tem` reads **"Timne"**, which is CLDR's
+spelling rather than the "Temne" its own header uses. That is the "Mossi" case
+again, and it is not an error.
+
+#### The chemistry gap, and the case where the fallback is the language
+
+All six leave `element-name` and `element-anion-name` out. Four are the ordinary
+school-system case — the DRC, Benin and Togo teach secondary science in French,
+Sierra Leone and Nigeria in English — but `pcm` and `kri` are a shape no earlier
+batch had. Their lexifier *is* English, so the fallback is not merely the
+curriculum, it is very nearly the language: filling those 130 keys in would
+produce entries character-identical to `locales/en` and claim a translation that
+had not happened. Leaving the gap visible is the honest answer, and it is the
+first time that argument has applied.
 
 ### A language with no word for it
 

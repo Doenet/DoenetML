@@ -55,12 +55,13 @@ line-width =
     .thick = tik
     .thin = tin
 
-# «we» is the relativizer and «de» the imperfective: a dash pattern is
-# something the line does rather than something it is, so it comes out as a
-# clause. `style-stroke` puts it last, where a clause belongs.
+# Reduplication used attributively, the same move `locales/pcm` makes. A «we de
+# brok-brok» clause would be the more literal rendering and is wrong here: the
+# description is *followed* by the noun, so a relative clause would sit in front
+# of the thing it modifies and attach to nothing.
 line-style =
-    .dashed = we de brok-brok
-    .dotted = we de dɔt-dɔt
+    .dashed = brok-brok
+    .dotted = dɔt-dɔt
 
 fill-style =
     .horizontal = layn dɛn we lidɔm
@@ -105,13 +106,14 @@ noun-gender = wan
 
 ## Style composition
 
-# The dash pattern is a «we …» clause and closes the description, so it moves
-# behind the colour rather than sitting between the width and it.
+# Krio stacks modifiers in front of the noun in the order English does, and
+# `line-style` is a bare modifier rather than a clause, so nothing needs to be
+# moved to the end here.
 style-stroke =
     { $parts ->
-        [width-style-color] { $width } { $color } { $lineStyle }
+        [width-style-color] { $width } { $lineStyle } { $color }
         [width-color] { $width } { $color }
-        [style-color] { $color } { $lineStyle }
+        [style-color] { $lineStyle } { $color }
         [width-style] { $width } { $lineStyle }
         [width] { $width }
         [style] { $lineStyle }
