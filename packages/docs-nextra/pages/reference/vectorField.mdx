@@ -11,12 +11,11 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 that draws a two-dimensional vector field as arrows on a lattice covering the visible region of an
 enclosing `<graph>{:dn}`.
 
-The field comes from a function with **two outputs**, given as a bare expression child —
-`<vectorField>(y, -x)</vectorField>{:dn}` — as an expression written straight into the `function`
-attribute — `<vectorField function="(y, -x)" />{:dn}` — or as a `<function>{:dn}` referenced with
-that attribute. Written either of the first two ways, the expression is read as a function of both
-<m>x</m> and <m>y</m>. Give the function only one of these ways: if both are used, the one written
-inside the component is used and the `function` attribute is ignored, with a warning. Like
+The field comes from a function with **two outputs**, given inside the component either as a bare
+expression — `<vectorField>(y, -x)</vectorField>{:dn}` — or as a `<function>{:dn}` child. A bare
+expression is read as a function of <m>x</m> and <m>y</m>; use the `variables` attribute to name
+them differently. A `<function>{:dn}` child is used exactly as written, since it names its own
+variables. Like
 [`<slopeField/>`](slopeField), the field re-tiles as the user pans or zooms, and its arrows keep a
 constant on-screen length whatever the axis scaling.
 
@@ -70,29 +69,29 @@ vanish.
 </setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>The gradient field of x squared plus y squared, pointing away from the origin</shortDescription>
-  <vectorField function="$G" />
+  <vectorField>$G</vectorField>
 </graph>
 ```
 
 The gradient of <m>x^2 + y^2</m> points radially outward, everywhere perpendicular to the circular
-level curves. Here the field is defined as a separate `<function>{:dn}` and referenced with the
-`function` attribute, which is the alternative to giving the expression as a child.
+level curves. Here the field is defined as a separate `<function>{:dn}` and referenced inside the
+component, which is the alternative to writing the expression out.
 
 
 ## Attribute Examples
 
-### Attribute Example: function
+### Attribute Example: variables
 
 ```doenet-editor-horiz
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
-  <shortDescription>A rotational vector field written into the function attribute</shortDescription>
-  <vectorField function="(y, -x)" normalize />
+  <shortDescription>A rotational vector field written in u and v</shortDescription>
+  <vectorField variables="u v" normalize>(v, -u)</vectorField>
 </graph>
 ```
 
-`function` takes an expression directly, as here, or a reference to a `<function>{:dn}` declared
-elsewhere. An expression written here is read as a function of both <m>x</m> and <m>y</m>, exactly
-as a bare expression child is; a referenced function keeps whatever variables its own author named.
+`variables` names the inputs of a bare expression, in order: the horizontal axis first, then the
+vertical. It defaults to `x y`, so an equation written in those letters needs nothing. It has no
+effect on a `<function>{:dn}` child, which names its own variables.
 
 
 ---

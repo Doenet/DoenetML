@@ -141807,7 +141807,7 @@
                         "string"
                     ]
                 },
-                "function": {
+                "variables": {
                     "optional": true,
                     "type": [
                         "string"
@@ -141862,6 +141862,21 @@
                 },
                 {
                     "ref": "label"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
                 },
                 {
                     "ref": "rightHandSide"
@@ -141945,15 +141960,6 @@
                     "ref": "extractMath"
                 },
                 {
-                    "ref": "clampFunction"
-                },
-                {
-                    "ref": "wrapFunctionPeriodic"
-                },
-                {
-                    "ref": "derivative"
-                },
-                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -142024,12 +142030,6 @@
                 },
                 {
                     "ref": "integer"
-                },
-                {
-                    "ref": "function"
-                },
-                {
-                    "ref": "piecewiseFunction"
                 },
                 {
                     "ref": "interval"
@@ -142345,7 +142345,7 @@
                         "string"
                     ]
                 },
-                "function": {
+                "variables": {
                     "optional": true,
                     "type": [
                         "string"
@@ -142407,6 +142407,21 @@
                 },
                 {
                     "ref": "label"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
                 },
                 {
                     "ref": "rightHandSide"
@@ -142490,15 +142505,6 @@
                     "ref": "extractMath"
                 },
                 {
-                    "ref": "clampFunction"
-                },
-                {
-                    "ref": "wrapFunctionPeriodic"
-                },
-                {
-                    "ref": "derivative"
-                },
-                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -142569,12 +142575,6 @@
                 },
                 {
                     "ref": "integer"
-                },
-                {
-                    "ref": "function"
-                },
-                {
-                    "ref": "piecewiseFunction"
                 },
                 {
                     "ref": "interval"

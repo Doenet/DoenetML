@@ -1,10 +1,10 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
-    returnFieldFunctionAttribute,
     returnFieldFunctionStateVariableDefinitions,
     returnFieldFunctionSugarInstruction,
     returnFieldLatticeAttributes,
+    returnFieldVariablesAttribute,
 } from "../utils/field";
 
 export default class VectorField extends GraphicalComponent {
@@ -16,18 +16,25 @@ export default class VectorField extends GraphicalComponent {
             "A vector field drawn as arrows on a lattice, from a function with two outputs",
     };
 
-    // Children that sugar can turn into the function attribute.
+    // Children that sugar can turn into the <function> child.
     static additionalSchemaChildren = ["math", "number", "string"];
+
+    static returnChildGroups() {
+        let groups = super.returnChildGroups();
+        groups.push({
+            group: "functions",
+            componentTypes: ["function"],
+        });
+
+        return groups;
+    }
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         Object.assign(
             attributes,
-            returnFieldFunctionAttribute({
-                description:
-                    "A function with two outputs giving the vector at each point, as an expression such as (y, -x) or a reference to a <function>. May take one input or two.",
-            }),
+            returnFieldVariablesAttribute(),
             returnFieldLatticeAttributes({
                 markNoun: "arrows",
                 markLengthDefault: 24,

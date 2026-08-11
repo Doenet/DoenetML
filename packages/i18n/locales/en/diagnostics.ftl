@@ -358,12 +358,6 @@ field-function-wrong-num-outputs =
        *[other] `<{ $alternative }>` is the component for that function. Nothing is drawn.
     }
 
-# Translators: `function` is an attribute name and stays in English. A field
-# takes its function either from the attribute or from what is written inside
-# the component, and giving both is almost certainly a mistake rather than a
-# deliberate choice, so name which one is being used.
-field-function-attribute-ignored-with-child = The `function` attribute is ignored because the function is also given inside the component; the one inside is used. Give the function only one of the two ways.
-
 ## PreFigure renderer
 
 # Translators: xLabelPosition, yLabelPosition and their values are attribute

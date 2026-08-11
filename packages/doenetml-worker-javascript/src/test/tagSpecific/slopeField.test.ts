@@ -28,7 +28,7 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
             doenetML: `
   <setup><function name="f" variables="x y">x*sin(y)</function></setup>
   <graph>
-    <slopeField name="sf" function="$f" />
+    <slopeField name="sf">$f</slopeField>
   </graph>
   `,
         });
@@ -49,7 +49,7 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
             doenetML: `
   <setup><function name="f">x*sin(x)</function></setup>
   <graph>
-    <slopeField name="sf" function="$f" />
+    <slopeField name="sf">$f</slopeField>
   </graph>
   `,
         });
@@ -65,16 +65,16 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         );
     });
 
-    it("reads a literal expression in the function attribute as a function of x and y", async () => {
+    it("reads a bare expression as a function of x and y", async () => {
         // The form the editor's completions offer. Without `variables="x y"` on
         // the `<function>` the attribute creates, `y` here would be a free
         // symbol and both fields would be NaN everywhere — a blank graph.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
-    <vectorField name="vf" function="(y, -x)" />
-    <slopeField name="sf" function="y - x" />
-    <slopeField name="onlyX" function="x*sin(x)" />
+    <vectorField name="vf">(y, -x)</vectorField>
+    <slopeField name="sf">y - x</slopeField>
+    <slopeField name="onlyX">x*sin(x)</slopeField>
   </graph>
   `,
         });
@@ -121,8 +121,8 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
     <function name="h" variable="t">t^2</function>
   </setup>
   <graph>
-    <vectorField name="vf" function="$F" />
-    <slopeField name="sf" function="$h" />
+    <vectorField name="vf">$F</vectorField>
+    <slopeField name="sf">$h</slopeField>
   </graph>
   `,
         });
@@ -255,7 +255,7 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
             doenetML: `
   <setup><function name="F" variables="x y">(y, -x)</function></setup>
   <graph>
-    <vectorField name="vf" function="$F" />
+    <vectorField name="vf">$F</vectorField>
   </graph>
   `,
         });
@@ -345,53 +345,60 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(warnings[1].position.start.line).eq(4);
     });
 
-    it("warns that a function given both ways uses the one inside the component", async () => {
-        // The sugar assigns its `function` attribute over the author's, so the
-        // child silently wins and half of what was written is discarded.
+    it("reads a bare expression with the variables the field names", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <setup><function name="F" variables="x y">(y, -x)</function></setup>
   <graph>
-    <vectorField name="vf" function="$F">(x, y)</vectorField>
+    <slopeField name="renamed" variables="s t">s - t</slopeField>
+    <vectorField name="renamedVec" variables="u v">(v, -u)</vectorField>
   </graph>
   `,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const vf = stateVariables[await resolvePathToNodeIdx("vf")];
 
-        expect(vf.stateValues.haveFunction).eq(true);
-        // (x, y) at (3, 5) is (3, 5); $F would have given (5, -3).
-        expect(numericalF(vf.stateValues.fDefinitions[0])(3, 5)).closeTo(
-            3,
-            1e-12,
-        );
-        expect(numericalF(vf.stateValues.fDefinitions[1])(3, 5)).closeTo(
-            5,
+        const renamed = stateVariables[await resolvePathToNodeIdx("renamed")];
+        expect(renamed.stateValues.haveFunction).eq(true);
+        // s - t at (3, 5) is -2. Without the renaming, `s` and `t` would both
+        // be free symbols and the function would be NaN.
+        expect(numericalF(renamed.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            -2,
             1e-12,
         );
 
-        const { errors, warnings } = getDiagnosticsByType(core);
-        expect(errors.length).eq(0);
-        expect(warnings.length).eq(1);
-        expect(warnings[0].message).contain(
-            "The `function` attribute is ignored",
-        );
-        expect(warnings[0].message).contain("the one inside is used");
-        expect(warnings[0].position.start.line).eq(4);
+        const renamedVec =
+            stateVariables[await resolvePathToNodeIdx("renamedVec")];
+        expect(renamedVec.stateValues.haveFunction).eq(true);
+        expect(
+            numericalF(renamedVec.stateValues.fDefinitions[0])(3, 5),
+        ).closeTo(5, 1e-12);
+        expect(
+            numericalF(renamedVec.stateValues.fDefinitions[1])(3, 5),
+        ).closeTo(-3, 1e-12);
+
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
-    it("does not warn when the function is given only one way", async () => {
-        let { core } = await createTestCore({
+    it("takes an explicit function child as it stands, ignoring the field's variables", async () => {
+        // An explicit <function> names its own inputs, so it is used as
+        // written rather than wrapped in a second function.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <setup><function name="F" variables="x y">(y, -x)</function></setup>
   <graph>
-    <vectorField name="attr" function="$F" />
-    <vectorField name="child">(y, -x)</vectorField>
-    <vectorField name="labelled">(y, -x)<label>a field</label></vectorField>
+    <slopeField name="sf" variables="s t"><function variables="u v">u - v</function></slopeField>
   </graph>
   `,
         });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sf = stateVariables[await resolvePathToNodeIdx("sf")];
+
+        expect(sf.stateValues.haveFunction).eq(true);
+        // u - v at (3, 5) is -2, from the child's own variable names.
+        expect(numericalF(sf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            -2,
+            1e-12,
+        );
 
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
@@ -401,8 +408,8 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
             doenetML: `
   <setup><function name="F" variables="x y">(y, -x)</function></setup>
   <graph>
-    <vectorField name="a" function="$F" />
-    <vectorField name="b" function="$F" normalize />
+    <vectorField name="a">$F</vectorField>
+    <vectorField name="b" normalize>$F</vectorField>
   </graph>
   `,
         });

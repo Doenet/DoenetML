@@ -114456,6 +114456,11 @@
                 "yLabel",
                 "conditionalContent",
                 "label",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction",
                 "rightHandSide",
                 "m",
                 "me",
@@ -114483,9 +114488,6 @@
                 "gcd",
                 "lcm",
                 "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -114510,8 +114512,6 @@
                 "choice",
                 "number",
                 "integer",
-                "function",
-                "piecewiseFunction",
                 "interval",
                 "sequence",
                 "cell",
@@ -114535,7 +114535,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120122221111111111111111111111222222222122220222212222201221222122222122221212222",
+            "childBuckets": "1120111011222211111111111111111111112222221222202222122222011222122222122221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -114679,9 +114679,9 @@
                     "type": "number"
                 },
                 {
-                    "name": "function",
-                    "description": "The function giving the slope y' at each point, as an expression such as y-x or a reference to a <function>. May take one input, f(x), or two, f(x,y).",
-                    "type": "function"
+                    "name": "variables",
+                    "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
+                    "type": "text"
                 },
                 {
                     "name": "dx",
@@ -114877,6 +114877,11 @@
                 "yLabel",
                 "conditionalContent",
                 "label",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction",
                 "rightHandSide",
                 "m",
                 "me",
@@ -114904,9 +114909,6 @@
                 "gcd",
                 "lcm",
                 "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -114931,8 +114933,6 @@
                 "choice",
                 "number",
                 "integer",
-                "function",
-                "piecewiseFunction",
                 "interval",
                 "sequence",
                 "cell",
@@ -114956,7 +114956,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120122221111111111111111111111222222222122220222212222201221222122222122221212222",
+            "childBuckets": "1120111011222211111111111111111111112222221222202222122222011222122222122221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -115100,9 +115100,9 @@
                     "type": "number"
                 },
                 {
-                    "name": "function",
-                    "description": "A function with two outputs giving the vector at each point, as an expression such as (y, -x) or a reference to a <function>. May take one input or two.",
-                    "type": "function"
+                    "name": "variables",
+                    "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
+                    "type": "text"
                 },
                 {
                     "name": "dx",
