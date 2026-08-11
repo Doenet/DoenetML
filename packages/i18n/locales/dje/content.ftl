@@ -40,8 +40,11 @@
 # `ddn`, `khq`, `ses`, `twq` and the rest — the way `mnk` carries the other
 # Manding varieties. See `negotiate.ts`.
 #
-# Zarma writes in the official Nigerien Latin orthography, with «ɲ» and the
-# open vowels. Colour terms are few — «bi» black, «kwaaray» white, «ciray» red
+# Zarma writes in the official Nigerien Latin orthography. The one letter in it
+# outside ASCII is «ŋ», which is common — «kaŋ», «ŋwaarey», «duyaŋ» — while «ɲ»
+# and the open vowels «ɛ» and «ɔ» happen not to occur anywhere in these four
+# files, so a reviewer editing them will type plain ASCII almost throughout.
+# Colour terms are few — «bi» black, «kwaaray» white, «ciray» red
 # — and the rest are French, which is where a Zarma speaker meets them.
 #
 # The geometry leans on those French loans; where Zarma has its own word it is

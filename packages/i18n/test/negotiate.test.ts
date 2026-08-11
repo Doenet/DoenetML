@@ -794,18 +794,17 @@ describe("negotiateLocales", () => {
         );
 
         /**
-         * The near misses. `kmb` (Kimbundu) and `umb` (Umbundu) are Bantu
-         * neighbours of `lua` and `ktu`; `kbl` (Kanembu) is the language beside
-         * Kanuri that ISO 639-3 keeps *outside* the `kr` macrolanguage; `gur`
-         * (Farefare) and `xsm` (Kasem) are Gur languages beside `mos` and
-         * `dag`; `sus` (Susu) is Mande but not Manding. Every one falls to
-         * English, which is the membership rule working rather than a gap in
-         * it.
+         * The near misses. `kbl` (Kanembu) is the language beside Kanuri that
+         * ISO 639-3 keeps *outside* the `kr` macrolanguage; `gur` (Farefare)
+         * and `xsm` (Kasem) are Gur languages beside `mos` and `dag`; `sus`
+         * (Susu) is Mande but not Manding. Every one falls to English, which is
+         * the membership rule working rather than a gap in it.
+         *
+         * `kmb` (Kimbundu) and `umb` (Umbundu) were here too, as Bantu
+         * neighbours of `lua` and `ktu`, until the Angolan batch below gave
+         * them catalogs of their own — the same removal `men` and `nyn` got,
+         * and the only thing that should ever shorten a negative-control list.
          */
-        // `kmb` and `umb` were on this list until the Angolan batch below gave
-        // Kimbundu and Umbundu catalogs of their own — the same removal `men`
-        // and `nyn` got, and the only thing that should ever shorten a
-        // negative-control list.
         it.each(["kbl", "gur", "xsm", "sus"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
@@ -880,22 +879,24 @@ describe("negotiateLocales", () => {
 
         /**
          * The near misses for this batch. `bin` (Edo) and `efi` (Efik) are
-         * Nigerian neighbours of `pcm` and `tiv`; `men` (Mende) is a Sierra
-         * Leonean neighbour of `kri` and `tem`; `gej` (Gen) is a Gbe language
-         * beside `fon` and `ee`. Every one falls to English rather than being
-         * folded onto a language it is merely near.
+         * Nigerian neighbours of `pcm` and `tiv`; `gej` (Gen) is a Gbe language
+         * beside `fon` and `ee`. Both fall to English rather than being folded
+         * onto a language they are merely near.
+         *
+         * `men` (Mende) was here too, as a Sierra Leonean neighbour of `kri`
+         * and `tem`, until the batch below gave it a catalog of its own — the
+         * only thing that should ever take a code off a negative-control list,
+         * and the same removal `nyn` got a batch earlier.
          *
          * `son` is here for a different reason and is the interesting row: it
-         * is the ISO 639-3 macrolanguage over the Songhay varieties, and this
-         * repository has no catalog for any of them. It is *not* aliased the
-         * way `man` is, because the justification `man`'s entry rests on does
-         * not exist here — `new Intl.Locale("son").maximize()` adds no region,
-         * so CLDR has no opinion about which variety a bare `son` means, and
-         * picking one would be the judgement these maps avoid.
+         * is the ISO 639-3 macrolanguage over the Songhay varieties. It is
+         * *not* aliased the way `man` is, because the justification `man`'s
+         * entry rests on does not exist here — `new Intl.Locale("son").maximize()`
+         * adds no region, so CLDR has no opinion about which variety a bare
+         * `son` means, and picking one would be the judgement these maps avoid.
+         * The batch below gives Songhay a catalog under `dje` without changing
+         * that, and says why.
          */
-        // `men` was on this list until the batch below gave Mende a catalog of
-        // its own, which is the only thing that should ever take a code off a
-        // negative-control list — the same removal `nyn` got a batch earlier.
         it.each(["bin", "efi", "gej", "son"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
@@ -908,9 +909,10 @@ describe("negotiateLocales", () => {
             },
         );
 
-        it("has no CLDR region for `son`, which is why it is not aliased", () => {
-            expect(new Intl.Locale("son").maximize().region).toBeUndefined();
-        });
+        // The guard on `son`'s absent CLDR region used to sit here. It moved
+        // into the batch below, where the same assertion now runs beside
+        // `man`'s present one and beside `son`'s negotiated result, rather than
+        // being made twice.
     });
 
     describe("the Angolan, Sierra Leonean and Songhay batch", () => {
