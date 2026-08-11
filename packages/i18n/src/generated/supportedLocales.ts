@@ -38,6 +38,7 @@ export type SupportedLocale =
     | "da"
     | "dag"
     | "de"
+    | "dje"
     | "doi"
     | "dv"
     | "dyu"
@@ -86,6 +87,7 @@ export type SupportedLocale =
     | "ki"
     | "kk"
     | "km"
+    | "kmb"
     | "kn"
     | "ko"
     | "kok"
@@ -104,6 +106,7 @@ export type SupportedLocale =
     | "lv"
     | "mad"
     | "mai"
+    | "men"
     | "mg"
     | "mi"
     | "min"
@@ -182,6 +185,7 @@ export type SupportedLocale =
     | "ty"
     | "ug"
     | "uk"
+    | "umb"
     | "ur"
     | "uz"
     | "ve"
@@ -398,6 +402,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "German",
         endonym: "Deutsch",
         label: "German (Deutsch)",
+    },
+    {
+        locale: "dje",
+        englishName: "Zarma",
+        endonym: "Zarmaciine",
+        label: "Zarma (Zarmaciine)",
     },
     {
         locale: "doi",
@@ -643,6 +653,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Khmer (ខ្មែរ)",
     },
     {
+        locale: "kmb",
+        englishName: "Kimbundu",
+        endonym: "Kimbundu",
+        label: "Kimbundu",
+    },
+    {
         locale: "kn",
         englishName: "Kannada",
         endonym: "ಕನ್ನಡ",
@@ -735,6 +751,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "मैथिली",
         label: "Maithili (मैथिली)",
     },
+    { locale: "men", englishName: "Mende", endonym: "Mende", label: "Mende" },
     {
         locale: "mg",
         englishName: "Malagasy",
@@ -1147,6 +1164,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Ukrainian",
         endonym: "українська",
         label: "Ukrainian (українська)",
+    },
+    {
+        locale: "umb",
+        englishName: "Umbundu",
+        endonym: "Umbundu",
+        label: "Umbundu",
     },
     {
         locale: "ur",

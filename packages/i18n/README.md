@@ -87,11 +87,11 @@ which is what #1521's translation platform is for. None has been read by a
 speaker. Correcting one needs no permission and no coordination: a wrong string
 is just wrong, and the English is one key away.
 
-A hundred and fifteen of them are deliberately partial. A hundred and fourteen
+A hundred and nineteen of them are deliberately partial. A hundred and eighteen
 are partial in the same place — the two chemistry tables — while Klingon is
 partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and fourteen are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+and eighteen are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -104,7 +104,8 @@ Pisin, Sanskrit, Maithili, Bhojpuri, Konkani, Dogri, Bodo, Manipuri, Santali,
 Kashmiri, Dhivehi, Tibetan, Dzongkha, Northern Sotho, Swati, Venda, Tsonga,
 Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight,
 Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
-Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè and Temne
+Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè, Temne,
+Mende, Umbundu, Kimbundu and Zarma
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -983,6 +984,136 @@ character-identical to `locales/en` and claim a translation that had not
 happened. Leaving the gap visible is the honest answer, and it is the
 first time that argument has applied.
 
+### Angola, Sierra Leone and the Songhay
+
+Mende, Umbundu, Kimbundu and Zarma — four more, and where the last two batches
+asked where agreement goes and what a pair of catalogs shows, this one is
+arranged around **what a family does and does not predict**.
+
+**`umb` beside `kmb`** is the whole argument in two files. Umbundu and Kimbundu
+are the two largest languages of Angola, both Bantu, both with the same noun
+class system, spoken next door to one another — and Umbundu prefixes the class
+straight onto the describing stem while Kimbundu leaves the stem alone and moves
+an agreeing connective in front of it:
+
+| | line (c9) | circle (c7) | point (c5) |
+| --- | --- | --- | --- |
+| `umb` | ongoli **yi**nene | ocilinganya **ci**nene | ondimbu **li**nene |
+| `kmb` | nlonji **ya** nene | kizenge **kya** nene | kimbanza **kya** nene |
+
+And Kimbundu's mechanism is `locales/kg`'s exactly — an agreeing «-a»
+connective a thousand kilometres north, in another country, differing only in
+which classes the two catalogs happen to fork on. So **family does not predict the
+shape of agreement, and neither does geography.** That was #1686's lesson about
+a creole and its lexifier; this is the same lesson with the creole taken out,
+which makes it a fact about Bantu rather than about creolization.
+`styleDescriptions.test.ts` pins both halves.
+
+**`men` is the clearest instance of the affix rule in the tree.** Mende's
+definite marker is a suffix that attaches not to the noun but to whichever word
+*ends* the noun phrase, and a describing word follows its noun here — so a style
+description ends in a placeable, and «{ $color }i» is exactly what
+[An affix cannot be welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable)
+forbids. The catalog therefore leaves **every describing word indefinite**, so
+that no description ends in the suffix and the suffix is never written against a
+placeable — the "choose the words that land there" way out taken at the level of a whole
+file rather than of one message. That is defensible on its own terms: a style
+description is read out of context — "thick red line", not "the thick red
+line" — and the indefinite is what Mende uses there.
+
+Mende is also the fourth Mande catalog, and like `bm`, `dyu` and `mnk` it forks
+on nothing. Four Mande catalogs, four flat `noun-gender` messages: that is a
+family predicting something about agreement for once, and it is the only one in
+this repository that does.
+
+**`dje` is here for where it sits rather than for what it does.** Every other
+language in these three batches but one is Niger-Congo or an English-lexifier
+creole built on one; the exception is `locales/kr`, the Nilo-Saharan catalog
+#1685 seeded. Songhay is neither Niger-Congo nor securely anything else — its
+affiliation is genuinely unsettled, often filed under Nilo-Saharan, often
+argued to be an isolate that borrowed heavily from Mande and Berber. It forks on nothing, and its header says
+so plainly rather than hunting for an argument: a batch that only ever added
+forking catalogs would be selecting its languages for the argument rather than
+for the readers.
+
+#### Negotiation: a second member-shaped macrolanguage, and a road still not taken
+
+`dje` joins `MACROLANGUAGE_MEMBERS` in the shape `mnk` introduced — a *member*
+catalog carrying its siblings, rather than a macrolanguage carrying its members.
+`ddn`, `hmb`, `khq`, `ses`, `tda` and `twq` reach Zarma, and ICU folds none of
+them on its own, so every one of those six depends on the entry existing.
+
+**`son` is still not aliased**, and that is the half worth reading. #1686
+recorded the reason when no Songhay catalog existed; Zarma's arrival makes the
+alias *possible* and no more justified. `man` earns its alias because CLDR
+decides for itself which member a bare macrolanguage means —
+`new Intl.Locale("man").maximize()` is `man-Latn-GM`, Mandinka's country.
+`new Intl.Locale("son").maximize()` adds no region at all, so CLDR has no
+opinion, and picking Zarma because it is the largest would be the judgement
+these maps exist to avoid. The test asserts the absent region rather than the
+absent entry, so a change in ICU data — not a change of mind — is what would
+reopen it.
+
+`tda` is this batch's script debt: Tadaksahak maximizes to `tda-Tfng-NE`, so a
+reader CLDR expects in Tifinagh is served Latin. That is `locales/kr`'s
+asymmetry with `kby` in Ajami and `locales/ff`'s in Adlam, and the answer is a
+second catalog rather than a change here.
+
+Three codes came *off* negative-control lists this batch — `men`, `umb` and
+`kmb` were all asserted to fall to English until they got catalogs of their own.
+That is the only thing that should ever shorten such a list, and `nyn` set the
+precedent two batches ago.
+
+#### The chemistry gap reaches Portuguese
+
+All four leave `element-name` and `element-anion-name` out. Mende and Zarma are
+ordinary school-system cases — Sierra Leone teaches secondary science in English
+and Niger in French. **Umbundu and Kimbundu are a third shape and a sharper
+one.** Angola teaches in Portuguese, so the English fallback is neither the
+language nor the curriculum: it answers nobody.
+
+That is an argument for filling those keys in from Portuguese, not for leaving
+them — and they are left anyway, because a Portuguese table dressed as an
+Umbundu one is the substitution this whole seeding effort is careful not to
+make. It is the clearest case in the repository for a real translator, and
+`locales/umb` records it at the foot of its own file so #1521 can find it.
+
+#### What reading the prose caught, and what it could not
+
+Reviewing these four message by message against `locales/en` turned up one
+defect in **all four at once**, which is worth recording because it is the
+first time a single mistranslation has been unanimous: `graph-grid-invalid`
+rendered "two **positive** numbers" as "two **big** numbers" in Mende,
+Umbundu, Kimbundu and Zarma alike — and the message's own example,
+`grid="1 0.5"`, contradicts it. Every one of the four already had the right
+idiom a few keys away, in
+`select-from-sequence-coprime-not-positive-integers`, so the fix was to reuse
+each catalog's own words rather than to invent any.
+
+The rest of what review fixed is the same shape: a clause the English has and
+the translation dropped (`attract-to-without-nearest-point` and its two
+`constrain-to-*` siblings lost "state variable" in all four), a quantifier
+that changed which claim it made ("will **always** match a blank" became
+"matches **only** a blank"), a complaint that reversed
+(`function-domain-insufficient-dimensions` read "dimensions are not
+*required*"), and buttons whose word belonged to a different control — the
+orbital spin arrows were labelled with `umb`'s, `kmb`'s and `dje`'s word for
+*point*, three lines from a real points control.
+
+**What review deliberately did not fix is the larger finding**, and it is a
+limit of seeding rather than a bug in these four. Each catalog spreads one
+word across several English concepts that the UI shows *at the same time*:
+`umb`'s «ocituwa», `kmb`'s «kifwa» and `dje`'s «dumi» each carry *variant*,
+*version*, *type* and *style* together, and `men`'s «wotela» carries
+*variant*, *version* and *variable*, so in all four the editor's version
+footer and its variant picker are labelled identically. Three of the
+four also head the feedback panel with their word for *answer*, and all four
+use one noun for both *viewer* and *renderer*, so the whole-page failure and
+the one-component failure read alike. Separating these needs new words chosen
+by someone who speaks the language; picking them here would be the
+substitution the chemistry tables are left out to avoid. They are named here
+so #1521 has them.
+
 ### A language with no word for it
 
 `tlh` is **Klingon**, and it is the roster's first constructed language. Nothing
@@ -1587,7 +1718,7 @@ what that value turns out to *be*:
 | The catalog wants | The language | Why it cannot |
 | --- | --- | --- |
 | a case ending on the value | `ar`, `ug`, `hu`, `fi`, `ta`, `te` | the ending is welded to the word, and vowel harmony or the final consonant picks its shape |
-| the definite article on the value | `ro` | the article is a suffix — «secțiune» → «secțiunea» |
+| the definite article on the value | `ro`, `men` | the article is a suffix — «secțiune» → «secțiunea», «wa» → «wai» |
 | a preposition before the value | `cs`, `sk` | «v»/«ve» and «s»/«se» vocalize according to what follows |
 | a compound with the value | `fi` | Finnish writes a compound as one word |
 | a case particle after the value | `bo`, `dz` | the particle has four shapes, picked by the final letter of the syllable before it |
@@ -1655,7 +1786,11 @@ There are five ways out, and every catalog here takes one of them:
   Hungarian («ehhez: { $answerId }»).
 - **Choose the words that land there.** Czech's pattern for horizontal lines is
   «horizontální čáry» rather than «vodorovné čáry», because «v vodorovné» would
-  have wanted «ve».
+  have wanted «ve». `locales/men` takes the same way out across a whole file
+  rather than one message, staying in the indefinite so that no description ever
+  ends in a definite suffix — see
+  [Angola, Sierra Leone and the Songhay](#angola-sierra-leone-and-the-songhay)
+  for why that is the right reading of Mende rather than a dodge.
 - **Write both forms.** Hungarian's «a(z)» is the standard orthographic answer
   to exactly this problem, and predates software by a long way.
 - **Prefer the free allomorph over the bound one.** Where the affix has a

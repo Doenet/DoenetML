@@ -65088,6 +65088,10 @@
                             "description": "German (Deutsch)"
                         },
                         {
+                            "value": "dje",
+                            "description": "Zarma (Zarmaciine)"
+                        },
+                        {
                             "value": "doi",
                             "description": "Dogri (डोगरी)"
                         },
@@ -65280,6 +65284,10 @@
                             "description": "Khmer (ខ្មែរ)"
                         },
                         {
+                            "value": "kmb",
+                            "description": "Kimbundu"
+                        },
+                        {
                             "value": "kn",
                             "description": "Kannada (ಕನ್ನಡ)"
                         },
@@ -65350,6 +65358,10 @@
                         {
                             "value": "mai",
                             "description": "Maithili (मैथिली)"
+                        },
+                        {
+                            "value": "men",
+                            "description": "Mende"
                         },
                         {
                             "value": "mg",
@@ -65662,6 +65674,10 @@
                         {
                             "value": "uk",
                             "description": "Ukrainian (українська)"
+                        },
+                        {
+                            "value": "umb",
+                            "description": "Umbundu"
                         },
                         {
                             "value": "ur",
