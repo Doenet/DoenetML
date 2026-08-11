@@ -84,15 +84,15 @@ English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
 `su`, `sus`, `sv`, `sw`, `ta`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
 `tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`, `ug`,
 `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vi`, `war`, `wo`, `xal`, `xh`, `yi`,
-`yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the top, and
-which is what #1521's translation platform is for. None has been read by a
-speaker. Correcting one needs no permission and no coordination: a wrong string
-is just wrong, and the English is one key away.
+`yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
+seed**, which each file's own header says at the top, and which is what #1521's
+translation platform is for. None has been read by a speaker. Correcting one
+needs no permission and no coordination: a wrong string is just wrong, and the
+English is one key away.
 
-A hundred and forty-one of them are deliberately partial. A hundred and
-forty are partial in the same place — the two chemistry tables — while
-Klingon is partial almost everywhere, for a different reason: see
+A hundred and forty-one of them are deliberately partial. A hundred and forty
+are partial in the same place — the two chemistry tables — while Klingon is
+partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
 and forty are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
@@ -1292,11 +1292,10 @@ and `locales/lv` are the other three; Arabic's and Welsh's `zero` fire for
 exactly 0, and so does Chuvash's, with `one` for exactly 1. Latvian's is the
 odd one out — it covers every number ending in 0 and the whole of the teens, so
 21 and 101 are `one` there and `other` in Chuvash. Four languages, one category
-name, three rules — which is why `locales/cv`'s header spells out where
-its `[zero]` branch is genuinely reached (`answer-show-responses`, and both
-counts inside `editor-accessibility-label`) and where the explicit `[0]` branch
-wins first
-(`attempts-remaining`).
+name, three rules — which is why `locales/cv`'s header spells out where its
+`[zero]` branch is genuinely reached (`answer-show-responses`, and both counts
+inside `editor-accessibility-label`) and where the explicit `[0]` branch wins
+first (`attempts-remaining`).
 
 **Five catalogs record the same limit, and it is word order rather than family
 that decides which.** `piecewise-condition-if` is placed by the renderer

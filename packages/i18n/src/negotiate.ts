@@ -71,14 +71,14 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * member of `nb` or `ak`, and both are deliberately left to miss. Thirteen of
  * the sixteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
  * `kg`, `bua`, `kv`, `chm` — are ISO 639-3 macrolanguages and list their
- * macrolanguage members; `nah` is an
- * ISO 639-3 **collection** code rather than a macrolanguage, so it lists the
- * individual Nahuan languages ISO 639-5 groups under it; and `mnk` and `dje`
- * are neither, being *members* — of `man` and `son` respectively — that this
- * repository happens to name catalogs after. Those two are the shape
- * {@link LANGUAGE_ALIASES}'s `man` entry explains, and it is why the members
- * listed under `mnk` exclude `bam` and `dyu`: those two have catalogs of their
- * own, and folding them here would serve a Bambara reader Mandinka.
+ * macrolanguage members; `nah` is an ISO 639-3 **collection** code rather than a
+ * macrolanguage, so it lists the individual Nahuan languages ISO 639-5 groups
+ * under it; and `mnk` and `dje` are neither, being *members* — of `man` and
+ * `son` respectively — that this repository happens to name catalogs after.
+ * Those two are the shape {@link LANGUAGE_ALIASES}'s `man` entry explains, and
+ * it is why the members listed under `mnk` exclude `bam` and `dyu`: those two
+ * have catalogs of their own, and folding them here would serve a Bambara
+ * reader Mandinka.
  *
  * The two member cases part company over their macrolanguage, and the reason
  * is CLDR rather than a preference: `man` is aliased onto `mnk` because
@@ -87,11 +87,10 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
  * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc`, `bxr`, `kpv`, `mhr` — so that each
- * list reads as the
- * whole of a group rather than as the leftovers of one, and so that a change in
- * ICU data cannot silently drop a code out of coverage. `mnk`'s list carries
- * `emk` for the same reason, though what ICU folds `emk` to is `man` rather
- * than `mnk`.
+ * list reads as the whole of a group rather than as the leftovers of one, and
+ * so that a change in ICU data cannot silently drop a code out of coverage.
+ * `mnk`'s list carries `emk` for the same reason, though what ICU folds `emk`
+ * to is `man` rather than `mnk`.
  *
  * Serving a related variety is a real compromise, and each of these catalogs
  * says in its own header which written standard it is — Southern Quechua,
