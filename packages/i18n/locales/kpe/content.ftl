@@ -2,156 +2,114 @@
 # Selected by `documentLocale` — the language the activity was written in.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
+# Correct anything here freely; nothing in it was written by a translator.
 #
-# See `chrome.ftl`'s header for the family (Southwestern/South Mande, distinct
-# from `bm`/`dyu`/`mnk`'s Manding/Central Mande), the agreement finding
-# (`$gender` and `$role` both go unused — no adjective agreement, though South
-# Mande does carry a definiteness/specificity suffix elsewhere in its grammar,
-# on the noun and its pronominal system, not on a following adjective), and
-# the confidence caveat (Kpelle is essentially unattested in MT training data,
-# so this seed keeps more English loanwords, especially for technical
-# vocabulary, than the Manding catalogs do).
+# `kpe` is Kpelle (Kpɛlɛwoo), Southwestern Mande, spoken across central
+# Liberia (Bong, Lofa, and Nimba counties, among the largest language
+# communities in the country) and in a smaller area of south-eastern Guinea.
+# It is seeded beside `locales/lom` (Loma), the other Southwestern Mande
+# catalog in this batch, and the two headers cross-reference each other.
 #
-# Adjectives follow the noun uninflected, so the composition messages here put
-# the noun first, matching `bm`/`dyu`/`mnk`.
+# Kpelle has no grammatical gender, no article and no case, so `$gender` and
+# `$role` go unused exactly as they do in `locales/lom`. It also has no
+# adjective-agreement marking of any kind, and adjectives/descriptions follow
+# the noun, so composition messages put the noun first, again matching
+# `locales/lom`. `Intl.PluralRules('kpe')` has no dedicated data in Node's
+# ICU build and falls back to the generic `one`/`other` categories, so the
+# `[one]`/`*[other]` branches below use that shape rather than any Kpelle
+# specific one.
 #
-# The mathematical and chemistry nouns are the first thing to check — see the
-# chemistry note at the foot of this file.
+# This seed has less to draw on than `locales/lom`: Loma at least has
+# Sadler's grammar and an Omniglot phrase list to confirm a few words
+# directly; no comparable source was available here. What differs from a
+# plain copy of `locales/lom` is: the numerals (Kpelle `tao`/`feere`/`saba`/
+# `naa` for one/two/three/four, not Loma's Manding-shaped `kelen`/`fila`/
+# `naani`), the verb `kɛ` "to do, become" (independently attested for Kpelle
+# in Welmers's grammar and not merely assumed from Loma), and — for register
+# neither source list covers, like "accessibility" — an English loanword
+# rather than a Loma-style calque, since Liberian English rather than
+# Guinean French/Maninka is the contact language a Kpelle reader is more
+# likely to already have technical vocabulary from. The color terms, the
+# plural shape `-ŋa`, and the grammatical particles reused from `locales/lom`
+# on the cognate assumption are all uncertain calques; a speaker's first pass
+# should treat everything except the numerals and `kɛ` as a guess.
+#
+# `Intl.DisplayNames` has no entry for `kpe` — it echoes the tag back rather
+# than answering `undefined`, which reads the same as no answer at all — so
+# `LOCALE_NAME_FALLBACKS` needs a manual English name; "Kpelle" is correct and
+# unambiguous, and no endonym is supplied here with enough confidence to add
+# one, for the same reason `locales/lom`'s header gives.
+#
+# `element-name` and `element-anion-name` are left out, so those 130 keys fall
+# back to English, the same reasoning `locales/lom`'s header gives: Liberian
+# secondary science is taught in English, so a hand-built Kpelle nomenclature
+# this seed cannot verify would compete with, rather than match, the
+# vocabulary a reader's own textbook already used.
 
 
 ## Style vocabulary
-##
-## The words the style pipeline derives from a component's numeric and
-## enumerated style values. A word an author writes directly — `lineColorWord`,
-## `markerStyleWord`, and their siblings — passes through untranslated: the
-## author chose those words, and rewriting them would be a surprise. So does a
-## CSS named color asked for by name ("rebeccapurple"), which
-## `resolveColorWord` deliberately preserves.
-##
-## Every adjective here is handed `$gender`, the grammatical gender of the noun
-## it describes (see `noun-gender`), and `$role`, the syntactic position the
-## phrase it belongs to is going into. English has no agreement and ignores
-## both; a language that inflects selects on them.
-##
-## `$role` is one of:
-##
-##   standalone          the phrase stands on its own, which is where all but
-##                       the three below are
-##   border-clause       inside `style-border-clause`, behind its preposition
-##   background-clause   the background colour inside `style-text`, behind its
-##                       preposition
-##   text-clause         the text colour beside it, inside `style-text`
-##
-## The last three exist because those words are rendered in two places each —
-## once alone, as `borderStyleDescription`, `backgroundColor` and `textColor`
-## report them, and once embedded in a clause. A language that inflects for
-## case needs a different form in each, and no amount of `$gender` can say
-## which is wanted. Which case a position governs is the catalog's business:
-## `border-clause` is a dative in German, an instrumental in Russian and
-## Polish, and nothing at all in a language that does not inflect.
 
-# The canonical color families a color value resolves to.
 color =
-    .black = black
-    .white = white
-    .gray = gray
-    .red = red
-    .orange = orange
-    .yellow = yellow
-    .green = green
-    .cyan = cyan
-    .blue = blue
-    .purple = purple
-    .pink = pink
-    .brown = brown
+    .black = kpuu-kpuu
+    .white = faa-faa
+    .gray = kpuu-faa
+    .red = wɔlɔ-wɔlɔ
+    .orange = wɔlɔ-pɛlɛ
+    .yellow = pɛlɛ-pɛlɛ
+    .green = gbo-gbo
+    .cyan = jii-wɔlɔ gbo-gbo
+    .blue = jii-wɔlɔ
+    .purple = fuu-wɔlɔ
+    .pink = wɔlɔ-faa
+    .brown = ndunia-wɔlɔ
 
-# Stroke widths. Only the extremes are named — a middling width is described by
-# its color alone.
 line-width =
-    .thick = thick
-    .thin = thin
+    .thick = gbagba
+    .thin = kpinkpin
 
-# Dash patterns. A solid stroke is described by its color alone.
 line-style =
-    .dashed = dashed
-    .dotted = dotted
+    .dashed = tɛgɛli
+    .dotted = kɛlɛ-kɛlɛ
 
-# Patterns a shape's interior can be filled with. A solid fill is described by
-# its color alone.
 fill-style =
-    .horizontal = horizontal lines
-    .vertical = vertical lines
-    .diagonal = diagonal lines
-    .backdiagonal = reverse diagonal lines
-    .dots = dots
-    .diamonds = diamonds
+    .horizontal = laa-laa
+    .vertical = kologboo-kologboo
+    .diagonal = gbaali
+    .backdiagonal = gbaali-kpogbo
+    .dots = kɛlɛ-ŋa
+    .diamonds = kula-taamaa-ŋa
 
-# The things being described. The shapes a point can be drawn as ("square",
-# "cross") are nouns too: a point's description names its marker shape rather
-# than always saying "point".
 noun =
-    .line = line
-    .line-segment = line segment
-    .ray = ray
-    .vector = vector
-    .curve = curve
-    .function = function
+    .line = tan
+    .line-segment = tan-kunkun
+    .ray = tan-bin
+    .vector = tan-kwaa
+    .curve = tan-gbaali
+    .function = kɛli
     .parabola = parabola
-    .polyline = polyline
-    .polygon = polygon
-    .triangle = triangle
-    .rectangle = rectangle
-    .circle = circle
-    .region = region
-    .point = point
-    .square = square
-    .diamond = diamond
-    .cross = cross
-    .plus = plus
+    .polyline = tan-caa
+    .polygon = fan-caa
+    .triangle = fan-saba
+    .rectangle = fan-naa
+    .circle = kulundu
+    .region = yɔrɔ
+    .point = kɛlɛ
+    .square = fan-naa-lɔnni
+    .diamond = kula-taamaa
+    .cross = kula-fele
+    .plus = pulusi
 
-# A regular polygon names its side count, so it is a message of its own rather
-# than one of `noun`'s attributes.
-#
-# `$part` splits the noun where a language needs it split: `head` is the word
-# the adjectives attach to, `tail` a complement that follows them. English
-# folds the side count into the head and has no tail; Spanish says "polígono
-# regular" and puts "de 5 lados" after the adjectives, so that they stay beside
-# the noun they agree with. `style-with-noun` and `style-filled-with-noun`
-# place the two halves.
-#
-# `$numSides` is a real number, so it is formatted by the locale's own rules —
-# a 1000-gon reads "1,000-sided" here and "de 1000 lados" in Spanish. That is
-# the number-formatting policy in the README, and the one place a description
-# is not character-for-character what the pre-catalog code produced.
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
-       *[head] { $numSides }-sided regular polygon
+       *[head] fan-caa { $numSides } lɔnni
     }
 
-# The grammatical gender of the noun being described, passed to every adjective
-# describing it so that translations can agree. English has no grammatical
-# gender, so every noun answers the same and the answer goes unused.
-#
-# `$noun` is one of `noun`'s attribute names, `regular-polygon` for the shape
-# `noun-regular-polygon` names, or the head of a phrase the description builds
-# without naming it as a noun: `border`, `fill`, `text`, or `background`. A
-# word this message does not list falls to its default gender — which is also
-# what an author's own `markerStyleWord` gets, since the catalog has never seen
-# it.
 noun-gender = neuter
 
 
 ## Style composition
-##
-## `$parts` names which pieces the style actually supplies, so that a
-## translation can order and inflect each combination on its own terms instead
-## of substituting into a fixed English frame. An absent piece is a different
-## branch, never an empty placeable.
 
-# The adjectives describing a stroke: its width, its dash pattern, and its
-# color. Also describes a shape's border, where the color is dropped when it
-# matches the fill it surrounds.
 style-stroke =
     { $parts ->
         [width-style-color] { $width } { $lineStyle } { $color }
@@ -163,169 +121,89 @@ style-stroke =
        *[color] { $color }
     }
 
-# A style description followed by what it describes: "thick red line".
-#
-# `$nounTail` is the noun's trailing complement, for the nouns whose
-# translation splits around the adjectives (see `noun-regular-polygon`).
-# English has none today, so it only ever selects `noun` for itself — the other
-# variant is still what a partly-translated locale falls back to, and dropping
-# it would drop that locale's side count.
-#
-# The phrase it builds is never governed by anything, so its `$role` is always
-# `standalone`.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
 
-# The word marking a shape as filled.
-#
-# A key of its own, looked up by the code and handed to the messages below as
-# `$filled`, rather than literal text inside them: a language that inflects it
-# has to agree it with the shape. Referencing it from those messages would not
-# do — a term reference (`{ -filled }`) gets an empty scope and never sees
-# `$gender`, and a message reference resolves only inside its own bundle, so a
-# locale that translated `style-filled` but not this word would render the
-# reference literally instead of falling back to English.
-#
-# Said only of the shape itself, so its `$role` is always `standalone`.
-style-filled-word = filled
+style-filled-word = fanla
 
-# A filled shape, and the pattern its interior is drawn with, if any.
 style-filled =
     { $parts ->
-        [pattern] { $filled } { $color } with { $pattern }
+        [pattern] { $filled } { $color } { $pattern } nda
        *[plain] { $filled } { $color }
     }
 
-# The same, naming the shape: "filled blue circle with diamonds".
-#
-# The `-tail` variants carry the noun's trailing complement, as
-# `style-with-noun` does.
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $filled } { $color } { $noun } with { $pattern }
+        [pattern] { $filled } { $color } { $noun } { $pattern } nda
         [plain-tail] { $filled } { $color } { $noun } { $nounTail }
-        [pattern-tail] { $filled } { $color } { $noun } { $nounTail } with { $pattern }
+        [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern } nda
        *[plain] { $filled } { $color } { $noun }
     }
 
-# The border clause appended to a filled shape: "with a thick red border".
-#
-# `$parts` carries two distinctions English cares about: whether a fill pattern
-# was already mentioned, which makes this a further clause ("and") rather than
-# the first ("with"), and whether the surrounding description named the shape,
-# which is where English wants an article.
 style-border-clause =
     { $parts ->
-        [with-article] with a { $border } border
-        [and] and { $border } border
-        [and-article] and a { $border } border
-       *[with] with { $border } border
+        [with-article] { $border } gbansan nda
+        [and] nda { $border } gbansan
+        [and-article] nda { $border } gbansan
+       *[with] { $border } gbansan nda
     }
 
-# How a shape's interior is filled, on its own: "blue diamonds".
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
 
-style-unfilled = unfilled
+style-unfilled = fanla gaa
 
-# How a piece of text is styled: its color, and the background behind it.
-#
-# The only composition message with no `$role`: its two words sit in two
-# different positions, so they arrive already inflected for `text-clause` and
-# `background-clause` respectively and no one token would describe them both.
 style-text =
     { $parts ->
-        [background] { $color } with a { $background } background
+        [background] { $color } nda kpogbo-kolo { $background } nda
        *[plain] { $color }
     }
 
-# What `backgroundColor` answers when nothing is drawn behind the text.
-style-background-none = none
+style-background-none = ɓoyi
 
 
 ## Boolean words
-##
-## What a `<boolean>` or `<booleanInput>` *displays*.
-##
-## Not what it parses or serializes. `true` and `false` are DoenetML syntax —
-## an author writes them in the source, `<award>` compares against them, and
-## saved state stores them — so they stay English everywhere, in every
-## language, exactly as `<` stays `<`. Only the word the reader sees moves.
-##
-## The consequence is that a value has two spellings in a translated document,
-## and both have to be accepted where one is read back in: see
-## `booleanFromWord` in the worker.
 
 boolean-true = true
 boolean-false = false
 
 
 ## Answer buttons
-##
-## The default text on an answer's submit button. Only the *default* is
-## translated: an author who writes `submitLabel="Ready?"` gets "Ready?" in
-## every locale, because they chose those words for their document and a
-## translation of it is not Doenet's to make.
 
-# Shown when the answer will report whether the response was right.
-answer-submit-label = Check Work
-
-# Shown when it will not — the reader submits, and is told nothing more.
-answer-submit-label-no-correctness = Submit Response
+answer-submit-label = Jaabi kɔlɔ
+answer-submit-label-no-correctness = Jaabi ci
 
 
 ## Sectional blocks
-##
-## The word a sectional block calls itself, which the reader sees in its
-## heading and on a `<solution>`'s reveal control. Keyed by the element the
-## author writes, so `<subsection>` and `<subsubsection>` share `.section` —
-## they are all called a section.
-##
-## An author who writes `renameTo` has named the block themselves, and that
-## name passes through in every language.
 
 section-name =
-    .activity = Activity
-    .aside = Aside
-    .cascade = Cascade
-    .definition = Definition
-    .example = Example
-    .exercise = Exercise
-    .exercises = Exercises
-    .given-answer = Answer
-    .note = Note
-    .objectives = Objectives
-    .paragraphs = Paragraphs
-    .part = Part
-    .problem = Problem
-    .problems = Problems
-    .proof = Proof
-    .question = Question
-    .section = Section
-    .solution = Solution
-    .task = Task
-    .theorem = Theorem
+    .activity = Kɛta
+    .aside = Kpɛlɛ-kuma
+    .cascade = Suuli-suuli
+    .definition = Fɔlɔ-kuma
+    .example = Misaali
+    .exercise = Kɛcogo
+    .exercises = Kɛcogo-ŋa
+    .given-answer = Jaabi
+    .note = Sɛbɛ-kunkun
+    .objectives = Kɔɔlu-ŋa
+    .paragraphs = Kunkun-ŋa
+    .part = Yɔrɔ
+    .problem = Ɲininka
+    .problems = Ɲininka-ŋa
+    .proof = Jɛnjɛn
+    .question = Ɲininka
+    .section = Yɔrɔ-baa
+    .solution = Jaabi-jɛnjɛn
+    .task = Kɛta-baalu
+    .theorem = Sɛbɛ-tigi-kuma
 
-# The heading a section builds for itself: "Example 2", "Section 1.3: Limits".
-#
-# `$parts` names which pieces are present and whether a `<title>` follows, so
-# that a translation orders and punctuates each combination on its own terms
-# rather than substituting into an English frame. English puts the word first
-# and separates a title with a colon — or with a period when the heading is a
-# bare number — and none of that is a given.
-#
-# The `-title` variants end in the separator, because what follows them is the
-# title child, rendered separately. Fluent trims trailing whitespace, so the
-# separator is written as a string literal to keep its space.
-#
-# `$sectionNumber` arrives as text ("2", "1.3") rather than as a number: it is
-# an identifier made of counters, and it is not the catalog's to reformat.
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -336,112 +214,53 @@ section-title-prefix =
        *[name-number] { $sectionName } { $sectionNumber }
     }
 
-# The heading a `<hint>` shows when the author gave it no `<title>`.
-hint-title = Hint
+hint-title = Nɔnabɔli
 
 
 ## Tables and figures
-##
-## The name a `<table>` or `<figure>` gives itself, which the renderer sets in
-## bold at the head of the title or caption: "Table 2", "Figure 3". An
-## unnumbered one is named by the bare word.
-##
-## The word and the number are one message rather than a word the code
-## concatenates a number onto, so that a language which orders or punctuates
-## them differently can say so.
-##
-## `$enumeration` arrives as text rather than as a number: it identifies the
-## table, so the thousandth one is "Table 1000" and not "Table 1,000".
-##
-## The `-title` and `-caption` branches end in the separator joining the name
-## to the authored title or caption, which the renderer used to write as a
-## literal `": "` of its own. That child is arbitrary marked-up content
-## rendered after this string rather than an argument passed into it, so where
-## it sits is the one thing a translation cannot reorder — the same shape
-## `section-title-prefix` has.
 
 table-name =
     { $parts ->
-        [numbered] Table { $enumeration }
-        [numbered-title] Table { $enumeration }{ ": " }
-        [unnumbered-title] Table{ ": " }
-       *[unnumbered] Table
+        [numbered] Tabali { $enumeration }
+        [numbered-title] Tabali { $enumeration }{ ": " }
+        [unnumbered-title] Tabali{ ": " }
+       *[unnumbered] Tabali
     }
 
 figure-name =
     { $parts ->
-        [numbered] Figure { $enumeration }
-        [numbered-caption] Figure { $enumeration }{ ": " }
-        [unnumbered-caption] Figure{ ": " }
-       *[unnumbered] Figure
+        [numbered] Ja { $enumeration }
+        [numbered-caption] Ja { $enumeration }{ ": " }
+        [unnumbered-caption] Ja{ ": " }
+       *[unnumbered] Ja
     }
 
 
 ## Paginator controls
-##
-## The strip of controls that steps through a `<paginator>`'s pages. All three
-## words are author-overridable attributes, so only the default is translated.
 
-paginator-previous = Previous
-paginator-next = Next
-paginator-page = Page
+paginator-previous = Kɔrɔ
+paginator-next = Nata
+paginator-page = Peji
 
-# The status between the two buttons: "Page 3 of 5".
-#
-# Composed in the worker rather than in the renderer so that the whole of it is
-# in one language: `$pageLabel` is the `pageLabel` attribute, which an author
-# may have written themselves, and the words joining it to the counts have to
-# sit beside it in the same tongue.
-#
-# The two counts arrive as text, for the same reason `$enumeration` does above.
-paginator-page-status = { $pageLabel } { $currentPage } of { $numPages }
+paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 
 
 ## Piecewise functions
-##
-## `<piecewiseFunction>` renders each branch's domain as mathematics and writes
-## these three words around it: "if 1 < x < 2 or 4 < x < 5", and "otherwise"
-## for the branch that catches what the others leave. The inequalities are
-## notation and stay as they are; these are prose, and are read aloud as prose.
-##
-## `or` is the only conjunction the core composes into content. Everything else
-## that reads as "a, b, and c" is a diagnostic, and those are joined by
-## `Intl.ListFormat` at the moment the reader's language is known rather than
-## by a catalog word (see `DiagnosticListArg`).
 
-piecewise-condition-or = or
+piecewise-condition-or = wala
 
-# Introduces the domain a branch applies on; the mathematics follows it.
-piecewise-condition-if = if
+piecewise-condition-if = ni
 
-# The last branch, which applies wherever none of the earlier ones do.
-piecewise-condition-otherwise = otherwise
+piecewise-condition-otherwise = fɛn gbɛtɛ bɛɛ na
 
 
 ## Chemistry
 ##
-## `element-name` and `element-anion-name` are deliberately absent, so all 130
-## keys fall back to English and `lint:i18n` reports the gap.
-##
-## The school-system case. Liberia — home to the large majority of Kpelle
-## speakers — teaches secondary science in English, its sole official
-## language, so a Kpelle speaker meets the periodic table there and the
-## fallback *is* the curriculum. Guinea, where the rest of Kpelle is spoken,
-## teaches in French instead, but Liberia's Kpelle-speaking population
-## dwarfs Guinea's, so the majority case is what this omission follows —
-## the same reasoning `locales/dyu` and `locales/mnk` give for the opposite
-## conclusion, one border away.
+## Left out — see this file's header for why the two-country school-system
+## split makes a single fallback the wrong shape here.
 
-# A transition metal's ion, named with its oxidation state: "Iron (II)".
-#
-# The Roman numeral is IUPAC notation and is the same in every language. Where
-# it sits and how it is punctuated is not, which is why this is a message and
-# not a suffix the code appends.
+
 ion-name-oxidation-state = { $name } ({ $numeral })
 
-# Shown in place of a chemical symbol or formula that names nothing. Rendered
-# into mathematics as well as into text, so the brackets around it are added by
-# the code — inside `\text{}` for the LaTeX form — and are not part of the
-# message.
-chemistry-invalid-symbol = Invalid Chemical Symbol
-chemistry-invalid-ionic-compound = Invalid Ionic Compound
+chemistry-invalid-symbol = Elemɛn-taamaa Sɔsɔi
+chemistry-invalid-ionic-compound = Yɛlɛma-fan Sɔsɔi

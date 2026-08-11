@@ -1,892 +1,654 @@
-# Kpelle diagnostics catalog: warnings and errors surfaced to the reader or
+# Kpelle diagnostics catalog: errors and warnings surfaced to the reader or
 # author. Selected by `uiLocale`, not `documentLocale`.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
-# See `chrome.ftl`'s header for family, agreement, and confidence notes:
-# Southwestern (South) Mande; no adjective agreement, so `$gender`/`$role` go
-# unused; essentially unattested in MT training data, so this seed leans on
-# English loanwords for technical vocabulary more than `bm`/`dyu`/`mnk` do.
+# See `content.ftl`'s header for the family, the agreement finding, the
+# `LOCALE_NAME_FALLBACKS` reasoning, and the pairing with `locales/lom`. This
+# file is the largest in the batch and leans hardest on calque, since almost
+# none of this register (attribute names, component names, parser and schema
+# errors) exists in any published Kpelle text, or in the Loma text this seed
+# otherwise leans on; within `locales/kpe` itself, this file most needs a
+# speaker's review.
 #
-# Reached by stable diagnostic code rather than by a literal `t("key")` call:
-# `DIAGNOSTIC_CODES` in `src/diagnostics.ts` maps `doenet-w0001` to the id
-# below, and `lint:i18n` treats that registry as the call site. Adding a
-# message here without registering a code for it fails the lint as an orphan.
-#
-# Translators: `through`, `endpoint`, `midpointOffset`, `numDimensions` and the
-# like are DoenetML attribute names. They are part of the language, not prose,
-# and must be left in English exactly as written.
+# DoenetML identifiers — tag names, attribute names, component names — are
+# never translated, exactly as the English header requires.
+
 
 ## `<lineSegment>`
 
-# $attributes is a list of attribute names; $attributesCount is its length.
 line-segment-attributes-ignored-with-endpoints =
     { $attributesCount ->
-        [one] { $attributes } is ignored when two endpoints are specified
-       *[other] { $attributes } are ignored when two endpoints are specified
+        [one] { $attributes } n'a jate-lɛ ni kɛlɛ feere lɔni
+       *[other] { $attributes } n'a jate-lɛ ni kɛlɛ feere lɔni
     }
 
-# $attributes is a list of attribute names; $attributesCount is its length.
 line-segment-attributes-ignored-with-endpoint-and-midpoint =
     { $attributesCount ->
-        [one] { $attributes } is ignored when an endpoint and a midpoint are both specified
-       *[other] { $attributes } are ignored when an endpoint and a midpoint are both specified
+        [one] { $attributes } n'a jate-lɛ ni kɛlɛ nda tɛgɛma-kɛlɛ lɔni fɔlɔ
+       *[other] { $attributes } n'a jate-lɛ ni kɛlɛ nda tɛgɛma-kɛlɛ lɔni fɔlɔ
     }
 
-line-segment-midpoint-offset-without-midpoint = midpointOffset has no effect without a midpoint
+line-segment-midpoint-offset-without-midpoint = midpointOffset ma nɔɔ si yen gaa ni tɛgɛma-kɛlɛ si yen gaa
 
 ## `<line>`
 
-line-points-undetermined-dimensions = Line through points of undetermined dimensions.
+line-points-undetermined-dimensions = Tan kɛlɛ-ŋa ma lɔn se gaa kwaa lɔn se gaa.
 
-line-points-too-few-dimensions = Line must be through points of at least two dimensions.
+line-points-too-few-dimensions = Tan ka kɛ kɛlɛ-ŋa la minnu ka kwaa feere wa lɔn.
 
-# $variables is a bare enumeration of variable names, not an "and" list.
-line-points-depend-on-variables = Line is through points that depend on variables: { $variables }.
+line-points-depend-on-variables = Tan ka kɛ kɛlɛ-ŋa la minnu bɛ falen-fɛn-ŋa ma lɔn: { $variables }.
 
-line-equation-invalid-format = Invalid format for equation of line in variables { $variable1 } and { $variable2 }.
+line-equation-invalid-format = Tan-sɛbɛ-kwaa sɔsɔi falen-fɛn { $variable1 } nda { $variable2 } ma.
 
 ## `<ray>`
 
-ray-overprescribed-through = Ray is prescribed by through, endpoint, and direction.  Ignoring specified through.
+ray-overprescribed-through = Tan-bin lɔni kɛlɛ, kɛlɛ-kɔmɔ nda sila-kwaa ma. Kɛlɛ lɔni n'a jate-lɛ.
 
-ray-dimension-mismatch = numDimensions mismatch in ray.
+ray-dimension-mismatch = numDimensions ma bɛnna gaa tan-bin nda.
 
 ## `<vector>`
 
-vector-overprescribed-head = Vector is prescribed by head, tail, and displacement.  Ignoring specified head.
+vector-overprescribed-head = Tan-kwaa lɔni a kunfɔlɔ, a kɔfɛ nda a lamaga-kwaa ma. A kunfɔlɔ lɔni n'a jate-lɛ.
 
-vector-dimension-mismatch = numDimensions mismatch in vector.
+vector-dimension-mismatch = numDimensions ma bɛnna gaa tan-kwaa nda.
 
 ## Attracting and constraining
 
-# $component is the DoenetML tag of the child that was named, e.g. "polygon".
-attract-to-without-nearest-point = Cannot attract to a `<{ $component }>` as it doesn't have a nearestPoint state variable.
+attract-to-without-nearest-point = A se gaa ka bɛn `<{ $component }>` ma, kanko nearestPoint kwaa si yen gaa a ma.
 
-constrain-to-without-nearest-point = Cannot constrain to a `<{ $component }>` as it doesn't have a nearestPoint state variable.
+constrain-to-without-nearest-point = A se gaa ka lɔn `<{ $component }>` ma, kanko nearestPoint kwaa si yen gaa a ma.
 
-constrain-to-interior-without-nearest-point = Cannot constrain to interior of a `<{ $component }>` as it doesn't have a nearestPoint state variable.
+constrain-to-interior-without-nearest-point = A se gaa ka lɔn `<{ $component }>` kɔnɔ ma, kanko nearestPoint kwaa si yen gaa a ma.
 
 ## `<choiceInput>`
 
-# Translators: `labelPosition` is an attribute name and stays in English.
-choice-input-label-position-ignored = labelPosition is ignored for non-inline choiceInput
+choice-input-label-position-ignored = labelPosition n'a jate-lɛ ni choiceInput kɛ inline kwaa ti.
 
 ## Ordering children by index
-##
-## These name the component in prose rather than as a tag, matching how the
-## messages have always read. The component names stay in English; the nouns
-## around them are prose and should be translated.
 
-choice-input-indices-count-mismatch = Ignoring indices specified for choiceInput as number of indices doesn't match number of choice children.
+choice-input-indices-count-mismatch = Indices lɔni-ŋa n'a jate-lɛ choiceInput ma, kanko indices jate ma bɛn sugandi-denw jate ma.
 
-pretzel-indices-count-mismatch = Ignoring indices specified for problem as number of indices doesn't match number of problem children.
+pretzel-indices-count-mismatch = Indices lɔni-ŋa n'a jate-lɛ ɲininka ma, kanko indices jate ma bɛn ɲininka-denw jate ma.
 
-shuffle-indices-count-mismatch = Ignoring indices specified for shuffle as number of indices doesn't match number of components.
+shuffle-indices-count-mismatch = Indices lɔni-ŋa n'a jate-lɛ shuffle ma, kanko indices jate ma bɛn fan-denw jate ma.
 
-# $component is `choiceInput`, `pretzel` or `shuffle` — a DoenetML component
-# name, so it stays in English.
-indices-ignored-out-of-range = Ignoring indices specified for { $component } as some indices out of range.
+indices-ignored-out-of-range = Indices lɔni-ŋa n'a jate-lɛ { $component } ma, kanko indices dɔ-ŋa bɔli kwaa-tila ye.
 
-pretzel-indices-repeated = Ignoring indices specified for pretzel as some indices are repeated.
+pretzel-indices-repeated = Indices lɔni-ŋa n'a jate-lɛ ɲininka ma, kanko indices dɔ-ŋa segin-segin.
 
-pretzel-circuit-first-index = Ignoring indices specified for pretzel in circuit mode as the first index must be 1.
+pretzel-circuit-first-index = Indices lɔni-ŋa n'a jate-lɛ ɲininka ma mode circuit nda, kanko index fɔlɔ ka kɛ 1 ti.
 
 ## `<shuffle>` and `<sort>`
 
-# $component is `shuffle` or `sort`. These two components accept the same
-# children and fail the same ways, so they share their messages.
-string-children-need-type = For `<{ $component }>` to work with string children, a `type` attribute must be specified.
+string-children-need-type = Walasa `<{ $component }>` ka wale-i sɛbɛ-den-ŋa nda, type sugandi-kwaa ka lɔn.
 
-# $type is what the author wrote; math, text, number and boolean are attribute
-# values and stay in English.
-invalid-type-defaulting-to-math = Invalid type { $type } for { $component } component. Must be one of math, text, number, or boolean. Defaulting to math.
+invalid-type-defaulting-to-math = Type { $type } sɔsɔi { $component } ma. A ka kɛ math, text, number, wala boolean kwaa ti. A bɛ ta math kwaa la.
 
-# $value is the string child that could not be used.
-string-not-valid-component-to-arrange = String "{ $value }" is not a valid component to { $component }. Ignoring.
+string-not-valid-component-to-arrange = Sɛbɛ "{ $value }" te fan lɔni ti { $component } ma. A n'a jate-lɛ.
 
 ## Types and variables
 
-invalid-type-defaulting-to-number = Invalid type { $type }, setting type to number.
+invalid-type-defaulting-to-number = Type { $type } sɔsɔi, a bɛ ta number kwaa la.
 
-invalid-variable-value = Invalid value of a variable: `{ $value }`
+invalid-variable-value = Falen-fɛn kwaa sɔsɔi: `{ $value }`
 
 ## Variants
 
-# $index is what the author wrote, reproduced verbatim rather than as a number:
-# it reached this message precisely because it was not one.
-variant-index-must-be-number = Variant index { $index } must be a number
+variant-index-must-be-number = Yɛlɛma-fan-index { $index } ka kɛ jate-kwaa ti
 
-variant-index-must-be-integer = Variant index { $index } must be an integer
+variant-index-must-be-integer = Yɛlɛma-fan-index { $index } ka kɛ jate-tɔɔ ti
 
 ## `<sideBySide>`
 
-# $component is `sideBySide` or `sbsGroup`.
-side-by-side-absolute-widths = `<{ $component }>` is not implemented for absolute measurements. Setting widths to relative.
+side-by-side-absolute-widths = `<{ $component }>` n'a se-i gaa kwaa-jate lɔni-ŋa la. Gbagba-ŋa bɛ ta yɛlɛma-kwaa la.
 
-side-by-side-absolute-margins = `<{ $component }>` is not implemented for absolute measurements. Setting margins to relative.
+side-by-side-absolute-margins = `<{ $component }>` n'a se-i gaa kwaa-jate lɔni-ŋa la. Kanda-ŋa bɛ ta yɛlɛma-kwaa la.
 
-side-by-side-no-block-child = Invalid `<{ $component }>`: it must have at least one block child.
+side-by-side-no-block-child = `<{ $component }>` sɔsɔi: a ka kɛ den tao la minnu ka kɛ block ti.
 
 ## `<label>`
 
-# Translators: `for` is an attribute name and stays in English.
-label-for-ignored-on-graphical = The `for` attribute on graphical `<label>` is ignored.
+label-for-ignored-on-graphical = `for` sugandi-kwaa n'a jate-lɛ `<label>` ja-kwaa la.
 
-label-for-must-resolve-to-one = The `for` attribute on `<label>` must resolve to exactly one component.
+label-for-must-resolve-to-one = `for` sugandi-kwaa `<label>` la ka lɔn fan tao ma.
 
-label-for-unresolved = The `for` attribute on `<label>` could not be resolved to a component.
+label-for-unresolved = `for` sugandi-kwaa `<label>` la se gaa ka lɔn fan kwaa ma.
 
-label-for-answer-with-authored-inputs = The `for` attribute on `<label>` references an `<answer>` with explicitly authored inputs; reference the input directly.
+label-for-answer-with-authored-inputs = `for` sugandi-kwaa `<label>` la ye lasigi-fan `<answer>` ma min sugandi-ŋa sɛbɛlen. Sugandi-kwaa lasigi kelenkelen.
 
-label-for-answer-without-input = The `for` attribute on `<label>` references an `<answer>` without an input to label.
+label-for-answer-without-input = `for` sugandi-kwaa `<label>` la ye lasigi-fan `<answer>` ma min sugandi si yen gaa.
 
-label-for-must-reference-input-or-answer = The `for` attribute on `<label>` must reference an input or an answer.
+label-for-must-reference-input-or-answer = `for` sugandi-kwaa `<label>` la ka lasigi sugandi-kwaa wala jaabi-kwaa ma.
 
 ## Accessibility
 
-# $component is a DoenetML tag, e.g. "graph" or "image".
-accessibility-short-description-or-decorative = For accessibility, `<{ $component }>` must either have a short description or be specified as decorative.
+accessibility-short-description-or-decorative = Aksɛsibiliti ma, `<{ $component }>` ka kɛ jɛnjɛn-kunkun la wala a ka jira decorative kwaa ti.
 
-accessibility-video-short-description = For accessibility, `<video>` must have a short description.
+accessibility-video-short-description = Aksɛsibiliti ma, `<video>` ka kɛ jɛnjɛn-kunkun la.
 
-accessibility-input-short-description-or-label = For accessibility, `<{ $component }>` must have a short description or a label.
+accessibility-input-short-description-or-label = Aksɛsibiliti ma, `<{ $component }>` ka kɛ jɛnjɛn-kunkun wala tɔgɔ-kwaa la.
 
-# The companion to the message above, for the input an `<answer>` creates on the
-# author's behalf. Two messages rather than one with the subject passed in: the
-# subject is a phrase here, not a name, and a phrase handed over as an argument
-# would never reach a translator.
-accessibility-answer-input-short-description-or-label = For accessibility, an `<answer>` creating an input must have a short description or a label.
+accessibility-answer-input-short-description-or-label = Aksɛsibiliti ma, sugandi-kwaa min `<answer>` ye a da, a ka kɛ jɛnjɛn-kunkun wala tɔgɔ-kwaa la.
 
-accessibility-short-description-contains-math = Short descriptions should not contain math components such as `<{ $component }>`. Spell out any math with words.
+accessibility-short-description-contains-math = Jɛnjɛn-kunkun ka kɛ math-fan-ŋa ti minnu bɛ `<{ $component }>` ti. Math-kwaa bɛɛ sɛbɛ kuma-ŋa la.
 
-# $colorName is an attribute name and stays in English. $ratio and $threshold
-# are contrast ratios; $mode says which theme the shortfall was measured in,
-# and is `dark` or `light`.
 accessibility-section-title-insufficient-contrast =
     { $mode ->
-        [dark] { $colorName } has insufficient contrast for the section heading text (dark mode) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1).
-       *[other] { $colorName } has insufficient contrast for the section heading text ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1).
+        [dark] { $colorName } ma se-i gaa yɔrɔ-baa tɔgɔ-sɛbɛ ma (dibi-nɔɔ) ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; a ka { $threshold }:1 wa sɔrɔ).
+       *[other] { $colorName } ma se-i gaa yɔrɔ-baa tɔgɔ-sɛbɛ ma ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; a ka { $threshold }:1 wa sɔrɔ).
     }
 
 ## `<circle>`
 
-# $count is the number of through points.
-circle-through-points-non-numerical = Haven't implemented `<circle>` through { $count } points in case where the points don't have numerical values.
+circle-through-points-non-numerical = `<circle>` kɛlɛ { $count } kwaa ma se-i gaa halisa ni kɛlɛ-ŋa jate-kwaa si yen gaa.
 
-circle-too-many-through-points = Cannot calculate circle through more than 3 points.
+circle-too-many-through-points = A se gaa ka kulundu jate kɛlɛ 3 tɛmɛni ma.
 
-circle-overprescribed-radius-center-points = Cannot calculate circle with specified radius, center and through points.
+circle-overprescribed-radius-center-points = A se gaa ka kulundu jate ni kwaa-tɛgɛma, tɛgɛma-kɛlɛ nda kɛlɛ-ŋa lɔni bɛɛ ti.
 
-circle-center-with-multiple-points = Cannot calculate circle with specified center through more than 1 point.
+circle-center-with-multiple-points = A se gaa ka kulundu jate ni tɛgɛma-kɛlɛ lɔni kɛlɛ tao tɛmɛni ti.
 
-# $distance and $radius arrive as strings, not numbers: $radius is the author's
-# own value echoed back for diagnosis, and formatting it as a quantity would
-# round a radius of 0.0001 away to 0.
-circle-radius-too-small = Cannot calculate circle: given that the distance between the two points is { $distance }, the specified radius { $radius } is too small.
+circle-radius-too-small = A se gaa ka kulundu jate: kɛlɛ feere kwaa-tila { $distance }, kwaa-tɛgɛma lɔni { $radius } dɔgɔ kojugu.
 
-circle-radius-with-many-points = Cannot create circle through more than two points with a specified radius.
+circle-radius-with-many-points = A se gaa ka kulundu da kɛlɛ feere tɛmɛni na ni kwaa-tɛgɛma lɔni ti.
 
-circle-invalid-center-or-through-points = Invalid center or through points of circle.
+circle-invalid-center-or-through-points = Kulundu tɛgɛma-kɛlɛ wala kɛlɛ-ŋa sɔsɔi.
 
-circle-radius-center-with-multiple-points = Cannot calculate radius of circle with specified center through more than 1 point.
+circle-radius-center-with-multiple-points = A se gaa ka kulundu kwaa-tɛgɛma jate ni tɛgɛma-kɛlɛ lɔni kɛlɛ tao tɛmɛni ti.
 
-circle-change-radius-non-numerical = Cannot change radius of circle with non-numerical through points
+circle-change-radius-non-numerical = A se gaa ka kulundu kwaa-tɛgɛma falɛ ni kɛlɛ-ŋa si jate-kwaa la gaa.
 
-circle-radius-with-points-non-numerical = Cannot create circle through more than one point with specified radius when don't have numerical values.
+circle-radius-with-points-non-numerical = A se gaa ka kulundu da kɛlɛ tao tɛmɛni na ni kwaa-tɛgɛma lɔni ti ni jate-kwaa si yen gaa.
 
-circle-change-center-non-numerical = Haven't implemented changing center of circle through points with non numerical values.
+circle-change-center-non-numerical = A n'a se-i gaa kwaa ka kulundu tɛgɛma-kɛlɛ falɛ ni kɛlɛ-ŋa si jate-kwaa la gaa.
 
 ## `<function>`
 
-# Two independent counts in one sentence, so the variants multiply out. A
-# select's variants each need their own line, so the inner one spans lines too;
-# that is safe because newlines inside a placeable never reach the rendered
-# value. Only text continuing onto a further line would.
 function-domain-insufficient-dimensions =
     { $intervals ->
-        [one] Insufficient dimensions for domain for function. Domain has { $intervals } interval but the function has { $inputs ->
-            [one] { $inputs } input
-           *[other] { $inputs } inputs
-        }.
-       *[other] Insufficient dimensions for domain for function. Domain has { $intervals } intervals but the function has { $inputs ->
-            [one] { $inputs } input
-           *[other] { $inputs } inputs
-        }.
+        [one] Kɛli ma kwaa-jate wa lɔn a ma nɔɔ ma. Nɔɔ-kwaa kɛ tila-yɔrɔ { $intervals } la, kɔni kɛli sugandi-kwaa { $inputs ->
+            [one] { $inputs } kwaa
+           *[other] { $inputs } kwaa-ŋa
+        } wa.
+       *[other] Kɛli ma kwaa-jate wa lɔn a ma nɔɔ ma. Nɔɔ-kwaa kɛ tila-yɔrɔ { $intervals } la, kɔni kɛli sugandi-kwaa { $inputs ->
+            [one] { $inputs } kwaa
+           *[other] { $inputs } kwaa-ŋa
+        } wa.
     }
 
-function-domain-invalid-format = Invalid format for domain for function.
+function-domain-invalid-format = Kɛli nɔɔ-kwaa kwaa-lɔn sɔsɔi.
 
-# $type is what was being read off the point. It selects the wording rather
-# than being substituted into it: "maximum", "slope" and the rest are English
-# nouns, and a noun handed over as an argument would never reach a translator.
-# The catch-all reproduces the pre-catalog behavior for a value not listed here.
 function-ignoring-non-numerical =
     { $type ->
-        [maximum] Ignoring non-numerical maximum of function.
-        [minimum] Ignoring non-numerical minimum of function.
-        [extremum] Ignoring non-numerical extremum of function.
-        [point] Ignoring non-numerical point of function.
-        [slope] Ignoring non-numerical slope of function.
-       *[other] Ignoring non-numerical { $type } of function.
+        [maximum] Kɛli sanfɛ-tɛgɛma sɔsɔi n'a jate-lɛ.
+        [minimum] Kɛli dugumafɛ-tɛgɛma sɔsɔi n'a jate-lɛ.
+        [extremum] Kɛli lasi-tɛgɛma sɔsɔi n'a jate-lɛ.
+        [point] Kɛli kɛlɛ sɔsɔi n'a jate-lɛ.
+        [slope] Kɛli gbaali-kwaa sɔsɔi n'a jate-lɛ.
+       *[other] Kɛli { $type } sɔsɔi n'a jate-lɛ.
     }
 
 function-ignoring-empty =
     { $type ->
-        [maximum] Ignoring empty maximum of function.
-        [minimum] Ignoring empty minimum of function.
-        [extremum] Ignoring empty extremum of function.
-        [point] Ignoring empty point of function.
-       *[other] Ignoring empty { $type } of function.
+        [maximum] Kɛli sanfɛ-tɛgɛma ɓoyi n'a jate-lɛ.
+        [minimum] Kɛli dugumafɛ-tɛgɛma ɓoyi n'a jate-lɛ.
+        [extremum] Kɛli lasi-tɛgɛma ɓoyi n'a jate-lɛ.
+        [point] Kɛli kɛlɛ ɓoyi n'a jate-lɛ.
+       *[other] Kɛli { $type } ɓoyi n'a jate-lɛ.
     }
 
-function-points-too-close = Function contains two points with locations too close together. Can't define function.
+function-points-too-close = Kɛli ye kɛlɛ feere la minnu yɔrɔ bɛnna kojugu. A se gaa ka kɛli lɔn.
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-        [one] Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has { $inputs } input and { $outputs ->
-            [one] { $outputs } output
-           *[other] { $outputs } outputs
-        }.
-       *[other] Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has { $inputs } inputs and { $outputs ->
-            [one] { $outputs } output
-           *[other] { $outputs } outputs
-        }.
+        [one] Kɛli-segin-segin se-i dɔrɔn ni kɛli sugandi-kwaa jate bɛnna a bɔ-kwaa jate ma. Kɛli nin { $inputs } sugandi-kwaa wa nda { $outputs ->
+            [one] { $outputs } bɔ-kwaa
+           *[other] { $outputs } bɔ-kwaa-ŋa
+        } wa.
+       *[other] Kɛli-segin-segin se-i dɔrɔn ni kɛli sugandi-kwaa jate bɛnna a bɔ-kwaa jate ma. Kɛli nin { $inputs } sugandi-kwaa-ŋa wa nda { $outputs ->
+            [one] { $outputs } bɔ-kwaa
+           *[other] { $outputs } bɔ-kwaa-ŋa
+        } wa.
     }
 
 ## `<sequence>`
 
-sequence-invalid-length = Invalid length of sequence.  Must be a non-negative integer.
+sequence-invalid-length = Sɔɔlin waa-kwaa sɔsɔi. A ka kɛ jate-tɔɔ ti min si dɔgɔ gaa ɓoyi la.
 
-# $type is a sequence type: number, letters, or math.
-sequence-invalid-step = Invalid step of sequence.  Must be a number for sequence of type { $type }.
+sequence-invalid-step = Sɔɔlin sila-kwaa sɔsɔi. A ka kɛ jate-kwaa ti sɔɔlin nɔɔ { $type } ma.
 
-# $attribute is `from` or `to` — an attribute name, so it stays in English.
-sequence-invalid-endpoint-number = Invalid "{ $attribute }" of number sequence.  Must be a number.
+sequence-invalid-endpoint-number = "{ $attribute }" sɔsɔi jate-sɔɔlin ma. A ka kɛ jate-kwaa ti.
 
-sequence-invalid-endpoint-letters = Invalid "{ $attribute }" of letters sequence.  Must be a letter combination.
+sequence-invalid-endpoint-letters = "{ $attribute }" sɔsɔi sɛbɛ-mama-sɔɔlin ma. A ka kɛ sɛbɛ-mama-lajɛlen ti.
 
-sequence-invalid-endpoint = Invalid "{ $attribute }" of sequence.
+sequence-invalid-endpoint = "{ $attribute }" sɔsɔi sɔɔlin ma.
 
-select-from-sequence-coprime-not-numbers = coprime ignored since not selecting numbers
+select-from-sequence-coprime-not-numbers = coprime n'a jate-lɛ, kanko jate-kwaa si sugandilen gaa
 
-select-from-sequence-coprime-with-exclude-combinations = coprime ignored since excludeCombinations specified
+select-from-sequence-coprime-with-exclude-combinations = coprime n'a jate-lɛ, kanko excludeCombinations lɔni
 
 ## Resolving a `target`
-##
-## Raised by the components that take a `target` attribute. They resolve it
-## through the same code and fail the same two ways, so they share these two
-## messages rather than spelling each one out per component: $source is the tag
-## of the component that raised it, part of the DoenetML language, so it stays
-## in English.
 
-target-not-found = Invalid target for `<{ $source }>`: cannot find target.
+target-not-found = target sɔsɔi `<{ $source }>` ma: a se gaa ka lɔn.
 
-# $property is the state variable that was looked for; $component is the tag it
-# was looked for on.
-target-state-variable-not-found = Invalid target for `<{ $source }>`: cannot find a state variable named "{ $property }" on a `<{ $component }>`.
+target-state-variable-not-found = target sɔsɔi `<{ $source }>` ma: falen-kwaa "{ $property }" tɔgɔ-kwaa se gaa ka lɔn `<{ $component }>` ma.
 
 ## `<odeSystem>`
 
-ode-system-variables-match-independent = Variables of `<odeSystem>` must be different than independent variable.
+ode-system-variables-match-independent = `<odeSystem>` falen-fɛn-ŋa ka kɛ kwaa ɲɔgɔn ti, ka gbansan falen-fɛn-kwaa ye.
 
-ode-system-duplicate-variable-names = Can't define ODE RHS functions with duplicate dependent variable names.
+ode-system-duplicate-variable-names = A se gaa ka ODE-kɛli-jaabi lɔn ni falen-fɛn tɔgɔ segin-segin ti.
 
-ode-system-rhs-function-error = Cannot define ODE RHS function.  Error creating mathjs function.
+ode-system-rhs-function-error = A se gaa ka ODE-kɛli-jaabi lɔn. Sɔsɔ-kwaa sɔrɔla mathjs kɛli da.
 
 ## `<angle>`, `<parabola>`, and `<intersection>`
 
-# $count is how many line children were found.
-angle-too-many-lines = Cannot define an angle between { $count } lines
+angle-too-many-lines = A se gaa ka kolongboo-kwaa lɔn tan { $count } cɛ
 
-angle-invalid-through-point = Invalid point in through of `<angle>`
+angle-invalid-through-point = Kɛlɛ sɔsɔi `<angle>` kwaa-sila ma
 
-parabola-vertex-too-many-points = Haven't implemented parabola with vertex through more than 1 point.
+parabola-vertex-too-many-points = A n'a se-i gaa kwaa ka parabola lɔn ni a kunfɔlɔ kɛlɛ tao tɛmɛni la.
 
-parabola-too-many-points = Haven't implemented parabola through more than 3 points.
+parabola-too-many-points = A n'a se-i gaa kwaa ka parabola lɔn kɛlɛ 3 tɛmɛni na.
 
-intersection-too-many-items = Haven't implemented intersection for more than two items
+intersection-too-many-items = A n'a se-i gaa kwaa ka bɛn-yɔrɔ lɔn fɛn feere tɛmɛni ma.
 
 ## Other math components
 
-ionic-compound-not-two-ions = Have not implemented ionic compound for anything other than two ions.
+ionic-compound-not-two-ions = A n'a se-i gaa kwaa ka yɛlɛma-fan lɔn ni fɛn gbɛtɛ ti feere kɔ.
 
-ionic-compound-needs-cation-and-anion = Ionic compound implemented only for one cation and one anion.
+ionic-compound-needs-cation-and-anion = Yɛlɛma-fan se-i dɔrɔn ni yɛlɛma-kwaa tao nda yɛlɛma-kwaa gbɛtɛ tao ti.
 
-# $equation is the equation as the author wrote it.
-solve-equations-cannot-evaluate = Cannot solve equation as could not evaluate equation: { $equation }
+solve-equations-cannot-evaluate = A se gaa ka sɛbɛ-kwaa jaabi lɔn kanko a se gaa ka jate: { $equation }
 
-# Translators: `operandNumber` is an attribute name and stays in English.
-math-operators-operand-number-required = Must specify a operandNumber when extracting a math operand.
+math-operators-operand-number-required = operandNumber ka lɔn ni math-kwaa dɔ bɛ bɔ.
 
-eigen-decomposition-failed = Could not calculate eigenvalues of matrix
+eigen-decomposition-failed = A se gaa ka matrix eigenvalue-ŋa jate.
 
 ## `<matchesPattern>`
 
-# Translators: `parameters` is an attribute name and stays in English.
-# $parameters lists the parameters as the author wrote them;
-# $parametersCount is how many there were.
 matches-pattern-parameter-not-in-pattern =
     { $parametersCount ->
-        [one] `<matchesPattern>`: the parameter { $parameters } does not occur in the pattern, so it will always match a blank.
-       *[other] `<matchesPattern>`: the parameters { $parameters } do not occur in the pattern, so they will always match a blank.
+        [one] `<matchesPattern>`: sugandi-kwaa { $parameters } si yen gaa kwaa-nɔɔ la, a bɛ ɓoyi bɛn tuma bɛɛ.
+       *[other] `<matchesPattern>`: sugandi-kwaa { $parameters } si yen gaa kwaa-nɔɔ la, a bɛ ɓoyi bɛn tuma bɛɛ.
     }
 
 ## `<graph>`
 
-# Translators: grid is an attribute name and none, medium and dense are its
-# values; all four stay in English, as does the example. $grid is the value the
-# author wrote, reproduced verbatim — it reached this message precisely because
-# it was not one of the forms listed.
-graph-grid-invalid = `<graph>`: cannot interpret grid="{ $grid }". It must be none, medium, dense, or two positive numbers separated by a space, such as grid="1 0.5". No grid is drawn.
+graph-grid-invalid = `<graph>`: a se gaa ka grid="{ $grid }" faamu. A ka kɛ none, medium, dense, wala jate-kwaa feere lajɛlen ti tao ti, i n'a fɔ grid="1 0.5". Grid si sɛbɛ gaa.
 
 ## PreFigure renderer
 
-# Translators: xLabelPosition, yLabelPosition and their values are attribute
-# names and stay in English, as does the renderer's name.
-prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" is not supported in prefigure renderer; using right-position behavior.
+prefigure-x-label-position-unsupported = `<graph>`: xLabelPosition="left" n'a se-i gaa prefigure jirala nda; kininfɛ-yɔrɔ-kwaa bɛ ta.
 
-prefigure-y-label-position-unsupported = `<graph>`: yLabelPosition="bottom" is not supported in prefigure renderer; using top-position behavior.
+prefigure-y-label-position-unsupported = `<graph>`: yLabelPosition="bottom" n'a se-i gaa prefigure jirala nda; sanfɛ-yɔrɔ-kwaa bɛ ta.
 
-prefigure-invalid-axis-bounds = `<graph>`: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).
+prefigure-invalid-axis-bounds = `<graph>`: prefigure yɛlɛma kwaa-tila sɔsɔi; fɔlɔ-bbox bɛ ta (-10,-10,10,10).
 
-prefigure-invalid-width = `<graph>`: invalid width for prefigure conversion; using default diagram width 425.
+prefigure-invalid-width = `<graph>`: prefigure yɛlɛma gbagba-kwaa sɔsɔi; fɔlɔ-ja-gbagba 425 bɛ ta.
 
-prefigure-invalid-aspect-ratio = `<graph>`: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.
+prefigure-invalid-aspect-ratio = `<graph>`: prefigure yɛlɛma aspectRatio sɔsɔi; fɔlɔ-kwaa-tila 1 bɛ ta.
 
-# Translators: the renderer's name, prefigure, stays in English. "grid" here is
-# the coordinate grid itself rather than the attribute that asks for one, so it
-# is prose and is translated.
-prefigure-grid-spacing-too-fine = `<graph>`: the grid spacing is too fine for the axis limits; the grid is omitted in the prefigure renderer.
+prefigure-grid-spacing-too-fine = `<graph>`: grid tila-yɔrɔ dɔgɔ kojugu kwaa-tila-ŋa ma; grid n'a jira-i prefigure jirala nda.
 
-prefigure-annotations-not-rendered = `<graph>`: annotations will not be rendered when not using the PreFigure renderer.
+prefigure-annotations-not-rendered = `<graph>`: annotations si jira-i gaa ni PreFigure jirala si ta-i gaa.
 
-multiple-annotations-children = Multiple `<annotations>` children found in `<graph>`; all but the last one are ignored.
+multiple-annotations-children = `<annotations>` den caa sɔrɔla `<graph>` kɔnɔ; bɛɛ n'a jate-lɛ fo dɔ lasɔsɔlen.
 
 ## Referring to other components
-##
-## `<updateValue>`'s own "cannot find target" messages are not here: it
-## resolves a target the same way `<animateFromSequence>` does and fails the
-## same ways, so the two share `target-not-found` and
-## `target-state-variable-not-found` above.
 
-copy-unrecognized-component-type = Cannot extend or copy an unrecognized component type: { $type }.
+copy-unrecognized-component-type = A se gaa ka fan kwaa-nɔɔ min si lɔn gaa lasegin wala kopi: { $type }.
 
-copy-prop-not-found = Could not find prop { $property } on a component of type { $component }
+copy-prop-not-found = Sugandi { $property } se gaa ka lɔn fan { $component } nɔɔ la min ma.
 
-collect-no-source = No source found for collect.
+collect-no-source = collect ma bɔ-yɔrɔ si yen gaa.
 
-collect-invalid-component-type = Cannot collect components of type `<{ $component }>` as it is an invalid component type.
+collect-invalid-component-type = A se gaa ka `<{ $component }>` fan-ŋa lajɛ, kanko a te fan-nɔɔ lɔni ti.
 
-# $reference is the reference exactly as the author wrote it, `$` and all —
-# the `$p.styleDescription[1]` of `<text extend="$p.styleDescription[1]" />`.
-# An index only means something applied to an array, and the thing named here
-# is not one. The reference is quoted back rather than explained because the
-# text in front of the author is the only part of this they can act on: the
-# state variable and component index the core knows about are its own business
-# and go to the console instead.
-reference-index-unavailable = Cannot reference index `{ $reference }`
+reference-index-unavailable = A se gaa ka index `{ $reference }` lasigi
 
 ## `<callAction>`
 
-# $action is the `actionName` the author asked for, part of the DoenetML
-# language, so it stays in English. $reference is the `target` as written.
-component-action-unavailable = Cannot call { $action } on component `{ $reference }`
+component-action-unavailable = A se gaa ka { $action } woye-lɛ fan `{ $reference }` ma
 
 ## `<dataFrame>`
 
-# $componentIdx is an internal index, passed as a string so it is not grouped
-# like a quantity; the odd spacing before the colon is reproduced from the
-# original message.
-data-frame-inconsistent-row-lengths = Data has invalid shape.  Rows has inconsistent lengths. Found in componentIdx :{ $componentIdx }
+data-frame-inconsistent-row-lengths = Kwaa-ŋa sɔsɔi kwaa-jɛnjɛn la. Laa-ŋa jate ma bɛn ɲɔgɔn ma. A sɔrɔla componentIdx :{ $componentIdx } la
 
-data-frame-duplicate-column-names = Data has duplicate column names.  Found in componentIdx :{ $componentIdx }
+data-frame-duplicate-column-names = Kwaa-ŋa ye kolo-tɔgɔ segin-segin. A sɔrɔla componentIdx :{ $componentIdx } la
 
-data-frame-missing-column-name = Data is missing a column name.  Found in componentIdx :{ $componentIdx }
+data-frame-missing-column-name = Kwaa-ŋa kolo-tɔgɔ si yen gaa. A sɔrɔla componentIdx :{ $componentIdx } la
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = An award for this answer is based on the answer tag's own submitted response, which will lead to unexpected behavior.
+answer-award-depends-on-own-response = jaabi nin a kwaa-jaabi kɛlɛ nin `<answer>` ma cilen kwaa la, a bɛ falɛ min si lasi-lɛ gaa.
 
-# Translators: maxNumAttempts and sectionWideCheckWork are attribute names.
-answer-max-num-attempts-in-section-wide-check-work = Setting `maxNumAttempts` on an `<answer>` inside a container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the container. Set `maxNumAttempts` on the container instead.
+answer-max-num-attempts-in-section-wide-check-work = maxNumAttempts lɔnni `<answer>` ma kɛ min kɔnɔ nin sectionWideCheckWork wa, a nɔɔ si yen gaa, kanko kɛcogo jate lɔni kɔnɔ-kwaa bɛ ta. maxNumAttempts lɔn kɔnɔ-kwaa ma.
 
-nested-section-wide-check-work-max-num-attempts = Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the outer container. Set `maxNumAttempts` on the outer container instead.
+nested-section-wide-check-work-max-num-attempts = maxNumAttempts lɔnni kɔnɔ-kwaa ma min kɛ min gbɛtɛ kɔnɔ nin sectionWideCheckWork wa, a nɔɔ si yen gaa, kanko kɛcogo jate lɔni sanfɛ-kɔnɔ-kwaa bɛ ta. maxNumAttempts lɔn sanfɛ-kɔnɔ-kwaa ma.
 
-# $attributes is a list of attribute names; $attributesCount is its length.
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
-        [one] The { $attributes } attribute will have no effect without symbolicEquality set.
-       *[other] The { $attributes } attributes will have no effect without symbolicEquality set.
+        [one] { $attributes } sugandi-kwaa nɔɔ si yen gaa ni symbolicEquality si lɔn gaa.
+       *[other] { $attributes } sugandi-kwaa-ŋa nɔɔ si yen gaa ni symbolicEquality si lɔn gaa.
     }
 
-answer-invalid-type = Invalid type for answer: { $type }
+answer-invalid-type = Jaabi type sɔsɔi: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
-module-attribute-child-needs-name = Since the component `<{ $component }>` does not have a name, it cannot be used for a module attribute
+module-attribute-child-needs-name = `<{ $component }>` fan si tɔgɔ la gaa, a se gaa ka wale-i module sugandi-kwaa ti
 
-module-attribute-name-already-defined = The component `<{ $component } name="{ $name }">` cannot be used as an attribute for a module because the `<module>` component type already has a "{ $name }" attribute defined.
+module-attribute-name-already-defined = `<{ $component } name="{ $name }">` se gaa ka wale-i module sugandi-kwaa ti, kanko `<module>` fan-nɔɔ ye "{ $name }" sugandi-kwaa lɔn kaban
 
-conditional-content-condition-ignored = Attribute `condition` is ignored on a `<conditionalContent>` component with case or else children.
+conditional-content-condition-ignored = `condition` sugandi-kwaa n'a jate-lɛ `<conditionalContent>` fan la min ye case wala else den-ŋa wa.
 
-slider-markers-type-mismatch = Markers type doesn't match slider type.
+slider-markers-type-mismatch = Markers type ma bɛn slider type ma.
 
-pretzel-problem-needs-statement-and-answer = Invalid pretzel: each `<problem>` must contain one `<statement>` and one `<answer>`.
+pretzel-problem-needs-statement-and-answer = Ɲininka sɔsɔi: `<problem>` kwaa tao-tao ka kɛ `<statement>` tao nda `<answer>` tao la.
 
-pretzel-circuit-first-problem-distractor = Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.
+pretzel-circuit-first-problem-distractor = Ɲininka sɔsɔi: mode="circuit" nda, `<problem>` fɔlɔ te distractor kwaa ti.
 
 ## Attribute values
 
-# $values is a list of the values that were rejected, each already in
-# backticks; $valuesCount is how many there were.
 attribute-invalid-values =
     { $valuesCount ->
-        [one] Invalid value { $values } for attribute `{ $attribute }`; ignoring.
-       *[other] Invalid values { $values } for attribute `{ $attribute }`; ignoring.
+        [one] Kwaa { $values } sɔsɔi sugandi-kwaa `{ $attribute }` ma; n'a jate-lɛ.
+       *[other] Kwaa-ŋa { $values } sɔsɔi sugandi-kwaa `{ $attribute }` ma; n'a jate-lɛ.
     }
 
-attribute-must-be-references = Invalid value `{ $value }` for attribute `{ $attribute }`. Attribute must be composed of references that begin with a `$`.
+attribute-must-be-references = Kwaa `{ $value }` sɔsɔi sugandi-kwaa `{ $attribute }` ma. Sugandi-kwaa ka kɛ lasigi-fan-ŋa la minnu damina `$` ti.
 
-# $names is a list of the rejected names, each already in single quotes.
-math-input-invalid-function-names = <mathInput>: ignored invalid function name(s) in { $attribute }: { $names }. Each name's display segment must be at least 2 characters (letters or dashes); an optional `|<mathspeak alternative>` suffix may follow.
+math-input-invalid-function-names = <mathInput>: kɛli-tɔgɔ sɔsɔi n'a jate-lɛ { $attribute } nɔɔ: { $names }. Tɔgɔ kwaa bɛɛ ka kɛ sɛbɛ-mama feere fɔlɔ ti (sɛbɛ-mama wala tɛgɛli); a se-i `|<mathspeak yɛlɛma-kwaa>` la a kɔfɛ.
 
 ## Building components from the source
 
-# Raised while the source is being turned into components, by throwing rather
-# than by building a record: the thrower is caught, the component becomes an
-# `_error`, and the diagnostic is re-raised from it.
+component-type-invalid = Fan-nɔɔ sɔsɔi: `<{ $componentType }>`
 
-component-type-invalid = Invalid component type: `<{ $componentType }>`
+attribute-repeated = A se gaa ka sugandi-kwaa { $attribute } segin.
 
-attribute-repeated = Cannot repeat attribute { $attribute }.
-
-attribute-invalid-for-component = Invalid attribute "{ $attribute }" for a component of type `<{ $componentType }>`.
+attribute-invalid-for-component = Sugandi-kwaa "{ $attribute }" sɔsɔi fan `<{ $componentType }>` ma.
 
 ## Style definition contrast
 
-# $context names the pair being compared, $mode which colour scheme it was
-# rendered in. Both are symbolic — the phrase is chosen here so a translator
-# can rewrite it, rather than being handed over already in English.
 style-definition-insufficient-contrast =
-    Style definition { $styleNumber } has insufficient contrast for { $context ->
-        [text-on-background] text color against background color
-        [high-contrast] high-contrast color against the canvas
-        [line] line color against the canvas
-        [marker] marker color against the canvas
-       *[text-on-canvas] text color against the canvas
+    Kwaa-lɔn { $styleNumber } ma se-i gaa kwaa-kwaa-tila { $context ->
+        [text-on-background] sɛbɛ-kolo nda kpogbo-kolo cɛ
+        [high-contrast] kwaa-gbagba-kolo nda ja-yɔrɔ cɛ
+        [line] tan-kolo nda ja-yɔrɔ cɛ
+        [marker] taamaa-kolo nda ja-yɔrɔ cɛ
+       *[text-on-canvas] sɛbɛ-kolo nda ja-yɔrɔ cɛ
     }{ $mode ->
-        [dark] { " (dark mode)" }
+        [dark] { " (dibi-nɔɔ)" }
        *[light] { "" }
-    } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1).
+    } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; a ka { $threshold }:1 wa sɔrɔ).
 
-# $suggestion says whether a concrete replacement colour could be computed.
-# The attribute names and colour values in the `available` branch are
-# DoenetML source, not prose, and stay as they are in every language.
 style-definition-dark-mode-text-background-contrast =
-    Although style definition { $styleNumber } has specified colors that provide sufficient contrast for light mode, the dark-mode colors derived from these values have insufficient contrast for the text color against the background color ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1). { $suggestion ->
-        [available] To ensure sufficient contrast in dark mode, either increase the light-mode contrast (e.g., set { $lightAttribute }="{ $lightColor }") or override the dark-mode color (e.g., set { $darkAttribute }="{ $darkColor }").
-       *[none] To ensure sufficient contrast in dark mode, increase the light-mode contrast or override the derived colors with textColorDarkMode and/or backgroundColorDarkMode.
+    Hali kwaa-lɔn { $styleNumber } ye kolo-ŋa lɔn minnu se-i kayei-nɔɔ ma, dibi-nɔɔ kolo-ŋa bɔli kwaa-ŋa la ma se-i gaa sɛbɛ-kolo nda kpogbo-kolo cɛ ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; a ka { $threshold }:1 wa sɔrɔ). { $suggestion ->
+        [available] Walasa dibi-nɔɔ kwaa-tila ka se-i, i ka kayei-nɔɔ kwaa-tila lasɔ (i n'a fɔ { $lightAttribute }="{ $lightColor }" lɔn) wala i ka dibi-nɔɔ kolo falɛ (i n'a fɔ { $darkAttribute }="{ $darkColor }" lɔn).
+       *[none] Walasa dibi-nɔɔ kwaa-tila ka se-i, i ka kayei-nɔɔ kwaa-tila lasɔ wala i ka kolo bɔli-ŋa falɛ ni textColorDarkMode nda/wala backgroundColorDarkMode ti.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    Although style definition { $styleNumber } has a specified text color that provides sufficient contrast for light mode, the dark-mode text color derived from this value has insufficient contrast against the canvas ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1). { $suggestion ->
-        [available] To ensure sufficient contrast in dark mode, either increase the light-mode contrast (e.g., set textColor="{ $lightColor }") or override the dark-mode color (e.g., set textColorDarkMode="{ $darkColor }").
-       *[none] To ensure sufficient contrast in dark mode, increase the light-mode contrast or override the derived color with textColorDarkMode.
+    Hali kwaa-lɔn { $styleNumber } ye sɛbɛ-kolo lɔn min se-i kayei-nɔɔ ma, dibi-nɔɔ sɛbɛ-kolo bɔli kwaa la ma se-i gaa ja-yɔrɔ ma ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; a ka { $threshold }:1 wa sɔrɔ). { $suggestion ->
+        [available] Walasa dibi-nɔɔ kwaa-tila ka se-i, i ka kayei-nɔɔ kwaa-tila lasɔ (i n'a fɔ textColor="{ $lightColor }" lɔn) wala i ka dibi-nɔɔ kolo falɛ (i n'a fɔ textColorDarkMode="{ $darkColor }" lɔn).
+       *[none] Walasa dibi-nɔɔ kwaa-tila ka se-i, i ka kayei-nɔɔ kwaa-tila lasɔ wala i ka kolo bɔli falɛ ni textColorDarkMode ti.
     }
 
-section-multiple-style-palettes = A section can select only one <stylePalette>; using the last one.
+section-multiple-style-palettes = Yɔrɔ-baa se-i dɔrɔn ka <stylePalette> tao sugandi; a laban-kwaa bɛ ta.
 
 ## Unique variants
 
-# Explanations of why a component's unique variants could not be worked out.
-# $component is the tag that could not be analyzed and stays as written; the
-# reason is a separate message per situation, so a host can tell them apart by
-# code and a translator sees a whole sentence rather than a fragment.
+variant-num-to-select-not-non-negative-integer = a se gaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn kanko numToSelect te jate-tɔɔ ti min dɔgɔ gaa ɓoyi la.
 
-variant-num-to-select-not-non-negative-integer = cannot determine unique variants of { $component } as numToSelect isn't a non-negative integer.
+variant-num-to-select-not-constant-number = a se gaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn kanko numToSelect te jate-kwaa ti min si falɛ gaa.
 
-variant-num-to-select-not-constant-number = cannot determine unique variants of { $component } as numToSelect isn't constant number.
+variant-with-replacement-not-constant-boolean = a se gaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn kanko withReplacement te boolean-kwaa ti min si falɛ gaa.
 
-variant-with-replacement-not-constant-boolean = cannot determine unique variants of { $component } as withReplacement isn't constant boolean.
+variant-select-weight-disables-unique = Yɛlɛma-fan lɔni-ŋa si se-i gaa select ma ni sugandi-kwaa dɔ ye selectWeight wala selectForVariants lɔn
 
-variant-select-weight-disables-unique = Unique variants for select disabled if have an option with selectWeight or selectForVariants specified
+variant-coprime-undetermined = a se gaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn kanko a se gaa ka lɔn coprime bɛ kɛ ɓoyi ti tuma bɛɛ.
 
-variant-coprime-undetermined = cannot determine unique variants of { $component } as cannot determine coprime is always false.
+variant-attribute-not-constant = a se gaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn kanko { $attribute } te kwaa ti min si falɛ gaa.
 
-# $attribute is an attribute name (`from`, `to`, `step`, `sort`, `length`) and
-# stays as written.
-variant-attribute-not-constant = cannot determine unique variants of { $component } as { $attribute } isn't a constant.
+variant-attribute-not-number = a se gaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn kanko { $attribute } te jate-kwaa ti.
 
-variant-attribute-not-number = cannot determine unique variants of { $component } as { $attribute } isn't a number.
-
-# $type is the sequence type the component was declared with. $expected names
-# what the value had to be, symbolically, because which one applies depends on
-# both the type and the attribute.
 variant-attribute-wrong-type-for-sequence =
-    cannot determine unique variants of { $component } of { $type } type as { $attribute } isn't { $expected ->
-        [letters-combination] a combination of letters
-        [math-expression] a valid math expression
-        [integer] an integer
-       *[number] a number
-    }.
+    a se gaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn sɔɔlin nɔɔ { $type } la kanko { $attribute } te { $expected ->
+        [letters-combination] sɛbɛ-mama-lajɛlen ti
+        [math-expression] math-kuma lɔni ti
+        [integer] jate-tɔɔ ti
+       *[number] jate-kwaa ti
+    } gaa.
 
-variant-length-not-integer = cannot determine unique variants of { $component } as length isn't an integer.
+variant-length-not-integer = a se gaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn kanko waa-kwaa te jate-tɔɔ ti.
 
-variant-sort-not-implemented = have not implemented unique variants of a { $component } with sort
+variant-sort-not-implemented = a n'a se-i gaa kwaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn ni sort ti
 
-variant-exclude-combinations-not-implemented = have not implemented unique variants of a { $component } with excludeCombinations
+variant-exclude-combinations-not-implemented = a n'a se-i gaa kwaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn ni excludeCombinations ti
 
-variant-math-exclude-not-implemented = have not implemented unique variants of a { $component } of type math with exclude
+variant-math-exclude-not-implemented = a n'a se-i gaa kwaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn min type math ye ni exclude ti
 
-variant-non-constant-exclude-not-implemented = have not implemented unique variants of a { $component } with non-constant exclude
+variant-non-constant-exclude-not-implemented = a n'a se-i gaa kwaa ka { $component } yɛlɛma-fan lɔni-ŋa lɔn ni exclude ti min si falɛ gaa
 
 ## PreFigure conversion
 
-# $subject identifies the component the warning is about, already written as
-# `<tag>` or `<tag> (name)`. It is composed in code rather than here because
-# Fluent terms cannot take a variable as an argument, so a shared subject
-# fragment cannot be parameterized from the catalog. It holds only a tag name,
-# a component name and punctuation — never a word — which is why a descendant
-# with no type reads `<?>` rather than `<unknown>`.
+prefigure-descendant-unsupported = { $subject }: a n'a se-i gaa graph prefigure jirala nda; den n'a jate-lɛ.
 
-prefigure-descendant-unsupported = { $subject }: unsupported in graph prefigure renderer; descendant skipped.
+prefigure-descendant-invalid-geometry = { $subject }: kwaa-nɔɔ ɓoyi wala ma dafa; den n'a jate-lɛ.
 
-prefigure-descendant-invalid-geometry = { $subject }: non-finite or incomplete geometry; descendant skipped.
+prefigure-curve-label-omitted = { $subject }: tɔgɔ-ŋa n'a se-i gaa tan-gbaali fan-ŋa la minnu falenna; tɔgɔ n'a jate-lɛ.
 
-prefigure-curve-label-omitted = { $subject }: labels are not supported on converted curve elements; label omitted.
+prefigure-curve-unsupported-definition-type = { $subject }: tan-gbaali kɛli-fɔlɔ-kwaa nɔɔ '{ $definitionType }' n'a se-i gaa; den n'a jate-lɛ.
 
-prefigure-curve-unsupported-definition-type = { $subject }: unsupported curve function definition type '{ $definitionType }'; descendant skipped.
+prefigure-region-flip-functions-unsupported = { $subject }: flipFunctions sugandi-kwaa n'a se-i gaa regionBetweenCurves la; den n'a jate-lɛ.
 
-prefigure-region-flip-functions-unsupported = { $subject }: unsupported flipFunctions attribute on regionBetweenCurves; descendant skipped.
+prefigure-region-non-formula-child = { $subject }: kɛli-den-ŋa dɔrɔn minnu type formula ye n'a se-i regionBetweenCurves la; den gbɛtɛ-ŋa n'a jate-lɛ.
 
-prefigure-region-non-formula-child = { $subject }: only formula-typed child functions are supported on regionBetweenCurves; descendant skipped.
-
-# $labelKind says which family of object carried the label, since the advice
-# is the same but the object is not.
 prefigure-label-position-unsupported =
-    { $subject }: unsupported labelPosition '{ $labelPosition }' for { $labelKind ->
-        [line-family] line-family label
-       *[point] point label
-    }; default PreFigure alignment used.
+    { $subject }: labelPosition '{ $labelPosition }' n'a se-i gaa { $labelKind ->
+        [line-family] tan-kwaa tɔgɔ ma
+       *[point] kɛlɛ tɔgɔ ma
+    }; PreFigure fɔlɔ-lɔnni bɛ ta.
 
-prefigure-fill-style-unsupported = { $subject }: fill style '{ $fillStyle }' is unsupported by PreFigure; falling back to a solid fill.
+prefigure-fill-style-unsupported = { $subject }: fanla-kwaa '{ $fillStyle }' n'a se-i gaa PreFigure la; fanla-lɔni bɛ ta.
 
-prefigure-line-style-unknown = { $subject }: unknown line style '{ $lineStyle }' omitted from PreFigure output.
+prefigure-line-style-unknown = { $subject }: tan-kwaa '{ $lineStyle }' si lɔn gaa; a n'a jate-lɛ PreFigure bɔ-kwaa la.
 
-prefigure-marker-style-mapped-to-diamond = { $subject }: marker style '{ $markerStyle }' mapped to PreFigure style 'diamond'.
+prefigure-marker-style-mapped-to-diamond = { $subject }: taamaa-kwaa '{ $markerStyle }' bɛ ta PreFigure 'diamond' kwaa la.
 
-prefigure-marker-style-unsupported = { $subject }: marker style '{ $markerStyle }' is unsupported by PreFigure; default style used.
+prefigure-marker-style-unsupported = { $subject }: taamaa-kwaa '{ $markerStyle }' n'a se-i gaa PreFigure la; kwaa-lɔni bɛ ta.
 
 ## PreFigure annotations
 
-annotation-ref-unresolvable = `<annotation>`: invalid `ref`; cannot resolve target. Annotation omitted.
+annotation-ref-unresolvable = `<annotation>`: `ref` sɔsɔi; a se gaa ka lɔn. Annotation n'a jate-lɛ.
 
-annotation-ref-multiple-targets = `<annotation>`: `ref` resolved to multiple targets; using the first target.
+annotation-ref-multiple-targets = `<annotation>`: `ref` lɔnna fɛn caa ma; fɔlɔ-kwaa bɛ ta.
 
-annotation-ref-outside-graph = `<annotation>`: invalid `ref`; target is outside the containing graph. Annotation omitted.
+annotation-ref-outside-graph = `<annotation>`: `ref` sɔsɔi; a kwaa-fan bɔli graph kɔnɔ. Annotation n'a jate-lɛ.
 
-annotation-ref-unsupported-target = `<annotation>`: invalid `ref`; target is not a supported graphical object in prefigure conversion. Annotation omitted.
+annotation-ref-unsupported-target = `<annotation>`: `ref` sɔsɔi; a kwaa-fan te fan lɔni ti prefigure kwaa-la. Annotation n'a jate-lɛ.
 
-annotation-text-missing = `<annotation>`: missing or empty `text`; emitting empty text.
+annotation-text-missing = `<annotation>`: `text` si yen gaa wala a ɓoyi; sɛbɛ-kwaa ɓoyi bɛ bɔ.
 
 ## Composites and references
 
-# $componentType is the type the composite was asked to create, when it is
-# known; `none` when the composite did not say.
 composite-circular-dependency =
     { $componentType ->
-        [none] Circular dependency detected.
-       *[other] Circular dependency detected involving `<{ $componentType }>` component.
+        [none] Fan-ŋa lɔni kwaa-kwaa ma sɔrɔla.
+       *[other] Fan-ŋa lɔni kwaa-kwaa ma sɔrɔla `<{ $componentType }>` fan nda.
     }
 
-# $reference is the reference as the author wrote it, already carrying its `$`.
-reference-no-referent = No referent found for reference: `{ $reference }`
+reference-no-referent = Lasigi-fan si sɔrɔ gaa: `{ $reference }`
 
-reference-multiple-referents = Multiple referents found for reference: `{ $reference }`
+reference-multiple-referents = Lasigi-fan caa sɔrɔla: `{ $reference }`
 
 ## Children that do not match
 
-children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.
+children-invalid-attribute-format = Sugandi-kwaa { $attribute } nɔɔ sɔsɔi `<{ $componentType }>` ma.
 
-# $children is the list of child types that did not match, already joined.
-children-invalid = Invalid children for `<{ $componentType }>`: Found invalid children: { $children }
+children-invalid = Den-ŋa sɔsɔi `<{ $componentType }>` ma: den sɔsɔi-ŋa sɔrɔla: { $children }
 
 ## Falling back to a default
 
-attribute-value-invalid-using-default = Invalid value `{ $value }` for attribute `{ $attribute }`, using value `{ $default }`
+attribute-value-invalid-using-default = Kwaa `{ $value }` sɔsɔi sugandi-kwaa `{ $attribute }` ma, kwaa `{ $default }` bɛ ta
 
 ## Loading a DoenetML version
 
-# $fallback is the version that will be used instead, or `none` when the
-# embedding page named a standalone bundle of its own.
 doenetml-version-not-found =
     { $fallback ->
-        [none] DoenetML version { $version } not found.
-       *[other] DoenetML version { $version } not found. Falling back to version { $fallback }
+        [none] DoenetML yɛlɛma-fan { $version } si sɔrɔ gaa.
+       *[other] DoenetML yɛlɛma-fan { $version } si sɔrɔ gaa. Yɛlɛma-fan { $fallback } bɛ ta
     }
 
 ## Reading the DoenetML
 
-# The parser's own diagnostics: what the author sees before anything runs, and
-# for a beginner usually the first Doenet message they ever read.
-#
-# The parser writes its English beside the code rather than rendering it from
-# here, because `@doenet/parser` is inside the language-server bundle and a
-# catalog there is dead weight on the editor's critical path
-# (`packages/lsp/scripts/check-server-bundle.mjs` fails if one arrives). The
-# two copies are held together by a test in that package, which parses a
-# corpus and asserts every coded error renders to exactly what the parser
-# wrote — so a message edited here without its counterpart fails there.
-#
-# $tag, $value, $attribute and their relatives quote the author's own source
-# back at them and stay exactly as written. The `Invalid DoenetML: ` opening is
-# repeated in each message instead of being a shared term: a term a locale
-# forgets to define renders as its own name, and a prefix on fifteen messages
-# is not worth that failure mode.
+parse-invalid-doenetml = DoenetML sɔsɔi: { $content }
 
-parse-invalid-doenetml = Invalid DoenetML: { $content }
+parse-tag-missing-close-tag = DoenetML sɔsɔi: taamaa `{ $tag }` si tugu-taamaa la gaa. A ka kɛ taamaa kwaa-tugulen ti wala `</{ $tagName }>` ti.
 
-parse-tag-missing-close-tag = Invalid DoenetML: The tag `{ $tag }` has no closing tag. Expected a self-closing tag or a `</{ $tagName }>` tag.
+parse-tag-error = DoenetML sɔsɔi: fele sɔrɔla taamaa `<{ $tagName }>` la
 
-parse-tag-error = Invalid DoenetML: Error in tag `<{ $tagName }>`
+parse-attribute-missing-value = DoenetML sɔsɔi: sugandi-kwaa sɔsɔi `{ $attribute }` a kwaa si yen gaa.
 
-parse-attribute-missing-value = Invalid DoenetML: Invalid attribute `{ $attribute }` appears to be missing a value.
+parse-attribute-invalid = DoenetML sɔsɔi: sugandi-kwaa sɔsɔi `{ $attribute }`
 
-parse-attribute-invalid = Invalid DoenetML: Invalid attribute `{ $attribute }`
+parse-attribute-value-invalid = DoenetML sɔsɔi: kwaa sɔsɔi `{ $value }`
 
-parse-attribute-value-invalid = Invalid DoenetML: Invalid attribute value `{ $value }`
+parse-attribute-value-quote-mismatch = DoenetML sɔsɔi: kwaa sɔsɔi `{ $value }`. Sɛbɛ-taamaa-ŋa ma bɛn ɲɔgɔn ma. A bɛ ɓɔ i la `{ $quote }` kwaa
 
-# $quote is the quote character that would balance the pair: `"` or `'`.
-parse-attribute-value-quote-mismatch = Invalid DoenetML: Invalid attribute value `{ $value }`. The quote marks do not match. You appear to be missing a `{ $quote }`
+parse-open-tag-name-missing = DoenetML sɔsɔi: taamaa sɔrɔla min tɔgɔ si yen gaa, i n'a fɔ `<`
 
-parse-open-tag-name-missing = Invalid DoenetML: Found a tag without a tag name, e.g. `<`
+parse-tag-not-closed = DoenetML sɔsɔi: taamaa `{ $tag }` ma tugu-lɛ (`>` bɛ ɓɔ i la n'a fɔ).
 
-parse-tag-not-closed = Invalid DoenetML: Tag `{ $tag }` was not closed (a `>` appears to be missing).
+parse-self-closing-tag-name-missing = DoenetML sɔsɔi: taamaa sɔrɔla min tɔgɔ si yen gaa `<{ $content }>`
 
-parse-self-closing-tag-name-missing = Invalid DoenetML: Found a tag without a tag name `<{ $content }>`
+parse-self-closing-tag-not-closed = DoenetML sɔsɔi: taamaa `{ $tag }` ma tugu-lɛ (`/>` bɛ ɓɔ i la n'a fɔ).
 
-parse-self-closing-tag-not-closed = Invalid DoenetML: Tag `{ $tag }` was not closed (`/>` appears to be missing).
+parse-tag-invalid-attributes = DoenetML sɔsɔi: taamaa `{ $tag }` te lɔni ti. A sugandi-ŋa si tɔɔ gaa.
 
-parse-tag-invalid-attributes = Invalid DoenetML: Tag `{ $tag }` is not valid. It may have incorrect attributes.
+parse-close-tag-name-missing = DoenetML sɔsɔi: tugu-taamaa sɔrɔla min tɔgɔ si yen gaa, i n'a fɔ `</`
 
-parse-close-tag-name-missing = Invalid DoenetML: Found a closing tag without a tag name, e.g. `</`
+parse-attribute-value-unquoted = Kwaa-ŋa ka kɛ sɛbɛ-taamaa kɔnɔ: `{ $attribute }="{ $value }"`
 
-# $attribute is the attribute name and $value the unquoted token that followed
-# it, shown reassembled the way the author should have written it.
-parse-attribute-value-unquoted = Attribute values must be enclosed in quotes: `{ $attribute }="{ $value }"`
+parse-close-tag-without-open-tag = DoenetML sɔsɔi: tugu-taamaa sɔrɔla `{ $tag }`, kɔni wuli-taamaa kwaa-bɛn si yen gaa
 
-parse-close-tag-without-open-tag = Invalid DoenetML: Found closing tag `{ $tag }`, but no corresponding opening tag
+parse-close-tag-mismatched = DoenetML sɔsɔi: tugu-taamaa ma bɛn ɲɔgɔn ma. `</{ $expected }>` kwaa bɛ da. `{ $found }` sɔrɔla
 
-parse-close-tag-mismatched = Invalid DoenetML: Mismatched closing tag. Expected `</{ $expected }>`. Found `{ $found }`
-
-# The conversion's fall-through: the syntax tree held a node shape it has no
-# case for. Reaching an author means the grammar and the conversion have gone
-# out of step, which is a bug in Doenet rather than in their document — hence
-# `parser-` rather than the `parse-` of every message above, which is about
-# what the author wrote. They are still the one looking at it, so it is
-# translated like any other error. $node is the node's own name and stays as
-# it is.
-parser-node-unconvertible = Could not convert node { $node } to Dast node.
+parser-node-unconvertible = Node { $node } se gaa ka falɛ Dast node ti.
 
 ## Names
 
-# $reason says which rule the name broke, as a key rather than a phrase, so the
-# whole sentence is translatable rather than assembled from two halves.
 name-attribute-invalid =
-    Invalid attribute name='{ $name }'. { $reason ->
-        [characters] Names can contain only letters, numbers, underscores or hyphens.
-       *[start] Names must start with a letter.
+    Tɔgɔ-kwaa sɔsɔi name='{ $name }'. { $reason ->
+        [characters] Tɔgɔ-ŋa ka kɛ sɛbɛ-mama-ŋa, jate-ŋa, kanda-taamaa wala tan-kunkun dɔrɔn la.
+       *[start] Tɔgɔ-ŋa ka damina sɛbɛ-mama la.
     }
 
-component-name-invalid-start = Invalid component name "{ $name }". Names must start with a letter.
+component-name-invalid-start = Fan-tɔgɔ sɔsɔi "{ $name }". Tɔgɔ-ŋa ka damina sɛbɛ-mama la.
 
 ## `<answer>` sugar
 
-answer-video-watched-missing-video = Answer with type videoWatched must have a video attribute
+answer-video-watched-missing-video = Jaabi min type videoWatched ye, a ka video sugandi-kwaa la
 
-answer-video-watched-video-not-reference = Answer with type videoWatched must have video attribute that is a reference
+answer-video-watched-video-not-reference = Jaabi min type videoWatched ye, a video sugandi-kwaa ka kɛ lasigi-fan ti
 
-answer-name-not-single-text = Answer name attribute must have a single text child
+answer-name-not-single-text = Jaabi tɔgɔ sugandi-kwaa ka kɛ sɛbɛ-den tao la
 
 ## Referencing another document
 
-# $attribute is the attribute the URI was written in (`copyFrom`, `extend`, …)
-# and stays as written; $uri is the author's own value.
+external-doenetml-recursion-limit = A se gaa ka DoenetML bɔ kɛlɛ tɛmɛni la, kanko a segin-segin caa kojugu. Fan-ŋa bɛ ɲɔgɔn kwaa?
 
-external-doenetml-recursion-limit = Unable to retrieve external DoenetML due to too many levels of recursion. Is there a circular reference?
+external-doenetml-unavailable = A se gaa ka DoenetML bɔ { $attribute }="{ $uri }" la
 
-external-doenetml-unavailable = Unable to retrieve DoenetML from { $attribute }="{ $uri }"
-
-external-doenetml-type-mismatch = Invalid DoenetML retrieved from { $attribute }="{ $uri }": it did not match the component type "{ $componentType }"
+external-doenetml-type-mismatch = DoenetML bɔli sɔsɔi { $attribute }="{ $uri }" la: a ma bɛn fan-nɔɔ "{ $componentType }" ma
 
 ## Deprecated syntax
 
-# $from and $to are attribute names and $component a tag name; all three stay
-# as written. $component is `none` for a rename that applies to every component
-# accepting the attribute, where naming one would be wrong.
-#
-# The `[deprecation]` opening is a literal marker shared by all four messages,
-# not a word: leave it as it is.
-
 deprecated-attribute-renamed =
     { $component ->
-        [none] [deprecation] Attribute `{ $from }` is deprecated; use `{ $to }` instead.
-       *[other] [deprecation] Attribute `{ $from }` on `<{ $component }>` is deprecated; use `{ $to }` instead.
+        [none] [deprecation] Sugandi-kwaa `{ $from }` ma ta-i tuguni; `{ $to }` kwaa bɛ ta a nɔɔ la.
+       *[other] [deprecation] Sugandi-kwaa `{ $from }` `<{ $component }>` la ma ta-i tuguni; `{ $to }` kwaa bɛ ta a nɔɔ la.
     }
 
 deprecated-attribute-renamed-conflict =
     { $component ->
-        [none] [deprecation] Attribute `{ $from }` is deprecated and ignored because `{ $to }` is also specified.
-       *[other] [deprecation] Attribute `{ $from }` on `<{ $component }>` is deprecated and ignored because `{ $to }` is also specified.
+        [none] [deprecation] Sugandi-kwaa `{ $from }` ma ta-i tuguni, a n'a jate-lɛ kanko `{ $to }` lɔnna woye.
+       *[other] [deprecation] Sugandi-kwaa `{ $from }` `<{ $component }>` la ma ta-i tuguni, a n'a jate-lɛ kanko `{ $to }` lɔnna woye.
     }
 
-deprecated-attribute-ignored = [deprecation] Attribute `{ $attribute }` on `<{ $component }>` is deprecated and ignored.
+deprecated-attribute-ignored = [deprecation] Sugandi-kwaa `{ $attribute }` `<{ $component }>` la ma ta-i tuguni, a n'a jate-lɛ.
 
-# An attribute replaced by a child element rather than by another attribute:
-# $attribute and $component stay as written, and so does $child, which is the
-# tag name of the child to write instead.
+deprecated-attribute-to-child = [deprecation] Sugandi-kwaa `{ $attribute }` `<{ $component }>` la ma ta-i tuguni; `<{ $child }>` den kwaa bɛ ta a nɔɔ la.
 
-deprecated-attribute-to-child = [deprecation] Attribute `{ $attribute }` on `<{ $component }>` is deprecated; use a `<{ $child }>` child instead.
-
-# One value of an attribute is deprecated while the attribute itself stays:
-# $value is what the author wrote and $to what to write instead, with
-# $attribute and $component naming where. All four stay as written.
-
-deprecated-attribute-value-renamed = [deprecation] Value `{ $value }` of attribute `{ $attribute }` on `<{ $component }>` is deprecated; use `{ $to }` instead.
+deprecated-attribute-value-renamed = [deprecation] Kwaa `{ $value }` sugandi-kwaa `{ $attribute }` la `<{ $component }>` la ma ta-i tuguni; `{ $to }` kwaa bɛ ta a nɔɔ la.
 
 
 ## Language coverage
 
-# `<pluralize>` runs an English part-of-speech model over its text and puts the
-# nouns in the plural. There is no equivalent for an arbitrary language — a
-# correct plural needs that language's own morphology, and often its
-# dictionary — so in a document written in anything else the word is left as
-# the author typed it, and this says so rather than silently doing nothing.
-#
-# Raised only when there is nothing else to fall back on: a `pluralForm` is the
-# author supplying their own language's plural, and that is honored in every
-# language, which is why this can recommend it.
-#
-# $locale is the document's language tag, as declared.
-pluralize-english-only = `<pluralize>` can only pluralize English, so its text is left unchanged in a document written in { $locale }. Write the plural form directly, or set it with the `pluralForm` attribute.
+pluralize-english-only = `<pluralize>` se-i dɔrɔn Angilɛ-kuma la, a bɛ to kwaa-kwaa la sɛbɛ nin min sɛbɛlen { $locale } la. Sɛbɛ-mama caa-kwaa sɛbɛ kelenkelen, wala a lɔn ni `pluralForm` sugandi-kwaa ti.
 
 
 ## Checking against the schema
 
-# What the editor draws a squiggle under: the language server's own check of
-# the document against the DoenetML schema, run on every keystroke and
-# answered before anything is evaluated. A beginner meets these first, and
-# usually only these, because a document that does not pass them rarely gets
-# as far as producing a diagnostic from the core.
-#
-# `@doenet/lsp-tools` writes its English beside the code rather than rendering
-# it from here, for the same reason `@doenet/parser` does: it is inside the
-# language-server bundle, which `@doenet/codemirror` embeds verbatim and
-# starts as a blob worker, and a catalog on the editor's critical path is what
-# `packages/lsp/scripts/check-server-bundle.mjs` exists to reject. The two
-# copies are held together by a test in that package, which runs the checker
-# over a corpus and asserts every coded violation renders to exactly what the
-# checker wrote — so a message edited here without its counterpart fails
-# there.
-#
-# $tag, $parent and $attribute quote the author's own source back at them and
-# stay exactly as written; the angle brackets and backticks around them are
-# punctuation this catalog supplies, not part of the name.
+schema-element-unrecognized = Fan `<{ $tag }>` te Doenet fan lɔni ti.
 
-schema-element-unrecognized = Element `<{ $tag }>` is not a recognized Doenet element.
+schema-element-not-allowed-at-root = Fan `<{ $tag }>` n'a se-i gaa sɛbɛ kunfɔlɔ la.
 
-schema-element-not-allowed-at-root = Element `<{ $tag }>` is not allowed at the root of the document.
+schema-element-not-allowed-inside = Fan `<{ $tag }>` n'a se-i gaa `<{ $parent }>` kɔnɔ.
 
-schema-element-not-allowed-inside = Element `<{ $tag }>` is not allowed inside of `<{ $parent }>`.
+schema-attribute-unrecognized = Fan `<{ $tag }>` si sugandi-kwaa la gaa min tɔgɔ ye `{ $attribute }`.
 
-schema-attribute-unrecognized = Element `<{ $tag }>` doesn't have an attribute called `{ $attribute }`.
-
-# $allowed is the attribute's permitted values, each already in double quotes
-# and joined for the reader's language. $isList says whether the attribute
-# takes several of them at once: one situation, two sentences, because the
-# reader has to be told they are choosing a whole list rather than a value.
 schema-attribute-value-not-allowed =
     { $isList ->
-        [true] Attribute `{ $attribute }` of element `<{ $tag }>` must be a list whose items are each one of: { $allowed }
-       *[other] Attribute `{ $attribute }` of element `<{ $tag }>` must be one of: { $allowed }
+        [true] Sugandi-kwaa `{ $attribute }` fan `<{ $tag }>` la ka kɛ kwaa-lajɛlen ti min fɛn-ŋa bɛɛ kɛ nin tao ti: { $allowed }
+       *[other] Sugandi-kwaa `{ $attribute }` fan `<{ $tag }>` la ka kɛ nin tao ti: { $allowed }
     }
 
 
 ## The `<select>` family's error boxes
-##
-## The messages that replace the whole component with a red box rather than
-## warning beside it: nothing can be selected, so there is nothing to render.
-## They were the last uncoded `_error` path in the worker (#1581).
-##
-## Counts arrive as numbers rather than as text, so a language that agrees a
-## noun with them can select on them. English does not agree here — it says
-## "1 options" today and these messages reproduce it exactly, because the box's
-## text is what the existing suites pin.
-##
-## Being numbers, they are grouped: a count of 1500 renders as "1,500" in
-## English where the concatenated sentence these replaced wrote "1500". That is
-## the one way the English moved, and it moved in the right direction — these
-## are quantities, not identifiers like a line or a section number, which is
-## the distinction that decides between a number and a string everywhere in
-## these catalogs.
-##
-## Translators: component and attribute names — `selectFromSequence`,
-## `selectPrimeNumbers`, `from`, `to`, `step` — are DoenetML identifiers, not
-## words. They are written into these messages as they stand and must be left
-## in English exactly as written.
 
-select-variant-name-option-count-mismatch = Invalid variant name for select.  Variant name { $variantName } appears in { $numOptions } options but number to select is { $numToSelect }.
+select-variant-name-option-count-mismatch = Yɛlɛma-fan tɔgɔ sɔsɔi select ma. Yɛlɛma-fan tɔgɔ { $variantName } sɔrɔla sugandi { $numOptions } la, kɔni jate lɔni sugandi-kwaa ye { $numToSelect }.
 
-select-variant-name-without-options = Some variants are specified for select but no options are specified for possible variant name: { $variantName }.
+select-variant-name-without-options = Yɛlɛma-fan dɔ-ŋa lɔnna select ma, kɔni sugandi si yen gaa yɛlɛma-fan tɔgɔ { $variantName } ma.
 
-select-variant-name-not-possible = Variant name { $variantName } that is specified for select is not a possible variant name.
+select-variant-name-not-possible = Yɛlɛma-fan tɔgɔ { $variantName } lɔni select ma te yɛlɛma-fan tɔgɔ se-i ti.
 
-select-too-few-options = Cannot select { $numToSelect } components from only { $numOptions }.
+select-too-few-options = A se gaa ka { $numToSelect } sugandi { $numOptions } dɔrɔn na.
 
-select-from-sequence-too-few-values = Cannot select { $numToSelect } values from a sequence of length { $length }.
+select-from-sequence-too-few-values = A se gaa ka { $numToSelect } kwaa sɔɔlin { $length } waa la.
 
-select-from-sequence-indices-count-mismatch = Number of indices specified for select must match number to select
+select-from-sequence-indices-count-mismatch = Indices jate lɔni select ma ka bɛn sugandi jate ma
 
-select-from-sequence-indices-not-integers = All indices specified for select must be integers
+select-from-sequence-indices-not-integers = Indices lɔni-ŋa select ma ka kɛ jate-tɔɔ ti bɛɛ
 
-select-from-sequence-index-excluded = Specified index of selectfromsequence that was excluded
+select-from-sequence-index-excluded = Selectfromsequence index lɔni min bɔli
 
-select-from-sequence-indices-excluded-combination = Specified indices of selectfromsequence that was an excluded combination
+select-from-sequence-indices-excluded-combination = Selectfromsequence indices lɔni-ŋa minnu bɔli kwaa-lajɛlen na
 
-select-from-sequence-coprime-not-positive-integers = Cannot select coprime combinations as not selecting positive integers.
+select-from-sequence-coprime-not-positive-integers = A se gaa ka coprime lajɛlen-ŋa sugandi, kanko jate-tɔɔ sanfɛ-ŋa si sugandilen gaa.
 
-# Translators: from, to and step are attribute names. They are written into
-# the message rather than passed in because these three never vary — an
-# argument is for a name that changes from one call to the next.
-select-from-sequence-coprime-common-factor = Cannot select coprime numbers. All possible values share a common factor. (Specified values of "from" or "to" must be coprime with "step".)
+select-from-sequence-coprime-common-factor = A se gaa ka coprime jate-ŋa sugandi. Kwaa-ŋa bɛɛ ye jate tao lajɛlen la. (Kwaa lɔni-ŋa "from" wala "to" ma ka coprime kɛ "step" ye.)
 
-select-from-sequence-coprime-single-number = Cannot select coprime combinations from a single number that is not 1.
+select-from-sequence-coprime-single-number = A se gaa ka coprime lajɛlen-ŋa sugandi jate tao na min te 1 ti.
 
-select-from-sequence-excluded-too-many-combinations = Excluded over 70% of combinations in selectFromSequence
+select-from-sequence-excluded-too-many-combinations = Lajɛlen-ŋa 70% tɛmɛni bɔli selectFromSequence la
 
-# The sibling of `select-from-sequence-coprime-common-factor`, and a different
-# situation rather than a rewording of it: that one is decided up front, from
-# the sequence's own arithmetic. This one is what is left after two hundred
-# draws found no coprime combination among values that could have supplied one.
-select-from-sequence-coprime-none-found = Could not select coprime numbers. All possible values share a common factor.
+select-from-sequence-coprime-none-found = A se gaa ka coprime jate-ŋa sugandi. Kwaa-ŋa bɛɛ ye jate tao lajɛlen la.
 
-select-from-sequence-too-few-unique-values = Cannot select { $numToSelect } unique values from sequence of length { $numPossibleValues }
+select-from-sequence-too-few-unique-values = A se gaa ka { $numToSelect } kwaa kwaa-tao sɔɔlin { $numPossibleValues } waa la sugandi
 
-select-prime-numbers-too-few-values = Cannot select { $numToSelect } values from a list of primes of length { $numValues }
+select-prime-numbers-too-few-values = A se gaa ka { $numToSelect } kwaa prime jate-lajɛlen { $numValues } waa la sugandi
 
-select-prime-numbers-values-count-mismatch = Number of values specified for select must match number to select
+select-prime-numbers-values-count-mismatch = Kwaa jate lɔni-ŋa select ma ka bɛn jate lɔni sugandi-kwaa ma
 
-select-prime-numbers-values-not-prime = All values specified for select prime number must be in the list of primes
+select-prime-numbers-values-not-prime = Kwaa lɔni-ŋa bɛɛ select prime jate ma ka kɛ prime jate-lajɛlen kɔnɔ
 
-select-prime-numbers-values-excluded-combination = Specified values of selectPrimeNumbers was an excluded combination
+select-prime-numbers-values-excluded-combination = Kwaa lɔni-ŋa selectPrimeNumbers ma bɔli kwaa-lajɛlen la
 
-select-prime-numbers-excluded-too-many-combinations = Excluded over 70% of combinations in selectPrimeNumbers
+select-prime-numbers-excluded-too-many-combinations = Lajɛlen-ŋa 70% tɛmɛni bɔli selectPrimeNumbers la
 
-# Both flukes are shared by `<selectFromSequence>` and `<selectPrimeNumbers>`,
-# which say the same thing in the same words. Neither is reachable in practice
-# — each follows two hundred independent draws — but an unreachable box is
-# still a box, and it renders in whatever language the rest of the page does.
-select-random-combination-fluke = By extremely unlikely fluke, couldn't select combination of random values
+select-random-combination-fluke = Ni fɛn nyɛtaa kojugu bɛ, a se gaa ka kwaa-lajɛlen kolonkolon sugandi
 
-select-random-value-fluke = By extremely unlikely fluke, couldn't select random value
+select-random-value-fluke = Ni fɛn nyɛtaa kojugu bɛ, a se gaa ka kwaa kolonkolon sugandi

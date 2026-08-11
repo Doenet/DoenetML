@@ -3,227 +3,162 @@
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
-# `kpe` is Kpelle, of Liberia (the large majority of its ~1.2M speakers) and
-# southern Guinea (Nzérékoré/Yomou). Southwestern (South) Mande, per
-# `en.wikipedia.org/wiki/Southwestern_Mande_languages` — the same higher-level
-# Mande family as `locales/bm`, `locales/dyu` and `locales/mnk`, but a
-# different, more distantly related branch (those three are Manding, a Central
-# Mande group; Kpelle and Looma are Southwestern Mande, sharing no recent
-# common ancestor with Manding within Mande).
+# `kpe` is Kpelle (Kpɛlɛwoo), South Mande — the same subgroup as Loma, whose
+# catalog (`locales/lom`) was seeded alongside this one; see that file's
+# header for the shared grammar (no gender, no article, no case, so `$gender`
+# and `$role` go unused; no adjective-agreement marking either, so a
+# description precedes the noun it modifies). `Intl.PluralRules('kpe')` has
+# no dedicated data in Node's ICU build and falls back to the generic
+# `one`/`other` categories, the same two categories `lom` and English use, so
+# the `[one]`/`*[other]` branches below are shaped the same way as the rest of
+# this batch.
 #
-# Kpelle has no noun-class or gender markers and no adjective agreement, so
-# `$gender` and `$role` go unused here exactly as they do in `bm`/`dyu`/`mnk`.
-# That is a genuine finding, not an assumption carried over from the Manding
-# catalogs: South Mande does carry noun-class-like material, but it shows up
-# as a *specificity/definiteness suffix inside the pronominal and demonstrative
-# system* (Konoshenko and other South Mande descriptions), not as agreement
-# marking on a following adjective — Kpelle adjectives are themselves mostly
-# deverbal ("predicating" adjectives formed from verb stems) and simply follow
-# the noun uninflected. So the fork-on-neither decision matches the other
-# Mande catalogs, but for a different underlying reason than "Mande has no
-# noun classes at all" — Central Mande genuinely lacks the suffixal machinery
-# that South Mande has, it just never surfaces as adjective agreement either.
+# Kpelle is even less digitized than Loma: this seed found no comparable
+# published word list to draw from (no equivalent of Loma's Sadler grammar or
+# Omniglot page), so almost nothing here is directly attested. The strategy
+# instead is to lean on the two things this seed can lean on: (1) the
+# grammatical particles Kpelle and Loma plausibly share as close Southwestern
+# Mande relatives — `ka`, `ma`, `bɛ`, `kɛ` ("to do/become", attested for
+# Kpelle in Welmers's grammar), the `gaa`/`si … gaa` negation pattern, the
+# `-lɛ`/`-i` result-state marking — reused here from `locales/lom` under that
+# cognate assumption rather than verified word-by-word, and (2) a handful of
+# vocabulary items with enough independent confidence to swap in on top of
+# that base: the numerals `tao` "one", `feere` "two", `saba` "three" (shared
+# Mande loan), and `naa` "four"; `kɛ` "do/become"; and, for register no
+# published source covers (accessibility, technical UI verbs), an English
+# loanword rather than a coined Kpelle term — English being Kpelle speakers'
+# dominant contact language in Liberia, unlike Loma's Guinean-side contact
+# with Maninka/French. Everything else — color terms, the plural shape
+# `-ŋa`, and most content vocabulary — is a calque built the same way Loma's
+# was, and should be treated as no more than a starting guess pending a
+# speaker's correction; this catalog deserves at least as much scrutiny as
+# `locales/lom`, which the batch already flags as its least certain.
 #
-# Kpelle is essentially unattested in machine-translation training data (see
-# arXiv:2505.18905, "Building a Functional Machine Translation Corpus for
-# Kpelle", 2025, which starts from near zero). Combined with Liberia's
-# English-medium schooling and heavy Kpelle–English code-switching in
-# technical registers, this seed leans on English loanwords for UI and
-# technical vocabulary far more than `bm`/`dyu`/`mnk` do, and keeps sentence
-# grammar close to English where a confident Kpelle rendering could not be
-# verified against a primary source. This makes it a *lower-confidence* seed
-# than the Manding catalogs — flag it for review ahead of them.
+# `Intl.DisplayNames` has no entry for `kpe` either, so `LOCALE_NAME_FALLBACKS`
+# needs a manual English name; "Kpelle" is correct and unambiguous.
 
 
-## Answer submission — the check-work button and the status it reports.
+## Answer submission
 
-answer-checking = Checking...
-answer-submitting = Submitting...
+answer-checking = A bɛi kɔlɔ-taa…
+answer-submitting = A bɛi ci-taa…
 
-# Announced to a screen reader while the submission is in flight. Separate
-# from the button's own text, which is abbreviated.
-answer-checking-status = Checking answer
-answer-submitting-status = Submitting answer
+answer-checking-status = Jaabi kɔlɔ-taa
+answer-submitting-status = Jaabi ci-taa
 
-answer-correct = Correct
-answer-incorrect = Incorrect
+answer-correct = A tɔɔ
+answer-incorrect = A tɔɔ gaa
 
-# Shown instead of a correctness verdict when the activity withholds
-# correctness: the response was recorded, nothing is claimed about it.
-answer-response-saved = Response Saved
+answer-response-saved = Jaabi marala
 
-# Partial credit. `-credit` is used when repeated attempts reduce the credit
-# available, `-correct` when they do not, and `-short` on a button too narrow
-# for a word.
-answer-percent-credit = { $percent }% Credit
-answer-percent-correct = { $percent }% Correct
+answer-percent-credit = { $percent }% pɔn
+answer-percent-correct = { $percent }% tɔɔ
 answer-percent-short = { $percent } %
 
-max-credit-available = Max credit available: { $percent }%
+max-credit-available = Pɔn gbɛtɛ mu wa sɔrɔ ma: { $percent }%
 
-# Fluent formats `{ $count }` with `Intl.NumberFormat`, so a four-digit
-# attempt count renders as "1,000" where the hand-built string said "1000".
-# That is the one place English output is not byte-identical to what this
-# replaced, and grouping is the locale-correct rendering, so it stands.
 attempts-remaining =
     { $count ->
-        [0] no attempts remaining
-        [one] { $count } attempt remaining
-       *[other] { $count } attempts remaining
+        [0] kɛcogo he to gaa
+        [one] kɛcogo { $count } to
+       *[other] kɛcogo { $count } to
     }
 
-# Appended to an input's accessible name once its response has been graded,
-# so a screen reader reports the verdict along with the field.
-validation-correct = (Correct)
-validation-incorrect = (Incorrect)
-validation-partially-correct = (Partially correct)
+validation-correct = (A tɔɔ)
+validation-incorrect = (A tɔɔ gaa)
+validation-partially-correct = (A tɔɔ yɔrɔ dɔ ma)
 
-# Tooltip on the badge that reports how many responses have been submitted to
-# one answer, shown only to a host that asked for it. `$answerId` is the
-# answer's authored name and is never translated.
 answer-show-responses =
     { $count ->
-        [one] Show { $count } response to { $answerId }
-       *[other] Show { $count } responses to { $answerId }
+        [one] Jaabi { $count } jira { $answerId } ma
+       *[other] Jaabi { $count } jira { $answerId } ma
     }
 
 
 ## Disclosure panels
 
-feedback-heading = Feedback
+feedback-heading = Kɔlɔyaa-jaabi
 
-# Follows a disclosure panel's own heading — "Solution (click to open)" — and
-# is shared by `<solution>`, `<hint>`, and a collapsible `<section>`. The whole
-# parenthetical is one message: where the word for open or close falls inside
-# it is the translator's business.
-collapsible-click-to-open = (click to open)
-collapsible-click-to-close = (click to close)
+collapsible-click-to-open = (a digi ka a wulo)
+collapsible-click-to-close = (a digi ka a tugu)
 
-# Placeholder inside a panel that has been opened before its contents have
-# arrived from the core. Shared by `<solution>` and a collapsible `<section>`.
-collapsible-initializing = Initializing...
+collapsible-initializing = A bɛi damina-taa…
 
-# Tooltip on a footnote marker, naming what activating it will do.
-footnote-show = Show footnote
-footnote-hide = Hide footnote
+footnote-show = Duguma-sɛbɛ jira
+footnote-hide = Duguma-sɛbɛ dogo
 
-# Tooltip on the ⓘ affordance that reveals an input's description.
-description-more-information = more information
+description-more-information = kunnafoni gbɛtɛ
 
 
 ## Controls
 
-slider-previous = Prev
-slider-next = Next
+slider-previous = Kɔrɔ
+slider-next = Nata
 
-keyboard-open = Open Keyboard
-keyboard-close = Close Keyboard
+keyboard-open = Klaviye wulo
+keyboard-close = Klaviye tugu
 
-# Accessible name of the button that drops one selected choice from an inline
-# `<choiceInput selectMultiple>`. The button itself is drawn as a bare cross,
-# so `$choice` — the choice's own text, which is never translated — is the
-# only thing that says which chip it belongs to.
-choice-input-remove-choice = Remove { $choice }
+choice-input-remove-choice = { $choice } bɔ
 
-# Accessible names of a matrix input's size controls, whose visible labels are
-# the symbols `r-` `r+` `c-` `c+`.
-matrix-remove-row = Remove row
-matrix-add-row = Add row
-matrix-remove-column = Remove column
-matrix-add-column = Add column
+matrix-remove-row = Laa bɔ
+matrix-add-row = Laa fa
+matrix-remove-column = Kolo bɔ
+matrix-add-column = Kolo fa
 
-# Modes and actions of the subset-of-reals input's control strip. The button
-# that selects all of the reals is the symbol `R`, not a word, and stays in
-# place.
-subset-add-remove-points = Add/Remove points
-subset-toggle-points-intervals = Toggle points and intervals
-subset-move-points = Move Points
-subset-clear = Clear
+subset-add-remove-points = Kɛlɛ-ŋa fa/bɔ
+subset-toggle-points-intervals = Kɛlɛ-ŋa nda tila-yɔrɔ-ŋa falɛ
+subset-move-points = Kɛlɛ-ŋa lamaga
+subset-clear = Bɛɛ bɔ
 
-# Buttons that edit an orbital diagram: rows hold boxes, boxes hold up to
-# three spin arrows.
-orbital-add-row = Add Row
-orbital-remove-row = Remove Row
-orbital-add-box = Add Box
-orbital-remove-box = Remove Box
-orbital-add-up-arrow = Add Up Arrow
-orbital-add-down-arrow = Add Down Arrow
-orbital-remove-arrow = Remove Arrow
+orbital-add-row = Laa fa
+orbital-remove-row = Laa bɔ
+orbital-add-box = Kɛsu fa
+orbital-remove-box = Kɛsu bɔ
+orbital-add-up-arrow = Sanfɛ-bin fa
+orbital-add-down-arrow = Dugumafɛ-bin fa
+orbital-remove-arrow = Bin bɔ
 
-# Accessible name of the text field naming one row of an orbital diagram,
-# counting from 1.
-orbital-row-label = Label for row { $row }
+orbital-row-label = Laa { $row } tɔgɔ
 
-# Labels the answer column of a pretzel exercise's grid.
-pretzel-answer = Answer
+pretzel-answer = Jaabi
 
-# Caption above the table a `<summaryStatistics>` renders. `$column` is the
-# authored name of the data column being summarized and is never translated.
-# The table's own headings (`mean`, `stdev`, `quartile1`, …) are the statistic
-# ids an author references, not prose, and stay in place.
-summary-statistics-caption = Summary statistics of { $column }
+summary-statistics-caption = { $column } jate-ŋa kunkurunni
 
 
 ## Math input
 
-# Accessible name of the popover that previews the typed expression, and of
-# the rendered expression inside it.
-math-input-preview-region = math expression preview
-math-input-preview = Preview
-math-input-invalid-expression = Invalid expression:
+math-input-preview-region = jate-kuma ɲɛfɔli
+math-input-preview = Ɲɛfɔli
+math-input-invalid-expression = Kuma sɔsɔi:
 
 
 ## Document status
 
-# Shown while the core is still starting up and nothing can be rendered yet.
-viewer-initializing = Initializing...
+viewer-initializing = A bɛi damina-taa…
 
 
 ## Errors
 
-# Prefixes an error message wherever one is shown in place of content: an
-# `<error>` the core reported, the error boundary's fallback, and the
-# placeholder left where a renderer chunk failed to load.
-error-heading = Error
+error-heading = Fele
 
-# Follows the error's own message inside that box, saying where in the source
-# the error was found. $span selects the sentence — one line or a range of
-# them — as a key rather than a phrase, so a translation is free to reorder the
-# whole of it. $startLine and $endLine are line numbers, and arrive as text
-# rather than as numbers so that line 1234 is not grouped as "1,234": a line
-# number is an identifier, not a quantity.
 error-found-at =
     { $span ->
-        [line] Found on line { $startLine }.
-       *[lines] Found on lines { $startLine }–{ $endLine }.
+        [line] A sɔrɔla laa { $startLine } ma.
+       *[lines] A sɔrɔla laa { $startLine }–{ $endLine } ma.
     }
 
-# Banner above a document that compiled with at least one error in it.
-document-contains-errors = This document contains errors!
+document-contains-errors = Sɛbɛ nin fele-ŋa bɛ a la!
 
-# Headings of the tooltip the editor shows over a squiggle, naming what kind
-# of diagnostic it is. `-information` and `-hint` are styled identically but
-# are two different words; `-hint` is unreachable today, since nothing Doenet
-# raises is an LSP hint, and is here so the set is complete.
-diagnostic-heading-error = Error
-diagnostic-heading-warning = Warning
-diagnostic-heading-information = Info
-diagnostic-heading-hint = Hint
+diagnostic-heading-error = Fele
+diagnostic-heading-warning = Kɔlɔyaa
+diagnostic-heading-information = Kunnafoni
+diagnostic-heading-hint = Nɔnabɔli
 
-# Headings of the same tooltip over an accessibility diagnostic, which says
-# what kind of problem it is rather than how severe. Level 1 is a failure
-# against the WCAG AA success criteria; level 2 is Doenet's own advice, which
-# no standard requires.
-accessibility-heading-level-1 = WCAG AA Accessibility Violation
-accessibility-heading-level-2 = Accessibility alert
+accessibility-heading-level-1 = WCAG AA aksɛsibiliti tɛmɛli
+accessibility-heading-level-2 = Aksɛsibiliti kɔlɔyaa
 
-# Shown in place of the document when a renderer threw and the error boundary
-# caught it.
-something-went-wrong = Something went wrong.
+something-went-wrong = Fɛn dɔ tɔɔ gaa.
 
-# Shown in place of a single renderer whose code chunk never arrived.
-renderer-load-failed = a renderer failed to load. Please reload the page.
+renderer-load-failed = jirala se gaa ka wuli. Ɲɛ nin segin.
 
-# Shown in place of the document when the core worker could not be started
-# after retries, rather than leaving the pane blank.
-core-start-failed = The document viewer could not be started. Please reload the page.
+core-start-failed = Sɛbɛ-jirala se gaa ka damina. Ɲɛ nin segin.
