@@ -11,9 +11,14 @@ import {
 const DEFAULT_VARIABLES = "x y";
 
 /**
- * Children a field takes alongside its function, which are left where they are.
- * `xLabel` and `yLabel` are inherited from the graphical base along with
- * `label`, so a field accepts all three.
+ * Children this sugar never folds into the function.
+ *
+ * A field takes a `<shortDescription>`, and takes no label at all: it covers
+ * the whole visible region, so there is nowhere for one to sit, and the
+ * components set `includeLabels = false`. The label tags are listed anyway so
+ * that one written by mistake is left where it was and reported as the invalid
+ * child it is, rather than being swallowed into the expression and reported as
+ * something else entirely.
  */
 const NON_FUNCTION_CHILDREN = new Set([
     "label",

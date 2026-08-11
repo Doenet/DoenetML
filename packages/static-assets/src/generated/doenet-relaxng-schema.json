@@ -141766,13 +141766,6 @@
                         "string"
                     ]
                 },
-                "labelIsName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
                 "applyStyleToLabel": {
                     "optional": true,
                     "type": [
@@ -141852,18 +141845,6 @@
             },
             "children": [
                 {
-                    "ref": "xLabel"
-                },
-                {
-                    "ref": "yLabel"
-                },
-                {
-                    "ref": "conditionalContent"
-                },
-                {
-                    "ref": "label"
-                },
-                {
                     "ref": "clampFunction"
                 },
                 {
@@ -141877,6 +141858,9 @@
                 },
                 {
                     "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "rightHandSide"
@@ -142119,13 +142103,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
                     "fromAttribute": true
                 },
                 {
@@ -142222,12 +142199,6 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component."
-                },
-                {
                     "name": "styleDescription",
                     "type": "text",
                     "isArray": false,
@@ -142302,13 +142273,6 @@
                     "optional": true,
                     "type": [
                         "string"
-                    ]
-                },
-                "labelIsName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
                     ]
                 },
                 "applyStyleToLabel": {
@@ -142397,18 +142361,6 @@
             },
             "children": [
                 {
-                    "ref": "xLabel"
-                },
-                {
-                    "ref": "yLabel"
-                },
-                {
-                    "ref": "conditionalContent"
-                },
-                {
-                    "ref": "label"
-                },
-                {
                     "ref": "clampFunction"
                 },
                 {
@@ -142422,6 +142374,9 @@
                 },
                 {
                     "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "conditionalContent"
                 },
                 {
                     "ref": "rightHandSide"
@@ -142664,13 +142619,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
                     "fromAttribute": true
                 },
                 {
@@ -142772,12 +142720,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component."
                 },
                 {
                     "name": "styleDescription",

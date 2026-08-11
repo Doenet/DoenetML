@@ -114452,15 +114452,12 @@
         {
             "name": "slopeField",
             "children": [
-                "xLabel",
-                "yLabel",
-                "conditionalContent",
-                "label",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
                 "function",
                 "piecewiseFunction",
+                "conditionalContent",
                 "rightHandSide",
                 "m",
                 "me",
@@ -114535,7 +114532,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120111011222211111111111111111111112222221222202222122222011222122222122221212222",
+            "childBuckets": "1110121222211111111111111111111112222221222202222122222011222122222122221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -114611,17 +114608,6 @@
                     "name": "copy",
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
                     "type": "reference"
-                },
-                {
-                    "name": "labelIsName",
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "groupName": "labels",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
                 },
                 {
                     "name": "applyStyleToLabel",
@@ -114743,14 +114729,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true,
-                    "groupName": "labels"
-                },
-                {
                     "name": "applyStyleToLabel",
                     "type": "boolean",
                     "isArray": false,
@@ -114844,13 +114822,6 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component.",
-                    "groupName": "labels"
-                },
-                {
                     "name": "styleDescription",
                     "type": "text",
                     "isArray": false,
@@ -114873,15 +114844,12 @@
         {
             "name": "vectorField",
             "children": [
-                "xLabel",
-                "yLabel",
-                "conditionalContent",
-                "label",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
                 "function",
                 "piecewiseFunction",
+                "conditionalContent",
                 "rightHandSide",
                 "m",
                 "me",
@@ -114956,7 +114924,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120111011222211111111111111111111112222221222202222122222011222122222122221212222",
+            "childBuckets": "1110121222211111111111111111111112222221222202222122222011222122222122221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -115032,17 +115000,6 @@
                     "name": "copy",
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
                     "type": "reference"
-                },
-                {
-                    "name": "labelIsName",
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "groupName": "labels",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
                 },
                 {
                     "name": "applyStyleToLabel",
@@ -115174,14 +115131,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true,
-                    "groupName": "labels"
-                },
-                {
                     "name": "applyStyleToLabel",
                     "type": "boolean",
                     "isArray": false,
@@ -115280,13 +115229,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component.",
-                    "groupName": "labels"
                 },
                 {
                     "name": "styleDescription",

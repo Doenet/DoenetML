@@ -10,6 +10,10 @@ export default class VectorField extends GraphicalComponent {
     static componentType = "vectorField";
     static styleOverrideCategories = ["line"];
 
+    // A field covers the whole visible region, so there is nowhere for a label
+    // to sit beside it and the renderer draws none.
+    static includeLabels = false;
+
     static componentDocs = {
         summary:
             "A vector field drawn as arrows on a lattice, from a function with two outputs",

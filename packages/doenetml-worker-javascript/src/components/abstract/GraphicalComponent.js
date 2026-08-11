@@ -61,10 +61,32 @@ export default class GraphicalComponent extends BaseComponent {
         }
     }
 
+    /**
+     * Whether this component can carry a label.
+     *
+     * Every graphical component gets the `labels` child group, the
+     * `labelIsName` attribute and the `label` state variables from here, which
+     * suits the ones drawn at a place a label can sit beside. A component that
+     * covers the whole viewport — a field, say — has no such place, and its
+     * renderer draws no label however one is written. Setting this false drops
+     * the three together, so a `<label>` is refused rather than accepted and
+     * ignored. They have to go together: the `label` state variable depends on
+     * the `labels` child group, so dropping only the group would leave it
+     * pointing at nothing.
+     *
+     * Tested against `false` rather than for truthiness because these methods
+     * are also borrowed by classes outside this hierarchy — `Function` calls
+     * `GraphicalComponent.returnStateVariableDefinitions.call(this)` — where
+     * the flag is simply absent and labels are wanted.
+     */
+    static includeLabels = true;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        Object.assign(attributes, returnLabelAttributes());
+        if (this.includeLabels !== false) {
+            Object.assign(attributes, returnLabelAttributes());
+        }
 
         attributes.applyStyleToLabel = {
             createComponentOfType: "boolean",
@@ -105,6 +127,9 @@ export default class GraphicalComponent extends BaseComponent {
     }
 
     static returnChildGroups() {
+        if (this.includeLabels === false) {
+            return [];
+        }
         return [
             {
                 group: "labels",
@@ -128,9 +153,11 @@ export default class GraphicalComponent extends BaseComponent {
 
         Object.assign(stateVariableDefinitions, selectedStyleDefinition);
 
-        let labelDefinitions = returnLabelStateVariableDefinitions();
+        if (this.includeLabels !== false) {
+            let labelDefinitions = returnLabelStateVariableDefinitions();
 
-        Object.assign(stateVariableDefinitions, labelDefinitions);
+            Object.assign(stateVariableDefinitions, labelDefinitions);
+        }
 
         return stateVariableDefinitions;
     }

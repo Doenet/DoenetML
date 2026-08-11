@@ -204,7 +204,10 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
-    it("slopeField sugar leaves a label child alone", async () => {
+    it("refuses a label child rather than accepting one it cannot draw", async () => {
+        // A field covers the whole visible region, so there is nowhere to put
+        // a label. Taking one and drawing nothing is the failure mode this
+        // component has been trimmed of elsewhere.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
@@ -216,13 +219,21 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const sf = stateVariables[await resolvePathToNodeIdx("sf")];
 
-        // Only the expression becomes the function; the label stays a child.
+        // The expression is still read; only the label is refused.
         expect(sf.stateValues.haveFunction).eq(true);
         expect(numericalF(sf.stateValues.fDefinitions[0])(2, 7)).closeTo(
             5,
             1e-12,
         );
-        expect(sf.stateValues.label).eq("a field");
+        expect(sf.stateValues.label).eq(undefined);
+
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors.length).eq(0);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).contain(
+            "Invalid children for `<slopeField>`",
+        );
+        expect(warnings[0].message).contain("`<label>`");
     });
 
     it("slopeField exposes grid defaults and honors overrides", async () => {

@@ -10,6 +10,10 @@ export default class SlopeField extends GraphicalComponent {
     static componentType = "slopeField";
     static styleOverrideCategories = ["line"];
 
+    // A field covers the whole visible region, so there is nowhere for a label
+    // to sit beside it and the renderer draws none.
+    static includeLabels = false;
+
     static componentDocs = {
         summary:
             "A slope field for a differential equation y' = f(x,y), drawn as tick marks on a lattice",
