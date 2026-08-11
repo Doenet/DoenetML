@@ -9,6 +9,22 @@
 import { codedDiagnostic } from "./diagnostics";
 
 /**
+ * The child group both field components take their function from.
+ *
+ * The function is written inside the component either as a bare expression,
+ * which `fieldFunctionSugar` (`@doenet/parser`) wraps in a `<function>` before
+ * the worker sees it, or as a `<function>` child spelled out. Both arrive here.
+ *
+ * A fresh object each call, since the groups a component returns become its own.
+ */
+export function returnFieldFunctionChildGroup() {
+    return {
+        group: "functions",
+        componentTypes: ["function"],
+    };
+}
+
+/**
  * The `variables` attribute both field components take.
  *
  * The attribute is declared here so that it is in the schema and the
@@ -102,16 +118,17 @@ export function returnFieldLatticeAttributes({
 }
 
 /**
- * The state variables both field components derive from their `function`
- * attribute.
+ * The state variables both field components derive from their `<function>`
+ * child.
  *
  * The renderer redraws the field on every pan and zoom without going back to
  * the worker, so what it needs is not a closure but `fDefinitions`, which it
  * rehydrates with `createFunctionFromDefinition`. The worker therefore never
  * asks the function for `numericalfs`, which it would only have to build and
- * throw away. The definitions always describe a function of two inputs, since
- * `returnFieldFunctionAttribute` names both variables on the `<function>` it
- * creates; the renderer can call them as `f(x, y)` without checking an arity.
+ * throw away. How many inputs those definitions describe is the author's
+ * choice — two for a bare expression, which the sugar wraps in a `<function>`
+ * naming both variables, one for a `<function>` of a single variable — and the
+ * renderer reads `numInputs` from the definition to call each correctly.
  *
  * The number of outputs, by contrast, is what a mark is drawn from and so is
  * not negotiable. A function with the wrong number is almost always meant for

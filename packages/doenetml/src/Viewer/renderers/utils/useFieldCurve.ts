@@ -11,11 +11,14 @@
  * it never round-trips to the worker.
  */
 import { useContext, useMemo, useRef } from "react";
-import { createFunctionFromDefinition } from "@doenet/utils";
 import { BoardContext, LINE_LAYER_OFFSET } from "../graph";
 import { DocContext } from "../../DocViewer";
 import { JXGBoard, JXGCurve } from "../jsxgraph-distrib/types";
-import type { FieldData, FieldSampling } from "./fieldGeometry";
+import {
+    fieldFunctionFromDefinition,
+    type FieldData,
+    type FieldSampling,
+} from "./fieldGeometry";
 import type { GraphicalSVs } from "./graphicalSVs";
 import { styleToDash } from "./styleToDash";
 import { useJSXGraphCleanup } from "./useJSXGraphCleanup";
@@ -26,8 +29,19 @@ import { useJSXGraphCleanup } from "./useJSXGraphCleanup";
  * `returnFieldFunctionStateVariableDefinitions`, and the lattice attributes
  * from `returnFieldLatticeAttributes`. `<vectorField>` extends this with
  * `normalize`.
+ *
+ * The label half of `GraphicalSVs` is omitted rather than inherited: a field
+ * sets `static includeLabels = false`, so the worker defines none of those
+ * state variables for it and none of them arrive here.
  */
-export interface FieldSVs extends GraphicalSVs {
+export interface FieldSVs extends Omit<
+    GraphicalSVs,
+    | "labelForGraph"
+    | "labelHasLatex"
+    | "labelPosition"
+    | "applyStyleToLabel"
+    | "maskLabel"
+> {
     haveFunction: boolean;
     fDefinitions: any[];
     dx: number;
@@ -39,27 +53,16 @@ export interface FieldSVs extends GraphicalSVs {
 }
 
 /**
- * Rehydrate one of the worker's function definitions into a numeric closure of
- * two inputs.
- *
- * Memoized on the definition because `createFunctionFromDefinition` recompiles
- * the formula every time it is called, and this component re-renders on any
- * state-variable change — a style tweak elsewhere in the document must not cost
- * a recompile.
- *
- * The definition always describes a function of two inputs, whatever arity the
- * author wrote: the `function` attribute names both variables on the
- * `<function>` it creates (see `returnFieldFunctionAttribute` in the worker's
- * `utils/field.js`). That is what lets the two inputs be passed positionally
- * here — a *one*-input function built by `createFunctionFromDefinition` has
- * signature `(x, overrideDomain)`, so a second argument would silently override
- * the domain rather than supply `y`.
+ * {@link fieldFunctionFromDefinition}, memoized on the definition because
+ * rehydrating recompiles the formula every time, and this component re-renders
+ * on any state-variable change — a style tweak elsewhere in the document must
+ * not cost a recompile.
  */
 export function useFieldFunction(
     fDefinition: any,
 ): (x: number, y: number) => number {
     return useMemo(
-        () => createFunctionFromDefinition(fDefinition),
+        () => fieldFunctionFromDefinition(fDefinition),
         [fDefinition],
     );
 }
@@ -85,9 +88,9 @@ export function useFieldCurve({
     const attributes: Record<string, any> = {
         visible: !SVs.hidden,
         // A field covers the whole viewport, so there is no point on it that
-        // reads as "where the label goes"; like `pegboard`, it accepts a
-        // `<label>` child (both inherit the group from `GraphicalComponent`)
-        // but draws no label on the graph.
+        // reads as "where the label goes". The components refuse a `<label>`
+        // for that reason (`static includeLabels = false`); this says the same
+        // thing to JSXgraph about the curve they are drawn as.
         withLabel: false,
         fixed: true,
         layer: 10 * SVs.layer + LINE_LAYER_OFFSET,

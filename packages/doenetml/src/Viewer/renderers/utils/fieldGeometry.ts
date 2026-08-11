@@ -14,6 +14,8 @@
  * unit-testable.
  */
 
+import { createFunctionFromDefinition } from "@doenet/utils";
+
 export interface FieldBounds {
     xMin: number;
     xMax: number;
@@ -56,6 +58,38 @@ export interface FieldSampling {
     /** Mark length in pixels. */
     markLength: number;
     maxMarks: number;
+}
+
+/**
+ * Rehydrate one of the worker's function definitions into a numeric closure the
+ * lattice can call as `f(x, y)`.
+ *
+ * The definition's own arity is whatever the author wrote: two inputs for a
+ * bare expression, which the field's sugar wraps in a `<function>` naming both
+ * variables, but one for a `<function>` child — or a function it references —
+ * that names a single variable. The two cannot be called the same way. A
+ * one-input function built by `createFunctionFromDefinition` has signature
+ * `(x, overrideDomain)`, so passing `y` to it as a second argument would not
+ * supply a second input; it would suppress the function's domain check and draw
+ * marks right across the interval its author excluded. A one-input definition
+ * is therefore called with `x` alone and the lattice's `y` discarded, which is
+ * what a field of `f(x)` means anyway.
+ *
+ * Only a `numInputs` in the definition can say otherwise. Every kind of
+ * definition that omits it — interpolated, bezier, piecewise, a function
+ * operator such as a derivative — describes a function of one input.
+ */
+export function fieldFunctionFromDefinition(
+    fDefinition: any,
+): (x: number, y: number) => number {
+    const f = createFunctionFromDefinition(fDefinition) as (
+        ...args: number[]
+    ) => number;
+
+    if ((fDefinition?.numInputs ?? 1) > 1) {
+        return f;
+    }
+    return (x: number, _y: number) => f(x);
 }
 
 /**

@@ -9,14 +9,19 @@ import { updateMathInputValue } from "../utils/actions";
  * the renderer does. The components deliberately do not expose the worker's own
  * closures, since `fDefinitions` is all that is sent to the renderer.
  *
- * The renderer calls it as `f(x, y)` unconditionally, so these tests do too:
- * the `function` attribute names both variables on the `<function>` it creates,
- * whatever arity the author wrote.
+ * A two-input definition is called as `f(x, y)` and a one-input one as `f(x)`,
+ * which is what the renderer does: a one-input closure's second parameter is
+ * `overrideDomain`, not a second input. `numInputs` is absent from the
+ * definitions that describe no formula, all of which take one input.
  */
-function numericalF(fDefinition: any) {
-    return createFunctionFromDefinition(fDefinition) as (
+function numericalF(fDefinition: any): (x: number, y: number) => number {
+    const f = createFunctionFromDefinition(fDefinition) as (
         ...args: number[]
     ) => number;
+    if ((fDefinition?.numInputs ?? 1) > 1) {
+        return f;
+    }
+    return (x: number, _y: number) => f(x);
 }
 
 const Mock = vi.fn();
@@ -67,9 +72,10 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
     });
 
     it("reads a bare expression as a function of x and y", async () => {
-        // The form the editor's completions offer. Without `variables="x y"` on
-        // the `<function>` the attribute creates, `y` here would be a free
-        // symbol and both fields would be NaN everywhere — a blank graph.
+        // The short form, and the one the reference pages lead with. Without
+        // `variables="x y"` on the `<function>` the sugar wraps it in, `y` here
+        // would be a free symbol and both fields would be NaN everywhere — a
+        // blank graph.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
@@ -112,9 +118,10 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
     });
 
     it("leaves a referenced function's own variables alone", async () => {
-        // Naming `x` and `y` on the component the attribute creates must not
-        // rename the inputs of a function the author declared for themselves:
-        // the referenced function is held as a child and fed positionally.
+        // Naming `x` and `y` on the `<function>` the sugar wraps a reference in
+        // must not rename the inputs of a function the author declared for
+        // themselves: the referenced function is held as a child and fed
+        // positionally.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
@@ -469,6 +476,36 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(warnings[0].message).contain(
             "which names its own variables, so `variables` is ignored",
         );
+    });
+
+    it("keeps a one-input function child's domain", async () => {
+        // A `<function>` child is used as written, so it is the one form in
+        // which a field's function can take a single input and restrict it.
+        // Calling such a function with the lattice's `y` as a second argument
+        // would land on its `overrideDomain` parameter, and the field would be
+        // drawn right across the interval its author excluded.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <slopeField name="sf"><function domain="(-2,2)">x/2</function></slopeField>
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sf = stateVariables[await resolvePathToNodeIdx("sf")];
+
+        expect(sf.stateValues.haveFunction).eq(true);
+        expect(sf.stateValues.fDefinitions[0].numInputs).eq(1);
+        expect(numericalF(sf.stateValues.fDefinitions[0])(1, 5)).closeTo(
+            0.5,
+            1e-12,
+        );
+        expect(
+            Number.isNaN(numericalF(sf.stateValues.fDefinitions[0])(3, 5)),
+        ).eq(true);
+
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
     it("vectorField normalize defaults to false and can be set", async () => {
