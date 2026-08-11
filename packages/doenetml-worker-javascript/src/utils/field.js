@@ -23,11 +23,11 @@ const DEFAULT_VARIABLES = "x y";
  * would be NaN at every lattice point and draw nothing, while reporting that it
  * has a function.
  *
- * It is deliberately a primitive rather than a `_variableNameList`: sugar runs
- * before attributes become components, and reads primitives only. The string is
- * handed to `<function variables="...">` untouched, so the variable list is
- * parsed in exactly one place — the same place that parses what an author
- * writes on a `<function>` directly.
+ * It is the same `_variableNameList` a `<function>` itself takes, and the sugar
+ * hands that component over whole rather than reading names out of it, so the
+ * names may be references: `variables="$v1 $v2"` naming two `<mathInput>`s
+ * renames the field's inputs as the student types, exactly as it would on a
+ * `<function>`.
  *
  * The attribute has nothing to say about an explicit `<function>` child, which
  * names its own inputs; see {@link returnFieldFunctionSugarInstruction}.
@@ -35,7 +35,7 @@ const DEFAULT_VARIABLES = "x y";
 export function returnFieldVariablesAttribute() {
     return {
         variables: {
-            createPrimitiveOfType: "string",
+            createComponentOfType: "_variableNameList",
             description: `Names of the variables a bare expression is read as a function of. Defaults to "${DEFAULT_VARIABLES}". Ignored when the function is given as a <function> child, which names its own variables.`,
         },
     };
@@ -115,9 +115,12 @@ export function returnFieldLatticeAttributes({
  * `<slopeField>y - x</slopeField>` means the same as
  * `<slopeField><function variables="x y">y - x</function></slopeField>`.
  *
- * The wrapping `<function>` is given the field's `variables`, so an author who
- * writes their equation in other letters can say so once on the field rather
- * than reaching for an explicit `<function>`. See
+ * The wrapping `<function>` is given the field's `variables` attribute — the
+ * component itself, moved rather than copied, so the references inside it
+ * resolve in exactly one place and go on tracking whatever they name. An author
+ * who writes their equation in other letters, or lets a student choose them,
+ * says so once on the field rather than reaching for an explicit `<function>`.
+ * When the field named none, the wrapper gets the default pair; see
  * {@link returnFieldVariablesAttribute} for why naming them at all is what
  * keeps a bare `y - x` from being NaN everywhere.
  *
@@ -151,15 +154,22 @@ export function returnFieldFunctionSugarInstruction() {
                 return { success: false };
             }
 
-            // Primitive attributes are the ones sugar can see; `variables` is
-            // declared primitive so that it can be read here.
-            const variables =
-                args.componentAttributes?.variables?.value ?? DEFAULT_VARIABLES;
+            // The field's own `variables`, if it named any. Handed to the
+            // wrapping <function> as it stands: it is the same
+            // `_variableNameList` a <function> takes, and the references it may
+            // contain have not resolved yet, so they resolve there instead.
+            const variablesAttr = args.allComponentAttributes?.variables;
 
-            return returnWrapNonLabelsDescriptionsSugarFunction({
+            const results = returnWrapNonLabelsDescriptionsSugarFunction({
                 wrappingComponentType: "function",
                 skipIfAllWrappingComponentType: true,
                 createWrappingComponentAttributes(nComponents, stateIdInfo) {
+                    if (variablesAttr) {
+                        return {
+                            attributes: { variables: variablesAttr },
+                            nComponents,
+                        };
+                    }
                     return {
                         attributes: {
                             variables: {
@@ -172,7 +182,7 @@ export function returnFieldFunctionSugarInstruction() {
                                     stateId: stateIdInfo
                                         ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
                                         : undefined,
-                                    children: [variables],
+                                    children: [DEFAULT_VARIABLES],
                                     attributes: {},
                                     doenetAttributes: {},
                                     state: {},
@@ -183,6 +193,14 @@ export function returnFieldFunctionSugarInstruction() {
                     };
                 },
             })(args);
+
+            // Moved, not shared: the attribute must not remain on the field as
+            // well, or its components would be built twice under one index.
+            if (results.success && variablesAttr) {
+                results.removeAttributes = ["variables"];
+            }
+
+            return results;
         },
     };
 }

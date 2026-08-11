@@ -93,6 +93,17 @@ component, which is the alternative to writing the expression out.
 vertical. It defaults to `x y`, so an equation written in those letters needs nothing. It has no
 effect on a `<function>{:dn}` child, which names its own variables.
 
+The names may themselves be references, exactly as on a `<function>{:dn}`, so a student can choose
+them:
+
+```doenet-editor-horiz
+<p>Name the variables: <mathInput name="v1">q</mathInput> <mathInput name="v2">r</mathInput></p>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A field whose variable names are set by two math inputs</shortDescription>
+  <vectorField variables="$v1 $v2" normalize>($v2, -$v1)</vectorField>
+</graph>
+```
+
 
 ---
 

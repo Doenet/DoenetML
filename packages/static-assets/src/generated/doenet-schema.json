@@ -114681,7 +114681,7 @@
                 {
                     "name": "variables",
                     "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
-                    "type": "text"
+                    "type": "_variableNameList"
                 },
                 {
                     "name": "dx",
@@ -115102,7 +115102,7 @@
                 {
                     "name": "variables",
                     "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
-                    "type": "text"
+                    "type": "_variableNameList"
                 },
                 {
                     "name": "dx",

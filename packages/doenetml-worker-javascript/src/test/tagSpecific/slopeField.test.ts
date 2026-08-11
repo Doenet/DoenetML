@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { updateMathInputValue } from "../utils/actions";
 
 /**
  * Rehydrate one of a field's `fDefinitions` into a numeric closure, exactly as
@@ -375,6 +376,54 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(
             numericalF(renamedVec.stateValues.fDefinitions[1])(3, 5),
         ).closeTo(-3, 1e-12);
+
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("lets the variable names be references, which keep tracking what they name", async () => {
+        // The names are handed to the wrapping <function> as an unresolved
+        // component, so they can be whatever a student types. The expression
+        // is written in fixed letters so that renaming the inputs really does
+        // change which value arrives where.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <mathInput name="v1">q</mathInput>
+  <mathInput name="v2">r</mathInput>
+  <graph>
+    <slopeField name="sf" variables="$v1 $v2">q - r</slopeField>
+  </graph>
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let sf = stateVariables[await resolvePathToNodeIdx("sf")];
+        expect(sf.stateValues.haveFunction).eq(true);
+        // Inputs are (q, r), so q = 3 and r = 5: q - r is -2.
+        expect(numericalF(sf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            -2,
+            1e-12,
+        );
+
+        // The student swaps which letter names which input, leaving the
+        // expression alone.
+        await updateMathInputValue({
+            latex: "r",
+            componentIdx: await resolvePathToNodeIdx("v1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "q",
+            componentIdx: await resolvePathToNodeIdx("v2"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        sf = stateVariables[await resolvePathToNodeIdx("sf")];
+        // Inputs are now (r, q), so r = 3 and q = 5: q - r is 2.
+        expect(numericalF(sf.stateValues.fDefinitions[0])(3, 5)).closeTo(
+            2,
+            1e-12,
+        );
 
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
