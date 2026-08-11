@@ -796,16 +796,18 @@ describe("negotiateLocales", () => {
         /**
          * The near misses. `kbl` (Kanembu) is the language beside Kanuri that
          * ISO 639-3 keeps *outside* the `kr` macrolanguage; `gur` (Farefare)
-         * and `xsm` (Kasem) are Gur languages beside `mos` and `dag`; `sus`
-         * (Susu) is Mande but not Manding. Every one falls to English, which is
-         * the membership rule working rather than a gap in it.
+         * and `xsm` (Kasem) are Gur languages beside `mos` and `dag`. Every
+         * one falls to English, which is the membership rule working rather
+         * than a gap in it.
          *
          * `kmb` (Kimbundu) and `umb` (Umbundu) were here too, as Bantu
-         * neighbours of `lua` and `ktu`, until the Angolan batch below gave
-         * them catalogs of their own — the same removal `men` and `nyn` got,
-         * and the only thing that should ever shorten a negative-control list.
+         * neighbours of `lua` and `ktu`, until the Angolan batch gave them
+         * catalogs of their own — the same removal `men` and `nyn` got, and
+         * the only thing that should ever shorten a negative-control list.
+         * `sus` (Susu) left the same way once the batch continued below gave
+         * it a catalog of its own.
          */
-        it.each(["kbl", "gur", "xsm", "sus"])(
+        it.each(["kbl", "gur", "xsm"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(
@@ -878,15 +880,17 @@ describe("negotiateLocales", () => {
         );
 
         /**
-         * The near misses for this batch. `bin` (Edo) and `efi` (Efik) are
-         * Nigerian neighbours of `pcm` and `tiv`; `gej` (Gen) is a Gbe language
-         * beside `fon` and `ee`. Both fall to English rather than being folded
-         * onto a language they are merely near.
+         * The near misses for this batch. `gej` (Gen) is a Gbe language beside
+         * `fon` and `ee`. It falls to English rather than being folded onto a
+         * language it is merely near.
          *
          * `men` (Mende) was here too, as a Sierra Leonean neighbour of `kri`
          * and `tem`, until the batch below gave it a catalog of its own — the
          * only thing that should ever take a code off a negative-control list,
-         * and the same removal `nyn` got a batch earlier.
+         * and the same removal `nyn` got a batch earlier. `bin` (Edo) and
+         * `efi` (Efik), the Nigerian neighbours of `pcm` and `tiv` that used
+         * to sit here, left the same way once the batch continued below gave
+         * each a catalog of its own.
          *
          * `son` is here for a different reason and is the interesting row: it
          * is the ISO 639-3 macrolanguage over the Songhay varieties. It is
@@ -897,7 +901,7 @@ describe("negotiateLocales", () => {
          * The batch below gives Songhay a catalog under `dje` without changing
          * that, and says why.
          */
-        it.each(["bin", "efi", "gej", "son"])(
+        it.each(["gej", "son"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(
@@ -999,12 +1003,13 @@ describe("negotiateLocales", () => {
 
         /**
          * The near misses for this batch. `lol` (Mongo) and `cjk` (Chokwe) are
-         * Bantu neighbours of `kmb` and `umb`; `kpe` (Kpelle) sits beside
-         * `men` in Sierra Leone and is Mande like it without being a variety
-         * of it. Every one falls to English, which is the membership rule
-         * working rather than a gap in it.
+         * Bantu neighbours of `kmb` and `umb`. Every one falls to English,
+         * which is the membership rule working rather than a gap in it.
          */
-        it.each(["lol", "cjk", "kpe"])(
+        // `kpe` (Kpelle) sat beside `men` in Sierra Leone on this list until
+        // the batch continued in `packages/i18n/README.md` gave it a catalog
+        // of its own — the same removal `men`, `umb`, `kmb` and `nyn` got.
+        it.each(["lol", "cjk"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(

@@ -663,6 +663,16 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // and the README call it; the grave is part of the spelling rather than a
     // French borrowing of it.
     kbp: { englishName: "Kabiyè", endonym: "Kabɩyɛ" },
+    // `Intl.DisplayNames` has no entry for any of these three, from the West
+    // and Central African batch continued (`locales/bci`, `locales/lom`,
+    // `locales/urh`). None gets an endonym here: `locales/bci`'s header does
+    // not commit to one, `locales/lom`'s header explicitly declines to choose
+    // between "Löömàgòòi" (the Liberian name) and "Toma" (the Guinean one),
+    // and no confidently-attested endonym for `locales/urh` turned up in this
+    // seed's own research — a wrong endonym is worse than none.
+    bci: { englishName: "Baoulé" },
+    lom: { englishName: "Loma" },
+    urh: { englishName: "Urhobo" },
 };
 
 /**
