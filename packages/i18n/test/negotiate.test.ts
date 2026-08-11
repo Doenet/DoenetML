@@ -1021,6 +1021,114 @@ describe("negotiateLocales", () => {
             },
         );
     });
+
+    /**
+     * The Cyrillic-script languages of the Russian Federation. Twelve
+     * catalogs, and the batch is the first whose *whole* membership shares a
+     * script without sharing a family: four Turkic, two Mongolic, four Uralic,
+     * one Iranian and one Nakh.
+     *
+     * Three of the twelve are ISO 639-3 macrolanguages and go in
+     * `MACROLANGUAGE_MEMBERS` — `bua`, `kv` and `chm` — which is the largest
+     * number any one batch has added. The other nine are individual languages
+     * that filter unaided, so the batch adds no `LANGUAGE_ALIASES` entry at
+     * all.
+     */
+    describe("the Russian Federation batch", () => {
+        it.each([
+            // The three macrolanguages. In each, the first member listed is the
+            // one `Intl.getCanonicalLocales` folds on its own and the rest
+            // reach the catalog only because `MACROLANGUAGE_MEMBERS` names
+            // them.
+            ["bxr", "bua"],
+            ["bxm", "bua"],
+            ["bxu", "bua"],
+            ["kpv", "kv"],
+            ["koi", "kv"],
+            ["mhr", "chm"],
+            ["mrj", "chm"],
+            // The ISO 639-3 codes ICU canonicalizes to a 639-1 code on its own.
+            ["bak", "ba"],
+            ["chv", "cv"],
+            ["udm", "udm"],
+            ["kom", "kv"],
+            ["oss", "os"],
+            ["che", "ce"],
+            // `sah`, `tyv`, `myv` and `xal` have no 639-1 code of their own, so
+            // they arrive under the same tag the directory is named for.
+            ["sah", "sah"],
+            ["tyv", "tyv"],
+            ["myv", "myv"],
+            ["xal", "xal"],
+            // Region tags, which filter without help — including `os`, whose
+            // maximization names Georgia rather than Russia and which costs
+            // negotiation nothing either way.
+            ["ba-RU", "ba"],
+            ["cv-RU", "cv"],
+            ["sah-RU", "sah"],
+            ["tyv-RU", "tyv"],
+            ["bua-RU", "bua"],
+            ["xal-RU", "xal"],
+            ["udm-RU", "udm"],
+            ["kv-RU", "kv"],
+            ["myv-RU", "myv"],
+            ["chm-RU", "chm"],
+            ["os-RU", "os"],
+            ["os-GE", "os"],
+            ["ce-RU", "ce"],
+            // Script asymmetries. Every catalog here is Cyrillic, so a reader
+            // arriving under a Latin tag gets Cyrillic — the answer `locales/sr`
+            // and `locales/kk` already give.
+            ["ba-Latn", "ba"],
+            ["cv-Latn", "cv"],
+            ["ce-Latn", "ce"],
+            ["xal-Mong", "xal"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * `bxu` is this batch's script debt, and it is recorded rather than
+         * fixed: China Buriat maximizes to `bxu-Mong-CN`, so CLDR's own data
+         * says such a reader most likely arrives in the Mongolian script and
+         * what `locales/bua` gives them is Cyrillic. `locales/dje` owes the
+         * same debt to `tda` in Tifinagh and `locales/kr` to `kby` in Ajami.
+         */
+        it("serves China Buriat Cyrillic although CLDR expects it in Mongolian script", () => {
+            expect(new Intl.Locale("bxu").maximize().script).toBe("Mong");
+            expect(negotiateLocales([normalizeLocaleTag("bxu")], available)) //
+                .toEqual(["bua", "en"]);
+        });
+
+        /**
+         * The near misses, and this batch's are unusually sharp because two of
+         * them are the *other half* of a pair whose first half now has a
+         * catalog. `mdf` is Moksha, Erzya's sister: ISO 639-3 gives the two
+         * separate codes and no macrolanguage over them, so `locales/myv` can
+         * do nothing for a Moksha reader and must not pretend to. `krc`, `kum`
+         * and `nog` are Turkic neighbours of `ba` in the Caucasus and the
+         * Volga; `ady`, `kbd` and `av` are Caucasian neighbours of `ce` in
+         * three different families; `sel` is Uralic beside `udm` and `kv`
+         * without belonging to either.
+         *
+         * Every one falls to English, which is the membership rule working
+         * rather than a gap in it — Moksha is not Erzya, however close a map
+         * makes them look, and Kabardian is not Chechen at all.
+         */
+        it.each(["mdf", "krc", "kum", "nog", "ady", "kbd", "av", "sel"])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+    });
 });
 
 describe("resolveDocumentLocale", () => {

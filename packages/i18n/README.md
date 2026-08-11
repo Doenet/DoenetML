@@ -67,32 +67,34 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
-`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ban`, `bci`, `be`, `bem`, `bg`, `bho`,
-`bik`, `bin`, `bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bum`, `ca`, `ceb`, `ch`,
-`co`, `cs`, `cy`, `da`, `dag`, `de`, `doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`,
-`efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`, `fil`, `fj`, `fo`,
-`fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`,
-`hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`,
-`jv`, `ka`, `kab`, `ki`, `kk`, `km`, `kn`, `ko`, `kok`, `kpe`, `kr`, `ks`,
-`ktu`, `ky`, `lb`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`,
-`lv`, `mad`, `mai`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mos`,
-`mr`, `ms`, `mt`, `my`, `nah`, `nb`, `nds`, `ne`, `nl`, `nso`, `ny`, `nyn`,
-`oc`, `oj`, `om`, `or`, `pa`, `pam`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`,
-`ro`, `ru`, `rw`, `sa`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`,
-`sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`, `sus`, `sv`, `sw`,
-`ta`, `te`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tlh`, `tn`, `to`, `tpi`,
-`tr`, `ts`, `tt`, `ty`, `ug`, `uk`, `ur`, `urh`, `uz`, `ve`, `vi`, `war`,
-`wo`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed
-machine-generated seed**, which each file's own header says at the top, and
-which is what #1521's translation platform is for. None has been read by a
-speaker. Correcting one needs no permission and no coordination: a wrong string
-is just wrong, and the English is one key away.
+`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ba`, `ban`, `bci`, `be`, `bem`, `bg`,
+`bho`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bua`, `bum`, `ca`,
+`ce`, `ceb`, `ch`, `chm`, `co`, `cs`, `cv`, `cy`, `da`, `dag`, `de`, `dje`,
+`doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`,
+`fa`, `ff`, `fi`, `fil`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`,
+`gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`,
+`hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `kbp`, `kg`,
+`ki`, `kk`, `km`, `kmb`, `kn`, `ko`, `kok`, `kpe`, `kr`, `kri`, `ks`, `ktu`,
+`kv`, `ky`, `lb`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`, `lv`, `mad`,
+`mai`, `men`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mos`, `mr`,
+`ms`, `mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `nl`, `nso`, `ny`, `nyn`,
+`oc`, `oj`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`, `ps`, `pt`, `qu`,
+`quc`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`, `sah`, `sat`, `sc`, `scn`, `sd`,
+`se`, `sg`, `shi`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`,
+`su`, `sus`, `sv`, `sw`, `ta`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
+`tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`, `ug`,
+`uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vi`, `war`, `wo`, `xal`, `xh`, `yi`,
+`yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
+seed**, which each file's own header says at the top, and which is what #1521's
+translation platform is for. None has been read by a speaker. Correcting one
+needs no permission and no coordination: a wrong string is just wrong, and the
+English is one key away.
 
-A hundred and twenty-nine of them are deliberately partial. A hundred and
-twenty-eight are partial in the same place — the two chemistry tables — while
-Klingon is partial almost everywhere, for a different reason: see
+A hundred and forty-one of them are deliberately partial. A hundred and forty
+are partial in the same place — the two chemistry tables — while Klingon is
+partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and twenty-eight are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+and forty are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -107,7 +109,8 @@ Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight,
 Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
 Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè, Temne,
 Mende, Umbundu, Kimbundu, Zarma, Baoulé, Bini, Bulu, Jola-Fonyi, Efik, Ewondo,
-Kpelle, Loma, Susu and Urhobo
+Kpelle, Loma, Susu, Urhobo, Bashkir, Chuvash, Yakut, Tuvinian, Buriat,
+Kalmyk, Udmurt, Komi, Erzya, Mari, Ossetic and Chechen
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -1225,6 +1228,153 @@ Guinea — so, as `locales/mnk` and `locales/se` already established for a
 border of their own, there is no single curriculum for a fallback to *be*, and
 leaving both keys out serves each side of the border the same way English
 already partially does for the Liberian half.
+
+### Twelve Cyrillic catalogs, and the one that forks
+
+Bashkir, Chuvash, Yakut, Tuvan, Buryat, Kalmyk, Udmurt, Komi, Erzya, Mari,
+Ossetian and Chechen — twelve catalogs from **five families** (Turkic: `ba`,
+`cv`, `sah`, `tyv`; Mongolic: `bua`, `xal`; Uralic: `udm`, `kv`, `myv`, `chm`;
+Iranian: `os`; Nakh: `ce`), all written in Cyrillic, all spoken inside the
+Russian Federation. It is the roster's first batch whose whole membership
+shares a **script** without sharing a family, and that is what makes it useful:
+every question the earlier batches asked about what a family or a region
+predicts can be asked here about a script, and the answer is the same.
+
+**Eleven of the twelve select on neither `$gender` nor `$role`, and the twelfth
+forks.** Turkic, Mongolic, Uralic and Iranian all answer the agreement question
+with a flat "no": no grammatical gender, no inflected attributive adjective, so
+`noun-gender` returns one token and no message forks on it. `locales/ce` is
+Nakh, and Chechen has a real class system — nouns fall into classes marked by
+в-, й-, б- and д-, and an agreeing word carries the class at the *front*. So
+`locales/ce` writes a class table and forks `style-filled-word` on it, which
+`styleDescriptions.test.ts` pins across two classes. One script, twelve
+catalogs, one fork: a script says as little about agreement as a family or a
+region does, which is the sentence `locales/ts` and `locales/ktu` earned inside
+Bantu and this batch earns across five families at once.
+
+`style-unfilled` is the other word Chechen would agree, and it is the batch's
+one **unreachable** fork rather than a written one. The message describes a
+fill standing on its own, so `describeFill` renders it with no arguments and no
+noun exists to take a class from; a `$gender` select there could only ever
+render its default branch. So the catalog writes the д-class form flat, as
+every other agreeing catalog in the roster does — `locales/sw`, `locales/zu`
+and `locales/ts` all write theirs as one string for the same reason, which is
+what makes this an argument about the message rather than about Chechen.
+
+**`locales/ce`'s header is honest about which half of its fork it can vouch
+for.** The four class markers and the agreeing participle are what this seed
+could check; the class of every individual geometric noun is what it could not,
+so `noun-gender` lists the entries it is confident of and defaults the rest to
+`d`. That is `locales/ewo`'s judgement — a partial, half-remembered class table
+is worse than an admitted gap — with the difference that the fork is written
+and waiting, so filling the table in costs a speaker one line per noun.
+
+**Two catalogs record a colour vocabulary that does not split where the style
+pipeline splits, and they are unrelated.** Sakha's «күөх» covers green and
+blue; Ossetian's «цъæх» covers green, blue *and* grey. The style pipeline needs
+those as separate words, so both catalogs write the modern compounds that split
+them — «от күөх» and «халлаан күөҕэ» for Sakha, «кæрдæгхуыз» and «æрвхуыз» for
+Ossetian — and both headers say plainly that this is a choice rather than a
+translation. A Turkic language and an Iranian one, one problem, one shape of
+answer, and neither of them got it from the other.
+
+**`locales/sah` is the roster's first Turkic catalog with a single plural
+category.** `Intl.PluralRules("sah")` reports `other` and nothing else, so no
+message in it can select on a count and every counted message is written flat —
+the shape `locales/ja`, `locales/th`, `locales/bo` and `locales/dz` already
+have. The eleven catalogs beside it resolve `one` and `other`. Yakut marks a
+plural perfectly well; what it does not do is keep it after a numeral, so a
+category would have nothing to choose between.
+
+**`locales/cv` is the roster's fourth `zero` category, and the interesting
+comparison is with the one it does *not* match.** `locales/ar`, `locales/cy`
+and `locales/lv` are the other three; Arabic's and Welsh's `zero` fire for
+exactly 0, and so does Chuvash's, with `one` for exactly 1. Latvian's is the
+odd one out — it covers every number ending in 0 and the whole of the teens, so
+21 and 101 are `one` there and `other` in Chuvash. Four languages, one category
+name, three rules — which is why `locales/cv`'s header spells out where its
+`[zero]` branch is genuinely reached (`answer-show-responses`, and both counts
+inside `editor-accessibility-label`) and where the explicit `[0]` branch wins
+first (`attempts-remaining`).
+
+**Five catalogs record the same limit, and it is word order rather than family
+that decides which.** `piecewise-condition-if` is placed by the renderer
+*before* the mathematics it introduces. Sakha's «буоллаҕына», Tuvan's «болза»,
+Udmurt's «ке», Komi's «кӧ» and Mari's «гын» all close the clause they condition,
+so all five files record the `locales/dv` shape beside the key — a distinction
+the composition messages do not expose, which splitting the key into a prefix
+and a suffix would fix and which no existing catalog needs. The other seven are
+clause-initial and land correctly: Bashkir's «әгәр», Chuvash's «енчен»,
+Buryat's «хэрбээ», Kalmyk's «кемр», Erzya's «бути», Ossetian's «кæд» and
+Chechen's «нагахь санна». Two Turkic catalogs on each side of that line, and
+three Uralic on one side against one on the other: the wall is syntax, not
+ancestry.
+
+#### Negotiation
+
+**Three of the twelve are ISO 639-3 macrolanguages, which is the most any one
+batch has added to `MACROLANGUAGE_MEMBERS`.** `bua` stands over Russia (`bxr`),
+Mongolia (`bxm`) and China (`bxu`) Buriat; `kv` over Komi-Zyrian (`kpv`) and
+Komi-Permyak (`koi`); `chm` over Meadow (`mhr`) and Hill (`mrj`) Mari. In each,
+ICU folds exactly one member on its own — `bxr`, `kpv`, `mhr` — and the rest
+reach a catalog only because the map names them, which is the failure that map
+exists to prevent. Each catalog says in its own header which standard it is:
+Russia Buriat, Komi-Zyrian, Meadow Mari.
+
+`bxu` is the batch's **script debt** and is recorded rather than fixed: China
+Buriat maximizes to `bxu-Mong-CN`, so CLDR's own data says such a reader most
+likely arrives in the Mongolian script and what `locales/bua` gives them is
+Cyrillic. That is `locales/dje`'s debt to `tda` in Tifinagh and `locales/kr`'s
+to `kby` in Ajami, and the answer to it is a second catalog rather than a change
+in `negotiate.ts`.
+
+**The other nine filter unaided, so the batch adds no `LANGUAGE_ALIASES` entry
+at all**, and — for the first time in several batches — **no
+`LOCALE_NAME_FALLBACKS` entry either**: CLDR has an English name for every one
+of the twelve. Four of those names will look wrong and are not, the
+`ny`-reads-Nyanja rule again: `sah` renders as **Yakut**, `tyv` as
+**Tuvinian**, `bua` as **Buriat** and `os` as **Ossetic**, and each catalog's
+header says which language it is. `os` is also the one locale here whose
+maximization names a country outside Russia — `os-Cyrl-GE`, Georgia — which is
+CLDR's data rather than an error and costs negotiation nothing.
+
+`mdf` is the near miss worth naming, because it is the other half of a pair
+whose first half now has a catalog. Moksha and Erzya are two languages with two
+ISO 639-3 codes and no macrolanguage over them, so `locales/myv` can do nothing
+for a Moksha reader and must not pretend to — the rule working rather than a
+gap in it, exactly as `fat` and `alq` land. `krc`, `kum`, `nog`, `ady`, `kbd`,
+`av` and `sel` fall to English for the same reason, and `negotiate.test.ts`
+pins every one of them.
+
+#### The chemistry gap
+
+All twelve leave `element-name` and `element-anion-name` out, and — like the
+second sub-Saharan batch and the African and Berber one — they split no ways at
+all. Secondary chemistry across the Russian Federation is taught in Russian, so
+in all twelve the fallback *is* the curriculum. That is a fact about one
+education system rather than about twelve languages, which is why it reads as
+one sentence here and takes a sentence of its own in each catalog's header.
+
+**`locales/tt` is the counter-example that decides it, and it sits in the same
+country.** Tatar supplies the whole table, because Tatar-medium chemistry
+teaching produced one; Bashkir, its nearest relative and neighbour, does not.
+Nothing about the two languages predicts that, which is `locales/af` against
+`locales/nso` in South Africa and `locales/sw` against `locales/ki` in Kenya,
+restated a third time in a third country. Copying the Russian list into Bashkir
+or Chuvash spelling would produce neither language — the argument `locales/min`
+already makes against copying Indonesian's table — which is the second half of
+why the gap stands.
+
+`locales/xal` gets a sentence of its own for a reason no other catalog in the
+batch has: **it is the least certain catalog here and says so in its own
+header.** Kalmyk is the most endangered language seeded in this batch, its
+written output is small, and its orthography drops unstressed vowels that
+Buryat and Mongolian write — so a word that looks like a typo beside
+`locales/bua` may well be correct and vice versa, which is exactly the class of
+error this seed is least able to check. `locales/lom` set the precedent for
+saying that in a file's own header rather than leaving a reader to discover it,
+and 118 unreviewed element coinages would have been the least defensible thing
+in the file.
 
 ### A language with no word for it
 
