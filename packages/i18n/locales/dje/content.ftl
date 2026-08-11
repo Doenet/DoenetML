@@ -42,8 +42,9 @@
 #
 # Zarma writes in the official Nigerien Latin orthography. The one letter in it
 # outside ASCII is «ŋ», which is common — «kaŋ», «ŋwaarey», «duyaŋ» — while «ɲ»
-# and the open vowels «ɛ» and «ɔ» happen not to occur anywhere in these four
-# files, so a reviewer editing them will type plain ASCII almost throughout.
+# and the open vowels «ɛ» and «ɔ» happen not to occur in any message of these
+# four files (the only three in the tree are the ones named in this sentence),
+# so a reviewer editing them will type plain ASCII almost throughout.
 # Colour terms are few — «bi» black, «kwaaray» white, «ciray» red
 # — and the rest are French, which is where a Zarma speaker meets them.
 #

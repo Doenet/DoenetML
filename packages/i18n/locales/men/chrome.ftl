@@ -3,7 +3,7 @@
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 #
-# See `content.ftl`'s header for why this catalog is written entirely in the
+# See `content.ftl`'s header for why the describing words here are left
 # indefinite, and for what a speaker should check first.
 
 

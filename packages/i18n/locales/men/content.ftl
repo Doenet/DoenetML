@@ -26,14 +26,21 @@
 # would render the suffix as literal text against whatever the argument
 # happened to be, and the argument is a whole phrase in most branches anyway.
 #
-# **So this catalog is written entirely in the indefinite**, which is the
-# README's "choose the words that land there" way out, taken at the level of
-# the whole file rather than of one message. That is not a workaround dressed
+# **So every describing word here is indefinite**, which is the README's
+# "choose the words that land there" way out, taken at the level of the whole
+# file rather than of one message: no description ends in the suffix, and the
+# suffix is never written against a placeable. That is not a workaround dressed
 # up as a decision: a style description is read out of context — "thick red
 # line", not "the thick red line" — and the indefinite is what Mende uses
 # there. A speaker who thinks a particular message wants the definite should
 # say so on #1521 rather than adding the suffix here, because the message that
 # wants it is the one whose final word is an argument.
+#
+# The rule is about where the suffix *lands*, not about the letter: a few fixed
+# vocabulary items carry it lexically — «tɔkpɔi» a mark, «laingi ti lɔ va» the
+# horizontal fill — and they are safe because the suffix sits inside a phrase
+# this file writes out, never at the boundary of an argument. A speaker
+# deciding «tɔkpɔ» is wanted there instead should say so on #1521.
 #
 # **`$gender` goes unused.** Mande languages have no noun class, and Mende is
 # no exception — which is worth saying explicitly, because `locales/mnk`,

@@ -3181,7 +3181,7 @@ describe("the Angolan, Sierra Leonean and Songhay batch", () => {
      *
      * The Kimbundu rows are also `locales/kg`'s shape exactly — an agreeing
      * «-a» connective a thousand kilometres away, in a different country — so
-     * these six lines are what makes the header's claim checkable rather than
+     * the rows below are what makes the header's claim checkable rather than
      * asserted: neither family nor geography predicts the shape.
      */
     it("prefixes Umbundu's class onto the stem", () => {
@@ -3221,8 +3221,9 @@ describe("the Angolan, Sierra Leonean and Songhay batch", () => {
      * `men` is the affix-rule case: its describing words follow the noun, so
      * the phrase ends in an argument and Mende's definite suffix — which
      * attaches to whatever word ends the noun phrase — could never be welded
-     * on. The whole catalog is indefinite for that reason, and this row is what
-     * it looks like.
+     * on. Every describing word in the catalog is indefinite for that reason,
+     * so no description ends in the suffix, and this row is what that looks
+     * like.
      */
     it.each([
         ["men", "laing wa kpou kɛ ngeya-ngeya"],

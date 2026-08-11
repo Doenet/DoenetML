@@ -1014,8 +1014,9 @@ definite marker is a suffix that attaches not to the noun but to whichever word
 *ends* the noun phrase, and a describing word follows its noun here — so a style
 description ends in a placeable, and «{ $color }i» is exactly what
 [An affix cannot be welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable)
-forbids. The catalog is therefore written **entirely in the indefinite**, which
-is the "choose the words that land there" way out taken at the level of a whole
+forbids. The catalog therefore leaves **every describing word indefinite**, so
+that no description ends in the suffix and the suffix is never written against a
+placeable — the "choose the words that land there" way out taken at the level of a whole
 file rather than of one message. That is defensible on its own terms: a style
 description is read out of context — "thick red line", not "the thick red
 line" — and the indefinite is what Mende uses there.
