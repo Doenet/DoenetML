@@ -23,5 +23,5 @@ onto Kongo: it is a creole of Kikongo rather than a variety of it, and a Kituba
 reader would be served a different language.
 
 Kabiyè has no CLDR language name, so it takes a `LOCALE_NAME_FALLBACKS` entry
-and appears as "Kabiye (Kabɩyɛ)" in `<document lang>`'s autocomplete and context
+and appears as "Kabiyè (Kabɩyɛ)" in `<document lang>`'s autocomplete and context
 help rather than as the bare code "kbp".

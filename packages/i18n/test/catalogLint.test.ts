@@ -285,7 +285,7 @@ describe("renderSupportedLocalesModule", () => {
 describe("LOCALE_NAME_FALLBACKS", () => {
     /**
      * The gap this table closes, held shut for the roster rather than for the
-     * four entries that close it today. A future batch adding a language CLDR
+     * handful of entries that close it today. A future batch adding a language CLDR
      * has no data for fails here until someone supplies a name — which is the
      * whole point, since the alternative is a `<document lang>` autocomplete
      * that offers a reader "ktu" and expects them to know what it is.

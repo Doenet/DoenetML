@@ -261,8 +261,8 @@ style-filled-with-noun =
     }
 
 # «lubaku» is the border and leads its own describing words, so they agree with
-# it rather than with the shape it surrounds — which is why `lubaku` is class
-# 11 in `noun-gender` and why `border` answers `c11` there. Kongo has no
+# it rather than with the shape it surrounds — which is why `border` answers
+# `c11` in `noun-gender`, matching «lubaku»'s own «lu-». Kongo has no
 # article and joins this clause with the invariable «ye», so all four branches
 # read alike.
 style-border-clause =

@@ -3120,11 +3120,14 @@ describe("the West and Central African batch, continued", () => {
      * two English-lexifier creoles, which is the one shape that batch had no
      * example of.
      *
-     * The Kabiyè row is the one to read: «kɩsɛmɩɖɛ» carries class 3, and so
-     * does the head «poligɔnɩ kɩmaɣzaɣ» that `noun-gender` assigns
-     * `regular-polygon` to. A colour that disagreed with its own head would be
-     * the defect the previous batch found in `locales/tiv`, and this row is
-     * what would catch it here.
+     * The Kabiyè row is the one to read: the colour «kɩsɛmɩɖɛ» ends in the
+     * `-ɖɛ` the header's table gives class 3, which is the class
+     * `noun-gender` assigns `regular-polygon` — the head «poligɔnɩ kɩmaɣzaɣ»
+     * that `noun-regular-polygon` writes. (Kabiyè is not alliterative the way
+     * `locales/tem` is, so that head does not itself display the class; only
+     * the suffix does.) A colour agreeing with something other than its own
+     * head is the easiest defect to write into a class catalog, and this row
+     * is what would catch it here.
      */
     it.each([
         ["kg", "poligone yafwanana ya mbwaki ya makonso 5"],

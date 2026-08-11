@@ -29,13 +29,14 @@
 # The eight colour words that are English loans are the exception, and they are
 # written bare rather than prefixed; see the comment above `color`.
 #
-# The four entries that name a phrase head rather than a noun are outside that
-# check, since `noun` does not spell them: `border` and `background` can still
-# be read against the words this file writes for them — «ʌŋbʌŋ» in
-# `style-border-clause`, `ʌŋ-` and so `c4`, and «kʌbaka» in `style-text`, `kʌ-`
-# and so `c1` — but `text` and `fill` head phrases this catalog writes no word
-# for, so their classes have to be taken on trust the way every other
-# catalog's are.
+# The classes that belong to a phrase head rather than to a noun are outside
+# that check, since `noun` does not spell them. Two of them can still be read
+# against the words this file writes for the heads themselves: «ʌŋbʌŋ» in
+# `style-border-clause` is `ʌŋ-`, and `border` answers `c4`; «kʌbaka» in
+# `style-text` is `kʌ-`, and `background` is left to the `*[other] c1` default,
+# which is that same class. But `text` and `fill` head phrases this catalog
+# writes no word for, so their two rows have to be taken on trust the way every
+# other catalog's are.
 #
 # It is the third Atlantic catalog here and answers differently from both the
 # others: `locales/ff` spells its class as a suffix and `locales/wo` on a
@@ -165,11 +166,12 @@ noun-regular-polygon =
 # The noun class. Read it against `noun` above: each entry that names one of
 # `noun`'s attributes takes the class that attribute's own written prefix
 # carries, and `regular-polygon` takes `c2` because `noun-regular-polygon`'s
-# head is «tʌpɔligɔn». The last four name phrase heads instead, and the header
+# head is «tʌpɔligɔn». The last three name phrase heads instead, and the header
 # says which of those this file writes a word for and which have to be taken on
-# trust. `c1` is the default, and it is the class an English loan joins — which
-# is what an author's own `markerStyleWord` is as far as this catalog is
-# concerned.
+# trust. `c1` is the default. It is the class an English loan joins — which is
+# what an author's own `markerStyleWord` is as far as this catalog is concerned
+# — and it is also `background`'s class, which is why that head has no row of
+# its own: «kʌbaka» in `style-text` already carries `kʌ-`.
 noun-gender =
     { $noun ->
         [polyline] c2

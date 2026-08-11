@@ -659,7 +659,10 @@ export const LOCALE_NAME_FALLBACKS: Record<
     dag: { englishName: "Dagbani", endonym: "Dagbanli" },
     ktu: { englishName: "Kituba", endonym: "Kikongo ya leta" },
     mnk: { englishName: "Mandinka", endonym: "Mandinkakaŋo" },
-    kbp: { englishName: "Kabiye", endonym: "Kabɩyɛ" },
+    // ISO 639-3's reference name, which is also what `locales/kbp`'s header
+    // and the README call it; the grave is part of the spelling rather than a
+    // French borrowing of it.
+    kbp: { englishName: "Kabiyè", endonym: "Kabɩyɛ" },
 };
 
 /**

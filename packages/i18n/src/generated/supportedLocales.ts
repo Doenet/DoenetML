@@ -619,9 +619,9 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     {
         locale: "kbp",
-        englishName: "Kabiye",
+        englishName: "Kabiyè",
         endonym: "Kabɩyɛ",
-        label: "Kabiye (Kabɩyɛ)",
+        label: "Kabiyè (Kabɩyɛ)",
     },
     { locale: "kg", englishName: "Kongo", endonym: "Kongo", label: "Kongo" },
     {
