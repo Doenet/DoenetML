@@ -213,6 +213,8 @@
         "bestFitLine",
         "regionBetweenCurveXAxis",
         "regionBetweenCurves",
+        "slopeField",
+        "vectorField",
         "regionHalfPlane",
         "codeEditor",
         "hasSameFactoring",
@@ -3745,6 +3747,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -4691,6 +4699,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -5635,6 +5649,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -7472,6 +7492,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -44385,6 +44411,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -45533,6 +45565,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -46685,6 +46723,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -47833,6 +47877,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -48992,6 +49042,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -50140,6 +50196,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -51299,6 +51361,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -52454,6 +52522,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -53613,6 +53687,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -54770,6 +54850,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -55918,6 +56004,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -57070,6 +57162,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -58218,6 +58316,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -59370,6 +59474,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -60520,6 +60630,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -61668,6 +61784,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -62826,6 +62948,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -63968,6 +64096,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -65108,6 +65242,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -66699,6 +66839,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -74508,6 +74654,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -75370,6 +75522,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -76318,6 +76476,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -77199,6 +77363,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -77996,6 +78166,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -78825,6 +79001,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -82382,6 +82564,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -87911,6 +88099,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -104549,6 +104743,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -106444,6 +106644,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -110438,6 +110644,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -112510,6 +112722,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -115687,6 +115905,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -116509,6 +116733,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -117706,6 +117936,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -118088,6 +118324,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -118781,6 +119023,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -119703,6 +119951,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -121602,6 +121856,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -124199,6 +124459,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -126436,6 +126702,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -128437,6 +128709,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -129227,6 +129505,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -130033,6 +130317,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -131355,6 +131645,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -132716,6 +133012,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -133482,6 +133784,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -134266,6 +134574,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -137136,6 +137450,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -137936,6 +138256,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -140302,6 +140628,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -141371,6 +141703,1096 @@
                 }
             ]
         },
+        "slopeField": {
+            "type": "element",
+            "name": "slopeField",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "applyStyleToLabel": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "maskLabel": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "layer": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "lineStyle": {
+                    "optional": true,
+                    "type": [
+                        "solid",
+                        "dashed",
+                        "dotted"
+                    ]
+                },
+                "lineWidth": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "function": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "dx": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "dy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "xoffset": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "yoffset": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "markLength": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "maxMarks": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to use this component's name as its rendered label.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "applyStyleToLabel",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to apply this component's selected style to its label.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maskLabel",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "layer",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Z-order layer index used to stack graphical components (higher values render on top).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "dx",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Horizontal spacing between marks.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "dy",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Vertical spacing between marks.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "xoffset",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Horizontal offset of the lattice origin.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "yoffset",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Vertical offset of the lattice origin.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "markLength",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Length of each mark, in pixels. Marks keep this length whatever the axis scaling, so slopes are drawn at their true visual angle.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maxMarks",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Upper bound on how many marks are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of marks.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The label rendered with this component."
+                },
+                {
+                    "name": "styleDescription",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A textual description of the slope field's style."
+                },
+                {
+                    "name": "styleDescriptionWithNoun",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Style description including the noun \"slope field\"."
+                }
+            ]
+        },
+        "vectorField": {
+            "type": "element",
+            "name": "vectorField",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "applyStyleToLabel": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "maskLabel": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "layer": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "lineStyle": {
+                    "optional": true,
+                    "type": [
+                        "solid",
+                        "dashed",
+                        "dotted"
+                    ]
+                },
+                "lineWidth": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "function": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "dx": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "dy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "xoffset": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "yoffset": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "markLength": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "maxMarks": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "normalize": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to use this component's name as its rendered label.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "applyStyleToLabel",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to apply this component's selected style to its label.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maskLabel",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "layer",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Z-order layer index used to stack graphical components (higher values render on top).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "dx",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Horizontal spacing between arrows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "dy",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Vertical spacing between arrows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "xoffset",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Horizontal offset of the lattice origin.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "yoffset",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Vertical offset of the lattice origin.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "markLength",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Length in pixels of the longest arrow, or of every arrow when normalize is set. Arrows keep this length whatever the axis scaling.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maxMarks",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Upper bound on how many arrows are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of arrows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "normalize",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Draw every arrow the same length, showing direction only rather than magnitude.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The label rendered with this component."
+                },
+                {
+                    "name": "styleDescription",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A textual description of the vector field's style."
+                },
+                {
+                    "name": "styleDescriptionWithNoun",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Style description including the noun \"vector field\"."
+                }
+            ]
+        },
         "regionHalfPlane": {
             "type": "element",
             "name": "regionHalfPlane",
@@ -142384,6 +143806,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -147134,6 +148562,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -147933,6 +149367,12 @@
                     "ref": "regionBetweenCurves"
                 },
                 {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
                     "ref": "regionHalfPlane"
                 },
                 {
@@ -148377,6 +149817,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"
@@ -149783,6 +151229,12 @@
                 },
                 {
                     "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
                 },
                 {
                     "ref": "regionHalfPlane"

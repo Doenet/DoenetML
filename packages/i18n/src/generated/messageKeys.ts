@@ -97,6 +97,8 @@ export type MessageKey =
     | "noun.vector"
     | "noun.curve"
     | "noun.function"
+    | "noun.slope-field"
+    | "noun.vector-field"
     | "noun.parabola"
     | "noun.polyline"
     | "noun.polygon"
@@ -373,6 +375,8 @@ export type MessageKey =
     | "eigen-decomposition-failed"
     | "matches-pattern-parameter-not-in-pattern"
     | "graph-grid-invalid"
+    | "field-function-wrong-num-outputs"
+    | "field-function-attribute-ignored-with-child"
     | "prefigure-x-label-position-unsupported"
     | "prefigure-y-label-position-unsupported"
     | "prefigure-invalid-axis-bounds"
@@ -662,6 +666,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "noun.vector",
     "noun.curve",
     "noun.function",
+    "noun.slope-field",
+    "noun.vector-field",
     "noun.parabola",
     "noun.polyline",
     "noun.polygon",
@@ -938,6 +944,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "eigen-decomposition-failed",
     "matches-pattern-parameter-not-in-pattern",
     "graph-grid-invalid",
+    "field-function-wrong-num-outputs",
+    "field-function-attribute-ignored-with-child",
     "prefigure-x-label-position-unsupported",
     "prefigure-y-label-position-unsupported",
     "prefigure-invalid-axis-bounds",

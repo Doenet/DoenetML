@@ -63,6 +63,11 @@ export function applySugar({
 
             let componentAttributes: Record<string, PrimitiveAttributeValue> =
                 {};
+            // Every attribute the author wrote, including the ones that become
+            // components rather than primitives. Sugar that creates an
+            // attribute needs this to tell whether it is about to overwrite one
+            // that was specified explicitly.
+            const componentAttributeNames = Object.keys(component.attributes);
             // add primitive attributes to componentAttributes
             for (let attrName in component.attributes) {
                 let attribute = component.attributes[attrName];
@@ -113,6 +118,7 @@ export function applySugar({
                         parentParametersFromSugar,
                         parentAttributes,
                         componentAttributes,
+                        componentAttributeNames,
                         componentInfoObjects,
                         isAttributeComponent,
                         nComponents,

@@ -337,6 +337,33 @@ matches-pattern-parameter-not-in-pattern =
 # it was not one of the forms listed.
 graph-grid-invalid = `<graph>`: cannot interpret grid="{ $grid }". It must be none, medium, dense, or two positive numbers separated by a space, such as grid="1 0.5". No grid is drawn.
 
+## `<slopeField>` and `<vectorField>`
+
+# $component is the field's tag and $alternative the sibling field component's,
+# or `none` when the function would not suit it either; both are DoenetML tags
+# and stay in English, as do the example expressions. $expected is how many
+# outputs the component needs, $found how many the given function has. What a
+# field draws a mark from is the function's outputs, so the wrong number of
+# them means there is nothing to draw — and the author almost always wanted the
+# other component.
+field-function-wrong-num-outputs =
+    `<{ $component }>` needs a function with { $expected ->
+        [one] one output, the slope y' at each point, such as `y - x`
+       *[other] two outputs, the vector at each point, such as `(y, -x)`
+    }, but the function it was given has { $found ->
+        [one] { $found } output
+       *[other] { $found } outputs
+    }. { $alternative ->
+        [none] Nothing is drawn.
+       *[other] `<{ $alternative }>` is the component for that function. Nothing is drawn.
+    }
+
+# Translators: `function` is an attribute name and stays in English. A field
+# takes its function either from the attribute or from what is written inside
+# the component, and giving both is almost certainly a mistake rather than a
+# deliberate choice, so name which one is being used.
+field-function-attribute-ignored-with-child = The `function` attribute is ignored because the function is also given inside the component; the one inside is used. Give the function only one of the two ways.
+
 ## PreFigure renderer
 
 # Translators: xLabelPosition, yLabelPosition and their values are attribute
