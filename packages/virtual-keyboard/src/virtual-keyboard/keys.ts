@@ -2,29 +2,8 @@
  * A message sent from the virtual keyboard tray to whichever input is active.
  *
  * Most types are literal key presses. Two are not, and ride this channel
- * because it is the only one that already spans the iframe boundary (the tray
- * lives in the embedding page, the inputs live inside the iframe):
- *
- * - `"accessed"` — no longer sent. It used to drive a blur/refocus timing
- *   heuristic that the tray no longer needs now that it declines focus
- *   outright. The type stays so that a current viewer recognizes what an
- *   older tray sends and ignores it rather than warning about it.
- *
- *   Recognizing it does not make the pairing work, though, and neither
- *   pairing across this change can be rescued. The tray and the viewer ship
- *   separately — an embedding page can pin an older bundle inside the iframe
- *   — and typing needs them to agree about the blur:
- *
- *   - Older viewer, current tray: the viewer typed only in response to the
- *     blur a tray press used to cause, and declining focus is exactly what
- *     removes that blur.
- *   - Current viewer, older tray: the older tray does cause the blur, and
- *     across the iframe boundary it arrives with a null `relatedTarget`, so
- *     the viewer cannot tell it from the reader leaving the input for good
- *     and stops claiming the keys. `"accessed"` cannot undo that — it is
- *     delivered by `postMessage`, hence after the blur has been acted on.
- *
- *   Embedders should keep the wrapper and the viewer on the same release.
+ * because it is the only one that already spans the iframe boundary — the
+ * tray lives in the embedding page, the inputs live inside the iframe:
  *
  * - `"keyboardChoice"` — which keyboard the reader has asked for, with
  *   `command` set to `"virtual"` (they opened the tray) or `"system"` (they
@@ -33,12 +12,22 @@
  *   until told the reader wants it. Sent only when the reader chooses: the
  *   tray also opens and closes by itself as focus moves between inputs, and
  *   that is not a statement about which keyboard they would rather have.
+ *
+ * - `"accessed"` — no longer sent. It drove a blur/refocus timing heuristic
+ *   that the tray no longer needs now that it declines focus outright. The
+ *   type stays so that a current viewer ignores what an older tray sends
+ *   rather than warning about it. That does not make the pairing type,
+ *   though, and no pairing across this change does: an older viewer typed
+ *   only in response to the blur a tray press used to cause, and a current
+ *   viewer reads the blur an older tray still causes — null `relatedTarget`,
+ *   because it crosses the iframe boundary — as the reader leaving the input
+ *   for good. Embedders should keep the wrapper and the viewer on the same
+ *   release; the changelog entry for this change says why.
  */
 export type KeyCommand = {
     type:
         "keystroke" | "type" | "write" | "cmd" | "accessed" | "keyboardChoice";
     command: string;
-    timestamp?: number;
 };
 
 export type KeyDescription = {

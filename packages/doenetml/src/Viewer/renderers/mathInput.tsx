@@ -20,13 +20,13 @@ import {
     hasCoarsePrimaryPointer,
     subscribeToPrimaryPointerType,
 } from "@doenet/utils";
+import { isInVirtualKeyboardTray } from "@doenet/virtual-keyboard";
 import { DescriptionPopover } from "./utils/Description";
 import * as Ariakit from "@ariakit/react";
 
 import { MathJax } from "better-react-mathjax";
 
 import "./mathInput.css";
-import { isInVirtualKeyboardTray } from "@doenet/virtual-keyboard";
 import { FocusedMathInputContext } from "../../doenetml";
 import { useAppSelector } from "../../state";
 import { keyboardSlice } from "../../state/slices/keyboard";
@@ -389,38 +389,6 @@ function useHasCoarsePrimaryPointer(): boolean {
     );
 }
 
-/**
- * Computes blur-transition context used by `handleBlur`.
- *
- * Determines where focus went, which decides whether the blur is final. Two
- * destinations are not: the input's own preview popover, and the virtual
- * keyboard tray, which the reader may have tabbed into in order to type with
- * it. In both cases the reader is still working on this input.
- *
- * Note that clicking or tapping a key does *not* reach here at all — the tray
- * cancels the default action of the pointer press, so focus never leaves the
- * input. Only deliberate keyboard navigation into the tray produces a blur
- * whose `relatedTarget` is inside it.
- */
-function getBlurTransitionContext({
-    relatedTarget,
-    previewRef,
-}: {
-    relatedTarget: EventTarget | null;
-    previewRef: React.RefObject<HTMLDivElement | null>;
-}) {
-    const focusMovedToPreview =
-        relatedTarget instanceof Node &&
-        previewRef.current?.contains(relatedTarget);
-
-    const focusMovedToKeyboardTray = isInVirtualKeyboardTray(relatedTarget);
-
-    return {
-        focusMovedToPreview,
-        focusMovedToKeyboardTray,
-    };
-}
-
 interface MathInputSVs {
     [key: string]: any;
     hidden: boolean;
@@ -692,17 +660,22 @@ export default function MathInput(props: UseDoenetRendererProps) {
     };
 
     const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
-        const { focusMovedToPreview, focusMovedToKeyboardTray } =
-            getBlurTransitionContext({
-                relatedTarget: e.relatedTarget,
-                previewRef: preview.previewRef,
-            });
+        const relatedTarget = e.relatedTarget;
 
-        if (focusMovedToKeyboardTray) {
+        if (isInVirtualKeyboardTray(relatedTarget)) {
             // The reader moved focus into the virtual keyboard in order to type
             // with it, so this input is still the one being edited: stay
             // registered as the target of its keys, and neither commit the
-            // value nor drop the focused styling.
+            // value nor drop the focused styling. Pressing a key does not reach
+            // here at all — the tray cancels the default action of the pointer
+            // press, so focus never leaves the input; only deliberate keyboard
+            // navigation into the tray produces this blur.
+            //
+            // Nothing releases the input if the reader then tabs out of the
+            // tray to something else: it stays styled as focused, with its
+            // value uncommitted, until they come back to it. Same gap, and the
+            // same reason for leaving it as it is, as the tray's own claim —
+            // see `reportMathInputFocus`.
             return;
         }
 
@@ -720,7 +693,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
         // Keep preview open when keyboard focus tabs from the input into the
         // preview region.
-        if (focusMovedToPreview) {
+        if (
+            relatedTarget instanceof Node &&
+            preview.previewRef.current?.contains(relatedTarget)
+        ) {
             preview.setInteractingWithPreview(true);
         }
     };

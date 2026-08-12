@@ -35,14 +35,17 @@ inferred from a 100 ms window between a blur and a tray press. Besides being
 deterministic, that decouples typing from `document.activeElement`, which is
 the prerequisite for operating the keyboard from the keyboard (#747).
 
-Note for embedders who pin `doenetmlVersion` (or serve a `standaloneUrl` for
-a particular release) inside `@doenet/doenetml-iframe`: the wrapper hosts the
-tray while the iframe holds the viewer, and the two must now come from the
-same side of this change. Mixing them either way leaves the virtual keyboard
-unable to type — physical keyboards are unaffected. A viewer from before this
-release typed only in response to the blur a tray press used to cause, which
-the tray no longer causes; and a viewer from this release, under a wrapper
-from before it, reads that blur as the reader leaving the input for good.
-Keeping the wrapper and the viewer on the same release avoids both.
+Note for embedders of `@doenet/doenetml-iframe` whose viewer comes from a
+different release than the wrapper: the wrapper hosts the tray while the
+iframe holds the viewer, and the two must now come from the same side of this
+change. That is a `doenetmlVersion` or `standaloneUrl` naming a particular
+release — and also a document declaring an `xmlns` version, which the
+wrapper's default version autodetection pins to. Mixing them either way leaves
+the virtual keyboard unable to type; physical keyboards are unaffected. A
+viewer from before this release typed only in response to the blur a tray
+press used to cause, which the tray no longer causes; and a viewer from this
+release, under a wrapper from before it, reads that blur as the reader leaving
+the input for good. Keeping the wrapper and the viewer on the same release
+avoids both.
 
 Closes #1692.

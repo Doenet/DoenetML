@@ -157,11 +157,7 @@ function getTrayRegistration():
  */
 function broadcastKeyboardChoice(open: boolean) {
     const choice: KeyCommand[] = [
-        {
-            type: "keyboardChoice",
-            command: open ? "virtual" : "system",
-            timestamp: +new Date(),
-        },
+        { type: "keyboardChoice", command: open ? "virtual" : "system" },
     ];
     for (const registration of virtualKeyboardState.registrations) {
         registration.onClick(choice);
