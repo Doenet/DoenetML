@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
-describe("Pegboard tag tests", async () => {
+describe("Pegboard tag tests @group4", async () => {
     it("refuses a label child rather than accepting one it cannot draw", async () => {
         // A pegboard fills the whole visible region, so there is nowhere to
         // put a label and the renderer draws none.
