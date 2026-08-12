@@ -28,12 +28,14 @@ describe("Pegboard tag tests", async () => {
         expect(warnings[0].message).contain("`<label>`");
     });
 
-    it("still exposes its lattice attributes", async () => {
+    // Moved here from the `<graph>` tests, now that a pegboard has a home of
+    // its own.
+    it("exposes its lattice attributes", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
     <pegboard name="a" />
-    <pegboard name="b" dx="0.5" dy="2" xoffset="0.25" yoffset="0.75" />
+    <pegboard name="b" dx="0.5" dy="2" xoffset="0.25" yoffset="-1" />
   </graph>
   `,
         });
@@ -50,6 +52,6 @@ describe("Pegboard tag tests", async () => {
         expect(b.stateValues.dx).eq(0.5);
         expect(b.stateValues.dy).eq(2);
         expect(b.stateValues.xoffset).eq(0.25);
-        expect(b.stateValues.yoffset).eq(0.75);
+        expect(b.stateValues.yoffset).eq(-1);
     });
 });
