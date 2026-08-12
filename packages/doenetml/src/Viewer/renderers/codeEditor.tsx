@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -7,6 +7,7 @@ import { sizeToCSS } from "./utils/css";
 import { useInView } from "framer-motion";
 import { EditorViewer } from "../../EditorViewer/EditorViewer";
 import type { DiagnosticsTabId } from "../../EditorViewer/DiagnosticsResponseTabs";
+import { DocContext } from "../DocViewer";
 
 interface CodeEditorSVs {
     [key: string]: any;
@@ -27,6 +28,10 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
 
     // @ts-ignore
     CodeEditor.baseStateVariable = "immediateValue";
+
+    // Inherit the document's resolved theme so the embedded editor doesn't
+    // fall back to its light-mode default inside a dark-mode document.
+    const { darkMode } = useContext(DocContext) || {};
 
     const [currentValue, setCurrentValue] = useState(SVs.immediateValue);
     const currentValueRef = useRef(currentValue);
@@ -115,6 +120,7 @@ export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
                 showResponses={SVs.showResults}
                 showFormatter={SVs.showFormatter}
                 readOnly={SVs.readOnly}
+                darkMode={darkMode}
                 initialOpenTab={initialOpenTab}
                 immediateDoenetmlChangeCallback={
                     immediateDoenetmlChangeCallback
