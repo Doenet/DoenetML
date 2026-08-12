@@ -136,8 +136,10 @@ describe("Virtual keyboard touch target sizes", { tags: ["@group5"] }, () => {
             "key",
         );
 
-        // Taller keys must not push the tray past the bottom of the
-        // screen, which is the way this kind of change usually goes wrong.
+        // Taller keys must not make the tray's contents outgrow the screen.
+        // The tray is anchored to the bottom edge and does not scroll, so
+        // whatever does not fit runs off the bottom and cannot be tapped —
+        // the way this kind of change usually goes wrong.
         cy.get("#virtual-keyboard-tray").should(($tray) => {
             expect(
                 $tray[0].scrollHeight,

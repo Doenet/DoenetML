@@ -24,13 +24,15 @@ rather than 42rem, so a key grows to 48px there instead of staying at 40px in
 the middle of an empty row.
 
 The tray also stops short of the height that would carry its own tab off the
-top of the screen. It hangs the tab exactly its own height above the tray, so a
-taller tab needs a taller gap; on a phone held sideways, where the tray is tall
-enough to reach that limit, the tab was being clipped.
+top of the screen — floor as well as ceiling, so a window shorter than the
+tray's usual 280px no longer pushes the tab out of reach either. It hangs the
+tab exactly its own height above the tray, so a taller tab needs a taller gap;
+on a phone held sideways, where the tray is tall enough to reach that limit,
+the tab was being clipped.
 
-Nothing changes for a reader with a mouse, including on a narrow window: the
-sizing is keyed on the primary pointer being coarse, which is the same test the
-viewer already uses to decide whether to suppress the device's own on-screen
-keyboard.
+Nothing else changes for a reader with a mouse, including on a narrow window:
+the sizing is keyed on the primary pointer being coarse, which is the same test
+the viewer already uses to decide whether to suppress the device's own
+on-screen keyboard.
 
 Closes #449.

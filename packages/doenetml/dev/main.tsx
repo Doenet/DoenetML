@@ -138,12 +138,15 @@ function useDebounced<T>(value: T, delayMs: number): T {
  * control that reads well unlabelled, and the label disappears entirely on a
  * narrow bar. The control carries the full name as its `aria-label` either
  * way, so what is announced does not change with the width.
+ *
+ * Pass the wording only — the colon and the gap to the control belong to the
+ * component, so the two forms cannot end up punctuated differently.
  */
 function DevLabel({ full, short }: { full: string; short?: string }) {
     return (
         <>
-            <span className="dev-label-full">{full}: </span>
-            {short ? <span className="dev-label-short">{short}</span> : null}
+            <span className="dev-label-full">{full}:</span>
+            {short ? <span className="dev-label-short">{short}:</span> : null}
         </>
     );
 }
@@ -204,7 +207,7 @@ function App() {
                     </select>
                 </label>
                 <label className="dev-control">
-                    <DevLabel full="Document locale" short="Doc:" />
+                    <DevLabel full="Document locale" short="Doc" />
                     <input
                         aria-label="Document locale"
                         className="dev-locale-input"
@@ -221,7 +224,7 @@ function App() {
                     />
                 </label>
                 <label className="dev-control">
-                    <DevLabel full="UI locale" short="UI:" />
+                    <DevLabel full="UI locale" short="UI" />
                     <input
                         aria-label="UI locale"
                         className="dev-locale-input"
