@@ -138,10 +138,13 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
     /**
      * The indices of the outermost pegs to draw for the board's current
-     * bounding box. Each edge's fractional lattice index is rounded to the
-     * nearest peg and then stepped one further in, which keeps the outermost
-     * peg at least half a spacing clear of the border: a peg that fits inside
-     * the box but lands nearer than that goes undrawn.
+     * bounding box. Each edge's fractional lattice index is stepped one peg
+     * inward and the result rounded, which keeps the outermost peg at least
+     * half a spacing clear of the border: a peg that fits inside the box but
+     * lands nearer than that goes undrawn. The step comes before the
+     * rounding, and the two do not commute: ties round away from zero, so
+     * rounding first would draw a peg sitting exactly on that half-spacing
+     * boundary where this draws none.
      *
      * The range it returns is only worth drawing if `latticeIsDrawable`
      * accepts it.

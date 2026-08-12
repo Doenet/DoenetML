@@ -99,6 +99,11 @@ export function fieldFunctionFromDefinition(
  * counterpart, just indexed in the opposite direction, so the two ends are
  * sorted before being rounded inward. (`pegboard`, whose lattice attributes
  * these mirror, is likewise indifferent to the sign.)
+ *
+ * Its `pegIndexRange` is not this function under another name, though: a
+ * pegboard keeps its outermost peg half a spacing clear of the border, where
+ * a field takes every point that lies inside at all. Sharing one of them
+ * would change what the other draws.
  */
 export function latticeRange(
     bounds: FieldBounds,
