@@ -32,7 +32,7 @@ import { MathJax } from "better-react-mathjax";
 import "./mathInput.css";
 import {
     FocusedMathInputContext,
-    ReleasedKeyboardClaimContext,
+    LegacyKeyboardTrayContext,
 } from "../../doenetml";
 import { useAppSelector } from "../../state";
 import { keyboardSlice } from "../../state/slices/keyboard";
@@ -73,20 +73,24 @@ const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
 const EMPTY_AUTO_OPERATOR_NAMES_SENTINEL = "a-";
 
 /**
- * How soon after a math input gives up its claim on the virtual keyboard an
- * `accessed` message must arrive for the press that sent it to be read as the
- * cause of that blur — the one thing that lets an input driven by a keyboard
- * tray from before this change take its claim back (see `KeyCommand`).
+ * How soon after a math input gives up its claim on the virtual keyboard a key
+ * from a keyboard tray predating this change must arrive for the press that
+ * sent it to be read as the cause of that blur — which is what lets such a
+ * tray still type (see `KeyCommand`).
  *
  * A bound is needed because nothing else separates that blur from the reader
  * leaving the input of their own accord and reaching for the tray afterwards,
- * and reclaiming in the latter case would type into an input the reader has
- * left and pull the caret back to it. The viewers contemporary with such a
+ * and typing in the latter case would put a character into an input the reader
+ * has left and pull the caret back to it. The viewers contemporary with such a
  * tray drew the same line, at 100 ms between the blur and the tray's own
- * timestamp; this measures instead from the blur to the message being handled,
- * so it allows for the `postMessage` hop and the render that follows, while
+ * timestamp; this measures instead from the blur to the key being handled, so
+ * it allows for the `postMessage` hop and the render that follows, while
  * staying well inside the time it takes a reader to leave an input and press a
  * key.
+ *
+ * A key that misses the window types nothing, which is the same nothing the
+ * reader would have got before this accommodation existed — the bound cannot
+ * misdirect a key, only decline it.
  */
 const LEGACY_TRAY_RECLAIM_WINDOW_MS = 300;
 
@@ -465,7 +469,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         keyboardSlice.selectors.systemKeyboardRequested,
     );
     const focusedMathInput = useContext(FocusedMathInputContext);
-    const releasedKeyboardClaim = useContext(ReleasedKeyboardClaimContext);
+    const legacyKeyboardTray = useContext(LegacyKeyboardTrayContext);
     const [mathField, setMathField] = useState<MathField | null>(null);
     // `EditableMathField`'s `handlers.enter` callback can hold stale captures.
     // Keep the latest MathField instance in a ref for enter handling.
@@ -617,38 +621,50 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
     }, [callAction]);
 
+    /**
+     * Whether the keys the virtual keyboard has just sent belong to `input`.
+     *
+     * Ordinarily that is simply whether `input` holds the claim — a record
+     * that deliberately outlives `document.activeElement` moving into the
+     * tray, so that the keyboard can be operated from the keyboard.
+     *
+     * A tray from before it learned to decline focus leaves no claim to read,
+     * having blurred the input as it was pressed, so its keys are matched to
+     * the release of the claim that same press caused: this input's, to
+     * nothing else in the document, and still fresh. Each key is judged on its
+     * own, and only against the release it can plausibly have caused; the
+     * claim is never reinstated behind the reader's back, so a press that
+     * lands on the tray without producing a key — its close button, the gap
+     * between two keys — leaves nothing behind for a later key to type into.
+     */
+    function claimsVirtualKeyboardKeys(input: HTMLElement) {
+        if (focusedMathInput.current === input) {
+            return true;
+        }
+        const { announced, release } = legacyKeyboardTray.current;
+        return (
+            announced &&
+            focusedMathInput.current === null &&
+            release?.input === input &&
+            Date.now() - release.releasedAt < LEGACY_TRAY_RECLAIM_WINDOW_MS
+        );
+    }
+
     React.useEffect(() => {
         // An `accessed` message means the tray driving us predates the tray
-        // declining focus (see `KeyCommand`). Such a tray lives in the
-        // embedding page and takes focus when pressed, so this input has
-        // already been blurred and has given up its claim, and the key on its
-        // way over `postMessage` would land nowhere. Take the claim back.
-        //
-        // The old tray sends this from the pointer press that causes the blur,
-        // so it always arrives between the blur and the key. Current trays
-        // never send it, which is what confines this to the old ones. The
-        // release it answers has to be this input's, recent, and to nothing
-        // else in this document — otherwise the reader left the input on their
-        // own and a key pressed afterwards is not theirs to take back.
-        const release = releasedKeyboardClaim.current;
-        if (
-            mathField &&
-            focusedMathInput.current === null &&
-            release?.input === mathField.el() &&
-            Date.now() - release.releasedAt < LEGACY_TRAY_RECLAIM_WINDOW_MS &&
-            virtualKeyboardEvents.some((event) => event.type === "accessed")
-        ) {
-            focusedMathInput.current = mathField.el();
+        // declining focus (see `KeyCommand`). Only such a tray sends it, so
+        // seeing one settles which tray this page is under for good — and
+        // until one is seen, none of the accommodation below applies, which is
+        // what keeps it out of current pairings entirely.
+        if (virtualKeyboardEvents.some((event) => event.type === "accessed")) {
+            legacyKeyboardTray.current.announced = true;
         }
 
-        if (!mathField || focusedMathInput.current !== mathField.el()) {
-            // These keys belong to a different input. `focusedMathInput` is
-            // the record of which input the virtual keyboard is typing into;
-            // it deliberately outlives `document.activeElement` moving into
-            // the tray, so that the keyboard can be operated from the keyboard.
+        if (!mathField || !claimsVirtualKeyboardKeys(mathField.el())) {
+            // These keys belong to a different input, or to none.
             return;
         }
-        let typedSomething = false;
+        let handledAKey = false;
         for (const event of virtualKeyboardEvents) {
             if (event.type === "keystroke" && event.command === "Enter") {
                 // The "Enter" key was pressed
@@ -663,30 +679,31 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 ) {
                     submitActionWithPendingRef.current();
                 }
+                handledAKey = true;
                 continue;
             }
             switch (event.type) {
                 case "accessed":
                 case "keyboardChoice":
                     // Not key presses, and both are dealt with before they get
-                    // here: `accessed` by the reclaim above, `keyboardChoice`
-                    // on its way to the store. See `KeyCommand`.
+                    // here: `accessed` above, `keyboardChoice` on its way to
+                    // the store. See `KeyCommand`.
                     break;
                 case "cmd":
                     mathField.cmd(event.command);
-                    typedSomething = true;
+                    handledAKey = true;
                     break;
                 case "write":
                     mathField.write(event.command);
-                    typedSomething = true;
+                    handledAKey = true;
                     break;
                 case "keystroke":
                     mathField.keystroke(event.command);
-                    typedSomething = true;
+                    handledAKey = true;
                     break;
                 case "type":
                     mathField.typedText(event.command);
-                    typedSomething = true;
+                    handledAKey = true;
                     break;
                 default:
                     console.warn(
@@ -706,11 +723,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // pressed: the reader is left with no caret, so put it back, as that
         // tray's contemporaries did after every key. Recognized by this input
         // having lost focus to nothing in particular — a reader who moved into
-        // a tray in this document did so deliberately and keeps focus there.
+        // a tray in this document did so deliberately and keeps focus there,
+        // and one typing into an input that still has focus needs nothing.
         const activeElement =
             textareaRef.current?.ownerDocument.activeElement ?? null;
         if (
-            typedSomething &&
+            handledAKey &&
             activeElement !== textareaRef.current &&
             !isInVirtualKeyboardTray(activeElement)
         ) {
@@ -754,11 +772,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
             // A blur with nowhere to hand focus on to is the shape of the one
             // an old keyboard tray causes, since it takes focus in the
             // embedding page and `relatedTarget` does not cross that boundary.
-            // Record it so such a tray's press can be recognized as its cause
-            // and the claim taken back; a blur that named where focus went is
-            // the reader moving somewhere in this document, and leaves nothing
-            // to reclaim. See `LEGACY_TRAY_RECLAIM_WINDOW_MS`.
-            releasedKeyboardClaim.current =
+            // Record it so a key from such a tray can be recognized as coming
+            // from the press that caused it; a blur that named where focus
+            // went is the reader moving somewhere in this document, and leaves
+            // nothing for a key to come back to. See
+            // `claimsVirtualKeyboardKeys`.
+            legacyKeyboardTray.current.release =
                 nextFocused === null
                     ? { input: mathField.el(), releasedAt: Date.now() }
                     : null;

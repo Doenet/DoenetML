@@ -77,30 +77,36 @@ export const FocusedMathInputContext = React.createContext<
 >({ current: null });
 
 /**
- * A math input that has just given up its claim on the virtual keyboard, and
- * when it did so, recorded only when the blur left nothing in this document
- * focused in its place.
+ * Everything a math input needs in order to be driven by a keyboard tray
+ * published before it learned to decline focus.
+ *
+ * Such a tray takes focus when it is pressed, so the input is blurred and has
+ * given up the claim `FocusedMathInputContext` records before the key gets
+ * here. See the `accessed` message in `KeyCommand`, which is what identifies
+ * such a tray, and the handling of it in the math input renderer.
  */
-export type ReleasedKeyboardClaim = {
-    input: HTMLElement;
-    releasedAt: number;
+export type LegacyKeyboardTrayState = {
+    /**
+     * Whether a tray of that vintage has announced itself, by sending an
+     * `accessed` message. Sticky: only those trays ever send it, and the tray
+     * a page is under does not change. Nothing below applies until it is set,
+     * which is what keeps all of this out of current pairings.
+     */
+    announced: boolean;
+    /**
+     * The math input that most recently gave up its claim on the keyboard, and
+     * when — recorded only when the blur left nothing else in this document
+     * focused, which is the shape of the blur such a tray causes. Both halves
+     * are needed to tell that blur from the reader leaving the input of their
+     * own accord.
+     */
+    release: { input: HTMLElement; releasedAt: number } | null;
 };
 
-/**
- * The most recent such release — the counterpart to
- * `FocusedMathInputContext`, which by then holds nothing.
- *
- * Only used to accommodate a keyboard tray published before it learned to
- * decline focus: pressing one of its keys blurs the input before the key
- * arrives, so by the time it does there is no focused input to receive it.
- * See the `accessed` message in `KeyCommand`, which is what identifies such a
- * tray, and the handling of it in the math input renderer, which uses the two
- * halves of this record to tell that blur from the reader leaving the input of
- * their own accord.
- */
-export const ReleasedKeyboardClaimContext = React.createContext<
-    React.RefObject<ReleasedKeyboardClaim | null>
->({ current: null });
+/** Per-viewer {@link LegacyKeyboardTrayState}, shared by its math inputs. */
+export const LegacyKeyboardTrayContext = React.createContext<
+    React.RefObject<LegacyKeyboardTrayState>
+>({ current: { announced: false, release: null } });
 
 /**
  * this is a hack for react-mathqill
@@ -780,7 +786,10 @@ function WrapWithKeyboard({
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
-    const releasedKeyboardClaim = useRef<ReleasedKeyboardClaim | null>(null);
+    const legacyKeyboardTray = useRef<LegacyKeyboardTrayState>({
+        announced: false,
+        release: null,
+    });
     const keyboard = addVirtualKeyboard ? (
         <VirtualKeyboard
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
@@ -832,13 +841,11 @@ function WrapWithKeyboard({
 
     return (
         <FocusedMathInputContext.Provider value={focusedMathInput}>
-            <ReleasedKeyboardClaimContext.Provider
-                value={releasedKeyboardClaim}
-            >
+            <LegacyKeyboardTrayContext.Provider value={legacyKeyboardTray}>
                 {children}
                 <div className="before-keyboard" />
                 {keyboard}
-            </ReleasedKeyboardClaimContext.Provider>
+            </LegacyKeyboardTrayContext.Provider>
         </FocusedMathInputContext.Provider>
     );
 }

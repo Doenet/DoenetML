@@ -15,15 +15,17 @@
  *
  * - `"accessed"` — no longer sent by this tray, which declines focus and so
  *   has no blur to explain. It is still *accepted*, and is the one thing that
- *   identifies a tray from before that change: only those send it, and they
- *   send it from the pointer press that blurs the input, so it arrives
- *   between that blur and the key it precedes. A math input that has just
- *   been blurred that way takes its claim on the keyboard back when it sees
- *   one, and puts the caret back after typing, which is what lets a current
+ *   identifies a tray from before that change: only those send it, so the
+ *   first one settles which tray the page is under. A key from such a tray is
+ *   then delivered to the math input its own press blurred a moment earlier,
+ *   and the caret is put back after typing, which is what lets a current
  *   viewer be driven by an older tray — the pairing doenet.org has whenever it
- *   serves a newly published viewer under its installed wrapper. "Just" is
- *   part of it: a press that arrives long after the reader left an input is
- *   not the cause of that blur and does not reclaim anything.
+ *   serves a newly published viewer under its installed wrapper. "A moment
+ *   earlier" is part of it: a key that arrives long after the reader left an
+ *   input was not caused by that blur and types nowhere. Nor does the
+ *   `accessed` message itself hand any input the keyboard, so a press that
+ *   produces no key — the tray's close button, the gap between two keys —
+ *   leaves nothing behind.
  *
  *   The reverse pairing, an older viewer under this tray, cannot be rescued
  *   from this side: that viewer typed only in response to a blur this tray no

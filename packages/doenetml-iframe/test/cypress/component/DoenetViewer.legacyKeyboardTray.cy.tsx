@@ -70,6 +70,15 @@ function LegacyKeyboardTray({
             >
                 x
             </button>
+            {/*
+             * The old tray's own controls — its open/close button, and the
+             * tray surface between the keys — sent no key at all: they sent
+             * `accessed` from the root's `onMouseDown` and again from its
+             * `onClick`, since only the keys stopped propagation.
+             */}
+            <button data-test="legacy-tray-control" onClick={postAccessed}>
+                tray
+            </button>
         </div>
     );
 }
@@ -170,6 +179,31 @@ describe("DoenetViewer (iframe wrapper) — a keyboard tray from before it decli
             .find(".mq-editable-field")
             .should("contain.text", "x")
             .should("not.contain.text", "xx");
+        cy.get("iframe")
+            .its("0.contentDocument.activeElement")
+            .should("not.match", "textarea");
+    });
+
+    it("does not leave an input holding the keyboard after a tray press that sends no key", () => {
+        cy.mount(<Harness />);
+
+        viewerBody()
+            .find(".mq-editable-field", { timeout: CONTENT_TIMEOUT })
+            .should("exist")
+            .click();
+
+        // Pressing the tray somewhere that is not a key blurs the input just
+        // as a key would, and announces itself the same way — but no key ever
+        // follows, so nothing is owed to that input.
+        cy.get("[data-test=legacy-tray-control]").click();
+        cy.wait(SETTLE_MS);
+
+        // Long enough afterwards that this key cannot be the one that press
+        // was reaching for.
+        cy.get("[data-test=legacy-key-x]").click();
+        cy.wait(SETTLE_MS);
+
+        viewerBody().find(".mq-editable-field").should("not.contain.text", "x");
         cy.get("iframe")
             .its("0.contentDocument.activeElement")
             .should("not.match", "textarea");
