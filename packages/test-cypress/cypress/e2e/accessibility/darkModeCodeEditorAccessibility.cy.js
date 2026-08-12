@@ -12,11 +12,13 @@ import { expectNoColorContrastViolations } from "../../support/colorContrast";
  * painted on the dark canvas, which is exactly what axe's `color-contrast`
  * rule catches.
  *
- * Each case loads a document containing a `<codeEditor>` whose contents
+ * Most cases load a document containing a `<codeEditor>` whose contents
  * exercise a particular corner of the highlight palette (see
- * `packages/codemirror/src/extensions/syntax-highlighting.ts`) and scans the
- * embedded editor in dark mode; one case repeats in light mode so a fix
- * cannot trade one theme's contrast for the other's.
+ * `packages/codemirror/src/extensions/syntax-highlighting.ts`) and scan the
+ * embedded editor in dark mode. The rest cover what those cases leave out:
+ * read-only mode (a palette of its own), the editor's chrome, one repeat in
+ * light mode so a fix cannot trade one theme's contrast for the other's, and
+ * a direct check that the dark canvas is painted at all.
  */
 describe("codeEditor dark-mode accessibility", { tags: ["@group5"] }, () => {
     beforeEach(() => {
@@ -132,8 +134,10 @@ describe("codeEditor dark-mode accessibility", { tags: ["@group5"] }, () => {
         // message than this one.
         loadCodeEditor(`<p>text</p>`, "dark");
         // CodeMirror's generated class names carry no theme information, so
-        // check the canvas color the dark theme actually paints (`#121212`,
-        // from `canvasBackground()` in the codemirror package).
+        // check the canvas color the dark theme actually paints. That is
+        // `canvasBackground()` in the codemirror package, `var(--canvas,
+        // #121212)`, and `--canvas` is `#121212` under `[data-theme="dark"]`
+        // in `packages/doenetml/src/DoenetML.css`.
         cy.get(".doenet-viewer .cm-editor").should(
             "have.css",
             "background-color",
