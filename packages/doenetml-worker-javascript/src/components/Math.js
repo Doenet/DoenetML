@@ -136,10 +136,29 @@ export default class MathComponent extends InlineComponent {
         attributes.displayDigits.highlighted = true;
 
         attributes.renderMode = {
-            description: 'How the math is rendered (e.g. "inline", "display").',
+            description: "How the math is rendered.",
             createComponentOfType: "text",
             createStateVariable: "renderMode",
             defaultValue: "inline",
+            toLowerCase: true,
+            // The math renderer understands two further modes, neither of
+            // which `<math>` can reach. `numbered` needs an `equationTag` state
+            // variable to fill its `\tag{}`, and only the equation components
+            // (`<me>`, `<men>`, `<odeSystem>`) define one. `align` needs `&`
+            // alignment markers in the LaTeX, which the math-expressions
+            // expression underlying `<math>` cannot carry — that mode is
+            // reached through components like `<md>` instead.
+            validValues: [
+                {
+                    value: "inline",
+                    description: "Render inline with the surrounding text.",
+                },
+                {
+                    value: "display",
+                    description:
+                        "Render as a centered equation on its own line.",
+                },
+            ],
             public: true,
             forRenderer: true,
         };

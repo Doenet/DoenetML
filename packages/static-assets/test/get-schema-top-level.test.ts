@@ -95,8 +95,15 @@ describe("generated schema top-level elements", () => {
         if (!gridAttribute) {
             throw new Error("Expected graph.grid attribute");
         }
+        // `grid` declares `suggestedValues`, so it carries the named spacings
+        // in `autocompleteValues` while `values` stays absent — the attribute
+        // also takes two numbers, so nothing is enforced. What must not appear
+        // either way is a `false` alias: `grid` sets `valueForTrue` and no
+        // `valueForFalse`, and only a two-sided pair contributes aliases.
         expect(gridAttribute.values).toBeUndefined();
-        expect(gridAttribute.autocompleteValues).toBeUndefined();
+        expect(
+            gridAttribute.autocompleteValues?.map((entry) => entry.value),
+        ).toEqual(["none", "medium", "dense", "1 1", "2 2"]);
     });
 
     describe("aliased elements carry children for context-aware LSP validation (#1174)", () => {

@@ -46,6 +46,33 @@ export default class SummaryStatistics extends BlockComponent {
             createComponentOfType: "textList",
             createStateVariable: "statisticsToDisplayPrelim",
             defaultValue: ["default"],
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "default",
+                    description:
+                        "The default selection: mean, stdev, count, minimum, quartile1, median, quartile3, and maximum.",
+                },
+                { value: "all", description: "Every statistic listed here." },
+                { value: "mean", description: "The arithmetic mean." },
+                { value: "stdev", description: "The standard deviation." },
+                { value: "variance", description: "The variance." },
+                { value: "stderr", description: "The standard error." },
+                {
+                    value: "count",
+                    description: "The number of non-missing values.",
+                },
+                { value: "minimum", description: "The smallest value." },
+                { value: "quartile1", description: "The first quartile." },
+                { value: "median", description: "The median." },
+                { value: "quartile3", description: "The third quartile." },
+                { value: "maximum", description: "The largest value." },
+                {
+                    value: "range",
+                    description: "The maximum minus the minimum.",
+                },
+                { value: "sum", description: "The sum of the values." },
+            ],
             description:
                 'Which summary statistics to display (or "default" / "all").',
         };
@@ -103,10 +130,9 @@ export default class SummaryStatistics extends BlockComponent {
 
                 let statisticsToDisplay = [];
 
-                let desiredStats =
-                    dependencyValues.statisticsToDisplayPrelim.map((x) =>
-                        x.toLowerCase(),
-                    );
+                // Already lower-cased and filtered to `validValues` by the
+                // attribute machinery.
+                let desiredStats = dependencyValues.statisticsToDisplayPrelim;
 
                 if (desiredStats.includes("default")) {
                     statisticsToDisplay = [

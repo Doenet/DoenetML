@@ -12,6 +12,41 @@ import {
     listItemNumberAlignmentForLead,
 } from "../utils/listItemChild";
 
+/**
+ * The marker styles a numbered list (`<ol>`) can use.
+ *
+ * Kept beside the unnumbered set below so the two stay recognizable as the two
+ * halves of one renderer decision: `list.tsx` reads `numbered` to pick which
+ * of them applies, and neither half does anything on the other kind of list.
+ */
+function returnNumberedMarkerValues() {
+    return [
+        { value: "1", description: "Arabic numerals: 1, 2, 3, …" },
+        { value: "a", description: "Lowercase letters: a, b, c, …" },
+        { value: "A", description: "Uppercase letters: A, B, C, …" },
+        {
+            value: "i",
+            description: "Lowercase roman numerals: i, ii, iii, …",
+        },
+        {
+            value: "I",
+            description: "Uppercase roman numerals: I, II, III, …",
+        },
+    ];
+}
+
+/**
+ * The marker styles an unnumbered list (`<ul>`) can use — the complete set,
+ * unlike the numbered ones above, which is why `<ul>` enforces these.
+ */
+function returnUnnumberedMarkerValues() {
+    return [
+        { value: "disc", description: "A filled circle." },
+        { value: "circle", description: "A hollow circle." },
+        { value: "square", description: "A filled square." },
+    ];
+}
+
 export class Ol extends BlockComponent {
     constructor(args) {
         super(args);
@@ -49,13 +84,24 @@ export class Ol extends BlockComponent {
             description: "Nesting level of this list (1-based).",
         };
 
+        // The numbered markers, since `<ol>` fixes `numbered` to true. `<ul>`
+        // overrides this whole declaration with the bullet markers — the two
+        // sets do not cross, so a list offering both would offer each tag
+        // values that do nothing there.
+        //
+        // `suggestedValues`, not `validValues`: the markers are distinguished
+        // by *case* (`a` vs `A`), so the value cannot be lower-cased, and the
+        // renderer matches on the first character only, so decorated forms
+        // like `1.` or `a)` work too. Offering the list without enforcing it
+        // keeps both of those intact.
         attributes.marker = {
             createComponentOfType: "text",
             createStateVariable: "marker",
             defaultValue: null,
             forRenderer: true,
+            suggestedValues: returnNumberedMarkerValues(),
             description:
-                "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
+                "Marker style for the list items: `1`, `a`, `A`, `i`, or `I`. The value is matched on its first character, so a decorated form such as `1.` or `a)` selects the same style. Defaults to a style chosen by the list's nesting level.",
         };
 
         let scoredSectionAttributes = returnScoredSectionAttributes();
@@ -175,6 +221,31 @@ export class Ul extends Ol {
         summary: "An unordered list",
     };
     static rendererType = "list";
+
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+
+        // Replace `<ol>`'s numbered markers with the bullet ones. These are
+        // `validValues` where `<ol>`'s are only suggestions, because here the
+        // list really is the permitted set: the renderer lower-cases the value
+        // and drops anything outside these three, so `none` and the rest of
+        // the CSS `list-style-type` vocabulary do nothing. Enforcing turns
+        // that into an author-facing diagnostic instead of a marker that
+        // silently reverts to the level default. `suggestedValues` has to go
+        // with it — the spread inherits `<ol>`'s, and declaring both is a
+        // build error.
+        const { suggestedValues: _numberedMarkers, ...inheritedMarker } =
+            attributes.marker;
+        attributes.marker = {
+            ...inheritedMarker,
+            toLowerCase: true,
+            validValues: returnUnnumberedMarkerValues(),
+            description:
+                "Marker style for the list items: `disc`, `circle`, or `square`. Defaults to a style chosen by the list's nesting level.",
+        };
+
+        return attributes;
+    }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();

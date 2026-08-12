@@ -919,7 +919,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -1303,7 +1304,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -14751,7 +14752,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -15149,7 +15151,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -15614,7 +15616,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -16012,7 +16015,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -16477,7 +16480,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -16873,7 +16877,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -17338,7 +17342,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -17734,7 +17739,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -18199,7 +18204,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -18595,7 +18601,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -19060,7 +19066,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -19450,7 +19457,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -19908,7 +19915,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "createVectors": {
@@ -20285,7 +20293,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -20730,7 +20738,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -21114,7 +21123,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -21565,7 +21574,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -21949,7 +21959,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -22400,7 +22410,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -22784,7 +22795,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -23235,7 +23246,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -23619,7 +23631,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -24070,7 +24082,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -24468,7 +24481,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -24933,7 +24946,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -25331,7 +25345,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -25796,7 +25810,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -26201,7 +26216,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -26673,7 +26688,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -27078,7 +27094,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -27550,7 +27566,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -27948,7 +27965,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -28413,7 +28430,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -28811,7 +28829,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -29276,7 +29294,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -29674,7 +29693,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -30139,7 +30158,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -30537,7 +30557,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -31002,7 +31022,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -31400,7 +31421,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -31865,7 +31886,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -32263,7 +32285,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -32728,7 +32750,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -33134,7 +33157,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -65866,7 +65889,9 @@
                 "marker": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "disc",
+                        "circle",
+                        "square"
                     ]
                 },
                 "aggregateScores": {
@@ -67145,12 +67170,6 @@
                         "false"
                     ]
                 },
-                "renderMode": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "chunkSize": {
                     "optional": true,
                     "type": [
@@ -67239,13 +67258,6 @@
                     "type": "math",
                     "isArray": false,
                     "description": "The value of the independent variable at which the initial conditions are specified.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "renderMode",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "How to format the rendered system of equations (e.g. \"align\").",
                     "fromAttribute": true
                 },
                 {
@@ -71471,7 +71483,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -71855,7 +71868,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -85282,7 +85295,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -85666,7 +85680,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -89127,7 +89141,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -89504,7 +89519,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -109233,7 +109248,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -109610,7 +109626,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -122245,7 +122261,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -122417,7 +122434,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -124672,7 +124689,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -124854,7 +124872,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -139063,7 +139081,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -139460,7 +139479,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -146076,7 +146095,8 @@
                 "renderMode": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "inline",
+                        "display"
                     ]
                 },
                 "unordered": {
@@ -146250,7 +146270,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {

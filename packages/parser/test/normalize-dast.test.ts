@@ -440,6 +440,24 @@ describe("Normalize dast", async () => {
         ]);
     });
 
+    it("drops the deprecated odeSystem renderMode attribute", () => {
+        const source = `<odeSystem renderMode="display">x</odeSystem>`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            "<document><odeSystem>x</odeSystem></document>",
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toHaveLength(1);
+        expect(warnings[0].message).toContain(
+            "[deprecation] Attribute `renderMode` on `<odeSystem>` is deprecated and ignored.",
+        );
+    });
+
     it("keeps non-deprecated attributes when dropping deprecated ones", () => {
         const source = `<description name="d" aggregateScores>hello</description>`;
         const dast = lezerToDast(source);

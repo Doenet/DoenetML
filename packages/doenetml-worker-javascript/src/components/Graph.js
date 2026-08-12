@@ -428,9 +428,40 @@ export default class Graph extends BlockComponent {
             description:
                 "Whether the axis limits are locked (preventing zoom/pan).",
         };
+        // `suggestedValues`, not `validValues`: the named spacings are only
+        // part of what this attribute takes — two positive numbers are equally
+        // valid — so the list is offered rather than enforced. (The `grid`
+        // state variable below already matches the names case-insensitively.)
         attributes.grid = {
             createComponentOfType: "text",
             valueForTrue: "medium",
+            suggestedValues: [
+                { value: "none", description: "Draw no grid lines." },
+                {
+                    value: "medium",
+                    description:
+                        "Draw grid lines at the major tick marks. Used when `grid` is given with no value.",
+                },
+                {
+                    value: "dense",
+                    description:
+                        "Draw grid lines at the major and minor tick marks.",
+                },
+                // Two examples of the numeric form, which the named spacings
+                // would otherwise hide: an author scanning a list of three
+                // words has no reason to guess that spacings can be given
+                // explicitly.
+                {
+                    value: "1 1",
+                    description:
+                        "Draw grid lines every 1 unit in x and every 1 unit in y. Any two positive numbers can be given this way.",
+                },
+                {
+                    value: "2 2",
+                    description:
+                        "Draw grid lines every 2 units in x and every 2 units in y.",
+                },
+            ],
             description:
                 'Grid line spacing on the graph: none, medium, dense, or two positive numbers giving the x and y spacing, such as grid="1 0.5".',
         };
