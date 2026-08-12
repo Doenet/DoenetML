@@ -12,6 +12,118 @@ console.log = (...args) => {
 };
 
 describe("Normalize dast", async () => {
+    it("wraps a field's bare expression in a <function> child", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField>y - x</slopeField>`),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField><function variables="x y">y - x</function></slopeField></document>`,
+        );
+    });
+    it("moves a field's variables onto the <function> it wraps", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(
+                `<vectorField variables="$v1 $v2">($v2,-$v1)</vectorField>`,
+            ),
+        );
+        // The references are carried over untouched, so they resolve against
+        // whatever names them rather than being read here.
+        expect(toXml(dast)).toEqual(
+            `<document><vectorField><function variables="$v1 $v2">($v2,-$v1)</function></vectorField></document>`,
+        );
+    });
+    it("moves a field's variables however it was capitalized", () => {
+        // Attribute names are matched case-insensitively when the components
+        // are built, so one left behind here would name nothing while the
+        // wrapper defaulted to `x y` and `s - t` came out NaN everywhere.
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField VARIABLES="s t">s - t</slopeField>`),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField><function variables="s t">s - t</function></slopeField></document>`,
+        );
+    });
+    it("warns that a field's variables are ignored beside an explicit <function> child", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(
+                `<slopeField variables="s t"><function variables="u v">u-v</function></slopeField>`,
+            ),
+        );
+        // The child is used as it stands, and the attribute stays where it was
+        // written rather than being quietly deleted along with its meaning.
+        expect(toXml(dast)).toContain(`<slopeField variables="s t">`);
+        expect(toXml(dast)).toContain(
+            `<function variables="u v">u-v</function>`,
+        );
+
+        const warnings = extractDastErrors(dast).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                error_type: "warning",
+                code: "doenet-w0124",
+                args: { component: "slopeField", reason: "function-child" },
+            },
+        ]);
+        expect(warnings[0].message).toContain(
+            "which names its own variables, so `variables` is ignored",
+        );
+    });
+    it("warns that a field's variables are ignored when it has no expression", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<vectorField variables="u v" />`),
+        );
+        const warnings = extractDastErrors(dast).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                error_type: "warning",
+                code: "doenet-w0124",
+                args: { component: "vectorField", reason: "no-expression" },
+            },
+        ]);
+    });
+    it("does not warn about a field's variables when it uses them", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField variables="s t">s - t</slopeField>`),
+        );
+        expect(
+            extractDastErrors(dast).filter(
+                (error) => error.error_type === "warning",
+            ),
+        ).toEqual([]);
+    });
+    it("leaves a field's label child outside the <function> it wraps", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField>y - x<label>hi</label></slopeField>`),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField><function variables="x y">y - x</function><label>hi</label></slopeField></document>`,
+        );
+    });
+    it("keeps a field's set-aside child on the side it was written", () => {
+        // The line breaks matter: the whitespace around the expression is
+        // swallowed into the wrapper, so the wrapper has to land where the
+        // expression is rather than where the first swallowed child was.
+        const dast = normalizeDocumentDast(
+            lezerToDast(
+                `<slopeField>\n<label>hi</label>\ny - x\n</slopeField>`,
+            ),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField><label>hi</label><function variables="x y">\n\ny - x\n</function></slopeField></document>`,
+        );
+    });
+    it("does not give a field a <function> when it has no expression", () => {
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField>   </slopeField>`),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField>   </slopeField></document>`,
+        );
+    });
     it("wraps in a <document> tag", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;

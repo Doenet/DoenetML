@@ -114452,10 +114452,12 @@
         {
             "name": "slopeField",
             "children": [
-                "xLabel",
-                "yLabel",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction",
                 "conditionalContent",
-                "label",
                 "rightHandSide",
                 "m",
                 "me",
@@ -114483,9 +114485,6 @@
                 "gcd",
                 "lcm",
                 "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -114510,8 +114509,6 @@
                 "choice",
                 "number",
                 "integer",
-                "function",
-                "piecewiseFunction",
                 "interval",
                 "sequence",
                 "cell",
@@ -114535,7 +114532,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120122221111111111111111111111222222222122220222212222201221222122222122221212222",
+            "childBuckets": "1110121222211111111111111111111112222221222202222122222011222122222122221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -114613,37 +114610,6 @@
                     "type": "reference"
                 },
                 {
-                    "name": "labelIsName",
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "groupName": "labels",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "maskLabel",
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
                     "name": "layer",
                     "description": "Z-order layer index used to stack graphical components (higher values render on top).",
                     "defaultValue": 0,
@@ -114679,9 +114645,9 @@
                     "type": "number"
                 },
                 {
-                    "name": "function",
-                    "description": "The function giving the slope y' at each point, as an expression such as y-x or a reference to a <function>. May take one input, f(x), or two, f(x,y).",
-                    "type": "function"
+                    "name": "variables",
+                    "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
+                    "type": "_variableNameList"
                 },
                 {
                     "name": "dx",
@@ -114740,28 +114706,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true,
-                    "groupName": "labels"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
                     "fromAttribute": true
                 },
                 {
@@ -114844,13 +114788,6 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component.",
-                    "groupName": "labels"
-                },
-                {
                     "name": "styleDescription",
                     "type": "text",
                     "isArray": false,
@@ -114873,10 +114810,12 @@
         {
             "name": "vectorField",
             "children": [
-                "xLabel",
-                "yLabel",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction",
                 "conditionalContent",
-                "label",
                 "rightHandSide",
                 "m",
                 "me",
@@ -114904,9 +114843,6 @@
                 "gcd",
                 "lcm",
                 "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -114931,8 +114867,6 @@
                 "choice",
                 "number",
                 "integer",
-                "function",
-                "piecewiseFunction",
                 "interval",
                 "sequence",
                 "cell",
@@ -114956,7 +114890,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120122221111111111111111111111222222222122220222212222201221222122222122221212222",
+            "childBuckets": "1110121222211111111111111111111112222221222202222122222011222122222122221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -115034,37 +114968,6 @@
                     "type": "reference"
                 },
                 {
-                    "name": "labelIsName",
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "groupName": "labels",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "maskLabel",
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
                     "name": "layer",
                     "description": "Z-order layer index used to stack graphical components (higher values render on top).",
                     "defaultValue": 0,
@@ -115100,9 +115003,9 @@
                     "type": "number"
                 },
                 {
-                    "name": "function",
-                    "description": "A function with two outputs giving the vector at each point, as an expression such as (y, -x) or a reference to a <function>. May take one input or two.",
-                    "type": "function"
+                    "name": "variables",
+                    "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
+                    "type": "_variableNameList"
                 },
                 {
                     "name": "dx",
@@ -115174,28 +115077,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true,
-                    "groupName": "labels"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "layer",
                     "type": "integer",
                     "isArray": false,
@@ -115280,13 +115161,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component.",
-                    "groupName": "labels"
                 },
                 {
                     "name": "styleDescription",

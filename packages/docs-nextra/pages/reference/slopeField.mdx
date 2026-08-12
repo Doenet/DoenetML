@@ -11,12 +11,14 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 that draws the slope field of a differential equation <m>y' = f(x,y)</m> as short tick marks on a
 lattice covering the visible region of an enclosing `<graph>{:dn}`.
 
-The slope function can be given as a bare expression child, as an expression written straight into
-the `function` attribute, or as a `<function>{:dn}` referenced with that attribute. Written either
-of the first two ways, the expression is read as a function of both <m>x</m> and <m>y</m>, so
-`<slopeField>y - x</slopeField>{:dn}` and `<slopeField function="y - x" />{:dn}` mean the same
-thing. Give the function only one of these ways: if both are used, the one written inside the
-component is used and the `function` attribute is ignored, with a warning.
+The slope function is given inside the component, either as a bare expression —
+`<slopeField>y - x</slopeField>{:dn}` — or as a `<function>{:dn}` child. A bare expression is read
+as a function of <m>x</m> and <m>y</m>; use the `variables` attribute to name them differently. A
+`<function>{:dn}` child is used exactly as written, since it names its own variables.
+
+A function whose number of outputs does not suit the component — a two-output expression such as
+`(y, -x)` given to `<slopeField/>{:dn}` — draws nothing and reports a warning saying which component
+does want it.
 
 The field re-tiles automatically as the user pans or zooms, and its marks keep a constant on-screen
 length — so slopes appear at their true visual angle even when the axes are not equally scaled.
@@ -68,34 +70,45 @@ variables. Marks along the line <m>y = x</m> are horizontal, since <m>y' = 0</m>
 </setup>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>A slope field with a solution curve drawn through it</shortDescription>
-  <slopeField function="$f" />
+  <slopeField>$f</slopeField>
   <function styleNumber="2">x + 1 - e^x</function>
 </graph>
 ```
 
 Drawing a known solution on top of the field shows the curve following the marks everywhere. Here
-the slope function is defined separately and referenced with the `function` attribute, which is the
-alternative to giving the expression as a child.
+the slope function is defined separately and referenced inside the field, which is the alternative
+to writing the expression out.
 
 
 ## Attribute Examples
 
-### Attribute Example: function
+### Attribute Example: variables
 
 ```doenet-editor-horiz
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
-  <shortDescription>The slope field of y' = y - x, written into the function attribute</shortDescription>
-  <slopeField function="y - x" />
+  <shortDescription>The slope field of a differential equation written in s and t</shortDescription>
+  <slopeField variables="s t">s - t</slopeField>
 </graph>
 ```
 
-`function` takes an expression directly, as here, or a reference to a `<function>{:dn}` declared
-elsewhere. An expression written here is read as a function of both <m>x</m> and <m>y</m>, exactly
-as a bare expression child is; a referenced function keeps whatever variables its own author named.
+`variables` names the inputs of a bare expression, in order: the horizontal axis first, then the
+vertical. It defaults to `x y`, so an equation written in those letters needs nothing. It has no
+effect on a `<function>{:dn}` child, which names its own variables — writing both warns, since
+one of them cannot be doing anything.
 
-A function whose number of outputs does not suit the component — a two-output expression such as
-`(y, -x)` given to `<slopeField/>{:dn}` — draws nothing and reports a warning saying which component
-does want it.
+The names may themselves be references, exactly as on a `<function>{:dn}`, so a student can choose
+them:
+
+```doenet-editor-horiz
+<p>Name the variables: <mathInput name="v1">q</mathInput> <mathInput name="v2">r</mathInput></p>
+<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+  <shortDescription>A field whose variable names are set by two math inputs</shortDescription>
+  <slopeField variables="$v1 $v2">q - r</slopeField>
+</graph>
+```
+
+The slope is <m>q - r</m> whichever axis each letter names, so swapping the two boxes — `r` in the
+first, `q` in the second — turns <m>y' = x - y</m> into <m>y' = y - x</m> and every mark flips.
 
 
 ---
@@ -104,13 +117,16 @@ does want it.
 
 ```doenet-editor-horiz
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
-  <shortDescription>A slope field sampled twice as finely in each direction</shortDescription>
-  <slopeField dx="0.5" dy="0.5" markLength="12">x*sin(x)</slopeField>
+  <shortDescription>A slope field sampled twice as finely in each direction, drawn with thin marks</shortDescription>
+  <slopeField dx="0.5" dy="0.5" markLength="12" lineWidth="2">x*sin(x)</slopeField>
 </graph>
 ```
 
 `dx` and `dy` set the horizontal and vertical spacing of the lattice, one unit each by default. A
-finer lattice usually wants a shorter `markLength` so the marks do not overlap.
+finer lattice usually wants a shorter `markLength` so the marks do not overlap, and a thinner
+`lineWidth` so they stay distinct where they nearly meet: a field is drawn in the component's
+selected style, and the default style's line is 4 pixels wide — heavy once there are hundreds of
+marks on screen. `styleNumber="2"` thins the marks as well, and recolors them.
 
 
 ---

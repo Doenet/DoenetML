@@ -1,33 +1,41 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
-    returnFieldFunctionAttribute,
+    returnFieldFunctionChildGroup,
     returnFieldFunctionStateVariableDefinitions,
-    returnFieldFunctionSugarInstruction,
     returnFieldLatticeAttributes,
+    returnFieldVariablesAttribute,
 } from "../utils/field";
 
 export default class VectorField extends GraphicalComponent {
     static componentType = "vectorField";
     static styleOverrideCategories = ["line"];
 
+    // A field covers the whole visible region, so there is nowhere for a label
+    // to sit beside it and the renderer draws none.
+    static includeLabels = false;
+
     static componentDocs = {
         summary:
             "A vector field drawn as arrows on a lattice, from a function with two outputs",
     };
 
-    // Children that sugar can turn into the function attribute.
+    // Children that sugar can turn into the <function> child.
     static additionalSchemaChildren = ["math", "number", "string"];
+
+    static returnChildGroups() {
+        let groups = super.returnChildGroups();
+        groups.push(returnFieldFunctionChildGroup());
+
+        return groups;
+    }
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         Object.assign(
             attributes,
-            returnFieldFunctionAttribute({
-                description:
-                    "A function with two outputs giving the vector at each point, as an expression such as (y, -x) or a reference to a <function>. May take one input or two.",
-            }),
+            returnFieldVariablesAttribute(),
             returnFieldLatticeAttributes({
                 markNoun: "arrows",
                 markLengthDefault: 24,
@@ -47,14 +55,6 @@ export default class VectorField extends GraphicalComponent {
         };
 
         return attributes;
-    }
-
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        sugarInstructions.push(returnFieldFunctionSugarInstruction());
-
-        return sugarInstructions;
     }
 
     static returnStateVariableDefinitions() {

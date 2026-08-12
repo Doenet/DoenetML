@@ -222,6 +222,22 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expectRoundTrip(errors);
     });
 
+    it("a field's variables with nothing to name", () => {
+        // Both ways the attribute can come to nothing, since each renders a
+        // different branch of the message's `reason` selector.
+        const errors = [
+            // The function is given as a `<function>` child, which names its
+            // own variables.
+            ...normalizedErrors(
+                `<slopeField variables="s t"><function variables="u v">u-v</function></slopeField>`,
+            ),
+            // There is no expression inside the component at all.
+            ...normalizedErrors(`<vectorField variables="u v" />`),
+        ];
+        expect(codedErrors(errors).length).toBe(2);
+        expectRoundTrip(errors);
+    });
+
     it("external references", async () => {
         const fetchExternalDoenetML = (uri: string) =>
             uri === "doenet:selfReferential"

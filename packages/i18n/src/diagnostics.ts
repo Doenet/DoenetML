@@ -208,6 +208,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0121": "deprecated-attribute-value-renamed",
     "doenet-w0122": "field-function-wrong-num-outputs",
     "doenet-w0123": "field-function-attribute-ignored-with-child",
+    "doenet-w0124": "field-variables-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -291,10 +292,13 @@ export type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;
  * nothing can ever produce. Retiring becomes an explicit line in a diff rather
  * than a silent consequence of deleting the last call site.
  *
- * Empty today: no code has been retired yet.
+ * `doenet-w0123` warned that a `<slopeField>`/`<vectorField>` child had
+ * superseded the `function` attribute. That attribute was removed in favour of
+ * a `<function>` child, so the two can no longer disagree and the situation
+ * stopped arising.
  */
 export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
-    new Set<DiagnosticCode>([]);
+    new Set<DiagnosticCode>(["doenet-w0123"]);
 
 /**
  * The shape every code has to match: `doenet-` + severity letter + 4 digits.
