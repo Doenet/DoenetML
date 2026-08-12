@@ -103,9 +103,12 @@ them:
 <p>Name the variables: <mathInput name="v1">q</mathInput> <mathInput name="v2">r</mathInput></p>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>A field whose variable names are set by two math inputs</shortDescription>
-  <slopeField variables="$v1 $v2">$v1 - $v2</slopeField>
+  <slopeField variables="$v1 $v2">q - r</slopeField>
 </graph>
 ```
+
+The slope is <m>q - r</m> whichever axis each letter names, so swapping the two boxes — `r` in the
+first, `q` in the second — turns <m>y' = x - y</m> into <m>y' = y - x</m> and every mark flips.
 
 
 ---
@@ -114,13 +117,16 @@ them:
 
 ```doenet-editor-horiz
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
-  <shortDescription>A slope field sampled twice as finely in each direction</shortDescription>
-  <slopeField dx="0.5" dy="0.5" markLength="12">x*sin(x)</slopeField>
+  <shortDescription>A slope field sampled twice as finely in each direction, drawn with thin marks</shortDescription>
+  <slopeField dx="0.5" dy="0.5" markLength="12" lineWidth="2">x*sin(x)</slopeField>
 </graph>
 ```
 
 `dx` and `dy` set the horizontal and vertical spacing of the lattice, one unit each by default. A
-finer lattice usually wants a shorter `markLength` so the marks do not overlap.
+finer lattice usually wants a shorter `markLength` so the marks do not overlap, and a thinner
+`lineWidth` so they stay distinct where they nearly meet: a field is drawn in the component's
+selected style, and the default style's line is 4 pixels wide — heavy once there are hundreds of
+marks on screen. `styleNumber="2"` thins the marks as well, and recolours them.
 
 
 ---

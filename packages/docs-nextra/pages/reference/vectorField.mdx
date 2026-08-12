@@ -100,9 +100,13 @@ them:
 <p>Name the variables: <mathInput name="v1">q</mathInput> <mathInput name="v2">r</mathInput></p>
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
   <shortDescription>A field whose variable names are set by two math inputs</shortDescription>
-  <vectorField variables="$v1 $v2" normalize>($v2, -$v1)</vectorField>
+  <vectorField variables="$v1 $v2" normalize>(r, -q)</vectorField>
 </graph>
 ```
+
+The field is <m>(r, -q)</m> whichever axis each letter names, so swapping the two boxes — `r` in the
+first, `q` in the second — turns the clockwise rotation <m>(y, -x)</m> into <m>(x, -y)</m>, which
+flows away from the vertical axis instead of circling the origin.
 
 
 ---
@@ -111,13 +115,15 @@ them:
 
 ```doenet-editor-horiz
 <graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
-  <shortDescription>A rotational vector field sampled on a finer lattice</shortDescription>
-  <vectorField dx="0.5" dy="0.5" markLength="14" normalize>(y, -x)</vectorField>
+  <shortDescription>A rotational vector field sampled on a finer lattice, drawn with thin arrows</shortDescription>
+  <vectorField dx="0.5" dy="0.5" markLength="14" lineWidth="2" normalize>(y, -x)</vectorField>
 </graph>
 ```
 
 `dx` and `dy` set the lattice spacing, one unit each by default. A finer lattice usually wants a
-shorter `markLength`.
+shorter `markLength`, and a thinner `lineWidth`: a field is drawn in the component's selected style,
+and the default style's line is 4 pixels wide, which is more than an arrow this short needs even
+before the lattice is crowded. `styleNumber="2"` gives a thinner line as well, and recolours it.
 
 
 ---
