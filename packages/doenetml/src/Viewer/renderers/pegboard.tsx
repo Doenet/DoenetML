@@ -7,7 +7,7 @@ import { BASE_LAYER_OFFSET, BoardContext } from "./graph";
 import me from "math-expressions";
 import type { round as RoundType } from "mathjs";
 const { round } = me.math as { round: RoundType };
-import { JXGPoint } from "./jsxgraph-distrib/types";
+import { JXGBoard, JXGPoint } from "./jsxgraph-distrib/types";
 
 interface PegboardSVs {
     hidden: boolean;
@@ -29,10 +29,6 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
     let pegboardJXG = useRef<JXGPoint[][] | null>(null);
 
     let previousBounds = useRef<[number, number, number, number] | null>(null);
-
-    // The `boundingbox` listener, kept so that it can be removed again. It is
-    // registered once, from whichever call to `createPegboardJXG` comes first.
-    let boundListener = useRef<(() => void) | null>(null);
 
     let dx = useRef<number>(SVs.dx);
     let dy = useRef<number>(SVs.dy);
@@ -61,27 +57,59 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
     jsxPointAttributes.current.layer = 10 * SVs.layer + BASE_LAYER_OFFSET;
 
     useEffect(() => {
+        if (board === null) {
+            return;
+        }
+        const listeningBoard = board;
+
+        /**
+         * Re-tile as the graph is panned or zoomed, but only when that has
+         * moved the lattice: the peg positions themselves depend on state
+         * variables the bounding box knows nothing about, so it is the render
+         * below, not this, that redraws an unmoved lattice at a new spacing.
+         */
+        function followBoundingBox() {
+            let [minXind, maxXind, minYind, maxYind] =
+                pegIndexRange(listeningBoard);
+            let [prevXmin, prevXmax, prevYmin, prevYmax] =
+                previousBounds.current!;
+
+            if (
+                minXind !== prevXmin ||
+                maxXind !== prevXmax ||
+                minYind !== prevYmin ||
+                maxYind !== prevYmax
+            ) {
+                recalculatePegboard(minXind, maxXind, minYind, maxYind);
+            }
+        }
+
+        listeningBoard.on("boundingbox", followBoundingBox);
+
         //On unmount
         return () => {
-            // Both, and in this order. The board outlives a pegboard that is
-            // removed from the document — a `<conditionalContent>` toggled
-            // off, say — so a listener left behind goes on firing, finds no
-            // pegs, and builds a fresh set that belongs to nothing and can
-            // never be removed.
-            if (boundListener.current) {
-                board?.off("boundingbox", boundListener.current);
-                boundListener.current = null;
-            }
+            // The board outlives a pegboard removed from the document — one
+            // inside a `<conditionalContent>` that switches off, say — so the
+            // listener has to go with the component. Left behind, it finds no
+            // pegs on the next bounding box change and builds a fresh set that
+            // belongs to no mounted component and nothing can remove.
+            listeningBoard.off("boundingbox", followBoundingBox);
             deletePegboardJXG();
         };
     }, []);
 
-    function createPegboardJXG() {
-        if (board === null) {
-            return null;
-        }
-
-        let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
+    /**
+     * The indices of the outermost pegs that fit inside the board's current
+     * bounding box, as `[minXind, maxXind, minYind, maxYind]`. The peg at
+     * index `(i, j)` sits at `(i * dx + xoffset, j * dy + yoffset)`.
+     *
+     * The indices come back non-finite when a spacing is zero, which is how
+     * callers tell that there is no lattice to draw.
+     */
+    function pegIndexRange(
+        theBoard: JXGBoard,
+    ): [number, number, number, number] {
+        let [xMin, yMax, xMax, yMin] = theBoard.getBoundingBox();
 
         let xind1 = (xMin - xoffset.current) / dx.current;
         let xind2 = (xMax - xoffset.current) / dx.current;
@@ -89,10 +117,20 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
         let yind2 = (yMax - yoffset.current) / dy.current;
 
         // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
-        let minXind = round(Math.min(xind1, xind2) + 1);
-        let maxXind = round(Math.max(xind1, xind2) - 1);
-        let minYind = round(Math.min(yind1, yind2) + 1);
-        let maxYind = round(Math.max(yind1, yind2) - 1);
+        return [
+            round(Math.min(xind1, xind2) + 1),
+            round(Math.max(xind1, xind2) - 1),
+            round(Math.min(yind1, yind2) + 1),
+            round(Math.max(yind1, yind2) - 1),
+        ];
+    }
+
+    function createPegboardJXG() {
+        if (board === null) {
+            return;
+        }
+
+        let [minXind, maxXind, minYind, maxYind] = pegIndexRange(board);
 
         previousBounds.current = [minXind, maxXind, minYind, maxYind];
 
@@ -105,13 +143,13 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
             let pegs: JXGPoint[][] = [];
 
             for (let yind = minYind; yind <= maxYind; yind++) {
-                let y = yind * SVs.dy + SVs.yoffset;
+                let y = yind * dy.current + yoffset.current;
                 let row: JXGPoint[] = [];
                 for (let xind = minXind; xind <= maxXind; xind++) {
                     row.push(
                         board.create(
                             "point",
-                            [xind * SVs.dx + SVs.xoffset, y],
+                            [xind * dx.current + xoffset.current, y],
                             jsxPointAttributes.current,
                         ) as JXGPoint,
                     );
@@ -121,42 +159,6 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
             pegboardJXG.current = pegs;
         }
-
-        if (boundListener.current) {
-            // Already listening. `createPegboardJXG` runs again whenever the
-            // pegs have gone — when the lattice was not drawable and became so
-            // — and each registration would otherwise be permanent.
-            return;
-        }
-
-        const listener = () => {
-            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-
-            let xind1 = (xMin - xoffset.current) / dx.current;
-            let xind2 = (xMax - xoffset.current) / dx.current;
-            let yind1 = (yMin - yoffset.current) / dy.current;
-            let yind2 = (yMax - yoffset.current) / dy.current;
-
-            // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
-            let minXind = round(Math.min(xind1, xind2) + 1);
-            let maxXind = round(Math.max(xind1, xind2) - 1);
-            let minYind = round(Math.min(yind1, yind2) + 1);
-            let maxYind = round(Math.max(yind1, yind2) - 1);
-
-            let [prevXmin, prevXmax, prevYmin, prevYmax] =
-                previousBounds.current!;
-
-            if (
-                minXind !== prevXmin ||
-                maxXind !== prevXmax ||
-                minYind !== prevYmin ||
-                maxYind !== prevYmax
-            ) {
-                recalculatePegboard(minXind, maxXind, minYind, maxYind);
-            }
-        };
-        boundListener.current = listener;
-        board.on("boundingbox", listener);
     }
 
     function deletePegboardJXG() {
@@ -269,20 +271,10 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
         if (pegboardJXG.current === null) {
             createPegboardJXG();
         } else {
-            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-
-            let xind1 = (xMin - xoffset.current) / dx.current;
-            let xind2 = (xMax - xoffset.current) / dx.current;
-            let yind1 = (yMin - yoffset.current) / dy.current;
-            let yind2 = (yMax - yoffset.current) / dy.current;
-
-            // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
-            let minXind = round(Math.min(xind1, xind2) + 1);
-            let maxXind = round(Math.max(xind1, xind2) - 1);
-            let minYind = round(Math.min(yind1, yind2) + 1);
-            let maxYind = round(Math.max(yind1, yind2) - 1);
-
-            recalculatePegboard(minXind, maxXind, minYind, maxYind);
+            // Unconditionally, unlike the bounding box listener: the pegs may
+            // need moving even where the lattice covers the same indices,
+            // since `dx`, `dy` and the offsets can have changed.
+            recalculatePegboard(...pegIndexRange(board));
 
             let firstPeg = pegboardJXG.current?.[0]?.[0];
             if (firstPeg) {
