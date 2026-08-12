@@ -9,8 +9,9 @@ export type AttributesObject = Record<string, AttributeDefinition<unknown>>;
  * Preprocess an attributes object created by componentClass.createAttributesObject().
  *
  * When `toLowerCase` is `true`, `defaultValue`, each `validValues[].value`,
- * `valueForTrue`, and `valueForFalse` are lower-cased. Descriptions are
- * left untouched.
+ * `valueForTrue`, and `valueForFalse` are lower-cased. An array
+ * `defaultValue` — what a list-valued attribute declares — is lower-cased
+ * item-wise and stays an array. Descriptions are left untouched.
  *
  * @param attributesObject - The result of componentClass.createAttributesObject()
  * @returns The preprocessed attributes object

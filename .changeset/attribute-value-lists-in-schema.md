@@ -35,3 +35,8 @@ author had no way to discover or check what to write.
 - `<graph grid>` lists its values as suggestions too, since it also accepts
   two numbers for the spacing, and now offers `1 1` and `2 2` alongside the
   named spacings so the numeric form stays discoverable.
+
+`<summaryStatistics statisticsToDisplay>` gains the same list, but only as
+runtime validation: the component is experimental and excluded from the schema,
+so the values do not reach autocomplete yet. An unrecognized statistic is now
+dropped with an info diagnostic instead of being ignored in silence.
