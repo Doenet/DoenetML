@@ -73,24 +73,26 @@ const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
 const EMPTY_AUTO_OPERATOR_NAMES_SENTINEL = "a-";
 
 /**
- * How soon after a math input gives up its claim on the virtual keyboard a key
- * from a keyboard tray predating this change must arrive for the press that
- * sent it to be read as the cause of that blur — which is what lets such a
- * tray still type (see `KeyCommand`).
+ * How soon after a math input gives up its claim on the virtual keyboard a
+ * press on a keyboard tray predating this change must reach it for that press
+ * to be read as the cause of the blur — which is what lets such a tray still
+ * type into the input, and give it back the caret its press took (see
+ * `KeyCommand`).
  *
  * A bound is needed because nothing else separates that blur from the reader
  * leaving the input of their own accord and reaching for the tray afterwards,
- * and typing in the latter case would put a character into an input the reader
+ * and acting in the latter case would put a character into an input the reader
  * has left and pull the caret back to it. The viewers contemporary with such a
  * tray drew the same line, at 100 ms between the blur and the tray's own
- * timestamp; this measures instead from the blur to the key being handled, so
- * it allows for the `postMessage` hop and the render that follows, while
+ * timestamp; this measures instead from the blur to the message being handled,
+ * so it allows for the `postMessage` hop and the render that follows, while
  * staying well inside the time it takes a reader to leave an input and press a
  * key.
  *
- * A key that misses the window types nothing, which is the same nothing the
- * reader would have got before this accommodation existed — the bound cannot
- * misdirect a key, only decline it.
+ * A press that misses the window does nothing at all, which is the same
+ * nothing the reader would have got before this accommodation existed: the
+ * bound can only decline a press, never send one to an input other than the
+ * one whose blur it is being matched against.
  */
 const LEGACY_TRAY_RECLAIM_WINDOW_MS = 300;
 
@@ -632,10 +634,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
      * having blurred the input as it was pressed, so its keys are matched to
      * the release of the claim that same press caused: this input's, to
      * nothing else in the document, and still fresh. Each key is judged on its
-     * own, and only against the release it can plausibly have caused; the
-     * claim is never reinstated behind the reader's back, so a press that
-     * lands on the tray without producing a key — its close button, the gap
-     * between two keys — leaves nothing behind for a later key to type into.
+     * own, and only against the release it can plausibly have caused, so a key
+     * that arrives long after the reader left an input types nowhere. A press
+     * of such a tray that carried no key is judged the same way: what it owes
+     * the input — the caret it took — is owed to whichever input its keys
+     * would have gone to.
      */
     function claimsVirtualKeyboardKeys(input: HTMLElement) {
         if (focusedMathInput.current === input) {
@@ -656,7 +659,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // seeing one settles which tray this page is under for good — and
         // until one is seen, none of the accommodation below applies, which is
         // what keeps it out of current pairings entirely.
-        if (virtualKeyboardEvents.some((event) => event.type === "accessed")) {
+        const trayTookFocus = virtualKeyboardEvents.some(
+            (event) => event.type === "accessed",
+        );
+        if (trayTookFocus) {
             legacyKeyboardTray.current.announced = true;
         }
 
@@ -720,15 +726,29 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // keyboard over the tray (issue #1692).
         //
         // The exception is a tray old enough to have taken focus when it was
-        // pressed: the reader is left with no caret, so put it back, as that
-        // tray's contemporaries did after every key. Recognized by this input
-        // having lost focus to nothing in particular — a reader who moved into
-        // a tray in this document did so deliberately and keeps focus there,
-        // and one typing into an input that still has focus needs nothing.
+        // pressed: whatever the press was reaching for, it left the reader
+        // with no caret, so put it back, as that tray's contemporaries did.
+        // Every press of such a tray says so — that is what `accessed` was
+        // sent for — and not only the ones that carry a key: the reader who
+        // opens the tray while editing an input is still editing it, and would
+        // otherwise find the first key they then press typing nowhere.
+        //
+        // Giving the caret back is a real focus move the reader can see, not a
+        // claim recorded on their behalf: the input holds the keyboard
+        // afterwards because it holds the caret, and gives it up the moment
+        // the reader takes the caret elsewhere. So the worst a misjudged press
+        // can do — the freshness bound in `claimsVirtualKeyboardKeys` is all
+        // that separates the blur such a press causes from the reader leaving
+        // of their own accord — is move the caret in plain sight.
+        //
+        // Where the caret has not in fact been taken, there is nothing to give
+        // back: a reader who moved into a tray in this document did so
+        // deliberately and keeps focus there, and one whose input still has
+        // focus needs nothing.
         const activeElement =
             textareaRef.current?.ownerDocument.activeElement ?? null;
         if (
-            handledAKey &&
+            (handledAKey || trayTookFocus) &&
             activeElement !== textareaRef.current &&
             !isInVirtualKeyboardTray(activeElement)
         ) {

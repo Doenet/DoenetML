@@ -82,8 +82,9 @@ export const FocusedMathInputContext = React.createContext<
  *
  * Such a tray takes focus when it is pressed, so the input is blurred and has
  * given up the claim `FocusedMathInputContext` records before the key gets
- * here. See the `accessed` message in `KeyCommand`, which is what identifies
- * such a tray, and the handling of it in the math input renderer.
+ * here — and is left without a caret whether or not the press carried a key.
+ * See the `accessed` message in `KeyCommand`, which is what identifies such a
+ * tray, and the handling of it in the math input renderer.
  */
 export type LegacyKeyboardTrayState = {
     /**

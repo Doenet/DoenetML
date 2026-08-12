@@ -51,13 +51,13 @@ autodetection pins to, or simply a wrapper installed before the viewer it
 loads from the CDN. A viewer from this release **can** be driven by a tray
 from before it: the old tray announces itself by the `accessed` message it
 sends as it takes focus, and its keys are then delivered to the math input the
-same press blurred a moment earlier, with the caret restored after typing.
-Only that input, and only that moment: a key pressed after the reader has left
-a math input of their own accord types nowhere, as before, and a press that
-sends no key at all — the old tray's own close button — leaves no input
-holding the keyboard behind it. This is the pairing that arises the moment a
-new viewer is published under an already-deployed wrapper, so it is the one
-worth keeping working.
+same press blurred a moment earlier, with the caret given back afterwards —
+including when the press carried no key, such as opening the tray while
+already editing an input. Only that input, and only that moment: a press made
+after the reader has left a math input of their own accord types nowhere and
+moves no caret, as before. This is the pairing that arises the moment a new
+viewer is published under an already-deployed wrapper, so it is the one worth
+keeping working.
 
 The opposite pairing cannot be rescued from the viewer's side: a viewer from
 before this release typed only in response to a blur that this tray no longer

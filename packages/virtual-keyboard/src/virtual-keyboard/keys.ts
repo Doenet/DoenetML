@@ -22,10 +22,10 @@
  *   viewer be driven by an older tray — the pairing doenet.org has whenever it
  *   serves a newly published viewer under its installed wrapper. "A moment
  *   earlier" is part of it: a key that arrives long after the reader left an
- *   input was not caused by that blur and types nowhere. Nor does the
- *   `accessed` message itself hand any input the keyboard, so a press that
- *   produces no key — the tray's close button, the gap between two keys —
- *   leaves nothing behind.
+ *   input was not caused by that blur and types nowhere. The caret goes back
+ *   even when the press carried no key — the tray's open and close buttons,
+ *   the gap between two keys — since that press took it just the same, and a
+ *   reader who opens the tray while editing an input is still editing it.
  *
  *   The reverse pairing, an older viewer under this tray, cannot be rescued
  *   from this side: that viewer typed only in response to a blur this tray no
