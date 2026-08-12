@@ -139,8 +139,9 @@ function useDebounced<T>(value: T, delayMs: number): T {
  * narrow bar. The control carries the full name as its `aria-label` either
  * way, so what is announced does not change with the width.
  *
- * Pass the wording only — the colon and the gap to the control belong to the
- * component, so the two forms cannot end up punctuated differently.
+ * Pass the wording only: the colon belongs here, so the two forms cannot end up
+ * punctuated differently, and the space before the control is `.dev-control`'s
+ * `gap` rather than a literal one written at the call site.
  */
 function DevLabel({ full, short }: { full: string; short?: string }) {
     return (

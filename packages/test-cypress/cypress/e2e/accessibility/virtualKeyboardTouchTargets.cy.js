@@ -22,11 +22,11 @@ const MIN_TOUCH_TARGET_PX = 44;
 const DESKTOP_TAB_HEIGHT_PX = 24;
 
 /**
- * How wide the keyboard is allowed to spread, `max-w-2xl` (42rem) with a mouse
- * and 48rem with a fingertip. The default viewport is wider than both, so the
- * keyboard reaches its ceiling either way and these are what it measures. The
- * extra room is what makes a tablet's keys grow rather than sit small in the
- * middle of an empty row.
+ * How wide the keyboard is allowed to spread — `--keyboard-max-width` in
+ * `keyboard.css`, 42rem with a mouse and 48rem with a fingertip. The default
+ * viewport is wider than both, so the keyboard reaches its ceiling either way
+ * and these are what it measures. The extra room is what makes a tablet's keys
+ * grow rather than sit small in the middle of an empty row.
  */
 const KEYBOARD_MAX_WIDTH_PX = { fine: 672, coarse: 768 };
 

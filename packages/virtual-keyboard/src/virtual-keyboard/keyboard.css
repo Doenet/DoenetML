@@ -145,7 +145,10 @@
  * query adds none. Shift, backspace and space are the exception: their
  * `max-width: none` is set on `.virtual-keyboard .key-*`, two classes, which
  * already outranks the one-class-one-type `button` selector here, so they
- * stay unbounded without being named again.
+ * stay unbounded without being named again. Backspace on the numeric layout
+ * is the exception to that exception — a rule above puts its ceiling back at
+ * `4em`, and outranks this block for the same reason — so it is the one key
+ * that has to be raised by name.
  */
 @media (pointer: coarse) {
     .virtual-keyboard {
