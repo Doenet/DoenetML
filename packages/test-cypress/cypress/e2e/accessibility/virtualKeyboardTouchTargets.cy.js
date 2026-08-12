@@ -56,6 +56,61 @@ function emulateTouchDevice(enabled) {
         );
 }
 
+/**
+ * Maps a point in the application's viewport to the coordinates the devtools
+ * protocol works in, which are the browser page's. The application under test
+ * runs in an iframe of the Cypress runner, and Cypress may scale that iframe
+ * to fit the window, so both the offset and the scale have to be undone.
+ */
+function toBrowserCoords(win, x, y) {
+    const iframe = Array.from(
+        window.top.document.querySelectorAll("iframe"),
+    ).find((frame) => frame.contentWindow === win);
+    const rect = iframe.getBoundingClientRect();
+    const scale = rect.width / win.innerWidth;
+    return { x: rect.left + x * scale, y: rect.top + y * scale };
+}
+
+/**
+ * Drags a finger `distance` px up the middle of `element`.
+ *
+ * Real touch input through the browser, not a synthesised `TouchEvent`: an
+ * untrusted event would not reach the compositor, which is what decides
+ * whether a pan scrolls. That decision is the point of the assertions below.
+ */
+function panFingerUp(win, element, distance) {
+    const rect = element.getBoundingClientRect();
+    const start = toBrowserCoords(
+        win,
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+    );
+    const steps = 12;
+    const touch = (type, y) =>
+        cy.wrap(
+            Cypress.automation("remote:debugger:protocol", {
+                command: "Input.dispatchTouchEvent",
+                params: {
+                    type,
+                    touchPoints:
+                        type === "touchEnd"
+                            ? []
+                            : [{ x: Math.round(start.x), y: Math.round(y) }],
+                },
+            }),
+            { log: false },
+        );
+
+    let chain = touch("touchStart", start.y);
+    for (let step = 1; step <= steps; step++) {
+        const y = start.y - (distance * step) / steps;
+        chain = chain
+            .then(() => touch("touchMove", y))
+            .wait(16, { log: false });
+    }
+    return chain.then(() => touch("touchEnd"));
+}
+
 /** Asserts every element matching `selector` is at least `min` px tall. */
 function expectAllAtLeastTall(selector, min, label) {
     cy.get(selector).should(($elements) => {
@@ -136,15 +191,21 @@ describe("Virtual keyboard touch target sizes", { tags: ["@group5"] }, () => {
             "key",
         );
 
-        // Taller keys must not make the tray's contents outgrow the screen.
-        // The tray is anchored to the bottom edge and does not scroll, so
-        // whatever does not fit runs off the bottom and cannot be tapped —
-        // the way this kind of change usually goes wrong.
+        // Taller keys must not make the tray outgrow the screen. On a viewport
+        // with room for it — this one — nothing should have to be scrolled
+        // into reach before it can be tapped, which is the way this kind of
+        // change usually goes wrong. The short viewport that does run out of
+        // room is a test of its own below.
         cy.get("#virtual-keyboard-tray").should(($tray) => {
             expect(
-                $tray[0].scrollHeight,
-                "tray content height fits the viewport",
+                $tray[0].getBoundingClientRect().height,
+                "tray height fits the viewport",
             ).to.be.at.most(Cypress.config("viewportHeight"));
+            const container = $tray[0].querySelector(".keyboard-container");
+            expect(
+                container.scrollHeight,
+                "keyboard content fits the tray without scrolling",
+            ).to.be.at.most(container.clientHeight);
         });
 
         // Where there is room, the keyboard spreads further than it does for
@@ -190,6 +251,76 @@ describe("Virtual keyboard touch target sizes", { tags: ["@group5"] }, () => {
                 Math.round(tab.getBoundingClientRect().top),
                 "open/close tab top edge",
             ).to.be.at.least(0);
+        });
+    });
+
+    it("lets a finger reach the keys that do not fit a short viewport", () => {
+        // A viewport too short for the keyboard used to cut the bottom rows
+        // off — on the numeric layout, the whole number pad. Taller keys made
+        // that worse, so the keyboard scrolls inside the tray instead.
+        //
+        // Whether a finger can actually pan it is not a foregone conclusion:
+        // the tray cancels the default action of `pointerdown` across its
+        // whole subtree, to keep the key it is typing into from blurring. That
+        // does not suppress a pan — only `touch-action` or a cancelled
+        // `touchstart`/`touchmove` would — and this is what says so.
+        cy.viewport(SHORT_VIEWPORT.width, SHORT_VIEWPORT.height);
+        emulateTouchDevice(true);
+        loadWithMathInput();
+
+        cy.get(".open-keyboard-button").click();
+        cy.get("#virtual-keyboard-tray.open").should(($tray) => {
+            // Wait out the slide-in, as above: measurements of a tray still on
+            // its way up mean nothing.
+            expect(
+                Math.round($tray[0].getBoundingClientRect().bottom),
+                "tray settled against the bottom of the screen",
+            ).to.equal(SHORT_VIEWPORT.height);
+        });
+
+        const container = "#virtual-keyboard-tray .keyboard-container";
+        cy.get(container).should(($container) => {
+            const element = $container[0];
+            expect(
+                element.scrollHeight,
+                "keyboard is taller than the room the tray has for it",
+            ).to.be.greaterThan(element.clientHeight);
+            expect(
+                Math.round(element.getBoundingClientRect().bottom),
+                "keyboard's scroll port ends on screen",
+            ).to.be.at.most(SHORT_VIEWPORT.height);
+        });
+
+        // Far enough to reach the end of the scroll, which is where the last
+        // row is.
+        cy.window().then((win) =>
+            panFingerUp(win, win.document.querySelector(container), 300),
+        );
+
+        cy.get(container).should(($container) => {
+            expect(
+                $container[0].scrollTop,
+                "keyboard scrolled under a finger",
+            ).to.be.greaterThan(0);
+            const keys = $container[0].querySelectorAll(
+                ".virtual-keyboard button",
+            );
+            expect(
+                Math.round(
+                    keys[keys.length - 1].getBoundingClientRect().bottom,
+                ),
+                "last key on screen once scrolled to",
+            ).to.be.at.most(SHORT_VIEWPORT.height);
+        });
+
+        // The close button is inside the scroll port in the markup but
+        // positioned against the tray, so scrolling must not carry it away.
+        cy.get(".close-keyboard-button").should(($close) => {
+            const { top, bottom } = $close[0].getBoundingClientRect();
+            expect(Math.round(top), "close button top").to.be.at.least(0);
+            expect(Math.round(bottom), "close button bottom").to.be.at.most(
+                SHORT_VIEWPORT.height,
+            );
         });
     });
 

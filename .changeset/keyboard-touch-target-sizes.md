@@ -2,6 +2,8 @@
 "@doenet/doenetml": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
 ---
 
 Viewer: size the virtual keyboard's controls for a fingertip on touch devices.
@@ -30,9 +32,16 @@ tab exactly its own height above the tray, so a taller tab needs a taller gap;
 on a phone held sideways, where the tray is tall enough to reach that limit,
 the tab was being clipped.
 
+Where the tray has no room for the whole keyboard — the same phone held
+sideways, or any short window — the keyboard now scrolls inside the tray
+instead of running off the bottom of the screen, so the rows that were cut off,
+the number pad among them, can be reached. Taller keys would have cut off more.
+The tab and the close button stay where they are while it scrolls.
+
 Nothing else changes for a reader with a mouse, including on a narrow window:
 the sizing is keyed on the primary pointer being coarse, which is the same test
 the viewer already uses to decide whether to suppress the device's own
-on-screen keyboard.
+on-screen keyboard. The scrolling is the exception, and deliberately so — a
+window too short for the keyboard cut it off whatever was pointing at it.
 
 Closes #449.
