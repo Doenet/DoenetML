@@ -55,9 +55,14 @@ same press blurred a moment earlier, with the caret given back afterwards —
 including when the press carried no key, such as opening the tray while
 already editing an input. Only that input, and only that moment: a press made
 after the reader has left a math input of their own accord types nowhere and
-moves no caret, as before. This is the pairing that arises the moment a new
-viewer is published under an already-deployed wrapper, so it is the one worth
-keeping working.
+moves no caret, as before. Under such a tray the Doenet keyboard is the only
+one on offer on a touch device: the tray does not follow focus, so the reader
+opens it themselves as they always did with it, and closing it does not hand
+the device's own keyboard back, because that tray has no way to report that
+they asked for it. This is the pairing that arises the moment a new viewer is
+published under an already-deployed wrapper, so it is the one worth keeping
+working — without it, a phone reader would meet a math input that raises no
+keyboard at all and a Doenet keyboard that types nothing.
 
 The opposite pairing cannot be rescued from the viewer's side: a viewer from
 before this release typed only in response to a blur that this tray no longer

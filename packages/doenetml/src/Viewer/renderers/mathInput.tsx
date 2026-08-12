@@ -659,10 +659,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // seeing one settles which tray this page is under for good — and
         // until one is seen, none of the accommodation below applies, which is
         // what keeps it out of current pairings entirely.
-        const trayTookFocus = virtualKeyboardEvents.some(
-            (event) => event.type === "accessed",
-        );
-        if (trayTookFocus) {
+        if (virtualKeyboardEvents.some((event) => event.type === "accessed")) {
             legacyKeyboardTray.current.announced = true;
         }
 
@@ -670,7 +667,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
             // These keys belong to a different input, or to none.
             return;
         }
-        let handledAKey = false;
         for (const event of virtualKeyboardEvents) {
             if (event.type === "keystroke" && event.command === "Enter") {
                 // The "Enter" key was pressed
@@ -685,7 +681,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 ) {
                     submitActionWithPendingRef.current();
                 }
-                handledAKey = true;
                 continue;
             }
             switch (event.type) {
@@ -697,19 +692,15 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     break;
                 case "cmd":
                     mathField.cmd(event.command);
-                    handledAKey = true;
                     break;
                 case "write":
                     mathField.write(event.command);
-                    handledAKey = true;
                     break;
                 case "keystroke":
                     mathField.keystroke(event.command);
-                    handledAKey = true;
                     break;
                 case "type":
                     mathField.typedText(event.command);
-                    handledAKey = true;
                     break;
                 default:
                     console.warn(
@@ -728,10 +719,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // The exception is a tray old enough to have taken focus when it was
         // pressed: whatever the press was reaching for, it left the reader
         // with no caret, so put it back, as that tray's contemporaries did.
-        // Every press of such a tray says so — that is what `accessed` was
-        // sent for — and not only the ones that carry a key: the reader who
-        // opens the tray while editing an input is still editing it, and would
-        // otherwise find the first key they then press typing nowhere.
+        // Every press of such a tray took it, and not only the ones that carry
+        // a key: the reader who opens the tray while editing an input is still
+        // editing it, and would otherwise find the first key they then press
+        // typing nowhere. So the condition is which tray sent this batch, not
+        // what the batch contained — and since no current tray announces
+        // itself, no current pairing refocuses at all.
         //
         // Giving the caret back is a real focus move the reader can see, not a
         // claim recorded on their behalf: the input holds the keyboard
@@ -748,7 +741,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         const activeElement =
             textareaRef.current?.ownerDocument.activeElement ?? null;
         if (
-            (handledAKey || trayTookFocus) &&
+            legacyKeyboardTray.current.announced &&
             activeElement !== textareaRef.current &&
             !isInVirtualKeyboardTray(activeElement)
         ) {
