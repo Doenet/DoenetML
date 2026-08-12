@@ -88,14 +88,22 @@ export function fieldFunctionSugar(node: DastElement) {
         return;
     }
 
-    const variables: DastAttribute = node.attributes.variables ?? {
-        type: "attribute",
-        name: "variables",
-        children: [{ type: "text", value: DEFAULT_VARIABLES }],
-        position: node.position,
-        source_doc: node.source_doc,
-    };
-    delete node.attributes.variables;
+    const writtenKey = variablesAttributeKey(node);
+    const written = writtenKey ? node.attributes[writtenKey] : undefined;
+    // Under the canonical name whatever the author spelled it, so that the key
+    // and the attribute's own `name` agree on the wrapper.
+    const variables: DastAttribute = written
+        ? { ...written, name: "variables" }
+        : {
+              type: "attribute",
+              name: "variables",
+              children: [{ type: "text", value: DEFAULT_VARIABLES }],
+              position: node.position,
+              source_doc: node.source_doc,
+          };
+    if (writtenKey) {
+        delete node.attributes[writtenKey];
+    }
 
     const functionChild: DastElement = {
         type: "element",
@@ -122,6 +130,26 @@ export function fieldFunctionSugar(node: DastElement) {
 }
 
 /**
+ * The key `node.attributes` holds the field's `variables` under, or `undefined`
+ * if it was not written.
+ *
+ * Attribute names are matched case-insensitively when components are built, so
+ * `VARIABLES="s t"` is the same attribute and has to be found here too. Missed,
+ * it would stay on the field naming nothing while the wrapper took the default
+ * `x y`, and an expression written in the names the author did choose would be
+ * NaN at every lattice point — a blank field, reported as having a function.
+ * `deprecations.ts` looks its own attributes up the same way.
+ *
+ * Element names, by contrast, are case-sensitive — `<slopefield>` is an invalid
+ * component type — so the tags this sugar matches on are compared as written.
+ */
+function variablesAttributeKey(node: DastElement): string | undefined {
+    return Object.keys(node.attributes).find(
+        (name) => name.toLowerCase() === "variables",
+    );
+}
+
+/**
  * Say that a `variables` the sugar did not use is being ignored.
  *
  * The attribute only ever reaches the `<function>` this sugar builds, so when
@@ -137,10 +165,11 @@ function warnVariablesIgnored(
     node: DastElement,
     reason: "function-child" | "no-expression",
 ) {
-    const variables = node.attributes.variables;
-    if (!variables) {
+    const key = variablesAttributeKey(node);
+    if (!key) {
         return;
     }
+    const variables = node.attributes[key];
 
     const explanation =
         reason === "function-child"

@@ -19,7 +19,7 @@ import {
     type FieldData,
     type FieldSampling,
 } from "./fieldGeometry";
-import type { GraphicalSVs } from "./graphicalSVs";
+import type { UnlabeledGraphicalSVs } from "./graphicalSVs";
 import { styleToDash } from "./styleToDash";
 import { useJSXGraphCleanup } from "./useJSXGraphCleanup";
 
@@ -30,20 +30,13 @@ import { useJSXGraphCleanup } from "./useJSXGraphCleanup";
  * from `returnFieldLatticeAttributes`. `<vectorField>` extends this with
  * `normalize`.
  *
- * The label half of `GraphicalSVs` is omitted rather than inherited, since none
- * of it arrives here: a field sets `static includeLabels = false`, so the
- * worker defines no label state variables for it, and `labelPosition` is
+ * The graphical basics are the label-free half of `GraphicalSVs`, since none of
+ * the label half arrives here: a field sets `static includeLabels = false`, so
+ * the worker defines no label state variables for it, and `labelPosition` is
  * declared by the individual components that can place a label rather than by
  * `GraphicalComponent`, so a field has never had one.
  */
-export interface FieldSVs extends Omit<
-    GraphicalSVs,
-    | "labelForGraph"
-    | "labelHasLatex"
-    | "labelPosition"
-    | "applyStyleToLabel"
-    | "maskLabel"
-> {
+export interface FieldSVs extends UnlabeledGraphicalSVs {
     haveFunction: boolean;
     fDefinitions: any[];
     dx: number;

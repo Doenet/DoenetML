@@ -15,9 +15,8 @@ The field comes from a function with **two outputs**, given inside the component
 expression — `<vectorField>(y, -x)</vectorField>{:dn}` — or as a `<function>{:dn}` child. A bare
 expression is read as a function of <m>x</m> and <m>y</m>; use the `variables` attribute to name
 them differently. A `<function>{:dn}` child is used exactly as written, since it names its own
-variables. Like
-[`<slopeField/>`](slopeField), the field re-tiles as the user pans or zooms, and its arrows keep a
-constant on-screen length whatever the axis scaling.
+variables. Like [`<slopeField/>`](slopeField), the field re-tiles as the user pans or zooms, and
+its arrows keep a constant on-screen length whatever the axis scaling.
 
 Each arrow's **tail** sits on the lattice point it was sampled at, so it shows the vector at that
 point. This differs from `<slopeField/>{:dn}`, whose marks are centered on their lattice points

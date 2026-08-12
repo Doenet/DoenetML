@@ -32,6 +32,17 @@ describe("Normalize dast", async () => {
             `<document><vectorField><function variables="$v1 $v2">($v2,-$v1)</function></vectorField></document>`,
         );
     });
+    it("moves a field's variables however it was capitalized", () => {
+        // Attribute names are matched case-insensitively when the components
+        // are built, so one left behind here would name nothing while the
+        // wrapper defaulted to `x y` and `s - t` came out NaN everywhere.
+        const dast = normalizeDocumentDast(
+            lezerToDast(`<slopeField VARIABLES="s t">s - t</slopeField>`),
+        );
+        expect(toXml(dast)).toEqual(
+            `<document><slopeField><function variables="s t">s - t</function></slopeField></document>`,
+        );
+    });
     it("warns that a field's variables are ignored beside an explicit <function> child", () => {
         const dast = normalizeDocumentDast(
             lezerToDast(
