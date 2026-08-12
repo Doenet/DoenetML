@@ -84,22 +84,26 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     background-color: var(--kb-tray-bg);
 
     /*
-     * The keyboard, and the only part of the tray that scrolls. A viewport
-     * too short for the keyboard — a phone held sideways, or any short
-     * window — used to cut the bottom rows off, which on the numeric layout
-     * is the number pad; taller keys for a fingertip would have cut off more.
-     * `min-height: 0` is what lets it shrink: a flex item's automatic minimum
-     * is its own content, which would otherwise push the overflow straight
-     * back out to the tray.
+     * The layout tabs and the keyboard under them, and the only part of the
+     * tray that scrolls. A viewport too short for the keyboard — a phone held
+     * sideways, or any short window — used to cut the bottom rows off, which
+     * on the numeric layout is the number pad; taller keys for a fingertip
+     * would have cut off more. `min-height: 0` is what lets it shrink: a flex
+     * item's automatic minimum is its own content, which would otherwise push
+     * the overflow straight back out to the tray.
+     *
+     * The layout tabs scroll with the keys rather than staying pinned, so a
+     * tray reopened at the position it was left at would be missing them.
+     * `keyboard-tray.tsx` scrolls this back to the top as the tray opens.
      *
      * A finger can pan it even though the tray cancels the default action of
      * `pointerdown` across its whole subtree (see `keyboard-tray.tsx`): what
      * suppresses a pan is `touch-action` or a cancelled `touchstart` /
      * `touchmove`, and the tray does neither. Confirmed in Chromium with a
      * real coarse pointer, and asserted in
-     * `cypress/e2e/accessibility/virtualKeyboardTouchTargets.cy.js`.
-     * `overscroll-behavior` keeps a pan that runs off the end of it from
-     * scrolling the document behind the tray.
+     * `cypress/e2e/accessibility/virtualKeyboardTouchTargets.cy.js`; iOS
+     * Safari has not been tried. `overscroll-behavior` keeps a pan that runs
+     * off the end of it from scrolling the document behind the tray.
      */
     .keyboard-container {
         min-height: 0;
@@ -111,7 +115,9 @@ Tailwind base is purposely not included because we want all styles to be prefixe
      * Outside `.keyboard-container`'s scroll for positioning purposes even
      * though it is inside it in the markup: its containing block is the tray,
      * so it neither scrolls away nor is clipped, and stays in the corner
-     * where it can be reached.
+     * where it can be reached. That holds only while nothing between the two
+     * is positioned — give `.keyboard-container` a `position` and the button
+     * starts scrolling away with the keys.
      */
     .close-keyboard-button {
         @apply absolute top-0 end-0 m-2 rounded;

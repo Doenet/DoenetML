@@ -36,7 +36,9 @@ Where the tray has no room for the whole keyboard — the same phone held
 sideways, or any short window — the keyboard now scrolls inside the tray
 instead of running off the bottom of the screen, so the rows that were cut off,
 the number pad among them, can be reached. Taller keys would have cut off more.
-The tab and the close button stay where they are while it scrolls.
+The tab and the close button stay where they are while it scrolls, and the tray
+opens onto the top of the keyboard however far it was scrolled last time, so
+the layout tabs are always the first thing in it.
 
 Nothing else changes for a reader with a mouse, including on a narrow window:
 the sizing is keyed on the primary pointer being coarse, which is the same test

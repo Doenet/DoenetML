@@ -322,6 +322,30 @@ describe("Virtual keyboard touch target sizes", { tags: ["@group5"] }, () => {
                 SHORT_VIEWPORT.height,
             );
         });
+
+        // The layout tabs are the first thing in the scroll port, so a tray
+        // that reopened where it was left would be missing them. A closed
+        // tray keeps its scroll position — it is only translated off the
+        // screen — so opening has to put it back.
+        cy.get(".close-keyboard-button").click();
+        cy.get("#virtual-keyboard-tray.open").should("not.exist");
+        cy.get(".open-keyboard-button").click();
+
+        cy.get("#virtual-keyboard-tray.open").should(($tray) => {
+            expect(
+                $tray[0].querySelector(".keyboard-container").scrollTop,
+                "keyboard reopened at the top",
+            ).to.equal(0);
+            const tabs = $tray[0].querySelector(".virtual-keyboard-tab-list");
+            expect(
+                Math.round(tabs.getBoundingClientRect().bottom),
+                "layout tabs back in view",
+            ).to.be.at.most(SHORT_VIEWPORT.height);
+            expect(
+                Math.round(tabs.getBoundingClientRect().top),
+                "layout tabs back in view",
+            ).to.be.at.least(0);
+        });
     });
 
     it("leaves the sizes alone when a mouse is driving", () => {

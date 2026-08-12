@@ -106,6 +106,20 @@
     @apply grid-cols-5;
 }
 
+.virtual-keyboard-tab-list {
+    @apply flex flex-nowrap;
+    button {
+        @apply p-1 sm:p-2 px-1 sm:px-3 pb-1 border-b-2 mb-3;
+        /* Non-selected tabs: slate-200 underline so only the selected tab's
+           blue indicator stands out. Without an explicit color this falls
+           back to currentColor (black), drawing a harsh line under every tab. */
+        @apply border-slate-200;
+    }
+    button[aria-selected="true"] {
+        @apply border-blue-400 text-blue-600;
+    }
+}
+
 /*
  * Touch devices — see the note beside the matching block in
  * `keyboard-tray.css`. A key was 39x40 on a phone and a layout tab 30x25;
@@ -126,11 +140,12 @@
  * partial copy of Tailwind's preflight leaves at the UA font size of
  * 13.33px — so `4em` is 53px and `4.5em` is 60px, not 64 and 72.
  *
- * Each rule sits after the one it raises, since the two have equal specificity
- * and source order is all that separates them. Shift, backspace and space are
- * the exception: their `max-width: none` is set on `.virtual-keyboard .key-*`,
- * two classes, which already outranks the one-class-one-type `button` selector
- * below, so they stay unbounded here without being named again.
+ * Last in the file because every rule here raises one above it and each pair
+ * has equal specificity, so source order is all that separates them — a media
+ * query adds none. Shift, backspace and space are the exception: their
+ * `max-width: none` is set on `.virtual-keyboard .key-*`, two classes, which
+ * already outranks the one-class-one-type `button` selector here, so they
+ * stay unbounded without being named again.
  */
 @media (pointer: coarse) {
     .virtual-keyboard {
@@ -144,27 +159,6 @@
     .virtual-keyboard.numeric .key-backspace {
         @apply max-w-[4.5em];
     }
-}
-
-.virtual-keyboard-tab-list {
-    @apply flex flex-nowrap;
-    button {
-        @apply p-1 sm:p-2 px-1 sm:px-3 pb-1 border-b-2 mb-3;
-        /* Non-selected tabs: slate-200 underline so only the selected tab's
-           blue indicator stands out. Without an explicit color this falls
-           back to currentColor (black), drawing a harsh line under every tab. */
-        @apply border-slate-200;
-    }
-    button[aria-selected="true"] {
-        @apply border-blue-400 text-blue-600;
-    }
-}
-
-/*
- * Touch devices, continued. Placed after the tab strip's own rule above so it
- * wins on source order: both selectors have the same specificity.
- */
-@media (pointer: coarse) {
     .virtual-keyboard-tab-list button {
         min-height: 2.75rem;
         @apply px-3;
