@@ -6,7 +6,7 @@
 "doenet-vscode-extension": patch
 ---
 
-Editor: offer the values of `renderMode`, `marker`, and `grid` in autocomplete and context help.
+Offer the values of `renderMode`, `marker`, and `grid` in autocomplete and context help, and check them when a document runs. `<odeSystem renderMode>` is deprecated in the process.
 
 Each of these attributes accepted a fixed set of words that lived only in the
 renderer's `if`/`else` chain, so the schema surfaced them as free text and an
