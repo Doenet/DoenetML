@@ -50,10 +50,12 @@ a document declaring an `xmlns` version that the wrapper's version
 autodetection pins to, or simply a wrapper installed before the viewer it
 loads from the CDN. A viewer from this release **can** be driven by a tray
 from before it: the old tray announces itself by the `accessed` message it
-sends as it takes focus, and the viewer takes its claim on the keyboard back
-when it sees one, then restores the caret after typing. This is the pairing
-that arises the moment a new viewer is published under an already-deployed
-wrapper, so it is the one worth keeping working.
+sends as it takes focus, and the input it has just that moment blurred takes
+its claim on the keyboard back when it sees one, then restores the caret after
+typing. Only that input, and only that moment: a key pressed after the reader
+has left a math input of their own accord types nowhere, as before. This is the
+pairing that arises the moment a new viewer is published under an
+already-deployed wrapper, so it is the one worth keeping working.
 
 The opposite pairing cannot be rescued from the viewer's side: a viewer from
 before this release typed only in response to a blur that this tray no longer

@@ -17,11 +17,13 @@
  *   has no blur to explain. It is still *accepted*, and is the one thing that
  *   identifies a tray from before that change: only those send it, and they
  *   send it from the pointer press that blurs the input, so it arrives
- *   between that blur and the key it precedes. A math input takes its claim
- *   on the keyboard back when it sees one, and puts the caret back after
- *   typing, which is what lets a current viewer be driven by an older tray —
- *   the pairing doenet.org has whenever it serves a newly published viewer
- *   under its installed wrapper.
+ *   between that blur and the key it precedes. A math input that has just
+ *   been blurred that way takes its claim on the keyboard back when it sees
+ *   one, and puts the caret back after typing, which is what lets a current
+ *   viewer be driven by an older tray — the pairing doenet.org has whenever it
+ *   serves a newly published viewer under its installed wrapper. "Just" is
+ *   part of it: a press that arrives long after the reader left an input is
+ *   not the cause of that blur and does not reclaim anything.
  *
  *   The reverse pairing, an older viewer under this tray, cannot be rescued
  *   from this side: that viewer typed only in response to a blur this tray no

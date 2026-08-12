@@ -77,17 +77,29 @@ export const FocusedMathInputContext = React.createContext<
 >({ current: null });
 
 /**
- * The math input the reader edited most recently, which — unlike
- * `FocusedMathInputContext` — is not cleared when that input is blurred.
+ * A math input that has just given up its claim on the virtual keyboard, and
+ * when it did so, recorded only when the blur left nothing in this document
+ * focused in its place.
+ */
+export type ReleasedKeyboardClaim = {
+    input: HTMLElement;
+    releasedAt: number;
+};
+
+/**
+ * The most recent such release — the counterpart to
+ * `FocusedMathInputContext`, which by then holds nothing.
  *
  * Only used to accommodate a keyboard tray published before it learned to
  * decline focus: pressing one of its keys blurs the input before the key
  * arrives, so by the time it does there is no focused input to receive it.
  * See the `accessed` message in `KeyCommand`, which is what identifies such a
- * tray, and the handling of it in the math input renderer.
+ * tray, and the handling of it in the math input renderer, which uses the two
+ * halves of this record to tell that blur from the reader leaving the input of
+ * their own accord.
  */
-export const LastEditedMathInputContext = React.createContext<
-    React.RefObject<HTMLElement | null>
+export const ReleasedKeyboardClaimContext = React.createContext<
+    React.RefObject<ReleasedKeyboardClaim | null>
 >({ current: null });
 
 /**
@@ -768,7 +780,7 @@ function WrapWithKeyboard({
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
-    const lastEditedMathInput = useRef<HTMLElement | null>(null);
+    const releasedKeyboardClaim = useRef<ReleasedKeyboardClaim | null>(null);
     const keyboard = addVirtualKeyboard ? (
         <VirtualKeyboard
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
@@ -820,11 +832,13 @@ function WrapWithKeyboard({
 
     return (
         <FocusedMathInputContext.Provider value={focusedMathInput}>
-            <LastEditedMathInputContext.Provider value={lastEditedMathInput}>
+            <ReleasedKeyboardClaimContext.Provider
+                value={releasedKeyboardClaim}
+            >
                 {children}
                 <div className="before-keyboard" />
                 {keyboard}
-            </LastEditedMathInputContext.Provider>
+            </ReleasedKeyboardClaimContext.Provider>
         </FocusedMathInputContext.Provider>
     );
 }

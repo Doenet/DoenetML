@@ -10,6 +10,14 @@ import {
 // bundle; budget more than IFRAME_READY_TIMEOUT for it.
 const CONTENT_TIMEOUT = 30_000;
 
+/**
+ * Comfortably longer than the window in which the viewer will read a tray
+ * press as the cause of a blur, so a press made after it is not taken for one
+ * made during it — and long enough afterwards for a press that should type
+ * nothing to have had its chance to type something.
+ */
+const SETTLE_MS = 500;
+
 const DOENETML = '<p>Type here: <mathInput name="mi" /></p>';
 
 /**
@@ -127,5 +135,43 @@ describe("DoenetViewer (iframe wrapper) — a keyboard tray from before it decli
         viewerBody()
             .find(".mq-editable-field", { timeout: CONTENT_TIMEOUT })
             .should("contain.text", "xx");
+    });
+
+    it("types nothing once the reader has left the input of their own accord", () => {
+        cy.mount(<Harness />);
+
+        viewerBody()
+            .find(".mq-editable-field", { timeout: CONTENT_TIMEOUT })
+            .should("exist")
+            .click();
+
+        cy.get("[data-test=legacy-key-x]").click();
+
+        viewerBody()
+            .find(".mq-editable-field", { timeout: CONTENT_TIMEOUT })
+            .should("contain.text", "x");
+
+        // The reader moves on to the surrounding text, which takes no focus of
+        // its own — the same shape of blur the tray causes, and all the viewer
+        // has to tell them apart by is how long ago it happened.
+        viewerBody().find(".para").click("left");
+        cy.get("iframe")
+            .its("0.contentDocument.activeElement")
+            .should("not.match", "textarea");
+
+        // Long enough that the next press cannot be the cause of that blur.
+        cy.wait(SETTLE_MS);
+        cy.get("[data-test=legacy-key-x]").click();
+        cy.wait(SETTLE_MS);
+
+        // The key belonged to no input, so it typed nowhere, and nothing
+        // pulled the caret back into an input the reader had left.
+        viewerBody()
+            .find(".mq-editable-field")
+            .should("contain.text", "x")
+            .should("not.contain.text", "xx");
+        cy.get("iframe")
+            .its("0.contentDocument.activeElement")
+            .should("not.match", "textarea");
     });
 });

@@ -32,7 +32,7 @@ import { MathJax } from "better-react-mathjax";
 import "./mathInput.css";
 import {
     FocusedMathInputContext,
-    LastEditedMathInputContext,
+    ReleasedKeyboardClaimContext,
 } from "../../doenetml";
 import { useAppSelector } from "../../state";
 import { keyboardSlice } from "../../state/slices/keyboard";
@@ -71,6 +71,24 @@ const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
  * smaller `_maxLength` means less work on every keystroke.
  */
 const EMPTY_AUTO_OPERATOR_NAMES_SENTINEL = "a-";
+
+/**
+ * How soon after a math input gives up its claim on the virtual keyboard an
+ * `accessed` message must arrive for the press that sent it to be read as the
+ * cause of that blur — the one thing that lets an input driven by a keyboard
+ * tray from before this change take its claim back (see `KeyCommand`).
+ *
+ * A bound is needed because nothing else separates that blur from the reader
+ * leaving the input of their own accord and reaching for the tray afterwards,
+ * and reclaiming in the latter case would type into an input the reader has
+ * left and pull the caret back to it. The viewers contemporary with such a
+ * tray drew the same line, at 100 ms between the blur and the tray's own
+ * timestamp; this measures instead from the blur to the message being handled,
+ * so it allows for the `postMessage` hop and the render that follows, while
+ * staying well inside the time it takes a reader to leave an input and press a
+ * key.
+ */
+const LEGACY_TRAY_RECLAIM_WINDOW_MS = 300;
 
 /**
  * Encapsulates math input preview popover state and interaction behavior.
@@ -447,7 +465,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         keyboardSlice.selectors.systemKeyboardRequested,
     );
     const focusedMathInput = useContext(FocusedMathInputContext);
-    const lastEditedMathInput = useContext(LastEditedMathInputContext);
+    const releasedKeyboardClaim = useContext(ReleasedKeyboardClaimContext);
     const [mathField, setMathField] = useState<MathField | null>(null);
     // `EditableMathField`'s `handlers.enter` callback can hold stale captures.
     // Keep the latest MathField instance in a ref for enter handling.
@@ -608,11 +626,16 @@ export default function MathInput(props: UseDoenetRendererProps) {
         //
         // The old tray sends this from the pointer press that causes the blur,
         // so it always arrives between the blur and the key. Current trays
-        // never send it, which is what confines this to the old ones.
+        // never send it, which is what confines this to the old ones. The
+        // release it answers has to be this input's, recent, and to nothing
+        // else in this document — otherwise the reader left the input on their
+        // own and a key pressed afterwards is not theirs to take back.
+        const release = releasedKeyboardClaim.current;
         if (
             mathField &&
             focusedMathInput.current === null &&
-            lastEditedMathInput.current === mathField.el() &&
+            release?.input === mathField.el() &&
+            Date.now() - release.releasedAt < LEGACY_TRAY_RECLAIM_WINDOW_MS &&
             virtualKeyboardEvents.some((event) => event.type === "accessed")
         ) {
             focusedMathInput.current = mathField.el();
@@ -645,8 +668,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             switch (event.type) {
                 case "accessed":
                 case "keyboardChoice":
-                    // Not key presses. Both are handled elsewhere (or, for
-                    // `accessed`, no longer needed at all); see `KeyCommand`.
+                    // Not key presses, and both are dealt with before they get
+                    // here: `accessed` by the reclaim above, `keyboardChoice`
+                    // on its way to the store. See `KeyCommand`.
                     break;
                 case "cmd":
                     mathField.cmd(event.command);
@@ -714,7 +738,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // taking it from `mathField` dropped the claim, and the keyboard then
         // typed nowhere until the reader left the input and came back.
         focusedMathInput.current = e.currentTarget;
-        lastEditedMathInput.current = e.currentTarget;
         onFocusChanged(true);
     };
 
@@ -722,13 +745,23 @@ export default function MathInput(props: UseDoenetRendererProps) {
      * Finishes a blur that has taken focus away from this input for good: stop
      * claiming the virtual keyboard's keys, commit the value, and drop the
      * focused styling. `nextFocused` is where focus has gone, if anywhere.
-     *
      */
     function endEditing(nextFocused: EventTarget | null) {
         stopWatchingTrayHandoff.current?.();
 
         if (mathField && focusedMathInput.current === mathField.el()) {
             focusedMathInput.current = null;
+            // A blur with nowhere to hand focus on to is the shape of the one
+            // an old keyboard tray causes, since it takes focus in the
+            // embedding page and `relatedTarget` does not cross that boundary.
+            // Record it so such a tray's press can be recognized as its cause
+            // and the claim taken back; a blur that named where focus went is
+            // the reader moving somewhere in this document, and leaves nothing
+            // to reclaim. See `LEGACY_TRAY_RECLAIM_WINDOW_MS`.
+            releasedKeyboardClaim.current =
+                nextFocused === null
+                    ? { input: mathField.el(), releasedAt: Date.now() }
+                    : null;
         }
 
         callAction({
