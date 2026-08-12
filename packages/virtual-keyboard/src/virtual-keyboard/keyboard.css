@@ -97,6 +97,40 @@
     @apply grid-cols-5;
 }
 
+/*
+ * Touch devices — see the note beside the matching block in
+ * `keyboard-tray.css`. A key was 39x40 on a phone and a layout tab 30x25;
+ * both are below the 44px a fingertip needs (issue #449).
+ *
+ * Height is raised outright, since it costs only tray height. Width is left
+ * to the flex layout, which already gives each key an equal share of the row:
+ * a phone cannot fit twelve 44px-wide keys across, and forcing it would push
+ * the row into an overflow or a wrap that helps no one. Raising the ceiling on
+ * how wide a key may grow is what helps the other end — a tablet, where the
+ * row had room to spare and the keys stayed small in the middle of it.
+ */
+@media (pointer: coarse) {
+    .virtual-keyboard {
+        max-width: 48rem;
+
+        button {
+            min-height: 2.75rem;
+            @apply max-w-[4.5em];
+        }
+        .key-shift,
+        .key-backspace,
+        .key-space {
+            @apply max-w-none;
+        }
+    }
+    .virtual-keyboard.numeric .key-backspace {
+        @apply max-w-[4.5em];
+    }
+    .virtual-keyboard .sub-keyboard {
+        max-width: 48rem;
+    }
+}
+
 .virtual-keyboard-tab-list {
     @apply flex flex-nowrap;
     button {
@@ -108,5 +142,16 @@
     }
     button[aria-selected="true"] {
         @apply border-blue-400 text-blue-600;
+    }
+}
+
+/*
+ * Touch devices, continued. Placed after the tab strip's own rule above so it
+ * wins on source order: both selectors have the same specificity.
+ */
+@media (pointer: coarse) {
+    .virtual-keyboard-tab-list button {
+        min-height: 2.75rem;
+        @apply px-3;
     }
 }
