@@ -20,7 +20,10 @@ import {
     hasCoarsePrimaryPointer,
     subscribeToPrimaryPointerType,
 } from "@doenet/utils";
-import { isInVirtualKeyboardTray } from "@doenet/virtual-keyboard";
+import {
+    getVirtualKeyboardTrayElement,
+    isInVirtualKeyboardTray,
+} from "@doenet/virtual-keyboard";
 import { DescriptionPopover } from "./utils/Description";
 import * as Ariakit from "@ariakit/react";
 
@@ -477,6 +480,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
         textarea.inputMode = suppressSystemKeyboard ? "none" : "text";
     }, [suppressSystemKeyboard, mathField]);
 
+    // Detaches the watcher that `watchForFocusLeavingTray` installs on the
+    // tray, which lives outside this input's DOM and so outlives it otherwise.
+    const stopWatchingTrayHandoff = useRef<(() => void) | null>(null);
+    useEffect(() => () => stopWatchingTrayHandoff.current?.(), []);
+
     const rendererValue = useRef(SVs.rawRendererValue);
 
     // Keep this in a ref so `handlePressEnter` always sees current state.
@@ -659,28 +667,14 @@ export default function MathInput(props: UseDoenetRendererProps) {
         onFocusChanged(true);
     };
 
-    const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
-        const relatedTarget = e.relatedTarget;
+    /**
+     * Finishes a blur that has taken focus away from this input for good: stop
+     * claiming the virtual keyboard's keys, commit the value, and drop the
+     * focused styling. `nextFocused` is where focus has gone, if anywhere.
+     */
+    function endEditing(nextFocused: EventTarget | null) {
+        stopWatchingTrayHandoff.current?.();
 
-        if (isInVirtualKeyboardTray(relatedTarget)) {
-            // The reader moved focus into the virtual keyboard in order to type
-            // with it, so this input is still the one being edited: stay
-            // registered as the target of its keys, and neither commit the
-            // value nor drop the focused styling. Pressing a key does not reach
-            // here at all — the tray cancels the default action of the pointer
-            // press, so focus never leaves the input; only deliberate keyboard
-            // navigation into the tray produces this blur.
-            //
-            // Nothing releases the input if the reader then tabs out of the
-            // tray to something else: it stays styled as focused, with its
-            // value uncommitted, until they come back to it. Same gap, and the
-            // same reason for leaving it as it is, as the tray's own claim —
-            // see `reportMathInputFocus`.
-            return;
-        }
-
-        // For a genuine blur, stop claiming the virtual keyboard's keys, then
-        // commit and unfocus.
         if (mathField && focusedMathInput.current === mathField.el()) {
             focusedMathInput.current = null;
         }
@@ -694,11 +688,71 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // Keep preview open when keyboard focus tabs from the input into the
         // preview region.
         if (
-            relatedTarget instanceof Node &&
-            preview.previewRef.current?.contains(relatedTarget)
+            nextFocused instanceof Node &&
+            preview.previewRef.current?.contains(nextFocused)
         ) {
             preview.setInteractingWithPreview(true);
         }
+    }
+
+    /**
+     * After focus has been handed from this input to the keyboard tray, waits
+     * for it to leave the tray again and finishes the blur unless it comes back
+     * here.
+     *
+     * The tray is not part of this input's DOM, so focus leaving it raises no
+     * further event on the input: without this the input would stay styled as
+     * focused, with its value uncommitted, until the reader returned to it and
+     * left it properly.
+     */
+    function watchForFocusLeavingTray() {
+        const tray = getVirtualKeyboardTrayElement();
+        if (!tray) {
+            return;
+        }
+
+        function handleTrayFocusOut(event: FocusEvent) {
+            const nextFocused = event.relatedTarget;
+            if (isInVirtualKeyboardTray(nextFocused)) {
+                // Focus is only moving between the tray's own keys.
+                return;
+            }
+            stopWatchingTrayHandoff.current?.();
+            if (
+                nextFocused instanceof Node &&
+                mathField?.el().contains(nextFocused)
+            ) {
+                // Focus came back here; `handleFocus` takes it from there.
+                return;
+            }
+            endEditing(nextFocused);
+        }
+
+        stopWatchingTrayHandoff.current?.();
+        tray.addEventListener("focusout", handleTrayFocusOut);
+        stopWatchingTrayHandoff.current = () => {
+            tray.removeEventListener("focusout", handleTrayFocusOut);
+            stopWatchingTrayHandoff.current = null;
+        };
+    }
+
+    const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
+        const relatedTarget = e.relatedTarget;
+
+        if (isInVirtualKeyboardTray(relatedTarget)) {
+            // The reader moved focus into the virtual keyboard in order to type
+            // with it, so this input is still the one being edited: stay
+            // registered as the target of its keys, and neither commit the
+            // value nor drop the focused styling. Pressing a key does not reach
+            // here at all — the tray cancels the default action of the pointer
+            // press, so focus never leaves the input; only deliberate keyboard
+            // navigation into the tray produces this blur, and the editing
+            // ends when focus leaves the tray for somewhere that is not here.
+            watchForFocusLeavingTray();
+            return;
+        }
+
+        endEditing(relatedTarget);
     };
 
     const onChangeHandler = (text: string) => {

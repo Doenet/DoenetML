@@ -22,7 +22,9 @@ still work as before. The tray also declines focus when it is pressed, so the
 input no longer blurs and is no longer refocused on every key. Closing the
 tray hands the device's keyboard back; the choice is remembered, so the tray
 stays shut, and the system keyboard keeps coming up, as the reader moves
-between math inputs until they ask for the Doenet keyboard again.
+between math inputs until they ask for the Doenet keyboard again. When the
+system keyboard is the one in use, it no longer capitalizes or autocorrects
+what is typed into a math input.
 
 The tray now follows focus on touch devices: it opens when a math input takes
 focus and gets out of the way when focus moves to something else, such as a

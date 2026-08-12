@@ -991,6 +991,49 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("commits the value when focus goes on from the tray to somewhere else", () => {
+        // Focus moving into the tray is not the reader leaving the input, so
+        // the input holds on to it. But the tray is not part of the input's
+        // DOM, so focus leaving the tray again raises no further event on the
+        // input: something has to watch the tray, or the value the reader
+        // typed would never be committed.
+        //
+        // Only deliberate keyboard navigation puts focus in the tray — a key
+        // press is declined — so that is what this drives.
+        postDoenetML(`
+    <p>a: <mathInput name="a" /></p>
+    <p>a2: <math extend="$a" name="a2" /></p>
+    <p>b: <mathInput name="b" /></p>
+    `);
+
+        cy.get("#a2").should("contain.text", "＿");
+        cy.get("#a textarea").type("1", { force: true });
+        cy.get("#a .mq-editable-field").should("contain.text", "1");
+        cy.log("Not committed while the input is being edited");
+        cy.get("#a2").should("contain.text", "＿");
+
+        cy.get(".open-keyboard-button").click();
+        cy.get("#virtual-keyboard-tray.open").should("exist");
+
+        cy.log("Move focus into the tray, as a keyboard-only reader does");
+        cy.get("#virtual-keyboard-tray .key-1").focus();
+        cy.focused().should("match", "#virtual-keyboard-tray .key-1");
+        cy.log("Still uncommitted: the reader is operating the keyboard");
+        cy.get("#a2").should("contain.text", "＿");
+
+        // Focus leaves the tray for a different input and never returns to `a`,
+        // so nothing else will ever commit what was typed into it.
+        cy.get("#b textarea").focus();
+        cy.get("#a2").should("contain.text", "1");
+
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("a")].stateValues.value,
+            ).eq(1);
+        });
+    });
+
     it("mathInput in a graph renders at its anchor, is editable, and binds its value", () => {
         postDoenetMLWithMathJaxPrimed(`
     <graph name="g">
