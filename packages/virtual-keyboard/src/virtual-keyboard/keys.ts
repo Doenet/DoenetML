@@ -7,12 +7,25 @@
  *
  * - `"accessed"` — no longer sent. It used to drive a blur/refocus timing
  *   heuristic that the tray no longer needs now that it declines focus
- *   outright. The type stays because the tray and the viewer ship separately
- *   — an embedding page can pin an older bundle inside the iframe — so a
- *   current viewer must still recognize what an older tray sends, and ignore
- *   it rather than warn. (The opposite pairing cannot be rescued: a viewer
- *   old enough to need the heuristic typed only after a blur, and declining
- *   focus is exactly what stops the blur.)
+ *   outright. The type stays so that a current viewer recognizes what an
+ *   older tray sends and ignores it rather than warning about it.
+ *
+ *   Recognizing it does not make the pairing work, though, and neither
+ *   pairing across this change can be rescued. The tray and the viewer ship
+ *   separately — an embedding page can pin an older bundle inside the iframe
+ *   — and typing needs them to agree about the blur:
+ *
+ *   - Older viewer, current tray: the viewer typed only in response to the
+ *     blur a tray press used to cause, and declining focus is exactly what
+ *     removes that blur.
+ *   - Current viewer, older tray: the older tray does cause the blur, and
+ *     across the iframe boundary it arrives with a null `relatedTarget`, so
+ *     the viewer cannot tell it from the reader leaving the input for good
+ *     and stops claiming the keys. `"accessed"` cannot undo that — it is
+ *     delivered by `postMessage`, hence after the blur has been acted on.
+ *
+ *   Embedders should keep the wrapper and the viewer on the same release.
+ *
  * - `"keyboardChoice"` — which keyboard the reader has asked for, with
  *   `command` set to `"virtual"` (they opened the tray) or `"system"` (they
  *   closed it). On a touch device the two keyboards compete for the same

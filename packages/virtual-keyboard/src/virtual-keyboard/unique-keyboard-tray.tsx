@@ -236,6 +236,15 @@ export function reportMathInputFocus(
         // The reader moved into the keyboard itself to operate it. They are
         // still editing the input they left, so this viewer keeps its claim on
         // the tray and the tray must not fold away underneath them.
+        //
+        // The claim is held rather than queued for release, so if the reader
+        // then leaves the tray for something that is not a math input the tray
+        // stays open: the viewer has already reported "not focused" and has
+        // nothing further to report. Reaching that state needs a hardware
+        // keyboard on a device whose primary pointer is coarse, it rights
+        // itself at the next math input the reader focuses and leaves, and an
+        // open tray is the ordinary state on touch — so it is left alone
+        // rather than answered with a deferred-release queue.
         return;
     }
 

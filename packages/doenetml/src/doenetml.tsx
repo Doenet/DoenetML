@@ -782,6 +782,15 @@ function WrapWithKeyboard({
                     );
                 }
 
+                // A fresh array every press, and deliberately so: a math input
+                // notices a new batch of keys by the identity of the array in
+                // the store, and the keys of a given tray button are one
+                // constant array reused on every press of it. Storing that
+                // constant would leave the state unchanged, and pressing the
+                // same key twice in a row would type one character. The
+                // bookkeeping events the tray used to send alongside every
+                // press kept the identity moving on their own; nothing does
+                // now, so the dispatch has to.
                 const keyPresses = keyCommands.filter(
                     (command) => command.type !== "keyboardChoice",
                 );
