@@ -116876,27 +116876,6 @@
                         "string"
                     ]
                 },
-                "labelIsName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "applyStyleToLabel": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "maskLabel": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
                 "layer": {
                     "optional": true,
                     "type": [
@@ -116928,20 +116907,7 @@
                     ]
                 }
             },
-            "children": [
-                {
-                    "ref": "xLabel"
-                },
-                {
-                    "ref": "yLabel"
-                },
-                {
-                    "ref": "conditionalContent"
-                },
-                {
-                    "ref": "label"
-                }
-            ],
+            "children": [],
             "textChildrenAllowed": false,
             "properties": [
                 {
@@ -116963,27 +116929,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
                     "fromAttribute": true
                 },
                 {
@@ -117050,12 +116995,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component."
                 }
             ]
         },

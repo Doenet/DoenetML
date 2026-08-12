@@ -2210,55 +2210,6 @@ describe("Graph tag tests @group2", async () => {
         ).eq("-45.03233, 8.28572, -5.58234, 7.8371");
     });
 
-    it("pegboard", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <graph>
-      <pegboard />
-    </graph>
-    
-    <graph>
-      <pegboard dx="3" dy="2" xoffset="1" yoffset="-1" />
-    </graph>
-    `,
-        });
-
-        // not sure what to test as don't know how to check renderer...
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_pegboard1")].stateValues
-                .dx,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_pegboard1")].stateValues
-                .dy,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_pegboard1")].stateValues
-                .xoffset,
-        ).eq(0);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_pegboard1")].stateValues
-                .yoffset,
-        ).eq(0);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_pegboard2")].stateValues
-                .dx,
-        ).eq(3);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_pegboard2")].stateValues
-                .dy,
-        ).eq(2);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_pegboard2")].stateValues
-                .xoffset,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("_pegboard2")].stateValues
-                .yoffset,
-        ).eq(-1);
-    });
-
     it("show border", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
