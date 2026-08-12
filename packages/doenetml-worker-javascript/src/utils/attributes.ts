@@ -54,9 +54,19 @@ export function preprocessAttributesObject<T extends AttributesObject>(
                 attrSpec.defaultValue !== undefined &&
                 attrSpec.defaultValue !== null
             ) {
-                attrSpec.defaultValue = String(
-                    attrSpec.defaultValue,
-                ).toLowerCase();
+                // A list-valued attribute (e.g. `createComponentOfType:
+                // "textList"`) has an array default, and `validValues`
+                // constrains each item, so lower-case item-wise. Stringifying
+                // the array instead would replace the default with a comma-
+                // joined string, which every consumer expecting a list would
+                // then have to cope with.
+                attrSpec.defaultValue = Array.isArray(attrSpec.defaultValue)
+                    ? attrSpec.defaultValue.map((entry) =>
+                          typeof entry === "string"
+                              ? entry.toLowerCase()
+                              : entry,
+                      )
+                    : String(attrSpec.defaultValue).toLowerCase();
             }
 
             if (Array.isArray(attrSpec.validValues)) {

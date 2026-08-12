@@ -19,33 +19,29 @@ import {
  * halves of one renderer decision: `list.tsx` reads `numbered` to pick which
  * of them applies, and neither half does anything on the other kind of list.
  */
-function returnNumberedMarkerValues() {
-    return [
-        { value: "1", description: "Arabic numerals: 1, 2, 3, …" },
-        { value: "a", description: "Lowercase letters: a, b, c, …" },
-        { value: "A", description: "Uppercase letters: A, B, C, …" },
-        {
-            value: "i",
-            description: "Lowercase roman numerals: i, ii, iii, …",
-        },
-        {
-            value: "I",
-            description: "Uppercase roman numerals: I, II, III, …",
-        },
-    ];
-}
+const NUMBERED_MARKER_VALUES = [
+    { value: "1", description: "Arabic numerals: 1, 2, 3, …" },
+    { value: "a", description: "Lowercase letters: a, b, c, …" },
+    { value: "A", description: "Uppercase letters: A, B, C, …" },
+    {
+        value: "i",
+        description: "Lowercase roman numerals: i, ii, iii, …",
+    },
+    {
+        value: "I",
+        description: "Uppercase roman numerals: I, II, III, …",
+    },
+];
 
 /**
  * The marker styles an unnumbered list (`<ul>`) can use — the complete set,
  * unlike the numbered ones above, which is why `<ul>` enforces these.
  */
-function returnUnnumberedMarkerValues() {
-    return [
-        { value: "disc", description: "A filled circle." },
-        { value: "circle", description: "A hollow circle." },
-        { value: "square", description: "A filled square." },
-    ];
-}
+const UNNUMBERED_MARKER_VALUES = [
+    { value: "disc", description: "A filled circle." },
+    { value: "circle", description: "A hollow circle." },
+    { value: "square", description: "A filled square." },
+];
 
 export class Ol extends BlockComponent {
     constructor(args) {
@@ -99,7 +95,7 @@ export class Ol extends BlockComponent {
             createStateVariable: "marker",
             defaultValue: null,
             forRenderer: true,
-            suggestedValues: returnNumberedMarkerValues(),
+            suggestedValues: NUMBERED_MARKER_VALUES,
             description:
                 "Marker style for the list items: `1`, `a`, `A`, `i`, or `I`. The value is matched on its first character, so a decorated form such as `1.` or `a)` selects the same style. Defaults to a style chosen by the list's nesting level.",
         };
@@ -239,7 +235,7 @@ export class Ul extends Ol {
         attributes.marker = {
             ...inheritedMarker,
             toLowerCase: true,
-            validValues: returnUnnumberedMarkerValues(),
+            validValues: UNNUMBERED_MARKER_VALUES,
             description:
                 "Marker style for the list items: `disc`, `circle`, or `square`. Defaults to a style chosen by the list's nesting level.",
         };

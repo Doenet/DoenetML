@@ -56,6 +56,25 @@ describe("preprocessAttributesObject @group4", () => {
         ]);
     });
 
+    it("lower-cases an array defaultValue item-wise, keeping it an array", () => {
+        // A list-valued attribute's default is a list; stringifying it would
+        // hand every consumer a comma-joined string instead.
+        const attrs: Record<string, AttributeDefinition<unknown>> = {
+            stats: {
+                toLowerCase: true,
+                defaultValue: ["Default", "MEAN"],
+                validValues: [
+                    { value: "Default", description: "The default set." },
+                    { value: "MEAN", description: "The mean." },
+                ],
+            },
+        };
+
+        const result = preprocessAttributesObject(attrs);
+
+        expect(result.stats.defaultValue).toEqual(["default", "mean"]);
+    });
+
     it("leaves validValues casing intact when toLowerCase is not set", () => {
         const attrs: Record<string, AttributeDefinition<unknown>> = {
             mode: {
